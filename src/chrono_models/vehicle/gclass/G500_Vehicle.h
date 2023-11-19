@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace gclass {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_gclass
 /// @{
 
 /// UAZ vehicle system.
@@ -79,9 +79,9 @@ class CH_MODELS_API G500_Vehicle : public ChWheeledVehicle {
     std::vector<double> m_omega;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_gclass
 
-}  // end namespace uaz
+}  // end namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono
 

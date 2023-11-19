@@ -119,11 +119,12 @@ def CreateTerrain(sys, length, width, height, offset) :
     ground.SetBodyFixed(True)
     ground.SetCollide(True)
 
-    ground.GetCollisionModel().ClearModel()
-    ground.GetCollisionModel().AddBox(ground_mat, length, width, 0.2, chrono.ChVectorD(offset, 0, height - 0.1))
-    ground.GetCollisionModel().BuildModel()
+    ground.GetCollisionModel().Clear()
+    ground_ct_shape = chrono.ChCollisionShapeBox(ground_mat, length, width, 0.2)
+    ground.GetCollisionModel().AddShape(ground_ct_shape, chrono.ChFrameD(chrono.ChVectorD(offset, 0, height - 0.1), chrono.QUNIT))
+    ground.GetCollisionModel().Build()
 
-    box = chrono.ChBoxShape(length, width, 0.2)
+    box = chrono.ChVisualShapeBox(length, width, 0.2)
     box.SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"), 10 * length, 10 * width)
     ground.AddVisualShape(box, chrono.ChFrameD(chrono.ChVectorD(offset, 0, height - 0.1), chrono.QUNIT))
 

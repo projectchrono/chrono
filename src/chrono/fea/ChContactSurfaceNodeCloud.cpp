@@ -12,12 +12,13 @@
 // Authors: Andrea Favali, Alessandro Tasora
 // =============================================================================
 
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChMesh.h"
+
 
 namespace chrono {
 namespace fea {
@@ -55,7 +56,7 @@ ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem() {
 
 ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* anode, ChContactSurface* acontainer)
     : ChContactNodeXYZ(anode, acontainer) {
-    this->collision_model = new collision::ChCollisionModelBullet;
+    this->collision_model = new ChCollisionModelBullet;
     this->collision_model->SetContactable(this);
 }
 
@@ -92,7 +93,7 @@ ChPhysicsItem* ChContactNodeXYZROT::GetPhysicsItem() {
 
 ChContactNodeXYZROTsphere::ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* anode, ChContactSurface* acontainer)
     : ChContactNodeXYZROT(anode, acontainer) {
-    this->collision_model = new collision::ChCollisionModelBullet;
+    this->collision_model = new ChCollisionModelBullet;
     this->collision_model->SetContactable(this);
 }
 
@@ -107,9 +108,9 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> mnode, con
         return;
 
     auto newp = chrono_types::make_shared<ChContactNodeXYZsphere>(mnode.get(), this);
-
-    newp->GetCollisionModel()->AddPoint(m_material, point_radius);
-    newp->GetCollisionModel()->BuildModel();  // will also add to system, if collision is on.
+    auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
+    newp->GetCollisionModel()->AddShape(point_shape);
+    newp->GetCollisionModel()->Build();  // will also add to system, if collision is on.
 
     this->vnodes.push_back(newp);
 }
@@ -119,9 +120,9 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> mnode, 
         return;
 
     auto newp = chrono_types::make_shared<ChContactNodeXYZROTsphere>(mnode.get(), this);
-
-    newp->GetCollisionModel()->AddPoint(m_material, point_radius);
-    newp->GetCollisionModel()->BuildModel();  // will also add to system, if collision is on.
+    auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
+    newp->GetCollisionModel()->AddShape(point_shape);
+    newp->GetCollisionModel()->Build();  // will also add to system, if collision is on.
 
     this->vnodes_rot.push_back(newp);
 }

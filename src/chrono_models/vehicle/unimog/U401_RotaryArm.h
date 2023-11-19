@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_unimog
 /// @{
 
 /// RotaryArm steering subsystem for the uaz vehicle.
@@ -59,7 +59,7 @@ class CH_MODELS_API U401_RotaryArm : public ChRotaryArm {
     static const ChVector<> m_pitmanArmInertiaProducts;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_unimog
 
 }  // namespace unimog
 }  // end namespace vehicle

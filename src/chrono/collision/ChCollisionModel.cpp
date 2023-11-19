@@ -13,14 +13,23 @@
 // =============================================================================
 
 #include "chrono/collision/ChCollisionModel.h"
+#include "chrono/collision/ChCollisionShapeCylinder.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/geometry/ChLineSegment.h"
 
 namespace chrono {
-namespace collision {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChCollisionModel)  // NO! Abstract class!
+
+class my_enum_mappers {
+  public:
+    CH_ENUM_MAPPER_BEGIN(ChCollisionSystemType);
+    CH_ENUM_VAL(ChCollisionSystemType::BULLET);
+    CH_ENUM_VAL(ChCollisionSystemType::CHRONO);
+    CH_ENUM_VAL(ChCollisionSystemType::OTHER);
+    CH_ENUM_MAPPER_END(ChCollisionSystemType);
+};
 
 static double default_model_envelope = 0.03;
 static double default_safe_margin = 0.01;
@@ -30,8 +39,31 @@ ChCollisionModel::ChCollisionModel() : mcontactable(nullptr), family_group(1), f
     model_safe_margin = (float)default_safe_margin;
 }
 
+ChCollisionModel::~ChCollisionModel() {
+    m_shape_instances.clear();
+}
+
+void ChCollisionModel::Clear() {
+    // Delete all inserted collision shape instances
+    m_shape_instances.clear();
+
+    // Remove this model from the collsion system
+    Dissociate();
+}
+
+void ChCollisionModel::Build() {
+    // Remove this model from the collision system
+    Dissociate();
+
+    // Populate model with current list of collision shapes
+    Populate();
+
+    // Associate this model with the collision system
+    Associate();
+}
+
 void ChCollisionModel::CopyShapes(ChCollisionModel* other) {
-    m_shapes = other->m_shapes;
+    m_shape_instances = other->m_shape_instances;
 }
 
 ChPhysicsItem* ChCollisionModel::GetPhysicsItem() {
@@ -105,7 +137,11 @@ void ChCollisionModel::SetFamilyMask(short int mask) {
     family_mask = mask;
 }
 
-bool ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
+void ChCollisionModel::AddShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame) {
+    m_shape_instances.push_back({shape, frame});
+}
+
+void ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
                                    double radius,
                                    const ChVector<>& p1,
                                    const ChVector<>& p2) {
@@ -113,69 +149,96 @@ bool ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
     auto height = seg.GetLength();
     auto frame = seg.GetFrame();
 
-    return AddCylinder(material, radius, height, frame.GetPos(), frame.GetA());
-}
-
-bool ChCollisionModel::AddConvexHullsFromFile(std::shared_ptr<ChMaterialSurface> material,
-                                              ChStreamInAscii& mstream,
-                                              const ChVector<>& pos,
-                                              const ChMatrix33<>& rot) {
-    std::vector<ChVector<double> > ptlist;
-
-    char bufdata[200];
-    int linechar = 0;
-    while (!mstream.End_of_stream()) {
-        // read one line
-        linechar = 0;
-        while (!mstream.End_of_stream()) {
-            try {
-                mstream >> bufdata[linechar];
-            } catch (const ChException &) {
-            };
-            if ((bufdata[linechar] == (char)13) || (bufdata[linechar] == (char)10)) {
-                bufdata[linechar] = 0;
-                break;
-            }
-            linechar++;
-            if (linechar >= 200)
-                throw(ChException("Too long line in parsing"));
-        }
-        bufdata[linechar + 1] = 0;
-
-        ////bool parsedline = false;
-        if (bufdata[0] != *"#") {
-            ////parsedline = true;
-        }
-        if (strcmp(bufdata, "hull") == 0) {
-            if (ptlist.size())
-                this->AddConvexHull(material, ptlist, pos, rot);
-            ptlist.clear();
-            ////parsedline = true;
-        }
-        float vx, vy, vz;
-        if (sscanf(bufdata, "%g %g %g", &vx, &vy, &vz) == 3) {
-            ptlist.push_back(ChVector<>(vx, vy, vz));
-            ////parsedline = true;
-        }
-    }
-    
-    if (ptlist.size())
-        this->AddConvexHull(material, ptlist, pos, rot);
-    ptlist.clear();
-
-    return true;
+    auto cylinder_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(material, radius, height);
+    AddShape(cylinder_shape, frame);
 }
 
 void ChCollisionModel::SetShapeMaterial(int index, std::shared_ptr<ChMaterialSurface> mat) {
-    assert(index < GetNumShapes());
-    assert(m_shapes[index]->m_material->GetContactMethod() == mat->GetContactMethod());
-    m_shapes[index]->m_material = mat;
+    assert(index < m_shape_instances.size());
+    auto& shape = m_shape_instances[index].first;
+    assert(shape->m_material->GetContactMethod() == mat->GetContactMethod());
+    shape->m_material = mat;
 }
 
 void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> mat) {
-    assert(GetNumShapes() == 0 || m_shapes[0]->m_material->GetContactMethod() == mat->GetContactMethod());
-    for (auto shape : m_shapes)
-        shape->m_material = mat;
+    assert(m_shape_instances.size() == 0 ||
+           m_shape_instances[0].first->m_material->GetContactMethod() == mat->GetContactMethod());
+    for (auto& shape : m_shape_instances)
+        shape.first->m_material = mat;
+}
+
+std::vector<double> ChCollisionModel::GetShapeDimensions(int index) const {
+    assert(index < (int)m_shape_instances.size());
+
+    auto shape = m_shape_instances[index].first;
+
+    std::vector<double> dims;
+    switch (shape->GetType()) {
+        case ChCollisionShape::Type::SPHERE: {
+            auto sphere = std::static_pointer_cast<ChCollisionShapeSphere>(shape);
+            dims = {sphere->GetRadius()};
+            break;
+        }
+        case ChCollisionShape::Type::BOX: {
+            auto box = std::static_pointer_cast<ChCollisionShapeBox>(shape);
+            const auto& hdims = box->GetHalflengths();
+            dims = {hdims.x(), hdims.y(), hdims.z()};
+            break;
+        }
+        case ChCollisionShape::Type::ELLIPSOID: {
+            auto ellipsoid = std::static_pointer_cast<ChCollisionShapeEllipsoid>(shape);
+            const auto& r = ellipsoid->GetSemiaxes();
+            dims = {r.x(), r.y(), r.z()};
+            break;
+        }
+        case ChCollisionShape::Type::CYLINDER: {
+            auto cylinder = std::static_pointer_cast<ChCollisionShapeCylinder>(shape);
+            auto height = cylinder->GetHeight();
+            auto radius = cylinder->GetRadius();
+            dims = {radius, radius, height / 2};
+            break;
+        }
+        case ChCollisionShape::Type::CYLSHELL: {
+            auto cylshell = std::static_pointer_cast<ChCollisionShapeCylindricalShell>(shape);
+            auto height = cylshell->GetHeight();
+            auto radius = cylshell->GetRadius();
+            dims = {radius, radius, height / 2};
+            break;
+        }
+        case ChCollisionShape::Type::CONE: {
+            auto cone = std::static_pointer_cast<ChCollisionShapeCone>(shape);
+            auto height = cone->GetHeight();
+            auto radius = cone->GetRadius();
+            dims = {radius, radius, height / 2};
+            break;
+        }
+        case ChCollisionShape::Type::CAPSULE: {
+            auto capsule = std::static_pointer_cast<ChCollisionShapeCapsule>(shape);
+            auto height = capsule->GetHeight();
+            auto radius = capsule->GetRadius();
+            dims = {radius, radius, height / 2};
+            break;
+        }
+        case ChCollisionShape::Type::ROUNDEDBOX: {
+            auto box = std::static_pointer_cast<ChCollisionShapeRoundedBox>(shape);
+            const auto& hdims = box->GetHalflengths();
+            auto sradius = box->GetSRadius();
+            dims = {hdims.x(), hdims.y(), hdims.z(), sradius};
+            break;
+        }
+        case ChCollisionShape::Type::ROUNDEDCYL: {
+            auto cylinder = std::static_pointer_cast<ChCollisionShapeRoundedCylinder>(shape);
+            auto height = cylinder->GetHeight();
+            auto radius = cylinder->GetRadius();
+            auto sradius = cylinder->GetSRadius();
+            dims = {radius, radius, height / 2, sradius};
+            break;
+        }
+        default:
+            break;
+    }
+
+    return dims;
 }
 
 void ChCollisionModel::ArchiveOut(ChArchiveOut& marchive) {
@@ -185,16 +248,23 @@ void ChCollisionModel::ArchiveOut(ChArchiveOut& marchive) {
     // serialize all member data:
     marchive << CHNVP(model_envelope);
     marchive << CHNVP(model_safe_margin);
+    marchive << CHNVP(family_group);
+    marchive << CHNVP(family_mask);
+    marchive << CHNVP(m_shape_instances);
+    marchive << CHNVP(mcontactable);
 }
 
 void ChCollisionModel::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChCollisionModel>();
+    /*int version =*/marchive.VersionRead<ChCollisionModel>();
 
     // stream in all member data:
     marchive >> CHNVP(model_envelope);
     marchive >> CHNVP(model_safe_margin);
+    marchive >> CHNVP(family_group);
+    marchive >> CHNVP(family_mask);
+    marchive >> CHNVP(m_shape_instances);
+    marchive >> CHNVP(mcontactable);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

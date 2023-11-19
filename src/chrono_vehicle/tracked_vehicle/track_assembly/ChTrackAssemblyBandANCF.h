@@ -99,12 +99,12 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
 
   private:
     /// Custom callback class for culling broadphase collisions.
-    class BroadphaseCulling : public collision::ChCollisionSystem::BroadphaseCallback {
+    class BroadphaseCulling : public ChCollisionSystem::BroadphaseCallback {
       public:
         BroadphaseCulling(ChTrackAssemblyBandANCF* assembly);
 
       private:
-        virtual bool OnBroadphase(collision::ChCollisionModel* modelA, collision::ChCollisionModel* modelB) override;
+        virtual bool OnBroadphase(ChCollisionModel* modelA, ChCollisionModel* modelB) override;
 
         ChTrackAssemblyBandANCF* m_assembly;
     };

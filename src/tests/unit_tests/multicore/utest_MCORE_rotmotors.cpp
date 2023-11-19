@@ -32,7 +32,6 @@
 #include "unit_testing.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 enum MotorType {ANGLE, SPEED};
 struct Options {

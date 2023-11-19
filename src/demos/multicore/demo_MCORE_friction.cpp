@@ -27,7 +27,6 @@
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 // --------------------------------------------------------------------------
 
@@ -84,13 +83,13 @@ int main(int argc, char** argv) {
     bin_mat->SetRollingFriction(1);
     bin_mat->SetSpinningFriction(1);
 
-    container->GetCollisionModel()->ClearModel();
+    container->GetCollisionModel()->Clear();
     utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20, 1, 20), ChVector<>(0, -1, 0));
     utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(1, 2, 20.99), ChVector<>(-10, 0, 0));
     utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(1, 2, 20.99), ChVector<>(10, 0, 0));
     utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20.99, 2, 1), ChVector<>(0, 0, -10));
     utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20.99, 2, 1), ChVector<>(0, 0, 10));
-    container->GetCollisionModel()->BuildModel();
+    container->GetCollisionModel()->Build();
 
     // Create some spheres that roll horizontally, with increasing rolling friction values
     double density = 1000;
@@ -116,9 +115,9 @@ int main(int argc, char** argv) {
 
         // Contact geometry
         ball->SetCollide(true);
-        ball->GetCollisionModel()->ClearModel();
+        ball->GetCollisionModel()->Clear();
         utils::AddSphereGeometry(ball.get(), mat, radius);
-        ball->GetCollisionModel()->BuildModel();
+        ball->GetCollisionModel()->Build();
 
         // Add to the sys
         sys.Add(ball);
@@ -142,9 +141,9 @@ int main(int argc, char** argv) {
 
         // Contact geometry
         ball->SetCollide(true);
-        ball->GetCollisionModel()->ClearModel();
+        ball->GetCollisionModel()->Clear();
         utils::AddSphereGeometry(ball.get(), mat, radius);
-        ball->GetCollisionModel()->BuildModel();
+        ball->GetCollisionModel()->Build();
 
         // Add to the sys
         sys.Add(ball);

@@ -25,7 +25,7 @@
 
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono_sensor/optix/scene/ChScene.h"
 
 #include "chrono_sensor/ChApiSensor.h"
@@ -99,7 +99,7 @@ class CH_SENSOR_API ChOptixPipeline {
     /// @returns an id pointing to the material that was created
     unsigned int GetRigidMeshMaterial(CUdeviceptr& d_vertices,
                                       CUdeviceptr& d_indices,
-                                      std::shared_ptr<ChTriangleMeshShape> sphere_shape,
+                                      std::shared_ptr<ChVisualShapeTriangleMesh> sphere_shape,
                                       std::vector<std::shared_ptr<ChVisualMaterial>> mat_list);
 
     /// Creates a new deformable material/mesh in optix
@@ -110,7 +110,7 @@ class CH_SENSOR_API ChOptixPipeline {
     /// @returns an id pointing to the material that was created
     unsigned int GetDeformableMeshMaterial(CUdeviceptr& d_vertices,
                                            CUdeviceptr& d_indices,
-                                           std::shared_ptr<ChTriangleMeshShape> sphere_shape,
+                                           std::shared_ptr<ChVisualShapeTriangleMesh> sphere_shape,
                                            std::vector<std::shared_ptr<ChVisualMaterial>> mat_list);
 
     /// Function to update all the deformable meshes in the optix scene based on their chrono meshes
@@ -253,7 +253,7 @@ class CH_SENSOR_API ChOptixPipeline {
     std::vector<std::tuple<std::shared_ptr<geometry::ChTriangleMeshConnected>, unsigned int>> m_known_meshes;
 
     /// list of deformable meshes <mesh shape, dvertices, dnormals, num prev triangles>
-    std::vector<std::tuple<std::shared_ptr<ChTriangleMeshShape>, CUdeviceptr, CUdeviceptr, unsigned int>>
+    std::vector<std::tuple<std::shared_ptr<ChVisualShapeTriangleMesh>, CUdeviceptr, CUdeviceptr, unsigned int>>
         m_deformable_meshes;
 
     // default material in the material pool

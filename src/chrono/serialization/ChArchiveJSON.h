@@ -622,8 +622,10 @@ class ChArchiveInJSON : public ChArchiveIn {
 
   protected:
     void token_notfound(const char* mname) {
-        if (!try_tolerate_missing_tokens)
+        if (!try_tolerate_missing_tokens){
+            std::cerr << "Cannot find '" + std::string(mname) + "'" << std::endl;
             throw(ChExceptionArchive("Cannot find '" + std::string(mname) + "'"));
+        }
     }
 
     ChStreamInAsciiFile* istream;

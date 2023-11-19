@@ -19,7 +19,7 @@
 #ifndef ARTCAR_RIGID_TIRE_H
 #define ARTCAR_RIGID_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
@@ -60,7 +60,7 @@ class CH_MODELS_API ARTcar_RigidTire : public chrono::vehicle::ChRigidTire {
     //static const std::string m_meshFile;
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// @} vehicle_models_artcar

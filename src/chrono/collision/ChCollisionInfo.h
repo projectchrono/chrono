@@ -18,7 +18,6 @@
 #include "chrono/core/ChVector.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup chrono_collision
 /// @{
@@ -61,7 +60,6 @@ class ChApi ChCollisionInfo {
 
 /// @} chrono_collision
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
     //
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape
+    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
 
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
     auto mesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.obj"));
     mesh->Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
-    auto mesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto mesh_asset = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     mesh_asset->SetMesh(mesh);
     mrigidbody->AddVisualShape(mesh_asset);
 

@@ -73,10 +73,10 @@ int main(int argc, char* argv[]) {
     ground->SetCollide(false);
 
     {
-        auto cyl_1 = chrono_types::make_shared<ChCylinderShape>(0.2, 0.4);
+        auto cyl_1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
         ground->AddVisualShape(cyl_1, ChFrame<>(ChVector<>(0, 0, +1.0)));
 
-        auto cyl_2 = chrono_types::make_shared<ChCylinderShape>(0.2, 0.4);
+        auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
         ground->AddVisualShape(cyl_2, ChFrame<>(ChVector<>(0, 0, -1.0)));
     }
 
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     // Attach a visualization asset. Note that the cylinder is defined with
     // respect to the centroidal reference frame (which is the body reference
     // frame for a ChBody).
-    auto cyl_1 = chrono_types::make_shared<ChCylinderShape>(0.2, 2);
+    auto cyl_1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2);
     cyl_1->SetColor(ChColor(0.6f, 0, 0));
     pend_1->AddVisualShape(cyl_1, ChFrame<>(ChVector<>(), Q_from_AngY(CH_C_PI_2)));
 
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
 
     // Attach a visualization asset. Note that now the cylinder is defined with
     // respect to the body reference frame.
-    auto cyl_2 = chrono_types::make_shared<ChCylinderShape>(0.2, 2);
+    auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2);
     cyl_2->SetColor(ChColor(0, 0, 0.6f));
     pend_2->AddVisualShape(cyl_2, ChFrame<>(ChVector<>(1, 0, 0), Q_from_AngY(CH_C_PI_2)));
 

@@ -26,6 +26,9 @@
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/geometry/ChRoundedCylinder.h"
+#include "chrono/geometry/ChRoundedBox.h"
+
 
 using namespace chrono;
 using namespace geometry;
@@ -56,6 +59,8 @@ using namespace geometry;
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
 %shared_ptr(chrono::geometry::ChSurface)
 %shared_ptr(chrono::geometry::ChSurfaceNurbs)
+%shared_ptr(chrono::geometry::ChRoundedCylinder)
+%shared_ptr(chrono::geometry::ChRoundedBox)
  
 //%feature("director") chrono::geometry::ChGeometry;
 //%ignore chrono::geometry::ChGeometry::Clone;
@@ -85,4 +90,6 @@ using namespace geometry;
 %include "../../../chrono/geometry/ChTriangleMeshConnected.h"
 %include "../../../chrono/geometry/ChSurface.h"
 %include "../../../chrono/geometry/ChSurfaceNurbs.h"
+%include "../../../chrono/geometry/ChRoundedCylinder.h"
+%include "../../../chrono/geometry/ChRoundedBox.h"
 

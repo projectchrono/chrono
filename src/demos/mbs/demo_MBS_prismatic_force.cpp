@@ -24,7 +24,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -45,10 +45,10 @@ int main(int argc, char* argv[]) {
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
 
-    auto rail1 = chrono_types::make_shared<ChBoxShape>(8, 0.1, 0.1);
+    auto rail1 = chrono_types::make_shared<ChVisualShapeBox>(8, 0.1, 0.1);
     ground->AddVisualShape(rail1, ChFrame<>(ChVector<>(0, 0, -1), QUNIT));
 
-    auto rail2 = chrono_types::make_shared<ChBoxShape>(8, 0.1, 0.1);
+    auto rail2 = chrono_types::make_shared<ChVisualShapeBox>(8, 0.1, 0.1);
     ground->AddVisualShape(rail2, ChFrame<>(ChVector<>(0, 0, +1), QUNIT));
 
     // Create the slider bodies
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     slider1->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
     slider1->SetPos(ChVector<>(-4, 0, -1));
 
-    auto cyl1 = chrono_types::make_shared<ChCylinderShape>(0.2, 0.4);
+    auto cyl1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
     cyl1->SetColor(ChColor(0.6f, 0, 0));
     slider1->AddVisualShape(cyl1, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
 
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     slider2->SetInertiaXX(ChVector<>(0.1, 0.1, 01));
     slider2->SetPos(ChVector<>(-4, 0, +1));
 
-    auto cyl2 = chrono_types::make_shared<ChCylinderShape>(0.2, 0.4);
+    auto cyl2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
     cyl2->SetColor(ChColor(0, 0, 0.6f));
     slider2->AddVisualShape(cyl2, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
 

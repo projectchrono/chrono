@@ -24,11 +24,11 @@
 
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualModel.h"
-#include "chrono/assets/ChPathShape.h"
-#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChVisualShapePath.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/geometry/ChLinePath.h"
-#include "chrono/assets/ChSurfaceShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeSurface.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
@@ -54,31 +54,31 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                               std::shared_ptr<ChVisualMaterial> material,
                                               vsg::ref_ptr<vsg::MatrixTransform> transform,
                                               bool wireframe,
-                                              std::shared_ptr<ChSurfaceShape> surface = nullptr);
+                                              std::shared_ptr<ChVisualShapeSurface> surface = nullptr);
 
     vsg::ref_ptr<vsg::Group> createPbrShape(BasicShape theShape,
                                             std::shared_ptr<ChVisualMaterial> material,
                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
                                             bool wireframe,
-                                            std::shared_ptr<ChSurfaceShape> surface = nullptr);
+                                            std::shared_ptr<ChVisualShapeSurface> surface = nullptr);
 
-    vsg::ref_ptr<vsg::Group> createTrimeshPhongMatShape(std::shared_ptr<ChTriangleMeshShape> tms,
+    vsg::ref_ptr<vsg::Group> createTrimeshPhongMatShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
                                                         vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                         bool wireframe);
 
-    vsg::ref_ptr<vsg::Group> createTrimeshPbrMatShape(std::shared_ptr<ChTriangleMeshShape> tms,
+    vsg::ref_ptr<vsg::Group> createTrimeshPbrMatShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                       bool wireframe);
 
     /// Convert the specified mesh into a triangle soup with vertex colors.
     /// Vertex normals are calculated from each face normal, resulting in sharp edges.
-    vsg::ref_ptr<vsg::Group> createTrimeshColShape(std::shared_ptr<ChTriangleMeshShape> tms,
+    vsg::ref_ptr<vsg::Group> createTrimeshColShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool wireframe);
 
     /// Convert the specified mesh into a triangle mesh with vertex colors.
     /// Vertex normals are calculated by averaging the normals of incident faces, resulting in smoothed edges.
-    vsg::ref_ptr<vsg::Group> createTrimeshColAvgShape(std::shared_ptr<ChTriangleMeshShape> tms,
+    vsg::ref_ptr<vsg::Group> createTrimeshColAvgShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                       bool wireframe);
 
@@ -90,17 +90,17 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
     vsg::ref_ptr<vsg::Group> createLineShape(ChVisualModel::ShapeInstance shapeInstance,
                                              std::shared_ptr<ChVisualMaterial> material,
                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                             std::shared_ptr<ChLineShape> ls);
+                                             std::shared_ptr<ChVisualShapeLine> ls);
     vsg::ref_ptr<vsg::Group> createPathShape(ChVisualModel::ShapeInstance shapeInstance,
                                              std::shared_ptr<ChVisualMaterial> material,
                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                             std::shared_ptr<ChPathShape> ps);
+                                             std::shared_ptr<ChVisualShapePath> ps);
 
     vsg::ref_ptr<vsg::Group> createSpringShape(std::shared_ptr<ChLinkBase> link,
                                                ChVisualModel::ShapeInstance shapeInstance,
                                                std::shared_ptr<ChVisualMaterial> material,
                                                vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                               std::shared_ptr<ChSpringShape> ss);
+                                               std::shared_ptr<ChVisualShapeSpring> ss);
 
     vsg::ref_ptr<vsg::Group> createUnitSegment(std::shared_ptr<ChLinkBase> link,
                                                ChVisualModel::ShapeInstance shapeInstance,

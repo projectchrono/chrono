@@ -31,7 +31,8 @@
 
 namespace chrono {
 
-typedef std::pair<double, double> double2;
+typedef ChVectorN<double, 2> Vec2;
+typedef ChVectorN<double, 3> Vec3;
 
 /// ChHydraulicCylinder - a simple hydraulic cylinder
 /// Schematic:
@@ -64,32 +65,32 @@ class ChApi ChHydraulicCylinder {
     void SetInitialChamberLengths(double piston_side, double rod_side);
 
     /// Get the cross-section areas of the two chambers.
-    const double2& GetAreas() const { return A; }
+    const Vec2& GetAreas() const { return A; }
 
     /// Calculate current chamber lengths.
-    double2 ComputeChamberLengths(double Delta_s) const;
+    Vec2 ComputeChamberLengths(double Delta_s) const;
 
     /// Calculate current chamber volumes.
-    double2 ComputeChamberVolumes(const double2& L) const;
+    Vec2 ComputeChamberVolumes(const Vec2& L) const;
 
     /// Evaluate the force at the rod.
-    double EvalForce(const double2& p, double Delta_s, double sd);
+    double EvalForce(const Vec2& p, double Delta_s, double sd);
 
   private:
     double pistonD;  ///< piston diameter [m]
     double rodD;     ///< piston rod diameter [m]
     double pistonL;  ///< piston length [m]
 
-    double2 p0;  ///< initial pressures (piston-side and rod-side) [Pa]
-    double2 L0;  ///< initial lengths (piston-side and rod-side) [m]
-    double2 A;   ///< areas (piston-side and rod-side) [m^2]
+    Vec2 p0;  ///< initial pressures (piston-side and rod-side) [Pa]
+    Vec2 L0;  ///< initial lengths (piston-side and rod-side) [m]
+    Vec2 A;   ///< areas (piston-side and rod-side) [m^2]
 
     bool length_exceeded;  ///< flag indicating whether piston past limits
 
     friend class ChHydraulicActuatorBase;
 };
 
-/// ChHydraulicDirectionalValve4x3 - a computational model of 4 / 3 directional valve
+/// ChHydraulicDirectionalValve4x3 - a computational model of 4/3 directional valve
 /// Schematic:
 /// <pre>
 ///
@@ -104,27 +105,51 @@ class ChApi ChHydraulicCylinder {
 /// </pre>
 class ChApi ChHydraulicDirectionalValve4x3 {
   public:
+    /// Construct a directional valve with default parameters.
     ChHydraulicDirectionalValve4x3();
 
-    /// Set valve parameters.
-    void SetParameters(double linear_limit,  ///< laminar flow rate limit of 2 bar [N/m^2]
-                       double dead_zone,     ///< limit for shut valve [m]
-                       double fm45           ///< -45 degree phase shift frequency [Hz]
+    /// Set the parameters for the valve characteristic curve.
+    /// The valve is modeled with a liniar characteristiv below the specified pressure difference threshold
+    /// (corresponding to laminar flow) and a quadratic characteristic above that value.
+    /// <pre>
+    ///    Q = Cv * U * sqrt(delta_p)
+    /// </pre>
+    /// The valve spool position is usually controlled with a proportional magnet. Here, we consider a normalized input
+    /// U (assumed to be in the interval [-1,+1]) with the extremes corresponding to the maximum input voltage
+    /// (providing full opening of the valve). The semi-empirical flow rate constant is obtained from one operation
+    /// point on the valve characteristic curve (e.g. knowing the nominal flow, with full opening, and the corresponding
+    /// pressure difference). The default Cv value corresponds to a nominal flow (U = 1) of 24 l/min with a 35 bar
+    /// pressure difference, the flow rate constant is (in SI units):
+    /// <pre>
+    ///    Cv = (24e-3 / 60) / (1.0 * sqrt(35e5))
+    /// </pre>
+    void SetCharacteristicParameters(double linear_limit,  ///< laminar flow rate limit of 2 bar [N/m^2]
+                                     double Q,             ///< nominal flow (full opening) [m^3/s]
+                                     double dp             ///< nominal presure difference [N/m^2]
     );
 
-    /// Set initial spool position: U0 = U(0).
+    /// Set the Bode diagram frequency at -45 degrees phase shift (default: 35 Hz).
+    /// This value is used in calculating the valve time constant: tau = 1/2*pi*fm45.
+    void SetTimeConstantFrequency(double fm45);
+
+    /// Set the input threshold for shut valve (default: 1e-5).
+    /// This is a non-dimensional quantity so that volume flows through the valve are set to 0 whenever the normalized
+    /// input U is below this limit.
+    void SetValveDeadZone(double dead_zone);
+
+    /// Set the normalized initial spool position, U0 = U(0) (default: 0).
     void SetInitialSpoolPosition(double U);
 
     /// Evaluate righ-hand side of spool position ODE: Ud = Ud(t, U).
+    /// The reference input is expected to be normalized in the [-1,+1] interval.
     double EvaluateSpoolPositionRate(double t, double U, double Uref);
 
     /// Compute volume flows through the valve.
-    double2 ComputeVolumeFlows(double p1, double p2, double p3, double p4, double U);
+    Vec2 ComputeVolumeFlows(double U, const Vec2& p, double pP, double pT);
 
   private:
     double linear_limit;  ///< laminar flow rate limit of 2 bar [N/m^2]
     double dead_zone;     ///< limit for shut valve [m]
-    double fm45;          ///< -45 degree phase shift frequency [Hz]
 
     double Cv;             ///< semi-empirical flow rate coefficient
     double time_constant;  ///< time-constant based on fm45 [s]

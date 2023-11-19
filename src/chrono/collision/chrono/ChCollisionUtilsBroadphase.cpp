@@ -28,7 +28,6 @@
 #include <thrust/functional.h>
 
 namespace chrono {
-namespace collision {
 namespace ch_utils {
 
 // Grid Size FUNCTIONS =====================================================================================
@@ -340,5 +339,4 @@ void f_TL_Write_AABB_Leaf_Intersection(const uint& index,
 */
 
 }  // end namespace ch_utils
-}  // end namespace collision
 }  // end namespace chrono

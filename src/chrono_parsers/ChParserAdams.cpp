@@ -30,11 +30,11 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
-#include "chrono/assets/ChModelFileShape.h"
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeEllipsoid.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
 
@@ -381,7 +381,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
 
         sys.AddBody(newBody);
 
-        // auto sphere = chrono_types::make_shared<ChSphereShape>(0.05);
+        // auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(0.05);
         // newBody->AddVisualShape(sphere, );
     }
     // Make any markers that don't exist yet
@@ -530,7 +530,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             iter = tokens.begin();
             //
             if (iter->second == std::string("CYLINDER")) {
-                auto cylinder = chrono_types::make_shared<ChCylinderShape>();
+                auto cylinder = chrono_types::make_shared<ChVisualShapeCylinder>();
                 iter++;  // Get next field
                 std::shared_ptr<ChMarker> cm_marker;
                 ChBodyAuxRef* parentBody = nullptr;
@@ -560,7 +560,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                     iter++;  // next loop
                 }
             } else if (iter->second == std::string("ELLIPSOID")) {
-                auto ellipsoid = chrono_types::make_shared<ChEllipsoidShape>();
+                auto ellipsoid = chrono_types::make_shared<ChVisualShapeEllipsoid>();
                 iter++;  // Get next field
                 std::shared_ptr<ChMarker> cm_marker;
                 ChBodyAuxRef* parentBody;
@@ -602,7 +602,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                     iter++;  // next loop
                 }
             } else if (iter->second == std::string("BOX")) {
-                auto box = chrono_types::make_shared<ChBoxShape>();
+                auto box = chrono_types::make_shared<ChVisualShapeBox>();
                 iter++;  // Get next field
                 std::shared_ptr<ChMarker> cm_marker;
                 ChBodyAuxRef* parentBody;

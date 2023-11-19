@@ -29,8 +29,8 @@
 
 #include <algorithm>
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChGenericWheeledSuspension.h"
 
@@ -641,7 +641,7 @@ void ChGenericWheeledSuspension::AddVisualizationAssets(VisualizationType vis) {
     for (auto& item : m_tsdas)
         item.second.geometry.CreateVisualizationAssets(item.second.tsda, vis);
     for (auto& item : m_dists)
-        item.second.dist->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+        item.second.dist->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 }
 
 void ChGenericWheeledSuspension::RemoveVisualizationAssets() {

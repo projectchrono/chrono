@@ -183,3 +183,26 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %typemap(out) chrono::ChFunction* {
 	$result=DowncastChFunction($1);
 }
+
+
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_BSpline)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Const)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_ConstAcc)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Cycloidal)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Derive)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Fillet3)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Integrate)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Mirror)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Mocap)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Noise)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Operation)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Oscilloscope)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Poly)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Poly345)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Ramp)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Recorder)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Repeat)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Sequence)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Sigma)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Sine)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Setpoint)

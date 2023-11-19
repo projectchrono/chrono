@@ -26,8 +26,8 @@
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChHydraulicActuator.h"
 
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
@@ -65,14 +65,23 @@ class Crane {
         m_point_ground = ChVector<>(std::sqrt(3) / 2, 0, 0);
         m_point_crane = ChVector<>(0, 0, 0);
 
+        double crane_mass = 500;
         double crane_length = 1.0;
         double crane_angle = CH_C_PI / 6;
         ChVector<> crane_pos(0.5 * crane_length * std::cos(crane_angle), 0, 0.5 * crane_length * std::sin(crane_angle));
 
         double pend_length = 0.3;
+        double pend_mass = 100;
+        ChVector<> pend_pos = 2.0 * crane_pos + ChVector<>(0, 0, -pend_length);
 
-        auto connection_sph = chrono_types::make_shared<ChSphereShape>(0.02);
+        auto connection_sph = chrono_types::make_shared<ChVisualShapeSphere>(0.02);
         connection_sph->SetColor(ChColor(0.7f, 0.3f, 0.3f));
+
+        // Estimate initial required force (moment balance about crane pivot)
+        auto Gacc = sys.Get_G_acc();
+        auto Gtorque = Vcross(crane_mass * Gacc, crane_pos) + Vcross(pend_mass * Gacc, pend_pos);
+        auto dir = (crane_pos - m_point_ground).GetNormalized();
+        m_F0 = Gtorque.Length() / Vcross(dir, crane_pos).Length();
 
         // Create bodies
         auto ground = chrono_types::make_shared<ChBody>();
@@ -82,21 +91,21 @@ class Crane {
         sys.AddBody(ground);
 
         m_crane = chrono_types::make_shared<ChBody>();
-        m_crane->SetMass(500);
+        m_crane->SetMass(crane_mass);
         m_crane->SetPos(crane_pos);
         m_crane->SetRot(Q_from_AngY(-crane_angle));
         m_crane->AddVisualShape(connection_sph, ChFrame<>(m_point_crane, QUNIT));
         m_crane->AddVisualShape(connection_sph, ChFrame<>(ChVector<>(crane_length / 2, 0, 0), QUNIT));
-        auto crane_cyl = chrono_types::make_shared<ChCylinderShape>(0.015, crane_length);
+        auto crane_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.015, crane_length);
         m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
         sys.AddBody(m_crane);
 
         auto ball = chrono_types::make_shared<ChBody>();
-        ball->SetMass(100);
-        ball->SetPos(2.0 * crane_pos + ChVector<>(0, 0, -pend_length));
-        auto ball_sph = chrono_types::make_shared<ChSphereShape>(0.04);
+        ball->SetMass(pend_mass);
+        ball->SetPos(pend_pos);
+        auto ball_sph = chrono_types::make_shared<ChVisualShapeSphere>(0.04);
         ball->AddVisualShape(ball_sph);
-        auto ball_cyl = chrono_types::make_shared<ChCylinderShape>(0.005, pend_length);
+        auto ball_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.005, pend_length);
         ball->AddVisualShape(ball_cyl, ChFrame<>(ChVector<>(0, 0, pend_length / 2), QUNIT));
         sys.AddBody(ball);
 
@@ -130,11 +139,13 @@ class Crane {
         // Initialize output
         m_csv.set_delim(" ");
         double s, sd;
-        GetActuatorLength(0, s, sd);
+        GetActuatorLength(s, sd);
         m_csv << 0 << s << sd << std::endl;
     }
 
-    void GetActuatorLength(double time, double& s, double& sd) const {
+    double GetInitialLoad() const { return m_F0; }
+
+    void GetActuatorLength(double& s, double& sd) const {
         const auto& P1 = m_point_ground;
         const auto& V1 = VNULL;
 
@@ -147,7 +158,7 @@ class Crane {
         sd = Vdot(dir, V2 - V1);
     }
 
-    void SetActuatorForce(double time, double f) {
+    void SetActuatorForce(double f) {
         const auto& P1 = m_point_ground;
         auto P2 = m_crane->TransformPointLocalToParent(m_point_crane);
         ChVector<> dir = (P2 - P1).GetNormalized();
@@ -162,7 +173,7 @@ class Crane {
         double time = m_sys.GetChTime();
 
         double s, sd;
-        GetActuatorLength(time, s, sd);
+        GetActuatorLength(s, sd);
         m_csv << time << s << sd << std::endl;
     }
 
@@ -174,12 +185,13 @@ class Crane {
     std::shared_ptr<ChLoadBodyForce> m_external_load;
     ChVector<> m_point_ground;
     ChVector<> m_point_crane;
+    double m_F0;
     utils::CSV_writer m_csv;
 };
 
 class Actuator {
     public:
-      Actuator(ChSystem& sys, double s0) : m_sys(sys) {
+      Actuator(ChSystem& sys, double s0, double F0) : m_sys(sys) {
         m_actuation = chrono_types::make_shared<ChFunction_Setpoint>();
 
         // Construct the hydraulic actuator
@@ -189,11 +201,12 @@ class Actuator {
         m_actuator->Cylinder().SetInitialChamberPressures(3.3e6, 4.4e6);
         m_actuator->DirectionalValve().SetInitialSpoolPosition(0);
         m_actuator->SetActuatorInitialLength(s0);
+        m_actuator->SetInitialLoad(F0);
         m_actuator->Initialize();
         sys.Add(m_actuator);
 
         // Attach visualization asset to actuator
-        m_actuator->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+        m_actuator->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
         // Set solver and integrator
         auto solver = chrono_types::make_shared<ChSolverSparseQR>();
@@ -209,27 +222,24 @@ class Actuator {
 
         // Initialize output
         m_csv.set_delim(" ");
-        Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-        ChVectorDynamic<> y(2);
-        y = m_actuator->GetInitialStates();
-        m_csv << 0.0 << 0.0 << y.format(rowFmt) << std::endl;
       }
 
       void SetActuation(double time, double Uref) { m_actuation->SetSetpoint(Uref, time); }
 
-      double GetActuatorForce(double time) const { return m_actuator->GetActuatorForce(time); }
-      void SetActuatorLength(double time, double s, double sd) { m_actuator->SetActuatorLength(time, s, sd); }
+      void SetActuatorLength(double s, double sd) { m_actuator->SetActuatorLength(s, sd); }
+      double GetActuatorForce() const { return m_actuator->GetActuatorForce(); }
 
       void Advance(double step) {
         m_sys.DoStepDynamics(step);
         double time = m_sys.GetChTime();
 
         Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-        ChVectorDynamic<> y(2);
-        y = m_actuator->GetStates();
-        auto F = m_actuator->GetActuatorForce(time);
-        
-        m_csv << time << F << y.format(rowFmt) << std::endl;
+        auto Uref = m_actuation->Get_y(time);
+        auto U = m_actuator->GetValvePosition();
+        auto p = m_actuator->GetCylinderPressures();
+        auto F = m_actuator->GetActuatorForce();
+
+        m_csv << time << Uref << U << p[0] << p[1] << F << std::endl;
       }
 
       void WriteOutput(const std::string& filename) { m_csv.write_to_file(filename); }
@@ -261,18 +271,19 @@ int main(int argc, char* argv[]) {
     // Construct the crane multibody system
     Crane crane(sysMBS); 
     double s0, sd0;
-    crane.GetActuatorLength(0, s0, sd0);
+    crane.GetActuatorLength(s0, sd0);
+    double F0 = crane.GetInitialLoad();
 
     // Construct the hydraulic actuator system
-    Actuator actuator(sysHYD, s0);
+    Actuator actuator(sysHYD, s0, F0);
 
     // Hydraulic actuation
     auto f_segment = chrono_types::make_shared<ChFunction_Sequence>();
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(0), 0.5);       // 0
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(0, 10), 1.5);    // 0 -> 15
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(15), 5.0);      // 15
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(15, -20), 2.0);  // 15 -> -25
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(-25, 25), 1.0);  // -25 -> 0
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(0), 0.5);         // 0.0
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(0, 0.4), 1.5);     // 0.0 -> 0.6
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(0.6), 5.0);       // 0.6
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(0.6, -0.8), 2.0);  // 0.6 -> -1.0
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(-1.0, 1.0), 1.0);  // -1.0 -> 0.0
     auto actuation = chrono_types::make_shared<ChFunction_Repeat>(f_segment, 0, 10, 10);
 
     // Create the run-time visualization system
@@ -333,7 +344,6 @@ int main(int argc, char* argv[]) {
     double t_end = 100;
     double t_step = 5e-4;
     double t = 0;
-    ChVectorDynamic<> y(2);
 
     while (vis->Run()) {
         if (t > t_end)
@@ -349,10 +359,10 @@ int main(int argc, char* argv[]) {
 
         // Exchange information between systems
         double s, sd;
-        crane.GetActuatorLength(t, s, sd);
-        double f = actuator.GetActuatorForce(t);
-        crane.SetActuatorForce(t, f);
-        actuator.SetActuatorLength(t, s, sd);
+        crane.GetActuatorLength(s, sd);
+        double f = actuator.GetActuatorForce();
+        crane.SetActuatorForce(f);
+        actuator.SetActuatorLength(s, sd);
 
         // Advance dynamics of both systems
         crane.Advance(t_step);
@@ -385,7 +395,17 @@ int main(int argc, char* argv[]) {
         gplot.SetLabelX("time");
         gplot.SetLabelY("U");
         gplot.SetTitle("Hydro Input");
-        gplot.Plot(out_file_actuator, 1, 3, "U", " with lines lt -1 lw 2");
+        gplot.Plot(out_file_actuator, 1, 2, "ref", " with lines lt -1 lw 2");
+        gplot.Plot(out_file_actuator, 1, 3, "U", " with lines lt 1 lw 2");
+    }
+    {
+        postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
+        gplot.SetGrid();
+        gplot.SetLabelX("time");
+        gplot.SetLabelY("p");
+        gplot.SetTitle("Hydro Pressures");
+        gplot.Plot(out_file_actuator, 1, 4, "p0", " with lines lt 1 lw 2");
+        gplot.Plot(out_file_actuator, 1, 5, "p1", " with lines lt 2 lw 2");
     }
     {
         postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
@@ -393,7 +413,7 @@ int main(int argc, char* argv[]) {
         gplot.SetLabelX("time");
         gplot.SetLabelY("F");
         gplot.SetTitle("Hydro Force");
-        gplot.Plot(out_file_actuator, 1, 2, "F", " with lines lt -1 lw 2");
+        gplot.Plot(out_file_actuator, 1, 6, "F", " with lines lt -1 lw 2");
     }
 #endif
 

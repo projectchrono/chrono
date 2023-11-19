@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
 
     auto vis_mesh =
         ChTriangleMeshConnected::CreateFromWavefrontFile(synchrono::GetDataFile("meshes/Highway_vis.obj"), true, true);
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(vis_mesh);
     trimesh_shape->SetMutable(false);
     patch->GetGroundBody()->AddVisualShape(trimesh_shape);

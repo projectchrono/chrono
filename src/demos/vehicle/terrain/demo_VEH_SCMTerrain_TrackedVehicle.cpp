@@ -375,11 +375,11 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->SetCollide(true);
 
     // Visualization
-    auto cyl_shape = chrono_types::make_shared<ChCylinderShape>(radius, length);
+    auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
     cyl_shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
     obstacle->AddVisualShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
-    auto box_shape = chrono_types::make_shared<ChBoxShape>(terrain_length, 2*length, 0.1);
+    auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(terrain_length, 2*length, 0.1);
     box_shape->SetColor(ChColor(0.2f, 0.2f, 0.2f));
     obstacle->AddVisualShape(box_shape, ChFrame<>(ChVector<>(0, 0, 1.5), QUNIT));
 
@@ -390,9 +390,9 @@ void AddFixedObstacles(ChSystem* system) {
     minfo.Y = 2e7f;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
-    obstacle->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
+    obstacle->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    obstacle->GetCollisionModel()->Build();
 
     system->AddBody(obstacle);
 }
@@ -421,13 +421,13 @@ void AddMovingObstacles(ChSystem* system) {
     ball->SetBodyFixed(false);
     ball->SetCollide(true);
 
-    ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(material, radius);
-    ball->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
+    ball->GetCollisionModel()->AddShape(ct_shape);
+    ball->GetCollisionModel()->Build();
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
 
-    auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
+    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
     sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     ball->AddVisualShape(sphere);
 

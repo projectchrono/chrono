@@ -82,13 +82,13 @@ class CH_MODELS_API ARTcar {
     void SetWheelVisualizationType(VisualizationType vis) { m_vehicle->SetWheelVisualizationType(vis); }
     void SetTireVisualizationType(VisualizationType vis) { m_vehicle->SetTireVisualizationType(vis); }
 
-    /// Set parameters for tuning engine map.
+    /// Set parameters for tuning engine map -> Currently needs to be called before initialize
     void SetMaxMotorVoltageRatio(double voltage_ratio) { m_voltage_ratio = voltage_ratio; }
 
-    /// Set stall torque.
+    /// Set stall torque -> Currently needs to be called before initialize
     void SetStallTorque(double stall_torque) { m_stall_torque = stall_torque; }
 
-    /// Set tire rolling friction coefficient.
+    /// Set tire rolling friction coefficient -> Currently needs to be called before initialize
     void SetTireRollingResistance(double rolling_resistance) { m_rolling_friction_coeff = rolling_resistance; }
 
     void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain);

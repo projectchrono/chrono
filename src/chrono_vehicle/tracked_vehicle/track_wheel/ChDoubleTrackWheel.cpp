@@ -18,12 +18,13 @@
 // =============================================================================
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_wheel/ChDoubleTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
+
 
 namespace chrono {
 namespace vehicle {
@@ -47,21 +48,19 @@ void ChDoubleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_wheel->SetCollide(true);
 
-    m_wheel->GetCollisionModel()->ClearModel();
+    m_wheel->GetCollisionModel()->Clear();
 
     if (track->IsRoadwheelCylinder()) {
-        m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, width, ChVector<>(0, +offset, 0),
-                                                  Q_from_AngX(CH_C_PI_2));
-        m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, width, ChVector<>(0, -offset, 0),
-                                                  Q_from_AngX(CH_C_PI_2));
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, radius, width);
+        m_wheel->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0, +offset, 0), Q_from_AngX(CH_C_PI_2)));
+        m_wheel->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0, -offset, 0), Q_from_AngX(CH_C_PI_2)));
     } else {
-        m_wheel->GetCollisionModel()->AddCylindricalShell(m_material, radius, width, ChVector<>(0, +offset, 0),
-                                                          Q_from_AngX(CH_C_PI_2));
-        m_wheel->GetCollisionModel()->AddCylindricalShell(m_material, radius, width, ChVector<>(0, -offset, 0),
-                                                          Q_from_AngX(CH_C_PI_2));
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylindricalShell>(m_material, radius, width);
+        m_wheel->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0, +offset, 0), Q_from_AngX(CH_C_PI_2)));
+        m_wheel->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0, -offset, 0), Q_from_AngX(CH_C_PI_2)));
     }
 
-    m_wheel->GetCollisionModel()->BuildModel();
+    m_wheel->GetCollisionModel()->Build();
 }
 
 void ChDoubleTrackWheel::AddVisualizationAssets(VisualizationType vis) {

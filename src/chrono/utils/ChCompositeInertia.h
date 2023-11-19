@@ -23,6 +23,9 @@
 namespace chrono {
 namespace utils {
 
+/// @addtogroup chrono_utils
+/// @{
+
 /// Utility class for calculating inertia properties of a composite body.
 /// A composite body is a collection of sub-components, each specified through
 /// its mass, a centroidal frame, and its inertia tensor (w.r.t. the centroidal frame).
@@ -69,6 +72,8 @@ class ChApi CompositeInertia {
     ChVector<> m_com;        ///< location of COM (relative to reference frame)
     double m_mass;           ///< mass of composite body
 };
+
+/// @} chrono_utils
 
 }  // end namespace utils
 }  // end namespace chrono

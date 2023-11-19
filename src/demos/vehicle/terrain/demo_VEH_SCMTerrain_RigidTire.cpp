@@ -18,7 +18,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #ifdef CHRONO_COLLISION
-    #include "chrono/collision/ChCollisionSystemChrono.h"
+    #include "chrono/collision/chrono/ChCollisionSystemChrono.h"
 #endif
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChBlender.h"
@@ -111,12 +111,12 @@ int main(int argc, char* argv[]) {
     ChVector<> tire_center(0, 0.02 + tire_rad, -1.5);
 
     // Create a Chrono::Engine physical system
-    auto collsys_type = collision::ChCollisionSystemType::BULLET;
+    auto collsys_type = ChCollisionSystemType::BULLET;
     ChSystemSMC sys;
     sys.SetNumThreads(4, 8, 1);
-    if (collsys_type == collision::ChCollisionSystemType::CHRONO) {
+    if (collsys_type == ChCollisionSystemType::CHRONO) {
 #ifdef CHRONO_COLLISION
-        auto collsys = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
+        auto collsys = chrono_types::make_shared<ChCollisionSystemChrono>();
         collsys->SetBroadphaseGridResolution(ChVector<int>(20, 20, 10));
         sys.SetCollisionSystem(collsys);
 #endif
@@ -146,35 +146,34 @@ int main(int argc, char* argv[]) {
     mrigidbody->SetPos(tire_center + ChVector<>(0, 0.3, 0));
 
     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-    mrigidbody->GetCollisionModel()->ClearModel();
     switch (tire_type) {
         case TireType::LUGGED: {
             auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
                 GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
-            std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
-            mrigidmesh->SetMesh(trimesh);
-            mrigidmesh->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-            mrigidbody->AddVisualShape(mrigidmesh);
+            auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+            vis_shape->SetMesh(trimesh);
+            vis_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
+            mrigidbody->AddVisualShape(vis_shape);
 
-            mrigidbody->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, VNULL, ChMatrix33<>(1),
-                                                             0.01);
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, trimesh, false, false, 0.01);
+            mrigidbody->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, ChMatrix33<>(1)));
             break;
         }
         case TireType::CYLINDRICAL: {
             double radius = 0.5;
             double width = 0.4;
-            mrigidbody->GetCollisionModel()->AddCylinder(material, radius, width, ChVector<>(0),
-                                                         Q_from_AngY(CH_C_PI_2));
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(material, radius, width);
+            mrigidbody->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0), Q_from_AngY(CH_C_PI_2)));
 
-            auto cyl_shape = chrono_types::make_shared<ChCylinderShape>(radius, width);
-            cyl_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-            mrigidbody->AddVisualShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+            auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, width);
+            vis_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
+            mrigidbody->AddVisualShape(vis_shape, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
 
             break;
         }
     }
-    mrigidbody->GetCollisionModel()->BuildModel();
+    mrigidbody->GetCollisionModel()->Build();
     mrigidbody->SetCollide(true);
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();

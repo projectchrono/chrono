@@ -24,7 +24,6 @@
 #include "chrono/collision/chrono/ChCollisionUtils.h"
 
 namespace chrono {
-namespace collision {
 namespace ch_utils {
 
 // -----------------------------------------------------------------------------
@@ -460,5 +459,4 @@ int box_intersects_triangle(const real3& hdims,
 }
 
 }  // end namespace ch_utils
-}  // end namespace collision
 }  // end namespace chrono

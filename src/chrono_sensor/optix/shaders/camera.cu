@@ -20,7 +20,7 @@
 
 
 __device__ __inline__ float radial_function(const float& rd2, const LensParams& params){
-    // Drap, P., & Lefèvre, J. (2016). 
+    // Drap, P., & Lefevre, J. (2016). 
     // An Exact Formula for Calculating Inverse Radial Lens Distortions. 
     // Sensors (Basel, Switzerland), 16(6), 807. https://doi.org/10.3390/s16060807
     double rd4 = rd2 * rd2;

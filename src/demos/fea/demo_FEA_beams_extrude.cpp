@@ -22,7 +22,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/collision/ChCollisionSystemBullet.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -54,21 +54,21 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector<> gear_center,
     mgear->SetPos(gear_center);
     sys.Add(mgear);
 
-    mgear->GetCollisionModel()->ClearModel();
     // cylindrical lobes
     for (int i = 0; i < lobe_copies; ++i) {
         double phase = CH_C_2PI * ((double)i / (double)lobe_copies);
         ChVector<> loc(lobe_primitive_rad * sin(phase), lobe_primitive_rad * cos(phase), 0);
         // shortcut from ChUtilsCreators.h: adds both collision shape and visualization asset
-        utils::AddCylinderGeometry(mgear.get(), mysurfmaterial,             //
-                                   lobe_width * 0.5, lobe_thickness * 0.5,  //
-                                   loc,                                     //
-                                   QUNIT,                                   // cylinder axis along Z
-                                   true);
+        chrono::utils::AddCylinderGeometry(mgear.get(), mysurfmaterial,             //
+                                           lobe_width * 0.5, lobe_thickness * 0.5,  //
+                                           loc,                                     //
+                                           QUNIT,                                   // cylinder axis along Z
+                                           true);
     }
     // central hub
-    utils::AddCylinderGeometry(mgear.get(), mysurfmaterial, lobe_inner_rad, lobe_thickness * 0.5, VNULL, QUNIT, true);
-    mgear->GetCollisionModel()->BuildModel();
+    chrono::utils::AddCylinderGeometry(mgear.get(), mysurfmaterial, lobe_inner_rad, lobe_thickness * 0.5, VNULL, QUNIT,
+                                       true);
+    mgear->GetCollisionModel()->Build();
     mgear->SetCollide(true);
 
     return mgear;
@@ -81,9 +81,9 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
 
     // Here set the inward-outward margins for collision shapes: should make sense in the scale of the model
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.002);
-    collision::ChCollisionSystemBullet::SetContactBreakingThreshold(0.0001);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.002);
+    ChCollisionSystemBullet::SetContactBreakingThreshold(0.0001);
 
     // Create a ground object, useful reference for connecting constraints etc.
     auto mground = chrono_types::make_shared<ChBody>();

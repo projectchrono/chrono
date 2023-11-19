@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace gclass {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_gclass
 /// @{
 
 /// TMeasy tire model for the UAZBUS (front)
@@ -55,7 +55,7 @@ class CH_MODELS_API G500_TMeasyTireFront : public ChTMeasyTire {
     ChFunction_Recorder m_stiffnessMap;
 
     static const std::string m_meshFile;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// TMeasy tire model for the G500 (rear)
@@ -82,12 +82,12 @@ class CH_MODELS_API G500_TMeasyTireRear : public ChTMeasyTire {
     ChFunction_Recorder m_stiffnessMap;
 
     static const std::string m_meshFile;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_gclass
 
-}  // end namespace uaz
+}  // end namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono
 

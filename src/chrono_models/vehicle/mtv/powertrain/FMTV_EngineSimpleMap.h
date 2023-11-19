@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace fmtv {
 
-/// @addtogroup vehicle_models_FMTV
+/// @addtogroup vehicle_models_fmtv
 /// @{
 
 /// FMTV simple speed-torque engine map subsystem.
@@ -46,7 +46,7 @@ class CH_MODELS_API FMTV_EngineSimpleMap : public ChEngineSimpleMap {
                                      ) override;
 };
 
-/// @} vehicle_models_FMTV
+/// @} vehicle_models_fmtv
 
 }  // namespace fmtv
 }  // end namespace vehicle

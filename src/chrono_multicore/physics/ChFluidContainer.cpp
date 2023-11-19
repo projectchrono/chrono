@@ -32,7 +32,6 @@
 
 namespace chrono {
 
-using namespace collision;
 using namespace geometry;
 
 ChFluidContainer::ChFluidContainer() {

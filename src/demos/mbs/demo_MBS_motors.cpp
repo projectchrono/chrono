@@ -40,7 +40,7 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
-collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET;
+ChCollisionSystemType collision_type = ChCollisionSystemType::BULLET;
 
 // Shortcut function that creates two bodies (a slider and a guide) in a given position,
 // just to simplify the creation of multiple linear motors in this demo.

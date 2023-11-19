@@ -163,7 +163,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
 
     ChVariablesNode variables;
 
-    collision::ChCollisionModel* collision_model;
+    ChCollisionModel* collision_model;
 
     ChVector<> UserForce;
 

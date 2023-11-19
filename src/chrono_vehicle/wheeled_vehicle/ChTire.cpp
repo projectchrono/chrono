@@ -90,7 +90,7 @@ void ChTire::CalculateKinematics(const WheelState& wheel_state,
 // -----------------------------------------------------------------------------
 
 // Add visualization mesh: use one of the two provided OBJ files, depending on the side on which the tire is mounted.
-std::shared_ptr<ChTriangleMeshShape> ChTire::AddVisualizationMesh(const std::string& mesh_file_left,
+std::shared_ptr<ChVisualShapeTriangleMesh> ChTire::AddVisualizationMesh(const std::string& mesh_file_left,
                                                                   const std::string& mesh_file_right) {
     bool left = (m_wheel->GetSide() == VehicleSide::LEFT);
     ChQuaternion<> rot = left ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
@@ -99,7 +99,7 @@ std::shared_ptr<ChTriangleMeshShape> ChTire::AddVisualizationMesh(const std::str
     auto trimesh =
         geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file), true, true);
 
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
     trimesh_shape->SetMutable(false);

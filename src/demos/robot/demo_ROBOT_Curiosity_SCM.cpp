@@ -25,7 +25,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
@@ -133,16 +133,15 @@ int main(int argc, char* argv[]) {
         body->SetMass(mass * rock_density);
         body->SetInertiaXX(rock_density * principal_I);
 
-        body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(rock_mat, mesh, false, false, VNULL, ChMatrix33<>(1),
-                                                   0.005);
-        body->GetCollisionModel()->BuildModel();
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rock_mat, mesh, false, false, 0.005);
+        body->GetCollisionModel()->AddShape(ct_shape);
+        body->GetCollisionModel()->Build();
         body->SetCollide(true);
 
-        auto mesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        mesh_shape->SetMesh(mesh);
-        mesh_shape->SetBackfaceCull(true);
-        body->AddVisualShape(mesh_shape);
+        auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+        vis_shape->SetMesh(mesh);
+        vis_shape->SetBackfaceCull(true);
+        body->AddVisualShape(vis_shape);
 
         rock.push_back(body);
     }

@@ -63,12 +63,12 @@ int main(int argc, char* argv[]) {
     // attach visualization assets to represent the revolute and cylindrical
     // joints that connect the two shafts to ground
     {
-        auto cyl_1 = chrono_types::make_shared<ChCylinderShape>(0.3, 0.4);
+        auto cyl_1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.4);
         ground->AddVisualShape(cyl_1, ChFrame<>(ChVector<>(0, 0, -hl), QUNIT));
 
         geometry::ChLineSegment seg(ChVector<>(0, -(hl - 0.2) * sina, (hl - 0.2) * cosa),
                                     ChVector<>(0, -(hl + 0.2) * sina, (hl + 0.2) * cosa));
-        auto cyl_2 = chrono_types::make_shared<ChCylinderShape>(0.3, seg.GetLength());
+        auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, seg.GetLength());
         ground->AddVisualShape(cyl_2, seg.GetFrame());
     }
 
@@ -88,11 +88,11 @@ int main(int argc, char* argv[]) {
     // Add visualization assets to represent the shaft (a box) and the arm of the
     // universal joint's cross associated with this shaft (a cylinder)
     {
-        auto box_1 = chrono_types::make_shared<ChBoxShape>(0.3, 0.3, 1.8 * hl);
+        auto box_1 = chrono_types::make_shared<ChVisualShapeBox>(0.3, 0.3, 1.8 * hl);
         box_1->SetColor(ChColor(0.6f, 0, 0));
         shaft_1->AddVisualShape(box_1);
 
-        auto cyl_2 = chrono_types::make_shared<ChCylinderShape>(0.05, 0.4);
+        auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, 0.4);
         cyl_2->SetColor(ChColor(0.6f, 0, 0));
         shaft_1->AddVisualShape(cyl_2, ChFrame<>(ChVector<>(0, 0, hl), Q_from_AngY(CH_C_PI_2)));
     }
@@ -116,11 +116,11 @@ int main(int argc, char* argv[]) {
     // Add visualization assets to represent the shaft (a box) and the arm of the
     // universal joint's cross associated with this shaft (a cylinder)
     {
-        auto box_1 = chrono_types::make_shared<ChBoxShape>(0.3, 0.3, 1.8 * hl);
+        auto box_1 = chrono_types::make_shared<ChVisualShapeBox>(0.3, 0.3, 1.8 * hl);
         box_1->SetColor(ChColor(0, 0, 0.6f));
         shaft_2->AddVisualShape(box_1);
 
-        auto cyl_2 = chrono_types::make_shared<ChCylinderShape>(0.05, 0.4);
+        auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, 0.4);
         cyl_2->SetColor(ChColor(0, 0, 0.6f));
         shaft_2->AddVisualShape(cyl_2, ChFrame<>(ChVector<>(0, 0, -hl), Q_from_AngX(CH_C_PI_2)));
     }

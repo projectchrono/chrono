@@ -42,7 +42,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 #define USE_RIGID 1
 
@@ -63,11 +62,11 @@ void AddBody(ChSystemMulticoreNSC* sys) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    bin->GetCollisionModel()->ClearModel();
+    bin->GetCollisionModel()->Clear();
     utils::AddBoxGeometry(bin.get(), mat, ChVector<>(0.2, 0.2, 0.2), ChVector<>(0, 0, 0));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
-    bin->GetCollisionModel()->BuildModel();
+    bin->GetCollisionModel()->Build();
 
     sys->AddBody(bin);
 }

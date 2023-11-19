@@ -23,7 +23,7 @@
 #include <memory>
 #include <vector>
 
-#include "chrono_distributed/collision/ChBoundary.h"
+#include "chrono_distributed/collision/ChCollisionBoundaryDistributed.h"
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
@@ -39,7 +39,6 @@
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 #define MASTER 0
 
@@ -51,7 +50,7 @@ float Y = 2e7f;
 float mu = 0.18f;
 float cr = 0.87f;
 float nu = 0.22f;
-double rho = 4000;
+double density = 4000;
 
 int split_axis = 1;  // Split in y axis
 
@@ -106,12 +105,12 @@ void Monitor(chrono::ChSystemMulticore* system, int rank) {
            STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, ITER, RESID);
 }
 
-std::shared_ptr<ChBoundary> AddContainer(ChSystemDistributed* sys,
-                                         double hx,
-                                         double hy,
-                                         double height,
-                                         double amplitude,
-                                         double spacing) {
+std::shared_ptr<ChCollisionBoundaryDistributed> AddContainer(ChSystemDistributed* sys,
+                                                             double hx,
+                                                             double hy,
+                                                             double height,
+                                                             double amplitude,
+                                                             double spacing) {
     int binId = -200;
 
     auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -128,7 +127,7 @@ std::shared_ptr<ChBoundary> AddContainer(ChSystemDistributed* sys,
     bin->SetBodyFixed(true);
     sys->AddBodyAllRanks(bin);
 
-    auto cb = chrono_types::make_shared<ChBoundary>(bin, mat);
+    auto cb = chrono_types::make_shared<ChCollisionBoundaryDistributed>(bin, mat);
     // Floor
     cb->AddPlane(ChFrame<>(ChVector<>(0, 0, 0), QUNIT), ChVector2<>(2.0 * (hx + amplitude), 2.0 * (hy + amplitude)));
     // Ceiling
@@ -169,9 +168,9 @@ inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
     ball->SetBodyFixed(false);
     ball->SetCollide(true);
 
-    ball->GetCollisionModel()->ClearModel();
+    ball->GetCollisionModel()->Clear();
     utils::AddSphereGeometry(ball.get(), ballMat, radius);
-    ball->GetCollisionModel()->BuildModel();
+    ball->GetCollisionModel()->Build();
     return ball;
 }
 
@@ -247,7 +246,7 @@ int main(int argc, char* argv[]) {
     const int num_threads = cli.GetAsType<int>("nthreads");
     const double gran_radius = cli.GetAsType<double>("radius");
     const double spacing = 2.001 * gran_radius;  // Distance between adjacent centers of particles
-    const double mass = rho * 4.0 / 3.0 * CH_C_PI * gran_radius * gran_radius * gran_radius;
+    const double mass = density * 4.0 / 3.0 * CH_C_PI * gran_radius * gran_radius * gran_radius;
     const ChVector<> inertia = (2.0 / 5.0) * mass * gran_radius * gran_radius * ChVector<>(1, 1, 1);
     const double hx = gran_radius * cli.GetAsType<int>("xsize");
     const double hy = gran_radius * cli.GetAsType<int>("ysize");
@@ -358,7 +357,7 @@ int main(int argc, char* argv[]) {
     if (verbose)
         printf("Rank: %d   bins: %d %d %d\n", my_rank, binX, binY, binZ);
 
-    auto bc = AddContainer(&my_sys, hx, hy, height, amplitude, spacing);
+    auto cb = AddContainer(&my_sys, hx, hy, height, amplitude, spacing);
     auto actual_num_bodies = AddFallingBalls(&my_sys, hx, hy, height, gran_radius, spacing, mass, inertia);
     MPI_Barrier(my_sys.GetCommunicator());
     if (my_rank == MASTER)
@@ -390,8 +389,8 @@ int main(int argc, char* argv[]) {
             }
         }
         double pos = GetWallPos(time, amplitude, period, settling_time);
-        bc->GetBody()->SetPos(ChVector<>(pos, 0, 0));
-        bc->Update();
+        cb->GetBody()->SetPos(ChVector<>(pos, 0, 0));
+        cb->Update();
 
         // my_sys.SanityCheck();
         if (monitor)

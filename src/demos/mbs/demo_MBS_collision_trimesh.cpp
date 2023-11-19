@@ -20,7 +20,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -38,8 +38,8 @@ int main(int argc, char* argv[]) {
 
     // Create all the rigid bodies.
 
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
     // - Create a floor
 
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     ChInertiaUtils::PrincipalInertia(inertia, principal_I, principal_inertia_rot);
 
     // Create a shared visual model containing a visualizatoin mesh
-    auto mesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto mesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     mesh_shape->SetMesh(mesh);
     mesh_shape->SetMutable(false);
     mesh_shape->SetColor(ChColor(1.0f, 0.5f, 0.5f));
@@ -101,6 +101,8 @@ int main(int argc, char* argv[]) {
 
     auto vis_model = chrono_types::make_shared<ChVisualModel>();
     vis_model->AddShape(mesh_shape);
+
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mesh_mat, mesh, false, false, 0.005);
 
     for (int j = 0; j < 15; ++j) {
         auto falling = chrono_types::make_shared<ChBodyAuxRef>();
@@ -118,9 +120,8 @@ int main(int argc, char* argv[]) {
             ChFrame<>(ChVector<>(-0.9 + ChRandom() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom() * 1.4)));
         sys.Add(falling);
 
-        falling->GetCollisionModel()->ClearModel();
-        falling->GetCollisionModel()->AddTriangleMesh(mesh_mat, mesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
-        falling->GetCollisionModel()->BuildModel();
+        falling->GetCollisionModel()->AddShape(ct_shape);
+        falling->GetCollisionModel()->Build();
         falling->SetCollide(true);
 
         falling->AddVisualModel(vis_model);

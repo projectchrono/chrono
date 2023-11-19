@@ -22,9 +22,8 @@
 #include "chrono/collision/chrono/ChCollisionUtils.h"
 
 namespace chrono {
-namespace collision {
 
-using namespace chrono::collision::ch_utils;
+using namespace chrono::ch_utils;
 
 #define MPR_TOLERANCE C_REAL_EPSILON
 #define MAX_ITERATIONS 100
@@ -43,7 +42,7 @@ real3 GetCenter(const ConvexBase* Shape) {
         case ChCollisionShape::Type::TRIANGLE:
             return GetCenter_Triangle(Shape->Triangles());  // triangle center
             break;
-        case ChCollisionShape::Type::CONVEX:
+        case ChCollisionShape::Type::CONVEXHULL:
             return GetCenter_Convex(Shape->Size(), Shape->Convex()) + Shape->A();  // convex center
             break;
         case ChCollisionShape::Type::TETRAHEDRON:
@@ -648,5 +647,4 @@ bool ChNarrowphase::MPRCollision(const ConvexBase* shapeA,
     return true;
 }
 
-}  // namespace collision
 }  // namespace chrono

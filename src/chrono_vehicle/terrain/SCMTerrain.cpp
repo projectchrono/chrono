@@ -31,13 +31,14 @@
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/utils/ChConvexHull.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_thirdparty/stb/stb.h"
+
 
 namespace chrono {
 namespace vehicle {
@@ -113,7 +114,7 @@ void SCMTerrain::SetMeshWireframe(bool val) {
 }
 
 // Get the trimesh that defines the ground shape.
-std::shared_ptr<ChTriangleMeshShape> SCMTerrain::GetMesh() const {
+std::shared_ptr<ChVisualShapeTriangleMesh> SCMTerrain::GetMesh() const {
     return m_loader->m_trimesh_shape;
 }
 
@@ -357,7 +358,7 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
 
     if (visualization_mesh) {
         // Create the visualization mesh and asset
-        m_trimesh_shape = std::shared_ptr<ChTriangleMeshShape>(new ChTriangleMeshShape);
+        m_trimesh_shape = std::shared_ptr<ChVisualShapeTriangleMesh>(new ChVisualShapeTriangleMesh);
         m_trimesh_shape->SetWireframe(true);
         m_trimesh_shape->SetFixedConnectivity();
     }
@@ -946,9 +947,7 @@ void SCMLoader::UpdateFixedPatch(MovingPatchInfo& p) {
     ChVector2<> p_max(-std::numeric_limits<double>::max());
 
     // Get current bounding box (AABB) of all collision shapes
-    ChVector<> aabb_min;
-    ChVector<> aabb_max;
-    GetSystem()->GetCollisionSystem()->GetBoundingBox(aabb_min, aabb_max);
+    auto aabb = GetSystem()->GetCollisionSystem()->GetBoundingBox();
 
     // Loop over all corners of the AABB
     for (int j = 0; j < 8; j++) {
@@ -957,7 +956,7 @@ void SCMLoader::UpdateFixedPatch(MovingPatchInfo& p) {
         int iz = (j / 4);
 
         // AABB corner in absolute frame
-        ChVector<> c_abs = aabb_max * ChVector<>(ix, iy, iz) + aabb_min * ChVector<>(1.0 - ix, 1.0 - iy, 1.0 - iz);
+        ChVector<> c_abs = aabb.max * ChVector<>(ix, iy, iz) + aabb.min * ChVector<>(1.0 - ix, 1.0 - iy, 1.0 - iz);
         // AABB corner in SCM frame
         ChVector<> c_scm = m_plane.TransformPointParentToLocal(c_abs);
 
@@ -1131,7 +1130,7 @@ void SCMLoader::ComputeInternalForces() {
             ChVector<> vertex_abs = m_plane.TransformPointLocalToParent(ChVector<>(x, y, z));
 
             // Create ray at current grid location
-            collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
+            ChCollisionSystem::ChRayhitResult mrayhit_result;
             ChVector<> to = vertex_abs + m_Z * m_test_offset_up;
             ChVector<> from = to - m_Z * m_test_offset_down;
 
@@ -1187,7 +1186,7 @@ void SCMLoader::ComputeInternalForces() {
             ChVector<> vertex_abs = m_plane.TransformPointLocalToParent(ChVector<>(x, y, z));
 
             // Create ray at current grid location
-            collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
+            ChCollisionSystem::ChRayhitResult mrayhit_result;
             ChVector<> to = vertex_abs + m_Z * m_test_offset_up;
             ChVector<> from = to - m_Z * m_test_offset_down;
 

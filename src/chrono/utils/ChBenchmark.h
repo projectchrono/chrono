@@ -26,6 +26,9 @@
 namespace chrono {
 namespace utils {
 
+/// @addtogroup chrono_utils
+/// @{
+
 /// Base class for a Chrono benchmark test.
 /// A derived class should set up a complete Chrono model in its constructor and implement
 /// GetSystem (to return a pointer to the underlying Chrono system) and ExecuteStep (to perform
@@ -179,6 +182,8 @@ class ChBenchmarkFixture : public ::benchmark::Fixture {
 
     TEST* m_test;
 };
+
+/// @} chrono_utils
 
 }  // end namespace utils
 }  // end namespace chrono

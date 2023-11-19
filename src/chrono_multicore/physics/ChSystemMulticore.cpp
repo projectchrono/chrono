@@ -35,7 +35,6 @@
 
 #include <numeric>
 
-using namespace chrono::collision;
 
 namespace chrono {
 
@@ -86,7 +85,7 @@ ChBody* ChSystemMulticore::NewBody() {
     switch (collision_system_type) {
         default:
         case ChCollisionSystemType::CHRONO:
-            return new ChBody(chrono_types::make_shared<collision::ChCollisionModelChrono>());
+            return new ChBody(chrono_types::make_shared<ChCollisionModelChrono>());
         case ChCollisionSystemType::BULLET:
             return new ChBody();
     }
@@ -96,7 +95,7 @@ ChBodyAuxRef* ChSystemMulticore::NewBodyAuxRef() {
     switch (collision_system_type) {
         default:
         case ChCollisionSystemType::CHRONO:
-            return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelChrono>());
+            return new ChBodyAuxRef(chrono_types::make_shared<ChCollisionModelChrono>());
         case ChCollisionSystemType::BULLET:
             return new ChBodyAuxRef();
     }

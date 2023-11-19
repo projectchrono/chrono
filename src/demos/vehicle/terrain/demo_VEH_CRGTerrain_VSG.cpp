@@ -31,7 +31,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -303,7 +303,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Road width  = " << road_width << std::endl;
     std::cout << std::boolalpha << "Closed loop?  " << path_is_closed << std::endl << std::endl;
 
-    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChBoxShape>(geometry::ChBox(1, road_width, 1)),
+    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(geometry::ChBox(1, road_width, 1)),
                                         ChFrame<>(init_csys.pos - 0.5 * ChWorldFrame::Vertical(), init_csys.rot));
 
     path->write(out_dir + "/path.txt");
@@ -351,8 +351,8 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->AttachVehicle(&my_hmmwv.GetVehicle());
 
-    auto sentinel = chrono_types::make_shared<ChSphereShape>(0.1);
-    auto target = chrono_types::make_shared<ChSphereShape>(0.1);
+    auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+    auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     sentinel->SetColor(ChColor(1, 0, 0));
     target->SetColor(ChColor(0, 1, 0));
     int sentinelID = vis->AddVisualModel(sentinel, ChFrame<>());

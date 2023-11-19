@@ -51,14 +51,14 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     /// Add a contact between two collision shapes, storing it into this container.
     /// A compositecontact material is created from the two given materials.
     /// In this case, the collision info object may have null pointers to collision shapes.
-    virtual void AddContact(const collision::ChCollisionInfo& cinfo,
+    virtual void AddContact(const ChCollisionInfo& cinfo,
                             std::shared_ptr<ChMaterialSurface> mat1,
                             std::shared_ptr<ChMaterialSurface> mat2) = 0;
 
     /// Add a contact between two collision shapes, storing it into this container.
     /// The collision info object is assumed to contain valid pointers to the two colliding shapes.
     /// A composite contact material is created from their material properties.
-    virtual void AddContact(const collision::ChCollisionInfo& cinfo) = 0;
+    virtual void AddContact(const ChCollisionInfo& cinfo) = 0;
 
     /// The collision system will call EndAddContact() after adding all contacts (for example with AddContact() or
     /// similar).
@@ -75,7 +75,7 @@ class ChApi ChContactContainer : public ChPhysicsItem {
         /// A derived user-provided callback class must implement this. The provided
         /// composite material should be downcast to the appropriate type.
         virtual void OnAddContact(
-            const collision::ChCollisionInfo& contactinfo,  ///< information about the collision pair
+            const ChCollisionInfo& contactinfo,  ///< information about the collision pair
             ChMaterialComposite* const material             ///< composite material can be modified
             ) = 0;
     };

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Nic Olsen
+// Authors: Nic Olsen, Radu Serban
 // =============================================================================
 
 #include <climits>
@@ -18,12 +18,11 @@
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
 
-#include "chrono/collision/ChCollisionModelChrono.h"
+#include "chrono/collision/chrono/ChCollisionModelChrono.h"
 
 #include "chrono_multicore/ChDataManager.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionSystemDistributed::ChCollisionSystemDistributed(ChMulticoreDataManager* dm, ChDistributedDataManager* ddm)
     : ChCollisionSystemChronoMulticore(dm) {
@@ -145,7 +144,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     }
 
     /*
-     * NOTE: At this point there is a large-enough chunk in ddm->body_shapes that is NOT set
+     * NOTE: At this point there is a large-enough chunk in ddm->body_shapes that is NOT set,
      * beginning at begin_shapes
      */
 
@@ -171,14 +170,14 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
             }
         }
     }
-    // If there is space for ALL shapes in the model in the data_manager
-    // unload them.
+    // If there is space for ALL shapes in the model in the data_manager unload them.
     if (free_dm_shapes.size() == needed_count) {
         for (int i = 0; i < needed_count; i++) {
             // i identifies a shape in the MODEL
-            auto shape = std::static_pointer_cast<ChCollisionShapeChrono>(pmodel->GetShape(i));
+            const auto& shape = pmodel->m_shapes[i];
+            const auto& ct_shape = pmodel->m_ct_shapes[i];
 
-            int j = free_dm_shapes[i];  // Index into shape_data
+            int j = free_dm_shapes[i];  // index into shape_data
 
             shape_data.id_rigid[j] = body_index;
             ddm->body_shapes[begin_shapes + i] = j;
@@ -187,53 +186,26 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
             // type_rigid and start_rigid are unchanged because the shape type is the same
             int start = shape_data.start_rigid[j];
 
-            real3 obA = shape->A;
-            real3 obB = shape->B;
-            real3 obC = shape->C;
-
             short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
 
             switch (shape->GetType()) {
                 case ChCollisionShape::Type::SPHERE:
-                    shape_data.sphere_rigid[start] = obB.x;
-                    break;
-                case ChCollisionShape::Type::TRIANGLEMESH:  // NOTE: There is space for all 3
-                    shape_data.triangle_rigid[start] = obA;
-                    shape_data.triangle_rigid[start + 1] = obB;
-                    shape_data.triangle_rigid[start + 2] = obC;
-                    break;
-                case ChCollisionShape::Type::ELLIPSOID:
-                    shape_data.box_like_rigid[start] = obB;
+                    shape_data.sphere_rigid[start] = ct_shape->B.x;
                     break;
                 case ChCollisionShape::Type::BOX:
-                    shape_data.box_like_rigid[start] = obB;
-                    break;
-                case ChCollisionShape::Type::CYLINDER:
-                    shape_data.box_like_rigid[start] = obB;
-                    break;
-                case ChCollisionShape::Type::CONE:
-                    shape_data.box_like_rigid[start] = obB;
-                    break;
-                case ChCollisionShape::Type::CAPSULE:
-                    shape_data.capsule_rigid[start] = real2(obB.x, obB.y);
-                    break;
-                case ChCollisionShape::Type::ROUNDEDBOX:
-                    shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
-                    break;
-                case ChCollisionShape::Type::ROUNDEDCYL:
-                    shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
+                    shape_data.box_like_rigid[start] = ct_shape->B;
                     break;
                 default:
                     ddm->my_sys->ErrorAbort("Shape not supported\n");
             }
 
-            shape_data.ObA_rigid[j] = obA;
-            shape_data.ObR_rigid[j] = shape->R;
+            shape_data.ObA_rigid[j] = ct_shape->A;
+            shape_data.ObR_rigid[j] = ct_shape->R;
             shape_data.fam_rigid[j] = fam;
         }
     }
-    // If there was not enough space in the data_manager for all shapes in the model,
-    // call the regular add // TODO faster jump to here
+    // If there was not enough space in the data_manager for all shapes in the model, call the regular add
+    // TODO faster jump to here
     else {
         this->ChCollisionSystemChronoMulticore::Add(model);
         for (int i = 0; i < needed_count; i++) {
@@ -378,33 +350,33 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 //             short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
 //
 //             switch (pmodel->mData[i].type) {
-//                 case chrono::collision::SPHERE:
+//                 case chrono::SPHERE:
 //                     dm->shape_data.sphere_rigid[start] = obB.x;
 //                     break;
-//                 case chrono::collision::TRIANGLEMESH:  // NOTE: There is space for all 3
+//                 case chrono::TRIANGLEMESH:  // NOTE: There is space for all 3
 //                     dm->shape_data.triangle_rigid[start] = obA;
 //                     dm->shape_data.triangle_rigid[start + 1] = obB;
 //                     dm->shape_data.triangle_rigid[start + 2] = obC;
 //                     break;
-//                 case chrono::collision::ELLIPSOID:
+//                 case chrono::ELLIPSOID:
 //                     dm->shape_data.box_like_rigid[start] = obB;
 //                     break;
-//                 case chrono::collision::BOX:
+//                 case chrono::BOX:
 //                     dm->shape_data.box_like_rigid[start] = obB;
 //                     break;
-//                 case chrono::collision::CYLINDER:
+//                 case chrono::CYLINDER:
 //                     dm->shape_data.box_like_rigid[start] = obB;
 //                     break;
-//                 case chrono::collision::CONE:
+//                 case chrono::CONE:
 //                     dm->shape_data.box_like_rigid[start] = obB;
 //                     break;
-//                 case chrono::collision::CAPSULE:
+//                 case chrono::CAPSULE:
 //                     dm->shape_data.capsule_rigid[start] = real2(obB.x, obB.y);
 //                     break;
-//                 case chrono::collision::ROUNDEDBOX:
+//                 case chrono::ROUNDEDBOX:
 //                     dm->shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
 //                     break;
-//                 case chrono::collision::ROUNDEDCYL:
+//                 case chrono::ROUNDEDCYL:
 //                     dm->shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
 //                     break;
 //                 default:
@@ -526,5 +498,5 @@ void ChCollisionSystemDistributed::GetOverlappingAABB(custom_vector<char>& activ
     }
 }
 
-} /* namespace collision */
-} /* namespace chrono */
+} // end namespace chrono
+

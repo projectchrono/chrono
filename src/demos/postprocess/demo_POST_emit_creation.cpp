@@ -94,13 +94,17 @@ int main(int argc, char* argv[]) {
     floor_body->SetPos(ChVector<>(0, -5, 0));
     floor_body->SetBodyFixed(true);
     floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
-    floor_body->GetCollisionModel()->ClearModel();
-    floor_body->GetCollisionModel()->AddBox(floor_mat, 20, 1, 20);
-    floor_body->GetCollisionModel()->AddBox(floor_mat, 2, 24, 40, ChVector<>(-5, 0, 0));
-    floor_body->GetCollisionModel()->AddBox(floor_mat, 2, 24, 40, ChVector<>(5, 0, 0));
-    floor_body->GetCollisionModel()->AddBox(floor_mat, 20, 24, 2, ChVector<>(0, 0, -5));
-    floor_body->GetCollisionModel()->AddBox(floor_mat, 20, 24, 2, ChVector<>(0, 0, 5));
-    floor_body->GetCollisionModel()->BuildModel();
+
+    auto shape1 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
+    auto shape2 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 2, 24, 40);
+    auto shape3 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 24, 2);
+
+    floor_body->GetCollisionModel()->AddShape(shape1);
+    floor_body->GetCollisionModel()->AddShape(shape2, ChFrame<>(ChVector<>(-5, 0, 0), QUNIT));
+    floor_body->GetCollisionModel()->AddShape(shape2, ChFrame<>(ChVector<>(5, 0, 0), QUNIT));
+    floor_body->GetCollisionModel()->AddShape(shape3, ChFrame<>(ChVector<>(0, 0, -5), QUNIT));
+    floor_body->GetCollisionModel()->AddShape(shape3, ChFrame<>(ChVector<>(0, 0, 5), QUNIT));
+    floor_body->GetCollisionModel()->Build();
 
     // Custom rendering in POVray:
     pov_exporter.SetCustomCommands(floor_body,

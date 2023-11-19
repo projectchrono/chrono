@@ -20,7 +20,6 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
-#include "chrono/assets/ChBoxShape.h"
 #include "chrono/core/ChTransform.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
@@ -36,7 +35,6 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::fsi;
 
 // -----------------------------------------------------------------
@@ -152,13 +150,13 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.AddBody(box);
 
     // Add collision geometry for the container walls
-    box->GetCollisionModel()->ClearModel();
+    box->GetCollisionModel()->Clear();
     chrono::utils::AddBoxContainer(box, cmaterial,                                 //
                                    ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
                                    ChVector<>(bxDim, byDim, bzDim), 0.1,           //
                                    ChVector<int>(2, 2, -1),                        //
                                    false);
-    box->GetCollisionModel()->BuildModel();
+    box->GetCollisionModel()->Build();
     box->SetCollide(true);
 
     // Add BCE particles attached on the walls into FSI system
@@ -171,12 +169,12 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     auto cylinder = chrono_types::make_shared<ChBody>();
 
     // Set the general properties of the cylinder
-    double volume = chrono::utils::CalcCylinderVolume(cyl_radius, cyl_length / 2);
+    double volume = geometry::ChCylinder::GetVolume(cyl_radius, cyl_length / 2);
     double density = sysFSI.GetDensity() * 2.0;
     double mass = density * volume;
     ChVector<> cyl_pos = ChVector<>(0, 0, bzDim + cyl_radius + 2 * initSpace0);
     ChVector<> cyl_vel = ChVector<>(0.0, 0.0, 0.0);
-    ChVector<> gyration = chrono::utils::CalcCylinderGyration(cyl_radius, cyl_length / 2).diagonal();
+    ChVector<> gyration = geometry::ChCylinder::GetGyration(cyl_radius, cyl_length / 2).diagonal();
     cylinder->SetPos(cyl_pos);
     cylinder->SetPos_dt(cyl_vel);
     cylinder->SetMass(mass);
@@ -185,10 +183,10 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set the collision and visualization geometry
     cylinder->SetCollide(true);
     cylinder->SetBodyFixed(false);
-    cylinder->GetCollisionModel()->ClearModel();
+    cylinder->GetCollisionModel()->Clear();
     cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
     chrono::utils::AddCylinderGeometry(cylinder.get(), cmaterial, cyl_radius, cyl_length, VNULL, Q_from_AngX(CH_C_PI_2));
-    cylinder->GetCollisionModel()->BuildModel();
+    cylinder->GetCollisionModel()->Build();
 
     cylinder->GetVisualShape(0)->SetColor(ChColor(0.65f, 0.20f, 0.10f));
 

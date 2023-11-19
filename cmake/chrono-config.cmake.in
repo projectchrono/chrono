@@ -90,6 +90,11 @@ string(REGEX REPLACE "[ \t]+" ";" CHRONO_CXX_FLAGS "@CH_CXX_FLAGS@")
 string(REGEX REPLACE "[ \t]+" ";" CHRONO_C_FLAGS "@CH_C_FLAGS@")
 string(REGEX REPLACE "[ \t]+" ";" CHRONO_LINKER_FLAGS "@CH_LINKERFLAG_EXE@")
 
+if (MSVC)
+   list(APPEND CHRONO_CXX_FLAGS "/wd4251;/wd4275;/wd4250")
+   list(APPEND CHRONO_C_FLAGS "/wd4251;/wd4275;/wd4250")
+endif()
+
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   list(APPEND CHRONO_LINKER_FLAGS "-L@CH_BINARY_DIR@/lib")
 endif()

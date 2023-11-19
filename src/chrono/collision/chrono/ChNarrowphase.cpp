@@ -32,9 +32,8 @@
 #include <thrust/iterator/constant_iterator.h>
 
 namespace chrono {
-namespace collision {
 
-using namespace chrono::collision::ch_utils;
+using namespace chrono::ch_utils;
 
 ChNarrowphase::ChNarrowphase()
     : algorithm(Algorithm::HYBRID),
@@ -661,5 +660,4 @@ void ChNarrowphase::ProcessRigidFluid() {
     num_contacts = contact_counts[num_spheres];
 }
 
-}  // end namespace collision
 }  // end namespace chrono

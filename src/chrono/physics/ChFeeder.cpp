@@ -23,7 +23,6 @@
 
 namespace chrono {
 
-using namespace collision;
 using namespace geometry;
 
 

@@ -19,7 +19,7 @@
 #ifndef G500_WHEEL_H
 #define G500_WHEEL_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -31,7 +31,7 @@ namespace chrono {
 namespace vehicle {
 namespace gclass {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_gclass
 /// @{
 
 /// UAZBUS wheel (can be used on any axle, left or right).
@@ -52,9 +52,9 @@ class CH_MODELS_API G500_Wheel : public ChWheel {
     static const ChVector<> m_inertia;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_gclass
 
-}  // end namespace uaz
+}  // end namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono
 

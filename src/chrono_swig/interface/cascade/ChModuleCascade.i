@@ -47,7 +47,8 @@
 %{
 
 //#include "chrono_cascade/ChApiCASCADE.h"
-//#include "chrono_cascade/ChCascadeVisualShape.h"
+//#include "chrono_cascade/ChVisualShapeCascade.h"
+#include "chrono/assets/ChVisualShapes.h"
 #include "chrono_cascade/ChCascadeBodyEasy.h"
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChCascadeTriangulate.h"
@@ -104,9 +105,23 @@ using namespace chrono::cascade;
 %shared_ptr(chrono::ChObj)
 %shared_ptr(chrono::ChPhysicsItem)
 
+%shared_ptr(chrono::ChVisualShapeModelFile)
+%shared_ptr(chrono::ChVisualShapeBox) 
+%shared_ptr(chrono::ChVisualShapeSphere)
+%shared_ptr(chrono::ChVisualShapeEllipsoid)
+%shared_ptr(chrono::ChVisualShapeCylinder)
+%shared_ptr(chrono::ChVisualShapeLine)
+%shared_ptr(chrono::ChVisualShapeSurface)
+%shared_ptr(chrono::ChVisualShapePath)
+%shared_ptr(chrono::ChVisualShapePointPoint)
+%shared_ptr(chrono::ChVisualShapeSegment)
+%shared_ptr(chrono::ChVisualShapeSpring)
+%shared_ptr(chrono::ChVisualShapeRotSpring)
+%shared_ptr(chrono::ChVisualShapeTriangleMesh)
+
 %shared_ptr(chrono::cascade::ChCascadeBodyEasy)
 %shared_ptr(chrono::cascade::ChCascadeBodyEasyProfile)
-%shared_ptr(chrono::cascade::ChCascadeVisualShape)
+%shared_ptr(chrono::cascade::ChVisualShapeCascade)
 %shared_ptr(chrono::cascade::ChCascadeTriangulate)
 
 //
@@ -155,8 +170,9 @@ using namespace chrono::cascade;
 %ignore chrono::cascade::ChCascadeTriangulateTolerances::clone;
 %ignore chrono::cascade::ChCascadeTriangulateNone::clone;
 
+%include "../../../chrono/assets/ChVisualShapes.h"
 %include "../../../chrono_cascade/ChCascadeTriangulate.h"
-%include "../../../chrono_cascade/ChCascadeVisualShape.h"
+%include "../../../chrono_cascade/ChVisualShapeCascade.h"
 %include "../../../chrono_cascade/ChCascadeBodyEasy.h"
 %include "../../../chrono_cascade/ChCascadeDoc.h"
 %include "../../../chrono/physics/ChMaterialSurfaceNSC.h"

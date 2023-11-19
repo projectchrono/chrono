@@ -34,7 +34,6 @@
 //#define BULLET
 
 using namespace chrono;
-using namespace chrono::collision;
 
 void CreateContainer(ChSystemMulticore* system) {
     auto mat_walls = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -45,12 +44,12 @@ void CreateContainer(ChSystemMulticore* system) {
     container->SetCollide(true);
     container->SetMass(10000.0);
 
-    container->GetCollisionModel()->ClearModel();
+    container->GetCollisionModel()->Clear();
     utils::AddBoxContainer(container, mat_walls,                   //
                            ChFrame<>(ChVector<>(0, 0, 1), QUNIT),  //
                            ChVector<>(2, 2, 2), 0.1,               //
                            ChVector<int>(2, 2, -1));
-    container->GetCollisionModel()->BuildModel();
+    container->GetCollisionModel()->Build();
 
     system->AddBody(container);
 }
@@ -81,9 +80,9 @@ void CreateGranularMaterial(ChSystemMulticore* sys) {
                 ball->SetBodyFixed(false);
                 ball->SetCollide(true);
 
-                ball->GetCollisionModel()->ClearModel();
+                ball->GetCollisionModel()->Clear();
                 utils::AddSphereGeometry(ball.get(), ballMat, radius);
-                ball->GetCollisionModel()->BuildModel();
+                ball->GetCollisionModel()->Build();
 
                 sys->AddBody(ball);
             }

@@ -56,11 +56,14 @@
 #include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
+#include "chrono/assets/ChVisualShapes.h"
+
+
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 
 #include "chrono/collision/ChCollisionSystem.h"
-#include "chrono/collision/ChCollisionSystemBullet.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
@@ -193,20 +196,20 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChPhysicsItem)
 %shared_ptr(chrono::ChNodeBase) 
 %shared_ptr(chrono::ChNodeXYZ) 
-%shared_ptr(chrono::ChTriangleMeshShape)
+%shared_ptr(chrono::ChVisualShapeTriangleMesh)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
 %shared_ptr(chrono::ChFunction_Recorder)
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 
-%shared_ptr(chrono::collision::ChCollisionModel)
-%shared_ptr(chrono::collision::ChCollisionModelBullet)
-%shared_ptr(chrono::collision::ChCollisionSystem::BroadphaseCallback)
-%shared_ptr(chrono::collision::ChCollisionSystem::NarrowphaseCallback)
+%shared_ptr(chrono::ChCollisionModel)
+%shared_ptr(chrono::ChCollisionModelBullet)
+%shared_ptr(chrono::ChCollisionSystem::BroadphaseCallback)
+%shared_ptr(chrono::ChCollisionSystem::NarrowphaseCallback)
 
 /*
 from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 
-If those classes are wrapped, their parents are marked as shared_ptr while they are not, SWIG can't hanlde them.
+If those classes are wrapped, their parents are marked as shared_ptr while they are not, SWIG can't handle them.
 Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the model namespaces
 */
 
@@ -287,6 +290,27 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 //  mynamespace { class myclass; }
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
+%shared_ptr(chrono::ChVisualShape)
+%shared_ptr(chrono::ChVisualShapeFEA)
+%shared_ptr(chrono::ChVisualShapeModelFile)
+%shared_ptr(chrono::ChVisualShapeTriangleMesh)
+%shared_ptr(chrono::ChVisualShapeSphere)
+%shared_ptr(chrono::ChVisualShapeEllipsoid)
+%shared_ptr(chrono::ChVisualShapeBarrel)
+%shared_ptr(chrono::ChVisualShapeBox)
+%shared_ptr(chrono::ChVisualShapeCone)
+%shared_ptr(chrono::ChVisualShapeCylinder)
+%shared_ptr(chrono::ChVisualShapeCapsule)
+%shared_ptr(chrono::ChVisualShapeRoundedCylinder)
+%shared_ptr(chrono::ChVisualShapeRoundedBox)
+%shared_ptr(chrono::ChVisualShapePath)
+%shared_ptr(chrono::ChVisualShapeLine)
+%shared_ptr(chrono::ChVisualShapePointPoint)
+%shared_ptr(chrono::ChVisualShapeRotSpring)
+%shared_ptr(chrono::ChVisualShapeSegment)
+%shared_ptr(chrono::ChVisualShapeSpring)
+%shared_ptr(chrono::ChVisualShapeSurface)
+
 #ifdef SWIGCSHARP
 
   %import  "chrono_swig/interface/core/ChClassFactory.i"
@@ -322,7 +346,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
   %import  "../../../chrono/physics/ChBodyFrame.h"
   %import  "../../../chrono/physics/ChLinkBase.h"
   %import  "chrono_swig/interface/core/ChTexture.i"
-  %import  "../../../chrono/assets/ChTriangleMeshShape.h"
+  %import  "../../../chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #endif  // ----- end CSHARP
 
@@ -361,7 +385,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
   %import(module = "pychrono.core")  "../../../chrono/physics/ChBodyFrame.h"
   %import(module = "pychrono.core")  "../../../chrono/physics/ChLinkBase.h"
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTexture.i"
-  %import(module = "pychrono.core")  "../../../chrono/assets/ChTriangleMeshShape.h"
+  %import(module = "pychrono.core")  "../../../chrono/assets/ChVisualShapeTriangleMesh.h"
   
   #ifdef CHRONO_IRRLICHT
     #define ChApiIrr 

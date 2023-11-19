@@ -28,7 +28,6 @@
 #include "gtest/gtest.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
   protected:

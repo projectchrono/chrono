@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Class for referencing a set of 'glyphs', that are simple symbols
 /// such as arrows or points to be drawn for showing vector directions etc.
 /// Remember that depending on the type of visualization system
@@ -174,6 +177,8 @@ class ChApi ChGlyphs : public ChVisualShape {
     double size;
     bool zbuffer_hide;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChGlyphs, 0)
 

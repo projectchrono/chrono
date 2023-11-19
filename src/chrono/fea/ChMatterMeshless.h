@@ -182,7 +182,7 @@ class ChApi ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> {
     ChStressTensor<> e_stress;  ///< stress
 
     ChVariablesNode variables;
-    collision::ChCollisionModel* collision_model;
+    ChCollisionModel* collision_model;
 
     ChVector<> UserForce;
 

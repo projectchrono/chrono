@@ -123,6 +123,11 @@ class MySimpleTank {
         auto wheel_mat_vis = chrono_types::make_shared<ChVisualMaterial>();
         wheel_mat_vis->SetDiffuseColor(ChColor(0.2f, 0.2f, 0.2f));
 
+        // --- Wheel collision shape
+
+        auto wheel_shape =
+            chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_mat, wheeldiameter / 2, cyl_thickness);
+
         // --- Right Front suspension ---
 
         // ..the tank right-front wheel
@@ -141,12 +146,9 @@ class MySimpleTank {
         wheelRF->SetMass(9.0);
         wheelRF->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
 
-        wheelRF->GetCollisionModel()->ClearModel();
-        wheelRF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displA,
-                                                  Q_from_AngX(CH_C_PI / 2));
-        wheelRF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displB,
-                                                  Q_from_AngX(CH_C_PI / 2));
-        wheelRF->GetCollisionModel()->BuildModel();
+        wheelRF->GetCollisionModel()->AddShape(wheel_shape, ChFrame<>(cyl_displA, Q_from_AngX(CH_C_PI_2)));
+        wheelRF->GetCollisionModel()->AddShape(wheel_shape, ChFrame<>(cyl_displB, Q_from_AngX(CH_C_PI_2)));
+        wheelRF->GetCollisionModel()->Build();
         wheelRF->SetCollide(true);
 
         wheelRF->GetVisualShape(0)->SetMaterial(0, wheel_mat_vis);
@@ -175,12 +177,9 @@ class MySimpleTank {
         wheelLF->SetMass(9.0);
         wheelLF->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
 
-        wheelLF->GetCollisionModel()->ClearModel();
-        wheelLF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displA,
-                                                  Q_from_AngX(CH_C_PI / 2));
-        wheelLF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displB,
-                                                  Q_from_AngX(CH_C_PI / 2));
-        wheelLF->GetCollisionModel()->BuildModel();
+        wheelLF->GetCollisionModel()->AddShape(wheel_shape, ChFrame<>(cyl_displA, Q_from_AngX(CH_C_PI_2)));
+        wheelLF->GetCollisionModel()->AddShape(wheel_shape, ChFrame<>(cyl_displB, Q_from_AngX(CH_C_PI_2)));
+        wheelLF->GetCollisionModel()->Build();
         wheelLF->SetCollide(true);
 
         wheelLF->GetVisualShape(0)->SetMaterial(0, wheel_mat_vis);
@@ -210,12 +209,9 @@ class MySimpleTank {
         wheelRB->SetMass(9.0);
         wheelRB->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
 
-        wheelRB->GetCollisionModel()->ClearModel();
-        wheelRB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displA,
-                                                  Q_from_AngX(CH_C_PI / 2));
-        wheelRB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displB,
-                                                  Q_from_AngX(CH_C_PI / 2));
-        wheelRB->GetCollisionModel()->BuildModel();
+        wheelRB->GetCollisionModel()->AddShape(wheel_shape, ChFrame<>(cyl_displA, Q_from_AngX(CH_C_PI_2)));
+        wheelRB->GetCollisionModel()->AddShape(wheel_shape, ChFrame<>(cyl_displB, Q_from_AngX(CH_C_PI_2)));
+        wheelRB->GetCollisionModel()->Build();
         wheelRB->SetCollide(true);
 
         wheelRB->GetVisualShape(0)->SetMaterial(0, wheel_mat_vis);
@@ -246,12 +242,9 @@ class MySimpleTank {
         wheelLB->SetMass(9.0);
         wheelLB->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
 
-        wheelLB->GetCollisionModel()->ClearModel();
-        wheelLB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displA,
-                                                  Q_from_AngX(CH_C_PI / 2));
-        wheelLB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displB,
-                                                  Q_from_AngX(CH_C_PI / 2));
-        wheelLB->GetCollisionModel()->BuildModel();
+        wheelLB->GetCollisionModel()->AddShape(wheel_shape, ChFrame<>(cyl_displA, Q_from_AngX(CH_C_PI_2)));
+        wheelLB->GetCollisionModel()->AddShape(wheel_shape, ChFrame<>(cyl_displB, Q_from_AngX(CH_C_PI_2)));
+        wheelLB->GetCollisionModel()->Build();
         wheelLB->SetCollide(true);
 
         wheelLB->GetVisualShape(0)->SetMaterial(0, wheel_mat_vis);
@@ -269,14 +262,14 @@ class MySimpleTank {
         auto shoe_trimesh =
             ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"));
         ////shoe_trimesh->Transform(-mesh_displacement, ChMatrix33<>(1));
-        auto shoe_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto shoe_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         shoe_mesh->SetMesh(shoe_trimesh);
         shoe_mesh->SetVisible(true);
 
         auto shoe_coll_trimesh =
             ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_collision.obj"));
         ////shoe_coll_trimesh->Transform(-mesh_displacement, ChMatrix33<>(1));
-        auto shoe_coll_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto shoe_coll_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         shoe_coll_mesh->SetMesh(shoe_coll_trimesh);
         shoe_coll_mesh->SetVisible(false);
 
@@ -320,11 +313,10 @@ class MySimpleTank {
             // Collision:
             firstBodyShoe->GetCollisionModel()->SetSafeMargin(0.004);  // inward safe margin
             firstBodyShoe->GetCollisionModel()->SetEnvelope(0.010);    // distance of the outward "collision envelope"
-            firstBodyShoe->GetCollisionModel()->ClearModel();
-            firstBodyShoe->GetCollisionModel()->AddTriangleMesh(chrono_types::make_shared<ChMaterialSurfaceNSC>(),
-                                                                trimesh, false, false, mesh_displacement,
-                                                                ChMatrix33<>(1), 0.005);
-            firstBodyShoe->GetCollisionModel()->BuildModel();  // Creates the collision model
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(
+                chrono_types::make_shared<ChMaterialSurfaceNSC>(), trimesh, false, false, 0.005);
+            firstBodyShoe->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(mesh_displacement, QUNIT));
+            firstBodyShoe->GetCollisionModel()->Build();
             firstBodyShoe->SetCollide(true);
 
             // Avoid creation of contacts with neighbouring shoes, using
@@ -430,9 +422,9 @@ class MySimpleTank {
         rigidBodyShoe->SetRot(rotation);
         sys.Add(rigidBodyShoe);
 
-        rigidBodyShoe->GetCollisionModel()->ClearModel();
+        rigidBodyShoe->GetCollisionModel()->Clear();
         rigidBodyShoe->GetCollisionModel()->AddCopyOfAnotherModel(template_shoe->GetCollisionModel().get());
-        rigidBodyShoe->GetCollisionModel()->BuildModel();
+        rigidBodyShoe->GetCollisionModel()->Build();
         rigidBodyShoe->SetCollide(true);
 
         // Other settings are already copied from template_shoe, except for family and mask.

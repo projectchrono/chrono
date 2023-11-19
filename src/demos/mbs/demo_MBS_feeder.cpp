@@ -26,7 +26,6 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 // Static values valid through the entire program (bad

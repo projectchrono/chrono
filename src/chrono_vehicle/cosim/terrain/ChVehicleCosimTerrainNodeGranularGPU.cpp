@@ -26,8 +26,8 @@
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularGPU.h"
 
@@ -354,7 +354,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
             auto body = std::shared_ptr<ChBody>(m_system->NewBody());
             body->SetPos(p);
             body->SetBodyFixed(true);
-            auto sph = chrono_types::make_shared<ChSphereShape>(m_radius_g);
+            auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_radius_g);
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }
@@ -381,13 +381,13 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         body->SetBodyFixed(false);
         body->SetCollide(true);
 
-        body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                                   m_radius_g);
+        body->GetCollisionModel()->Clear();
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_g);
+        body->GetCollisionModel()->AddShape(ct_shape);
         body->GetCollisionModel()->SetFamily(2);
-        body->GetCollisionModel()->BuildModel();
+        body->GetCollisionModel()->Build();
 
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
         body->AddVisualShape(trimesh_shape, ChFrame<>());

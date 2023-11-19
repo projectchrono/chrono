@@ -27,7 +27,6 @@
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::vehicle;
 
 int main(int argc, char* argv[]) {
@@ -146,16 +145,17 @@ int main(int argc, char* argv[]) {
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     body->AddVisualShape(trimesh_shape);
 
     auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddTriangleMesh(body_mat, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
+    body->GetCollisionModel()->Clear();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(body_mat, trimesh, false, false, 0.01);
+    body->GetCollisionModel()->AddShape(ct_shape);
     ////utils::AddSphereGeometry(body.get(), body_mat, tire_rad, ChVector<>(0, 0, 0));
-    body->GetCollisionModel()->BuildModel();
+    body->GetCollisionModel()->Build();
 
     body->SetCollide(true);
 

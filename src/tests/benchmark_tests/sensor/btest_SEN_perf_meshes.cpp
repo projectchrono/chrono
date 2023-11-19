@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
             GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
         mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
-        auto base_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto base_trimesh_shape = std::make_shared<ChVisualShapeTriangleMesh>();
         base_trimesh_shape->SetMesh(mmesh);
         // if (base_trimesh_shape->GetNumMaterials() == 0) {
         //     // Create a "proper" set of materials if they don't already exist
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < x_instances; i++) {
             for (int j = 0; j < y_instances; j++) {
                 for (int k = 0; k < z_instances; k++) {
-                    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+                    auto trimesh_shape = std::make_shared<ChVisualShapeTriangleMesh>();
                     trimesh_shape->SetMesh(mmesh);
                     // trimesh_shape->SetName("HMMWV Chassis Mesh");
                     trimesh_shape->SetMutable(false);

@@ -22,6 +22,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Definition of a visual color.
 /// The red (R), green (G), and blue (B) channels take values between 0 and 1.
 class ChApi ChColor {
@@ -60,6 +63,8 @@ class ChApi ChColor {
     /// Method to allow de-serialization of transient data from archives.
     void ArchiveIn(ChArchiveIn& marchive);
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChColor, 0)
 

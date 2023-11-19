@@ -45,10 +45,10 @@ class ChSystem;
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
   public:
     /// Build a rigid body.
-    ChBody(collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET);
+    ChBody(ChCollisionSystemType collision_type = ChCollisionSystemType::BULLET);
 
     /// Build a rigid body with a different collision model.
-    ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model);
+    ChBody(std::shared_ptr<ChCollisionModel> new_collision_model);
 
     ChBody(const ChBody& other);
 
@@ -168,11 +168,11 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     void SetNoSpeedNoAcceleration() override;
 
     /// Change the collision model.
-    void SetCollisionModel(std::shared_ptr<collision::ChCollisionModel> new_collision_model);
+    void SetCollisionModel(std::shared_ptr<ChCollisionModel> new_collision_model);
 
     /// Access the collision model for the collision engine.
     /// To get a non-null pointer, remember to SetCollide(true), before.
-    std::shared_ptr<collision::ChCollisionModel> GetCollisionModel() { return collision_model; }
+    std::shared_ptr<ChCollisionModel> GetCollisionModel() { return collision_model; }
 
     /// Synchronize coll.model coordinate and bounding box to the position of the body.
     virtual void SyncCollisionModels() override;
@@ -197,7 +197,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Get the entire AABB axis-aligned bounding box of the object,
     /// as defined by the collision model (if any).
-    virtual void GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) override;
+    virtual geometry::ChAABB GetTotalAABB() override;
 
     /// Method to deserialize only the state (position, speed)
     virtual void StreamInstate(ChStreamInBinary& mstream) override;
@@ -477,7 +477,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
         ) override;
 
   protected:
-    std::shared_ptr<collision::ChCollisionModel> collision_model;  ///< pointer to the collision model
+    std::shared_ptr<ChCollisionModel> collision_model;  ///< pointer to the collision model
 
     unsigned int body_id;   ///< body-specific identifier, used for indexing (internal use only)
     unsigned int body_gid;  ///< body-specific identifier, used for global indexing (internal use only)

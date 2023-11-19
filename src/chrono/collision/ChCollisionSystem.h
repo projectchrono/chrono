@@ -19,6 +19,7 @@
 #include "chrono/collision/ChCollisionInfo.h"
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
+#include "chrono/geometry/ChGeometry.h"
 #include "chrono/assets/ChColor.h"
 
 namespace chrono {
@@ -29,8 +30,6 @@ class ChBody;
 class ChVariablesBody;
 class ChContactContainer;
 class ChProximityContainer;
-
-namespace collision {
 
 /// @addtogroup chrono_collision
 /// @{
@@ -71,7 +70,7 @@ class ChApi ChCollisionSystem {
     virtual void PostProcess() {}
 
     /// Return an AABB bounding all collision shapes in the system
-    virtual void GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const = 0;
+    virtual geometry::ChAABB GetBoundingBox() const = 0;
 
     /// Return the time (in seconds) for broadphase collision detection.
     virtual double GetTimerCollisionBroad() const = 0;
@@ -210,7 +209,7 @@ class ChApi ChCollisionSystem {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive) {
         // version number
-        /*int version =*/ marchive.VersionRead<ChCollisionSystem>();
+        /*int version =*/marchive.VersionRead<ChCollisionSystem>();
     }
 
     /// Set associated Chrono system
@@ -226,9 +225,7 @@ class ChApi ChCollisionSystem {
 
 /// @} chrono_collision
 
-}  // end namespace collision
-
-CH_CLASS_VERSION(collision::ChCollisionSystem, 0)
+CH_CLASS_VERSION(ChCollisionSystem, 0)
 
 }  // end namespace chrono
 

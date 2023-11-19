@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChMatterMeshless.h"
 #include "chrono/fea/ChProximityContainerMeshless.h"
@@ -23,7 +23,6 @@
 namespace chrono {
 namespace fea {
 
-using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -41,7 +40,9 @@ ChNodeMeshless::ChNodeMeshless()
 ChNodeMeshless::ChNodeMeshless(const ChNodeMeshless& other) : ChNodeXYZ(other) {
     collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
-    collision_model->AddPoint(other.container->GetMaterialSurface(), other.coll_rad);
+    auto cshape = chrono_types::make_shared<ChCollisionShapePoint>(other.container->GetMaterialSurface(),
+                                                                              VNULL, other.coll_rad);
+    collision_model->AddShape(cshape);
 
     pos_ref = other.pos_ref;
     UserForce = other.UserForce;
@@ -72,8 +73,9 @@ ChNodeMeshless& ChNodeMeshless::operator=(const ChNodeMeshless& other) {
 
     ChNodeXYZ::operator=(other);
 
-    collision_model->ClearModel();
-    collision_model->AddPoint(other.container->GetMaterialSurface(), other.coll_rad);
+    auto cshape = chrono_types::make_shared<ChCollisionShapePoint>(other.container->GetMaterialSurface(),
+                                                                              VNULL, other.coll_rad);
+    collision_model->AddShape(cshape);
 
     collision_model->SetContactable(this);
 
@@ -181,10 +183,11 @@ void ChMatterMeshless::ResizeNnodes(int newsize) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
         nodes[j] = chrono_types::make_shared<ChNodeMeshless>();
 
-        nodes[j]->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
+        nodes[j]->variables.SetUserData((void*)this);
 
-        nodes[j]->collision_model->AddPoint(matsurface, 0.001);  //***TEST***
-        nodes[j]->collision_model->BuildModel();
+        auto cshape = chrono_types::make_shared<ChCollisionShapePoint>(matsurface, VNULL, 0.001); //// TEST
+        nodes[j]->collision_model->AddShape(cshape);
+        nodes[j]->collision_model->Build();
     }
 
     SetCollide(oldcoll);  // this will also add particle coll.models to coll.engine, if already in a ChSystem
@@ -200,10 +203,11 @@ void ChMatterMeshless::AddNode(ChVector<double> initial_state) {
 
     newp->SetMatterContainer(this);
 
-    newp->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
+    newp->variables.SetUserData((void*)this);
 
-    newp->collision_model->AddPoint(matsurface, 0.1);  //***TEST***
-    newp->collision_model->BuildModel();   // will also add to system, if collision is on.
+    auto cshape = chrono_types::make_shared<ChCollisionShapePoint>(matsurface, VNULL, 0.1);  //// TEST
+    newp->collision_model->AddShape(cshape);
+    newp->collision_model->Build();
 }
 
 void ChMatterMeshless::FillBox(const ChVector<> size,
@@ -702,10 +706,10 @@ void ChMatterMeshless::RemoveCollisionModelsFromSystem() {
 
 void ChMatterMeshless::UpdateParticleCollisionModels() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j]->collision_model->ClearModel();
+        nodes[j]->collision_model->Clear();
         //***TO DO*** UPDATE RADIUS OF MeshlessERE?
         // nodes[j]->collision_model->AddCopyOfAnotherModel(particle_collision_model);
-        nodes[j]->collision_model->BuildModel();
+        nodes[j]->collision_model->Build();
     }
 }
 

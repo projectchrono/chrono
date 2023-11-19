@@ -341,7 +341,7 @@ int main(int argc, char* argv[]) {
     if (patch->GetGroundBody()->GetVisualModel()) {
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
             GetChronoDataFile("models/trees/Tree.obj"), true, true);
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName("Trees");
         trimesh_shape->SetMutable(false);

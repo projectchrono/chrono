@@ -22,14 +22,13 @@
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #ifdef CHRONO_COLLISION
-    #include "chrono/collision/ChCollisionModelChrono.h"
+    #include "chrono/collision/chrono/ChCollisionModelChrono.h"
 #endif
 
 namespace chrono {
 
-using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -40,7 +39,7 @@ CH_UPCASTING_SANITIZED(ChBody, ChContactable_1vars<6>, ChBody_ChContactable_1var
 CH_UPCASTING(ChBody, ChLoadableUVW)
 
 
-ChBody::ChBody(collision::ChCollisionSystemType collision_type) {
+ChBody::ChBody(ChCollisionSystemType collision_type) {
     marklist.clear();
     forcelist.clear();
 
@@ -86,7 +85,7 @@ ChBody::ChBody(collision::ChCollisionSystemType collision_type) {
     body_id = 0;
 }
 
-ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model) {
+ChBody::ChBody(std::shared_ptr<ChCollisionModel> new_collision_model) {
     marklist.clear();
     forcelist.clear();
 
@@ -788,7 +787,7 @@ bool ChBody::GetCollide() const {
     return BFlagGet(BodyFlag::COLLIDE);
 }
 
-void ChBody::SetCollisionModel(std::shared_ptr<collision::ChCollisionModel> new_collision_model) {
+void ChBody::SetCollisionModel(std::shared_ptr<ChCollisionModel> new_collision_model) {
     if (collision_model) {
         if (system)
             system->GetCollisionSystem()->Remove(collision_model.get());
@@ -818,11 +817,11 @@ void ChBody::RemoveCollisionModelsFromSystem() {
 
 // ---------------------------------------------------------------------------
 
-void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
-    if (this->GetCollisionModel())
-        this->GetCollisionModel()->GetAABB(bbmin, bbmax);
-    else
-        ChPhysicsItem::GetTotalAABB(bbmin, bbmax);  // default: infinite aabb
+geometry::ChAABB ChBody::GetTotalAABB() {
+    if (GetCollisionModel())
+        return this->GetCollisionModel()->GetBoundingBox();
+    
+    return geometry::ChAABB();  // default: inverted bounding box
 }
 
 void ChBody::ContactableGetStateBlock_x(ChState& x) {
@@ -1106,7 +1105,7 @@ void ChBody::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(forcelist, "forces");
 
     marchive << CHNVP(body_id);
-    //marchive << CHNVP(collision_model);
+    marchive << CHNVP(collision_model);
     marchive << CHNVP(gyro);
     marchive << CHNVP(Xforce);
     marchive << CHNVP(Xtorque);
@@ -1164,8 +1163,13 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
     }
 
     marchive >> CHNVP(body_id);
-    //marchive >> CHNVP(collision_model);
-    //collision_model->SetContactable(this);
+
+    std::shared_ptr<ChCollisionModel> collision_model_temp;  ///< pointer to the collision model
+    marchive >> CHNVP(collision_model_temp, "collision_model");
+    SetCollisionModel(collision_model_temp);
+    if (collision_model)
+        collision_model->Build();
+
     marchive >> CHNVP(gyro);
     marchive >> CHNVP(Xforce);
     marchive >> CHNVP(Xtorque);
@@ -1179,31 +1183,6 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(sleep_minspeed);
     marchive >> CHNVP(sleep_minwvel);
     marchive >> CHNVP(sleep_starttime);
-
-
-    // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-
-        bool _c_SetBodyFixed;
-        if (marchive.in(CHNVP(_c_SetBodyFixed)))
-            this->SetBodyFixed(_c_SetBodyFixed);
-
-        double _c_SetMass;
-        if (marchive.in(CHNVP(_c_SetMass)))
-            this->SetMass(_c_SetMass);
-
-        ChVector<> _c_SetInertiaXX;
-        if (marchive.in(CHNVP(_c_SetInertiaXX)))
-            this->SetInertiaXX(_c_SetInertiaXX);
-
-        ChVector<> _c_SetInertiaXY;
-        if (marchive.in(CHNVP(_c_SetInertiaXY)))
-            this->SetInertiaXY(_c_SetInertiaXY);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
 
 }
 

@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
 
     auto actuator = chrono_types::make_shared<ChHydraulicActuator3>();
-    actuator->SetInputFunction(chrono_types::make_shared<ChFunction_Sine>(0.0, 17.5, 10.0));
+    actuator->SetInputFunction(chrono_types::make_shared<ChFunction_Sine>(0.0, 5.0, 1.0));
     actuator->Cylinder().SetInitialChamberLengths(0.221, 0.221);
     actuator->Cylinder().SetInitialChamberPressures(3.3e6, 4.4e6);
     actuator->DirectionalValve().SetInitialSpoolPosition(0);
@@ -86,11 +86,11 @@ int main(int argc, char* argv[]) {
     csv << t << 0 << y0.format(rowFmt) << std::endl;
 
     while (t < t_end) {
-        actuator->SetActuatorLength(t, 0.5, 0.0);
+        actuator->SetActuatorLength(0.5, 0.0);
         sys.DoStepDynamics(t_step);
         t += t_step;
 
-        auto F = actuator->GetActuatorForce(t);
+        auto F = actuator->GetActuatorForce();
         auto y = actuator->GetStates();
         csv << t << F << y.format(rowFmt) << std::endl;
         std::cout << t << " " << F << " " << y.format(rowFmt) << std::endl;

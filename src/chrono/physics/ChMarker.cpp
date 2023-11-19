@@ -340,21 +340,7 @@ void ChMarker::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(motion_ang);
     marchive >> CHNVP(motion_axis);
     marchive >> CHNVP(Body);
-
-
-    // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-
-        ChVector<> _c_Impose_Abs_Coord__ChCoordsys__ChVector;
-        ChQuaternion<> _c_Impose_Abs_Coord__ChCoordsys__ChQuaternion;
-        if (marchive.in(CHNVP(_c_Impose_Abs_Coord__ChCoordsys__ChVector)) &&
-            marchive.in(CHNVP(_c_Impose_Abs_Coord__ChCoordsys__ChQuaternion)))
-            this->Impose_Abs_Coord(ChCoordsys<>(_c_Impose_Abs_Coord__ChCoordsys__ChVector, _c_Impose_Abs_Coord__ChCoordsys__ChQuaternion));
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
+    
 
     UpdateState(); // updates the ChMarker::abs_frame first
     Impose_Abs_Coord(this->GetAbsCoord()); // from ChMarker::abs_frame update ChMarker::rest_coord and ChFrame::coord

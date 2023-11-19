@@ -45,10 +45,10 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
 
 int main(int argc, char* argv[]) {
     // Collision detection sys
-    collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::CHRONO;
+    ChCollisionSystemType collision_type = ChCollisionSystemType::CHRONO;
 
     // Narrowphase algorithm
-    collision::ChNarrowphase::Algorithm narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
+    ChNarrowphase::Algorithm narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     // Collision envelope (NSC only)
     double collision_envelope = 0.05;
@@ -205,47 +205,44 @@ int main(int argc, char* argv[]) {
 
     switch (object_model) {
         case CollisionShape::SPHERE: {
-            object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddSphere(object_mat, radius, ChVector<>(0));
-            object->GetCollisionModel()->BuildModel();
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(object_mat, radius);
+            object->GetCollisionModel()->AddShape(ct_shape);
+            object->GetCollisionModel()->Build();
 
-            auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
+            auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
             sphere->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
             object->AddVisualShape(sphere);
 
             break;
         }
         case CollisionShape::CYLINDER: {
-            object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCylinder(object_mat, radius, 2 * hlen, ChVector<>(0),
-                                                     Q_from_AngX(CH_C_PI_2));
-            object->GetCollisionModel()->BuildModel();
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(object_mat, radius, 2 * hlen);
+            object->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+            object->GetCollisionModel()->Build();
 
-            auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 2 * hlen);
+            auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
             cyl->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
             object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             break;
         }
         case CollisionShape::CAPSULE: {
-            object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCapsule(object_mat, radius, 2 * hlen, ChVector<>(0),
-                                                    Q_from_AngX(CH_C_PI_2));
-            object->GetCollisionModel()->BuildModel();
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeCapsule>(object_mat, radius, 2 * hlen);
+            object->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+            object->GetCollisionModel()->Build();
 
-            auto cap = chrono_types::make_shared<ChCapsuleShape>(radius, 2 * hlen);
+            auto cap = chrono_types::make_shared<ChVisualShapeCapsule>(radius, 2 * hlen);
             cap->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
             object->AddVisualShape(cap, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             break;
         }
         case CollisionShape::CYLSHELL: {
-            object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCylindricalShell(object_mat, radius, 2 * hlen, ChVector<>(0),
-                                                             Q_from_AngX(CH_C_PI_2));
-            object->GetCollisionModel()->BuildModel();
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylindricalShell>(object_mat, radius, 2 * hlen);
+            object->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+            object->GetCollisionModel()->Build();
 
-            auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 2 * hlen);
+            auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
             cyl->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
             object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
@@ -257,12 +254,12 @@ int main(int argc, char* argv[]) {
             if (!trimesh)
                 return 1;
 
-            object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddTriangleMesh(object_mat, trimesh, false, false, ChVector<>(0),
-                                                         ChMatrix33<>(1), sphere_r);
-            object->GetCollisionModel()->BuildModel();
+            auto ct_shape =
+                chrono_types::make_shared<ChCollisionShapeTriangleMesh>(object_mat, trimesh, false, false, sphere_r);
+            object->GetCollisionModel()->AddShape(ct_shape);
+            object->GetCollisionModel()->Build();
 
-            auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh);
             ////trimesh_shape->SetWireframe(true);
             trimesh_shape->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
@@ -295,11 +292,11 @@ int main(int argc, char* argv[]) {
         matSMC->SetGt(ground_gt);
     }
 
-    ground->GetCollisionModel()->ClearModel();
-    ground->GetCollisionModel()->AddBox(ground_mat, size_x, size_y, size_z, ChVector<>(0, -size_y / 2, 0));
-    ground->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, size_x, size_y, size_z);
+    ground->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0, -size_y / 2, 0), QUNIT));
+    ground->GetCollisionModel()->Build();
 
-    auto box = chrono_types::make_shared<ChBoxShape>(size_x, size_y, size_z);
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(size_x, size_y, size_z);
     box->SetTexture(GetChronoDataFile("textures/checker1.png"), 4, 2);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, -size_y / 2, 0), QUNIT));
 

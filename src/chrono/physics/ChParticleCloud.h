@@ -142,7 +142,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     // DATA
     ChParticleCloud* container;
     ChVariablesBodySharedMass variables;
-    collision::ChCollisionModel* collision_model;
+    ChCollisionModel* collision_model;
     ChVector<> UserForce;
     ChVector<> UserTorque;
 };
@@ -302,7 +302,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Access the collision model for the collision engine: this is the 'sample'
     /// collision model that is used by all particles.
     /// To get a non-null pointer, remember to SetCollide(true), before.
-    collision::ChCollisionModel* GetCollisionModel() { return particle_collision_model; }
+    ChCollisionModel* GetCollisionModel() { return particle_collision_model; }
 
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
     virtual void SyncCollisionModels() override;
@@ -383,7 +383,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
 
     std::shared_ptr<ColorCallback> m_color_fun;  ///< callback for dynamic coloring
 
-    collision::ChCollisionModel* particle_collision_model;  ///< sample collision model
+    ChCollisionModel* particle_collision_model;  ///< sample collision model
     std::shared_ptr<ChMaterialSurface> matsurface;          ///< data for surface contact and impact
     bool fixed;
     bool do_collide;

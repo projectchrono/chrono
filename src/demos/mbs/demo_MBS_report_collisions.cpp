@@ -92,13 +92,17 @@ int main(int argc, char* argv[]) {
     auto container = chrono_types::make_shared<ChBody>();
     container->SetBodyFixed(true);
     container->SetCollide(true);
-    container->GetCollisionModel()->ClearModel();
-    container->GetCollisionModel()->AddBox(mat, 40, 2, 40, ChVector<>(0, -10, 0));
-    container->GetCollisionModel()->AddBox(mat, 2, 80, 40, ChVector<>(-11, 0, 0));
-    container->GetCollisionModel()->AddBox(mat, 2, 80, 40, ChVector<>(11, 0, 0));
-    container->GetCollisionModel()->AddBox(mat, 40, 80, 2, ChVector<>(0, 0, -11));
-    container->GetCollisionModel()->AddBox(mat, 40, 80, 2, ChVector<>(0, 0, 11));
-    container->GetCollisionModel()->BuildModel();
+    auto shape1 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 40, 2, 40);
+    auto shape2 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 2, 80, 40);
+    auto shape3 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 2, 80, 40);
+    auto shape4 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 40, 80, 2);
+    auto shape5 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 40, 80, 2);
+    container->GetCollisionModel()->AddShape(shape1, ChFrame<>(ChVector<>(0, -10, 0), QUNIT));
+    container->GetCollisionModel()->AddShape(shape2, ChFrame<>(ChVector<>(-11, 0, 0), QUNIT));
+    container->GetCollisionModel()->AddShape(shape3, ChFrame<>(ChVector<>(11, 0, 0), QUNIT));
+    container->GetCollisionModel()->AddShape(shape4, ChFrame<>(ChVector<>(0, 0, -11), QUNIT));
+    container->GetCollisionModel()->AddShape(shape5, ChFrame<>(ChVector<>(0, 0, 11), QUNIT));
+    container->GetCollisionModel()->Build();
     sys.AddBody(container);
 
     // Create falling rigid bodies with different shapes and mark one of each type.
