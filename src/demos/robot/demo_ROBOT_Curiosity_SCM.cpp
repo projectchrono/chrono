@@ -87,8 +87,11 @@ int main(int argc, char* argv[]) {
     // Global parameter for moving patch size:
     double wheel_range = 0.5;
 
-    // Create the Chrono system and Curiosity rover
+    // Create the Chrono system and the associated collision system
     ChSystemSMC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
+    // Create the Curiosity rover
     Curiosity rover(&sys, chassis_type, wheel_type);
     rover.SetDriver(chrono_types::make_shared<CuriositySpeedDriver>(1.0, CH_C_PI));
     rover.Initialize(ChFrame<>(ChVector<>(-5, -0.2, 0), Q_from_AngX(-CH_C_PI / 2)));
@@ -134,8 +137,7 @@ int main(int argc, char* argv[]) {
         body->SetInertiaXX(rock_density * principal_I);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rock_mat, mesh, false, false, 0.005);
-        body->GetCollisionModel()->AddShape(ct_shape);
-        body->GetCollisionModel()->Build();
+        body->AddCollisionShape(ct_shape);
         body->SetCollide(true);
 
         auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

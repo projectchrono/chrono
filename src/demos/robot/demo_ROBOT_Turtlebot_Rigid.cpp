@@ -93,6 +93,7 @@ int main(int argc, char* argv[]) {
     // set gravity
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 

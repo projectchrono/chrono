@@ -143,8 +143,9 @@ int main(int argc, char* argv[]) {
     double wheel_range = 0.5;
     ////double body_range = 1.2;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system and associated collision system
     ChSystemSMC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Initialize output
