@@ -1214,9 +1214,11 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         // Add contact geometry to child body
         child->AddCollisionShapes();
 
-        // Place all links from this limb in the same collision family
-        child_body->GetCollisionModel()->SetFamily(collision_family);
-        child_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(collision_family);
+        if (child_body->GetCollisionModel()) {
+            // Place all links from this limb in the same collision family
+            child_body->GetCollisionModel()->SetFamily(collision_family);
+            child_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(collision_family);
+        }
 
         // Note: call this AFTER setting the collision family (required for Chrono::Multicore)
         if (child == m_wheel)
