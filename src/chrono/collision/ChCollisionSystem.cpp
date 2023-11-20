@@ -24,10 +24,7 @@ namespace chrono {
 
 ChCollisionSystem::ChCollisionSystem() : m_system(nullptr), m_initialized(false) {}
 
-ChCollisionSystem::~ChCollisionSystem() {
-    if (m_system)
-        m_system->collision_system = nullptr;
-}
+ChCollisionSystem::~ChCollisionSystem() {}
 
 void ChCollisionSystem::Initialize() {
     if (m_initialized)
