@@ -172,6 +172,12 @@ int main(int argc, char* argv[]) {
     // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
     ////vehicle.SetContactCollection(true);
 
+    // ----------------------------
+    // Associate a collision system
+    // ----------------------------
+
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // ------------------
     // Create the terrain
     // ------------------

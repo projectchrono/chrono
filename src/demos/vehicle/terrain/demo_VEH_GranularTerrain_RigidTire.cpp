@@ -79,6 +79,7 @@ int main(int argc, char* argv[]) {
     ChVector<> gravityR = ChMatrix33<>(slope_g, ChVector<>(0, 1, 0)) * gravity;
 
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys->Set_G_acc(gravity);
 
     // Set number of threads
@@ -135,7 +136,7 @@ int main(int argc, char* argv[]) {
 
     ChVector<> tire_center(terrain.GetPatchRear() + tire_rad, (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2,
                            terrain_height + 1.01 * tire_rad);
-    auto body = std::shared_ptr<ChBody>(sys->NewBody());
+    auto body = chrono_types::make_shared<ChBody>();
     body->SetMass(500);
     body->SetInertiaXX(ChVector<>(20, 20, 20));
     body->SetPos(tire_center);
@@ -151,11 +152,9 @@ int main(int argc, char* argv[]) {
 
     auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    body->GetCollisionModel()->Clear();
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(body_mat, trimesh, false, false, 0.01);
-    body->GetCollisionModel()->AddShape(ct_shape);
+    body->AddCollisionShape(ct_shape);
     ////utils::AddSphereGeometry(body.get(), body_mat, tire_rad, ChVector<>(0, 0, 0));
-    body->GetCollisionModel()->Build();
 
     body->SetCollide(true);
 

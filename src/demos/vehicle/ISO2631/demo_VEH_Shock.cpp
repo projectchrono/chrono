@@ -137,6 +137,9 @@ int main(int argc, char* argv[]) {
 
     GetLog() << "\nBe patient - startup may take some time... \n";
 
+    // Associate a collision system
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
     terrain.Initialize();

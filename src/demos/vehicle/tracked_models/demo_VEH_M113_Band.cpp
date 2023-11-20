@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     m113.SetGyrationMode(false);
 
     m113.SetContactMethod(ChContactMethod::SMC);
-    m113.SetCollisionSystemType(ChCollisionSystemType::BULLET);
+    m113.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m113.SetChassisCollisionType(CollisionType::NONE);
     m113.SetChassisFixed(false);
 
@@ -501,7 +501,7 @@ void AddFixedObstacles(ChSystem* system) {
     double radius = 2.2;
     double length = 6;
 
-    auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
+    auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector<>(10, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);
@@ -519,8 +519,7 @@ void AddFixedObstacles(ChSystem* system) {
     obst_mat->SetPoissonRatio(0.3f);
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
-    obstacle->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-    obstacle->GetCollisionModel()->Build();
+    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     system->AddBody(obstacle);
 }

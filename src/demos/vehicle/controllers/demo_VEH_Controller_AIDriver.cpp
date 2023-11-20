@@ -40,22 +40,25 @@ int main(int argc, char* argv[]) {
     // --------------
 
     // Create the Sedan vehicle, set parameters, and initialize
-    Sedan my_sedan;
-    my_sedan.SetContactMethod(ChContactMethod::SMC);
-    my_sedan.SetChassisCollisionType(CollisionType::NONE);
-    my_sedan.SetChassisFixed(false);
-    my_sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-30, -30, 1.0), Q_from_AngZ(CH_C_PI / 4)));
-    my_sedan.SetTireType(TireModelType::TMEASY);
-    my_sedan.Initialize();
+    Sedan sedan;
+    sedan.SetContactMethod(ChContactMethod::SMC);
+    sedan.SetChassisCollisionType(CollisionType::NONE);
+    sedan.SetChassisFixed(false);
+    sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-30, -30, 1.0), Q_from_AngZ(CH_C_PI / 4)));
+    sedan.SetTireType(TireModelType::TMEASY);
+    sedan.Initialize();
 
-    my_sedan.SetChassisVisualizationType(VisualizationType::MESH);
-    my_sedan.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    my_sedan.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    my_sedan.SetWheelVisualizationType(VisualizationType::MESH);
-    my_sedan.SetTireVisualizationType(VisualizationType::MESH);
+    sedan.SetChassisVisualizationType(VisualizationType::MESH);
+    sedan.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    sedan.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    sedan.SetWheelVisualizationType(VisualizationType::MESH);
+    sedan.SetTireVisualizationType(VisualizationType::MESH);
+
+    // Associate a collision system
+    sedan.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain
-    RigidTerrain terrain(my_sedan.GetSystem());
+    RigidTerrain terrain(sedan.GetSystem());
 
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;
@@ -77,22 +80,22 @@ int main(int argc, char* argv[]) {
     vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
-    vis->AttachVehicle(&my_sedan.GetVehicle());
+    vis->AttachVehicle(&sedan.GetVehicle());
 
     // Create the driver system
     // Option 1: use concrete driver class
-    Sedan_AIDriver driver(my_sedan.GetVehicle());
+    Sedan_AIDriver driver(sedan.GetVehicle());
     // Option 2: use driuver specified through JSON file
-    ////AIDriver driver(my_sedan.GetVehicle(), vehicle::GetDataFile("sedan/driver/Sedan_AIDriver.json"));
+    ////AIDriver driver(sedan.GetVehicle(), vehicle::GetDataFile("sedan/driver/Sedan_AIDriver.json"));
 
     driver.Initialize();
 
     // Simulation loop
-    my_sedan.GetVehicle().EnableRealtime(true);
+    sedan.GetVehicle().EnableRealtime(true);
     double step_size = 2e-3;
 
     while (vis->Run()) {
-        double time = my_sedan.GetSystem()->GetChTime();
+        double time = sedan.GetSystem()->GetChTime();
 
         // Render scene
         vis->BeginScene();
@@ -117,13 +120,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time, long_acc, wheel_angle, 0.0);
         DriverInputs driver_inputs = driver.GetInputs();
         terrain.Synchronize(time);
-        my_sedan.Synchronize(time, driver_inputs, terrain);
+        sedan.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        my_sedan.Advance(step_size);
+        sedan.Advance(step_size);
         vis->Advance(step_size);
     }
 

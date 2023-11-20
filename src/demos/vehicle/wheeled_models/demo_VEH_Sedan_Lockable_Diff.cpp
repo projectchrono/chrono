@@ -53,25 +53,28 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the vehicle
-    Sedan my_sedan;
-    my_sedan.SetContactMethod(ChContactMethod::SMC);
-    my_sedan.SetChassisCollisionType(CollisionType::NONE);
-    my_sedan.SetChassisFixed(false);
-    my_sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-40, 0, 1.0)));
-    my_sedan.SetTireType(TireModelType::TMEASY);
-    my_sedan.SetTireStepSize(1e-3);
-    my_sedan.Initialize();
+    Sedan sedan;
+    sedan.SetContactMethod(ChContactMethod::SMC);
+    sedan.SetChassisCollisionType(CollisionType::NONE);
+    sedan.SetChassisFixed(false);
+    sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-40, 0, 1.0)));
+    sedan.SetTireType(TireModelType::TMEASY);
+    sedan.SetTireStepSize(1e-3);
+    sedan.Initialize();
 
-    my_sedan.SetChassisVisualizationType(VisualizationType::NONE);
-    my_sedan.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    my_sedan.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    my_sedan.SetWheelVisualizationType(VisualizationType::MESH);
-    my_sedan.SetTireVisualizationType(VisualizationType::MESH);
+    sedan.SetChassisVisualizationType(VisualizationType::NONE);
+    sedan.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    sedan.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    sedan.SetWheelVisualizationType(VisualizationType::MESH);
+    sedan.SetTireVisualizationType(VisualizationType::MESH);
 
-    my_sedan.LockAxleDifferential(0, lock_diff);
+    sedan.LockAxleDifferential(0, lock_diff);
+
+    // Associate a collision system
+    sedan.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain
-    RigidTerrain terrain(my_sedan.GetSystem());
+    RigidTerrain terrain(sedan.GetSystem());
 
     auto patch1_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     patch1_mat->SetFriction(0.1f);
@@ -104,7 +107,7 @@ int main(int argc, char* argv[]) {
     vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
-    vis->AttachVehicle(&my_sedan.GetVehicle());
+    vis->AttachVehicle(&sedan.GetVehicle());
 
     // Initialize output
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -115,9 +118,9 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (vis->Run()) {
-        double time = my_sedan.GetSystem()->GetChTime();
+        double time = sedan.GetSystem()->GetChTime();
 
-        if (time > 15 || my_sedan.GetVehicle().GetPos().x() > 49)
+        if (time > 15 || sedan.GetVehicle().GetPos().x() > 49)
             break;
 
         // Render scene
@@ -133,18 +136,18 @@ int main(int argc, char* argv[]) {
             driver_inputs.m_throttle = 0.6 * (time - 1);
 
         // Output
-        double omega_front_left = my_sedan.GetVehicle().GetSuspension(0)->GetAxleSpeed(LEFT);
-        double omega_front_right = my_sedan.GetVehicle().GetSuspension(0)->GetAxleSpeed(RIGHT);
+        double omega_front_left = sedan.GetVehicle().GetSuspension(0)->GetAxleSpeed(LEFT);
+        double omega_front_right = sedan.GetVehicle().GetSuspension(0)->GetAxleSpeed(RIGHT);
         wheelomega_csv << time << omega_front_left << omega_front_right << std::endl;
 
         // Synchronize subsystems
         terrain.Synchronize(time);
-        my_sedan.Synchronize(time, driver_inputs, terrain);
+        sedan.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for all subsystems
         terrain.Advance(step_size);
-        my_sedan.Advance(step_size);
+        sedan.Advance(step_size);
         vis->Advance(step_size);
     }
 

@@ -146,32 +146,33 @@ int main(int argc, char* argv[]) {
     // --------------
 
     // Create the HMMWV vehicle, set parameters, and initialize
-    HMMWV_Full my_hmmwv;
-    my_hmmwv.SetContactMethod(contact_method);
-    my_hmmwv.SetChassisCollisionType(chassis_collision_type);
-    my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_hmmwv.SetEngineType(engine_model);
-    my_hmmwv.SetTransmissionType(transmission_model);
-    my_hmmwv.SetDriveType(drive_type);
-    my_hmmwv.UseTierodBodies(use_tierod_bodies);
-    my_hmmwv.SetSteeringType(steering_type);
-    my_hmmwv.SetBrakeType(brake_type);
-    my_hmmwv.SetTireType(tire_model);
-    my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.Initialize();
+    HMMWV_Full hmmwv;
+    hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    hmmwv.SetContactMethod(contact_method);
+    hmmwv.SetChassisCollisionType(chassis_collision_type);
+    hmmwv.SetChassisFixed(false);
+    hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    hmmwv.SetEngineType(engine_model);
+    hmmwv.SetTransmissionType(transmission_model);
+    hmmwv.SetDriveType(drive_type);
+    hmmwv.UseTierodBodies(use_tierod_bodies);
+    hmmwv.SetSteeringType(steering_type);
+    hmmwv.SetBrakeType(brake_type);
+    hmmwv.SetTireType(tire_model);
+    hmmwv.SetTireStepSize(tire_step_size);
+    hmmwv.Initialize();
 
     if (tire_model == TireModelType::RIGID_MESH)
         tire_vis_type = VisualizationType::MESH;
 
-    my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
-    my_hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
-    my_hmmwv.SetSteeringVisualizationType(steering_vis_type);
-    my_hmmwv.SetWheelVisualizationType(wheel_vis_type);
-    my_hmmwv.SetTireVisualizationType(tire_vis_type);
+    hmmwv.SetChassisVisualizationType(chassis_vis_type);
+    hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
+    hmmwv.SetSteeringVisualizationType(steering_vis_type);
+    hmmwv.SetWheelVisualizationType(wheel_vis_type);
+    hmmwv.SetTireVisualizationType(tire_vis_type);
 
     // Create the terrain
-    RigidTerrain terrain(my_hmmwv.GetSystem());
+    RigidTerrain terrain(hmmwv.GetSystem());
 
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;
@@ -239,13 +240,13 @@ int main(int argc, char* argv[]) {
     utils::CSV_writer driver_csv(" ");
 
     // Set up vehicle output
-    my_hmmwv.GetVehicle().SetChassisOutput(true);
-    my_hmmwv.GetVehicle().SetSuspensionOutput(0, true);
-    my_hmmwv.GetVehicle().SetSteeringOutput(0, true);
-    my_hmmwv.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    hmmwv.GetVehicle().SetChassisOutput(true);
+    hmmwv.GetVehicle().SetSuspensionOutput(0, true);
+    hmmwv.GetVehicle().SetSteeringOutput(0, true);
+    hmmwv.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
-    my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
+    hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
 
     // ------------------------------------------------------------------------------
     // Create the vehicle run-time visualization interface and the interactive driver
@@ -278,7 +279,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&my_hmmwv.GetVehicle());
+            vis_irr->AttachVehicle(&hmmwv.GetVehicle());
 
             // Create the interactive Irrlicht driver system
             auto driver_irr = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
@@ -302,7 +303,7 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("HMMWV Demo");
-            vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
+            vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             vis_vsg->SetChaseCamera(trackPoint, 8.0, 0.5);
             vis_vsg->SetWindowSize(ChVector2<int>(1200, 900));
             vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
@@ -335,7 +336,7 @@ int main(int argc, char* argv[]) {
         // ---------------------------------------------------------
 
 #ifdef CHRONO_POSTPROCESS
-    postprocess::ChBlender blender_exporter(my_hmmwv.GetSystem());
+    postprocess::ChBlender blender_exporter(hmmwv.GetSystem());
     if (blender_output) {
         blender_exporter.SetBasePath(blender_dir);
         blender_exporter.SetCamera(ChVector<>(4.0, 2, 1.0), ChVector<>(0, 0, 0), 50);
@@ -348,11 +349,11 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    my_hmmwv.GetVehicle().LogSubsystemTypes();
+    hmmwv.GetVehicle().LogSubsystemTypes();
 
     if (debug_output) {
         GetLog() << "\n\n============ System Configuration ============\n";
-        my_hmmwv.LogHardpointLocations();
+        hmmwv.LogHardpointLocations();
     }
 
     // Number of simulation steps between miscellaneous events
@@ -368,10 +369,10 @@ int main(int argc, char* argv[]) {
     ////    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     ////}
 
-    my_hmmwv.GetVehicle().EnableRealtime(true);
+    hmmwv.GetVehicle().EnableRealtime(true);
 
     while (vis->Run()) {
-        double time = my_hmmwv.GetSystem()->GetChTime();
+        double time = hmmwv.GetSystem()->GetChTime();
 
         // End simulation
         if (time >= t_end)
@@ -386,7 +387,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(my_hmmwv.GetSystem(), filename);
+                utils::WriteVisualizationAssets(hmmwv.GetSystem(), filename);
             }
 
 #ifdef CHRONO_POSTPROCESS
@@ -402,10 +403,10 @@ int main(int argc, char* argv[]) {
         if (debug_output && step_number % debug_steps == 0) {
             GetLog() << "\n\n============ System Information ============\n";
             GetLog() << "Time = " << time << "\n\n";
-            my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+            hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
 
-            auto marker_driver = my_hmmwv.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
-            auto marker_com = my_hmmwv.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
+            auto marker_driver = hmmwv.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
+            auto marker_com = hmmwv.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
             GetLog() << "Markers\n";
             std::cout << "  Driver loc:      " << marker_driver.x() << " " << marker_driver.y() << " "
                       << marker_driver.z() << std::endl;
@@ -425,13 +426,13 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver->Synchronize(time);
         terrain.Synchronize(time);
-        my_hmmwv.Synchronize(time, driver_inputs, terrain);
+        hmmwv.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver->Advance(step_size);
         terrain.Advance(step_size);
-        my_hmmwv.Advance(step_size);
+        hmmwv.Advance(step_size);
         vis->Advance(step_size);
 
         // Increment frame number

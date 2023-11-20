@@ -84,6 +84,9 @@ int main(int argc, char* argv[]) {
     truck.SetWheelVisualizationType(VisualizationType::MESH, VisualizationType::MESH);
     truck.SetTireVisualizationType(VisualizationType::MESH, VisualizationType::MESH);
 
+    // Associate a collision system
+    truck.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Create the terrain
     RigidTerrain terrain(truck.GetSystem());
     auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();

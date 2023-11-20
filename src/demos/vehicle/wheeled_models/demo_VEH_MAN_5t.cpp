@@ -109,25 +109,28 @@ int main(int argc, char* argv[]) {
     // Create systems
     // --------------
     // Create the City Bus vehicle, set parameters, and initialize
-    MAN_5t my_truck;
-    my_truck.SetContactMethod(contact_method);
-    my_truck.SetChassisCollisionType(chassis_collision_type);
-    my_truck.SetChassisFixed(false);
-    my_truck.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_truck.SetEngineType(engine_model);
-    my_truck.SetTransmissionType(transmission_model);
-    my_truck.SetTireType(tire_model);
-    my_truck.SetTireStepSize(tire_step_size);
-    my_truck.Initialize();
+    MAN_5t truck;
+    truck.SetContactMethod(contact_method);
+    truck.SetChassisCollisionType(chassis_collision_type);
+    truck.SetChassisFixed(false);
+    truck.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    truck.SetEngineType(engine_model);
+    truck.SetTransmissionType(transmission_model);
+    truck.SetTireType(tire_model);
+    truck.SetTireStepSize(tire_step_size);
+    truck.Initialize();
 
-    my_truck.SetChassisVisualizationType(chassis_vis_type);
-    my_truck.SetSuspensionVisualizationType(suspension_vis_type);
-    my_truck.SetSteeringVisualizationType(steering_vis_type);
-    my_truck.SetWheelVisualizationType(wheel_vis_type);
-    my_truck.SetTireVisualizationType(tire_vis_type);
+    truck.SetChassisVisualizationType(chassis_vis_type);
+    truck.SetSuspensionVisualizationType(suspension_vis_type);
+    truck.SetSteeringVisualizationType(steering_vis_type);
+    truck.SetWheelVisualizationType(wheel_vis_type);
+    truck.SetTireVisualizationType(tire_vis_type);
+
+    // Associate a collision system
+    truck.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain
-    RigidTerrain terrain(my_truck.GetSystem());
+    RigidTerrain terrain(truck.GetSystem());
 
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;
@@ -163,7 +166,7 @@ int main(int argc, char* argv[]) {
     vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
-    vis->AttachVehicle(&my_truck.GetVehicle());
+    vis->AttachVehicle(&truck.GetVehicle());
 
     // -----------------
     // Initialize output
@@ -214,12 +217,12 @@ int main(int argc, char* argv[]) {
 
     if (debug_output) {
         GetLog() << "\n\n============ System Configuration ============\n";
-        my_truck.LogHardpointLocations();
+        truck.LogHardpointLocations();
     }
 
     // output vehicle mass
-    my_truck.GetVehicle().LogSubsystemTypes();
-    std::cout << "\nVehicle mass: " << my_truck.GetVehicle().GetMass() << std::endl;
+    truck.GetVehicle().LogSubsystemTypes();
+    std::cout << "\nVehicle mass: " << truck.GetVehicle().GetMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -234,9 +237,9 @@ int main(int argc, char* argv[]) {
         vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     }
 
-    my_truck.GetVehicle().EnableRealtime(true);
+    truck.GetVehicle().EnableRealtime(true);
     while (vis->Run()) {
-        double time = my_truck.GetSystem()->GetChTime();
+        double time = truck.GetSystem()->GetChTime();
 
         // End simulation
         if (time >= t_end)
@@ -251,7 +254,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(my_truck.GetSystem(), filename);
+                utils::WriteVisualizationAssets(truck.GetSystem(), filename);
             }
 
             render_frame++;
@@ -261,7 +264,7 @@ int main(int argc, char* argv[]) {
         if (debug_output && step_number % debug_steps == 0) {
             GetLog() << "\n\n============ System Information ============\n";
             GetLog() << "Time = " << time << "\n\n";
-            my_truck.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+            truck.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
         }
 
         // Collect output data from modules (for inter-module communication)
@@ -276,13 +279,13 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_truck.Synchronize(time, driver_inputs, terrain);
+        truck.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        my_truck.Advance(step_size);
+        truck.Advance(step_size);
         vis->Advance(step_size);
 
         // Increment frame number

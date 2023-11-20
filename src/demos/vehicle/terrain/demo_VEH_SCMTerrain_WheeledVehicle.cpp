@@ -155,9 +155,6 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     chrono::utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
     int num_hulls = lugged_convex.GetHullCount();
 
-    auto coll_model = wheel_body->GetCollisionModel();
-    coll_model->Clear();
-
     // Assemble the tire contact from 15 segments, properly offset.
     // Each segment is further decomposed in convex hulls.
     for (int iseg = 0; iseg < 15; iseg++) {
@@ -166,15 +163,13 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
             std::vector<ChVector<> > convexhull;
             lugged_convex.GetConvexHullResult(ihull, convexhull);
             auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(wheel_material, convexhull);
-            coll_model->AddShape(shape, ChFrame<>(VNULL, rot));
+            wheel_body->AddCollisionShape(shape, ChFrame<>(VNULL, rot));
         }
     }
 
     // Add a cylinder to represent the wheel hub.
     auto cyl_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_material, 0.223, 0.252);
-    coll_model->AddShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-
-    coll_model->Build();
+    wheel_body->AddCollisionShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     // Visualization
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
@@ -214,6 +209,7 @@ int main(int argc, char* argv[]) {
     // Create HMMWV vehicle
     // --------------------
     HMMWV_Full hmmwv;
+    hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     hmmwv.SetContactMethod(ChContactMethod::SMC);
     hmmwv.SetChassisFixed(false);
     hmmwv.SetInitPosition(ChCoordsys<>(init_loc, QUNIT));
