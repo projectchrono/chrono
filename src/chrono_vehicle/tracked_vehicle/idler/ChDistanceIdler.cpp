@@ -84,7 +84,7 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     }
 
     // Create and initialize the carrier body
-    m_carrier = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_carrier = chrono_types::make_shared<ChBody>();
     m_carrier->SetNameString(m_name + "_carrier");
     m_carrier->SetPos(m_points[CARRIER]);
     m_carrier->SetRot(idler_to_abs.GetRot());

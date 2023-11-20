@@ -564,29 +564,27 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         ChVector<> spindle_L_pos = suspension->GetSpindlePos(LEFT);
         ChVector<> post_L_pos = spindle_L_pos - ChVector<>(0, 0, tire_radius);
 
-        auto post_L = std::shared_ptr<ChBody>(sys->NewBody());
+        auto post_L = chrono_types::make_shared<ChBody>();
         post_L->SetPos(post_L_pos);
         post_L->SetMass(100);
         post_L->SetCollide(true);
         sys->Add(post_L);
         AddPostVisualization(post_L, ChColor(0.1f, 0.8f, 0.15f));
 
-        post_L->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
-        post_L->GetCollisionModel()->Build();
+        post_L->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
 
         // Create the right post body (red)
         ChVector<> spindle_R_pos = suspension->GetSpindlePos(RIGHT);
         ChVector<> post_R_pos = spindle_R_pos - ChVector<>(0, 0, tire_radius);
 
-        auto post_R = std::shared_ptr<ChBody>(sys->NewBody());
+        auto post_R = chrono_types::make_shared<ChBody>();
         post_R->SetPos(post_R_pos);
         post_R->SetMass(100);
         post_R->SetCollide(true);
         sys->Add(post_R);
         AddPostVisualization(post_R, ChColor(0.8f, 0.1f, 0.1f));
 
-        post_R->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
-        post_R->GetCollisionModel()->Build();
+        post_R->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
 
         // Create and initialize actuators
         auto func_L = chrono_types::make_shared<ChFunction_Setpoint>();
@@ -736,13 +734,13 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
         sys->AddLink(linact_R);
 
         // Create the two rod bodies (used only for visualization)
-        auto rod_L = std::shared_ptr<ChBody>(sys->NewBody());
+        auto rod_L = chrono_types::make_shared<ChBody>();
         rod_L->SetPos(pos_sL.pos);
         rod_L->SetBodyFixed(true);
         sys->Add(rod_L);
         AddRodVisualization(rod_L, ChColor(0.1f, 0.8f, 0.15f));
 
-        auto rod_R = std::shared_ptr<ChBody>(sys->NewBody());
+        auto rod_R = chrono_types::make_shared<ChBody>();
         rod_R->SetPos(pos_sR.pos);
         rod_R->SetBodyFixed(true);
         sys->Add(rod_R);

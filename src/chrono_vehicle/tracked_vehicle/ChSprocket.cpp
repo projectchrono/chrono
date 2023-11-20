@@ -56,7 +56,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>
     ChMatrix33<> rot_y2z(y2z);
 
     // Create and initialize the gear body (same orientation as the chassis).
-    m_gear = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_gear = chrono_types::make_shared<ChBody>();
     m_gear->SetNameString(m_name + "_gear");
     m_gear->SetIdentifier(BodyID::SPROCKET_BODY);
     m_gear->SetPos(loc);
@@ -64,6 +64,9 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>
     m_gear->SetMass(GetGearMass());
     m_gear->SetInertiaXX(GetGearInertia());
     chassis->GetSystem()->AddBody(m_gear);
+
+    // Create an empty collision model for the gear body (needed for the custom collision detection algorithms)
+    m_gear->AddCollisionModel(chrono_types::make_shared<ChCollisionModel>());
 
     // Create and initialize the revolute joint between chassis and gear.
     ChCoordsys<> rev_csys(loc, chassisRot * y2z);

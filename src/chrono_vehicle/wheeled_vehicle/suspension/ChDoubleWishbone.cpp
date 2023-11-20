@@ -130,7 +130,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
     // Create and initialize spindle body
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
@@ -140,7 +140,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upright body (same orientation as the chassis)
-    m_upright[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_upright[side] = chrono_types::make_shared<ChBody>();
     m_upright[side]->SetNameString(m_name + "_upright" + suffix);
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);
@@ -165,7 +165,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     v = Vcross(w, u);
     rot.Set_A_axis(u, v, w);
 
-    m_UCA[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_UCA[side] = chrono_types::make_shared<ChBody>();
     m_UCA[side]->SetNameString(m_name + "_UCA" + suffix);
     m_UCA[side]->SetPos(points[UCA_CM]);
     m_UCA[side]->SetRot(rot);
@@ -189,7 +189,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     v = Vcross(w, u);
     rot.Set_A_axis(u, v, w);
 
-    m_LCA[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_LCA[side] = chrono_types::make_shared<ChBody>();
     m_LCA[side]->SetNameString(m_name + "_LCA" + suffix);
     m_LCA[side]->SetPos(points[LCA_CM]);
     m_LCA[side]->SetRot(rot);
@@ -263,7 +263,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
         rot.Set_A_axis(u, v, w);
 
         // Create the tierod body
-        m_tierod[side] = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+        m_tierod[side] = chrono_types::make_shared<ChBody>();
         m_tierod[side]->SetNameString(m_name + "_tierodBody" + suffix);
         m_tierod[side]->SetPos((points[TIEROD_U] + points[TIEROD_C]) / 2);
         m_tierod[side]->SetRot(rot.Get_A_quaternion());

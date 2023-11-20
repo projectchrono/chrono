@@ -50,11 +50,13 @@ ChTrackedVehicle::~ChTrackedVehicle() {}
 // vehicle subsystems (the two track assemblies and the driveline).
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    // Disable contacts between chassis with all other tracked vehicle subsystems, except the track shoes.
-    m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
-    m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::WHEELS);
-    m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::ROLLERS);
-
+    auto chassis_ct_model = m_chassis->GetBody()->GetCollisionModel();
+    if (chassis_ct_model) {
+        // Disable contacts between chassis with all other tracked vehicle subsystems, except the track shoes.
+        m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
+        m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::WHEELS);
+        m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::ROLLERS);
+    }
     ChVehicle::Initialize(chassisPos, chassisFwdVel);
 }
 

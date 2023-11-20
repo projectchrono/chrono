@@ -157,7 +157,7 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
     m_num_patches++;
 
     // Create the rigid body for this patch (fixed)
-    patch->m_body = std::shared_ptr<ChBody>(m_system->NewBody());
+    patch->m_body = chrono_types::make_shared<ChBody>();
     patch->m_body->SetIdentifier(-m_num_patches);
     patch->m_body->SetNameString("patch_" + std::to_string(m_num_patches));
     patch->m_body->SetPos(position.pos);
@@ -198,15 +198,14 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
                 ChVector<> loc((sizeX1 - length) / 2 + ix * sizeX1,  //
                                (sizeY1 - width) / 2 + iy * sizeY1,   //
                                -0.5 * thickness);
-                patch->m_body->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(loc, QUNIT));
+                patch->m_body->AddCollisionShape(ct_shape, ChFrame<>(loc, QUNIT));
             }
         }
     } else {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(material, length, width, thickness);
         ChVector<> loc(0, 0, -0.5 * thickness);
-        patch->m_body->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(loc, QUNIT));
+        patch->m_body->AddCollisionShape(ct_shape, ChFrame<>(loc, QUNIT));
     }
-    patch->m_body->GetCollisionModel()->Build();
 
     // Cache patch parameters
     patch->m_location = position.pos;
@@ -239,14 +238,13 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     if (connected_mesh) {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, patch->m_trimesh, true, false,
                                                                                 sweep_sphere_radius);
-        patch->m_body->GetCollisionModel()->AddShape(ct_shape);
+        patch->m_body->AddCollisionShape(ct_shape);
     } else {
         patch->m_trimesh_s = geometry::ChTriangleMeshSoup::CreateFromWavefrontFile(mesh_file);
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, patch->m_trimesh_s, true,
                                                                                 false, sweep_sphere_radius);
-        patch->m_body->GetCollisionModel()->AddShape(ct_shape);
+        patch->m_body->AddCollisionShape(ct_shape);
     }
-    patch->m_body->GetCollisionModel()->Build();
 
     auto mesh_name = filesystem::path(mesh_file).stem();
 
@@ -391,7 +389,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     if (connected_mesh) {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, patch->m_trimesh, true, false,
                                                                                 sweep_sphere_radius);
-        patch->m_body->GetCollisionModel()->AddShape(ct_shape);
+        patch->m_body->AddCollisionShape(ct_shape);
     } else {
         patch->m_trimesh_s = chrono_types::make_shared<geometry::ChTriangleMeshSoup>();
         std::vector<geometry::ChTriangle>& triangles = patch->m_trimesh_s->getTriangles();
@@ -402,9 +400,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         }
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, patch->m_trimesh_s, true,
                                                                                 false, sweep_sphere_radius);
-        patch->m_body->GetCollisionModel()->AddShape(ct_shape);
+        patch->m_body->AddCollisionShape(ct_shape);
     }
-    patch->m_body->GetCollisionModel()->Build();
 
     auto mesh_name = filesystem::path(heightmap_file).stem();
 

@@ -108,7 +108,7 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
     }
 
     // ground body, carries the graphic assets
-    m_ground = std::shared_ptr<ChBody>(system->NewBody());
+    m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector<>(0, 0, 0));
     m_ground->SetBodyFixed(true);
@@ -254,17 +254,16 @@ void ObsModTerrain::SetupCollision() {
     GenerateMesh();
 
     m_ground->SetCollide(true);
-    m_ground->GetCollisionModel()->Clear();
 
     auto ct_shape =
         chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_material, m_mesh, true, false, m_sweep_sphere_radius);
-    m_ground->GetCollisionModel()->AddShape(ct_shape);
+    m_ground->AddCollisionShape(ct_shape);
 
     if (m_start_length > 0) {
         double thickness = 1;
         ChVector<> loc(-m_start_length / 2, 0, m_height - thickness / 2);
         auto ct_box = chrono_types::make_shared<ChCollisionShapeBox>(m_material, m_start_length, m_width, thickness);
-        m_ground->GetCollisionModel()->AddShape(ct_box, ChFrame<>(loc, QUNIT));
+        m_ground->AddCollisionShape(ct_box, ChFrame<>(loc, QUNIT));
 
         auto vis_box = chrono_types::make_shared<ChVisualShapeBox>(m_start_length, m_width, thickness);
         m_ground->AddVisualShape(vis_box, ChFrame<>(loc));
@@ -273,13 +272,11 @@ void ObsModTerrain::SetupCollision() {
         double end_length = 10.0;
         ChVector<> loc2(GetXObstacleEnd() + end_length / 2, 0, m_height - thickness / 2);
         auto ct_box2 = chrono_types::make_shared<ChCollisionShapeBox>(m_material, end_length, m_width, thickness);
-        m_ground->GetCollisionModel()->AddShape(ct_box2, ChFrame<>(loc2, QUNIT));
+        m_ground->AddCollisionShape(ct_box2, ChFrame<>(loc2, QUNIT));
 
         auto vis_box2 = chrono_types::make_shared<ChVisualShapeBox>(end_length, m_width, thickness);
         m_ground->AddVisualShape(vis_box2, ChFrame<>(loc2));
     }
-
-    m_ground->GetCollisionModel()->Build();
 }
 
 }  // end namespace vehicle

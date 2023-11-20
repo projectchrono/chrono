@@ -126,7 +126,7 @@ void ChToeBarRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_ptARBCenter = 0.5 * (m_ptARBChassis[LEFT] + m_ptARBChassis[RIGHT]);
 
     // Create and initialize the axle body.
-    m_axleTubeBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_axleTubeBody = chrono_types::make_shared<ChBody>();
     m_axleTubeBody->SetNameString(m_name + "_axleTube");
     m_axleTubeBody->SetPos(axleCOM);
     m_axleTubeBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -144,7 +144,7 @@ void ChToeBarRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the Panhard body.
     ChVector<> ptPanhardCom = 0.5 * (m_panrodOuterA + m_panrodOuterC);
-    m_panhardRodBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_panhardRodBody = chrono_types::make_shared<ChBody>();
     m_panhardRodBody->SetNameString(m_name + "_panhardRod");
     m_panhardRodBody->SetPos(ptPanhardCom);
     m_panhardRodBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -172,7 +172,7 @@ void ChToeBarRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_tierodOuterR = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
 
     // Create and initialize the tierod body.
-    m_tierodBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_tierodBody = chrono_types::make_shared<ChBody>();
     m_tierodBody->SetNameString(m_name + "_tierodBody");
     m_tierodBody->SetPos((m_tierodOuterL + m_tierodOuterR) / 2);
     m_tierodBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -208,7 +208,7 @@ void ChToeBarRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         u = Vcross(v, w);
         rot.Set_A_axis(u, v, w);
 
-        m_draglinkBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+        m_draglinkBody = chrono_types::make_shared<ChBody>();
         m_draglinkBody->SetNameString(m_name + "_draglink");
         m_draglinkBody->SetPos((m_pointsL[DRAGLINK_C] + m_pointsL[KNUCKLE_DRL]) / 2);
         m_draglinkBody->SetRot(rot.Get_A_quaternion());
@@ -239,7 +239,7 @@ void ChToeBarRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         u = Vcross(v, w);
         rot.Set_A_axis(u, v, w);
 
-        m_draglinkBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+        m_draglinkBody = chrono_types::make_shared<ChBody>();
         m_draglinkBody->SetNameString(m_name + "_draglink");
         m_draglinkBody->SetPos((m_pointsL[DRAGLINK_C] + m_pointsR[KNUCKLE_DRL]) / 2);
         m_draglinkBody->SetRot(rot.Get_A_quaternion());
@@ -285,7 +285,7 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
     auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
     // Create and initialize knuckle body (same orientation as the chassis)
-    m_knuckleBody[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_knuckleBody[side] = chrono_types::make_shared<ChBody>();
     m_knuckleBody[side]->SetNameString(m_name + "_knuckle" + suffix);
     m_knuckleBody[side]->SetPos(points[KNUCKLE_CM]);
     m_knuckleBody[side]->SetRot(spindleRot);
@@ -294,7 +294,7 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_knuckleBody[side]);
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
@@ -369,7 +369,7 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 
-    m_arbBody[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_arbBody[side] = chrono_types::make_shared<ChBody>();
     m_arbBody[side]->SetNameString(m_name + "_arb" + suffix);
     m_arbBody[side]->SetPos(0.5 * (points[ANTIROLL_C] + m_ptARBCenter));
     m_arbBody[side]->SetRot(chassisRot);

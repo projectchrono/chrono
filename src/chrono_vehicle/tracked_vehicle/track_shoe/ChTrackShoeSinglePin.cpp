@@ -54,7 +54,7 @@ void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Create the shoe body.
     ChVector<> loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
-    m_shoe = std::shared_ptr<ChBody>(sys->NewBody());
+    m_shoe = chrono_types::make_shared<ChBody>();
     m_shoe->SetNameString(m_name + "_shoe");
     m_shoe->SetIdentifier(BodyID::SHOE_BODY);
     m_shoe->SetPos(loc);
