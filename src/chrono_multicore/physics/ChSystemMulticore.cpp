@@ -380,7 +380,9 @@ void ChSystemMulticore::UpdateRigidBodies() {
         // Let derived classes set the specific material surface data.
         UpdateMaterialSurfaceData(i, body.get());
 
-        body->GetCollisionModel()->SyncPosition();
+        // Synchronize collision model (if any)
+        if (body->GetCollisionModel())
+            body->GetCollisionModel()->SyncPosition();
     }
 }
 
