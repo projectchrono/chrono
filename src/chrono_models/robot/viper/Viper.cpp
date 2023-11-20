@@ -207,7 +207,7 @@ ViperPart::ViperPart(const std::string& name,
     : m_name(name), m_pos(rel_pos), m_mat(mat), m_collide(collide), m_visualize(true) {}
 
 void ViperPart::Construct(ChSystem* system) {
-    m_body = std::shared_ptr<ChBodyAuxRef>();
+    m_body = chrono_types::make_shared<ChBodyAuxRef>();
     m_body->SetNameString(m_name + "_body");
     m_body->SetMass(m_mass);
     m_body->SetInertiaXX(m_inertia);

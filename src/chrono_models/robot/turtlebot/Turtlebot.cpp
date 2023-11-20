@@ -145,7 +145,7 @@ Turtlebot_Part::Turtlebot_Part(const std::string& name,
                                const ChQuaternion<>& body_rot,
                                std::shared_ptr<ChBodyAuxRef> chassis_body,
                                bool collide) {
-    m_body = std::shared_ptr<ChBodyAuxRef>();
+    m_body = chrono_types::make_shared<ChBodyAuxRef>();
     m_body->SetNameString(name + "_body");
     m_chassis = chassis_body;
     m_mat = mat;

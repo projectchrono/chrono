@@ -861,7 +861,7 @@ void RS_DriverCallback::OnPhaseChange(RS_Driver::Phase old_phase, RS_Driver::Pha
 
 RS_Part::RS_Part(const std::string& name, std::shared_ptr<ChMaterialSurface> mat, ChSystem* system)
     : m_name(name), m_mat(mat) {
-    m_body = std::shared_ptr<ChBodyAuxRef>();
+    m_body = chrono_types::make_shared<ChBodyAuxRef>();
     m_body->SetNameString(name + "_body");
 }
 
