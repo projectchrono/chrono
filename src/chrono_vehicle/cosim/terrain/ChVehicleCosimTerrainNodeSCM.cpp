@@ -65,6 +65,9 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double
     // Create system and set default method-specific solver settings
     m_system = new ChSystemSMC;
 
+    // Create an associated collision system
+    m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Solver settings independent of method type
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
 
@@ -78,6 +81,9 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& sp
       m_use_checkpoint(false) {
     // Create system and set default method-specific solver settings
     m_system = new ChSystemSMC;
+
+    // Create an associated collision system
+    m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Solver settings independent of method type
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
@@ -318,6 +324,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
     proxy->mesh->AddVisualShapeFEA(vis_mesh);
 
     m_system->AddMesh(proxy->mesh);
+    m_system->GetCollisionSystem()->BindItem(proxy->mesh);
 
     m_proxies[i] = proxy;
 
@@ -351,6 +358,8 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
 
     m_system->AddBody(body);
+    m_system->GetCollisionSystem()->BindItem(body);
+
     proxy->AddBody(body, 0);
 
     m_proxies[i] = proxy;

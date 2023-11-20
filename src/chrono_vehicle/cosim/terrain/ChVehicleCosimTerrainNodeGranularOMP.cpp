@@ -114,6 +114,9 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(doubl
         }
     }
 
+    // Create an associated collision system
+    m_system->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
+
     // Solver settings independent of method type
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
     m_system->GetSettings()->solver.use_full_inertia_tensor = false;
@@ -787,6 +790,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
 
         m_system->AddBody(body);
+        m_system->GetCollisionSystem()->BindItem(body);
+
         proxy->AddBody(body, it);
     }
 
@@ -818,6 +823,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
 
     m_system->AddBody(body);
+    m_system->GetCollisionSystem()->BindItem(body);
+
     proxy->AddBody(body, 0);
 
     m_proxies[i] = proxy;

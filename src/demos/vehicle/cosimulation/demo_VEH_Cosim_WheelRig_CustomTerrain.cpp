@@ -91,6 +91,7 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
 
 MyTerrain::MyTerrain(double length, double width) : ChVehicleCosimTerrainNode(length, width) {
     m_system = new ChSystemSMC;
+    m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
     m_system->SetNumThreads(1);
     m_system->SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
@@ -101,7 +102,6 @@ MyTerrain::~MyTerrain() {
 }
 
 void MyTerrain::OnInitialize(unsigned int num_tires) {
-
     // Create the rigid terrain box with its top surface at init height = 0
     auto ground = chrono_types::make_shared<ChBody>();
     m_system->AddBody(ground);

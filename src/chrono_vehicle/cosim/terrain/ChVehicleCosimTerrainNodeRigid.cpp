@@ -80,11 +80,12 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length, do
         }
     }
 
+    m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
     m_system->SetNumThreads(1);
 }
 
-ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method, const std::string& specfile)
+ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(const std::string& specfile, ChContactMethod method)
     : ChVehicleCosimTerrainNodeChrono(Type::RIGID, 0, 0, method) {
     // Create system and set default method-specific solver settings
     switch (m_method) {
@@ -100,6 +101,7 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
         }
     }
 
+    m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
     m_system->SetNumThreads(1);
 
@@ -337,6 +339,8 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
 
         m_system->AddBody(body);
+        m_system->GetCollisionSystem()->BindItem(body);
+
         proxy->AddBody(body, iv);
     }
 
@@ -370,6 +374,8 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
 
     m_system->AddBody(body);
+    m_system->GetCollisionSystem()->BindItem(body);
+
     proxy->AddBody(body, 0);
 
     m_proxies[i] = proxy;
