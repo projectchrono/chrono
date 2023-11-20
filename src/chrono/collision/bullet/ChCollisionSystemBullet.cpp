@@ -220,8 +220,8 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
         auto bt_modelA = (ChCollisionModelBullet*)obA->getUserPointer();
         auto bt_modelB = (ChCollisionModelBullet*)obB->getUserPointer();
 
-        icontact.modelA = (ChCollisionModel*)bt_modelA->model;
-        icontact.modelB = (ChCollisionModel*)bt_modelB->model;
+        icontact.modelA = bt_modelA->model;
+        icontact.modelB = bt_modelB->model;
 
         double envelopeA = icontact.modelA->GetEnvelope();
         double envelopeB = icontact.modelB->GetEnvelope();
@@ -303,8 +303,11 @@ void ChCollisionSystemBullet::ReportProximities(ChProximityContainer* mproximity
         cbtCollisionObject* obA = static_cast<cbtCollisionObject*>(mp.m_pProxy0->m_clientObject);
         cbtCollisionObject* obB = static_cast<cbtCollisionObject*>(mp.m_pProxy1->m_clientObject);
 
-        ChCollisionModel* modelA = (ChCollisionModel*)obA->getUserPointer();
-        ChCollisionModel* modelB = (ChCollisionModel*)obB->getUserPointer();
+        auto bt_modelA = (ChCollisionModelBullet*)obA->getUserPointer();
+        auto bt_modelB = (ChCollisionModelBullet*)obB->getUserPointer();
+
+        ChCollisionModel* modelA = bt_modelA->model;
+        ChCollisionModel* modelB = bt_modelB->model;
 
         // Add to proximity container
         mproximitycontainer->AddProximity(modelA, modelB);
@@ -331,7 +334,8 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
     this->bt_collision_world->rayTest(btfrom, btto, rayCallback);
 
     if (rayCallback.hasHit()) {
-        result.hitModel = (ChCollisionModel*)(rayCallback.m_collisionObject->getUserPointer());
+        auto bt_model = static_cast<ChCollisionModelBullet*>(rayCallback.m_collisionObject->getUserPointer());
+        result.hitModel = bt_model->model;
         if (result.hitModel) {
             result.hit = true;
             result.abs_hitPoint.Set(rayCallback.m_hitPointWorld.x(), rayCallback.m_hitPointWorld.y(),
@@ -374,7 +378,8 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
     int hit = -1;
     cbtScalar fraction = 1;
     for (int i = 0; i < rayCallback.m_collisionObjects.size(); ++i) {
-        if (rayCallback.m_collisionObjects[i]->getUserPointer() == model && rayCallback.m_hitFractions[i] < fraction) {
+        auto bt_model = static_cast<ChCollisionModelBullet*> (rayCallback.m_collisionObject->getUserPointer());
+        if (bt_model->model == model && rayCallback.m_hitFractions[i] < fraction) {
             hit = i;
             fraction = rayCallback.m_hitFractions[i];
         }
@@ -387,8 +392,9 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
     }
 
     // Return the closest hit on the specified model
+    auto bt_model = static_cast<ChCollisionModelBullet*>(rayCallback.m_collisionObjects[hit]->getUserPointer());
     result.hit = true;
-    result.hitModel = static_cast<ChCollisionModel*>(rayCallback.m_collisionObjects[hit]->getUserPointer());
+    result.hitModel = bt_model->model;
     result.abs_hitPoint.Set(rayCallback.m_hitPointWorld[hit].x(), rayCallback.m_hitPointWorld[hit].y(),
                             rayCallback.m_hitPointWorld[hit].z());
     result.abs_hitNormal.Set(rayCallback.m_hitNormalWorld[hit].x(), rayCallback.m_hitNormalWorld[hit].y(),
