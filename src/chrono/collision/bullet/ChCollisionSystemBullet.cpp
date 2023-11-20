@@ -131,7 +131,8 @@ void ChCollisionSystemBullet::SetNumThreads(int nthreads) {
 }
 
 void ChCollisionSystemBullet::Add(std::shared_ptr<ChCollisionModel> model) {
-    assert(!model->HasImplementation());
+    if (model->HasImplementation())
+        return;
 
     auto bt_model = chrono_types::make_shared<ChCollisionModelBullet>(model.get());
     bt_model->Populate();
