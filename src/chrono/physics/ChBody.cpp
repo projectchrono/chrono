@@ -679,12 +679,12 @@ void ChBody::SetCollide(bool state) {
         return;
 
     // Nothing to do if not attached to a system
-    if (GetSystem())
+    if (!GetSystem())
         return;
 
     // Nothing to do if no collision system or the system was not initialized
     // (in the latter case, the collsion model will be processed at initialization)
-    auto coll_sys = GetSystem()->GetCollisionSystem().get();
+    auto coll_sys = GetSystem()->GetCollisionSystem();
     if (!coll_sys || !coll_sys->IsInitialized())
         return;
 
