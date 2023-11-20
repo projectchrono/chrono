@@ -215,10 +215,10 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::CAPSULE: {
             auto shape = chrono_types::make_shared<ChCollisionShapeCapsule>(object_mat, radius, 2 * hlen);
-            object->AddCollisionShape(shape, ChFrame<>());
+            object->AddCollisionShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             auto cap = chrono_types::make_shared<ChVisualShapeCapsule>(radius, 2 * hlen);
-            object->AddVisualShape(cap);
+            object->AddVisualShape(cap, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             break;
         }
