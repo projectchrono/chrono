@@ -351,7 +351,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     // Create bodies in Chrono system (visualization only)
     if (m_renderRT) {
         for (const auto& p : pos) {
-            auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+            auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(p);
             body->SetBodyFixed(true);
             auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_radius_g);
@@ -371,7 +371,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         ChMatrix33<> inertia;
         trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
 
-        auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+        auto body = chrono_types::make_shared<ChBody>();
         body->SetNameString("obstacle");
         body->SetIdentifier(id++);
         body->SetPos(b.m_init_pos);
@@ -381,11 +381,9 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         body->SetBodyFixed(false);
         body->SetCollide(true);
 
-        body->GetCollisionModel()->Clear();
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_g);
-        body->GetCollisionModel()->AddShape(ct_shape);
+        body->AddCollisionShape(ct_shape);
         body->GetCollisionModel()->SetFamily(2);
-        body->GetCollisionModel()->Build();
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
@@ -630,7 +628,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
     // Create the proxy associated with the given object
     auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
-    auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+    auto body = chrono_types::make_shared<ChBody>();
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO

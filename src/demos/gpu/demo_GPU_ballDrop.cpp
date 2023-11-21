@@ -30,7 +30,7 @@
 using namespace chrono;
 using namespace chrono::gpu;
 
-void setMatreialProperty(ChSystemGpu& gran_sys) {
+void setMaterialProperty(ChSystemGpu& gran_sys) {
     double cor_p = 0.5;  // use cor_p = 0.9 for sand or glass beads
     double cor_w = 0.5;
     double youngs_modulus = 1e8;
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     gran_sys.SetParticles(body_points);
 
     // set up material properties
-    setMatreialProperty(gran_sys);
+    setMaterialProperty(gran_sys);
 
     // set up projectile radius, mass and impact velocity
     float projectile_radius = 5.0f;

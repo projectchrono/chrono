@@ -123,6 +123,8 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(&sysMBS);
 
+    sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Toroidal_Tire_Granular.json");
     if (argc == 1) {
@@ -258,13 +260,11 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     cmaterial->SetFriction(0.3f);
     cmaterial->SetRestitution(0.2f);
     cmaterial->SetAdhesion(0);
-    ground->GetCollisionModel()->Clear();
     chrono::utils::AddBoxContainer(ground, cmaterial,                              //
                                    ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
                                    ChVector<>(bxDim, byDim, bzDim), 0.1,           //
                                    ChVector<int>(0, 0, -1),                        //
                                    false);
-    ground->GetCollisionModel()->Build();
     ground->SetCollide(true);
 
     // Fluid representation of walls
