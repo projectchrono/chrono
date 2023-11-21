@@ -66,6 +66,7 @@ HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_t
 
     // Create the HMMWV vehicle, set parameters, and initialize.
     m_hmmwv = new HMMWV_Full();
+    m_hmmwv->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_hmmwv->SetContactMethod(ChContactMethod::SMC);
     m_hmmwv->SetChassisFixed(false);
     m_hmmwv->SetInitPosition(ChCoordsys<>(ChVector<>(-120, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
@@ -136,7 +137,8 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
     vis->SetWindowTitle("HMMWV DLC");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
+    vis->AddSkyBox();
 
     // Visualization of controller points (sentinel & target)
     irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);

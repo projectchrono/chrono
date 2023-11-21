@@ -60,6 +60,8 @@ class CohesionTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
 
         // Create a multicore SMC system and set the system parameters
         sys = new ChSystemMulticoreSMC();
+        
+
         time_step = 3.0E-5;
         SetSimParameters(sys, ChVector<>(0, 0, 0), fmodel);
 

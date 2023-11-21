@@ -88,6 +88,7 @@ class FEAcontactTest_MUMPS : public FEAcontactTest {
 
 FEAcontactTest::FEAcontactTest(SolverType solver_type) {
     m_system = new ChSystemSMC();
+    m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Set solver parameters
 #ifndef CHRONO_PARDISO_MKL

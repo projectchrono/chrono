@@ -15,8 +15,8 @@
 // Chrono unit test for narrow phase type PRIMS collision detection
 // =============================================================================
 
-#include "chrono/collision/chrono/ChNarrowphase.h"
-#include "chrono/collision/chrono/ChCollisionUtils.h"
+#include "chrono/collision/multicore/ChNarrowphase.h"
+#include "chrono/collision/multicore/ChCollisionUtils.h"
 
 #include "gtest/gtest.h"
 
