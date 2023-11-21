@@ -358,11 +358,26 @@ void ChModalAssembly::ComputeMassCenter() {
     mass_total += mmesh_mass;
     mass_weighted_radius += mmesh_mass * mmesh_com;
 
-    if (mass_total)
+    if (mass_total) {
         this->com_x = mass_weighted_radius / mass_total;
-    else
+
+        this->com_frame.SetPos(com_x);
+
+        Eigen::EigenSolver<Eigen::MatrixXd> es(mmesh_inertia);
+        ChMatrix33<> com_axis = es.eigenvectors().real();
+        ChQuaternion q_axis = com_axis.Get_A_quaternion();
+
+        this->com_frame.SetRot(q_axis);
+
+    } else {
         // located at the position of the first boundary body/node of subassembly
         this->com_x = full_assembly_x_old.segment(0, 3);
+
+        this->com_frame.SetPos(com_x);
+
+        ChQuaternion q_axis = full_assembly_x_old.segment(3, 4);
+        this->com_frame.SetRot(q_axis);
+    }
 }
 
 void ChModalAssembly::SetLocalFloatingFrameOfReference(std::shared_ptr<fea::ChNodeFEAbase> m_node) {
@@ -371,6 +386,7 @@ void ChModalAssembly::SetLocalFloatingFrameOfReference(std::shared_ptr<fea::ChNo
 
 void ChModalAssembly::CpmputeSelectionMatrix() {
     this->S.setZero(6, n_boundary_coords_w);
+    this->alpha.setZero(n_boundary_coords_w / 6);
 
     if (this->attached_node_as_local_frame) {
         int offset = 0;
@@ -386,6 +402,7 @@ void ChModalAssembly::CpmputeSelectionMatrix() {
         }
 
         S.block(0, 6 * offset, 6, 6).diagonal().setConstant(1.0);
+        this->alpha(offset) = 1.0;
 
     } else {
         // It is expected the below is true.
@@ -429,7 +446,6 @@ void ChModalAssembly::CpmputeSelectionMatrix() {
         // The position of the mass center is determined from both boundary and internal bodies/nodes,
         // but the coefficient vector 'alpha' here is evaluated from only boundary bodies/nodes.
         // ChVectorDynamic<> alpha;
-        alpha.setZero(n_bou);
         alpha = A.colPivHouseholderQr().solve(v);
 
         this->S.setZero(6, 6 * n_bou);
@@ -448,11 +464,12 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
     if (this->attached_node_as_local_frame) {
         floating_frame_F = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(attached_node_as_local_frame)->Frame();
 
-        is_initialized_F = true;
         converged_flag_F = true;
 
-        if (is_initialized_F == false)
+        if (is_initialized_F == false) {
+            is_initialized_F = true;
             GetLog() << "*** Frame F attached at a boundary node is used.\n";
+        }
 
     } else {
         double fooT;
@@ -462,26 +479,25 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
         assembly_v.setZero(this->ncoords_w, nullptr);
         this->IntStateGather(0, assembly_x, 0, assembly_v, fooT);
 
-        ChStateDelta assembly_a;
-        assembly_a.setZero(this->ncoords_w, nullptr);
-        this->IntStateGatherAcceleration(0, assembly_a);
+        // ChStateDelta assembly_a;
+        // assembly_a.setZero(this->ncoords_w, nullptr);
+        // this->IntStateGatherAcceleration(0, assembly_a);
 
         if (is_initialized_F == false) {
-            floating_frame_F.SetPos(this->com_x);
-            floating_frame_F.SetRot(QUNIT);  // todo: compute according to boundary nodes
-
-            is_initialized_F = true;
-            converged_flag_F = true;
+            floating_frame_F = com_frame;
 
             ChVectorDynamic<> vel_F(6);
             vel_F = S * assembly_v.segment(0, this->n_boundary_coords_w);
             floating_frame_F.SetPos_dt(vel_F.head(3));
             floating_frame_F.SetWvel_loc(vel_F.tail(3));
 
-            //ChVectorDynamic<> acc_F(6);
-            //acc_F = S * assembly_a.segment(0, this->n_boundary_coords_w);
-            //floating_frame_F.SetPos_dtdt(acc_F.head(3));
-            //floating_frame_F.SetWacc_loc(acc_F.tail(3));
+            // ChVectorDynamic<> acc_F(6);
+            // acc_F = S * assembly_a.segment(0, this->n_boundary_coords_w);
+            // floating_frame_F.SetPos_dtdt(acc_F.head(3));
+            // floating_frame_F.SetWacc_loc(acc_F.tail(3));
+
+            is_initialized_F = true;
+            converged_flag_F = true;
 
             GetLog() << "*** Floating frame F located at approx. COG is used.\n";
 
@@ -519,10 +535,10 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
             floating_frame_F.SetPos_dt(floating_frame_F.GetPos_dt() + delta_vel_F.head(3));
             floating_frame_F.SetWvel_loc(floating_frame_F.GetWvel_loc() + delta_vel_F.tail(3));
 
-            //ChVectorDynamic<> acc_F(6);
-            //acc_F = S * assembly_a.segment(0, this->n_boundary_coords_w);
-            //floating_frame_F.SetPos_dtdt(acc_F.head(3));
-            //floating_frame_F.SetWacc_loc(acc_F.tail(3));
+            // ChVectorDynamic<> acc_F(6);
+            // acc_F = S * assembly_a.segment(0, this->n_boundary_coords_w);
+            // floating_frame_F.SetPos_dtdt(acc_F.head(3));
+            // floating_frame_F.SetWacc_loc(acc_F.tail(3));
 
             if (delta_pos_F.norm() < 1e-10)
                 converged_flag_F = true;
@@ -587,10 +603,21 @@ void ChModalAssembly::UpdateTransformationMatrix() {
     P_W.setIdentity(n_boundary_coords_w + n_modes_coords_w, n_boundary_coords_w + n_modes_coords_w);
     P_W.topLeftCorner(n_boundary_coords_w, n_boundary_coords_w) = P_B2;
 
+    for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; ++i_bou) {
+        ChQuaternion<> quat_bou = x_mod.segment(7 * i_bou + 3, 4);
+        ChMatrix33 rel_R = ChMatrix33<>(floating_frame_F.GetRot().GetConjugate() * quat_bou);
+        S.block(3, 6 * i_bou + 3, 3, 3) = alpha(i_bou) * rel_R;
+    }
+
     ChMatrixDynamic<> I_BB;
     I_BB.setIdentity(n_boundary_coords_w, n_boundary_coords_w);
     Y.setIdentity(n_boundary_coords_w + n_modes_coords_w, n_boundary_coords_w + n_modes_coords_w);
     Y.topLeftCorner(n_boundary_coords_w, n_boundary_coords_w) = P_B2.transpose() * (I_BB - P_B1 * S);
+
+    // Extend the selection matrix S to U for the following computation.
+    U.setZero(6 + n_modes_coords_w, n_boundary_coords_w + n_modes_coords_w);
+    U.topLeftCorner(6, n_boundary_coords_w) = S;
+    U.bottomRightCorner(n_modes_coords_w, n_modes_coords_w).setIdentity();
 }
 
 void ChModalAssembly::ComputeLocalFullKRMmatrix() {
@@ -1388,12 +1415,12 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
         assembly_v_new.setZero(bou_int_coords_w, nullptr);
         assembly_v_new.segment(0, n_boundary_coords_w) = v_mod.segment(0, n_boundary_coords_w);
         assembly_v_new.segment(n_boundary_coords_w, n_internal_coords_w) =
-            P_I2 * Psi_S * P_B2.transpose() * v_mod.segment(0, n_boundary_coords_w) +
-            P_I2 * Psi_D * v_mod.segment(n_boundary_coords_w, n_modes_coords_w);
+            P_I2 * (Psi_S * (P_B2.transpose() * v_mod.segment(0, n_boundary_coords_w)) +
+                    Psi_D * v_mod.segment(n_boundary_coords_w, n_modes_coords_w));
         // Add the residual term which should be zero in the assumption of small deflections, but finally it affects
         // because Psi_S=-K_II\K_IB is not updated simultaneously according to the current configuration.
         assembly_v_new.segment(n_boundary_coords_w, n_internal_coords_w) +=
-            (P_I1 - P_I2 * Psi_S * P_B2.transpose() * P_B1) * S * v_mod.segment(0, n_boundary_coords_w);
+            (P_I1 - P_I2 * Psi_S * P_B2.transpose() * P_B1) * (S * v_mod.segment(0, n_boundary_coords_w));
 
         bool needs_temporary_bou_int = this->is_modal;
         if (needs_temporary_bou_int)
@@ -2491,6 +2518,43 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         ChStateDelta v_reduced_local(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
         this->GetStateLocal(Dx_reduced_local, v_reduced_local);
 
+        {  // fetch the state snapshot (modal reduced)
+            int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
+            int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
+            double fooT;
+            ChState x_mod;       // =[qB; eta]
+            ChStateDelta v_mod;  // =[qB_dt; eta_dt]
+            x_mod.setZero(bou_mod_coords, nullptr);
+            v_mod.setZero(bou_mod_coords_w, nullptr);
+            this->IntStateGather(0, x_mod, 0, v_mod, fooT);
+
+            // update matrices
+            V.setZero();
+            O_B.setZero();
+            O_F.setZero();
+            for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
+                V.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(R_F.transpose() * v_mod.segment(6 * i_bou, 3));
+                O_B.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(v_mod.segment(6 * i_bou + 3, 3));
+                O_F.block(6 * i_bou, 6 * i_bou, 3, 3) = ChStarMatrix33<>(wloc_F);
+            }
+
+            //// quadratic velocity term
+            // ChMatrixDynamic<> mat_O = P_W * (O_F + O_B) * M_red * P_W.transpose();
+            // ChMatrixDynamic<> mat_M = P_W * M_red * V * U;
+            // g_quad = (mat_O + mat_M - mat_M.transpose()) * v_mod;
+
+            // quadratic velocity term
+            // ChMatrixDynamic<> mat_O = P_W * (O_F + O_B) * M_red * P_W.transpose();
+            ChMatrixDynamic<> mat_M = P_W * M_red * V * U;
+
+            ChVectorDynamic<> g1 = P_W * O_F * M_red * P_W.transpose() * v_mod;
+            ChVectorDynamic<> g2 = P_W * O_B * M_red * P_W.transpose() * v_mod;
+            ChVectorDynamic<> g3 = mat_M * v_mod;
+            ChVectorDynamic<> g4 = -mat_M.transpose() * v_mod;
+
+            g_quad = g3 + g4;  // todo: convergence seems better!!!! why?
+        }
+
         // note: - sign
         R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -=
             c * (Y.transpose() * (this->K_red * Dx_reduced_local + this->R_red * v_reduced_local) + g_quad);
@@ -2521,10 +2585,10 @@ void ChModalAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offse
                                          const ChVectorDynamic<>& w,  ///< the w vector
                                          const double c               ///< a scaling factor
 ) {
-    unsigned int displ_v = off - this->offset_w;
 
     if (is_modal == false) {
         ChAssembly::IntLoadResidual_Mv(off, R, w, c);  // parent
+        unsigned int displ_v = off - this->offset_w;
 
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
