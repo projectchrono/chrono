@@ -356,7 +356,6 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
     friend class ChSystem;
     friend class ChSystemMulticore;
-    friend class ChSystemDistributed;
 };
 
 CH_CLASS_VERSION(ChAssembly, 0)
