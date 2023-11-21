@@ -95,12 +95,14 @@ bool ChSystemMulticore::Integrate_Y() {
     data_manager->system_timer.stop("update");
 
     data_manager->system_timer.start("collision");
-    collision_system->PreProcess();
-    collision_system->Run();
-    collision_system->PostProcess();
-    collision_system->ReportContacts(this->contact_container.get());
-    for (size_t ic = 0; ic < collision_callbacks.size(); ic++) {
-        collision_callbacks[ic]->OnCustomCollision(this);
+    if (collision_system) {
+        collision_system->PreProcess();
+        collision_system->Run();
+        collision_system->PostProcess();
+        collision_system->ReportContacts(this->contact_container.get());
+        for (size_t ic = 0; ic < collision_callbacks.size(); ic++) {
+            collision_callbacks[ic]->OnCustomCollision(this);
+        }
     }
     data_manager->system_timer.stop("collision");
 
@@ -597,8 +599,9 @@ void ChSystemMulticore::Setup() {
     ndof = data_manager->num_dof;
     ndoc_w_C = 0;
     ndoc_w_D = 0;
-    ncontacts = data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
-                data_manager->cd_data->num_fluid_contacts;
+    if (data_manager->cd_data)
+        ncontacts = data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
+                    data_manager->cd_data->num_fluid_contacts;
     assembly.nbodies_sleep = 0;
     assembly.nbodies_fixed = 0;
 }
@@ -682,6 +685,9 @@ unsigned int ChSystemMulticore::GetNumShafts() {
 }
 
 unsigned int ChSystemMulticore::GetNumContacts() {
+    if (!data_manager->cd_data)
+        return 0;
+
     return data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
            data_manager->cd_data->num_fluid_contacts;
 }
