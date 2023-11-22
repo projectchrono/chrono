@@ -77,7 +77,7 @@ double t_end = 1.0;
 // Simulation step size
 double step_size = 1e-4;
 
-// Linear solver (MUMPS or PARDISO_MKL)
+// Linear solver (SPARSE_QR, SPARSE_LU, MUMPS, or PARDISO_MKL)
 ChSolver::Type solver_type = ChSolver::Type::PARDISO_MKL;
 
 // Time interval between two render frames
@@ -281,34 +281,56 @@ int main(int argc, char* argv[]) {
 
 #ifndef CHRONO_PARDISO_MKL
     if (solver_type == ChSolver::Type::PARDISO_MKL)
-        solver_type = ChSolver::Type::MUMPS;
+        solver_type = ChSolver::Type::SPARSE_QR;
 #endif
 #ifndef CHRONO_MUMPS
     if (solver_type == ChSolver::Type::MUMPS)
-        solver_type = ChSolver::Type::PARDISO_MKL;
+        solver_type = ChSolver::Type::SPARSE_QR;
 #endif
 
     switch (solver_type) {
-        default:
+        case ChSolver::Type::SPARSE_QR: {
+            std::cout << "Using SparseQR solver" << std::endl;
+            auto solver = chrono_types::make_shared<ChSolverSparseQR>();
+            solver->UseSparsityPatternLearner(true);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            vehicle.GetSystem()->SetSolver(solver);
             break;
-#ifdef CHRONO_MUMPS
+        }
+        case ChSolver::Type::SPARSE_LU: {
+            std::cout << "Using SparseLU solver" << std::endl;
+            auto solver = chrono_types::make_shared<ChSolverSparseLU>();
+            solver->UseSparsityPatternLearner(true);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            vehicle.GetSystem()->SetSolver(solver);
+            break;
+        }
         case ChSolver::Type::MUMPS: {
+#ifdef CHRONO_MUMPS
+            std::cout << "Using MUMPS solver" << std::endl;
             auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
             mumps_solver->LockSparsityPattern(true);
             mumps_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mumps_solver);
+#endif
             break;
         }
-#endif
-#ifdef CHRONO_PARDISO_MKL
         case ChSolver::Type::PARDISO_MKL: {
+#ifdef CHRONO_PARDISO_MKL
+            std::cout << "Using PardisoMKL solver" << std::endl;
             auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
             mkl_solver->LockSparsityPattern(true);
             mkl_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mkl_solver);
+#endif
             break;
         }
-#endif
+        default: {
+            std::cout << "Solver type not supported." << std::endl;
+            return 1;
+        }
     }
 
     vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
