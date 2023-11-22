@@ -21,6 +21,7 @@ print("Copyright (c) 2017 projectchrono.org")
 
 # Create a Chrono::Engine physical system
 sys = chrono.ChSystemSMC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 #
 # CREATE THE PHYSICAL SYSTEM

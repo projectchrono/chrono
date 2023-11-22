@@ -47,6 +47,7 @@ print( "Copyright (c) 2022 projectchrono.org")
 
 # Create sys, contact material, and bodies
 sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 mat = chrono.ChMaterialSurfaceNSC()
 

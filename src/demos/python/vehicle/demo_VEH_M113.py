@@ -53,6 +53,8 @@ def main():
     m113.SetRoadWheelVisualizationType(veh.VisualizationType_MESH);
     m113.SetTrackShoeVisualizationType(veh.VisualizationType_MESH);
 
+    m113.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
+
     # Create the terrain
     # ------------------
 
@@ -100,6 +102,11 @@ def main():
     driver.SetBrakingDelta(render_step_size / braking_time)
 
     driver.Initialize()
+
+    # Solver and integrator settings
+    # ------------------------------
+
+    m113.GetSystem().SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
 
     # Simulation loop
     # ---------------

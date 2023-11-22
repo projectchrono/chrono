@@ -24,8 +24,9 @@ print (" Demo of using the assets sys to create shapes for Irrlicht visualizatio
 # If running from a different directory, you must change the path to the data directory with:
 # chrono.SetChronoDataPath('relative/path/to/data/directory')
 
-# Create a Chrono::Engine physical sys
+# Create a Chrono physical sys
 sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Example 1:
 
@@ -43,10 +44,8 @@ floor_mat = chrono.ChMaterialSurfaceNSC()
 
 
 # Define a collision shape
-floor.GetCollisionModel().Clear()
-floor_ct_shape = chrono.ChCollisionShapeBox(floor_mat, 10, 0.5, 10)
-floor.GetCollisionModel().AddShape(floor_ct_shape, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0), chrono.QUNIT))
-floor.GetCollisionModel().Build()
+floor_ct_shape = chrono.ChCollisionShapeBox(floor_mat, 20, 1, 20)
+floor.AddCollisionShape(floor_ct_shape, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0), chrono.QUNIT))
 floor.SetCollide(True)
 
 # Add body to sys
@@ -186,10 +185,8 @@ particles = chrono.ChParticleCloud()
 # This will be shared among all particles in the ChParticleCloud.
 particle_mat = chrono.ChMaterialSurfaceNSC()
 
-particles.GetCollisionModel().Clear()
 particles_ct_shape = chrono.ChCollisionShapeSphere(particle_mat, 0.05)
-particles.GetCollisionModel().AddShape(particles_ct_shape)
-particles.GetCollisionModel().Build()
+particles.AddCollisionShape(particles_ct_shape)
 particles.SetCollide(True)
 
 # Create the random particles

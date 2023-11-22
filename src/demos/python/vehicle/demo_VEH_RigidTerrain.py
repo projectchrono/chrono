@@ -29,25 +29,27 @@ def main():
     #print("Copyright (c) 2017 projectchrono.org\nChrono version: ", CHRONO_VERSION , "\n\n")
 
     #  Create the HMMWV vehicle, set parameters, and initialize
-    my_hmmwv = veh.HMMWV_Full()
-    my_hmmwv.SetContactMethod(chrono.ChContactMethod_NSC)
-    my_hmmwv.SetChassisFixed(False);
-    my_hmmwv.SetInitPosition(chrono.ChCoordsysD(chrono.ChVectorD(-10, -2, 0.6), chrono.ChQuaternionD(1, 0, 0, 0)))
-    my_hmmwv.SetEngineType(veh.EngineModelType_SIMPLE)
-    my_hmmwv.SetTransmissionType(veh.TransmissionModelType_SIMPLE_MAP)
-    my_hmmwv.SetDriveType(veh.DrivelineTypeWV_AWD)
-    my_hmmwv.SetTireType(veh.TireModelType_TMEASY)
-    my_hmmwv.SetTireStepSize(tire_step_size)
-    my_hmmwv.Initialize()
+    hmmwv = veh.HMMWV_Full()
+    hmmwv.SetContactMethod(chrono.ChContactMethod_NSC)
+    hmmwv.SetChassisFixed(False);
+    hmmwv.SetInitPosition(chrono.ChCoordsysD(chrono.ChVectorD(-10, -2, 0.6), chrono.ChQuaternionD(1, 0, 0, 0)))
+    hmmwv.SetEngineType(veh.EngineModelType_SIMPLE)
+    hmmwv.SetTransmissionType(veh.TransmissionModelType_SIMPLE_MAP)
+    hmmwv.SetDriveType(veh.DrivelineTypeWV_AWD)
+    hmmwv.SetTireType(veh.TireModelType_TMEASY)
+    hmmwv.SetTireStepSize(tire_step_size)
+    hmmwv.Initialize()
 
-    my_hmmwv.SetChassisVisualizationType(veh.VisualizationType_NONE)
-    my_hmmwv.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-    my_hmmwv.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-    my_hmmwv.SetWheelVisualizationType(veh.VisualizationType_MESH)
-    my_hmmwv.SetTireVisualizationType(veh.VisualizationType_MESH)
+    hmmwv.SetChassisVisualizationType(veh.VisualizationType_NONE)
+    hmmwv.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
+    hmmwv.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
+    hmmwv.SetWheelVisualizationType(veh.VisualizationType_MESH)
+    hmmwv.SetTireVisualizationType(veh.VisualizationType_MESH)
+
+    hmmwv.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
     # Create the terrain with multiple patches
-    terrain = veh.RigidTerrain(my_hmmwv.GetSystem())
+    terrain = veh.RigidTerrain(hmmwv.GetSystem())
 
     patch1_mat = chrono.ChMaterialSurfaceNSC()
     patch1_mat.SetFriction(0.9)
@@ -89,7 +91,7 @@ def main():
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddLightDirectional()
     vis.AddSkyBox()
-    vis.AttachVehicle(my_hmmwv.GetVehicle())
+    vis.AttachVehicle(hmmwv.GetVehicle())
 
     # Create the interactive driver system
     driver = veh.ChInteractiveDriverIRR(vis)
@@ -98,10 +100,10 @@ def main():
     driver.SetBrakingDelta(0.06)
     driver.Initialize()
 
-    my_hmmwv.GetVehicle().EnableRealtime(True)
+    hmmwv.GetVehicle().EnableRealtime(True)
 
     while vis.Run() :
-        time = my_hmmwv.GetSystem().GetChTime()
+        time = hmmwv.GetSystem().GetChTime()
 
         # Draw scene
         vis.BeginScene()
@@ -114,13 +116,13 @@ def main():
         # Update modules (process inputs from other modules)
         driver.Synchronize(time)
         terrain.Synchronize(time)
-        my_hmmwv.Synchronize(time, driver_inputs, terrain)
+        hmmwv.Synchronize(time, driver_inputs, terrain)
         vis.Synchronize(time, driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)
         terrain.Advance(step_size)
-        my_hmmwv.Advance(step_size)
+        hmmwv.Advance(step_size)
         vis.Advance(step_size)
 
     return 0

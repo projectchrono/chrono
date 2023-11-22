@@ -26,7 +26,8 @@ print ("Example: demonstration of using friction models")
 #  Create the simulation sys and add items
 #
 
-sys      = chrono.ChSystemNSC()
+sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Create all the rigid bodies.
 mradius = 0.5
@@ -111,13 +112,11 @@ cshape_3 = chrono.ChCollisionShapeBox(bin_mat, 1,  2, 20.99)
 cshape_4 = chrono.ChCollisionShapeBox(bin_mat, 20.99, 2, 1)
 cshape_5 = chrono.ChCollisionShapeBox(bin_mat, 20.99, 2, 1)
 
-bin.GetCollisionModel().Clear()
-bin.GetCollisionModel().AddShape(cshape_1, chrono.ChFrameD(chrono.ChVectorD(0, 0, 0)  , chrono.QUNIT))
-bin.GetCollisionModel().AddShape(cshape_2, chrono.ChFrameD(chrono.ChVectorD(-10, 1, 0), chrono.QUNIT))
-bin.GetCollisionModel().AddShape(cshape_3, chrono.ChFrameD(chrono.ChVectorD( 10, 1, 0), chrono.QUNIT))
-bin.GetCollisionModel().AddShape(cshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 1, -10), chrono.QUNIT))
-bin.GetCollisionModel().AddShape(cshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 1,  10), chrono.QUNIT))
-bin.GetCollisionModel().Build()
+bin.AddCollisionShape(cshape_1, chrono.ChFrameD(chrono.ChVectorD(0, 0, 0)  , chrono.QUNIT))
+bin.AddCollisionShape(cshape_2, chrono.ChFrameD(chrono.ChVectorD(-10, 1, 0), chrono.QUNIT))
+bin.AddCollisionShape(cshape_3, chrono.ChFrameD(chrono.ChVectorD( 10, 1, 0), chrono.QUNIT))
+bin.AddCollisionShape(cshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 1, -10), chrono.QUNIT))
+bin.AddCollisionShape(cshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 1,  10), chrono.QUNIT))
 
 vshape_1 = chrono.ChVisualShapeBox(20, 1, 20)
 vshape_1.SetMaterial(0, vis_mat_floor)

@@ -28,13 +28,12 @@ print ("Example: study the associative effect of friction.");
 #  Create the simulation sys and add items
 #
 
-
-sys      = chrono.ChSystemNSC()
+sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Global collision tolerances
 chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.01)
 chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.005)
-#chrono.ChCollisionSystemBullet.SetContactBreakingThreshold(0.01)
 
 # Create a fixed rigid body
 

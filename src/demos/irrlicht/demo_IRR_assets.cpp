@@ -182,11 +182,9 @@ int main(int argc, char* argv[]) {
 
     // EXAMPLE 3:
 
-    // Create a ChParticleClones cluster, and attach 'assets' that define a single "sample" 3D shape.
-    // This will be shown N times in Irrlicht.
+    // Create a ChParticleCloud cluster, and attach 'assets' that define a single "sample" 3D shape.
 
-    // Create the ChParticleClones, populate it with some random particles,
-    // and add it to physical system:
+    // Create the ChParticleCloud, populate it with some random particles, and add it to physical system:
     auto particles = chrono_types::make_shared<ChParticleCloud>();
 
     double particle_radius = 0.05;
