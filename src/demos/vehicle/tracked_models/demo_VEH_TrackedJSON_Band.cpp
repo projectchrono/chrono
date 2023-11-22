@@ -22,6 +22,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
