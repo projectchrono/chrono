@@ -182,6 +182,10 @@ using namespace chrono::fea;
 
 %shared_ptr(chrono::ChPhysicsItem)
 %shared_ptr(chrono::ChContactable)
+%shared_ptr(chrono::ChContactable_1vars<3>)
+%shared_ptr(chrono::ChContactable_1vars<6>)
+%shared_ptr(chrono::ChContactable_3vars<3,3,3>)
+%shared_ptr(chrono::ChContactable_3vars<6,6,6>)
 %shared_ptr(chrono::ChIndexedNodes)
 %shared_ptr(chrono::ChMaterialSurfaceNSC)
 %shared_ptr(chrono::ChMaterialSurfaceSMC)
