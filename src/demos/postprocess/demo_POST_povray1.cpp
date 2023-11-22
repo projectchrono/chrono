@@ -36,6 +36,13 @@ using namespace chrono::postprocess;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    // Create output directory
+    std::string out_dir = GetChronoOutputPath() + "POVRAY_1";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -51,7 +58,7 @@ int main(int argc, char* argv[]) {
 
     // Set the path where it will save all .pov, .ini, .asset and .dat files, a directory will be created if not
     // existing
-    pov_exporter.SetBasePath(GetChronoOutputPath() + "POVRAY_1");
+    pov_exporter.SetBasePath(out_dir);
 
     // Optional: change the default naming of the generated files:
     // pov_exporter.SetOutputScriptFile("rendering_frames.pov");

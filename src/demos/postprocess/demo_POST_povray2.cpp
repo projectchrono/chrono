@@ -31,6 +31,13 @@ using namespace chrono::postprocess;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    // Create output directory
+    std::string out_dir = GetChronoOutputPath() + "POVRAY_2";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
     ChCollisionModel::SetDefaultSuggestedEnvelope(1e-3);
@@ -95,7 +102,7 @@ int main(int argc, char* argv[]) {
     // Create an exporter to POVray
     ChPovRay pov_exporter = ChPovRay(&sys);
     pov_exporter.SetTemplateFile(GetChronoDataFile("POVRay_chrono_template.pov"));
-    pov_exporter.SetBasePath(GetChronoOutputPath() + "POVRAY_2");
+    pov_exporter.SetBasePath(out_dir);
 
     pov_exporter.SetCamera(ChVector<>(0.2, 0.3, 0.5), ChVector<>(0, 0, 0), 35);
     pov_exporter.SetLight(ChVector<>(-2, 2, -1), ChColor(1.0f, 1.0f, 1.0f), true);
