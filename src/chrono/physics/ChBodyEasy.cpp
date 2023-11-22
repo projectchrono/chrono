@@ -53,9 +53,8 @@ void ChBodyEasySphere::SetupBody(double radius,
     double mmass = density * ((4.0 / 3.0) * CH_C_PI * pow(radius, 3));
     double inertia = (2.0 / 5.0) * mmass * pow(radius, 2);
 
-    this->SetDensity((float)density);
-    this->SetMass(mmass);
-    this->SetInertiaXX(ChVector<>(inertia, inertia, inertia));
+    SetMass(mmass);
+    SetInertiaXX(ChVector<>(inertia, inertia, inertia));
 
     if (collide) {
         assert(material);
@@ -109,9 +108,8 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector<> axes,
     double inertiay = (1 / 20.0) * mmass * (pow(axes.x(), 2) + pow(axes.z(), 2));
     double inertiaz = (1 / 20.0) * mmass * (pow(axes.x(), 2) + pow(axes.y(), 2));
 
-    this->SetDensity((float)density);
-    this->SetMass(mmass);
-    this->SetInertiaXX(ChVector<>(inertiax, inertiay, inertiaz));
+    SetMass(mmass);
+    SetInertiaXX(ChVector<>(inertiax, inertiay, inertiaz));
 
     if (collide) {
         assert(material);
@@ -173,7 +171,6 @@ void ChBodyEasyCylinder::SetupBody(geometry::ChAxis direction,
     double I_orth = (1 / 12.0) * mass * (3 * pow(radius, 2) + pow(height, 2));
     ChQuaternion<> rot;
 
-    SetDensity((float)density);
     SetMass(mass);
 
     switch (direction) {
@@ -250,11 +247,10 @@ void ChBodyEasyBox::SetupBody(double Xsize,
                               std::shared_ptr<ChMaterialSurface> material) {
     double mmass = density * (Xsize * Ysize * Zsize);
 
-    this->SetDensity((float)density);
-    this->SetMass(mmass);
-    this->SetInertiaXX(ChVector<>((1.0 / 12.0) * mmass * (pow(Ysize, 2) + pow(Zsize, 2)),
-                                  (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Zsize, 2)),
-                                  (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Ysize, 2))));
+    SetMass(mmass);
+    SetInertiaXX(ChVector<>((1.0 / 12.0) * mmass * (pow(Ysize, 2) + pow(Zsize, 2)),
+                            (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Zsize, 2)),
+                            (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Ysize, 2))));
     if (collide) {
         assert(material);
         auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(material, Xsize, Ysize, Zsize);
@@ -327,9 +323,8 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector<>>& points,
     for (unsigned int i = 0; i < vshape->GetMesh()->getCoordsVertices().size(); ++i)
         vshape->GetMesh()->getCoordsVertices()[i] -= baricenter;
 
-    this->SetDensity((float)density);
-    this->SetMass(mass * density);
-    this->SetInertia(inertia * density);
+    SetMass(mass * density);
+    SetInertia(inertia * density);
 
     if (collide) {
         assert(material);
@@ -411,9 +406,8 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector<>>& points,
     if (principal_inertia_csys.determinant() < 0)
         principal_inertia_csys.col(0) *= -1;
 
-    SetDensity((float)density);
     SetMass(mass * density);
-    // this->SetInertia(inertia * density);
+    ////SetInertia(inertia * density);
     SetInertiaXX(ChVector<>(principal_I) * density);
 
     // Set the COG coordinates to barycenter, without displacing the REF reference
@@ -514,7 +508,6 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected
         AddVisualShape(vshape);
     }
 
-    this->SetDensity((float)density);
     if (compute_mass) {
         double mass;
         ChVector<> baricenter;
@@ -617,9 +610,8 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector<>>& positions,
         totinertia(2, 1) = totinertia(1, 2);
     }
 
-    this->SetDensity((float)density);
-    this->SetMass(totmass);
-    this->SetInertia(totinertia);
+    SetMass(totmass);
+    SetInertia(totinertia);
 
     // Translate the cluster baricenter so that body origin is also baricenter
     std::vector<ChVector<>> offset_positions = positions;
@@ -642,7 +634,7 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector<>>& positions,
             auto vshape = chrono_types::make_shared<ChVisualShapeSphere>(radii[i]);
             vmodel->AddShape(vshape, ChFrame<>(offset_positions[i]));
         }
-        this->AddVisualModel(vmodel);
+        AddVisualModel(vmodel);
     }
 }
 

@@ -40,8 +40,6 @@ ChBody::ChBody()
 
     BFlagsSetAllOFF();  // no flags
 
-    density = 1000.0f;
-
     max_speed = 0.5f;
     max_wvel = 2.0f * float(CH_C_PI);
 
@@ -74,8 +72,6 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
         collision_model = chrono_types::make_shared<ChCollisionModel>(*other.collision_model);
         collision_model->SetContactable(this);
     }
-
-    density = other.density;
 
     max_speed = other.max_speed;
     max_wvel = other.max_wvel;
@@ -1021,7 +1017,6 @@ void ChBody::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(Xtorque);
     // marchive << CHNVP(Force_acc); // not useful in serialization
     // marchive << CHNVP(Torque_acc);// not useful in serialization
-    marchive << CHNVP(density);
     marchive << CHNVP(variables);
     marchive << CHNVP(max_speed);
     marchive << CHNVP(max_wvel);
@@ -1081,7 +1076,6 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(Xtorque);
     // marchive << CHNVP(Force_acc); // not useful in serialization
     // marchive << CHNVP(Torque_acc);// not useful in serialization
-    marchive >> CHNVP(density);
     marchive >> CHNVP(variables);
     marchive >> CHNVP(max_speed);
     marchive >> CHNVP(max_wvel);

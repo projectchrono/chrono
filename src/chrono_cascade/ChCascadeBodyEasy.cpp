@@ -62,7 +62,6 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
     chrono::cascade::ChCascadeDoc::GetVolumeProperties(topods_shape, density, cog, inertiaXX, inertiaXY, vol, mass);
 
     // Set mass and COG and REF references
-    this->SetDensity((float)density);
     this->SetMass(mass);
     this->SetInertiaXX(inertiaXX);
     this->SetInertiaXY(inertiaXY);
@@ -205,11 +204,6 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
     // Reset shape location to local ref csys (identity).
     this->topods_shape = mcompound;
     this->topods_shape.Location(TopLoc_Location());
-
-    if (faces.size())
-        this->SetDensity(
-            (float)this->faces[0].density);  // anyway has no sound meaning...  densities could be different if
-                                             // cluster of  different profiles with different densities..
 
     // Set the total mass and total inertia
 

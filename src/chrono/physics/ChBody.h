@@ -166,13 +166,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Method to serialize only the state (position, speed).
     virtual void StreamOutstate(ChStreamOutBinary& mstream) override;
 
-    /// The density of the rigid body, as [mass]/[unit volume].
-    /// Used if the inertia tensor and mass are automatically recomputed from the geometry.
-    ///
-    //// TODO OBSOLETE
-    ///
-    void SetDensity(float mdensity) { density = mdensity; }
-
     // DATABASE HANDLING
 
     /// Attach a marker to this body.
@@ -448,8 +441,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     ChVector<> Force_acc;   ///< force accumulator, applied to COM (in absolute coords)
     ChVector<> Torque_acc;  ///< torque accumulator (in body local coords)
 
-    float density;  ///< used when doing the 'recompute mass' operation.
-
     ChVariablesBodyOwnMass variables;  ///< interface to solver (store inertia and coordinates)
 
     float max_speed;  ///< limit on linear speed
@@ -651,7 +642,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual bool IsSubBlockActive(int nblock) const override { return variables.IsActive(); }
 
     /// This is not needed because not used in quadrature.
-    virtual double GetDensity() override { return density; }
+    virtual double GetDensity() override { return 0; }
 
     /// Bit flags
     enum BodyFlag {
