@@ -159,7 +159,11 @@ void ChCollisionSystemBullet::Remove(std::shared_ptr<ChCollisionModel> model) {
         return;
 
     auto bt_model = (ChCollisionModelBullet*)model->GetImplementation();
+    Remove(bt_model);
+    model->RemoveImplementation();
+}
 
+void ChCollisionSystemBullet::Remove(ChCollisionModelBullet* bt_model) {
     if (bt_model->GetBulletModel()->getCollisionShape()) {
         bt_collision_world->removeCollisionObject(bt_model->GetBulletModel());
     }
@@ -171,8 +175,6 @@ void ChCollisionSystemBullet::Remove(std::shared_ptr<ChCollisionModel> model) {
         bt_models.erase(pos);
     else
         std::cout << "ChCollisionSystemBullet::Remove - Cannot find specified model!" << std::endl;
-
-    model->RemoveImplementation();
 }
 
 void ChCollisionSystemBullet::Run() {

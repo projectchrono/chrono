@@ -136,6 +136,9 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
                 short int filter_group,
                 short int filter_mask) const;
 
+    /// Remove the specified Bullet model from this collision stystem
+    void Remove(ChCollisionModelBullet* bt_model);
+
     std::vector<std::shared_ptr<ChCollisionModelBullet>> bt_models;
 
     cbtCollisionConfiguration* bt_collision_configuration;
@@ -155,6 +158,8 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     cbtCollisionAlgorithmCreateFunc* m_emptyCreateFunc;
 
     cbtIDebugDraw* m_debug_drawer;
+
+    friend class ChCollisionModelBullet;
 };
 
 /// @} collision_bullet
