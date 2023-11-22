@@ -117,10 +117,71 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
             }
 
             // Write shape type and characteristic dimensions
-            std::vector<double> dims = body->GetCollisionModel()->GetShapeDimensions(shape);
-            if (dims.empty()) {
-                std::cout << "utils::WriteCheckpoint ERROR: unknown or not supported collision shape\n";
-                return false;
+            std::vector<double> dims;
+            switch (shape->GetType()) {
+                case ChCollisionShape::Type::SPHERE: {
+                    auto sphere = std::static_pointer_cast<ChCollisionShapeSphere>(shape);
+                    dims = {sphere->GetRadius()};
+                    break;
+                }
+                case ChCollisionShape::Type::BOX: {
+                    auto box = std::static_pointer_cast<ChCollisionShapeBox>(shape);
+                    const auto& hdims = box->GetHalflengths();
+                    dims = {hdims.x(), hdims.y(), hdims.z()};
+                    break;
+                }
+                case ChCollisionShape::Type::ELLIPSOID: {
+                    auto ellipsoid = std::static_pointer_cast<ChCollisionShapeEllipsoid>(shape);
+                    const auto& r = ellipsoid->GetSemiaxes();
+                    dims = {r.x(), r.y(), r.z()};
+                    break;
+                }
+                case ChCollisionShape::Type::CYLINDER: {
+                    auto cylinder = std::static_pointer_cast<ChCollisionShapeCylinder>(shape);
+                    auto height = cylinder->GetHeight();
+                    auto radius = cylinder->GetRadius();
+                    dims = {radius, radius, height / 2};
+                    break;
+                }
+                case ChCollisionShape::Type::CYLSHELL: {
+                    auto cylshell = std::static_pointer_cast<ChCollisionShapeCylindricalShell>(shape);
+                    auto height = cylshell->GetHeight();
+                    auto radius = cylshell->GetRadius();
+                    dims = {radius, radius, height / 2};
+                    break;
+                }
+                case ChCollisionShape::Type::CONE: {
+                    auto cone = std::static_pointer_cast<ChCollisionShapeCone>(shape);
+                    auto height = cone->GetHeight();
+                    auto radius = cone->GetRadius();
+                    dims = {radius, radius, height / 2};
+                    break;
+                }
+                case ChCollisionShape::Type::CAPSULE: {
+                    auto capsule = std::static_pointer_cast<ChCollisionShapeCapsule>(shape);
+                    auto height = capsule->GetHeight();
+                    auto radius = capsule->GetRadius();
+                    dims = {radius, radius, height / 2};
+                    break;
+                }
+                case ChCollisionShape::Type::ROUNDEDBOX: {
+                    auto box = std::static_pointer_cast<ChCollisionShapeRoundedBox>(shape);
+                    const auto& hdims = box->GetHalflengths();
+                    auto sradius = box->GetSRadius();
+                    dims = {hdims.x(), hdims.y(), hdims.z(), sradius};
+                    break;
+                }
+                case ChCollisionShape::Type::ROUNDEDCYL: {
+                    auto cylinder = std::static_pointer_cast<ChCollisionShapeRoundedCylinder>(shape);
+                    auto height = cylinder->GetHeight();
+                    auto radius = cylinder->GetRadius();
+                    auto sradius = cylinder->GetSRadius();
+                    dims = {radius, radius, height / 2, sradius};
+                    break;
+                }
+                default:
+                    std::cout << "utils::WriteCheckpoint ERROR: unknown or not supported collision shape\n";
+                    return false;
             }
 
             csv << shape->GetType() << dims;

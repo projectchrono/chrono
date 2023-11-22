@@ -174,28 +174,9 @@ class ChApi ChCollisionModel {
     /// Get the collision shape with specified index.
     const ShapeInstance& GetShape(int index) const { return m_shape_instances[index]; }
 
-    /// Return shape characteristic dimensions.
-    /// <pre>
-    /// SPHERE       radius
-    /// BOX          x-halfdim y-halfdim z-halfdim
-    /// ELLIPSOID    x-radius y-radius z-radius
-    /// CYLINDER     x-radius z-radius halflength
-    /// CONE         x-radius z-radius halfheight
-    /// CAPSULE      radius halflength
-    /// ROUNDEDBOX   x-halfdim y-halfdim z-halfdim sphere_rad
-    /// ROUNDEDCYL   x-radius z-radius halflength sphere_rad
-    /// </pre>
-    ///
-    //// TODO: OBSOLETE
-    ///
-    std::vector<double> GetShapeDimensions(std::shared_ptr<ChCollisionShape> shape) const;
-
     /// Set the contact material for all collision shapes in the model (all shapes will share the material).
     /// This function is useful in adjusting contact material properties for objects imported from outside (e.g., from
     /// SolidWorks).
-    ///
-    //// TODO: OBSOLETE
-    ///
     void SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> mat);
 
     // Get direct access to the concrete implementation object.

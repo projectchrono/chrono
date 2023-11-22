@@ -78,7 +78,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModelImpl {
     void injectTriangleMesh(std::shared_ptr<ChCollisionShapeTriangleMesh> shape_trimesh, const ChFrame<>& frame);
     void injectTriangleProxy(std::shared_ptr<ChCollisionShapeMeshTriangle> shape_triangle);
 
-    cbtCollisionObject* GetBulletModel() { return bt_collision_object.get(); }  //// TODO RENAME ChBulletObject
+    cbtCollisionObject* GetBulletObject() { return bt_collision_object.get(); }
 
     cbtScalar GetSuggestedFullMargin();
 

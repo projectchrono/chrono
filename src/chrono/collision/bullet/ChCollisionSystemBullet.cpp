@@ -136,7 +136,7 @@ void ChCollisionSystemBullet::Add(std::shared_ptr<ChCollisionModel> model) {
 
     auto bt_model = chrono_types::make_shared<ChCollisionModelBullet>(model.get());
     bt_model->Populate();
-    if (bt_model->GetBulletModel()->getCollisionShape()) {
+    if (bt_model->GetBulletObject()->getCollisionShape()) {
         model->SyncPosition();
         bt_collision_world->addCollisionObject(bt_model->bt_collision_object.get(),  //
                                                bt_model->model->GetFamilyGroup(),    //
@@ -164,8 +164,8 @@ void ChCollisionSystemBullet::Remove(std::shared_ptr<ChCollisionModel> model) {
 }
 
 void ChCollisionSystemBullet::Remove(ChCollisionModelBullet* bt_model) {
-    if (bt_model->GetBulletModel()->getCollisionShape()) {
-        bt_collision_world->removeCollisionObject(bt_model->GetBulletModel());
+    if (bt_model->GetBulletObject()->getCollisionShape()) {
+        bt_collision_world->removeCollisionObject(bt_model->GetBulletObject());
     }
 
     auto pos = std::find_if(bt_models.begin(), bt_models.end(),                                                    //
