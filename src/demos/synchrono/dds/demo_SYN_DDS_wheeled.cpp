@@ -219,6 +219,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Set associated collision detection system
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Add vehicle as an agent and initialize SynChronoManager
     auto agent = chrono_types::make_shared<SynWheeledVehicleAgent>(&vehicle, zombie_filename);
     syn_manager.AddAgent(agent);
