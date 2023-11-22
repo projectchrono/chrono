@@ -71,7 +71,6 @@
 #include "chrono/collision/ChCollisionShapes.h"
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionSystem.h"
-#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -175,16 +174,14 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFunctionPosition_XYZfunctions)
 
 %shared_ptr(chrono::ChCollisionSystem)
-%shared_ptr(chrono::ChCollisionSystemBullet)
 %shared_ptr(chrono::ChCollisionModel)
-%shared_ptr(chrono::ChCollisionModelBullet)
-
 
 %shared_ptr(chrono::ChCollisionSystem::BroadphaseCallback)
 %shared_ptr(chrono::ChCollisionSystem::NarrowphaseCallback)
 %shared_ptr(chrono::ChCollisionSystem::VisualizationCallback)
 
 %shared_ptr(chrono::ChPhysicsItem)
+%shared_ptr(chrono::ChContactable)
 %shared_ptr(chrono::ChIndexedNodes)
 %shared_ptr(chrono::ChMaterialSurfaceNSC)
 %shared_ptr(chrono::ChMaterialSurfaceSMC)
@@ -335,8 +332,6 @@ using namespace chrono::fea;
 %include "../../../chrono/collision/ChCollisionShapes.h"
 %include "../../../chrono/collision/ChCollisionModel.h"
 %include "../../../chrono/collision/ChCollisionSystem.h"
-%include "../../../chrono/collision/bullet/ChCollisionSystemBullet.h"
-////%include "ChCollisionChrono.i"
 %include "ChCollisionInfo.i"
 
 
@@ -430,6 +425,7 @@ using namespace chrono::fea;
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
 %DefSharedPtrDynamicDowncast(chrono, ChContactable, ChBody)
+%DefSharedPtrDynamicDowncast(chrono, ChContactable, ChBodyAuxRef)
 
 %DefSharedPtrDynamicDowncast(chrono, ChLoadable, ChBody)
 %DefSharedPtrDynamicDowncast(chrono, ChLoadable, ChNodeBase)

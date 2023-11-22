@@ -58,12 +58,8 @@
 
 #include "chrono/assets/ChVisualShapes.h"
 
-
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/bullet/ChCollisionModelBullet.h"
-
 #include "chrono/collision/ChCollisionSystem.h"
-#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
@@ -203,7 +199,6 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChLinkMarkers)
 
 %shared_ptr(chrono::ChCollisionModel)
-%shared_ptr(chrono::ChCollisionModelBullet)
 %shared_ptr(chrono::ChCollisionSystem::BroadphaseCallback)
 %shared_ptr(chrono::ChCollisionSystem::NarrowphaseCallback)
 
