@@ -43,7 +43,7 @@ class ChApi ChLinePath : public ChLine {
     virtual double Length(int sampling) const override;
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(const double U) const override;
+    virtual ChVector<> Evaluate(double U) const override;
 
     /// Return the start point of the line.
     virtual ChVector<> GetEndA() const override { return (lines.front())->GetEndA(); }

@@ -131,7 +131,7 @@ class ChApi ChLineCam : public ChLine {
     ChVector<> EvaluateCamPoint(double par, double& g, double& q) const;
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(const double U) const override;
+    virtual ChVector<> Evaluate(double U) const override;
 
     /// Weight evaluation.
     /// Given that the shape is defined by a Ch_function, the

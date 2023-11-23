@@ -42,7 +42,7 @@ ChLineBspline::ChLineBspline(const ChLineBspline& source) : ChLine(source) {
 	this->closed = source.closed;
 }
 
-ChVector<> ChLineBspline::Evaluate(const double parU) const {
+ChVector<> ChLineBspline::Evaluate(double parU) const {
 	double mU;
 	if (this->closed)
 		mU = fmod(parU, 1.0);
@@ -65,7 +65,7 @@ ChVector<> ChLineBspline::Evaluate(const double parU) const {
     return pos;
 }
 
-ChVector<> ChLineBspline::GetTangent(const double parU) const {
+ChVector<> ChLineBspline::GetTangent(double parU) const {
     double mU;
 	if (this->closed)
 		mU = fmod(parU, 1.0);

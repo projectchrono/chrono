@@ -46,7 +46,7 @@ class ChApi ChLineBezier : public ChLine {
     virtual void Set_complexity(int mc) override {}
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(const double U) const override;
+    virtual ChVector<> Evaluate(double U) const override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

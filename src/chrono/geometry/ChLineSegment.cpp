@@ -33,7 +33,7 @@ ChFrame<> ChLineSegment::GetFrame() const {
     return ChFrame<>(0.5 * (pB + pA), ChMatrix33<>(u, v, w));
 }
 
-ChVector<> ChLineSegment::Evaluate(const double parU) const {
+ChVector<> ChLineSegment::Evaluate(double parU) const {
     return pA * (1 - parU) + pB * parU;
 }
 

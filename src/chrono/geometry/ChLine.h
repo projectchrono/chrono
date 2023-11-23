@@ -45,11 +45,11 @@ class ChApi ChLine : public ChGeometry {
     /// Return a point on the line, given parametric coordinate U.
     /// Parameter U always work in 0..1 range.
     /// The default implementation always returns the origin of the surface frame.
-    virtual ChVector<> Evaluate(const double U) const = 0;
+    virtual ChVector<> Evaluate(double U) const = 0;
 
     /// Return the tangent unit vector at the parametric coordinate U (in [0,1]).
     /// This default implementation uses finite differences.
-    virtual ChVector<> GetTangent(const double parU) const;
+    virtual ChVector<> GetTangent(double parU) const;
 
     /// Tell if the curve is closed
     virtual bool Get_closed() const { return closed; }

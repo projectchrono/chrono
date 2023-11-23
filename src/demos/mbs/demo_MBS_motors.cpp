@@ -575,7 +575,7 @@ int main(int argc, char* argv[]) {
         // Here we will compute F(t) by emulating a very basic PID scheme.
         // In practice, it works like a callback that is executed at each time step.
         // Implementation of this function is mandatory!!!
-        virtual double SetpointCallback(const double x) override {
+        virtual double SetpointCallback(double x) override {
             // Trick: in this PID example, we need the following if(..)  to update PID
             // only when time changes (as the callback could be invoked more than once per timestep):
             double time = x;
