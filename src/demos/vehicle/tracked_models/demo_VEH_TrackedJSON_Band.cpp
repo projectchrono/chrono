@@ -311,20 +311,20 @@ int main(int argc, char* argv[]) {
         case ChSolver::Type::MUMPS: {
 #ifdef CHRONO_MUMPS
             std::cout << "Using MUMPS solver" << std::endl;
-            auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
-            mumps_solver->LockSparsityPattern(true);
-            mumps_solver->SetVerbose(verbose_solver);
-            vehicle.GetSystem()->SetSolver(mumps_solver);
+            auto solver = chrono_types::make_shared<ChSolverMumps>();
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(verbose_solver);
+            vehicle.GetSystem()->SetSolver(solver);
 #endif
             break;
         }
         case ChSolver::Type::PARDISO_MKL: {
 #ifdef CHRONO_PARDISO_MKL
             std::cout << "Using PardisoMKL solver" << std::endl;
-            auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-            mkl_solver->LockSparsityPattern(true);
-            mkl_solver->SetVerbose(verbose_solver);
-            vehicle.GetSystem()->SetSolver(mkl_solver);
+            auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(verbose_solver);
+            vehicle.GetSystem()->SetSolver(solver);
 #endif
             break;
         }

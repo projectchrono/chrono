@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Main driver function for the MAN 10t full model.
+// Main driver function for the MAN truck models.
 //
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -29,6 +29,8 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 
+#include "chrono_models/vehicle/man/MAN_5t.h"
+#include "chrono_models/vehicle/man/MAN_7t.h"
 #include "chrono_models/vehicle/man/MAN_10t.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -39,6 +41,9 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::man;
 
 // =============================================================================
+
+// Select one of the MAN truck models (5, 7, or 10)
+#define TRUCK 10
 
 // Initial vehicle location and orientation
 ChVector<> initLoc(0, 0, 0.7);
@@ -89,10 +94,6 @@ double t_end = 1000;
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "MAN_10t";
-const std::string pov_dir = out_dir + "/POVRAY";
-
 // Debug logging
 bool debug_output = false;
 double debug_step_size = 1.0 / 1;  // FPS = 1
@@ -108,13 +109,32 @@ int main(int argc, char* argv[]) {
     // --------------
     // Create systems
     // --------------
-    // Create the City Bus vehicle, set parameters, and initialize
+
+#if !defined(TRUCK)
+    #define TRUCK 5
+#endif
+
+#if defined(TRUCK) && (TRUCK == 5)
+    std::string truck_name = "MAN_5t";
+    MAN_5t truck;
+#endif
+
+#if defined(TRUCK) && (TRUCK == 7)
+    std::string truck_name = "MAN_7t";
+    MAN_7t truck;
+    truck.SetDriveline6WD(false);
+#endif
+
+#if defined(TRUCK) && (TRUCK == 10)
+    std::string truck_name = "MAN_10t";
     MAN_10t truck;
+    truck.SetDriveline8WD(false);
+#endif
+
     truck.SetContactMethod(contact_method);
     truck.SetChassisCollisionType(chassis_collision_type);
     truck.SetChassisFixed(false);
     truck.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    truck.SetDriveline8WD(false);
     truck.SetEngineType(engine_model);
     truck.SetTransmissionType(transmission_model);
     truck.SetTireType(tire_model);
@@ -161,7 +181,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("MAN 7t Truck Demo");
+    vis->SetWindowTitle(truck_name + " Truck Demo");
     vis->SetChaseCamera(trackPoint, 10.0, 0.5);
     vis->Initialize();
     vis->AddLightDirectional();
@@ -172,6 +192,9 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Initialize output
     // -----------------
+
+    const std::string out_dir = GetChronoOutputPath() + truck_name;
+    const std::string pov_dir = out_dir + "/POVRAY";
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
