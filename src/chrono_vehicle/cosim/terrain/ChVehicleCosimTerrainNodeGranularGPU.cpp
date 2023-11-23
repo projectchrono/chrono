@@ -228,7 +228,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 
 #ifndef CHRONO_OPENGL
     // Disable rendering if Chrono::OpenGL not available (performance considerations).
-    m_render = false;
+    m_renderRT = false;
 #endif
 
     // Calculate domain size
