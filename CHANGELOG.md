@@ -156,7 +156,7 @@ After this refactoring, the specification of a collision model closely parallels
 ```cpp
   auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(cmat, Xsize, Ysize, Zsize);
   body->AddCollisionShape(cshape);
-  vody->SetCollide(true);
+  body->SetCollide(true);
   
   auto vshape = chrono_types::make_shared<ChVisualShapeBox>(Xsize, Ysize, Zsize);
   body->AddVisualShape(vshape);
