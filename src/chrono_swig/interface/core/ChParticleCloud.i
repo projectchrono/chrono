@@ -15,9 +15,5 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../../../chrono/physics/ChParticleCloud.h"  
-
-
-
-
-
+%ignore chrono::ChAparticle;
+%include "../../../chrono/physics/ChParticleCloud.h"

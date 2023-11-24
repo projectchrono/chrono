@@ -197,6 +197,8 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChFunction_Recorder)
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
+%shared_ptr(chrono::ChContactable)
+%shared_ptr(chrono::ChContactable_1vars<6>)
 
 %shared_ptr(chrono::ChCollisionModel)
 %shared_ptr(chrono::ChCollisionSystem::BroadphaseCallback)
