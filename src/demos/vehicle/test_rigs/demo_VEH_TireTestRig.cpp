@@ -350,8 +350,11 @@ int main() {
             camber_angle.AddPoint(time, tire->GetCamberAngle() * CH_C_RAD_TO_DEG);
         }
 
-        auto& loc = rig.GetPos();
-        vis->UpdateCamera(loc + ChVector<>(1.0, 2.5, 0.5), loc + ChVector<>(0, 0.25, -0.25));
+        ////auto& loc = rig.GetPos();
+        ////vis->UpdateCamera(loc + ChVector<>(1.0, 2.5, 0.5), loc + ChVector<>(0, 0.25, -0.25));
+
+        ChVector<> loc = rig.GetWheelPos();
+        vis->UpdateCamera(loc + ChVector<>(2.0, 0., 0.0), loc);
 
         vis->BeginScene();
         vis->Render();

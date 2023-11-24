@@ -149,6 +149,9 @@ class CH_VEHICLE_API ChTireTestRig {
     /// Get current carrier body position.
     const ChVector<>& GetPos() const { return m_carrier_body->GetPos(); }
 
+    /// Get current wheel position.
+    ChVector<> GetWheelPos() const { return m_wheel->GetPos(); }
+
     /// Get the current tire forces
     TerrainForce ReportTireForce() const;
 
