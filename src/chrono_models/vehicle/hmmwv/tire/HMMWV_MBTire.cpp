@@ -53,6 +53,7 @@ HMMWV_MBTire::HMMWV_MBTire(const std::string& name) : ChMBTire(name) {
     SetTireMass(m_tire_mass);
 
     SetTireGeometry(m_radius, m_offset, m_num_divs, m_rim_radius);
+
     double kR = 2.5e4;  // radial spring elastic coefficient
     double cR = 1.0e3;  // radial spring damping coefficient
     double kC = 2.5e4;  // circumferential spring elastic coefficient
@@ -61,7 +62,9 @@ HMMWV_MBTire::HMMWV_MBTire(const std::string& name) : ChMBTire(name) {
     double cT = 1.0e3;  // transversal spring damping coefficient
     double kB = 2.5e4;  // bending spring elastic coefficient
     double cB = 0;      // bending spring damping coefficient
-    SetTireProperties(kR, cR, kC, cC, kT, cT, kB, cB);
+    SetRadialSpringCoefficients(kR, cR);
+    SetMeshSpringCoefficients(kC, cC, kT, cT);
+    SetBendingSpringCoefficients(kB, cB);
 
     ChContactMaterialData mat;
     mat.mu = m_friction;

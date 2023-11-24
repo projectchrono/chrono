@@ -50,15 +50,21 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
     /// Set the total tire mass.
     void SetTireMass(double mass);
 
-    /// Set tire material properties.
-    void SetTireProperties(double kR,  ///< radial spring elastic coefficient
-                           double cR,  ///< radial spring damping coefficient
-                           double kC,  ///< circumferential spring elastic coefficient
-                           double cC,  ///< circumferential spring damping coefficient
-                           double kT,  ///< transversal spring elastic coefficient
-                           double cT,  ///< transversal spring damping coefficient
-                           double kB,  ///< bending spring elastic coefficient
-                           double cB   ///< bending spring damping coefficient
+    /// Set stiffness and damping coefficients for translational mesh springs.
+    void SetMeshSpringCoefficients(double kC,  ///< circumferential spring elastic coefficient
+                                   double cC,  ///< circumferential spring damping coefficient
+                                   double kT,  ///< transversal spring elastic coefficient
+                                   double cT   ///< transversal spring damping coefficient
+    );
+
+    /// Set stiffness and damping coefficients for rotational bending springs.
+    void SetBendingSpringCoefficients(double kB,  ///< torsional spring elastic coefficient
+                                      double cB   ///< torsional spring damping coefficient
+    );
+
+    /// Set stiffness and damping coefficients for radial springs.
+    void SetRadialSpringCoefficients(double kR,  ///< radial spring elastic coefficient
+                                     double cR   ///< radial spring damping coefficient
     );
 
     /// Set contact material properties.
@@ -151,6 +157,7 @@ class MBTireModel : public ChPhysicsItem {
 
     // State functions
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
@@ -190,6 +197,8 @@ class MBTireModel : public ChPhysicsItem {
                                    ChStateDelta& v,
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
+
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Get the node index from the ring index and division index.
     // Return -1 if out-of-bounds ring and use a cyclic index for divisions on the ring.

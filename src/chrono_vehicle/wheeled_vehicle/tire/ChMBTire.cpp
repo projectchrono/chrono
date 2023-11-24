@@ -55,23 +55,21 @@ void ChMBTire::SetTireMass(double mass) {
     m_mass = mass;
 }
 
-//// TODO: consider splitting this in multiple functions (for each type of spring)
-void ChMBTire::SetTireProperties(double kR,
-                                 double cR,
-                                 double kC,
-                                 double cC,
-                                 double kT,
-                                 double cT,
-                                 double kB,
-                                 double cB) {
-    m_model->m_kR = kR;
-    m_model->m_cR = cR;
+void ChMBTire::SetMeshSpringCoefficients(double kC, double cC, double kT, double cT) {
     m_model->m_kC = kC;
     m_model->m_cC = cC;
     m_model->m_kT = kT;
     m_model->m_cT = cT;
+}
+
+void ChMBTire::SetBendingSpringCoefficients(double kB, double cB) {
     m_model->m_kB = kB;
     m_model->m_cB = cB;
+}
+
+void ChMBTire::SetRadialSpringCoefficients(double kR, double cR) {
+    m_model->m_kR = kR;
+    m_model->m_cR = cR;
 }
 
 void ChMBTire::SetTireContactMaterial(const ChContactMaterialData& mat_data) {
@@ -872,6 +870,14 @@ void MBTireModel::AddVisualizationAssets(VisualizationType vis) {
 void MBTireModel::InjectVariables(ChSystemDescriptor& descriptor) {
     for (auto& node : m_nodes)
         node->InjectVariables(descriptor);
+}
+
+void MBTireModel::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
+    //// TODO -- needed here because stiff system!
+}
+
+void MBTireModel::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+    //// TODO -- needed here because stiff system!
 }
 
 void MBTireModel::IntStateGather(const unsigned int off_x,
