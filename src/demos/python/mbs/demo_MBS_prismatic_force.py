@@ -42,11 +42,11 @@ ground.SetIdentifier(-1)
 ground.SetBodyFixed(True)
 ground.SetCollide(False)
 
-rail1 = chrono.ChBoxShape(8, 0.1, 0.1)
+rail1 = chrono.ChVisualShapeBox(8, 0.1, 0.1)
 rail1.SetColor(chrono.ChColor(0.6, 0.6, 0.6))
 ground.AddVisualShape(rail1, chrono.ChFrameD(chrono.ChVectorD(0, 0, -1)))
 
-rail2 = chrono.ChBoxShape(8, 0.1, 0.1)
+rail2 = chrono.ChVisualShapeBox(8, 0.1, 0.1)
 rail2.SetColor(chrono.ChColor(0.6, 0.6, 0.6))
 ground.AddVisualShape(rail2, chrono.ChFrameD(chrono.ChVectorD(0, 0, 1)))
 
@@ -60,7 +60,7 @@ slider1.SetMass(1)
 slider1.SetInertiaXX(chrono.ChVectorD(0.1, 0.1, 0.1))
 slider1.SetPos(chrono.ChVectorD(-4, 0, -1))
 
-cyl1 = chrono.ChCylinderShape(0.2, 0.4)
+cyl1 = chrono.ChVisualShapeCylinder(0.2, 0.4)
 cyl1.SetColor(chrono.ChColor(0.6, 0, 0))
 slider1.AddVisualShape(cyl1, chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
 
@@ -73,7 +73,7 @@ slider2.SetMass(1)
 slider2.SetInertiaXX(chrono.ChVectorD(0.1, 0.1, 0.1))
 slider2.SetPos(chrono.ChVectorD(-4, 0, 1))
 
-cyl2 = chrono.ChCylinderShape(0.2, 0.4)
+cyl2 = chrono.ChVisualShapeCylinder(0.2, 0.4)
 cyl2.SetColor(chrono.ChColor(0, 0, 0.6))
 slider2.AddVisualShape(cyl2, chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
 

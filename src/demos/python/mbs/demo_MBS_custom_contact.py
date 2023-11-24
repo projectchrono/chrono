@@ -29,7 +29,7 @@ class MyObstacle:
         self.radius = r
         self.center = pos
     def AddVisualization(self, body):
-        cyl = chrono.ChCylinderShape(self.radius, 1.1)
+        cyl = chrono.ChVisualShapeCylinder(self.radius, 1.1)
         cyl.SetColor(chrono.ChColor(0.6, 0.3, 0.0))
         body.AddVisualShape(cyl, chrono.ChFrameD(self.center + chrono.ChVectorD(0, 0.55, 0),
                                                  chrono.Q_from_AngX(chrono.CH_C_PI_2)))
@@ -139,6 +139,7 @@ else: # use SMC contact method
     time_step = 1e-4
     frame_skip = 100
 
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 sys.Set_G_acc(chrono.ChVectorD(0, -9.8, 0))
 
 # Create the ground body with a plate and side walls (both collision and visualization).
@@ -147,34 +148,39 @@ sys.AddBody(ground)
 ground.SetCollide(True)
 ground.SetBodyFixed(True)
 
-ground.GetCollisionModel().ClearModel()
-ground.GetCollisionModel().AddBox(ground_mat, 10.0, 2.0, 10.0, chrono.ChVectorD(0, -1, 0))
-ground.GetCollisionModel().AddBox(ground_mat, 0.2, 2.0, 10.2, chrono.ChVectorD(-5, 0, 0))
-ground.GetCollisionModel().AddBox(ground_mat, 0.2, 2.0, 10.2, chrono.ChVectorD( 5, 0, 0))
-ground.GetCollisionModel().AddBox(ground_mat, 10.2, 2.0, 0.2, chrono.ChVectorD(0, 0, -5))
-ground.GetCollisionModel().AddBox(ground_mat, 10.2, 2.0, 0.2, chrono.ChVectorD(0, 0,  5))
-ground.GetCollisionModel().BuildModel()
+
+cshape_1 = chrono.ChCollisionShapeBox(ground_mat, 10.0, 2.0, 10.0)
+cshape_2 = chrono.ChCollisionShapeBox(ground_mat, 0.2, 2.0, 10.2)
+cshape_3 = chrono.ChCollisionShapeBox(ground_mat, 0.2, 2.0, 10.2)
+cshape_4 = chrono.ChCollisionShapeBox(ground_mat, 10.2, 2.0, 0.2)
+cshape_5 = chrono.ChCollisionShapeBox(ground_mat, 10.2, 2.0, 0.2)
+
+ground.AddCollisionShape(cshape_1, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0), chrono.QUNIT))
+ground.AddCollisionShape(cshape_2, chrono.ChFrameD(chrono.ChVectorD(-5, 0, 0), chrono.QUNIT))
+ground.AddCollisionShape(cshape_3, chrono.ChFrameD(chrono.ChVectorD( 5, 0, 0), chrono.QUNIT))
+ground.AddCollisionShape(cshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 0, -5), chrono.QUNIT))
+ground.AddCollisionShape(cshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 0,  5), chrono.QUNIT))
 
 ground_vis_mat = chrono.ChVisualMaterial()
 ground_vis_mat.SetKdTexture(chrono.GetChronoDataFile("textures/blue.png"))
 
-vshape_1 = chrono.ChBoxShape(10, 2, 10)
+vshape_1 = chrono.ChVisualShapeBox(10, 2, 10)
 vshape_1.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_1, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0)))
 
-vshape_2 = chrono.ChBoxShape(0.2, 2, 10.2)
+vshape_2 = chrono.ChVisualShapeBox(0.2, 2, 10.2)
 vshape_2.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_2, chrono.ChFrameD(chrono.ChVectorD(-5, 0, 0)))
 
-vshape_3 = chrono.ChBoxShape(0.2, 2, 10.2)
+vshape_3 = chrono.ChVisualShapeBox(0.2, 2, 10.2)
 vshape_3.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_3, chrono.ChFrameD(chrono.ChVectorD(5, 0, 0)))
 
-vshape_4 = chrono.ChBoxShape(10.2, 2, 0.2)
+vshape_4 = chrono.ChVisualShapeBox(10.2, 2, 0.2)
 vshape_4.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 0, -5)))
 
-vshape_5 = chrono.ChBoxShape(10.2, 2, 0.2)
+vshape_5 = chrono.ChVisualShapeBox(10.2, 2, 0.2)
 vshape_5.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 0, 5)))
 
@@ -191,11 +197,10 @@ ball.SetPos(chrono.ChVectorD(-3, 1.2 * ball_radius, -3))
 ball.SetPos_dt(chrono.ChVectorD(5, 0, 5))
 ball.SetCollide(True)
 
-ball.GetCollisionModel().ClearModel()
-ball.GetCollisionModel().AddSphere(ball_mat, ball_radius)
-ball.GetCollisionModel().BuildModel()
+ball_ct_shape = chrono.ChCollisionShapeSphere(ball_mat, ball_radius)
+ball.AddCollisionShape(ball_ct_shape)
 
-vshape_s = chrono.ChSphereShape(ball_radius)
+vshape_s = chrono.ChVisualShapeSphere(ball_radius)
 vshape_s.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
 ball.AddVisualShape(vshape_s)
 

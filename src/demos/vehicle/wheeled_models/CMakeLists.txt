@@ -33,9 +33,7 @@ if(ENABLE_MODULE_IRRLICHT)
        demo_VEH_Kraz_ClosedLoop
        demo_VEH_Kraz_OpenLoop
        demo_VEH_LMTV_ride
-       demo_VEH_MAN_5t
-       demo_VEH_MAN_7t
-       demo_VEH_MAN_10t
+       demo_VEH_MAN
        demo_VEH_MROLE
        demo_VEH_MTV_ride
        demo_VEH_ARTcar

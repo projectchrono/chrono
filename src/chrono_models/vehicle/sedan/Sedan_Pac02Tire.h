@@ -19,7 +19,7 @@
 #ifndef SEDAN_PAC02_TIRE_H
 #define SEDAN_PAC02_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 
@@ -29,7 +29,7 @@ namespace chrono {
 namespace vehicle {
 namespace sedan {
 
-/// @addtogroup vehicle_models_feda
+/// @addtogroup vehicle_models_sedan
 /// @{
 
 /// MF tire model for the FEDA vehicle.
@@ -54,10 +54,10 @@ class CH_MODELS_API Sedan_Pac02Tire : public ChPac02Tire {
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_sedan
 
 }  // namespace sedan
 }  // end namespace vehicle

@@ -96,8 +96,8 @@ void SynCopterAgent::SetKey(AgentKey agent_key) {
 
 // ------------------------------------------------------------------------
 
-std::shared_ptr<ChTriangleMeshShape> SynCopterAgent::CreateMeshZombieComponent(const std::string& filename) {
-    auto trimesh = chrono_types::make_shared<ChTriangleMeshShape>();
+std::shared_ptr<ChVisualShapeTriangleMesh> SynCopterAgent::CreateMeshZombieComponent(const std::string& filename) {
+    auto trimesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     if (!filename.empty()) {
         auto mesh =
             geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(filename), false, false);

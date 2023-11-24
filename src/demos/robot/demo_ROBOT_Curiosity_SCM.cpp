@@ -25,7 +25,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
@@ -87,8 +87,11 @@ int main(int argc, char* argv[]) {
     // Global parameter for moving patch size:
     double wheel_range = 0.5;
 
-    // Create the Chrono system and Curiosity rover
+    // Create the Chrono system and the associated collision system
     ChSystemSMC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
+    // Create the Curiosity rover
     Curiosity rover(&sys, chassis_type, wheel_type);
     rover.SetDriver(chrono_types::make_shared<CuriositySpeedDriver>(1.0, CH_C_PI));
     rover.Initialize(ChFrame<>(ChVector<>(-5, -0.2, 0), Q_from_AngX(-CH_C_PI / 2)));
@@ -133,16 +136,14 @@ int main(int argc, char* argv[]) {
         body->SetMass(mass * rock_density);
         body->SetInertiaXX(rock_density * principal_I);
 
-        body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(rock_mat, mesh, false, false, VNULL, ChMatrix33<>(1),
-                                                   0.005);
-        body->GetCollisionModel()->BuildModel();
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rock_mat, mesh, false, false, 0.005);
+        body->AddCollisionShape(ct_shape);
         body->SetCollide(true);
 
-        auto mesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        mesh_shape->SetMesh(mesh);
-        mesh_shape->SetBackfaceCull(true);
-        body->AddVisualShape(mesh_shape);
+        auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+        vis_shape->SetMesh(mesh);
+        vis_shape->SetBackfaceCull(true);
+        body->AddVisualShape(vis_shape);
 
         rock.push_back(body);
     }

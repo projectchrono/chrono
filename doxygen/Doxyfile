@@ -866,8 +866,8 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = ../src/chrono/collision/bullet \
-                         ../src/chrono/collision/convexdecomposition \
+EXCLUDE                = ../src/chrono/collision/bullet/BulletCollision \
+                         ../src/chrono/collision/bullet/LinearMath \
                          ../src/chrono/collision/gimpact \
                          ../src/chrono/collision/edgetempest \
                          ../src/chrono_synchrono/flatbuffer/message/SynFlatBuffers_generated.h \

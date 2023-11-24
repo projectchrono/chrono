@@ -28,8 +28,8 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChPushPipeAxle.h"
 
@@ -104,7 +104,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_panhardOuterC = suspension_to_abs.TransformPointLocalToParent(getLocation(PANHARD_C));
 
     // Create and initialize the axle body.
-    m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -121,7 +121,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the panhard rod body
     ChVector<> panCom_local = 0.5 * (getLocation(PANHARD_A) + getLocation(PANHARD_C));
     ChVector<> panCom = suspension_to_abs.TransformLocalToParent(panCom_local);
-    m_panhardRod = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_panhardRod = chrono_types::make_shared<ChBody>();
     m_panhardRod->SetNameString(m_name + "_panhardRod");
     m_panhardRod->SetPos(panCom);
     m_panhardRod->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -182,7 +182,7 @@ void ChPushPipeAxle::InitializeSide(VehicleSide side,
     auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
@@ -312,10 +312,10 @@ void ChPushPipeAxle::AddVisualizationAssets(VisualizationType vis) {
                          ChColor(0.5f, 0.7f, 0.9f));
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 }
 
 void ChPushPipeAxle::RemoveVisualizationAssets() {

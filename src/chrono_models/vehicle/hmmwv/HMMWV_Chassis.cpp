@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -44,7 +44,8 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, CollisionType 
     // In this model, we use a single contact material.
     ChContactMaterialData minfo;
     minfo.mu = 1.0f;
-    minfo.cr = 0.5f;
+    minfo.cr = 0.1f;
+    minfo.Y = 5e5f;
     m_geometry.m_materials.push_back(minfo);
 
     m_body_inertia(0, 0) = m_body_inertiaXX.x();

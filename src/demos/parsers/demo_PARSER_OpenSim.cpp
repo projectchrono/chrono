@@ -56,8 +56,9 @@ int main(int argc, char* argv[]) {
     filename = GetChronoDataFile(filename);
     ChParserOpenSim::VisType vis_type = mesh ? ChParserOpenSim::VisType::MESH : ChParserOpenSim::VisType::PRIMITIVES;
 
-    // Make a system
+    // Make a system and associated collsion detection system
     ChSystemSMC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create parser instance and set options.
     // - Use MESH visualization and no collision for the Rajagopal model.

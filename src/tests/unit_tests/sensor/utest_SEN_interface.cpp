@@ -35,7 +35,7 @@
 
 #include "chrono_sensor/optix/ChOptixUtils.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 using namespace chrono;
 using namespace chrono::sensor;
@@ -205,7 +205,7 @@ TEST(SensorInterface, mesh_channels) {
     triangle->getCoordsVertices() = vertices;
     triangle->getIndicesVertexes() = vert_ids;
 
-    auto triangle_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto triangle_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     triangle_shape->SetMesh(triangle);
     triangle_shape->SetMutable(false);
 

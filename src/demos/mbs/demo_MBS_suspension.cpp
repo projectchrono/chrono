@@ -596,11 +596,9 @@ class MyEventReceiver : public IEventReceiver {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    //
-    // HERE YOU CREATE THE MECHANICAL SYSTEM OF CHRONO...
-    //
-
+    // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the rigid bodies of the simpified car suspension mechanical system maybe setting position/mass/inertias of
     // their center of mass (COG) etc.
@@ -642,8 +640,7 @@ int main(int argc, char* argv[]) {
 
     class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
-        virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
-                                  ChMaterialComposite* const material) override {
+        virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
             auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
 

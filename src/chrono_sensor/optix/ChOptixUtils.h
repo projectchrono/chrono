@@ -30,7 +30,7 @@
 #include <nvrtc.h>
 
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/core/ChMatrix33.h"
 
 #include "chrono_thirdparty/stb/stb_image.h"

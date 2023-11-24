@@ -60,15 +60,14 @@ void ChLinkTrajectory::UpdateTime(double time) {
     double tr_timeA = space_fx->Get_y(time - tstep);
 
     if (trajectory_line) {
-        Vector result, resultB, resultA;
         if (modulo_s) {
             tr_time = fmod(tr_time, 1);
             tr_timeA = fmod(tr_timeA, 1);
             tr_timeB = fmod(tr_timeB, 1);
         }
-        trajectory_line->Evaluate(result, tr_time);
-        trajectory_line->Evaluate(resultA, tr_timeA);
-        trajectory_line->Evaluate(resultB, tr_timeB);
+        auto result = trajectory_line->Evaluate(tr_time);
+        auto resultA = trajectory_line->Evaluate(tr_timeA);
+        auto resultB = trajectory_line->Evaluate(tr_timeB);
 
         ChMatrix33<> mw;
         mw.Set_A_quaternion(marker2->GetAbsCoord().rot);

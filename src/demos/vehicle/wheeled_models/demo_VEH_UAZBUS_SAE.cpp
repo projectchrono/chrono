@@ -125,6 +125,9 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Vehicle mass: " << uaz.GetVehicle().GetMass() << std::endl;
 
+    // Associate a collision system
+    uaz.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // ------------------
     // Create the terrain
     // ------------------

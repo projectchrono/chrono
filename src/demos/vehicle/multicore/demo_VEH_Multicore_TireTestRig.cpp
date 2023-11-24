@@ -31,12 +31,14 @@ using namespace chrono;
 using namespace chrono::vehicle;
 
 int main() {
+    double step_size = 5e-3;
+    double tire_step_size = 1e-4;
+
     // Create sys
     // -------------
 
     ChSystemMulticoreNSC sys;
-    double step_size = 5e-3;
-    double tire_step_size = 1e-4;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
     sys.ChangeSolverType(SolverType::APGD);
 
     ////ChSystemMulticoreSMC sys;
@@ -89,8 +91,8 @@ int main() {
     double collision_envelope;
     ChVector<int> collision_bins;
     rig.GetSuggestedCollisionSettings(collision_envelope, collision_bins);
-    sys.GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
-    sys.GetSettings()->collision.broadphase_grid = collision::ChBroadphase::GridType::FIXED_RESOLUTION;
+    sys.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    sys.GetSettings()->collision.broadphase_grid = ChBroadphase::GridType::FIXED_RESOLUTION;
     sys.GetSettings()->collision.bins_per_axis = vec3(collision_bins.x(), collision_bins.y(), collision_bins.z());
 
     switch (sys.GetContactMethod()) {

@@ -39,7 +39,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPhongShape(BasicShape theShape,
                                                         std::shared_ptr<ChVisualMaterial> material,
                                                         vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                         bool wireframe,
-                                                        std::shared_ptr<ChSurfaceShape> surface) {
+                                                        std::shared_ptr<ChVisualShapeSurface> surface) {
     auto scenegraph = vsg::Group::create();
 
     vsg::ref_ptr<vsg::ShaderSet> shaderSet;
@@ -236,7 +236,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
                                                       std::shared_ptr<ChVisualMaterial> material,
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                       bool wireframe,
-                                                      std::shared_ptr<ChSurfaceShape> surface) {
+                                                      std::shared_ptr<ChVisualShapeSurface> surface) {
     auto scenegraph = vsg::Group::create();
 
     vsg::ref_ptr<vsg::ShaderSet> shaderSet;
@@ -449,7 +449,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(std::shared_ptr<ChTriangleMeshShape> tms,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
                                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                              bool wireframe) {
     auto scenegraph = vsg::Group::create();
@@ -645,7 +645,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(std::shared_ptr<ChT
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColAvgShape(std::shared_ptr<ChTriangleMeshShape> tms,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColAvgShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
                                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                                 bool wireframe) {
     auto scenegraph = vsg::Group::create();
@@ -806,7 +806,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColAvgShape(std::shared_ptr<
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPhongMatShape(std::shared_ptr<ChTriangleMeshShape> tms,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPhongMatShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
                                                                   vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                                   bool wireframe) {
     auto scenegraph = vsg::Group::create();
@@ -1048,7 +1048,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPhongMatShape(std::shared_pt
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(std::shared_ptr<ChTriangleMeshShape> tms,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
                                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                                 bool wireframe) {
     auto scenegraph = vsg::Group::create();
@@ -1446,7 +1446,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::Matri
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createLineShape(ChVisualModel::ShapeInstance shapeInstance,
                                                        std::shared_ptr<ChVisualMaterial> material,
                                                        vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                       std::shared_ptr<ChLineShape> ls) {
+                                                       std::shared_ptr<ChVisualShapeLine> ls) {
     auto scenegraph = vsg::Group::create();
 
     vsg::ref_ptr<vsg::ShaderStage> vertexShader = lineShader_vert();
@@ -1517,8 +1517,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createLineShape(ChVisualModel::ShapeInsta
     for (int i = 0; i < numPoints; i++) {
         // double u = ustep * (double(i));
         double u = maxU * ((double)i / (double)(numPoints - 1));  // abscissa
-        ChVector<> pos;
-        ls->GetLineGeometry()->Evaluate(pos, u);
+        ChVector<> pos = ls->GetLineGeometry()->Evaluate(u);
         vertices->set(i, vsg::vec3CH(pos));
         auto cv =
             vsg::vec3(material->GetDiffuseColor().R, material->GetDiffuseColor().G, material->GetDiffuseColor().B);
@@ -1540,7 +1539,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createLineShape(ChVisualModel::ShapeInsta
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createPathShape(ChVisualModel::ShapeInstance shapeInstance,
                                                        std::shared_ptr<ChVisualMaterial> material,
                                                        vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                       std::shared_ptr<ChPathShape> ps) {
+                                                       std::shared_ptr<ChVisualShapePath> ps) {
     auto scenegraph = vsg::Group::create();
 
     vsg::ref_ptr<vsg::ShaderStage> vertexShader = lineShader_vert();
@@ -1608,8 +1607,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPathShape(ChVisualModel::ShapeInsta
     auto colors = vsg::vec3Array::create(numPoints);
     for (int i = 0; i < numPoints; i++) {
         double u = ustep * (double(i));
-        ChVector<> pos;
-        ps->GetPathGeometry()->Evaluate(pos, u);
+        ChVector<> pos = ps->GetPathGeometry()->Evaluate(u);
         vertices->set(i, vsg::vec3CH(pos));
         auto cv =
             vsg::vec3(material->GetDiffuseColor().R, material->GetDiffuseColor().G, material->GetDiffuseColor().B);
@@ -1632,7 +1630,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createSpringShape(std::shared_ptr<ChLinkB
                                                          ChVisualModel::ShapeInstance shapeInstance,
                                                          std::shared_ptr<ChVisualMaterial> material,
                                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                         std::shared_ptr<ChSpringShape> ss) {
+                                                         std::shared_ptr<ChVisualShapeSpring> ss) {
     auto scenegraph = vsg::Group::create();
     // store some information for easier update
     scenegraph->setValue("Link", link);

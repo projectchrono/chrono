@@ -27,18 +27,18 @@
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualModel.h"
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChBarrelShape.h"
-#include "chrono/assets/ChConeShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChSurfaceShape.h"
-#include "chrono/assets/ChModelFileShape.h"
-#include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPathShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeEllipsoid.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeCapsule.h"
+#include "chrono/assets/ChVisualShapeBarrel.h"
+#include "chrono/assets/ChVisualShapeCone.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeSurface.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeLine.h"
+#include "chrono/assets/ChVisualShapePath.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMarkers.h"
@@ -210,7 +210,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     void UpdateFromMBS();
 
-    bool m_initialized = false;
     int m_screen_num = -1;
     bool m_use_fullscreen = false;
 

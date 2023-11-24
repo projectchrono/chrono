@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace duro {
 
-/// @addtogroup vehicle_models_Duro
+/// @addtogroup vehicle_models_duro
 /// @{
 
 /// Shafts-based powertrain model for the Duro vehicle.
@@ -62,7 +62,7 @@ class CH_MODELS_API Duro_AutomaticTransmissionShafts : public ChAutomaticTransmi
     static const double m_downshift_RPM;
 };
 
-/// @} vehicle_models_Duro
+/// @} vehicle_models_duro
 
 }  // namespace duro
 }  // end namespace vehicle

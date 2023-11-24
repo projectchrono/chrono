@@ -143,6 +143,12 @@ int main(int argc, char* argv[]) {
         std::cout << "Rig uses M113 track assembly:  type " << (int)shoe_type << " side " << side << std::endl;
     }
 
+    // ----------------------------
+    // Associate a collision system
+    // ----------------------------
+
+    rig->GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------

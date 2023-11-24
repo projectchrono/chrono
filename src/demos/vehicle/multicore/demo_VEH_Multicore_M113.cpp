@@ -231,6 +231,7 @@ int main(int argc, char* argv[]) {
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
 #endif
 
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
     sys->Set_G_acc(ChVector<>(0, 0, -9.81));
 
 
@@ -274,12 +275,10 @@ int main(int argc, char* argv[]) {
     mat_g->SetFriction(mu_g);
 
     // Ground body
-    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
+    auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
-
-    ground->GetCollisionModel()->ClearModel();
 
     // Bottom box
     utils::AddBoxGeometry(ground.get(),                                           //
@@ -313,8 +312,6 @@ int main(int argc, char* argv[]) {
                               ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
                               visible_walls);
     }
-
-    ground->GetCollisionModel()->BuildModel();
 
     sys->AddBody(ground);
 

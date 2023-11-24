@@ -24,7 +24,7 @@
 
 #include <cstdio>
 
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
@@ -84,10 +84,10 @@ int main(int argc, char* argv[]) {
     ground->SetCollide(false);
 
     {
-        auto sph_1 = chrono_types::make_shared<ChSphereShape>(0.1);
+        auto sph_1 = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
         ground->AddVisualShape(sph_1, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
 
-        auto sph_2 = chrono_types::make_shared<ChSphereShape>(0.1);
+        auto sph_2 = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
         ground->AddVisualShape(sph_2, ChFrame<>(ChVector<>(+1, 0, 0), QUNIT));
     }
 
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     body_1->SetInertiaXX(ChVector<>(1, 1, 1));
 
     // Attach a visualization asset.
-    auto box_1 = chrono_types::make_shared<ChBoxShape>(1, 1, 1);
+    auto box_1 = chrono_types::make_shared<ChVisualShapeBox>(1, 1, 1);
     box_1->SetColor(ChColor(0.6f, 0, 0));
     body_1->AddVisualShape(box_1);
 
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     sys.AddLink(spring_1);
 
     // Attach a visualization asset.
-    spring_1->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.1, 80, 15));
+    spring_1->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.1, 80, 15));
 
     // Create a body suspended through a ChLinkTSDA (custom force functor)
     // -------------------------------------------------------------------
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     body_2->SetInertiaXX(ChVector<>(1, 1, 1));
 
     // Attach a visualization asset.
-    auto box_2 = chrono_types::make_shared<ChBoxShape>(1, 1, 1);
+    auto box_2 = chrono_types::make_shared<ChVisualShapeBox>(1, 1, 1);
     box_2->SetColor(ChColor(0, 0, 0.6f));
     body_2->AddVisualShape(box_2);
 
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     sys.AddLink(spring_2);
 
     // Attach a visualization asset.
-    spring_2->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.1, 80, 15));
+    spring_2->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.1, 80, 15));
 
     // Create the run-time visualization system
     // ----------------------------------------

@@ -23,6 +23,7 @@
 #include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/collision/ChCollisionSystem.h"
 
 namespace chrono {
 namespace fea {
@@ -48,9 +49,9 @@ class ChApi ChContactSurface {
     std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return m_material; }
 
     // Functions to interface this with ChPhysicsItem container
-    virtual void SurfaceSyncCollisionModels() = 0;
-    virtual void SurfaceAddCollisionModelsToSystem(ChSystem* msys) = 0;
-    virtual void SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys) = 0;
+    virtual void SyncCollisionModels() const = 0;
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const = 0;
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const = 0;
 
   protected:
     std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material properties

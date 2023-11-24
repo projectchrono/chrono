@@ -26,13 +26,49 @@ ChSphere::ChSphere(const ChSphere& source) {
     rad = source.rad;
 }
 
-ChGeometry::AABB ChSphere::GetBoundingBox(const ChMatrix33<>& rot) const {
-    return AABB(ChVector<>(-rad), ChVector<>(+rad));
+// -----------------------------------------------------------------------------
+
+double ChSphere::GetVolume(double radius) {
+    return (4.0 / 3.0) * CH_C_PI * radius * radius * radius;
+}
+
+double ChSphere::GetVolume() const {
+    return GetVolume(rad);
+}
+
+ChMatrix33<> ChSphere::GetGyration(double radius) {
+    double Jxx = (2.0 / 5.0) * radius * radius;
+
+    ChMatrix33<> J;
+    J.setZero();
+    J(0, 0) = Jxx;
+    J(1, 1) = Jxx;
+    J(2, 2) = Jxx;
+
+    return J;
+}
+
+ChMatrix33<> ChSphere::GetGyration() const {
+    return GetGyration(rad);
+}
+
+ChAABB ChSphere::GetBoundingBox(double radius) {
+    return ChAABB(ChVector<>(-radius), ChVector<>(+radius));
+}
+
+ChAABB ChSphere::GetBoundingBox() const {
+    return GetBoundingBox(rad);
+}
+
+double ChSphere::GetBoundingSphereRadius(double radius) {
+    return radius;
 }
 
 double ChSphere::GetBoundingSphereRadius() const {
-    return rad;
+    return GetBoundingSphereRadius(rad);
 }
+
+// -----------------------------------------------------------------------------
 
 void ChSphere::ArchiveOut(ChArchiveOut& marchive) {
     // version number
@@ -45,7 +81,7 @@ void ChSphere::ArchiveOut(ChArchiveOut& marchive) {
 
 void ChSphere::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/marchive.VersionRead();
+    /*int version =*/marchive.VersionRead<ChSphere>();
     // deserialize parent class
     ChGeometry::ArchiveIn(marchive);
     // stream in all member data:

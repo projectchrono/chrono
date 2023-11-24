@@ -46,8 +46,6 @@ namespace vehicle {
  * (using the Chrono::GPU module).
  * - ChVehicleCosimTerrainNodeGranularSPH wraps a deformable terrain rectangular patch modeled with granular material
  * (using the Chrono::FSI module).
- * - ChVehicleCosimTerrainNodeGranularMPI wraps a deformable terrain rectangular patch modeled with granular material
- * (using the Chrono::Distributed module).
  */
 
 /// @addtogroup vehicle_cosim_chrono
@@ -62,7 +60,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
         SCM,           ///< Soil Contact Model
         GRANULAR_OMP,  ///< granular terrain (Chrono::Multicore)
         GRANULAR_GPU,  ///< granular terrain (Chrono::Gpu)
-        GRANULAR_MPI,  ///< granular terrain (Chrono::Distributed)
         GRANULAR_SPH,  ///< continuous representation of granular terrain (Chrono::FSI)
         UNKNOWN        ///< unknown terrain type
     };

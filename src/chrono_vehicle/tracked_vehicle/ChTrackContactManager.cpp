@@ -22,6 +22,7 @@
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 
+
 namespace chrono {
 namespace vehicle {
 
@@ -477,7 +478,7 @@ void ChTrackCollisionManager::Reset() {
 
 static const double nrm_threshold = 0.8;
 
-bool ChTrackCollisionManager::OnNarrowphase(collision::ChCollisionInfo& contactinfo) {
+bool ChTrackCollisionManager::OnNarrowphase(ChCollisionInfo& contactinfo) {
     ChBody* bodyA = dynamic_cast<ChBody*>(contactinfo.modelA->GetContactable());
     ChBody* bodyB = dynamic_cast<ChBody*>(contactinfo.modelB->GetContactable());
 

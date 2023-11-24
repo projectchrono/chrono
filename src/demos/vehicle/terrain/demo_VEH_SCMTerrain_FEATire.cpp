@@ -42,6 +42,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemSMC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     std::shared_ptr<ChBody> mtruss(new ChBody);
     mtruss->SetBodyFixed(true);

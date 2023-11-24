@@ -79,7 +79,7 @@
 // trick when possible.
 //
 // Parameters: base class, inherited, inherited, ... (only the 
-//    classes wrapped by the chared ptr)
+//    classes wrapped by the shared ptr)
 
 
 %define %_shpointers_dispatch(Type) 

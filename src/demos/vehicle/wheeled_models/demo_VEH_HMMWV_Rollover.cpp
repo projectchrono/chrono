@@ -56,6 +56,7 @@ int main(int argc, char* argv[]) {
 
     // Create vehicle
     HMMWV_Full hmmwv;
+    hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     hmmwv.SetContactMethod(ChContactMethod::NSC);
     hmmwv.SetChassisCollisionType(CollisionType::HULLS);  // automatically enables collision for the chassis
     hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(0, 0, 0.5), QUNIT));
@@ -157,7 +158,7 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         // Set driver inputs
-        DriverInputs driver_inputs = {0, 1, 0};
+        DriverInputs driver_inputs = {0, 0.5, 0};
 
         // Check rollover -- detach chase camera
         if (Vdot(hmmwv.GetChassisBody()->GetA().Get_A_Zaxis(), ChWorldFrame::Vertical()) < 0) {

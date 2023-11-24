@@ -17,10 +17,10 @@
 
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/assets/ChGlyphs.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPathShape.h"
-#include "chrono/assets/ChSurfaceShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeLine.h"
+#include "chrono/assets/ChVisualShapePath.h"
+#include "chrono/assets/ChVisualShapeSurface.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
 
@@ -49,14 +49,14 @@ class ChApiIrr ChIrrNodeShape : public irr::scene::ISceneNode {
     void Update();
 
   private:
-    void UpdateTriangleMesh(std::shared_ptr<ChTriangleMeshShape> trianglemesh);
-    void UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMeshShape> trianglemesh);
-    void UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMeshShape> trianglemesh);
+    void UpdateTriangleMesh(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh);
+    void UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh);
+    void UpdateTriangleMesh_col(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh);
 
-    void UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChTriangleMeshShape> trianglemesh);
+    void UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh);
 
     void UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs);
-    void UpdateSurface(std::shared_ptr<ChSurfaceShape> surface);
+    void UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface);
     void UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned int nvertexes);
 
     virtual irr::scene::ESCENE_NODE_TYPE getType() const override;

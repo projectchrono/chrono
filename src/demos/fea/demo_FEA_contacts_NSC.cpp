@@ -45,22 +45,13 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;
-
     sys.SetNumThreads(ChOMP::GetNumProcs(), 0, 1);
 
-    //
-    // CREATE THE PHYSICAL SYSTEM
-    //
-
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
-
-    // Set default effective radius of curvature for all SCM contacts.
-    collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
-
-    // collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0); // not needed, already 0 when using ChSystemSMC
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(
-        0.006);  // max inside penetration - if not enough stiffness in material: troubles
+    // Create and set the collision system
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
+    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.006);
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Use this value for an outward additional layer around meshes, that can improve
     // robustness of mesh-mesh collision detection (at the cost of having unnatural inflate effect)
@@ -88,13 +79,12 @@ int main(int argc, char* argv[]) {
         mfloor->SetBodyFixed(true);
         sys.Add(mfloor);
 
-        mfloor->GetCollisionModel()->ClearModel();
-        mfloor->GetCollisionModel()->AddTriangleMesh(mysurfmaterial, mmeshbox, false, false, VNULL, ChMatrix33<>(1),
-                                                     sphere_swept_thickness);
-        mfloor->GetCollisionModel()->BuildModel();
+        auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mysurfmaterial, mmeshbox, false,
+                                                                                   false, sphere_swept_thickness);
+        mfloor->AddCollisionShape(floor_shape);
         mfloor->SetCollide(true);
 
-        auto masset_meshbox = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto masset_meshbox = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         masset_meshbox->SetMesh(mmeshbox);
         masset_meshbox->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
         mfloor->AddVisualShape(masset_meshbox);
@@ -131,9 +121,7 @@ int main(int argc, char* argv[]) {
     mmaterial->Set_RayleighDampingK(0.01);
     mmaterial->Set_density(1000);
 
-    //
     // Example: stack of tetrahedral meshes, with collision on the skin
-    //
 
     if (true) {
         for (int i = 0; i < 3; ++i) {
@@ -156,9 +144,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    //
     // Example: a tetrahedral tire
-    //
 
     if (false) {
         std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
@@ -178,9 +164,7 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
 
-    //
     // Example: beams, with node collisions as point cloud
-    //
 
     // Create a mesh. We will use it for beams only.
 
@@ -216,16 +200,14 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system!
     sys.Add(my_mesh_beams);
 
-    //
     // Optional...  visualization
-    //
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape
+    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a colored ChTriangleMeshShape).
+    // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);

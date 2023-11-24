@@ -417,9 +417,13 @@ int drawAllBoundingBoxes(ChVisualSystemIrrlicht* vis) {
         else
             mcol = irr::video::SColor(70, 30, 200, 200);  // cyan: not sleeping
 
-        ChVector<> hi = VNULL;
-        ChVector<> lo = VNULL;
-        body->GetTotalAABB(lo, hi);
+        auto bbox = body->GetTotalAABB();
+        if (bbox.IsInverted())
+            continue;
+
+        ChVector<> lo = bbox.min;
+        ChVector<> hi = bbox.max;
+
         ChVector<> p1(hi.x(), lo.y(), lo.z());
         ChVector<> p2(lo.x(), hi.y(), lo.z());
         ChVector<> p3(lo.x(), lo.y(), hi.z());

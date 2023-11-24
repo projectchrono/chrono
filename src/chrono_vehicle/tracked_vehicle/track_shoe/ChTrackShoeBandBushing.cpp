@@ -17,13 +17,14 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChGlobal.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
+
 
 namespace chrono {
 namespace vehicle {
@@ -54,7 +55,7 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     auto web_mat = m_body_matinfo.CreateMaterial(chassis->GetSystem()->GetContactMethod());
     ChVector<> seg_loc = loc + (0.5 * GetToothBaseLength()) * xdir;
     for (int is = 0; is < GetNumWebSegments(); is++) {
-        m_web_segments.push_back(std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody()));
+        m_web_segments.push_back(chrono_types::make_shared<ChBody>());
         m_web_segments[is]->SetNameString(m_name + "_web_" + std::to_string(is));
         m_web_segments[is]->SetPos(seg_loc + ((2 * is + 1) * m_seg_length / 2) * xdir);
         m_web_segments[is]->SetRot(rot);
@@ -112,14 +113,12 @@ void ChTrackShoeBandBushing::UpdateInertiaProperties() {
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment,
                                            std::shared_ptr<ChMaterialSurface> web_mat) {
-    segment->GetCollisionModel()->ClearModel();
+    auto shape =
+        chrono_types::make_shared<ChCollisionShapeBox>(web_mat, m_seg_length, GetBeltWidth(), GetWebThickness());
+    segment->AddCollisionShape(shape);
 
     segment->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
     segment->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
-
-    segment->GetCollisionModel()->AddBox(web_mat, m_seg_length, GetBeltWidth(), GetWebThickness());
-
-    segment->GetCollisionModel()->BuildModel();
 }
 
 // -----------------------------------------------------------------------------
@@ -140,7 +139,7 @@ void ChTrackShoeBandBushing::RemoveVisualizationAssets() {
 }
 
 void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment) {
-    auto box = chrono_types::make_shared<ChBoxShape>(m_seg_length, GetBeltWidth(), GetWebThickness());
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(m_seg_length, GetBeltWidth(), GetWebThickness());
     segment->AddVisualShape(box);
 
     double radius = GetWebThickness() / 4;

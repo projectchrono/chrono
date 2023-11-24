@@ -22,7 +22,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_cascade/ChCascadeBodyEasy.h"
 #include "chrono_cascade/ChCascadeDoc.h"
-#include "chrono_cascade/ChCascadeVisualShape.h"
+#include "chrono_cascade/ChVisualShapeCascade.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -60,8 +60,8 @@ int main(int argc, char* argv[]) {
     // print the contained shapes
     mydoc.Dump(GetLog());
 
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.001);
 
     // In most CADs the Y axis is horizontal, but we want it vertical.
     // So define a root transformation for rotating all the imported objects.

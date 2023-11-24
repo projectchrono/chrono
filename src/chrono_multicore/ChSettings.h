@@ -22,8 +22,8 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChOpenMP.h"
-#include "chrono/collision/chrono/ChBroadphase.h"
-#include "chrono/collision/chrono/ChNarrowphase.h"
+#include "chrono/collision/multicore/ChBroadphase.h"
+#include "chrono/collision/multicore/ChNarrowphase.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
 #include "chrono/multicore_math/ChMulticoreMath.h"
 
@@ -42,8 +42,8 @@ class collision_settings {
           bins_per_axis(vec3(10, 10, 10)),
           bin_size(real3(1, 1, 1)),
           grid_density(5),
-          broadphase_grid(collision::ChBroadphase::GridType::FIXED_RESOLUTION),
-          narrowphase_algorithm(collision::ChNarrowphase::Algorithm::HYBRID) {}
+          broadphase_grid(ChBroadphase::GridType::FIXED_RESOLUTION),
+          narrowphase_algorithm(ChNarrowphase::Algorithm::HYBRID) {}
 
     /// For stability of NSC contact, the envelope should be set to 5-10% of the smallest collision shape size (too
     /// large a value will slow down the narrowphase collision detection). The envelope is the amount by which each
@@ -64,7 +64,7 @@ class collision_settings {
     real3 aabb_max;
 
     /// Method for controlling granularity of the broadphase collision grid.
-    collision::ChBroadphase::GridType broadphase_grid;
+    ChBroadphase::GridType broadphase_grid;
 
     /// Number of bins for the broadphase collision grid. This is the default method to control the granularity of the
     /// collision detection grid used for the broadphase. During the broadphase stage the extents of the simulation are
@@ -83,7 +83,7 @@ class collision_settings {
     /// The Chrono collision detection system provides several analytical collision detection algorithms, for particular
     /// pairs of shapes (see ChNarrowphasePRIMS). For general convex shapes, the collision system relies on the
     /// Minkovski Portal Refinement algorithm (see ChNarrowphaseMPR).
-    collision::ChNarrowphase::Algorithm narrowphase_algorithm;
+    ChNarrowphase::Algorithm narrowphase_algorithm;
 };
 
 /// Chrono::Multicore solver_settings.

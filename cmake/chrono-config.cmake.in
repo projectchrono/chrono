@@ -25,11 +25,13 @@
 # CHRONO_STATIC
 #       set to ON if Chrono has been built as static library, OFF if shared library
 # CHRONO_INCLUDE_DIRS
-#       additional paths for included headers
+#       full path to Chrono headers
 # CHRONO_LIBRARIES
 #       list of required libraries (with full path) of both Chrono and its dependencies
 # CHRONO_DLL_NAMES
-#       
+#       list of DLL names (without path) of both Chrono without its dependencies
+# CHRONO_DEPENDENCY_DLLS
+#       list of DLL names (with full path) of Chrono dependencies
 # CHRONO_DATA_DIR
 #       path to the Chrono data directory
 # CHRONO_VEHICLE_DATA_DIR
@@ -89,6 +91,11 @@ message(STATUS "Finding package Chrono...")
 string(REGEX REPLACE "[ \t]+" ";" CHRONO_CXX_FLAGS "@CH_CXX_FLAGS@")
 string(REGEX REPLACE "[ \t]+" ";" CHRONO_C_FLAGS "@CH_C_FLAGS@")
 string(REGEX REPLACE "[ \t]+" ";" CHRONO_LINKER_FLAGS "@CH_LINKERFLAG_EXE@")
+
+if (MSVC)
+   list(APPEND CHRONO_CXX_FLAGS "/wd4251;/wd4275;/wd4250")
+   list(APPEND CHRONO_C_FLAGS "/wd4251;/wd4275;/wd4250")
+endif()
 
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   list(APPEND CHRONO_LINKER_FLAGS "-L@CH_BINARY_DIR@/lib")
@@ -154,7 +161,6 @@ set(Chrono_HAS_sensor @ENABLE_MODULE_SENSOR@)
 set(Chrono_HAS_pardisoproject @ENABLE_MODULE_PARDISO_PROJECT@)
 set(Chrono_HAS_synchrono @ENABLE_MODULE_SYNCHRONO@)
 set(Chrono_HAS_modal @ENABLE_MODULE_MODAL@)
-set(Chrono_HAS_distributed @ENABLE_MODULE_DISTRIBUTED@)
 set(Chrono_HAS_vsg @ENABLE_MODULE_VSG@)
 
 #-------------------------------------------------------------------------------
@@ -195,9 +201,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
            endif()
            if(Chrono_HAS_fsi)
               set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};FSI")
-           endif()
-           if(Chrono_HAS_distributed)
-              set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Distributed")
            endif()
            if(Chrono_HAS_pardisomkl)
               set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};PardisoMKL")
@@ -341,21 +344,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       find_package(vsgImGui REQUIRED)
       find_package(vsgXchange REQUIRED)
       list(APPEND CHRONO_LIBRARIES "vsg::vsg;vsgImGui::vsgImGui;vsgXchange::vsgXchange")
-
-    elseif(${COMPONENT_UPPER} MATCHES "DISTRIBUTED")
-      
-      separate_arguments(MPI_CXX_COMPILE_FLAGS NATIVE_COMMAND "@MPI_CXX_COMPILE_FLAGS@")
-      separate_arguments(MPI_CXX_LINK_FLAGS NATIVE_COMMAND "@MPI_CXX_LINK_FLAGS@")
-      list(APPEND CHRONO_CXX_FLAGS ${MPI_CXX_COMPILE_FLAGS})
-      list(APPEND CHRONO_LINKER_FLAGS ${MPI_CXX_LINK_FLAGS})
-      
-      list(APPEND CHRONO_INCLUDE_DIRS "@MPI_CXX_INCLUDE_PATH@")
-      list(APPEND CHRONO_LIBRARIES "@MPI_CXX_LIBRARIES@")
-
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_distributed")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_distributed.dll")
-      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "VEHICLE")
 
@@ -558,8 +546,9 @@ set(Chrono_FOUND ON)
 #-------------------------------------------------------------------------------
 # Loop over list of Chrono library names and find the actual libraries.
 #-------------------------------------------------------------------------------
+get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(NOT CHRONO_CONFIGURATION_TYPES)
-  if(CMAKE_CONFIGURATION_TYPES)
+  if(IS_MULTI_CONFIG)
     set(CHRONO_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES}) # system has multi-config IDE
   else()
     if(CMAKE_BUILD_TYPE)
@@ -586,7 +575,7 @@ foreach(config ${CHRONO_CONFIGURATION_TYPES})
     if(NOT onelib)
       list(APPEND CHRONO_MISSING_LIB_CONFIG_${config} ${lib})
     else()
-      if(CMAKE_CONFIGURATION_TYPES)
+      if(IS_MULTI_CONFIG)
         list(APPEND CHRONO_LIBRARIES_${config} "${onelib}")
       else()
         list(APPEND CHRONO_LIBRARIES "${onelib}")
@@ -598,7 +587,7 @@ endforeach()
 unset(onelib CACHE)
 
 
-if (CMAKE_CONFIGURATION_TYPES)
+if (IS_MULTI_CONFIG)
   foreach(config ${CHRONO_CONFIGURATION_TYPES})
     # if the given configuration does not have a proper Chrono built library then link to Chrono Release, but only for non-static
     if (CHRONO_MISSING_LIB_CONFIG_${config})
@@ -676,8 +665,9 @@ function(add_DLL_copy_command)
       set(DEPENDENCY_DLLS ${CHRONO_DEPENDENCY_DLLS})
     endif()
 
+    get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
     if(NOT CHRONO_CONFIGURATION_TYPES)
-      if(CMAKE_CONFIGURATION_TYPES)
+      if(IS_MULTI_CONFIG)
         set(CHRONO_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES}) # system has multi-config IDE
       else()
         if(CMAKE_BUILD_TYPE)

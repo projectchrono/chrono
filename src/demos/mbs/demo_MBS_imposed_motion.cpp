@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     impose_2->SetRotationFunction(f_rotspline);
 
     // btw: do you want to visualize the position spline? do this:
-    auto mglyphasset = chrono_types::make_shared<ChLineShape>();
+    auto mglyphasset = chrono_types::make_shared<ChVisualShapeLine>();
     mglyphasset->SetLineGeometry(mspline);
     impose_2->AddVisualShape(mglyphasset);
 

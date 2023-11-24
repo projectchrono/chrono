@@ -39,19 +39,15 @@ class ChApi ChSurface : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     // virtual ChSurface* Clone() const override { }
 
-    /// Evaluates a point on the surface, given parametric coordinates U,V.
+    /// Return a point on the surface, given parametric coordinates U,V.
     /// Parameters U and V always work in 0..1 range.
-    /// Computed value goes into the 'pos' reference.
-    /// It must be implemented by inherited classes.
-    virtual void Evaluate(ChVector<>& pos, const double parU, const double parV) const = 0;
+    /// The default implementation always returns the origin of the surface frame.
+    virtual ChVector<> Evaluate(double parU, double parV) const { return VNULL; }
 
-    /// Evaluates a normal versor, given parametric coordinates U,V.
-    /// Parameters U,V always work in 0..1 range.
+    /// Return the normal unit vector at the parametric coordinates U,V (in the range [0,1]).
     /// Computed value (normalized) goes into the 'pos' reference.
-    /// It could be overridden by inherited classes if a precise solution is
-    /// known (otherwise it defaults to numerical BDF using the Evaluate()
-    /// function).
-    virtual void Normal(ChVector<>& dir, const double parU, const double parV) const;
+    /// This default implementation uses finite differences.
+    virtual ChVector<> GetNormal(double parU, double parV) const;
 
     /// Tell if the surface is closed (periodic) on U
     virtual bool Get_closed_U() const { return false; }

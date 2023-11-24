@@ -22,7 +22,7 @@
 #include <iomanip>
 #include <memory>
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -97,13 +97,13 @@ ChVector<> gps_reference(-89.400, 43.070, 260.0);
 double step_size = 1e-3;
 
 // Simulation end time
-float end_time = 20.0f;
+double end_time = 20.0f;
 
 // Save data
 bool save = true;
 
 // Output directories
-const std::string out_dir = "SENSOR_OUTPUT/";
+const std::string out_dir = GetChronoOutputPath() + "GPS_IMU";
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -256,31 +256,18 @@ int main(int argc, char* argv[]) {
     // Initialize output
     // -----------------
 
-    std::string imu_file = out_dir + "imu/";
-    std::string gps_file = out_dir + "gps/";
-
-    if (!filesystem::create_directory(filesystem::path(imu_file))) {
-        std::cout << "Error creating directory " << imu_file << std::endl;
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
-    if (!filesystem::create_directory(filesystem::path(gps_file))) {
-        std::cout << "Error creating directory " << gps_file << std::endl;
-        return 1;
-    }
-
-    // Create a CSV writer to record the IMU data
-    imu_file += "pendulum_leg_1.csv";
+    // Create a CSV writers to record the IMU and GPS data
     utils::CSV_writer imu_csv(" ");
-
-    // Create a CSV writer to record the GPS data
-    gps_file += "pendulum_leg_2.csv";
     utils::CSV_writer gps_csv(" ");
 
     // ---------------
     // Simulate system
     // ---------------
-    float ch_time = 0;
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     UserAccelBufferPtr bufferAcc;
@@ -295,8 +282,10 @@ int main(int argc, char* argv[]) {
     double ang;
     ChVector<double> axis;
 
-    while (ch_time < end_time) {
-        plate->SetRot(Q_from_AngZ(rot_rate * ch_time));
+    double time = 0;
+    while (time < end_time) {
+        plate->SetRot(Q_from_AngZ(rot_rate * time));
+
         // Get the most recent imu data
         bufferAcc = acc->GetMostRecentBuffer<UserAccelBufferPtr>();
         bufferGyro = gyro->GetMostRecentBuffer<UserGyroBufferPtr>();
@@ -346,12 +335,15 @@ int main(int argc, char* argv[]) {
         sys.DoStepDynamics(step_size);
 
         // Get the current time of the simulation
-        ch_time = (float)sys.GetChTime();
+        time = sys.GetChTime();
     }
 
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-    std::cout << "Simulation time: " << ch_time << "s, wall time: " << wall_time.count() << "s.\n";
+    std::cout << "Simulation time: " << time << "s, wall time: " << wall_time.count() << "s.\n";
+
+    std::string imu_file = out_dir + "/imu_pendulum_leg_1.csv";
+    std::string gps_file = out_dir + "/gps_pendulum_leg_2.csv";
 
     imu_csv.write_to_file(imu_file);
     gps_csv.write_to_file(gps_file);

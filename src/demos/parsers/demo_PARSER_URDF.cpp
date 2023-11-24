@@ -23,7 +23,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_parsers/ChParserURDF.h"
 
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     // Create a "floor" body
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetBodyFixed(true);
-    auto floor_box = chrono_types::make_shared<ChBoxShape>(3, 2, 0.1);
+    auto floor_box = chrono_types::make_shared<ChVisualShapeBox>(3, 2, 0.1);
     floor_box->SetTexture(GetChronoDataFile("textures/checker2.png"));
     floor->AddVisualShape(floor_box);
     sys.AddBody(floor);

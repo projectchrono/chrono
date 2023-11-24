@@ -32,7 +32,7 @@ ChLine::ChLine(const ChLine& source) {
     complexityU = source.complexityU;
 }
 
-void ChLine::Derive(ChVector<>& dir, const double parU) const {
+ChVector<> ChLine::GetTangent(double parU) const {
     double bdf = 10e-9;
     double uA = 0, uB = 0;
 
@@ -43,10 +43,11 @@ void ChLine::Derive(ChVector<>& dir, const double parU) const {
         uB = parU + bdf;
         uA = parU;
     }
-    ChVector<> vA, vB;
-    Evaluate(vA, uA);
-    Evaluate(vB, uB);
-    dir = (vB - vA) * (1 / bdf);
+
+    auto vA = Evaluate(uA);
+    auto vB = Evaluate(uB);
+
+    return (vB - vA) * (1 / bdf);
 }
 
 bool ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approxU, double tol) const {
@@ -69,7 +70,7 @@ bool ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approx
     // first approximation
     for (int i = 0; i <= points; i++) {
         mu = (double)i / (double)points;
-        Evaluate(vres, mu);
+        vres = Evaluate(mu);
         dist = Vlength(Vsub(vres, point));
         if (dist < bestdist) {
             bestdist = dist;
@@ -88,7 +89,7 @@ bool ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approx
         else
             u1 = u1 + 1;
     }
-    this->Evaluate(vres, u1);
+    vres = this->Evaluate(u1);
     d1 = Vlength(Vsub(vres, point));
     vp1 = vres;
 
@@ -99,7 +100,7 @@ bool ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approx
         else
             u2 = u2 - 1;
     }
-    this->Evaluate(vres, u2);
+    vres = this->Evaluate(u2);
     d2 = Vlength(Vsub(vres, point));
     vp2 = vres;
 
@@ -118,7 +119,7 @@ bool ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approx
             else
                 nrU = nrU - 1;
         }
-        this->Evaluate(vres, nrU);
+        vres = this->Evaluate(nrU);
         dist = Vlength(Vsub(vres, point));
 
         bestU = nrU;
@@ -161,21 +162,17 @@ double ChLine::CurveCurveDist(ChLine* compline, int samples) const {
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB;
-        compline->Evaluate(ptB, par);
+        ChVector<> ptB = compline->Evaluate(par);
         this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA;
-        this->Evaluate(ptA, mpos);
+        ChVector<> ptA = this->Evaluate(mpos);
         mres += Vlength(Vsub(ptA, ptB));
     }
     // ..and viceversa
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB;
-        this->Evaluate(ptB, par);
+        ChVector<> ptB = this->Evaluate(par);
         compline->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA;
-        compline->Evaluate(ptA, mpos);
+        ChVector<> ptA = compline->Evaluate(mpos);
         mres += Vlength(Vsub(ptA, ptB));
     }
 
@@ -189,11 +186,9 @@ double ChLine::CurveCurveDistMax(ChLine* compline, int samples) const {
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB;
-        compline->Evaluate(ptB, par);
+        ChVector<> ptB = compline->Evaluate(par);
         this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA;
-        this->Evaluate(ptA, mpos);
+        ChVector<> ptA = this->Evaluate(mpos);
         mdis = Vlength(Vsub(ptA, ptB));
         if (mres < mdis)
             mres = mdis;
@@ -201,11 +196,9 @@ double ChLine::CurveCurveDistMax(ChLine* compline, int samples) const {
     // ..and viceversa
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB;
-        this->Evaluate(ptB, par);
+        ChVector<> ptB = this->Evaluate(par);
         compline->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA;
-        compline->Evaluate(ptA, mpos);
+        ChVector<> ptA = compline->Evaluate(mpos);
         mdis = Vlength(Vsub(ptA, ptB));
         if (mres < mdis)
             mres = mdis;
@@ -220,11 +213,9 @@ double ChLine::CurveSegmentDist(ChLine* complinesegm, int samples) const {
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB;
-        complinesegm->Evaluate(ptB, par);
+        ChVector<> ptB = complinesegm->Evaluate(par);
         this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA;
-        this->Evaluate(ptA, mpos);
+        ChVector<> ptA = this->Evaluate(mpos);
         mres += Vlength(Vsub(ptA, ptB));
     }
     return (mres / samples);
@@ -237,11 +228,9 @@ double ChLine::CurveSegmentDistMax(ChLine* complinesegm, int samples) const {
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB;
-        complinesegm->Evaluate(ptB, par);
+        ChVector<> ptB = complinesegm->Evaluate(par);
         this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA;
-        this->Evaluate(ptA, mpos);
+        ChVector<> ptA = this->Evaluate(mpos);
         mdis = Vlength(Vsub(ptA, ptB));
         if (mres < mdis)
             mres = mdis;
@@ -261,11 +250,10 @@ double ChLine::Length(int sampling) const {
     if (sampling > 1)
         step = step / (double)sampling;
 
-    ChVector<> pA;
-    this->Evaluate(pA, 0.);
+    ChVector<> pA = this->Evaluate(0.0);
     ChVector<> pB;
     for (par = 0; par <= 1.000000001; par = par + step) {
-        this->Evaluate(pB, par);
+        pB = this->Evaluate(par);
         mres += Vlength(Vsub(pA, pB));
         pA = pB;
     }
@@ -276,13 +264,12 @@ double ChLine::Length(int sampling) const {
 
 bool ChLine::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) {
     ChVector2<> mp1;
-    ChVector<> mv1;
 
     mfle->GrSave();
     mfle->ClipRectangle(mfle->Get_G_p(), mfle->Get_Gs_p(), ChFile_ps::Space::PAGE);
     // start a line, move cursor to beginning
     mfle->StartLine();
-    this->Evaluate(mv1, 0.0);
+    auto mv1 = this->Evaluate(0.0);
     mp1.x() = mv1.x();
     mp1.y() = mv1.y();
     mp1 = mfle->To_page_from_graph(mp1);
@@ -290,7 +277,7 @@ bool ChLine::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpol
     double maxpoints = this->Get_complexity() * 10;
     // add points into line
     for (int i = 1; i <= maxpoints; i++) {
-        this->Evaluate(mv1, ((double)i) / ((double)maxpoints));
+        mv1 = this->Evaluate(i / (double)maxpoints);
         mp1.x() = mv1.x();
         mp1.y() = mv1.y();
         mp1 = mfle->To_page_from_graph(mp1);

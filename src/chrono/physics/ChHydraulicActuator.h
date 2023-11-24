@@ -25,6 +25,8 @@
 #ifndef CH_HYDRAULIC_ACTUATOR_H
 #define CH_HYDRAULIC_ACTUATOR_H
 
+#include <array>
+
 #include "chrono/physics/ChExternalDynamics.h"
 #include "chrono/physics/ChHydraulicCircuit.h"
 #include "chrono/physics/ChBody.h"
@@ -46,6 +48,9 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     virtual ~ChHydraulicActuatorBase() {}
 
     /// Set the actuation function.
+    /// This function should return the directional valve input, normalized to the interval [-1,1]. The extreme values
+    /// correspond to the maximum input voltage (providing full opening of the valve) to the proportional magnet
+    /// controlling the valve spool position. Note that the provided input is automatically clamped to [-1,1].
     void SetInputFunction(std::shared_ptr<ChFunction> fun) { ref_fun = fun; }
 
     /// Set the tank and pump pressures.
@@ -55,6 +60,13 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     /// This value is used only for an actuator not attached to bodies. For a connected actuator, the initial length is
     /// inferred from the initial body positions.
     void SetActuatorInitialLength(double len);
+
+    /// Set initial loading force.
+    /// If provided, this value is used in calculating consistent initial conditions, using the initial dircetional
+    /// valve spool position and the initial cylinder pressures as initial guesses. Otherwise, the initial actuator
+    /// state is set to the user specified values (which may be inconsistent with the configuration of the cylinder
+    /// piston).
+    void SetInitialLoad(double F0);
 
     /// Initialize the hydraulic actuator stand-alone.
     /// In this case, actuator position and rate are supposed to be provided from the outside.
@@ -84,20 +96,31 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
 
     /// Set the current actuator length and rate of change.
     /// Can be used in a co-simulation interface.
-    void SetActuatorLength(double t, double len, double vel);
+    void SetActuatorLength(double len, double vel);
 
-    /// Get the actuator force.
+    /// Get the current actuator force.
     /// Can be used in a co-simulation interface.
-    double GetActuatorForce(double t);
+    double GetActuatorForce();
+
+    /// Get the current cylinder pressures.
+    std::array<double, 2> GetCylinderPressures();
+
+    /// Get the current directional valve position.
+    double GetValvePosition();
 
   protected:
     ChHydraulicActuatorBase();
 
     /// Process initial cylinder pressures and initial valve displacement.
-    virtual void OnInitialize(const double2& cyl_p0, const double2& cyl_L0, double dvalve_U0) = 0;
+    /// Optionally, if the initial load F0 is provided, a derived class may calculate consistent initial conditions
+    /// using the provided values as an initial guess.
+    virtual void OnInitialize(const Vec2& cyl_p0, const Vec2& cyl_L0, double dvalve_U0) = 0;
+
+    /// Extract directional valve spool position from current state.
+    virtual double ExtractValveSpoolPosition() const = 0;
 
     /// Extract cylinder pressures from current state.
-    virtual double2 GetCylinderPressure() const = 0;
+    virtual Vec2 ExtractCylinderPressures() const = 0;
 
     /// Get current actuator input.
     double GetInput(double t) const;
@@ -111,7 +134,7 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     /// Load generalized forces.
     void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
 
-    bool m_is_attached;          ///< true if actuator attached to bodies
+    bool is_attached;            ///< true if actuator attached to bodies
     ChBody* m_body1;             ///< first conected body
     ChBody* m_body2;             ///< second connected body
     ChVector<> m_loc1;           ///< point on body 1 (local frame)
@@ -129,8 +152,11 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     double s;    ///< current actuator length [m]
     double sd;   ///< current actuator speed [m/s]
 
-    double pP;  // pump pressure [Pa]
-    double pT;  // tank pressure [Pa]
+    double pP;  ///< pump pressure [Pa]
+    double pT;  ///< tank pressure [Pa]
+
+    bool calculate_consistent_IC;  ///< solve initialization nonlinear system
+    double F0;                     ///< estimated initial load
 };
 
 // -----------------------------------------------------------------------------
@@ -176,8 +202,6 @@ class ChApi ChHydraulicActuator2 : public ChHydraulicActuatorBase {
     void SetHoseVolumes(double hose_dvalve_piston, double hose_dvalve_rod);
 
   private:
-    typedef ChVectorN<double, 2> Vec2;
-
     // Interface to ChExternalDynamics
 
     virtual int GetNumStates() const override { return 1 + 2; }
@@ -196,16 +220,19 @@ class ChApi ChHydraulicActuator2 : public ChHydraulicActuatorBase {
                               ) override;
 
     /// Process initial cylinder pressures and initial valve displacement.
-    virtual void OnInitialize(const double2& cyl_p0, const double2& cyl_L0, double dvalve_U0) override;
+    virtual void OnInitialize(const Vec2& cyl_p0, const Vec2& cyl_L0, double dvalve_U0) override;
+
+    /// Extract directional valve spool position from current state.
+    virtual double ExtractValveSpoolPosition() const override;
 
     /// Extract cylinder pressures from current state.
-    virtual double2 GetCylinderPressure() const override;
+    virtual Vec2 ExtractCylinderPressures() const override;
 
     /// Evaluate pressure rates at curent state.
     Vec2 EvaluatePressureRates(double t, const Vec2& p, double U);
 
-    double2 pc0;  ///< initial cylinder pressures
-    double U0;    ///< initial dvalve spool displacement
+    Vec2 pc0;   ///< initial cylinder pressures
+    double U0;  ///< initial dvalve spool displacement
 
     double hose1V;  ///< hose 1 volume [m^3]
     double hose2V;  ///< hose 2 volume [m^3]
@@ -265,8 +292,6 @@ class ChApi ChHydraulicActuator3 : public ChHydraulicActuatorBase {
     ChHydraulicThrottleValve& ThrottleValve() { return tvalve; }
 
   private:
-    typedef ChVectorN<double, 3> Vec3;
-
     // Interface to ChExternalDynamics
 
     virtual int GetNumStates() const override { return 1 + 3; }
@@ -285,18 +310,21 @@ class ChApi ChHydraulicActuator3 : public ChHydraulicActuatorBase {
                               ) override;
 
     /// Process initial cylinder pressures and initial valve displacement.
-    virtual void OnInitialize(const double2& cyl_p0, const double2& cyl_L0, double dvalve_U0) override;
+    virtual void OnInitialize(const Vec2& cyl_p0, const Vec2& cyl_L0, double dvalve_U0) override;
+
+    /// Extract directional valve spool position from current state.
+    virtual double ExtractValveSpoolPosition() const override;
 
     /// Extract cylinder pressures from current state.
-    virtual double2 GetCylinderPressure() const override;
+    virtual Vec2 ExtractCylinderPressures() const override;
 
     /// Evaluate pressure rates at curent state.
     Vec3 EvaluatePressureRates(double t, const Vec3& p, double U);
 
     ChHydraulicThrottleValve tvalve;  ///< throttle valve
 
-    double2 pc0;  ///< initial cylinder pressures
-    double U0;    ///< initial dvalve spool displacement
+    Vec2 pc0;   ///< initial cylinder pressures
+    double U0;  ///< initial dvalve spool displacement
 
     double hose1V;  ///< hose 1 volume [m^3]
     double hose2V;  ///< hose 2 volume [m^3]

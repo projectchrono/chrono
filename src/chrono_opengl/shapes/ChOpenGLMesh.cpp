@@ -56,7 +56,7 @@ bool ChOpenGLMesh::Initialize(std::vector<glm::vec3>& vertices,
     return true;
 }
 
-bool ChOpenGLMesh::Initialize(chrono::ChTriangleMeshShape* tri_mesh, ChOpenGLMaterial mat) {
+bool ChOpenGLMesh::Initialize(chrono::ChVisualShapeTriangleMesh* tri_mesh, ChOpenGLMaterial mat) {
     if (GLReturnedError("Mesh::Initialize - on entry")) {
         return false;
     }

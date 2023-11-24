@@ -27,9 +27,9 @@ print ("Example: create a rigid body based on a .obj mesh file");
 #  Create the simulation sys and add items
 #
 
-sys      = chrono.ChSystemNSC()
+sys = chrono.ChSystemNSC()
 
-
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Set the global collision margins. This is especially important for very large or
 # very small objects. Set this before creating shapes. Not before creating sys.
@@ -114,9 +114,9 @@ mesh_for_visualization = chrono.ChTriangleMeshConnected()
 mesh_for_visualization.LoadWavefrontMesh(chrono.GetChronoDataFile('models/bulldozer/shoe_view.obj'))
 # Optionally: you can scale/shrink/rotate the mesh using this:
 mesh_for_visualization.Transform(chrono.ChVectorD(0.01,0,0), chrono.ChMatrix33D(1))
-# Now the  triangle mesh is inserted in a ChTriangleMeshShape visualization asset, 
+# Now the  triangle mesh is inserted in a ChVisualShapeTriangleMesh visualization asset, 
 # and added to the body
-visualization_shape = chrono.ChTriangleMeshShape()
+visualization_shape = chrono.ChVisualShapeTriangleMesh()
 visualization_shape.SetMesh(mesh_for_visualization)
 visualization_shape.SetColor(chrono.ChColor(0.6, 0.2, 0.2))
 body_B.AddVisualShape(visualization_shape)
@@ -132,15 +132,8 @@ mesh_for_collision = chrono.ChTriangleMeshConnected()
 mesh_for_collision.LoadWavefrontMesh(chrono.GetChronoDataFile('models/bulldozer/shoe_view.obj'))
 # Optionally: you can scale/shrink/rotate the mesh using this:
 mesh_for_collision.Transform(chrono.ChVectorD(0.01,0,0), chrono.ChMatrix33D(1))
-body_B.GetCollisionModel().ClearModel()
-body_B.GetCollisionModel().AddTriangleMesh(
-            contact_material, # contact material
-            mesh_for_collision, # the mesh 
-            False,  # is it static?
-            False)  # is it convex?
-            # , mpos, mr,  # pos of mesh respect to REF and rotation matr.respect to REF 
-            # 0.01) # 'inflating' radiust for triangles for increased robustness
-body_B.GetCollisionModel().BuildModel()
+body_B_ct_shape = chrono.ChCollisionShapeTriangleMesh(contact_material, mesh_for_collision, False, False)
+body_B.AddCollisionShape(body_B_ct_shape)
 body_B.SetCollide(True)
 
 sys.Add(body_B)

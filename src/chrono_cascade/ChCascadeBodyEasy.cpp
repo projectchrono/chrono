@@ -62,7 +62,6 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
     chrono::cascade::ChCascadeDoc::GetVolumeProperties(topods_shape, density, cog, inertiaXX, inertiaXY, vol, mass);
 
     // Set mass and COG and REF references
-    this->SetDensity((float)density);
     this->SetMass(mass);
     this->SetInertiaXX(inertiaXX);
     this->SetInertiaXY(inertiaXY);
@@ -78,16 +77,15 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, topods_shape, *vis_params);
 
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         this->AddVisualShape(trimesh_shape);
 
         // Add a collision shape if needed
         if (collide) {
             assert(mat);
-            GetCollisionModel()->ClearModel();
-            GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false);
-            GetCollisionModel()->BuildModel();
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, 0.0);
+            AddCollisionShape(ct_shape);
             SetCollide(true);
         }
     }
@@ -163,7 +161,7 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
             auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
             ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, prism, *face.visualization);
 
-            auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh);
             this->AddVisualShape(trimesh_shape);
         }
@@ -207,11 +205,6 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
     this->topods_shape = mcompound;
     this->topods_shape.Location(TopLoc_Location());
 
-    if (faces.size())
-        this->SetDensity(
-            (float)this->faces[0].density);  // anyway has no sound meaning...  densities could be different if
-                                             // cluster of  different profiles with different densities..
-
     // Set the total mass and total inertia
 
     this->SetMass(inertia_composer.GetMass());
@@ -231,30 +224,26 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
 
     // Add a collision shape if needed
 
-    GetCollisionModel()->ClearModel();
     bool somefacecollide = false;
 
     for (auto& chface : this->faces) {
         if (chface.collide) {
             assert(chface.material);
             for (auto mpath : chface.wires) {
-                ChVector<> pathposz;
-                mpath->Evaluate(pathposz, 0.0);  // for offset along Z
-                GetCollisionModel()->Add2Dpath(chface.material, mpath,
-                                               ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), ChMatrix33<>(1),
-                                               chface.thickness * 0.99);
+                ChVector<> pathposz = mpath->Evaluate(0.0);  // for offset along Z
+                auto ct_shape =
+                    chrono_types::make_shared<ChCollisionShapePath2D>(chface.material, mpath, chface.thickness * 0.99);
+                AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
             }
             for (auto mhole : chface.holes) {
-                ChVector<> pathposz;
-                mhole->Evaluate(pathposz, 0.0);  // for offset along Z
-                GetCollisionModel()->Add2Dpath(chface.material, mhole,
-                                               ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), ChMatrix33<>(1),
-                                               chface.thickness * 0.99);
+                ChVector<> pathposz = mhole->Evaluate(0.0);  // for offset along Z
+                auto ct_shape =
+                    chrono_types::make_shared<ChCollisionShapePath2D>(chface.material, mhole, chface.thickness * 0.99);
+                AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
             }
             somefacecollide = true;
         }
     }
-    GetCollisionModel()->BuildModel();
     if (somefacecollide)
         SetCollide(true);
     else

@@ -17,7 +17,7 @@
 namespace chrono {
 namespace vsg3d {
 
-void GetSurfaceShapeData(std::shared_ptr<ChSurfaceShape> surface,
+void GetSurfaceShapeData(std::shared_ptr<ChVisualShapeSurface> surface,
                          vsg::ref_ptr<vsg::vec3Array>& vertices,
                          vsg::ref_ptr<vsg::vec3Array>& normals,
                          vsg::ref_ptr<vsg::vec2Array>& texcoords,
@@ -42,12 +42,10 @@ void GetSurfaceShapeData(std::shared_ptr<ChSurfaceShape> surface,
         for (auto iu = 0; iu <= sections_u; ++iu) {
             double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
 
-            ChVector<> P;
-            surface->GetSurfaceGeometry()->Evaluate(P, mU, mV);
+            ChVector<> P = surface->GetSurfaceGeometry()->Evaluate(mU, mV);
             ////P = vis->Pos + vis->Rot * P;
 
-            ChVector<> N;
-            surface->GetSurfaceGeometry()->Normal(N, mU, mV);
+            ChVector<> N = surface->GetSurfaceGeometry()->GetNormal(mU, mV);
             ////N = vis->Rot * N;
 
             // create two triangles per uv increment

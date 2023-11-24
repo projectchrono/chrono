@@ -25,7 +25,6 @@
 
 using namespace chrono;
 using namespace chrono::parsers;
-using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 using namespace irr;
@@ -49,6 +48,7 @@ int main(int argc, char* argv[]) {
     // very large or very small objects! Do this before creating shapes.
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);
     ChCollisionModel::SetDefaultSuggestedMargin(0.001);
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     //
     // LOAD THE SYSTEM
@@ -128,6 +128,9 @@ int main(int argc, char* argv[]) {
         mbalance->SetWvel_par(ChVector<>(0, 5, 0));
 
         // Set no friction in all parts
+        assert(mbalance->GetCollisionModel());
+        assert(mescape_wheel->GetCollisionModel());
+        assert(manchor->GetCollisionModel());
         mbalance->GetCollisionModel()->SetAllShapesMaterial(mat);
         mescape_wheel->GetCollisionModel()->SetAllShapesMaterial(mat);
         manchor->GetCollisionModel()->SetAllShapesMaterial(mat);

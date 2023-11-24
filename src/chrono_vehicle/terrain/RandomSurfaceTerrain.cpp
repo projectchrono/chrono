@@ -25,16 +25,16 @@
 #include <random>
 #include <cmath>
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/geometry/ChLineSegment.h"
 
-#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 
 namespace chrono {
 namespace vehicle {
@@ -74,7 +74,7 @@ RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, doub
     m_Nfft = 2 << p;
 
     // ground body, carries the graphic assets
-    m_ground = std::shared_ptr<ChBody>(system->NewBody());
+    m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector<>(0, 0, 0));
     m_ground->SetBodyFixed(true);
@@ -488,14 +488,14 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
             auto np = m_road_left->getNumPoints();
             unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
             auto bezier_line_left = chrono_types::make_shared<geometry::ChLineBezier>(m_road_left);
-            auto bezier_asset_left = chrono_types::make_shared<ChLineShape>();
+            auto bezier_asset_left = chrono_types::make_shared<ChVisualShapeLine>();
             bezier_asset_left->SetLineGeometry(bezier_line_left);
             bezier_asset_left->SetNumRenderPoints(num_render_points);
             bezier_asset_left->SetName(m_curve_left_name);
             m_ground->AddVisualShape(bezier_asset_left);
 
             auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
-            auto bezier_asset_right = chrono_types::make_shared<ChLineShape>();
+            auto bezier_asset_right = chrono_types::make_shared<ChVisualShapeLine>();
             bezier_asset_right->SetLineGeometry(bezier_line_right);
             bezier_asset_right->SetNumRenderPoints(num_render_points);
             bezier_asset_right->SetName(m_curve_right_name);
@@ -507,7 +507,7 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
         case RandomSurfaceTerrain::VisualisationType::MESH: {
             GenerateMesh();
 
-            auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
+            auto vmesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             vmesh->SetMesh(m_mesh);
             vmesh->SetMutable(false);
             vmesh->SetName("ISO_track");
@@ -531,21 +531,20 @@ void RandomSurfaceTerrain::SetupCollision() {
     GenerateMesh();
 
     m_ground->SetCollide(true);
-    m_ground->GetCollisionModel()->ClearModel();
 
-    m_ground->GetCollisionModel()->AddTriangleMesh(m_material, m_mesh, true, false, VNULL, ChMatrix33<>(1),
-                                                   m_sweep_sphere_radius);
+    auto ct_shape =
+        chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_material, m_mesh, true, false, m_sweep_sphere_radius);
+    m_ground->AddCollisionShape(ct_shape);
 
     if (m_start_length > 0) {
         double thickness = 1;
         ChVector<> loc(-m_start_length / 2, 0, m_height - thickness / 2);
-        m_ground->GetCollisionModel()->AddBox(m_material, m_start_length, m_width, thickness, loc);
+        auto box_shape = chrono_types::make_shared<ChCollisionShapeBox>(m_material, m_start_length, m_width, thickness);
+        m_ground->AddCollisionShape(box_shape, ChFrame<>(loc, QUNIT));
 
-        auto box = chrono_types::make_shared<ChBoxShape>(m_start_length, m_width, thickness);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(m_start_length, m_width, thickness);
         m_ground->AddVisualShape(box, ChFrame<>(loc));
     }
-
-    m_ground->GetCollisionModel()->BuildModel();
 }
 
 void RandomSurfaceTerrain::Initialize(RandomSurfaceTerrain::SurfaceType surfType,

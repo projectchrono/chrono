@@ -47,9 +47,7 @@
 %{
 
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/ChCollisionModelBullet.h"
 #include "chrono/collision/ChCollisionSystem.h"
-#include "chrono/collision/ChCollisionSystemBullet.h"
 
 #include "chrono/fea/ChNodeFEAbase.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
@@ -174,8 +172,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChNodeBase) 
 %shared_ptr(chrono::ChNodeXYZ) 
 
-%shared_ptr(chrono::collision::ChCollisionModel)
-%shared_ptr(chrono::collision::ChCollisionModelBullet)
+%shared_ptr(chrono::ChCollisionModel)
 
 %shared_ptr(chrono::ChLoad< chrono::fea::ChLoaderBeamWrench>)
 %shared_ptr(chrono::ChLoad< chrono::fea::ChLoaderBeamWrenchDistributed>)
@@ -262,6 +259,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChNodeFEAxyzDD)
 %shared_ptr(chrono::fea::ChNodeFEAxyzrot)
 %shared_ptr(chrono::fea::ChMesh)
+%shared_ptr(chrono::ChContactable_3vars<3,3,3>)
+%shared_ptr(chrono::ChContactable_3vars<6,6,6>)
 %shared_ptr(chrono::fea::ChContactTriangleXYZ)
 %shared_ptr(chrono::fea::ChContactTriangleXYZROT)
 %shared_ptr(chrono::fea::ChContactSurface)
@@ -375,9 +374,11 @@ using namespace chrono::fea;
 %include "../../../chrono/physics/ChPhysicsItem.h"
 
 %include "../../../chrono/collision/ChCollisionModel.h"
-%include "../../../chrono/collision/ChCollisionModelBullet.h"
 %include "../../../chrono/collision/ChCollisionSystem.h"
-%include "../../../chrono/collision/ChCollisionSystemBullet.h"
+
+%include "../../../chrono/physics/ChContactable.h"  
+%template(ChContactable3vars333) chrono::ChContactable_3vars<3,3,3>;
+%template(ChContactable3vars666) chrono::ChContactable_3vars<6,6,6>;
 
 %include "../../../chrono/fea/ChContinuumMaterial.h"
 // TODO: if eigen::ref can be wrapped, unignore these,

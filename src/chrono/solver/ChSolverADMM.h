@@ -41,7 +41,7 @@ class ChApi ChSolverADMM : public ChIterativeSolverVI {
 
     ~ChSolverADMM() {}
 
-    virtual Type GetType() const override { return Type::ADDM; }
+    virtual Type GetType() const override { return Type::ADMM; }
 
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination, as  dual (speed) residual

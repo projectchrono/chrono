@@ -36,7 +36,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 
-//#include "chrono/assets/ChBoxShape.h"
+//#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
@@ -618,28 +618,3 @@ TEST(ChArchiveJSON, ChVectorDynamicTest){
 
 }
 
-
-//TEST(ChArchiveJSON, Solidworks){
-//
-//    std::string jsonfile = utils::GetValidationDataFile("solidworks/SliderCrank.json");
-//
-//
-//    // TODO: in the CI machines the ChStreamInAsciiFile constructor is unable to find the file thus throwing an exception
-//    ChStreamInAsciiFile mfilei(jsonfile.c_str());
-//    ChArchiveInJSON marchivein(mfilei);
-//    marchivein.TryTolerateMissingTokens(true);
-//
-//
-//    ChSystemNSC system;
-//    marchivein >> CHNVP(system);
-//
-//
-//    system.Setup();
-//
-//    double timestep = 0.01;
-//    int step_num = 2000;
-//
-//    for (int step = 0; step < step_num; ++step){
-//        system.DoStepDynamics(timestep);
-//    }
-//}

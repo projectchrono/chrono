@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/ChChassis.h"
@@ -93,7 +93,7 @@ void ChChassis::Initialize(ChSystem* system,
     // Initial pose and velocity assumed to be given in current WorldFrame
     ChFrame<> chassis_pos(chassisPos.pos, ChMatrix33<>(chassisPos.rot) * ChWorldFrame::Rotation().transpose());
 
-    m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
+    m_body = chrono_types::make_shared<ChBodyAuxRef>();
     m_body->SetIdentifier(0);
     m_body->SetNameString(m_name + " body");
     m_body->SetMass(GetBodyMass());
@@ -245,7 +245,7 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
 
     auto system = chassis->GetBody()->GetSystem();
 
-    m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
+    m_body = chrono_types::make_shared<ChBodyAuxRef>();
     m_body->SetIdentifier(0);
     m_body->SetNameString(m_name + " body");
     m_body->SetMass(GetBodyMass());

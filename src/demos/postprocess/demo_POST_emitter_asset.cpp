@@ -36,8 +36,9 @@ using namespace chrono::postprocess;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a Chrono system
+    // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -93,12 +94,12 @@ int main(int argc, char* argv[]) {
     floor_body->SetBodyFixed(true);
     floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
 
-    floor_body->GetCollisionModel()->ClearModel();
-    floor_body->GetCollisionModel()->AddBox(floor_mat, 20, 1, 20);
-    floor_body->GetCollisionModel()->BuildModel();
+    auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
+    floor_body->AddCollisionShape(floor_shape);
 
     // Custom rendering in POVray:
-    pov_exporter.SetCustomCommands(floor_body, "texture{ pigment{ color rgb<1,1,1>}} \n\
+    pov_exporter.SetCustomCommands(floor_body,
+                                   "texture{ pigment{ color rgb<1,1,1>}} \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) } \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) rotate<0,90,0> } \n\
                              texture{ Raster(4*0.2, 0.04, rgb<0.8,0.8,0.8>) } \n\
@@ -163,11 +164,19 @@ int main(int argc, char* argv[]) {
                                    ChRandomShapeCreator& creator) override {
                 body->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
                 pov->SetCustomCommands(body, " texture {finish { specular 0.9 } pigment{ color rgb<0.8,0.5,0.3>} }\n");
+
+                // Bind the collision model to the collision system
+                if (body->GetCollisionModel())
+                    coll->Add(body->GetCollisionModel());
             }
+
             ChPovRay* pov;
+            ChCollisionSystem* coll;
         };
+
         auto callback_spheres = chrono_types::make_shared<MyCreator_spheres>();
         callback_spheres->pov = &pov_exporter;
+        callback_spheres->coll = sys.GetCollisionSystem().get();
         creator_spheres->RegisterAddBodyCallback(callback_spheres);
 
         // B)
@@ -186,21 +195,25 @@ int main(int argc, char* argv[]) {
                                    ChRandomShapeCreator& creator) override {
                 body->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
                 pov->SetCustomCommands(body, " texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.4,0.6>} }\n");
+
+                // Bind the collision model to the collision system
+                if (body->GetCollisionModel())
+                    coll->Add(body->GetCollisionModel());
             }
+
             ChPovRay* pov;
+            ChCollisionSystem* coll;
         };
+
         auto callback_hulls = chrono_types::make_shared<MyCreator_hulls>();
         callback_hulls->pov = &pov_exporter;
+        callback_hulls->coll = sys.GetCollisionSystem().get();
         creator_hulls->RegisterAddBodyCallback(callback_hulls);
 
-        // Create a parent ChRandomShapeCreator that 'mixes' some generators above,
-        // mixing them with a given percentual:
-
+        // Create a parent ChRandomShapeCreator that 'mixes' some generators above, mixing them with given percents
         auto mcreatorTot = chrono_types::make_shared<ChRandomShapeCreatorFromFamilies>();
-        mcreatorTot->AddFamily(creator_spheres,
-                               (double)ie / (double)(num_emitters - 1));  // 1st creator family, with percentual
-        mcreatorTot->AddFamily(creator_hulls,
-                               1.0 - (double)ie / (double)(num_emitters - 1));  // nth creator family, with percentual
+        mcreatorTot->AddFamily(creator_spheres, (double)ie / (double)(num_emitters - 1));
+        mcreatorTot->AddFamily(creator_hulls, 1.0 - (double)ie / (double)(num_emitters - 1));
         mcreatorTot->Setup();
 
         // Finally, tell to the emitter that it must use the 'mixer' above:
@@ -208,7 +221,7 @@ int main(int argc, char* argv[]) {
 
         // --- Optional: what to do by default on ALL newly created particles?
         //     A callback executed at each particle creation can be attached to the emitter.
-        //     For example, we need that new particles will be bound to Irrlicht visualization:
+        //     For example, we need that new particles will be bound to the visualization and collision systems.
 
         // a- define a class that implement your custom OnAddBody method...
         class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
@@ -216,23 +229,29 @@ int main(int argc, char* argv[]) {
             virtual void OnAddBody(std::shared_ptr<ChBody> body,
                                    ChCoordsys<> coords,
                                    ChRandomShapeCreator& creator) override {
-                // Enable Irrlicht visualization for all particles
+                // Bind the visual model to the visualization system
                 vis->BindItem(body);
+
+                // Bind the collision model to the collision system
+                if (body->GetCollisionModel())
+                    coll->Add(body->GetCollisionModel());
 
                 // Enable PovRay rendering
                 pov->Add(body);
 
-                // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
+                // Disable gyroscopic forces for increased integrator stabilty
                 body->SetNoGyroTorque(true);
             }
-            ChVisualSystemIrrlicht* vis;
+            ChVisualSystem* vis;
             ChPovRay* pov;
+            ChCollisionSystem* coll;
         };
 
         // b- create the callback object...
         auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
         // c- set callback own data that he might need...
         mcreation_callback->vis = vis.get();
+        mcreation_callback->coll = sys.GetCollisionSystem().get();
         mcreation_callback->pov = &pov_exporter;
         // d- attach the callback to the emitter!
         emitters[ie].RegisterAddBodyCallback(mcreation_callback);

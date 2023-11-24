@@ -20,14 +20,8 @@
 
 namespace chrono {
 
-/// Class representing the interface for containers of proximity pairs,
-/// that is pairs of collision models that have been obtained from the
-/// broadphase collision.
-/// There might be implementations of this interface
-/// in form of plain CPU linked lists of objects (ex. springs or similar
-/// forcefields for cloth simulation etc.) or highly optimized GPU buffers,
-/// etc. etc.
-/// This is only the basic interface with the features that are in common.
+/// Class representing the interface for containers of proximity pairs, that is pairs of collision models that have been
+/// obtained from the broadphase collision.
 class ChApi ChProximityContainer : public ChPhysicsItem {
   public:
     ChProximityContainer() : add_proximity_callback(nullptr), report_proximity_callback(nullptr) {}
@@ -53,8 +47,8 @@ class ChApi ChProximityContainer : public ChPhysicsItem {
     /// in a batch (so that, for example, a special GPU collision system can exploit it);
     /// yet most collision system might still fall back to this function if no other
     /// specialized add-functions are found.
-    virtual void AddProximity(collision::ChCollisionModel* modA,  ///< get contact model 1
-                              collision::ChCollisionModel* modB   ///< get contact model 2
+    virtual void AddProximity(ChCollisionModel* modA,  ///< get contact model 1
+                              ChCollisionModel* modB   ///< get contact model 2
                               ) = 0;
 
     /// The collision system will call this after adding
@@ -70,8 +64,8 @@ class ChApi ChProximityContainer : public ChPhysicsItem {
 
         /// Callback used to process proximity pairs being added to the container.
         /// A derived user-provided callback class must implement this.
-        virtual void OnAddProximity(const collision::ChCollisionModel& modA,  ///< contact model 1
-                                    const collision::ChCollisionModel& modB   ///< contact model 2
+        virtual void OnAddProximity(const ChCollisionModel& modA,  ///< contact model 1
+                                    const ChCollisionModel& modB   ///< contact model 2
                                     ) = 0;
     };
 
@@ -91,8 +85,8 @@ class ChApi ChProximityContainer : public ChPhysicsItem {
         /// Callback used to report contact points already added to the container.
         /// If it returns false, the contact scanning will be stopped.
         virtual bool OnReportProximity(
-            collision::ChCollisionModel* modA,  ///< model A (could be nullptr, if the container does not support it)
-            collision::ChCollisionModel* modB   ///< model B (could be nullptr, if the container does not support it)
+            ChCollisionModel* modA,  ///< model A (could be nullptr, if the container does not support it)
+            ChCollisionModel* modB   ///< model B (could be nullptr, if the container does not support it)
             ) = 0;
     };
 

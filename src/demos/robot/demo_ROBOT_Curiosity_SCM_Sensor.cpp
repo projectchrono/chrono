@@ -25,12 +25,12 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
@@ -130,8 +130,9 @@ int main(int argc, char* argv[]) {
     // Global parameter for moving patch size:
     double wheel_range = 0.5;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system and associated collision system
     ChSystemSMC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Initialize output
     if (output) {
@@ -201,13 +202,13 @@ int main(int argc, char* argv[]) {
         sys.Add(rock1_Body);
 
         rock1_Body->SetBodyFixed(false);
-        rock1_Body->GetCollisionModel()->ClearModel();
-        rock1_Body->GetCollisionModel()->AddTriangleMesh(rockSufaceMaterial, rock_1_mmesh, false, false, VNULL,
-                                                         ChMatrix33<>(1), 0.005);
-        rock1_Body->GetCollisionModel()->BuildModel();
+
+        auto rock1_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_1_mmesh, false,
+                                                                                false, 0.005);
+        rock1_Body->AddCollisionShape(rock1_ct_shape);
         rock1_Body->SetCollide(true);
 
-        auto rock1_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto rock1_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock1_mesh->SetMesh(rock_1_mmesh);
         rock1_mesh->SetBackfaceCull(true);
         rock1_Body->AddVisualShape(rock1_mesh);
@@ -256,13 +257,13 @@ int main(int argc, char* argv[]) {
         sys.Add(rock2_Body);
 
         rock2_Body->SetBodyFixed(false);
-        rock2_Body->GetCollisionModel()->ClearModel();
-        rock2_Body->GetCollisionModel()->AddTriangleMesh(rockSufaceMaterial, rock_2_mmesh, false, false, VNULL,
-                                                         ChMatrix33<>(1), 0.005);
-        rock2_Body->GetCollisionModel()->BuildModel();
+
+        auto rock2_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_2_mmesh,
+                                                                                      false, false, 0.005);
+        rock2_Body->AddCollisionShape(rock2_ct_shape);
         rock2_Body->SetCollide(true);
 
-        auto rock2_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto rock2_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock2_mesh->SetMesh(rock_2_mmesh);
         rock2_mesh->SetBackfaceCull(true);
         rock2_Body->AddVisualShape(rock2_mesh);
@@ -311,13 +312,13 @@ int main(int argc, char* argv[]) {
         sys.Add(rock3_Body);
 
         rock3_Body->SetBodyFixed(false);
-        rock3_Body->GetCollisionModel()->ClearModel();
-        rock3_Body->GetCollisionModel()->AddTriangleMesh(rockSufaceMaterial, rock_3_mmesh, false, false, VNULL,
-                                                         ChMatrix33<>(1), 0.005);
-        rock3_Body->GetCollisionModel()->BuildModel();
+
+        auto rock3_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_3_mmesh,
+                                                                                      false, false, 0.005);
+        rock3_Body->AddCollisionShape(rock3_ct_shape);
         rock3_Body->SetCollide(true);
 
-        auto rock3_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto rock3_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock3_mesh->SetMesh(rock_3_mmesh);
         rock3_mesh->SetBackfaceCull(true);
         rock3_Body->AddVisualShape(rock3_mesh);

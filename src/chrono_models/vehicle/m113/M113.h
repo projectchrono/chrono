@@ -74,7 +74,7 @@ class CH_MODELS_API M113 {
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
 
-    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) { m_collsysType = collsys_type; }
+    void SetCollisionSystemType(ChCollisionSystem::Type collsys_type) { m_collsysType = collsys_type; }
 
     void SetGyrationMode(bool val) { m_gyration_mode = val; }
 
@@ -110,7 +110,7 @@ class CH_MODELS_API M113 {
 
   protected:
     ChContactMethod m_contactMethod;
-    collision::ChCollisionSystemType m_collsysType;
+    ChCollisionSystem::Type m_collsysType;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_create_track;
