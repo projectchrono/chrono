@@ -83,7 +83,9 @@ using namespace gui;
 %include "std_vector.i"
 %include "typemaps.i"
 %include "wchar.i"
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 %include "python/cwstring.i"
+#endif // --------------------------------------------------------------------- PYTHON
 %include "cstring.i"
 %include "cpointer.i"
 
@@ -173,7 +175,8 @@ using namespace gui;
 %include "../../../chrono_irrlicht/ChIrrTools.h"
 %include "../../../chrono_irrlicht/ChIrrNodeShape.h"    
 %include "../../../chrono_irrlicht/ChIrrNodeModel.h"    
-%include "../../../chrono_irrlicht/ChVisualSystemIrrlicht.h"
+
+%include "ChVisualSystemIrrlicht.i"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
@@ -190,7 +193,8 @@ using namespace gui;
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
 
-%DefSharedPtrDynamicDowncast2NS(chrono, chrono::irrlicht, ChVisualSystem, ChVisualSystemIrrlicht)
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 
 //
@@ -226,5 +230,7 @@ using namespace gui;
 
 %}
 */
+
+#endif // --------------------------------------------------------------------- PYTHON
 
 
