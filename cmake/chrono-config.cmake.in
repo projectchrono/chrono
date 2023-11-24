@@ -162,6 +162,7 @@ set(Chrono_HAS_pardisoproject @ENABLE_MODULE_PARDISO_PROJECT@)
 set(Chrono_HAS_synchrono @ENABLE_MODULE_SYNCHRONO@)
 set(Chrono_HAS_modal @ENABLE_MODULE_MODAL@)
 set(Chrono_HAS_vsg @ENABLE_MODULE_VSG@)
+set(Chrono_HAS_csharp @ENABLE_MODULE_CSHARP@)
 
 #-------------------------------------------------------------------------------
 # Vehicle cosimulation module
@@ -533,6 +534,17 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIBRARIES "@PARDISOPROJECT_LIBRARIES@")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pardisoproject.dll")
+      endif()
+
+    elseif(${COMPONENT_UPPER} MATCHES "CSHARP")
+
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_core")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_core.dll") # valid also in case of static
+      set(CHRONO_CSHARP_SOURCE_DIR "@CH_BINARY_DIR@/chrono_csharp")
+
+      if(${Chrono_HAS_irrlicht})
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_irrlicht")
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_irrlicht.dll")
       endif()
 
     endif()
