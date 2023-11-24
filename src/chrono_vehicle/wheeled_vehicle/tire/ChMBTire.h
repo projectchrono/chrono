@@ -143,8 +143,8 @@ class MBTireModel : public ChPhysicsItem {
     virtual bool GetCollide() const override { return true; }
 
     virtual void SyncCollisionModels() override;
-    virtual void AddCollisionModelsToSystem() override;
-    virtual void RemoveCollisionModelsFromSystem() override;
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
 
     virtual int GetDOF() override { return m_dofs; }
     virtual int GetDOF_w() override { return m_dofs_w; }
@@ -240,7 +240,7 @@ class MBTireModel : public ChPhysicsItem {
     std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_rim_nodes;  // FEA nodes fixed to the rim
     std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_nodes;      // FEA nodes
     std::shared_ptr<fea::ChContactSurface> m_contact_surf;        // contact surface
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;         // mesh visualization asset
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;   // mesh visualization asset
 
     enum class SpringType { RADIAL, CIRCUMFERENTIAL, TRANSVERSAL };
 

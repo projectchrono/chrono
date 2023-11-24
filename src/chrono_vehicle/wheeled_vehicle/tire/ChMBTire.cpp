@@ -24,7 +24,7 @@
 
 #include <algorithm>
 
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
 
 namespace chrono {
@@ -216,7 +216,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
     m_node_mass = m_tire->GetMass() / m_num_nodes;
 
     // Create the visualization shape and get accessors to the underling trimesh
-    m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     auto trimesh = m_trimesh_shape->GetMesh();
     auto& vertices = trimesh->getCoordsVertices();
     auto& normals = trimesh->getCoordsNormals();
@@ -740,21 +740,21 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
 
 void MBTireModel::SyncCollisionModels() {
     if (m_contact_surf)
-        m_contact_surf->SurfaceSyncCollisionModels();
+        m_contact_surf->SyncCollisionModels();
 }
 
-void MBTireModel::AddCollisionModelsToSystem() {
+void MBTireModel::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
     assert(GetSystem());
     if (m_contact_surf) {
-        m_contact_surf->SurfaceSyncCollisionModels();
-        m_contact_surf->SurfaceAddCollisionModelsToSystem(GetSystem());
+        m_contact_surf->SyncCollisionModels();
+        m_contact_surf->AddCollisionModelsToSystem(coll_sys);
     }
 }
 
-void MBTireModel::RemoveCollisionModelsFromSystem() {
+void MBTireModel::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {
     assert(GetSystem());
     if (m_contact_surf)
-        m_contact_surf->SurfaceRemoveCollisionModelsFromSystem(GetSystem());
+        m_contact_surf->RemoveCollisionModelsFromSystem(coll_sys);
 }
 
 // -----------------------------------------------------------------------------
@@ -855,7 +855,7 @@ void MBTireModel::AddVisualizationAssets(VisualizationType vis) {
     AddVisualShape(m_trimesh_shape);
 
     for (const auto& node : m_rim_nodes) {
-        auto sph = chrono_types::make_shared<ChSphereShape>(0.01);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(0.01);
         sph->SetColor(ChColor(1.0f, 0.0f, 0.0f));
         auto loc = m_wheel->TransformPointParentToLocal(node->GetPos());
         m_wheel->AddVisualShape(sph, ChFrame<>(loc));
