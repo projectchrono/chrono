@@ -53,8 +53,6 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
     /// Set tire material properties.
     void SetTireProperties(double kR,  ///< radial spring elastic coefficient
                            double cR,  ///< radial spring damping coefficient
-                           double kW,  ///< wall spring elastic coefficient
-                           double cW,  ///< wall spring damping coefficient
                            double kC,  ///< circumferential spring elastic coefficient
                            double cC,  ///< circumferential spring damping coefficient
                            double kT,  ///< transversal spring elastic coefficient
@@ -198,7 +196,7 @@ class MBTireModel : public ChPhysicsItem {
     int NodeIndex(int ir, int id);
 
     // Get the wheel node index from the ring index and division index.
-    // Used to identify rim and wall nodes.
+    // Used to identify rim nodes.
     // Return -1 if out-of-bounds ring and use a cyclic index for divisions on the ring.
     int WheelNodeIndex(int ir, int id);
 
@@ -208,12 +206,11 @@ class MBTireModel : public ChPhysicsItem {
     int m_dofs;    // total degrees of freedom
     int m_dofs_w;  // total degrees of freedom, derivative (Lie algebra)
 
-    int m_num_rings;       // number of rings
-    int m_num_divs;        // number of nodes per ring
-    int m_num_rim_nodes;   // number of nodes attached to rim
-    int m_num_wall_nodes;  // number of nodes attached to wall
-    int m_num_nodes;       // number of nodes and visualization vertices
-    int m_num_faces;       // number of visualization triangles
+    int m_num_rings;      // number of rings
+    int m_num_divs;       // number of nodes per ring
+    int m_num_rim_nodes;  // number of nodes attached to rim
+    int m_num_nodes;      // number of nodes and visualization vertices
+    int m_num_faces;      // number of visualization triangles
 
     double m_node_mass;  // nodal mass
 
@@ -224,8 +221,6 @@ class MBTireModel : public ChPhysicsItem {
 
     double m_kR;  // radial elastic coefficient
     double m_cR;  // radial damping coefficient
-    double m_kW;  // wall elastic coefficient
-    double m_cW;  // wall damping coefficient
     double m_kC;  // circumferential elastic coefficient
     double m_cC;  // circumferential damping coefficient
     double m_kT;  // transversal elastic coefficient
@@ -233,13 +228,12 @@ class MBTireModel : public ChPhysicsItem {
     double m_kB;  // bending elastic coefficient
     double m_cB;  // bending damping coefficient
 
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_rim_nodes;   // FEA nodes fixed to the rim
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_wall_nodes;  // FEA nodes fixed to the wall
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_nodes;       // FEA nodes
-    std::shared_ptr<fea::ChContactSurface> m_contact_surf;         // contact surface
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;          // mesh visualization asset
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_rim_nodes;  // FEA nodes fixed to the rim
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_nodes;      // FEA nodes
+    std::shared_ptr<fea::ChContactSurface> m_contact_surf;        // contact surface
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;         // mesh visualization asset
 
-    enum class SpringType { RADIAL, CIRCUMFERENTIAL, TRANSVERSAL, WALL };
+    enum class SpringType { RADIAL, CIRCUMFERENTIAL, TRANSVERSAL };
 
     struct Spring2 {
         SpringType type;  // spring type
@@ -248,23 +242,22 @@ class MBTireModel : public ChPhysicsItem {
         double l0;        // spring free length
         double k;         // spring coefficient
         double c;         // damping coefficient
-        ////ChVector<> dir;   // current spring direction
-        ////double force;     // current spring force
     };
 
     struct Spring3 {
-        int node;         // index of central node
-        int node_p;       // index of previous node
-        int node_n;       // index of next node
-        double k;         // spring coefficient
-        double c;         // damping coefficient
+        int node;    // index of central node
+        int node_p;  // index of previous node
+        int node_n;  // index of next node
+        double a0;   // spring free angle
+        double k;    // spring coefficient
+        double c;    // damping coefficient
     };
-    
 
-    std::vector<Spring2> m_radial_springs;
-    std::vector<Spring2> m_wall_springs;
-    std::vector<Spring2> m_mesh_springs;
-    std::vector<Spring3> m_bending_springs;
+    std::vector<Spring2> m_mesh_springs;           // node-node translational springs
+    std::vector<Spring2> m_radial_springs;         // node-wheel translational springs (first and last ring)
+    std::vector<Spring3> m_bending_springs;        // node-node torsional springs
+    std::vector<Spring3> m_bending_springs_fisrt;  // node-wheel torsional springs (first ring)
+    std::vector<Spring3> m_bending_springs_last;   // node-wheel torsional springs (last ring)
 
     ChVector<> m_wheel_force;   // applied wheel spindle force
     ChVector<> m_wheel_torque;  // applied wheel spindle torque

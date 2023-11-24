@@ -36,7 +36,7 @@ const std::vector<double> HMMWV_MBTire::m_offset = {-0.125, -0.06, 0, +0.06, +0.
 const double HMMWV_MBTire::m_rim_radius = 0.24;
 
 const double HMMWV_MBTire::m_tire_mass = 37.6;
-const double HMMWV_MBTire::m_default_pressure = 200e3;
+const double HMMWV_MBTire::m_default_pressure = 20e3;
 
 const float HMMWV_MBTire::m_friction = 0.9f;
 const float HMMWV_MBTire::m_restitution = 0.1f;
@@ -53,17 +53,15 @@ HMMWV_MBTire::HMMWV_MBTire(const std::string& name) : ChMBTire(name) {
     SetTireMass(m_tire_mass);
 
     SetTireGeometry(m_radius, m_offset, m_num_divs, m_rim_radius);
-    double kR = 2.5e3;  // radial spring elastic coefficient
+    double kR = 2.5e4;  // radial spring elastic coefficient
     double cR = 1.0e3;  // radial spring damping coefficient
-    double kW = 2.5e3;  // wall spring elastic coefficient
-    double cW = 1.0e3;  // wall spring damping coefficient
-    double kC = 2.5e3;  // circumferential spring elastic coefficient
+    double kC = 2.5e4;  // circumferential spring elastic coefficient
     double cC = 1.0e3;  // circumferential spring damping coefficient
-    double kT = 2.5e3;  // transversal spring elastic coefficient
+    double kT = 2.5e4;  // transversal spring elastic coefficient
     double cT = 1.0e3;  // transversal spring damping coefficient
-    double kB = 2.5e3;  // bending spring elastic coefficient
+    double kB = 2.5e4;  // bending spring elastic coefficient
     double cB = 0;      // bending spring damping coefficient
-    SetTireProperties(kR, cR, kW, cW, kC, cC, kT, cT, kB, cB);
+    SetTireProperties(kR, cR, kC, cC, kT, cT, kB, cB);
 
     ChContactMaterialData mat;
     mat.mu = m_friction;
