@@ -56,6 +56,8 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/PushPipeAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarPushPipeAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/RigidPanhardAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarRigidPanhardAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidThreeLinkAxle.h"
@@ -827,6 +829,10 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
         suspension = chrono_types::make_shared<RigidPinnedAxle>(d);
     } else if (subtype.compare("PushPipeAxle") == 0) {
         suspension = chrono_types::make_shared<PushPipeAxle>(d);
+    } else if (subtype.compare("RigidPanhardAxle") == 0) {
+        suspension = chrono_types::make_shared<RigidPanhardAxle>(d);
+    } else if (subtype.compare("ToeBarRigidPanhardAxle") == 0) {
+        suspension = chrono_types::make_shared<ToeBarRigidPanhardAxle>(d);
     } else if (subtype.compare("ToeBarPushPipeAxle") == 0) {
         suspension = chrono_types::make_shared<ToeBarPushPipeAxle>(d);
     } else if (subtype.compare("HendricksonPRIMAXX") == 0) {

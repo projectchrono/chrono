@@ -20,13 +20,11 @@ if(ENABLE_MODULE_IRRLICHT)
     include_directories(${CH_IRRLICHT_INCLUDES})
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBS "ChronoEngine_irrlicht")
-    list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
 endif()
 
 if(ENABLE_MODULE_VSG)
     include_directories(${CH_VSG_INCLUDES})
     list(APPEND LIBS "ChronoEngine_vsg")
-    list(APPEND LIBS "ChronoEngine_vehicle_vsg")
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")	

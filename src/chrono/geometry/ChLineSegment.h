@@ -38,8 +38,8 @@ class ChApi ChLineSegment : public ChLine {
 
     virtual int Get_complexity() const override { return 2; }
 
-    /// Curve evaluation (only parU is used, in 0..1 range).
-    virtual void Evaluate(ChVector<>& pos, const double parU) const override;
+    /// Return a point on the line, given parametric coordinate U (in [0,1]).
+    virtual ChVector<> Evaluate(double U) const override;
 
     /// Return curve length.
     virtual double Length(int sampling) const override { return (pA - pB).Length(); }

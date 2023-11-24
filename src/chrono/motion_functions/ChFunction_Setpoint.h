@@ -84,7 +84,7 @@ class ChApi ChFunction_Setpoint : public ChFunction {
     double GetSetpoint() { return Y; }
 
     /// Update could be implemented by children classes, ex. to launch callbacks
-    virtual void Update(const double x) override {}
+    virtual void Update(double x) override {}
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -117,10 +117,10 @@ class ChApi ChFunction_SetpointCallback : public ChFunction_Setpoint {
     /// Set the setpoint, and compute its derivatives (speed, acceleration) automatically
     /// by backward differentiation (only if x is called at increasing small steps).
     /// All values will persist indefinitely until next call.
-    virtual double SetpointCallback(const double x) = 0;
+    virtual double SetpointCallback(double x) = 0;
 
     /// Calling this will invoke the callback
-    virtual void Update(const double x) override {
+    virtual void Update(double x) override {
         // invokes callback
         double y = SetpointCallback(x);
         // changes the setpoint and also computes derivatives by BDF

@@ -42,16 +42,14 @@ class ChApi ChLine : public ChGeometry {
     /// Get the class type as an enum.
     virtual Type GetClassType() const override { return Type::LINE; }
 
-    /// Evaluates a point on the line, given parametric coordinate U.
+    /// Return a point on the line, given parametric coordinate U.
     /// Parameter U always work in 0..1 range.
-    /// Computed value goes into the 'pos' reference.
-    virtual void Evaluate(ChVector<>& pos, const double parU) const = 0;
+    /// The default implementation always returns the origin of the surface frame.
+    virtual ChVector<> Evaluate(double U) const = 0;
 
-    /// Evaluates a tangent versor, given parametric coordinate.
-    /// Parameter U always work in 0..1 range.
-    /// Computed value goes into the 'dir' reference.
+    /// Return the tangent unit vector at the parametric coordinate U (in [0,1]).
     /// This default implementation uses finite differences.
-    virtual void Derive(ChVector<>& dir, const double parU) const;
+    virtual ChVector<> GetTangent(double parU) const;
 
     /// Tell if the curve is closed
     virtual bool Get_closed() const { return closed; }
@@ -72,19 +70,11 @@ class ChApi ChLine : public ChGeometry {
 
     /// Return the start point of the line.
     /// By default, evaluates line at U=0.
-    virtual ChVector<> GetEndA() const {
-        ChVector<> pos;
-        Evaluate(pos, 0);
-        return pos;
-    }
+    virtual ChVector<> GetEndA() const { return Evaluate(0); }
 
     /// Return the end point of the line.
     /// By default, evaluates line at U=1.
-    virtual ChVector<> GetEndB() const {
-        ChVector<> pos;
-        Evaluate(pos, 1);
-        return pos;
-    }
+    virtual ChVector<> GetEndB() const { return Evaluate(1); }
 
     /// Returns adimensional information on "how much" this curve is similar to another
     /// in its overall shape (does not matter parametrization or start point). Try with 20 samples.

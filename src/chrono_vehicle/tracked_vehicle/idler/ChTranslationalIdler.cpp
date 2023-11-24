@@ -23,9 +23,9 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/tracked_vehicle/idler/ChTranslationalIdler.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
@@ -62,7 +62,7 @@ void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     }
 
     // Create and initialize the carrier body.
-    m_carrier = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_carrier = chrono_types::make_shared<ChBody>();
     m_carrier->SetNameString(m_name + "_carrier");
     m_carrier->SetPos(points[CARRIER]);
     m_carrier->SetRot(idler_to_abs.GetRot());
@@ -134,11 +134,11 @@ void ChTranslationalIdler::AddVisualizationAssets(VisualizationType vis) {
         ChVehicleGeometry::AddVisualizationCylinder(m_carrier, m_pC, m_pT, radius);
     }
 
-    auto box = chrono_types::make_shared<ChBoxShape>(6 * radius, 2 * radius, 2 * radius);
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(6 * radius, 2 * radius, 2 * radius);
     m_carrier->AddVisualShape(box, ChFrame<>(m_pT, ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0))));
 
     // Visualization of the tensioner spring (with default color)
-    m_tensioner->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_tensioner->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
 }
 
 void ChTranslationalIdler::RemoveVisualizationAssets() {

@@ -55,7 +55,7 @@ set(CH_GPU_INCLUDES ${CUDA_INCLUDE_DIRS})
 set(CH_GPU_CXX_FLAGS "")
 set(CH_GPU_C_FLAGS "")
 set(CH_CPU_COMPILE_DEFS "")
-set(CH_GPU_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
+set(CH_GPU_LINKER_FLAGS "${CH_LINKERFLAG_LIB}")
 set(CH_GPU_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK})
 
 # ------------------------------------------------------------------------------
@@ -148,7 +148,7 @@ source_group(utilities FILES ${ChronoEngine_GPU_VISUALIZATION})
 # Add the ChronoEngine_gpu library
 # ------------------------------------------------------------------------------
 
-CUDA_ADD_LIBRARY(ChronoEngine_gpu SHARED
+CUDA_ADD_LIBRARY(ChronoEngine_gpu
                  ${ChronoEngine_GPU_BASE}
                  ${ChronoEngine_GPU_PHYSICS}
                  ${ChronoEngine_GPU_CUDA}

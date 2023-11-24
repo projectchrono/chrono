@@ -78,8 +78,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
 // -----------------------------------------------------------------------------
 class ContactMaterial : public ChContactContainer::AddContactCallback {
   public:
-    virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
-                              ChMaterialComposite* const material) override {
+    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
         // Downcast to appropriate composite material type
         auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
 
@@ -99,52 +98,47 @@ int main(int argc, char* argv[]) {
     // Create the sys
     ChSystemMulticoreNSC sys;
     sys.Set_G_acc(ChVector<>(0, -10, 0));
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     sys.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     sys.GetSettings()->solver.max_iteration_sliding = 500;
     sys.GetSettings()->solver.contact_recovery_speed = 0;
     sys.GetSettings()->collision.collision_envelope = 0.005;
     sys.ChangeSolverType(SolverType::BB);
-    
+
     // Create a contact material, shared among all bodies
     auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     material->SetFriction(friction);
 
     // Add bodies
-    auto container = std::shared_ptr<ChBody>(sys.NewBody());
+    auto container = chrono_types::make_shared<ChBody>();
     sys.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
 
     container->SetCollide(true);
-    container->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(container.get(), material, ChVector<>(8, 1, 8), ChVector<>(0, -0.5, 0));
-    container->GetCollisionModel()->BuildModel();
 
-    auto obj1 = std::shared_ptr<ChBody>(sys.NewBody());
+    auto obj1 = chrono_types::make_shared<ChBody>();
     obj1->SetMass(10);
     obj1->SetInertiaXX(ChVector<>(1, 1, 1));
     obj1->SetPos(ChVector<>(-1, 0.21, -1));
     obj1->SetPos_dt(ChVector<>(5, 0, 0));
 
     obj1->SetCollide(true);
-    obj1->GetCollisionModel()->ClearModel();
     utils::AddCapsuleGeometry(obj1.get(), material, 0.2, 0.4, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
-    obj1->GetCollisionModel()->BuildModel();
 
     sys.AddBody(obj1);
 
-    auto obj2 = std::shared_ptr<ChBody>(sys.NewBody());
+    auto obj2 = chrono_types::make_shared<ChBody>();
     obj2->SetMass(10);
     obj2->SetInertiaXX(ChVector<>(1, 1, 1));
     obj2->SetPos(ChVector<>(-1, 0.21, +1));
     obj2->SetPos_dt(ChVector<>(5, 0, 0));
 
     obj2->SetCollide(true);
-    obj2->GetCollisionModel()->ClearModel();
     utils::AddCapsuleGeometry(obj2.get(), material, 0.2, 0.4, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
-    obj2->GetCollisionModel()->BuildModel();
 
     sys.AddBody(obj2);
 

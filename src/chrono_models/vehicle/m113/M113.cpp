@@ -40,7 +40,7 @@ M113::M113()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
-      m_collsysType(collision::ChCollisionSystemType::BULLET),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_wheel_cyl(true),
@@ -68,7 +68,7 @@ M113::M113(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
-      m_collsysType(collision::ChCollisionSystemType::BULLET),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_wheel_cyl(true),
       m_idler_cyl(true),
@@ -168,6 +168,11 @@ void M113::Initialize() {
 
     // Recalculate vehicle mass, to properly account for all subsystems
     m_vehicle->InitializeInertiaProperties();
+}
+
+void M113::Synchronize(double time,
+                       const DriverInputs& driver_inputs) {
+    m_vehicle->Synchronize(time, driver_inputs);
 }
 
 void M113::Synchronize(double time,

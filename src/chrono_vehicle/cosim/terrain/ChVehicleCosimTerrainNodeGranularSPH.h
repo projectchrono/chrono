@@ -27,7 +27,7 @@
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/visualization/ChFsiVisualization.h"
 
-#include "chrono_vehicle/terrain/SPHTerrain.h"
+#include "chrono_vehicle/terrain/CRMTerrain.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
@@ -74,25 +74,24 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     virtual void OutputVisualizationData(int frame) override final;
 
   private:
-    enum class SphTerrainType { PATCH, FILES };
+    enum class ConstructionMethod { PATCH, FILES };
 
     ChSystemSMC* m_system;                            ///< containing system
-    SPHTerrain* m_terrain;                            ///< SPH terrain
-    std::string m_specfile;                           ///< SPH specification file
+    CRMTerrain* m_terrain;                            ///< CRM terrain
+    std::string m_specfile;                           ///< CRM terrain specification file
     std::shared_ptr<fsi::ChFsiVisualization> m_vsys;  ///< run-time visualization system
 
-    SphTerrainType m_terrain_type;  ///< construction method for SPHTerrain
-    double m_depth;                 ///< SPH soil depth (PATCH type)
-    std::string m_sph_filename;     ///< name of file with SPH particle positions (FILES type)
-    std::string m_bce_filename;     ///< name of file with BCE marker positions (FILES type)
+    ConstructionMethod m_terrain_type;  ///< construction method for CRMTerrain
+    double m_depth;                     ///< SPH soil depth (PATCH type)
+    std::string m_sph_filename;         ///< name of file with SPH particle positions (FILES type)
+    std::string m_bce_filename;         ///< name of file with BCE marker positions (FILES type)
 
     double m_radius;    ///< radius of one particle of granular material
     double m_density;   ///< particle material density
     double m_cohesion;  ///< granular material cohesion
 
-    ChVector<> m_aabb_min;     ///< particles AABB corner
-    ChVector<> m_aabb_max;     ///< particles AABB corner
-    double m_active_box_size;  ///< size of FSI active domain
+    geometry::ChAABB m_aabb_particles;  ///< particle AABB
+    double m_active_box_size;           ///< size of FSI active domain
 
     virtual ChSystem* GetSystemPostprocess() const override {
         if (m_vsys)

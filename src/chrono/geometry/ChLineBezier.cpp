@@ -41,7 +41,7 @@ ChLineBezier::ChLineBezier(const ChLineBezier& source) : ChLine(source) {
     complexityU = source.complexityU;
 }
 
-void ChLineBezier::Evaluate(ChVector<>& pos, const double parU) const {
+ChVector<> ChLineBezier::Evaluate(double parU) const {
     double par = ChClamp(parU, 0.0, 1.0);
     size_t numIntervals = m_path->getNumPoints() - 1;
     double epar = par * numIntervals;
@@ -49,7 +49,7 @@ void ChLineBezier::Evaluate(ChVector<>& pos, const double parU) const {
     ChClampValue(i, size_t(0), numIntervals - 1);
     double t = epar - (double)i;
 
-    pos = m_path->eval(i, t);
+    return m_path->eval(i, t);
 }
 
 void ChLineBezier::ArchiveOut(ChArchiveOut& marchive) {

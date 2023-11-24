@@ -40,17 +40,16 @@ void CreateSliderGuide(std::shared_ptr<ChBody>& mguide,
                        std::shared_ptr<ChMaterialSurface> material,
                        ChSystem& msystem,
                        const ChVector<> mpos) {
-    mguide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material, collision::ChCollisionSystemType::CHRONO);
+    mguide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material);
     mguide->SetPos(mpos);
     mguide->SetBodyFixed(true);
     msystem.Add(mguide);
 
-    mslider = chrono_types::make_shared<ChBodyEasySphere>(0.14, 1000, material, collision::ChCollisionSystemType::CHRONO);
+    mslider = chrono_types::make_shared<ChBodyEasySphere>(0.14, 1000, material);
     mslider->SetPos(mpos + ChVector<>(0, 0.3, 0));
     msystem.Add(mslider);
 
-    auto obstacle = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.4, 0.4, 8000, material,
-                                                             collision::ChCollisionSystemType::CHRONO);
+    auto obstacle = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.4, 0.4, 8000, material);
     obstacle->SetPos(mpos + ChVector<>(1.5, 0.4, 0));
     msystem.Add(obstacle);
 }
@@ -60,16 +59,13 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
                        std::shared_ptr<ChMaterialSurface> material,
                        ChSystem& msystem,
                        const ChVector<> mpos) {
-    mstator = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,       //
-                                                            0.5, 0.1, 1000, material,  //
-                                                            collision::ChCollisionSystemType::CHRONO);
+    mstator = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 0.1, 1000, material);
     mstator->SetPos(mpos);
     mstator->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_X));
     mstator->SetBodyFixed(true);
     msystem.Add(mstator);
 
-    mrotor =
-        chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material, collision::ChCollisionSystemType::CHRONO);
+    mrotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material);
     mrotor->SetPos(mpos + ChVector<>(0.5, 0, -0.15));
     msystem.Add(mrotor);
 }
@@ -459,7 +455,7 @@ void ExampleB4(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
         // Here we will compute F(t) by emulating a very basic PID scheme.
         // In practice, it works like a callback that is executed at each time step.
         // Implementation of this function is mandatory!!!
-        virtual double SetpointCallback(const double x) override {
+        virtual double SetpointCallback(double x) override {
             // Trick: in this PID example, we need the following if(..)  to update PID
             // only when time changes (as the callback could be invoked more than once per timestep):
             double time = x;
@@ -531,9 +527,10 @@ int main(int argc, char* argv[]) {
     sys->GetSettings()->solver.tolerance = 1e-5;
     sys->GetSettings()->collision.bins_per_axis = vec3(1, 1, 1);
 
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
+
     // Create ground body
-    auto floorBody =
-        chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, material, collision::ChCollisionSystemType::CHRONO);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, material);
     floorBody->SetPos(ChVector<>(0, -2, 0));
     floorBody->SetBodyFixed(true);
     sys->Add(floorBody);

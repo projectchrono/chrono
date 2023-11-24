@@ -33,15 +33,22 @@ namespace chrono {
 namespace vehicle {
 
 ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::string& filename, bool sorted) : ChDriver(vehicle) {
+    bool auto_transmission = vehicle.GetPowertrainAssembly() && vehicle.GetPowertrainAssembly()->GetTransmission() &&
+                             vehicle.GetPowertrainAssembly()->GetTransmission()->IsAutomatic();
+
     std::ifstream ifile(filename.c_str());
     std::string line;
 
     while (std::getline(ifile, line)) {
         std::istringstream iss(line);
 
-        double time, steering, throttle, braking, clutch;
+        double time, steering, throttle, braking;
+        double clutch = 0;
 
-        iss >> time >> steering >> throttle >> braking >> clutch;
+        if (auto_transmission)
+            iss >> time >> steering >> throttle >> braking;
+        else
+            iss >> time >> steering >> throttle >> braking >> clutch;
 
         if (iss.fail())
             break;

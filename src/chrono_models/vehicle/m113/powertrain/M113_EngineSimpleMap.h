@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-/// @addtogroup vehicle_models_M113
+/// @addtogroup vehicle_models_m113
 /// @{
 
 /// M113 simple speed-torque engine map subsystem.
@@ -46,7 +46,7 @@ class CH_MODELS_API M113_EngineSimpleMap : public ChEngineSimpleMap {
                                      ) override;
 };
 
-/// @} vehicle_models_M113
+/// @} vehicle_models_m113
 
 }  // end namespace M113
 }  // end namespace vehicle

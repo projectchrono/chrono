@@ -35,7 +35,7 @@ mbody1.SetBodyFixed(True)
 mbody1.SetPos( chrono.ChVectorD(0,0,-0.2))
 sys.Add(mbody1)
 
-mboxasset = chrono.ChBoxShape(0.4, 1.0, 0.2)
+mboxasset = chrono.ChVisualShapeBox(0.4, 1.0, 0.2)
 mbody1.AddVisualShape(mboxasset)
 
 
@@ -46,7 +46,7 @@ mbody2 = chrono.ChBody()
 mbody2.SetBodyFixed(False)
 sys.Add(mbody2)
 
-mboxasset = chrono.ChBoxShape(0.4, 1.0, 0.2)
+mboxasset = chrono.ChVisualShapeBox(0.4, 1.0, 0.2)
 mboxasset.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
 mbody2.AddVisualShape(mboxasset)
 

@@ -25,8 +25,8 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChDoubleWishboneReduced.h"
 
@@ -101,7 +101,7 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
     // Create and initialize spindle body
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
@@ -111,7 +111,7 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upright body (same orientation as the chassis)
-    m_upright[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_upright[side] = chrono_types::make_shared<ChBody>();
     m_upright[side]->SetNameString(m_name + "_upright" + suffix);
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);
@@ -231,24 +231,24 @@ void ChDoubleWishboneReduced::AddVisualizationAssets(VisualizationType vis) {
                             m_pointsR[LCA_U], m_pointsR[TIEROD_U], getUprightRadius());
 
     // Add visualization for the spring-dampers
-    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
 
     // Add visualization for the arm and tie-rod distance constraints
-    m_distTierod[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_distTierod[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_distTierod[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_distTierod[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
-    m_distUCA_F[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_distUCA_F[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_distUCA_F[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_distUCA_F[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
-    m_distUCA_B[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_distUCA_B[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_distUCA_B[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_distUCA_B[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
-    m_distLCA_F[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_distLCA_F[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_distLCA_F[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_distLCA_F[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
-    m_distLCA_B[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_distLCA_B[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_distLCA_B[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_distLCA_B[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 }
 
 void ChDoubleWishboneReduced::RemoveVisualizationAssets() {

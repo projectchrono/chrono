@@ -36,7 +36,7 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_unimog
 /// @{
 
 /// Definition of the UAZ assembly.
@@ -123,7 +123,7 @@ class CH_MODELS_API U401 {
     double m_tire_mass;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_unimog
 
 }  // namespace unimog
 }  // end namespace vehicle

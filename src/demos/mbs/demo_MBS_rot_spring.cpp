@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 
     // Visualization for revolute joint
     geometry::ChLineSegment seg(rev_pos + 0.2 * rev_dir, rev_pos - 0.2 * rev_dir);
-    auto cyl_rev = chrono_types::make_shared<ChCylinderShape>(0.1, seg.GetLength());
+    auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, seg.GetLength());
     ground->AddVisualShape(cyl_rev, seg.GetFrame());
 
     // Offset from joint to body COM
@@ -97,11 +97,11 @@ int main(int argc, char* argv[]) {
     body->SetInertiaXX(ChVector<>(1, 1, 1));
 
     // Attach visualization assets
-    auto sph = chrono_types::make_shared<ChSphereShape>(0.3);
+    auto sph = chrono_types::make_shared<ChVisualShapeSphere>(0.3);
     sph->SetColor(ChColor(0.7f, 0.8f, 0.8f));
     body->AddVisualShape(sph);
 
-    auto cyl = chrono_types::make_shared<ChCylinderShape>(0.1, 1.5);
+    auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, 1.5);
     cyl->SetColor(ChColor(0.7f, 0.8f, 0.8f));
     body->AddVisualShape(cyl, ChFrame<>(ChVector<>(-0.75, 0, 0), Q_from_AngY(CH_C_PI_2)));
 
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     auto spring = chrono_types::make_shared<ChLinkRSDA>();
     spring->SetRestAngle(rest_angle);
     spring->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
-    spring->AddVisualShape(chrono_types::make_shared<ChRotSpringShape>(0.5, 100));
+    spring->AddVisualShape(chrono_types::make_shared<ChVisualShapeRotSpring>(0.5, 100));
     spring->RegisterTorqueFunctor(torque_functor);
     sys.AddLink(spring);
 

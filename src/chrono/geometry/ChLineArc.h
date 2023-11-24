@@ -33,11 +33,11 @@ class ChApi ChLineArc : public ChLine {
     bool counterclockwise;  ///< flag indicating arc direction
 
   public:
-    ChLineArc(const ChCoordsys<> morigin = CSYSNULL,
-              const double mradius = 1,
-              const double mangle1 = CH_C_2PI,
-              const double mangle2 = 0,
-              const bool mcounterclockwise = false);
+    ChLineArc(const ChCoordsys<>& morigin = CSYSNULL,
+              double mradius = 1,
+              double mangle1 = CH_C_2PI,
+              double mangle2 = 0,
+              bool mcounterclockwise = false);
     ChLineArc(const ChLineArc& source);
     ~ChLineArc() {}
 
@@ -49,8 +49,8 @@ class ChApi ChLineArc : public ChLine {
 
     virtual int Get_complexity() const override { return 2; }
 
-    /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(ChVector<>& pos, const double parU) const override;
+    /// Return a point on the line, given parametric coordinate U (in [0,1]).
+    virtual ChVector<> Evaluate(double U) const override;
 
     /// Returns curve length. sampling does not matter
     double Length(int sampling) const override { return fabs(radius * (angle1 - angle2)); }

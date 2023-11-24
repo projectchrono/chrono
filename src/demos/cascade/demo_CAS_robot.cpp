@@ -22,7 +22,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_cascade/ChCascadeBodyEasy.h"
 #include "chrono_cascade/ChCascadeDoc.h"
-#include "chrono_cascade/ChCascadeVisualShape.h"
+#include "chrono_cascade/ChVisualShapeCascade.h"
 #include "chrono/solver/ChSolverADMM.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -44,6 +44,7 @@ int main(int argc, char* argv[]) {
     // 1- Create a ChronoENGINE physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create a surface material to be used for collisions, if any
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -65,8 +66,8 @@ int main(int argc, char* argv[]) {
     // print the contained shapes
     mydoc.Dump(GetLog());
 
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.001);
 
     //
     // Retrieve some sub shapes from the loaded model, using
@@ -341,8 +342,7 @@ int main(int argc, char* argv[]) {
     motlaw_z_seq->InsertFunct(motlaw_z2, 1, 1, true);  // true = force c0 continuity, traslating fx
     motlaw_z_seq->InsertFunct(motlaw_z3, 1, 1, true);
     motlaw_z_seq->InsertFunct(motlaw_z4, 1, 1, true);
-    std::shared_ptr<ChFunction_Repeat> motlaw_z(new ChFunction_Repeat);
-    motlaw_z->Set_fa(motlaw_z_seq);
+    auto motlaw_z = chrono_types::make_shared<ChFunction_Repeat>(motlaw_z_seq);
     motlaw_z->Set_window_length(4);
 
     std::shared_ptr<ChFunction_Const> motlaw_y1(new ChFunction_Const);
@@ -358,8 +358,7 @@ int main(int argc, char* argv[]) {
     motlaw_y_seq->InsertFunct(motlaw_y2, 1, 1, true);  // true = force c0 continuity, traslating fx
     motlaw_y_seq->InsertFunct(motlaw_y3, 1, 1, true);
     motlaw_y_seq->InsertFunct(motlaw_y4, 1, 1, true);
-    std::shared_ptr<ChFunction_Repeat> motlaw_y(new ChFunction_Repeat);
-    motlaw_y->Set_fa(motlaw_y_seq);
+    auto motlaw_y = chrono_types::make_shared<ChFunction_Repeat>(motlaw_y_seq);
     motlaw_y->Set_window_length(4);
 
     my_marker_move->SetMotion_Z(motlaw_z);

@@ -43,7 +43,7 @@ Marder::Marder()
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
-      m_collsys_type(collision::ChCollisionSystemType::BULLET),
+      m_collsys_type(ChCollisionSystem::Type::BULLET),
       m_wheel_cyl(true),
       m_idler_cyl(true),
       m_roller_cyl(true),
@@ -63,7 +63,7 @@ Marder::Marder(ChSystem* system)
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
-      m_collsys_type(collision::ChCollisionSystemType::BULLET),
+      m_collsys_type(ChCollisionSystem::Type::BULLET),
       m_wheel_cyl(true),
       m_idler_cyl(true),
       m_roller_cyl(true),
@@ -150,6 +150,12 @@ void Marder::Initialize() {
 }
 
 // -----------------------------------------------------------------------------
+
+void Marder::Synchronize(double time,
+                         const DriverInputs& driver_inputs) {
+    m_vehicle->Synchronize(time, driver_inputs);
+}
+
 void Marder::Synchronize(double time,
                          const DriverInputs& driver_inputs,
                          const TerrainForces& shoe_forces_left,
@@ -157,7 +163,6 @@ void Marder::Synchronize(double time,
     m_vehicle->Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 }
 
-// -----------------------------------------------------------------------------
 void Marder::Advance(double step) {
     m_vehicle->Advance(step);
 }

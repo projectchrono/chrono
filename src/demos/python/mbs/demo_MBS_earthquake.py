@@ -26,6 +26,7 @@ import pychrono.irrlicht as chronoirr
 #
 
 sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 
 # Set the default outward/inward shape margins for collision detection,
@@ -80,13 +81,12 @@ for ix in range(0,nbricks_on_x):
         body_brick.SetInertiaXX(chrono.ChVectorD(inertia_brick,inertia_brick,inertia_brick))       
 
         # Collision shape
-        body_brick.GetCollisionModel().ClearModel()
-        body_brick.GetCollisionModel().AddBox(brick_material, size_brick_x, size_brick_y, size_brick_z) # must set half sizes
-        body_brick.GetCollisionModel().BuildModel()
+        body_brick_ct_shape = chrono.ChCollisionShapeBox(brick_material, size_brick_x, size_brick_y, size_brick_z)
+        body_brick.AddCollisionShape(body_brick_ct_shape)
         body_brick.SetCollide(True)
 
         # Visualization shape, for rendering animation
-        body_brick_shape = chrono.ChBoxShape(size_brick_x, size_brick_y, size_brick_z)
+        body_brick_shape = chrono.ChVisualShapeBox(size_brick_x, size_brick_y, size_brick_z)
         if iy%2==0 :
             body_brick_shape.SetColor(chrono.ChColor(0.65, 0.65, 0.6)) # set gray color only for odd bricks
         body_brick.AddVisualShape(body_brick_shape)
@@ -102,13 +102,12 @@ body_floor.SetBodyFixed(True)
 body_floor.SetPos(chrono.ChVectorD(0, -2, 0 ))
 
 # Collision shape
-body_floor.GetCollisionModel().ClearModel()
-body_floor.GetCollisionModel().AddBox(brick_material, 6, 2, 6)
-body_floor.GetCollisionModel().BuildModel()
+body_floor_ct_shape = chrono.ChCollisionShapeBox(brick_material, 6, 2, 6)
+body_floor.AddCollisionShape(body_floor_ct_shape)
 body_floor.SetCollide(True)
 
 # Visualization shape
-body_floor_shape = chrono.ChBoxShape(6, 2, 6)
+body_floor_shape = chrono.ChVisualShapeBox(6, 2, 6)
 body_floor_shape.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
 body_floor.AddVisualShape(body_floor_shape)
 
@@ -126,13 +125,12 @@ body_table = chrono.ChBody()
 body_table.SetPos(chrono.ChVectorD(0, -size_table_y/2, 0 ))
 
 # Collision shape
-body_table.GetCollisionModel().ClearModel()
-body_table.GetCollisionModel().AddBox(brick_material, size_table_x, size_table_y, size_table_z)
-body_table.GetCollisionModel().BuildModel()
+body_table_ct_shape = chrono.ChCollisionShapeBox(brick_material, size_table_x, size_table_y, size_table_z)
+body_table.AddCollisionShape(body_table_ct_shape)
 body_table.SetCollide(True)
 
 # Visualization shape
-body_table_shape = chrono.ChBoxShape(size_table_x, size_table_y, size_table_z)
+body_table_shape = chrono.ChVisualShapeBox(size_table_x, size_table_y, size_table_z)
 body_table_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
 body_table_shape.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
 body_table.AddVisualShape(body_table_shape)

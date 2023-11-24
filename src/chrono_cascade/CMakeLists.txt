@@ -22,7 +22,7 @@ mark_as_advanced(CLEAR OpenCASCADE_DIR)
 set(ChronoEngine_CASCADE_SOURCES 
     ChCascadeMeshTools.cpp
     ChCascadeDoc.cpp
-    ChCascadeVisualShape.cpp
+    ChVisualShapeCascade.cpp
     ChCascadeBodyEasy.cpp
 )
 
@@ -31,7 +31,7 @@ set(ChronoEngine_CASCADE_HEADERS
 	ChCascadeTriangulate.h
     ChCascadeMeshTools.h
     ChCascadeDoc.h
-    ChCascadeVisualShape.h
+    ChVisualShapeCascade.h
     ChCascadeBodyEasy.h
 )
 if(ENABLE_MODULE_IRRLICHT)
@@ -92,11 +92,11 @@ if(ENABLE_MODULE_IRRLICHT)
     list(APPEND LIBRARIES ChronoEngine_irrlicht)
 endif()
 
-add_library(ChronoEngine_cascade SHARED ${ChronoEngine_CASCADE_SOURCES} ${ChronoEngine_CASCADE_HEADERS})
+add_library(ChronoEngine_cascade ${ChronoEngine_CASCADE_SOURCES} ${ChronoEngine_CASCADE_HEADERS})
 
 set_target_properties(ChronoEngine_cascade PROPERTIES 
                       COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_definitions( "/DWNT" )

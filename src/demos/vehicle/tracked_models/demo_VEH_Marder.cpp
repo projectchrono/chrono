@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     ////marder.GetDriveline()->SetGyrationMode(true);
 
     // Change collision detection system
-    ////marder.SetCollisionSystemType(collision::ChCollisionSystemType::CHRONO);
+    ////marder.SetCollisionSystemType(ChCollisionSystemType::CHRONO);
 
     // Change collision shape for road wheels, idlers, and rollers (true: cylinder; false: cylshell)
     ////marder.SetWheelCollisionType(false, false, false);
@@ -303,10 +303,8 @@ int main(int argc, char* argv[]) {
         integrator->SetAlpha(-0.2);
         integrator->SetMaxiters(50);
         integrator->SetAbsTolerances(1e-4, 1e2);
-        integrator->SetMode(ChTimestepperHHT::ACCELERATION);
         integrator->SetStepControl(false);
         integrator->SetModifiedNewton(false);
-        integrator->SetScaling(true);
         ////integrator->SetVerbose(true);
 #endif
     } else {
@@ -323,12 +321,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-
-    // Inter-module communication data
-    BodyStates shoe_states_left(marder.GetVehicle().GetNumTrackShoes(LEFT));
-    BodyStates shoe_states_right(marder.GetVehicle().GetNumTrackShoes(RIGHT));
-    TerrainForces shoe_forces_left(marder.GetVehicle().GetNumTrackShoes(LEFT));
-    TerrainForces shoe_forces_right(marder.GetVehicle().GetNumTrackShoes(RIGHT));
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -395,16 +387,14 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        // Collect output data from modules
+        // Current driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
-        marder.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
-        marder.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
         double time = marder.GetVehicle().GetChTime();
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        marder.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        marder.Synchronize(time, driver_inputs);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
@@ -432,15 +422,15 @@ void AddFixedObstacles(ChSystem* system) {
     double radius = 2.2;
     double length = 6;
 
-    auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
+    auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector<>(10, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = chrono_types::make_shared<ChCylinderShape>(radius, length);
-    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
-    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
+    vis_shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
+    obstacle->AddVisualShape(vis_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     // Contact
     ChContactMaterialData minfo;
@@ -449,9 +439,8 @@ void AddFixedObstacles(ChSystem* system) {
     minfo.Y = 2e7f;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
-    obstacle->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
+    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     system->AddBody(obstacle);
 }
@@ -461,7 +450,7 @@ void AddFallingObjects(ChSystem* system) {
     double radius = 0.1;
     double mass = 10;
 
-    auto ball = std::shared_ptr<ChBody>(system->NewBody());
+    auto ball = chrono_types::make_shared<ChBody>();
     ball->SetMass(mass);
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
     ball->SetPos(initLoc + ChVector<>(-3, 0, 2));
@@ -473,13 +462,12 @@ void AddFallingObjects(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     ball->SetCollide(true);
-    ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(obst_mat, radius);
-    ball->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(obst_mat, radius);
+    ball->AddCollisionShape(ct_shape);
 
-    auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
-    sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-    ball->AddVisualShape(sphere);
+    auto vis_shape = chrono_types::make_shared<ChVisualShapeSphere>(radius);
+    vis_shape->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+    ball->AddVisualShape(vis_shape);
 
     system->AddBody(ball);
 }

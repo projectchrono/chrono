@@ -64,12 +64,6 @@ ChLinkMateGeneric::ChLinkMateGeneric(const ChLinkMateGeneric& other) : ChLinkMat
     SetupLinkMask();
 }
 
-ChLinkMateGeneric::~ChLinkMateGeneric() {
-    if (this->Kmatr != nullptr) {
-        delete this->Kmatr;
-        this->Kmatr = nullptr;
-    }
-}
 
 void ChLinkMateGeneric::SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz) {
     c_x = mc_x;
@@ -308,12 +302,13 @@ void ChLinkMateGeneric::SetUseTangentStiffness(bool useKc) {
 
     if (useKc && this->Kmatr == nullptr) {
 
-        this->Kmatr = new ChKblockGeneric(&Body1->Variables(), &Body2->Variables());
+        this->Kmatr = chrono_types::make_unique<ChKblockGeneric>(&Body1->Variables(), &Body2->Variables());
+        this->Kmatr->Get_K().resize(12, 12);
+        this->Kmatr->Get_K().setZero();
 
     } else if (!useKc && this->Kmatr != nullptr) {
 
-        delete this->Kmatr;
-        this->Kmatr = nullptr;
+        this->Kmatr.reset();
     }
 }
 
@@ -322,7 +317,7 @@ void ChLinkMateGeneric::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
         return;
 
     if (this->Kmatr)
-        descriptor.InsertKblock(Kmatr);
+        descriptor.InsertKblock(Kmatr.get());
 }
 
 void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
@@ -347,42 +342,42 @@ void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double M
         ChStarMatrix33<> rtilde_F1_B1(r_F1_B1);
         ChStarMatrix33<> rtilde_F2_B2(r_F2_B2);
 
-        // Main part
-        ChMatrixDynamic<> Kcm;
-        Kcm.setZero(12, 12);
-        Kcm.block<3, 3>(0, 9) = -R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
-        Kcm.block<3, 3>(3, 3) =
-            rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B1_W +
-            R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_F2_W.transpose() * R_B1_W;
-        Kcm.block<3, 3>(3, 9) =
-            -rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W -
-            R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_F2_W.transpose() * R_B2_W;
-        Kcm.block<3, 3>(6, 9) = R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
-
-        Kcm.block<3, 3>(9, 0) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose();
-        Kcm.block<3, 3>(9, 3) =
-            -R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B1_W * rtilde_F1_B1;
-        Kcm.block<3, 3>(9, 6) = -R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose();
-        Kcm.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W *
-                                ChStarMatrix33<>(r12_B2 + r_F2_B2);
-
-        double s_F1_F2 = F1_wrt_F2.GetRot().e0();
+        // Precomupte utilities
+        ChMatrix33<> R_F2_W_cross_gamma_f = R_F2_W * ChStarMatrix33<>(gamma_f);
+        ChMatrix33<> R_W_F2 = R_F2_W.transpose();
         ChVector<> v_F1_F2 = F1_wrt_F2.GetRot().GetVector();
-        ChMatrix33<> I33;
-        I33.setIdentity();
-        ChMatrix33<> G = -0.25 * TensorProduct(gamma_m, v_F1_F2) -
-                         0.25 * ChStarMatrix33<>(gamma_m) * (s_F1_F2 * I33 + ChStarMatrix33<>(v_F1_F2));
+        ChMatrix33<> s_F1_F2_mat(F1_wrt_F2.GetRot().e0());
+        ChMatrix33<> R_F2_W_times_G_times_R_W_F1 = R_F2_W * (-0.25 * TensorProduct(gamma_m, v_F1_F2)
+                                                   - 0.25 * ChStarMatrix33<>(gamma_m) * (s_F1_F2_mat + ChStarMatrix33<>(v_F1_F2))) * R_F1_W.transpose();
+        ChMatrix33<> R_F2_W_cross_gamma_f_times_R_B2_F2 = R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
 
-        // Stabilization part
-        ChMatrixDynamic<> Kcs;
-        Kcs.setZero(12, 12);
-        Kcs.block<3, 3>(3, 3) = R_B1_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B1_W;
-        Kcs.block<3, 3>(3, 9) = -R_B1_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B2_W;
-        Kcs.block<3, 3>(9, 3) = -R_B2_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B1_W;
-        Kcs.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B2_W;
+        // Populate Kc
+        this->Kmatr->Get_K().block<3, 3>(0, 9) = -R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
+
+        this->Kmatr->Get_K().block<3, 3>(3, 3) = rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W_cross_gamma_f * R_W_F2 * R_B1_W + R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_W_F2 * R_B1_W
+                                                 // stabilization part
+                                                 +R_B1_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B1_W;
+
+        this->Kmatr->Get_K().block<3, 3>(3, 9) = -rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W - R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_W_F2 * R_B2_W 
+                                                 // stabilization part
+                                                 -R_B1_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B2_W;
+
+        this->Kmatr->Get_K().block<3, 3>(6, 9) = R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
+
+        this->Kmatr->Get_K().block<3, 3>(9, 0) = R_F2_W_cross_gamma_f_times_R_B2_F2;
+
+        this->Kmatr->Get_K().block<3, 3>(9, 3) = -R_F2_W_cross_gamma_f_times_R_B2_F2 * R_B1_W * rtilde_F1_B1 
+                                                 // stabilization part
+                                                 -R_B2_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B1_W;
+        
+        this->Kmatr->Get_K().block<3, 3>(9, 6) = -R_F2_W_cross_gamma_f_times_R_B2_F2;
+
+        this->Kmatr->Get_K().block<3, 3>(9, 9) = R_F2_W_cross_gamma_f_times_R_B2_F2 * R_B2_W * ChStarMatrix33<>(r12_B2 + r_F2_B2)
+                                                 // stabilization part
+                                                 + R_B2_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B2_W;
 
         // The complete tangent stiffness matrix
-        this->Kmatr->Get_K() = (Kcm + Kcs) * Kfactor;
+        this->Kmatr->Get_K() *= Kfactor;
     }
 }
 
@@ -705,43 +700,6 @@ void ChLinkMateGeneric::ArchiveIn(ChArchiveIn& marchive) {
     if (c_x_success && c_y_success && c_z_success && c_rx_success && c_ry_success && c_rz_success)
         this->SetConstrainedCoords(c_x, c_y, c_z, c_rx, c_ry, c_rz);  // takes care of mask
 
-
-    // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-
-        // Constraints selection
-        bool _c_SetConstrainedCoords[6];
-        if (marchive.in(CHNVP(_c_SetConstrainedCoords)))
-            this->SetConstrainedCoords(
-                _c_SetConstrainedCoords[0],
-                _c_SetConstrainedCoords[1],
-                _c_SetConstrainedCoords[2],
-                _c_SetConstrainedCoords[3],
-                _c_SetConstrainedCoords[4],
-                _c_SetConstrainedCoords[5]);
-
-        // Initialization
-        std::shared_ptr<ChBodyFrame> _c_Initialize_Body1;
-        std::shared_ptr<ChBodyFrame> _c_Initialize_Body2;
-        bool _c_Initialize_pos_are_relative;
-        ChVector<> _c_Initialize_pt1;
-        ChVector<> _c_Initialize_pt2;
-        ChVector<> _c_Initialize_norm1;
-        ChVector<> _c_Initialize_norm2;
-        if (marchive.in(CHNVP(_c_Initialize_Body1)) &&
-            marchive.in(CHNVP(_c_Initialize_Body2)) &&
-            marchive.in(CHNVP(_c_Initialize_pos_are_relative)) &&
-            marchive.in(CHNVP(_c_Initialize_pt1)) &&
-            marchive.in(CHNVP(_c_Initialize_pt2)) &&
-            marchive.in(CHNVP(_c_Initialize_norm1)) &&
-            marchive.in(CHNVP(_c_Initialize_norm2)) ){
-            this->Initialize(_c_Initialize_Body1, _c_Initialize_Body2, _c_Initialize_pos_are_relative, _c_Initialize_pt1, _c_Initialize_pt2, _c_Initialize_norm1, _c_Initialize_norm2);
-        }
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
     
 }
 
@@ -816,16 +774,8 @@ void ChLinkMatePlane::ArchiveIn(ChArchiveIn& marchive) {
 
     // deserialize all member data:
     marchive >> CHNVP(separation);
+    marchive >> CHNVP(flipped);
 
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -886,16 +836,7 @@ void ChLinkMateCoaxial::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIn(marchive);
 
-    // deserialize all member data:
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
+    marchive >> CHNVP(flipped);
 }
 
 // -----------------------------------------------------------------------------
@@ -937,16 +878,8 @@ void ChLinkMateRevolute::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIn(marchive);
 
-    // deserialize all member data:
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
+    marchive >> CHNVP(flipped);
 
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1007,16 +940,7 @@ void ChLinkMatePrismatic::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIn(marchive);
 
-    // deserialize all member data:
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
+    marchive >> CHNVP(flipped);
 }
 
 // -----------------------------------------------------------------------------
@@ -1082,32 +1006,6 @@ void ChLinkMateXdistance::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize all member data:
     marchive >> CHNVP(distance);
 
-    // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-
-        std::shared_ptr<ChBodyFrame> _c_Initialize_Body1;
-        std::shared_ptr<ChBodyFrame> _c_Initialize_Body2;
-
-        bool _c_Initialize_pos_are_relative;
-        ChVector<> _c_Initialize_pt1;
-        ChVector<> _c_Initialize_pt2;
-        ChVector<> _c_Initialize_norm1; // ATTENTION: this must be missing!
-        ChVector<> _c_Initialize_norm2;
-        if (marchive.in(CHNVP(_c_Initialize_Body1)) &&
-            marchive.in(CHNVP(_c_Initialize_Body2)) &&
-            marchive.in(CHNVP(_c_Initialize_pos_are_relative)) &&
-            marchive.in(CHNVP(_c_Initialize_pt1)) &&
-            marchive.in(CHNVP(_c_Initialize_pt2)) &&
-            !marchive.in(CHNVP(_c_Initialize_norm1)) &&
-            marchive.in(CHNVP(_c_Initialize_norm2)) ){
-            this->Initialize(_c_Initialize_Body1, _c_Initialize_Body2, _c_Initialize_pos_are_relative, _c_Initialize_pt1, _c_Initialize_pt2, _c_Initialize_norm2);
-        }
-
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1169,16 +1067,7 @@ void ChLinkMateParallel::ArchiveIn(ChArchiveIn& marchive) {
     ChLinkMateGeneric::ArchiveIn(marchive);
 
     // deserialize all member data:
-    
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
+    marchive >> CHNVP(flipped);
 }
 
 // -----------------------------------------------------------------------------

@@ -41,7 +41,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 double time_step = 1e-3;
 real diameter = 0.016;
@@ -116,6 +115,9 @@ int main(int argc, char* argv[]) {
     // -------------
 
     ChSystemMulticoreNSC sys;
+
+    // Set associated collision detection system
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     // Set number of threads
     sys.SetNumThreads(8);

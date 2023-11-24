@@ -42,8 +42,8 @@ class ChApi ChLinePoly : public ChLine {
     virtual int Get_complexity() const override { return (int)points.size(); }
     virtual void Set_complexity(int mc) override{};
 
-    /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(ChVector<>& pos, const double parU) const override;
+    /// Return a point on the line, given parametric coordinate U (in [0,1]).
+    virtual ChVector<> Evaluate(double U) const override;
 
     /// Returns curve length. sampling does not matter
     virtual double Length(int sampling) const override;

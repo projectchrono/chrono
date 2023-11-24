@@ -107,13 +107,19 @@ if(ENABLE_IRRKLANG)
 
   message(STATUS "IrrKlang include dir: ${IRRKLANG_INSTALL_DIR}")
   message(STATUS "IrrKlang library:     ${IRRKLANG_LIBRARY}")
+  
+  set(HAVE_IRRKLANG TRUE)
 
 else()
 
   mark_as_advanced(FORCE IRRKLANG_INSTALL_DIR)
   mark_as_advanced(FORCE IRRKLANG_LIBRARY)
 
+  set(HAVE_IRRKLANG FALSE)
+
 endif()
+
+SET(HAVE_IRRKLANG "${HAVE_IRRKLANG}" PARENT_SCOPE)
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
@@ -290,8 +296,8 @@ if(HAVE_OPENCRG)
 endif()
 if(ENABLE_MODULE_FSI)
     set(CV_TERRAIN_FILES ${CV_TERRAIN_FILES}
-        terrain/SPHTerrain.h
-        terrain/SPHTerrain.cpp    
+        terrain/CRMTerrain.h
+        terrain/CRMTerrain.cpp    
     )
 endif()
 source_group("terrain" FILES ${CV_TERRAIN_FILES})
@@ -472,6 +478,10 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChToeBarPushPipeAxle.cpp
     wheeled_vehicle/suspension/ChGenericWheeledSuspension.h
     wheeled_vehicle/suspension/ChGenericWheeledSuspension.cpp
+    wheeled_vehicle/suspension/ChRigidPanhardAxle.cpp
+    wheeled_vehicle/suspension/ChRigidPanhardAxle.h
+    wheeled_vehicle/suspension/ChToeBarRigidPanhardAxle.cpp
+    wheeled_vehicle/suspension/ChToeBarRigidPanhardAxle.h
 
     wheeled_vehicle/suspension/DeDionAxle.h
     wheeled_vehicle/suspension/DeDionAxle.cpp
@@ -517,6 +527,10 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ToeBarPushPipeAxle.cpp
     wheeled_vehicle/suspension/GenericWheeledSuspension.h
     wheeled_vehicle/suspension/GenericWheeledSuspension.cpp
+    wheeled_vehicle/suspension/RigidPanhardAxle.cpp
+    wheeled_vehicle/suspension/RigidPanhardAxle.h
+    wheeled_vehicle/suspension/ToeBarRigidPanhardAxle.cpp
+    wheeled_vehicle/suspension/ToeBarRigidPanhardAxle.h
 )
 source_group("wheeled_vehicle\\suspension" FILES ${CV_WV_SUSPENSION_FILES})
 
@@ -876,7 +890,7 @@ source_group("utils\\stb" FILES ${CV_STB_FILES})
 
 set(CXX_FLAGS ${CH_CXX_FLAGS})
 set(COMPILE_DEFS "CH_API_COMPILE_VEHICLE")
-set(LINK_FLAGS ${CH_LINKERFLAG_SHARED})
+set(LINK_FLAGS ${CH_LINKERFLAG_LIB})
 set(LIBRARIES "ChronoEngine")
 
 if(HDF5_FOUND)
@@ -888,6 +902,7 @@ endif()
 if(HAVE_OPENCRG)
     include_directories(${OpenCRG_INCLUDE_DIR})
     list(APPEND LIBRARIES ${OpenCRG_LIBRARY})
+    set(CHRONO_OPENCRG_INCLUDES "${OpenCRG_INCLUDE_DIR}" PARENT_SCOPE)
 endif()
 
 if(ENABLE_MODULE_FSI)
@@ -895,7 +910,7 @@ if(ENABLE_MODULE_FSI)
   list(APPEND LIBRARIES ChronoEngine_fsi)
 endif()
 
-add_library(ChronoEngine_vehicle SHARED
+add_library(ChronoEngine_vehicle
 #
     ${CV_BASE_FILES}
     ${CV_CHASSIS_FILES}
@@ -938,7 +953,7 @@ message(STATUS "Add ChronoEngine_vehicle library")
 
 set_target_properties(ChronoEngine_vehicle PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
 target_compile_definitions(ChronoEngine_vehicle PRIVATE "CH_API_COMPILE_VEHICLE")
 target_compile_definitions(ChronoEngine_vehicle PRIVATE "CH_IGNORE_DEPRECATED")
@@ -965,7 +980,7 @@ if(ENABLE_MODULE_IRRLICHT)
     list(APPEND LIBRARIES ChronoEngine_vehicle)
     list(APPEND LIBRARIES ChronoEngine_irrlicht) 
 
-    add_library(ChronoEngine_vehicle_irrlicht SHARED
+    add_library(ChronoEngine_vehicle_irrlicht
         ${CVIRR_FILES}
         ${CVIRR_WV_FILES}
         ${CVIRR_TV_FILES}
@@ -975,11 +990,12 @@ if(ENABLE_MODULE_IRRLICHT)
         target_include_directories(ChronoEngine_vehicle_irrlicht PUBLIC ${CH_IRRKLANG_INCLUDES})
         list(APPEND LIBRARIES ${IRRKLANG_LIBRARY})
         set(CH_IRRLICHT_INCLUDES ${CH_IRRLICHT_INCLUDES} ${CH_IRRKLANG_INCLUDES} PARENT_SCOPE)
+        set(CH_IRRKLANG_INCLUDES "${CH_IRRKLANG_INCLUDES}" PARENT_SCOPE)
     endif()
     
     set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES
                           COMPILE_FLAGS "${CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                          LINK_FLAGS "${CH_LINKERFLAG_LIB}")
     
     target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_API_COMPILE_VEHICLE")
     target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
@@ -1003,7 +1019,7 @@ if(ENABLE_MODULE_VSG)
     list(APPEND LIBRARIES ChronoEngine_vehicle)
     list(APPEND LIBRARIES ChronoEngine_vsg) 
     
-    add_library(ChronoEngine_vehicle_vsg SHARED
+    add_library(ChronoEngine_vehicle_vsg
         ${CVVSG_FILES}
         ${CVVSG_WV_FILES}
         ${CVVSG_TV_FILES}
@@ -1011,7 +1027,7 @@ if(ENABLE_MODULE_VSG)
     
     set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES
                           COMPILE_FLAGS "${CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                          LINK_FLAGS "${CH_LINKERFLAG_LIB}")
     
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_API_COMPILE_VEHICLE")
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_IGNORE_DEPRECATED")
@@ -1035,13 +1051,13 @@ if(ENABLE_MODULE_OPENGL)
     list(APPEND LIBRARIES ChronoEngine_vehicle)
     list(APPEND LIBRARIES ChronoEngine_opengl) 
     
-    add_library(ChronoEngine_vehicle_opengl SHARED
+    add_library(ChronoEngine_vehicle_opengl
         ${CVGL_FILES}
     )
     
     set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES
                           COMPILE_FLAGS "${CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                          LINK_FLAGS "${CH_LINKERFLAG_LIB}")
     
     target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE "CH_API_COMPILE_VEHICLE")
     target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE "CH_IGNORE_DEPRECATED")
@@ -1104,5 +1120,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
       install(FILES "${OpenCRG_DLL}" DESTINATION bin)
     endif()
+
+  # Make variable visible from outside this directory
+  SET(CH_IRRKLANG_DLL "${CH_IRRKLANG_DLL}" PARENT_SCOPE)
+  SET(CH_OPENCRG_DLL "${OpenCRG_DLL}" PARENT_SCOPE)
 
 endif()

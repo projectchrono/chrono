@@ -70,13 +70,13 @@ source_group("" FILES ${ChronoEngine_PARDISOPROJECT_HEADERS} ${ChronoEngine_PARD
 # Add the ChronoEngine_pardisoproject library
 # ------------------------------------------------------------------------------
 
-add_library(ChronoEngine_pardisoproject SHARED
+add_library(ChronoEngine_pardisoproject
             ${ChronoEngine_PARDISOPROJECT_SOURCES}
             ${ChronoEngine_PARDISOPROJECT_HEADERS})
 
 set_target_properties(ChronoEngine_pardisoproject PROPERTIES
                       COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_PARDISOPROJECT_LINK_FLAGS}")
+                      LINK_FLAGS "${CH_LINKERFLAG_LIB} ${CH_PARDISOPROJECT_LINK_FLAGS}")
 
 target_compile_definitions(ChronoEngine_pardisoproject PRIVATE "CH_API_COMPILE_PARDISOPROJECT")
 target_compile_definitions(ChronoEngine_pardisoproject PRIVATE "CH_IGNORE_DEPRECATED")

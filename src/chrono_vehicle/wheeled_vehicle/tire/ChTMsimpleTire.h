@@ -31,7 +31,7 @@
 
 #include <vector>
 
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/utils/ChFilters.h"
 

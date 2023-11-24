@@ -27,25 +27,25 @@ from copy import deepcopy
 """ Passing the ChBody as argument and assigning a derivate class won't work in Python, and the reference to  the old body will go lost. 
 Therefore we don't pass the bodies, but instantiate them in the function and pass them"""
 def CreateSliderGuide(material,
-                      msystem,
-                      mpos) :
-    mguide = chrono.ChBodyEasyBox(4, 0.3, 0.6, 1000, True, True, material)
-    mguide.SetPos(mpos)
-    mguide.SetBodyFixed(True)
-    mguide.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
-    msystem.Add(mguide)
+                      system,
+                      pos) :
+    guide = chrono.ChBodyEasyBox(4, 0.3, 0.6, 1000, True, True, material)
+    guide.SetPos(pos)
+    guide.SetBodyFixed(True)
+    guide.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
+    system.Add(guide)
 
-    mslider = chrono.ChBodyEasyBox(0.4, 0.2, 0.5, 1000, True, True, material)
-    mslider.SetPos(mpos + chrono.ChVectorD(0, 0.3, 0))
-    mslider.GetVisualShape(0).SetColor(chrono.ChColor(0.6, 0.6, 0.0))
-    msystem.Add(mslider)
+    slider = chrono.ChBodyEasyBox(0.4, 0.2, 0.5, 1000, True, True, material)
+    slider.SetPos(pos + chrono.ChVectorD(0, 0.3, 0))
+    slider.GetVisualShape(0).SetColor(chrono.ChColor(0.6, 0.6, 0.0))
+    system.Add(slider)
 
     obstacle = chrono.ChBodyEasyBox(0.4, 0.4, 0.4, 8000, True, True, material)
-    obstacle.SetPos(mpos + chrono.ChVectorD(1.5, 0.4, 0))
+    obstacle.SetPos(pos + chrono.ChVectorD(1.5, 0.4, 0))
     obstacle.GetVisualShape(0).SetColor(chrono.ChColor(0.2, 0.2, 0.2))
-    msystem.Add(obstacle)
+    system.Add(obstacle)
 
-    return mguide, mslider
+    return guide, slider
     
 
 
@@ -54,27 +54,28 @@ def CreateSliderGuide(material,
 # (skip this and go to main() for the tutorial)
 
 def CreateStatorRotor(material,
-                      msystem,
-                      mpos) :
-    mstator = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.5, 0.1, 1000, True, True, material)
-    mstator.SetPos(mpos)
-    mstator.SetRot(chrono.Q_from_AngAxis(chrono.CH_C_PI_2, chrono.VECT_X))
-    mstator.SetBodyFixed(True)
-    mstator.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
-    msystem.Add(mstator)
+                      system,
+                      pos) :
+    stator = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.5, 0.1, 1000, True, True, material)
+    stator.SetPos(pos)
+    stator.SetRot(chrono.Q_from_AngAxis(chrono.CH_C_PI_2, chrono.VECT_X))
+    stator.SetBodyFixed(True)
+    stator.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
+    system.Add(stator)
     
 
-    mrotor = chrono.ChBodyEasyBox(1, 0.1, 0.1, 1000, True, True, material)
-    mrotor.SetPos(mpos + chrono.ChVectorD(0.5, 0, -0.15))
-    mrotor.GetVisualShape(0).SetColor(chrono.ChColor(0.6, 0.6, 0.0))
-    msystem.Add(mrotor)
+    rotor = chrono.ChBodyEasyBox(1, 0.1, 0.1, 1000, True, True, material)
+    rotor.SetPos(pos + chrono.ChVectorD(0.5, 0, -0.15))
+    rotor.GetVisualShape(0).SetColor(chrono.ChColor(0.6, 0.6, 0.0))
+    system.Add(rotor)
 
-    return mstator, mrotor
+    return stator, rotor
 
 print("Copyright (c) 2017 projectchrono.org")
 
-# Create a ChronoENGINE physical sys
+# Create a Chrono physical sys
 sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Contact material shared among all objects
 material = chrono.ChMaterialSurfaceNSC()
@@ -664,8 +665,7 @@ my_functsequence.InsertFunct(my_funcsigma1, 0.5, 1.0, True)  # fx, duration, wei
 my_functsequence.InsertFunct(my_funcpause1, 0.2, 1.0, True)  # fx, duration, weight, enforce C0 continuity
 my_functsequence.InsertFunct(my_funcsigma2, 0.3, 1.0, True)  # fx, duration, weight, enforce C0 continuity
 my_functsequence.InsertFunct(my_funcpause2, 0.2, 1.0, True)  # fx, duration, weight, enforce C0 continuity
-my_functangle = chrono.ChFunction_Repeat()
-my_functangle.Set_fa(my_functsequence)
+my_functangle = chrono.ChFunction_Repeat(my_functsequence)
 my_functangle.Set_window_length(0.5 + 0.2 + 0.3 + 0.2)
 my_driveli.SetAngleFunction(my_functangle)
 

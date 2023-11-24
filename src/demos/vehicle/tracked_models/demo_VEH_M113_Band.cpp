@@ -19,6 +19,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -56,7 +57,7 @@ using std::endl;
 // =============================================================================
 
 // Band track type (BAND_BUSHING or BAND_ANCF)
-TrackShoeType shoe_type = TrackShoeType::BAND_ANCF;
+TrackShoeType shoe_type = TrackShoeType::BAND_BUSHING;
 
 // ANCF element type for BAND_ANCF (ANCF_4 or ANCF_8)
 ChTrackShoeBandANCF::ElementType element_type = ChTrackShoeBandANCF::ElementType::ANCF_8;
@@ -69,11 +70,11 @@ int num_elements_width = 1;
 bool constrain_curvature = true;
 
 // Simulation step size and duration
-double step_size = 2.5e-5;
+double step_size = 5e-5;
 double t_end = 10.0;
 
-// Linear solver (MUMPS, PARDISO_MKL, or SPARSE_LU)
-ChSolver::Type solver_type = ChSolver::Type::MUMPS;
+// Linear solver (SPARSE_QR, SPARSE_LU, MUMPS, or PARDISO_MKL)
+ChSolver::Type solver_type = ChSolver::Type::PARDISO_MKL;
 
 // Verbose level
 bool verbose_solver = false;
@@ -122,7 +123,7 @@ int main(int argc, char* argv[]) {
     m113.SetGyrationMode(false);
 
     m113.SetContactMethod(ChContactMethod::SMC);
-    m113.SetCollisionSystemType(collision::ChCollisionSystemType::BULLET);
+    m113.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m113.SetChassisCollisionType(CollisionType::NONE);
     m113.SetChassisFixed(false);
 
@@ -278,7 +279,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup chassis position output with column headers
-    utils::CSV_writer csv("\t");
+    chrono::utils::CSV_writer csv("\t");
     csv.stream().setf(std::ios::scientific | std::ios::showpos);
     csv.stream().precision(6);
     csv << "Time (s)"
@@ -299,21 +300,37 @@ int main(int argc, char* argv[]) {
     // ------------------------------
 
     // Linear solver
-#if !defined(CHRONO_PARDISO_MKL) && !defined(CHRONO_MUMPS)
-    solver_type = ChSolver::Type::SPARSE_LU;
-#endif
 #ifndef CHRONO_PARDISO_MKL
     if (solver_type == ChSolver::Type::PARDISO_MKL)
-        solver_type = ChSolver::Type::MUMPS;
+        solver_type = ChSolver::Type::SPARSE_QR;
 #endif
 #ifndef CHRONO_MUMPS
     if (solver_type == ChSolver::Type::MUMPS)
-        solver_type = ChSolver::Type::PARDISO_MKL;
+        solver_type = ChSolver::Type::SPARSE_QR;
 #endif
 
     switch (solver_type) {
+        case ChSolver::Type::SPARSE_QR: {
+            std::cout << "Using SparseQR solver" << std::endl;
+            auto solver = chrono_types::make_shared<ChSolverSparseQR>();
+            solver->UseSparsityPatternLearner(true);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            sys->SetSolver(solver);
+            break;
+        }
+        case ChSolver::Type::SPARSE_LU: {
+            std::cout << "Using SparseLU solver" << std::endl;
+            auto solver = chrono_types::make_shared<ChSolverSparseLU>();
+            solver->UseSparsityPatternLearner(true);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            sys->SetSolver(solver);
+            break;
+        }
         case ChSolver::Type::MUMPS: {
 #ifdef CHRONO_MUMPS
+            std::cout << "Using MUMPS solver" << std::endl;
             auto solver = chrono_types::make_shared<ChSolverMumps>();
             solver->LockSparsityPattern(true);
             solver->EnableNullPivotDetection(true);
@@ -325,6 +342,7 @@ int main(int argc, char* argv[]) {
         }
         case ChSolver::Type::PARDISO_MKL: {
 #ifdef CHRONO_PARDISO_MKL
+            std::cout << "Using PardisoMKL solver" << std::endl;
             auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
             solver->LockSparsityPattern(true);
             solver->SetVerbose(verbose_solver);
@@ -333,10 +351,8 @@ int main(int argc, char* argv[]) {
             break;
         }
         default: {
-            auto solver = chrono_types::make_shared<ChSolverSparseLU>();
-            solver->LockSparsityPattern(true);
-            solver->SetVerbose(verbose_solver);
-            sys->SetSolver(solver);
+            std::cout << "Solver type not supported." << std::endl;
+            return 1;
             break;
         }
     }
@@ -346,11 +362,9 @@ int main(int argc, char* argv[]) {
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys->GetTimestepper());
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(20);
-    integrator->SetAbsTolerances(1e-4, 1e2);
-    integrator->SetMode(ChTimestepperHHT::ACCELERATION);
+    integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetStepControl(false);
     integrator->SetModifiedNewton(true);
-    integrator->SetScaling(false);
     integrator->SetVerbose(verbose_integrator);
 
     // OpenMP threads
@@ -359,12 +373,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-
-    // Inter-module communication data
-    BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
-    BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
-    TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
-    TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
 
     // Number of steps
     int sim_steps = (int)std::ceil(t_end / step_size);          // total number of simulation steps
@@ -445,15 +453,13 @@ int main(int argc, char* argv[]) {
             vtk_frame++;
         }
 
-        // Collect data from modules
+        // Current driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
-        vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
-        vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process data from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        m113.Synchronize(time, driver_inputs);
 #ifdef USE_IRRLICHT
         vis->Synchronize(time, driver_inputs);
 #endif
@@ -511,15 +517,15 @@ void AddFixedObstacles(ChSystem* system) {
     double radius = 2.2;
     double length = 6;
 
-    auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
+    auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector<>(10, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = chrono_types::make_shared<ChCylinderShape>(radius, length);
-    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
-    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
+    vis_shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
+    obstacle->AddVisualShape(vis_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     // Contact
     auto obst_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -528,9 +534,8 @@ void AddFixedObstacles(ChSystem* system) {
     obst_mat->SetYoungModulus(2e7f);
     obst_mat->SetPoissonRatio(0.3f);
 
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
-    obstacle->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
+    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     system->AddBody(obstacle);
 }
@@ -552,7 +557,7 @@ void WriteMeshVTK(int frame, std::shared_ptr<fea::ChMesh> meshL, std::shared_ptr
 
 void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
     {
-        utils::CSV_writer csv(",");
+        chrono::utils::CSV_writer csv(",");
         auto num_shoes_L = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetNumTrackShoes();
         auto num_shoes_R = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetNumTrackShoes();
         for (size_t i = 0; i < num_shoes_L; i++) {
@@ -567,7 +572,7 @@ void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
     }
 
     {
-        utils::CSV_writer csv(",");
+        chrono::utils::CSV_writer csv(",");
         auto num_wheels_L = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetNumTrackSuspensions();
         auto num_wheels_R = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetNumTrackSuspensions();
         for (size_t i = 0; i < num_wheels_L; i++) {
@@ -582,7 +587,7 @@ void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
     }
 
     {
-        utils::CSV_writer csv(",");
+        chrono::utils::CSV_writer csv(",");
         const auto& idlerL = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetIdler()->GetIdlerWheel()->GetBody();
         const auto& idlerR = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetIdler()->GetIdlerWheel()->GetBody();
         csv << idlerL->GetPos() << idlerL->GetRot() << idlerL->GetPos_dt() << idlerL->GetWvel_loc() << endl;
@@ -591,7 +596,7 @@ void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
     }
 
     {
-        utils::CSV_writer csv(",");
+        chrono::utils::CSV_writer csv(",");
         const auto& gearL = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetSprocket()->GetGearBody();
         const auto& gearR = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetSprocket()->GetGearBody();
         csv << gearL->GetPos() << gearL->GetRot() << gearL->GetPos_dt() << gearL->GetWvel_loc() << endl;
@@ -601,7 +606,7 @@ void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
     }
 
     {
-        utils::CSV_writer csv(",");
+        chrono::utils::CSV_writer csv(",");
         auto chassis = vehicle.GetChassisBody();
         csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPos_dt() << chassis->GetWvel_loc() << endl;
         csv.write_to_file(vtk_dir + "/chassis." + std::to_string(frame) + ".vtk",

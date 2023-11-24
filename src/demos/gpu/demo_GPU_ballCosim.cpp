@@ -29,7 +29,7 @@
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
@@ -71,11 +71,11 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     double inertia = 2.0 / 5.0 * ball_mass * ball_radius * ball_radius;
     ChVector<> ball_initial_pos(0, 0, params.box_Z / 4.0 + ball_radius + 2 * params.sphere_radius);
 
-    std::shared_ptr<ChBody> ball_body(sys_ball.NewBody());
+    auto ball_body = chrono_types::make_shared<ChBody>();
     ball_body->SetMass(ball_mass);
     ball_body->SetInertiaXX(ChVector<>(inertia, inertia, inertia));
     ball_body->SetPos(ball_initial_pos);
-    auto sph = chrono_types::make_shared<ChSphereShape>(ball_radius);
+    auto sph = chrono_types::make_shared<ChVisualShapeSphere>(ball_radius);
     ball_body->AddVisualShape(sph);
     sys_ball.AddBody(ball_body);
 

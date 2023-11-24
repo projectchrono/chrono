@@ -52,7 +52,7 @@ class CH_MODELS_API CityBus_TMeasyTire : public ChTMeasyTire {
     static const double m_mass;
     static const ChVector<> m_inertia;
 
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
     ChFunction_Recorder m_stiffnessMap;
 };
 

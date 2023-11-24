@@ -85,6 +85,7 @@ collision_envelope = .001
 # -----------------
 
 sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 sys.Set_G_acc(chrono.ChVectorD(0, -10, 0))
 
 # Set solver settings
@@ -110,10 +111,8 @@ container.SetBodyFixed(True)
 container.SetIdentifier(-1)
 
 container.SetCollide(True)
-container.GetCollisionModel().SetEnvelope(collision_envelope)
-container.GetCollisionModel().ClearModel()
 chrono.AddBoxGeometry(container, material, chrono.ChVectorD(8, 1, 8), chrono.ChVectorD(0, -0.5, 0))
-container.GetCollisionModel().BuildModel()
+container.GetCollisionModel().SetEnvelope(collision_envelope)
 
 container.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
 
@@ -124,26 +123,22 @@ box1.SetPos(chrono.ChVectorD(-1, 0.21, -1))
 box1.SetPos_dt(chrono.ChVectorD(5, 0, 0))
 
 box1.SetCollide(True)
-box1.GetCollisionModel().SetEnvelope(collision_envelope)
-box1.GetCollisionModel().ClearModel()
 chrono.AddBoxGeometry(box1, material, chrono.ChVectorD(0.4, 0.2, 0.1))
-box1.GetCollisionModel().BuildModel()
+box1.GetCollisionModel().SetEnvelope(collision_envelope)
 
 box1.GetVisualShape(0).SetColor(chrono.ChColor(0.1, 0.1, 0.4))
 
 sys.AddBody(box1)
 
-box2 = chrono.ChBody(sys.NewBody())
+box2 = chrono.ChBody()
 box2.SetMass(10)
 box2.SetInertiaXX(chrono.ChVectorD(1, 1, 1))
 box2.SetPos(chrono.ChVectorD(-1, 0.21, +1))
 box2.SetPos_dt(chrono.ChVectorD(5, 0, 0))
 
 box2.SetCollide(True)
-box2.GetCollisionModel().SetEnvelope(collision_envelope)
-box2.GetCollisionModel().ClearModel()
 chrono.AddBoxGeometry(box2, material, chrono.ChVectorD(0.4, 0.2, 0.1))
-box2.GetCollisionModel().BuildModel()
+box2.GetCollisionModel().SetEnvelope(collision_envelope)
 
 box2.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.1, 0.1))
 

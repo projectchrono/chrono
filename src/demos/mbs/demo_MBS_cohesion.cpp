@@ -26,7 +26,6 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
@@ -198,8 +197,9 @@ void create_some_falling_items(ChSystemNSC& sys) {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a ChronoENGINE physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create all the rigid bodies.
 
@@ -232,8 +232,7 @@ int main(int argc, char* argv[]) {
 
     class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
-        virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
-                                  ChMaterialComposite* const material) override {
+        virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
             auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
 

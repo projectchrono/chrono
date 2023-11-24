@@ -284,6 +284,24 @@ class ChFunctorArchiveInSpecificPtr : public ChFunctorArchiveIn {
     // }
 };
 
+
+enum class ChCausalityType{
+    parameter,
+    calculatedParameter,
+    input,
+    output,
+    local,
+    independent
+};
+
+enum class ChVariabilityType{
+    constant,
+    fixed,
+    tunable,
+    discrete,
+    continuous
+};
+
 ///
 /// This is a base class for name-value pairs
 ///
@@ -291,13 +309,15 @@ class ChFunctorArchiveInSpecificPtr : public ChFunctorArchiveIn {
 template <class T>
 class ChNameValue {
   public:
-    ChNameValue(const char* mname, const T& mvalue, char mflags = 0)
-        : _name(mname), _value((T*)(&mvalue)), _flags((char)mflags) {}
+    ChNameValue(const char* mname, const T& mvalue, char mflags = 0, ChCausalityType causality = ChCausalityType::local, ChVariabilityType variability = ChVariabilityType::continuous)
+        : _name(mname), _value((T*)(&mvalue)), _flags((char)mflags), _causality(causality), _variability(variability) {}
 
     ChNameValue(const ChNameValue<T>& other) {
         _name = other._name;
         _value = other._value;
         _flags = other._flags;
+        _causality = other._causality;
+        _variability = other._variability;
     }
 
     ~ChNameValue(){};
@@ -305,6 +325,8 @@ class ChNameValue {
     const char* name() const { return this->_name; }
 
     char& flags() { return this->_flags; }
+    const ChCausalityType& GetCausality() const { return this->_causality; }
+    const ChVariabilityType& GetVariability() const { return this->_variability; }
 
     T& value() const { return *(this->_value); }
 
@@ -314,6 +336,8 @@ class ChNameValue {
     const char* _name;
     T* _value;
     char _flags;
+    ChCausalityType _causality;
+    ChVariabilityType _variability;
 };
 
 // Flag to mark a ChNameValue for a C++ object serialized by value but that
@@ -321,16 +345,16 @@ class ChNameValue {
 static const char NVP_TRACK_OBJECT = (1 << 0);
 
 template <class T>
-ChNameValue<T> make_ChNameValue(const char* auto_name, const T& t, const char* custom_name, char flags = 0) {
+ChNameValue<T> make_ChNameValue(const char* auto_name, const T& t, const char* custom_name, char flags = 0, ChCausalityType causality = ChCausalityType::local, ChVariabilityType variability = ChVariabilityType::continuous) {
     const char* mname = auto_name;
     if (custom_name)
         mname = custom_name;
-    return ChNameValue<T>(mname, t, flags);
+    return ChNameValue<T>(mname, t, flags, causality, variability);
 }
 template <class T>
-ChNameValue<T> make_ChNameValue(const char* auto_name, const T& t, char flags = 0) {
+ChNameValue<T> make_ChNameValue(const char* auto_name, const T& t, char flags = 0, ChCausalityType causality = ChCausalityType::local, ChVariabilityType variability = ChVariabilityType::continuous) {
     const char* mname = auto_name;
-    return ChNameValue<T>(mname, t, flags);
+    return ChNameValue<T>(mname, t, flags, causality, variability);
 }
 
 /// Macros to create ChNameValue objects easier
@@ -408,6 +432,11 @@ class ChValue {
 
     /// Get flags of property
     char& flags() { return this->_flags; }
+    /// Get causality attribute
+    const ChCausalityType& GetCausality() const { return this->_causality; }
+
+    /// Get variability attribute
+    const ChVariabilityType& GetVariability() const { return this->_variability; }
 
     //
     // Casting:
@@ -455,6 +484,8 @@ class ChValue {
     // const char* _name;
     std::string _name;
     char _flags;
+    ChCausalityType _causality;
+    ChVariabilityType _variability;
 };
 
 template <class TClass>
@@ -463,19 +494,24 @@ class ChValueSpecific : public ChValue {
     TClass* _ptr_to_val;  // pointer to value
   public:
     // constructor
-    ChValueSpecific(TClass& mvalp, const char* mname, char flags) {
+    ChValueSpecific(TClass& mvalp, const char* mname, char flags, ChCausalityType causality = ChCausalityType::local, ChVariabilityType variability = ChVariabilityType::continuous) {
         _ptr_to_val = (TClass*)(&mvalp);
         _name = mname;
         _flags = flags;
-    };
-    // constructor
-    ChValueSpecific(ChNameValue<TClass> mVal) {
-        _ptr_to_val = mVal.value();
-        _name = mVal.name();
-        _flags = mVal.flags();
+        _causality = causality;
+        _variability = variability;
     };
 
-    virtual ChValue* new_clone() { return new ChValueSpecific<TClass>(*_ptr_to_val, _name.c_str(), _flags); }
+    // copy constructor
+    ChValueSpecific(ChNameValue<TClass> mval) {
+        _ptr_to_val = mval.value();
+        _name = mval.name();
+        _flags = mval.flags();
+        _causality = mval.GetCausality();
+        _variability = mval.GetVariability();
+    };
+
+    virtual ChValue* new_clone() { return new ChValueSpecific<TClass>(*_ptr_to_val, _name.c_str(), _flags, _causality, _variability); }
 
     virtual std::string& GetClassRegisteredName() {
         static std::string nostring("");
@@ -852,6 +888,17 @@ class ChArchiveOut : public ChArchive {
     virtual void out(ChNameValue<unsigned long long> bVal) = 0;
     virtual void out(ChNameValue<ChEnumMapperBase> bVal) = 0;
 
+    // handling methods (only for in-memory dump)
+    virtual void out(ChNameValue<std::function<bool(void)>> bVal) const {}
+    virtual void out(ChNameValue<std::function<int(void)>> bVal) const {}
+    virtual void out(ChNameValue<std::function<double(void)>> bVal) const {}
+    virtual void out(ChNameValue<std::function<float(void)>> bVal) const {}
+    virtual void out(ChNameValue<std::function<char(void)>> bVal) const {}
+    virtual void out(ChNameValue<std::function<unsigned int(void)>> bVal) const {}
+    virtual void out(ChNameValue<std::function<std::string(void)>> bVal) const {}
+    virtual void out(ChNameValue<std::function<unsigned long(void)>> bVal) const {}
+    virtual void out(ChNameValue<std::function<unsigned long long(void)>> bVal) const {}
+
     // for custom C++ objects - see 'wrapping' trick below
     virtual void out(ChValue& bVal, bool tracked, size_t obj_ID) = 0;
 
@@ -868,7 +915,7 @@ class ChArchiveOut : public ChArchive {
     // trick to wrap enum mappers:
     template <class T>
     void out(ChNameValue<ChEnumMapper<T>> bVal) {
-        ChNameValue<ChEnumMapperBase> tmpnv(bVal.name(), bVal.value(), bVal.flags());
+        ChNameValue<ChEnumMapperBase> tmpnv(bVal.name(), bVal.value(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability());
         this->out(tmpnv);
     }
 
@@ -876,7 +923,7 @@ class ChArchiveOut : public ChArchive {
     template <class T, size_t N>
     void out(ChNameValue<T[N]> bVal) {
         size_t arraysize = sizeof(bVal.value()) / sizeof(T);
-        ChValueSpecific<T[N]> specVal(bVal.value(), bVal.name(), bVal.flags());
+        ChValueSpecific<T[N]> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability());
         this->out_array_pre(specVal, arraysize);
         for (size_t i = 0; i < arraysize; ++i) {
             char buffer[20];
@@ -891,7 +938,7 @@ class ChArchiveOut : public ChArchive {
     // trick to wrap std::vector container
     template <class T>
     void out(ChNameValue<std::vector<T>> bVal) {
-        ChValueSpecific<std::vector<T>> specVal(bVal.value(), bVal.name(), bVal.flags());
+        ChValueSpecific<std::vector<T>> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability());
         this->out_array_pre(specVal, bVal.value().size());
         for (size_t i = 0; i < bVal.value().size(); ++i) {
             char buffer[20];
@@ -905,7 +952,7 @@ class ChArchiveOut : public ChArchive {
     // trick to wrap std::list container
     template <class T>
     void out(ChNameValue<std::list<T>> bVal) {
-        ChValueSpecific<std::list<T>> specVal(bVal.value(), bVal.name(), bVal.flags());
+        ChValueSpecific<std::list<T>> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability());
         this->out_array_pre(specVal, bVal.value().size());
         typename std::list<T>::iterator iter;
         size_t i = 0;
@@ -928,7 +975,7 @@ class ChArchiveOut : public ChArchive {
     // trick to wrap std::unordered_map container
     template <class T, class Tv>
     void out(ChNameValue<std::unordered_map<T, Tv>> bVal) {
-        ChValueSpecific<std::unordered_map<T, Tv>> specVal(bVal.value(), bVal.name(), bVal.flags());
+        ChValueSpecific<std::unordered_map<T, Tv>> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability());
         this->out_array_pre(specVal, bVal.value().size());
         int i = 0;
         for (auto it = bVal.value().begin(); it != bVal.value().end(); ++it) {
@@ -961,8 +1008,7 @@ class ChArchiveOut : public ChArchive {
             PutPointer(idptr, already_stored, obj_ID);
         }
         ChValueSpecific<T> specVal(
-            *mptr, bVal.name(),
-            bVal.flags());  // TODO: mptr might be null if cut_all_pointers; double check if it is ok
+            *mptr, bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability());  // TODO: mptr might be null if cut_all_pointers; double check if it is ok
         this->out_ref(specVal, already_stored, obj_ID,
                       ext_ID);  // note, this class name is not platform independent
     }
@@ -986,7 +1032,7 @@ class ChArchiveOut : public ChArchive {
         } else {
             PutPointer(idptr, already_stored, obj_ID);
         }
-        ChValueSpecific<T> specVal(*mptr, bVal.name(), bVal.flags());
+        ChValueSpecific<T> specVal(*mptr, bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability());
         this->out_ref(specVal, already_stored, obj_ID,
                       ext_ID);  // note, this class name is not platform independent
     }
@@ -1007,7 +1053,7 @@ class ChArchiveOut : public ChArchive {
             }
             tracked = true;
         }
-        ChValueSpecific<T> specVal(bVal.value(), bVal.name(), bVal.flags());
+        ChValueSpecific<T> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability());
         this->out(specVal, tracked, obj_ID);
     }
 
@@ -1157,7 +1203,7 @@ class ChArchiveIn : public ChArchive {
     // trick to wrap enum mappers:
     template <class T>
     bool in(ChNameValue<ChEnumMapper<T>> bVal) {
-        ChNameValue<ChEnumMapperBase> tmpnv(bVal.name(), bVal.value(), bVal.flags());
+        ChNameValue<ChEnumMapperBase> tmpnv(bVal.name(), bVal.value(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability());
         return this->in(tmpnv);
     }
 
@@ -1257,7 +1303,7 @@ class ChArchiveIn : public ChArchive {
     bool in(ChNameValue<std::shared_ptr<T>> bVal) {
         T* mptr;
         ChFunctorArchiveInSpecificPtr<T> specFuncA(&mptr);
-        ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
+        ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags(), bVal.GetCausality(), bVal.GetVariability());
         void* newptr;
         std::string true_classname;
         bool success = this->in_ref(mtmp, &newptr, true_classname);
@@ -1311,14 +1357,14 @@ class ChArchiveIn : public ChArchive {
         ChFunctorArchiveInSpecificPtr<T> specFuncA(&bVal.value());
         void* newptr;
         std::string true_classname;
-        return this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()), &newptr, true_classname);
+        return this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags(), bVal.GetCausality(), bVal.GetVariability()), &newptr, true_classname);
     }
 
     // trick to apply 'virtual in..' on C++ objects that has a function "ArchiveIn":
     template <class T>
     bool in(ChNameValue<T> bVal) {
         ChFunctorArchiveInSpecific<T> specFuncA(&bVal.value());
-        return this->in(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()));
+        return this->in(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags(), bVal.GetCausality(), bVal.GetVariability()));
     }
 
     /// Operator to allow easy serialization as   myarchive << mydata;

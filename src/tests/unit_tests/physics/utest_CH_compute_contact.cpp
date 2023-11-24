@@ -103,6 +103,8 @@ ContactForceTest::ContactForceTest() {
         }
     }
 
+    system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     double gravity = -9.81;
     system->Set_G_acc(ChVector<>(0, 0, gravity));
 
@@ -120,7 +122,7 @@ ContactForceTest::ContactForceTest() {
 
     int ballId = 1;
     for (unsigned int i = 0; i < num_balls; i++) {
-        auto ball = std::shared_ptr<ChBody>(system->NewBody());
+        auto ball = chrono_types::make_shared<ChBody>();
 
         ball->SetIdentifier(ballId++);
         ball->SetMass(mass);
@@ -132,9 +134,8 @@ ContactForceTest::ContactForceTest() {
         ball->SetCollide(true);
         ball->SetBodyFixed(false);
 
-        ball->GetCollisionModel()->ClearModel();
-        ball->GetCollisionModel()->AddSphere(material, radius);
-        ball->GetCollisionModel()->BuildModel();
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
+        ball->AddCollisionShape(ct_shape);
 
         system->AddBody(ball);
         balls[i] = ball;
@@ -171,7 +172,6 @@ ContactForceTest::ContactForceTest() {
         integrator->SetAlpha(0.0);
         integrator->SetMaxiters(100);
         integrator->SetAbsTolerances(1e-08);
-        integrator->SetScaling(false);
     } else {
         std::cout << "Using default integrator." << std::endl;
     }

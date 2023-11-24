@@ -17,8 +17,9 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #ifdef CHRONO_COLLISION
-    #include "chrono/collision/ChCollisionSystemChrono.h"
+    #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChBlender.h"
@@ -111,18 +112,26 @@ int main(int argc, char* argv[]) {
     ChVector<> tire_center(0, 0.02 + tire_rad, -1.5);
 
     // Create a Chrono::Engine physical system
-    auto collsys_type = collision::ChCollisionSystemType::BULLET;
+    auto collsys_type = ChCollisionSystem::Type::BULLET;
     ChSystemSMC sys;
     sys.SetNumThreads(4, 8, 1);
-    if (collsys_type == collision::ChCollisionSystemType::CHRONO) {
+    switch (collsys_type) {
+        case ChCollisionSystem::Type::BULLET: {
+            auto collsys = chrono_types::make_shared<ChCollisionSystemBullet>();
+            sys.SetCollisionSystem(collsys);
+            break;
+        }
+        case ChCollisionSystem::Type::MULTICORE: {
 #ifdef CHRONO_COLLISION
-        auto collsys = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
-        collsys->SetBroadphaseGridResolution(ChVector<int>(20, 20, 10));
-        sys.SetCollisionSystem(collsys);
+            auto collsys = chrono_types::make_shared<ChCollisionSystemMulticore>();
+            collsys->SetBroadphaseGridResolution(ChVector<int>(20, 20, 10));
+            sys.SetCollisionSystem(collsys);
 #endif
+            break;
+        }
     }
 
-    auto mtruss = chrono_types::make_shared<ChBody>(collsys_type);
+    auto mtruss = chrono_types::make_shared<ChBody>();
     mtruss->SetBodyFixed(true);
     sys.Add(mtruss);
 
@@ -139,48 +148,46 @@ int main(int argc, char* argv[]) {
     // Create a rigid body with a mesh or a cylinder collision shape
     //
 
-    auto mrigidbody = chrono_types::make_shared<ChBody>(collsys_type);
-    sys.Add(mrigidbody);
-    mrigidbody->SetMass(500);
-    mrigidbody->SetInertiaXX(ChVector<>(20, 20, 20));
-    mrigidbody->SetPos(tire_center + ChVector<>(0, 0.3, 0));
+    auto wheel = chrono_types::make_shared<ChBody>();
+    sys.Add(wheel);
+    wheel->SetMass(500);
+    wheel->SetInertiaXX(ChVector<>(20, 20, 20));
+    wheel->SetPos(tire_center + ChVector<>(0, 0.3, 0));
 
     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-    mrigidbody->GetCollisionModel()->ClearModel();
     switch (tire_type) {
         case TireType::LUGGED: {
             auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
                 GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
-            std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
-            mrigidmesh->SetMesh(trimesh);
-            mrigidmesh->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-            mrigidbody->AddVisualShape(mrigidmesh);
+            auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+            vis_shape->SetMesh(trimesh);
+            vis_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
+            wheel->AddVisualShape(vis_shape);
 
-            mrigidbody->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, VNULL, ChMatrix33<>(1),
-                                                             0.01);
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, trimesh, false, false, 0.01);
+            wheel->AddCollisionShape(ct_shape, ChFrame<>(VNULL, ChMatrix33<>(1)));
             break;
         }
         case TireType::CYLINDRICAL: {
             double radius = 0.5;
             double width = 0.4;
-            mrigidbody->GetCollisionModel()->AddCylinder(material, radius, width, ChVector<>(0),
-                                                         Q_from_AngY(CH_C_PI_2));
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(material, radius, width);
+            wheel->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0), Q_from_AngY(CH_C_PI_2)));
 
-            auto cyl_shape = chrono_types::make_shared<ChCylinderShape>(radius, width);
-            cyl_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-            mrigidbody->AddVisualShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+            auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, width);
+            vis_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
+            wheel->AddVisualShape(vis_shape, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
 
             break;
         }
     }
-    mrigidbody->GetCollisionModel()->BuildModel();
-    mrigidbody->SetCollide(true);
+    wheel->SetCollide(true);
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
     motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
-    motor->Initialize(mrigidbody, mtruss, ChFrame<>(tire_center, Q_from_AngY(CH_C_PI_2)));
+    motor->Initialize(wheel, mtruss, ChFrame<>(tire_center, Q_from_AngY(CH_C_PI_2)));
     sys.Add(motor);
 
     //
@@ -248,7 +255,7 @@ int main(int argc, char* argv[]) {
 
     // Optionally, enable moving patch feature (reduces number of ray casts)
     if (enable_moving_patch) {
-        mterrain.AddMovingPatch(mrigidbody, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * tire_rad, 2 * tire_rad));
+        mterrain.AddMovingPatch(wheel, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * tire_rad, 2 * tire_rad));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
@@ -334,10 +341,8 @@ int main(int argc, char* argv[]) {
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
         integrator->SetAlpha(-0.2);
         integrator->SetMaxiters(8);
-        integrator->SetAbsTolerances(1e-05, 1.8e00);
-        integrator->SetMode(ChTimestepperHHT::POSITION);
+        integrator->SetAbsTolerances(1e-1, 10);
         integrator->SetModifiedNewton(true);
-        integrator->SetScaling(true);
         integrator->SetVerbose(true);
     */
     /*
@@ -349,7 +354,7 @@ int main(int argc, char* argv[]) {
         if (output) {
             ChVector<> force;
             ChVector<> torque;
-            mterrain.GetContactForceBody(mrigidbody, force, torque);
+            mterrain.GetContactForceBody(wheel, force, torque);
             csv << time << force << torque << std::endl;
         }
 
@@ -360,11 +365,11 @@ int main(int argc, char* argv[]) {
 #endif
 
         ////std::cout << "\nTime: " << time << std::endl;
-        ////std::cout << "Wheel pos: " << mrigidbody->GetPos() << std::endl;
-        ////std::cout << "Wheel rot: " << mrigidbody->GetRot() << std::endl;
+        ////std::cout << "Wheel pos: " << wheel->GetPos() << std::endl;
+        ////std::cout << "Wheel rot: " << wheel->GetRot() << std::endl;
 
         vis->BeginScene();
-        vis->SetCameraTarget(mrigidbody->GetPos());
+        vis->SetCameraTarget(wheel->GetPos());
         vis->Render();
         ////tools::drawColorbar(vis.get(), 0, 30000, "Pressure yield [Pa]", 1180);
         vis->EndScene();

@@ -35,15 +35,14 @@ namespace chrono {
 ///
 ///    p= f(s)
 ///
-/// where p is a 3D vector (ex. a position) and s is a scalar (ex. time) 
+/// where p is a 3D vector (ex. a position) and s is a scalar (ex. time)
 /// Classes inherited from ChFunctionPosition are often
 /// used to set time-dependent positions, for example to set
-/// the imposed trajectory of a rigid body in space. 
-/// Inherited classes must override at least the Get_p() method, 
+/// the imposed trajectory of a rigid body in space.
+/// Inherited classes must override at least the Get_p() method,
 /// in order to represent more complex functions.
 
 class ChApi ChFunctionPosition {
-
   public:
     ChFunctionPosition() {}
     ChFunctionPosition(const ChFunctionPosition& other) {}
@@ -70,7 +69,9 @@ class ChApi ChFunctionPosition {
     /// because this base method already provide a general-purpose numerical differentiation
     /// to get ddp/dsds only from the Get_p() function. (however, if the analytical derivative
     /// is known, it may be better to implement a custom method).
-    virtual ChVector<> Get_p_dsds(double s) const { return ((Get_p_ds(s + BDF_STEP_LOW) - Get_p_ds(s)) / BDF_STEP_LOW); };
+    virtual ChVector<> Get_p_dsds(double s) const {
+        return ((Get_p_ds(s + BDF_STEP_LOW) - Get_p_ds(s)) / BDF_STEP_LOW);
+    };
 
     /// Return an estimate of the domain of the function argument.
     /// (ex. can be used for automatic zooming in a GUI, or for computing the bounding box)
@@ -79,22 +80,19 @@ class ChApi ChFunctionPosition {
         smax = 1.0;
     }
 
-    /// Return an estimate of the range of the function value. By default it samples the function N times, 
-	/// but children classes migh implement a more efficient closed form solution.
+    /// Return an estimate of the range of the function value. By default it samples the function N times,
+    /// but children classes migh implement a more efficient closed form solution.
     /// (ex. can be used for automatic zooming in a GUI)
     virtual void Estimate_boundingbox(ChVector<>& pmin, ChVector<>& pmax) const;
 
-
     /// Update could be implemented by children classes, ex. to launch callbacks
-    virtual void Update(const double t) {}
+    virtual void Update(double t) {}
 
-   
     /// Method to allow serialization of transient data to archives
     virtual void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive);
-
 };
 
 /// @} chrono_functions

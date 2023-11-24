@@ -52,28 +52,22 @@ class ChApi ChLineBspline : public ChLine {
 
     virtual int Get_complexity() const override { return (int)points.size(); }
 
-    /// Evaluates a point on the line, given parametric coordinate U.
-    /// Parameter U always work in 0..1 range, even if knots are not in 0..1 range.
-    /// So if you want to use u' in knot range, use ComputeUfromKnotU().
-    /// Computed value goes into the 'pos' reference.
-    /// It must be implemented by inherited classes.
-    virtual void Evaluate(ChVector<>& pos, const double parU) const override;
+    /// Return a point on the line, given parametric coordinate U (in [0,1]).
+    virtual ChVector<> Evaluate(double U) const override;
 
-    /// Evaluates a tangent versor, given parametric coordinate.
-    /// Parameter U always work in 0..1 range.
-    /// Computed value goes into the 'pos' reference.
-    virtual void Derive(ChVector<>& dir, const double parU) const override;
+    /// Return the tangent unit vector at the parametric coordinate U (in [0,1]).
+    virtual ChVector<> GetTangent(double parU) const override;
 
     // Bspline specific functions
 
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert u->U,
     /// where u is in knot range, calling this:
-    double ComputeUfromKnotU(const double u) const { return (u - knots(p)) / (knots(knots.size() - 1 - p) - knots(p)); }
+    double ComputeUfromKnotU(double u) const { return (u - knots(p)) / (knots(knots.size() - 1 - p) - knots(p)); }
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert U->u,
     /// where u is in knot range, calling this:
-    double ComputeKnotUfromU(const double U) const { return U * (knots(knots.size() - 1 - p) - knots(p)) + knots(p); }
+    double ComputeKnotUfromU(double U) const { return U * (knots(knots.size() - 1 - p) - knots(p)) + knots(p); }
 
     /// Access the points
     std::vector<ChVector<> >& Points() { return points; }
@@ -93,7 +87,7 @@ class ChApi ChLineBspline : public ChLine {
     );
 
     /// Set as closed spline: start and end will overlap at 0 and 1 abscyssa as p(0)=p(1),
-    /// and the Evaluate() and Derive() functions will operate in periodic way (abscyssa
+    /// and the Evaluate() and GetTangent() functions will operate in periodic way (abscyssa
     /// greater than 1 or smaller than 0 will wrap to 0..1 range).
     /// The closure will change the knot vector (multiple start end knots will be lost) and
     /// will create auxiliary p control points at the end that will be wrapped to the beginning control point.

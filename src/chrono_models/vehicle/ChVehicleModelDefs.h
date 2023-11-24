@@ -63,8 +63,8 @@ namespace marder {}
 /// Namespace for the MROLE multi-purpose wheeled vehicle model
 namespace mrole {}
 
-/// Namespace for the rccar vehicle model
-namespace rccar {}
+/// Namespace for the artcar vehicle model
+namespace artcar {}
 
 /// Namespace for the Gator vehicle model
 namespace gator {}
@@ -72,11 +72,20 @@ namespace gator {}
 /// Namespace for the FMTV vehicle models
 namespace fmtv {}
 
-/// namespace for the RCCar vehicle model
-namespace rccar {}
+/// namespace for the ARTcar vehicle model
+namespace artcar {}
 
 /// namespace for the Kraz truck vehicle model
 namespace kraz {}
+
+/// namespace for the Mercedes G500 vehicle model
+namespace gclass {}
+
+/// namespace for the Duro vehicle model
+namespace duro {}
+
+/// namespace for the Unimog 401 vehicle model
+namespace unimog {}
 
 /// @} vehicle_models
 

@@ -29,8 +29,8 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChRigidPinnedAxle.h"
 
@@ -78,7 +78,7 @@ void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create the rigid axle and its connection to the chassis
     ChVector<> axleCOM = suspension_to_abs.TransformLocalToParent(getAxleTubeCOM());
-    m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -110,7 +110,7 @@ void ChRigidPinnedAxle::InitializeSide(VehicleSide side,
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);

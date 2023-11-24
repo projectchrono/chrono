@@ -49,7 +49,7 @@ ChSurfaceNurbs::ChSurfaceNurbs(const ChSurfaceNurbs& source) : ChSurface(source)
     this->weights = source.weights;
 }
 
-void ChSurfaceNurbs::Evaluate(ChVector<>& pos, const double parU, const double parV) const {
+ChVector<> ChSurfaceNurbs::Evaluate(double parU, double parV) const {
     double u = ComputeKnotUfromU(parU);
     double v = ComputeKnotVfromV(parV);
 
@@ -59,7 +59,7 @@ void ChSurfaceNurbs::Evaluate(ChVector<>& pos, const double parU, const double p
     int spanU = ChBasisToolsBspline::FindSpan(p_u, u, knots_u);
     int spanV = ChBasisToolsBspline::FindSpan(p_v, v, knots_v);
 
-    pos = VNULL;
+    ChVector<> pos = VNULL;
     int uind = spanU - p_u;
     int vind = spanV - p_v;
     for (int iu = 0; iu <= this->p_u; iu++) {
@@ -67,6 +67,8 @@ void ChSurfaceNurbs::Evaluate(ChVector<>& pos, const double parU, const double p
             pos += points(uind + iu, vind + iv) * mR(iu, iv);
         }
     }
+
+    return pos;
 }
 
 void ChSurfaceNurbs::SetupData(

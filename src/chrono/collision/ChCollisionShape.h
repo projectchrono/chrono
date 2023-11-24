@@ -19,7 +19,6 @@
 #include "chrono/physics/ChMaterialSurface.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup chrono_collision
 /// @{
@@ -35,29 +34,36 @@ class ChApi ChCollisionShape {
         CYLINDER,
         CYLSHELL,
         CONVEXHULL,
-        TRIANGLEMESH,
-        BARREL,
+        TRIANGLEMESH,  // triangle mesh (compound object)
+        BARREL,        // Not supported in Chrono collision system
         POINT,
-        TRIANGLE,
+        TRIANGLE,      // stand-alone collision triangle
+        MESHTRIANGLE,  // triangle in a connected mesh
         CAPSULE,
-        CONE,         // Currently implemented in parallel only
-        ROUNDEDBOX,   // Currently implemented in parallel only
-        ROUNDEDCYL,   // Currently implemented in parallel only
-        CONVEX,       // Currently implemented in parallel only
-        TETRAHEDRON,  // Currently implemented in parallel only
-        PATH2D,
+        CONE,         // Not implemented in Bullet collision system
+        ROUNDEDBOX,   // Not implemented in Bullet collision system
+        ROUNDEDCYL,   // Not implemented in Bullet collision system
+        TETRAHEDRON,  // Not implemented in Bullet collision system
+        PATH2D,       // 2D path (compound object)
+        SEGMENT2D,    // line segment (part of a 2D path)
+        ARC2D,        // circlular arc (part of a 2D path)
         UNKNOWN_SHAPE
     };
 
-    ChCollisionShape();
-    ChCollisionShape(
-        Type type,
-        std::shared_ptr<ChMaterialSurface> material);
+    ChCollisionShape(Type type = Type::UNKNOWN_SHAPE);
+    ChCollisionShape(Type type, std::shared_ptr<ChMaterialSurface> material);
     virtual ~ChCollisionShape() {}
 
     Type GetType() const { return m_type; }
+
     std::shared_ptr<ChMaterialSurface> GetMaterial() const { return m_material; }
     ChContactMethod GetContactMethod() const { return m_material->GetContactMethod(); }
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& marchive);
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& marchive);
 
   protected:
     Type m_type;                                    ///< type of collision shape
@@ -68,7 +74,6 @@ class ChApi ChCollisionShape {
 
 /// @} chrono_collision
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

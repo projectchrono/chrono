@@ -26,6 +26,7 @@ def main():
     step_size = 0.005
 
     sys = chrono.ChSystemNSC()
+    sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
     sys.Set_G_acc(chrono.ChVectorD(0, 0, -9.81))
     sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
     sys.SetSolverMaxIterations(150)

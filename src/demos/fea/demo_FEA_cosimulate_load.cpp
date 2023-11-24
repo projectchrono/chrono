@@ -12,11 +12,10 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 //
-// FEA advanced demo:
-//     - loading an Abaqus tetrahedron mesh
-//     - apply a load to the mesh using an external tool,
-//       say CFD or SPH (here simulated as a function in this .cpp file)
-//       that is perform a cosimulation.
+// FEA force-displacement co-simulation 
+//   - loading an Abaqus tetrahedron mesh
+//   - apply a load to the mesh using an external tool, e.g. CFD.
+//     (here simulated as a function in this .cpp file)
 //
 // =============================================================================
 
@@ -106,31 +105,25 @@ int main(int argc, char* argv[]) {
     ChVector<> tire_center(0, 0.02 + tire_rad, 0.5);
     ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y));  // create rotated 180° on y
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system and the associated collision system
     ChSystemSMC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    //
     // CREATE A FINITE ELEMENT MESH
-    //
 
-    // Create the surface material, containing information
-    // about friction etc.
-
+    // Create the surface material
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(10e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
     mysurfmaterial->SetAdhesion(0);
 
-    // Create a mesh, that is a container for groups
-    // of FEA elements and their referenced nodes.
-
+    // Create a mesh, that is a container for groups of FEA elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
     sys.Add(my_mesh);
 
     // Create a material, that must be assigned to each solid element in the mesh,
     // and set its parameters
-
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
     mmaterial->Set_E(0.003e9);  // rubber 0.01e9, steel 200e9
     mmaterial->Set_v(0.4);
@@ -141,9 +134,7 @@ int main(int argc, char* argv[]) {
     // Note that not all features of INP files are supported. Also, quadratic tetrahedrons are promoted to linear.
     // This is much easier than creating all nodes and elements via C++ programming.
     // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
-
     std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
-
     try {
         ChMeshFileLoader::FromAbaqusFile(my_mesh,
                                          GetChronoDataFile("models/tractor_wheel/tractor_wheel_coarse.INP").c_str(),
@@ -162,31 +153,25 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh load for cosimulation, acting on the contact surface above
     // (forces on nodes will be computed by an external procedure)
-
     auto mloadcontainer = chrono_types::make_shared<ChLoadContainer>();
     sys.Add(mloadcontainer);
 
     auto mmeshload = chrono_types::make_shared<ChLoadContactSurfaceMesh>(mcontactsurf);
     mloadcontainer->Add(mmeshload);
 
-    //
     // Optional...  visualization
-    //
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape
+    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
-
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    //
     // CREATE A RIGID BODY WITH A MESH
-    //
 
     // Create also a rigid body with a rigid mesh that will be used for the cosimulation,
     // this time the ChLoadContactSurfaceMesh cannot be used as in the FEA case, so we
@@ -201,7 +186,7 @@ int main(int argc, char* argv[]) {
     auto mesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.obj"));
     mesh->Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
-    auto mesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto mesh_asset = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     mesh_asset->SetMesh(mesh);
     mrigidbody->AddVisualShape(mesh_asset);
 
@@ -224,14 +209,11 @@ int main(int argc, char* argv[]) {
 
     vis->EnableShadows();
 
-    //
     // THE SOFT-REAL-TIME CYCLE
-    //
 
     // Change solver to embedded MINRES
     // NOTE! it is strongly advised that you compile the optional MKL module
     // if you need higher precision, and switch to its MKL solver - see demos for FEA & MKL.
-
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     sys.SetSolver(solver);
     solver->SetMaxIterations(40);
@@ -253,12 +235,11 @@ int main(int argc, char* argv[]) {
         // -------------------------------------------------------------------------
         // Here do the cosimulation
         // A <--> B
-        // For example, A is this main program, and B can be an external
-        // program, ex. a CFD or SPH simulation tool.
+        // For example, A is this main program, and B can be an external program,
+        // e.g. a CFD simulation tool.
         // The idea is that A --> B communicates the mesh position,
         // then A <-- B receives the computed forces to be applied at nodes.
-        // In this example, to keep things simple, B is just a simple C function
-        // in this .cpp file.
+        // In this example, to keep things simple, B is just a simple local function
 
         std::vector<ChVector<>> vert_pos;
         std::vector<ChVector<>> vert_vel;

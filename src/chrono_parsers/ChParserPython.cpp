@@ -222,52 +222,57 @@ typedef struct {
 
 } SwigPyObject;
 */
-
 void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem) {
     std::ostringstream sstream;
-
     // sstream << "from " << std::string(solidworks_py_file) << " import exported_items\n";
-
-    sstream << "import builtins  \n";
-    sstream << "import imp  \n";
-    sstream << "import os  \n";
-    sstream << "mdirname, mmodulename= os.path.split('" << std::string(solidworks_py_file) << "')  \n";
-    sstream << "builtins.exported_system_relpath = mdirname + '/'  \n";
-    sstream << "fp, pathname, description = imp.find_module(mmodulename,[builtins.exported_system_relpath])  \n";
-    sstream << "try:  \n";
-    sstream << "    imported_mod = imp.load_module('imported_mod', fp, pathname, description)  \n";
-    sstream << "finally:  \n";
-    sstream << "    if fp:  \n";
-    sstream << "        fp.close()  \n";
-    sstream << "exported_items = imported_mod.exported_items  \n";
-
+ 
+    sstream << "import builtins\n";
+    sstream << "import sys\n";
+    sstream << "import os\n";
+    sstream << "mpath = \"" << std::string(solidworks_py_file) << "\"\n";
+    sstream << "mdirname, mmodulename = os.path.split(mpath)\n";
+    sstream << "builtins.exported_system_relpath = mdirname + '/'\n";
+    sstream << "try:\n";
+    sstream << "    if sys.version_info[0] == 3 and sys.version_info[1] >= 5:\n";
+    sstream << "        import importlib.util\n";
+    sstream << "        spec = importlib.util.spec_from_file_location(mmodulename, mpath)\n";
+    sstream << "        imported_mod = importlib.util.module_from_spec(spec)\n";
+    sstream << "        sys.modules[mmodulename] = imported_mod\n";
+    sstream << "        spec.loader.exec_module(imported_mod)\n";
+    sstream << "    elif sys.version_info[0] == 3 and sys.version_info[1] < 5:\n";
+    sstream << "        import importlib.machinery\n";
+    sstream << "        loader = importlib.machinery.SourceFileLoader(mmodulename, mpath)\n";
+    sstream << "        imported_mod = loader.load_module()\n";
+    sstream << "    else:\n";
+    sstream << "        raise Exception(\"Python version not supported. Please upgrade it.\")\n";
+    sstream << "except Exception as e:\n";
+    sstream << "    print(f\"Error loading module: {e}\")\n";
+    sstream << "exported_items = imported_mod.exported_items\n";
     this->Run(sstream.str().c_str());
-
+ 
     PyObject* module = PyImport_AddModule("__main__");  // borrowed reference
     if (!module)
         throw ChException("ERROR. No Python __main__ module?");
-
+ 
     PyObject* dictionary = PyModule_GetDict(module);  // borrowed reference
     if (!dictionary)
         throw ChException("ERROR. No Python dictionary?");
-
+ 
     PyObject* result = PyDict_GetItemString(dictionary, "exported_items");  // borrowed reference
     if (!result)
         throw ChException("ERROR. Missing Python object 'exported_items' in SolidWorks file");
-
+ 
     if (PyList_Check(result)) {
         int nitems = (int)PyList_Size(result);
-        // GetLog() << "N.of list items: " << nitems << "\n";
+ 
         for (int i = 0; i < nitems; i++) {
             PyObject* mobj = PyList_GetItem(result, i);
             if (mobj) {
-                // GetLog() << "   Python type: " << mobj->ob_type->tp_name << "\n";
-
                 SwigPyObject* mswigobj = SWIG_Python_GetSwigThis(mobj);
                 if (mswigobj) {
                     void* objptr = mswigobj->ptr;
                     std::shared_ptr<ChPhysicsItem>* pt_to_shp = (std::shared_ptr<ChPhysicsItem>*)objptr;
-
+ 
                     /// Add the ChPhysicsItem to the ChSystem
                     msystem.Add((*pt_to_shp));
                 } else {
@@ -276,10 +281,10 @@ void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSy
                 }
             }
         }
-
+ 
         msystem.Setup();
         msystem.Update();
-
+ 
     } else {
         throw ChException("ERROR. exported_items python object is not a list.");
     }

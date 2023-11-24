@@ -73,8 +73,10 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
                       bool mc_rx = true,
                       bool mc_ry = true,
                       bool mc_rz = true);
+
     ChLinkMateGeneric(const ChLinkMateGeneric& other);
-    virtual ~ChLinkMateGeneric();
+
+    virtual ~ChLinkMateGeneric() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateGeneric* Clone() const override { return new ChLinkMateGeneric(*this); }
@@ -260,7 +262,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     ChVector<> gamma_f;  ///< store the translational Lagrange multipliers
     ChVector<> gamma_m;  ///< store the rotational Lagrange multipliers
 
-    ChKblockGeneric* Kmatr = nullptr;  ///< the tangent stiffness matrix of constraint
+    std::unique_ptr<ChKblockGeneric> Kmatr = nullptr;  ///< the tangent stiffness matrix of constraint
 };
 
 CH_CLASS_VERSION(ChLinkMateGeneric, 0)

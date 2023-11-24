@@ -798,7 +798,7 @@ void ChIterativeSolverMulticoreSMC::RunTimeStep() {
     data_manager->host_data.ct_body_map.resize(data_manager->num_rigid_bodies);
     Thrust_Fill(data_manager->host_data.ct_body_map, -1);
 
-    if (data_manager->cd_data->num_rigid_contacts > 0) {
+    if (data_manager->cd_data && data_manager->cd_data->num_rigid_contacts > 0) {
         data_manager->system_timer.start("ChIterativeSolverMulticoreSMC_ProcessContact");
         ProcessContacts();
         data_manager->system_timer.stop("ChIterativeSolverMulticoreSMC_ProcessContact");

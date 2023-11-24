@@ -18,15 +18,14 @@ if(ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
        demo_VEH_Marder
        demo_VEH_TrackedJSON
-       demo_VEH_TrackedJSON_Band   
+       demo_VEH_TrackedJSON_Band
+       demo_VEH_M113_Band
    )
-
-   if(ENABLE_MODULE_PARDISO_MKL OR ENABLE_MODULE_MUMPS)
-       set(DEMOS ${DEMOS}
-           demo_VEH_M113_Band
-       )
-   endif()
 endif()
+
+#--------------------------------------------------------------
+
+set(UTILS "../../SetChronoSolver.h")
 
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
@@ -68,8 +67,8 @@ endif()
 foreach(PROGRAM ${DEMOS})
     message(STATUS "...add ${PROGRAM}")
 
-    add_executable(${PROGRAM} ${PROGRAM}.cpp ../SetChronoSolver.h)
-    source_group("" FILES ${PROGRAM}.cpp ../SetChronoSolver.h)
+    add_executable(${PROGRAM} ${PROGRAM}.cpp ${UTILS})
+    source_group("" FILES ${PROGRAM}.cpp ${UTILS})
 
     set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
     if(APPLE)

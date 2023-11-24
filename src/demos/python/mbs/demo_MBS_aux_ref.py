@@ -50,10 +50,10 @@ ground.SetIdentifier(-1)
 ground.SetBodyFixed(True)
 ground.SetCollide(False)
 
-cyl_1 = chrono.ChCylinderShape(0.2, 0.4)
+cyl_1 = chrono.ChVisualShapeCylinder(0.2, 0.4)
 ground.AddVisualShape(cyl_1, chrono.ChFrameD(chrono.ChVectorD(0, 0, +1)))
 
-cyl_2 = chrono.ChCylinderShape(0.2, 0.4)
+cyl_2 = chrono.ChVisualShapeCylinder(0.2, 0.4)
 ground.AddVisualShape(cyl_2, chrono.ChFrameD(chrono.ChVectorD(0, 0, -1)))
 
 
@@ -70,7 +70,7 @@ pend_1.SetInertiaXX(chrono.ChVectorD(0.2, 1, 1))
 # Attach a visualization asset. Note that the cylinder is defined with
 # respect to the centroidal reference frame (which is the body reference
 # frame for a ChBody)
-cyl_1 = chrono.ChCylinderShape(0.2, 2)
+cyl_1 = chrono.ChVisualShapeCylinder(0.2, 2)
 cyl_1.SetColor(chrono.ChColor(0.6, 0, 0))
 pend_1.AddVisualShape(cyl_1, chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
 
@@ -98,7 +98,7 @@ pend_2.SetInertiaXX(chrono.ChVectorD(0.2, 1, 1))
 
 # Attach a visualizationn asset. Note that now the cylinder is defined with
 # respect to the body reference frame.
-cyl_2 = chrono.ChCylinderShape(0.2, 2)
+cyl_2 = chrono.ChVisualShapeCylinder(0.2, 2)
 cyl_2.SetColor(chrono.ChColor(0, 0, 0.6))
 pend_2.AddVisualShape(cyl_2, chrono.ChFrameD(chrono.ChVectorD(1, 0, 0), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
 

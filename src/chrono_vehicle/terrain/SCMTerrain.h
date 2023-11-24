@@ -24,10 +24,12 @@
 #include <ostream>
 #include <unordered_map>
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
+#include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChTimer.h"
 
@@ -206,7 +208,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     NodeInfo GetNodeInfo(const ChVector<>& loc) const;
 
     /// Get the visualization triangular mesh.
-    std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
+    std::shared_ptr<ChVisualShapeTriangleMesh> GetMesh() const;
 
     /// Set the visualization mesh as wireframe or as solid (default: wireframe).
     /// Note: in wireframe mode, normals for the visualization mesh are not calculated.
@@ -284,7 +286,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
 
     /// Return the cummulative contact force on the specified mesh node (due to interaction with the SCM terrain).
     /// The return value is true if the specified node experiences contact forces and false otherwise.
-    bool GetContactForceNode(std::shared_ptr<fea::ChNodeFEAbase> node, ChVector<>& force) const;
+    bool GetContactForceNode(std::shared_ptr<fea::ChNodeFEAxyz> node, ChVector<>& force) const;
 
     /// Return the number of rays cast at last step.
     int GetNumRayCasts() const;
@@ -553,7 +555,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     double m_test_offset_down;  ///< offset for ray start
     double m_test_offset_up;    ///< offset for ray end
 
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  ///< mesh visualization asset
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;  ///< mesh visualization asset
 
     bool m_cosim_mode;  ///< co-simulation mode
 
@@ -572,7 +574,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
 
     // Contact forces on contactable objects interacting with the SCM terrain
     std::unordered_map<ChBody*, std::pair<ChVector<>, ChVector<>>> m_body_forces;
-    std::unordered_map<fea::ChNodeFEAbase*, ChVector<>> m_node_forces;
+    std::unordered_map<std::shared_ptr<fea::ChNodeFEAxyz>, ChVector<>> m_node_forces;
 
     // Bulldozing effects
     bool m_bulldozing;

@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
     auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
     int nthreads_tire = 1;
     int nthreads_terrain = 1;
-    double step_size = 1e-4;
+    double step_size = 1e-3;
     bool fixed_settling_time = true;
     double KE_threshold = std::numeric_limits<double>::infinity();
     double settling_time = 0.4;
@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
     bool vis_output = true;
     bool renderRT = true;
     bool renderPP = false;
-    bool writeRT = true;
+    bool writeRT = false;
     double total_mass = 500;
     double toe_angle = 0;
     double dbp_filter_window = 0.1;
@@ -291,7 +291,7 @@ int main(int argc, char** argv) {
         switch (terrain_type) {
             case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
                 auto method = ChContactMethod::SMC;
-                auto terrain = new ChVehicleCosimTerrainNodeRigid(method, terrain_specfile);
+                auto terrain = new ChVehicleCosimTerrainNodeRigid(terrain_specfile, method);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);

@@ -25,7 +25,6 @@
 #endif
 
 namespace chrono {
-using namespace collision;
 namespace opengl {
 using namespace glm;
 

@@ -25,7 +25,6 @@
 #include "chrono/core/ChStream.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 ChMulticoreDataManager::ChMulticoreDataManager()
     : num_rigid_bodies(0),

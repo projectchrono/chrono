@@ -24,8 +24,9 @@ print (" Demo of using the assets sys to create shapes for Irrlicht visualizatio
 # If running from a different directory, you must change the path to the data directory with:
 # chrono.SetChronoDataPath('relative/path/to/data/directory')
 
-# Create a Chrono::Engine physical sys
+# Create a Chrono physical sys
 sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Example 1:
 
@@ -43,9 +44,8 @@ floor_mat = chrono.ChMaterialSurfaceNSC()
 
 
 # Define a collision shape
-floor.GetCollisionModel().ClearModel()
-floor.GetCollisionModel().AddBox(floor_mat, 10, 0.5, 10, chrono.ChVectorD(0, -1, 0))
-floor.GetCollisionModel().BuildModel()
+floor_ct_shape = chrono.ChCollisionShapeBox(floor_mat, 20, 1, 20)
+floor.AddCollisionShape(floor_ct_shape, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0), chrono.QUNIT))
 floor.SetCollide(True)
 
 # Add body to sys
@@ -54,14 +54,14 @@ sys.Add(floor)
 
 # ==Asset== attach a 'box' shape.
 # Note that assets are managed via shared pointer, so they can also be shared.
-boxfloor = chrono.ChBoxShape(20, 1, 20)
+boxfloor = chrono.ChVisualShapeBox(20, 1, 20)
 boxfloor.SetColor(chrono.ChColor(0.2, 0.3, 1.0))
 floor.AddVisualShape(boxfloor, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0), chrono.QUNIT))
 
 
 # ==Asset== attack a 'path shape populated with segments and arc fillets:
 # TODO: not sure how to add them
-pathfloor = chrono.ChPathShape()
+pathfloor = chrono.ChVisualShapePath()
 mseg1 = chrono.ChLineSegment(chrono.ChVectorD(1,2,0), chrono.ChVectorD(1,3,0))
 mseg2 = chrono.ChLineSegment(chrono.ChVectorD(1, 3, 0), chrono.ChVectorD(2, 3, 0))
 marc1 = chrono.ChLineArc(chrono.ChCoordsysD(chrono.ChVectorD(2, 3.5, 0)), 0.5, -chrono.CH_C_PI_2, chrono.CH_C_PI_2)
@@ -72,7 +72,7 @@ floor.AddVisualShape(pathfloor)
 
 # ==Asset== attach a 'nurbs line' shape":
 # (first you create the ChLineNurbs geometry,
-# then you put it inside a ChLineShape asset)
+# then you put it inside a ChVisualShapeLine asset)
 
 nurbs = chrono.ChLineNurbs()
 v1 = chrono.ChVectorD(1, 2, -1)
@@ -82,14 +82,14 @@ v4 = chrono.ChVectorD(1, 4, -2)
 controlpoints = chrono.vector_ChVectorD([v1, v2, v3, v4])
 nurbs.SetupData(3, controlpoints)
 
-nurbsasset = chrono.ChLineShape()
+nurbsasset = chrono.ChVisualShapeLine()
 nurbsasset.SetLineGeometry(nurbs)
 floor.AddVisualShape(nurbsasset)
 
 
 # ==Asset== attach a 'nurbs surface' shape:
 # (first you create the ChSurfaceNurbs geometry,
-# then you put it inside a ChSurfaceShape asset)
+# then you put it inside a ChVisualShapeSurface asset)
 #
 # NOTE: not working at this time
 #       requires proper wrapping of matrix_ChVectorD...
@@ -104,7 +104,7 @@ floor.AddVisualShape(nurbsasset)
 #msurf = chrono.ChSurfaceNurbs()
 #msurf.SetupData(3, 1, surfpoints)
 #
-#msurfasset = chrono.ChSurfaceShape()
+#msurfasset = chrono.ChVisualShapeSurface()
 #msurfasset.Pos = chrono.ChVectorD(3, -1, 3)
 #msurfasset.SetSurfaceGeometry(msurf)
 #msurfasset.SetWireframe(True)
@@ -129,24 +129,24 @@ orange_mat = chrono.ChVisualMaterial()
 orange_mat.SetDiffuseColor(chrono.ChColor(0.9, 0.4, 0.2))
 
 # ==Asset== Attach a 'sphere' shape
-sphere = chrono.ChSphereShape(0.5)
+sphere = chrono.ChVisualShapeSphere(0.5)
 sphere.AddMaterial(orange_mat)
 body.AddVisualShape(sphere, chrono.ChFrameD(chrono.ChVectorD(-1,0,0), chrono.QUNIT))
 
 # ==Asset== Attach also a 'box' shape
-box = chrono.ChBoxShape(0.6, 1.0, 0.2)
+box = chrono.ChVisualShapeBox(0.6, 1.0, 0.2)
 box.AddMaterial(orange_mat)
 body.AddVisualShape(box, chrono.ChFrameD(chrono.ChVectorD(1,1,0), chrono.QUNIT))
 
 # ==Asset== Attach also a 'cylinder' shape
-cyl = chrono.ChCylinderShape(0.3, 0.7)
+cyl = chrono.ChVisualShapeCylinder(0.3, 0.7)
 body.AddVisualShape(cyl, 
                     chrono.ChFrameD(chrono.ChVectorD(2, 0.15, 0),
                                     chrono.Q_from_AngX(chrono.CH_C_PI_2)))
 
 # ==Asset== Attach three instances of the same 'triangle mesh' shape
 # TODO: not sure how to add vertices
-mesh = chrono.ChTriangleMeshShape()
+mesh = chrono.ChVisualShapeTriangleMesh()
 mesh.GetMesh().addTriangle(chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 1, 0), chrono.ChVectorD(1, 0, 0))
 mesh.AddMaterial(orange_mat)
 
@@ -156,14 +156,14 @@ body.AddVisualShape(mesh, chrono.ChFrameD(chrono.ChVectorD(2,1,2), chrono.QUNIT)
 
 
 # ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
-objmesh = chrono.ChModelFileShape()
+objmesh = chrono.ChVisualShapeModelFile()
 objmesh.SetFilename(chrono.GetChronoDataFile('models/forklift/body.obj'))
 objmesh.SetTexture(chrono.GetChronoDataFile('textures/bluewhite.png'))
 body.AddVisualShape(objmesh, chrono.ChFrameD(chrono.ChVectorD(0,0,2), chrono.QUNIT))
 
 # ==Asset== , chrono.ChFrameD(chrono.ChVectorD(2,1,2), chrono.QUNIT))
 for j in range(20):
-    smallbox = chrono.ChBoxShape(0.2, 0.2, 0.02)
+    smallbox = chrono.ChVisualShapeBox(0.2, 0.2, 0.02)
     smallbox.SetColor(chrono.ChColor(j * 0.05, 1 - j * 0.05, 0.0))
     rot = chrono.ChMatrix33D(chrono.Q_from_AngY(j * 21 * chrono.CH_C_DEG_TO_RAD))
     pos = rot * chrono.ChVectorD(0.4, 0, 0) + chrono.ChVectorD(0, j * 0.02, 0)
@@ -185,9 +185,8 @@ particles = chrono.ChParticleCloud()
 # This will be shared among all particles in the ChParticleCloud.
 particle_mat = chrono.ChMaterialSurfaceNSC()
 
-particles.GetCollisionModel().ClearModel()
-particles.GetCollisionModel().AddSphere(particle_mat, 0.05)
-particles.GetCollisionModel().BuildModel()
+particles_ct_shape = chrono.ChCollisionShapeSphere(particle_mat, 0.05)
+particles.AddCollisionShape(particles_ct_shape)
 particles.SetCollide(True)
 
 # Create the random particles
@@ -204,7 +203,7 @@ sys.Add(particles)
 
 # ==Asset== Attach a 'sphere' shape asset. it will be used as a sample
 # shape to display all particles when rendering in 3D!
-sphereparticle = chrono.ChSphereShape(0.05)
+sphereparticle = chrono.ChVisualShapeSphere(0.05)
 particles.AddVisualShape(sphereparticle)
  
 displ = chrono.ChVectorD(1.0, 0.0, 0.0)

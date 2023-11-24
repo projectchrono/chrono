@@ -196,7 +196,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      bool AlsoPrint) {
     ChSystemSMC sys(false);
 
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.001);
     sys.SetContactForceModel(ChSystemSMC::Hooke);
 
     double L_x = 1.0;
@@ -294,9 +294,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(40);
-    mystepper->SetAbsTolerances(1e-05, 1e-1);        // For Pos
-    mystepper->SetMode(ChTimestepperHHT::POSITION);  // POSITION //ACCELERATION
-    mystepper->SetScaling(true);
+    mystepper->SetAbsTolerances(1e-2, 1e-1);
     mystepper->SetVerbose(false);
     auto container = chrono_types::make_shared<MyContactContainer>();
     //    auto contacts = chrono_types::make_shared<MyContacts>();

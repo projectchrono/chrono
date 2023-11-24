@@ -14,6 +14,10 @@ set(DEMOS
   demo_MBS_earthquake
   demo_MBS_friction
   demo_MBS_spring  
+  demo_MBS_external_dynamics
+  demo_MBS_hydraulic_actuator
+  demo_MBS_hydraulic_crane
+  demo_MBS_hydraulic_crane_cosim
 )
 
 # Add demos that can only work with Irrlicht
@@ -28,12 +32,9 @@ if(ENABLE_MODULE_IRRLICHT)
       demo_MBS_gears
       demo_MBS_mecanum
       demo_MBS_pendulum
-      demo_MBS_sph
       demo_MBS_suspension
-      demo_MBS_tire
       demo_MBS_tracks
       demo_MBS_convergence
-      demo_MBS_soilbin
       demo_MBS_collision_trimesh
       demo_MBS_collision_2d
       demo_MBS_emitter

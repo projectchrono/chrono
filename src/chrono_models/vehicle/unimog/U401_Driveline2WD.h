@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-/// @addtogroup vehicle_models_401
+/// @addtogroup vehicle_models_unimog
 /// @{
 
 /// Shafts-based 2-WD driveline for the UAZBUS vehicle.
@@ -56,7 +56,7 @@ class CH_MODELS_API U401_Driveline2WD : public ChShaftsDriveline2WD {
     static const double m_axle_differential_locking_limit;
 };
 
-/// @} vehicle_models_U401
+/// @} vehicle_models_unimog
 
 }  // namespace unimog
 }  // end namespace vehicle

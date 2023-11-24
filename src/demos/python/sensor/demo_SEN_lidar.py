@@ -41,7 +41,7 @@ def main():
     # scale to a different size
     mmesh.Transform(chrono.ChVectorD(0, 0, 0), chrono.ChMatrix33D(2))
 
-    trimesh_shape = chrono.ChTriangleMeshShape()
+    trimesh_shape = chrono.ChVisualShapeTriangleMesh()
     trimesh_shape.SetMesh(mmesh)
     trimesh_shape.SetName("HMMWV Chassis Mesh")
     trimesh_shape.SetMutable(False)

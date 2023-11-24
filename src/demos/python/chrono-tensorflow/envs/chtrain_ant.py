@@ -89,9 +89,10 @@ class Model(object):
       self.abdomen_shape = chrono.ChEllipsoidShape(abdomen_ellipsoid)
       self.body_abdomen.AddVisualShape(self.abdomen_shape)
       self.body_abdomen.SetCollide(True)
-      self.body_abdomen.GetCollisionModel().ClearModel()
-      self.body_abdomen.GetCollisionModel().AddEllipsoid(self.ant_material, self.abdomen_x, self.abdomen_y, self.abdomen_z, chrono.ChVectorD(0, 0, 0 ) )
-      self.body_abdomen.GetCollisionModel().BuildModel()
+      self.body_abdomen.GetCollisionModel().Clear()
+      body_abdomen_ct_shape = chrono.ChCollisionShapeEllipsoid(self.ant_material, self.abdomen_x, self.abdomen_y, self.abdomen_z)
+      self.body_abdomen.GetCollisionModel().AddShape(body_abdomen_ct_shape)
+      self.body_abdomen.GetCollisionModel().Build()
       self.ant_sys.Add(self.body_abdomen)
       
       
@@ -100,11 +101,11 @@ class Model(object):
       self.leg_body = [chrono.ChBody() for i in range(len(leg_ang))]
       self.leg_pos= [chrono.ChVectorD() for i in range(len(leg_ang))]
       leg_cyl = chrono.ChCylinder(-chrono.ChVectorD( self.leg_length/2,  0  ,0),chrono.ChVectorD( self.leg_length/2,  0  ,0), self.leg_radius) 
-      self.leg_shape = chrono.ChCylinderShape(leg_cyl)
+      self.leg_shape = chrono.ChVisualShapeCylinder(leg_cyl)
       ankle_cyl = chrono.ChCylinder(-chrono.ChVectorD( self.ankle_length/2,  0  ,0),chrono.ChVectorD( self.ankle_length/2,  0  ,0), self.ankle_radius) 
-      self.ankle_shape = chrono.ChCylinderShape(ankle_cyl)
+      self.ankle_shape = chrono.ChVisualShapeCylinder(ankle_cyl)
       foot_sphere = chrono.ChSphere(chrono.ChVectorD(self.ankle_length/2, 0, 0 ), self.ankle_radius )
-      self.foot_shape = chrono.ChSphereShape(foot_sphere)
+      self.foot_shape = chrono.ChVisualShapeSphere(foot_sphere)
       Leg_qa = [ chrono.ChQuaternionD()  for i in range(len(leg_ang))]
       Leg_q = [ chrono.ChQuaternionD()  for i in range(len(leg_ang))]
       z2x_leg = [ chrono.ChQuaternionD() for i in range(len(leg_ang))]
@@ -162,9 +163,10 @@ class Model(object):
              self.ant_sys.Add(self.ankle_motor[i])
              # Feet collisions
              self.ankle_body[i].SetCollide(True)
-             self.ankle_body[i].GetCollisionModel().ClearModel()
-             self.ankle_body[i].GetCollisionModel().AddSphere(self.ant_material, self.ankle_radius, chrono.ChVectorD(self.ankle_length/2, 0, 0 ) )
-             self.ankle_body[i].GetCollisionModel().BuildModel()
+             self.ankle_body[i].GetCollisionModel().Clear()
+             ankle_ct_shape = chrono.ChCollisionShapeSphere(self.ant_material, self.ankle_radius)
+             self.ankle_body[i].GetCollisionModel().AddShape(ankle_ct_shape, chrono.ChFrameD(chrono.ChVectorD(self.ankle_length/2, 0, 0), chrono.QUNIT))
+             self.ankle_body[i].GetCollisionModel().Build()
              self.ankle_body[i].AddVisualShape(self.ankle_shape)
              
              self.ankle_body[i].AddVisualShape(self.foot_shape)
@@ -185,13 +187,14 @@ class Model(object):
       self.body_floor.SetPos(chrono.ChVectorD(0, -1, 0 ))
       
       # Floor Collision.
-      self.body_floor.GetCollisionModel().ClearModel()
-      self.body_floor.GetCollisionModel().AddBox(self.ant_material, 50, 1, 50, chrono.ChVectorD(0, 0, 0 ))
-      self.body_floor.GetCollisionModel().BuildModel()
+      self.body_floor.GetCollisionModel().Clear()
+      body_floor_ct_shape = chrono.ChCollisionShapeBox(self.ant_material, 50, 1, 50)
+      self.body_floor.GetCollisionModel().AddShape(body_floor_ct_shape)
+      self.body_floor.GetCollisionModel().Build()
       self.body_floor.SetCollide(True)
 
     # Visualization shape
-      body_floor_shape = chrono.ChBoxShape(10, 2, 10)
+      body_floor_shape = chrono.ChVisualShapeBox(10, 2, 10)
       body_floor_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
       body_floor_shape.SetTexture(chrono.GetChronoDataFile('vehicle/terrain/textures/grass.jpg'))
       self.body_floor.AddVisualShape(body_floor_shape)   

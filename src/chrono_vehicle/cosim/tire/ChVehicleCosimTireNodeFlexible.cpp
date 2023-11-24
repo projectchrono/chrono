@@ -49,7 +49,7 @@ ChVehicleCosimTireNodeFlexible::ChVehicleCosimTireNodeFlexible(int index, const 
 #if defined(CHRONO_PARDISO_MKL)
     m_slv_type = ChSolver::Type::PARDISO_MKL;
 #elif defined(CHRONO_MUMPS)
-    m_lsv_type = ChSolver::Type::MUMPS;
+    m_slv_type = ChSolver::Type::MUMPS;
 #else
     m_slv_type = ChSolver::Type::SPARSE_QR;
 #endif

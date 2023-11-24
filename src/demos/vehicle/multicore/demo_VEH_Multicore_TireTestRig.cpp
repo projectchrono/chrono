@@ -31,12 +31,14 @@ using namespace chrono;
 using namespace chrono::vehicle;
 
 int main() {
+    double step_size = 5e-3;
+    double tire_step_size = 1e-4;
+
     // Create sys
     // -------------
 
     ChSystemMulticoreNSC sys;
-    double step_size = 5e-3;
-    double tire_step_size = 1e-4;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
     sys.ChangeSolverType(SolverType::APGD);
 
     ////ChSystemMulticoreSMC sys;
@@ -89,8 +91,8 @@ int main() {
     double collision_envelope;
     ChVector<int> collision_bins;
     rig.GetSuggestedCollisionSettings(collision_envelope, collision_bins);
-    sys.GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
-    sys.GetSettings()->collision.broadphase_grid = collision::ChBroadphase::GridType::FIXED_RESOLUTION;
+    sys.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    sys.GetSettings()->collision.broadphase_grid = ChBroadphase::GridType::FIXED_RESOLUTION;
     sys.GetSettings()->collision.bins_per_axis = vec3(collision_bins.x(), collision_bins.y(), collision_bins.z());
 
     switch (sys.GetContactMethod()) {
@@ -107,31 +109,30 @@ int main() {
 
     // Scenario: driven wheel
     ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10.0));
-    ////rig.Initialize();
 
     // Scenario: pulled wheel
     ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(1.0));
-    ////rig.Initialize();
 
-    // Scenario: imobilized wheel
+    // Scenario: imobilized wheel (same scenario could be obtained using ChTireTestRig::Mode::DROP in Initialize())
     rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.0));
     rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.0));
-    rig.Initialize();
 
     // Scenario: prescribe all motion functions
     ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
     ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10.0));
     ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.6, 0.2));
-    ////rig.Initialize();
 
     // Scenario: specified longitudinal slip
-    ////rig.Initialize(0.2, 1.0);
+    ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
+
+    // Initialize the tire test rig
+    rig.SetTimeDelay(1.0);
+    rig.Initialize(ChTireTestRig::Mode::TEST);
 
     // Display settings
     // ----------------
 
     std::cout << "Total rig mass: " << rig.GetMass() << std::endl;
-    std::cout << "Applied load:   " << rig.GetAppliedLoad() << std::endl;
 
     // Initialize OpenGL
     // -----------------

@@ -57,9 +57,8 @@ bool ChLinePoly::Set_point(int mnum, ChVector<> mpoint) {
 // Curve evaluation.
 //
 
-void ChLinePoly::Evaluate(ChVector<>& pos, const double parU) const {
+ChVector<> ChLinePoly::Evaluate(double parU) const {
     double par = parU;
-    pos = VNULL;
 
     if (par < 0)
         par = 0;
@@ -84,7 +83,7 @@ void ChLinePoly::Evaluate(ChVector<>& pos, const double parU) const {
             pB = 0;
     }
     // linear interpolation
-    pos = Vadd(Vmul(Get_point(pA), 1 - (epar - (double)pA)), Vmul(Get_point(pB), epar - (double)pA));
+    return Vadd(Vmul(Get_point(pA), 1 - (epar - (double)pA)), Vmul(Get_point(pB), epar - (double)pA));
 }
 
 double ChLinePoly::Length(int sampling) const {

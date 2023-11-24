@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/tracked_vehicle/suspension/ChTranslationalDamperSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
@@ -71,7 +71,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     ChMatrix33<> rot;
     rot.Set_A_axis(u, v, w);
 
-    m_arm = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_arm = chrono_types::make_shared<ChBody>();
     m_arm->SetNameString(m_name + "_arm");
     m_arm->SetPos(points[ARM]);
     m_arm->SetRot(rot);
@@ -218,7 +218,7 @@ void ChTranslationalDamperSuspension::AddVisualizationAssets(VisualizationType v
 
     // Revolute joint (arm-wheel)
     if ((m_pO - m_pAW).Length2() > threshold2) {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
+        auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>();
         double len = (m_pO - m_pAW).Length();
         ChVehicleGeometry::AddVisualizationCylinder(m_arm,                                  //
                                                     m_pO,                                   //
@@ -228,7 +228,7 @@ void ChTranslationalDamperSuspension::AddVisualizationAssets(VisualizationType v
 
     // Visualization of the shock (with default color)
     if (m_has_shock) {
-        m_shock->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+        m_shock->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
     }
 }
 

@@ -19,7 +19,7 @@
 #include <cmath>
 
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono/physics/ChInertiaUtils.h"
 
@@ -145,7 +145,7 @@ Turtlebot_Part::Turtlebot_Part(const std::string& name,
                                const ChQuaternion<>& body_rot,
                                std::shared_ptr<ChBodyAuxRef> chassis_body,
                                bool collide) {
-    m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
+    m_body = chrono_types::make_shared<ChBodyAuxRef>();
     m_body->SetNameString(name + "_body");
     m_chassis = chassis_body;
     m_mat = mat;
@@ -161,7 +161,7 @@ void Turtlebot_Part::AddVisualizationAssets() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(m_mesh_name);
     trimesh_shape->SetMutable(false);
@@ -179,9 +179,8 @@ void Turtlebot_Part::AddCollisionShapes() {
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
 
-    m_body->GetCollisionModel()->ClearModel();
-    m_body->GetCollisionModel()->AddTriangleMesh(m_mat, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
-    m_body->GetCollisionModel()->BuildModel();
+    auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh, false, false, 0.005);
+    m_body->AddCollisionShape(shape);
     m_body->SetCollide(m_collide);
 }
 
@@ -697,8 +696,8 @@ TurtleBot::TurtleBot(ChSystem* system,
     // Note that an SMC system automatically sets envelope to 0.
     auto contact_method = m_system->GetContactMethod();
     if (contact_method == ChContactMethod::NSC) {
-        collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.01);
-        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.005);
+        ChCollisionModel::SetDefaultSuggestedEnvelope(0.01);
+        ChCollisionModel::SetDefaultSuggestedMargin(0.005);
     }
 
     // Create the contact materials

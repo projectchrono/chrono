@@ -14,7 +14,7 @@
 
 #include "chrono_cascade/ChCascadeDoc.h"
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono_cascade/ChCascadeMeshTools.h"
 
 #include <TopoDS_Shape.hxx>

@@ -67,7 +67,7 @@ set(CV_COSIM_TERRAIN_FILES
 list(APPEND LIBRARIES ChronoEngine_vehicle)
 list(APPEND LIBRARIES ChronoModels_robot)
 list(APPEND LIBRARIES "${MPI_CXX_LIBRARIES}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED} ${MPI_CXX_LINK_FLAGS}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_LIB} ${MPI_CXX_LINK_FLAGS}")
 set(INCLUDES "${CH_INCLUDES};${MPI_CXX_INCLUDE_PATH}")
 set(CXX_FLAGS "${CH_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
 
@@ -97,16 +97,6 @@ if(ENABLE_MODULE_GPU)
   set(CXX_FLAGS "${CXX_FLAGS} ${CH_GPU_CXX_FLAGS}")
   list(APPEND LIBRARIES ChronoEngine_gpu)
 endif()
-
-#if(ENABLE_MODULE_DISTRIBUTED)
-#  set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
-#      terrain/ChVehicleCosimTerrainNodeGranularMPI.h
-#      terrain/ChVehicleCosimTerrainNodeGranularMPI.cpp)
-#  set(INCLUDES "${INCLUDES};${CH_DISTRIBUTED_INCLUDES}")
-#  list(APPEND LIBRARIES ChronoEngine_distributed)
-#  set(CXX_FLAGS "${CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
-#  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_DISTRIBUTED_LINK_FLAGS}")
-#endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)
   set(INCLUDES "${INCLUDES};${CH_MKL_INCLUDES}")
@@ -171,7 +161,7 @@ source_group("terrain" FILES ${CV_COSIM_TERRAIN_FILES})
 
 message(STATUS "Add ChronoEngine_vehicle_cosim library")
 
-add_library(ChronoEngine_vehicle_cosim SHARED
+add_library(ChronoEngine_vehicle_cosim
     ${CV_COSIM_FILES}
     ${CV_COSIM_MBS_FILES}
     ${CV_COSIM_TIRE_FILES}

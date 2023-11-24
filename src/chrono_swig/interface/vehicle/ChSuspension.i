@@ -6,7 +6,7 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"

@@ -23,6 +23,10 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChMaterialSurfaceNSC)
+CH_FACTORY_REGISTER(ChMaterialCompositeNSC)
+
+CH_UPCASTING(ChMaterialSurfaceNSC, ChMaterialSurface)
+CH_UPCASTING(ChMaterialCompositeNSC, ChMaterialComposite)
 
 ChMaterialSurfaceNSC::ChMaterialSurfaceNSC()
     : ChMaterialSurface(),
@@ -104,6 +108,49 @@ ChMaterialCompositeNSC::ChMaterialCompositeNSC(ChMaterialCompositionStrategy* st
     spinning_friction = strategy->CombineFriction(mat1->spinning_friction, mat2->spinning_friction);
     complianceRoll = strategy->CombineCompliance(mat1->complianceRoll , mat2->complianceRoll);
     complianceSpin = strategy->CombineCompliance(mat1->complianceSpin , mat2->complianceSpin);
+}
+
+
+void ChMaterialCompositeNSC::ArchiveOut(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChMaterialCompositeNSC>();
+
+    // serialize parent class
+    ChMaterialComposite::ArchiveOut(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(static_friction);
+    marchive << CHNVP(sliding_friction);
+    marchive << CHNVP(rolling_friction);
+    marchive << CHNVP(spinning_friction);
+    marchive << CHNVP(restitution);
+    marchive << CHNVP(cohesion);
+    marchive << CHNVP(dampingf);
+    marchive << CHNVP(compliance);  
+    marchive << CHNVP(complianceT);
+    marchive << CHNVP(complianceRoll);
+    marchive << CHNVP(complianceSpin);
+}
+
+void ChMaterialCompositeNSC::ArchiveIn(ChArchiveIn& marchive) {
+    // version number
+    /*int version =*/ marchive.VersionRead<ChMaterialCompositeNSC>();
+
+    // deserialize parent class
+    ChMaterialComposite::ArchiveIn(marchive);
+
+    // stream in all member data:
+    marchive >> CHNVP(static_friction);
+    marchive >> CHNVP(sliding_friction);
+    marchive >> CHNVP(rolling_friction);
+    marchive >> CHNVP(spinning_friction);
+    marchive >> CHNVP(restitution);
+    marchive >> CHNVP(cohesion);
+    marchive >> CHNVP(dampingf);
+    marchive >> CHNVP(compliance);
+    marchive >> CHNVP(complianceT);
+    marchive >> CHNVP(complianceRoll);
+    marchive >> CHNVP(complianceSpin);
 }
 
 }  // end namespace chrono

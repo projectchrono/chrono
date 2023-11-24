@@ -32,7 +32,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "demos/vehicle/SetChronoSolver.h"
+#include "demos/SetChronoSolver.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
@@ -60,7 +60,7 @@ using std::endl;
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
-TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
+TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
 DoublePinTrackShoeType shoe_topology = DoublePinTrackShoeType::ONE_CONNECTOR;
 BrakeType brake_type = BrakeType::SHAFTS;
 DrivelineTypeTV driveline_type = DrivelineTypeTV::BDS;
@@ -98,27 +98,11 @@ double target_speed = 5;                                   // used for mode=PATH
 DriverMode driver_mode = DriverMode::PATH;
 
 // Contact formulation (NSC or SMC)
-ChContactMethod contact_method = ChContactMethod::NSC;
+ChContactMethod contact_method = ChContactMethod::SMC;
 
 // Simulation step size
 double step_size_NSC = 1e-3;
-double step_size_SMC = 1e-4;
-
-// Solver and integrator types
-////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
-////ChSolver::Type slvr_type = ChSolver::Type::APGD;
-////ChSolver::Type slvr_type = ChSolver::Type::PSOR;
-////ChSolver::Type slvr_type = ChSolver::Type::MINRES;
-////ChSolver::Type slvr_type = ChSolver::Type::GMRES;
-////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_LU;
-////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_QR;
-ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
-////ChSolver::Type slvr_type = ChSolver::Type::MUMPS;
-
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT;
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::HHT;
+double step_size_SMC = 5e-4;
 
 // Verbose output level (solver and integrator)
 bool verbose_solver = false;
@@ -234,7 +218,7 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
-    collision::ChCollisionSystemType collsys_type = collision::ChCollisionSystemType::BULLET;
+    ChCollisionSystem::Type collsys_type = ChCollisionSystem::Type::BULLET;
     CollisionType chassis_collision_type = CollisionType::NONE;
 
     M113 m113;
@@ -334,21 +318,21 @@ int main(int argc, char* argv[]) {
         virtual bool OverridesWheelContact() const override { return true; }
         virtual bool OverridesGroundContact() const override { return false; }
 
-        virtual void ComputeIdlerContactForce(const collision::ChCollisionInfo& cinfo,
+        virtual void ComputeIdlerContactForce(const ChCollisionInfo& cinfo,
                                               std::shared_ptr<ChBody> wheelBody,
                                               std::shared_ptr<ChBody> shoeBody,
                                               ChVector<>& forceShoe) override {
             ComputeContactForce(cinfo, wheelBody, shoeBody, forceShoe);
         };
 
-        virtual void ComputeWheelContactForce(const collision::ChCollisionInfo& cinfo,
+        virtual void ComputeWheelContactForce(const ChCollisionInfo& cinfo,
                                               std::shared_ptr<ChBody> wheelBody,
                                               std::shared_ptr<ChBody> shoeBody,
                                               ChVector<>& forceShoe) override {
             ComputeContactForce(cinfo, wheelBody, shoeBody, forceShoe);
         };
 
-        virtual void ComputeGroundContactForce(const collision::ChCollisionInfo& cinfo,
+        virtual void ComputeGroundContactForce(const ChCollisionInfo& cinfo,
                                                std::shared_ptr<ChBody> groundBody,
                                                std::shared_ptr<ChBody> shoeBody,
                                                ChVector<>& forceShoe) override {
@@ -356,7 +340,7 @@ int main(int argc, char* argv[]) {
         };
 
       private:
-        void ComputeContactForce(const collision::ChCollisionInfo& cinfo,
+        void ComputeContactForce(const ChCollisionInfo& cinfo,
                                  std::shared_ptr<ChBody> other,
                                  std::shared_ptr<ChBody> shoe,
                                  ChVector<>& forceShoe) {
@@ -572,7 +556,7 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    SetChronoSolver(*m113.GetSystem(), slvr_type, intgr_type);
+    SetChronoSolver(*m113.GetSystem(), ChSolver::Type::BARZILAIBORWEIN, ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     m113.GetSystem()->GetSolver()->SetVerbose(verbose_solver);
     m113.GetSystem()->GetTimestepper()->SetVerbose(verbose_integrator);
 
@@ -582,12 +566,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-
-    // Inter-module communication data
-    BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
-    BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
-    TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
-    TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -647,7 +625,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(m113.GetSystem(), filename);
+                chrono::utils::WriteVisualizationAssets(m113.GetSystem(), filename);
             }
             if (img_output && step_number > 200) {
                 char filename[100];
@@ -657,16 +635,14 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        // Collect output data from modules
+        // Current driver inputs
         DriverInputs driver_inputs = driver->GetInputs();
-        vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
-        vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetChTime();
         driver->Synchronize(time);
         terrain.Synchronize(time);
-        m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        m113.Synchronize(time, driver_inputs);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
@@ -701,13 +677,13 @@ void AddFixedObstacles(ChSystem* system) {
     double radius = 2.2;
     double length = 6;
 
-    auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
+    auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector<>(10, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = chrono_types::make_shared<ChCylinderShape>(radius, length);
+    auto shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
     shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
     obstacle->AddVisualShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
@@ -718,9 +694,8 @@ void AddFixedObstacles(ChSystem* system) {
     minfo.Y = 2e7f;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
-    obstacle->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
+    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     system->AddBody(obstacle);
 }
@@ -730,7 +705,7 @@ void AddFallingObjects(ChSystem* system) {
     double radius = 0.1;
     double mass = 10;
 
-    auto ball = std::shared_ptr<ChBody>(system->NewBody());
+    auto ball = chrono_types::make_shared<ChBody>();
     ball->SetMass(mass);
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
     ball->SetPos(initLoc + ChVector<>(-3, 0, 2));
@@ -742,13 +717,12 @@ void AddFallingObjects(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     ball->SetCollide(true);
-    ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(obst_mat, radius);
-    ball->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(obst_mat, radius);
+    ball->AddCollisionShape(ct_shape);
 
-    auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
-    sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-    ball->AddVisualShape(sphere);
+    auto vis_shape = chrono_types::make_shared<ChVisualShapeSphere>(radius);
+    vis_shape->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+    ball->AddVisualShape(vis_shape);
 
     system->AddBody(ball);
 }

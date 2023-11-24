@@ -72,17 +72,14 @@ int main(int argc, char* argv[]) {
 
     sys.SetNumThreads(ChOMP::GetNumProcs(), 0, 1);
 
-    // collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0); // not needed, already 0 when using
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(
-        0.001);  // max inside penetration - if not enough stiffness in material: troubles
+    ChCollisionModel::SetDefaultSuggestedMargin(0.001);  // max inside penetration
     // Use this value for an outward additional layer around meshes, that can improve
     // robustness of mesh-mesh collision detection (at the cost of having unnatural inflate effect)
     double sphere_swept_thickness = 0.008;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    // Create the surface material, containing information
-    // about friction etc.
-    // It is a SMC (penalty) material that we will assign to
-    // all surfaces that might generate contacts.
+    // Create the surface material.
+    // It is a SMC (penalty) material that we will be assigned to all surfaces that might generate contacts.
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(6e4f);
     mysurfmaterial->SetFriction(0.3f);
@@ -151,8 +148,6 @@ int main(int argc, char* argv[]) {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    // Mark completion of system construction
-
     // FEA visualization
     auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
@@ -213,9 +208,7 @@ int main(int argc, char* argv[]) {
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(200);
-    mystepper->SetAbsTolerances(1e-06);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
-    mystepper->SetScaling(true);
+    mystepper->SetAbsTolerances(1e-04);
     mystepper->SetVerbose(false);
     ////sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 

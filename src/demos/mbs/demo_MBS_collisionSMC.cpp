@@ -33,7 +33,7 @@ using namespace chrono;
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET;
+ChCollisionSystem::Type collision_type = ChCollisionSystem::Type::BULLET;
 
 void AddFallingItems(ChSystemSMC& sys) {
     // Shared contact material for falling objects
@@ -45,17 +45,16 @@ void AddFallingItems(ChSystemSMC& sys) {
             {
                 double mass = 1;
                 double radius = 1.1;
-                auto body = chrono_types::make_shared<ChBody>(collision_type);
+                auto body = chrono_types::make_shared<ChBody>();
                 body->SetInertiaXX((2.0 / 5.0) * mass * pow(radius, 2) * ChVector<>(1, 1, 1));
                 body->SetMass(mass);
                 body->SetPos(ChVector<>(4.0 * ix + 0.1, 4.0, 4.0 * iz));
 
-                body->GetCollisionModel()->ClearModel();
-                body->GetCollisionModel()->AddSphere(mat, radius);
-                body->GetCollisionModel()->BuildModel();
+                auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(mat, radius);
+                body->AddCollisionShape(shape);
                 body->SetCollide(true);
 
-                auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
+                auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
                 sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
                 body->AddVisualShape(sphere);
 
@@ -66,17 +65,16 @@ void AddFallingItems(ChSystemSMC& sys) {
             {
                 double mass = 1;
                 ChVector<> size(1.5, 1.5, 1.5);
-                auto body = chrono_types::make_shared<ChBody>(collision_type);
+                auto body = chrono_types::make_shared<ChBody>();
 
                 body->SetMass(mass);
                 body->SetPos(ChVector<>(4.0 * ix, 6.0, 4.0 * iz));
 
-                body->GetCollisionModel()->ClearModel();
-                body->GetCollisionModel()->AddBox(mat, size.x(), size.y(), size.z());
-                body->GetCollisionModel()->BuildModel();
+                auto shape = chrono_types::make_shared<ChCollisionShapeBox>(mat, size.x(), size.y(), size.z());
+                body->AddCollisionShape(shape);
                 body->SetCollide(true);
 
-                auto box = chrono_types::make_shared<ChBoxShape>(size);
+                auto box = chrono_types::make_shared<ChVisualShapeBox>(size);
                 box->SetTexture(GetChronoDataFile("textures/cubetexture_pinkwhite.png"));
                 body->AddVisualShape(box);
 
@@ -92,18 +90,19 @@ void AddContainerWall(std::shared_ptr<ChBody> body,
                       const ChVector<>& size,
                       const ChVector<>& pos,
                       bool visible = true) {
-    body->GetCollisionModel()->AddBox(mat, size.x(), size.y(), size.z(), pos);
+    auto coll_shape = chrono_types::make_shared<ChCollisionShapeBox>(mat, size.x(), size.y(), size.z());
+    body->AddCollisionShape(coll_shape, ChFrame<>(pos, QUNIT));
 
     if (visible) {
-        auto box = chrono_types::make_shared<ChBoxShape>(size);
-        box->SetMaterial(0, vis_mat);
-        body->AddVisualShape(box, ChFrame<>(pos, QUNIT));
+        auto vis_shape = chrono_types::make_shared<ChVisualShapeBox>(size);
+        vis_shape->SetMaterial(0, vis_mat);
+        body->AddVisualShape(vis_shape, ChFrame<>(pos, QUNIT));
     }
 }
 
 std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     // The fixed body (5 walls)
-    auto fixedBody = chrono_types::make_shared<ChBody>(collision_type);
+    auto fixedBody = chrono_types::make_shared<ChBody>();
 
     fixedBody->SetMass(1.0);
     fixedBody->SetBodyFixed(true);
@@ -115,18 +114,16 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     auto fixed_mat_vis = chrono_types::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
     fixed_mat_vis->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
 
-    fixedBody->GetCollisionModel()->ClearModel();
     AddContainerWall(fixedBody, fixed_mat, fixed_mat_vis, ChVector<>(20, 1, 20), ChVector<>(0, -5, 0));
     AddContainerWall(fixedBody, fixed_mat, fixed_mat_vis, ChVector<>(1, 10, 20.99), ChVector<>(-10, 0, 0));
     AddContainerWall(fixedBody, fixed_mat, fixed_mat_vis, ChVector<>(1, 10, 20.99), ChVector<>(10, 0, 0));
     AddContainerWall(fixedBody, fixed_mat, fixed_mat_vis, ChVector<>(20.99, 10, 1), ChVector<>(0, 0, -10), false);
     AddContainerWall(fixedBody, fixed_mat, fixed_mat_vis, ChVector<>(20.99, 10, 1), ChVector<>(0, 0, 10));
-    fixedBody->GetCollisionModel()->BuildModel();
 
     sys.AddBody(fixedBody);
 
     // The rotating mixer body
-    auto rotatingBody = chrono_types::make_shared<ChBody>(collision_type);
+    auto rotatingBody = chrono_types::make_shared<ChBody>();
 
     rotatingBody->SetMass(10.0);
     rotatingBody->SetInertiaXX(ChVector<>(50, 50, 50));
@@ -138,13 +135,12 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
 
     ChVector<> size(10, 5.5, 1.0);
 
-    rotatingBody->GetCollisionModel()->ClearModel();
-    rotatingBody->GetCollisionModel()->AddBox(rot_mat, size.x(), size.y(), size.z());
-    rotatingBody->GetCollisionModel()->BuildModel();
+    auto coll_shape = chrono_types::make_shared<ChCollisionShapeBox>(rot_mat, size.x(), size.y(), size.z());
+    rotatingBody->AddCollisionShape(coll_shape);
 
-    auto box = chrono_types::make_shared<ChBoxShape>(size);
-    box->SetTexture(GetChronoDataFile("textures/blue.png"));
-    rotatingBody->AddVisualShape(box);
+    auto vis_shape = chrono_types::make_shared<ChVisualShapeBox>(size);
+    vis_shape->SetTexture(GetChronoDataFile("textures/blue.png"));
+    rotatingBody->AddVisualShape(vis_shape);
 
     sys.AddBody(rotatingBody);
 

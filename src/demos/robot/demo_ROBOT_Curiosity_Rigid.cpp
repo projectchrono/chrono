@@ -25,7 +25,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -69,9 +69,10 @@ int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
     ChSystemNSC sys;
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
     // Create terrain and obstacles
     CreateTerrain(sys);

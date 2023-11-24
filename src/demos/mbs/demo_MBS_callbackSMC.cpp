@@ -88,8 +88,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
 // -----------------------------------------------------------------------------
 class ContactMaterial : public ChContactContainer::AddContactCallback {
   public:
-    virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
-                              ChMaterialComposite* const material) override {
+    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
         // Downcast to appropriate composite material type
         auto mat = static_cast<ChMaterialCompositeSMC* const>(material);
 
@@ -176,13 +175,14 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, -10, 0));
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Set solver settings
     sys.SetSolverMaxIterations(100);
     sys.SetSolverForceTolerance(0);
 
     // Change default collision effective radius of curvature
-    ////collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
+    ////ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
     
     // --------------------------------------------------
     // Create a contact material, shared among all bodies
@@ -195,42 +195,36 @@ int main(int argc, char* argv[]) {
     // Add bodies
     // ----------
 
-    auto container = std::shared_ptr<ChBody>(sys.NewBody());
+    auto container = chrono_types::make_shared<ChBody>();
     sys.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
 
     container->SetCollide(true);
-    container->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(container.get(), material, ChVector<>(8, 1, 8), ChVector<>(0, -0.5, 0));
-    container->GetCollisionModel()->BuildModel();
     container->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
 
-    auto box1 = std::shared_ptr<ChBody>(sys.NewBody());
+    auto box1 = chrono_types::make_shared<ChBody>();
     box1->SetMass(10);
     box1->SetInertiaXX(ChVector<>(1, 1, 1));
     box1->SetPos(ChVector<>(-1, 0.21, -1));
     box1->SetPos_dt(ChVector<>(5, 0, 0));
 
     box1->SetCollide(true);
-    box1->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(box1.get(), material, ChVector<>(0.8, 0.4, 0.2));
-    box1->GetCollisionModel()->BuildModel();
     box1->GetVisualShape(0)->SetColor(ChColor(0.1f, 0.1f, 0.4f));
 
     sys.AddBody(box1);
 
-    auto box2 = std::shared_ptr<ChBody>(sys.NewBody());
+    auto box2 = chrono_types::make_shared<ChBody>();
     box2->SetMass(10);
     box2->SetInertiaXX(ChVector<>(1, 1, 1));
     box2->SetPos(ChVector<>(-1, 0.21, +1));
     box2->SetPos_dt(ChVector<>(5, 0, 0));
 
     box2->SetCollide(true);
-    box2->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(box2.get(), material, ChVector<>(0.8, 0.4, 0.2));
-    box2->GetCollisionModel()->BuildModel();
     box2->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.1f, 0.1f));
 
     sys.AddBody(box2);
@@ -261,6 +255,8 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddCamera(ChVector<>(4, 4, -6));
             vis_irr->AddTypicalLights();
+            vis_irr->AddGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
+                             ChColor(1, 0, 0));
 
             vis = vis_irr;
 #endif
@@ -318,7 +314,6 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        vis->RenderGrid(ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)), 12, 0.5);
         vis->RenderCOGFrames(1.0);
 
         sys.DoStepDynamics(1e-3);

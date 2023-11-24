@@ -10,7 +10,7 @@
 //
 // =============================================================================
 // Author: Wei Hu, Jason Zhou
-// Chrono::FSI demo to show usage of VIPER rover models on SPH granular terrain
+// Chrono::FSI demo to show usage of VIPER rover models on CRM granular terrain
 // This demo uses a plug-in VIPER rover model from chrono::models
 // =============================================================================
 
@@ -21,7 +21,6 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/assets/ChBoxShape.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -261,7 +260,7 @@ int main(int argc, char* argv[]) {
         }
 
 
-        visFSI->SetTitle("Viper on SPH terrain");
+        visFSI->SetTitle("Viper on CRM terrain");
         visFSI->SetSize(1280, 720);        
         visFSI->AddCamera(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
         visFSI->SetCameraMoveScale(1.0f);

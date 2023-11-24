@@ -58,9 +58,9 @@ int main(int argc, char* argv[]) {
     path->AddSubLine(marc2);
     path->Set_closed(true);
 
-    // Create a ChLineShape, a visualization asset for lines.
+    // Create a ChVisualShapeLine, a visualization asset for lines.
     // The ChLinePath is a special type of ChLine and it can be visualized.
-    auto pathasset = chrono_types::make_shared<ChLineShape>();
+    auto pathasset = chrono_types::make_shared<ChVisualShapeLine>();
     pathasset->SetLineGeometry(path);
     floor->AddVisualShape(pathasset);
 
@@ -117,9 +117,9 @@ int main(int argc, char* argv[]) {
     glyph->SetPathDuration(1);
     glyph->Set_closed(true);
 
-    // Create a ChLineShape, a visualization asset for lines.
+    // Create a ChVisualShapeLine, a visualization asset for lines.
     // The ChLinePath is a special type of ChLine and it can be visualized.
-    auto glyphasset = chrono_types::make_shared<ChLineShape>();
+    auto glyphasset = chrono_types::make_shared<ChVisualShapeLine>();
     glyphasset->SetLineGeometry(glyph);
     wheel->AddVisualShape(glyphasset);
 

@@ -103,15 +103,16 @@ class MySimpleForklift {
         // collision properties:
         auto chassis_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-        chassis->GetCollisionModel()->ClearModel();
-        chassis->GetCollisionModel()->AddBox(chassis_mat, 1.227, 1.621, 1.864, ChVector<>(-0.003, 1.019, 0.192));
-        chassis->GetCollisionModel()->AddBox(chassis_mat, 0.187, 0.773, 1.201, ChVector<>(0.486, 0.153, -0.047));
-        chassis->GetCollisionModel()->AddBox(chassis_mat, 0.187, 0.773, 1.201, ChVector<>(-0.486, 0.153, -0.047));
-        chassis->GetCollisionModel()->BuildModel();
+        auto cshape1 = chrono_types::make_shared<ChCollisionShapeBox>(chassis_mat, 1.227, 1.621, 1.864);
+        auto cshape2 = chrono_types::make_shared<ChCollisionShapeBox>(chassis_mat, 0.187, 0.773, 1.201);
+        auto cshape3 = chrono_types::make_shared<ChCollisionShapeBox>(chassis_mat, 0.187, 0.773, 1.201);
+        chassis->AddCollisionShape(cshape1, ChFrame<>(ChVector<>(-0.003, 1.019, 0.192), QUNIT));
+        chassis->AddCollisionShape(cshape2, ChFrame<>(ChVector<>(0.486, 0.153, -0.047), QUNIT));
+        chassis->AddCollisionShape(cshape3, ChFrame<>(ChVector<>(-0.486, 0.153, -0.047), QUNIT));
         chassis->SetCollide(true);
 
         // visualization properties:
-        auto chassis_mesh = chrono_types::make_shared<ChModelFileShape>();
+        auto chassis_mesh = chrono_types::make_shared<ChVisualShapeModelFile>();
         chassis_mesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
         chassis->AddVisualShape(chassis_mesh, ChFrame<>(-COG_truss, QUNIT));
 
@@ -119,21 +120,21 @@ class MySimpleForklift {
         auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
         // visualization shape, shared among all wheels
-        auto wheel_mesh = chrono_types::make_shared<ChModelFileShape>();
+        auto wheel_mesh = chrono_types::make_shared<ChVisualShapeModelFile>();
         wheel_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
 
+        // Front and back wheel collision shapes
+        auto wshapeF = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_mat, RAD_front_wheel, 0.2);
+        auto wshapeB = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_mat, RAD_back_wheel, 0.2);
 
         // ..the right-front wheel
         wheelRF = chrono_types::make_shared<ChBody>();
         sys->Add(wheelRF);
         wheelRF->SetPos(COG_wheelRF);
         wheelRF->SetMass(20);
-        wheelRF->SetInertiaXX(ChVector<>(2, 2, 2));        
+        wheelRF->SetInertiaXX(ChVector<>(2, 2, 2));
         // collision properties:
-        ChMatrix33<> Arot(chrono::Q_from_AngY(CH_C_PI / 2));
-        wheelRF->GetCollisionModel()->ClearModel();
-        wheelRF->GetCollisionModel()->AddCylinder(wheel_mat, RAD_front_wheel, 0.2, ChVector<>(0, 0, 0), Arot);
-        wheelRF->GetCollisionModel()->BuildModel();
+        wheelRF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI / 2)));
         wheelRF->SetCollide(true);
         // visualization properties:
         wheelRF->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
@@ -151,9 +152,8 @@ class MySimpleForklift {
         wheelLF->SetMass(20);
         wheelLF->SetInertiaXX(ChVector<>(2, 2, 2));
         // collision properties:
-        wheelLF->GetCollisionModel()->ClearModel();
-        wheelLF->GetCollisionModel()->AddCylinder(wheel_mat, RAD_front_wheel, 0.2, ChVector<>(0, 0, 0), Arot);
-        wheelLF->GetCollisionModel()->BuildModel();
+        auto shapeLF = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_mat, RAD_front_wheel, 0.2);
+        wheelLF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI / 2)));
         wheelLF->SetCollide(true);
         // visualization properties:
         wheelLF->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
@@ -184,9 +184,7 @@ class MySimpleForklift {
         wheelB->SetMass(20);
         wheelB->SetInertiaXX(ChVector<>(2, 2, 2));
         // collision properties:
-        wheelB->GetCollisionModel()->ClearModel();
-        wheelB->GetCollisionModel()->AddCylinder(wheel_mat, RAD_back_wheel, 0.2, ChVector<>(0, 0, 0), Arot);
-        wheelB->GetCollisionModel()->BuildModel();
+        wheelB->AddCollisionShape(wshapeB, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI / 2)));
         wheelB->SetCollide(true);
         // visualization properties:
         wheelB->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
@@ -204,7 +202,7 @@ class MySimpleForklift {
         arm->SetMass(100);
         arm->SetInertiaXX(ChVector<>(30, 30, 30));
         // visualization properties:
-        auto arm_mesh = chrono_types::make_shared<ChModelFileShape>();
+        auto arm_mesh = chrono_types::make_shared<ChVisualShapeModelFile>();
         arm_mesh->SetFilename(GetChronoDataFile("models/forklift/arm.obj"));
         arm->AddVisualShape(arm_mesh, ChFrame<>(-COG_arm, QUNIT));
 
@@ -223,14 +221,15 @@ class MySimpleForklift {
         fork->SetMass(60);
         fork->SetInertiaXX(ChVector<>(15, 15, 15));
         // collision properties:
-        fork->GetCollisionModel()->ClearModel();
-        fork->GetCollisionModel()->AddBox(fork_mat, 0.100, 0.032, 1.033, ChVector<>(-0.352, -0.312, 0.613));
-        fork->GetCollisionModel()->AddBox(fork_mat, 0.100, 0.032, 1.033, ChVector<>(0.352, -0.312, 0.613));
-        fork->GetCollisionModel()->AddBox(fork_mat, 0.344, 1.134, 0.101, ChVector<>(0.000, 0.321, -0.009));
-        fork->GetCollisionModel()->BuildModel();
+        auto fshape1 = chrono_types::make_shared<ChCollisionShapeBox>(fork_mat, 0.100, 0.032, 1.033);
+        auto fshape2 = chrono_types::make_shared<ChCollisionShapeBox>(fork_mat, 0.100, 0.032, 1.033);
+        auto fshape3 = chrono_types::make_shared<ChCollisionShapeBox>(fork_mat, 0.344, 1.134, 0.101);
+        fork->AddCollisionShape(fshape1, ChFrame<>(ChVector<>(-0.352, -0.312, 0.613), QUNIT));
+        fork->AddCollisionShape(fshape2, ChFrame<>(ChVector<>(0.352, -0.312, 0.613), QUNIT));
+        fork->AddCollisionShape(fshape3, ChFrame<>(ChVector<>(0.000, 0.321, -0.009), QUNIT));
         fork->SetCollide(true);
         // visualization properties:
-        auto fork_mesh = chrono_types::make_shared<ChModelFileShape>();
+        auto fork_mesh = chrono_types::make_shared<ChVisualShapeModelFile>();
         fork_mesh->SetFilename(GetChronoDataFile("models/forklift/forks.obj"));
         fork->AddVisualShape(fork_mesh, ChFrame<>(-COG_fork, QUNIT));
 
@@ -365,18 +364,14 @@ class MyEventReceiver : public IEventReceiver {
     MySimpleForklift* forklift;
 };
 
-//
-// This is the program which is executed
-//
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a ChronoENGINE physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
-
-
-
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Contact material for ground
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();

@@ -124,7 +124,7 @@ impose_2.SetPositionFunction(f_line)
 impose_2.SetRotationFunction(f_rotspline)
 
 # Visualize the position spline
-mglyphasset = chrono.ChLineShape()
+mglyphasset = chrono.ChVisualShapeLine()
 mglyphasset.SetLineGeometry(mspline)
 impose_2.AddVisualShape(mglyphasset)
 

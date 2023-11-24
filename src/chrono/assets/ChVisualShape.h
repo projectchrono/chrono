@@ -21,6 +21,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 class ChPhysicsItem;
 
 /// Base class for a visualization asset for rendering (run-time or post processing).
@@ -110,6 +113,8 @@ class ChApi ChVisualShape {
 
     friend class ChVisualModel;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShape, 0)
 

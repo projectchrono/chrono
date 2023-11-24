@@ -174,6 +174,12 @@ int main(int argc, char* argv[]) {
         std::cout << "Rig uses M113 track assembly:  type " << (int)type << " side " << side << std::endl;
     }
 
+    // ----------------------------
+    // Associate a collision system
+    // ----------------------------
+
+    rig->GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
@@ -287,10 +293,8 @@ int main(int argc, char* argv[]) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(50);
     integrator->SetAbsTolerances(1e-2, 1e2);
-    integrator->SetMode(ChTimestepperHHT::ACCELERATION);
     integrator->SetStepControl(false);
     integrator->SetModifiedNewton(true);
-    integrator->SetScaling(true);
     integrator->SetVerbose(verbose_integrator);
 
     // -----------------

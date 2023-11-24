@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -26,7 +26,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono/assets/ChModelFileShape.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
 
 #include "chrono_sensor/sensors/ChSegmentationCamera.h"
 #include "chrono_sensor/ChSensorManager.h"
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
                                                                   false, true);
     mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
     trimesh_shape->SetName("Audi Chassis Mesh");
     trimesh_shape->SetMutable(false);

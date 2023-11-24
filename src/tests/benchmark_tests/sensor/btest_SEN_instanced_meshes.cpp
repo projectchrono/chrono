@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
 
                     ChFrame<> f = ChFrame<>(p, quat);
 
-                    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+                    auto trimesh_shape = std::make_shared<ChVisualShapeTriangleMesh>();
                     trimesh_shape->SetMesh(mmesh);
                     trimesh_shape->SetName("HMMWV Chassis Mesh");
                     trimesh_shape->SetMutable(false);

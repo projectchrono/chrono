@@ -109,6 +109,7 @@ print( "Shock rest length rear:  " + str(shockRL.GetRestLength() ) + "\n" )
 
 print("Vehicle mass:             " + str( uaz.GetVehicle().GetMass() ) + "\n")
 
+uaz.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # ------------------
 # Create the terrain

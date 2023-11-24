@@ -25,8 +25,8 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChMultiLink.h"
 
@@ -143,7 +143,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
@@ -153,7 +153,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upright body (same orientation as the chassis)
-    m_upright[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_upright[side] = chrono_types::make_shared<ChBody>();
     m_upright[side]->SetNameString(m_name + "_upright" + suffix);
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);
@@ -171,7 +171,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     v = Vcross(w, u);
     rot.Set_A_axis(u, v, w);
 
-    m_upperArm[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_upperArm[side] = chrono_types::make_shared<ChBody>();
     m_upperArm[side]->SetNameString(m_name + "_upperArm" + suffix);
     m_upperArm[side]->SetPos(points[UA_CM]);
     m_upperArm[side]->SetRot(rot);
@@ -189,7 +189,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_lateral[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_lateral[side] = chrono_types::make_shared<ChBody>();
     m_lateral[side]->SetNameString(m_name + "_lateral" + suffix);
     m_lateral[side]->SetPos(points[LAT_CM]);
     m_lateral[side]->SetRot(rot);
@@ -207,7 +207,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_trailingLink[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_trailingLink[side] = chrono_types::make_shared<ChBody>();
     m_trailingLink[side]->SetNameString(m_name + "_trailingLink" + suffix);
     m_trailingLink[side]->SetPos(points[TL_CM]);
     m_trailingLink[side]->SetRot(rot);
@@ -290,7 +290,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
         rot.Set_A_axis(u, v, w);
 
         // Create the tierod body
-        m_tierod[side] = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+        m_tierod[side] = chrono_types::make_shared<ChBody>();
         m_tierod[side]->SetNameString(m_name + "_tierodBody" + suffix);
         m_tierod[side]->SetPos((points[TIEROD_U] + points[TIEROD_C]) / 2);
         m_tierod[side]->SetRot(rot.Get_A_quaternion());
@@ -535,18 +535,18 @@ void ChMultiLink::AddVisualizationAssets(VisualizationType vis) {
                                  getTrailingLinkRadius());
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
     // Add visualization for the tie-rods
     if (UseTierodBodies()) {
         AddVisualizationTierod(m_tierod[LEFT], m_pointsL[TIEROD_C], m_pointsL[TIEROD_U], getTierodRadius());
         AddVisualizationTierod(m_tierod[RIGHT], m_pointsR[TIEROD_C], m_pointsR[TIEROD_U], getTierodRadius());
     } else {
-        m_distTierod[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-        m_distTierod[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+        m_distTierod[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+        m_distTierod[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
     }
 }
 

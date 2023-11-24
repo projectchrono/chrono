@@ -71,6 +71,8 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
                 ChArchiveAsciiDump marchiveout2(mfileo2);
                 marchiveout2.SetUseVersions(false);
                 marchiveout2 << CHNVP(m_gui->m_system, "System");
+
+                return true;
             }
             case irr::KEY_F6:
                 GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
@@ -167,7 +169,7 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
 
 // -----------------------------------------------------------------------------
 
-class DebugDrawer : public collision::ChCollisionSystem::VisualizationCallback {
+class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
   public:
     explicit DebugDrawer(irr::video::IVideoDriver* driver)
         : m_driver(driver), m_debugMode(0), m_linecolor(255, 255, 0, 0) {}
@@ -578,7 +580,7 @@ void ChIrrGUI::DrawCollisionShapes(irr::video::SColor color) {
     mattransp.Lighting = false;
     GetVideoDriver()->setMaterial(mattransp);
 
-    m_system->GetCollisionSystem()->Visualize(collision::ChCollisionSystem::VIS_Shapes);
+    m_system->GetCollisionSystem()->Visualize(ChCollisionSystem::VIS_Shapes);
 }
 
 void ChIrrGUI::BeginScene() {

@@ -57,41 +57,35 @@ class ChApi ChSurfaceNurbs : public ChSurface {
 
     // virtual int Get_complexity() const override { return points.GetRows(); }
 
-    /// Evaluates a point on the line, given parametric coordinate U.
-    /// Parameter U always work in 0..1 range, even if knots are not in 0..1 range.
-    /// So if you want to use u' in knot range, use ComputeUfromKnotU().
-    /// Computed value goes into the 'pos' reference.
-    /// It must be implemented by inherited classes.
-    virtual void Evaluate(ChVector<>& pos, const double parU, const double parV) const override;
-
-    /// Evaluates normal
-    // virtual void Normal(ChVector<>& dir, const double parU) const override;
+    /// Return a point on the surface, given parametric coordinates U,V.
+    /// Parameters U and V always work in 0..1 range.  As such, to use u' in knot range, use ComputeUfromKnotU().
+    virtual ChVector<> Evaluate(double parU, double parV) const override;
 
     // NURBS specific functions
 
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert u->U,
     /// where u is in knot range, calling this:
-    double ComputeUfromKnotU(const double u) const {
+    double ComputeUfromKnotU(double u) const {
         return (u - knots_u(p_u)) / (knots_u(knots_u.size() - 1-p_u) - knots_u(p_u));
     }
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert U->u,
     /// where u is in knot range, calling this:
-    double ComputeKnotUfromU(const double U) const {
+    double ComputeKnotUfromU(double U) const {
         return U * (knots_u(knots_u.size() - 1-p_u) - knots_u(p_u)) + knots_u(p_u);
     }
 
     /// When using Evaluate() etc. you need V parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert v->V,
     /// where v is in knot range, calling this:
-    double ComputeVfromKnotV(const double v) const {
+    double ComputeVfromKnotV(double v) const {
         return (v - knots_v(p_v)) / (knots_v(knots_v.size() - 1-p_v) - knots_v(p_v));
     }
     /// When using Evaluate() etc. you need V parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert V->v,
     /// where v is in knot range, calling this:
-    double ComputeKnotVfromV(const double V) const {
+    double ComputeKnotVfromV(double V) const {
         return V * (knots_v(knots_v.size() - 1-p_v) - knots_v(p_v)) + knots_v(p_v);
     }
 

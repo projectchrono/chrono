@@ -40,28 +40,26 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
-collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET;
+ChCollisionSystem::Type collision_type = ChCollisionSystem::Type::BULLET;
 
 // Shortcut function that creates two bodies (a slider and a guide) in a given position,
 // just to simplify the creation of multiple linear motors in this demo.
-// (skip this and go to main() for the tutorial)
-
 void CreateSliderGuide(std::shared_ptr<ChBody>& guide,
                        std::shared_ptr<ChBody>& slider,
                        std::shared_ptr<ChMaterialSurface> material,
                        ChSystem& sys,
                        const ChVector<> mpos) {
-    guide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material, collision_type);
+    guide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material);
     guide->SetPos(mpos);
     guide->SetBodyFixed(true);
     sys.Add(guide);
 
-    slider = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.2, 0.5, 1000, material, collision_type);
+    slider = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.2, 0.5, 1000, material);
     slider->SetPos(mpos + ChVector<>(0, 0.3, 0));
     slider->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.0f));
     sys.Add(slider);
 
-    auto obstacle = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.4, 0.4, 8000, material, collision_type);
+    auto obstacle = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.4, 0.4, 8000, material);
     obstacle->SetPos(mpos + ChVector<>(1.5, 0.4, 0));
     obstacle->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.2f, 0.2f));
     sys.Add(obstacle);
@@ -77,13 +75,13 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& stator,
                        ChSystem& sys,
                        const ChVector<>& mpos) {
     stator =
-        chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 0.1, 1000, material, collision_type);
+        chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 0.1, 1000, material);
     stator->SetPos(mpos);
     stator->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_X));
     stator->SetBodyFixed(true);
     sys.Add(stator);
 
-    rotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material, collision_type);
+    rotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material);
     rotor->SetPos(mpos + ChVector<>(0.5, 0, -0.15));
     rotor->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.0f));
     sys.Add(rotor);
@@ -100,7 +98,7 @@ int main(int argc, char* argv[]) {
     auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     // Create a floor that is fixed (that is used also to represent the absolute reference)
-    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, material, collision_type);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, material);
     floorBody->SetPos(ChVector<>(0, -2, 0));
     floorBody->SetBodyFixed(true);
     floorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
@@ -577,7 +575,7 @@ int main(int argc, char* argv[]) {
         // Here we will compute F(t) by emulating a very basic PID scheme.
         // In practice, it works like a callback that is executed at each time step.
         // Implementation of this function is mandatory!!!
-        virtual double SetpointCallback(const double x) override {
+        virtual double SetpointCallback(double x) override {
             // Trick: in this PID example, we need the following if(..)  to update PID
             // only when time changes (as the callback could be invoked more than once per timestep):
             double time = x;
@@ -710,8 +708,7 @@ int main(int argc, char* argv[]) {
     my_functsequence->InsertFunct(my_funcpause1, 0.2, 1.0, true);  // fx, duration, weight, enforce C0 continuity
     my_functsequence->InsertFunct(my_funcsigma2, 0.3, 1.0, true);  // fx, duration, weight, enforce C0 continuity
     my_functsequence->InsertFunct(my_funcpause2, 0.2, 1.0, true);  // fx, duration, weight, enforce C0 continuity
-    auto my_functangle = chrono_types::make_shared<ChFunction_Repeat>();
-    my_functangle->Set_fa(my_functsequence);
+    auto my_functangle = chrono_types::make_shared<ChFunction_Repeat>(my_functsequence);
     my_functangle->Set_window_length(0.5 + 0.2 + 0.3 + 0.2);
     my_driveli->SetAngleFunction(my_functangle);
 

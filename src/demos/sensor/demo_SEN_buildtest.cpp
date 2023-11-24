@@ -21,7 +21,7 @@
 #include <cstdio>
 #include <iomanip>
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     ChMatrix33<> principal_inertia_rot;
     ChVector<> principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
     trimesh_shape->SetName("Mesh");
     trimesh_shape->SetMutable(false);
@@ -281,9 +281,8 @@ int main(int argc, char* argv[]) {
         mesh_body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(ChRandom(), ChRandom(), 2.0 + i)));
         sys.Add(mesh_body);
 
-        mesh_body->GetCollisionModel()->ClearModel();
-        mesh_body->GetCollisionModel()->AddTriangleMesh(phys_mat, mmesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
-        mesh_body->GetCollisionModel()->BuildModel();
+        auto mesh_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(phys_mat, mmesh, false, false, 0.005);
+        mesh_body->AddCollisionShape(mesh_ct_shape);
         mesh_body->SetCollide(true);
 
         mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());

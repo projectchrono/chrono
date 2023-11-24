@@ -12,14 +12,14 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChCamera.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChModelFileShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeEllipsoid.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChParticleCloud.h"
@@ -429,8 +429,8 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             continue;
         m_pov_shapes.insert({(size_t)shape.get(), shape});
 
-        auto obj_shape = std::dynamic_pointer_cast<ChModelFileShape>(shape);
-        auto mesh_shape = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape);
+        auto obj_shape = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape);
+        auto mesh_shape = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape);
 
         if (obj_shape || mesh_shape) {
             std::shared_ptr<ChTriangleMeshConnected> mesh;
@@ -543,7 +543,7 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "#end \n";  // end macro
         }
 
-        if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+        if (auto sphere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
             assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";  // start macro
             assets_file << "sphere  {\n";                                  // start sphere
 
@@ -558,7 +558,7 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "#end \n";  // end macro
         }
 
-        if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
+        if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
             assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";  // begin macro
             assets_file << "sphere  {\n";                                  // begin ellipsoid
 
@@ -577,7 +577,7 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "#end \n";  // end macro
         }
 
-        if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+        if (auto cylinder = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
             assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";  // start macro
             assets_file << "cylinder  {\n";                                // start cylinder
 
@@ -594,7 +594,7 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "#end \n";  // end macro
         }
 
-        if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+        if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
             assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";  // start macro
             assets_file << "box  {\n";                                     // start box
 
@@ -693,10 +693,10 @@ void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
         const auto& shape = shape_instance.first;
 
         // Process only "known" shapes (i.e., shapes that were included in the assets file)
-        if (std::dynamic_pointer_cast<ChModelFileShape>(shape) ||
-            std::dynamic_pointer_cast<ChTriangleMeshShape>(shape) || std::dynamic_pointer_cast<ChSphereShape>(shape) ||
-            std::dynamic_pointer_cast<ChEllipsoidShape>(shape) || std::dynamic_pointer_cast<ChCylinderShape>(shape) ||
-            std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+        if (std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape) ||
+            std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape) || std::dynamic_pointer_cast<ChVisualShapeSphere>(shape) ||
+            std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape) || std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape) ||
+            std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
             pov_file << "sh_" << (size_t)shape.get() << "()\n";
         }
     }

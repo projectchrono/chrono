@@ -35,8 +35,8 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChDeDionAxle.h"
 
@@ -117,7 +117,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleCenter = (m_axleOuterR + m_axleOuterL) / 2.0;
 
     // Create and initialize the axle body.
-    m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -134,7 +134,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // Watt lateral guiding mechanism
     ChVector<> cntrPos =
         suspension_to_abs.TransformLocalToParent((getLocation(WATT_CNT_LE) + getLocation(WATT_CNT_RI) / 2.0));
-    m_wattCenterLinkBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_wattCenterLinkBody = chrono_types::make_shared<ChBody>();
     m_wattCenterLinkBody->SetNameString(m_name + "_wattCenterBody");
     m_wattCenterLinkBody->SetPos(cntrPos);
     m_wattCenterLinkBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -144,7 +144,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     ChVector<> lftPos =
         suspension_to_abs.TransformLocalToParent((getLocation(WATT_LE_CH) + getLocation(WATT_CNT_LE)) / 2.0);
-    m_wattLeftLinkBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_wattLeftLinkBody = chrono_types::make_shared<ChBody>();
     m_wattLeftLinkBody->SetNameString(m_name + "_wattLeftBody");
     m_wattLeftLinkBody->SetPos(lftPos);
     m_wattLeftLinkBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -154,7 +154,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     ChVector<> rghtPos =
         suspension_to_abs.TransformLocalToParent((getLocation(WATT_RI_CH) + getLocation(WATT_CNT_RI)) / 2.0);
-    m_wattRightLinkBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_wattRightLinkBody = chrono_types::make_shared<ChBody>();
     m_wattRightLinkBody->SetNameString(m_name + "_wattRightBody");
     m_wattRightLinkBody->SetPos(rghtPos);
     m_wattRightLinkBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -236,7 +236,7 @@ void ChDeDionAxle::InitializeSide(VehicleSide side,
     auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
@@ -385,10 +385,10 @@ void ChDeDionAxle::AddVisualizationAssets(VisualizationType vis) {
                          ChColor(0.5f, 0.8f, 0.5f));
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 }
 
 void ChDeDionAxle::RemoveVisualizationAssets() {

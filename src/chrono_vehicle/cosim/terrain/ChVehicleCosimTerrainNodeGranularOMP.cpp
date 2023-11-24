@@ -35,7 +35,7 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 
@@ -114,12 +114,15 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(doubl
         }
     }
 
+    // Create an associated collision system
+    m_system->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
+
     // Solver settings independent of method type
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
     m_system->GetSettings()->solver.use_full_inertia_tensor = false;
     m_system->GetSettings()->solver.tolerance = 0.1;
     m_system->GetSettings()->solver.max_iteration_bilateral = 100;
-    m_system->GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
+    m_system->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     // Set default number of threads
     m_system->SetNumThreads(1);
@@ -166,7 +169,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
     m_system->GetSettings()->solver.use_full_inertia_tensor = false;
     m_system->GetSettings()->solver.tolerance = 0.1;
     m_system->GetSettings()->solver.max_iteration_bilateral = 100;
-    m_system->GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
+    m_system->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     // Set default number of threads
     m_system->SetNumThreads(1);
@@ -361,7 +364,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     // Create container body
     // ---------------------
 
-    auto container = std::shared_ptr<ChBody>(m_system->NewBody());
+    auto container = chrono_types::make_shared<ChBody>();
     m_system->AddBody(container);
     container->SetIdentifier(-1);
     container->SetMass(1);
@@ -373,7 +376,6 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     double hdimZ = 0.5 * m_init_depth;
     double hthick = m_thick / 2;
 
-    container->GetCollisionModel()->ClearModel();
     // Bottom box
     utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_dimX, m_dimY, m_thick),
                           ChVector<>(0, 0, -m_thick / 2), ChQuaternion<>(1, 0, 0, 0), true);
@@ -389,7 +391,6 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     // Right box
     utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_dimX, m_thick, m_init_depth + m_thick),
                           ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);
-    container->GetCollisionModel()->BuildModel();
 
     // Enable deactivation of bodies that exit a specified bounding box.
     // We set this bounding box to encapsulate the container with a conservative height.
@@ -521,7 +522,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         ChMatrix33<> inertia;
         trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
 
-        auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+        auto body = chrono_types::make_shared<ChBody>();
         body->SetNameString("obstacle");
         body->SetIdentifier(id++);
         body->SetPos(b.m_init_pos);
@@ -531,13 +532,11 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         body->SetBodyFixed(false);
         body->SetCollide(true);
 
-        body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                                   m_radius_g);
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_g);
+        body->AddCollisionShape(ct_shape);
         body->GetCollisionModel()->SetFamily(2);
-        body->GetCollisionModel()->BuildModel();
 
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
         body->AddVisualShape(trimesh_shape, ChFrame<>());
@@ -773,7 +772,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
     ChVector<> inertia_p = 1e-3 * mass_p * ChVector<>(0.1, 0.1, 0.1);
 
     for (int it = 0; it < nt; it++) {
-        auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+        auto body = chrono_types::make_shared<ChBody>();
         body->SetIdentifier(it);
         body->SetMass(mass_p);
         body->SetInertiaXX(inertia_p);
@@ -785,14 +784,14 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
         std::string name = "tri_" + std::to_string(it);
         double len = 0.1;
 
-        body->GetCollisionModel()->ClearModel();
         utils::AddTriangleGeometry(body.get(), material, ChVector<>(len, 0, 0), ChVector<>(0, len, 0),
                                    ChVector<>(0, 0, len), name);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
-        body->GetCollisionModel()->BuildModel();
 
         m_system->AddBody(body);
+        m_system->GetCollisionSystem()->BindItem(body);
+
         proxy->AddBody(body, it);
     }
 
@@ -806,7 +805,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     // Create the proxy associated with the given object
     auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
-    auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+    auto body = chrono_types::make_shared<ChBody>();
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
@@ -824,6 +823,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
 
     m_system->AddBody(body);
+    m_system->GetCollisionSystem()->BindItem(body);
+
     proxy->AddBody(body, 0);
 
     m_proxies[i] = proxy;

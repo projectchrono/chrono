@@ -29,8 +29,8 @@
 
 #include <algorithm>
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChThreeLinkIRS.h"
 
@@ -124,7 +124,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
@@ -147,7 +147,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     w = Vcross(u, v);
     rot.Set_A_axis(u, v, w);
 
-    m_arm[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_arm[side] = chrono_types::make_shared<ChBody>();
     m_arm[side]->SetNameString(m_name + "_arm" + suffix);
     m_arm[side]->SetPos(points[TA_CM]);
     m_arm[side]->SetRot(rot);
@@ -162,7 +162,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     w = Vcross(u, v);
     rot.Set_A_axis(u, v, w);
 
-    m_upper[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_upper[side] = chrono_types::make_shared<ChBody>();
     m_upper[side]->SetNameString(m_name + "_upper" + suffix);
     m_upper[side]->SetPos(points[UL_CM]);
     m_upper[side]->SetRot(rot);
@@ -177,7 +177,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     w = Vcross(u, v);
     rot.Set_A_axis(u, v, w);
 
-    m_lower[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_lower[side] = chrono_types::make_shared<ChBody>();
     m_lower[side]->SetNameString(m_name + "_lower" + suffix);
     m_lower[side]->SetPos(points[LL_CM]);
     m_lower[side]->SetRot(rot);
@@ -398,10 +398,10 @@ void ChThreeLinkIRS::AddVisualizationAssets(VisualizationType vis) {
     AddVisualizationLink(m_lower[RIGHT], m_pointsR[LL_C], m_pointsR[LL_A], m_pointsR[LL_CM], getLowerLinkRadius());
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 }
 
 void ChThreeLinkIRS::RemoveVisualizationAssets() {

@@ -26,7 +26,8 @@ print ("Example: demonstration of using friction models")
 #  Create the simulation sys and add items
 #
 
-sys      = chrono.ChSystemNSC()
+sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Create all the rigid bodies.
 mradius = 0.5
@@ -105,31 +106,35 @@ bin_mat.SetRollingFriction(1)
 bin_mat.SetSpinningFriction(1)
 
 # Add collision geometry and visualization shapes for the floor and the 4 walls
-bin.GetCollisionModel().ClearModel()
-bin.GetCollisionModel().AddBox(bin_mat, 20, 1, 20, chrono.ChVectorD(0, 0, 0))
-bin.GetCollisionModel().AddBox(bin_mat, 1,  2, 20.99, chrono.ChVectorD(-10, 1, 0))
-bin.GetCollisionModel().AddBox(bin_mat, 1,  2, 20.99, chrono.ChVectorD( 10, 1, 0))
-bin.GetCollisionModel().AddBox(bin_mat, 20.99, 2, 1, chrono.ChVectorD(0, 1, -10))
-bin.GetCollisionModel().AddBox(bin_mat, 20.99, 2, 1, chrono.ChVectorD(0, 1,  10))
-bin.GetCollisionModel().BuildModel()
+cshape_1 = chrono.ChCollisionShapeBox(bin_mat, 20, 1, 20)
+cshape_2 = chrono.ChCollisionShapeBox(bin_mat, 1,  2, 20.99)
+cshape_3 = chrono.ChCollisionShapeBox(bin_mat, 1,  2, 20.99)
+cshape_4 = chrono.ChCollisionShapeBox(bin_mat, 20.99, 2, 1)
+cshape_5 = chrono.ChCollisionShapeBox(bin_mat, 20.99, 2, 1)
 
-vshape_1 = chrono.ChBoxShape(20, 1, 20)
+bin.AddCollisionShape(cshape_1, chrono.ChFrameD(chrono.ChVectorD(0, 0, 0)  , chrono.QUNIT))
+bin.AddCollisionShape(cshape_2, chrono.ChFrameD(chrono.ChVectorD(-10, 1, 0), chrono.QUNIT))
+bin.AddCollisionShape(cshape_3, chrono.ChFrameD(chrono.ChVectorD( 10, 1, 0), chrono.QUNIT))
+bin.AddCollisionShape(cshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 1, -10), chrono.QUNIT))
+bin.AddCollisionShape(cshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 1,  10), chrono.QUNIT))
+
+vshape_1 = chrono.ChVisualShapeBox(20, 1, 20)
 vshape_1.SetMaterial(0, vis_mat_floor)
 bin.AddVisualShape(vshape_1, chrono.ChFrameD(chrono.ChVectorD(0, 0, 0)))
 
-vshape_2 = chrono.ChBoxShape(1, 2, 20.99)
+vshape_2 = chrono.ChVisualShapeBox(1, 2, 20.99)
 vshape_2.SetMaterial(0, vis_mat_floor)
 bin.AddVisualShape(vshape_2, chrono.ChFrameD(chrono.ChVectorD(-10, 1, 0)))
 
-vshape_3 = chrono.ChBoxShape(1, 2, 20.99)
+vshape_3 = chrono.ChVisualShapeBox(1, 2, 20.99)
 vshape_3.SetMaterial(0, vis_mat_floor)
 bin.AddVisualShape(vshape_3, chrono.ChFrameD(chrono.ChVectorD(10, 1, 0)))
 
-vshape_4 = chrono.ChBoxShape(20.99, 2, 1)
+vshape_4 = chrono.ChVisualShapeBox(20.99, 2, 1)
 vshape_4.SetMaterial(0, vis_mat_floor)
 bin.AddVisualShape(vshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 1, -10)))
 
-vshape_5 = chrono.ChBoxShape(20.99, 2, 1)
+vshape_5 = chrono.ChVisualShapeBox(20.99, 2, 1)
 vshape_5.SetMaterial(0, vis_mat_floor)
 bin.AddVisualShape(vshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 1, 10)))
 

@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 // Forward declaration
 class ChPhysicsItem;
 
@@ -97,6 +100,8 @@ class ChApi ChCamera {
 
     friend class ChPhysicsItem;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChCamera, 0)
 

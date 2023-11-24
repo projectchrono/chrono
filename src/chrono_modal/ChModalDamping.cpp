@@ -22,7 +22,6 @@
 namespace chrono {
 
 using namespace fea;
-using namespace collision;
 using namespace geometry;
 
 namespace modal {

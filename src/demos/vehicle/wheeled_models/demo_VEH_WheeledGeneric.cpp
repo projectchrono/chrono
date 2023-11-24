@@ -111,6 +111,9 @@ int main(int argc, char* argv[]) {
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::NONE);
 
+    // Associate a collision system
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem());
     auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();

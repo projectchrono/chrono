@@ -803,7 +803,7 @@ unsigned int ChOptixPipeline::GetCylinderMaterial(std::vector<std::shared_ptr<Ch
 // this will actually make a new material (new mesh info), but will apply a default coloring/texture
 unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
                                                    CUdeviceptr& d_indices,
-                                                   std::shared_ptr<ChTriangleMeshShape> mesh_shape,
+                                                   std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
                                                    std::vector<std::shared_ptr<ChVisualMaterial>> mat_list) {
     auto mesh = mesh_shape->GetMesh();
 
@@ -982,7 +982,7 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
 
 unsigned int ChOptixPipeline::GetDeformableMeshMaterial(CUdeviceptr& d_vertices,
                                                         CUdeviceptr& d_indices,
-                                                        std::shared_ptr<ChTriangleMeshShape> mesh_shape,
+                                                        std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
                                                         std::vector<std::shared_ptr<ChVisualMaterial>> mat_list) {
     unsigned int mat_id = GetRigidMeshMaterial(d_vertices, d_indices, mesh_shape, mat_list);
 
@@ -996,7 +996,7 @@ unsigned int ChOptixPipeline::GetDeformableMeshMaterial(CUdeviceptr& d_vertices,
 
 void ChOptixPipeline::UpdateDeformableMeshes() {
     for (int i = 0; i < m_deformable_meshes.size(); i++) {
-        std::shared_ptr<ChTriangleMeshShape> mesh_shape = std::get<0>(m_deformable_meshes[i]);
+        std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape = std::get<0>(m_deformable_meshes[i]);
         CUdeviceptr d_vertices = std::get<1>(m_deformable_meshes[i]);
         CUdeviceptr d_normals = std::get<2>(m_deformable_meshes[i]);
         unsigned int num_prev_triangles = std::get<3>(m_deformable_meshes[i]);

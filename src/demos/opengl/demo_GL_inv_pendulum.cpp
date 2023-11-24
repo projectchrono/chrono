@@ -30,10 +30,12 @@
 #endif
 
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLoadsBody.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
@@ -194,10 +196,10 @@ int main(int argc, char* argv[]) {
     ground->SetBodyFixed(true);
 
     // Attach visualization assets
-    auto sphere1_g = chrono_types::make_shared<ChSphereShape>(0.02);
+    auto sphere1_g = chrono_types::make_shared<ChVisualShapeSphere>(0.02);
     ground->AddVisualShape(sphere1_g, ChFrame<>(ChVector<>(+travel_dist, 0, 0), QUNIT));
 
-    auto sphere2_g = chrono_types::make_shared<ChSphereShape>(0.02);
+    auto sphere2_g = chrono_types::make_shared<ChVisualShapeSphere>(0.02);
     ground->AddVisualShape(sphere2_g, ChFrame<>(ChVector<>(-travel_dist, 0, 0), QUNIT));
 
     // Create the cart body
@@ -210,7 +212,7 @@ int main(int argc, char* argv[]) {
     cart->SetPos(ChVector<>(0, 0, 0));
 
     // Attach visualization assets.
-    auto box_c = chrono_types::make_shared<ChBoxShape>(0.2, 0.2, 0.2);
+    auto box_c = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.2, 0.2);
     cart->AddVisualShape(box_c, ChFrame<>(ChVector<>(0, -0.1, 0), QUNIT));
 
     // Create the pendulum body
@@ -223,7 +225,7 @@ int main(int argc, char* argv[]) {
     pend->SetPos(ChVector<>(0, hlen_pend, 0));
 
     // Attach visualization assets.
-    auto cyl_p = chrono_types::make_shared<ChCylinderShape>(r_pend, 2 * hlen_pend);
+    auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(r_pend, 2 * hlen_pend);
     pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     // Translational joint ground-cart
@@ -243,6 +245,13 @@ int main(int argc, char* argv[]) {
     MyController controller(cart, pend);
     controller.SetGainsCart(5, 0, -0.5);
     controller.SetGainsPend(-150, -50, -10);
+
+    // Create load container and cart load
+    // -----------------------------------
+    auto load_container = chrono_types::make_shared<ChLoadContainer>();
+    auto cart_load = chrono_types::make_shared<ChLoadBodyForce>(cart, VNULL, true, VNULL, true);
+    load_container->Add(cart_load);
+    sys.Add(load_container);
 
     // Create OpenGL window and camera
     // -------------------------------
@@ -273,8 +282,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Apply controller force on cart body
-        cart->Empty_forces_accumulators();
-        cart->Accumulate_force(ChVector<>(controller.GetForce(), 0, 0), ChVector<>(0, 0, 0), true);
+        cart_load->SetForce(ChVector<>(controller.GetForce(), 0, 0), true);
 
         // Advance sys and controller states
         sys.DoStepDynamics(time_step);

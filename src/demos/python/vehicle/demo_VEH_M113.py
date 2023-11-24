@@ -53,6 +53,8 @@ def main():
     m113.SetRoadWheelVisualizationType(veh.VisualizationType_MESH);
     m113.SetTrackShoeVisualizationType(veh.VisualizationType_MESH);
 
+    m113.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
+
     # Create the terrain
     # ------------------
 
@@ -101,12 +103,13 @@ def main():
 
     driver.Initialize()
 
+    # Solver and integrator settings
+    # ------------------------------
+
+    m113.GetSystem().SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
+
     # Simulation loop
     # ---------------
-
-    # Inter-module communication data
-    shoe_forces_left = veh.TerrainForces(m113.GetVehicle().GetNumTrackShoes(veh.LEFT))
-    shoe_forces_right = veh.TerrainForces(m113.GetVehicle().GetNumTrackShoes(veh.RIGHT))
 
     # Number of simulation steps between miscellaneous events
     render_steps = m.ceil(render_step_size / step_size)
@@ -129,7 +132,7 @@ def main():
         # Update modules (process inputs from other modules)
         driver.Synchronize(time)
         terrain.Synchronize(time)
-        m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right)
+        m113.Synchronize(time, driver_inputs)
         vis.Synchronize(time, driver_inputs)
 
         # Advance simulation for one timestep for all modules
