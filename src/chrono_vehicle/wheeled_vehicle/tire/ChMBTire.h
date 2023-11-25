@@ -204,10 +204,10 @@ class MBTireModel : public ChPhysicsItem {
     // Return -1 if out-of-bounds ring and use a cyclic index for divisions on the ring.
     int NodeIndex(int ir, int id);
 
-    // Get the wheel node index from the ring index and division index.
+    // Get the rim node index from the ring index and division index.
     // Used to identify rim nodes.
     // Return -1 if out-of-bounds ring and use a cyclic index for divisions on the ring.
-    int WheelNodeIndex(int ir, int id);
+    int RimNodeIndex(int ir, int id);
 
     // Get normal and elemental area for the node with current ring and division indices.
     void CalcNormal(int ir, int id, ChVector<>& normal, double& area);
@@ -246,15 +246,15 @@ class MBTireModel : public ChPhysicsItem {
 
     struct Spring2 {
         SpringType type;  // spring type
-        int node1;        // index of first attachment node
-        int node2;        // index of second attachment node
+        int node1;        // index of first node
+        int node2;        // index of second node
         double l0;        // spring free length
         double k;         // spring coefficient
         double c;         // damping coefficient
     };
 
     struct Spring3 {
-        int node;    // index of central node
+        int node_c;  // index of central node
         int node_p;  // index of previous node
         int node_n;  // index of next node
         double a0;   // spring free angle
@@ -262,11 +262,10 @@ class MBTireModel : public ChPhysicsItem {
         double c;    // damping coefficient
     };
 
-    std::vector<Spring2> m_mesh_springs;           // node-node translational springs
-    std::vector<Spring2> m_radial_springs;         // node-wheel translational springs (first and last ring)
-    std::vector<Spring3> m_bending_springs;        // node-node torsional springs
-    std::vector<Spring3> m_bending_springs_fisrt;  // node-wheel torsional springs (first ring)
-    std::vector<Spring3> m_bending_springs_last;   // node-wheel torsional springs (last ring)
+    std::vector<Spring2> m_mesh_lin_springs;  // node-node translational springs
+    std::vector<Spring2> m_edge_lin_springs;  // node-rim translational springs (first and last ring)
+    std::vector<Spring3> m_mesh_rot_springs;  // node-node torsional springs
+    std::vector<Spring3> m_edge_rot_springs;  // node-rim torsional springs (first and last ring)
 
     ChVector<> m_wheel_force;   // applied wheel spindle force
     ChVector<> m_wheel_torque;  // applied wheel spindle torque
