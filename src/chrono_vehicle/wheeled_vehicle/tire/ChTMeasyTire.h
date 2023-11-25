@@ -57,6 +57,8 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
   public:
+    enum class FrictionModel { TANH_COULOMB, DAHL };
+    
     ChTMeasyTire(const std::string& name);
 
     virtual ~ChTMeasyTire() {}
@@ -266,10 +268,14 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
         double nL0;              // Dimensionless lever at actual load level
         double sq0;              // Zero crossing at actual load level
         double sqe;              // Zero after complete sliding at actual load level
+        double brx;              // bristle deformation x
+        double bry;              // bristle deformation y
         ChVector<> disc_normal;  // (temporary for debug)
     };
 
     TireStates m_states;
+    
+    FrictionModel m_frictionModel{FrictionModel::DAHL};
 };
 
 }  // end namespace vehicle
