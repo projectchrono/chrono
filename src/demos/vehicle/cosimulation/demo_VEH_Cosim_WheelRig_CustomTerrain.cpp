@@ -134,8 +134,9 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     mat_proxy->SetGt(4e1f);
 
     // Create the proxy bodies with cylindrical shapes
-    double tire_radius = m_aabb[0].m_dims.x() / 2;
-    double tire_width = m_aabb[0].m_dims.y();
+    auto aabb_size = m_aabb[0].Size();
+    double tire_radius = aabb_size.x() / 2;
+    double tire_width = aabb_size.y();
 
     ////std::cout << "Radius: " << tire_radius << "  Width: " << tire_width << std::endl;
 

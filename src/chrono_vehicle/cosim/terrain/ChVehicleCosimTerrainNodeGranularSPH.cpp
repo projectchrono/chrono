@@ -304,9 +304,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     }
 
     // Update dimension of FSI active domain based on shape AABB
-    double s1 = (m_aabb[i_shape].m_center + m_aabb[i_shape].m_dims).Length();
-    double s2 = (m_aabb[i_shape].m_center - m_aabb[i_shape].m_dims).Length();
-    m_active_box_size = std::max(m_active_box_size, std::max(s1, s2));
+    m_active_box_size = std::max(m_active_box_size, m_aabb[i_shape].Size().Length());
 }
 
 // Once all proxy bodies are created, complete construction of the underlying FSI system.
@@ -315,7 +313,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
 
     // Initialize the SPH terrain
     ChSystemFsi& sysFSI = m_terrain->GetSystemFSI();
-    ////sysFSI.SetActiveDomain(ChVector<>(m_active_box_size / 2));
     m_terrain->Initialize();
 
     // Initialize run-time visualization
