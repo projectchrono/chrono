@@ -24,6 +24,7 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChVisualShape.h"
+#include "chrono/geometry/ChGeometry.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -99,13 +100,6 @@ class CH_VEHICLE_API ChVehicleGeometry {
         int m_matID;                                                   ///< index in contact material list
     };
 
-    struct CH_VEHICLE_API AABB {
-        AABB() {}
-        AABB(const ChVector<>& center, const ChVector<>& dims) : m_center(center), m_dims(dims) {}
-        ChVector<> m_center;  ///< center of bounding box
-        ChVector<> m_dims;    ///< dimensions of bounding box
-    };
-
     bool m_has_collision;                            ///< true if body has a collision model
     std::vector<ChContactMaterialData> m_materials;  ///< list of contact materials
     std::vector<BoxShape> m_coll_boxes;              ///< list of collision boxes
@@ -146,7 +140,7 @@ class CH_VEHICLE_API ChVehicleGeometry {
                                                                    ChVisualMaterialSharedPtr mat = nullptr);
 
     /// Calculate axis-aligned bounding box of all collision shapes.
-    AABB CalculateAABB();
+    geometry::ChAABB CalculateAABB();
 };
 
 /// Utility class defining visualization geometry for a vehicle TSDA.

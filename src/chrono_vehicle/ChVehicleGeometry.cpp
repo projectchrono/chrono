@@ -247,7 +247,7 @@ void ChVehicleGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
     body->GetCollisionModel()->SetFamily(collision_family);
 }
 
-ChVehicleGeometry::AABB ChVehicleGeometry::CalculateAABB() {
+geometry::ChAABB ChVehicleGeometry::CalculateAABB() {
     ChVector<> amin(+std::numeric_limits<double>::max());
     ChVector<> amax(-std::numeric_limits<double>::max());
 
@@ -291,7 +291,7 @@ ChVehicleGeometry::AABB ChVehicleGeometry::CalculateAABB() {
         amax = Vmax(amax, bbox.max);
     }
 
-    return AABB((amin + amax) / 2, amax - amin);
+    return geometry::ChAABB(amin, amax);
 }
 
 // -----------------------------------------------------------------------------
