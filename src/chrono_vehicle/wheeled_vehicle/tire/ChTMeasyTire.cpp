@@ -290,37 +290,37 @@ void ChTMeasyTire::CombinedCoulombForces(double& fx, double& fy, double fz, doub
         } break;
         case FrictionModel::DAHL: {
             /*
-             The Dahl Friction Model introduces bristle elasticity. At tire stand still it acts like a spring which
-             enables holding of a vehicle on a slope without creeping (hopefully). Damping terms have been added to
-             calm down the oscillations of the pure spring.
-             
+             The Dahl Friction Model elastic tread blocks representated by a single bristle. At tire stand still it acts
+             like a spring which enables holding of a vehicle on a slope without creeping (hopefully). Damping terms
+             have been added to calm down the oscillations of the pure spring.
+
              The time step h must be actually the same as for the vehicle system!
-             
+
              This model is experimental and needs some testing.
-             
-             With bristle deformation z, kinematic force fc, sliding velocity v and stiffness sigma we have this differential
-             equation:
-                dz
-                -- = v - sigma*z*abs(v)/fc
-                dt
+
+             With bristle deformation z, kinematic force fc, sliding velocity v and stiffness sigma we have this
+             differential equation:
+                 dz/dt = v - sigma0*z*abs(v)/fc
+
              When z is known, the friction force F can be calulated to:
-                F = sigma * z
-             
-             Longitudinal and lateral forces are calculated separately and then combined. For stand still a friction circle is
-             used.
+                F = sigma0 * z
+
+             For practical use some damping is needed, that leads to:
+                F = sigma0 * z + sigma1 * dz/dt
+
+             Longitudinal and lateral forces are calculated separately and then combined. For stand still a friction
+             circle is used.
              */
-            double s = 100000.0; // Bristle stiffness, (user settable?)
-            double d = 5000;    // Bristle damping
             double fc = fz * muscale;
             double h = this->m_stepsize;
             double brx = (fc * m_states.brx + fc * h * m_states.vsx) /
-                         (fc + h * s * fabs(m_states.vsx));                     // Backward Euler (implicit)
-            double brx_dot = m_states.vsx - s * brx * fabs(m_states.vsx) / fc;  // needed for damping
+                         (fc + h * m_par.sigma0 * fabs(m_states.vsx));                     // Backward Euler (implicit)
+            double brx_dot = m_states.vsx - m_par.sigma0 * brx * fabs(m_states.vsx) / fc;  // needed for damping
             double bry = (fc * m_states.bry + fc * h * m_states.vsy) /
-                         (fc + h * s * fabs(m_states.vsy));                     // Backward Euler (implicit)
-            double bry_dot = m_states.vsy - s * bry * fabs(m_states.vsy) / fc;  // needed for damping
-            F.x() = -s * brx - d * brx_dot;
-            F.y() = -s * bry - d * bry_dot;
+                         (fc + h * m_par.sigma0 * fabs(m_states.vsy));                     // Backward Euler (implicit)
+            double bry_dot = m_states.vsy - m_par.sigma0 * bry * fabs(m_states.vsy) / fc;  // needed for damping
+            F.x() = -(m_par.sigma0 * brx + m_par.sigma1 * brx_dot);
+            F.y() = -(m_par.sigma0 * bry + m_par.sigma1 * bry_dot);
             m_states.brx = brx;
             m_states.bry = bry;
         } break;
