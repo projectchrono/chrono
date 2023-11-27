@@ -7,91 +7,137 @@ namespace ChronoDemo
         static void Main(string[] args)
         {
 
-            ChSystemNSC sys = new ChSystemNSC();
 
-            sys.Set_G_acc(new ChVectorD(0, -10, 0));
+            ChVisualSystem.Type vis_type = ChVisualSystem.Type.VSG;
+            ChCollisionSystem.Type coll_type = ChCollisionSystem.Type.BULLET;
 
-            // ..the truss
-            ChBody my_body_A = new ChBody();
-            sys.AddBody(my_body_A);
-            my_body_A.SetBodyFixed(true);  // truss does not move!
-            my_body_A.SetName("Ground-Truss");
-
-            // ..the crank
-            ChBody my_body_B = new ChBody();
-            sys.AddBody(my_body_B);
-            my_body_B.SetPos(new ChVectorD(1, 0, 0));  // position of COG of crank
-            my_body_B.SetMass(2);
-            my_body_B.SetName("Crank");
-
-            // ..the rod
-            ChBody my_body_C = new ChBody();
-            sys.AddBody(my_body_C);
-            my_body_C.SetPos(new ChVectorD(1, 0, 0));  // position of COG of rod
-            my_body_C.SetMass(3);
-            my_body_C.SetName("Rod");
+            // TODO: better alternatives? no define can be passed in C#
+            chrono.SetChronoDataPath("C:\\workspace\\chrono\\data\\");
 
 
-            // 3- Create constraints: the mechanical joints between the rigid bodies.
+            // Simulation parameters
+            double gravity = -9.81;
+            double time_step = 0.00001;
+            double out_step = 2000 * time_step;
 
-            // .. a revolute joint between crank and rod
-            ChLinkLockRevolute my_link_BC = new ChLinkLockRevolute();
-            my_link_BC.SetName("RevJointCrankRod");
-            my_link_BC.Initialize(my_body_B, my_body_C, new ChCoordsysD(new ChVectorD(2, 0, 0)));
-            sys.AddLink(my_link_BC);
+            // Parameters for the falling ball
+            int ballId = 100;
+            double radius = 1;
+            double mass = 1000;
+            ChVectorD pos = new ChVectorD(0, 2, 0);
+            ChQuaternionD rot = new ChQuaternionD(1, 0, 0, 0);
+            ChVectorD init_vel = new ChVectorD(0, 0, 0);
 
-            // .. a slider joint between rod and truss
-            ChLinkLockPointLine my_link_CA = new ChLinkLockPointLine();
-            my_link_CA.SetName("TransJointRodGround");
-            my_link_CA.Initialize(my_body_C, my_body_A, new ChCoordsysD(new ChVectorD(6, 0, 0)));
-            sys.AddLink(my_link_CA);
+            // Parameters for the containing bin
+            int binId = 200;
+            double width = 2;
+            double length = 2;
+            ////double height = 1;
+            double thickness = 0.1;
 
-            // .. a motor between crank and truss
-            ChLinkMotorRotationSpeed my_link_AB = new ChLinkMotorRotationSpeed();
-            my_link_AB.Initialize(my_body_A, my_body_B, new ChFrameD());
-            my_link_AB.SetName("RotationalMotor");
-            sys.AddLink(my_link_AB);
-            ChFunction_Const my_speed_function = new ChFunction_Const(3.14);  // speed w=3.145 rad/sec
-            my_link_AB.SetSpeedFunction(my_speed_function);
+            // Create the system
+            ChSystemSMC sys = new ChSystemSMC();
 
-            
+            sys.Set_G_acc(new ChVectorD(0, gravity, 0));
+            sys.SetCollisionSystemType(coll_type);
 
-            
-            ChMaterialSurfaceNSC mat = new ChMaterialSurfaceNSC();
-            mat.SetFriction(0.5F);
-            mat.SetRestitution(0.5F);
+            // The following two lines are optional, since they are the default options. They are added for future reference,
+            // i.e. when needed to change those models.
+            sys.SetContactForceModel(ChSystemSMC.ContactForceModel.Hertz);
+            sys.SetAdhesionForceModel(ChSystemSMC.AdhesionForceModel.Constant);
 
-            ChBodyEasyBox myEasyBox = new ChBodyEasyBox(0.1, 0.2, 0.3, 1000, true, true, mat);
-            ChBodyAuxRef myBAuxRef = new ChBodyAuxRef();
-            myBAuxRef.SetBodyFixed(true);
+            // Change the default collision effective radius of curvature
+            ChCollisionInfo.SetDefaultEffectiveCurvatureRadius(1);
 
-            sys.Add(myBAuxRef);
-            sys.Add(myEasyBox);
+            // Create a material (will be used by both objects)
+            ChMaterialSurfaceSMC material = new ChMaterialSurfaceSMC();
+            material.SetRestitution(0.1f);
+            material.SetFriction(0.4f);
+            material.SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
-            ChLinkMateFix myMate = new ChLinkMateFix();
-            ChBodyFrame converted_body = core.CastToChBodyFrame(myEasyBox);
-            ChBodyFrame converted_body2 = core.CastToChBodyFrame(myBAuxRef);
-            myMate.Initialize(converted_body, converted_body2, new ChFrameD(new ChVectorD(2, 0, 0)));
-            sys.Add(myMate);
+            // Create the falling ball
+            ChBody ball = new ChBody();
+
+            ball.SetIdentifier(ballId);
+            ball.SetMass(mass);
+            // TODO: cannot use operator between double and ChVectorD
+            //ChVectorD onev = new ChVectorD(1, 1, 1);
+            //ball.SetInertiaXX(0.4 * mass * radius * radius * onev);
+            ball.SetPos(pos);
+            ball.SetRot(rot);
+            ball.SetPos_dt(init_vel);
+            // ball.SetWvel_par(new ChVectorD(0,0,3));
+            ball.SetBodyFixed(false);
+
+            ChCollisionShapeSphere sphere_coll = new ChCollisionShapeSphere(material, radius);
+            ball.AddCollisionShape(sphere_coll, new ChFrameD());
+            ball.SetCollide(true);
+
+            ChVisualShapeSphere sphere_vis = new ChVisualShapeSphere(radius);
+            sphere_vis.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"));
+            sphere_vis.SetOpacity(1.0f);
+            ball.AddVisualShape(sphere_vis);
+
+            sys.AddBody(ball);
+
+            // Create container
+            ChBody bin = new ChBody();
+
+            bin.SetIdentifier(binId);
+            bin.SetMass(1);
+            bin.SetPos(new ChVectorD(0, 0, 0));
+            bin.SetRot(new ChQuaternionD(1, 0, 0, 0));
+            bin.SetBodyFixed(true);
+
+            ChCollisionShapeBox box_coll = new ChCollisionShapeBox(material, width * 2, thickness * 2, length * 2);
+            bin.AddCollisionShape(box_coll, new ChFrameD());
+            bin.SetCollide(true);
+
+            ChVisualShapeBox box_vis = new ChVisualShapeBox(width * 2, thickness * 2, length * 2);
+            box_vis.SetColor(new ChColor(0.8f, 0.2f, 0.2f));
+            box_vis.SetOpacity(0.8f);
+            bin.AddVisualShape(box_vis);
+
+            sys.AddBody(bin);
+
+            // Create the run-time visualization system
+
+            ChVisualSystemIrrlicht vis = new ChVisualSystemIrrlicht();
+            vis.SetWindowSize(800, 600);
+            vis.SetWindowTitle("SMC demonstration");
+            vis.Initialize();
+            vis.AddLogo();
+            vis.AddSkyBox();
+            vis.AddTypicalLights();
+            vis.AddCamera(new ChVectorD(0, 3, -6));
+            vis.AttachSystem(sys);
+            vis.AddGrid(0.2, 0.2, 20, 20, new ChCoordsysD(new ChVectorD(0, 0.11, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)),
+                                new ChColor(0.1f, 0.1f, 0.1f));
 
 
-            // Timer for enforcing soft real-time
-            ChRealtimeStepTimer realtime_timer = new ChRealtimeStepTimer();
-            double time_step = 0.01;
 
-            sys.SerializeToJSON("ChronoCSharp.json");
+            // The soft-real-time cycle
+            double time = 0.0;
+            double out_time = 0.0;
 
-            while (sys.GetChTime() < 5)
+            while (vis.Run())
             {
+                vis.BeginScene();
+                vis.Render();
+                vis.RenderFrame(new ChFrameD(chrono.CastToChBodyFrame(ball).GetCoord()), 1.2 * radius);
+                vis.EndScene();
 
-                sys.DoStepDynamics(time_step);
-                realtime_timer.Spin(time_step);
-                Console.WriteLine("Step: " + my_body_B.GetPos().x);
-
+                while (time < out_time)
+                {
+                    sys.DoStepDynamics(time_step);
+                    time += time_step;
+                }
+                out_time += out_step;
             }
 
-            Console.WriteLine("Done");
 
         }
+
+        
     }
 }

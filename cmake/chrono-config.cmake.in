@@ -165,6 +165,13 @@ set(Chrono_HAS_vsg @ENABLE_MODULE_VSG@)
 set(Chrono_HAS_csharp @ENABLE_MODULE_CSHARP@)
 
 #-------------------------------------------------------------------------------
+# Prepare a list of uppercase components
+#-------------------------------------------------------------------------------
+set(Chrono_FIND_COMPONENTS_UPPER)
+foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
+  list(APPEND Chrono_FIND_COMPONENTS_UPPER ${COMPONENT})
+endforeach()
+#-------------------------------------------------------------------------------
 # Vehicle cosimulation module
 #-------------------------------------------------------------------------------
 
@@ -542,9 +549,20 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_core.dll") # valid also in case of static
       set(CHRONO_CSHARP_SOURCE_DIR "@CH_BINARY_DIR@/chrono_csharp")
 
-      if(${Chrono_HAS_irrlicht})
+      list(FIND Chrono_FIND_COMPONENTS_UPPER "IRRLICHT" IRRLICHT_REQUESTED)
+      if(${Chrono_HAS_irrlicht} AND ${IRRLICHT_REQUESTED} GREATER -1)
         list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_irrlicht")
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_irrlicht.dll")
+
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
+        endif()
+        list(APPEND CHRONO_DEPENDENCY_DLLS "@CH_IRRLICHT_DLL@")
+
+        if(${Chrono_HAS_postprocess} AND NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
+        endif()
+
       endif()
 
     endif()
