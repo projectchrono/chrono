@@ -7,7 +7,11 @@
 //
 // =====================================================================================
 
+#ifdef SWIGPYTHON
 %module(directors="1") vehicle
+#else
+%module(directors="1") chrono_vehicle
+#endif
 
 // Turn on the documentation of members, for more intuitive IDE typing
 %feature("autodoc", "1");

@@ -13,8 +13,11 @@
 // Define the module to be used in Python when typing 
 //  'import pychrono.irrlicht'
 
-
+#ifdef SWIGPYTHON
 %module(directors="1") irrlicht
+#else
+%module(directors="1") chrono_irrlicht
+#endif
 
 
 // Turn on the documentation of members, for more intuitive IDE typing

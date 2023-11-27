@@ -14,7 +14,11 @@
 #pragma SWIG nowarn=516
 #pragma SWIG nowarn=842
 
+#ifdef SWIGPYTHON
+%module(directors="1") core
+#else
 %module(directors="1") chrono
+#endif
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
