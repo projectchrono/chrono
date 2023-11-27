@@ -164,7 +164,7 @@ set(Chrono_HAS_modal @ENABLE_MODULE_MODAL@)
 set(Chrono_HAS_vsg @ENABLE_MODULE_VSG@)
 
 #-------------------------------------------------------------------------------
-# Vehicle cosimulation module
+# Vehicle and Vehicle cosimulation modules
 #-------------------------------------------------------------------------------
 
 if(Chrono_HAS_vehicle AND ${CHRONO_MPI_FOUND})
@@ -176,6 +176,21 @@ endif()
 set(VehicleCosim_REQUESTED FALSE)
 foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
     string(TOUPPER ${COMPONENT} COMPONENT_UPPER)
+    if(${COMPONENT_UPPER} MATCHES "VEHICLE")
+       # Vehicle is requested
+       if(Chrono_HAS_multicore)
+          set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Multicore")
+       endif()
+       if(Chrono_HAS_fsi)
+          set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};FSI")
+       endif()
+       if(Chrono_HAS_irrlicht)
+          set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Irrlicht")
+       endif()
+       if(Chrono_HAS_vsg)
+          set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};VSG")
+       endif()
+    endif()
     if(${COMPONENT_UPPER} MATCHES "VEHICLECOSIM")
        # VehicleCosim is requested
        set(VehicleCosim_REQUESTED TRUE)
