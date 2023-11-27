@@ -167,10 +167,13 @@ set(Chrono_HAS_csharp @ENABLE_MODULE_CSHARP@)
 #-------------------------------------------------------------------------------
 # Prepare a list of uppercase components
 #-------------------------------------------------------------------------------
+
 set(Chrono_FIND_COMPONENTS_UPPER)
 foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
-  list(APPEND Chrono_FIND_COMPONENTS_UPPER ${COMPONENT})
+  string(TOUPPER ${COMPONENT} COMPONENT_UPPER)
+  list(APPEND Chrono_FIND_COMPONENTS_UPPER ${COMPONENT_UPPER})
 endforeach()
+
 #-------------------------------------------------------------------------------
 # Vehicle cosimulation module
 #-------------------------------------------------------------------------------
