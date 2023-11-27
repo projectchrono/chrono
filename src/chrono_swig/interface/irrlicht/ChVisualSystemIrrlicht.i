@@ -4,6 +4,8 @@
 %csmethodmodifiers chrono::ChVisualSystem::AddVisualModel "public"
 %csmethodmodifiers chrono::ChVisualSystem::UpdateVisualModel "public"
 %csmethodmodifiers chrono::ChVisualSystem::RenderFrame "public"
+%csmethodmodifiers chrono::ChVisualSystemIrrlicht::AddGrid(double, double, int, int, ChCoordsysD, ChColor) "public override"
+
 #endif // --------------------------------------------------------------------- CSHARP
 
 

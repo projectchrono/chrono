@@ -445,23 +445,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 // Tracked vehicles
 %include "ChTrackAssembly.i"
 
-%include "../../../chrono_vehicle/tracked_vehicle/ChSprocket.h"
-%include "../../../chrono_vehicle/tracked_vehicle/ChIdler.h"
-%include "../../../chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
-%include "../../../chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
-%include "../../../chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
-
-%include "../../../chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
-%include "../../../chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeSimple.h"
-%include "../../../chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeShafts.h"
-%include "../../../chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
-%include "../../../chrono_vehicle/tracked_vehicle/brake/TrackBrakeShafts.h"
-
-%include "../../../chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
-
-%include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
-%include "../../../chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
-
 %include "chrono_swig/interface/models/WheelModels.i"
 %include "chrono_swig/interface/models/BrakeModels.i"
 %include "chrono_swig/interface/models/VehicleModels.i"
