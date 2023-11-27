@@ -14,7 +14,7 @@
 #pragma SWIG nowarn=516
 #pragma SWIG nowarn=842
 
-%module(directors="1") core
+%module(directors="1") chrono
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
