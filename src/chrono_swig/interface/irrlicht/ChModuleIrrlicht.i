@@ -89,14 +89,6 @@ using namespace gui;
 %include "cstring.i"
 %include "cpointer.i"
 
-// This is to enable references to double,int,etc. types in function parameters
-%pointer_class(int,int_ptr);
-%pointer_class(double,double_ptr);
-%pointer_class(float,float_ptr);
-%pointer_class(char,char_ptr);
-
-
-
 
 //
 // For each class, keep updated the  A, B, C sections: 
