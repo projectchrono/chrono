@@ -71,6 +71,9 @@ TransmissionModelType transmission_model = TransmissionModelType::SIMPLE_MAP;
 // Type of tire model (TMEASY, TMSIMPLE)
 TireModelType tire_model = TireModelType::TMSIMPLE;
 
+// Type of break model (SIMPLE, SHAFTS)
+BrakeType brake_model = BrakeType::SHAFTS;
+
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 double terrainHeight = 0;      // terrain height (FLAT terrain only)
@@ -138,6 +141,7 @@ int main(int argc, char* argv[]) {
     truck.SetEngineType(engine_model);
     truck.SetTransmissionType(transmission_model);
     truck.SetTireType(tire_model);
+    truck.SetBrakeType(brake_model);
     truck.SetTireStepSize(tire_step_size);
     truck.Initialize();
 

@@ -1070,6 +1070,8 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
 
     std::shared_ptr<ChCollisionModel> collision_model_temp;  ///< pointer to the collision model
     marchive >> CHNVP(collision_model_temp, "collision_model");
+    if (collision_model_temp)
+        AddCollisionModel(collision_model_temp);
 
     marchive >> CHNVP(gyro);
     marchive >> CHNVP(Xforce);
