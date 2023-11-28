@@ -327,9 +327,6 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
     m_system->GetCollisionSystem()->BindItem(proxy->mesh);
 
     m_proxies[i] = proxy;
-
-    ////auto aabb_center = m_aabb[i_shape].m_center;
-    ////auto aabb_dims = m_aabb[i_shape].m_dims;
 }
 
 void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
@@ -366,7 +363,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
 
     // Add corresponding moving patch to SCM terrain
     //// RADU TODO: this may be overkill for tracked vehicles!
-    m_terrain->AddMovingPatch(body, m_aabb[i_shape].m_center, m_aabb[i_shape].m_dims);
+    m_terrain->AddMovingPatch(body, m_aabb[i_shape].Center(), m_aabb[i_shape].Size());
 }
 
 // Once all proxy bodies are created, complete construction of the underlying system.
