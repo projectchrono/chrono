@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 3.12)
 project(MyCSharpProject 
         CSharp)
 
+if(NOT Chrono_DIR)
+  set(Chrono_DIR "" CACHE PATH "The directory containing a CMake configuration file for Chrono.")
+  return()
+endif()
+
 find_package(Chrono
              COMPONENTS CSharp
              OPTIONAL_COMPONENTS Irrlicht
