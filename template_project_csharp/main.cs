@@ -1,4 +1,5 @@
 using System;
+using static ChronoGlobals;
 
 namespace ChronoDemo
 {
@@ -7,13 +8,11 @@ namespace ChronoDemo
         static void Main(string[] args)
         {
 
-
             ChVisualSystem.Type vis_type = ChVisualSystem.Type.VSG;
             ChCollisionSystem.Type coll_type = ChCollisionSystem.Type.BULLET;
 
-            // TODO: better alternatives? no define can be passed in C#
-            chrono.SetChronoDataPath("C:\\workspace\\chrono\\data\\");
-
+            // Set the path to the Chrono data files
+            chrono.SetChronoDataPath(CHRONO_DATA_DIR);
 
             // Simulation parameters
             double gravity = -9.81;
@@ -104,7 +103,7 @@ namespace ChronoDemo
 
             ChVisualSystemIrrlicht vis = new ChVisualSystemIrrlicht();
             vis.SetWindowSize(800, 600);
-            vis.SetWindowTitle("SMC demonstration");
+            vis.SetWindowTitle("[C#] SMC demonstration");
             vis.Initialize();
             vis.AddLogo();
             vis.AddSkyBox();
@@ -113,8 +112,6 @@ namespace ChronoDemo
             vis.AttachSystem(sys);
             vis.AddGrid(0.2, 0.2, 20, 20, new ChCoordsysD(new ChVectorD(0, 0.11, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)),
                                 new ChColor(0.1f, 0.1f, 0.1f));
-
-
 
             // The soft-real-time cycle
             double time = 0.0;
@@ -135,9 +132,7 @@ namespace ChronoDemo
                 out_time += out_step;
             }
 
-
         }
 
-        
     }
 }
