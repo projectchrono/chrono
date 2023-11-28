@@ -12,6 +12,7 @@
 %csmethodmodifiers chrono::ChBody::GetPos "public"
 %csmethodmodifiers chrono::ChBody::GetRot "public"
 %csmethodmodifiers chrono::ChBody::GetA "public"
+%csmethodmodifiers chrono::ChBody::GetPhysicsItem "public"
 
 %csmethodmodifiers chrono::ChBody::SetPos_dt "public"
 %csmethodmodifiers chrono::ChBody::SetRot_dt "public"

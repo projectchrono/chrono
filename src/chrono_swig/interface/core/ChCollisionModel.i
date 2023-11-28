@@ -13,5 +13,9 @@ using namespace chrono;
 
 #endif             // --------------------------------------------------------------------- PYTHON
 
+
+%ignore chrono::ChCollisionModelBullet;
+%ignore chrono::ChCollisionModelMulticore;
+
 // Parse the header file to generate wrappers
 %include "../../../chrono/collision/ChCollisionModel.h"
