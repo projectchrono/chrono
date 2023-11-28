@@ -16,17 +16,6 @@ namespace chrono {
 
 CH_UPCASTING_SANITIZED(ChContactable_1vars<6>, ChContactable, ChContactable_1vars_6_ChContactable)
 
-class my_enum_mappers : public ChContactable {
-  public:
-    CH_ENUM_MAPPER_BEGIN(eChContactableType);
-    CH_ENUM_VAL(eChContactableType::CONTACTABLE_UNKNOWN);
-    CH_ENUM_VAL(eChContactableType::CONTACTABLE_6);
-    CH_ENUM_VAL(eChContactableType::CONTACTABLE_3);
-    CH_ENUM_VAL(eChContactableType::CONTACTABLE_333);
-    CH_ENUM_VAL(eChContactableType::CONTACTABLE_666);
-    CH_ENUM_MAPPER_END(eChContactableType);
-};
-
 ChContactable::ChContactable() : collision_model(nullptr) {}
 
 void ChContactable::AddCollisionModel(std::shared_ptr<ChCollisionModel> model) {
