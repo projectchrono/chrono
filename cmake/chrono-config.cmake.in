@@ -563,25 +563,69 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "CSHARP")
 
+      function(FindDuplicates ret_list list1 list2)
+        # Union of list1 and list2
+        list(APPEND union ${list1} ${list2})
+        list(REMOVE_DUPLICATES union)
+
+        # Difference 1 - 2
+        list(APPEND diff_12 ${list1})
+        list(REMOVE_ITEM diff_12 ${list2})
+
+        # Difference 2 -1
+        list(APPEND diff_21 ${list2})
+        list(REMOVE_ITEM diff_21 ${list1})
+
+        # Calculate union of (1-2) and (2-1)
+        list(APPEND delta ${diff_12} ${diff_21})
+        list(REMOVE_DUPLICATES delta)
+
+        # Calculate the intersection as union-delta
+        list(APPEND intersection ${union})
+        list(REMOVE_ITEM intersection ${delta})
+
+        set(${ret_list} "${intersection}" PARENT_SCOPE)
+      endfunction()
+
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_core")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_core.dll") # valid also in case of static
-      set(CHRONO_CSHARP_SOURCE_DIR "@CH_BINARY_DIR@/chrono_csharp")
 
+      set(CHRONO_CSHARP_SOURCE_DIR "@CH_BINARY_DIR@/chrono_csharp")
+      set(CHRONO_CSHARP_SOURCES "")
+
+      set(CORE_DIR "${CHRONO_CSHARP_SOURCE_DIR}/core")
+      file(GLOB CORE_SOURCES LIST_DIRECTORIES false RELATIVE "${CORE_DIR}" CONFIGURE_DEPENDS "${CORE_DIR}/*.cs")
+      foreach(CS ${CORE_SOURCES})
+         list(APPEND CHRONO_CSHARP_SOURCES "${CORE_DIR}/${CS}")
+      endforeach()
+      
       list(FIND Chrono_FIND_COMPONENTS_UPPER "IRRLICHT" IRRLICHT_REQUESTED)
       if(${Chrono_HAS_irrlicht} AND ${IRRLICHT_REQUESTED} GREATER -1)
         list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_irrlicht")
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_irrlicht.dll")
 
-        if (NOT CHRONO_STATIC)
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
-        endif()
-        list(APPEND CHRONO_DEPENDENCY_DLLS "@CH_IRRLICHT_DLL@")
-
-        if(${Chrono_HAS_postprocess} AND NOT CHRONO_STATIC)
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
-        endif()
-
+        set(IRRLICHT_DIR "${CHRONO_CSHARP_SOURCE_DIR}/irrlicht")
+        file(GLOB IRRLICHT_SOURCES LIST_DIRECTORIES false RELATIVE "${IRRLICHT_DIR}" CONFIGURE_DEPENDS "${IRRLICHT_DIR}/*.cs")
+        FindDuplicates(IRRLICHT_DUPLICATES "${CORE_SOURCES}" "${IRRLICHT_SOURCES}")
+        list(REMOVE_ITEM IRRLICHT_SOURCES ${IRRLICHT_DUPLICATES})
+        foreach(CS ${IRRLICHT_SOURCES})
+          list(APPEND CHRONO_CSHARP_SOURCES "${IRRLICHT_DIR}/${CS}")
+        endforeach()
       endif()
+
+      list(FIND Chrono_FIND_COMPONENTS_UPPER "VEHICLE" VEHICLE_REQUESTED)
+      if(${Chrono_HAS_vehicle} AND ${VEHICLE_REQUESTED} GREATER -1)
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_vehicle")
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_vehicle.dll")
+
+        set(VEHICLE_DIR "${CHRONO_CSHARP_SOURCE_DIR}/vehicle")
+        file(GLOB VEHICLE_SOURCES LIST_DIRECTORIES false RELATIVE "${VEHICLE_DIR}" CONFIGURE_DEPENDS "${VEHICLE_DIR}/*.cs")
+        FindDuplicates(VEHICLE_DUPLICATES "${CORE_SOURCES}" "${VEHICLE_SOURCES}")
+        list(REMOVE_ITEM VEHICLE_SOURCES ${VEHICLE_DUPLICATES})
+        foreach(CS ${VEHICLE_SOURCES})
+          list(APPEND SOURCES "${VEHICLE_DIR}/${CS}")
+        endforeach()
+      endif()   
 
     endif()
 

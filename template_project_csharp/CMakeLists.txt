@@ -8,34 +8,27 @@ find_package(Chrono
              OPTIONAL_COMPONENTS Irrlicht
              CONFIG)
 
-
-# Gather .cs files
-file(GLOB CHRONO_CSHARP_SOURCE 
-     LIST_DIRECTORIES false CONFIGURE_DEPENDS "${CHRONO_CSHARP_SOURCE_DIR}/*.cs")
-
-
 # Add C# executable
 add_executable(ChronoDemo
     main.cs
-    ${CHRONO_CSHARP_SOURCE}
+    ${CHRONO_CSHARP_SOURCES}
 )
 
 # set_target_properties(ChronoDemo PROPERTIES CMAKE_DOTNET_TARGET_FRAMEWORK_VERSION "v4.8")
 source_group(Chrono FILES ${CHRONO_CSHARP_SOURCE}) # doesn't work
 
 #--------------------------------------------------------------
-# === 4 (OPTIONAL) ===
-# 
 # Optionally, add a custom command for copying all Chrono and
 # dependency DLLs to the appropriate binary output folder.
-# This function has effect only on Windows.
+# This has effect ONLY on Windows.
 # 
-# DLLs will be copied into ${PROJECT_BINARY_DIR}/bin/${config} by default
-# or in ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${config} if only CMAKE_RUNTIME_OUTPUT_DIRECTORY is set
-# or to ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_<CONFIG>} if the specific CMAKE_RUNTIME_OUTPUT_DIRECTORY_<CONFIG> has been set
+# By default, DLLs will be copied to ${PROJECT_BINARY_DIR}/bin/${config}.
+# If only CMAKE_RUNTIME_OUTPUT_DIRECTORY is set, they will be copied to
+# ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${config}.
+# If the specific CMAKE_RUNTIME_OUTPUT_DIRECTORY_<CONFIG> has been set,
+# DLLs will be copied to ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_<CONFIG>}.
 #--------------------------------------------------------------
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "<mycustompathforrelease>")
 add_DLL_copy_command()
 

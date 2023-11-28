@@ -53,7 +53,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 # Set location of SWIG-generated files.
-set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_csharp")
+set(CHRONO_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_csharp")
 
 # Set SWIG flags.  Disable selected SWIG warnings 
 set(CMAKE_SWIG_FLAGS "-c++;-w401,503,833")
@@ -90,6 +90,8 @@ message(STATUS "...add CSharp CORE module")
 
 # Set module name.
 set(CH_CSHARP_CORE ChronoEngine_csharp_core)
+
+set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/core")
 
 # Set interface file.
 set(INTERFACE_FILE_CORE ../interface/core/ChModuleCore.i)
@@ -135,6 +137,8 @@ endif()
 if(ENABLE_MODULE_IRRLICHT)
 
   message(STATUS "...add csharp IRRLICHT module")
+
+  set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/irrlicht")
 
   # Python module name
   set(CH_CSHARP_IRRLICHT ChronoEngine_csharp_irrlicht)
@@ -195,7 +199,9 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
   
   # Set module name.
   set(MODULE_VEHICLE ChronoEngine_csharp_vehicle)
-  
+
+  set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/vehicle")
+
   # Set interface file.
   set(INTERFACE_FILE_VEHICLE ../interface/vehicle/ChModuleVehicle.i)
   
