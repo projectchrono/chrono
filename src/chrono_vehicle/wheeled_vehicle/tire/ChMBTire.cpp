@@ -359,8 +359,8 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             const auto& pos_c = m_nodes[node_c]->GetPos();
             const auto& pos_n = m_nodes[node_n]->GetPos();
 
-            auto dir_p = pos_c - pos_p;
-            auto dir_n = pos_n - pos_c;
+            auto dir_p = (pos_c - pos_p).GetNormalized();
+            auto dir_n = (pos_n - pos_c).GetNormalized();
             auto cross = Vcross(dir_p, dir_n);
             double length_cross = cross.Length();
 
@@ -386,8 +386,8 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             const auto& pos_c = m_nodes[node_c]->GetPos();
             const auto& pos_n = m_nodes[node_n]->GetPos();
 
-            auto dir_p = pos_c - pos_p;
-            auto dir_n = pos_n - pos_c;
+            auto dir_p = (pos_c - pos_p).GetNormalized();
+            auto dir_n = (pos_n - pos_c).GetNormalized();
             auto cross = Vcross(dir_p, dir_n);
             double length_cross = cross.Length();
 
@@ -410,8 +410,8 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             const auto& pos_c = m_nodes[node_c]->GetPos();
             const auto& pos_n = m_nodes[node_n]->GetPos();
 
-            auto dir_p = pos_c - pos_p;
-            auto dir_n = pos_n - pos_c;
+            auto dir_p = (pos_c - pos_p).GetNormalized();
+            auto dir_n = (pos_n - pos_c).GetNormalized();
             auto cross = Vcross(dir_p, dir_n);
             double length_cross = cross.Length();
 
@@ -434,8 +434,8 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             const auto& pos_c = m_nodes[node_c]->GetPos();
             const auto& pos_n = m_nodes[node_n]->GetPos();
 
-            auto dir_p = pos_c - pos_p;
-            auto dir_n = pos_n - pos_c;
+            auto dir_p = (pos_c - pos_p).GetNormalized();
+            auto dir_n = (pos_n - pos_c).GetNormalized();
             auto cross = Vcross(dir_p, dir_n);
             double length_cross = cross.Length();
 
@@ -558,6 +558,9 @@ void MBTireModel::CalculateInertiaProperties(const ChFrameMoving<>& wheel_frame,
 // Constant threshold for checking zero length vectors
 static const double zero_length = 1e-6;
 
+// Constant threshold for checking zero angles
+static const double zero_angle = 1e-3;
+
 // Calculate forces at each vertex, then use ChNodeFEAxyz::SetForce
 void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
     // Initialize nodal force accumulators
@@ -648,16 +651,21 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         auto dir_p = pos_c - pos_p;
         auto dir_n = pos_n - pos_c;
         double length_p = dir_p.Length();
-        assert(length_p > zero_length);
         double length_n = dir_n.Length();
+        assert(length_p > zero_length);
         assert(length_n > zero_length);
-        auto cross = Vcross(dir_p, dir_n);
-        double length_cross = cross.Length();
-        assert(length_cross > zero_length);
-        double angle = std::asin(length_cross);
         dir_p /= length_p;
         dir_n /= length_n;
+
+        auto cross = Vcross(dir_p, dir_n);
+        double length_cross = cross.Length();
+        double angle = std::asin(length_cross);
+        if (std::abs(angle - spring.a0) < zero_angle)
+            continue;
+
+        assert(length_cross > zero_length);
         cross /= length_cross;
+
         ChVector<> F_p = m_kB * ((angle - spring.a0) / length_p) * Vcross(cross, dir_p);
         ChVector<> F_n = m_kB * ((angle - spring.a0) / length_n) * Vcross(cross, dir_n);
 
@@ -678,16 +686,21 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         auto dir_p = pos_c - pos_p;
         auto dir_n = pos_n - pos_c;
         double length_p = dir_p.Length();
-        assert(length_p > zero_length);
         double length_n = dir_n.Length();
+        assert(length_p > zero_length);
         assert(length_n > zero_length);
-        auto cross = Vcross(dir_p, dir_n);
-        double length_cross = cross.Length();
-        assert(length_cross > zero_length);
-        double angle = std::asin(length_cross);
         dir_p /= length_p;
         dir_n /= length_n;
+
+        auto cross = Vcross(dir_p, dir_n);
+        double length_cross = cross.Length();
+        double angle = std::asin(length_cross);
+        if (std::abs(angle - spring.a0) < zero_angle)
+            continue;
+
+        assert(length_cross > zero_length);
         cross /= length_cross;
+
         ChVector<> F_p = m_kB * ((angle - spring.a0) / length_p) * Vcross(cross, dir_p);
         ChVector<> F_n = m_kB * ((angle - spring.a0) / length_n) * Vcross(cross, dir_n);
 

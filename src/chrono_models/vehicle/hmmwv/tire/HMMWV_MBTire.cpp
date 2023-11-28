@@ -60,7 +60,7 @@ HMMWV_MBTire::HMMWV_MBTire(const std::string& name) : ChMBTire(name) {
     double cC = 1.0e3;  // circumferential spring damping coefficient
     double kT = 2.5e4;  // transversal spring elastic coefficient
     double cT = 1.0e3;  // transversal spring damping coefficient
-    double kB = 2.5e4;  // bending spring elastic coefficient
+    double kB = 2.5e3;  // bending spring elastic coefficient
     double cB = 0;      // bending spring damping coefficient
     SetRadialSpringCoefficients(kR, cR);
     SetMeshSpringCoefficients(kC, cC, kT, cT);
