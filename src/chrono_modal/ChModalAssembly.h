@@ -60,6 +60,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     enum Reduction_Type {Herting, Craig_Bampton};
     Reduction_Type modal_reduction_type = Herting;
+    bool verbose=false;
 
     /// Compute the undamped modes for the current assembly. 
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies() etc.
@@ -101,7 +102,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         const ChModalDamping& damping_model = ChModalDampingNone());  ///< a damping model to use for the reduced model
 
     void ComputeMassCenter();
-    void CpmputeSelectionMatrix();
+    void CpmputeMappingMatrix();
     bool UpdateFloatingFrameOfReference();
     void UpdateTransformationMatrix();
     ChFrameMoving<> GetFloatingFrameOfReference() { return this->floating_frame_F;}
@@ -114,8 +115,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void ComputeStiffnessMatrix();
     void ComputeDampingMatrix();
     void ComputeModalKRMmatrix();
+    void DebugBlock();
 
-    void SetLocalFloatingFrameOfReference(std::shared_ptr<fea::ChNodeFEAbase> m_node);
+    //void SetLocalFloatingFrameOfReference(std::shared_ptr<fea::ChNodeFEAbase> m_node);
 
     /// For displaying modes, you can use the following function. It sets the state of this subassembly
     /// (both boundary and inner items) using the n-th eigenvector multiplied by a "amplitude" factor * sin(phase). 
@@ -566,34 +568,43 @@ public:
     ChMatrixDynamic<> Psi; //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
     ChState           full_assembly_x_old;      // state snapshot of full not reduced assembly at the previous time step
     ChStateDelta      full_assembly_v_old;      // velocity snapshot of full not reduced assembly at the previous time step
-    ChState reduced_assembly_x_old;        // state snapshot of reduced assembly at the previous time step
-    ChStateDelta reduced_assembly_v_old;   // velocity snapshot of reduced assembly at the previous time step
+    ChState           reduced_assembly_x_old;        // state snapshot of reduced assembly at the previous time step
+    ChStateDelta      reduced_assembly_v_old;   // velocity snapshot of reduced assembly at the previous time step
     ChVectorDynamic<> modal_q_old; // state snapshot of the modal coordinates at the previous time step
     ChFrameMoving<>   floating_frame_F0;// floating frame of reference F at the time of SwitchModalReductionON()
-    bool is_initialized_F=false;
-    ChFrameMoving<> floating_frame_F_old;//floating frame of reference F at previous time step, used for updating F
+    ChFrameMoving<>   floating_frame_F_old;//floating frame of reference F at previous time step, used for updating F
+    bool              is_initialized_F = false;
 
     // a series of new variables for the new formulas to support rotating subassembly
     //***** todo *****: 
     //need to clean the redundant local variables at the end of the code development
     ChVector<> com_x;     // the position of center of mass of the subassembly at current deformed configuration
-    ChMatrixDynamic<> S;  // selection matrix to determine the position and orientation of the floating frame F
+    //ChMatrixDynamic<> S;  // selection matrix to determine the position and orientation of the floating frame F
     ChFrameMoving<> floating_frame_F; // the floating frame of reference F of the subassembly. Can be at one node or mass center
-    ChMatrix33<> R_F; // rotation matrix of the floating frame F
-    ChVector<> wloc_F; // local angular velocity of the floating frame F
-    std::shared_ptr<fea::ChNodeFEAbase> attached_node_as_local_frame = nullptr;
-    ChVectorDynamic<> alpha;//coefficient for selection matrix S
+    //ChMatrix33<> R_F; // rotation matrix of the floating frame F
+    //ChVector<> wloc_F; // local angular velocity of the floating frame F
+    //std::shared_ptr<fea::ChNodeFEAbase> attached_node_as_local_frame = nullptr;
+    //ChVectorDynamic<> alpha;//coefficient for selection matrix S
     ChFrameMoving<> com_frame;
+
+    // Projection matrix according to Bauchau2021
+    ChMatrixDynamic<> Q;//mapping matrix for the displacement of the floating frame F
+    ChMatrixDynamic<> P_parallel;//parallel projector
+    ChMatrixDynamic<> P_perp;//perpendicular projector 
+    ChMatrixDynamic<> U_locred;//rigid body modes in local frame for the reduced subassembly
+
        
     ChMatrixDynamic<> Psi_S;// static mode transformation matrix in the mode acceleration method
     ChMatrixDynamic<> Psi_D;// dynamic mode transformation matrix in the mode acceleration method
 
     ChMatrixDynamic<> P_B1;//transformation matrix for the part from the coordinate of F to the coordinate of boundary nodes B
     ChMatrixDynamic<> P_B2;//transformation matrix for the part from the relative coordinate(elastic deformation) of B to the coordinate of boundary nodes B
+    ChMatrixDynamic<> G_B1;
+    ChMatrixDynamic<> G_B2;
     ChMatrixDynamic<> P_I1;//transformation matrix for the part from the coordinate of F to the coordinate of internal nodes I
     ChMatrixDynamic<> P_I2;//transformation matrix for the part from the relative coordinate(elastic deformation) of I to the coordinate of internal nodes I
    
-    ChMatrixDynamic<> Y;//transformation matrix for the linear part from the reduced modal stiffness matrix to tangent stiffness matrix
+    //ChMatrixDynamic<> Y;//transformation matrix for the linear part from the reduced modal stiffness matrix to tangent stiffness matrix
     ChMatrixDynamic<> Xi_F;//the first geometrical nonlinear part of the tangent stiffness matrix
     ChMatrixDynamic<> Xi_H;//the second geometrical nonlinear part of the tangent stiffness matrix
     ChMatrixDynamic<> Xi_V;//the third geometrical nonlinear part of the tangent stiffness matrix
@@ -603,7 +614,7 @@ public:
     ChVectorDynamic<> g_quad;// the quadratic velocity term of the reduced superelement
 
     ChMatrixDynamic<> P_W;//extended transformation matrix, = diag[P_B2,I]
-    ChMatrixDynamic<> U;//extended selection matrix, = diag[S,I]
+    //ChMatrixDynamic<> U;//extended selection matrix, = diag[S,I]
     ChMatrixDynamic<> O_B;//matrix associated with the local angular velocities of boundary nodes B
     ChMatrixDynamic<> V;//matrix associated with the local translational velocities of boundary nodes B
     ChMatrixDynamic<> O_F;  //matrix associated with the local angular velocities of floating frame F
