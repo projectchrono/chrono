@@ -200,7 +200,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
 
     VehicleSide m_measured_side;
 
-    typedef struct {
+    struct TMsimpleCoeff  {
         double pn;      ///< Nominal vertical force [N]
         double pn_max;  ///< Maximum vertical force [N]
 
@@ -217,7 +217,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
 
         double sigma0{100000.0};  ///< bristle stiffness for Dahl friction model
         double sigma1{5000.0};    ///< bristle damping for Dahl friction model
-    } TMsimpleCoeff;
+    };
 
     TMsimpleCoeff m_par;
 
