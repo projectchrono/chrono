@@ -2,7 +2,7 @@
 # installs vsg and dependencies as bleeding edge versions, sources are not retained
 # Assimp may exist on the local machine or not - it will be built anyway
 # Should work on MacOS and Linux
-PREFIX=${HOME}/Packages/VSG
+PREFIX=${HOME}/Packages/vsg
 SHARED="ON"
 rm -rf $PREFIX build 
 GENERATOR="Ninja Multi-Config"
