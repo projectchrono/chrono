@@ -19,7 +19,7 @@
 #ifndef FMTV_RIGID_TIRE_H
 #define FMTV_RIGID_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
@@ -54,7 +54,7 @@ class CH_MODELS_API FMTV_RigidTire : public ChRigidTire {
     static const ChVector<> m_inertia;
 
     static const std::string m_meshFile;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// @} vehicle_models_fmtv

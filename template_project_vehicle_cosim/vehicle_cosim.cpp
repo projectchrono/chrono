@@ -105,7 +105,7 @@ MyTerrain::~MyTerrain() {
 
 void MyTerrain::OnInitialize(unsigned int num_tires) {
     // Create the rigid terrain box with its top surface at init height = 0
-    auto ground = std::shared_ptr<ChBody>(m_system->NewBody());
+    auto ground = chrono_types::make_shared<ChBody>();
     m_system->AddBody(ground);
     ground->SetMass(1);
     ground->SetBodyFixed(true);
@@ -121,10 +121,8 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     mat_terrain->SetKt(4e5f);
     mat_terrain->SetGt(4e1f);
 
-    ground->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(ground.get(), mat_terrain, ChVector<>(m_dimX, m_dimY, 0.2), ChVector<>(0, 0, -0.1),
                           ChQuaternion<>(1, 0, 0, 0), true);
-    ground->GetCollisionModel()->BuildModel();
 
     // Shared proxy contact material
     auto mat_proxy = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -139,8 +137,9 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
 
     // Create the proxy bodies with cylindrical shapes
     // Create the proxy bodies with cylindrical shapes
-    double tire_radius = m_aabb[0].m_dims.x() / 2;
-    double tire_width = m_aabb[0].m_dims.y();
+    auto aabb_size = m_aabb[0].Size();
+    double tire_radius = aabb_size.x() / 2;
+    double tire_width = aabb_size.y();
 
     m_bodies.resize(num_tires);
     for (unsigned int i = 0; i < num_tires; i++) {
@@ -149,9 +148,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
         m_bodies[i]->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
         m_bodies[i]->SetCollide(true);
 
-        m_bodies[i]->GetCollisionModel()->ClearModel();
         utils::AddCylinderGeometry(m_bodies[i].get(), mat_proxy, tire_radius, tire_width / 2);
-        m_bodies[i]->GetCollisionModel()->BuildModel();
 
         m_bodies[i]->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
 

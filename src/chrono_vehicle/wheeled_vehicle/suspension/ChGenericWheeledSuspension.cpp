@@ -29,8 +29,8 @@
 
 #include <algorithm>
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChGenericWheeledSuspension.h"
 
@@ -428,7 +428,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
         // Spindle body
-        m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+        m_spindle[side] = chrono_types::make_shared<ChBody>();
         m_spindle[side]->SetNameString(Name({"spindle", side}));
         m_spindle[side]->SetPos(spindlePos);
         m_spindle[side]->SetRot(spindleRot);
@@ -641,7 +641,7 @@ void ChGenericWheeledSuspension::AddVisualizationAssets(VisualizationType vis) {
     for (auto& item : m_tsdas)
         item.second.geometry.CreateVisualizationAssets(item.second.tsda, vis);
     for (auto& item : m_dists)
-        item.second.dist->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+        item.second.dist->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 }
 
 void ChGenericWheeledSuspension::RemoveVisualizationAssets() {

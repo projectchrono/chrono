@@ -40,7 +40,7 @@ class ChApi ChSolver {
         PMINRES,          ///< Projected MINRES
         BARZILAIBORWEIN,  ///< Barzilai-Borwein
         APGD,             ///< Accelerated Projected Gradient Descent
-        ADDM,             ///< Alternating Direction Method of Multipliers
+        ADMM,             ///< Alternating Direction Method of Multipliers
         // Direct linear solvers
         SPARSE_LU,        ///< Sparse supernodal LU factorization
         SPARSE_QR,        ///< Sparse left-looking rank-revealing QR factorization

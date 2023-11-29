@@ -25,8 +25,8 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChSolidAxle.h"
 
@@ -125,7 +125,7 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     // Create and initialize the axle body.
-    m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -141,7 +141,7 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_tierodOuterR = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
 
     // Create and initialize the tierod body.
-    m_tierod = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_tierod = chrono_types::make_shared<ChBody>();
     m_tierod->SetNameString(m_name + "_tierodBody");
     m_tierod->SetPos((m_tierodOuterL + m_tierodOuterR) / 2);
     m_tierod->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -187,7 +187,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
     // Create and initialize knuckle body (same orientation as the chassis)
-    m_knuckle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_knuckle[side] = chrono_types::make_shared<ChBody>();
     m_knuckle[side]->SetNameString(m_name + "_knuckle" + suffix);
     m_knuckle[side]->SetPos(points[KNUCKLE_CM]);
     m_knuckle[side]->SetRot(spindleRot);
@@ -196,7 +196,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_knuckle[side]);
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
@@ -215,7 +215,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_upperLink[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_upperLink[side] = chrono_types::make_shared<ChBody>();
     m_upperLink[side]->SetNameString(m_name + "_upperLink" + suffix);
     m_upperLink[side]->SetPos(points[UL_CM]);
     m_upperLink[side]->SetRot(rot);
@@ -239,7 +239,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_lowerLink[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_lowerLink[side] = chrono_types::make_shared<ChBody>();
     m_lowerLink[side]->SetNameString(m_name + "_lowerLink" + suffix);
     m_lowerLink[side]->SetPos(points[LL_CM]);
     m_lowerLink[side]->SetRot(rot);
@@ -329,7 +329,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
         u = Vcross(v, w);
         rot.Set_A_axis(u, v, w);
 
-        m_draglink = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+        m_draglink = chrono_types::make_shared<ChBody>();
         m_draglink->SetNameString(m_name + "_draglink");
         m_draglink->SetPos((points[DRAGLINK_C] + points[BELLCRANK_DRAGLINK]) / 2);
         m_draglink->SetRot(rot.Get_A_quaternion());
@@ -344,7 +344,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
         chassis->GetSystem()->AddLink(m_sphericalDraglink);
 
         // Create and initialize bell crank body (one side only).
-        m_bellCrank = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+        m_bellCrank = chrono_types::make_shared<ChBody>();
         m_bellCrank->SetNameString(m_name + "_bellCrank");
         m_bellCrank->SetPos((points[BELLCRANK_DRAGLINK] + points[BELLCRANK_AXLE] + points[BELLCRANK_TIEROD]) / 3);
         m_bellCrank->SetRot(rot.Get_A_quaternion());
@@ -606,10 +606,10 @@ void ChSolidAxle::AddVisualizationAssets(VisualizationType vis) {
                          ChColor(0.2f, 0.6f, 0.2f));
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 }
 
 void ChSolidAxle::RemoveVisualizationAssets() {

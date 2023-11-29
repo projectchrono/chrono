@@ -21,7 +21,7 @@
 
 #include "chrono_models/ChApiModels.h"
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -55,7 +55,7 @@ class CH_MODELS_API ARTcar_Wheel : public chrono::vehicle::ChWheel {
     virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
 
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 
     static const double m_radius;
     static const double m_width;

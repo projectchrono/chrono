@@ -147,7 +147,7 @@ class ChApiIrr ChIrrGUI {
     ChIrrEventReceiver* m_receiver;                      ///< default event receiver
     std::vector<irr::IEventReceiver*> m_user_receivers;  ///< optional user-defined receivers
 
-    std::shared_ptr<collision::ChCollisionSystem::VisualizationCallback> m_drawer;  ///< collision callback
+    std::shared_ptr<ChCollisionSystem::VisualizationCallback> m_drawer;  ///< collision callback
 
     irr::gui::IGUITabControl* g_tabbed;
 

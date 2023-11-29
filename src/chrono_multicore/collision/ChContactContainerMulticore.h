@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChContactTuple.h"
-#include "chrono/collision/chrono/ChCollisionData.h"
+#include "chrono/collision/multicore/ChCollisionData.h"
 #include "chrono_multicore/ChApiMulticore.h"
 #include "chrono_multicore/ChDataManager.h"
 

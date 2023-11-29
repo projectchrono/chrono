@@ -22,7 +22,7 @@
 #include "chrono_sensor/ChApiSensor.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include <deque>
 
@@ -85,7 +85,7 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param mat_id the material id associated with the mesh
     unsigned int AddRigidMesh(CUdeviceptr d_vertices,
                               CUdeviceptr d_indices,
-                              std::shared_ptr<ChTriangleMeshShape> mesh_shape,
+                              std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
                               std::shared_ptr<ChBody> body,
                               ChFrame<double> asset_frame,
                               ChVector<double> scale,
@@ -101,7 +101,7 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param mat_id the material id associated with the mesh
     void AddDeformableMesh(CUdeviceptr d_vertices,
                            CUdeviceptr d_indices,
-                           std::shared_ptr<ChTriangleMeshShape> mesh_shape,
+                           std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
                            std::shared_ptr<ChBody> body,
                            ChFrame<double> asset_frame,
                            ChVector<double> scale,
@@ -149,7 +149,7 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param compact_no_update if the GAS should be made without updating, and with compaction
     /// @param rebuild whether this is a rebuild, or a first build
     /// @param gas_id the id of the GAS is it has already been made (in case of rebuild)
-    unsigned int BuildTrianglesGAS(std::shared_ptr<ChTriangleMeshShape> mesh_shape,
+    unsigned int BuildTrianglesGAS(std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
                                    CUdeviceptr d_vertices,
                                    CUdeviceptr d_indices,
                                    bool compact_no_update = true,
@@ -221,7 +221,7 @@ class CH_SENSOR_API ChOptixGeometry {
     std::vector<std::tuple<CUdeviceptr, unsigned int>> m_known_meshes;
 
     /// deformable mesh list <mesh shape, d_vertices, d_indices, gas id>
-    std::vector<std::tuple<std::shared_ptr<ChTriangleMeshShape>, CUdeviceptr, CUdeviceptr, unsigned int>>
+    std::vector<std::tuple<std::shared_ptr<ChVisualShapeTriangleMesh>, CUdeviceptr, CUdeviceptr, unsigned int>>
         m_deformable_meshes;
 
     float m_start_time;  ///< time corresponding to start frame

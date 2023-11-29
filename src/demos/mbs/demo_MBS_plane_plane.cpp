@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     spring->SetDampingCoefficient(5);
     spring->Initialize(ground, body, true, ChVector<>(0, 0, 2), ChVector<>(0, 0, 0));
     spring->SetRestLength(1.9);
-    auto spring_shape = chrono_types::make_shared<ChSpringShape>(0.05, 200, 25);
+    auto spring_shape = chrono_types::make_shared<ChVisualShapeSpring>(0.05, 200, 25);
     spring_shape->SetColor(ChColor(0.0f, 0.3f, 0.8f));
     spring->AddVisualShape(spring_shape);
 

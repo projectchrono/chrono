@@ -24,7 +24,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/utils/ChUtilsGeometry.h"
-#include "chrono/assets/ChBarrelShape.h"
+#include "chrono/assets/ChVisualShapeBarrel.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -146,25 +146,27 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
         roller->ConcatenatePreTransformation(f3);
 
         // approximate mass & inertia to a cylinder:
-        roller->SetMass(utils::CalcCylinderVolume(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
-                        roller_density);
-        roller->SetInertia(utils::CalcCylinderGyration(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
-                           roller_density);
+        roller->SetMass(  //
+            geometry::ChCylinder::GetVolume(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
+            roller_density);
+        roller->SetInertia(  //
+            geometry::ChCylinder::GetGyration(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
+            roller_density);
 
         // add collision shape
-        roller->GetCollisionModel()->ClearModel();
-        roller->GetCollisionModel()->AddBarrel(wheel_mat,                                                      //
-                                               -half_length_roller, +half_length_roller,                       //
-                                               2 * roller_elliptical_rad_Vert, 2 * roller_elliptical_rad_Hor,  //
-                                               Roffset);
-        roller->GetCollisionModel()->BuildModel();
+        auto shape = chrono_types::make_shared<ChCollisionShapeBarrel>(wheel_mat,                                 //
+                                                                       -half_length_roller, +half_length_roller,  //
+                                                                       2 * roller_elliptical_rad_Vert,            //
+                                                                       2 * roller_elliptical_rad_Hor,             //
+                                                                       Roffset);
+        roller->AddCollisionShape(shape);
         roller->SetCollide(true);
 
         // add visualization shape
-        auto rollershape =
-            chrono_types::make_shared<ChBarrelShape>(-half_length_roller, +half_length_roller,                       //
-                                                     2 * roller_elliptical_rad_Vert, 2 * roller_elliptical_rad_Hor,  //
-                                                     Roffset);
+        auto rollershape = chrono_types::make_shared<ChVisualShapeBarrel>(-half_length_roller, +half_length_roller,  //
+                                                                          2 * roller_elliptical_rad_Vert,
+                                                                          2 * roller_elliptical_rad_Hor,  //
+                                                                          Roffset);
         roller->AddVisualShape(rollershape);
 
         // Make the revolute joint between the roller and the central wheel
@@ -184,6 +186,7 @@ int main(int argc, char* argv[]) {
 
     // Create a ChronoENGINE physical system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     double platform_radius = 8;
     double wheel_radius = 3;

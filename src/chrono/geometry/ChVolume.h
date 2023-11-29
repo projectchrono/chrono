@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #ifndef CHC_VOLUME_H
@@ -35,11 +35,16 @@ class ChApi ChVolume : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     // virtual ChVolume* Clone() const override { };
 
-    /// Evaluates a point in the volume, given parametric coordinates U,V,W.
+    /// Return the volume of this solid.
+    virtual double GetVolume() const = 0;
+
+    /// Return the gyration matrix for this solid.
+    virtual ChMatrix33<> GetGyration() const = 0;
+
+    /// Return a point in the volume, given parametric coordinates U,V,W.
     /// Parameters U V W always work in 0..1 range.
-    /// Computed value goes into the 'pos' reference.
-    /// It must be implemented by inherited classes.
-    virtual void Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const = 0;
+    /// The default implementation always returns the volume center.
+    virtual ChVector<> Evaluate(double parU, double parV, double parW) const { return VNULL; }
 
     /// Tell if the volume is closed (periodic) in parametric coordinate
     virtual bool Get_closed_U() const { return false; }
@@ -50,8 +55,8 @@ class ChApi ChVolume : public ChGeometry {
     /// Tell if the volume is closed (periodic) in parametric coordinate
     virtual bool Get_closed_W() const { return false; }
 
-    /// This is a volume
-    virtual int GetManifoldDimension() const override { return 3; }
+    /// This is a volume.
+    virtual int GetManifoldDimension() const override final { return 3; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

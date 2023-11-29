@@ -81,6 +81,12 @@ namespace kraz {}
 /// namespace for the Mercedes G500 vehicle model
 namespace gclass {}
 
+/// namespace for the Duro vehicle model
+namespace duro {}
+
+/// namespace for the Unimog 401 vehicle model
+namespace unimog {}
+
 /// @} vehicle_models
 
 }  // end namespace vehicle

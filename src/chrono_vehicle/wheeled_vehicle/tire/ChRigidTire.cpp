@@ -26,6 +26,7 @@
 
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
+
 namespace chrono {
 namespace vehicle {
 
@@ -52,10 +53,6 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     
     wheel_body->SetCollide(true);
 
-    wheel_body->GetCollisionModel()->ClearModel();
-
-    wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRE);
-
     if (m_use_contact_mesh) {
         // Mesh contact
         m_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(m_contact_meshFile, true, false);
@@ -67,16 +64,16 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
             for (int i = 0; i < m_trimesh->m_vertices.size(); i++)
                 m_trimesh->m_vertices[i].y() += offset;
         }
-
-        wheel_body->GetCollisionModel()->AddTriangleMesh(m_material, m_trimesh, false, false, ChVector<>(0),
-                                                         ChMatrix33<>(1), m_sweep_sphere_radius);
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_material, m_trimesh, false, false,
+                                                                                m_sweep_sphere_radius);
+        wheel_body->AddCollisionShape(ct_shape);
     } else {
         // Cylinder contact
-        wheel_body->GetCollisionModel()->AddCylinder(m_material, GetRadius(), GetWidth(),
-                                                     ChVector<>(0, 0, GetOffset()), Q_from_AngX(CH_C_PI_2));
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, GetRadius(), GetWidth());
+        wheel_body->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, GetOffset()), Q_from_AngX(CH_C_PI_2)));
     }
 
-    wheel_body->GetCollisionModel()->BuildModel();
+    wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRE);
 }
 
 void ChRigidTire::Synchronize(double time, const ChTerrain& terrain) {

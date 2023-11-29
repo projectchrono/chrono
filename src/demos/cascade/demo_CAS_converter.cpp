@@ -94,7 +94,7 @@ scene::IAnimatedMesh* modelMesh;
 scene::IAnimatedMeshSceneNode* modelNode;
 scene::ISceneNode* decompositionNode;
 
-collision::ChConvexDecompositionHACDv2 mydecompositionHACDv2;
+ChConvexDecompositionHACDv2 mydecompositionHACDv2;
 
 int hacd_maxhullcount;
 int hacd_maxhullmerge;

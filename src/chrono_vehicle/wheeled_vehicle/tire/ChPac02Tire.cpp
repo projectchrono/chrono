@@ -82,11 +82,46 @@ double ChPac02Tire::GetNormalDampingForce(double depth, double velocity) const {
 
 void ChPac02Tire::CombinedCoulombForces(double& fx, double& fy, double fz) {
     ChVector2<> F;
-    F.x() = tanh(-2.0 * m_states.vsx / m_vcoulomb) * fz * m_states.mu_scale;
-    F.y() = tanh(-2.0 * m_states.vsy / m_vcoulomb) * fz * m_states.mu_scale;
-    if (F.Length() > fz * m_states.mu_scale) {
+    /*
+     The Dahl Friction Model elastic tread blocks representated by a single bristle. At tire stand still it acts
+     like a spring which enables holding of a vehicle on a slope without creeping (hopefully). Damping terms
+     have been added to calm down the oscillations of the pure spring.
+
+     The time step h must be actually the same as for the vehicle system!
+
+     This model is experimental and needs some testing.
+
+     With bristle deformation z, kinematic force fc, sliding velocity v and stiffness sigma we have this
+     differential equation:
+         dz/dt = v - sigma0*z*abs(v)/fc
+
+     When z is known, the friction force F can be calulated to:
+        F = sigma0 * z
+
+     For practical use some damping is needed, that leads to:
+        F = sigma0 * z + sigma1 * dz/dt
+
+     Longitudinal and lateral forces are calculated separately and then combined. For stand still a friction
+     circle is used.
+     */
+    double muscale = m_states.mu_road / m_mu0;
+    double fc = fz * muscale;
+    double h = this->m_stepsize;
+    double brx = (fc * m_states.brx + fc * h * m_states.vsx) /
+                 (fc + h * m_par.sigma0 * fabs(m_states.vsx));                     // Backward Euler (implicit)
+    double brx_dot = m_states.vsx - m_par.sigma0 * brx * fabs(m_states.vsx) / fc;  // needed for damping
+    double bry = (fc * m_states.bry + fc * h * m_states.vsy) /
+                 (fc + h * m_par.sigma0 * fabs(m_states.vsy));                     // Backward Euler (implicit)
+    double bry_dot = m_states.vsy - m_par.sigma0 * bry * fabs(m_states.vsy) / fc;  // needed for damping
+    F.x() = -(m_par.sigma0 * brx + m_par.sigma1 * brx_dot);
+    F.y() = -(m_par.sigma0 * bry + m_par.sigma1 * bry_dot);
+    m_states.brx = brx;
+    m_states.bry = bry;
+
+    // combine forces (friction circle)
+    if (F.Length() > fz * muscale) {
         F.Normalize();
-        F *= fz * m_states.mu_scale;
+        F *= fz * muscale;
     }
     fx = F.x();
     fy = F.y();
@@ -1628,7 +1663,7 @@ void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
     m_g = wheel->GetSpindle()->GetSystem()->Get_G_acc().Length();
-    
+
     // Let derived class set the MF tire parameters
     SetMFParams();
 
@@ -1758,6 +1793,8 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
         m_states.dfz0 = 0;
         m_states.Pi0_prime = 0;
         m_states.dpi = 1;
+        m_states.brx = 0;
+        m_states.bry = 0;
         m_states.disc_normal = ChVector<>(0, 0, 0);
     }
 }

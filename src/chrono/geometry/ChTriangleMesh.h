@@ -50,8 +50,8 @@ class ChApi ChTriangleMesh : public ChGeometry {
     /// Get the class type as an enum.
     virtual Type GetClassType() const override { return Type::TRIANGLEMESH; }
 
-    /// Compute bounding box along the directions defined by the given rotation matrix.
-    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
+    /// Compute bounding box of this triangle mesh.
+    virtual ChAABB GetBoundingBox() const override;
 
     //// TODO
     //// virtual ChVector<> Baricenter() const override;

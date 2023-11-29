@@ -108,7 +108,9 @@ class ChApi ChFunction {
     /// because this base method already provide a general-purpose numerical differentiation
     /// to get dddy/dxdxdx only from the Get_y() function. (however, if the analytical derivative
     /// is known, it may be better to implement a custom method).
-    virtual double Get_y_dxdxdx(double x) const { return ((Get_y_dxdx(x + BDF_STEP_LOW) - Get_y_dxdx(x)) / BDF_STEP_LOW); };
+    virtual double Get_y_dxdxdx(double x) const {
+        return ((Get_y_dxdx(x + BDF_STEP_LOW) - Get_y_dxdx(x)) / BDF_STEP_LOW);
+    };
 
     /// Return the weight of the function (useful for
     /// applications where you need to mix different weighted ChFunctions)
@@ -130,7 +132,7 @@ class ChApi ChFunction {
     virtual double Get_y_dN(double x, int derivate) const;
 
     /// Update could be implemented by children classes, ex. to launch callbacks
-    virtual void Update(const double x) {}
+    virtual void Update(double x) {}
 
     //
     // Some analysis functions. If derivate=0, they are applied on y(x), if derivate =1, on dy/dx, etc.

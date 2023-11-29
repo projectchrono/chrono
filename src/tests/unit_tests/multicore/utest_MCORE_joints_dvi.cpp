@@ -26,7 +26,7 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #include "chrono/ChConfig.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #ifdef CHRONO_OPENGL
@@ -36,7 +36,6 @@
 #include "unit_testing.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 struct Options {
     SolverMode mode;
@@ -83,14 +82,14 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         sys->ChangeSolverType(opts.type);
 
         // Create the ground body
-        auto ground = std::shared_ptr<ChBody>(sys->NewBody());
+        auto ground = chrono_types::make_shared<ChBody>();
         ground->SetIdentifier(-1);
         ground->SetBodyFixed(true);
         ground->SetCollide(false);
         sys->AddBody(ground);
 
         // Create the sled body
-        auto sled = std::shared_ptr<ChBody>(sys->NewBody());
+        auto sled = chrono_types::make_shared<ChBody>();
         sled->SetIdentifier(1);
         sled->SetMass(550);
         sled->SetInertiaXX(ChVector<>(100, 100, 100));
@@ -99,13 +98,13 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         sled->SetBodyFixed(false);
         sled->SetCollide(false);
 
-        auto box_sled = chrono_types::make_shared<ChBoxShape>(2, 0.5, 0.5);
+        auto box_sled = chrono_types::make_shared<ChVisualShapeBox>(2, 0.5, 0.5);
         sled->AddVisualShape(box_sled, ChFrame<>());
 
         sys->AddBody(sled);
 
         // Create the wheel body
-        auto wheel = std::shared_ptr<ChBody>(sys->NewBody());
+        auto wheel = chrono_types::make_shared<ChBody>();
         wheel->SetIdentifier(2);
         wheel->SetMass(350);
         wheel->SetInertiaXX(ChVector<>(50, 138, 138));
@@ -117,9 +116,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 
         auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-        wheel->GetCollisionModel()->ClearModel();
         utils::AddCylinderGeometry(wheel.get(), wheel_mat, 0.3, 0.1, ChVector<>(0, 0, 0), Q_from_AngZ(CH_C_PI_2));
-        wheel->GetCollisionModel()->BuildModel();
 
         sys->AddBody(wheel);
 

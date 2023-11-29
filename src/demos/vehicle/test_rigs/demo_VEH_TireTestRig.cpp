@@ -198,6 +198,8 @@ int main() {
             break;
     }
 
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     SetChronoSolver(*sys, solver_type, integrator_type);
 
     // Create and configure test rig

@@ -145,7 +145,7 @@ class CH_VEHICLE_API ChVehicle {
     /// Change the default collision detection system.
     /// Note that this function should be called *before* initialization of the vehicle system in order to create
     /// consistent collision models.
-    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type);
+    void SetCollisionSystemType(ChCollisionSystem::Type collsys_type);
 
     /// Enable output for this vehicle system.
     void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB

@@ -53,7 +53,7 @@ class CH_MODELS_API MAN_5t_TMeasyTire : public ChTMeasyTire {
     ChFunction_Recorder m_stiffnessMap;
 
     static const std::string m_meshFile;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// @} vehicle_models_man

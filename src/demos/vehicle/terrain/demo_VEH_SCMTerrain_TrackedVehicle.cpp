@@ -107,6 +107,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     M113 m113;
+    m113.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m113.SetContactMethod(ChContactMethod::SMC);
     m113.SetTrackShoeType(TrackShoeType::SINGLE_PIN);
     m113.SetBrakeType(BrakeType::SIMPLE);
@@ -369,17 +370,17 @@ void AddFixedObstacles(ChSystem* system) {
     double radius = 2;
     double length = 10;
 
-    auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
+    auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector<>(0, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);
 
     // Visualization
-    auto cyl_shape = chrono_types::make_shared<ChCylinderShape>(radius, length);
+    auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
     cyl_shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
     obstacle->AddVisualShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
-    auto box_shape = chrono_types::make_shared<ChBoxShape>(terrain_length, 2*length, 0.1);
+    auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(terrain_length, 2*length, 0.1);
     box_shape->SetColor(ChColor(0.2f, 0.2f, 0.2f));
     obstacle->AddVisualShape(box_shape, ChFrame<>(ChVector<>(0, 0, 1.5), QUNIT));
 
@@ -390,9 +391,8 @@ void AddFixedObstacles(ChSystem* system) {
     minfo.Y = 2e7f;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
-    obstacle->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
+    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     system->AddBody(obstacle);
 }
@@ -411,7 +411,7 @@ void AddMovingObstacles(ChSystem* system) {
     material->SetFriction(0.4f);
 
     // Create a ball
-    auto ball = std::shared_ptr<ChBody>(system->NewBody());
+    auto ball = chrono_types::make_shared<ChBody>();
 
     ball->SetMass(mass);
     ball->SetPos(pos);
@@ -421,13 +421,12 @@ void AddMovingObstacles(ChSystem* system) {
     ball->SetBodyFixed(false);
     ball->SetCollide(true);
 
-    ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(material, radius);
-    ball->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
+    ball->AddCollisionShape(ct_shape);
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
 
-    auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
+    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
     sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     ball->AddVisualShape(sphere);
 

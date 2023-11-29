@@ -57,7 +57,7 @@ body_truss.SetBodyFixed(True)
 sys.AddBody(body_truss)
 
 # Attach a 'box' shape asset for visualization.
-boxtruss = chrono.ChBoxShape(0.02, 0.2, 0.1)
+boxtruss = chrono.ChVisualShapeBox(0.02, 0.2, 0.1)
 body_truss.AddVisualShape(boxtruss, chrono.ChFrameD(chrono.ChVectorD(-0.01, 0, 0), chrono.QUNIT))
 
 # Create body for crank
@@ -67,7 +67,7 @@ body_crank.SetPos((vB + vG) * 0.5)
 sys.AddBody(body_crank)
 
 # Attach a 'box' shape asset for visualization.
-boxcrank = chrono.ChBoxShape(K, 0.02, 0.02)
+boxcrank = chrono.ChVisualShapeBox(K, 0.02, 0.02)
 body_crank.AddVisualShape(boxcrank)
 
 motor = chrono.ChLinkMotorRotationAngle()
@@ -141,7 +141,7 @@ constr_bb.SetConstrainedCoords(True, True, True,      # x, y, z
                                 False, False, False)  # Rx, Ry, Rz
 
 # For example, attach small shape to show the constraint
-sphereconstr2 = chrono.ChSphereShape(0.01)
+sphereconstr2 = chrono.ChVisualShapeSphere(0.01)
 constr_bb.AddVisualShape(sphereconstr2)
 
 # Create a beam as a crank
@@ -180,7 +180,7 @@ constr_bc.SetConstrainedCoords(True, True, True,    # x, y, z
                                 True, True, False)  # Rx, Ry, Rz
 
 # For example, attach small shape to show the constraint
-sphereconstr3 = chrono.ChSphereShape(0.01)
+sphereconstr3 = chrono.ChVisualShapeSphere(0.01)
 constr_bc.AddVisualShape(sphereconstr3)
 
 #
@@ -194,11 +194,11 @@ mesh.SetAutomaticGravity(False)
 sys.Add(mesh)
 
 # ==Asset== attach a visualization of the FEM mesh.
-# This will automatically update a triangle mesh (a ChTriangleMeshShape
+# This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
 # asset that is internally managed) by setting  proper
 # coordinates and vertex colors as in the FEM elements.
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-# postprocessor that can handle a colored ChTriangleMeshShape).
+# postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
 mvisualizebeamA = chrono.ChVisualShapeFEA(mesh)
 mvisualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MX)

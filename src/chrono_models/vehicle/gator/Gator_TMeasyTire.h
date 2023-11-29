@@ -53,7 +53,7 @@ class CH_MODELS_API Gator_TMeasyTire_Front : public ChTMeasyTire {
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// TMeasy tire model for the Gator (rear).
@@ -79,7 +79,7 @@ class CH_MODELS_API Gator_TMeasyTire_Rear : public ChTMeasyTire {
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 

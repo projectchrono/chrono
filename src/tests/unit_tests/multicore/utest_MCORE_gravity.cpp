@@ -27,7 +27,7 @@ TEST(ChronoMulticore, gravity) {
   msystem.Set_G_acc(gravity);
   msystem.SetNumThreads(1);
 
-  auto ball = std::shared_ptr<ChBody>(msystem.NewBody());
+  auto ball = chrono_types::make_shared<ChBody>();
   ChVector<> pos = ChVector<>(0, 0, 0);
   ChVector<> vel = ChVector<>(2, 2, 0);
   ball->SetMass(1);

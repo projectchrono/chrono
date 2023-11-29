@@ -118,6 +118,9 @@ print("Brake type:     " + gator.GetVehicle().GetBrake(1, veh.LEFT).GetTemplateN
 print("Tire type:      " + gator.GetVehicle().GetTire(1, veh.LEFT).GetTemplateName())
 print("\n")
 
+gator.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
+
+
 # ------------------
 # Create the terrain
 # ------------------
@@ -228,7 +231,7 @@ while vis.Run() :
     driver.Synchronize(time)
     terrain.Synchronize(time)
     gator.Synchronize(time, driver_inputs, terrain)
-    vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+    vis.Synchronize(time, driver_inputs)
 
     # Update sensor manager
     cam1.SetOffsetPose(chrono.ChFrameD(

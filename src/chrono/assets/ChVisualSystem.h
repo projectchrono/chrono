@@ -23,6 +23,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Vertical direction
 enum class CameraVerticalDir { Y, Z };
 
@@ -31,10 +34,10 @@ class ChApi ChVisualSystem {
   public:
     /// Supported run-time visualization systems.
     enum class Type {
-        IRRLICHT,  // Irrlicht
-        VSG,       // Vulkan Scene Graph
-        OpenGL,    // OpenGL
-        OptiX      // OptiX
+        IRRLICHT,  ///< Irrlicht
+        VSG,       ///< Vulkan Scene Graph
+        OpenGL,    ///< OpenGL
+        OptiX      ///< OptiX
     };
 
     virtual ~ChVisualSystem();
@@ -42,12 +45,17 @@ class ChApi ChVisualSystem {
     /// Attach a Chrono system to this visualization system.
     virtual void AttachSystem(ChSystem* sys);
 
-    /// Process all visual assets in the associated ChSystem.
-    /// This function is called by default when a Chrono system is attached to this visualization system (see
-    /// AttachSystem), but can also be called later if further modifications to visualization assets occur.
+    /// Initialize the visualization system.
+    /// This call must trigger a parsing of the associated Chrono systems to process all visual models.
+    /// A derived class must ensure that this function is called only once (use the m_initialized flag).
+    virtual void Initialize() = 0;
+
+    /// Process all visual assets in the associated Chrono systems.
+    /// This function is called by default for a Chrono system attached to this visualization system during
+    /// initialization, but can also be called later if further modifications to visualization assets occur.
     virtual void BindAll() {}
 
-    /// Process the visual assets for the spcified physics item.
+    /// Process the visual assets for the specified physics item.
     /// This function must be called if a new physics item is added to the system or if changes to its visual model
     /// occur after the visualization system was attached to the Chrono system.
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) {}
@@ -188,6 +196,8 @@ class ChApi ChVisualSystem {
     /// Called by an associated ChSystem.
     virtual void OnClear(ChSystem* sys) {}
 
+    bool m_initialized;
+
     std::vector<ChSystem*> m_systems;  ///< associated Chrono system(s)
 
     bool m_write_images;      ///< if true, save snapshots
@@ -195,6 +205,8 @@ class ChApi ChVisualSystem {
 
     friend class ChSystem;
 };
+
+/// @} chrono_assets
 
 }  // namespace chrono
 

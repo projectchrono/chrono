@@ -15,7 +15,7 @@
 // Bullet or Chrono collision system.
 // =============================================================================
 
-#include "chrono/collision/ChCollisionSystemBullet.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/core/ChTimer.h"
@@ -24,11 +24,10 @@
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
-auto csys_type = collision::ChCollisionSystemType::BULLET;
-////auto csys_type = collision::ChCollisionSystemType::CHRONO;
+auto csys_type = ChCollisionSystem::Type::BULLET;
+////auto csys_type = ChCollisionSystem::Type::MULTICORE;
 
 class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
   public:
@@ -65,34 +64,34 @@ int main(int argc, char* argv[]) {
 
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    auto ground = chrono_types::make_shared<ChBodyEasyBox>(10, 3, 10, 100, mat, csys_type);
+    auto ground = chrono_types::make_shared<ChBodyEasyBox>(10, 3, 10, 100, mat);
     ground->SetBodyFixed(true);
     ground->SetPos(ChVector<>(0.0, 0.0, 0.0));
     ground->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(ground);
 
-    auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 1.0, 100, mat, csys_type);
+    auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 1.0, 100, mat);
     cyl->SetPos(ChVector<>(0.0, 3.0, 0.0));
     cyl->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(cyl);
 
-    auto box = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 100, mat, csys_type);
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 100, mat);
     box->SetPos(ChVector<>(0.2, 2.0, 0.0));
     box->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(box);
 
-    auto sphere = chrono_types::make_shared<ChBodyEasySphere>(0.25, 100.0, mat, csys_type);
+    auto sphere = chrono_types::make_shared<ChBodyEasySphere>(0.25, 100.0, mat);
     sphere->SetPos(ChVector<>(-0.2, 2.0, 0.75));
     sphere->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(sphere);
 
-    auto ellipse = chrono_types::make_shared<ChBodyEasyEllipsoid>(ChVector<>(0.4, 0.8, 1.2), 100.0, mat, csys_type);
+    auto ellipse = chrono_types::make_shared<ChBodyEasyEllipsoid>(ChVector<>(0.4, 0.8, 1.2), 100.0, mat);
     ellipse->SetPos(ChVector<>(0.2, 2.0, -1.0));
     ellipse->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(ellipse);
 
     auto mesh =
-        chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/cube.obj"), 100.0, mat, 0.05, csys_type);
+        chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/cube.obj"), 100.0, mat, 0.05);
     mesh->SetPos(ChVector<>(2.0, 3.5, -2.0));
     mesh->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(mesh);

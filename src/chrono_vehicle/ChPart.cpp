@@ -16,11 +16,11 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChModelFileShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
 
 #include "chrono_vehicle/ChPart.h"
 
@@ -173,24 +173,24 @@ rapidjson::Value VisualModel2Val(std::shared_ptr<ChVisualModel> model, rapidjson
         const auto& frame = item.second;  // shape position in model
 
         rapidjson::Value obj(rapidjson::kObjectType);
-        if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
+        if (auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
             const auto& name = trimesh->GetName();
             obj.AddMember("type", "TRIMESH", allocator);
             obj.AddMember("name", rapidjson::StringRef(name.c_str()), allocator);
             obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
             obj.AddMember("orientation", Quat2Val(frame.GetRot(), allocator), allocator);
-        } else if (auto mfile = std::dynamic_pointer_cast<ChModelFileShape>(shape)) {
+        } else if (auto mfile = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
             const auto& file = mfile->GetFilename();
             obj.AddMember("type", "MODELFILE", allocator);
             obj.AddMember("filename", rapidjson::StringRef(file.c_str()), allocator);
             obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
             obj.AddMember("orientation", Quat2Val(frame.GetRot(), allocator), allocator);
-        } else if (auto sph = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+        } else if (auto sph = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
             auto rad = sph->GetRadius();
             obj.AddMember("type", "SPHERE", allocator);
             obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
             obj.AddMember("radius", rad, allocator);
-        } else if (auto cyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+        } else if (auto cyl = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
             auto rad = cyl->GetRadius();
             auto height = cyl->GetHeight();
             obj.AddMember("type", "CYLINDER", allocator);
@@ -198,7 +198,7 @@ rapidjson::Value VisualModel2Val(std::shared_ptr<ChVisualModel> model, rapidjson
             obj.AddMember("orientation", Quat2Val(frame.GetRot(), allocator), allocator);
             obj.AddMember("radius", rad, allocator);
             obj.AddMember("height", height, allocator);
-        } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+        } else if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
             const auto& len = box->GetLengths();
             obj.AddMember("type", "BOX", allocator);
             obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);

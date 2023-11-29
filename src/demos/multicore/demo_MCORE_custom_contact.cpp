@@ -23,7 +23,6 @@
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 // Helper class to define a cylindrical shape
@@ -32,7 +31,7 @@ class MyObstacle {
     MyObstacle() : radius(2), center(2.9, 0, 2.9) {}
 
     void AddVisualization(std::shared_ptr<ChBody> body) {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 1.1);
+        auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 1.1);
         cyl->SetColor(ChColor(0.6f, 0.3f, 0.0f));
         body->AddVisualShape(cyl, ChFrame<>(center + ChVector<>(0, 0.55, 0), Q_from_AngX(CH_C_PI_2)));
     }
@@ -169,26 +168,25 @@ int main(int argc, char* argv[]) {
     ground_mat_vis->SetKdTexture(GetChronoDataFile("textures/blue.png"));
 
     sys->Set_G_acc(ChVector<>(0, -9.8, 0));
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     // Create the ground body with a plate and side walls (both collision and visualization).
     // Add obstacle visualization (in a separate level with a different color).
-    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
+    auto ground = chrono_types::make_shared<ChBody>();
     sys->AddBody(ground);
     ground->SetCollide(true);
     ground->SetBodyFixed(true);
 
-    ground->GetCollisionModel()->ClearModel();
     utils::AddBoxContainer(ground, ground_mat,                     //
                            ChFrame<>(ChVector<>(0, 1, 0), QUNIT),  //
                            ChVector<>(10, 2, 10), 0.2,             //
                            ChVector<int>(2, -1, 2),                //
                            true, ground_mat_vis);
-    ground->GetCollisionModel()->BuildModel();
 
     obstacle.AddVisualization(ground);
 
     // Create the falling ball
-    auto ball = std::shared_ptr<ChBody>(sys->NewBody());
+    auto ball = chrono_types::make_shared<ChBody>();
     sys->AddBody(ball);
     ball->SetMass(10);
     ball->SetInertiaXX(4 * ball_radius * ball_radius * ChVector<>(1, 1, 1));
@@ -196,9 +194,7 @@ int main(int argc, char* argv[]) {
     ball->SetPos_dt(ChVector<>(5, 0, 5));
     ball->SetCollide(true);
 
-    ball->GetCollisionModel()->ClearModel();
     utils::AddSphereGeometry(ball.get(), ball_mat, ball_radius);
-    ball->GetCollisionModel()->BuildModel();
 
     ball->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
 
@@ -230,7 +226,6 @@ int main(int argc, char* argv[]) {
         sys->DoStepDynamics(time_step);
         realtime_timer.Spin(time_step);
     }
-
 
     delete sys;
     return 0;

@@ -20,7 +20,7 @@
 #include <cmath>
 
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono/motion_functions/ChFunction_Setpoint.h"
 
@@ -193,7 +193,7 @@ CuriosityPart::CuriosityPart(const std::string& name,
     : m_name(name), m_pos(rel_pos), m_mat(mat), m_collide(collide), m_visualize(true) {}
 
 void CuriosityPart::Construct(ChSystem* system) {
-    m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
+    m_body = chrono_types::make_shared<ChBodyAuxRef>();
     m_body->SetNameString(m_name + "_body");
     m_body->SetMass(m_mass);
     m_body->SetInertiaXX(m_inertia);
@@ -206,7 +206,7 @@ void CuriosityPart::Construct(ChSystem* system) {
         trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
         trimesh_vis->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh_vis);
         trimesh_shape->SetName(m_mesh_name);
         trimesh_shape->SetMutable(false);
@@ -221,9 +221,10 @@ void CuriosityPart::Construct(ChSystem* system) {
         trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
         trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
-        m_body->GetCollisionModel()->ClearModel();
-        m_body->GetCollisionModel()->AddTriangleMesh(m_mat, trimesh_col, false, false, VNULL, ChMatrix33<>(1), 0.005);
-        m_body->GetCollisionModel()->BuildModel();
+        auto shape =
+            chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh_col, false, false, 0.005);
+        m_body->AddCollisionShape(shape);
+
         m_body->SetCollide(m_collide);
     }
 
@@ -389,8 +390,8 @@ Curiosity::Curiosity(ChSystem* system, CuriosityChassisType chassis_type, Curios
     // Note that an SMC system automatically sets envelope to 0.
     auto contact_method = m_system->GetContactMethod();
     if (contact_method == ChContactMethod::NSC) {
-        collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.01);
-        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.005);
+        ChCollisionModel::SetDefaultSuggestedEnvelope(0.01);
+        ChCollisionModel::SetDefaultSuggestedMargin(0.005);
     }
 
     // Create the contact materials

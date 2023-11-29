@@ -18,7 +18,6 @@
 
 namespace chrono {
 
-using namespace collision;
 
 CH_MULTICORE_API
 void Orthogonalize(const real3& Vx, real3& Vy, real3& Vz) {

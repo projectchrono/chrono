@@ -21,7 +21,6 @@
 
 namespace chrono {
 
-using namespace collision;
 using namespace geometry;
 
 ChContactContainerMulticore::ChContactContainerMulticore(ChMulticoreDataManager* dc) : data_manager(dc) {

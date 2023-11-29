@@ -35,12 +35,12 @@ namespace chrono {
 namespace vehicle {
 namespace duro {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_duro
 /// @{
 
-/// Definition of the UAZ assembly.
+/// Definition of the Duro vehicle assembly.
 /// This class encapsulates a concrete wheeled vehicle model with parameters
-/// corresponding to a UAZ vehicle, the powertrain model, and the 4 tires.
+/// corresponding to a Duro vehicle, the powertrain model, and the 4 tires.
 class CH_MODELS_API Duro {
   public:
     Duro();
@@ -122,7 +122,7 @@ class CH_MODELS_API Duro {
     double m_tire_mass;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_duro
 
 }  // namespace duro
 }  // end namespace vehicle

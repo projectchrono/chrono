@@ -43,7 +43,6 @@
 // Chrono namespaces
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::collision;
 using namespace chrono::fsi;
 
 // Set the output directory

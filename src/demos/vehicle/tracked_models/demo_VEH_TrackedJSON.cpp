@@ -131,9 +131,9 @@ class Marder_SinglePin : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "Marder_SinglePin"; }
     virtual std::string VehicleJSON() const override {
-        ////return "Marder/vehicle/marder_sp_joints_shafts.json";
+        return "Marder/vehicle/marder_sp_joints_shafts.json";
         ////return "Marder/vehicle/marder_sp_bushings_shafts.json";
-        return "Marder/vehicle/marder_sp_bushings_simple.json";
+        ////return "Marder/vehicle/marder_sp_bushings_simple.json";
     }
     virtual std::string EngineJSON() const override { return "Marder/powertrain/Marder_EngineSimple.json"; }
     virtual std::string TransmissionJSON() const override {
@@ -148,10 +148,10 @@ class Marder_SinglePin : public Vehicle_Model {
 // =============================================================================
 
 // Current vehicle model selection
-auto vehicle_model = M113_SinglePin();
+////auto vehicle_model = M113_SinglePin();
 ////auto vehicle_model = M113_DoublePin();
 ////auto vehicle_model = M113_RS_SinglePin();
-////auto vehicle_model = Marder_SinglePin();
+auto vehicle_model = Marder_SinglePin();
 
 // JSON files for terrain (rigid plane)
 std::string rigidterrain_file("terrain/RigidPlane.json");
@@ -177,27 +177,11 @@ double target_speed = 2;                                   // used for mode=PATH
 DriverMode driver_mode = DriverMode::DATAFILE;
 
 // Contact formulation (NSC or SMC)
-ChContactMethod contact_method = ChContactMethod::NSC;
+ChContactMethod contact_method = ChContactMethod::SMC;
 
 // Simulation step size
 double step_size_NSC = 1e-3;
 double step_size_SMC = 5e-4;
-
-// Solver and integrator types
-////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
-////ChSolver::Type slvr_type = ChSolver::Type::PSOR;
-////ChSolver::Type slvr_type = ChSolver::Type::PMINRES;
-////ChSolver::Type slvr_type = ChSolver::Type::MINRES;
-////ChSolver::Type slvr_type = ChSolver::Type::GMRES;
-////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_LU;
-////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_QR;
-ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
-////ChSolver::Type slvr_type = ChSolver::Type::MUMPS;
-
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT;
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::HHT;
 
 // Verbose output level (solver and integrator)
 bool verbose_solver = false;
@@ -331,6 +315,9 @@ int main(int argc, char* argv[]) {
     cout << "  Transmission type: " << transmission->GetTemplateName() << endl;
     cout << "  Vehicle mass:      " << vehicle.GetMass() << endl;
 
+    // Associate a collision system
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
     terrain.Initialize();
@@ -400,12 +387,13 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    SetChronoSolver(*vehicle.GetSystem(), slvr_type, intgr_type);
+    SetChronoSolver(*vehicle.GetSystem(), ChSolver::Type::BARZILAIBORWEIN,
+                    ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     vehicle.GetSystem()->GetSolver()->SetVerbose(verbose_solver);
     vehicle.GetSystem()->GetTimestepper()->SetVerbose(verbose_integrator);
 
-    cout << "SOLVER TYPE:     " << (int)slvr_type << endl;
-    cout << "INTEGRATOR TYPE: " << (int)intgr_type << endl;
+    cout << "SOLVER TYPE:     " << (int)vehicle.GetSystem()->GetSolver()->GetType() << endl;
+    cout << "INTEGRATOR TYPE: " << (int)vehicle.GetSystem()->GetTimestepper()->GetType() << endl;
 
     // ---------------
     // Simulation loop

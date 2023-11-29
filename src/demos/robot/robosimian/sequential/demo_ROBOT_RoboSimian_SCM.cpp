@@ -33,7 +33,6 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 using std::cout;
 using std::endl;
@@ -262,6 +261,7 @@ int main(int argc, char* argv[]) {
     // -------------
 
     ChSystemSMC my_sys;
+    my_sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     my_sys.SetSolverMaxIterations(200);
     my_sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
     my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));

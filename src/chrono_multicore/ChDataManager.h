@@ -25,7 +25,7 @@
 
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/multicore_math/ChMulticoreMath.h"
-#include "chrono/collision/chrono/ChCollisionData.h"
+#include "chrono/collision/multicore/ChCollisionData.h"
 
 #include "chrono_multicore/ChTimerMulticore.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
@@ -336,7 +336,7 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     ChConstraintRigidRigid* rigid_rigid;  ///< methods for unilateral constraints
     ChConstraintBilateral* bilateral;     ///< methods for bilateral constraints
 
-    std::shared_ptr<collision::ChCollisionData> cd_data; ///< shared data for the Chrono collision system
+    std::shared_ptr<ChCollisionData> cd_data; ///< shared data for the Chrono collision system
 
     // These pointers are used to compute the mass matrix instead of filling a temporary data structure
     std::vector<std::shared_ptr<ChBody>>* body_list;                  ///< List of bodies

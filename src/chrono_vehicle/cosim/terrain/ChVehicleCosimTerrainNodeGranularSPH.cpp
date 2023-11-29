@@ -28,8 +28,7 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -64,9 +63,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
     : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, length, width, ChContactMethod::SMC),
       m_terrain(nullptr),
       m_depth(0),
-      m_active_box_size(0),
-      m_aabb_min(std::numeric_limits<double>::max()),
-      m_aabb_max(-std::numeric_limits<double>::max()) {
+      m_active_box_size(0) {
     // Create the system and set default method-specific solver settings
     m_system = new ChSystemSMC;
 
@@ -85,9 +82,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile)
     : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, 0, 0, ChContactMethod::SMC),
       m_terrain(nullptr),
-      m_active_box_size(0),
-      m_aabb_min(std::numeric_limits<double>::max()),
-      m_aabb_max(-std::numeric_limits<double>::max()) {
+      m_active_box_size(0) {
     // Create systems
     m_system = new ChSystemSMC;
 
@@ -197,7 +192,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
             m_terrain->Construct(m_sph_filename, m_bce_filename);
             break;
     }
-    m_terrain->GetAABB(m_aabb_min, m_aabb_max);
+    m_aabb_particles = m_terrain->GetBoundingBox();
 
     /*
     //// TODO
@@ -223,13 +218,11 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         body->SetBodyFixed(false);
         body->SetCollide(true);
 
-        body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                                   m_radius_g);
+        auto trimesh_shape = chrono_types::make_shared<ChCollsionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_g);
+        body->AddCollisionShape(trimesh_shape);
         body->GetCollisionModel()->SetFamily(2);
-        body->GetCollisionModel()->BuildModel();
 
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
         body->AddVisualShape(trimesh_shape, ChFrame<>());
@@ -268,7 +261,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
     // Create wheel proxy body
-    auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+    auto body = chrono_types::make_shared<ChBody>();
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i]);
     body->SetBodyFixed(true);  // proxy body always fixed
@@ -311,9 +304,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     }
 
     // Update dimension of FSI active domain based on shape AABB
-    double s1 = (m_aabb[i_shape].m_center + m_aabb[i_shape].m_dims).Length();
-    double s2 = (m_aabb[i_shape].m_center - m_aabb[i_shape].m_dims).Length();
-    m_active_box_size = std::max(m_active_box_size, std::max(s1, s2));
+    m_active_box_size = std::max(m_active_box_size, m_aabb[i_shape].Size().Length());
 }
 
 // Once all proxy bodies are created, complete construction of the underlying FSI system.
@@ -322,7 +313,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
 
     // Initialize the SPH terrain
     ChSystemFsi& sysFSI = m_terrain->GetSystemFSI();
-    ////sysFSI.SetActiveDomain(ChVector<>(m_active_box_size / 2));
     m_terrain->Initialize();
 
     // Initialize run-time visualization
@@ -344,8 +334,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
             m_vsys->EnableRigidBodyMarkers(true);
             m_vsys->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
             m_vsys->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-            m_vsys->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
-                                                                                       m_aabb_min.z(), m_aabb_max.z()));
+            m_vsys->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(
+                ChColor(0.10f, 0.40f, 0.65f), m_aabb_particles.min.z(), m_aabb_particles.max.z()));
             m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");
             m_vsys->SetImageOutput(m_writeRT);
             m_vsys->AttachSystem(m_system);

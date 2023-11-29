@@ -20,12 +20,13 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/terrain/ObsModTerrain.h"
 #include "chrono_vehicle/ChWorldFrame.h"
+
 
 namespace chrono {
 namespace vehicle {
@@ -107,7 +108,7 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
     }
 
     // ground body, carries the graphic assets
-    m_ground = std::shared_ptr<ChBody>(system->NewBody());
+    m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector<>(0, 0, 0));
     m_ground->SetBodyFixed(true);
@@ -232,7 +233,7 @@ void ObsModTerrain::GenerateMesh() {
             normidx.push_back(ChVector<int>(j + 1 + ofs, j + (int)m_y.size() + ofs, j + 1 + (int)m_y.size() + ofs));
         }
     }
-    auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto vmesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     vmesh->SetMesh(m_mesh);
     vmesh->SetMutable(false);
     vmesh->SetName("ISO_track");
@@ -253,29 +254,29 @@ void ObsModTerrain::SetupCollision() {
     GenerateMesh();
 
     m_ground->SetCollide(true);
-    m_ground->GetCollisionModel()->ClearModel();
 
-    m_ground->GetCollisionModel()->AddTriangleMesh(m_material, m_mesh, true, false, VNULL, ChMatrix33<>(1),
-                                                   m_sweep_sphere_radius);
+    auto ct_shape =
+        chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_material, m_mesh, true, false, m_sweep_sphere_radius);
+    m_ground->AddCollisionShape(ct_shape);
 
     if (m_start_length > 0) {
         double thickness = 1;
         ChVector<> loc(-m_start_length / 2, 0, m_height - thickness / 2);
-        m_ground->GetCollisionModel()->AddBox(m_material, m_start_length, m_width, thickness, loc);
+        auto ct_box = chrono_types::make_shared<ChCollisionShapeBox>(m_material, m_start_length, m_width, thickness);
+        m_ground->AddCollisionShape(ct_box, ChFrame<>(loc, QUNIT));
 
-        auto box = chrono_types::make_shared<ChBoxShape>(m_start_length, m_width, thickness);
-        m_ground->AddVisualShape(box, ChFrame<>(loc));
+        auto vis_box = chrono_types::make_shared<ChVisualShapeBox>(m_start_length, m_width, thickness);
+        m_ground->AddVisualShape(vis_box, ChFrame<>(loc));
 
         // we also need an end plate here
         double end_length = 10.0;
         ChVector<> loc2(GetXObstacleEnd() + end_length / 2, 0, m_height - thickness / 2);
-        m_ground->GetCollisionModel()->AddBox(m_material, end_length, m_width, thickness, loc2);
+        auto ct_box2 = chrono_types::make_shared<ChCollisionShapeBox>(m_material, end_length, m_width, thickness);
+        m_ground->AddCollisionShape(ct_box2, ChFrame<>(loc2, QUNIT));
 
-        auto box2 = chrono_types::make_shared<ChBoxShape>(end_length, m_width, thickness);
-        m_ground->AddVisualShape(box2, ChFrame<>(loc2));
+        auto vis_box2 = chrono_types::make_shared<ChVisualShapeBox>(end_length, m_width, thickness);
+        m_ground->AddVisualShape(vis_box2, ChFrame<>(loc2));
     }
-
-    m_ground->GetCollisionModel()->BuildModel();
 }
 
 }  // end namespace vehicle

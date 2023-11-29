@@ -1,3 +1,14 @@
+
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+%csmethodmodifiers chrono::ChVisualSystem::BindItem "public"
+%csmethodmodifiers chrono::ChVisualSystem::AddVisualModel "public"
+%csmethodmodifiers chrono::ChVisualSystem::UpdateVisualModel "public"
+%csmethodmodifiers chrono::ChVisualSystem::RenderFrame "public"
+%csmethodmodifiers chrono::ChVisualSystemIrrlicht::AddGrid(double, double, int, int, ChCoordsysD, ChColor) "public override"
+
+#endif // --------------------------------------------------------------------- CSHARP
+
+
 %{
 #include "chrono_irrlicht/ChIrrNodeShape.h"
 #include "chrono_irrlicht/ChIrrNodeModel.h"

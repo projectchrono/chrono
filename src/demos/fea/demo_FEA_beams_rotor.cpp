@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     sys.Add(my_body_A);
 
     // Attach a 'cylinder' shape asset for visualization of the tower.
-    auto mtower = chrono_types::make_shared<ChCylinderShape>(0.2, 9.0);
+    auto mtower = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 9.0);
     my_body_A->AddVisualShape(mtower, ChFrame<>(ChVector<>(0, 5.5, 0), Q_from_AngX(CH_C_PI_2)));
 
     // BODY: the rotating hub:

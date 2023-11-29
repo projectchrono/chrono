@@ -19,12 +19,13 @@
 
 #include <cmath>
 
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketBand.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
+
 
 namespace chrono {
 namespace vehicle {
@@ -457,7 +458,7 @@ void SprocketBandContactCB::CheckTreadTipSprocketTip(std::shared_ptr<ChTrackShoe
             // Clip tooth_tip_p so that it lies within the outer arc section of the sprocket profile since there is no
             // contact after this point
             ////double clip_angle_start = m_gear_outer_radius_arc_angle_start +
-            ////                          tooth_tip_m_angle_adjust;  // Use m tip point, since that is in the correct arc
+            ////                          tooth_tip_m_angle_adjust;  // Use tip point, since that is in the correct arc
             double clip_angle_end = m_gear_outer_radius_arc_angle_end + tooth_tip_m_angle_adjust;
 
             ChVector<> vec_tooth = tooth_tip_p - tooth_tip_m;
@@ -470,8 +471,7 @@ void SprocketBandContactCB::CheckTreadTipSprocketTip(std::shared_ptr<ChTrackShoe
             double alpha = (1 / (a * d - b * c)) * (-d * tooth_tip_m.x() + b * tooth_tip_m.z());
             ChClampValue(alpha, 0.0, 1.0);
 
-            CheckSegmentCircle(shoe, m_sprocket->GetOuterRadius(), tooth_tip_m + alpha * vec_tooth,
-                               tooth_tip_m);
+            CheckSegmentCircle(shoe, m_sprocket->GetOuterRadius(), tooth_tip_m + alpha * vec_tooth, tooth_tip_m);
         } else if (!((tooth_tip_m_angle >= m_gear_outer_radius_arc_angle_start) &&
                      (tooth_tip_m_angle <= m_gear_outer_radius_arc_angle_end))) {
             // Clip tooth_tip_m so that it lies within the outer arc section of the sprocket profile since there is no
@@ -490,8 +490,7 @@ void SprocketBandContactCB::CheckTreadTipSprocketTip(std::shared_ptr<ChTrackShoe
             double alpha = (1 / (a * d - b * c)) * (-d * tooth_tip_p.x() + b * tooth_tip_p.z());
             ChClampValue(alpha, 0.0, 1.0);
 
-            CheckSegmentCircle(shoe, m_sprocket->GetOuterRadius(), tooth_tip_p + alpha * vec_tooth,
-                               tooth_tip_p);
+            CheckSegmentCircle(shoe, m_sprocket->GetOuterRadius(), tooth_tip_p + alpha * vec_tooth, tooth_tip_p);
         } else {
             // No Tooth Clipping Needed
             CheckSegmentCircle(shoe, m_sprocket->GetOuterRadius(), tooth_tip_p, tooth_tip_m);
@@ -579,7 +578,7 @@ void SprocketBandContactCB::CheckTreadArcSprocketArc(std::shared_ptr<ChTrackShoe
 
     // Fill in contact information and add the contact to the system.
     // Express all vectors in the global frame
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel().get();
     contact.modelB = treadsegment->GetCollisionModel().get();
     contact.shapeA = nullptr;
@@ -623,7 +622,7 @@ void SprocketBandContactCB::CheckSegmentCircle(std::shared_ptr<ChTrackShoeBand> 
 
     // Fill in contact information and add the contact to the system.
     // Express all vectors in the global frame
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel().get();
     contact.modelB = BeltSegment->GetCollisionModel().get();
     contact.shapeA = nullptr;
@@ -655,7 +654,7 @@ void SprocketBandContactCB::CheckPinSprocket(std::shared_ptr<ChTrackShoeBand> sh
 
     // Fill in contact information and add the contact to the system.
     // Express all vectors in the global frame
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel().get();
     contact.modelB = shoe->GetShoeBody()->GetCollisionModel().get();
     contact.shapeA = nullptr;

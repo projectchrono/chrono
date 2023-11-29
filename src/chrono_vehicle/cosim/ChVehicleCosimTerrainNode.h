@@ -169,10 +169,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     InterfaceType m_interface_type;  ///< communication interface (body or mesh)
     int m_num_objects;               ///< number of interacting objects
 
-    std::vector<ChVehicleGeometry::AABB> m_aabb;  ///< AABB of collision models for interacting objects
-    std::vector<ChVehicleGeometry> m_geometry;    ///< contact geometry and materials for interacting objects
-    std::vector<double> m_load_mass;              ///< vertical load on interacting objects
-    std::vector<int> m_obj_map;                   ///< mapping from interacting object to shape 
+    std::vector<geometry::ChAABB> m_aabb;       ///< AABB of collision models for interacting objects
+    std::vector<ChVehicleGeometry> m_geometry;  ///< contact geometry and materials for interacting objects
+    std::vector<double> m_load_mass;            ///< vertical load on interacting objects
+    std::vector<int> m_obj_map;                 ///< mapping from interacting object to shape
 
     std::vector<MeshState> m_mesh_state;        ///< mesh state (used for MESH communication)
     std::vector<BodyState> m_rigid_state;       ///< rigid state (used for BODY communication interface)

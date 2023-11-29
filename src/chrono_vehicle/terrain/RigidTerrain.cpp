@@ -21,9 +21,9 @@
 #include <cmath>
 #include <cstdio>
 
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -157,7 +157,7 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
     m_num_patches++;
 
     // Create the rigid body for this patch (fixed)
-    patch->m_body = std::shared_ptr<ChBody>(m_system->NewBody());
+    patch->m_body = chrono_types::make_shared<ChBody>();
     patch->m_body->SetIdentifier(-m_num_patches);
     patch->m_body->SetNameString("patch_" + std::to_string(m_num_patches));
     patch->m_body->SetPos(position.pos);
@@ -187,34 +187,31 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     patch->m_visualize = visualization;
 
     // Create the collision model (one or more boxes) attached to the patch body
-    patch->m_body->GetCollisionModel()->ClearModel();
     if (tiled) {
         int nX = (int)std::ceil(length / max_tile_size);
         int nY = (int)std::ceil(width / max_tile_size);
         double sizeX1 = length / nX;
         double sizeY1 = width / nY;
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(material, sizeX1, sizeY1, thickness);
         for (int ix = 0; ix < nX; ix++) {
             for (int iy = 0; iy < nY; iy++) {
-                patch->m_body->GetCollisionModel()->AddBox(          //
-                    material,                                        //
-                    sizeX1, sizeY1, thickness,                       //
-                    ChVector<>((sizeX1 - length) / 2 + ix * sizeX1,  //
+                ChVector<> loc((sizeX1 - length) / 2 + ix * sizeX1,  //
                                (sizeY1 - width) / 2 + iy * sizeY1,   //
-                               -0.5 * thickness)                     //
-                );
+                               -0.5 * thickness);
+                patch->m_body->AddCollisionShape(ct_shape, ChFrame<>(loc, QUNIT));
             }
         }
     } else {
-        patch->m_body->GetCollisionModel()->AddBox(material, length, width, thickness,
-                                                   ChVector<>(0, 0, -0.5 * thickness));
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(material, length, width, thickness);
+        ChVector<> loc(0, 0, -0.5 * thickness);
+        patch->m_body->AddCollisionShape(ct_shape, ChFrame<>(loc, QUNIT));
     }
-    patch->m_body->GetCollisionModel()->BuildModel();
 
     // Cache patch parameters
     patch->m_location = position.pos;
     patch->m_normal = position.rot.GetZaxis();
     patch->m_hlength = length / 2;
-    patch->m_hwidth = width / 2; 
+    patch->m_hwidth = width / 2;
     patch->m_hthickness = thickness / 2;
     patch->m_radius = ChVector<>(length, width, thickness).Length() / 2;
     patch->m_type = PatchType::BOX;
@@ -238,16 +235,16 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     patch->m_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_file, true, true);
 
     // Create the collision model
-    patch->m_body->GetCollisionModel()->ClearModel();
     if (connected_mesh) {
-        patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL,
-                                                            ChMatrix33<>(1), sweep_sphere_radius);
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, patch->m_trimesh, true, false,
+                                                                                sweep_sphere_radius);
+        patch->m_body->AddCollisionShape(ct_shape);
     } else {
         patch->m_trimesh_s = geometry::ChTriangleMeshSoup::CreateFromWavefrontFile(mesh_file);
-        patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh_s, true, false, VNULL,
-                                                            ChMatrix33<>(1), sweep_sphere_radius);
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, patch->m_trimesh_s, true,
+                                                                                false, sweep_sphere_radius);
+        patch->m_body->AddCollisionShape(ct_shape);
     }
-    patch->m_body->GetCollisionModel()->BuildModel();
 
     auto mesh_name = filesystem::path(mesh_file).stem();
 
@@ -389,10 +386,10 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     }
 
     // Create contact geometry
-    patch->m_body->GetCollisionModel()->ClearModel();
     if (connected_mesh) {
-        patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL,
-                                                            ChMatrix33<>(1), sweep_sphere_radius);
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, patch->m_trimesh, true, false,
+                                                                                sweep_sphere_radius);
+        patch->m_body->AddCollisionShape(ct_shape);
     } else {
         patch->m_trimesh_s = chrono_types::make_shared<geometry::ChTriangleMeshSoup>();
         std::vector<geometry::ChTriangle>& triangles = patch->m_trimesh_s->getTriangles();
@@ -401,10 +398,10 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
             const ChVector<int>& idx = idx_vertices[it];
             triangles[it] = geometry::ChTriangle(vertices[idx[0]], vertices[idx[1]], vertices[idx[2]]);
         }
-        patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh_s, true, false, VNULL,
-                                                            ChMatrix33<>(1), sweep_sphere_radius);
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, patch->m_trimesh_s, true,
+                                                                                false, sweep_sphere_radius);
+        patch->m_body->AddCollisionShape(ct_shape);
     }
-    patch->m_body->GetCollisionModel()->BuildModel();
 
     auto mesh_name = filesystem::path(heightmap_file).stem();
 
@@ -438,14 +435,13 @@ void RigidTerrain::Patch::SetTexture(const std::string& filename, float scale_x,
 // -----------------------------------------------------------------------------
 class RTContactCallback : public ChContactContainer::AddContactCallback {
   public:
-    virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
-                              ChMaterialComposite* const material) override {
+    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
         //// TODO: also accomodate terrain contact with FEA meshes.
 
         // Loop over all patch bodies and check if this contact involves one of them.
         ChBody* body_patch = nullptr;
         ChBody* body_other = nullptr;
-        collision::ChCollisionShape* shape_other = nullptr;
+        ChCollisionShape* shape_other = nullptr;
         for (auto patch : m_terrain->GetPatches()) {
             auto model = patch->GetGroundBody()->GetCollisionModel().get();
             if (model == contactinfo.modelA) {
@@ -528,7 +524,7 @@ void RigidTerrain::Initialize() {
 void RigidTerrain::BoxPatch::Initialize() {
     if (m_visualize) {
         m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
-        auto box = chrono_types::make_shared<ChBoxShape>(2 * m_hlength, 2 * m_hwidth, 2 * m_hthickness);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(2 * m_hlength, 2 * m_hwidth, 2 * m_hthickness);
         box->AddMaterial(m_vis_mat);
         m_body->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -m_hthickness)));
     }
@@ -537,7 +533,7 @@ void RigidTerrain::BoxPatch::Initialize() {
 void RigidTerrain::MeshPatch::Initialize() {
     if (m_visualize) {
         m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->AddMaterial(m_vis_mat);
         trimesh_shape->SetName(m_mesh_name);
         trimesh_shape->SetMutable(false);
@@ -656,7 +652,7 @@ bool RigidTerrain::MeshPatch::FindPoint(const ChVector<>& loc, double& height, C
     ChVector<> from = loc;
     ChVector<> to = loc - (m_radius + 1000) * ChWorldFrame::Vertical();
 
-    collision::ChCollisionSystem::ChRayhitResult result;
+    ChCollisionSystem::ChRayhitResult result;
     m_body->GetSystem()->GetCollisionSystem()->RayHit(from, to, m_body->GetCollisionModel().get(), result);
     height = ChWorldFrame::Height(result.abs_hitPoint);
     normal = result.abs_hitNormal;

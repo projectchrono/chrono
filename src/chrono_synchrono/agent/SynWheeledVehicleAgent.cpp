@@ -129,8 +129,8 @@ void SynWheeledVehicleAgent::SetKey(AgentKey agent_key) {
 
 // ------------------------------------------------------------------------
 
-std::shared_ptr<ChTriangleMeshShape> SynWheeledVehicleAgent::CreateMeshZombieComponent(const std::string& filename) {
-    auto trimesh = chrono_types::make_shared<ChTriangleMeshShape>();
+std::shared_ptr<ChVisualShapeTriangleMesh> SynWheeledVehicleAgent::CreateMeshZombieComponent(const std::string& filename) {
+    auto trimesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     if (!filename.empty()) {
         auto mesh =
             geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(filename), true, true);

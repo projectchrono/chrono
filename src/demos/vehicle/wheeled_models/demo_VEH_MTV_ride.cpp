@@ -225,6 +225,9 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Vehicle mass: " << mtv.GetVehicle().GetMass() << std::endl;
 
+    // Associate a collision system
+    mtv.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // ------------------
     // Create the terrain
     // ------------------
@@ -257,8 +260,8 @@ int main(int argc, char* argv[]) {
     vis->AttachVehicle(&mtv.GetVehicle());
 
     // Visualization of controller points (sentinel & target)
-    auto ballS = chrono_types::make_shared<ChSphereShape>(0.1);
-    auto ballT = chrono_types::make_shared<ChSphereShape>(0.1);
+    auto ballS = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+    auto ballT = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     ballS->SetColor(ChColor(1, 0, 0));
     ballT->SetColor(ChColor(0, 1, 0));
     int iballS = vis->AddVisualModel(ballS, ChFrame<>());

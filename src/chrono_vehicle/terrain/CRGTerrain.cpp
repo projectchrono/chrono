@@ -33,7 +33,7 @@
 #include <algorithm>
 
 #include "chrono/core/ChLog.h"
-#include "chrono/assets/ChPathShape.h"
+#include "chrono/assets/ChVisualShapePath.h"
 #include "chrono/physics/ChBodyEasy.h"
 
 #include "chrono/utils/ChFilters.h"
@@ -42,10 +42,10 @@
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/geometry/ChLineSegment.h"
 
-#include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPathShape.h"
+#include "chrono/assets/ChVisualShapeLine.h"
+#include "chrono/assets/ChVisualShapePath.h"
 
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
@@ -67,7 +67,7 @@ CRGTerrain::CRGTerrain(ChSystem* system)
       m_dataSetId(0),
       m_cpId(0),
       m_isClosed(false) {
-    m_ground = std::shared_ptr<ChBody>(system->NewBody());
+    m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector<>(0, 0, 0));
     m_ground->SetBodyFixed(true);
@@ -222,11 +222,11 @@ void CRGTerrain::SetRoadsidePosts() {
             GetLog() << "could not get zr in " << __func__ << "\n";
         }
 
-        auto shape_l = chrono_types::make_shared<ChCylinderShape>(0.07, 1.0);
+        auto shape_l = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
         shape_l->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
         m_ground->AddVisualShape(shape_l, ChFrame<>(ChVector<>(xl, yl, zl + 0.5), QUNIT));
 
-        auto shape_r = chrono_types::make_shared<ChCylinderShape>(0.07, 1.0);
+        auto shape_r = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
         shape_r->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
         m_ground->AddVisualShape(shape_r, ChFrame<>(ChVector<>(xr, yr, zr + 0.5), QUNIT));
     }
@@ -394,7 +394,7 @@ void CRGTerrain::SetupLineGraphics() {
     unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
 
     auto bezier_line_left = chrono_types::make_shared<geometry::ChLineBezier>(m_road_left);
-    auto bezier_asset_left = chrono_types::make_shared<ChLineShape>();
+    auto bezier_asset_left = chrono_types::make_shared<ChVisualShapeLine>();
     bezier_asset_left->SetLineGeometry(bezier_line_left);
     bezier_asset_left->SetNumRenderPoints(num_render_points);
     bezier_asset_left->SetName(m_curve_left_name);
@@ -402,7 +402,7 @@ void CRGTerrain::SetupLineGraphics() {
     m_ground->AddVisualShape(bezier_asset_left);
 
     auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
-    auto bezier_asset_right = chrono_types::make_shared<ChLineShape>();
+    auto bezier_asset_right = chrono_types::make_shared<ChVisualShapeLine>();
     bezier_asset_right->SetLineGeometry(bezier_line_right);
     bezier_asset_right->SetNumRenderPoints(num_render_points);
     bezier_asset_right->SetName(m_curve_right_name);
@@ -511,7 +511,7 @@ void CRGTerrain::GenerateMesh() {
 
 void CRGTerrain::SetupMeshGraphics() {
     if (m_use_diffuseTexture) {
-        auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto vmesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         vmesh->SetMesh(m_mesh);
         vmesh->SetName(m_mesh_name);
         auto material = chrono_types::make_shared<ChVisualMaterial>();
@@ -530,7 +530,7 @@ void CRGTerrain::SetupMeshGraphics() {
         m_ground->AddVisualShape(vmesh);
         GetLog() << "Texture?\n";
     } else {
-        auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto vmesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         vmesh->SetMesh(m_mesh);
         vmesh->SetName(m_mesh_name);
         vmesh->SetColor(ChColor(1.0f, 1.0f, 1.0f));

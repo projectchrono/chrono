@@ -25,6 +25,7 @@ from OCC.Core import TopoDS
 
 #  Create the simulation system and add items
 sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Load a STEP file, containing a mechanism. The demo STEP file has been
 # created using a 3D CAD (in this case, SolidEdge v.18).
@@ -179,8 +180,8 @@ path.AddSubLine(a1)
 path.SetPathDuration(2)
 path.Set_closed(True)
 
-# Create a ChLineShape, a visualization asset for lines.
-pathasset = chrono.ChLineShape()
+# Create a ChVisualShapeLine, a visualization asset for lines.
+pathasset = chrono.ChVisualShapeLine()
 pathasset.SetLineGeometry(path)
 floor.AddVisualShape(pathasset)
 

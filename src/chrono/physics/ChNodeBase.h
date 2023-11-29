@@ -16,6 +16,7 @@
 #define CHNODEBASE_H
 
 #include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/physics/ChContactable.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
 
 namespace chrono {

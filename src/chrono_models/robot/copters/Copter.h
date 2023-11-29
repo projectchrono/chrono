@@ -19,7 +19,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChForce.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -280,7 +280,7 @@ void Copter<nop>::AddVisualizationAssets(const std::string& chassismesh,
                                          const ChFrame<>& cor_m1,
                                          const ChFrame<>& cor_m2) {
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(chassismesh, true, true);
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetMutable(false);
     trimesh_shape->SetColor(ChColor(0.2f, 0.32f, 0.48f));
@@ -288,7 +288,7 @@ void Copter<nop>::AddVisualizationAssets(const std::string& chassismesh,
 
     for (auto propeller : props) {
         auto prop_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(propellermesh, true, true);
-        auto trimesh_prop_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_prop_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_prop_shape->SetMesh(prop_trimesh);
         trimesh_prop_shape->SetMutable(false);
         trimesh_prop_shape->SetColor(ChColor(0.8f, 0.68f, 0.52f));

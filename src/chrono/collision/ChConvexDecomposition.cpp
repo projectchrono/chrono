@@ -16,7 +16,6 @@
 #include "chrono_thirdparty/HACDv2/wavefront.h"
 
 namespace chrono {
-namespace collision {
 
 
 //
@@ -473,5 +472,4 @@ void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(ChStreamOutAsci
     delete[] baseVertex;
 }
 
-}  // end namespace collision
 }  // end namespace chrono

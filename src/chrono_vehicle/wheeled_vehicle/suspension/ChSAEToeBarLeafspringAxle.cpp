@@ -60,9 +60,9 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChSAEToeBarLeafspringAxle.h"
 
@@ -161,7 +161,7 @@ void ChSAEToeBarLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     // Create and initialize the axle body.
-    m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -177,7 +177,7 @@ void ChSAEToeBarLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_tierodOuterR = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
 
     // Create and initialize the tierod body.
-    m_tierod = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_tierod = chrono_types::make_shared<ChBody>();
     m_tierod->SetNameString(m_name + "_tierodBody");
     m_tierod->SetPos((m_tierodOuterL + m_tierodOuterR) / 2);
     m_tierod->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -213,7 +213,7 @@ void ChSAEToeBarLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         u = Vcross(v, w);
         rot.Set_A_axis(u, v, w);
 
-        m_draglink = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+        m_draglink = chrono_types::make_shared<ChBody>();
         m_draglink->SetNameString(m_name + "_draglink");
         m_draglink->SetPos((m_pointsL[DRAGLINK_C] + m_pointsL[KNUCKLE_DRL]) / 2);
         m_draglink->SetRot(rot.Get_A_quaternion());
@@ -244,7 +244,7 @@ void ChSAEToeBarLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         u = Vcross(v, w);
         rot.Set_A_axis(u, v, w);
 
-        m_draglink = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+        m_draglink = chrono_types::make_shared<ChBody>();
         m_draglink->SetNameString(m_name + "_draglink");
         m_draglink->SetPos((m_pointsL[DRAGLINK_C] + m_pointsR[KNUCKLE_DRL]) / 2);
         m_draglink->SetRot(rot.Get_A_quaternion());
@@ -288,7 +288,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
     // Create and initialize knuckle body (same orientation as the chassis)
-    m_knuckle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_knuckle[side] = chrono_types::make_shared<ChBody>();
     m_knuckle[side]->SetNameString(m_name + "_knuckle" + suffix);
     m_knuckle[side]->SetPos(points[KNUCKLE_CM]);
     m_knuckle[side]->SetRot(chassisRot);
@@ -297,7 +297,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_knuckle[side]);
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
@@ -373,7 +373,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
 
     // Leafspring related elements
     // Create and initialize the shackle body.
-    m_shackle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_shackle[side] = chrono_types::make_shared<ChBody>();
     m_shackle[side]->SetNameString(m_name + "_shackle" + suffix);
     m_shackle[side]->SetPos((points[REAR_HANGER] + points[SHACKLE]) / 2.0);
     m_shackle[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -389,7 +389,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->AddJoint(m_shackleRev[side]);
 
     // Create and initialize the frontleaf body.
-    m_frontleaf[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_frontleaf[side] = chrono_types::make_shared<ChBody>();
     m_frontleaf[side]->SetNameString(m_name + "frontleaf" + suffix);
     m_frontleaf[side]->SetPos((points[FRONT_HANGER] + points[CLAMP_A]) / 2.0);
     m_frontleaf[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -404,7 +404,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_frontleafSph[side]);
 
     // Create and initialize the rearleaf body.
-    m_rearleaf[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_rearleaf[side] = chrono_types::make_shared<ChBody>();
     m_rearleaf[side]->SetNameString(m_name + "rearleaf" + suffix);
     m_rearleaf[side]->SetPos((points[SHACKLE] + points[CLAMP_B]) / 2.0);
     m_rearleaf[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -420,7 +420,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the clampA body.
     ChVector<> mid = (points[CLAMP_A] + points[CLAMP_B]) / 2.0;
-    m_clampA[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_clampA[side] = chrono_types::make_shared<ChBody>();
     m_clampA[side]->SetNameString(m_name + "_clampA" + suffix);
     m_clampA[side]->SetPos((points[CLAMP_A] + mid) / 2.0);
     m_clampA[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -442,7 +442,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the clampB body.
     // mid = (points[CLAMP_A] + points[CLAMP_B]) / 2.0;
-    m_clampB[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_clampB[side] = chrono_types::make_shared<ChBody>();
     m_clampB[side]->SetNameString(m_name + "_clampB" + suffix);
     m_clampB[side]->SetPos((points[CLAMP_B] + mid) / 2.0);
     m_clampB[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -644,10 +644,10 @@ void ChSAEToeBarLeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
                             getKnuckleRadius());
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.03, 150, 10));
-    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.03, 150, 10));
-    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.03, 150, 10));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.03, 150, 10));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
     double rs = getAxleTubeRadius() / 10.0;
 

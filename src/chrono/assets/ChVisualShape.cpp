@@ -111,20 +111,6 @@ void ChVisualShape::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(is_mutable);
     marchive >> CHNVP(material_list);
 
-    
-    // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-
-        ChColor _c_SetColor;
-        if (marchive.in(CHNVP(_c_SetColor)))
-            this->SetColor(_c_SetColor);
-
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
-
 }
 
 }  // namespace chrono

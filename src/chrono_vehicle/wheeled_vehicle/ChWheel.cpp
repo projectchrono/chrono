@@ -53,8 +53,10 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     m_spindle->SetMass(m_spindle->GetMass() + GetWheelMass());
     m_spindle->SetInertiaXX(m_spindle->GetInertiaXX() + GetWheelInertia());
 
-    m_spindle->GetCollisionModel()->SetFamily(WheeledCollisionFamily::WHEEL);
-    m_spindle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+    if (m_spindle->GetCollisionModel()) {
+        m_spindle->GetCollisionModel()->SetFamily(WheeledCollisionFamily::WHEEL);
+        m_spindle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+    }
 
     // Create ChLoad objects to apply terrain forces on spindle
     m_spindle_terrain_force = chrono_types::make_shared<ChLoadBodyForce>(m_spindle, VNULL, false, VNULL, false);
@@ -129,7 +131,7 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
         ChQuaternion<> rot = (m_side == VehicleSide::LEFT) ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
                                                                                   true, true);
-        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
         m_trimesh_shape->SetMutable(false);

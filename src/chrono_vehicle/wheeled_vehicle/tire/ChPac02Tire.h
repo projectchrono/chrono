@@ -36,7 +36,7 @@
 #include <vector>
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -361,6 +361,9 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
         double SSZ4 = 0;   // Variation of distance s/R0 with load and camber
         double QTZ1 = 0;   // Gyration torque constant
         double MBELT = 0;  // Belt mass of the wheel
+        // Non-Pacejka Parameters
+        double sigma0{100000.0};  ///< bristle stiffness for Dahl friction model
+        double sigma1{5000.0};    ///< bristle damping for Dahl friction model
     };
 
     MFCoeff m_par;
@@ -393,6 +396,8 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
         double dfz0;             // normalized vertical force
         double Pi0_prime;        // scaled inflation pressure
         double dpi;              // normalized inflation pressure
+        double brx{0};           // bristle deformation x
+        double bry{0};           // bristle deformation y
         ChVector<> disc_normal;  //(temporary for debug)
     };
 

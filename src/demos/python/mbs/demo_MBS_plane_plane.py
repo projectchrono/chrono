@@ -65,7 +65,7 @@ spring.Initialize(ground,
 spring.SetRestLength(1.9)
 sys.AddLink(spring)
 
-spring.AddVisualShape(chrono.ChSpringShape(0.05, 80, 15))
+spring.AddVisualShape(chrono.ChVisualShapeSpring(0.05, 80, 15))
 
 # ---------------------------------------------------------------------
 #

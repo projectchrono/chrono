@@ -19,6 +19,7 @@
 #include "chrono/collision/ChCollisionInfo.h"
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
+#include "chrono/geometry/ChGeometry.h"
 #include "chrono/assets/ChColor.h"
 
 namespace chrono {
@@ -26,11 +27,12 @@ namespace chrono {
 // forward references
 class ChSystem;
 class ChBody;
+class ChAssembly;
+class ChParticleCloud;
+class ChConveyor;
 class ChVariablesBody;
 class ChContactContainer;
 class ChProximityContainer;
-
-namespace collision {
 
 /// @addtogroup chrono_collision
 /// @{
@@ -38,27 +40,39 @@ namespace collision {
 /// Base class for generic collision engine.
 class ChApi ChCollisionSystem {
   public:
-    ChCollisionSystem() : m_system(nullptr) {}
-    virtual ~ChCollisionSystem() {}
+    /// Supported collision systems.
+    enum class Type {
+        BULLET,    ///< Bullet-based collision detection system
+        MULTICORE  ///< Chrono multicore collision detection system
+    };
 
-    /// Return the type of this collision system.
-    virtual ChCollisionSystemType GetType() const = 0;
+    virtual ~ChCollisionSystem();
 
-    /// Clears all data instanced by this algorithm
-    /// if any (like persistent contact manifolds)
-    virtual void Clear(void) = 0;
+    /// Test if the collision system was initialized.
+    bool IsInitialized() const { return m_initialized; }
 
-    /// Adds a collision model to the collision
-    /// engine (custom data may be allocated).
-    virtual void Add(ChCollisionModel* model) = 0;
+    /// Initialize the collision system.
+    /// This call must trigger a parsing of the associated Chrono system to process all collision models.
+    virtual void Initialize();
 
-    /// Removes a collision model from the collision
-    /// engine (custom data may be deallocated).
-    virtual void Remove(ChCollisionModel* model) = 0;
+    /// Process all collision models in the associated Chrono system.
+    /// This function is called by default for a Chrono system attached to this collision system during
+    /// initialization, but can also be called later if further modifications to collision models occur.
+    virtual void BindAll();
 
-    /// Removes all collision models from the collision
-    /// engine (custom data may be deallocated).
-    // virtual void RemoveAll() = 0;
+    /// Process the collision shapes...
+    /// This function must be called if a new physics item is added to the system or if changes to its collision model
+    /// occur after the collision system was initialized.
+    virtual void BindItem(std::shared_ptr<ChPhysicsItem> item);
+
+    /// Clears all data instanced by this algorithm if any.
+    virtual void Clear() = 0;
+
+    /// Add the specified collision model to the collision engine.
+    virtual void Add(std::shared_ptr<ChCollisionModel> model) = 0;
+
+    /// Remove the specified collision model from the collision engine.
+    virtual void Remove(std::shared_ptr<ChCollisionModel> model) = 0;
 
     /// Optional synchronization operations, invoked before running the collision detection.
     virtual void PreProcess() {}
@@ -71,7 +85,7 @@ class ChApi ChCollisionSystem {
     virtual void PostProcess() {}
 
     /// Return an AABB bounding all collision shapes in the system
-    virtual void GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const = 0;
+    virtual geometry::ChAABB GetBoundingBox() const = 0;
 
     /// Return the time (in seconds) for broadphase collision detection.
     virtual double GetTimerCollisionBroad() const = 0;
@@ -202,33 +216,31 @@ class ChApi ChCollisionSystem {
     virtual void Visualize(int flags) {}
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) {
-        // version number
-        marchive.VersionWrite<ChCollisionSystem>();
-    }
+    virtual void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) {
-        // version number
-        /*int version =*/ marchive.VersionRead<ChCollisionSystem>();
-    }
+    virtual void ArchiveIn(ChArchiveIn& marchive);
 
     /// Set associated Chrono system
     void SetSystem(ChSystem* sys) { m_system = sys; }
 
   protected:
-    ChSystem* m_system;                                    ///< associated Chrono system
+    ChCollisionSystem();
+
+    bool m_initialized;
+
+    ChSystem* m_system;  ///< associated Chrono system
+
     std::shared_ptr<BroadphaseCallback> broad_callback;    ///< user callback for each near-enough pair of shapes
     std::shared_ptr<NarrowphaseCallback> narrow_callback;  ///< user callback for each collision pair
-    std::shared_ptr<VisualizationCallback> vis_callback;   ///< user callback for debug visualization
+
+    std::shared_ptr<VisualizationCallback> vis_callback;  ///< user callback for debug visualization
     int m_vis_flags;
 };
 
 /// @} chrono_collision
 
-}  // end namespace collision
-
-CH_CLASS_VERSION(collision::ChCollisionSystem, 0)
+CH_CLASS_VERSION(ChCollisionSystem, 0)
 
 }  // end namespace chrono
 

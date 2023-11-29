@@ -245,7 +245,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     ChContactSMC(ChContactContainer* mcontainer,           ///< contact container
                  Ta* mobjA,                                ///< collidable object A
                  Tb* mobjB,                                ///< collidable object B
-                 const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+                 const ChCollisionInfo& cinfo,  ///< data for the collision pair
                  const ChMaterialCompositeSMC& mat         ///< composite material
                  )
         : ChContactTuple<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo), m_Jac(NULL) {
@@ -271,7 +271,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     /// Reinitialize this contact for reuse.
     void Reset(Ta* mobjA,                                ///< collidable object A
                Tb* mobjB,                                ///< collidable object B
-               const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+               const ChCollisionInfo& cinfo,  ///< data for the collision pair
                const ChMaterialCompositeSMC& mat         ///< composite material
     ) {
         // Reset geometric information

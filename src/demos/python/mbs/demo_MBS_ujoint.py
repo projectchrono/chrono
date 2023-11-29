@@ -50,12 +50,12 @@ sys.Add(ground)
 
 # attach visualization assets to represent the revolute and cylindrical
 # joints that connect the two shafts to ground
-cyl_1 = chrono.ChCylinderShape(0.3, 0.4)
+cyl_1 = chrono.ChVisualShapeCylinder(0.3, 0.4)
 ground.AddVisualShape(cyl_1, chrono.ChFrameD(chrono.ChVectorD(0, 0, -hl), chrono.QUNIT))
 
 seg = chrono.ChLineSegment(chrono.ChVectorD(0, -(hl - 0.2) * sina, (hl - 0.2) * cosa),
                            chrono.ChVectorD(0, -(hl + 0.2) * sina, (hl + 0.2) * cosa))
-cyl_2 = chrono.ChCylinderShape(0.3, seg.GetLength())
+cyl_2 = chrono.ChVisualShapeCylinder(0.3, seg.GetLength())
 ground.AddVisualShape(cyl_2, seg.GetFrame())
 
 
@@ -73,10 +73,10 @@ shaft_1.SetRot(chrono.ChQuaternionD(1, 0, 0, 0))
 
 # Add visualization assets to represent the shaft (a box) and the arm of the
 # universal joint's cross associated with this shaft (a cylinder)
-box_1 = chrono.ChBoxShape(0.3, 0.3, 1.8 * hl)
+box_1 = chrono.ChVisualShapeBox(0.3, 0.3, 1.8 * hl)
 shaft_1.AddVisualShape(box_1)
 
-cyl_2 = chrono.ChCylinderShape(0.05, 0.4)
+cyl_2 = chrono.ChVisualShapeCylinder(0.05, 0.4)
 cyl_2.SetColor(chrono.ChColor(0.9, 0.4, 0.1))
 shaft_1.AddVisualShape(cyl_2, chrono.ChFrameD(chrono.ChVectorD(0, 0, hl), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
 
@@ -98,10 +98,10 @@ shaft_2.SetRot(rot)
 
 # Add visualization assets to represent the shaft (a box) and the arm of the
 # universal joint's cross associated with this shaft (a cylinder)
-box_1 = chrono.ChBoxShape(0.3, 0.3, 1.8 * hl)
+box_1 = chrono.ChVisualShapeBox(0.3, 0.3, 1.8 * hl)
 shaft_2.AddVisualShape(box_1)
 
-cyl_2 = chrono.ChCylinderShape(0.05, 0.4)
+cyl_2 = chrono.ChVisualShapeCylinder(0.05, 0.4)
 cyl_2.SetColor(chrono.ChColor(0.2, 0.4, 0.8))
 shaft_2.AddVisualShape(cyl_2, chrono.ChFrameD(chrono.ChVectorD(0, 0, -hl), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
 

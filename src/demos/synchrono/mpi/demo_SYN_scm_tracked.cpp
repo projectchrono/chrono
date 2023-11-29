@@ -135,6 +135,7 @@ int main(int argc, char* argv[]) {
 
     // Create the M113
     M113 m113;
+    m113.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m113.SetContactMethod(contact_method);
     m113.SetChassisCollisionType(CollisionType::NONE);
     m113.SetChassisFixed(false);

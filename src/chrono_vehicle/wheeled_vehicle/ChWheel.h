@@ -24,8 +24,8 @@
 #ifndef CH_WHEEL_H
 #define CH_WHEEL_H
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
@@ -127,7 +127,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     double m_offset;                               ///< offset from spindle center
 
     std::string m_vis_mesh_file;                           ///< visualization mesh file (may be empty)
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  ///< visualization mesh asset
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;  ///< visualization mesh asset
     std::shared_ptr<ChVisualShape> m_cyl_shape;            ///< visualization cylinder asset
 
     std::shared_ptr<ChLoadBodyForce> m_spindle_terrain_force;    ///< terrain force loads on the spindle

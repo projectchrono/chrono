@@ -26,7 +26,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 std::string ForceModel_name(ChSystemSMC::ContactForceModel f) {
     switch (f) {
@@ -56,7 +55,7 @@ std::shared_ptr<ChBody> AddSphere(int id,
     ChVector<> init_w(0, 0, 0);
 
     // Create a spherical body. Set body parameters and sphere collision model
-    auto body = std::shared_ptr<ChBody>(sys->NewBody());
+    auto body = chrono_types::make_shared<ChBody>();
     body->SetIdentifier(id);
     body->SetMass(mass);
     body->SetPos(pos);
@@ -67,9 +66,7 @@ std::shared_ptr<ChBody> AddSphere(int id,
     body->SetBodyFixed(false);
     body->SetCollide(true);
 
-    body->GetCollisionModel()->ClearModel();
     utils::AddSphereGeometry(body.get(), mat, radius);
-    body->GetCollisionModel()->BuildModel();
 
     // Return a pointer to the sphere object
     sys->AddBody(body);
@@ -91,7 +88,7 @@ std::shared_ptr<ChBody> AddWall(int id,
     ChQuaternion<> rot(1, 0, 0, 0);
 
     // Create container. Set body parameters and container collision model
-    auto body = std::shared_ptr<ChBody>(sys->NewBody());
+    auto body = chrono_types::make_shared<ChBody>();
     body->SetIdentifier(id);
     body->SetMass(mass);
     body->SetPos(pos);
@@ -101,9 +98,7 @@ std::shared_ptr<ChBody> AddWall(int id,
     body->SetBodyFixed(wall);
     body->SetCollide(true);
 
-    body->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(body.get(), mat, size);
-    body->GetCollisionModel()->BuildModel();
 
     // Return a pointer to the wall object
     sys->AddBody(body);
@@ -117,6 +112,7 @@ void SetSimParameters(
     ChSystemSMC::ContactForceModel fmodel,
     ChSystemSMC::TangentialDisplacementModel tmodel = ChSystemSMC::TangentialDisplacementModel::MultiStep) {
     // Set solver settings and collision detection parameters
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys->Set_G_acc(gravity);
 
     sys->SetMaxiter(100);
@@ -135,6 +131,7 @@ void SetSimParameters(
     ChSystemSMC::ContactForceModel fmodel,
     ChSystemSMC::TangentialDisplacementModel tmodel = ChSystemSMC::TangentialDisplacementModel::MultiStep) {
     // Set solver settings and collision detection parameters
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
     sys->Set_G_acc(gravity);
 
     sys->GetSettings()->solver.max_iteration_bilateral = 100;

@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_unimog
 /// @{
 
 /// Leafspring axle subsystem for the uaz vehicle.
@@ -115,7 +115,7 @@ class CH_MODELS_API U401_ToeBarPushPipeAxle : public ChToeBarPushPipeAxle {
     static const double m_damperDegressivityCompression;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_unimog
 
 }  // namespace unimog
 }  // end namespace vehicle

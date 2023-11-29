@@ -95,8 +95,9 @@ int main(int argc, char* argv[]) {
     // Set SPH spacing
     double spacing = (patch_type == PatchType::MARKER_DATA) ? 0.02 : 0.04;
 
-    // Create the Chrono system
+    // Create the Chrono system and associated collision system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the CRM terrain system
     CRMTerrain terrain(sys, spacing);
@@ -179,14 +180,13 @@ int main(int argc, char* argv[]) {
     // Initialize the terrain system
     terrain.Initialize();
 
-    ChVector<> aabb_min, aabb_max;
-    terrain.GetAABB(aabb_min, aabb_max);
+    auto aabb = terrain.GetBoundingBox();
     cout << "  SPH particles:     " << sysFSI.GetNumFluidMarkers() << endl;
     cout << "  Bndry BCE markers: " << sysFSI.GetNumBoundaryMarkers() << endl;
-    cout << "  AABB:              " << aabb_min << "   " << aabb_max << endl;
+    cout << "  AABB:              " << aabb.min << "   " << aabb.max << endl;
 
     // Set maximum vehicle X location (based on CRM patch size) 
-    double x_max = aabb_max.x() - 3.0;
+    double x_max = aabb.max.x() - 3.0;
 
     // Create driver
     cout << "Create path..." << endl;
@@ -233,7 +233,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(
-            chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), aabb_min.z(), aabb_max.z()));
+            chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), aabb.min.z(), aabb.max.z()));
         visFSI->AttachSystem(&sys);
         visFSI->Initialize();
     }
