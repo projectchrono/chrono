@@ -3,8 +3,6 @@
 
 #pragma import_defines (VSG_INSTANCE_POSITIONS, VSG_BILLBOARD, VSG_DISPLACEMENT_MAP)
 
-// experimental vertex shader program for chrono_vsg
-
 layout(push_constant) uniform PushConstants {
     mat4 projection;
     mat4 modelView;

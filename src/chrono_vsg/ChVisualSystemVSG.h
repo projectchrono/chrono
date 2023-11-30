@@ -156,6 +156,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Enable/disable VSG information terminal output during initialization (default: true).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
+    /// Enable/disable Shadows, use before Initialization, to see an effect
+    void SetShadows(bool yesno=false) { m_use_shadows = yesno; }
     void SetLightIntensity(float intensity);
     void SetLightDirection(double azimuth, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
@@ -212,6 +214,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     int m_screen_num = -1;
     bool m_use_fullscreen = false;
+    bool m_use_shadows = false;
 
     vsg::ref_ptr<vsg::Window> m_window;
     vsg::ref_ptr<vsg::Viewer> m_viewer;  ///< high-level VSG rendering manager

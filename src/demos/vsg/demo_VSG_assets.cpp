@@ -366,7 +366,7 @@ int main(int argc, char* argv[]) {
                         ChFrame<>(ChVector<>(-6, 1, -5 - 0.4), QUNIT));
     vis->AddVisualModel(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
                         ChFrame<>(ChVector<>(-6, 1, -5 + 0.4), QUNIT));
-
+    vis->SetShadows(true);
     vis->Initialize();
 
     // Create output directory
@@ -382,7 +382,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         double time = sys.GetChTime();
         if (frame_number == 42) {
-            vis->WriteImageToFile(out_dir + "/newshot.png");  // does not work with frame == 0!
+            vis->WriteImageToFile(out_dir + "/assets.png");  // does not work with frame == 0!
         }
 
         vis->UpdateVisualModel(teapotId1, ChFrame<>(ChVector<>(0, 3.5 + 0.5 * sin(CH_C_PI * time / 10), 3), Zup));

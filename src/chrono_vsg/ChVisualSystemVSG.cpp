@@ -725,6 +725,9 @@ void ChVisualSystemVSG::Initialize() {
     directionalLight->name = "head light";
     directionalLight->color.set(1.0f, 1.0f, 1.0f);
     directionalLight->intensity = m_lightIntensity;
+    if(m_use_shadows)
+        directionalLight->shadowMaps = 10;
+    
     double se = std::sin(m_elevation);
     double ce = std::cos(m_elevation);
     double sa = std::sin(m_azimuth);
@@ -734,11 +737,16 @@ void ChVisualSystemVSG::Initialize() {
     else
         directionalLight->direction.set(-ce * ca, -ce * sa, -se);
 
+    /* Head Light, moves with camera orientation
     auto absoluteTransform = vsg::AbsoluteTransform::create();
     absoluteTransform->addChild(ambientLight);
     absoluteTransform->addChild(directionalLight);
-
     m_scene->addChild(absoluteTransform);
+     */
+    // Directional (Sun) Light, moves with object orientation
+    m_scene->addChild(ambientLight);
+    m_scene->addChild(directionalLight);
+
     m_scene->addChild(m_bodyScene);
     m_scene->addChild(m_cogFrameScene);
     m_scene->addChild(m_jointFrameScene);
