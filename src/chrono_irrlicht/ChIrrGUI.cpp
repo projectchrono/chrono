@@ -575,7 +575,7 @@ void ChIrrGUI::Render() {
 }
 
 void ChIrrGUI::DrawCollisionShapes(irr::video::SColor color) {
-    if (!m_drawer)
+    if (!m_drawer || !m_system->GetCollisionSystem())
         return;
 
     std::static_pointer_cast<DebugDrawer>(m_drawer)->SetLineColor(color);
