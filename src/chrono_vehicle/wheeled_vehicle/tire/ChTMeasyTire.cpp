@@ -240,8 +240,8 @@ void ChTMeasyTire::Advance(double step) {
 
     tmxy_combined(f, fos, sc, df0, sm, fm, ss, fs);
     if (sc > 0.0) {
-        Fx = f * sx / sc;
-        Fy = f * sy / sc;
+        Fx = f * calpha;
+        Fy = f * salpha;
     } else {
         Fx = 0.0;
         Fy = 0.0;
