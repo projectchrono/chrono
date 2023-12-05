@@ -726,7 +726,7 @@ add_subdirectory(chrono_sensor)
 add_subdirectory(chrono_synchrono)
 add_subdirectory(chrono_swig/chrono_python)
 add_subdirectory(chrono_swig/chrono_csharp)
-add_subdirectory(chrono_fmu)
+add_subdirectory(chrono_fmi)
 
 # Add directories for demo programs, unit test programs, and benchmark test programs.
 if(BUILD_DEMOS)
