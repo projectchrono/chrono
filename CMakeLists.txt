@@ -8,7 +8,7 @@
 # Check backward compatibility
 #-----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.18)
 
 #-----------------------------------------------------------------------------
 # Prevent in-source builds.
@@ -24,7 +24,7 @@ endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 if(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
     cmake_policy(SET CMP0048 NEW)
-    #cmake_policy(SET CMP0091 NEW)
+    cmake_policy(SET CMP0091 NEW)
 endif(COMMAND cmake_policy)
 
 #-----------------------------------------------------------------------------
