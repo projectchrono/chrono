@@ -726,6 +726,7 @@ add_subdirectory(chrono_sensor)
 add_subdirectory(chrono_synchrono)
 add_subdirectory(chrono_swig/chrono_python)
 add_subdirectory(chrono_swig/chrono_csharp)
+add_subdirectory(chrono_fmu)
 
 # Add directories for demo programs, unit test programs, and benchmark test programs.
 if(BUILD_DEMOS)
@@ -922,6 +923,12 @@ if(ENABLE_MODULE_SYNCHRONO)
   set(CHRONO_SYNCHRONO "#define CHRONO_SYNCHRONO")
 else()
   set(CHRONO_SYNCHRONO "#undef CHRONO_SYNCHRONO")
+endif()
+
+if(ENABLE_MODULE_FMI)
+  set(CHRONO_FMI "#define CHRONO_FMI")
+else()
+  set(CHRONO_FMI "#undef CHRONO_FMI")
 endif()
 
 if(USE_SIMD)
