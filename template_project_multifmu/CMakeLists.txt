@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.18)
 
 
 project(template_project_multifmu)
@@ -9,7 +9,6 @@ set(BUILD_TESTING ON CACHE BOOL "Enable testing.")
 #########################
 # Importing Chrono
 #########################
-
 
 LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../chrono/lib")
 find_package(Chrono
@@ -44,7 +43,6 @@ if(MSVC)
     add_compile_options(/wd4275)                   # disable warnings triggered by Irrlicht
     add_compile_options(/wd4251)                   # class needs to have dll-interface
 endif()
-
 
 # let Chrono COPY_DLLS to copy all the required files in a intermediate directory to be later copied into FMU-specific folders
 set(CHRONO_INTERMEDIATE_DLLS_DIR "${CMAKE_BINARY_DIR}/chrono_dlls")

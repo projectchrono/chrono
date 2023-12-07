@@ -1,7 +1,3 @@
-
-#########################
-# Fetching fmu_tools
-#########################
 MESSAGE(STATUS "-------------- FetchContent(fmu_tools) for FmuComponentChrono1 --------------")
 
 set(FMU_MODEL_IDENTIFIER "FmuComponentChrono1" CACHE INTERNAL "FMU Model Identifier: should fulfill operating system and C-function naming standards.")

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.18)
 
 
 project(template_project_fmu)
@@ -8,7 +8,6 @@ set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/../../fmu_tools/" CACHE PATH "Path to fmu
 #########################
 # Importing Chrono
 #########################
-
 
 LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../chrono/lib")
 find_package(Chrono
@@ -48,6 +47,7 @@ endif()
 #########################
 # Fetching fmu_tools
 #########################
+
 MESSAGE(STATUS "-------------- FetchContent(fmu_tools) --------------")
 
 set(FMU_MODEL_IDENTIFIER "myFmuComponentChrono" CACHE STRING "FMU Model Identifier: should fulfill operating system and C-function naming standards.")
@@ -75,9 +75,8 @@ MARK_AS_ADVANCED(FETCHCONTENT_UPDATES_DISCONNECTED_${FMU_MODEL_IDENTIFIER})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${FMU_RUNTIME_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${FMU_RUNTIME_OUTPUT_DIRECTORY})
 add_DLL_copy_command()
+
 MESSAGE(STATUS "---------------------------------------------------------")
-
-
 
 target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE myFmuComponentChrono.h myFmuComponentChrono.cpp) ## FMU_ACTION: put your source code here
 target_compile_definitions(${FMU_MODEL_IDENTIFIER} PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
@@ -89,7 +88,7 @@ target_link_libraries(${FMU_MODEL_IDENTIFIER} ${CHRONO_LIBRARIES})
 IF (NOT EXISTS "${CMAKE_SOURCE_DIR}/fmu_host.cpp")
   file(COPY_FILE "${FMU_TOOLS_DIR}/fmu_host.cpp" "${CMAKE_SOURCE_DIR}/fmu_host.cpp")
 endif()
-target_sources(fmu_host PRIVATE fmu_host.cpp)
+target_sources(fmu_host_${FMU_MODEL_IDENTIFIER} PRIVATE fmu_host.cpp)
 
 add_dependencies(${FMU_MODEL_IDENTIFIER} COPY_DLLS)
 
