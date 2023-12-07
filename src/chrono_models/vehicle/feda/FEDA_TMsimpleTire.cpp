@@ -30,8 +30,8 @@ namespace feda {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const std::string FEDA_TMsimpleTire::m_meshFile_left = "feda/meshes/FEDA_tire_fine.obj";
-const std::string FEDA_TMsimpleTire::m_meshFile_right = "feda/meshes/FEDA_tire_fine.obj";
+const std::string FEDA_TMsimpleTire::m_meshFile_left = "feda/meshes/feda_tire_fine.obj";
+const std::string FEDA_TMsimpleTire::m_meshFile_right = "feda/meshes/feda_tire_fine.obj";
 
 const double FEDA_TMsimpleTire::m_mass = 56.1;
 const ChVector<> FEDA_TMsimpleTire::m_inertia(10.5, 16.8, 10.5);

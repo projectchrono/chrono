@@ -213,6 +213,10 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Has no effect, unless called after the visual system is initialized and attached.
     void EnableCollisionShapeDrawing(bool val);
 
+    /// Enable rendering of the absolute coordinate system (default: none).
+    /// Has no effect, unless called after the visual system is initialized and attached.
+    void EnableAbsCoordsysDrawing(bool val);
+
     /// Enable modal analysis visualization (default: false).
     /// If true, visualize an oscillatory motion of the n-th mode (only if some ChModalAssembly is found).
     /// Otherwise, visualize the dynamic evolution of the associated system.
