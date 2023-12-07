@@ -1,7 +1,7 @@
 set(COMPONENT_NAME "demo_FMI_actuatorFMU")
 set(COMPONENT_SOURCES actuatorFMU.h actuatorFMU.cpp)
 set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_irrlicht)
-set(COMPONENT_DLL_DEPENDENCIES ${CH_IRRLICHT_DLL})
+set(COMPONENT_DLL_DEPENDENCIES "")
 
 #--------------------------------------------------------------
 
