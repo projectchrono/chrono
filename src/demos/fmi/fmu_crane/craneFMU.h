@@ -33,6 +33,7 @@ class FmuComponent : public FmuComponentBase {
     virtual bool is_cosimulation_available() const override { return true; }
     virtual bool is_modelexchange_available() const override { return false; }
 
+    void ProcessActuatorForce();
     void CalculateActuatorLength();
 
     chrono::ChSystemSMC sys;

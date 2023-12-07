@@ -61,10 +61,14 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     m_actuator->DirectionalValve().SetInitialSpoolPosition(0);
     sys.Add(m_actuator);
 
-    // Specify functions to calculate FMU outputs
-    updateVarsCallbacks.push_back([this]() { this->CalculateActuatorForce(); });
-    updateVarsCallbacks.push_back([this]() { this->CalculatePistonPressures(); });
-    updateVarsCallbacks.push_back([this]() { this->CalculateValvePosition(); });
+    // Specify functions to process input variables (at beginning of step)
+    preStepCallbacks.push_back([this]() { this->m_actuator->SetActuatorLength(s, sd); });
+    preStepCallbacks.push_back([this]() { this->m_actuation->SetSetpoint(Uref, this->GetTime()); });
+
+    // Specify functions to calculate FMU outputs (at end of step)
+    postStepCallbacks.push_back([this]() { this->CalculateActuatorForce(); });
+    postStepCallbacks.push_back([this]() { this->CalculatePistonPressures(); });
+    postStepCallbacks.push_back([this]() { this->CalculateValvePosition(); });
 }
 
 void FmuComponent::CalculateActuatorForce() {
@@ -108,20 +112,12 @@ void FmuComponent::_exitInitializationMode() {
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                  fmi2Real communicationStepSize,
                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
-    // Set actuator length and length rate (s and sd received from outside)
-    m_actuator->SetActuatorLength(s, sd);
-
-    // Apply current input (Uref received from outside)
-    m_actuation->SetSetpoint(Uref, currentCommunicationPoint);
-
-    // Advance system dynamics
     while (time < currentCommunicationPoint + communicationStepSize) {
         fmi2Real _stepSize = std::min((currentCommunicationPoint + communicationStepSize - time),
                                       std::min(communicationStepSize, stepSize));
 
         sys.DoStepDynamics(_stepSize);
         sendToLog("time: " + std::to_string(time) + "\n", fmi2Status::fmi2OK, "logAll");
-        updateVars();
 
         time = time + _stepSize;
     }

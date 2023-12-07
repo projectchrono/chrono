@@ -128,8 +128,21 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     // Initialize FMU outputs (in case they are queried before the first step)
     CalculateActuatorLength();
 
-    // Specify functions to calculate FMU outputs
-    updateVarsCallbacks.push_back([this]() { this->CalculateActuatorLength(); });
+    // Specify functions to process input variables (at beginning of step)
+    preStepCallbacks.push_back([this]() { this->ProcessActuatorForce(); });
+
+    // Specify functions to calculate FMU outputs (at end of step)
+    postStepCallbacks.push_back([this]() { this->CalculateActuatorLength(); });
+}
+
+void FmuComponent::ProcessActuatorForce() {
+    // Set actuator force (F received from outside)
+    const auto& P1 = m_point_ground;
+    auto P2 = m_crane->TransformPointLocalToParent(m_point_crane);
+    ChVector<> dir = (P2 - P1).GetNormalized();
+    ChVector<> force = F * dir;
+    m_external_load->SetForce(force, false);
+    m_external_load->SetApplicationPoint(P2, false);
 }
 
 void FmuComponent::CalculateActuatorLength() {
@@ -179,15 +192,6 @@ void FmuComponent::_exitInitializationMode() {
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                  fmi2Real communicationStepSize,
                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
-    // Set actuator force (F received from outside)
-    const auto& P1 = m_point_ground;
-    auto P2 = m_crane->TransformPointLocalToParent(m_point_crane);
-    ChVector<> dir = (P2 - P1).GetNormalized();
-    ChVector<> force = F * dir;
-    m_external_load->SetForce(force, false);
-    m_external_load->SetApplicationPoint(P2, false);
-
-    // Advance system dynamics
     while (time < currentCommunicationPoint + communicationStepSize) {
         fmi2Real step_size = std::min((currentCommunicationPoint + communicationStepSize - time),
                                       std::min(communicationStepSize, stepSize));
@@ -203,7 +207,6 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
 
         sys.DoStepDynamics(step_size);
         sendToLog("time: " + std::to_string(time) + "\n", fmi2Status::fmi2OK, "logAll");
-        updateVars();
 
         time = time + step_size;
     }
