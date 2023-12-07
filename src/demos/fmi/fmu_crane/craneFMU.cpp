@@ -24,6 +24,10 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     // Set initial values for FMU input variables
     F = 0;
 
+    // Set configuration flags for this FMU
+    AddFmuVariable(&vis, "vis", FmuVariable::Type::Boolean, "1", "enable visualization",         //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
+
     // Set FIXED PARAMETERS for this FMU
     AddFmuVariable(&crane_mass, "crane_mass", FmuVariable::Type::Real, "kg", "crane mass",                   //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);              //
@@ -121,16 +125,6 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     integrator->SetMaxiters(50);
     integrator->SetAbsTolerances(1e-4, 1e2);
 
-    // Initialize runtime visualization
-    vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Hydraulic crane");
-    vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->Initialize();
-    vis->AddCamera(ChVector<>(0.5, -1, 0.5), ChVector<>(0.5, 0, 0.5));
-    vis->AddTypicalLights();
-
     // Initialize FMU outputs (in case they are queried before the first step)
     CalculateActuatorLength();
 
@@ -162,6 +156,23 @@ void FmuComponent::_postModelDescriptionExport() {}
 void FmuComponent::_enterInitializationMode() {}
 
 void FmuComponent::_exitInitializationMode() {
+    // Initialize runtime visualization (if requested and if available)
+    if (vis) {
+#ifdef CHRONO_IRRLICHT
+        sendToLog("Enable run-time visualization", fmi2Status::fmi2OK, "logAll");
+        vissys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+        vissys->AttachSystem(&sys);
+        vissys->SetWindowSize(800, 600);
+        vissys->SetWindowTitle("Hydraulic crane");
+        vissys->SetCameraVertical(CameraVerticalDir::Z);
+        vissys->Initialize();
+        vissys->AddCamera(ChVector<>(0.5, -1, 0.5), ChVector<>(0.5, 0, 0.5));
+        vissys->AddTypicalLights();
+#else
+        sendToLog("Run-time visualization not available", fmi2Status::fmi2OK, "logAll");
+#endif
+    }
+
     sys.DoFullAssembly();
 }
 
@@ -182,9 +193,12 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                       std::min(communicationStepSize, stepSize));
 
         if (vis) {
-            vis->BeginScene();
-            vis->Render();
-            vis->EndScene();
+#ifdef CHRONO_IRRLICHT
+            vissys->Run();
+            vissys->BeginScene(true, true, ChColor(0.33f, 0.6f, 0.78f));
+            vissys->Render();
+            vissys->EndScene();
+#endif
         }
 
         sys.DoStepDynamics(step_size);
