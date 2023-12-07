@@ -20,17 +20,22 @@
 #include <iostream>
 #include <string>
 
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChMathematics.h"
 #include "chrono/motion_functions/ChFunction.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+#endif
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 #include "FmuToolsImport.hpp"
 
 using namespace chrono;
 
 // -----------------------------------------------------------------------------
-
-std::string out_dir = "./DEMO_HYDRAULIC_CRANE_FMI_COSIM";
 
 std::string actuator_unpack_directory = ACTUATOR_FMU_MAIN_DIRECTORY + std::string("/.") + ACTUATOR_FMU_MODEL_IDENTIFIER;
 std::string crane_unpack_directory = CRANE_FMU_MAIN_DIRECTORY + std::string("/.") + CRANE_FMU_MODEL_IDENTIFIER;
@@ -114,6 +119,14 @@ void CreateActuatorFMU(FmuUnit& actuator_fmu,
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
+    // Create (if needed) output directory
+    std::string out_dir = GetChronoOutputPath() + "./DEMO_HYDRAULIC_CRANE_FMI_COSIM";
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     std::vector<std::string> logCategories = {"logAll"};
 
     double start_time = 0;
@@ -213,6 +226,49 @@ int main(int argc, char* argv[]) {
 
     std::string out_file = out_dir + "/hydraulic_crane.out";
     csv.write_to_file(out_file);
+
+#ifdef CHRONO_POSTPROCESS
+    {
+        postprocess::ChGnuPlot gplot(out_dir + "/displ.gpl");
+        gplot.SetGrid();
+        gplot.SetLabelX("time");
+        gplot.SetLabelY("s");
+        gplot.SetTitle("Actuator length");
+        gplot << "set ylabel 's'";
+        gplot << "set y2label 'sd'";
+        gplot << "set ytics nomirror tc lt 1";
+        gplot << "set y2tics nomirror tc lt 2";
+        gplot.Plot(out_file, 1, 2, "s", " axis x1y1 with lines lt 1 lw 2");
+        gplot.Plot(out_file, 1, 3, "sd", " axis x1y2 with lines lt 2 lw 2");
+    }
+    {
+        postprocess::ChGnuPlot gplot(out_dir + "/hydro_input.gpl");
+        gplot.SetGrid();
+        gplot.SetLabelX("time");
+        gplot.SetLabelY("U");
+        gplot.SetTitle("Hydro Input");
+        gplot.Plot(out_file, 1, 4, "ref", " with lines lt -1 lw 2");
+        gplot.Plot(out_file, 1, 5, "U", " with lines lt 1 lw 2");
+    }
+    {
+        postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
+        gplot.SetGrid();
+        gplot.SetLabelX("time");
+        gplot.SetLabelY("p");
+        gplot.SetTitle("Hydro Pressures");
+        gplot.Plot(out_file, 1, 6, "p0", " with lines lt 1 lw 2");
+        gplot.Plot(out_file, 1, 7, "p1", " with lines lt 2 lw 2");
+    }
+    {
+        postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
+        gplot.SetGrid();
+        gplot.SetLabelX("time");
+        gplot.SetLabelY("F");
+        gplot.SetTitle("Hydro Force");
+        gplot.Plot(out_file, 1, 8, "F", " with lines lt -1 lw 2");
+    }
+
+#endif
 
     return 0;
 }
