@@ -49,44 +49,32 @@ void CreateCraneFMU(FmuUnit& crane_fmu,
     } catch (std::exception& e) {
         throw e;
     }
-    std::cout << "Crane FMU version:  " << crane_fmu._fmi2GetVersion() << "\n";
-    std::cout << "Crane FMU platform: " << crane_fmu._fmi2GetTypesPlatform() << "\n";
+    std::cout << "Crane FMU version:  " << crane_fmu.GetVersion() << "\n";
+    std::cout << "Crane FMU platform: " << crane_fmu.GetTypesPlatform() << "\n";
 
     // Instantiate FMU
     crane_fmu.Instantiate("CraneFmuComponent");
 
     // Set debug logging
-    std::vector<const char*> categories;
-    for (const auto& category : logCategories) {
-        categories.push_back(category.c_str());
-    }
-    crane_fmu._fmi2SetDebugLogging(crane_fmu.component, fmi2True, categories.size(), categories.data());
+    crane_fmu.SetDebugLogging(fmi2True, logCategories);
 
     // Initialize FMU
-    crane_fmu._fmi2SetupExperiment(crane_fmu.component,    //
-                                   fmi2False, 0.0,         // define tolerance
-                                   start_time,             // start time
-                                   fmi2False, stop_time);  // use stop time
+    crane_fmu.SetupExperiment(fmi2False, 0.0,         // define tolerance
+                              start_time,             // start time
+                              fmi2False, stop_time);  // use stop time
 
     // Set fixed parameters
-    fmi2ValueReference valref;
-    fmi2Real val_real;
+    fmi2Real crane_mass = 500.0;
+    fmi2Real crane_length = 1.0;
+    fmi2Real pend_mass = 100;
+    fmi2Real pend_length = 0.3;
+    fmi2Real crane_angle = CH_C_PI / 6;
 
-    valref = 2;  // crane mass
-    val_real = 500.0;
-    crane_fmu._fmi2SetReal(crane_fmu.component, &valref, 1, &val_real);
-    valref = 3;  // crane length
-    val_real = 1.0;
-    crane_fmu._fmi2SetReal(crane_fmu.component, &valref, 1, &val_real);
-    valref = 4;  // pendulum mass
-    val_real = 100.0;
-    crane_fmu._fmi2SetReal(crane_fmu.component, &valref, 1, &val_real);
-    valref = 5;  // pendulum length
-    val_real = 0.3;
-    crane_fmu._fmi2SetReal(crane_fmu.component, &valref, 1, &val_real);
-    valref = 6;  // initial crane angle
-    val_real = CH_C_PI / 6;
-    crane_fmu._fmi2SetReal(crane_fmu.component, &valref, 1, &val_real);
+    crane_fmu.SetVariable("crane_mass", crane_mass, FmuVariable::Type::Real);
+    crane_fmu.SetVariable("crane_length", crane_length, FmuVariable::Type::Real);
+    crane_fmu.SetVariable("pend_mass", pend_mass, FmuVariable::Type::Real);
+    crane_fmu.SetVariable("pend_length", pend_length, FmuVariable::Type::Real);
+    crane_fmu.SetVariable("crane_angle", crane_angle, FmuVariable::Type::Real);
 }
 
 // -----------------------------------------------------------------------------
@@ -103,24 +91,19 @@ void CreateActuatorFMU(FmuUnit& actuator_fmu,
     } catch (std::exception& e) {
         throw e;
     }
-    std::cout << "Actuator FMU version:  " << actuator_fmu._fmi2GetVersion() << "\n";
-    std::cout << "Actuator FMU platform: " << actuator_fmu._fmi2GetTypesPlatform() << "\n";
+    std::cout << "Actuator FMU version:  " << actuator_fmu.GetVersion() << "\n";
+    std::cout << "Actuator FMU platform: " << actuator_fmu.GetTypesPlatform() << "\n";
 
     // Instantiate FMU
     actuator_fmu.Instantiate("ActuatorFmuComponent");
 
     // Set debug logging
-    std::vector<const char*> categories;
-    for (const auto& category : logCategories) {
-        categories.push_back(category.c_str());
-    }
-    actuator_fmu._fmi2SetDebugLogging(actuator_fmu.component, fmi2True, categories.size(), categories.data());
+    actuator_fmu.SetDebugLogging(fmi2True, logCategories);
 
     // Initialize FMU
-    actuator_fmu._fmi2SetupExperiment(actuator_fmu.component,  //
-                                      fmi2False, 0.0,          // define tolerance
-                                      start_time,              // start time
-                                      fmi2False, stop_time);   // use stop time
+    actuator_fmu.SetupExperiment(fmi2False, 0.0,         // define tolerance
+                                 start_time,             // start time
+                                 fmi2False, stop_time);  // use stop time
 
     // Set fixed parameters
     //// TODO - not much exposed right now
@@ -153,26 +136,25 @@ int main(int argc, char* argv[]) {
     }
 
     // Initialize FMUs
-    crane_fmu._fmi2EnterInitializationMode(crane_fmu.component);
-    actuator_fmu._fmi2EnterInitializationMode(actuator_fmu.component);
+    crane_fmu.EnterInitializationMode();
+    actuator_fmu.EnterInitializationMode();
     {
-        fmi2ValueReference valref;
-        fmi2Real val_real;
+        fmi2Real init_F;
+        crane_fmu.GetVariable("init_F", init_F, FmuVariable::Type::Real);
+        actuator_fmu.SetVariable("init_F", init_F, FmuVariable::Type::Real);
 
-        valref = 7;  // crane output initial load
-        crane_fmu._fmi2GetReal(crane_fmu.component, &valref, 1, &val_real);
-        std::cout << "Crane initial load: " << val_real << std::endl;
-        valref = 2;  // actuator input initial load
-        actuator_fmu._fmi2SetReal(actuator_fmu.component, &valref, 1, &val_real);
+        fmi2Real s;
+        crane_fmu.GetVariable("s", s, FmuVariable::Type::Real);
+        actuator_fmu.SetVariable("s", s, FmuVariable::Type::Real);
 
-        valref = 8;  // crane output actuator length
-        crane_fmu._fmi2GetReal(crane_fmu.component, &valref, 1, &val_real);
-        std::cout << "Crane initial actuator length: " << val_real << std::endl;
-        valref = 3;  // actuator input length
-        actuator_fmu._fmi2SetReal(actuator_fmu.component, &valref, 1, &val_real);
+        std::cout << "Crane initial load: " << init_F << std::endl;
+        std::cout << "Crane initial actuator length: " << s << std::endl;
+
+        // Optionally, enable run-time visualization for the crane FMU
+        crane_fmu.SetVariable("vis", true, FmuVariable::Type::Boolean);
     }
-    crane_fmu._fmi2ExitInitializationMode(crane_fmu.component);
-    actuator_fmu._fmi2ExitInitializationMode(actuator_fmu.component);
+    crane_fmu.ExitInitializationMode();
+    actuator_fmu.ExitInitializationMode();
 
     // Hydraulic actuation
     auto f_segment = chrono_types::make_shared<ChFunction_Sequence>();
@@ -193,53 +175,37 @@ int main(int argc, char* argv[]) {
 
     while (time < stop_time) {
         // --------- Exchange data
-        fmi2ValueReference valref;
+        fmi2Real F;  // Actuator force  [actuator] -> [crane]
+        actuator_fmu.GetVariable("F", F, FmuVariable::Type::Real);
+        crane_fmu.SetVariable("F", F, FmuVariable::Type::Real);
 
-        // Actuator force  [Actuator] -> [Crane]
-        fmi2Real F;
-        valref = 5;  // actuator output force
-        actuator_fmu._fmi2GetReal(actuator_fmu.component, &valref, 1, &F);
-        valref = 10;  // crane input force
-        crane_fmu._fmi2SetReal(crane_fmu.component, &valref, 1, &F);
+        fmi2Real s;  // Actuator length [crane] -> [actuator]
+        crane_fmu.GetVariable("s", s, FmuVariable::Type::Real);
+        actuator_fmu.SetVariable("s", s, FmuVariable::Type::Real);
 
-        // Actuator length [Crane] -> [Actuator]
-        fmi2Real s;
-        valref = 8;  // crane output actuator length
-        crane_fmu._fmi2GetReal(crane_fmu.component, &valref, 1, &s);
-        valref = 3;  // actuator input length
-        actuator_fmu._fmi2SetReal(actuator_fmu.component, &valref, 1, &s);
+        fmi2Real sd;  // Actuator length rate [crane] -> [actuator]
+        crane_fmu.GetVariable("sd", sd, FmuVariable::Type::Real);
+        actuator_fmu.SetVariable("sd", sd, FmuVariable::Type::Real);
 
-        // Actuator length rate [Crane] -> [Actuator]
-        fmi2Real sd;
-        valref = 9;  // crane output actuator length rate
-        crane_fmu._fmi2GetReal(crane_fmu.component, &valref, 1, &sd);
-        valref = 4;  // actuator input length rate
-        actuator_fmu._fmi2SetReal(actuator_fmu.component, &valref, 1, &sd);
-
-        // ----------- Actuator input signal -> [Actuator]
-        fmi2Real Uref;
-        valref = 6;  // actuator input signal
-        Uref = actuation->Get_y(time);
-        actuator_fmu._fmi2SetReal(actuator_fmu.component, &valref, 1, &Uref);
+        // ----------- Actuator input signal -> [actuator]
+        fmi2Real Uref = actuation->Get_y(time);
+        actuator_fmu.SetVariable("Uref", Uref, FmuVariable::Type::Real);
 
         // ----------- Current actuator state information
         fmi2Real p1;
-        valref = 7;  // piston pressure 1
-        actuator_fmu._fmi2GetReal(actuator_fmu.component, &valref, 1, &p1);
+        actuator_fmu.GetVariable("p1", p1, FmuVariable::Type::Real);
         fmi2Real p2;
-        valref = 8;  // piston pressure 2
-        actuator_fmu._fmi2GetReal(actuator_fmu.component, &valref, 1, &p2);
+        actuator_fmu.GetVariable("p2", p2, FmuVariable::Type::Real);
         fmi2Real U;
-        valref = 9;  // valve position
-        actuator_fmu._fmi2GetReal(actuator_fmu.component, &valref, 1, &U);
+        actuator_fmu.GetVariable("U", U, FmuVariable::Type::Real);
 
         // ----------- Advance FMUs
-        crane_fmu._fmi2DoStep(crane_fmu.component, time, dt, fmi2True);
-        actuator_fmu._fmi2DoStep(actuator_fmu.component, time, dt, fmi2True);
+        crane_fmu.DoStep(time, dt, fmi2True);
+        actuator_fmu.DoStep(time, dt, fmi2True);
 
         // Save output
         ////std::cout << time << s << sd << Uref << U << p1 << p2 << F << std::endl;
-        std::cout << time << " " << s << " " << sd << " " << F << std::endl;
+        std::cout << time << " s,sd = (" << s << "," << sd << ")  F = " << F << std::endl;
         csv << time << s << sd << Uref << U << p1 << p2 << F << std::endl;
 
         time += dt;
