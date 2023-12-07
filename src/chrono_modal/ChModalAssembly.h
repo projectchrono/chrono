@@ -102,7 +102,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         const ChModalDamping& damping_model = ChModalDampingNone());  ///< a damping model to use for the reduced model
 
     void ComputeMassCenter();
-    void CpmputeMappingMatrix();
+    void ComputeProjectionMatrix();
     bool UpdateFloatingFrameOfReference();
     void UpdateTransformationMatrix();
     ChFrameMoving<> GetFloatingFrameOfReference() { return this->floating_frame_F;}
@@ -572,7 +572,7 @@ public:
     ChStateDelta      reduced_assembly_v_old;   // velocity snapshot of reduced assembly at the previous time step
     ChVectorDynamic<> modal_q_old; // state snapshot of the modal coordinates at the previous time step
     ChFrameMoving<>   floating_frame_F0;// floating frame of reference F at the time of SwitchModalReductionON()
-    ChFrameMoving<>   floating_frame_F_old;//floating frame of reference F at previous time step, used for updating F
+    //ChFrameMoving<>   floating_frame_F_old;//floating frame of reference F at previous time step, used for updating F
     bool              is_initialized_F = false;
 
     // a series of new variables for the new formulas to support rotating subassembly
@@ -586,6 +586,7 @@ public:
     //std::shared_ptr<fea::ChNodeFEAbase> attached_node_as_local_frame = nullptr;
     //ChVectorDynamic<> alpha;//coefficient for selection matrix S
     ChFrameMoving<> com_frame;
+    ChVectorDynamic<> u_F;
 
     // Projection matrix according to Bauchau2021
     ChMatrixDynamic<> Q;//mapping matrix for the displacement of the floating frame F
@@ -599,8 +600,9 @@ public:
 
     ChMatrixDynamic<> P_B1;//transformation matrix for the part from the coordinate of F to the coordinate of boundary nodes B
     ChMatrixDynamic<> P_B2;//transformation matrix for the part from the relative coordinate(elastic deformation) of B to the coordinate of boundary nodes B
-    ChMatrixDynamic<> G_B1;
-    ChMatrixDynamic<> G_B2;
+    //ChMatrixDynamic<> G_B1;
+    //ChMatrixDynamic<> G_B2;
+    //ChMatrixDynamic<> G_B2inv;
     ChMatrixDynamic<> P_I1;//transformation matrix for the part from the coordinate of F to the coordinate of internal nodes I
     ChMatrixDynamic<> P_I2;//transformation matrix for the part from the relative coordinate(elastic deformation) of I to the coordinate of internal nodes I
    

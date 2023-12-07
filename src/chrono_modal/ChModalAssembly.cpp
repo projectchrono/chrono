@@ -248,7 +248,7 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M,
         assert(0);
     }
 
-    this->CpmputeMappingMatrix();
+    this->ComputeProjectionMatrix();
 
     // compute the modal K R M matrices
     ComputeInertialKRMmatrix();  // inertial M K R
@@ -412,7 +412,7 @@ void ChModalAssembly::DebugBlock() {
     u_locred.tail(n_modes_coords_w) = modal_q;
     for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
         u_locred.segment(6 * i_bou, 3) =
-            floating_frame_F.GetA().transpose() * x_mod.segment(7 * i_bou, 3) -
+            floating_frame_F.GetRot().RotateBack(x_mod.segment(7 * i_bou, 3)).eigen() -
             floating_frame_F0.GetRot().RotateBack(modes_assembly_x0.segment(7 * i_bou, 3)).eigen();
 
         ChQuaternion<> q_F0 = floating_frame_F0.GetRot();
@@ -420,7 +420,12 @@ void ChModalAssembly::DebugBlock() {
         ChQuaternion<> q_B0 = modes_assembly_x0.segment(7 * i_bou + 3, 4);
         ChQuaternion<> q_B = x_mod.segment(7 * i_bou + 3, 4);
         ChQuaternion<> rel_q = q_B0.GetConjugate() * q_F0 * q_F.GetConjugate() * q_B;
-        u_locred.segment(6 * i_bou + 3, 3) = rel_q.Q_to_Rotv().eigen();
+        // u_locred.segment(6 * i_bou + 3, 3) = rel_q.Q_to_Rotv().eigen();
+
+        double delta_rot_angle;
+        ChVector<> delta_rot_dir;
+        rel_q.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
+        u_locred.segment(6 * i_bou + 3, 3) = delta_rot_angle * delta_rot_dir.eigen();
     }
 
     ChVectorDynamic<> u_F(6);
@@ -432,16 +437,16 @@ void ChModalAssembly::DebugBlock() {
     // check 1: six constraints to eliminate the redundant DOFs of floating frame F
     ChVectorDynamic<> C_F_locred(6);
     C_F_locred = U_locred.transpose() * M_red * e_locred;  // should be zero
-    // GetLog() << "C_F_locred: " << C_F_locred.norm() << "\t";
+    GetLog() << "C_F_locred: " << C_F_locred.norm() << "\t";
 
     // check 2: rigid body motion
-    ChVectorDynamic<> uF_rigid1(6);
+    ChVectorDynamic<> uF_rigid1(bou_mod_coords_w);
     uF_rigid1 = U_locred * u_F;
-    ChVectorDynamic<> uF_rigid2(6);
+    ChVectorDynamic<> uF_rigid2(bou_mod_coords_w);
     uF_rigid2 = P_parallel * u_locred;
-    ChVectorDynamic<> uF_rigid_cmp(6);
+    ChVectorDynamic<> uF_rigid_cmp(bou_mod_coords_w);
     uF_rigid_cmp = uF_rigid1 - uF_rigid2;  // should be zero
-    // GetLog() << "uF_rigid_cmp: " << uF_rigid_cmp.norm() << "\t";
+    GetLog() << "uF_rigid_cmp: " << uF_rigid_cmp.norm() << "\t";
     // GetLog() << "uF_rigid1: " << uF_rigid1.norm() << "\t";
 
     // check 3: elastic deformation
@@ -449,8 +454,9 @@ void ChModalAssembly::DebugBlock() {
     e_locred2 = P_perp * u_locred;
     ChVectorDynamic<> e_locred_cmp;
     e_locred_cmp = e_locred - e_locred2;  // should be zero
-    // GetLog() << "e_locred_cmp: " << e_locred_cmp.norm() << "\t";
-    GetLog() << "e_locred: " << e_locred << "\n";
+    GetLog() << "e_locred_cmp: " << e_locred_cmp.norm() << "\t";
+    // GetLog() << "e_locred: " << e_locred << "\n";
+    // GetLog() << "e_locred2: " << e_locred2 << "\n";
     GetLog() << "\n";
 
     /***
@@ -466,7 +472,7 @@ void ChModalAssembly::DebugBlock() {
 
     ChVectorDynamic<> C_Fdt_locred(6);
     C_Fdt_locred = U_locred.transpose() * M_red * edt_locred;  // should be zero
-    // GetLog() << "C_Fdt_locred: " << C_Fdt_locred.norm() << "\t";
+    GetLog() << "C_Fdt_locred: " << C_Fdt_locred.norm() << "\t";
 
     ChVectorDynamic<> udtF_rigid1(6);
     udtF_rigid1 = U_locred * udt_F;
@@ -474,7 +480,7 @@ void ChModalAssembly::DebugBlock() {
     udtF_rigid2 = P_parallel * udt_locred;
     ChVectorDynamic<> udtF_rigid_cmp(6);
     udtF_rigid_cmp = udtF_rigid1 - udtF_rigid2;  // should be zero
-    // GetLog() << "udtF_rigid_cmp: " << udtF_rigid_cmp.norm() << "\t";
+    GetLog() << "udtF_rigid_cmp: " << udtF_rigid_cmp.norm() << "\t";
     // GetLog() << "udtF_rigid1: " << udtF_rigid1.norm() << "\t";
 
     ChVectorDynamic<> edt_locred2;
@@ -482,13 +488,14 @@ void ChModalAssembly::DebugBlock() {
     ChVectorDynamic<> edt_locred_cmp;
     edt_locred_cmp = edt_locred - edt_locred2;  // should be zero
     GetLog() << "edt_locred_cmp: " << edt_locred_cmp.norm() << "\t";
-    GetLog() << "edt_locred: " << edt_locred << "\n";
-
-    GetLog() << "\n";
+    // GetLog() << "edt_locred: " << edt_locred << "\n";
 
     ChVectorDynamic<> residual_F(bou_mod_coords_w);
     residual_F.setZero();
     residual_F -= P_W * P_perp.transpose() * (this->K_red * e_locred) + this->modal_R * edt_locred;
+    GetLog() << "residual_F: " << residual_F << "\t";
+
+    GetLog() << "\n";
 }
 
 bool ChModalAssembly::UpdateFloatingFrameOfReference() {
@@ -516,7 +523,7 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
     } else {
         // solve floating frame F using Newton-Raphson iteration
 
-        int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
+        // int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
         int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
 
         auto ComputeResidual_ConstrF = [&](ChVectorDynamic<>& mC_F) {
@@ -568,7 +575,13 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
         int iteration_count = 0;
         ChVectorDynamic<> vF(6);
         vF.head(3) = floating_frame_F.GetPos().eigen();
-        vF.tail(3) = floating_frame_F.GetRot().Q_to_Rotv().eigen();
+
+        // vF.tail(3) = floating_frame_F.GetRot().Q_to_Rotv().eigen();
+        ChVector<> delta_rot_dir;
+        double delta_rot_angle;
+        floating_frame_F.GetRot().Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
+        vF.tail(3) = delta_rot_angle * delta_rot_dir.eigen();
+
         double rel_tol = 1e-9;
         double abs_tol = 1e-16;
         double tol = rel_tol * vF.norm() + abs_tol;
@@ -587,6 +600,7 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
             ChQuaternion<> incr_rotF(QNULL);
             incr_rotF.Q_from_Rotv(ChVector<>(delta_F.tail(3)));  // rot.in local basis - as in system wide vectors
             ChQuaternion<> rot_F = floating_frame_F.GetRot() * incr_rotF;
+            rot_F.Normalize();
 
             floating_frame_F.SetPos(pos_F);
             floating_frame_F.SetRot(rot_F);
@@ -599,7 +613,31 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
 
         this->UpdateTransformationMatrix();
 
-        this->CpmputeMappingMatrix();
+        this->ComputeProjectionMatrix();
+
+        ChVectorDynamic<> u_locred(bou_mod_coords_w);
+        u_locred.setZero();
+        u_locred.tail(n_modes_coords_w) = modal_q;
+        for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
+            u_locred.segment(6 * i_bou, 3) =
+                floating_frame_F.GetRot().RotateBack(assembly_x.segment(7 * i_bou, 3)).eigen() -
+                floating_frame_F0.GetRot().RotateBack(modes_assembly_x0.segment(7 * i_bou, 3)).eigen();
+
+            ChQuaternion<> q_F0 = floating_frame_F0.GetRot();
+            ChQuaternion<> q_F = floating_frame_F.GetRot();
+            ChQuaternion<> q_B0 = modes_assembly_x0.segment(7 * i_bou + 3, 4);
+            ChQuaternion<> q_B = assembly_x.segment(7 * i_bou + 3, 4);
+            ChQuaternion<> rel_q = q_B0.GetConjugate() * q_F0 * q_F.GetConjugate() * q_B;
+
+            // u_locred.segment(6 * i_bou + 3, 3) = rel_q.Q_to_Rotv().eigen();
+            ChVector<> delta_rot_dir1;
+            double delta_rot_angle1;
+            rel_q.Q_to_AngAxis(delta_rot_angle1, delta_rot_dir1);
+            u_locred.segment(6 * i_bou + 3, 3) = delta_rot_angle1 * delta_rot_dir1.eigen();
+        }
+
+        u_F.setZero(6);
+        u_F = Q * u_locred;
 
         ChVectorDynamic<> vel_F(6);  // qdt_F
         vel_F = Q * (P_W.transpose() * assembly_v);
@@ -607,7 +645,7 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
         floating_frame_F.SetWvel_loc(vel_F.tail(3));
     }
 
-    floating_frame_F_old = floating_frame_F;
+    // floating_frame_F_old = floating_frame_F;
 
     if (verbose) {
         GetLog() << "Debug in UpdateFloatingFrameOfReference(): \n";
@@ -619,6 +657,53 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
 
 void ChModalAssembly::UpdateTransformationMatrix() {
     // update P_B1, P_B2, P_I1, P_I2, P_W, U_locred
+
+    auto getGa = [&](const ChVector<>& theta_par) {
+        double angle = theta_par.Length();
+        ChMatrix33<> mGa;
+        if (angle > 1e-7) {
+            mGa = ChMatrix33(1.0) + (1.0 - cos(angle)) / pow(angle, 2.0) * ChStarMatrix33<>(theta_par) +
+                  (angle - sin(angle)) / pow(angle, 3.0) * ChStarMatrix33<>(theta_par) * ChStarMatrix33<>(theta_par);
+            // GetLog() << "ChTime: " << ChTime << " ";
+            // GetLog() << "*** Finite rotation increments are called...\n";
+        } else {
+            mGa = ChMatrix33(1.0);
+            // GetLog() << "ChTime: " << ChTime << " ";
+            // GetLog() << "*** Warning: too small rotational increments...\n";
+        }
+
+        return mGa;
+    };
+
+    auto getGl = [](const ChVector<>& theta_par) {
+        double angle = theta_par.Length();
+        ChMatrix33<> mGl;
+        if (angle > 1e-7)
+            mGl = ChMatrix33(1.0) - (1.0 - cos(angle)) / pow(angle, 2.0) * ChStarMatrix33<>(theta_par) +
+                  (angle - sin(angle)) / pow(angle, 3.0) * ChStarMatrix33<>(theta_par) * ChStarMatrix33<>(theta_par);
+        else
+            mGl = ChMatrix33(1.0);
+
+        return mGl;
+    };
+
+    auto getGa_inv = [](const ChVector<>& theta_par) {
+        double angle = theta_par.Length();
+        ChMatrix33<> mGa_inv;
+        if (angle > 1e-7) {
+            double deltaGa = 2.0 * (1.0 - cos(angle)) / pow(angle, 2.0);
+            mGa_inv = ChMatrix33(1.0) - 0.5 * ChStarMatrix33<>(theta_par) +
+                      1.0 / pow(angle, 3.0) * (angle - sin(angle) / deltaGa) * ChStarMatrix33<>(theta_par) *
+                          ChStarMatrix33<>(theta_par);
+        } else
+            mGa_inv = ChMatrix33(1.0);
+
+        return mGa_inv;
+    };
+
+    ChVector<> theta_F = floating_frame_F.GetRot().Q_to_Rotv();
+    ChMatrix33<> Ga_F = getGa(theta_F);
+    ChMatrix33<> Gl_F = getGl(theta_F);
 
     int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
     int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
@@ -648,6 +733,37 @@ void ChModalAssembly::UpdateTransformationMatrix() {
         P_B2.block(6 * i_bou, 6 * i_bou, 3, 3) = floating_frame_F.GetA();
     }
 
+    //// added mapping between virutal rotation vector and rotation psuedovector
+    // G_B1.setZero(n_boundary_coords_w, 6);
+    // G_B2.setIdentity(n_boundary_coords_w, n_boundary_coords_w);
+    // G_B2inv.setIdentity(n_boundary_coords_w, n_boundary_coords_w);
+    // for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
+    //     G_B1.block(6 * i_bou, 0, 3, 3) = ChMatrix33<>(1.0);
+    //     G_B1.block(6 * i_bou, 3, 3, 3) =
+    //         -ChStarMatrix33<>(ChVector<>(x_mod.segment(7 * i_bou, 3)) - floating_frame_F.GetPos()) * Ga_F *
+    //         floating_frame_F.GetA();
+    //     // todo:boundary nodes must have 4 rotational DOFs from quaternion parametrization
+    //     ChQuaternion<> quat_bou = x_mod.segment(7 * i_bou + 3, 4);
+    //     ChVector<> theta_B = quat_bou.Q_to_Rotv();
+    //     if (ChTime > 2.95 && ChTime < 3.0 && i_bou == 1) {
+    //         GetLog() << "ChTime: " << ChTime << " ";
+    //         GetLog() << "\ttheta_F: " << theta_F.x() << " " << theta_F.y() << " " << theta_F.z() << " ";
+    //         GetLog() << "\ttheta_B: " << theta_B.x() << " " << theta_B.y() << " " << theta_B.z() << "\n";
+    //     }
+    //     ChMatrix33<> R_B(quat_bou);
+    //     G_B1.block(6 * i_bou + 3, 3, 3, 3) = R_B.transpose() * getGa_inv(theta_B) * Ga_F * floating_frame_F.GetA();
+
+    //    ChVector<> theta_B_F = (floating_frame_F.GetRot().GetConjugate() * quat_bou).Q_to_Rotv();
+    //    G_B2.block(6 * i_bou, 6 * i_bou, 3, 3) = floating_frame_F.GetA();
+    //    G_B2.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = R_B.transpose() * getGa_inv(theta_B) *
+    //                                                     floating_frame_F.GetA() * getGa(theta_B_F) *
+    //                                                     floating_frame_F.GetA().transpose() * R_B;
+    //    G_B2inv.block(6 * i_bou, 6 * i_bou, 3, 3) = floating_frame_F.GetA().transpose();
+    //    G_B2inv.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = R_B.transpose() * floating_frame_F.GetA() *
+    //                                                        getGa_inv(theta_B_F) * floating_frame_F.GetA().transpose()
+    //                                                        * getGa(theta_B) * R_B;
+    //}
+
     // for internal bodies and nodes
     if (internal_nodes_update) {
         P_I1.setZero(n_internal_coords_w, 6);
@@ -668,15 +784,22 @@ void ChModalAssembly::UpdateTransformationMatrix() {
         }
     }
 
-    P_W.setIdentity(n_boundary_coords_w + n_modes_coords_w, n_boundary_coords_w + n_modes_coords_w);
+    // change P matrix for all cases
+    // P_B1 = G_B1;
+    // P_B2 = G_B2;
+
+    P_W.setIdentity(bou_mod_coords_w, bou_mod_coords_w);
     P_W.topLeftCorner(n_boundary_coords_w, n_boundary_coords_w) = P_B2;
+    // P_W.topLeftCorner(n_boundary_coords_w, n_boundary_coords_w) = G_B2;
 
     U_locred.setZero(bou_mod_coords_w, 6);
     U_locred.topRows(n_boundary_coords_w) = P_B2.transpose() * P_B1;
+    // U_locred.topRows(n_boundary_coords_w) = G_B2.transpose() * G_B1;
+    // U_locred.topRows(n_boundary_coords_w) = G_B2inv * G_B1;
 }
 
-void ChModalAssembly::CpmputeMappingMatrix() {
-    int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
+void ChModalAssembly::ComputeProjectionMatrix() {
+    // int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
     int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
 
     ChMatrixDynamic<> UMU = U_locred.transpose() * M_red * U_locred;  // of size (6,6)
@@ -853,6 +976,8 @@ void ChModalAssembly::DoModalReduction_Herting(const ChModalDamping& damping_mod
         // stability)
         this->M_red = Psi.transpose() * full_M_loc * Psi;
         this->K_red = Psi.transpose() * full_K_loc * Psi;
+        this->K_red.block(0, n_boundary_coords_w, n_boundary_coords_w, n_modes_coords_w).setZero();
+        this->K_red.block(n_boundary_coords_w, 0, n_modes_coords_w, n_boundary_coords_w).setZero();
 
         // Maybe also have a reduced Cq matrix......
         ChSparseMatrix Cq_B_loc = full_Cq_loc.topRows(this->n_boundary_doc_w);
@@ -1020,6 +1145,8 @@ void ChModalAssembly::DoModalReduction_CraigBamption(const ChModalDamping& dampi
         // stability)
         this->M_red = Psi.transpose() * full_M_loc * Psi;
         this->K_red = Psi.transpose() * full_K_loc * Psi;
+        this->K_red.block(0, n_boundary_coords_w, n_boundary_coords_w, n_modes_coords_w).setZero();
+        this->K_red.block(n_boundary_coords_w, 0, n_modes_coords_w, n_boundary_coords_w).setZero();
 
         // Maybe also have a reduced Cq matrix......
         ChSparseMatrix Cq_B_loc = full_Cq_loc.topRows(this->n_boundary_doc_w);
@@ -1076,7 +1203,7 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
     if (!is_modal)
         return;
 
-    // fetch the state snapshot (modal reduced)
+    //// fetch the state snapshot (modal reduced)
     // int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
     // int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
     // double fooT;
@@ -1090,53 +1217,95 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
     // a_mod.setZero(bou_mod_coords_w, nullptr);
     // this->IntStateGatherAcceleration(0, a_mod);
 
-    //// update matrices
-    // V.setZero();
-    // O_B.setZero();
-    // O_F.setZero();
-    // for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
-    //     V.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(R_F.transpose() * v_mod.segment(6 * i_bou, 3));
-    //     O_B.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(v_mod.segment(6 * i_bou + 3, 3));
-    //     O_F.block(6 * i_bou, 6 * i_bou, 3, 3) = ChStarMatrix33<>(wloc_F);
+    // auto ComputeQuadraticVelocityTerm = [&](const ChStateDelta& mv_mod, ChVectorDynamic<>& mg_quad) {
+    //     // update matrices
+    //     V.setZero();
+    //     O_B.setZero();
+    //     O_F.setZero();
+    //     for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
+    //         V.block(6 * i_bou, 3, 3, 3) =
+    //             ChStarMatrix33<>(floating_frame_F.GetRot().RotateBack(mv_mod.segment(6 * i_bou, 3)));
+    //         O_B.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(mv_mod.segment(6 * i_bou + 3, 3));
+    //         O_F.block(6 * i_bou, 6 * i_bou, 3, 3) = ChStarMatrix33<>(floating_frame_F.GetWvel_loc());
+    //     }
+    //     // quadratic velocity term
+    //     ChMatrixDynamic<> mat_O = P_W * (O_F + O_B) * M_red * P_W.transpose();
+    //     ChMatrixDynamic<> mat_M = P_W * M_red * V * Q * P_W.transpose();
+    //     mg_quad.setZero();
+    //     mg_quad = (mat_O + mat_M - mat_M.transpose()) * mv_mod;
+    // };
+
+    //// numerical evaluation of the D matrices
+    // double delta_p = 1e-4;
+    // double delta_r = 1e-3;
+    // double delta_eta = 1e-5;
+
+    // g_quad.setZero();
+    // ComputeQuadraticVelocityTerm(v_mod, g_quad);
+    // ChVectorDynamic<> g_quadD(bou_mod_coords_w);
+    // this->Ri_sup.setZero();
+
+    //// D
+    // for (int i = 0; i < n_boundary_coords_w / 6; ++i) {
+    //     // perturbation for translational velocity
+    //     for (int j = 0; j < 3; ++j) {
+    //         int c = 6 * i + j;
+    //         ChStateDelta v_modD = v_mod;
+    //         v_modD[c] += delta_p;
+    //         ComputeQuadraticVelocityTerm(v_modD, g_quadD);
+    //         this->Ri_sup.col(c) = (g_quadD - g_quad) / delta_p;
+    //     }
+    //     for (int j = 0; j < 3; ++j) {
+    //         // perturbation for rotational velocity
+    //         int c = 6 * i + j + 3;
+    //         ChStateDelta v_modD = v_mod;
+    //         v_modD[c] += delta_r;
+    //         ComputeQuadraticVelocityTerm(v_modD, g_quadD);
+    //         this->Ri_sup.col(c) = (g_quadD - g_quad) / delta_r;
+    //     }
+    // }
+    // for (int i = 0; i < n_modes_coords_w; ++i) {
+    //     // perturbation for modal velocity
+    //     int c = n_boundary_coords_w + i;
+    //     ChStateDelta v_modD = v_mod;
+    //     v_modD[c] += delta_eta;
+    //     ComputeQuadraticVelocityTerm(v_modD, g_quadD);
+    //     this->Ri_sup.col(c) = (g_quadD - g_quad) / delta_eta;
     // }
 
-    // update matrices
-    /*V_acc.setZero();
-    V_rmom.setZero();
-    O_thetamom.setZero();
-    V_F1.setZero();
-    V_F2.setZero();
-    V_F3.setZero();
-    ChVectorDynamic<> momen = M_red * (P_W.transpose() * v_mod);
-    ChVectorDynamic<> centr = M_red * (P_W.transpose() * a_mod);
-    ChVectorDynamic<> momen_F = O_F * momen;
-    ChVectorDynamic<> coriolis = M_red * (V * (U * v_mod));
-    for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
-        V_acc.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(R_F.transpose() * a_mod.segment(6 * i_bou, 3));
-        V_rmom.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(momen.segment(6 * i_bou, 3));
-        O_thetamom.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(momen.segment(6 * i_bou + 3, 3));
-        V_F1.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(centr.segment(6 * i_bou, 3));
-        V_F2.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(momen_F.segment(6 * i_bou, 3));
-        V_F3.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(coriolis.segment(6 * i_bou, 3));
-    }*/
+    //// update matrices
+    // V_acc.setZero();
+    // V_rmom.setZero();
+    // O_thetamom.setZero();
+    // V_F1.setZero();
+    // V_F2.setZero();
+    // V_F3.setZero();
+    // ChVectorDynamic<> momen = M_red * (P_W.transpose() * v_mod);
+    // ChVectorDynamic<> centr = M_red * (P_W.transpose() * a_mod);
+    // ChVectorDynamic<> momen_F = O_F * momen;
+    // ChVectorDynamic<> coriolis = M_red * (V * (Q * v_mod));
+    // for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
+    //     V_acc.block(6 * i_bou, 3, 3, 3) =
+    //         ChStarMatrix33<>(floating_frame_F.GetRot().RotateBack(a_mod.segment(6 * i_bou, 3)));
+    //     V_rmom.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(momen.segment(6 * i_bou, 3));
+    //     O_thetamom.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(momen.segment(6 * i_bou + 3, 3));
+    //     V_F1.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(centr.segment(6 * i_bou, 3));
+    //     V_F2.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(momen_F.segment(6 * i_bou, 3));
+    //     V_F3.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(coriolis.segment(6 * i_bou, 3));
+    // }
 
     // inertial mass matrix
     M_sup = P_W * M_red * P_W.transpose();
 
     //// inertial damping matrix
-    // ChMatrixDynamic<> Ri_temp = P_W * (M_red * V - V_rmom) * U;
+    // ChMatrixDynamic<> Ri_temp = P_W * (M_red * V - V_rmom) * Q;
     // Ri_sup = P_W * (O_F * M_red - M_red * O_F) * P_W.transpose() + Ri_temp - Ri_temp.transpose() +
     //          O_B * M_red * P_W.transpose() - O_thetamom;
 
     //// inertial stiffness matrix
-    // Ki_sup = P_W * (O_F * M_red - M_red * O_F) * V * U - U.transpose() * V.transpose() * M_red * V * U +
-    //          O_B * M_red * V * U - P_W * (V_F1 + V_F2 + V_F3) * U + P_W * M_red * V_acc * U +
-    //          U.transpose() * V_rmom.transpose() * V * U;
-
-    //// quadratic velocity term
-    // ChMatrixDynamic<> mat_O = P_W * (O_F + O_B) * M_red * P_W.transpose();
-    // ChMatrixDynamic<> mat_M = P_W * M_red * V * Q * P_W.transpose();
-    // g_quad = (mat_O + mat_M - mat_M.transpose()) * v_mod;
+    // Ki_sup = P_W * (O_F * M_red - M_red * O_F) * V * Q - Q.transpose() * V.transpose() * M_red * V * Q +
+    //          O_B * M_red * V * Q - P_W * (V_F1 + V_F2 + V_F3) * Q + P_W * M_red * V_acc * Q +
+    //          Q.transpose() * V_rmom.transpose() * V * Q;
 }
 
 void ChModalAssembly::ComputeStiffnessMatrix() {
@@ -1157,46 +1326,47 @@ void ChModalAssembly::ComputeStiffnessMatrix() {
     // ChStateDelta vel_loc(bou_mod_coords_w, nullptr);
     // this->GetStateLocal(displ_loc, vel_loc);
 
-    //// local internal forces of reduced superelement
+    // local internal forces of reduced superelement
     // g_loc = K_red * displ_loc;
 
     // material stiffness matrix of reduced superelement
     Km_sup = P_W * P_perp.transpose() * K_red * P_perp * P_W.transpose();
 
-    // ChMatrix33<> Xi_F1;
-    // ChMatrix33<> Xi_F2;
-    // ChMatrix33<> Xi_F3;
-    // ChMatrixDynamic<> Xi_F;
-    // ChMatrixDynamic<> Xi_H;
-    // ChMatrixDynamic<> Xi_V;
-    // Xi_F1.setZero();
-    // Xi_F2.setZero();
-    // Xi_F3.setZero();
-    // Xi_F.setZero(6, 6);
-    // Xi_H.setZero(6, n_boundary_coords_w);
-    // Xi_V.setZero(n_boundary_coords_w, 6);
+    /*ChMatrix33<> Xi_F1;
+    ChMatrix33<> Xi_F2;
+    ChMatrix33<> Xi_F3;
+    ChMatrixDynamic<> Xi_F;
+    ChMatrixDynamic<> Xi_H;
+    ChMatrixDynamic<> Xi_V;
+    Xi_F1.setZero();
+    Xi_F2.setZero();
+    Xi_F3.setZero();
+    Xi_F.setZero(6, 6);
+    Xi_H.setZero(6, n_boundary_coords_w);
+    Xi_V.setZero(n_boundary_coords_w, 6);
 
-    // for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
-    //     ChVector<> F_loc = g_loc.segment(6 * i_bou, 3);
-    //     ChVector<> M_loc = g_loc.segment(6 * i_bou + 3, 3);
-    //     ChVector<> r_B = x_mod.segment(7 * i_bou, 3);
-    //     ChQuaternion<> quat_bou = x_mod.segment(7 * i_bou + 3, 4);
-    //     ChMatrix33<> R_B(quat_bou);
-    //     Xi_F1 += R_F * ChStarMatrix33<>(F_loc);
-    //     Xi_F3 += ChStarMatrix33<>(F_loc) * R_F.transpose() * ChStarMatrix33<>(r_B - floating_frame_F.GetPos()) * R_F
-    //     -
-    //              ChStarMatrix33<>(R_F.transpose() * (R_B * M_loc));
-    //     Xi_H.block(3, 6 * i_bou, 3, 3) = ChStarMatrix33<>(F_loc) * R_F.transpose();
-    //     Xi_H.block(3, 6 * i_bou + 3, 3, 3) = R_F.transpose() * (R_B * ChStarMatrix33<>(M_loc));
-    //     Xi_V.block(6 * i_bou, 3, 3, 3) = -R_F * ChStarMatrix33<>(F_loc);
-    // }
-    // Xi_F2 = Xi_F1.transpose();
-    // Xi_F << ChMatrix33<>(0), Xi_F1, Xi_F2, Xi_F3;
+    for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
+        ChVector<> F_loc = g_loc.segment(6 * i_bou, 3);
+        ChVector<> M_loc = g_loc.segment(6 * i_bou + 3, 3);
+        ChVector<> r_B = x_mod.segment(7 * i_bou, 3);
+        ChQuaternion<> quat_bou = x_mod.segment(7 * i_bou + 3, 4);
+        ChMatrix33<> R_B(quat_bou);
+        Xi_F1 += floating_frame_F.GetA() * ChStarMatrix33<>(F_loc);
+        Xi_F3 += ChStarMatrix33<>(F_loc) * floating_frame_F.GetA().transpose() *
+                     ChStarMatrix33<>(r_B - floating_frame_F.GetPos()) * floating_frame_F.GetA()
+        -
+                 ChStarMatrix33<>(floating_frame_F.GetA().transpose() * (R_B * M_loc));
+        Xi_H.block(3, 6 * i_bou, 3, 3) = ChStarMatrix33<>(F_loc) * floating_frame_F.GetA().transpose();
+        Xi_H.block(3, 6 * i_bou + 3, 3, 3) = floating_frame_F.GetA().transpose() * (R_B * ChStarMatrix33<>(M_loc));
+        Xi_V.block(6 * i_bou, 3, 3, 3) = -floating_frame_F.GetA() * ChStarMatrix33<>(F_loc);
+    }
+    Xi_F2 = Xi_F1.transpose();
+    Xi_F << ChMatrix33<>(0), Xi_F1, Xi_F2, Xi_F3;*/
 
-    //// geometrical stiffness matrix of reduced superelement
+    // geometrical stiffness matrix of reduced superelement
     // Kg_sup.setZero();
     // Kg_sup.topLeftCorner(n_boundary_coords_w, n_boundary_coords_w) =
-    //     S.transpose() * Xi_F * S + S.transpose() * Xi_H + Xi_V * S;
+    //    S.transpose() * Xi_F * S + S.transpose() * Xi_H + Xi_V * S;
 }
 
 void ChModalAssembly::ComputeDampingMatrix() {
@@ -1219,6 +1389,8 @@ void ChModalAssembly::SetupModalData(int nmodes_reduction) {
     // Initialize matrices
     P_B1.setZero(n_boundary_coords_w, 6);
     P_B2.setZero(n_boundary_coords_w, n_boundary_coords_w);
+    // G_B1.setZero(n_boundary_coords_w, 6);
+    // G_B2.setZero(n_boundary_coords_w, n_boundary_coords_w);
     P_I1.setZero(n_internal_coords_w, 6);
     P_I2.setZero(n_internal_coords_w, n_internal_coords_w);
     P_W.setZero(n_boundary_coords_w + n_modes_coords_w, n_boundary_coords_w + n_modes_coords_w);
@@ -2211,8 +2383,8 @@ void ChModalAssembly::Update(bool update_assets) {
         if (m_custom_F_full_callback)
             m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
 
-        // if (update_assets)
-        this->UpdateFloatingFrameOfReference();
+        if (update_assets)
+            this->UpdateFloatingFrameOfReference();
     }
 }
 
@@ -2273,7 +2445,12 @@ void ChModalAssembly::GetStateLocal(ChStateDelta& Dx_local, ChStateDelta& v_loca
             // ChQuaternion<> q_delta = floating_frame_F.GetRot().GetConjugate() * quat_bou * q_refrot.GetConjugate();
             ChQuaternion<> q_delta = quat_bou0.GetConjugate() * floating_frame_F0.GetRot() *
                                      floating_frame_F.GetRot().GetConjugate() * quat_bou;
-            displ_loc.segment(6 * i_bou + 3, 3) = q_delta.Q_to_Rotv().eigen();
+            // displ_loc.segment(6 * i_bou + 3, 3) = q_delta.Q_to_Rotv().eigen();
+
+            double delta_rot_angle;
+            ChVector<> delta_rot_dir;
+            q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
+            displ_loc.segment(6 * i_bou + 3, 3) = delta_rot_angle * delta_rot_dir.eigen();
         }
 
         Dx_local = displ_loc;
@@ -2501,10 +2678,10 @@ void ChModalAssembly::IntStateIncrement(const unsigned int off_x,
                                         const ChStateDelta& Dv) {
     ChAssembly::IntStateIncrement(off_x, x_new, x, off_v, Dv);  // parent
 
-    unsigned int displ_x = off_x - this->offset_x;
-    unsigned int displ_v = off_v - this->offset_w;
-
     if (is_modal == false) {
+        unsigned int displ_x = off_x - this->offset_x;
+        unsigned int displ_v = off_v - this->offset_w;
+
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
                 body->IntStateIncrement(displ_x + body->GetOffset_x(), x_new, x, displ_v + body->GetOffset_w(), Dv);
@@ -2524,6 +2701,26 @@ void ChModalAssembly::IntStateIncrement(const unsigned int off_x,
                 item->IntStateIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
         }
     } else {
+        // todo: first compute the increment w.r.t. the floating frame F
+
+        // for (int i = 0; i < n_boundary_coords_w / 6; ++i) {
+        //     ChVector<> incrot_B(Dv.segment(off_v + i * 6 + 3, 3));
+        //      ChVector<> incrot_F(u_F.tail(3));
+        //     /*         ChVector<> incrot_B_F = G_B2inv.block(i * 6 + 3, i * 6 + 3, 3, 3) *
+        //                                      (incrot_B.eigen() - G_B1.block(i * 6 + 3, 3, 3, 3) *
+        //                                      incrot_F.eigen());*/
+        //      ChVector<> incrot_B_F = incrot_B.eigen() - P_B1.block(i * 6 + 3, 3, 3, 3) * incrot_F.eigen();
+
+        //     ChQuaternion<> rel_q;
+        //     rel_q.Q_from_Rotv(incrot_B_F);
+        //     ChQuaternion<> q_F0 = floating_frame_F0.GetRot();
+        //     ChQuaternion<> q_F = floating_frame_F.GetRot();
+        //     ChQuaternion<> q_B0 = modes_assembly_x0.segment(7 * i + 3, 4);
+        //     x_new.segment(off_x + i * 7 + 3, 4) = (q_F * q_F0.GetConjugate() * q_B0 * rel_q).eigen();
+
+        //    x_new.segment(off_x + i * 7, 3) = x.segment(off_x + i * 7, 3) + Dv.segment(off_v + i * 6, 3);
+        //}
+
         x_new.segment(off_x + this->n_boundary_coords, this->n_modes_coords_w) =
             x.segment(off_x + this->n_boundary_coords, this->n_modes_coords_w) +
             Dv.segment(off_v + this->n_boundary_coords_w, this->n_modes_coords_w);
@@ -2617,10 +2814,12 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         //    V.setZero();
         //    O_B.setZero();
         //    O_F.setZero();
+        //    g_quad.setZero();
         //    for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
-        //        V.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(R_F.transpose() * v_mod.segment(6 * i_bou, 3));
+        //        V.block(6 * i_bou, 3, 3, 3) =
+        //            ChStarMatrix33<>(floating_frame_F.GetRot().RotateBack(v_mod.segment(6 * i_bou, 3)));
         //        O_B.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(v_mod.segment(6 * i_bou + 3, 3));
-        //        O_F.block(6 * i_bou, 6 * i_bou, 3, 3) = ChStarMatrix33<>(wloc_F);
+        //        O_F.block(6 * i_bou, 6 * i_bou, 3, 3) = ChStarMatrix33<>(floating_frame_F.GetWvel_loc());
         //    }
 
         //    // quadratic velocity term
@@ -2631,7 +2830,33 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
 
         // note: - sign
         // R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -=
-        // c * (P_W * P_perp.transpose() * (this->K_red * Dx_locred + this->R_red * v_locred) + g_quad*0);
+        // c * (P_W * P_perp.transpose() * (this->K_red * Dx_locred) + this->modal_R * v_mod + g_quad);
+
+        // ChMatrixDynamic<> G_W;
+        // G_W.setIdentity(n_boundary_coords_w + n_modes_coords_w, n_boundary_coords_w + n_modes_coords_w);
+        // G_W.topLeftCorner(n_boundary_coords_w, n_boundary_coords_w) = G_B2;
+
+        // ChMatrixDynamic<> GU_locred;
+        // GU_locred.setZero(bou_mod_coords_w, 6);
+        // GU_locred.topRows(n_boundary_coords_w) = G_B2inv * G_B1;
+
+        // ChMatrixDynamic<> UMU = GU_locred.transpose() * M_red * GU_locred;  // of size (6,6)
+        // ChMatrixDynamic<> G_Q;
+        // G_Q.setZero(6, bou_mod_coords_w);
+        //// Q = UMU.inverse() * U_locred.transpose() * M_red;
+        // G_Q = UMU.colPivHouseholderQr().solve(GU_locred.transpose() * M_red);
+
+        // ChMatrixDynamic<> GP_parallel;
+        // GP_parallel.setZero(bou_mod_coords_w, bou_mod_coords_w);
+        // GP_parallel = GU_locred * G_Q;
+
+        // ChMatrixDynamic<> I_bm;
+        // I_bm.setIdentity(bou_mod_coords_w, bou_mod_coords_w);
+        // ChMatrixDynamic<> GP_perp;
+        // GP_perp.setZero(bou_mod_coords_w, bou_mod_coords_w);
+        // GP_perp = I_bm - GP_parallel;
+        // R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -=
+        // c * (G_W * P_perp.transpose() * (this->K_red * Dx_locred + this->R_red * v_locred));
 
         R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -=
             c * (P_W * P_perp.transpose() * (this->K_red * Dx_locred) + this->modal_R * v_mod);
@@ -2656,15 +2881,6 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
             F_red.tail(n_modes_coords_w) =
                 Psi_D.transpose() * P_I2.transpose() * this->custom_F_full.tail(this->n_internal_coords_w);
             R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) += c * F_red;
-
-            // bool check_stiffness_matrix = (ChTime > 8.1 && ChTime < 8.12);
-            // if (check_stiffness_matrix) {
-            //     ChVectorDynamic<> static_defl;
-            //     static_defl = modal_K.bottomRightCorner(18,18).colPivHouseholderQr().solve(F_red.tail(18));
-            //     GetLog() << "F_red.tail(18):\n" << F_red.tail(18) << "\n";
-            //     GetLog() << "static_defl:\n" << static_defl << "\n";
-
-            //}
         }
     }
 }
