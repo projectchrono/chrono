@@ -53,10 +53,6 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     
     wheel_body->SetCollide(true);
 
-    wheel_body->GetCollisionModel()->Clear();
-
-    wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRE);
-
     if (m_use_contact_mesh) {
         // Mesh contact
         m_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(m_contact_meshFile, true, false);
@@ -70,15 +66,14 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
         }
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_material, m_trimesh, false, false,
                                                                                 m_sweep_sphere_radius);
-        wheel_body->GetCollisionModel()->AddShape(ct_shape);
+        wheel_body->AddCollisionShape(ct_shape);
     } else {
         // Cylinder contact
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, GetRadius(), GetWidth());
-        wheel_body->GetCollisionModel()->AddShape(ct_shape,
-                                                  ChFrame<>(ChVector<>(0, 0, GetOffset()), Q_from_AngX(CH_C_PI_2)));
+        wheel_body->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, GetOffset()), Q_from_AngX(CH_C_PI_2)));
     }
 
-    wheel_body->GetCollisionModel()->Build();
+    wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRE);
 }
 
 void ChRigidTire::Synchronize(double time, const ChTerrain& terrain) {

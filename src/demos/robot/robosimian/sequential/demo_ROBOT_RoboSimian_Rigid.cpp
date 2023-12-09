@@ -84,7 +84,7 @@ class RayCaster {
 
 RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2<>& dims, double spacing)
     : m_sys(sys), m_origin(origin), m_dims(dims), m_spacing(spacing) {
-    m_body = std::shared_ptr<ChBody>(sys->NewBody());
+    m_body = chrono_types::make_shared<ChBody>();
     m_body->SetBodyFixed(true);
     m_body->SetCollide(false);
     sys->AddBody(m_body);
@@ -136,18 +136,18 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem* sys, double length, double width
         std::static_pointer_cast<ChMaterialSurfaceSMC>(ground_mat)->SetYoungModulus(Y);
     }
 
-    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
+    auto ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
 
     auto shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
-    ground->GetCollisionModel()->AddShape(shape, ChFrame<>(ChVector<>(offset, 0, height - 0.1), QUNIT));
-    ground->GetCollisionModel()->Build();
+    ground->AddCollisionShape(shape, ChFrame<>(ChVector<>(offset, 0, height - 0.1), QUNIT));
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(length, width, 0.2);
     box->SetTexture(GetChronoDataFile("textures/pinkwhite.png"), 10 * (float)length, 10 * (float)width);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(offset, 0, height - 0.1), QUNIT));
 
+    sys->GetCollisionSystem()->BindItem(ground);
     sys->AddBody(ground);
 
     return ground;
@@ -193,6 +193,7 @@ int main(int argc, char* argv[]) {
             break;
     }
 
+    my_sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     my_sys->SetSolverMaxIterations(200);
     my_sys->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
     my_sys->Set_G_acc(ChVector<double>(0, 0, -9.8));

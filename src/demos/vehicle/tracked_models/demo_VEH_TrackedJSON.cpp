@@ -315,6 +315,9 @@ int main(int argc, char* argv[]) {
     cout << "  Transmission type: " << transmission->GetTemplateName() << endl;
     cout << "  Vehicle mass:      " << vehicle.GetMass() << endl;
 
+    // Associate a collision system
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
     terrain.Initialize();

@@ -225,6 +225,9 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Vehicle mass: " << lmtv.GetVehicle().GetMass() << std::endl;
 
+    // Associate a collision system
+    lmtv.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // ------------------
     // Create the terrain
     // ------------------

@@ -205,6 +205,9 @@ int main(int argc, char* argv[]) {
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
+    // Set associated collision detection system
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Add vehicle as an agent and initialize SynChronoManager
     auto agent = chrono_types::make_shared<SynTrackedVehicleAgent>(&vehicle, zombie_file);
     syn_manager.AddAgent(agent);

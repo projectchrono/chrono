@@ -35,28 +35,30 @@ def main():
     # Create systems
 
     #  Create the HMMWV vehicle, set parameters, and initialize
-    my_hmmwv = veh.HMMWV_Full()
-    my_hmmwv.SetContactMethod(contact_method)
-    my_hmmwv.SetChassisCollisionType(chassis_collision_type)
-    my_hmmwv.SetChassisFixed(False)
-    my_hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
-    my_hmmwv.SetEngineType(engine_model)
-    my_hmmwv.SetTransmissionType(transmission_model)
-    my_hmmwv.SetDriveType(drive_type)
-    my_hmmwv.SetSteeringType(steering_type)
-    my_hmmwv.SetTireType(tire_model)
-    my_hmmwv.SetTireStepSize(tire_step_size)
-    my_hmmwv.Initialize()
+    hmmwv = veh.HMMWV_Full()
+    hmmwv.SetContactMethod(contact_method)
+    hmmwv.SetChassisCollisionType(chassis_collision_type)
+    hmmwv.SetChassisFixed(False)
+    hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+    hmmwv.SetEngineType(engine_model)
+    hmmwv.SetTransmissionType(transmission_model)
+    hmmwv.SetDriveType(drive_type)
+    hmmwv.SetSteeringType(steering_type)
+    hmmwv.SetTireType(tire_model)
+    hmmwv.SetTireStepSize(tire_step_size)
+    hmmwv.Initialize()
 
-    my_hmmwv.SetChassisVisualizationType(chassis_vis_type)
-    my_hmmwv.SetSuspensionVisualizationType(suspension_vis_type)
-    my_hmmwv.SetSteeringVisualizationType(steering_vis_type)
-    my_hmmwv.SetWheelVisualizationType(wheel_vis_type)
-    my_hmmwv.SetTireVisualizationType(tire_vis_type)
+    hmmwv.SetChassisVisualizationType(chassis_vis_type)
+    hmmwv.SetSuspensionVisualizationType(suspension_vis_type)
+    hmmwv.SetSteeringVisualizationType(steering_vis_type)
+    hmmwv.SetWheelVisualizationType(wheel_vis_type)
+    hmmwv.SetTireVisualizationType(tire_vis_type)
+
+    hmmwv.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
     # Create the terrain
 
-    terrain = veh.RigidTerrain(my_hmmwv.GetSystem())
+    terrain = veh.RigidTerrain(hmmwv.GetSystem())
     if (contact_method == chrono.ChContactMethod_NSC):
         patch_mat = chrono.ChMaterialSurfaceNSC()
         patch_mat.SetFriction(0.9)
@@ -81,7 +83,7 @@ def main():
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddLightDirectional()
     vis.AddSkyBox()
-    vis.AttachVehicle(my_hmmwv.GetVehicle())
+    vis.AttachVehicle(hmmwv.GetVehicle())
 
     # Initialize output
 
@@ -92,13 +94,13 @@ def main():
             print("Error creating output directory ")
 
     # Set up vehicle output
-    my_hmmwv.GetVehicle().SetChassisOutput(True)
-    my_hmmwv.GetVehicle().SetSuspensionOutput(0, True)
-    my_hmmwv.GetVehicle().SetSteeringOutput(0, True)
-    my_hmmwv.GetVehicle().SetOutput(veh.ChVehicleOutput.ASCII, out_dir, "output", 0.1)
+    hmmwv.GetVehicle().SetChassisOutput(True)
+    hmmwv.GetVehicle().SetSuspensionOutput(0, True)
+    hmmwv.GetVehicle().SetSteeringOutput(0, True)
+    hmmwv.GetVehicle().SetOutput(veh.ChVehicleOutput.ASCII, out_dir, "output", 0.1)
 
     # Generate JSON information with available output channels
-    my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json")
+    hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json")
 
     # Create the interactive driver system
     driver = veh.ChInteractiveDriverIRR(vis)
@@ -130,7 +132,7 @@ def main():
     # ---------------------------------------------
     # Create a sensor manager and add a point light
     # ---------------------------------------------
-    manager = sens.ChSensorManager(my_hmmwv.GetSystem())
+    manager = sens.ChSensorManager(hmmwv.GetSystem())
     manager.scene.AddPointLight(chrono.ChVectorF(
         0, 0, 100), chrono.ChColor(2, 2, 2), 5000)
 
@@ -143,7 +145,7 @@ def main():
     exposure_time = 1/update_rate
     offset_pose = chrono.ChFrameD(chrono.ChVectorD(-5, 0, 2))
     cam = sens.ChCameraSensor(
-        my_hmmwv.GetChassisBody(),              # body camera is attached to
+        hmmwv.GetChassisBody(),              # body camera is attached to
         update_rate,            # update rate in Hz
         offset_pose,            # offset pose
         image_width,            # image width
@@ -171,7 +173,7 @@ def main():
     # ----------------------------------------------
     offset_pose = chrono.ChFrameD(
         chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
-    imu = sens.ChAccelerometerSensor(my_hmmwv.GetChassisBody(),                     # body imu is attached to
+    imu = sens.ChAccelerometerSensor(hmmwv.GetChassisBody(),                     # body imu is attached to
                                      imu_update_rate,         # update rate in Hz
                                      offset_pose,             # offset pose
                                      imu_noise_none          # noise model
@@ -191,7 +193,7 @@ def main():
     # ----------------------------------------------
     offset_pose = chrono.ChFrameD(
         chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
-    gps = sens.ChGPSSensor(my_hmmwv.GetChassisBody(),                     # body imu is attached to
+    gps = sens.ChGPSSensor(hmmwv.GetChassisBody(),                     # body imu is attached to
                            gps_update_rate,       # update rate in Hz
                            offset_pose,             # offset pose
                            gps_reference,
@@ -209,7 +211,7 @@ def main():
 
     realtime_timer = chrono.ChRealtimeStepTimer()
     while vis.Run():
-        time = my_hmmwv.GetSystem().GetChTime()
+        time = hmmwv.GetSystem().GetChTime()
 
         # End simulation
         if (time >= t_end):
@@ -224,11 +226,11 @@ def main():
         if (debug_output and step_number % debug_steps == 0):
             print("\n\n============ System Information ============\n")
             print("Time = " << time << "\n\n")
-            # my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS)
+            # hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS)
 
-            marker_driver = my_hmmwv.GetChassis().GetMarkers()[
+            marker_driver = hmmwv.GetChassis().GetMarkers()[
                 0].GetAbsCoord().pos
-            marker_com = my_hmmwv.GetChassis().GetMarkers()[
+            marker_com = hmmwv.GetChassis().GetMarkers()[
                 1].GetAbsCoord().pos
             print("Markers\n")
             print("  Driver loc:      ", marker_driver.x,
@@ -242,13 +244,13 @@ def main():
         # Update modules (process inputs from other modules)
         driver.Synchronize(time)
         terrain.Synchronize(time)
-        my_hmmwv.Synchronize(time, driver_inputs, terrain)
+        hmmwv.Synchronize(time, driver_inputs, terrain)
         vis.Synchronize(time, driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)
         terrain.Advance(step_size)
-        my_hmmwv.Advance(step_size)
+        hmmwv.Advance(step_size)
         vis.Advance(step_size)
 
         # Update sensor manager

@@ -44,7 +44,7 @@ class ChApi ChVolume : public ChGeometry {
     /// Return a point in the volume, given parametric coordinates U,V,W.
     /// Parameters U V W always work in 0..1 range.
     /// The default implementation always returns the volume center.
-    virtual ChVector<> Evaluate(const double parU, const double parV, const double parW) const { return VNULL; }
+    virtual ChVector<> Evaluate(double parU, double parV, double parW) const { return VNULL; }
 
     /// Tell if the volume is closed (periodic) in parametric coordinate
     virtual bool Get_closed_U() const { return false; }

@@ -138,7 +138,7 @@ void ChFsiVisualizationGL::Initialize() {
 
     if (m_bndry_bce_markers) {
         for (int i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
-            auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+            auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
             auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
@@ -149,7 +149,7 @@ void ChFsiVisualizationGL::Initialize() {
 
     if (m_rigid_bce_markers) {
         for (int i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
-            auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+            auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
             auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
@@ -160,7 +160,7 @@ void ChFsiVisualizationGL::Initialize() {
 
     if (m_flex_bce_markers) {
         for (int i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
-            auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+            auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
             auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));

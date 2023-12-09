@@ -78,11 +78,15 @@ GranularTerrain::GranularTerrain(ChSystem* system)
       m_vis_enabled(false),
       m_verbose(false) {
     // Create the ground body and add it to the system.
-    m_ground = std::shared_ptr<ChBody>(system->NewBody());
+    m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector<>(0, 0, 0));
     m_ground->SetBodyFixed(true);
     m_ground->SetCollide(false);
+
+    // Create a collsion model for the ground body (required for the custom boundary detection algorithm)
+    m_ground->AddCollisionModel(chrono_types::make_shared<ChCollisionModel>());
+
     system->AddBody(m_ground);
 
     // Set default parameters for contact material

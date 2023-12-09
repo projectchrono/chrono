@@ -53,8 +53,10 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     m_spindle->SetMass(m_spindle->GetMass() + GetWheelMass());
     m_spindle->SetInertiaXX(m_spindle->GetInertiaXX() + GetWheelInertia());
 
-    m_spindle->GetCollisionModel()->SetFamily(WheeledCollisionFamily::WHEEL);
-    m_spindle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+    if (m_spindle->GetCollisionModel()) {
+        m_spindle->GetCollisionModel()->SetFamily(WheeledCollisionFamily::WHEEL);
+        m_spindle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+    }
 
     // Create ChLoad objects to apply terrain forces on spindle
     m_spindle_terrain_force = chrono_types::make_shared<ChLoadBodyForce>(m_spindle, VNULL, false, VNULL, false);

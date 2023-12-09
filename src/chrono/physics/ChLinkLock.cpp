@@ -1828,8 +1828,8 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 // SERIALIZATION
 
 // To avoid putting the following mapper macro inside the class definition,
-// enclose macros in local 'my_enum_mappers_types'.
-class my_enum_mappers_types : public ChLinkLock {
+// enclose macros in local 'ChLinkLock_LinkType_enum_mapper'.
+class ChLinkLock_LinkType_enum_mapper : public ChLinkLock {
   public:
     CH_ENUM_MAPPER_BEGIN(LinkType);
     CH_ENUM_VAL(LinkType::LOCK);
@@ -1859,7 +1859,7 @@ void ChLinkLock::ArchiveOut(ChArchiveOut& marchive) {
     ChLinkMarkers::ArchiveOut(marchive);
 
     // serialize all member data
-    my_enum_mappers_types::LinkType_mapper typemapper;
+    ChLinkLock_LinkType_enum_mapper::LinkType_mapper typemapper;
     marchive << CHNVP(typemapper(type), "link_type");
 
     marchive << CHNVP(mask); //// TODO: needed?
@@ -1895,7 +1895,7 @@ void ChLinkLock::ArchiveIn(ChArchiveIn& marchive) {
     ChLinkMarkers::ArchiveIn(marchive);
 
     // deserialize all member data
-    my_enum_mappers_types::LinkType_mapper typemapper;
+    ChLinkLock_LinkType_enum_mapper::LinkType_mapper typemapper;
     LinkType link_type;
     marchive >> CHNVP(typemapper(link_type), "link_type");
     ChangeLinkType(link_type);
@@ -2408,8 +2408,8 @@ void ChLinkLockLock::UpdateState() {
 }
 
 // To avoid putting the following mapper macro inside the class definition,
-// enclose macros in local 'my_enum_mappers_angles'.
-class my_enum_mappers_angles : public ChLinkLockLock {
+// enclose macros in local 'ChLinkLockLock_AngleSet_enum_mapper'.
+class ChLinkLockLock_AngleSet_enum_mapper : public ChLinkLockLock {
   public:
     CH_ENUM_MAPPER_BEGIN(AngleSet);
     CH_ENUM_VAL(AngleSet::ANGLE_AXIS);
@@ -2460,7 +2460,7 @@ void ChLinkLockLock::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(motion_ang3);
     marchive << CHNVP(motion_axis);
 
-    my_enum_mappers_angles::AngleSet_mapper setmapper;
+    ChLinkLockLock_AngleSet_enum_mapper::AngleSet_mapper setmapper;
     marchive << CHNVP(setmapper(angleset), "angle_set");
 }
 
@@ -2502,7 +2502,7 @@ void ChLinkLockLock::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(motion_ang3);
     marchive >> CHNVP(motion_axis);
 
-    my_enum_mappers_angles::AngleSet_mapper setmapper;
+    ChLinkLockLock_AngleSet_enum_mapper::AngleSet_mapper setmapper;
     marchive >> CHNVP(setmapper(angleset), "angle_set");
 }
 

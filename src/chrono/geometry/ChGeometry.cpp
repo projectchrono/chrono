@@ -22,7 +22,7 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChGeometry)  // NO! Abstract class!
 
-class my_enum_mappers : public ChGeometry {
+class ChGeometry_Type_enum_mapper : public ChGeometry {
   public:
     CH_ENUM_MAPPER_BEGIN(Type);
     CH_ENUM_VAL(Type::NONE);
@@ -66,7 +66,7 @@ double ChGeometry::GetBoundingSphereRadius() const {
 void ChGeometry::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChGeometry>();
-    my_enum_mappers::Type_mapper typemapper;
+    ChGeometry_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetClassType();
     marchive << CHNVP(typemapper(type), "ChGeometry__Type");
 }
@@ -74,7 +74,7 @@ void ChGeometry::ArchiveOut(ChArchiveOut& marchive) {
 void ChGeometry::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChGeometry>();
-    my_enum_mappers::Type_mapper typemapper;
+    ChGeometry_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetClassType();
     marchive >> CHNVP(typemapper(type), "ChGeometry__Type");
 }

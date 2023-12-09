@@ -82,7 +82,7 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChChassis> chassis,
     ChMatrix33<> rot;
 
     // Create and initialize the steering link body
-    m_link = std::shared_ptr<ChBody>(sys->NewBody());
+    m_link = chrono_types::make_shared<ChBody>();
     m_link->SetNameString(m_name + "_link");
     m_link->SetPos(points[STEERINGLINK]);
     m_link->SetRot(steering_to_abs.GetRot());
@@ -103,7 +103,7 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChChassis> chassis,
     m_pTI = m_link->TransformPointParentToLocal(points[TIEROD_IA]);
 
     // Create and initialize the Pitman arm body
-    m_arm = std::shared_ptr<ChBody>(sys->NewBody());
+    m_arm = chrono_types::make_shared<ChBody>();
     m_arm->SetNameString(m_name + "_arm");
     m_arm->SetPos(points[PITMANARM]);
     m_arm->SetRot(steering_to_abs.GetRot());

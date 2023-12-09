@@ -78,25 +78,27 @@ render_step_size = 1.0 / 50  # FPS = 50
 # --------------
 
 # Create the City Bus vehicle, set parameters, and initialize
-my_bus = veh.CityBus()
-my_bus.SetContactMethod(contact_method)
-my_bus.SetChassisCollisionType(chassis_collision_type)
-my_bus.SetChassisFixed(False)
-my_bus.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
-my_bus.SetTireType(tire_model)
-my_bus.SetTireStepSize(tire_step_size)
-my_bus.Initialize()
+bus = veh.CityBus()
+bus.SetContactMethod(contact_method)
+bus.SetChassisCollisionType(chassis_collision_type)
+bus.SetChassisFixed(False)
+bus.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+bus.SetTireType(tire_model)
+bus.SetTireStepSize(tire_step_size)
+bus.Initialize()
 
 tire_vis_type = veh.VisualizationType_MESH  # : VisualizationType::PRIMITIVES
 
-my_bus.SetChassisVisualizationType(chassis_vis_type)
-my_bus.SetSuspensionVisualizationType(suspension_vis_type)
-my_bus.SetSteeringVisualizationType(steering_vis_type)
-my_bus.SetWheelVisualizationType(wheel_vis_type)
-my_bus.SetTireVisualizationType(tire_vis_type)
+bus.SetChassisVisualizationType(chassis_vis_type)
+bus.SetSuspensionVisualizationType(suspension_vis_type)
+bus.SetSteeringVisualizationType(steering_vis_type)
+bus.SetWheelVisualizationType(wheel_vis_type)
+bus.SetTireVisualizationType(tire_vis_type)
+
+bus.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Create the terrain
-terrain = veh.RigidTerrain(my_bus.GetSystem())
+terrain = veh.RigidTerrain(bus.GetSystem())
 if (contact_method == chrono.ChContactMethod_NSC):
     patch_mat = chrono.ChMaterialSurfaceNSC()
     patch_mat.SetFriction(0.9)
@@ -122,7 +124,7 @@ vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddLightDirectional()
 vis.AddSkyBox()
-vis.AttachVehicle(my_bus.GetVehicle())
+vis.AttachVehicle(bus.GetVehicle())
 
 # Create the driver system
 driver = veh.ChInteractiveDriverIRR(vis)
@@ -142,7 +144,7 @@ driver.Initialize()
 # ---------------
 
 # output vehicle mass
-print( "VEHICLE MASS: ",  my_bus.GetVehicle().GetMass())
+print( "VEHICLE MASS: ",  bus.GetVehicle().GetMass())
 
 # Number of simulation steps between miscellaneous events
 render_steps = math.ceil(render_step_size / step_size)
@@ -151,10 +153,10 @@ render_steps = math.ceil(render_step_size / step_size)
 step_number = 0
 render_frame = 0
 
-my_bus.GetVehicle().EnableRealtime(True)
+bus.GetVehicle().EnableRealtime(True)
 
 while vis.Run() :
-    time = my_bus.GetSystem().GetChTime()
+    time = bus.GetSystem().GetChTime()
 
     # End simulation
     if (time >= t_end):
@@ -173,13 +175,13 @@ while vis.Run() :
     # Update modules (process inputs from other modules)
     driver.Synchronize(time)
     terrain.Synchronize(time)
-    my_bus.Synchronize(time, driver_inputs, terrain)
+    bus.Synchronize(time, driver_inputs, terrain)
     vis.Synchronize(time, driver_inputs)
 
     # Advance simulation for one timestep for all modules
     driver.Advance(step_size)
     terrain.Advance(step_size)
-    my_bus.Advance(step_size)
+    bus.Advance(step_size)
     vis.Advance(step_size)
 
     # Increment frame number

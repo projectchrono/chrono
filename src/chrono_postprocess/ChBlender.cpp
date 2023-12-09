@@ -839,7 +839,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
         if (auto line_shape = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
             *mfile << "create_chrono_path('" << shapename << "',\n";
             *mfile << "[ \n";
-            for (int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
+            for (unsigned int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
                 auto pt = line_shape->GetLineGeometry()->Evaluate(i / (double)(line_shape->GetNumRenderPoints() - 1));
                 *mfile << "(" << pt.x() << "," << pt.y() << "," << pt.z() << "),\n";
             }
@@ -861,7 +861,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
         if (auto line_shape = std::dynamic_pointer_cast<ChVisualShapePath>(shape)) {
             *mfile << "create_chrono_path('" << shapename << "',\n";
             *mfile << "[ \n";
-            for (int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
+            for (unsigned int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
                 auto pt = line_shape->GetPathGeometry()->Evaluate(i / (double)(line_shape->GetNumRenderPoints() - 1));
                 *mfile << "(" << pt.x() << "," << pt.y() << "," << pt.z() << "),\n";
             }
@@ -1033,7 +1033,7 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                 ChVector<> aux_scale(0, 0, 0);
 
                 std::string shapename("shape_" + unique_bl_id((size_t)shape.get()));
-                auto shape_frame = shape_instance.second;
+                const auto& shape_frame = shape_instance.second;
 
                 // corner cases for performance reason (in case of multipe sphere asset with different radii, one
                 // blender mesh asset is used anyway, then use scale here)

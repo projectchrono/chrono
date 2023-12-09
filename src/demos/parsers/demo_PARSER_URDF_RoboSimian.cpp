@@ -64,15 +64,13 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem& sys, double length, double width
         std::static_pointer_cast<ChMaterialSurfaceSMC>(ground_mat)->SetYoungModulus(Y);
     }
 
-    auto ground = std::shared_ptr<ChBody>(sys.NewBody());
+    auto ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);
     ground->SetPos(ChVector<>(offset, 0, height - 0.1));
     ground->SetCollide(true);
 
-    ground->GetCollisionModel()->Clear();
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
-    ground->GetCollisionModel()->AddShape(ct_shape);
-    ground->GetCollisionModel()->Build();
+    ground->AddCollisionShape(ct_shape);
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(length, width, 0.2);
     box->SetTexture(GetChronoDataFile("textures/checker2.png"), (float)length, (float)width);
@@ -86,9 +84,10 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem& sys, double length, double width
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    // Create a Chrono system
+    // Create a Chrono system and an associated collision detection system
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, 0, -9.8));
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create parser instance
     ChParserURDF robot(GetChronoDataFile("robot/robosimian/rs.urdf"));
@@ -276,6 +275,7 @@ int main(int argc, char* argv[]) {
             // Create terrain
             auto ground = CreateTerrain(sys, length, width, z, length / 4);
             vis->BindItem(ground);
+            sys.GetCollisionSystem()->BindItem(ground);
 
             // Release robot
             torso->SetBodyFixed(false);

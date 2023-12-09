@@ -132,9 +132,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChIndexedNodes.cpp
     physics/ChNodeBase.cpp
     physics/ChNodeXYZ.cpp
-    physics/ChMatterSPH.cpp
     physics/ChProximityContainer.cpp
-    physics/ChProximityContainerSPH.cpp
     physics/ChConveyor.cpp
     physics/ChFeeder.cpp
     physics/ChExternalDynamics.cpp
@@ -153,14 +151,12 @@ set(ChronoEngine_physics_HEADERS
     physics/ChIndexedNodes.h
     physics/ChIndexedParticles.h
     physics/ChMarker.h
-    physics/ChMatterSPH.h
     physics/ChNodeBase.h
     physics/ChNodeXYZ.h
     physics/ChObject.h
     physics/ChParticleCloud.h
     physics/ChPhysicsItem.h
     physics/ChProximityContainer.h
-    physics/ChProximityContainerSPH.h
     physics/ChSystem.h
     physics/ChSystemNSC.h
     physics/ChSystemSMC.h
@@ -282,6 +278,7 @@ set(ChronoEngine_physics_links_HEADERS
     physics/ChLinkMotorLinearForce.h
     physics/ChLinkMotorLinearDriveline.h
     physics/ChLinkMotionImposed.h
+    physics/ChLinkMotorAll.h
 )
 
 source_group(physics\\links FILES
@@ -391,8 +388,6 @@ set(ChronoEngine_fea_SOURCES
     fea/ChMesh.cpp
     fea/ChMeshFileLoader.cpp
     fea/ChMeshExporter.cpp
-    fea/ChMatterMeshless.cpp
-    fea/ChProximityContainerMeshless.cpp
     fea/ChPolarDecomposition.cpp
     fea/ChMatrixCorotation.cpp
     fea/ChLinkPointFrame.cpp
@@ -434,8 +429,6 @@ set(ChronoEngine_fea_HEADERS
     fea/ChMesh.h
     fea/ChMeshExporter.h
     fea/ChMeshFileLoader.h
-    fea/ChMatterMeshless.h
-    fea/ChProximityContainerMeshless.h
     fea/ChPolarDecomposition.h
     fea/ChMatrixCorotation.h
     fea/ChLinkPointFrame.h
@@ -712,6 +705,7 @@ endif()
 set(ChronoEngine_collision_SOURCES
     collision/ChCollisionInfo.cpp
     collision/ChCollisionModel.cpp
+    collision/ChCollisionSystem.cpp
     collision/ChConvexDecomposition.cpp
     collision/ChCollisionShape.cpp
     collision/ChCollisionShapeArc2D.cpp
@@ -730,6 +724,7 @@ set(ChronoEngine_collision_SOURCES
     collision/ChCollisionShapeSegment2D.cpp
     collision/ChCollisionShapeSphere.cpp
     collision/ChCollisionShapeTriangle.cpp
+    collision/ChCollisionShapeMeshTriangle.cpp
     collision/ChCollisionShapeTriangleMesh.cpp
     )
 
@@ -757,6 +752,7 @@ set(ChronoEngine_collision_HEADERS
     collision/ChCollisionShapeSegment2D.h
     collision/ChCollisionShapeSphere.h
     collision/ChCollisionShapeTriangle.h
+    collision/ChCollisionShapeMeshTriangle.h
     collision/ChCollisionShapeTriangleMesh.h
     )
 
@@ -769,30 +765,30 @@ source_group(collision FILES
 if (THRUST_FOUND)
    message(STATUS "Adding internal multicore collision detection library.")       
 
-   set(ChronoEngine_collision_chrono_SOURCES
-       collision/chrono/ChCollisionSystemChrono.h
-       collision/chrono/ChCollisionSystemChrono.cpp
-       collision/chrono/ChCollisionModelChrono.h
-       collision/chrono/ChCollisionModelChrono.cpp
+   set(ChronoEngine_collision_multicore_SOURCES
+       collision/multicore/ChCollisionSystemMulticore.h
+       collision/multicore/ChCollisionSystemMulticore.cpp
+       collision/multicore/ChCollisionModelMulticore.h
+       collision/multicore/ChCollisionModelMulticore.cpp
 #
-       collision/chrono/ChCollisionData.h
-       collision/chrono/ChConvexShape.h
-       collision/chrono/ChBroadphase.h
-       collision/chrono/ChBroadphase.cpp
-       collision/chrono/ChNarrowphase.h
-       collision/chrono/ChNarrowphase.cpp
-       collision/chrono/ChNarrowphaseMPR.cpp
-       collision/chrono/ChNarrowphasePRIMS.cpp
-       collision/chrono/ChRayTest.h
-       collision/chrono/ChRayTest.cpp
-       collision/chrono/ChCollisionUtils.h
-       collision/chrono/ChCollisionUtilsBroadphase.cpp
-       collision/chrono/ChCollisionUtilsMPR.cpp
-       collision/chrono/ChCollisionUtilsPRIMS.cpp
+       collision/multicore/ChCollisionData.h
+       collision/multicore/ChConvexShape.h
+       collision/multicore/ChBroadphase.h
+       collision/multicore/ChBroadphase.cpp
+       collision/multicore/ChNarrowphase.h
+       collision/multicore/ChNarrowphase.cpp
+       collision/multicore/ChNarrowphaseMPR.cpp
+       collision/multicore/ChNarrowphasePRIMS.cpp
+       collision/multicore/ChRayTest.h
+       collision/multicore/ChRayTest.cpp
+       collision/multicore/ChCollisionUtils.h
+       collision/multicore/ChCollisionUtilsBroadphase.cpp
+       collision/multicore/ChCollisionUtilsMPR.cpp
+       collision/multicore/ChCollisionUtilsPRIMS.cpp
    )
 
-   source_group("collision\\chrono" FILES
-       ${ChronoEngine_collision_chrono_SOURCES})
+   source_group("collision\\multicore" FILES
+       ${ChronoEngine_collision_multicore_SOURCES})
 endif()
 
 # Bullet collision group
@@ -1369,7 +1365,7 @@ set(ChronoEngine_FILES
     ${ChronoEngine_timestepper_HEADERS}
     ${ChronoEngine_motion_functions_SOURCES}
     ${ChronoEngine_motion_functions_HEADERS}
-    ${ChronoEngine_collision_chrono_SOURCES}
+    ${ChronoEngine_collision_multicore_SOURCES}
     ${ChronoEngine_collision_bullet_SOURCES}
     ${ChronoEngine_collision_gimpact_SOURCES}
     ${ChronoEngine_utils_SOURCES}

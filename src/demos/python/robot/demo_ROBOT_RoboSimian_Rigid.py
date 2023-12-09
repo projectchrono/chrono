@@ -69,7 +69,7 @@ class RayCaster:
         self.m_spacing = spacing
         self.m_points = []
         
-        self.m_body = sys.NewBody()
+        self.m_body = chrono.ChBody()
         self.m_body.SetBodyFixed(True)
         self.m_body.SetCollide(False)
         self.m_sys.AddBody(self.m_body)
@@ -115,14 +115,14 @@ def CreateTerrain(sys, length, width, height, offset) :
         matSMC = chrono.CastToChMaterialSurfaceSMC(ground_mat)
         matSMC.SetYoungModulus(1e7)
 
-    ground = robot.GetSystem().NewBody()
+    ground = chrono.ChBody()
     ground.SetBodyFixed(True)
     ground.SetCollide(True)
 
-    ground.GetCollisionModel().Clear()
     ground_ct_shape = chrono.ChCollisionShapeBox(ground_mat, length, width, 0.2)
-    ground.GetCollisionModel().AddShape(ground_ct_shape, chrono.ChFrameD(chrono.ChVectorD(offset, 0, height - 0.1), chrono.QUNIT))
-    ground.GetCollisionModel().Build()
+    ground.AddCollisionShape(ground_ct_shape, chrono.ChFrameD(chrono.ChVectorD(offset, 0, height - 0.1), chrono.QUNIT))
+
+    sys.GetCollisionSystem().BindItem(ground)
 
     box = chrono.ChVisualShapeBox(length, width, 0.2)
     box.SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"), 10 * length, 10 * width)
@@ -172,6 +172,7 @@ if  contact_method == chrono.ChContactMethod_NSC :
 if  contact_method == chrono.ChContactMethod_SMC :
 		sys = chrono.ChSystemSMC()
 
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 sys.SetSolverMaxIterations(200)
 sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)

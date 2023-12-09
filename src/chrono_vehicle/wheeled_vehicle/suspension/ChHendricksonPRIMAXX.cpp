@@ -109,7 +109,7 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChChassis> chassis,
     m_outerR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     // Create and initialize the axle housing body.
-    m_axlehousing = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_axlehousing = chrono_types::make_shared<ChBody>();
     m_axlehousing->SetNameString(m_name + "_axlehousing");
     m_axlehousing->SetPos(axleCOM);
     m_axlehousing->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -142,7 +142,7 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChChassis> chassis,
     ChVector<> tbCOM_local = getTransversebeamCOM();
     ChVector<> tbCOM = suspension_to_abs.TransformLocalToParent(tbCOM_local);
 
-    m_transversebeam = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_transversebeam = chrono_types::make_shared<ChBody>();
     m_transversebeam->SetNameString(m_name + "_transversebeam");
     m_transversebeam->SetPos(tbCOM);
     m_transversebeam->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -175,7 +175,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     ChMatrix33<> rot;
 
     // Create and initialize knuckle body (same orientation as the chassis)
-    m_knuckle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_knuckle[side] = chrono_types::make_shared<ChBody>();
     m_knuckle[side]->SetNameString(m_name + "_knuckle" + suffix);
     m_knuckle[side]->SetPos(points[KNUCKLE_CM]);
     m_knuckle[side]->SetRot(chassisRot);
@@ -184,7 +184,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_knuckle[side]);
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
@@ -203,7 +203,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_torquerod[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_torquerod[side] = chrono_types::make_shared<ChBody>();
     m_torquerod[side]->SetNameString(m_name + "_torquerod" + suffix);
     m_torquerod[side]->SetPos(points[TORQUEROD_CM]);
     m_torquerod[side]->SetRot(rot);
@@ -221,7 +221,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_lowerbeam[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_lowerbeam[side] = chrono_types::make_shared<ChBody>();
     m_lowerbeam[side]->SetNameString(m_name + "_lowerLink" + suffix);
     m_lowerbeam[side]->SetPos(points[LOWERBEAM_CM]);
     m_lowerbeam[side]->SetRot(rot);
@@ -303,7 +303,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
         rot.Set_A_axis(u, v, w);
 
         // Create the tierod body
-        m_tierod[side] = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+        m_tierod[side] = chrono_types::make_shared<ChBody>();
         m_tierod[side]->SetNameString(m_name + "_tierodBody" + suffix);
         m_tierod[side]->SetPos((points[TIEROD_K] + points[TIEROD_C]) / 2);
         m_tierod[side]->SetRot(rot.Get_A_quaternion());

@@ -178,7 +178,7 @@ TEST_P(ChShaftTest, shaft_body) {
     system->Add(shaftC);
 
     // Create 'B', a 3D rigid body
-    std::shared_ptr<ChBody> bodyB(system->NewBody());
+    auto bodyB = chrono_types::make_shared<ChBody>();
 
     bodyB->Accumulate_torque(ChVector<>(0, 0, 3), true);  // set some constant torque to body
     system->Add(bodyB);

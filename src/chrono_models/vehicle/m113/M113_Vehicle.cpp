@@ -323,8 +323,6 @@ void M113_Vehicle::Create(bool fixed,
             m_driveline = chrono_types::make_shared<M113_DrivelineBDS>();
             break;
     }
-
-    GetLog() << "M113 vehicle mass = " << GetMass() << " kg.\n";
 }
 
 // -----------------------------------------------------------------------------

@@ -43,6 +43,15 @@ std::vector<unsigned int> ChVisualSystemOptix::GetDeviceList() {
     return m_device_list;
 }
 
+void ChVisualSystemOptix::Initialize() {
+    if (m_initialized)
+        return;
+
+    BindAll();
+
+    m_initialized = true;
+}
+
 void ChVisualSystemOptix::BindAll() {
     for (auto eng : m_engines) {
         eng->ConstructScene();

@@ -79,6 +79,7 @@ tire_w0 = tire_vel_z0 / tire_rad
 # ----------------------------
 
 sys = chrono.ChSystemSMC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Create the ground
 ground = chrono.ChBody()
@@ -105,14 +106,12 @@ body.AddVisualShape(vis_shape)
 # Set collision shape
 material = chrono.ChMaterialSurfaceSMC()
 
-body.GetCollisionModel().Clear()
 body_ct_shape = chrono.ChCollisionShapeTriangleMesh(material, # contact material
                                                     mesh,     # the mesh 
                                                     False,    # is it static?
                                                     False,    # is it convex?
                                                     0.01)     # "thickness" for increased robustness
-body.GetCollisionModel().AddShape(body_ct_shape)
-body.GetCollisionModel().Build()
+body.AddCollisionShape(body_ct_shape)
 body.SetCollide(True)
 
 # Create motor

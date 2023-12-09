@@ -85,6 +85,9 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     }
     sys->Set_G_acc(gravity);
 
+    // Set associated collision system
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
+
     // Set number of threads
     sys->SetNumThreads(1);
 
@@ -104,7 +107,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     }
 
     // Create the ground body.
-    std::shared_ptr<ChBody> ground(sys->NewBody());
+    auto ground = chrono_types::make_shared<ChBody>();
 
     sys->AddBody(ground);
     ground->SetBodyFixed(true);
@@ -113,7 +116,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     ground->AddVisualShape(box_g, ChFrame<>(2.5 * axis, rot));
 
     // Create the plate body.
-    plate = std::shared_ptr<ChBody>(sys->NewBody());
+    plate = chrono_types::make_shared<ChBody>();
     sys->AddBody(plate);
     plate->SetPos(ChVector<>(0, 0, 0));
     plate->SetRot(rot);

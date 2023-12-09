@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
-    ChCollisionSystemType collsys_type = ChCollisionSystemType::BULLET;
+    ChCollisionSystem::Type collsys_type = ChCollisionSystem::Type::BULLET;
     CollisionType chassis_collision_type = CollisionType::NONE;
 
     M113 m113;
@@ -677,7 +677,7 @@ void AddFixedObstacles(ChSystem* system) {
     double radius = 2.2;
     double length = 6;
 
-    auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
+    auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector<>(10, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);
@@ -695,8 +695,7 @@ void AddFixedObstacles(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
-    obstacle->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-    obstacle->GetCollisionModel()->Build();
+    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     system->AddBody(obstacle);
 }
@@ -706,7 +705,7 @@ void AddFallingObjects(ChSystem* system) {
     double radius = 0.1;
     double mass = 10;
 
-    auto ball = std::shared_ptr<ChBody>(system->NewBody());
+    auto ball = chrono_types::make_shared<ChBody>();
     ball->SetMass(mass);
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
     ball->SetPos(initLoc + ChVector<>(-3, 0, 2));
@@ -719,8 +718,7 @@ void AddFallingObjects(ChSystem* system) {
 
     ball->SetCollide(true);
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(obst_mat, radius);
-    ball->GetCollisionModel()->AddShape(ct_shape);
-    ball->GetCollisionModel()->Build();
+    ball->AddCollisionShape(ct_shape);
 
     auto vis_shape = chrono_types::make_shared<ChVisualShapeSphere>(radius);
     vis_shape->SetTexture(GetChronoDataFile("textures/bluewhite.png"));

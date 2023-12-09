@@ -25,8 +25,6 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
-#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
-
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -43,11 +41,6 @@ ChSystemSMC::ChSystemSMC(bool use_material_properties)
     descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
     SetSolverType(ChSolver::Type::PSOR);
-
-    collision_system = chrono_types::make_shared<ChCollisionSystemBullet>();
-    collision_system->SetNumThreads(nthreads_collision);
-    collision_system->SetSystem(this);
-    collision_system_type = ChCollisionSystemType::BULLET;
 
     // For default SMC there is no need to create contacts 'in advance'
     // when models are closer than the safety envelope, so set default envelope to 0
@@ -76,8 +69,8 @@ void ChSystemSMC::SetContactForceAlgorithm(std::unique_ptr<ChContactForceSMC>&& 
 }
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
-// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
-class my_enum_mappers : public ChSystemSMC {
+// enclose macros in local 'ChSystemSMC_Properties_enum_mapper', just to avoid avoiding cluttering of the parent class.
+class ChSystemSMC_Properties_enum_mapper : public ChSystemSMC {
   public:
     CH_ENUM_MAPPER_BEGIN(ContactForceModel);
     CH_ENUM_VAL(Hooke);
@@ -110,11 +103,11 @@ void ChSystemSMC::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(m_use_mat_props);
     marchive << CHNVP(m_minSlipVelocity);
     marchive << CHNVP(m_characteristicVelocity);
-    my_enum_mappers::ContactForceModel_mapper mmodel_mapper;
+    ChSystemSMC_Properties_enum_mapper::ContactForceModel_mapper mmodel_mapper;
     marchive << CHNVP(mmodel_mapper(m_contact_model), "contact_model");
-    my_enum_mappers::AdhesionForceModel_mapper madhesion_mapper;
+    ChSystemSMC_Properties_enum_mapper::AdhesionForceModel_mapper madhesion_mapper;
     marchive << CHNVP(madhesion_mapper(m_adhesion_model), "adhesion_model");
-    my_enum_mappers::TangentialDisplacementModel_mapper mtangential_mapper;
+    ChSystemSMC_Properties_enum_mapper::TangentialDisplacementModel_mapper mtangential_mapper;
     marchive << CHNVP(mtangential_mapper(m_tdispl_model), "tangential_model");
     //***TODO*** complete...
 }
@@ -131,11 +124,11 @@ void ChSystemSMC::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(m_use_mat_props);
     marchive >> CHNVP(m_minSlipVelocity);
     marchive >> CHNVP(m_characteristicVelocity);
-    my_enum_mappers::ContactForceModel_mapper mmodel_mapper;
+    ChSystemSMC_Properties_enum_mapper::ContactForceModel_mapper mmodel_mapper;
     marchive >> CHNVP(mmodel_mapper(m_contact_model), "contact_model");
-    my_enum_mappers::AdhesionForceModel_mapper madhesion_mapper;
+    ChSystemSMC_Properties_enum_mapper::AdhesionForceModel_mapper madhesion_mapper;
     marchive >> CHNVP(madhesion_mapper(m_adhesion_model), "adhesion_model");
-    my_enum_mappers::TangentialDisplacementModel_mapper mtangential_mapper;
+    ChSystemSMC_Properties_enum_mapper::TangentialDisplacementModel_mapper mtangential_mapper;
     marchive >> CHNVP(mtangential_mapper(m_tdispl_model), "tangential_model");
     //***TODO*** complete...
 

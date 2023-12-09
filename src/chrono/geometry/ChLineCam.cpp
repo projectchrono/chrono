@@ -174,7 +174,7 @@ ChVector<> ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
     return res;
 }
 
-ChVector<> ChLineCam::Evaluate(const double parU) const {
+ChVector<> ChLineCam::Evaluate(double parU) const {
     double qtmp, gtmp;
     return EvaluateCamPoint(parU, gtmp, qtmp);
 }

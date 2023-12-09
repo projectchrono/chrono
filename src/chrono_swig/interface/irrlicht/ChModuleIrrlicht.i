@@ -13,8 +13,11 @@
 // Define the module to be used in Python when typing 
 //  'import pychrono.irrlicht'
 
-
+#ifdef SWIGPYTHON
 %module(directors="1") irrlicht
+#else
+%module(directors="1") chrono_irrlicht
+#endif
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
@@ -83,17 +86,11 @@ using namespace gui;
 %include "std_vector.i"
 %include "typemaps.i"
 %include "wchar.i"
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 %include "python/cwstring.i"
+#endif // --------------------------------------------------------------------- PYTHON
 %include "cstring.i"
 %include "cpointer.i"
-
-// This is to enable references to double,int,etc. types in function parameters
-%pointer_class(int,int_ptr);
-%pointer_class(double,double_ptr);
-%pointer_class(float,float_ptr);
-%pointer_class(char,char_ptr);
-
-
 
 
 //
@@ -173,7 +170,8 @@ using namespace gui;
 %include "../../../chrono_irrlicht/ChIrrTools.h"
 %include "../../../chrono_irrlicht/ChIrrNodeShape.h"    
 %include "../../../chrono_irrlicht/ChIrrNodeModel.h"    
-%include "../../../chrono_irrlicht/ChVisualSystemIrrlicht.h"
+
+%include "ChVisualSystemIrrlicht.i"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
@@ -190,7 +188,8 @@ using namespace gui;
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
 
-%DefSharedPtrDynamicDowncast2NS(chrono, chrono::irrlicht, ChVisualSystem, ChVisualSystemIrrlicht)
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 
 //
@@ -226,5 +225,7 @@ using namespace gui;
 
 %}
 */
+
+#endif // --------------------------------------------------------------------- PYTHON
 
 

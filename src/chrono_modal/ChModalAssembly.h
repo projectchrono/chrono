@@ -709,7 +709,6 @@ public:
 
     friend class ChSystem;
     friend class ChSystemMulticore;
-    friend class ChSystemDistributed;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

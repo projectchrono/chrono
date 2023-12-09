@@ -31,12 +31,14 @@ using namespace chrono;
 using namespace chrono::vehicle;
 
 int main() {
+    double step_size = 5e-3;
+    double tire_step_size = 1e-4;
+
     // Create sys
     // -------------
 
     ChSystemMulticoreNSC sys;
-    double step_size = 5e-3;
-    double tire_step_size = 1e-4;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
     sys.ChangeSolverType(SolverType::APGD);
 
     ////ChSystemMulticoreSMC sys;

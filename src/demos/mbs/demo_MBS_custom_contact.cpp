@@ -158,6 +158,7 @@ int main(int argc, char* argv[]) {
     }
 
     sys->Set_G_acc(ChVector<>(0, -9.8, 0));
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the ground body with a plate and side walls (both collision and visualization).
     // Add obstacle visualization (in a separate level with a different color).
@@ -179,7 +180,6 @@ int main(int argc, char* argv[]) {
                           ground_vmat);
     utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(10.2, 2, 0.2), ChVector<>(0, 0, +5), QUNIT, true,
                           ground_vmat);
-    ground->GetCollisionModel()->Build();
 
     obstacle.AddVisualization(ground);
 
@@ -196,7 +196,6 @@ int main(int argc, char* argv[]) {
     ball_vmat->SetKdTexture(GetChronoDataFile("textures/bluewhite.png"));
 
     utils::AddSphereGeometry(ball.get(), ball_mat, ball_radius, VNULL, QUNIT, true, ball_vmat);
-    ball->GetCollisionModel()->Build();
 
     // Create a custom collision detection callback object and register it with the system
     auto collision =

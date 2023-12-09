@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Collision detection refactoring](#changed-collision-detection-refactoring)
   - [Application of terrain forces to vehicle systems](#changed-application-of-terrain-forces-to-vehicle-systems)
   - [Modifications to the HHT integrator](#changed-modifications-to-the-hht-integrator)
   - [Modeling hydraulic circuit elements and hydraulic actuators](#added-modeling-hydraulic-circuit-elements-and-hydraulic-actuators)
@@ -13,7 +14,6 @@ Change Log
   - [Moved drive mode to automatic transmissions](#changed-moved-drive-mode-to-automatic-transmissions)
   - [Changed gear numbering](#changed-changed-gear-numbering)
   - [Redundant constraints remover](#added-redundant-constraints-remover)
-  - [Create models through JSON/XML](#added-create-models-through-jsonxml)
   - [Serialization expanded and improved](#changed-serialization-expanded-and-improved)
   - [Rewrite of Pac02 handling tire model](#changed-rewrite-of-pac02-handling-tire-model)
   - [New URDF parser](#added-new-urdf-parser)
@@ -93,6 +93,101 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Collision detection refactoring
+
+This refactoring affects the specification of collision models and shapes attached to contactable objects, as well as the specification of a collision system associated with a Chrono physics system. With these changes, it is now possible to specify collision information in Chrono independent of a particular implementation (e.g., the Bullet-based collision detection or the Chrono-internal multicore collision detection system), both in term of collision models and collision systems. The refactored Chrono code synchronizes the API for specifying collision and visualization shapes and models, as well as the API for creating and associating collision and visualization systems. 
+
+The main code architecture changes and resulting API changes are as described below.
+
+**Basic geometric shapes**
+
+The set of basic geometric shapes and associated class hierarchy (see [src/chrono/geometry/](https://github.com/projectchrono/chrono/tree/main/src/chrono/geometry)) was updated for consistency and to allow use as common low-level primitives for both collision and visualization shapes. The various basic geometric shapes inherit from `ChLine`, `ChSurface`, and `ChVolume` for 1-D, 2-D, and 3-D geometry, respectively. Each class encapsulates the geometric data necessary to completely describe that corresponding shape and implements methods specific to its manifold dimension (1, 2, or 3).
+
+**Collision shapes**
+
+This refactoring introduces classes for collision shapes, including both primitive shapes (e.g., `ChCollisionShapeSphere`) as well as compound objects (e.g., `ChCollisionShapeTriangleMesh`).
+See [src/chrono/collision/](https://github.com/projectchrono/chrono/tree/main/src/chrono/collision).
+In general, these objects wrap a basic geometric shape to specify the collision shape geometry, optionally with some additional collision-specific information (e.g., the radius of a sphere-swept collision surface). All Chrono collision shapes contain a contact material (of type `ChMaterialSurface`) which are combined into composite contact material properties for each colliding pair. All Chrono collision shapes are generic, in that they are independent of a particular collision detection implementation. 
+
+**Visual shapes**
+
+Simultaneously with the refactoring of collision detection in Chrono, the names of visual shapes were changed for consistency with corresponding collision shapes. 
+See [src/chrono/assets/](https://github.com/projectchrono/chrono/tree/main/src/chrono/assets).
+
+This renaming follows the pattern `ChSphereShape` -> `ChVisualShapeSphere`.
+
+**Collision models**
+
+A collision model is a collection of collision shapes with associated transforms (the pose of the shape within the model). A collision model is populated by adding shapes with optional transforms. For example,
+```cpp
+  auto ct_model = chrono_types::make_shared<ChCollisionModel>();
+  auto ct_sphere = chrono_types::make_shared<ChCollisionShapeSphere>(ct_mat1, radius);
+  auto ct_box = chrono_types::make_shared<ChCollisionShapeBox>(ct_mat2, length, width, height);
+  ct_model->AddShape(ct_sphere, ChFrame<>());
+  ct_model->AddShape(ct_box, ChFrame<>(ChVector<>(1,1,1), QUNIT));
+```
+Chrono collision models are generic, in that they are independent of a particular collision detection implementation. The function `ChCollisionModel::BuildModel()` was eliminated, as processing of generic collision shapes and models by a concrete collision detection system is deferred to a later time (namely, at initialization of the collision system).  The function `ChCollisionModel::ClearModel()`, now renamed `ChCollisionModel::Clear()` still exists for special uses; in a typical user code, there is no need to call this function before populating the model with collision shapes.
+
+**Rigid body creation**
+
+A rigid body is created with no collision model by default. A collision model can optionally be attached to a rigid body (in fact, the collision model is managed by the parent class `ChContactable`:
+```cpp
+  auto body = chrono_types::make_shared<ChBody>();
+  body->AddCollisionModel(ct_model);
+```
+The collision model on a rigid body is assumed to be positioned at the body reference frame (which coincides with the body center of mass for a `ChBody` object, but may be non-centroidal for a `ChBodyAuxRef`).
+
+Note that a body constructor need not specify anymore a "collision type". Similarly, the functions `ChSystem::NewBody` were obsoleted. With the current refactoring, a rigid body is independent of a particular collision detection system implementation.
+
+For convenience, an alternative way of populating shapes in the collision model of a `ChContactable` is through the convenience function `ChContactable::AddCollisionShape`. This function can be called multiple times. A container collision model is created, as needed, the first time a collision shape is specified. The code snippets shown above can be thus be replaced with the following equivalent code:
+```cpp
+  auto body = chrono_types::make_shared<ChBody>();
+  auto ct_sphere = chrono_types::make_shared<ChCollisionShapeSphere>(ct_mat1, radius);
+  auto ct_box = chrono_types::make_shared<ChCollisionShapeBox>(ct_mat2, length, width, height);
+  body->AddCollisionShape(ct_sphere, ChFrame<>());
+  body->AddCollisionShape(ct_box, ChFrame<>(ChVector<>(1,1,1), QUNIT));
+```
+
+In accordance with these changes, all `ChBodyEasy***` classes were modified to remove from their constructors the last argument specifying a particular collision detection implementation.
+
+After this refactoring, the specification of a collision model closely parallels the creation of a visualization model. For example,
+```cpp
+  auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(cmat, Xsize, Ysize, Zsize);
+  body->AddCollisionShape(cshape);
+  body->SetCollide(true);
+  
+  auto vshape = chrono_types::make_shared<ChVisualShapeBox>(Xsize, Ysize, Zsize);
+  body->AddVisualShape(vshape);
+```
+
+The function `ChContactable::GetCollisionModel` still exists and can be used to access the collision model of a body *after* it was created and attached to the body (this may be required to set optional parameters on the collision model, such as collision envelope, collision family, or collision family masks).
+
+Finally, note that the function `BuildModel` was obsoleted as there is no need anymore to indicate the end of specification of a collision model; indeed, processing of the generic collision models now occurs at a later time, during initialization of the collision detection system (see below).
+
+**Creation and association of a collision system**
+
+By default, a Chrono physics system has no associated collision system. To enable collision detection and contact force interaction in a Chrono simulation, a collision system (`ChCollisionSystemBullet`, `ChCollisionSystemMulticore`, or potentially some other 3rd-party collision detection system) must be created and associated to the `ChSystem`. This can be done as follows:
+```cpp
+  auto coll_sys = chrono_types::make_shared<ChCollisionSystemBullet>();
+  // set parameters specific to the concrete collision system implementation
+  sys->SetCollisionSystem(coll_sys);
+```
+Alternatively, one of the two collision systems currently available in Chrono can be associated using:
+```cpp
+  sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+```
+or
+```cpp
+  sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
+```
+If setting a collision system by type, the user can use `ChSystem::GetCollisionSystem` to access the underlying collision system in order to modify its settings or parameters.
+
+Processing of all collision models specified for physics items in a Chrono system is performed (implementation-specific) during initialization of the collision system. This can be done by explicitly invoking `ChCollisionSystem::Initialize()` after all collision models have been specified and before performing any type of physics analysis or simulation.  The `Initialize` function invokes the `BindAll` method of a particular collision system implementation.  In most cases, the `ChCollisionSystem::Initialize()` method need not be explicitly invoked by the user as this is done automatically internally to Chrono before start of an analysis or simulation (and only once).
+
+In addition to `BindAll`, a concrete collision system implementation also provides a function `BindItem` which can be used to request the collision system to process the collision model of a Chrono physics item after the collision system was initialized (for example, in situations where bodies are created at run-time).
+
+
 
 ### [Changed] Application of terrain forces to vehicle systems
 
@@ -220,58 +315,8 @@ It is recommended to:
 - initially set the `verbose` to `true` to double check which constraints have been removed.
 
 
-### [Added] Create models through JSON/XML
-While the traditional serialization allows to store and load _existing_ models to/from file, it is rather difficult to create such files manually: the amount of internal variables, together with the inherent complexity of initializing their values coherently, would easily lead to an overwhelming task. A task that is usually delegated to the methods of the various classes.
-Because of this, an alternative approach is now offered: instead of simply providing the values to the class variables (data members) through the JSON/XML file, it is now possible to provide *the arguments* to some selected class methods. When a _function-calling tag_ beginning with `_c_` is found, the relative function/method is called.
-For example:
-```
-"_c_SetRot": {
-  "e0": 0.986,
-  "e1": 0.0,
-  "e2": 0.0,
-  "e3": -0.166
-}
-```
-will call `SetRot(ChQuaternion(0.986, 0.0, 0.0, -0.166))` on that object. Multiple-arguments methods are otherwise referred with the syntax `_c_<functionname>_<arg1name>[_<arg2name>]`.
-A JSON example is offerend in the _data/solidworks/*.json_ files.
-
-Clearly, since C++ has a limited reflection/reification capability, this process is NOT automatic, but relies on some hard-coded chunk of code, thus restricting the usage to this limited set of functions:
-+ `ChVisualShape::SetColor`
-+ `ChFrame::SetPos`
-+ `ChFrame::SetRot`
-+ `ChBody::SetBodyFixed`
-+ `ChBody::SetMass`
-+ `ChBody::SetInertiaXX`
-+ `ChBody::SetInertiaXY`
-+ `ChBodyAuxRef::SetFrame_COG_to_REF` (arguments: ChVector<> and ChQuaternion)
-+ `ChLinkMateGeneric::SetConstrainedCoords`
-+ `ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame>, std::shared_ptr<ChBodyFrame>, ChVector<>, ChVector<>, ChVector<>, ChVector<>)`
-+ `ChLinkMatePlane::SetFlipped`
-+ `ChLinkMateXdistance::Initialize(std::shared_ptr<ChBodyFrame>, std::shared_ptr<ChBodyFrame>, bool, ChVector<>, ChVector<>, ChVector<>)`
-+ `ChLinkMateParallel::SetFlipped`
-+ `ChMarker::Impose_Abs_Coord` (arguments: ChVector<> and ChQuaternion)
-+ `ChPhysicsItem::AddVisualShape` (arguments: std::vector<std::shared_ptr<ChVisualShape>> std::vector<ChFrame<>>)
-
-These methods are available also for any of the derived classes.
-
-While this seems to be a rather limited set of functions, it allows to load any system created by the Chrono Solidworks add-in. Please check [Chrono Solidworks](https://api.projectchrono.org/introduction_chrono_solidworks.html).
-
-This option is available only for JSON/XML files and is enabled by calling, on `ChArchiveInJSON` or `ChArchiveInXML`:  
-`myarchivein.TryTolerateMissingTokens(true);`
-and then loading the system as usual e.g. 
-```
-    std::string jsonfile = "SliderCrank.json";
-    ChStreamInAsciiFile mfilein(jsonfile.c_str());
-    ChArchiveInJSON marchivein(mfilein);
-    myarchivein.TryTolerateMissingTokens(true);
-    ChSystemNSC system;
-    marchivein >> CHNVP(system);
-```
-Please refer to _demo_CH_user_serialize_ for additional info.
-
-
 ### [Changed] Serialization expanded and improved
-Serialization is now capable of storing and loading back entire `ChSystem`s consistently. Available classes include rigid bodies along with their visual assets (excluding ChVisualShapeFEA), links (both ChLinkMate and ChLinkLock families), shafts and system solvers. More classes will become available in the next future.
+Serialization is now capable of storing and loading back entire `ChSystem`s consistently. Available classes include rigid bodies along with their visual assets (excluding ChVisualShapeFEA) and collision models, links (both ChLinkMate and ChLinkLock families), shafts, system solvers and collision systems. More classes will become available in the next future.
 
 An additional macro called `CH_UPCASTING` now allows to properly handle those classes with multiple inheritance: if a class, *or any of its parent classes*, shows multiple inheritance it is strongly recommended to specify its inheritance scheme with the new `CH_UPCASTING` macro:
 ```

@@ -82,6 +82,7 @@ int main(int argc, char* argv[]) {
     ChVector<> gravityR = ChMatrix33<>(slope_g, ChVector<>(0, 1, 0)) * gravity;
 
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
     sys->Set_G_acc(gravity);
 
     // Set number of threads
@@ -138,7 +139,7 @@ int main(int argc, char* argv[]) {
 
     ChVector<> pos(terrain.GetPatchRear(), (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2,
                    terrain_height + 2 * body_rad);
-    auto body = std::shared_ptr<ChBody>(sys->NewBody());
+    auto body = chrono_types::make_shared<ChBody>();
     body->SetMass(1);
     body->SetInertiaXX(ChVector<>(1, 1, 1));
     body->SetPos_dt(ChVector<>(body_speed, 0, 0));
@@ -147,9 +148,7 @@ int main(int argc, char* argv[]) {
 
     auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    body->GetCollisionModel()->Clear();
     utils::AddSphereGeometry(body.get(), body_mat, body_rad, ChVector<>(0, 0, 0));
-    body->GetCollisionModel()->Build();
 
     auto joint = chrono_types::make_shared<ChLinkLockPrismatic>();
     joint->Initialize(terrain.GetGroundBody(), body, ChCoordsys<>(pos, Q_from_AngY(CH_C_PI_2)));

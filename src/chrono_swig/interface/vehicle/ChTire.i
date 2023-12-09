@@ -65,9 +65,9 @@
 // Parse the header file to generate wrappers
 %include "../../../chrono_vehicle/wheeled_vehicle/ChTire.h"
 
-%include "../../../chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
 %ignore chrono::vehicle::ChReissnerTire::ChReissnerTire;
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"

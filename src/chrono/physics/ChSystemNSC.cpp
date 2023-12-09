@@ -23,7 +23,6 @@
 #include "chrono/physics/ChContactContainerNSC.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 
 namespace chrono {
 
@@ -36,12 +35,6 @@ ChSystemNSC::ChSystemNSC(bool init_sys)
         // Set default contact container
         contact_container = chrono_types::make_shared<ChContactContainerNSC>();
         contact_container->SetSystem(this);
-
-        // Set default collision engine
-        collision_system = chrono_types::make_shared<ChCollisionSystemBullet>();
-        collision_system->SetNumThreads(nthreads_collision);
-        collision_system->SetSystem(this);
-        collision_system_type = ChCollisionSystemType::BULLET;
 
         // Set the system descriptor
         descriptor = chrono_types::make_shared<ChSystemDescriptor>();

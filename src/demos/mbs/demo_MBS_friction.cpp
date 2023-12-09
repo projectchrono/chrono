@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physical system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create all the rigid bodies.
     double mradius = 0.5;
@@ -127,7 +128,6 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(1, 2, 20.99), ChVector<>(10, 1, 0), QUNIT, true, bin_vis_mat);
     utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20.99, 2, 1), ChVector<>(0, 1, -10), QUNIT, true, bin_vis_mat);
     utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20.99, 2, 1), ChVector<>(0, 1, 10), QUNIT, true, bin_vis_mat);
-    bin->GetCollisionModel()->Build();
 
     sys.Add(bin);
 
