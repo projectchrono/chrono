@@ -305,7 +305,10 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     g_plot_collisionshapes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 375, 200, 375 + 15), g_tab1, 9902,
                                                  L"Draw collision shapes");
 
-    g_plot_convergence = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 390, 200, 390 + 15), g_tab1, 9902,
+    g_plot_abscoord = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 390, 200, 390 + 15), g_tab1, 9904,
+        L"Draw abs coordsys");
+
+    g_plot_convergence = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 405, 200, 405 + 15), g_tab1, 9903,
                                              L"Plot convergence");
 
     guienv->addStaticText(L"Symbols scale", irr::core::rect<irr::s32>(130, 330, 200, 330 + 15), false, false, g_tab1);
@@ -533,6 +536,9 @@ void ChIrrGUI::Render() {
     if (g_plot_cogs->isChecked())
         tools::drawAllCOGs(m_vis, symbolscale);
 
+    if (g_plot_abscoord->isChecked())
+        tools::drawCoordsys(m_vis, CSYSNORM, symbolscale);
+
     if (g_plot_linkframes->isChecked())
         tools::drawAllLinkframes(m_vis, symbolscale);
 
@@ -569,7 +575,7 @@ void ChIrrGUI::Render() {
 }
 
 void ChIrrGUI::DrawCollisionShapes(irr::video::SColor color) {
-    if (!m_drawer)
+    if (!m_drawer || !m_system->GetCollisionSystem())
         return;
 
     std::static_pointer_cast<DebugDrawer>(m_drawer)->SetLineColor(color);

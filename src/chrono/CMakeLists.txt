@@ -278,6 +278,7 @@ set(ChronoEngine_physics_links_HEADERS
     physics/ChLinkMotorLinearForce.h
     physics/ChLinkMotorLinearDriveline.h
     physics/ChLinkMotionImposed.h
+    physics/ChLinkMotorAll.h
 )
 
 source_group(physics\\links FILES

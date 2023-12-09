@@ -447,14 +447,13 @@ using namespace chrono::fea;
 %include "../../../chrono/fea/ChContactSurfaceNodeCloud.h"
 %template(vector_ChNodeFEAbase) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAbase> >;
 %template(vector_ChElementBase) std::vector< std::shared_ptr<chrono::fea::ChElementBase> >;
-%include "../../../chrono/fea/ChMesh.h"
 %include "../../../chrono/fea/ChMeshSurface.h"
+%include "../../../chrono/fea/ChMesh.h"
 %include "../../../chrono/fea/ChLinkDirFrame.h"
 %include "../../../chrono/fea/ChLinkPointFrame.h"
 %include "../../../chrono/fea/ChLinkPointPoint.h"
 %include "../../../chrono/fea/ChLoadsBeam.h"
 //%template(LoadLoaderBeamWrench) chrono::ChLoad< chrono::fea::ChLoaderBeamWrench >;
-%include "../../../chrono/fea/ChMesh.h"
 %include "../../../chrono/fea/ChBuilderBeam.h"
 %include "../../../chrono/fea/ChMeshFileLoader.h"
 %include "../../../chrono/fea/ChLoadsXYZROTnode.h"

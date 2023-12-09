@@ -1,3 +1,11 @@
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+
+%csmethodmodifiers chrono::ChCollisionShape::GetType "public new"
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
+
+
 %{
 #include "chrono/collision/ChCollisionShape.h"
 // #include "chrono/collision/ChCollisionShapes.h" // nothing to parse here

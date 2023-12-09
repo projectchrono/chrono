@@ -285,7 +285,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
         bool dynamic_colors;                      ///< particle colors change
     };
     std::vector<ParticleCloud> m_clouds;
-
+    
+    /// export screen image as file (png, bmp, tga, jpg)
+    void exportScreenImage();
+    
   private:
     /// Bind the visual model associated with a body.
     void BindBody(const std::shared_ptr<ChBody>& body);

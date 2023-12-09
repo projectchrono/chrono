@@ -14,7 +14,11 @@
 #pragma SWIG nowarn=516
 #pragma SWIG nowarn=842
 
+#ifdef SWIGPYTHON
 %module(directors="1") core
+#else
+%module(directors="1") chrono
+#endif
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
@@ -71,6 +75,8 @@
 #include "chrono/collision/ChCollisionShapes.h"
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionSystem.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
+#include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -173,13 +179,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFunctionPosition_setpoint)
 %shared_ptr(chrono::ChFunctionPosition_XYZfunctions)
 
-%shared_ptr(chrono::ChCollisionSystem)
-%shared_ptr(chrono::ChCollisionModel)
-
-%shared_ptr(chrono::ChCollisionSystem::BroadphaseCallback)
-%shared_ptr(chrono::ChCollisionSystem::NarrowphaseCallback)
-%shared_ptr(chrono::ChCollisionSystem::VisualizationCallback)
-
 %shared_ptr(chrono::ChObj)
 %shared_ptr(chrono::ChPhysicsItem)
 %shared_ptr(chrono::ChContactable)
@@ -213,6 +212,16 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChSystemSMC)
 %shared_ptr(chrono::ChContactContainer)
 %shared_ptr(chrono::ChProximityContainer)
+
+%shared_ptr(chrono::ChCollisionModel)
+
+%shared_ptr(chrono::ChCollisionSystem)
+%shared_ptr(chrono::ChCollisionSystemBullet)
+%shared_ptr(chrono::ChCollisionSystemMulticore)
+
+%shared_ptr(chrono::ChCollisionSystem::BroadphaseCallback)
+%shared_ptr(chrono::ChCollisionSystem::NarrowphaseCallback)
+%shared_ptr(chrono::ChCollisionSystem::VisualizationCallback)
 
 %shared_ptr(chrono::ChLinkMarkers)
 %shared_ptr(chrono::ChLinkLimit)
@@ -336,8 +345,10 @@ using namespace chrono::fea;
 %include "../../../chrono/collision/ChCollisionShape.h"
 %include "../../../chrono/collision/ChCollisionShapes.h"
 %include "../../../chrono/collision/ChCollisionModel.h"
-%include "../../../chrono/collision/ChCollisionSystem.h"
 %include "ChCollisionInfo.i"
+%include "../../../chrono/collision/ChCollisionSystem.h"
+%include "../../../chrono/collision/bullet/ChCollisionSystemBullet.h"
+%include "../../../chrono/collision/multicore/ChCollisionSystemMulticore.h"
 
 
 // motion_functions/   classes
@@ -476,6 +487,10 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeSphere)
 %DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeTriangle)
 %DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeTriangleMesh)
+
+
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionSystem, ChCollisionSystemBullet)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionSystem, ChCollisionSystemMulticore)
 
 
 %DefSharedPtrDynamicDowncast(chrono, ChBodyFrame, ChBody)
