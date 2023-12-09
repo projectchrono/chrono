@@ -17,7 +17,6 @@
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 #include "chrono_multicore/collision/ChContactContainerMulticoreNSC.h"
-#include "chrono_multicore/collision/ChCollisionSystemBulletMulticore.h"
 
 using namespace chrono;
 
@@ -66,11 +65,6 @@ void ChSystemMulticoreNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> con
     container->data_manager = data_manager;
 }
 
-void ChSystemMulticoreNSC::SetContactContainer(ChCollisionSystemType type) {
-    contact_container = chrono_types::make_shared<ChContactContainerMulticoreNSC>(data_manager);
-    contact_container->SetSystem(this);
-}
-
 void ChSystemMulticoreNSC::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
     if (std::dynamic_pointer_cast<ChContactContainerMulticoreNSC>(container))
         ChSystem::SetContactContainer(container);
@@ -92,8 +86,8 @@ void ChSystemMulticoreNSC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     custom_vector<float>& cohesion = data_manager->host_data.cohesion;
 
     if (body->GetCollisionModel() && body->GetCollisionModel()->GetNumShapes() > 0) {
-        auto mat =
-            std::static_pointer_cast<ChMaterialSurfaceNSC>(body->GetCollisionModel()->GetShape(0)->GetMaterial());
+        auto shape = body->GetCollisionModel()->GetShape(0).first;
+        auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(shape->GetMaterial());
         friction[index] = mat->GetKfriction();
         cohesion[index] = mat->GetCohesion();
     }

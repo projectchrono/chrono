@@ -54,7 +54,7 @@ void AddBody(ChSystemMulticoreNSC* sys) {
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
-    auto bin = std::shared_ptr<ChBody>(sys->NewBody());
+    auto bin = chrono_types::make_shared<ChBody>();
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -62,11 +62,9 @@ void AddBody(ChSystemMulticoreNSC* sys) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    bin->GetCollisionModel()->Clear();
     utils::AddBoxGeometry(bin.get(), mat, ChVector<>(0.2, 0.2, 0.2), ChVector<>(0, 0, 0));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
-    bin->GetCollisionModel()->Build();
 
     sys->AddBody(bin);
 }
@@ -163,6 +161,9 @@ int main(int argc, char* argv[]) {
 
     // Create system
     ChSystemMulticoreNSC sys;
+
+    // Set associated collision detection system
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     // Set number of threads
     sys.SetNumThreads(8);

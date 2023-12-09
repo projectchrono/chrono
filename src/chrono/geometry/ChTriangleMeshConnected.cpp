@@ -648,7 +648,7 @@ bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int, int>, s
     return pathological_edges;
 }
 
-int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
+int ChTriangleMeshConnected::RepairDuplicateVertexes(double tolerance) {
     int nmerged = 0;
     std::vector<ChVector<>> processed_verts;
     std::vector<int> new_indexes(m_vertices.size());
@@ -687,7 +687,7 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
 // " A 3D surface offset method for STL-format models"
 //   Xiuzhi Qu and Brent Stucker
 
-bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
+bool ChTriangleMeshConnected::MakeOffset(double moffset) {
     std::map<int, std::vector<int>> map_vertex_triangles;
     std::vector<ChVector<>> voffsets(this->m_vertices.size());
 

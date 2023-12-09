@@ -47,15 +47,11 @@ int main(int argc, char* argv[]) {
 
     double tire_w0 = tire_vel_z0 / tire_rad;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system and set the associated collision system
     ChSystemSMC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    //
-    // CREATE THE PHYSICAL SYSTEM
-    //
-
-    // Create the surface material, containing information
-    // about friction etc.
+    // Create the surface material
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(10e4);
     mysurfmaterial->SetFriction(0.3f);

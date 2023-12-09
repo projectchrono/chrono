@@ -31,10 +31,18 @@ using namespace chrono::postprocess;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a Chrono::Engine physical system
+    // Create output directory
+    std::string out_dir = GetChronoOutputPath() + "POVRAY_2";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+    // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
     ChCollisionModel::SetDefaultSuggestedEnvelope(1e-3);
     ChCollisionModel::SetDefaultSuggestedMargin(1e-3);
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the ChParticleClones, populate it with some random particles, and add it to physical system
     auto particles = chrono_types::make_shared<ChParticleCloud>();
@@ -44,8 +52,7 @@ int main(int argc, char* argv[]) {
     auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     auto particle_ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, 0.005);
-    particles->GetCollisionModel()->AddShape(particle_ct_shape);
-    particles->GetCollisionModel()->Build();
+    particles->AddCollisionShape(particle_ct_shape);
     particles->SetCollide(true);
 
     for (int ix = 0; ix < 5; ix++)
@@ -64,8 +71,7 @@ int main(int argc, char* argv[]) {
 
     auto floor_ct_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     auto floor_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_ct_mat, 0.2, 0.04, 0.2);
-    floor->GetCollisionModel()->AddShape(floor_ct_shape);
-    floor->GetCollisionModel()->Build();
+    floor->AddCollisionShape(floor_ct_shape);
     floor->SetCollide(true);
 
     auto floor_vis_shape = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.04, 0.2);
@@ -83,8 +89,7 @@ int main(int argc, char* argv[]) {
             body->SetInertiaXX(ChVector<>((2.0 / 5.0) * (0.01 * 0.01) * 0.02));
 
             auto body_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_ct_mat, 0.02, 0.02, 0.02);
-            floor->GetCollisionModel()->AddShape(body_ct_shape);
-            floor->GetCollisionModel()->Build();
+            floor->AddCollisionShape(body_ct_shape);
             body->SetCollide(true);
 
             auto body_vis_shape = chrono_types::make_shared<ChVisualShapeBox>(0.02, 0.02, 0.02);
@@ -97,7 +102,7 @@ int main(int argc, char* argv[]) {
     // Create an exporter to POVray
     ChPovRay pov_exporter = ChPovRay(&sys);
     pov_exporter.SetTemplateFile(GetChronoDataFile("POVRay_chrono_template.pov"));
-    pov_exporter.SetBasePath(GetChronoOutputPath() + "POVRAY_2");
+    pov_exporter.SetBasePath(out_dir);
 
     pov_exporter.SetCamera(ChVector<>(0.2, 0.3, 0.5), ChVector<>(0, 0, 0), 35);
     pov_exporter.SetLight(ChVector<>(-2, 2, -1), ChColor(1.0f, 1.0f, 1.0f), true);

@@ -71,7 +71,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     ChMatrix33<> rot;
     rot.Set_A_axis(u, v, w);
 
-    m_arm = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_arm = chrono_types::make_shared<ChBody>();
     m_arm->SetNameString(m_name + "_arm");
     m_arm->SetPos(points[ARM]);
     m_arm->SetRot(rot);

@@ -179,7 +179,7 @@ void ChVisualSystemIrrlicht::AttachSystem(ChSystem* sys) {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemIrrlicht::Initialize() {
-    if (m_device)
+    if (m_initialized)
         return;
 
     // Create Irrlicht device using current parameter values.
@@ -231,6 +231,8 @@ void ChVisualSystemIrrlicht::Initialize() {
         // This is a recursive call to accomodate any existing sub-assemblies.
         BindAll();
     }
+
+    m_initialized = true;
 }
 
 // -----------------------------------------------------------------------------
@@ -512,6 +514,7 @@ void ChVisualSystemIrrlicht::EnableContactDrawing(ContactsDrawMode mode) {
         m_gui->SetContactsDrawMode(mode);
 }
 
+
 void ChVisualSystemIrrlicht::EnableLinkDrawing(LinkDrawMode mode) {
     if (m_gui->initialized)
         m_gui->SetLinksDrawMode(mode);
@@ -530,6 +533,11 @@ void ChVisualSystemIrrlicht::EnableLinkFrameDrawing(bool val) {
 void ChVisualSystemIrrlicht::EnableCollisionShapeDrawing(bool val) {
     if (m_gui->initialized)
         m_gui->SetPlotCollisionShapes(val);
+}
+
+void ChVisualSystemIrrlicht::EnableAbsCoordsysDrawing(bool val) {
+    if (m_gui->initialized)
+        m_gui->SetPlotAbsCoordsys(val);
 }
 
 void ChVisualSystemIrrlicht::ShowInfoPanel(bool val) {

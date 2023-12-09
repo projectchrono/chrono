@@ -132,8 +132,9 @@ void create_some_falling_items(ChSystemNSC& sys) {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a Chrono physical system
+    // Create a Chrono physical system and an associated collision system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create all the rigid bodies.
 

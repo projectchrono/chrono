@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono_multicore/collision/ChContactContainerMulticoreSMC.h"
+#include "chrono/collision/multicore/ChCollisionModelMulticore.h"
 
 namespace chrono {
 
@@ -129,11 +130,17 @@ void ChContactContainerMulticoreSMC::AddContact(int index, int b1, int s1, int b
     auto s1_index = cd_data->shape_data.local_rigid[s1];
     auto s2_index = cd_data->shape_data.local_rigid[s2];
 
+    // Chrono multicore collision model implementation
+    auto modelA = (ChCollisionModelMulticore*)blist[b1]->GetCollisionModel()->GetImplementation();
+    auto modelB = (ChCollisionModelMulticore*)blist[b2]->GetCollisionModel()->GetImplementation();
+
+    // Collsion shapes in contact
+    auto shape1 = modelA->m_shapes[s1_index].get();
+    auto shape2 = modelB->m_shapes[s2_index].get();
+
     // Contact materials of the two colliding shapes
-    auto mat1 = std::static_pointer_cast<ChMaterialSurfaceSMC>(
-        blist[b1]->GetCollisionModel()->GetShape(s1_index)->GetMaterial());
-    auto mat2 = std::static_pointer_cast<ChMaterialSurfaceSMC>(
-        blist[b2]->GetCollisionModel()->GetShape(s2_index)->GetMaterial());
+    auto mat1 = std::static_pointer_cast<ChMaterialSurfaceSMC>(shape1->GetMaterial());
+    auto mat2 = std::static_pointer_cast<ChMaterialSurfaceSMC>(shape2->GetMaterial());
 
     // Composite material
     ChMaterialCompositeSMC cmat(data_manager->composition_strategy.get(), mat1, mat2);
@@ -148,8 +155,8 @@ void ChContactContainerMulticoreSMC::AddContact(int index, int b1, int s1, int b
         chrono::ChCollisionInfo cinfo;
         cinfo.modelA = blist[b1]->GetCollisionModel().get();
         cinfo.modelB = blist[b2]->GetCollisionModel().get();
-        cinfo.shapeA = cinfo.modelA->GetShape(s1_index).get();
-        cinfo.shapeB = cinfo.modelB->GetShape(s2_index).get();
+        cinfo.shapeA = shape1;
+        cinfo.shapeB = shape2;
         cinfo.vN = ChVector<>(vN.x, vN.y, vN.z);
         cinfo.vpA = ChVector<>(vpA.x, vpA.y, vpA.z);
         cinfo.vpB = ChVector<>(vpB.x, vpB.y, vpB.z);

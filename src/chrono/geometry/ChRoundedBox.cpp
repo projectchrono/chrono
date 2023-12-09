@@ -33,7 +33,7 @@ ChRoundedBox::ChRoundedBox(const ChRoundedBox& source) {
     hlen = source.hlen;
 }
 
-ChVector<> ChRoundedBox::Evaluate(const double parU, const double parV, const double parW) const {
+ChVector<> ChRoundedBox::Evaluate(double parU, double parV, double parW) const {
     return ChVector<>(hlen.x() * (parU - 0.5), hlen.y() * (parV - 0.5), hlen.z() * (parW - 0.5));
 }
 

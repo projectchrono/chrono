@@ -101,7 +101,7 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
     // Create and initialize spindle body
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
@@ -111,7 +111,7 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upright body (same orientation as the chassis)
-    m_upright[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_upright[side] = chrono_types::make_shared<ChBody>();
     m_upright[side]->SetNameString(m_name + "_upright" + suffix);
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);

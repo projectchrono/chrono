@@ -218,11 +218,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         body->SetBodyFixed(false);
         body->SetCollide(true);
 
-        body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                                   m_radius_g);
+        auto trimesh_shape = chrono_types::make_shared<ChCollsionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_g);
+        body->AddCollisionShape(trimesh_shape);
         body->GetCollisionModel()->SetFamily(2);
-        body->GetCollisionModel()->BuildModel();
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
@@ -263,7 +261,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
     // Create wheel proxy body
-    auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+    auto body = chrono_types::make_shared<ChBody>();
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i]);
     body->SetBodyFixed(true);  // proxy body always fixed
@@ -306,9 +304,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     }
 
     // Update dimension of FSI active domain based on shape AABB
-    double s1 = (m_aabb[i_shape].m_center + m_aabb[i_shape].m_dims).Length();
-    double s2 = (m_aabb[i_shape].m_center - m_aabb[i_shape].m_dims).Length();
-    m_active_box_size = std::max(m_active_box_size, std::max(s1, s2));
+    m_active_box_size = std::max(m_active_box_size, m_aabb[i_shape].Size().Length());
 }
 
 // Once all proxy bodies are created, complete construction of the underlying FSI system.
@@ -317,7 +313,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
 
     // Initialize the SPH terrain
     ChSystemFsi& sysFSI = m_terrain->GetSystemFSI();
-    ////sysFSI.SetActiveDomain(ChVector<>(m_active_box_size / 2));
     m_terrain->Initialize();
 
     // Initialize run-time visualization

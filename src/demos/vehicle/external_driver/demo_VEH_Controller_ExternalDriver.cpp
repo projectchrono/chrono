@@ -304,6 +304,7 @@ int main(int argc, char* argv[]) {
 
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Full hmmwv;
+    hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     hmmwv.SetContactMethod(contact_method);
     hmmwv.SetChassisFixed(false);
     hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
@@ -347,7 +348,6 @@ int main(int argc, char* argv[]) {
         trimesh_shape->SetMutable(false);
         patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI_2)));
     }
-
 
     // ------------------------
     // Create the driver system

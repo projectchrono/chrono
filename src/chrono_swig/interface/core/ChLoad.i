@@ -11,19 +11,19 @@
 %shared_ptr(chrono::ChLoadBase)
 %shared_ptr(chrono::ChLoad)
 
-%shared_ptr(chrono::ChLoad< chrono::ChLoaderGravity>)
-%shared_ptr(chrono::ChLoad< chrono::ChLoaderXYZnode>)
-%shared_ptr(chrono::ChLoad< chrono::ChLoaderU>)
-%shared_ptr(chrono::ChLoad< chrono::ChLoaderUdistributed>)
-%shared_ptr(chrono::ChLoad< chrono::ChLoaderUatomic>)
-%shared_ptr(chrono::ChLoad< chrono::ChLoaderUV>)
-%shared_ptr(chrono::ChLoad< chrono::ChLoaderUVdistributed>)
-%shared_ptr(chrono::ChLoad< chrono::ChLoaderUVatomic>)
-%shared_ptr(chrono::ChLoad< chrono::ChLoaderForceOnSurface>)
-%shared_ptr(chrono::ChLoad< chrono::ChLoaderPressure>)
-%shared_ptr(chrono::ChLoad< chrono::ChLoaderUVW>)
-%shared_ptr(chrono::ChLoad< chrono::ChLoaderUVWdistributed>)
-%shared_ptr(chrono::ChLoad< chrono::ChLoaderUVWatomic>)
+%shared_ptr(chrono::ChLoad<chrono::ChLoaderGravity>)
+%shared_ptr(chrono::ChLoad<chrono::ChLoaderXYZnode>)
+%shared_ptr(chrono::ChLoad<chrono::ChLoaderU>)
+%shared_ptr(chrono::ChLoad<chrono::ChLoaderUdistributed>)
+%shared_ptr(chrono::ChLoad<chrono::ChLoaderUatomic>)
+%shared_ptr(chrono::ChLoad<chrono::ChLoaderUV>)
+%shared_ptr(chrono::ChLoad<chrono::ChLoaderUVdistributed>)
+%shared_ptr(chrono::ChLoad<chrono::ChLoaderUVatomic>)
+%shared_ptr(chrono::ChLoad<chrono::ChLoaderForceOnSurface>)
+%shared_ptr(chrono::ChLoad<chrono::ChLoaderPressure>)
+%shared_ptr(chrono::ChLoad<chrono::ChLoaderUVW>)
+%shared_ptr(chrono::ChLoad<chrono::ChLoaderUVWdistributed>)
+%shared_ptr(chrono::ChLoad<chrono::ChLoaderUVWatomic>)
 
 %shared_ptr(chrono::ChLoadCustom)
 %shared_ptr(chrono::ChLoadCustomMultiple)
@@ -61,7 +61,7 @@
 %ignore chrono::ChLoadCustom::ComputeJacobian;
 %ignore chrono::ChLoadCustom::Clone;
 %ignore chrono::ChLoadCustomMultiple::ComputeJacobian;
-%include "../chrono/physics/ChLoad.h"
+%include "../../../chrono/physics/ChLoad.h"
 
 %template(LoadLoaderXYZnode) chrono::ChLoad< chrono::ChLoaderXYZnode>;
 %template(LoadLoaderGravity) chrono::ChLoad< chrono::ChLoaderGravity>;

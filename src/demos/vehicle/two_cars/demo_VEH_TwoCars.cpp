@@ -57,6 +57,7 @@ int main(int argc, char* argv[]) {
 
     // Chrono system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
     sys.SetSolverMaxIterations(150);

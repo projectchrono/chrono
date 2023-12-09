@@ -71,6 +71,7 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
 
     // Create the M113 vehicle, set parameters, and initialize.
     m_m113 = new M113();
+    m_m113->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_m113->SetContactMethod(contact_method);
     m_m113->SetTrackShoeType(SHOE_TYPE);
     m_m113->SetDrivelineType(driveline_type);

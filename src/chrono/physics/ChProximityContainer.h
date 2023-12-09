@@ -20,14 +20,8 @@
 
 namespace chrono {
 
-/// Class representing the interface for containers of proximity pairs,
-/// that is pairs of collision models that have been obtained from the
-/// broadphase collision.
-/// There might be implementations of this interface
-/// in form of plain CPU linked lists of objects (ex. springs or similar
-/// forcefields for cloth simulation etc.) or highly optimized GPU buffers,
-/// etc. etc.
-/// This is only the basic interface with the features that are in common.
+/// Class representing the interface for containers of proximity pairs, that is pairs of collision models that have been
+/// obtained from the broadphase collision.
 class ChApi ChProximityContainer : public ChPhysicsItem {
   public:
     ChProximityContainer() : add_proximity_callback(nullptr), report_proximity_callback(nullptr) {}

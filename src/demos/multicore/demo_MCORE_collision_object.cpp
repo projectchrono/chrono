@@ -44,9 +44,6 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
 // ====================================================================================
 
 int main(int argc, char* argv[]) {
-    // Collision detection sys
-    ChCollisionSystemType collision_type = ChCollisionSystemType::CHRONO;
-
     // Narrowphase algorithm
     ChNarrowphase::Algorithm narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
@@ -160,7 +157,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sys->SetCollisionSystemType(collision_type);
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
     sys->Set_G_acc(ChVector<>(0, -9.81, 0));
     // sys->Set_G_acc(ChVector<>(0, 0, 0));
 
@@ -177,7 +174,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<> z2y = Q_from_AngX(-CH_C_PI_2);
 
     // Create the falling object
-    auto object = std::shared_ptr<ChBody>(sys->NewBody());
+    auto object = chrono_types::make_shared<ChBody>();
     sys->AddBody(object);
 
     object->SetName("object");
@@ -206,8 +203,7 @@ int main(int argc, char* argv[]) {
     switch (object_model) {
         case CollisionShape::SPHERE: {
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(object_mat, radius);
-            object->GetCollisionModel()->AddShape(ct_shape);
-            object->GetCollisionModel()->Build();
+            object->AddCollisionShape(ct_shape);
 
             auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
             sphere->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
@@ -217,8 +213,7 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::CYLINDER: {
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(object_mat, radius, 2 * hlen);
-            object->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-            object->GetCollisionModel()->Build();
+            object->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
             cyl->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
@@ -228,8 +223,7 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::CAPSULE: {
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeCapsule>(object_mat, radius, 2 * hlen);
-            object->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-            object->GetCollisionModel()->Build();
+            object->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             auto cap = chrono_types::make_shared<ChVisualShapeCapsule>(radius, 2 * hlen);
             cap->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
@@ -239,8 +233,7 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::CYLSHELL: {
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylindricalShell>(object_mat, radius, 2 * hlen);
-            object->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-            object->GetCollisionModel()->Build();
+            object->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
             cyl->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
@@ -256,8 +249,7 @@ int main(int argc, char* argv[]) {
 
             auto ct_shape =
                 chrono_types::make_shared<ChCollisionShapeTriangleMesh>(object_mat, trimesh, false, false, sphere_r);
-            object->GetCollisionModel()->AddShape(ct_shape);
-            object->GetCollisionModel()->Build();
+            object->AddCollisionShape(ct_shape);
 
             auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh);
@@ -270,7 +262,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create ground body
-    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
+    auto ground = chrono_types::make_shared<ChBody>();
     sys->AddBody(ground);
 
     ground->SetName("ground");
@@ -293,8 +285,7 @@ int main(int argc, char* argv[]) {
     }
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, size_x, size_y, size_z);
-    ground->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0, -size_y / 2, 0), QUNIT));
-    ground->GetCollisionModel()->Build();
+    ground->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, -size_y / 2, 0), QUNIT));
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(size_x, size_y, size_z);
     box->SetTexture(GetChronoDataFile("textures/checker1.png"), 4, 2);

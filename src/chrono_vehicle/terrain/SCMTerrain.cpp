@@ -48,6 +48,12 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 
 SCMTerrain::SCMTerrain(ChSystem* system, bool visualization_mesh) {
+    if (!system->GetCollisionSystem()) {
+        std::cout << "\nError: SCMTerrain requires collision detection.\n";
+        std::cout << "A collision system must be associated to the Chrono system before constructing the SCMTerrain."
+                  << std::endl;
+        throw(ChException("SCMTerrain requires a collision system be associated with the Chrono system."));
+    }
     m_loader = chrono_types::make_shared<SCMLoader>(system, visualization_mesh);
     system->Add(m_loader);
 }

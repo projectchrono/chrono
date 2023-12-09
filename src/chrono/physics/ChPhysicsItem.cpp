@@ -32,17 +32,7 @@ ChPhysicsItem::~ChPhysicsItem() {
 }
 
 void ChPhysicsItem::SetSystem(ChSystem* m_system) {
-    if (system == m_system)  // shortcut if no change
-        return;
-    if (system) {
-        if (GetCollide())
-            RemoveCollisionModelsFromSystem();
-    }
-    system = m_system;  // set here
-    if (system) {
-        if (GetCollide())
-            AddCollisionModelsToSystem();
-    }
+    system = m_system;
 }
 
 void ChPhysicsItem::AddVisualModel(std::shared_ptr<ChVisualModel> model) {

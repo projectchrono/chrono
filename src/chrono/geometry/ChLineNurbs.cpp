@@ -41,7 +41,7 @@ ChLineNurbs::ChLineNurbs(const ChLineNurbs& source) : ChLine(source) {
     this->weights = source.weights;
 }
 
-ChVector<> ChLineNurbs::Evaluate(const double parU) const {
+ChVector<> ChLineNurbs::Evaluate(double parU) const {
     double u = ComputeKnotUfromU(parU);
 
     ChVectorDynamic<> mR(this->p + 1);
@@ -58,7 +58,7 @@ ChVector<> ChLineNurbs::Evaluate(const double parU) const {
     return pos;
 }
 
-ChVector<> ChLineNurbs::GetTangent(const double parU) const {
+ChVector<> ChLineNurbs::GetTangent(double parU) const {
     double u = ComputeKnotUfromU(parU);
 
     ChVectorDynamic<> mR(this->p + 1);

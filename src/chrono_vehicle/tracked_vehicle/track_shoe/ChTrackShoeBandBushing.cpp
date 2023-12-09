@@ -55,7 +55,7 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     auto web_mat = m_body_matinfo.CreateMaterial(chassis->GetSystem()->GetContactMethod());
     ChVector<> seg_loc = loc + (0.5 * GetToothBaseLength()) * xdir;
     for (int is = 0; is < GetNumWebSegments(); is++) {
-        m_web_segments.push_back(std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody()));
+        m_web_segments.push_back(chrono_types::make_shared<ChBody>());
         m_web_segments[is]->SetNameString(m_name + "_web_" + std::to_string(is));
         m_web_segments[is]->SetPos(seg_loc + ((2 * is + 1) * m_seg_length / 2) * xdir);
         m_web_segments[is]->SetRot(rot);
@@ -113,15 +113,12 @@ void ChTrackShoeBandBushing::UpdateInertiaProperties() {
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment,
                                            std::shared_ptr<ChMaterialSurface> web_mat) {
-    segment->GetCollisionModel()->Clear();
+    auto shape =
+        chrono_types::make_shared<ChCollisionShapeBox>(web_mat, m_seg_length, GetBeltWidth(), GetWebThickness());
+    segment->AddCollisionShape(shape);
 
     segment->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
     segment->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
-    auto shape =
-        chrono_types::make_shared<ChCollisionShapeBox>(web_mat, m_seg_length, GetBeltWidth(), GetWebThickness());
-    segment->GetCollisionModel()->AddShape(shape);
-
-    segment->GetCollisionModel()->Build();
 }
 
 // -----------------------------------------------------------------------------

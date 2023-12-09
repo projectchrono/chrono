@@ -101,7 +101,7 @@ void ChLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     // Create and initialize the axle body.
-    m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -156,7 +156,7 @@ void ChLeafspringAxle::InitializeSide(VehicleSide side,
     auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);

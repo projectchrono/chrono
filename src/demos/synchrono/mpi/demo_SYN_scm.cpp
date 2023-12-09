@@ -131,6 +131,7 @@ int main(int argc, char* argv[]) {
 
     // Create the HMMWV
     HMMWV_Full hmmwv;
+    hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     hmmwv.SetContactMethod(contact_method);
     hmmwv.SetChassisFixed(false);
     hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));

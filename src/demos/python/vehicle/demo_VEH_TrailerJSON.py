@@ -62,6 +62,8 @@ def main() :
         tireR = veh.TMeasyTire(trailer_tire_file)
         trailer.InitializeTire(tireR, axle.m_wheels[1], veh.VisualizationType_PRIMITIVES)
 
+    vehicle.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
+
     # Create the ground
     terrain = veh.RigidTerrain(vehicle.GetSystem(), rigidterrain_file)
     terrain.Initialize()

@@ -90,7 +90,7 @@ TEST(ChronoMulticore, bodyauxref) {
     z2y.Q_from_AngX(-CH_C_PI / 2);
 
     // Create the ground body
-    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
+    auto ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);
     sys->AddBody(ground);
 
@@ -99,7 +99,7 @@ TEST(ChronoMulticore, bodyauxref) {
     ground->AddVisualShape(box);
 
     // Create a pendulum modeled using ChBody
-    auto pend_1 = std::shared_ptr<ChBody>(sys->NewBody());
+    auto pend_1 = chrono_types::make_shared<ChBody>();
     sys->AddBody(pend_1);
     pend_1->SetIdentifier(1);
     pend_1->SetBodyFixed(false);
@@ -119,7 +119,7 @@ TEST(ChronoMulticore, bodyauxref) {
     sys->AddLink(rev_1);
 
     // Create a pendulum modeled using ChBodyAuxRef
-    auto pend_2 = std::shared_ptr<ChBodyAuxRef>(sys->NewBodyAuxRef());
+    auto pend_2 = chrono_types::make_shared<ChBodyAuxRef>();
     sys->Add(pend_2);
     pend_2->SetIdentifier(2);
     pend_2->SetBodyFixed(false);

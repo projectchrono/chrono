@@ -149,6 +149,9 @@ void ChVisualSystemOpenGL::AttachSystem(ChSystem* sys) {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemOpenGL::Initialize() {
+    if (m_initialized)
+        return;
+
     viewer = new ChOpenGLViewer(this);
 
     viewer->render_camera.camera_position = glm::vec3(m_camera_pos.x(), m_camera_pos.y(), m_camera_pos.z());
@@ -225,6 +228,8 @@ void ChVisualSystemOpenGL::Initialize() {
     glfwSetWindowUserPointer(window, this);
 
     GLReturnedError("Initialize Viewer ");
+
+    m_initialized = true;
 }
 
 // -----------------------------------------------------------------------------

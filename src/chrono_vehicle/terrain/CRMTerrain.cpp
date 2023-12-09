@@ -44,7 +44,7 @@ CRMTerrain::CRMTerrain(ChSystem& sys, double spacing)
       m_angle(0.0),
       m_verbose(false) {
     // Create ground body
-    m_ground = std::shared_ptr<ChBody>(sys.NewBody());
+    m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetBodyFixed(true);
     sys.AddBody(m_ground);
 
@@ -100,7 +100,7 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     auto o_name = filesystem::path(obj_file).stem();
 
     // Create the obstacle body
-    o.body = std::shared_ptr<ChBody>(m_sys.NewBody());
+    o.body = chrono_types::make_shared<ChBody>();
     o.body->SetNameString("obstacle_" + o_name);
     o.body->SetPos(pos.GetPos());
     o.body->SetRot(pos.GetRot());
@@ -118,11 +118,9 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     // Create obstacle collision geometry
     auto mat = o.cmat.CreateMaterial(m_sys.GetContactMethod());
     auto thickness = m_spacing / 2;
-    o.body->GetCollisionModel()->Clear();
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, o.trimesh, false, false, thickness);
-    o.body->GetCollisionModel()->AddShape(ct_shape);
+    o.body->AddCollisionShape(ct_shape);
     o.body->GetCollisionModel()->SetFamily(2);
-    o.body->GetCollisionModel()->Build();
 
     // Create the obstacle BCE points (relative coordinates)
     m_sysFSI.CreateMeshPoints(*o.trimesh, m_spacing, o.point_cloud);

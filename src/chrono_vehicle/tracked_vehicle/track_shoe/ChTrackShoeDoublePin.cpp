@@ -87,7 +87,7 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> ydir = rot.GetYaxis();
 
     // Create the shoe body
-    m_shoe = std::shared_ptr<ChBody>(sys->NewBody());
+    m_shoe = chrono_types::make_shared<ChBody>();
     m_shoe->SetNameString(m_name + "_shoe");
     m_shoe->SetIdentifier(BodyID::SHOE_BODY);
     m_shoe->SetPos(loc - (0.5 * GetConnectorLength()) * xdir);
@@ -100,7 +100,7 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Create the connector bodies.
     switch (m_topology) {
         case DoublePinTrackShoeType::TWO_CONNECTORS: {
-            m_connector_L = std::shared_ptr<ChBody>(sys->NewBody());
+            m_connector_L = chrono_types::make_shared<ChBody>();
             m_connector_L->SetNameString(m_name + "_connector_L");
             m_connector_L->SetPos(loc + (0.5 * GetShoeLength()) * xdir + (0.5 * GetShoeWidth()) * ydir);
             m_connector_L->SetRot(rot);
@@ -108,7 +108,7 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
             m_connector_L->SetInertiaXX(GetConnectorInertia());
             chassis->GetSystem()->AddBody(m_connector_L);
 
-            m_connector_R = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+            m_connector_R = chrono_types::make_shared<ChBody>();
             m_connector_R->SetNameString(m_name + "_connector_R");
             m_connector_R->SetPos(loc + (0.5 * GetShoeLength()) * xdir - (0.5 * GetShoeWidth()) * ydir);
             m_connector_R->SetRot(rot);
@@ -122,7 +122,7 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
             ChVector<> inertia_connector = 2.0 * GetConnectorInertia();
             inertia_connector.y() += 2.0 * GetConnectorMass() * (0.5 * GetShoeWidth()) * (0.5 * GetShoeWidth());
 
-            m_connector_L = std::shared_ptr<ChBody>(sys->NewBody());
+            m_connector_L = chrono_types::make_shared<ChBody>();
             m_connector_L->SetNameString(m_name + "_connector");
             m_connector_L->SetPos(loc + (0.5 * GetShoeLength()) * xdir);
             m_connector_L->SetRot(rot);

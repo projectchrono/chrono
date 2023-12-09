@@ -27,9 +27,9 @@ print ("Example: create a rigid body based on a .obj mesh file");
 #  Create the simulation sys and add items
 #
 
-sys      = chrono.ChSystemNSC()
+sys = chrono.ChSystemNSC()
 
-
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Set the global collision margins. This is especially important for very large or
 # very small objects. Set this before creating shapes. Not before creating sys.
@@ -132,10 +132,8 @@ mesh_for_collision = chrono.ChTriangleMeshConnected()
 mesh_for_collision.LoadWavefrontMesh(chrono.GetChronoDataFile('models/bulldozer/shoe_view.obj'))
 # Optionally: you can scale/shrink/rotate the mesh using this:
 mesh_for_collision.Transform(chrono.ChVectorD(0.01,0,0), chrono.ChMatrix33D(1))
-body_B.GetCollisionModel().Clear()
 body_B_ct_shape = chrono.ChCollisionShapeTriangleMesh(contact_material, mesh_for_collision, False, False)
-body_B.GetCollisionModel().AddShape(body_B_ct_shape)
-body_B.GetCollisionModel().Build()
+body_B.AddCollisionShape(body_B_ct_shape)
 body_B.SetCollide(True)
 
 sys.Add(body_B)

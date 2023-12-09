@@ -16,37 +16,39 @@ namespace chrono {
 
 CH_UPCASTING_SANITIZED(ChContactable_1vars<6>, ChContactable, ChContactable_1vars_6_ChContactable)
 
+ChContactable::ChContactable() : collision_model(nullptr) {}
 
-class my_enum_mappers : public ChContactable {
-  public:
-    CH_ENUM_MAPPER_BEGIN(eChContactableType);
-    CH_ENUM_VAL(eChContactableType::CONTACTABLE_UNKNOWN);
-    CH_ENUM_VAL(eChContactableType::CONTACTABLE_6);
-    CH_ENUM_VAL(eChContactableType::CONTACTABLE_3);
-    CH_ENUM_VAL(eChContactableType::CONTACTABLE_333);
-    CH_ENUM_VAL(eChContactableType::CONTACTABLE_666);
-    CH_ENUM_MAPPER_END(eChContactableType);
-};
+void ChContactable::AddCollisionModel(std::shared_ptr<ChCollisionModel> model) {
+    collision_model = model;
+    model->SetContactable(this);
+}
 
+void ChContactable::AddCollisionShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame) {
+    if (!collision_model) {
+        auto model = chrono_types::make_shared<ChCollisionModel>();
+        AddCollisionModel(model);
+    }
+    collision_model->AddShape(shape, frame);
+}
 
+std::shared_ptr<ChCollisionModel> ChContactable::GetCollisionModel() const {
+    return collision_model;
+}
 
 void ChContactable::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChContactable>();
 
     // serialize parent class
-    //marchive << CHNVP(m_data); // cannot serialize as it is
+    // marchive << CHNVP(m_data); // cannot serialize as it is
 }
 
 void ChContactable::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContactable>();
+    /*int version =*/marchive.VersionRead<ChContactable>();
 
     // deserialize parent class
-    //marchive >> CHNVP(m_data);  // cannot serialize as it is
-
+    // marchive >> CHNVP(m_data);  // cannot serialize as it is
 }
-
-
 
 }  // end namespace chrono

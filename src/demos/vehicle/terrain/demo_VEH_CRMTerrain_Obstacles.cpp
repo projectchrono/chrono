@@ -78,8 +78,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Create the Chrono system
+    // Create the Chrono system and associated collision system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain system
     CRMTerrain terrain(sys, 0.02);

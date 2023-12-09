@@ -193,7 +193,7 @@ CuriosityPart::CuriosityPart(const std::string& name,
     : m_name(name), m_pos(rel_pos), m_mat(mat), m_collide(collide), m_visualize(true) {}
 
 void CuriosityPart::Construct(ChSystem* system) {
-    m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
+    m_body = chrono_types::make_shared<ChBodyAuxRef>();
     m_body->SetNameString(m_name + "_body");
     m_body->SetMass(m_mass);
     m_body->SetInertiaXX(m_inertia);
@@ -223,8 +223,7 @@ void CuriosityPart::Construct(ChSystem* system) {
 
         auto shape =
             chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh_col, false, false, 0.005);
-        m_body->GetCollisionModel()->AddShape(shape);
-        m_body->GetCollisionModel()->Build();
+        m_body->AddCollisionShape(shape);
 
         m_body->SetCollide(m_collide);
     }

@@ -120,6 +120,9 @@ int main(int argc, char* argv[]) {
     duro.SetWheelVisualizationType(wheel_vis_type);
     duro.SetTireVisualizationType(tire_vis_type);
 
+    // Associate a collision system
+    duro.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     std::string tireTypeS;
     switch (tire_model) {
         case TireModelType::TMSIMPLE:

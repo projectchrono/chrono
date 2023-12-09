@@ -16,7 +16,7 @@
 
 namespace chrono {
 
-ChVisualSystem ::ChVisualSystem() : m_write_images(false), m_image_dir(".") {}
+ChVisualSystem ::ChVisualSystem() : m_initialized(false), m_write_images(false), m_image_dir(".") {}
 
 ChVisualSystem ::~ChVisualSystem() {
     for (auto s : m_systems)

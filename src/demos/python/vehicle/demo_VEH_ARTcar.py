@@ -77,7 +77,6 @@ car.SetMaxMotorVoltageRatio(0.16)
 car.SetStallTorque(0.3)
 car.SetTireRollingResistance(0.06)
 
-
 car.Initialize()
 
 tire_vis_type = veh.VisualizationType_PRIMITIVES  # : VisualizationType::PRIMITIVES
@@ -87,6 +86,8 @@ car.SetSuspensionVisualizationType(suspension_vis_type)
 car.SetSteeringVisualizationType(steering_vis_type)
 car.SetWheelVisualizationType(wheel_vis_type)
 car.SetTireVisualizationType(tire_vis_type)
+
+car.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Create the terrain
 patch_mat = chrono.ChMaterialSurfaceNSC()

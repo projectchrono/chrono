@@ -97,13 +97,14 @@ int main(int argc, char* argv[]) {
     // Create the sys
     ChSystemMulticoreSMC sys;
     sys.Set_G_acc(ChVector<>(0, -10, 0));
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     // Create a contact material, shared among all bodies
     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     material->SetFriction(friction);
 
     // Add bodies
-    auto container = std::shared_ptr<ChBody>(sys.NewBody());
+    auto container = chrono_types::make_shared<ChBody>();
     sys.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
     container->SetBodyFixed(true);
@@ -111,9 +112,8 @@ int main(int argc, char* argv[]) {
 
     container->SetCollide(true);
     utils::AddBoxGeometry(container.get(), material, ChVector<>(8, 1, 8), ChVector<>(0, -0.5, 0));
-    container->GetCollisionModel()->Build();
 
-    auto obj1 = std::shared_ptr<ChBody>(sys.NewBody());
+    auto obj1 = chrono_types::make_shared<ChBody>();
     obj1->SetMass(10);
     obj1->SetInertiaXX(ChVector<>(1, 1, 1));
     obj1->SetPos(ChVector<>(-1, 0.21, -1));
@@ -121,11 +121,10 @@ int main(int argc, char* argv[]) {
 
     obj1->SetCollide(true);
     utils::AddCapsuleGeometry(obj1.get(), material, 0.2, 0.4, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
-    obj1->GetCollisionModel()->Build();
 
     sys.AddBody(obj1);
 
-    auto obj2 = std::shared_ptr<ChBody>(sys.NewBody());
+    auto obj2 = chrono_types::make_shared<ChBody>();
     obj2->SetMass(10);
     obj2->SetInertiaXX(ChVector<>(1, 1, 1));
     obj2->SetPos(ChVector<>(-1, 0.21, +1));
@@ -133,7 +132,6 @@ int main(int argc, char* argv[]) {
 
     obj2->SetCollide(true);
     utils::AddCapsuleGeometry(obj2.get(), material, 0.2, 0.4, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
-    obj2->GetCollisionModel()->Build();
 
     sys.AddBody(obj2);
 

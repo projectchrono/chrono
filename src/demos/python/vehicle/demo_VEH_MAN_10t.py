@@ -79,24 +79,26 @@ render_step_size = 1.0 / 50  # FPS = 50
 # --------------
 
 # Create the MAN 10t vehicle, set parameters, and initialize
-my_truck = veh.MAN_10t()
-my_truck.SetContactMethod(contact_method)
-my_truck.SetChassisCollisionType(chassis_collision_type)
-my_truck.SetChassisFixed(False)
-my_truck.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
-my_truck.SetTireType(tire_model)
-my_truck.SetTireStepSize(tire_step_size)
-my_truck.SetDriveline8WD(True)
-my_truck.Initialize()
+truck = veh.MAN_10t()
+truck.SetContactMethod(contact_method)
+truck.SetChassisCollisionType(chassis_collision_type)
+truck.SetChassisFixed(False)
+truck.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+truck.SetTireType(tire_model)
+truck.SetTireStepSize(tire_step_size)
+truck.SetDriveline8WD(True)
+truck.Initialize()
 
-my_truck.SetChassisVisualizationType(chassis_vis_type)
-my_truck.SetSuspensionVisualizationType(suspension_vis_type)
-my_truck.SetSteeringVisualizationType(steering_vis_type)
-my_truck.SetWheelVisualizationType(wheel_vis_type)
-my_truck.SetTireVisualizationType(tire_vis_type)
+truck.SetChassisVisualizationType(chassis_vis_type)
+truck.SetSuspensionVisualizationType(suspension_vis_type)
+truck.SetSteeringVisualizationType(steering_vis_type)
+truck.SetWheelVisualizationType(wheel_vis_type)
+truck.SetTireVisualizationType(tire_vis_type)
+
+truck.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Create the terrain
-terrain = veh.RigidTerrain(my_truck.GetSystem())
+terrain = veh.RigidTerrain(truck.GetSystem())
 if (contact_method == chrono.ChContactMethod_NSC):
     patch_mat = chrono.ChMaterialSurfaceNSC()
     patch_mat.SetFriction(0.9)
@@ -122,7 +124,7 @@ vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddLightDirectional()
 vis.AddSkyBox()
-vis.AttachVehicle(my_truck.GetVehicle())
+vis.AttachVehicle(truck.GetVehicle())
 
 # Create the driver system
 driver = veh.ChInteractiveDriverIRR(vis)
@@ -142,7 +144,7 @@ driver.Initialize()
 # ---------------
 
 # output vehicle mass
-print( "VEHICLE MASS: ",  my_truck.GetVehicle().GetMass())
+print( "VEHICLE MASS: ",  truck.GetVehicle().GetMass())
 
 # Number of simulation steps between miscellaneous events
 render_steps = math.ceil(render_step_size / step_size)
@@ -151,10 +153,10 @@ render_steps = math.ceil(render_step_size / step_size)
 step_number = 0
 render_frame = 0
 
-my_truck.GetVehicle().EnableRealtime(True)
+truck.GetVehicle().EnableRealtime(True)
 
 while vis.Run() :
-    time = my_truck.GetSystem().GetChTime()
+    time = truck.GetSystem().GetChTime()
 
     # End simulation
     if (time >= t_end):
@@ -173,13 +175,13 @@ while vis.Run() :
     # Update modules (process inputs from other modules)
     driver.Synchronize(time)
     terrain.Synchronize(time)
-    my_truck.Synchronize(time, driver_inputs, terrain)
+    truck.Synchronize(time, driver_inputs, terrain)
     vis.Synchronize(time, driver_inputs)
 
     # Advance simulation for one timestep for all modules
     driver.Advance(step_size)
     terrain.Advance(step_size)
-    my_truck.Advance(step_size)
+    truck.Advance(step_size)
     vis.Advance(step_size)
 
     # Increment frame number

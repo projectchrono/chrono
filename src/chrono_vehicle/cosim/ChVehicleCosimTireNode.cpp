@@ -19,6 +19,8 @@
 //
 // =============================================================================
 
+//// TODO allow changing the collision system
+
 #include "chrono/ChConfig.h"
 #include "chrono/solver/ChIterativeSolver.h"
 #include "chrono/solver/ChDirectSolverLS.h"
@@ -70,6 +72,7 @@ ChVehicleCosimTireNode::ChVehicleCosimTireNode(int index, const std::string& tir
 
     // Create the (sequential) SMC system
     m_system = new ChSystemSMC;
+    m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
 
     // Create a tire subsystem from JSON specification file (if provided)

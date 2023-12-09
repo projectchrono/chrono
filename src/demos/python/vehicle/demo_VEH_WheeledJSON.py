@@ -42,6 +42,8 @@ def main() :
             tire = veh.ReadTireJSON(tire_file)
             vehicle.InitializeTire(tire, wheel, veh.VisualizationType_MESH)
 
+    vehicle.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
+
     # Create the terrain
     terrain = veh.RigidTerrain(vehicle.GetSystem(), rigidterrain_file)
     terrain.Initialize()

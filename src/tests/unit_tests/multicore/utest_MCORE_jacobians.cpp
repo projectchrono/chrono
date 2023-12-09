@@ -39,17 +39,15 @@ void CreateContainer(ChSystemMulticore* system) {
     auto mat_walls = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_walls->SetFriction(0.3f);
 
-    std::shared_ptr<ChBody> container(system->NewBody());
+    auto container = chrono_types::make_shared<ChBody>();
     container->SetBodyFixed(true);
     container->SetCollide(true);
     container->SetMass(10000.0);
 
-    container->GetCollisionModel()->Clear();
     utils::AddBoxContainer(container, mat_walls,                   //
                            ChFrame<>(ChVector<>(0, 0, 1), QUNIT),  //
                            ChVector<>(2, 2, 2), 0.1,               //
                            ChVector<int>(2, 2, -1));
-    container->GetCollisionModel()->Build();
 
     system->AddBody(container);
 }
@@ -71,7 +69,7 @@ void CreateGranularMaterial(ChSystemMulticore* sys) {
                 ChVector<> rnd(rand() % 1000 / 100000.0, rand() % 1000 / 100000.0, rand() % 1000 / 100000.0);
                 ChVector<> pos(0.4 * ix, 0.4 * iy, 0.4 * iz + 1);
 
-                std::shared_ptr<ChBody> ball(sys->NewBody());
+                auto ball = chrono_types::make_shared<ChBody>();
 
                 ball->SetMass(mass);
                 ball->SetInertiaXX(inertia);
@@ -80,9 +78,7 @@ void CreateGranularMaterial(ChSystemMulticore* sys) {
                 ball->SetBodyFixed(false);
                 ball->SetCollide(true);
 
-                ball->GetCollisionModel()->Clear();
                 utils::AddSphereGeometry(ball.get(), ballMat, radius);
-                ball->GetCollisionModel()->Build();
 
                 sys->AddBody(ball);
             }
@@ -224,6 +220,7 @@ TEST(ChronoMulticore, jacobians) {
 #ifdef BULLET
     sys->SetCollisionSystemType(ChCollisionSystemType::BULLET);
 #else
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
     sys->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 #endif
 

@@ -32,7 +32,7 @@ ChLine::ChLine(const ChLine& source) {
     complexityU = source.complexityU;
 }
 
-ChVector<> ChLine::GetTangent(const double parU) const {
+ChVector<> ChLine::GetTangent(double parU) const {
     double bdf = 10e-9;
     double uA = 0, uB = 0;
 

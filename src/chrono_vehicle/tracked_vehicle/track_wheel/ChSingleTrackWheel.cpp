@@ -47,17 +47,13 @@ void ChSingleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_wheel->SetCollide(true);
 
-    m_wheel->GetCollisionModel()->Clear();
-
     if (track->IsRoadwheelCylinder()) {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, radius, width);
-        m_wheel->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
     } else {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylindricalShell>(m_material, radius, width);
-        m_wheel->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
     }
-
-    m_wheel->GetCollisionModel()->Build();
 }
 
 void ChSingleTrackWheel::AddVisualizationAssets(VisualizationType vis) {

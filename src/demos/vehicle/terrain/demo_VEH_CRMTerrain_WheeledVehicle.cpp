@@ -95,8 +95,9 @@ int main(int argc, char* argv[]) {
     // Set SPH spacing
     double spacing = (patch_type == PatchType::MARKER_DATA) ? 0.02 : 0.04;
 
-    // Create the Chrono system
+    // Create the Chrono system and associated collision system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the CRM terrain system
     CRMTerrain terrain(sys, spacing);

@@ -79,7 +79,7 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
     ChMatrix33<> rot;
 
     // Create and initialize the Pitman arm body
-    m_link = std::shared_ptr<ChBody>(sys->NewBody());
+    m_link = chrono_types::make_shared<ChBody>();
     m_link->SetNameString(m_name + "_arm");
     m_link->SetPos(0.5 * (points[ARM_L] + points[ARM_C]));
     m_link->SetRot(steering_to_abs.GetRot());

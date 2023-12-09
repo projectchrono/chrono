@@ -317,7 +317,7 @@ int main(int argc, char** argv) {
         switch (terrain_type) {
             case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
                 auto method = ChContactMethod::SMC;
-                auto terrain = new ChVehicleCosimTerrainNodeRigid(method, terrain_specfile);
+                auto terrain = new ChVehicleCosimTerrainNodeRigid(terrain_specfile, method);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetProxyFixed(false);
                 terrain->SetVerbose(verbose);

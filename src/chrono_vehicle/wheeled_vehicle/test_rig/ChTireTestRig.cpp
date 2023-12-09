@@ -246,7 +246,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     const double mass = m_wheel->GetWheelMass() + m_tire->GetTireMass();
     const ChVector<> inertia = m_wheel->GetWheelInertia() + m_tire->GetTireInertia();
 
-    m_ground_body = std::shared_ptr<ChBody>(m_system->NewBody());
+    m_ground_body = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_ground_body);
     m_ground_body->SetName("rig_ground");
     m_ground_body->SetIdentifier(0);
@@ -256,7 +256,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
         m_ground_body->AddVisualShape(box);
     }
 
-    m_carrier_body = std::shared_ptr<ChBody>(m_system->NewBody());
+    m_carrier_body = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_carrier_body);
     m_carrier_body->SetName("rig_carrier");
     m_carrier_body->SetIdentifier(1);
@@ -278,7 +278,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
         m_carrier_body->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -5 * dim)));
     }
 
-    m_chassis_body = std::shared_ptr<ChBody>(m_system->NewBody());
+    m_chassis_body = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_chassis_body);
     m_chassis_body->SetName("rig_chassis");
     m_chassis_body->SetIdentifier(2);
@@ -300,7 +300,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
                                                     mat);
     }
 
-    m_slip_body = std::shared_ptr<ChBody>(m_system->NewBody());
+    m_slip_body = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_slip_body);
     m_slip_body->SetName("rig_slip");
     m_slip_body->SetIdentifier(3);
@@ -316,7 +316,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
         m_slip_body->AddVisualShape(box);
     }
 
-    m_spindle_body = std::shared_ptr<ChBody>(m_system->NewBody());
+    m_spindle_body = chrono_types::make_shared<ChBody>();
     m_spindle_body->SetBodyFixed(mode == Mode::SUSPEND);
     ChQuaternion<> qc;
     qc.Q_from_AngX(-m_camber_angle);

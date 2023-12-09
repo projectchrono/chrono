@@ -68,7 +68,6 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector<> gear_center,
     // central hub
     chrono::utils::AddCylinderGeometry(mgear.get(), mysurfmaterial, lobe_inner_rad, lobe_thickness * 0.5, VNULL, QUNIT,
                                        true);
-    mgear->GetCollisionModel()->Build();
     mgear->SetCollide(true);
 
     return mgear;
@@ -80,25 +79,22 @@ int main(int argc, char* argv[]) {
     // Create a Chrono physical system
     ChSystemSMC sys;
 
-    // Here set the inward-outward margins for collision shapes: should make sense in the scale of the model
+    // Create and set the collision system
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);
     ChCollisionModel::SetDefaultSuggestedMargin(0.002);
     ChCollisionSystemBullet::SetContactBreakingThreshold(0.0001);
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create a ground object, useful reference for connecting constraints etc.
     auto mground = chrono_types::make_shared<ChBody>();
     mground->SetBodyFixed(true);
     sys.Add(mground);
 
-    // Create a mesh, that is a container for groups
-    // of elements and their referenced nodes.
-
+    // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
     sys.Add(my_mesh);
 
-    // Create a section, i.e. thickness and material properties
-    // for beams. This will be shared among some beams.
-
+    // Create a section, i.e. thickness and material properties for beams. This will be shared among some beams.
     double wire_diameter = 0.010;
 
     auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();

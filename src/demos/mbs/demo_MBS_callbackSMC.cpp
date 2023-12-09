@@ -180,6 +180,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, -10, 0));
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Set solver settings
     sys.SetSolverMaxIterations(100);
@@ -199,7 +200,7 @@ int main(int argc, char* argv[]) {
     // Add bodies
     // ----------
 
-    auto container = std::shared_ptr<ChBody>(sys.NewBody());
+    auto container = chrono_types::make_shared<ChBody>();
     sys.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
     container->SetBodyFixed(true);
@@ -207,10 +208,9 @@ int main(int argc, char* argv[]) {
 
     container->SetCollide(true);
     utils::AddBoxGeometry(container.get(), material, ChVector<>(8, 1, 8), ChVector<>(0, -0.5, 0));
-    container->GetCollisionModel()->Build();
     container->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
 
-    auto box1 = std::shared_ptr<ChBody>(sys.NewBody());
+    auto box1 = chrono_types::make_shared<ChBody>();
     box1->SetMass(10);
     box1->SetInertiaXX(ChVector<>(1, 1, 1));
     box1->SetPos(ChVector<>(-1, 0.21, -1));
@@ -218,12 +218,11 @@ int main(int argc, char* argv[]) {
 
     box1->SetCollide(true);
     utils::AddBoxGeometry(box1.get(), material, ChVector<>(0.8, 0.4, 0.2));
-    box1->GetCollisionModel()->Build();
     box1->GetVisualShape(0)->SetColor(ChColor(0.1f, 0.1f, 0.4f));
 
     sys.AddBody(box1);
 
-    auto box2 = std::shared_ptr<ChBody>(sys.NewBody());
+    auto box2 = chrono_types::make_shared<ChBody>();
     box2->SetMass(10);
     box2->SetInertiaXX(ChVector<>(1, 1, 1));
     box2->SetPos(ChVector<>(-1, 0.21, +1));
@@ -231,7 +230,6 @@ int main(int argc, char* argv[]) {
 
     box2->SetCollide(true);
     utils::AddBoxGeometry(box2.get(), material, ChVector<>(0.8, 0.4, 0.2));
-    box2->GetCollisionModel()->Build();
     box2->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.1f, 0.1f));
 
     sys.AddBody(box2);

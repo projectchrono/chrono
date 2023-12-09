@@ -140,6 +140,9 @@ int main(int argc, char* argv[]) {
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::NONE);
 
+    // Associate a collision system
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Create the ground
     RandomSurfaceTerrain terrain(vehicle.GetSystem(), xend);
 

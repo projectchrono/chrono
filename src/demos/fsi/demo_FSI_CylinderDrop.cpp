@@ -150,13 +150,11 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.AddBody(box);
 
     // Add collision geometry for the container walls
-    box->GetCollisionModel()->Clear();
     chrono::utils::AddBoxContainer(box, cmaterial,                                 //
                                    ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
                                    ChVector<>(bxDim, byDim, bzDim), 0.1,           //
                                    ChVector<int>(2, 2, -1),                        //
                                    false);
-    box->GetCollisionModel()->Build();
     box->SetCollide(true);
 
     // Add BCE particles attached on the walls into FSI system
@@ -183,10 +181,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set the collision and visualization geometry
     cylinder->SetCollide(true);
     cylinder->SetBodyFixed(false);
-    cylinder->GetCollisionModel()->Clear();
-    cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
     chrono::utils::AddCylinderGeometry(cylinder.get(), cmaterial, cyl_radius, cyl_length, VNULL, Q_from_AngX(CH_C_PI_2));
-    cylinder->GetCollisionModel()->Build();
+    cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
 
     cylinder->GetVisualShape(0)->SetColor(ChColor(0.65f, 0.20f, 0.10f));
 
@@ -223,6 +219,8 @@ int main(int argc, char* argv[]) {
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(&sysMBS);
+
+    sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_CylinderDrop_Explicit.json");
     if (argc == 1) {

@@ -16,7 +16,7 @@
 
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #ifdef CHRONO_COLLISION
-    #include "chrono/collision/chrono/ChCollisionSystemChrono.h"
+    #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/physics/ChProximityContainer.h"
@@ -33,17 +33,7 @@
 #include "chrono/utils/ChProfiler.h"
 #include "chrono/physics/ChLinkMate.h"
 
-
 namespace chrono {
-
-class ChCollisionSystemType_enum_mapper : public ChSystem{
-  public:
-    CH_ENUM_MAPPER_BEGIN(ChCollisionSystemType);
-    CH_ENUM_VAL(ChCollisionSystemType::BULLET);
-    CH_ENUM_VAL(ChCollisionSystemType::CHRONO);
-    CH_ENUM_VAL(ChCollisionSystemType::OTHER);
-    CH_ENUM_MAPPER_END(ChCollisionSystemType);
-};
 
 // -----------------------------------------------------------------------------
 // CLASS FOR PHYSICAL SYSTEM
@@ -76,6 +66,7 @@ ChSystem::ChSystem()
       write_matrix(false),
       ncontacts(0),
       composition_strategy(new ChMaterialCompositionStrategy),
+      collision_system(nullptr),
       visual_system(nullptr),
       nthreads_chrono(ChOMP::GetNumProcs()),
       nthreads_eigen(1),
@@ -85,7 +76,6 @@ ChSystem::ChSystem()
     assembly.system = this;
 
     // Set default collision engine type, collision envelope, and margin.
-    collision_system_type = ChCollisionSystemType::BULLET;
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
     ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
@@ -93,7 +83,7 @@ ChSystem::ChSystem()
     timestepper = chrono_types::make_shared<ChTimestepperEulerImplicitLinearized>(this);
 }
 
-ChSystem::ChSystem(const ChSystem& other) {
+ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr), visual_system(nullptr) {
     // Required by ChAssembly
     assembly = other.assembly;
     assembly.system = this;
@@ -125,12 +115,6 @@ ChSystem::ChSystem(const ChSystem& other) {
     applied_forces_current = false;
     maxiter = other.maxiter;
 
-    collision_system_type = other.collision_system_type;
-
-    visual_system = nullptr;
-
-    m_RTF = 0;
-
     min_bounce_speed = other.min_bounce_speed;
     max_penetration_recovery_speed = other.max_penetration_recovery_speed;
     SetSolverType(other.GetSolverType());
@@ -144,9 +128,6 @@ ChSystem::ChSystem(const ChSystem& other) {
 }
 
 ChSystem::~ChSystem() {
-    // Before proceeding, anticipate Clear(). This would be called also by base ChAssembly destructor, anyway, but
-    // it would happen after this destructor, so the ith_body->SetSystem(0) in Clear() would not be able to remove
-    // body collision models from the collision_system. Here it is possible, since the collision_system is still alive.
     Clear();
 }
 
@@ -164,30 +145,68 @@ void ChSystem::Clear() {
 // -----------------------------------------------------------------------------
 
 void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
-    assert(body->GetCollisionModel()->GetType() == collision_system->GetType());
     body->SetId(static_cast<int>(Get_bodylist().size()));
     assembly.AddBody(body);
+    body->SetSystem(this);
 }
 
 void ChSystem::AddShaft(std::shared_ptr<ChShaft> shaft) {
     assembly.AddShaft(shaft);
+    shaft->SetSystem(this);
 }
 
 void ChSystem::AddLink(std::shared_ptr<ChLinkBase> link) {
     assembly.AddLink(link);
+    link->SetSystem(this);
 }
 
 void ChSystem::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
     assembly.AddMesh(mesh);
+    mesh->SetSystem(this);
 }
 
 void ChSystem::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
     assembly.AddOtherPhysicsItem(item);
+    item->SetSystem(this);
+}
+
+void ChSystem::RemoveBody(std::shared_ptr<ChBody> body) {
+    if (collision_system)
+        body->RemoveCollisionModelsFromSystem(collision_system.get());
+    assembly.RemoveBody(body);
+    body->SetSystem(nullptr);
+}
+
+void ChSystem::RemoveShaft(std::shared_ptr<ChShaft> shaft) {
+    if (collision_system)
+        shaft->RemoveCollisionModelsFromSystem(collision_system.get());
+    assembly.RemoveShaft(shaft);
+    shaft->SetSystem(nullptr);
+}
+
+void ChSystem::RemoveLink(std::shared_ptr<ChLinkBase> link) {
+    if (collision_system)
+        link->RemoveCollisionModelsFromSystem(collision_system.get());
+    assembly.RemoveLink(link);
+    link->SetSystem(nullptr);
+}
+
+void ChSystem::RemoveMesh(std::shared_ptr<fea::ChMesh> mesh) {
+    if (collision_system)
+        mesh->RemoveCollisionModelsFromSystem(collision_system.get());
+    assembly.RemoveMesh(mesh);
+    mesh->SetSystem(nullptr);
+}
+
+void ChSystem::RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
+    if (collision_system)
+        item->RemoveCollisionModelsFromSystem(collision_system.get());
+    assembly.RemoveOtherPhysicsItem(item);
+    item->SetSystem(nullptr);
 }
 
 // Add arbitrary physics item to the underlying assembly.
-// NOTE: we cannot simply invoke ChAssembly::Add as this would not provide
-// polymorphism!
+// NOTE: we cannot simply invoke ChAssembly::Add as this would not provide polymorphism!
 void ChSystem::Add(std::shared_ptr<ChPhysicsItem> item) {
     if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
         AddBody(body);
@@ -306,7 +325,8 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
             solver = chrono_types::make_shared<ChSolverSparseQR>();
             break;
         default:
-            GetLog() << "Solver type not supported. Use SetSolver instead.\n";
+            std::cout << "Unknown solver type. No solver was set.\n";
+            std::cout << "Use SetSolver()." << std::endl;
             break;
     }
 }
@@ -352,39 +372,41 @@ void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
     solver = newsolver;
 }
 
-void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
+void ChSystem::SetCollisionSystemType(ChCollisionSystem::Type type) {
     assert(assembly.GetNbodies() == 0);
 
-    collision_system_type = type;
+    auto coll_sys_type = type;
 
 #ifndef CHRONO_COLLISION
-    GetLog() << "Chrono was not built with Thrust support. CHRONO collision system type not available.\n";
-    collision_system_type = ChCollisionSystemType::BULLET;
+    if (type == ChCollisionSystem::Type::MULTICORE) {
+        std::cout << "Chrono was not built with Thrust support. Multicore collision system not available.\n";
+        std::cout << "Using Bullet collision system." << std::endl;
+        coll_sys_type = ChCollisionSystem::Type::BULLET;
+    }
 #endif
 
-    switch (type) {
-        case ChCollisionSystemType::BULLET:
+    switch (coll_sys_type) {
+        case ChCollisionSystem::Type::BULLET:
             collision_system = chrono_types::make_shared<ChCollisionSystemBullet>();
             break;
-        case ChCollisionSystemType::CHRONO:
+        case ChCollisionSystem::Type::MULTICORE:
 #ifdef CHRONO_COLLISION
-            collision_system = chrono_types::make_shared<ChCollisionSystemChrono>();
+            collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>();
 #endif
             break;
         default:
-            GetLog() << "Collision system type not supported. Use SetCollisionSystem instead.\n";
-            break;
+            std::cout << "Unknown collision system type. No collision system was set.\n";
+            std::cout << "Use SetCollisionSystem()." << std::endl;
+            return;
     }
 
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
 }
 
-void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_sys) {
-    assert(assembly.GetNbodies() == 0);
-    assert(coll_sys);
-    collision_system = coll_sys;
-    collision_system_type = coll_sys->GetType();
+void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_system) {
+    assert(coll_system);
+    collision_system = coll_system;
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
 }
@@ -404,36 +426,35 @@ void ChSystem::SetNumThreads(int num_threads_chrono, int num_threads_collision, 
     nthreads_collision = (num_threads_collision <= 0) ? num_threads_chrono : num_threads_collision;
     nthreads_eigen = (num_threads_eigen <= 0) ? num_threads_chrono : num_threads_eigen;
 
-    collision_system->SetNumThreads(nthreads_collision);
+    if (collision_system)
+        collision_system->SetNumThreads(nthreads_collision);
 }
 
 // -----------------------------------------------------------------------------
 
-ChBody* ChSystem::NewBody() {
-    return new ChBody(collision_system_type);
-}
+// Initial system setup before analysis. Must be called once the system construction is completed.
+void ChSystem::Initialize() {
+    if (is_initialized)
+        return;
 
-ChBodyAuxRef* ChSystem::NewBodyAuxRef() {
-    return new ChBodyAuxRef(collision_system_type);
-}
-
-// -----------------------------------------------------------------------------
-
-// Initial system setup before analysis.
-// This function must be called once the system construction is completed.
-void ChSystem::SetupInitial() {
     // Set num threads for Eigen
     Eigen::setNbThreads(nthreads_eigen);
 
-    // Set num threads for the collision system
+    assembly.SetupInitial();
+
+    // Initialize the collision system, if one is attached
     if (collision_system) {
+        collision_system->Initialize();
         collision_system->SetNumThreads(nthreads_collision);
     }
 
-    assembly.SetupInitial();
+    // Initialize any visualization system to which this system is attached
+    if (visual_system) {
+        visual_system->Initialize();
+    }
+
     is_initialized = true;
 }
-
 
 // -----------------------------------------------------------------------------
 // PREFERENCES
@@ -550,7 +571,7 @@ bool ChSystem::ManageSleepingBodies() {
             if (could_sleep2 && !(sleep1 || could_sleep1) && !ground1) {
                 b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
             }
-            someone_sleeps = someone_sleeps ||sleep1 || sleep2;
+            someone_sleeps = someone_sleeps || sleep1 || sleep2;
 
             return true;  // to continue scanning contacts
         }
@@ -737,8 +758,7 @@ void ChSystem::Update(double mytime, bool update_assets) {
 void ChSystem::Update(bool update_assets) {
     CH_PROFILE("Update");
 
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     timer_update.start();  // Timer for profiling
 
@@ -1091,7 +1111,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
             descriptor->WriteMatrixSpmv(output_dir, prefix);
         } else {
             descriptor->WriteMatrix(output_dir, prefix);
-            descriptor->WriteMatrixBlocks(output_dir, prefix);            
+            descriptor->WriteMatrixBlocks(output_dir, prefix);
         }
 
         chrono::ChStreamOutAsciiFile file_x((output_dir + "/" + prefix + "_x_pre.dat").c_str());
@@ -1302,6 +1322,37 @@ double ChSystem::ComputeCollisions() {
     return mretC;
 }
 
+// -----------------------------------------------------------------------------
+// TIMERS
+// -----------------------------------------------------------------------------
+
+double ChSystem::GetTimerCollisionBroad() const {
+    if (collision_system)
+        return collision_system->GetTimerCollisionBroad();
+
+    return 0;
+}
+
+double ChSystem::GetTimerCollisionNarrow() const {
+    if (collision_system)
+        return collision_system->GetTimerCollisionNarrow();
+
+    return 0;
+}
+
+void ChSystem::ResetTimers() {
+    timer_step.reset();
+    timer_advance.reset();
+    timer_ls_solve.reset();
+    timer_ls_setup.reset();
+    timer_jacobian.reset();
+    timer_collision.reset();
+    timer_setup.reset();
+    timer_update.reset();
+    if (collision_system)
+        collision_system->ResetTimers();
+}
+
 // =============================================================================
 //   PHYSICAL OPERATIONS
 // =============================================================================
@@ -1429,7 +1480,8 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     if (verbose) {
         std::cout << "Removing redundant constraints." << std::endl;
         std::cout << "   QR decomposition rank: " << QR_dec.rank() << std::endl;
-        std::cout << "   Number of starting constraints: " << GetSystemDescriptor()->CountActiveConstraints() << std::endl;
+        std::cout << "   Number of starting constraints: " << GetSystemDescriptor()->CountActiveConstraints()
+                  << std::endl;
         std::cout << "   Number of indipendent constraints: " << independent_row_count << std::endl;
         std::cout << "   Number of dependent constraints: " << Cq_rows - independent_row_count << std::endl;
         std::cout << "   Number of total variables: " << GetSystemDescriptor()->CountActiveVariables() << std::endl;
@@ -1446,14 +1498,15 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     GetSystemDescriptor()->UpdateCountsAndOffsets();
 
     // Remove Degrees of Constraint to ChLinkMate constraints
-    std::map<int, std::shared_ptr<ChLinkBase>> constr_map; // store an ordered list of constraints offsets
+    std::map<int, std::shared_ptr<ChLinkBase>> constr_map;  // store an ordered list of constraints offsets
     for (int i = 0; i < Get_linklist().size(); ++i) {
         // store the link offset
         auto link = Get_linklist()[i];
         constr_map[link->GetOffset_L()] = link;
     }
 
-    std::map<int, std::array<bool, 6>> constrnewmask_map; // store the mask of ChLinkMate constraints (only if they are ChLinkMate!) that have redundant equations
+    std::map<int, std::array<bool, 6>> constrnewmask_map;  // store the mask of ChLinkMate constraints (only if they are
+                                                           // ChLinkMate!) that have redundant equations
     for (auto r_sel = 0; r_sel < redundant_constraints_idx.size(); ++r_sel) {
         // pick the constraint with redundant degrees of constraints
         auto constr_pair_mod = constr_map.upper_bound(redundant_constraints_idx[r_sel]);
@@ -1463,9 +1516,9 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
         if (auto constr_mod = std::dynamic_pointer_cast<ChLinkMateGeneric>(constr_pair_mod->second)) {
             auto sel_constr_offset = constr_mod->GetOffset_L();
 
-            std::array<bool, 6> original_mask = {
-                constr_mod->IsConstrainedX(), constr_mod->IsConstrainedY(), constr_mod->IsConstrainedZ(),
-                constr_mod->IsConstrainedRx(), constr_mod->IsConstrainedRy(), constr_mod->IsConstrainedRz() };
+            std::array<bool, 6> original_mask = {constr_mod->IsConstrainedX(),  constr_mod->IsConstrainedY(),
+                                                 constr_mod->IsConstrainedZ(),  constr_mod->IsConstrainedRx(),
+                                                 constr_mod->IsConstrainedRy(), constr_mod->IsConstrainedRz()};
 
             if (constrnewmask_map.find(sel_constr_offset) == constrnewmask_map.end())
                 constrnewmask_map[sel_constr_offset] = original_mask;
@@ -1486,14 +1539,16 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     }
 
     // Modify ChLinkMate constaints based on new mask
-    for (auto constrnewmask_it = constrnewmask_map.begin(); constrnewmask_it != constrnewmask_map.end(); ++constrnewmask_it) {
-        std::dynamic_pointer_cast<ChLinkMateGeneric>(constr_map[constrnewmask_it->first])->SetConstrainedCoords(
-            constrnewmask_it->second[0], constrnewmask_it->second[1], constrnewmask_it->second[2],
-            constrnewmask_it->second[3], constrnewmask_it->second[4], constrnewmask_it->second[5]);
+    for (auto constrnewmask_it = constrnewmask_map.begin(); constrnewmask_it != constrnewmask_map.end();
+         ++constrnewmask_it) {
+        std::dynamic_pointer_cast<ChLinkMateGeneric>(constr_map[constrnewmask_it->first])
+            ->SetConstrainedCoords(constrnewmask_it->second[0], constrnewmask_it->second[1],
+                                   constrnewmask_it->second[2], constrnewmask_it->second[3],
+                                   constrnewmask_it->second[4], constrnewmask_it->second[5]);
     }
 
-    // IMPORTANT: by modifying the mask of ChLinkMate, the underlying ChConstraints get deleted and offsets get scrambled.
-    // Therefore, repopulate ChSystemDescriptor with updated scenario
+    // IMPORTANT: by modifying the mask of ChLinkMate, the underlying ChConstraints get deleted and offsets get
+    // scrambled. Therefore, repopulate ChSystemDescriptor with updated scenario
     Setup();
     Update();
     DescriptorPrepareInject(*descriptor);
@@ -1504,7 +1559,8 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     if (verbose) {
         std::cout << "   New number of constraints: " << GetSystemDescriptor()->CountActiveConstraints() << std::endl;
         std::cout << "   Cq size before redundancy removal: " << Cq_rows << " X " << Cq_cols << std::endl;
-        std::cout << "   Cq size after redundancy removal: " << Cq_check.rows() << " X " << Cq_check.cols() << std::endl;
+        std::cout << "   Cq size after redundancy removal: " << Cq_check.rows() << " X " << Cq_check.cols()
+                  << std::endl;
     }
 
     // Actually REMOVE links now having DoC = 0 from system link list
@@ -1532,13 +1588,12 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
 // -----------------------------------------------------------------------------
 
 int ChSystem::DoStepDynamics(double step_size) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
     step = step_size;
     bool ret = Integrate_Y();
-  
+
     m_RTF = timer_step() / step;
 
     return ret;
@@ -1565,7 +1620,8 @@ bool ChSystem::Integrate_Y() {
 
     // Compute contacts and create contact constraints
     int ncontacts_old = ncontacts;
-    ComputeCollisions();
+    if (collision_system)
+        ComputeCollisions();
 
     // Declare an NSC system as "out of date" if there are contacts
     if (GetContactMethod() == ChContactMethod::NSC && (ncontacts_old != 0 || ncontacts != 0))
@@ -1633,8 +1689,7 @@ bool ChSystem::Integrate_Y() {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoAssembly(int action) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1683,8 +1738,7 @@ bool ChSystem::DoAssembly(int action) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoStaticLinear() {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1740,8 +1794,7 @@ bool ChSystem::DoStaticLinear() {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1774,8 +1827,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
 }
 
 bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1796,9 +1848,11 @@ bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
     return true;
 }
 
-bool ChSystem::DoStaticNonlinearRheonomic(int nsteps, bool verbose, std::shared_ptr<ChStaticNonLinearRheonomicAnalysis::IterationCallback> callback) {
-    if (!is_initialized)
-        SetupInitial();
+bool ChSystem::DoStaticNonlinearRheonomic(
+    int nsteps,
+    bool verbose,
+    std::shared_ptr<ChStaticNonLinearRheonomicAnalysis::IterationCallback> callback) {
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1837,8 +1891,7 @@ bool ChSystem::DoStaticNonlinearRheonomic(int nsteps, bool verbose, std::shared_
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoStaticRelaxing(int nsteps) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1896,8 +1949,7 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoEntireKinematics(double end_time) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1931,8 +1983,7 @@ bool ChSystem::DoEntireKinematics(double end_time) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoEntireDynamics(double end_time) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1971,8 +2022,7 @@ bool ChSystem::DoEntireDynamics(double end_time) {
 // requested to reach end time, the step is lowered.
 
 bool ChSystem::DoFrameDynamics(double end_time) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -2024,8 +2074,7 @@ bool ChSystem::DoFrameDynamics(double end_time) {
 // command).
 
 bool ChSystem::DoEntireUniformDynamics(double end_time, double frame_step) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -2045,8 +2094,7 @@ bool ChSystem::DoEntireUniformDynamics(double end_time, double frame_step) {
 // Like DoFrameDynamics, but performs kinematics instead of dynamics
 
 bool ChSystem::DoFrameKinematics(double end_time) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -2089,8 +2137,7 @@ bool ChSystem::DoFrameKinematics(double end_time) {
 }
 
 bool ChSystem::DoStepKinematics(double step_size) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -2122,11 +2169,11 @@ void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChSystem>();
 
     // serialize underlying assembly
-    assembly.ArchiveOut(marchive);
+    marchive << CHNVP(assembly);
 
     // serialize all member data:
 
-    //marchive >> CHNVP(contact_container); // created by the constructor
+    // marchive >> CHNVP(contact_container); // created by the constructor
 
     marchive << CHNVP(G_acc);
     marchive << CHNVP(ch_time);
@@ -2144,13 +2191,9 @@ void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(min_bounce_speed);
     marchive << CHNVP(max_penetration_recovery_speed);
 
-    //marchive << CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
     marchive << CHNVP(composition_strategy);
 
-    ChCollisionSystemType_enum_mapper::ChCollisionSystemType_mapper enum_mapper;
-    marchive << CHNVP(enum_mapper(collision_system_type), "ChSystem__ChCollisionSystemType");
-
-    //marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
+    // marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
 
     //***TODO*** complete...
 }
@@ -2161,11 +2204,11 @@ void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChSystem>();
 
     // deserialize unerlying assembly
-    assembly.ArchiveIn(marchive);
+    marchive >> CHNVP(assembly);
 
     // stream in all member data:
 
-    //marchive >> CHNVP(contact_container); // created by the constructor
+    // marchive >> CHNVP(contact_container); // created by the constructor
 
     marchive >> CHNVP(G_acc);
     marchive >> CHNVP(ch_time);
@@ -2183,14 +2226,10 @@ void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(min_bounce_speed);
     marchive >> CHNVP(max_penetration_recovery_speed);
 
-    //marchive >> CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
     marchive >> CHNVP(composition_strategy);
 
-    ChCollisionSystemType_enum_mapper::ChCollisionSystemType_mapper enum_mapper;
-    marchive >> CHNVP(enum_mapper(collision_system_type), "ChSystem__ChCollisionSystemType");
-
-    //marchive >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
-    //timestepper->SetIntegrable(this);
+    // marchive >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
+    // timestepper->SetIntegrable(this);
 
     //***TODO*** complete...
 
