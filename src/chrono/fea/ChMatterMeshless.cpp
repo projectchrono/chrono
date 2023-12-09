@@ -113,6 +113,7 @@ void ChNodeMeshless::SetCollisionRadius(double mr) {
 }
 
 void ChNodeMeshless::ContactForceLoadResidual_F(const ChVector<>& F,
+                                                const ChVector<>& T,
                                                 const ChVector<>& abs_point,
                                                 ChVectorDynamic<>& R) {
     R.segment(NodeGetOffsetW(),3) += F.eigen();

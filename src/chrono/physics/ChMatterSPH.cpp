@@ -100,8 +100,12 @@ void ChNodeSPH::SetCollisionRadius(double mr) {
     ((ChCollisionModelBullet*)collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
 }
 
-void ChNodeSPH::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
+void ChNodeSPH::ContactForceLoadResidual_F(const ChVector<>& F,
+                                           const ChVector<>& T,
+                                           const ChVector<>& abs_point,
+                                           ChVectorDynamic<>& R) {
     R.segment(NodeGetOffsetW(), 3) += F.eigen();
+    // note: T torque has no effect on 3-dof particles
 }
 
 void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point,

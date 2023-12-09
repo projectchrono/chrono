@@ -863,15 +863,21 @@ ChCoordsys<> ChBody::GetCsysForCollisionModel() {
     return ChCoordsys<>(this->GetFrame_REF_to_abs().coord);
 }
 
-void ChBody::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
+void ChBody::ContactForceLoadResidual_F(const ChVector<>& F,
+                                        const ChVector<>& T,
+                                        const ChVector<>& abs_point,
+                                        ChVectorDynamic<>& R) {
     ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
     ChVector<> force1_loc = this->Dir_World2Body(F);
     ChVector<> torque1_loc = Vcross(m_p1_loc, force1_loc);
+    if (!T.IsNull())
+        torque1_loc += this->Dir_World2Body(T);
     R.segment(this->GetOffset_w() + 0, 3) += F.eigen();
     R.segment(this->GetOffset_w() + 3, 3) += torque1_loc.eigen();
 }
 
 void ChBody::ContactForceLoadQ(const ChVector<>& F,
+                               const ChVector<>& T,
                                const ChVector<>& point,
                                const ChState& state_x,
                                ChVectorDynamic<>& Q,
@@ -880,6 +886,8 @@ void ChBody::ContactForceLoadQ(const ChVector<>& F,
     ChVector<> point_loc = csys.TransformPointParentToLocal(point);
     ChVector<> force_loc = csys.TransformDirectionParentToLocal(F);
     ChVector<> torque_loc = Vcross(point_loc, force_loc);
+    if (!T.IsNull())
+        torque_loc += csys.TransformDirectionParentToLocal(T);
     Q.segment(offset + 0, 3) = F.eigen();
     Q.segment(offset + 3, 3) = torque_loc.eigen();
 }

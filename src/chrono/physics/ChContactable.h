@@ -67,16 +67,23 @@ class ChApi ChContactable {
     /// contact model (when rigid) and sync it.
     virtual ChCoordsys<> GetCsysForCollisionModel() = 0;
 
-    /// Apply the given force at the given location and load into the global generalized force array.
-    /// The force and its application point are given in the absolute reference frame. Each object must 
-    /// update the entries in R corresponding to its variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) = 0;
+    /// Apply the given force & torque at the given location and load into the global generalized force array.
+    /// The force  F and its application point are specified in the absolute reference frame. 
+    /// The torque T is specified in the global frame too.
+    /// Each object must update the entries in R corresponding to its variables. 
+    /// Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F, ///< force
+                                            const ChVector<>& T, ///< torque
+                                            const ChVector<>& abs_point,
+                                            ChVectorDynamic<>& R) = 0;
 
-    /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the global frame.
+    /// Apply the given force & torque at the given point and load the generalized force array.
+    /// The force  F and its application point are specified in the global frame.
+    /// The torque T is specified in the global frame too.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactForceLoadQ(const ChVector<>& F,
+    virtual void ContactForceLoadQ(const ChVector<>& F, ///< force
+                                   const ChVector<>& T, ///< torque
                                    const ChVector<>& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,

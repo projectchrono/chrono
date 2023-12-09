@@ -151,6 +151,7 @@ ChVector<> ChContactTriangleXYZ::GetContactPointSpeed(const ChVector<>& abs_poin
 }
 
 void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
+                                                      const ChVector<>& T,
                                                       const ChVector<>& abs_point,
                                                       ChVectorDynamic<>& R) {
     double s2, s3;
@@ -159,9 +160,11 @@ void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
     R.segment(m_nodes[0]->NodeGetOffsetW(), 3) += F.eigen() * s1;
     R.segment(m_nodes[1]->NodeGetOffsetW(), 3) += F.eigen() * s2;
     R.segment(m_nodes[2]->NodeGetOffsetW(), 3) += F.eigen() * s3;
+    // note: do nothing for torque T
 }
 
 void ChContactTriangleXYZ::ContactForceLoadQ(const ChVector<>& F,
+                                             const ChVector<>& T,
                                              const ChVector<>& point,
                                              const ChState& state_x,
                                              ChVectorDynamic<>& Q,
@@ -179,6 +182,8 @@ void ChContactTriangleXYZ::ContactForceLoadQ(const ChVector<>& F,
     Q.segment(offset + 0, 3) = F.eigen() * s1;
     Q.segment(offset + 3, 3) = F.eigen() * s2;
     Q.segment(offset + 6, 3) = F.eigen() * s3;
+    // note: do nothing for torque T
+
 }
 
 void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point,
@@ -413,6 +418,7 @@ ChVector<> ChContactTriangleXYZROT::GetContactPointSpeed(const ChVector<>& abs_p
 }
 
 void ChContactTriangleXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
+                                                         const ChVector<>& T,
                                                          const ChVector<>& abs_point,
                                                          ChVectorDynamic<>& R) {
     double s2, s3;
@@ -421,9 +427,17 @@ void ChContactTriangleXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
     R.segment(m_nodes[0]->NodeGetOffsetW(), 3) += F.eigen() * s1;
     R.segment(m_nodes[1]->NodeGetOffsetW(), 3) += F.eigen() * s2;
     R.segment(m_nodes[2]->NodeGetOffsetW(), 3) += F.eigen() * s3;
+    
+    // in case also torque is used:
+    if (!T.IsNull()) {
+        R.segment(m_nodes[0]->NodeGetOffsetW() + 3, 3) += (m_nodes[0]->TransformDirectionParentToLocal(T * s1)).eigen();
+        R.segment(m_nodes[1]->NodeGetOffsetW() + 3, 3) += (m_nodes[1]->TransformDirectionParentToLocal(T * s2)).eigen();
+        R.segment(m_nodes[2]->NodeGetOffsetW() + 3, 3) += (m_nodes[2]->TransformDirectionParentToLocal(T * s3)).eigen();
+    }
 }
 
 void ChContactTriangleXYZROT::ContactForceLoadQ(const ChVector<>& F,
+                                                const ChVector<>& T,
                                                 const ChVector<>& point,
                                                 const ChState& state_x,
                                                 ChVectorDynamic<>& Q,
@@ -436,11 +450,22 @@ void ChContactTriangleXYZROT::ContactForceLoadQ(const ChVector<>& F,
     double s2, s3;
     bool is_into;
     ChVector<> p_projected;
-    /*double dist =*/utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
+    utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
     Q.segment(offset + 0, 3) = F.eigen() * s1;
     Q.segment(offset + 6, 3) = F.eigen() * s2;
     Q.segment(offset + 12, 3) = F.eigen() * s3;
+
+    // in case also torque is used:
+    if (!T.IsNull()) {
+        // Calculate barycentric coordinates
+        ChCoordsys<> C1(state_x.segment(0, 7));
+        ChCoordsys<> C2(state_x.segment(7, 7));
+        ChCoordsys<> C3(state_x.segment(14, 7));
+        Q.segment(offset + 3, 3) = (C1.TransformDirectionParentToLocal(T * s1)).eigen();
+        Q.segment(offset + 9, 3) = (C2.TransformDirectionParentToLocal(T * s2)).eigen();
+        Q.segment(offset + 15, 3)= (C3.TransformDirectionParentToLocal(T * s3)).eigen();
+    }
 }
 
 void ChContactTriangleXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_point,

@@ -136,6 +136,9 @@ class ChContactTuple {
     /// Get the contact force, if computed, in contact coordinate system
     virtual ChVector<> GetContactForce() const { return ChVector<>(0); }
 
+    /// Get the contact torque, if computed, in contact coordinate system
+    virtual ChVector<> GetContactTorque() const { return ChVector<>(0); }
+
     //
     // UPDATING FUNCTIONS
     //

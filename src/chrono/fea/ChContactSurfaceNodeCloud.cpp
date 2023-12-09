@@ -27,6 +27,7 @@ namespace fea {
 //  ChContactNodeXYZ
 
 void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
+                                                  const ChVector<>& T,
                                                   const ChVector<>& abs_point,
                                                   ChVectorDynamic<>& R) {
     R.segment(this->mnode->NodeGetOffsetW(), 3) += F.eigen();
@@ -64,6 +65,7 @@ ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* anode, ChContactSur
 //  ChContactNodeXYZROT
 
 void ChContactNodeXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
+                                                     const ChVector<>& T,
                                                      const ChVector<>& abs_point,
                                                      ChVectorDynamic<>& R) {
     R.segment(this->mnode->NodeGetOffsetW(), 3) += F.eigen();
