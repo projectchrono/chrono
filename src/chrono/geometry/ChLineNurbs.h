@@ -55,21 +55,21 @@ class ChApi ChLineNurbs : public ChLine {
     virtual int Get_complexity() const override { return (int)points.size(); }
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(const double U) const override;
+    virtual ChVector<> Evaluate(double U) const override;
 
     /// Return the tangent unit vector at the parametric coordinate U (in [0,1]).
-    virtual ChVector<> GetTangent(const double parU) const override;
+    virtual ChVector<> GetTangent(double parU) const override;
 
     // NURBS specific functions
 
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert u->U,
     /// where u is in knot range, calling this:
-    double ComputeUfromKnotU(const double u) const { return (u - knots(p)) / (knots(knots.size() - 1 - p) - knots(p)); }
+    double ComputeUfromKnotU(double u) const { return (u - knots(p)) / (knots(knots.size() - 1 - p) - knots(p)); }
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert U->u,
     /// where u is in knot range, calling this:
-    double ComputeKnotUfromU(const double U) const { return U * (knots(knots.size() - 1 - p) - knots(p)) + knots(p); }
+    double ComputeKnotUfromU(double U) const { return U * (knots(knots.size() - 1 - p) - knots(p)) + knots(p); }
 
     /// Access the points
     std::vector<ChVector<> >& Points() { return points; }

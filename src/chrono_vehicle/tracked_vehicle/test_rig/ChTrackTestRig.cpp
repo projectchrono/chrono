@@ -181,15 +181,14 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
         auto post_pos = m_track->GetRoadWheel(i)->GetBody()->GetPos();
         post_pos.z() = zmin;
 
-        auto post = std::shared_ptr<ChBody>(m_system->NewBody());
+        auto post = chrono_types::make_shared<ChBody>();
         post->SetPos(post_pos);
         post->SetMass(100);
         post->SetCollide(true);
         m_system->Add(post);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(post_mat, m_post_radius, m_post_height);
-        post->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
-        post->GetCollisionModel()->Build();
+        post->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
 
         AddPostVisualization(post, m_chassis->GetBody(), ChColor(0.1f, 0.8f, 0.15f));
 

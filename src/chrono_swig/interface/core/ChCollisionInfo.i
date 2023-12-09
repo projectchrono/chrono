@@ -1,8 +1,6 @@
 %{
 #include "chrono/collision/ChCollisionInfo.h"
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/bullet/ChCollisionModelBullet.h"
-
 %}
 
 // Forward ref

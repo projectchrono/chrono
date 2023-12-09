@@ -35,15 +35,14 @@ namespace chrono {
 ///
 ///    q= f(s)
 ///
-/// where q is a unit quaternion (i.e. a rotation in 3D) and s is a scalar (ex. time) 
+/// where q is a unit quaternion (i.e. a rotation in 3D) and s is a scalar (ex. time)
 /// Classes inherited from ChFunctionRotation are often
 /// used to set time-dependent rotation, for example to set
-/// the imposed alignment of a rigid body in space. 
-/// Inherited classes must override at least the Get_q() method, 
+/// the imposed alignment of a rigid body in space.
+/// Inherited classes must override at least the Get_q() method,
 /// in order to represent more complex functions.
 
 class ChApi ChFunctionRotation {
-
   public:
     ChFunctionRotation() {}
     ChFunctionRotation(const ChFunctionRotation& other) {}
@@ -63,14 +62,14 @@ class ChApi ChFunctionRotation {
     /// because this base method already provide a general-purpose numerical differentiation
     /// to get w only from the Get_p() function. (however, if the analytical derivative
     /// is known, it may better to implement a custom method).
-	virtual ChVector<> Get_w_loc(double s) const;
+    virtual ChVector<> Get_w_loc(double s) const;
 
     /// Return the derivative of the rotation function, at s, expressed as angular acceleration in local frame.
     /// Note that inherited classes may also avoid overriding this method,
     /// because this base method already provide a general-purpose numerical differentiation
     /// to get angular acceleration only from the Get_q() function. (however, if the analytical derivative
     /// is known, it may be better to implement a custom method).
-	virtual ChVector<> Get_a_loc(double s) const;
+    virtual ChVector<> Get_a_loc(double s) const;
 
     /// Return an estimate of the domain of the function argument.
     /// (ex. can be used for automatic zooming in a GUI, or for computing the bounding box)
@@ -80,8 +79,8 @@ class ChApi ChFunctionRotation {
     }
 
     /// Update could be implemented by children classes, ex. to launch callbacks
-    virtual void Update(const double t) {}
- 
+    virtual void Update(double t) {}
+
     /// Method to allow serialization of transient data to archives
     virtual void ArchiveOut(ChArchiveOut& marchive);
 

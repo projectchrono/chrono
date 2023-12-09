@@ -130,8 +130,9 @@ int main(int argc, char* argv[]) {
     // Global parameter for moving patch size:
     double wheel_range = 0.5;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system and associated collision system
     ChSystemSMC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Initialize output
     if (output) {
@@ -204,8 +205,7 @@ int main(int argc, char* argv[]) {
 
         auto rock1_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_1_mmesh, false,
                                                                                 false, 0.005);
-        rock1_Body->GetCollisionModel()->AddShape(rock1_ct_shape);
-        rock1_Body->GetCollisionModel()->Build();
+        rock1_Body->AddCollisionShape(rock1_ct_shape);
         rock1_Body->SetCollide(true);
 
         auto rock1_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -260,8 +260,7 @@ int main(int argc, char* argv[]) {
 
         auto rock2_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_2_mmesh,
                                                                                       false, false, 0.005);
-        rock2_Body->GetCollisionModel()->AddShape(rock2_ct_shape);
-        rock2_Body->GetCollisionModel()->Build();
+        rock2_Body->AddCollisionShape(rock2_ct_shape);
         rock2_Body->SetCollide(true);
 
         auto rock2_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -316,8 +315,7 @@ int main(int argc, char* argv[]) {
 
         auto rock3_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_3_mmesh,
                                                                                       false, false, 0.005);
-        rock3_Body->GetCollisionModel()->AddShape(rock3_ct_shape);
-        rock3_Body->GetCollisionModel()->Build();
+        rock3_Body->AddCollisionShape(rock3_ct_shape);
         rock3_Body->SetCollide(true);
 
         auto rock3_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

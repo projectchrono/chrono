@@ -304,7 +304,7 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
     }
     // Create a new body, consistent with the type of the containing system
     auto name = std::string(bodyNode->first_attribute("name")->value());
-    auto newBody = std::shared_ptr<ChBodyAuxRef>(system.NewBodyAuxRef());
+    auto newBody = chrono_types::make_shared<ChBodyAuxRef>();
     newBody->SetNameString(name);
     system.AddBody(newBody);
 
@@ -830,8 +830,6 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
 
         // Set collision shapes
         if (body_info.body->GetCollide()) {
-            body_info.body->GetCollisionModel()->Clear();
-
             for (auto cyl_info : body_info.cylinders) {
                 utils::AddCylinderGeometry(body_info.body, mat, cyl_info.rad, cyl_info.hlen, cyl_info.pos, cyl_info.rot,
                                            false);
@@ -839,8 +837,6 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
 
             body_info.body->GetCollisionModel()->SetFamily(body_info.family);
             body_info.body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(body_info.family_mask_nocollide);
-
-            body_info.body->GetCollisionModel()->Build();
         }
     }
 }

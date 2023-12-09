@@ -49,7 +49,7 @@ ChSurfaceNurbs::ChSurfaceNurbs(const ChSurfaceNurbs& source) : ChSurface(source)
     this->weights = source.weights;
 }
 
-ChVector<> ChSurfaceNurbs::Evaluate(const double parU, const double parV) const {
+ChVector<> ChSurfaceNurbs::Evaluate(double parU, double parV) const {
     double u = ComputeKnotUfromU(parU);
     double v = ComputeKnotVfromV(parV);
 

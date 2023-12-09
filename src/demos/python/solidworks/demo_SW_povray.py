@@ -29,6 +29,7 @@ import pychrono.postprocess as postprocess
 #  load a mechanism from file)
 
 sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 
 # Set the collision margins. This is expecially important for very large or

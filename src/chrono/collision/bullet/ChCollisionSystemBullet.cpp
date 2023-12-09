@@ -12,8 +12,15 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <algorithm>
+
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChProximityContainer.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChParticleCloud.h"
+#include "chrono/fea/ChMesh.h"
+
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/ChCollisionAlgorithmsBullet.h"
@@ -31,7 +38,6 @@ CH_FACTORY_REGISTER(ChCollisionSystemBullet)
 CH_UPCASTING(ChCollisionSystemBullet, ChCollisionSystem)
 
 ChCollisionSystemBullet::ChCollisionSystemBullet() : m_debug_drawer(nullptr) {
-    // cbtDefaultCollisionConstructionInfo conf_info(...); ***TODO***
     bt_collision_configuration = new cbtDefaultCollisionConfiguration();
 
 #ifdef BT_USE_OPENMP
@@ -124,37 +130,57 @@ void ChCollisionSystemBullet::SetNumThreads(int nthreads) {
 #endif
 }
 
-void ChCollisionSystemBullet::Clear(void) {
+void ChCollisionSystemBullet::Add(std::shared_ptr<ChCollisionModel> model) {
+    if (model->HasImplementation())
+        return;
+
+    auto bt_model = chrono_types::make_shared<ChCollisionModelBullet>(model.get());
+    bt_model->Populate();
+    if (bt_model->GetBulletObject()->getCollisionShape()) {
+        model->SyncPosition();
+        bt_collision_world->addCollisionObject(bt_model->bt_collision_object.get(),  //
+                                               bt_model->model->GetFamilyGroup(),    //
+                                               bt_model->model->GetFamilyMask());
+    }
+    bt_models.push_back(bt_model);
+}
+
+void ChCollisionSystemBullet::Clear() {
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
     for (int i = 0; i < numManifolds; i++) {
         cbtPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
         contactManifold->clearManifold();
     }
+    bt_models.clear();
 }
 
-void ChCollisionSystemBullet::Add(ChCollisionModel* model) {
-    auto model_bt = static_cast<ChCollisionModelBullet*>(model);
-    if (model_bt->GetBulletModel()->getCollisionShape()) {
-        model->SyncPosition();
-        bt_collision_world->addCollisionObject(model_bt->GetBulletModel(), model_bt->GetFamilyGroup(),
-                                               model_bt->GetFamilyMask());
-    }
+void ChCollisionSystemBullet::Remove(std::shared_ptr<ChCollisionModel> model) {
+    if (!model->HasImplementation())
+        return;
+
+    auto bt_model = (ChCollisionModelBullet*)model->GetImplementation();
+    Remove(bt_model);
+    model->RemoveImplementation();
 }
 
-void ChCollisionSystemBullet::Remove(ChCollisionModel* model) {
-    auto model_bt = static_cast<ChCollisionModelBullet*>(model);
-    if (model_bt->GetBulletModel()->getCollisionShape()) {
-        bt_collision_world->removeCollisionObject(model_bt->GetBulletModel());
+void ChCollisionSystemBullet::Remove(ChCollisionModelBullet* bt_model) {
+    if (bt_model->GetBulletObject()->getCollisionShape()) {
+        bt_collision_world->removeCollisionObject(bt_model->GetBulletObject());
     }
+
+    auto pos = std::find_if(bt_models.begin(), bt_models.end(),                                                    //
+                            [bt_model](std::shared_ptr<ChCollisionModelBullet> x) { return x.get() == bt_model; }  //
+    );
+    if (pos != bt_models.end())
+        bt_models.erase(pos);
+    else
+        std::cout << "ChCollisionSystemBullet::Remove - Cannot find specified model!" << std::endl;
 }
 
 void ChCollisionSystemBullet::Run() {
     if (bt_collision_world) {
         bt_collision_world->performDiscreteCollisionDetection();
     }
-
-    // int numPairs = bt_collision_world->getBroadphase()->getOverlappingPairCache()->getNumOverlappingPairs();
-    // GetLog() << "tot pairs: " << numPairs << "\n";
 }
 
 geometry::ChAABB ChCollisionSystemBullet::GetBoundingBox() const {
@@ -194,8 +220,11 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
         const cbtCollisionObject* obB = contactManifold->getBody1();
         contactManifold->refreshContactPoints(obA->getWorldTransform(), obB->getWorldTransform());
 
-        icontact.modelA = (ChCollisionModel*)obA->getUserPointer();
-        icontact.modelB = (ChCollisionModel*)obB->getUserPointer();
+        auto bt_modelA = (ChCollisionModelBullet*)obA->getUserPointer();
+        auto bt_modelB = (ChCollisionModelBullet*)obB->getUserPointer();
+
+        icontact.modelA = bt_modelA->model;
+        icontact.modelB = bt_modelB->model;
 
         double envelopeA = icontact.modelA->GetEnvelope();
         double envelopeB = icontact.modelB->GetEnvelope();
@@ -205,8 +234,8 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
 
         // Execute custom broadphase callback, if any
         bool do_narrow_contactgeneration = true;
-        if (this->broad_callback)
-            do_narrow_contactgeneration = this->broad_callback->OnBroadphase(icontact.modelA, icontact.modelB);
+        if (broad_callback)
+            do_narrow_contactgeneration = broad_callback->OnBroadphase(icontact.modelA, icontact.modelB);
 
         if (do_narrow_contactgeneration) {
             int numContacts = contactManifold->getNumContacts();
@@ -240,8 +269,8 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
                     int indexA = compoundA ? pt.m_index0 : 0;
                     int indexB = compoundB ? pt.m_index1 : 0;
 
-                    icontact.shapeA = icontact.modelA->GetShape(indexA).get();
-                    icontact.shapeB = icontact.modelB->GetShape(indexB).get();
+                    icontact.shapeA = bt_modelA->m_shapes[indexA].get();
+                    icontact.shapeB = bt_modelB->m_shapes[indexB].get();
 
                     // Execute some user custom callback, if any
                     bool add_contact = true;
@@ -277,8 +306,11 @@ void ChCollisionSystemBullet::ReportProximities(ChProximityContainer* mproximity
         cbtCollisionObject* obA = static_cast<cbtCollisionObject*>(mp.m_pProxy0->m_clientObject);
         cbtCollisionObject* obB = static_cast<cbtCollisionObject*>(mp.m_pProxy1->m_clientObject);
 
-        ChCollisionModel* modelA = (ChCollisionModel*)obA->getUserPointer();
-        ChCollisionModel* modelB = (ChCollisionModel*)obB->getUserPointer();
+        auto bt_modelA = (ChCollisionModelBullet*)obA->getUserPointer();
+        auto bt_modelB = (ChCollisionModelBullet*)obB->getUserPointer();
+
+        ChCollisionModel* modelA = bt_modelA->model;
+        ChCollisionModel* modelB = bt_modelB->model;
 
         // Add to proximity container
         mproximitycontainer->AddProximity(modelA, modelB);
@@ -305,7 +337,8 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
     this->bt_collision_world->rayTest(btfrom, btto, rayCallback);
 
     if (rayCallback.hasHit()) {
-        result.hitModel = (ChCollisionModel*)(rayCallback.m_collisionObject->getUserPointer());
+        auto bt_model = static_cast<ChCollisionModelBullet*>(rayCallback.m_collisionObject->getUserPointer());
+        result.hitModel = bt_model->model;
         if (result.hitModel) {
             result.hit = true;
             result.abs_hitPoint.Set(rayCallback.m_hitPointWorld.x(), rayCallback.m_hitPointWorld.y(),
@@ -348,7 +381,8 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
     int hit = -1;
     cbtScalar fraction = 1;
     for (int i = 0; i < rayCallback.m_collisionObjects.size(); ++i) {
-        if (rayCallback.m_collisionObjects[i]->getUserPointer() == model && rayCallback.m_hitFractions[i] < fraction) {
+        auto bt_model = static_cast<ChCollisionModelBullet*> (rayCallback.m_collisionObject->getUserPointer());
+        if (bt_model->model == model && rayCallback.m_hitFractions[i] < fraction) {
             hit = i;
             fraction = rayCallback.m_hitFractions[i];
         }
@@ -361,8 +395,9 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
     }
 
     // Return the closest hit on the specified model
+    auto bt_model = static_cast<ChCollisionModelBullet*>(rayCallback.m_collisionObjects[hit]->getUserPointer());
     result.hit = true;
-    result.hitModel = static_cast<ChCollisionModel*>(rayCallback.m_collisionObjects[hit]->getUserPointer());
+    result.hitModel = bt_model->model;
     result.abs_hitPoint.Set(rayCallback.m_hitPointWorld[hit].x(), rayCallback.m_hitPointWorld[hit].y(),
                             rayCallback.m_hitPointWorld[hit].z());
     result.abs_hitNormal.Set(rayCallback.m_hitNormalWorld[hit].x(), rayCallback.m_hitNormalWorld[hit].y(),

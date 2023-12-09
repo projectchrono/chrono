@@ -67,7 +67,7 @@ CRGTerrain::CRGTerrain(ChSystem* system)
       m_dataSetId(0),
       m_cpId(0),
       m_isClosed(false) {
-    m_ground = std::shared_ptr<ChBody>(system->NewBody());
+    m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector<>(0, 0, 0));
     m_ground->SetBodyFixed(true);

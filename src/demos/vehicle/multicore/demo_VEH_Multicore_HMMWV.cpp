@@ -195,7 +195,7 @@ HMMWV_Driver::HMMWV_Driver(chrono::vehicle::ChVehicle& vehicle,
     : chrono::vehicle::ChDriver(vehicle), m_steeringPID(path), m_start(time_start), m_end(time_max) {
     m_steeringPID.Reset(m_vehicle);
 
-    auto road = std::shared_ptr<chrono::ChBody>(m_vehicle.GetSystem()->NewBody());
+    auto road = chrono_types::make_shared<ChBody>();
     road->SetBodyFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
@@ -300,6 +300,7 @@ int main(int argc, char* argv[]) {
     ChVector<> gravityR = ChMatrix33<>(slope_g, ChVector<>(0, 1, 0)) * gravity;
 
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
     sys->Set_G_acc(gravity);
 
     // Use a custom material property composition strategy.

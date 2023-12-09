@@ -43,17 +43,12 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
-
     sys.SetNumThreads(ChOMP::GetNumProcs(), 0, 1);
 
-    //
-    // CREATE THE PHYSICAL SYSTEM
-    //
-
-    // Set default effective radius of curvature for all SCM contacts.
+    // Create and set the collision system
     ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
-
     ChCollisionModel::SetDefaultSuggestedMargin(0.006);
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Use this value for an outward additional layer around meshes, that can improve
     // robustness of mesh-mesh collision detection (at the cost of having unnatural inflate effect)
@@ -85,8 +80,7 @@ int main(int argc, char* argv[]) {
 
         auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mysurfmaterial, mmeshbox, false,
                                                                                    false, sphere_swept_thickness);
-        mfloor->GetCollisionModel()->AddShape(floor_shape);
-        mfloor->GetCollisionModel()->Build();
+        mfloor->AddCollisionShape(floor_shape);
         mfloor->SetCollide(true);
 
         auto masset_meshbox = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -111,9 +105,7 @@ int main(int argc, char* argv[]) {
     msphere->SetPos(ChVector<>(0.8, 0.5, 0.6));
     sys.Add(msphere);
 
-    //
     // Example 1: tetrahedrons, with collisions
-    //
 
     // Create a mesh. We will use it for tetrahedrons.
 
@@ -181,9 +173,7 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
 
-    //
     // Example 2: beams, with collisions
-    //
 
     // Create a mesh. We will use it for beams only.
 
@@ -215,9 +205,7 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system!
     sys.Add(my_mesh_beams);
 
-    //
     // Optional...  visualization
-    //
 
     // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh

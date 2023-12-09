@@ -29,7 +29,8 @@ import os
 #
 
 # Create a physical system,
-my_system = chrono.ChSystemNSC()
+sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 
 # Set the default margins for collision detection, this is epecially
@@ -51,10 +52,8 @@ body_particles.SetInertiaXX(chrono.ChVectorD(inertia,inertia,inertia));
 # Collision shape (shared by all particle clones) Must be defined BEFORE adding particles
 particle_material = chrono.ChMaterialSurfaceNSC()
 
-body_particles.GetCollisionModel().Clear()
 body_particles_ct_shape = chrono.ChCollisionShapeSphere(particle_material, 0.005)
-body_particles.GetCollisionModel().AddShape(body_particles_ct_shape)
-body_particles.GetCollisionModel().Build()
+body_particles.AddCollisionShape(body_particles_ct_shape)
 body_particles.SetCollide(True)
 
 # add particles
@@ -67,7 +66,7 @@ for ix in range(0,5):
 body_particles_shape = chrono.ChVisualShapeSphere(0.005)
 body_particles.AddVisualShape(body_particles_shape)
 
-my_system.Add(body_particles)
+sys.Add(body_particles)
 
 
 
@@ -81,10 +80,8 @@ body_floor.SetBodyFixed(True)
 # Collision shape
 floor_material = chrono.ChMaterialSurfaceNSC()
 
-body_floor.GetCollisionModel().Clear()
 body_floor_ct_shape = chrono.ChCollisionShapeBox(floor_material, 0.1, 0.02, 0.1)
-body_floor.GetCollisionModel().AddShape(body_floor_ct_shape)
-body_floor.GetCollisionModel().Build()
+body_floor.AddCollisionShape(body_floor_ct_shape)
 body_floor.SetCollide(True)
 
 # Visualization shape
@@ -92,7 +89,7 @@ body_floor_shape = chrono.ChVisualShapeBox(0.2, 0.04, 0.2)
 body_floor_shape.SetColor(chrono.ChColor(0.5,0.5,0.5))
 body_floor.AddVisualShape(body_floor_shape)
 
-my_system.Add(body_floor)
+sys.Add(body_floor)
 
 
 
@@ -106,17 +103,15 @@ for ix in range(0,2):
         body_brick.SetInertiaXX(chrono.ChVectorD(inertia,inertia,inertia));
 
         # Collision shape
-        body_brick.GetCollisionModel().Clear()
         body_brick_ct_shape = chrono.ChCollisionShapeBox(floor_material, 0.01, 0.01, 0.01)
-        body_brick.GetCollisionModel().AddShape(body_brick_ct_shape)
-        body_brick.GetCollisionModel().Build()
+        body_brick.AddCollisionShape(body_brick_ct_shape)
         body_brick.SetCollide(True)
 
         # Visualization shape
         body_brick_shape = chrono.ChVisualShapeBox(0.02, 0.02, 0.02)
         body_brick.AddVisualShape(body_brick_shape)
 
-        my_system.Add(body_brick)
+        sys.Add(body_brick)
 
 
 
@@ -126,7 +121,7 @@ for ix in range(0,2):
 #  to be used with POV-Ray
 #
 
-pov_exporter = postprocess.ChPovRay(my_system)
+pov_exporter = postprocess.ChPovRay(sys)
 
 # Important: set where the template is (this path depends to where you execute this script,
 # ex.here we assume you run it from src/demo/python/postprocess/ )
@@ -165,16 +160,16 @@ pov_exporter.SetShowContacts(True,
  #    only once at the beginning of the simulation).
 pov_exporter.ExportScript()
 
-#my_system.SetSolverType(chrono.ChSolver.Type_PMINRES)
-my_system.SetSolverMaxIterations(50)
+#sys.SetSolverType(chrono.ChSolver.Type_PMINRES)
+sys.SetSolverMaxIterations(50)
 
 
  # Perform a short simulation
-while (my_system.GetChTime() < 0.7) :
+while (sys.GetChTime() < 0.7) :
 
-    my_system.DoStepDynamics(0.005)
+    sys.DoStepDynamics(0.005)
 
-    print ('time=', my_system.GetChTime() )
+    print ('time=', sys.GetChTime() )
 
     # 2) Create the incremental nnnn.dat and nnnn.pov files that will be load
     #    by the pov .ini script in POV-Ray (do this at each simulation timestep)

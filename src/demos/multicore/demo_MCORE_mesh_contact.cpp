@@ -114,6 +114,9 @@ int main(int argc, char* argv[]) {
 
     sys->Set_G_acc(ChVector<>(0, -gravity, 0));
 
+    // Set associated collision detection system
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
+
     // Set number of threads
     sys->SetNumThreads(2);
 
@@ -128,7 +131,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<> z2y = Q_from_AngX(-CH_C_PI_2);
 
     // Create the falling object
-    auto object = std::shared_ptr<ChBody>(sys->NewBody());
+    auto object = chrono_types::make_shared<ChBody>();
     sys->AddBody(object);
 
     object->SetMass(200);
@@ -167,11 +170,9 @@ int main(int argc, char* argv[]) {
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_coarse.obj"));
 
-    object->GetCollisionModel()->Clear();
     auto object_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(object_mat, trimesh, false, false,
                                                                                    mesh_swept_sphere_radius);
-    object->GetCollisionModel()->AddShape(object_ct_shape);
-    object->GetCollisionModel()->Build();
+    object->AddCollisionShape(object_ct_shape);
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
@@ -179,7 +180,7 @@ int main(int argc, char* argv[]) {
     object->AddVisualShape(trimesh_shape);
 
     // Create ground body
-    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
+    auto ground = chrono_types::make_shared<ChBody>();
     sys->AddBody(ground);
 
     ground->SetMass(1);
@@ -212,10 +213,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    ground->GetCollisionModel()->Clear();
     auto ground_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, width, length, thickness);
-    ground->GetCollisionModel()->AddShape(ground_ct_shape, ChFrame<>(ChVector<>(0, 0, -thickness / 2), QUNIT));
-    ground->GetCollisionModel()->Build();
+    ground->AddCollisionShape(ground_ct_shape, ChFrame<>(ChVector<>(0, 0, -thickness / 2), QUNIT));
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(width, length, thickness);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -thickness / 2)));

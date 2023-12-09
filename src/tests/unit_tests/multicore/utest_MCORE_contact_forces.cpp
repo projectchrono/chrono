@@ -103,6 +103,9 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
             break;
     }
 
+    // Set associated collision detection system
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
+
     // Set other sys properties
     double gravity = -9.81;
     sys->Set_G_acc(ChVector<>(0, 0, gravity));
@@ -123,7 +126,7 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
     std::vector<std::shared_ptr<ChBody>> balls(num_balls);
     total_weight = 0;
     for (unsigned int i = 0; i < num_balls; i++) {
-        auto ball = std::shared_ptr<ChBody>(sys->NewBody());
+        auto ball = chrono_types::make_shared<ChBody>();
 
         ball->SetMass(mass);
         ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
@@ -134,10 +137,8 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
         ball->SetCollide(true);
         ball->SetBodyFixed(false);
 
-        ball->GetCollisionModel()->Clear();
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
-        ball->GetCollisionModel()->AddShape(ct_shape);
-        ball->GetCollisionModel()->Build();
+        ball->AddCollisionShape(ct_shape);
 
         auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
         sphere->SetColor(ChColor(1, 0, 1));

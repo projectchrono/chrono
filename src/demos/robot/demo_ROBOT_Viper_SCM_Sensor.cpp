@@ -151,8 +151,9 @@ int main(int argc, char* argv[]) {
     double wheel_range = 0.5;
     ////double body_range = 1.2;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system and associated collision system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Initialize output
@@ -272,8 +273,7 @@ int main(int argc, char* argv[]) {
 
         auto rock_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_mmesh,
                                                                                       false, false, 0.005);
-        rock_Body->GetCollisionModel()->AddShape(rock_ct_shape);
-        rock_Body->GetCollisionModel()->Build();
+        rock_Body->AddCollisionShape(rock_ct_shape);
         rock_Body->SetCollide(true);
 
         auto rock_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

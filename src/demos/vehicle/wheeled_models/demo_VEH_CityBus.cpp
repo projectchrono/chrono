@@ -127,6 +127,9 @@ int main(int argc, char* argv[]) {
     my_bus.SetWheelVisualizationType(wheel_vis_type);
     my_bus.SetTireVisualizationType(tire_vis_type);
 
+    // Associate a collision system
+    my_bus.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Create the terrain
     RigidTerrain terrain(my_bus.GetSystem());
 

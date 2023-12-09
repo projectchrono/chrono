@@ -13,8 +13,6 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [CSHARP module](@ref module_csharp_installation)
 
--   [DISTRIBUTED module](@ref module_distributed_installation)
-
 -   [FSI module](@ref module_fsi_installation)
 
 -   [GPU module](@ref module_gpu_installation)

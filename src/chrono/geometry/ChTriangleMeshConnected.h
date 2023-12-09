@@ -153,15 +153,14 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// some algorithms, ex. collision detection, topological information might be needed, hence adjacent faces must
     /// be connected.
     /// Return the number of merged vertexes.
-    int RepairDuplicateVertexes(
-        const double tolerance = 1e-18  ///< when vertexes are closer than this value, they are merged
+    int RepairDuplicateVertexes(double tolerance = 1e-18  ///< ignore vertexes closer than this value
     );
 
     /// Offset the mesh, by a specified value, orthogonally to the faces.
     /// The offset can be inward or outward.
     /// Note: self-collisions and inverted faces resulting from excessive offsets are NOT trimmed;
     ///       so this is mostly meant to be a fast tool for making small offsets.
-    bool MakeOffset(const double offset);
+    bool MakeOffset(double offset);
 
     /// Return the indexes of the two vertexes of the i-th edge of the triangle.
     /// If unique=true, swap the pair so that 1st < 2nd, to permit test sharing with other triangle.

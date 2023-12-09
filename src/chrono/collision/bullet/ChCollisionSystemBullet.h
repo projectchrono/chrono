@@ -16,10 +16,14 @@
 #define CH_COLLISION_SYSTEM_BULLET_H
 
 #include "chrono/collision/ChCollisionSystem.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/cbtBulletCollisionCommon.h"
-#include "chrono/core/ChApiCE.h"
 
 namespace chrono {
+
+// forward references
+class ChAssembly;
+class ChParticleCloud;
 
 /// @addtogroup collision_bullet
 /// @{
@@ -31,20 +35,15 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     ChCollisionSystemBullet();
     virtual ~ChCollisionSystemBullet();
 
-    /// Return the type of this collision system.
-    virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::BULLET; }
-
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds)
-    virtual void Clear(void) override;
+    virtual void Clear() override;
 
-    /// Adds a collision model to the collision
-    /// engine (custom data may be allocated).
-    virtual void Add(ChCollisionModel* model) override;
+    /// Add the specified collision model to the collision engine.
+    virtual void Add(std::shared_ptr<ChCollisionModel> model) override;
 
-    /// Removes a collision model from the collision
-    /// engine (custom data may be deallocated).
-    virtual void Remove(ChCollisionModel* model) override;
+    /// Remove the specified collision model from the collision engine.
+    virtual void Remove(std::shared_ptr<ChCollisionModel> model) override;
 
     /// Removes all collision models from the collision
     /// engine (custom data may be deallocated).
@@ -119,7 +118,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
-  private:
+  protected:
     /// Perform a ray-hit test with all collision models. This version allows specifying the Bullet
     /// collision filter group and mask (see cbtBroadphaseProxy::CollisionFilterGroups).
     bool RayHit(const ChVector<>& from,
@@ -136,6 +135,11 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
                 ChRayhitResult& result,
                 short int filter_group,
                 short int filter_mask) const;
+
+    /// Remove the specified Bullet model from this collision stystem
+    void Remove(ChCollisionModelBullet* bt_model);
+
+    std::vector<std::shared_ptr<ChCollisionModelBullet>> bt_models;
 
     cbtCollisionConfiguration* bt_collision_configuration;
     cbtCollisionDispatcher* bt_dispatcher;
@@ -154,6 +158,8 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     cbtCollisionAlgorithmCreateFunc* m_emptyCreateFunc;
 
     cbtIDebugDraw* m_debug_drawer;
+
+    friend class ChCollisionModelBullet;
 };
 
 /// @} collision_bullet

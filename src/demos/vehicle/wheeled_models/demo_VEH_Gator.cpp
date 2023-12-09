@@ -111,6 +111,9 @@ int main(int argc, char* argv[]) {
     gator.SetWheelVisualizationType(wheel_vis_type);
     gator.SetTireVisualizationType(tire_vis_type);
 
+    // Associate a collision system
+    gator.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // ------------------
     // Create the terrain
     // ------------------

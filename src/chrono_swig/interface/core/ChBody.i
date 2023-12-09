@@ -12,6 +12,7 @@
 %csmethodmodifiers chrono::ChBody::GetPos "public"
 %csmethodmodifiers chrono::ChBody::GetRot "public"
 %csmethodmodifiers chrono::ChBody::GetA "public"
+%csmethodmodifiers chrono::ChBody::GetPhysicsItem "public"
 
 %csmethodmodifiers chrono::ChBody::SetPos_dt "public"
 %csmethodmodifiers chrono::ChBody::SetRot_dt "public"
@@ -25,6 +26,10 @@
 %csmethodmodifiers chrono::ChBody::GetRot_dtdt "public"
 %csmethodmodifiers chrono::ChBody::GetWacc_loc "public"
 %csmethodmodifiers chrono::ChBody::GetWacc_par "public"
+
+// avoid adding new keyword
+%csmethodmodifiers chrono::ChBody::AddCollisionModel "public"
+%csmethodmodifiers chrono::ChBody::AddCollisionShape "public"
 
 // Second, extend ChBody with implementations of these functions
 
@@ -51,6 +56,11 @@ const ChVector<double>& GetPos_dtdt() const     {return $self->GetPos_dtdt();}
 const ChQuaternion<double>& GetRot_dtdt() const {return $self->GetRot_dtdt();}
 ChVector<double> GetWacc_loc() const            {return $self->GetWacc_loc();}
 ChVector<double> GetWacc_par() const            {return $self->GetWacc_par();}
+
+// Methods inherited from ChContactable
+void AddCollisionModel(std::shared_ptr<ChCollisionModel> model)                         {$self->AddCollisionModel(model);}
+void AddCollisionShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame) {$self->AddCollisionShape(shape, frame);}
+std::shared_ptr<ChCollisionModel> GetCollisionModel()                                   {return $self->GetCollisionModel();}
 };
 
 // (B) Methods of a base class that SWIG discards that *are* overriden in ChBody
@@ -71,6 +81,7 @@ ChVector<double> GetWacc_par() const            {return $self->GetWacc_par();}
 
 // Include the C++ header(s)
 %{
+#include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChBody.h"
 %}
 
@@ -86,6 +97,8 @@ ChVector<double> GetWacc_par() const            {return $self->GetWacc_par();}
 %import "chrono_swig/interface/core/ChMarker.i"
 
 // Parse the header file to generate wrappers
+%include "../../../chrono/physics/ChContactable.h"  
+%template(ChContactable1vars6) chrono::ChContactable_1vars<6>;
 %include "../../../chrono/physics/ChBody.h"  
 
 

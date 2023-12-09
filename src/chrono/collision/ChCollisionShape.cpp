@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChCollisionShape)
 
 
-class my_enum_mappers : public ChCollisionShape {
+class ChCollisionShape_Type_enum_mapper : public ChCollisionShape {
   public:
     CH_ENUM_MAPPER_BEGIN(Type);
     CH_ENUM_VAL(Type::SPHERE);
@@ -56,7 +56,7 @@ void ChCollisionShape::ArchiveOut(ChArchiveOut& marchive) {
     // serialize all member data:
     marchive << CHNVP(m_material);
 
-    my_enum_mappers::Type_mapper typemapper;
+    ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
     marchive << CHNVP(typemapper(type), "ChCollisionShape__Type");
 
@@ -68,7 +68,7 @@ void ChCollisionShape::ArchiveIn(ChArchiveIn& marchive) {
     // stream in all member data:
     marchive >> CHNVP(m_material);
 
-    my_enum_mappers::Type_mapper typemapper;
+    ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
     marchive >> CHNVP(typemapper(type), "ChCollisionShape__Type");
 

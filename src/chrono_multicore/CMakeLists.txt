@@ -255,140 +255,7 @@ SET(ChronoEngine_Multicore_COLLISION
     collision/ChContactContainerMulticoreSMC.cpp
     )
 
-SET(ChronoEngine_Multicore_COLLISION ${ChronoEngine_Multicore_COLLISION}
-    collision/ChCollisionSystemBulletMulticore.h
-    collision/ChCollisionSystemBulletMulticore.cpp
-    )
-
 SOURCE_GROUP(collision FILES ${ChronoEngine_Multicore_COLLISION})
-
-# Windows doesn't automatically pick up Bullet sources from Chrono
-IF(MSVC)
-    SET(ChronoEngine_Multicore_COLLISION_BULLET
-    # CollisionDispatch
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtUnionFind.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionDispatcher.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionDispatcherMt.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtSphereSphereCollisionAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionObject.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtSphereBoxCollisionAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionWorld.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionWorldImporter.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtSimulationIslandManager.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtCompoundCollisionAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtCompoundCompoundCollisionAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtManifoldResult.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtConvexConcaveCollisionAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtEmptyCollisionAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtSphereTriangleCollisionAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtConvexConvexAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/SphereTriangleDetector.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtDefaultCollisionConfiguration.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtConvexPlaneCollisionAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtActivatingCollisionAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtBox2dBox2dCollisionAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtBoxBoxCollisionAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtBoxBoxDetector.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtGhostObject.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtConvex2dConvex2dAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtInternalEdgeUtility.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtHashedSimplePairCache.cpp
-    # CollisionShapes
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBarrelShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBoxShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtTriangleMeshShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBvhTriangleMeshShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtTriangleMesh.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtTriangleIndexVertexArray.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCollisionShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtTriangleCallback.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCompoundShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtTetrahedronShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtConcaveShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtStridingMeshInterface.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtConeShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtStaticPlaneShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtConvexHullShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSphereShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtConvexShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtPolyhedralConvexShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtConvexTriangleMeshShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtOptimizedBvh.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCylindricalShellShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtMultiSphereShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtEmptyShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtMinkowskiSumShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtTriangleBuffer.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtHeightfieldTerrainShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCapsuleShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtConvexInternalShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtUniformScalingShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBox2dShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtConvex2dShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtConvexPointCloudShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtMultimaterialTriangleMeshShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtScaledBvhTriangleMeshShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtShapeHull.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtTriangleIndexVertexMaterialArray.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSdfCollisionShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtMiniSDF.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtConvexPolyhedron.cpp
-    # BroadphaseCollision
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/BroadphaseCollision/cbtAxisSweep3.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/BroadphaseCollision/cbtSimpleBroadphase.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/BroadphaseCollision/cbtOverlappingPairCache.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/BroadphaseCollision/cbtBroadphaseProxy.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/BroadphaseCollision/cbtDispatcher.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/BroadphaseCollision/cbtCollisionAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/BroadphaseCollision/cbtDbvt.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/BroadphaseCollision/cbtDbvtBroadphase.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/BroadphaseCollision/cbtQuantizedBvh.cpp
-    # NarrowPhaseCollision
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/cbtContinuousConvexCollision.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/cbtSubSimplexConvexCast.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/cbtConvexCast.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/cbtRaycastCallback.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/cbtPersistentManifold.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/cbtMinkowskiPenetrationDepthSolver.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/cbtGjkConvexCast.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/cbtGjkEpaPenetrationDepthSolver.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/cbtVoronoiSimplexSolver.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/cbtGjkPairDetector.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/cbtGjkEpa2.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/cbtPolyhedralContactClipping.cpp
-    # LinearMath
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/cbtQuickprof.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/cbtAlignedAllocator.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/cbtGeometryUtil.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/cbtConvexHull.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/cbtConvexHullComputer.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/cbtSerializer.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/cbtSerializer64.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/cbtPolarDecomposition.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/cbtThreads.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/cbtVector3.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/TaskScheduler/cbtTaskScheduler.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/TaskScheduler/cbtThreadSupportPosix.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/TaskScheduler/cbtThreadSupportWin32.cpp
-    # gimpact
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.h
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/gimpact/GIMPACT/Bullet/cbtGImpactQuantizedBvh.h
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/gimpact/GIMPACT/Bullet/cbtGImpactQuantizedBvh.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/gimpact/GIMPACT/Bullet/cbtTriangleShapeEx.h
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/gimpact/GIMPACT/Bullet/cbtTriangleShapeEx.cpp
-        )
-
-    SOURCE_GROUP(collision\\bullet FILES ${ChronoEngine_Multicore_COLLISION_BULLET})
-
-    SET(ChronoEngine_Multicore_COLLISION
-        ${ChronoEngine_Multicore_COLLISION}
-        ${ChronoEngine_Multicore_COLLISION_BULLET}
-        )
-ENDIF()
 
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_multicore library
@@ -421,15 +288,6 @@ if(MSVC)
     target_compile_options(ChronoEngine_multicore PUBLIC "/wd4146" )
 endif()
 
-# Disable all warnings from external code
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set_source_files_properties(${ChronoEngine_Multicore_COLLISION_BULLET} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
-elseif(MSVC)
-  set_source_files_properties(${ChronoEngine_Multicore_COLLISION_BULLET} PROPERTIES COMPILE_OPTIONS "/w")
-else()
-  set_source_files_properties(${ChronoEngine_Multicore_COLLISION_BULLET} PROPERTIES COMPILE_OPTIONS "-w")
-endif()
-
 SET_TARGET_PROPERTIES(ChronoEngine_multicore PROPERTIES
                       LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
@@ -437,12 +295,6 @@ target_compile_definitions(ChronoEngine_multicore PRIVATE "CH_API_COMPILE_MULTIC
 target_compile_definitions(ChronoEngine_multicore PRIVATE "CH_IGNORE_DEPRECATED")
 
 target_compile_definitions(ChronoEngine_multicore PRIVATE "BT_THREADSAFE")
-if (USE_BULLET_DOUBLE)
-    target_compile_definitions(ChronoEngine_multicore PRIVATE "BT_USE_DOUBLE_PRECISION")
-endif()
-if (USE_BULLET_OPENMP)
-    target_compile_definitions(ChronoEngine_multicore PRIVATE "BT_USE_OPENMP")
-endif()
 
 TARGET_LINK_LIBRARIES(ChronoEngine_multicore ${CHRONO_MULTICORE_LINKED_LIBRARIES})
 

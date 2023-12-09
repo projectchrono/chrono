@@ -43,7 +43,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
 
     /// Create a rigid terrain node using the specified contact method (SMC or NSC) and set parameters from the provided
     /// JSON specfile.
-    ChVehicleCosimTerrainNodeRigid(ChContactMethod method, const std::string& specfile);
+    ChVehicleCosimTerrainNodeRigid(const std::string& specfile, ChContactMethod method);
 
     ~ChVehicleCosimTerrainNodeRigid();
 

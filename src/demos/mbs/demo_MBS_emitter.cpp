@@ -33,8 +33,9 @@ using namespace chrono::irrlicht;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a Chrono physical system
+    // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -141,18 +142,24 @@ int main(int argc, char* argv[]) {
         virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
                                ChCoordsys<> mcoords,
                                ChRandomShapeCreator& mcreator) override {
-            // Enable Irrlicht visualization for all particles
+            // Bind visual model to the visual system
             vis->BindItem(mbody);
+
+            // Bind the collision model to the collision system
+            if (mbody->GetCollisionModel())
+                coll->Add(mbody->GetCollisionModel());
 
             // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
             mbody->SetNoGyroTorque(true);
         }
-        ChVisualSystemIrrlicht* vis;
+        ChVisualSystem* vis;
+        ChCollisionSystem* coll;
     };
     // b- create the callback object...
     auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
     mcreation_callback->vis = vis.get();
+    mcreation_callback->coll = sys.GetCollisionSystem().get();
     // d- attach the callback to the emitter!
     emitter.RegisterAddBodyCallback(mcreation_callback);
 

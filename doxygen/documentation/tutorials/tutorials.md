@@ -50,13 +50,9 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Examples of using the Multicore module.
 
--   @subpage tutorial_table_of_content_chrono_distributed
-
-    Examples of using the Distributed module.
-
 -   @subpage tutorial_table_of_content_chrono_gpu
 
-    Examples of granular dynamics problems using the Gpu module.
+    Examples of granular dynamics problems using the GPU module.
 
 -   @subpage tutorial_table_of_content_chrono_python
 

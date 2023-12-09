@@ -33,26 +33,28 @@ def main():
     # Create systems
 
     #  Create the FEDA vehicle, set parameters, and initialize
-    my_feda = veh.FEDA()
-    my_feda.SetContactMethod(contact_method)
-    my_feda.SetChassisCollisionType(chassis_collision_type)
-    my_feda.SetChassisFixed(False) 
-    my_feda.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
-    my_feda.SetEngineType(veh.EngineModelType_SIMPLE_MAP)
-    my_feda.SetTransmissionType(veh.TransmissionModelType_SIMPLE_MAP)
-    my_feda.SetTireType(tire_model)
-    my_feda.SetTireStepSize(tire_step_size)
-    my_feda.Initialize()
+    feda = veh.FEDA()
+    feda.SetContactMethod(contact_method)
+    feda.SetChassisCollisionType(chassis_collision_type)
+    feda.SetChassisFixed(False) 
+    feda.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+    feda.SetEngineType(veh.EngineModelType_SIMPLE_MAP)
+    feda.SetTransmissionType(veh.TransmissionModelType_SIMPLE_MAP)
+    feda.SetTireType(tire_model)
+    feda.SetTireStepSize(tire_step_size)
+    feda.Initialize()
 
-    my_feda.SetChassisVisualizationType(chassis_vis_type)
-    my_feda.SetSuspensionVisualizationType(suspension_vis_type)
-    my_feda.SetSteeringVisualizationType(steering_vis_type)
-    my_feda.SetWheelVisualizationType(wheel_vis_type)
-    my_feda.SetTireVisualizationType(tire_vis_type)
+    feda.SetChassisVisualizationType(chassis_vis_type)
+    feda.SetSuspensionVisualizationType(suspension_vis_type)
+    feda.SetSteeringVisualizationType(steering_vis_type)
+    feda.SetWheelVisualizationType(wheel_vis_type)
+    feda.SetTireVisualizationType(tire_vis_type)
+
+    feda.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
     # Create the terrain
 
-    terrain = veh.RigidTerrain(my_feda.GetSystem())
+    terrain = veh.RigidTerrain(feda.GetSystem())
     if (contact_method == chrono.ChContactMethod_NSC):
         patch_mat = chrono.ChMaterialSurfaceNSC()
         patch_mat.SetFriction(0.9)
@@ -78,7 +80,7 @@ def main():
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddLightDirectional()
     vis.AddSkyBox()
-    vis.AttachVehicle(my_feda.GetVehicle())
+    vis.AttachVehicle(feda.GetVehicle())
 
     # Create the interactive driver system
     driver = veh.ChInteractiveDriverIRR(vis)
@@ -94,10 +96,10 @@ def main():
     driver.Initialize()
 
     # Simulation loop
-    my_feda.GetVehicle().EnableRealtime(True)
+    feda.GetVehicle().EnableRealtime(True)
 
     while vis.Run() :
-        time = my_feda.GetSystem().GetChTime()
+        time = feda.GetSystem().GetChTime()
 
         vis.BeginScene()
         vis.Render()
@@ -109,13 +111,13 @@ def main():
         # Update modules (process inputs from other modules)
         driver.Synchronize(time)
         terrain.Synchronize(time)
-        my_feda.Synchronize(time, driver_inputs, terrain)
+        feda.Synchronize(time, driver_inputs, terrain)
         vis.Synchronize(time, driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)
         terrain.Advance(step_size)
-        my_feda.Advance(step_size)
+        feda.Advance(step_size)
         vis.Advance(step_size)
 
     return 0

@@ -153,6 +153,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
             sys.Add(rigidBody);
 
             vis.BindItem(rigidBody);
+            sys.GetCollisionSystem()->BindItem(rigidBody);
 
             particlelist.push_back(rigidBody);
         }
@@ -175,6 +176,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
             sys.Add(rigidBody);
 
             vis.BindItem(rigidBody);
+            sys.GetCollisionSystem()->BindItem(rigidBody);
 
             particlelist.push_back(rigidBody);
         }
@@ -193,6 +195,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
             sys.Add(rigidBody);
 
             vis.BindItem(rigidBody);
+            sys.GetCollisionSystem()->BindItem(rigidBody);
 
             particlelist.push_back(rigidBody);
         }
@@ -215,23 +218,24 @@ int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
     ChSystemNSC sys;
 
-    // Set small collision envelopes for objects that will be created from now on..
+    // Set small collision envelopes for objects that will be created from now on
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
     ChCollisionModel::SetDefaultSuggestedMargin(0.002);
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create two conveyor fences
     auto fence_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     fence_mat->SetFriction(0.1f);
 
-    auto mfence1 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true, fence_mat);
-    sys.Add(mfence1);
-    mfence1->SetPos(ChVector<>(0, 0, -0.325));
-    mfence1->SetBodyFixed(true);
+    auto fence1 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true, fence_mat);
+    sys.Add(fence1);
+    fence1->SetPos(ChVector<>(0, 0, -0.325));
+    fence1->SetBodyFixed(true);
 
-    auto mfence2 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true, fence_mat);
-    sys.Add(mfence2);
-    mfence2->SetPos(ChVector<>(0, 0, 0.325));
-    mfence2->SetBodyFixed(true);
+    auto fence2 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true, fence_mat);
+    sys.Add(fence2);
+    fence2->SetPos(ChVector<>(0, 0, 0.325));
+    fence2->SetBodyFixed(true);
 
     // Create the conveyor belt (this is a pure Chrono::Engine object,
     // because an Irrlicht 'SceneNode' wrapper is not yet available, so it is invisible - no 3D preview)

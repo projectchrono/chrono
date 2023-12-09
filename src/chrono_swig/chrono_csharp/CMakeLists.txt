@@ -53,7 +53,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 # Set location of SWIG-generated files.
-set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_csharp")
+set(CHRONO_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_csharp")
 
 # Set SWIG flags.  Disable selected SWIG warnings 
 set(CMAKE_SWIG_FLAGS "-c++;-w401,503,833")
@@ -89,7 +89,9 @@ endif()
 message(STATUS "...add CSharp CORE module")
 
 # Set module name.
-set(MODULE_CORE ChronoEngine_csharp_core)
+set(CH_CSHARP_CORE ChronoEngine_csharp_core)
+
+set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/core")
 
 # Set interface file.
 set(INTERFACE_FILE_CORE ../interface/core/ChModuleCore.i)
@@ -102,31 +104,90 @@ set_source_files_properties(${INTERFACE_FILE_CORE} PROPERTIES CPLUSPLUS ON)
 ##source_group("wrappers" FILES  ${CHPY_CORE_WRAPPER_FILES})
 
 # Create the SWIG module.
-SWIG_ADD_LIBRARY(${MODULE_CORE} LANGUAGE csharp SOURCES ${INTERFACE_FILE_CORE})
-SWIG_LINK_LIBRARIES(${MODULE_CORE} ChronoEngine)
+SWIG_ADD_LIBRARY(${CH_CSHARP_CORE} LANGUAGE csharp SOURCES ${INTERFACE_FILE_CORE})
+SWIG_LINK_LIBRARIES(${CH_CSHARP_CORE} ChronoEngine)
 
-set_target_properties(${SWIG_MODULE_${MODULE_CORE}_REAL_NAME} PROPERTIES 
-                      PROJECT_LABEL "${MODULE_CORE}"
-                      OUTPUT_NAME   "${SWIG_MODULE_${MODULE_CORE}_REAL_NAME}"
+set_target_properties(${SWIG_MODULE_${CH_CSHARP_CORE}_REAL_NAME} PROPERTIES 
+                      PROJECT_LABEL "${CH_CSHARP_CORE}"
+                      OUTPUT_NAME   "${SWIG_MODULE_${CH_CSHARP_CORE}_REAL_NAME}"
                       LIBRARY_OUTPUT_DIRECTORY "${LIB_OUT_DIR}"
                       )
 
-target_compile_definitions(${SWIG_MODULE_${MODULE_CORE}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(${SWIG_MODULE_${CH_CSHARP_CORE}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
 
-ADD_DEPENDENCIES(${SWIG_MODULE_${MODULE_CORE}_REAL_NAME} ChronoEngine)
+add_dependencies(${SWIG_MODULE_${CH_CSHARP_CORE}_REAL_NAME} ChronoEngine)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    install(TARGETS ChronoEngine_csharp_core
+    install(TARGETS ${SWIG_MODULE_${CH_CSHARP_CORE}_REAL_NAME}
             LIBRARY DESTINATION bin)
 else()
-    install(TARGETS ChronoEngine_csharp_core
+    install(TARGETS ${SWIG_MODULE_${CH_CSHARP_CORE}_REAL_NAME}
             LIBRARY DESTINATION lib)
 endif()
 
 if(DBG_SCRIPT)
-  message(STATUS "Module name:     ${MODULE_CORE}")
-  message(STATUS "SWIG_REAL_NAME:  ${SWIG_MODULE_${MODULE_CORE}_REAL_NAME}")
+  message(STATUS "Module name:     ${CH_CSHARP_CORE}")
+  message(STATUS "SWIG_REAL_NAME:  ${SWIG_MODULE_${CH_CSHARP_CORE}_REAL_NAME}")
 endif()
+
+#-----------------------------------------------------------------------------
+# MODULE for the irrlicht csharp wrapper.
+#-----------------------------------------------------------------------------
+
+if(ENABLE_MODULE_IRRLICHT)
+
+  message(STATUS "...add csharp IRRLICHT module")
+
+  set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/irrlicht")
+
+  # Python module name
+  set(CH_CSHARP_IRRLICHT ChronoEngine_csharp_irrlicht)
+
+  # Interface files
+  set(CH_CSHARP_IRRLICHT_MODULE_FILE
+      ../interface/irrlicht/ChModuleIrrlicht.i
+      )
+
+  include_directories(${CH_IRRLICHT_INCLUDES})
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set_source_files_properties(${CH_CSHARP_IRRLICHT_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+  endif()
+  set_source_files_properties(${CH_CSHARP_IRRLICHT_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+
+  # Create the SWIG module.
+  SWIG_ADD_LIBRARY(${CH_CSHARP_IRRLICHT} LANGUAGE csharp SOURCES ${CH_CSHARP_IRRLICHT_MODULE_FILE})
+  SWIG_LINK_LIBRARIES(${CH_CSHARP_IRRLICHT} ChronoEngine ChronoEngine_irrlicht)
+
+  # Ensure that the PYD library file is generated in the bin/ directory.
+  set_target_properties(${SWIG_MODULE_${CH_CSHARP_IRRLICHT}_REAL_NAME} PROPERTIES
+                        PROJECT_LABEL "${CH_CSHARP_IRRLICHT}"
+                        OUTPUT_NAME   "${SWIG_MODULE_${CH_CSHARP_IRRLICHT}_REAL_NAME}"
+                        LIBRARY_OUTPUT_DIRECTORY "${LIB_OUT_DIR}"
+                        )
+
+  target_compile_definitions(${SWIG_MODULE_${CH_CSHARP_IRRLICHT}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
+  target_compile_definitions(${SWIG_MODULE_${CH_CSHARP_IRRLICHT}_REAL_NAME} PRIVATE "IGNORE_DEPRECATED_WARNING")
+
+  add_dependencies(${SWIG_MODULE_${CH_CSHARP_IRRLICHT}_REAL_NAME} ChronoEngine)
+  add_dependencies(${SWIG_MODULE_${CH_CSHARP_IRRLICHT}_REAL_NAME} ChronoEngine_irrlicht)
+  add_dependencies(${SWIG_MODULE_${CH_CSHARP_IRRLICHT}_REAL_NAME} ${SWIG_MODULE_${CH_CSHARP_CORE}_REAL_NAME})
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    install(TARGETS ${SWIG_MODULE_${CH_CSHARP_IRRLICHT}_REAL_NAME}
+            LIBRARY DESTINATION bin)
+  else()
+      install(TARGETS ${SWIG_MODULE_${CH_CSHARP_IRRLICHT}_REAL_NAME}
+              LIBRARY DESTINATION lib)
+  endif()
+
+  if (DBG_SCRIPT)
+    message("Module name:     ${CH_CSHARP_IRRLICHT}")
+    message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CH_CSHARP_IRRLICHT}_REAL_NAME}")
+  endif()
+
+endif()
+
 
 #-----------------------------------------------------------------------------
 # Wrapper for VEHICLE Chrono module
@@ -138,7 +199,9 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
   
   # Set module name.
   set(MODULE_VEHICLE ChronoEngine_csharp_vehicle)
-  
+
+  set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/vehicle")
+
   # Set interface file.
   set(INTERFACE_FILE_VEHICLE ../interface/vehicle/ChModuleVehicle.i)
   

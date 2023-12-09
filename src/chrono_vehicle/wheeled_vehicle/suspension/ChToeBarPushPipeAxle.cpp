@@ -121,7 +121,7 @@ void ChToeBarPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     //--------------
     // Create and initialize the axle body.
-    m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -139,7 +139,7 @@ void ChToeBarPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the panhard rod body
     ChVector<> panCom_local = 0.5 * (getLocation(PANHARD_A) + getLocation(PANHARD_C));
     ChVector<> panCom = suspension_to_abs.TransformLocalToParent(panCom_local);
-    m_panhardRod = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_panhardRod = chrono_types::make_shared<ChBody>();
     m_panhardRod->SetNameString(m_name + "_panhardRod");
     m_panhardRod->SetPos(panCom);
     m_panhardRod->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -169,7 +169,7 @@ void ChToeBarPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_tierodOuterR = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
 
     // Create and initialize the tierod body.
-    m_tierod = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_tierod = chrono_types::make_shared<ChBody>();
     m_tierod->SetNameString(m_name + "_tierodBody");
     m_tierod->SetPos((m_tierodOuterL + m_tierodOuterR) / 2);
     m_tierod->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -205,7 +205,7 @@ void ChToeBarPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         u = Vcross(v, w);
         rot.Set_A_axis(u, v, w);
 
-        m_draglink = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+        m_draglink = chrono_types::make_shared<ChBody>();
         m_draglink->SetNameString(m_name + "_draglink");
         m_draglink->SetPos((m_pointsL[DRAGLINK_C] + m_pointsL[KNUCKLE_DRL]) / 2);
         m_draglink->SetRot(rot.Get_A_quaternion());
@@ -237,7 +237,7 @@ void ChToeBarPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         u = Vcross(v, w);
         rot.Set_A_axis(u, v, w);
 
-        m_draglink = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+        m_draglink = chrono_types::make_shared<ChBody>();
         m_draglink->SetNameString(m_name + "_draglink");
         m_draglink->SetPos((m_pointsL[DRAGLINK_C] + m_pointsR[KNUCKLE_DRL]) / 2);
         m_draglink->SetRot(rot.Get_A_quaternion());
@@ -282,7 +282,7 @@ void ChToeBarPushPipeAxle::InitializeSide(VehicleSide side,
     auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
     // Create and initialize knuckle body (same orientation as the chassis)
-    m_knuckle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_knuckle[side] = chrono_types::make_shared<ChBody>();
     m_knuckle[side]->SetNameString(m_name + "_knuckle" + suffix);
     m_knuckle[side]->SetPos(points[KNUCKLE_CM]);
     m_knuckle[side]->SetRot(spindleRot);
@@ -291,7 +291,7 @@ void ChToeBarPushPipeAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_knuckle[side]);
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);

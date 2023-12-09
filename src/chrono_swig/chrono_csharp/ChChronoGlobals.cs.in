@@ -1,0 +1,5 @@
+public static class ChronoGlobals
+{
+    public const string CHRONO_DATA_DIR = "@CH_DATA_DIR@";
+    public const string CHRONO_VEHICLE_DATA_DIR = "@CH_DATA_DIR@vehicle/";
+}

@@ -143,7 +143,7 @@ using namespace chrono;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-%DefSharedPtrDynamicDowncast(chrono, ChSolver, ChSolverPardisoMKL)
+%DefSharedPtrDynamicDowncast(chrono, ChDirectSolverLS, ChSolverPardisoMKL)
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER

@@ -22,7 +22,7 @@
 #include "chrono_multicore/ChApiMulticore.h"
 #include "chrono_multicore/ChDataManager.h"
 
-#include "chrono/collision/chrono/ChCollisionSystemChrono.h"
+#include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 
 namespace chrono {
 
@@ -35,7 +35,7 @@ class ChSystemMulticore;
 
 /// Chrono custom multicore collision system.
 /// Contains both the broadphase and the narrow phase methods.
-class CH_MULTICORE_API ChCollisionSystemChronoMulticore : public ChCollisionSystemChrono {
+class CH_MULTICORE_API ChCollisionSystemChronoMulticore : public ChCollisionSystemMulticore {
   public:
     ChCollisionSystemChronoMulticore(ChMulticoreDataManager* dc);
     ~ChCollisionSystemChronoMulticore();

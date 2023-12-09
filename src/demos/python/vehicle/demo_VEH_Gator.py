@@ -92,6 +92,8 @@ print("Brake type:     " + gator.GetVehicle().GetBrake(1, veh.LEFT).GetTemplateN
 print("Tire type:      " + gator.GetVehicle().GetTire(1, veh.LEFT).GetTemplateName())
 print("\n")
 
+gator.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
+
 # ------------------
 # Create the terrain
 # ------------------

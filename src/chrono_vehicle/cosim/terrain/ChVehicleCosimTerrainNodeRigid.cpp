@@ -80,11 +80,12 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length, do
         }
     }
 
+    m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
     m_system->SetNumThreads(1);
 }
 
-ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method, const std::string& specfile)
+ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(const std::string& specfile, ChContactMethod method)
     : ChVehicleCosimTerrainNodeChrono(Type::RIGID, 0, 0, method) {
     // Create system and set default method-specific solver settings
     switch (m_method) {
@@ -100,6 +101,7 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
         }
     }
 
+    m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
     m_system->SetNumThreads(1);
 
@@ -199,7 +201,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
              << " method = " << static_cast<std::underlying_type<ChContactMethod>::type>(m_method) << endl;
 
     // Create container body
-    auto container = std::shared_ptr<ChBody>(m_system->NewBody());
+    auto container = chrono_types::make_shared<ChBody>();
     m_system->AddBody(container);
     container->SetIdentifier(body_id_terrain);
     container->SetNameString("container");
@@ -213,7 +215,6 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 
     utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_dimX, m_dimY, 0.2), ChVector<>(0, 0, -0.1),
                           ChQuaternion<>(1, 0, 0, 0), true, vis_mat);
-    container->GetCollisionModel()->Build();
 
     // If using RIGID terrain, the contact will be between the container and proxy bodies.
     // Since collision between two bodies fixed to ground is ignored, if the proxy bodies
@@ -221,7 +222,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     if (m_fixed_proxies) {
         container->SetBodyFixed(false);
 
-        auto ground = std::shared_ptr<ChBody>(m_system->NewBody());
+        auto ground = chrono_types::make_shared<ChBody>();
         ground->SetNameString("ground");
         ground->SetIdentifier(-2);
         ground->SetBodyFixed(true);
@@ -244,7 +245,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         ChMatrix33<> inertia;
         trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
 
-        auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+        auto body = chrono_types::make_shared<ChBody>();
         body->SetNameString("obstacle");
         body->SetIdentifier(id++);
         body->SetPos(b.m_init_pos);
@@ -256,9 +257,8 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         body->SetCollide(true);
         auto ct_shape =
             chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_p);
-        body->GetCollisionModel()->AddShape(ct_shape);
+        body->AddCollisionShape(ct_shape);
         body->GetCollisionModel()->SetFamily(2);
-        body->GetCollisionModel()->Build();
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
@@ -326,7 +326,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
     ChVector<> inertia_p = 0.4 * mass_p * m_radius_p * m_radius_p * ChVector<>(1, 1, 1);
 
     for (int iv = 0; iv < nv; iv++) {
-        auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+        auto body = chrono_types::make_shared<ChBody>();
         body->SetIdentifier(iv);
         body->SetMass(mass_p);
         body->SetInertiaXX(inertia_p);
@@ -337,9 +337,10 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
                                  true);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
-        body->GetCollisionModel()->Build();
 
         m_system->AddBody(body);
+        m_system->GetCollisionSystem()->BindItem(body);
+
         proxy->AddBody(body, iv);
     }
 
@@ -354,7 +355,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
     auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
     // Create wheel proxy body
-    auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+    auto body = chrono_types::make_shared<ChBody>();
     body->SetNameString("proxy_" + std::to_string(i));
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i]);
@@ -373,6 +374,8 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
 
     m_system->AddBody(body);
+    m_system->GetCollisionSystem()->BindItem(body);
+
     proxy->AddBody(body, 0);
 
     m_proxies[i] = proxy;

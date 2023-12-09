@@ -56,7 +56,7 @@ class ChApi ChEllipsoid : public ChVolume {
     virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 
     /// Evaluate position in box volume.
-    virtual ChVector<> Evaluate(const double parU, const double parV, const double parW) const override {
+    virtual ChVector<> Evaluate(double parU, double parV, double parW) const override {
         //// TODO
         return VNULL;
     }

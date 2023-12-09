@@ -76,11 +76,10 @@ int main(int argc, char* argv[]) {
     // Use this value for an outward additional layer around meshes, that can improve
     // robustness of mesh-mesh collision detection (at the cost of having unnatural inflate effect)
     double sphere_swept_thickness = 0.008;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    // Create the surface material, containing information
-    // about friction etc.
-    // It is a SMC (penalty) material that we will assign to
-    // all surfaces that might generate contacts.
+    // Create the surface material.
+    // It is a SMC (penalty) material that we will be assigned to all surfaces that might generate contacts.
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(6e4f);
     mysurfmaterial->SetFriction(0.3f);
@@ -148,8 +147,6 @@ int main(int argc, char* argv[]) {
 
     // Add the mesh to the system
     sys.Add(my_mesh);
-
-    // Mark completion of system construction
 
     // FEA visualization
     auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);

@@ -139,6 +139,7 @@ else: # use SMC contact method
     time_step = 1e-4
     frame_skip = 100
 
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 sys.Set_G_acc(chrono.ChVectorD(0, -9.8, 0))
 
 # Create the ground body with a plate and side walls (both collision and visualization).
@@ -154,13 +155,11 @@ cshape_3 = chrono.ChCollisionShapeBox(ground_mat, 0.2, 2.0, 10.2)
 cshape_4 = chrono.ChCollisionShapeBox(ground_mat, 10.2, 2.0, 0.2)
 cshape_5 = chrono.ChCollisionShapeBox(ground_mat, 10.2, 2.0, 0.2)
 
-ground.GetCollisionModel().Clear()
-ground.GetCollisionModel().AddShape(cshape_1, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0), chrono.QUNIT))
-ground.GetCollisionModel().AddShape(cshape_2, chrono.ChFrameD(chrono.ChVectorD(-5, 0, 0), chrono.QUNIT))
-ground.GetCollisionModel().AddShape(cshape_3, chrono.ChFrameD(chrono.ChVectorD( 5, 0, 0), chrono.QUNIT))
-ground.GetCollisionModel().AddShape(cshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 0, -5), chrono.QUNIT))
-ground.GetCollisionModel().AddShape(cshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 0,  5), chrono.QUNIT))
-ground.GetCollisionModel().Build()
+ground.AddCollisionShape(cshape_1, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0), chrono.QUNIT))
+ground.AddCollisionShape(cshape_2, chrono.ChFrameD(chrono.ChVectorD(-5, 0, 0), chrono.QUNIT))
+ground.AddCollisionShape(cshape_3, chrono.ChFrameD(chrono.ChVectorD( 5, 0, 0), chrono.QUNIT))
+ground.AddCollisionShape(cshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 0, -5), chrono.QUNIT))
+ground.AddCollisionShape(cshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 0,  5), chrono.QUNIT))
 
 ground_vis_mat = chrono.ChVisualMaterial()
 ground_vis_mat.SetKdTexture(chrono.GetChronoDataFile("textures/blue.png"))
@@ -198,10 +197,8 @@ ball.SetPos(chrono.ChVectorD(-3, 1.2 * ball_radius, -3))
 ball.SetPos_dt(chrono.ChVectorD(5, 0, 5))
 ball.SetCollide(True)
 
-ball.GetCollisionModel().Clear()
 ball_ct_shape = chrono.ChCollisionShapeSphere(ball_mat, ball_radius)
-ball.GetCollisionModel().AddShape(ball_ct_shape)
-ball.GetCollisionModel().Build()
+ball.AddCollisionShape(ball_ct_shape)
 
 vshape_s = chrono.ChVisualShapeSphere(ball_radius)
 vshape_s.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))

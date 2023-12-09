@@ -61,14 +61,9 @@ void ChSystemMulticoreSMC::Setup() {
     data_manager->settings.collision.collision_envelope = 0;
 }
 
-void ChSystemMulticoreSMC::SetCollisionSystemType(ChCollisionSystemType type) {
+void ChSystemMulticoreSMC::SetCollisionSystemType(ChCollisionSystem::Type type) {
     ChSystemMulticore::SetCollisionSystemType(type);
     data_manager->settings.collision.collision_envelope = 0;
-}
-
-void ChSystemMulticoreSMC::SetContactContainer(ChCollisionSystemType type) {
-    contact_container = chrono_types::make_shared<ChContactContainerMulticoreSMC>(data_manager);
-    contact_container->SetSystem(this);
 }
 
 void ChSystemMulticoreSMC::SetContactContainer(std::shared_ptr<ChContactContainer> container) {

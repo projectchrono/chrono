@@ -98,16 +98,6 @@ if(ENABLE_MODULE_GPU)
   list(APPEND LIBRARIES ChronoEngine_gpu)
 endif()
 
-#if(ENABLE_MODULE_DISTRIBUTED)
-#  set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
-#      terrain/ChVehicleCosimTerrainNodeGranularMPI.h
-#      terrain/ChVehicleCosimTerrainNodeGranularMPI.cpp)
-#  set(INCLUDES "${INCLUDES};${CH_DISTRIBUTED_INCLUDES}")
-#  list(APPEND LIBRARIES ChronoEngine_distributed)
-#  set(CXX_FLAGS "${CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
-#  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_DISTRIBUTED_LINK_FLAGS}")
-#endif()
-
 if(ENABLE_MODULE_PARDISO_MKL)
   set(INCLUDES "${INCLUDES};${CH_MKL_INCLUDES}")
   set(CXX_FLAGS "${CXX_FLAGS} ${CH_MKL_CXX_FLAGS}")

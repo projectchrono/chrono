@@ -82,14 +82,14 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         sys->ChangeSolverType(opts.type);
 
         // Create the ground body
-        auto ground = std::shared_ptr<ChBody>(sys->NewBody());
+        auto ground = chrono_types::make_shared<ChBody>();
         ground->SetIdentifier(-1);
         ground->SetBodyFixed(true);
         ground->SetCollide(false);
         sys->AddBody(ground);
 
         // Create the sled body
-        auto sled = std::shared_ptr<ChBody>(sys->NewBody());
+        auto sled = chrono_types::make_shared<ChBody>();
         sled->SetIdentifier(1);
         sled->SetMass(550);
         sled->SetInertiaXX(ChVector<>(100, 100, 100));
@@ -104,7 +104,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         sys->AddBody(sled);
 
         // Create the wheel body
-        auto wheel = std::shared_ptr<ChBody>(sys->NewBody());
+        auto wheel = chrono_types::make_shared<ChBody>();
         wheel->SetIdentifier(2);
         wheel->SetMass(350);
         wheel->SetInertiaXX(ChVector<>(50, 138, 138));
@@ -116,9 +116,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 
         auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-        wheel->GetCollisionModel()->Clear();
         utils::AddCylinderGeometry(wheel.get(), wheel_mat, 0.3, 0.1, ChVector<>(0, 0, 0), Q_from_AngZ(CH_C_PI_2));
-        wheel->GetCollisionModel()->Build();
 
         sys->AddBody(wheel);
 

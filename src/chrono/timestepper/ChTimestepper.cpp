@@ -26,8 +26,8 @@ CH_UPCASTING(ChImplicitIterativeTimestepper, ChImplicitTimestepper)
 // -----------------------------------------------------------------------------
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
-// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
-class my_enum_mappers : public ChTimestepper {
+// enclose macros in local 'ChTimestepper_Type_enum_mapper', just to avoid avoiding cluttering of the parent class.
+class ChTimestepper_Type_enum_mapper : public ChTimestepper {
   public:
     CH_ENUM_MAPPER_BEGIN(Type);
     CH_ENUM_VAL(Type::EULER_IMPLICIT);
@@ -49,7 +49,7 @@ void ChTimestepper::ArchiveOut(ChArchiveOut& archive) {
     // version number
     archive.VersionWrite<ChTimestepper>();
     // method type:
-    my_enum_mappers::Type_mapper typemapper;
+    ChTimestepper_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
     archive << CHNVP(typemapper(type), "timestepper_type");
     // serialize all member data:
@@ -62,7 +62,7 @@ void ChTimestepper::ArchiveIn(ChArchiveIn& archive) {
     // version number
     /*int version =*/ archive.VersionRead<ChTimestepper>();
     // method type:
-    my_enum_mappers::Type_mapper typemapper;
+    ChTimestepper_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
     archive >> CHNVP(typemapper(type), "timestepper_type");
     // stream in all member data:

@@ -858,7 +858,7 @@ source_group("" FILES ${CVVSG_FILES})
 source_group("wheeled_vehicle" FILES ${CVVSG_WV_FILES})
 source_group("tracked_vehicle" FILES ${CVVSG_TV_FILES})
 
-# --------------- VEHICLE VSG INTERFACE
+# --------------- VEHICLE OpenGL INTERFACE
 
 if(ENABLE_MODULE_OPENGL)
     set(CVGL_FILES

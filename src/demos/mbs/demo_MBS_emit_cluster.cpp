@@ -37,21 +37,27 @@ class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
     virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
                            ChCoordsys<> mcoords,
                            ChRandomShapeCreator& mcreator) override {
-        // Set material texture of first visual shape
+        // Bind visual model to the visual system
         mbody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
         vis->BindItem(mbody);
+
+        // Bind the collision model to the collision system
+        if (mbody->GetCollisionModel())
+            coll->Add(mbody->GetCollisionModel());
 
         // Dsable gyroscopic forces for increased integrator stability
         mbody->SetNoGyroTorque(true);
     }
-    ChVisualSystemIrrlicht* vis;
+    ChVisualSystem* vis;
+    ChCollisionSystem* coll;
 };
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a ChronoENGINE physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -123,13 +129,11 @@ int main(int argc, char* argv[]) {
 
     // ---Initialize the randomizer for CREATED SHAPES, with statistical distribution
 
-    /*
+    /*    
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
     auto mcreator_spheres = chrono_types::make_shared<ChRandomShapeCreatorSpheres>();
     mcreator_spheres->SetDiameterDistribution(chrono_types::make_shared<ChZhangDistribution>(0.6, 0.23));
     mcreator_spheres->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
-
-    // Finally, tell to the emitter that it must use the creator above:
     emitter.SetParticleCreator(mcreator_spheres);
     */
 
@@ -149,6 +153,7 @@ int main(int argc, char* argv[]) {
     auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
     mcreation_callback->vis = vis.get();
+    mcreation_callback->coll = sys.GetCollisionSystem().get();
     // d- attach the callback to the emitter!
     emitter.RegisterAddBodyCallback(mcreation_callback);
 

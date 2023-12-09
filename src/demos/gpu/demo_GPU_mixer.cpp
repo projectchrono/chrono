@@ -199,6 +199,7 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
+        ////std::cout << "Time = " << t << std::endl;
         gpu_sys.AdvanceSimulation(iteration_step);
     }
 

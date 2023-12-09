@@ -210,32 +210,28 @@ void ChVehicleGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
 
     body->SetCollide(true);
 
-    body->GetCollisionModel()->Clear();
-
-    body->GetCollisionModel()->SetFamily(collision_family);
-
     for (auto& sphere : m_coll_spheres) {
         assert(materials[sphere.m_matID]);
         auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(materials[sphere.m_matID], sphere.m_radius);
-        body->GetCollisionModel()->AddShape(shape, ChFrame<>(sphere.m_pos, QUNIT));
+        body->AddCollisionShape(shape, ChFrame<>(sphere.m_pos, QUNIT));
     }
     for (auto& box : m_coll_boxes) {
         assert(materials[box.m_matID]);
         auto shape = chrono_types::make_shared<ChCollisionShapeBox>(materials[box.m_matID], box.m_dims.x(),
                                                                     box.m_dims.y(), box.m_dims.z());
-        body->GetCollisionModel()->AddShape(shape, ChFrame<>(box.m_pos, box.m_rot));
+        body->AddCollisionShape(shape, ChFrame<>(box.m_pos, box.m_rot));
     }
     for (auto& cyl : m_coll_cylinders) {
         assert(materials[cyl.m_matID]);
         auto shape =
             chrono_types::make_shared<ChCollisionShapeCylinder>(materials[cyl.m_matID], cyl.m_radius, cyl.m_length);
-        body->GetCollisionModel()->AddShape(shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
+        body->AddCollisionShape(shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
     }
     for (auto& hulls_group : m_coll_hulls) {
         assert(materials[hulls_group.m_matID]);
         for (const auto& hull : hulls_group.m_hulls) {
             auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(materials[hulls_group.m_matID], hull);
-            body->GetCollisionModel()->AddShape(shape);
+            body->AddCollisionShape(shape);
         }
     }
     for (auto& mesh : m_coll_meshes) {
@@ -245,13 +241,13 @@ void ChVehicleGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
             v += mesh.m_pos;
         auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(materials[mesh.m_matID], mesh.m_trimesh,
                                                                              false, false, mesh.m_radius);
-        body->GetCollisionModel()->AddShape(shape);
+        body->AddCollisionShape(shape);
     }
 
-    body->GetCollisionModel()->Build();
+    body->GetCollisionModel()->SetFamily(collision_family);
 }
 
-ChVehicleGeometry::AABB ChVehicleGeometry::CalculateAABB() {
+geometry::ChAABB ChVehicleGeometry::CalculateAABB() {
     ChVector<> amin(+std::numeric_limits<double>::max());
     ChVector<> amax(-std::numeric_limits<double>::max());
 
@@ -295,7 +291,7 @@ ChVehicleGeometry::AABB ChVehicleGeometry::CalculateAABB() {
         amax = Vmax(amax, bbox.max);
     }
 
-    return AABB((amin + amax) / 2, amax - amin);
+    return geometry::ChAABB(amin, amax);
 }
 
 // -----------------------------------------------------------------------------

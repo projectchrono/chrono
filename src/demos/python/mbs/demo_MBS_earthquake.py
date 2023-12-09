@@ -26,6 +26,7 @@ import pychrono.irrlicht as chronoirr
 #
 
 sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 
 # Set the default outward/inward shape margins for collision detection,
@@ -80,10 +81,8 @@ for ix in range(0,nbricks_on_x):
         body_brick.SetInertiaXX(chrono.ChVectorD(inertia_brick,inertia_brick,inertia_brick))       
 
         # Collision shape
-        body_brick.GetCollisionModel().Clear()
         body_brick_ct_shape = chrono.ChCollisionShapeBox(brick_material, size_brick_x, size_brick_y, size_brick_z)
-        body_brick.GetCollisionModel().AddShape(body_brick_ct_shape)
-        body_brick.GetCollisionModel().Build()
+        body_brick.AddCollisionShape(body_brick_ct_shape)
         body_brick.SetCollide(True)
 
         # Visualization shape, for rendering animation
@@ -103,10 +102,8 @@ body_floor.SetBodyFixed(True)
 body_floor.SetPos(chrono.ChVectorD(0, -2, 0 ))
 
 # Collision shape
-body_floor.GetCollisionModel().Clear()
 body_floor_ct_shape = chrono.ChCollisionShapeBox(brick_material, 6, 2, 6)
-body_floor.GetCollisionModel().AddShape(body_floor_ct_shape)
-body_floor.GetCollisionModel().Build()
+body_floor.AddCollisionShape(body_floor_ct_shape)
 body_floor.SetCollide(True)
 
 # Visualization shape
@@ -128,10 +125,8 @@ body_table = chrono.ChBody()
 body_table.SetPos(chrono.ChVectorD(0, -size_table_y/2, 0 ))
 
 # Collision shape
-body_table.GetCollisionModel().Clear()
 body_table_ct_shape = chrono.ChCollisionShapeBox(brick_material, size_table_x, size_table_y, size_table_z)
-body_table.GetCollisionModel().AddShape(body_table_ct_shape)
-body_table.GetCollisionModel().Build()
+body_table.AddCollisionShape(body_table_ct_shape)
 body_table.SetCollide(True)
 
 # Visualization shape

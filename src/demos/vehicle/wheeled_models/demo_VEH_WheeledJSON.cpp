@@ -397,6 +397,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Associate a collision system
+    system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Create the terrain
     RigidTerrain terrain(system, vehicle::GetDataFile(rigidterrain_file));
     terrain.Initialize();

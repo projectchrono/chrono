@@ -89,7 +89,7 @@ void ChBalancer::InitializeSide(VehicleSide side,
     ChQuaternion<> joint_rot = chassisRot * rot.Get_A_quaternion();
 
     // Create beam body
-    m_beam[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_beam[side] = chrono_types::make_shared<ChBody>();
     m_beam[side]->SetNameString(m_name + "_balancer" + suffix);
     m_beam[side]->SetPos(points[BEAM]);
     m_beam[side]->SetRot(chassisRot);
