@@ -13,7 +13,7 @@
 // =============================================================================
 
 #include "chrono_vsg/shapes/ShaderUtils.h"
-#include "chrono_thirdparty/stb/stb_image.h"
+//#include "chrono_thirdparty/stb/stb_image.h"
 #include "chrono_vsg/resources/chronoLineShader_vert.h"
 #include "chrono_vsg/resources/chronoLineShader_frag.h"
 #include "chrono_vsg/resources/chronoPbrShader_vert.h"
@@ -350,6 +350,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
     }
 
     if (!material->GetMetallicTexture().empty() && !material->GetRoughnessTexture().empty()) {
+        /*
         int wM, hM, nM;
         unsigned char* metalData = stbi_load(material->GetMetallicTexture().c_str(), &wM, &hM, &nM, 1);
         int wR, hR, nR;
@@ -395,7 +396,9 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
             graphicsPipelineConfig->assignTexture("mrMap", texData, sampler);
         }
+         */
     }
+         
 
     /*
     graphicsPipelineConfig->colorBlendState->attachments = vsg::ColorBlendState::ColorBlendAttachments{
