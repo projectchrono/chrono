@@ -39,9 +39,8 @@ def create_terrain(
     ground.SetPos(ch.ChVectorD(offset, 0, height - 0.1))
     ground.SetCollide(True)
 
-    ground.GetCollisionModel().ClearModel()
-    ground.GetCollisionModel().AddBox(ground_mat, length, width, 0.2)
-    ground.GetCollisionModel().BuildModel()
+    ct_shape = ch.ChCollisionShapeBox(ground_mat, length, width, 0.2)
+    ground.AddCollisionShape(ct_shape)
 
     box = ch.ChBoxShape(length, width, 0.2)
     box.SetTexture(ch.GetChronoDataFile("textures/checker2.png"), length, width)
