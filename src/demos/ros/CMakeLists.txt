@@ -5,20 +5,26 @@ message(STATUS "Demo programs for Chrono::ROS...")
 
 # ------------------------------------------------------------------------------
 
-set(DEMOS
-    demo_ROS_viper
-)
+set(DEMOS "")
+
+list(APPEND DEMOS demo_ROS_custom_handler)
+
+if (CH_ROS_HAS_INTERFACES)
+  list(APPEND DEMOS demo_ROS_viper)
+endif()
+
+if (HAVE_URDF AND CH_ROS_HAS_TF )
+  list(APPEND DEMOS demo_ROS_urdf)
+endif()
 
 if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
-  set(DEMOS ${DEMOS}
-    demo_ROS_vehicle
-  )
+  if (CH_ROS_HAS_INTERFACES)
+    list(APPEND DEMOS demo_ROS_vehicle)
+  endif()
 endif()
 
 if(ENABLE_MODULE_SENSOR)
-  set(DEMOS ${DEMOS}
-    demo_ROS_sensor
-  )
+  list(APPEND DEMOS demo_ROS_sensor)
 endif()
 
 # ------------------------------------------------------------------------------

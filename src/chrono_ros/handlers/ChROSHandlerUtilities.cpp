@@ -30,6 +30,10 @@ builtin_interfaces::msg::Time ChROSHandlerUtilities::GetROSTimestamp(double elap
     return timestamp;
 }
 
+double ChROSHandlerUtilities::GetChronoTime(const builtin_interfaces::msg::Time& time) {
+    return time.sec + time.nanosec * 1e-9;
+}
+
 bool ChROSHandlerUtilities::CheckROSTopicName(std::shared_ptr<ChROSInterface> interface,
                                               const std::string& topic_name) {
     try {

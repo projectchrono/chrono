@@ -45,7 +45,7 @@ bool ChROSGPSHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
 
     m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::NavSatFix>(m_topic_name, 1);
 
-    // m_gps_msg.header.frame_id = ; // TODO
+    m_gps_msg.header.frame_id = m_gps->GetName();
 
     return true;
 }

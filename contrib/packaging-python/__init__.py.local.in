@@ -55,6 +55,10 @@ try:
 except:
     pass
 try:
+    import _parsers
+except:
+    pass
+try:
     # TODO: How to print error message about ROS not being sourced if importing doesn't succeed
     import _ros
 except:

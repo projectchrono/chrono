@@ -48,7 +48,7 @@ bool ChROSMagnetometerHandler::Initialize(std::shared_ptr<ChROSInterface> interf
 
     m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::MagneticField>(m_topic_name, 1);
 
-    m_mag_msg.header.frame_id = m_imu->GetParent()->GetName();
+    m_mag_msg.header.frame_id = m_imu->GetName();
 
     return true;
 }

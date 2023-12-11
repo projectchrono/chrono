@@ -42,7 +42,7 @@ def main():
     rover.Initialize(ch.ChFrameD(ch.ChVectorD(0, -0.2, 0), ch.ChQuaternionD(1, 0, 0, 0)))
 
     # Create ROS manager
-    ros_manager = chros.ChROSManager()
+    ros_manager = chros.ChROSPythonManager()
     ros_manager.RegisterHandler(chros.ChROSClockHandler())
     ros_manager.RegisterHandler(chros.ChROSViperDCMotorControlHandler(25, driver, "~/input/driver_inputs"))
     ros_manager.RegisterHandler(chros.ChROSBodyHandler(25, rover.GetChassis().GetBody(), "~/output/viper/state"))

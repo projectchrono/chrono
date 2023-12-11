@@ -29,11 +29,9 @@ namespace ros {
 /// @addtogroup ros_sensor_handlers
 /// @{
 
-
 /// Utility class with static functions that may be useful for sensor-specific ROS handlers
 class ChROSSensorHandlerUtilities {
   public:
-    
     /// Check for filter in Sensor filter list. Returns true if present, false if not.
     /// @tparam FilterType the filter to search for
     /// @tparam FilterName name of the filter to search for

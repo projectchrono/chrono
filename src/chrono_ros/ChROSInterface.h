@@ -56,9 +56,6 @@ class CH_ROS_API ChROSInterface {
     /// other ROS component.
     rclcpp::Node::SharedPtr GetNode() { return m_node; }
 
-    /// Get the namespace to append to topic/node names
-    const std::string& GetNamespace() { return m_node_name; }
-
   private:
     const std::string m_node_name;
 

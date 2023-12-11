@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2021 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -26,13 +26,15 @@
 
 #include "chrono_ros/ChROSManager.h"
 #include "chrono_ros/handlers/ChROSClockHandler.h"
-#include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
+#ifdef CHRONO_ROS_HAS_TF
+    #include "chrono_ros/handlers/ChROSTFHandler.h"
+#endif
 
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/sensors/ChCameraSensor.h"
@@ -166,8 +168,8 @@ int main(int argc, char* argv[]) {
 
     // Create the publisher for the lidar
     auto lidar_2d_topic_name = "~/output/lidar_2d/data/laser_scan";
-    auto lidar_2d_handler = chrono_types::make_shared<ChROSLidarHandler>(
-        lidar_2d, lidar_2d_topic_name, false);  // last parameter indicates whether to use LaserScan or PointCloud2
+    auto lidar_2d_handler = chrono_types::make_shared<ChROSLidarHandler>(lidar_2d, lidar_2d_topic_name,
+                                                                         ChROSLidarHandlerMessageType::LASER_SCAN);
     ros_manager->RegisterHandler(lidar_2d_handler);
 
     // Create the publisher for the accelerometer
@@ -193,6 +195,18 @@ int main(int argc, char* argv[]) {
     auto gps_topic_name = "~/output/gps/data";
     auto gps_handler = chrono_types::make_shared<ChROSGPSHandler>(gps, gps_topic_name);
     ros_manager->RegisterHandler(gps_handler);
+
+#ifdef CHRONO_ROS_HAS_TF
+    // Create _one_ tf handler which we'll add transforms for all the sensors to
+    auto tf_handler = chrono_types::make_shared<ChROSTFHandler>(100);
+    tf_handler->AddSensor(cam);
+    tf_handler->AddSensor(lidar);
+    tf_handler->AddSensor(lidar_2d);
+    tf_handler->AddSensor(acc);
+    tf_handler->AddSensor(gyro);
+    tf_handler->AddSensor(mag);
+    tf_handler->AddSensor(gps);
+#endif
 
     // Finally, initialize the ros manager
     ros_manager->Initialize();

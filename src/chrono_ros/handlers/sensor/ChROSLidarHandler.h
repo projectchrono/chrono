@@ -29,23 +29,23 @@ namespace ros {
 /// @addtogroup ros_sensor_handlers
 /// @{
 
+enum class ChROSLidarHandlerMessageType { LASER_SCAN, POINT_CLOUD2 };
+
 class ChROSLidarHandlerImpl;
 
-/// This handler interfaces a ChLidarSensor to ROS. Will publish sensor_msgs::msg::PointCloud2.
+/// This handler interfaces a ChLidarSensor to ROS.
 class ChROSLidarHandler : public ChROSHandler {
   public:
     /// Constructor. The update rate is set to lidar->GetUpdateRate().
     ChROSLidarHandler(std::shared_ptr<chrono::sensor::ChLidarSensor> lidar,
                       const std::string& topic_name,
-                      bool use_pc2 = true);
+                      ChROSLidarHandlerMessageType msg_type = ChROSLidarHandlerMessageType::POINT_CLOUD2);
 
     /// Full constructor. Takes a ChLidarSensor, update rate, and topic name.
     ChROSLidarHandler(double update_rate,
                       std::shared_ptr<chrono::sensor::ChLidarSensor> lidar,
                       const std::string& topic_name,
-                      bool use_pc2 = true);
-
-    ~ChROSLidarHandler() = default;
+                      ChROSLidarHandlerMessageType msg_type = ChROSLidarHandlerMessageType::POINT_CLOUD2);
 
     /// Initializes the handler.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
