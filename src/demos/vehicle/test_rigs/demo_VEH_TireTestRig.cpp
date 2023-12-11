@@ -189,7 +189,7 @@ int main() {
     switch (contact_method) {
         case ChContactMethod::SMC:
             sys = new ChSystemSMC;
-            step_size = 5e-5;
+            step_size = 1e-5;
             solver_type = ChSolver::Type::PARDISO_MKL;
             integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
             std::static_pointer_cast<ChDeformableTire>(tire)->SetContactFaceThickness(0.02);
@@ -210,7 +210,7 @@ int main() {
     // Create and configure test rig
     ChTireTestRig rig(wheel, tire, sys);
 
-    ////rig.SetGravitationalAcceleration(0);
+    rig.SetGravitationalAcceleration(0);
     rig.SetNormalLoad(8000);
 
     ////rig.SetCamberAngle(+15 * CH_C_DEG_TO_RAD);
@@ -245,17 +245,17 @@ int main() {
     //   angular speed: 10 RPM
     //   slip angle: sinusoidal +- 5 deg with 5 s period
     rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
-    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10 * CH_C_RPM_TO_RPS));
-    rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.2, 5 * CH_C_DEG_TO_RAD));
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10 * CH_C_RPM_TO_RPS));
+    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.2, 5 * CH_C_DEG_TO_RAD));
 
     // Scenario: specified longitudinal slip (overrrides other definitons of motion functions)
     ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
 
     // Initialize the tire test rig
     rig.SetTimeDelay(1.0);
-    rig.Initialize(ChTireTestRig::Mode::SUSPEND);
+    ////rig.Initialize(ChTireTestRig::Mode::SUSPEND);
     ////rig.Initialize(ChTireTestRig::Mode::DROP);
-    ////rig.Initialize(ChTireTestRig::Mode::TEST);
+    rig.Initialize(ChTireTestRig::Mode::TEST);
 
     // Optionally, modify tire visualization (can be done only after initialization)
     if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
@@ -286,7 +286,7 @@ int main() {
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
             vis_irr->AttachSystem(sys);
             vis_irr->SetCameraVertical(CameraVerticalDir::Z);
-            vis_irr->SetWindowSize(1200, 600);
+            vis_irr->SetWindowSize(600, 600);
             vis_irr->SetWindowTitle("Tire Test Rig");
             vis_irr->Initialize();
             vis_irr->AddLogo();
@@ -356,7 +356,8 @@ int main() {
         ////vis->UpdateCamera(loc + ChVector<>(1.0, 2.5, 0.5), loc + ChVector<>(0, 0.25, -0.25));
 
         ChVector<> loc = rig.GetWheelPos();
-        vis->UpdateCamera(loc + ChVector<>(2.0, 0., 0.0), loc);
+        ////vis->UpdateCamera(loc + ChVector<>(2.0, 0., 0.0), loc);
+        vis->UpdateCamera(loc + ChVector<>(1.4, 1.4, 0.0), loc);
 
         vis->BeginScene();
         vis->Render();

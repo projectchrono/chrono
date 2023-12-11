@@ -30,10 +30,10 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 
 const int HMMWV_MBTire::m_num_divs = 40;
-const std::vector<double> HMMWV_MBTire::m_radius = {0.35, 0.44, 0.47, 0.44, 0.35};
-const std::vector<double> HMMWV_MBTire::m_offset = {-0.125, -0.06, 0, +0.06, +0.125};
+const std::vector<double> HMMWV_MBTire::m_radius = {0.388, 0.465, 0.467, 0.465, 0.388};
+const std::vector<double> HMMWV_MBTire::m_offset = {-0.15, -0.1, 0, +0.1, +0.15};
 
-const double HMMWV_MBTire::m_rim_radius = 0.24;
+const double HMMWV_MBTire::m_rim_radius = 0.268;
 
 const double HMMWV_MBTire::m_tire_mass = 37.6;
 const double HMMWV_MBTire::m_default_pressure = 20e3;
