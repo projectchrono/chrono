@@ -354,6 +354,16 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
         throw ChException("LoadResidual_Mv() not implemented, implicit integrators cannot be used. ");
     }
 
+    /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
+    /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
+    ///    Md += c*diag(M)    or   Md += c*HRZ(M)
+    virtual void LoadLumpedMass_Md(ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+                                      double& error,  ///< result: not touched if lumping does not introduce errors
+                                      const double c  ///< a scaling factor
+    ) {
+        throw ChException("LoadLumpedMass_Md() not implemented, explicit integrators with mass lumping cannot be used. ");
+    }
+
     /// Assuming   M*a = F(x,v,t) + Cq'*L
     ///         C(x,t) = 0
     /// increment a vectorR (usually the residual in a Newton Raphson iteration
