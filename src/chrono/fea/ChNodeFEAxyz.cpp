@@ -122,6 +122,15 @@ void ChNodeFEAxyz::NodeIntLoadResidual_Mv(const unsigned int off,
     R(off + 2) += c * GetMass() * w(off + 2);
 }
 
+void ChNodeFEAxyz::NodeIntLoadLumpedMass_Md(const unsigned int off,
+                                            ChVectorDynamic<>& Md,
+                                            double& error,
+                                            const double c) {
+    Md(off + 0) += c * GetMass();
+    Md(off + 1) += c * GetMass();
+    Md(off + 2) += c * GetMass();
+}
+
 void ChNodeFEAxyz::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
     variables.Get_qb() = v.segment(off_v, 3);
     variables.Get_fb() = R.segment(off_v, 3);
