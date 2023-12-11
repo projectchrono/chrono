@@ -116,7 +116,7 @@ void ChAparticle::ContactForceLoadResidual_F(const ChVector<>& F,
     R.segment(Variables().GetOffset() + 3, 3) += torque1_loc.eigen();
 }
 
-void ChAparticle::ContactForceLoadQ(const ChVector<>& F,
+void ChAparticle::ContactComputeQ(const ChVector<>& F,
                                     const ChVector<>& T,
                                     const ChVector<>& point,
                                     const ChState& state_x,

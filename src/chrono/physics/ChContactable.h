@@ -96,7 +96,7 @@ class ChApi ChContactable {
     /// The torque T is specified in the global frame too.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactForceLoadQ(const ChVector<>& F, ///< force
+    virtual void ContactComputeQ(const ChVector<>& F, ///< force
                                    const ChVector<>& T, ///< torque
                                    const ChVector<>& point,
                                    const ChState& state_x,

@@ -783,7 +783,7 @@ void ChBody::ContactForceLoadResidual_F(const ChVector<>& F,
     R.segment(this->GetOffset_w() + 3, 3) += torque1_loc.eigen();
 }
 
-void ChBody::ContactForceLoadQ(const ChVector<>& F,
+void ChBody::ContactComputeQ(const ChVector<>& F,
                                const ChVector<>& T,
                                const ChVector<>& point,
                                const ChState& state_x,

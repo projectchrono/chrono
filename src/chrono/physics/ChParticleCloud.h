@@ -106,7 +106,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactForceLoadQ(const ChVector<>& F,
+    virtual void ContactComputeQ(const ChVector<>& F,
                                    const ChVector<>& T,
                                    const ChVector<>& point,
                                    const ChState& state_x,

@@ -157,7 +157,7 @@ void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
     // note: do nothing for torque T
 }
 
-void ChContactTriangleXYZ::ContactForceLoadQ(const ChVector<>& F,
+void ChContactTriangleXYZ::ContactComputeQ(const ChVector<>& F,
                                              const ChVector<>& T,
                                              const ChVector<>& point,
                                              const ChState& state_x,
@@ -425,7 +425,7 @@ void ChContactTriangleXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
     }
 }
 
-void ChContactTriangleXYZROT::ContactForceLoadQ(const ChVector<>& F,
+void ChContactTriangleXYZROT::ContactComputeQ(const ChVector<>& F,
                                                 const ChVector<>& T,
                                                 const ChVector<>& point,
                                                 const ChState& state_x,
