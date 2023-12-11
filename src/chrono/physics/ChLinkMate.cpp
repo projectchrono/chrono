@@ -850,13 +850,59 @@ ChLinkMateRevolute::ChLinkMateRevolute(const ChLinkMateRevolute& other) : ChLink
 
 void ChLinkMateRevolute::SetFlipped(bool doflip) {
     if (doflip != flipped) {
-        // swaps direction of X axis by flipping 180 deg the frame A (slave)
+        // swaps direction of Z axis by flipping 180 deg the frame A (slave)
 
         ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
         this->frame1.ConcatenatePostTransformation(frameRotator);
 
         flipped = doflip;
     }
+}
+
+void ChLinkMateRevolute::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+    std::shared_ptr<ChBodyFrame> mbody2,
+    bool pos_are_relative,
+    ChVector<> mpt1,
+    ChVector<> mpt2,
+    ChVector<> mdir1,
+    ChVector<> mdir2) {
+    // set the two frames so that they have the Z axis aligned when the
+    // two normals are opposed (default behavior, otherwise is considered 'flipped')
+
+    ChVector<> mdir1_reversed;
+    if (!flipped)
+        mdir1_reversed = mdir1;
+    else
+        mdir1_reversed = -mdir1;
+
+    ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mdir1_reversed, mdir2);
+}
+
+double ChLinkMateRevolute::GetRelativeAngle() {
+    ChFrame<> F1_W = frame1 >> *Body1;
+    ChFrame<> F2_W = frame2 >> *Body2;
+    ChFrame<> F1_F2;
+    F2_W.TransformParentToLocal(F1_W, F1_F2);
+    double angle = std::remainder(F1_F2.GetRot().Q_to_Rotv().z(), CH_C_2PI); // NB: assumes rotation along z
+    return angle;
+}
+
+double ChLinkMateRevolute::GetRelativeAngle_dt() {
+    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
+    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
+    ChFrameMoving<> F1_F2;
+    F2_W.TransformParentToLocal(F1_W, F1_F2);
+    double vel12_W = F1_F2.GetWvel_loc().z(); // NB: assumes rotation along z
+    return vel12_W;
+}
+
+double ChLinkMateRevolute::GetRelativeAngle_dtdt() {
+    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
+    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
+    ChFrameMoving<> F1_F2;
+    F2_W.TransformParentToLocal(F1_W, F1_F2);
+    double acc12_W = F1_F2.GetWacc_loc().z(); // NB: assumes rotation along z
+    return acc12_W;
 }
 
 void ChLinkMateRevolute::ArchiveOut(ChArchiveOut& marchive) {
@@ -907,18 +953,39 @@ void ChLinkMatePrismatic::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                      bool pos_are_relative,
                                      ChVector<> mpt1,
                                      ChVector<> mpt2,
-                                     ChVector<> mnorm1,
-                                     ChVector<> mnorm2) {
+                                     ChVector<> mdir1,
+                                     ChVector<> mdir2) {
     // set the two frames so that they have the X axis aligned when the
     // two normals are opposed (default behavior, otherwise is considered 'flipped')
 
-    ChVector<> mnorm1_reversed;
+    ChVector<> mdir1_reversed;
     if (!flipped)
-        mnorm1_reversed = mnorm1;
+        mdir1_reversed = mdir1;
     else
-        mnorm1_reversed = -mnorm1;
+        mdir1_reversed = -mdir1;
 
-    ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1_reversed, mnorm2);
+    ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mdir1_reversed, mdir2);
+}
+
+double ChLinkMatePrismatic::GetRelativePos() {
+    ChFrame<> F1_W = frame1 >> *Body1;
+    ChFrame<> F2_W = frame2 >> *Body2;
+    ChVector<> pos12_W = F1_W.GetPos() - F2_W.GetPos();
+    return pos12_W.x(); // NB: assumes translation along x
+}
+
+double ChLinkMatePrismatic::GetRelativePos_dt() {
+    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
+    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
+    ChVector<> vel12_W = F1_W.GetPos_dt() - F2_W.GetPos_dt();
+    return vel12_W.x(); // NB: assumes translation along x
+}
+
+double ChLinkMatePrismatic::GetRelativePos_dtdt() {
+    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
+    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
+    ChVector<> acc12_W = F1_W.GetPos_dtdt() - F2_W.GetPos_dtdt();
+    return acc12_W.x(); // NB: assumes translation along x
 }
 
 void ChLinkMatePrismatic::ArchiveOut(ChArchiveOut& marchive) {

@@ -892,7 +892,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
-class my_enum_mappers : public ChSolverADMM {
+class ChSolverADMM_StepType_enum_mapper : public ChSolverADMM {
   public:
     CH_ENUM_MAPPER_BEGIN(AdmmStepType);
     CH_ENUM_VAL(NONE);
@@ -917,7 +917,7 @@ void ChSolverADMM::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(stepadjust_maxfactor);
     marchive << CHNVP(tol_prim);
     marchive << CHNVP(tol_dual);
-    my_enum_mappers::AdmmStepType_mapper mmapper;
+    ChSolverADMM_StepType_enum_mapper::AdmmStepType_mapper mmapper;
     marchive << CHNVP(mmapper(this->stepadjust_type), "stepadjust_type");
 }
 
@@ -936,7 +936,7 @@ void ChSolverADMM::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(stepadjust_maxfactor);
     marchive >> CHNVP(tol_prim);
     marchive >> CHNVP(tol_dual);
-    my_enum_mappers::AdmmStepType_mapper mmapper;
+    ChSolverADMM_StepType_enum_mapper::AdmmStepType_mapper mmapper;
     marchive >> CHNVP(mmapper(this->stepadjust_type), "stepadjust_type");
 }
 

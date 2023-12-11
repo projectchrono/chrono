@@ -115,7 +115,7 @@ bool contact_vis = false;
 
 // Simulation step sizes
 double step_size = 2e-3;
-double tire_step_size = 1e-3;
+double tire_step_size = step_size;
 
 // Simulation end time
 double t_end = 1000;

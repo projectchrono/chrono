@@ -61,6 +61,9 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 // Type of tire model (RIGID, TMEASY, PAC02, TMSIMPLE)
 TireModelType tire_model = TireModelType::PAC02;
 
+// Type of brake model (SIMPLE, SHAFTS)
+BrakeType brake_model = BrakeType::SHAFTS;
+
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 double terrainHeight = 0;      // terrain height (FLAT terrain only)
@@ -76,7 +79,7 @@ bool contact_vis = false;
 
 // Simulation step sizes
 double step_size = 2e-3;
-double tire_step_size = 1e-3;
+double tire_step_size = step_size;
 
 // Simulation end time
 double t_end = 1000;
@@ -111,6 +114,7 @@ int main(int argc, char* argv[]) {
     sedan.SetChassisFixed(false);
     sedan.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     sedan.SetTireType(tire_model);
+    sedan.SetBrakeType(brake_model);
     sedan.SetTireStepSize(tire_step_size);
     sedan.Initialize();
 

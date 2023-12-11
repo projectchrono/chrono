@@ -7,7 +7,11 @@
 //
 // =====================================================================================
 
+#ifdef SWIGPYTHON
 %module(directors="1") vehicle
+#else
+%module(directors="1") chrono_vehicle
+#endif
 
 // Turn on the documentation of members, for more intuitive IDE typing
 %feature("autodoc", "1");
@@ -164,12 +168,6 @@ using namespace chrono::vehicle::m113;
 %include "python/cwstring.i"
 #endif
 
-// This is to enable references to double,int,etc. types in function parameters
-%pointer_class(int,int_ptr);
-%pointer_class(double,double_ptr);
-%pointer_class(float,float_ptr);
-%pointer_class(char,char_ptr);
-
 %template(vector_int) std::vector<int>;
 %template(vector_double) std::vector<double>;
 %template(TerrainForces) std::vector<chrono::vehicle::TerrainForce>;
@@ -311,22 +309,21 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 #ifdef SWIGCSHARP
 
   %import  "chrono_swig/interface/core/ChClassFactory.i"
-  %import  "chrono_swig/interface/core/ChObject.i"
-  %import  "chrono_swig/interface/core/ChPhysicsItem.i"
   %import  "chrono_swig/interface/core/ChVector.i"
   %import  "chrono_swig/interface/core/ChQuaternion.i"
   %import  "chrono_swig/interface/core/ChCoordsys.i"
   %import  "chrono_swig/interface/core/ChFrame.i"
   %import  "chrono_swig/interface/core/ChFrameMoving.i"
   %import  "chrono_swig/interface/core/ChTimestepper.i"
+  %import  "chrono_swig/interface/core/ChObject.i"
+  %import  "chrono_swig/interface/core/ChPhysicsItem.i"
   %import  "chrono_swig/interface/core/ChSystem.i"
   %import  "chrono_swig/interface/core/ChAssembly.i"
-  %import  "chrono_swig/interface/core/ChCoordsys.i"
   %import  "chrono_swig/interface/core/ChMatrix.i"
   %import  "chrono_swig/interface/core/ChBodyFrame.i"
   %import  "chrono_swig/interface/core/ChBody.i"
   %import  "chrono_swig/interface/core/ChBodyAuxRef.i"
-  %include "chrono_swig/interface/core/ChNodeXYZ.i"
+  %import  "chrono_swig/interface/core/ChNodeXYZ.i"
   %import  "chrono_swig/interface/core/ChLinkBase.i"
   %import  "chrono_swig/interface/core/ChLinkLock.i"
   %import  "chrono_swig/interface/core/ChLinkTSDA.i"
@@ -350,17 +347,16 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 #ifdef SWIGPYTHON
 
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector.i"
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChQuaternion.i"
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrameMoving.i"
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTimestepper.i"
+  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
+  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"  
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChAssembly.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChMatrix.i"
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
@@ -448,23 +444,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 // Tracked vehicles
 %include "ChTrackAssembly.i"
-
-%include "../../../chrono_vehicle/tracked_vehicle/ChSprocket.h"
-%include "../../../chrono_vehicle/tracked_vehicle/ChIdler.h"
-%include "../../../chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
-%include "../../../chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
-%include "../../../chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
-
-%include "../../../chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
-%include "../../../chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeSimple.h"
-%include "../../../chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeShafts.h"
-%include "../../../chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
-%include "../../../chrono_vehicle/tracked_vehicle/brake/TrackBrakeShafts.h"
-
-%include "../../../chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
-
-%include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
-%include "../../../chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
 %include "chrono_swig/interface/models/WheelModels.i"
 %include "chrono_swig/interface/models/BrakeModels.i"

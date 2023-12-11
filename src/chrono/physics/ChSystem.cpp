@@ -2169,7 +2169,7 @@ void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChSystem>();
 
     // serialize underlying assembly
-    assembly.ArchiveOut(marchive);
+    marchive << CHNVP(assembly);
 
     // serialize all member data:
 
@@ -2204,7 +2204,7 @@ void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChSystem>();
 
     // deserialize unerlying assembly
-    assembly.ArchiveIn(marchive);
+    marchive >> CHNVP(assembly);
 
     // stream in all member data:
 

@@ -27,6 +27,10 @@
 %csmethodmodifiers chrono::ChBody::GetWacc_loc "public"
 %csmethodmodifiers chrono::ChBody::GetWacc_par "public"
 
+// avoid adding new keyword
+%csmethodmodifiers chrono::ChBody::AddCollisionModel "public"
+%csmethodmodifiers chrono::ChBody::AddCollisionShape "public"
+
 // Second, extend ChBody with implementations of these functions
 
 %extend chrono::ChBody 
