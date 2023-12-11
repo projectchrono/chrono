@@ -73,11 +73,10 @@ void CreateTerrain(ChSystem& sys,
     ground->SetPos(ChVector<>(offset, 0, height - 0.1));
     ground->SetCollide(true);
 
-    ground->GetCollisionModel()->ClearModel();
-    ground->GetCollisionModel()->AddBox(ground_mat, length, width, 0.2);
-    ground->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
+    ground->AddCollisionShape(ct_shape);
 
-    auto box = chrono_types::make_shared<ChBoxShape>(length, width, 0.2);
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(length, width, 0.2);
     box->SetTexture(GetChronoDataFile("textures/checker2.png"), (float)length, (float)width);
     ground->AddVisualShape(box);
 }
@@ -93,7 +92,7 @@ int main(int argc, char* argv[]) {
     sys.SetSolverMaxIterations(200);
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
 
-    auto floor = std::shared_ptr<ChBody>(sys.NewBody());
+    auto floor = chrono_types::make_shared<ChBody>();
     floor->SetName("floor");
     sys.AddBody(floor);
 

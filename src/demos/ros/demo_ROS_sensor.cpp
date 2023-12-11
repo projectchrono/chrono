@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
                                                                   false, true);
     mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));
 
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
     trimesh_shape->SetName("Audi Chassis Mesh");
     trimesh_shape->SetMutable(false);

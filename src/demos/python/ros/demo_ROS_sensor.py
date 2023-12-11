@@ -31,7 +31,7 @@ def main():
         "vehicle/hmmwv/hmmwv_chassis.obj"), False, True)
     mmesh.Transform(ch.ChVectorD(0, 0, 0), ch.ChMatrix33D(1))
 
-    trimesh_shape = ch.ChTriangleMeshShape()
+    trimesh_shape = ch.ChVisualShapeTriangleMesh()
     trimesh_shape.SetMesh(mmesh)
     trimesh_shape.SetName("HMMWV Chassis Mesh")
     trimesh_shape.SetMutable(False)
