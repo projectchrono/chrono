@@ -900,6 +900,84 @@ endif()
   install(FILES "${CHPY_VEHICLE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
 #-----------------------------------------------------------------------------
+# MODULE for the parser python wrapper.
+#-----------------------------------------------------------------------------
+
+if(ENABLE_MODULE_PARSERS)
+  message(STATUS "...add python parsers module:  pychrono.parsers")
+
+  # Python module name
+  set(CHPY_PARSERS parsers)
+
+  # Interface files
+  set(CHPY_PARSERS_MODULE_FILE
+    ../interface/parsers/ChModuleParsers.i
+  )
+
+  include_directories(${CH_PARSERS_INCLUDES})
+
+  set_source_files_properties(${CHPY_PARSERS_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+
+  # Create the SWIG module.
+
+  if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
+    SWIG_ADD_MODULE(${CHPY_PARSERS} python ${CHPY_PARSERS_MODULE_FILE})
+  else()
+    SWIG_ADD_LIBRARY(${CHPY_PARSERS} LANGUAGE python SOURCES ${CHPY_PARSERS_MODULE_FILE})
+  endif()
+  SWIG_LINK_LIBRARIES(${CHPY_PARSERS} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_parsers)
+
+  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    ADD_DEFINITIONS( "/DWNT" )
+  ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    ADD_DEFINITIONS(-DHAVE_IOSTREAM)
+    ADD_DEFINITIONS(-DHAVE_LIMITS_H)
+  ENDIF()
+
+  # Ensure that the PYD library file is generated in the bin/ directory.
+  set_target_properties(${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME} PROPERTIES
+                        PROJECT_LABEL "ChronoEngine_python_${CHPY_PARSERS}"
+                        OUTPUT_NAME   "${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME}"
+                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        )
+
+  target_compile_definitions(${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
+
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME} ChronoEngine)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME} ChronoEngine_parsers)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
+
+  # Copy PY file in a package dir
+  set(CHPY_PARSERS_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_PARSERS}.py")
+  get_target_property(CHPY_PARSERS_PYD_FILE ${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME} LOCATION)
+  get_filename_component(CHPY_PARSERS_PYD_PATH "${CHPY_PARSERS_PYD_FILE}" PATH)
+  add_custom_command(TARGET ${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME}
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_PARSERS_PYD_PATH}/${CHPY_PACKAGENAME})
+  add_custom_command(TARGET ${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME}
+                     POST_BUILD
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_PARSERS_PY_FILE} ${CHPY_PARSERS_PYD_PATH}/${CHPY_PACKAGENAME})
+
+  # Install .pyd binary module (.so on linux)
+  install(TARGETS ${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME}
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+  # Install .py module wrapper
+  install(FILES "${CHPY_PARSERS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+
+  if (DBG_SCRIPT)
+    message("Module name:     ${CHPY_PARSERS}")
+    message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME}")
+    message("PY file:         ${CHPY_PARSERS_PY_FILE}")
+    message("PYD file:        ${CHPY_PARSERS_PYD_FILE}")
+    message("PYD path:        ${CHPY_PARSERS_PYD_PATH}")
+  endif()
+
+endif()
+
+
+#-----------------------------------------------------------------------------
 # MODULE for the ros python wrapper.
 #-----------------------------------------------------------------------------
 
@@ -922,6 +1000,24 @@ if(ENABLE_MODULE_ROS)
   set_source_files_properties(${CHPY_ROS_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
   # Create the SWIG module.
+
+  # Make sure CHRONO_PARSERS_URDF and/or CHRONO_SENSOR is defined for the SWIG processor
+  if (ENABLE_MODULE_PARSERS AND HAVE_URDF)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_PARSERS_URDF")
+  endif()
+  if (ENABLE_MODULE_SENSOR)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_SENSOR")
+  endif()
+
+  if (CH_ROS_HAS_INTERFACES)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_ROS_HAS_INTERFACES")
+  endif()
+  if (CH_ROS_HAS_TF)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_ROS_HAS_TF")
+  endif()
+  if (CH_ROS_HAS_INTERACTIVE_MARKER)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_ROS_HAS_INTERACTIVE_MARKER")
+  endif()
 
   if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
     SWIG_ADD_MODULE(${CHPY_ROS} python ${CHPY_ROS_MODULE_FILE})

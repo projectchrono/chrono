@@ -44,7 +44,7 @@ class ChROSAccelerometerHandler : public ChROSHandler {
                               std::shared_ptr<chrono::sensor::ChAccelerometerSensor> imu,
                               const std::string& topic_name);
 
-    /// Initializes the handler. 
+    /// Initializes the handler.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
   protected:

@@ -47,7 +47,7 @@ bool ChROSGyroscopeHandler::Initialize(std::shared_ptr<ChROSInterface> interface
 
     m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::Imu>(m_topic_name, 1);
 
-    // m_imu_msg.header.frame_id = ; // TODO
+    m_imu_msg.header.frame_id = m_imu->GetName();
 
     return true;
 }
