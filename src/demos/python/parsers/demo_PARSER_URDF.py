@@ -28,7 +28,7 @@ def main():
     # Create a ground body
     ground = chrono.ChBody()
     ground.SetBodyFixed(True)
-    ground_box = chrono.ChBoxShape()
+    ground_box = chrono.ChVisualShapeBox(3, 2, 0.1)
     ground_box.SetTexture(chrono.GetChronoDataFile("textures/checker2.png"))
     ground.AddVisualShape(ground_box)
     system.Add(ground)
