@@ -42,14 +42,16 @@ def create_terrain(
     ct_shape = ch.ChCollisionShapeBox(ground_mat, length, width, 0.2)
     ground.AddCollisionShape(ct_shape)
 
-    box = ch.ChBoxShape(length, width, 0.2)
+    box = ch.ChVisualShapeBox(length, width, 0.2)
     box.SetTexture(ch.GetChronoDataFile("textures/checker2.png"), length, width)
     ground.AddVisualShape(box)
+    system.GetCollisionSystem().BindItem(ground)
 
 
 def main():
     # Create Chrono system
     system = ch.ChSystemSMC()
+    system.SetCollisionSystemType(ch.ChCollisionSystem.Type_BULLET)
     system.SetSolverMaxIterations(200)
     system.SetSolverType(ch.ChSolver.Type_BARZILAIBORWEIN)
     system.Set_G_acc(ch.ChVectorD(0, 0, -9.8))

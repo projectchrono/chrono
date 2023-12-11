@@ -79,6 +79,7 @@ void CreateTerrain(ChSystem& sys,
     auto box = chrono_types::make_shared<ChVisualShapeBox>(length, width, 0.2);
     box->SetTexture(GetChronoDataFile("textures/checker2.png"), (float)length, (float)width);
     ground->AddVisualShape(box);
+    sys.GetCollisionSystem()->BindItem(ground);
 }
 
 // =============================================================================
@@ -91,6 +92,7 @@ int main(int argc, char* argv[]) {
     sys.Set_G_acc({0, 0, -9.81});
     sys.SetSolverMaxIterations(200);
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetName("floor");
