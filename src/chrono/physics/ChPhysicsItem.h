@@ -290,6 +290,15 @@ class ChApi ChPhysicsItem : public ChObj {
                                     const double c               ///< a scaling factor
     ) {}
 
+    /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
+    /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
+    ///    Md += c*diag(M)
+    virtual void IntLoadLumpedMass_Md(const unsigned int off,  ///< offset in Md vector
+                                      ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+                                      double& error,          ///< result: not touched if lumping does not introduce errors
+                                      const double c          ///< a scaling factor
+    ) {}
+
     /// Takes the term Cq'*L, scale and adds to R at given offset:
     ///    R += c*Cq'*L
     virtual void IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers

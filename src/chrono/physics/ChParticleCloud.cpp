@@ -454,6 +454,23 @@ void ChParticleCloud::IntLoadResidual_Mv(const unsigned int off,      // offset 
         R.segment(off + 6 * j + 3, 3) += Iw.eigen();
     }
 }
+void ChParticleCloud::IntLoadLumpedMass_Md(const unsigned int off,
+                                           ChVectorDynamic<>& Md,
+                                           double& error,
+                                           const double c   
+) {
+    for (unsigned int j = 0; j < particles.size(); j++) {
+        Md(off + 6 * j + 0) += c * particle_mass.GetBodyMass();
+        Md(off + 6 * j + 1) += c * particle_mass.GetBodyMass();
+        Md(off + 6 * j + 2) += c * particle_mass.GetBodyMass();
+        Md(off + 6 * j + 3) += c * particle_mass.GetBodyInertia()(0, 0);
+        Md(off + 6 * j + 4) += c * particle_mass.GetBodyInertia()(1, 1);
+        Md(off + 6 * j + 5) += c * particle_mass.GetBodyInertia()(2, 2);
+    }
+    // if there is off-diagonal inertia, add to error, as lumping can give inconsistent results
+    error += particles.size()  * (particle_mass.GetBodyInertia()(0, 1) + particle_mass.GetBodyInertia()(0, 2) +
+             particle_mass.GetBodyInertia()(1, 2));
+}
 
 void ChParticleCloud::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                       const ChStateDelta& v,

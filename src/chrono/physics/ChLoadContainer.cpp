@@ -59,6 +59,18 @@ void ChLoadContainer::IntLoadResidual_Mv(const unsigned int off,      ///< offse
     }
 }
 
+void ChLoadContainer::IntLoadLumpedMass_Md(
+                                    const unsigned int off,  ///< offset in Md vector
+                                    ChVectorDynamic<>& Md,   ///< result: Md vector, diagonal of the lumped mass matrix
+                                    double& error,           ///< result: not touched if lumping does not introduce errors
+                                    const double c           ///< a scaling factor
+) {
+    for (size_t i = 0; i < loadlist.size(); ++i) {
+        loadlist[i]->LoadIntLoadLumpedMass_Md(Md, error, c);
+    }
+}
+
+
 void ChLoadContainer::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
     for (size_t i = 0; i < loadlist.size(); ++i) {
         loadlist[i]->InjectKRMmatrices(mdescriptor);

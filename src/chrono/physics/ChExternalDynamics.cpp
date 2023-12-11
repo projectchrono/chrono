@@ -166,6 +166,17 @@ void ChExternalDynamics::IntLoadResidual_Mv(const unsigned int off,      // offs
     R.segment(off, m_nstates) += c * v.segment(off, m_nstates);
 }
 
+void ChExternalDynamics::IntLoadLumpedMass_Md(const unsigned int off,
+                                              ChVectorDynamic<>& Md,
+                                              double& error,
+                                              const double c  
+) {
+    if (!IsActive())
+        return;
+
+    Md.segment(off, m_nstates).array() += c * 1.0;
+}
+
 void ChExternalDynamics::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                          const ChStateDelta& v,
                                          const ChVectorDynamic<>& R,
