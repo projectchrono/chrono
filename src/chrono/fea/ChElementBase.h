@@ -109,6 +109,11 @@ class ChApi ChElementBase {
     ///   R += M * w * c
     virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {}
 
+    /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
+    /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
+    ///    Md += c*diag(M)    or   Md += c*HRZ(M)    or other lumping heuristics
+    virtual void EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, const double c){};
+
     /// Add the contribution of gravity loads, multiplied by a scaling factor c, as:
     ///   R += M * g * c
     /// Note that it is up to the element implementation to build a proper g vector that

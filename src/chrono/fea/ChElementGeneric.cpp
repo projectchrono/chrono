@@ -66,6 +66,24 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
     }
 }
 
+void ChElementGeneric::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, const double c) {
+    ChMatrixDynamic<> Mi(GetNdofs(), GetNdofs());
+    ComputeMmatrixGlobal(Mi);
+
+    ChVectorDynamic<> dMi = c * Mi.diagonal();
+    
+    error = Mi.sum() - Mi.diagonal().sum();
+
+    int stride = 0;
+    for (int in = 0; in < GetNnodes(); in++) {
+        int node_dofs = GetNodeNdofs_active(in);
+        if (!GetNodeN(in)->IsFixed())
+            Md.segment(GetNodeN(in)->NodeGetOffsetW(), node_dofs) += dMi.segment(stride, node_dofs);
+        stride += GetNodeNdofs(in);
+    }
+}
+
+
 void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector<>& G_acc, const double c) {
     ChVectorDynamic<> Fg(GetNdofs());
     ComputeGravityForces(Fg, G_acc);
