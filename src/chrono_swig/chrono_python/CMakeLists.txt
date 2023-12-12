@@ -903,7 +903,8 @@ endif()
 # MODULE for the parser python wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_PARSERS)
+# Only build if have URDF for now
+if(ENABLE_MODULE_PARSERS AND HAVE_URDF)
   message(STATUS "...add python parsers module:  pychrono.parsers")
 
   # Python module name
@@ -919,7 +920,6 @@ if(ENABLE_MODULE_PARSERS)
   set_source_files_properties(${CHPY_PARSERS_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
   # Create the SWIG module.
-
   if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
     SWIG_ADD_MODULE(${CHPY_PARSERS} python ${CHPY_PARSERS_MODULE_FILE})
   else()
