@@ -1334,19 +1334,19 @@ void ChModalAssembly::ComputeStiffnessMatrix() {
         u_locred.segment(6 * i_bou + 3, 3) = delta_rot_angle1 * delta_rot_dir1.eigen();
     }
 
-    // ChVectorDynamic<> h_loc_gamma(6);
-    // h_loc_gamma = Q * u_locred;  //=u_F
+    ChVectorDynamic<> h_loc_gamma(6);
+    h_loc_gamma = Q * u_locred;  //=u_F
 
-    // ChVectorDynamic<> h_loc_epsilon(bou_mod_coords_w);
-    // h_loc_epsilon = M_red * P_perp * u_locred;
+    ChVectorDynamic<> h_loc_epsilon(bou_mod_coords_w);
+    h_loc_epsilon = M_red * P_perp * u_locred;
 
     ChMatrixDynamic<> V_F1;
     V_F1.setZero(bou_mod_coords_w, 6);
-    // ChMatrixDynamic<> V_F2;
-    // V_F2.setZero(bou_mod_coords_w, 6);
+    ChMatrixDynamic<> V_F2;
+    V_F2.setZero(bou_mod_coords_w, 6);
     for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
         V_F1.block(6 * i_bou, 3, 3, 3) = -ChStarMatrix33<>(g_loc_alpha.segment(6 * i_bou, 3));
-        // V_F2.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(u_locred.segment(6 * i_bou, 3));
+        V_F2.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(u_locred.segment(6 * i_bou, 3));
     }
     ChMatrixDynamic<> Kg1;
     Kg1.setZero(bou_mod_coords_w, bou_mod_coords_w);
@@ -1366,7 +1366,7 @@ void ChModalAssembly::ComputeStiffnessMatrix() {
     Kg3.setZero(bou_mod_coords_w, bou_mod_coords_w);
     Kg3 = -P_W * P_perp.transpose() * M_red * (Xi_Vext_beta * Q * P_W.transpose() + Xi_Dext_beta);
 
-    /*ChMatrixDynamic<> Xi_Vext_gamma;
+    ChMatrixDynamic<> Xi_Vext_gamma;
     ChMatrixDynamic<> Xi_Dext_gamma;
     GetXi_VD(h_loc_gamma, Xi_Vext_gamma, Xi_Dext_gamma);
     ChMatrixDynamic<> Kg4;
@@ -1383,19 +1383,11 @@ void ChModalAssembly::ComputeStiffnessMatrix() {
 
     ChMatrixDynamic<> Kg6;
     Kg6.setZero(bou_mod_coords_w, bou_mod_coords_w);
-    Kg6 = P_W * P_perp.transpose() * K_red * P_perp * V_F2 * Q * P_W.transpose();*/
+    Kg6 = P_W * P_perp.transpose() * K_red * P_perp * V_F2 * Q * P_W.transpose();
 
     Kg_sup.setZero();
-    // Kg_sup = Kg1 + Kg2 + Kg3 + Kg4 + Kg5 + Kg6;
-    Kg_sup = Kg1 + Kg2 + Kg3;
-
-    // if (ChTime > 7 && ChTime < 7.1) {
-    //     GetLog() << "ChTime: " << ChTime << "\t";
-    //     GetLog() << "g_loc: " << g_loc << "\n";
-    //     GetLog() << "Kg_sup.norm(): " << Kg_sup.norm() << "\n";
-    //     GetLog() << "Km_sup.norm(): " << Km_sup.norm() << "\n";
-
-    //}
+    Kg_sup = Kg1 + Kg2 + Kg3 + Kg4 + Kg5 + Kg6;  // more stable in nonlinear static analysis
+    // Kg_sup = Kg1 + Kg2 + Kg3;//less stable in nonlinear static analysis
 }
 
 void ChModalAssembly::ComputeDampingMatrix() {
