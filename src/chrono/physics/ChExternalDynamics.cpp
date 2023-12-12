@@ -204,8 +204,8 @@ void ChExternalDynamics::IntFromDescriptor(const unsigned int off_v,  // offset 
 
 void ChExternalDynamics::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
     if (IsStiff()) {
-        // Recall to flip sign to load K = -dQ/dx and R = -dQ/dv
-        m_KRM.Get_K() = -Rfactor * m_jac;
+        // Recall to flip sign to load R = -dQ/dv (K is zero here)
+        m_KRM.Get_K() = Mfactor * ChMatrixDynamic<>::Identity(m_nstates, m_nstates) - Rfactor * m_jac;
     }
 }
 
