@@ -593,7 +593,7 @@ public:
     ChMatrixDynamic<> P_parallel;//parallel projector
     ChMatrixDynamic<> P_perp;//perpendicular projector 
     ChMatrixDynamic<> U_locred;//rigid body modes in local frame for the reduced subassembly
-
+    Eigen::ColPivHouseholderQR<ChMatrixDynamic<>> UMU_inv_solver;
        
     ChMatrixDynamic<> Psi_S;// static mode transformation matrix in the mode acceleration method
     ChMatrixDynamic<> Psi_D;// dynamic mode transformation matrix in the mode acceleration method
