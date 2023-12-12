@@ -61,7 +61,7 @@ class ChROSTFHandler : public ChROSHandler {
     /// parent and child frame id is queried using the parent->GetName() and child->GetName() methods, respectively.
     /// @param parent The parent body
     /// @param child The child body
-    void AddTransform(std::shared_ptr<ChBody> parent, std::shared_ptr<ChBody> child);
+    void AddTransform(std::shared_ptr<chrono::ChBody> parent, std::shared_ptr<chrono::ChBody> child);
 
     /// @brief Add a transform to be published. This version of the AddTransform function will publish a static
     /// transform between the parent and child frame. This is useful for two bodies that are connected by a link. The
@@ -69,7 +69,7 @@ class ChROSTFHandler : public ChROSHandler {
     /// @param parent The parent body
     /// @param child_frame The child frame
     /// @param child_frame_id The child frame id
-    void AddTransform(std::shared_ptr<ChBody> parent,
+    void AddTransform(std::shared_ptr<chrono::ChBody> parent,
                       chrono::ChFrame<double> child_frame,
                       const std::string& child_frame_id);
 
@@ -95,7 +95,7 @@ class ChROSTFHandler : public ChROSHandler {
     virtual void Tick(double time) override;
 
   private:
-    std::vector<std::pair<std::shared_ptr<ChBody>, ChROSTransform>> m_transforms;  ///< The transforms to publish
+    std::vector<std::pair<std::shared_ptr<chrono::ChBody>, ChROSTransform>> m_transforms;  ///< The transforms to publish
 
     std::unique_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;  ///< The tf broadcaster
 };

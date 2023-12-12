@@ -36,7 +36,7 @@ bool ChROSTFHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     return true;
 }
 
-void ChROSTFHandler::AddTransform(std::shared_ptr<ChBody> parent, std::shared_ptr<ChBody> child) {
+void ChROSTFHandler::AddTransform(std::shared_ptr<chrono::ChBody> parent, std::shared_ptr<chrono::ChBody> child) {
     if (!parent) {
         std::cerr << "ChROSTFHandler::AddTransform: Parent body is null" << std::endl;
         return;
@@ -48,8 +48,8 @@ void ChROSTFHandler::AddTransform(std::shared_ptr<ChBody> parent, std::shared_pt
     m_transforms.push_back(std::make_pair(parent, child));
 }
 
-void ChROSTFHandler::AddTransform(std::shared_ptr<ChBody> parent,
-                                  ChFrame<> child_frame,
+void ChROSTFHandler::AddTransform(std::shared_ptr<chrono::ChBody> parent,
+                                  chrono::ChFrame<> child_frame,
                                   const std::string& child_frame_id) {
     if (!parent) {
         std::cerr << "ChROSTFHandler::AddTransform: Parent body is null" << std::endl;
@@ -93,7 +93,7 @@ void ChROSTFHandler::AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor,
 }
 #endif
 
-geometry_msgs::msg::TransformStamped CreateTransformStamped(ChFrame<> local_to_parent,
+geometry_msgs::msg::TransformStamped CreateTransformStamped(chrono::ChFrame<> local_to_parent,
                                                             const std::string& parent_frame_id,
                                                             const std::string& child_frame_id,
                                                             double time) {
@@ -121,10 +121,10 @@ void ChROSTFHandler::Tick(double time) {
     std::vector<geometry_msgs::msg::TransformStamped> transforms;
 
     for (auto const& [parent, child] : m_transforms) {
-        ChFrame<> child_to_parent;
+        chrono::ChFrame<> child_to_parent;
         std::string child_frame_id;
-        if (std::holds_alternative<std::shared_ptr<ChBody>>(child)) {
-            auto child_body = std::get<std::shared_ptr<ChBody>>(child);
+        if (std::holds_alternative<std::shared_ptr<chrono::ChBody>>(child)) {
+            auto child_body = std::get<std::shared_ptr<chrono::ChBody>>(child);
             child_to_parent = parent->GetFrame_REF_to_abs().GetInverse() * child_body->GetFrame_REF_to_abs();
             child_frame_id = child_body->GetName();
         } else {
