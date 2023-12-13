@@ -86,6 +86,10 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Examples of generating (exporting) and using (importing) Chrono FMUs.
 
+-   @subpage tutorial_table_of_content_chrono_ros
+
+    Examples of integrating an external ROS-based autonomy stack in Chrono.
+
 
 ## Other tools
 

@@ -32,7 +32,7 @@
 namespace chrono {
 namespace ros {
 
-/// @addtogroup ros_handlers
+/// @addtogroup ros_robot_handlers
 /// @{
 
 /// This handler is responsible for interfacing a ViperDCMotorControl driver to ROS. Will instantiate a subscriber to
@@ -67,7 +67,7 @@ class ChROSViperDCMotorControlHandler : public ChROSHandler {
     std::mutex m_mutex;
 };
 
-/// @} ros_handlers
+/// @} ros_robot_handlers
 
 }  // namespace ros
 }  // namespace chrono

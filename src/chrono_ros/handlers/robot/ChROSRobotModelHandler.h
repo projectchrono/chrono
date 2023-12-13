@@ -29,7 +29,7 @@
 namespace chrono {
 namespace ros {
 
-/// @addtogroup ros_handlers
+/// @addtogroup ros_robot_handlers
 /// @{
 
 /// This handler is responsible for publishing a robot model to be visualized in RViz
@@ -69,7 +69,7 @@ class ChROSRobotModelHandler : public ChROSHandler {
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_publisher;
 };
 
-/// @} ros_handlers
+/// @} ros_robot_handlers
 
 }  // namespace ros
 }  // namespace chrono
