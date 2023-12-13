@@ -49,7 +49,7 @@ void ChROSTFHandler::AddTransform(std::shared_ptr<chrono::ChBody> parent, std::s
 }
 
 void ChROSTFHandler::AddTransform(std::shared_ptr<chrono::ChBody> parent,
-                                  chrono::ChFrame<> child_frame,
+                                  chrono::ChFrame<double> child_frame,
                                   const std::string& child_frame_id) {
     if (!parent) {
         std::cerr << "ChROSTFHandler::AddTransform: Parent body is null" << std::endl;

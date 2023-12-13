@@ -4,8 +4,7 @@
 
 This is an optional module that enables direct integration of Chrono with the Robot Operating System (ROS).
 
-Read [the introduction to modules](modularity.html) for a technical
-background on the modularity of the Chrono project.
+Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
 
 ## Features
 
@@ -16,18 +15,28 @@ For more detail, read the [Chrono::ROS](@ref manual_ros) section of the referenc
 ## Required Dependencies
 
 - To build and run applications based on this module, the following are required:
-  - ROS Humble (see [docs.ros.org](https://docs.ros.org/en/humble/Installation.html) for detailed installation instructions). Docker is recommended.
-  - Have [chrono_ros_interfaces](https://github.com/AaronYoung5/chrono_ros_interfaces) locally.
+  - ROS 2 Humble (see [docs.ros.org](https://docs.ros.org/en/humble/Installation.html) for detailed installation instructions). Docker is recommended. A Chrono::ROS Docker image is available [here](https://hub.docker.com/r/uwsbel/projectchrono).
+    - The following ROS 2 packages are required to build Chrono::ROS. All come with the base ROS 2 installation.
+      - `rclcpp`
+      - `rcl_interfaces`
+      - `common_interfaces`
+
+## Optional Dependencies
+
+  - Some features (detailed in the [reference manual](@ref manual_ros)) are conditionally built based on some optional dependencies. These dependencies include:
+    - `tf2_ros`
+    - `tf2_msgs`
+    - `interactive_markers`
+    - [chrono_ros_interfaces](https://github.com/projectchrono/chrono_ros_interfaces)
+  - To build URDF support for Chrono::ROS, you will also need to enable the [Chrono::Parsers](@ref module_parsers_installation) module.
 
 ## Building instructions
 
-1. To build Chrono::ROS, you must first build [chrono_ros_interfaces](https://github.com/AaronYoung5/chrono_ros_interfaces) and have sourced the setup file. To build a ROS workspace, please [see the official ROS documentation](https://docs.ros.org/en/foxy/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html).
-
-2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must add the following steps:
-
-3. Set the `ENABLE_MODULE_ROS` as 'on', then press 'Configure' (to refresh the variable list)
-
-4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
+1. To build Chrono::ROS, after installing the above dependencies, ensure you have sourced your ROS 2 installation (e.g. `source /opt/ros/humble/setup.bash`).
+2. Please repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must add the following steps:
+  - Set the `ENABLE_MODULE_ROS` as 'on', then press 'Configure' (to refresh the variable list)
+  - Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
+3. As mentioned above, to enable URDF support, you must also enable the [Chrono::Parsers](@ref module_parsers_installation) module.
 
 ## How to use it
 
