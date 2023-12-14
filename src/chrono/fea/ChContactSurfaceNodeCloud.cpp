@@ -31,6 +31,7 @@ ChContactNodeXYZ::ChContactNodeXYZ(ChNodeFEAxyz* node, ChContactSurface* contact
 }
 
 void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
+                                                  const ChVector<>& T,
                                                   const ChVector<>& abs_point,
                                                   ChVectorDynamic<>& R) {
     R.segment(m_node->NodeGetOffsetW(), 3) += F.eigen();
@@ -70,6 +71,7 @@ ChContactNodeXYZROT::ChContactNodeXYZROT(ChNodeFEAxyzrot* node, ChContactSurface
 }
 
 void ChContactNodeXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
+                                                     const ChVector<>& T,
                                                      const ChVector<>& abs_point,
                                                      ChVectorDynamic<>& R) {
     R.segment(m_node->NodeGetOffsetW(), 3) += F.eigen();

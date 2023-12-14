@@ -1002,6 +1002,34 @@ void ChAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offset in 
     }
 }
 
+void ChAssembly::IntLoadLumpedMass_Md(const unsigned int off, 
+                                    ChVectorDynamic<>& Md, 
+                                    double& error, 
+                                    const double c
+) {
+    unsigned int displ_v = off - this->offset_w;
+
+    for (auto& body : bodylist) {
+        if (body->IsActive())
+            body->IntLoadLumpedMass_Md(displ_v + body->GetOffset_w(), Md, error, c);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntLoadLumpedMass_Md(displ_v + shaft->GetOffset_w(), Md, error, c);
+    }
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntLoadLumpedMass_Md(displ_v + link->GetOffset_w(), Md, error, c);
+    }
+    for (auto& mesh : meshlist) {
+        mesh->IntLoadLumpedMass_Md(displ_v + mesh->GetOffset_w(), Md, error, c);
+    }
+    for (auto& item : otherphysicslist) {
+        if (item->IsActive())
+            item->IntLoadLumpedMass_Md(displ_v + item->GetOffset_w(), Md, error, c);
+    }
+}
+
 void ChAssembly::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
                                      ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                      const ChVectorDynamic<>& L,  ///< the L vector

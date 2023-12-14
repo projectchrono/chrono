@@ -127,6 +127,10 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
                                         ChVectorDynamic<>& R,
                                         const ChVectorDynamic<>& w,
                                         const double c) override;
+    virtual void NodeIntLoadLumpedMass_Md(const unsigned int off,
+                                          ChVectorDynamic<>& Md,
+                                          double& error,
+                                          const double c) override;
     virtual void NodeIntToDescriptor(const unsigned int off_v,
                                      const ChStateDelta& v,
                                      const ChVectorDynamic<>& R) override;

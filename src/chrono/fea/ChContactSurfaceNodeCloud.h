@@ -92,16 +92,19 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     /// ChCollisionModel might call this to get the position of the contact model (when rigid) and sync it.
     virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(m_node->pos, QNULL); }
 
-    /// Apply the force, expressed in absolute reference, to the coordinates of the variables.
+    /// Apply the force & torque, expressed in absolute reference, to the coordinates of the variables.
     virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+                                            const ChVector<>& T,
                                             const ChVector<>& abs_point,
                                             ChVectorDynamic<>& R) override;
 
-    /// Apply the given force at the given point and load the generalized force array.
+    /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
+    /// Used for computing stiffness matrix (square force jacobian) by backward differentiation.
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactForceLoadQ(const ChVector<>& F,
+    virtual void ContactComputeQ(const ChVector<>& F,
+                                   const ChVector<>& T,
                                    const ChVector<>& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
@@ -208,16 +211,19 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     /// ChCollisionModel might call this to get the position of the contact model (when rigid) and sync it.
     virtual ChCoordsys<> GetCsysForCollisionModel() override { return m_node->GetCoord(); }
 
-    /// Apply the force, expressed in absolute reference, to the coordinates of the variables.
+    /// Apply the force & torque, expressed in absolute reference, to the coordinates of the variables.
     virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+                                            const ChVector<>& T,
                                             const ChVector<>& abs_point,
                                             ChVectorDynamic<>& R) override;
 
-    /// Apply the given force at the given point and load the generalized force array.
+    /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
+    /// Used for computing stiffness matrix (square force jacobian) by backward differentiation.
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactForceLoadQ(const ChVector<>& F,
+    virtual void ContactComputeQ(const ChVector<>& F,
+                                   const ChVector<>& T,
                                    const ChVector<>& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,

@@ -50,6 +50,12 @@ class ChApi ChElementGeneric : public ChElementBase {
     /// This default implementation is VERY INEFFICIENT.
     virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) override;
 
+    /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
+    /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
+    ///    Md += c*diag(M)    or   Md += c*HRZ(M)    or other lumping heuristics
+    /// This default implementation is VERY INEFFICIENT.
+    virtual void EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, const double c) override;
+
     /// Add the contribution of gravity loads, multiplied by a scaling factor c, as:
     ///   R += M * g * c
     /// This default implementation is VERY INEFFICIENT.
