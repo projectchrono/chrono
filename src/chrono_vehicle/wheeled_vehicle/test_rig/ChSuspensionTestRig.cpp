@@ -105,8 +105,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(std::shared_ptr<ChWheeledVehicle> vehic
       m_vis_tire(VisualizationType::PRIMITIVES),
       m_plot_output(false),
       m_plot_output_step(0),
-      m_next_plot_output_time(0),
-      m_csv(nullptr) {
+      m_next_plot_output_time(0) {
     // Cache number of tested axles and steering mechanisms
     m_naxles = (int)axle_index.size();
 
@@ -128,8 +127,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& spec_filename)
       m_vis_tire(VisualizationType::PRIMITIVES),
       m_plot_output(false),
       m_plot_output_step(0),
-      m_next_plot_output_time(0),
-      m_csv(nullptr) {
+      m_next_plot_output_time(0) {
     // Open and parse the input file (rig JSON specification file)
     Document d;
     ReadFileJSON(spec_filename, d);
@@ -184,9 +182,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& spec_filename)
     m_vehicle->DisconnectDriveline();
 }
 
-ChSuspensionTestRig::~ChSuspensionTestRig() {
-    delete m_csv;
-}
+ChSuspensionTestRig::~ChSuspensionTestRig() {}
 
 void ChSuspensionTestRig::IncludeSubchassis(int index) {
     m_subchassis_index.push_back(index);
@@ -248,7 +244,7 @@ void ChSuspensionTestRig::Initialize() {
         m_spindle_ref_L.push_back(axle->m_suspension->GetSpindlePos(LEFT).z());
         m_spindle_ref_R.push_back(axle->m_suspension->GetSpindlePos(RIGHT).z());
     }
-    
+
     // Process subchassis mechanisms
     for (auto is : m_subchassis_index) {
         // Overwrite visualization setting
@@ -433,91 +429,204 @@ void ChSuspensionTestRig::SetOutput(ChVehicleOutput::Type type,
 void ChSuspensionTestRig::SetPlotOutput(double output_step) {
     m_plot_output = true;
     m_plot_output_step = output_step;
-    m_csv = new utils::CSV_writer(" ");
-    m_csv_lengths.resize(m_naxles);
-}
-
-void ChSuspensionTestRig::CollectPlotData(double time) {
-    *m_csv << time;
 
     for (int ia = 0; ia < m_naxles; ia++) {
         const auto& axle = m_vehicle->GetAxle(m_axle_index[ia]);
+        auto frc = axle->m_suspension->ReportSuspensionForce(LEFT);
+        auto trq = axle->m_suspension->ReportSuspensionTorque(LEFT);
+
+        PlotData pd;
+        pd.csvL.set_delim(" ");
+        pd.csvR.set_delim(" ");
+        pd.num_tsda = (int)frc.size();
+        pd.num_rsda = (int)trq.size();
+
+        m_plot_data.push_back(pd);
+    }
+}
+
+void ChSuspensionTestRig::CollectPlotData(double time) {
+    for (int ia = 0; ia < m_naxles; ia++) {
+        auto& csvL = m_plot_data[ia].csvL;
+        auto& csvR = m_plot_data[ia].csvR;
+
+        const auto& axle = m_vehicle->GetAxle(m_axle_index[ia]);
 
         // Suspension spring and shock forces
-        auto frc_left = axle->m_suspension->ReportSuspensionForce(LEFT);
-        auto frc_right = axle->m_suspension->ReportSuspensionForce(RIGHT);
+        auto frcL = axle->m_suspension->ReportSuspensionForce(LEFT);
+        auto frcR = axle->m_suspension->ReportSuspensionForce(RIGHT);
+
+        // Suspension spring and shock torques
+        auto trqL = axle->m_suspension->ReportSuspensionTorque(LEFT);
+        auto trqR = axle->m_suspension->ReportSuspensionTorque(RIGHT);
 
         // Tire camber angle (flip sign of reported camber angle on the left to get common definition)
-        double gamma_left = -axle->m_wheels[0]->GetTire()->GetCamberAngle() * CH_C_RAD_TO_DEG;
-        double gamma_right = axle->m_wheels[1]->GetTire()->GetCamberAngle() * CH_C_RAD_TO_DEG;
+        double gammaL = -axle->m_wheels[0]->GetTire()->GetCamberAngle() * CH_C_RAD_TO_DEG;
+        double gammaR = axle->m_wheels[1]->GetTire()->GetCamberAngle() * CH_C_RAD_TO_DEG;
 
-        *m_csv << m_left_inputs[ia] << m_right_inputs[ia];                    // 1          2
-        *m_csv << GetSpindlePos(ia, LEFT) << GetSpindlePos(ia, RIGHT);        // 3 4 5      6 7 8
-        *m_csv << GetSpindleLinVel(ia, LEFT) << GetSpindleLinVel(ia, RIGHT);  // 9 10 11    12 13 14
-        *m_csv << GetWheelTravel(ia, LEFT) << GetWheelTravel(ia, RIGHT);      // 15         16
-        *m_csv << gamma_left << gamma_right;                                  // 17         18
-        *m_csv << GetRideHeight(ia);                                          // 19
-        *m_csv << frc_left.size() << frc_right.size();                        // 20         21
-        for (const auto& item : frc_left)
-            *m_csv << item.force;
-        for (const auto& item : frc_right)
-            *m_csv << item.force;
+        csvL << time;                                                                          // 1
+        csvL << m_left_inputs[ia] << GetActuatorDisp(ia, LEFT) << GetActuatorForce(ia, LEFT);  // 2 3 4
+        csvL << GetSpindlePos(ia, LEFT);                                                       // 5 6 7
+        csvL << GetSpindleLinVel(ia, LEFT);                                                    // 8 9 10
+        csvL << GetWheelTravel(ia, LEFT) << gammaL;                                            // 11 12
+        for (const auto& item : frcL)
+            csvL << item.force;
+        for (const auto& item : trqL)
+            csvL << item.torque;
+        csvL << std::endl;
 
-        m_csv_lengths[ia] = 21 + (int)frc_left.size() + (int)frc_right.size();
+        csvR << time;                                                                             // 1
+        csvR << m_right_inputs[ia] << GetActuatorDisp(ia, RIGHT) << GetActuatorForce(ia, RIGHT);  // 2 3 4
+        csvR << GetSpindlePos(ia, RIGHT);                                                         // 5 6 7
+        csvR << GetSpindleLinVel(ia, RIGHT);                                                      // 8 9 10
+        csvR << GetWheelTravel(ia, RIGHT) << gammaR;                                              // 11 12
+        for (const auto& item : frcR)
+            csvR << item.force;
+        for (const auto& item : trqR)
+            csvR << item.torque;
+        csvR << std::endl;
     }
-
-    *m_csv << std::endl;
 }
 
 void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::string& out_name) {
     if (!m_plot_output)
         return;
 
-    std::string out_file = out_dir + "/" + out_name + ".txt";
-    m_csv->write_to_file(out_file);
+    std::string prefix = out_dir + "/" + out_name + "_";
+
+    for (int ia = 0; ia < m_naxles; ia++) {
+        std::string outfileL = prefix + std::to_string(ia) + "_L.txt";
+        std::string outfileR = prefix + std::to_string(ia) + "_R.txt";
+        m_plot_data[ia].csvL.write_to_file(outfileL);
+        m_plot_data[ia].csvR.write_to_file(outfileR);
 
 #ifdef CHRONO_POSTPROCESS
-    std::string gplfile = out_dir + "/tmp.gpl";
-    postprocess::ChGnuPlot mplot(gplfile.c_str());
+        std::string lsL = "set style line 1 lt rgb 'dark-green' lw 2";
+        std::string lsR = "set style line 2 lt rgb 'dark-red' lw 2";
 
-    std::string title;
-    int offset = 1;
-    for (int ia = 0; ia < m_naxles; ia++) {
-        title = "Suspension test rig - Axle " + std::to_string(ia) + " - Camber angle";
-        mplot.OutputWindow(3 * ia + 0);
-        mplot.SetTitle(title.c_str());
-        mplot.SetLabelX("wheel travel [m]");
-        mplot.SetLabelY("camber angle [deg]");
-        mplot.SetCommand("set format y '%4.1f'");
-        mplot.SetCommand("set terminal wxt size 800, 600");
-        mplot.Plot(out_file.c_str(), offset + 15, offset + 17, "left", " with lines lw 2");
-        mplot.Plot(out_file.c_str(), offset + 16, offset + 18, "right", " with lines lw 2");
-        
-        //// TODO
-        //// Currently hardcoded for certain types of suspensions!!!
-        title = "Suspension test rig - Axle " + std::to_string(ia) + " - TSDA forces ";
-        mplot.OutputWindow(3 * ia + 1);
-        mplot.SetTitle(title.c_str());
-        mplot.SetLabelX("wheel travel [m]");
-        mplot.SetLabelY("spring force [N]");
-        mplot.SetCommand("set format y '%4.1e'");
-        mplot.SetCommand("set terminal wxt size 800, 600");
-        mplot.Plot(out_file.c_str(), offset + 15, offset + 22, "left", " with lines lw 2");
-        mplot.Plot(out_file.c_str(), offset + 16, offset + 24, "right", " with lines lw 2");
+        {
+            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_actuators.gpl").c_str());
 
-        title = "Suspension test rig - Axle " + std::to_string(ia) + " - Shock forces";
-        mplot.OutputWindow(3 * ia + 2);
-        mplot.SetTitle(title.c_str());
-        mplot.SetLabelX("wheel vertical speed [m/s]");
-        mplot.SetLabelY("shock force [N]");
-        mplot.SetCommand("set format y '%4.1e'");
-        mplot.SetCommand("set terminal wxt size 800, 600");
-        mplot.Plot(out_file.c_str(), offset + 11, offset + 23, "left", " with lines lw 2");
-        mplot.Plot(out_file.c_str(), offset + 14, offset + 25, "right", " with lines lw 2");
+            gplot.SetCommand("set terminal wxt size 800, 1200");
+            gplot.SetCommand("set multiplot layout 2,1");
 
-        offset += m_csv_lengths[ia];
-    }
+            gplot.SetTitle("Axle " + std::to_string(ia) + " - Actuator Forces");
+            gplot.SetCommand("set format y '%4.1f'");
+            gplot.SetCommand(lsL);
+            gplot.SetCommand(lsR);
+
+            gplot.SetLabelX("time [s]");
+            gplot.SetLabelY("force [N]");
+            gplot.Plot(outfileL, 1, 4, "left", " with lines ls 1");
+            gplot.Plot(outfileR, 1, 4, "right", " with lines ls 2");
+
+            gplot.FlushPlots();
+
+            gplot.SetLabelX("displacement [m]");
+            gplot.SetLabelY("force [N]");
+            gplot.Plot(outfileL, 3, 4, "left", " with lines ls 1");
+            gplot.Plot(outfileR, 3, 4, "right", " with lines ls 2");
+
+            gplot.FlushPlots();
+
+            gplot.SetCommand("unset multiplot");
+        }
+
+        {
+            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_wheels.gpl").c_str());
+
+            gplot.SetCommand("set terminal wxt size 800, 600");
+            gplot.SetTitle("Axle " + std::to_string(ia) + " - Camber angles");
+            gplot.SetCommand("set format y '%4.1f'");
+            gplot.SetCommand(lsL);
+            gplot.SetCommand(lsR);
+
+            gplot.SetLabelX("wheel travel [m]");
+            gplot.SetLabelY("camber angle [deg]");
+            gplot.Plot(outfileL.c_str(), 11, 12, "left", " with lines ls 1");
+            gplot.Plot(outfileR.c_str(), 11, 12, "right", " with lines ls 2");
+        }
+
+        auto num_tsda = m_plot_data[ia].num_tsda;
+        if (num_tsda > 0) {
+            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_tsdas.gpl").c_str());
+
+            gplot.SetCommand("set terminal wxt size 1200, 1200");
+            gplot.SetCommand("set multiplot layout 3," + std::to_string(num_tsda) + " columnsfirst ");
+
+            gplot.SetCommand("set format y '%4.1f'");
+            gplot.SetCommand(lsL);
+            gplot.SetCommand(lsR);
+
+            for (int is = 0; is < num_tsda; is++) {
+                gplot.SetTitle("Axle " + std::to_string(ia) + " - TSDA " + std::to_string(is) + " Forces");
+
+                gplot.SetLabelX("time [s]");
+                gplot.SetLabelY("Force [N]");
+                gplot.Plot(outfileL, 1, 13 + is, "left", " with lines ls 1");
+                gplot.Plot(outfileR, 1, 13 + is, "right", " with lines ls 2");
+
+                gplot.FlushPlots();
+
+                gplot.SetLabelX("wheel travel [m]");
+                gplot.SetLabelY("Force [N]");
+                gplot.Plot(outfileL, 11, 13 + is, "left", " with lines ls 1");
+                gplot.Plot(outfileR, 11, 13 + is, "right", " with lines ls 2");
+
+                gplot.FlushPlots();
+
+                gplot.SetLabelX("wheel vertical speed [m/s]");
+                gplot.SetLabelY("Force [N]");
+                gplot.Plot(outfileL, 10, 13 + is, "left", " with lines ls 1");
+                gplot.Plot(outfileR, 10, 13 + is, "right", " with lines ls 2");
+
+                gplot.FlushPlots();
+            }
+
+            gplot.SetCommand("unset multiplot");
+        }
+
+        auto num_rsda = m_plot_data[ia].num_rsda;
+        if (num_rsda > 0) {
+            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_tsdas.gpl").c_str());
+
+            gplot.SetCommand("set terminal wxt size 1200, 1200");
+            gplot.SetCommand("set multiplot layout 3," + std::to_string(num_rsda) + " columnsfirst ");
+
+            gplot.SetCommand("set format y '%4.1f'");
+            gplot.SetCommand(lsL);
+            gplot.SetCommand(lsR);
+
+            for (int is = 0; is < num_rsda; is++) {
+                gplot.SetTitle("Axle " + std::to_string(ia) + " - RSDA " + std::to_string(is) + " Torques");
+
+                gplot.SetLabelX("time [s]");
+                gplot.SetLabelY("Torque [Nm]");
+                gplot.Plot(outfileL, 1, 13 + num_tsda + is, "left", " with lines ls 1");
+                gplot.Plot(outfileR, 1, 13 + num_tsda + is, "right", " with lines ls 2");
+
+                gplot.FlushPlots();
+
+                gplot.SetLabelX("wheel travel [m]");
+                gplot.SetLabelY("Torque [Nm]");
+                gplot.Plot(outfileL, 11, 13 + num_tsda + is, "left", " with lines ls 1");
+                gplot.Plot(outfileR, 11, 13 + num_tsda + is, "right", " with lines ls 2");
+
+                gplot.FlushPlots();
+
+                gplot.SetLabelX("wheel vertical speed [m/s]");
+                gplot.SetLabelY("Torque [Nm]");
+                gplot.Plot(outfileL, 10, 13 + num_tsda + is, "left", " with lines ls 1");
+                gplot.Plot(outfileR, 10, 13 + num_tsda + is, "right", " with lines ls 2");
+
+                gplot.FlushPlots();
+            }
+
+            gplot.SetCommand("unset multiplot");
+        }
+
 #endif
+    }
 }
 
 // =============================================================================
