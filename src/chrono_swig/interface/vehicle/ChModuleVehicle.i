@@ -168,12 +168,6 @@ using namespace chrono::vehicle::m113;
 %include "python/cwstring.i"
 #endif
 
-%template(vector_int) std::vector<int>;
-%template(vector_double) std::vector<double>;
-%template(TerrainForces) std::vector<chrono::vehicle::TerrainForce>;
-%template(WheelStates) std::vector<chrono::vehicle::WheelState>;
-%template(ChWheelList) std::vector<std::shared_ptr<chrono::vehicle::ChWheel> > ;
-%template(ChAxleList) std::vector<std::shared_ptr<chrono::vehicle::ChAxle> > ;
 
 //
 // A- ENABLE SHARED POINTERS
@@ -224,9 +218,14 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::WheeledVehicle)
 %shared_ptr(chrono::vehicle::WheeledTrailer)
 
-#ifdef SWIGPYTHON
+// For the powertrain base class changes
+%shared_ptr(chrono::vehicle::ChEngine)
+%shared_ptr(chrono::vehicle::ChTransmission)
+%shared_ptr(chrono::vehicle::ChAutomaticTransmission)
+%shared_ptr(chrono::vehicle::ChManualTransmission) 
+
+// Expose for both python and csharp
 %shared_ptr(chrono::vehicle::ChVehicleVisualSystem)
-#endif
 
 %shared_ptr(chrono::vehicle::ChSuspensionTestRig)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
@@ -266,6 +265,14 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::NonlinearSpringTorque)
 %shared_ptr(chrono::vehicle::NonlinearDamperTorque)
 %shared_ptr(chrono::vehicle::NonlinearSpringDamperTorque)
+
+// Templates after all shared pointers
+%template(vector_int) std::vector<int>;
+%template(vector_double) std::vector<double>;
+%template(TerrainForces) std::vector<chrono::vehicle::TerrainForce>;
+%template(WheelStates) std::vector<chrono::vehicle::WheelState>;
+%template(ChWheelList) std::vector<std::shared_ptr<chrono::vehicle::ChWheel> > ;
+%template(ChAxleList) std::vector<std::shared_ptr<chrono::vehicle::ChAxle> > ;
 
 //
 // B- INCLUDE HEADERS
@@ -421,6 +428,10 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "ChSuspension.i"
 %include "ChDriveline.i"
 
+// Changes for the powertrain modifications
+%include "ChEngine.i"
+%include "ChTransmission.i"
+
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 
@@ -450,6 +461,12 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "chrono_swig/interface/models/VehicleModels.i"
 
 %include "vehicleUtils.i"
+
+#ifdef SWIGCSHARP
+// Place Irrlicht after everything else so SWIG is aware of how to translate
+// This interface file invokes Irrlicht library and therefore Visual Studio Linker dependencies need specifying
+  %include "ChVehicleVisualSystemIrrlicht.i"
+#endif
 
 //
 // C- DOWNCASTING OF SHARED POINTERS

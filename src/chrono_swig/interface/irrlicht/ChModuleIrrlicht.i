@@ -165,6 +165,11 @@ using namespace gui;
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChVisualSystem.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChColor.i"
 
+#ifdef SWIGCSHARP
+%import "chrono_swig/interface/core/ChVisualSystem.i"
+%import "chrono_swig/interface/core/ChColor.i"
+#endif
+
 %ignore chrono::irrlicht::ScreenQuadCB;
 %include "../../../chrono_irrlicht/ChIrrEffects.h"
 %include "../../../chrono_irrlicht/ChIrrTools.h"

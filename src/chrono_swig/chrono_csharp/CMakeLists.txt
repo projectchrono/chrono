@@ -215,6 +215,10 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
   SWIG_LINK_LIBRARIES(${MODULE_VEHICLE} ChronoEngine)
   SWIG_LINK_LIBRARIES(${MODULE_VEHICLE} ChronoEngine_vehicle)
   SWIG_LINK_LIBRARIES(${MODULE_VEHICLE} ChronoModels_vehicle)
+
+  if (ENABLE_MODULE_IRRLICHT)
+     SWIG_LINK_LIBRARIES(${MODULE_VEHICLE} ChronoEngine_irrlicht ChronoEngine_vehicle_irrlicht)
+  endif()
   
   set_target_properties(${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME} PROPERTIES 
                         PROJECT_LABEL "${MODULE_VEHICLE}"
