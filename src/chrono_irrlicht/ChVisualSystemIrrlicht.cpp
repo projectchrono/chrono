@@ -856,6 +856,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
 
                 mchildnode->setPosition(shape_m4.getTranslation());
                 mchildnode->setRotation(shape_m4.getRotationDegrees());
+                mchildnode->setScale(core::vector3dfCH(obj->GetScale()));
 
                 SetVisualMaterial(mchildnode, shape);
                 mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, true);
