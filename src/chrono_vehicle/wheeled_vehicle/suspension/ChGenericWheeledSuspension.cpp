@@ -254,6 +254,7 @@ void ChGenericWheeledSuspension::DefineRSDA(const std::string& name,
         m_rsdas.insert({{name, -1}, r});
     } else {
         m_rsdas.insert({{name, 0}, r});
+        r.axis *= ChVector<>(-1, 0, -1);
         m_rsdas.insert({{name, 1}, r});
     }
 }
