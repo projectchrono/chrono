@@ -72,6 +72,7 @@ linux:doxygen:deploy:
       name: uwsbel/packages:ubuntu
   before_script:
     # Defining configuration variables
+    - export DEBIAN_FRONTEND=noninteractive
     - export LIB_DIR="lib"
     - export IOMP5_DIR=""
     # Obtain dependencies
@@ -93,9 +94,9 @@ linux:doxygen:deploy:
     - apt update
     - curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
     - echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] 
-      http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+      http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
     - apt update
-    - apt install ros-humble-ros-base
+    - apt install -y ros-humble-ros-base
     # Initialize git repository
     - cd $CI_PROJECT_DIR
     - git submodule init
@@ -191,9 +192,9 @@ linux:ubuntu22.04-clang:test:
     - apt update
     - curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
     - echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] 
-      http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+      http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
     - apt update
-    - apt install ros-humble-ros-base
+    - apt install -y ros-humble-ros-base
     - git submodule init
     - git submodule update
     - echo "Build PyChrono and deploy via Anaconda..."

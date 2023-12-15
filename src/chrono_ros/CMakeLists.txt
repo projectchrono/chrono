@@ -40,8 +40,8 @@ foreach(_ros2_packages_path IN LISTS _ament_prefix_path)
 endforeach()
 
 # Find ROS packages
-set(_required_ros_packages rclcpp rcl_interfaces common_interfaces)
-set(_optional_ros_packages tf2_ros tf2_msgs chrono_ros_interfaces interactive_markers)
+set(_required_ros_packages rclcpp rcl_interfaces std_msgs geometry_msgs sensor_msgs tf2_ros tf2_msgs)
+set(_optional_ros_packages chrono_ros_interfaces interactive_markers)
 
 foreach(_package IN LISTS _required_ros_packages)
   find_package(${_package} QUIET)
@@ -62,7 +62,6 @@ foreach(_package IN LISTS _optional_ros_packages)
 endforeach()
 
 set(CH_ROS_HAS_INTERFACES ${chrono_ros_interfaces_FOUND})
-set(CH_ROS_HAS_TF ${tf2_ros_FOUND} AND ${tf2_msgs_FOUND})
 set(CH_ROS_HAS_INTERACTIVE_MARKER ${interactive_markers_FOUND})
 
 list(REMOVE_DUPLICATES CH_ROS_INCLUDES)
@@ -179,9 +178,6 @@ list(APPEND CH_ROS_LIBRARIES ChronoModels_robot)
 if (CH_ROS_HAS_INTERFACES)
   target_compile_definitions(ChronoEngine_ros PUBLIC -DCHRONO_ROS_HAS_INTERFACES)
 endif()
-if (CH_ROS_HAS_TF)
-  target_compile_definitions(ChronoEngine_ros PUBLIC -DCHRONO_ROS_HAS_TF)
-endif()
 if (CH_ROS_HAS_INTERACTIVE_MARKER)
   target_compile_definitions(ChronoEngine_ros PUBLIC -DCHRONO_ROS_HAS_INTERACTIVE_MARKER)
 endif()
@@ -208,7 +204,6 @@ endif()
 set(CH_ROS_INCLUDES   "${CH_ROS_INCLUDES}"   PARENT_SCOPE)
 set(CH_ROS_LIBRARIES  "${CH_ROS_LIBRARIES}"  PARENT_SCOPE)
 set(CH_ROS_HAS_INTERFACES ${CH_ROS_HAS_INTERFACES} PARENT_SCOPE)
-set(CH_ROS_HAS_TF ${CH_ROS_HAS_TF} PARENT_SCOPE)
 set(CH_ROS_HAS_INTERACTIVE_MARKER ${CH_ROS_HAS_INTERACTIVE_MARKER} PARENT_SCOPE)
 
 # windows builds should disable warning 4661 and 4005
