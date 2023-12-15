@@ -78,8 +78,24 @@ linux:doxygen:deploy:
       git cmake ninja-build doxygen libvulkan-dev pkg-config libirrlicht-dev 
       freeglut3-dev mpich libasio-dev libboost-dev libglfw3-dev libglm-dev 
       libglew-dev libtinyxml2-dev swig python3-dev libhdf5-dev libnvidia-gl-535
-    - apt-get -y upgrade
+      curl software-properties-common
+    - wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | 
+      gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+    - echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] 
+      https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
+    - apt update
+    - apt -y install intel-basekit libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev
+      libxcb-shape0-dev libxcb-xkb-dev xorg-dev
     - ldconfig
+    # ROS
+    - add-apt-repository universe
+    - apt update
+    - curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+    - echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] 
+      http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+    - apt update
+    - apt install ros-humble-ros-base
+    # Initialize git repository
     - cd $CI_PROJECT_DIR
     - git submodule init
     - git submodule update
@@ -92,6 +108,8 @@ linux:ubuntu22.04-gcc:build:
   extends: .ubuntu
   stage: build
   script:
+    # Source ROS distro
+    - source /opt/ros/humble/setup.sh
     # Defining compiler variables
     - export C_COMPILER="/usr/bin/gcc"
     - export CXX_COMPILER="/usr/bin/g++"
@@ -111,6 +129,8 @@ linux:ubuntu22.04-gcc:test:
   extends: .ubuntu
   script:
     - cd build
+    # Source ROS distro
+    - source /opt/ros/humble/setup.sh
     - export OMP_NUM_THREADS=8
     - export CTEST_OUTPUT_ON_FAILURE=1
     - ninja test
@@ -120,6 +140,8 @@ linux:ubuntu22.04-clang:build:
   extends: .ubuntu
   stage: build
   script:
+    # Source ROS distro
+    - source /opt/ros/humble/setup.sh
     # Defining compiler variables
     - export C_COMPILER="/usr/bin/clang"
     - export CXX_COMPILER="/usr/bin/clang++"
@@ -139,6 +161,8 @@ linux:ubuntu22.04-clang:test:
   extends: .ubuntu
   script:
     - cd build
+    # Source ROS distro
+    - source /opt/ros/humble/setup.sh
     - export OMP_NUM_THREADS=8
     - export CTEST_OUTPUT_ON_FAILURE=1
     - ninja test
@@ -161,6 +185,14 @@ linux:ubuntu22.04-clang:test:
     - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz
     - tar -xf blaze-3.8.tar.gz
     - cp blaze-3.8/blaze -r /usr/local/include
+    # ROS
+    - add-apt-repository universe
+    - apt update
+    - curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+    - echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] 
+      http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+    - apt update
+    - apt install ros-humble-ros-base
     - git submodule init
     - git submodule update
     - echo "Build PyChrono and deploy via Anaconda..."

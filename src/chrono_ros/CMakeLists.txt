@@ -25,7 +25,12 @@ set(CMAKE_CXX_STANDARD 17)
 # Find ROS
 #-----------------------------------------------------------------------------
 
-find_package(ROS2 REQUIRED)
+find_package(ROS2)
+if (NOT ROS2_FOUND)
+  message(WARNING "Chrono::ROS requires ROS 2, but ROS 2 was not found; disabling Chrono::ROS.")
+  set(ENABLE_MODULE_ROS OFF CACHE BOOL "Enable the Chrono::ROS module" FORCE)
+  return()
+endif()
 
 # Update the includes directories to point to ROS includes
 set(_ament_prefix_path "$ENV{AMENT_PREFIX_PATH}")
