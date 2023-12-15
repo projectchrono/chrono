@@ -1,3 +1,11 @@
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+
+%csmethodmodifiers chrono::vehicle::ChVehicleVisualSystemIrrlicht::Initialize "public override"
+%csmethodmodifiers chrono::vehicle::ChVehicleVisualSystemIrrlicht::Render "public override"
+%csmethodmodifiers chrono::vehicle::ChVehicleVisualSystemIrrlicht::Advance "public override"
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
 %{
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
@@ -20,7 +28,7 @@ using namespace irr::scene; // This is inserted for the extend functions that us
 
 
 #ifdef SWIGCSHARP
-    //
+
     // InteractiveDriverIRR
     %include "../../../chrono/core/ChBezierCurve.h"
     %import "ChDriver.i" // make SWIG aware of the ChDriver interface file

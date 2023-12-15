@@ -1,3 +1,10 @@
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+
+%csmethodmodifiers chrono::vehicle::ChTransmission::GetType "public virtual new"
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
+
 %{
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChTransmission.h"
