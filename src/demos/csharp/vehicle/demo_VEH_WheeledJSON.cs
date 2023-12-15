@@ -31,6 +31,7 @@ namespace ChronoDemo
         {
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
+            chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
 
             // Create the vehicle system
             WheeledVehicle vehicle = new WheeledVehicle(GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"), ChContactMethod.SMC);
