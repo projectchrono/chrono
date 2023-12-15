@@ -65,6 +65,9 @@ using namespace geometry;
 //%feature("director") chrono::geometry::ChGeometry;
 //%ignore chrono::geometry::ChGeometry::Clone;
 
+%template(ChTriangleMeshConnected_list) std::vector<chrono::geometry::ChTriangleMeshConnected>;
+
+
 /* Parse the header file(s) to generate wrappers */
 %include "../../../chrono/geometry/ChGeometry.h"
 %include "../../../chrono/geometry/ChLine.h"

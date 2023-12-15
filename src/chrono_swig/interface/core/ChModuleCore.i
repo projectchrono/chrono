@@ -71,6 +71,9 @@
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChVisualSystem.h"
 
+#include "chrono/fea/ChMesh.h"
+
+
 #include "chrono/collision/ChCollisionShape.h"
 #include "chrono/collision/ChCollisionShapes.h"
 #include "chrono/collision/ChCollisionModel.h"
@@ -215,6 +218,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChContactContainer)
 %shared_ptr(chrono::ChProximityContainer)
 
+%shared_ptr(chrono::fea::ChMesh)
+
 %shared_ptr(chrono::ChCollisionModel)
 
 %shared_ptr(chrono::ChCollisionSystem)
@@ -342,6 +347,9 @@ using namespace chrono::fea;
 %include "ChGeometry.i"
 
 
+%include "../../../chrono/fea/ChMesh.h"
+
+
 //collision classes
 %include "ChMaterialSurface.i"
 %include "ChCollisionShape.i"
@@ -361,13 +369,13 @@ using namespace chrono::fea;
 
 // assets
 %include "ChColor.i"
-%include "../chrono/assets/ChVisualMaterial.h"
+%include "ChVisualMaterial.i"
 %include "ChVisualShape.i"
 %include "ChVisualModel.i"
 %include "ChTexture.i"
 %include "ChCamera.i"
 %include "../../../chrono/assets/ChGlyphs.h"
-%include "../../../chrono/assets/ChVisualSystem.h"
+%include "ChVisualSystem.i"
 
 // physics/  classes
 %include "ChController.i"
