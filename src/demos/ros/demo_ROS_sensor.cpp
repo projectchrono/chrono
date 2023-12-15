@@ -26,15 +26,13 @@
 
 #include "chrono_ros/ChROSManager.h"
 #include "chrono_ros/handlers/ChROSClockHandler.h"
+#include "chrono_ros/handlers/ChROSTFHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
-#ifdef CHRONO_ROS_HAS_TF
-    #include "chrono_ros/handlers/ChROSTFHandler.h"
-#endif
 
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/sensors/ChCameraSensor.h"
@@ -196,7 +194,6 @@ int main(int argc, char* argv[]) {
     auto gps_handler = chrono_types::make_shared<ChROSGPSHandler>(gps, gps_topic_name);
     ros_manager->RegisterHandler(gps_handler);
 
-#ifdef CHRONO_ROS_HAS_TF
     // Create _one_ tf handler which we'll add transforms for all the sensors to
     auto tf_handler = chrono_types::make_shared<ChROSTFHandler>(100);
     tf_handler->AddSensor(cam);
@@ -206,7 +203,6 @@ int main(int argc, char* argv[]) {
     tf_handler->AddSensor(gyro);
     tf_handler->AddSensor(mag);
     tf_handler->AddSensor(gps);
-#endif
 
     // Finally, initialize the ros manager
     ros_manager->Initialize();

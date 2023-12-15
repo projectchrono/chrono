@@ -19,13 +19,15 @@ For more detail, read the [Chrono::ROS](@ref manual_ros) section of the referenc
     - The following ROS 2 packages are required to build Chrono::ROS. All come with the base ROS 2 installation.
       - `rclcpp`
       - `rcl_interfaces`
-      - `common_interfaces`
+      - `std_msgs`
+      - `geometry_msgs`
+      - `sensor_msgs`
+      - `tf2_ros`
+      - `tf2_msgs`
 
 ## Optional Dependencies
 
   - Some features (detailed in the [reference manual](@ref manual_ros)) are conditionally built based on some optional dependencies. These dependencies include:
-    - `tf2_ros`
-    - `tf2_msgs`
     - `interactive_markers`
     - [chrono_ros_interfaces](https://github.com/projectchrono/chrono_ros_interfaces)
   - To build URDF support for Chrono::ROS, you will also need to enable the [Chrono::Parsers](@ref module_parsers_installation) module.

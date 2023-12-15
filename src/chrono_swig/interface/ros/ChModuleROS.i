@@ -53,6 +53,7 @@
 #include "chrono_ros/ChROSInterface.h"
 #include "chrono_ros/handlers/ChROSClockHandler.h"
 #include "chrono_ros/handlers/ChROSBodyHandler.h"
+#include "chrono_ros/handlers/ChROSTFHandler.h"
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
 #include "chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
 
@@ -69,10 +70,6 @@
 #ifdef CHRONO_ROS_HAS_INTERFACES
 #include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
 #include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
-#endif
-
-#ifdef CHRONO_ROS_HAS_TF
-#include "chrono_ros/handlers/ChROSTFHandler.h"
 #endif
 
 #ifdef CHRONO_ROS_HAS_INTERACTIVE_MARKER
@@ -130,6 +127,7 @@ using namespace chrono::ros;
 %shared_ptr(chrono::ros::ChROSInterface)
 %shared_ptr(chrono::ros::ChROSClockHandler)
 %shared_ptr(chrono::ros::ChROSBodyHandler)
+%shared_ptr(chrono::ros::ChROSTFHandler)
 %shared_ptr(chrono::ros::ChROSRobotModelHandler)
 
 #ifdef CHRONO_SENSOR
@@ -144,10 +142,6 @@ using namespace chrono::ros;
 #ifdef CHRONO_ROS_HAS_INTERFACES
 %shared_ptr(chrono::ros::ChROSDriverInputsHandler)
 %shared_ptr(chrono::ros::ChROSViperDCMotorControlHandler)
-#endif
-
-#ifdef CHRONO_ROS_HAS_TF
-%shared_ptr(chrono::ros::ChROSTFHandler)
 #endif
 
 #ifdef CHRONO_ROS_HAS_INTERACTIVE_MARKER
@@ -186,6 +180,7 @@ using namespace chrono::ros;
 %include "../../../chrono_ros/ChROSInterface.h"
 %include "../../../chrono_ros/handlers/ChROSClockHandler.h"
 %include "../../../chrono_ros/handlers/ChROSBodyHandler.h"
+%include "../../../chrono_ros/handlers/ChROSTFHandler.h"
 %include "../../../chrono_ros/handlers/ChROSHandlerUtilities.h"
 %include "../../../chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
 
@@ -202,10 +197,6 @@ using namespace chrono::ros;
 #ifdef CHRONO_ROS_HAS_INTERFACES
 %include "../../../chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
 %include "../../../chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
-#endif
-
-#ifdef CHRONO_ROS_HAS_TF
-%include "../../../chrono_ros/handlers/ChROSTFHandler.h"
 #endif
 
 #ifdef CHRONO_ROS_HAS_INTERACTIVE_MARKER

@@ -13,7 +13,7 @@ if (CH_ROS_HAS_INTERFACES)
   list(APPEND DEMOS demo_ROS_viper)
 endif()
 
-if (HAVE_URDF AND CH_ROS_HAS_TF )
+if (HAVE_URDF)
   list(APPEND DEMOS demo_ROS_urdf)
 endif()
 

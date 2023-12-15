@@ -27,9 +27,7 @@
 #include "chrono_ros/ChROSManager.h"
 #include "chrono_ros/ChROSHandler.h"
 #include "chrono_ros/handlers/ChROSClockHandler.h"
-#ifdef CHRONO_ROS_HAS_TF
-    #include "chrono_ros/handlers/ChROSTFHandler.h"
-#endif
+#include "chrono_ros/handlers/ChROSTFHandler.h"
 #include "chrono_ros/handlers/ChROSBodyHandler.h"
 
 #include <std_msgs/msg/int64.hpp>
@@ -104,12 +102,10 @@ int main(int argc, char* argv[]) {
     auto box_handler = chrono_types::make_shared<ChROSBodyHandler>(25, box, "~/box");
     ros_manager->RegisterHandler(box_handler);
 
-#ifdef CHRONO_ROS_HAS_TF
     // Create a TF handler that will publish the transform of the box relative to the floor
     auto tf_handler = chrono_types::make_shared<ChROSTFHandler>(100);
     tf_handler->AddTransform(floor, box);
     ros_manager->RegisterHandler(tf_handler);
-#endif
 
     // Finally, initialize the ros manager
     ros_manager->Initialize();
