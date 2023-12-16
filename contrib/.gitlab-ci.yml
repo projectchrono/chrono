@@ -183,6 +183,7 @@ linux:ubuntu22.04-clang:test:
       git cmake ninja-build doxygen libvulkan-dev pkg-config libirrlicht-dev 
       freeglut3-dev mpich libasio-dev libboost-dev libglfw3-dev libglm-dev 
       libglew-dev libtinyxml2-dev swig python3-dev libhdf5-dev libnvidia-gl-530
+      curl software-properties-common
     - ldconfig
     - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz
     - tar -xf blaze-3.8.tar.gz

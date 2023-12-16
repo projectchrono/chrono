@@ -15,7 +15,7 @@ else
 fi
 
 ROS_SETUP_SCRIPT="/opt/ros/humble/setup.sh"
-if [ -f "$ROS_SETUP_SCRIPT" ]
+if [ -f "$ROS_SETUP_SCRIPT" ]; then
   source $ROS_SETUP_SCRIPT
 fi
 
