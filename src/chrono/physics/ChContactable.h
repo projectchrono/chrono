@@ -90,12 +90,13 @@ class ChApi ChContactable {
                                             const ChVector<>& abs_point,
                                             ChVectorDynamic<>& R) = 0;
 
-    /// Apply the given force & torque at the given point and load the generalized force array.
+    /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
+    /// Used for computing stiffness matrix (square force jacobian) by backward differentiation.
     /// The force  F and its application point are specified in the global frame.
     /// The torque T is specified in the global frame too.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactForceLoadQ(const ChVector<>& F, ///< force
+    virtual void ContactComputeQ(const ChVector<>& F, ///< force
                                    const ChVector<>& T, ///< torque
                                    const ChVector<>& point,
                                    const ChState& state_x,

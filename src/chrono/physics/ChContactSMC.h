@@ -380,8 +380,8 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         auto m_torque = m_forcetorque.second;
 
         // Compute and load the generalized contact forces.
-        this->objA->ContactForceLoadQ(-m_force, -m_torque, p1_abs, stateA_x, Q, 0);
-        this->objB->ContactForceLoadQ(m_force, m_torque, p2_abs, stateB_x, Q, this->objA->ContactableGet_ndof_w());
+        this->objA->ContactComputeQ(-m_force, -m_torque, p1_abs, stateA_x, Q, 0);
+        this->objB->ContactComputeQ(m_force, m_torque, p2_abs, stateB_x, Q, this->objA->ContactableGet_ndof_w());
     }
 
     /// Create the Jacobian matrices.

@@ -206,11 +206,11 @@ class CH_VEHICLE_API ChSuspensionTestRig {
     std::vector<double> m_displ_offset;  ///< post displacement offsets (to set reference positions)
 
   private:
-    std::unique_ptr<ChTerrain> m_terrain;   ///< terrain object to provide height to the tires
+    std::unique_ptr<ChTerrain> m_terrain;                 ///< terrain object to provide height to the tires
     std::shared_ptr<ChSuspensionTestRigDriver> m_driver;  ///< driver system
-    double m_steering_input;                ///< current driver steering input
-    std::vector<double> m_left_inputs;      ///< current driver left post inputs
-    std::vector<double> m_right_inputs;     ///< current driver right post inputs
+    double m_steering_input;                              ///< current driver steering input
+    std::vector<double> m_left_inputs;                    ///< current driver left post inputs
+    std::vector<double> m_right_inputs;                   ///< current driver right post inputs
 
     std::vector<double> m_spindle_ref_L;  ///< reference left spindle vertical positions (for wheel travel calculation)
     std::vector<double> m_spindle_ref_R;  ///< reference right spindle vertical positions (for wheel travel calculation)
@@ -221,11 +221,18 @@ class CH_VEHICLE_API ChSuspensionTestRig {
     VisualizationType m_vis_wheel;
     VisualizationType m_vis_tire;
 
-    bool m_plot_output;
-    double m_plot_output_step;
-    double m_next_plot_output_time;
-    utils::CSV_writer* m_csv;
-    std::vector<int> m_csv_lengths;
+    /// Plot data for one axle.
+    struct PlotData {
+        utils::CSV_writer csvL;  ///< csv output for left side
+        utils::CSV_writer csvR;  ///< csv output for right side
+        int num_tsda;            ///< number of TSDAs
+        int num_rsda;            ///< number of RSDAs
+    };
+
+    bool m_plot_output;                 ///< enable collection of plot data
+    double m_plot_output_step;          ///< time interval between plot data points
+    double m_next_plot_output_time;     ///< next time for plot data collection
+    std::vector<PlotData> m_plot_data;  ///< plot data for all tested axles
 };
 
 // -----------------------------------------------------------------------------
@@ -299,6 +306,7 @@ class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
     virtual double GetActuatorDisp(int axle, VehicleSide side) override;
 
     /// Return the current post actuation force for the specified axle and vehicle side.
+    //// TODO: not yet implemented
     virtual double GetActuatorForce(int axle, VehicleSide side) override;
 
     /// Get current ride height (relative to the chassis reference frame).
@@ -317,10 +325,10 @@ class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
 
     void AddRodVisualization(std::shared_ptr<ChBody> rod, const ChColor& color);
 
-    std::vector<std::shared_ptr<ChBody>> m_rod_L;                ///< left rod bodies (for visualization only)
-    std::vector<std::shared_ptr<ChBody>> m_rod_R;                ///< right rod bodies (for visualization only)
-    std::vector<std::shared_ptr<ChLinkLinActuator>> m_linact_L;  ///< left rod linear actuators
-    std::vector<std::shared_ptr<ChLinkLinActuator>> m_linact_R;  ///< right rod linear actuators
+    std::vector<std::shared_ptr<ChBody>> m_rod_L;                        ///< left rod bodies (for visualization only)
+    std::vector<std::shared_ptr<ChBody>> m_rod_R;                        ///< right rod bodies (for visualization only)
+    std::vector<std::shared_ptr<ChLinkMotorLinearPosition>> m_linact_L;  ///< left rod linear actuators
+    std::vector<std::shared_ptr<ChLinkMotorLinearPosition>> m_linact_R;  ///< right rod linear actuators
 
     static const double m_rod_length;
     static const double m_rod_radius;

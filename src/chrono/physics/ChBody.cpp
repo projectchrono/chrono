@@ -192,6 +192,22 @@ void ChBody::IntLoadResidual_Mv(const unsigned int off,      // offset in R resi
     R.segment(off + 3, 3) += Iw.eigen();
 }
 
+void ChBody::IntLoadLumpedMass_Md(const unsigned int off,
+                                  ChVectorDynamic<>& Md,
+                                  double& error,
+                                  const double c
+) {
+    Md(off + 0) += c * GetMass();
+    Md(off + 1) += c * GetMass();
+    Md(off + 2) += c * GetMass();
+    Md(off + 3) += c * GetInertia()(0, 0);
+    Md(off + 4) += c * GetInertia()(1, 1);
+    Md(off + 5) += c * GetInertia()(2, 2);
+    // if there is off-diagonal inertia, add to error, as lumping can give inconsistent results
+    error += GetInertia()(0, 1) + GetInertia()(0, 2) + GetInertia()(1, 2);
+}
+
+
 void ChBody::IntToDescriptor(const unsigned int off_v,
                              const ChStateDelta& v,
                              const ChVectorDynamic<>& R,
@@ -783,7 +799,7 @@ void ChBody::ContactForceLoadResidual_F(const ChVector<>& F,
     R.segment(this->GetOffset_w() + 3, 3) += torque1_loc.eigen();
 }
 
-void ChBody::ContactForceLoadQ(const ChVector<>& F,
+void ChBody::ContactComputeQ(const ChVector<>& F,
                                const ChVector<>& T,
                                const ChVector<>& point,
                                const ChState& state_x,
