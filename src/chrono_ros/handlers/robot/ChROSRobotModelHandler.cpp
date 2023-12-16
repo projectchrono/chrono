@@ -20,6 +20,7 @@
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
 
+#include <fstream>
 #include <filesystem>
 
 namespace chrono {
