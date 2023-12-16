@@ -21,8 +21,6 @@
 
 #include "chrono_ros/ChROSHandler.h"
 
-#include "chrono_parsers/ChParserURDF.h"
-
 #include "rclcpp/publisher.hpp"
 #include "std_msgs/msg/string.hpp"
 
