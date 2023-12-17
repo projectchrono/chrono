@@ -77,13 +77,13 @@ int main(int argc, char* argv[]) {
     ////parser.EnableCollisionVisualization();
 
     // Display raw XML string
-    // std::cout << "\nURDF input\n" << std::endl;
-    // std::cout << parser.GetXMLstring() << std::endl;
+    std::cout << "\nURDF input\n" << std::endl;
+    std::cout << parser.GetXMLstring() << std::endl;
 
     // Report parsed elements
-    // parser.PrintModelBodyTree();
-    // parser.PrintModelBodies();
-    // parser.PrintModelJoints();
+    parser.PrintModelBodyTree();
+    parser.PrintModelBodies();
+    parser.PrintModelJoints();
 
     // Create the Chrono model
     parser.PopulateSystem(sys);

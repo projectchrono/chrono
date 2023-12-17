@@ -1,10 +1,15 @@
 SET(LIBRARIES ChronoEngine ChronoEngine_parsers)
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_PARSERS_INCLUDES} )
 
-SET(TESTS
-  utest_PARSERS_URDF_simple
-  utest_PARSERS_URDF_package
-)
+SET(TESTS "")
+
+if (HAVE_URDF)
+  SET(TESTS
+    ${TESTS}
+    utest_PARSERS_URDF_simple
+    utest_PARSERS_URDF_package
+  )
+endif()
 
 if(HAVE_ROS)
   add_definitions(-DHAVE_ROS)

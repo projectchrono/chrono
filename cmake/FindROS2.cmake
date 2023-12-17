@@ -22,7 +22,6 @@ mark_as_advanced(FORCE
     FastRTPS_INCLUDE_DIR
     FastRTPS_LIBRARY_DEBUG
     FastRTPS_LIBRARY_RELEASE
-    TinyXML2_DIR
     _lib
     action_msgs_DIR
     ament_cmake_DIR
