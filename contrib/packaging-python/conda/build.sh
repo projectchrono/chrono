@@ -14,7 +14,7 @@ else
     PY_LIB="libpython${PY_VER}.so"
 fi
 
-ROS_SETUP_SCRIPT="/opt/ros/humble/setup.sh"
+ROS_SETUP_SCRIPT="$HOME/Packages/ros_ws/install/setup.sh"
 if [ -f "$ROS_SETUP_SCRIPT" ]; then
   source $ROS_SETUP_SCRIPT
 fi
