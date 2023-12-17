@@ -42,6 +42,7 @@ cmake -G "Ninja" -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DENABLE_MODULE_PYTHON=ON \
  -DENABLE_MODULE_SENSOR=ON \
  -DENABLE_MODULE_ROS=ON \
+ -DENABLE_MODULE_PARSERS=ON \
  -DUSE_CUDA_NVRTC=OFF \
  -DCUDA_ARCH_NAME=Manual \
  -DCUDA_ARCH_PTX=52 \
@@ -59,6 +60,10 @@ cmake -G "Ninja" -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DIRRLICHT_INSTALL_DIR=$HOME/Packages/irrlicht-1.8.5 \
  -DOptiX_INSTALL_DIR=$HOME/Packages/optix-7.7.0 \
  -DNUMPY_INCLUDE_DIR=$NP_INCL \
+ -Durdfdom_DIR=$HOME/Packages/urdf/lib/urdfdom/cmake \
+ -Durdfdom_headers_DIR=$HOME/Packages/urdf/lib/urdfdom_headers/cmake \
+ -Dconsole_bridge_DIR=$HOME/Packages/urdf/lib/console_bridge/cmake \
+ -Dtinyxml2_DIR=$HOME/Packages/urdf/CMake \
  ./..
 
 #  -DCASCADE_INCLUDE_DIR=$HOME/miniconda3/include/opencascade \

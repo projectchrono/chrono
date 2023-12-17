@@ -19,6 +19,8 @@
 #include "chrono/core/ChTypes.h"
 
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/assets/ChVisualSystem.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -201,7 +203,7 @@ int main(int argc, char* argv[]) {
     // The QoS of this publisher is set to transient local, meaning we can publish once and late subscribers will still
     // receive the message. We do this by setting the update rate to infinity.
     auto robot_model_handler =
-        chrono_types::make_shared<ChROSRobotModelHandler>(std::numeric_limits<double>::max(), robot_urdf);
+        chrono_types::make_shared<ChROSRobotModelHandler>(std::numeric_limits<double>::max(), robot);
     ros_manager->RegisterHandler(robot_model_handler);
 
     // Finally, initialize the ros manager
@@ -278,8 +280,16 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     ChRealtimeStepTimer realtime_timer;
     while (time < time_end) {
-        if (!vis->Run())
-            break;
+        if (vis) {
+            if (!vis->Run())
+                break;
+
+            if (step_number++ % render_steps == 0) {
+                vis->BeginScene();
+                vis->Render();
+                vis->EndScene();
+            }
+        }
 
         time = sys.GetChTime();
 
@@ -290,18 +300,13 @@ int main(int argc, char* argv[]) {
 
             // Create terrain
             CreateTerrain(sys, floor, 8, 2, z, 2);
-            vis->BindItem(floor);
+            if (vis)
+                vis->BindItem(floor);
 
             // Release robot
             robot.GetRootChBody()->SetBodyFixed(false);
 
             terrain_created = true;
-        }
-
-        if (step_number++ % render_steps == 0) {
-            vis->BeginScene();
-            vis->Render();
-            vis->EndScene();
         }
 
         actuator.Update(time);

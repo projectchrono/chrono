@@ -25,7 +25,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Find ROS
 #-----------------------------------------------------------------------------
 
-find_package(ROS2)
+find_package(ROS2 QUIET)
 if (NOT ROS2_FOUND)
   message(WARNING "Chrono::ROS requires ROS 2, but ROS 2 was not found; disabling Chrono::ROS.")
   set(ENABLE_MODULE_ROS OFF CACHE BOOL "Enable the Chrono::ROS module" FORCE)
@@ -41,7 +41,7 @@ endforeach()
 
 # Find ROS packages
 set(_required_ros_packages rclcpp rcl_interfaces std_msgs geometry_msgs sensor_msgs tf2_ros tf2_msgs)
-set(_optional_ros_packages chrono_ros_interfaces interactive_markers)
+set(_optional_ros_packages chrono_ros_interfaces)
 
 foreach(_package IN LISTS _required_ros_packages)
   find_package(${_package} QUIET)
@@ -62,7 +62,6 @@ foreach(_package IN LISTS _optional_ros_packages)
 endforeach()
 
 set(CH_ROS_HAS_INTERFACES ${chrono_ros_interfaces_FOUND})
-set(CH_ROS_HAS_INTERACTIVE_MARKER ${interactive_markers_FOUND})
 
 list(REMOVE_DUPLICATES CH_ROS_INCLUDES)
 list(REMOVE_DUPLICATES CH_ROS_LINKED_LIBRARIES)
@@ -107,12 +106,6 @@ set(CH_ROS_HANDLER_FILES
   handlers/ChROSHandlerUtilities.h
   handlers/ChROSHandlerUtilities.cpp
 )
-if (${CH_ROS_HAS_INTERACTIVE_MARKER})
-  list(APPEND CH_ROS_HANDLER_FILES
-    handlers/ChROSInteractiveMarkerHandler.h
-    handlers/ChROSInteractiveMarkerHandler.cpp
-  )
-endif()
 source_group("handler" FILES ${CH_ROS_HANDLER_FILES})
 
 set(CH_ROS_VEHICLE_HANDLER_FILES "")
@@ -178,9 +171,6 @@ list(APPEND CH_ROS_LIBRARIES ChronoModels_robot)
 if (CH_ROS_HAS_INTERFACES)
   target_compile_definitions(ChronoEngine_ros PUBLIC -DCHRONO_ROS_HAS_INTERFACES)
 endif()
-if (CH_ROS_HAS_INTERACTIVE_MARKER)
-  target_compile_definitions(ChronoEngine_ros PUBLIC -DCHRONO_ROS_HAS_INTERACTIVE_MARKER)
-endif()
 
 if (ENABLE_MODULE_VEHICLE)
 	list(APPEND CH_ROS_LIBRARIES ChronoEngine_vehicle)
@@ -204,7 +194,6 @@ endif()
 set(CH_ROS_INCLUDES   "${CH_ROS_INCLUDES}"   PARENT_SCOPE)
 set(CH_ROS_LIBRARIES  "${CH_ROS_LIBRARIES}"  PARENT_SCOPE)
 set(CH_ROS_HAS_INTERFACES ${CH_ROS_HAS_INTERFACES} PARENT_SCOPE)
-set(CH_ROS_HAS_INTERACTIVE_MARKER ${CH_ROS_HAS_INTERACTIVE_MARKER} PARENT_SCOPE)
 
 # windows builds should disable warning 4661 and 4005
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

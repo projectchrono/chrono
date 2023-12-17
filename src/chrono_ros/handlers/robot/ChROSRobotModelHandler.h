@@ -21,6 +21,10 @@
 
 #include "chrono_ros/ChROSHandler.h"
 
+#ifdef CHRONO_PARSERS_URDF
+    #include "chrono_parsers/ChParserURDF.h"
+#endif
+
 #include "rclcpp/publisher.hpp"
 #include "std_msgs/msg/string.hpp"
 
@@ -34,17 +38,22 @@ namespace ros {
 /// RViz expects a string containing the robot model. We don't really need to publish this at a high rate, so it's
 /// recommended to set updated_rate to a very large value. We'll be setting the QoS to be local transient, meaning late
 /// joiners will still receive the message even if it's already been published.
-///
-/// In addition to the aforementioned logic, we'll parse the robot model string and update all filename paths to be
-/// absolute. This then ensures that RViz will be able to find the meshes and textures.
 class ChROSRobotModelHandler : public ChROSHandler {
   public:
     /// Constructor.
-    /// The robot model will be loaded in the constructor.
     /// The topic name defaults to "/robot_description".
     ChROSRobotModelHandler(double update_rate,
-                           const std::string& robot_model_filename,
+                           const std::string& robot_model,
                            const std::string& topic_name = "/robot_description");
+
+#ifdef CHRONO_PARSERS_URDF
+    /// Constructor.
+    /// This constructor takes a ChParserURDF object. A ChParserURDF::CustomProcessor will be created to parse the file
+    /// to resolve relative filenames to be a URI.
+    ChROSRobotModelHandler(double update_rate,
+                           chrono::parsers::ChParserURDF& parser,
+                           const std::string& topic_name = "/robot_description");
+#endif
 
     /// Initializes the handler. This creates the publisher for the robot model topic.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
@@ -55,13 +64,8 @@ class ChROSRobotModelHandler : public ChROSHandler {
     virtual void Tick(double time) override;
 
   private:
-    /// Loads the robot model from the given filename and returns the string. The robot model filenames will be updated
-    /// to be absolute paths.
-    std::string LoadRobotModel(const std::string& filename);
-
-  private:
-    const std::string m_topic_name;   ///< name of the topic to publish to
-    const std::string m_robot_model;  ///< the robot model string to publish
+    const std::string m_topic_name;  ///< name of the topic to publish to
+    std::string m_robot_model;       ///< the robot model string to publish
 
     std_msgs::msg::String m_msg;
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr m_publisher;

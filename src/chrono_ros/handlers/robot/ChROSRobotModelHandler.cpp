@@ -20,20 +20,124 @@
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 #include <fstream>
-#include <filesystem>
 
 namespace chrono {
 namespace ros {
 
 ChROSRobotModelHandler::ChROSRobotModelHandler(double update_rate,
-                                               const std::string& robot_model_filename,
+                                               const std::string& robot_model,
                                                const std::string& topic_name)
-    : ChROSHandler(update_rate), m_robot_model(LoadRobotModel(robot_model_filename)), m_topic_name(topic_name) {}
+    : ChROSHandler(update_rate), m_robot_model(robot_model), m_topic_name(topic_name) {}
+
+#ifdef CHRONO_PARSERS_URDF
+class CustomProcessorFilenameResolver : public chrono::parsers::ChParserURDF::CustomProcessor {
+  public:
+    CustomProcessorFilenameResolver(const std::string& filename)
+        : m_filepath(filesystem::path(filename).parent_path().str()) {}
+
+    /// This method will parse the links and resolve each filename to be an absolute path.
+    virtual void Process(tinyxml2::XMLElement& elem, ChSystem& system) override {
+        // filename exists in visual/geometry/mesh, visual/material, and collision/geometry/mesh
+        for (tinyxml2::XMLElement* vis = elem.FirstChildElement("visual");  //
+             vis;                                                           //
+             vis = elem.NextSiblingElement("visual")                        //
+        ) {
+            // Geometry is required
+            tinyxml2::XMLElement* geom = vis->FirstChildElement("geometry");
+            if (!ParseGeometry(geom)) {
+                std::cerr << "Failed to parse visual/geometry." << std::endl;
+                return;
+            }
+
+            // Material is optional
+            if (tinyxml2::XMLElement* mat = vis->FirstChildElement("material")) {
+                if (!ParseMaterial(mat)) {
+                    std::cerr << "Failed to parse visual/material." << std::endl;
+                    return;
+                }
+            }
+        }
+
+        for (tinyxml2::XMLElement* col = elem.FirstChildElement("collision");  //
+             col;                                                              //
+             col = elem.NextSiblingElement("collision")                        //
+        ) {
+            // Geometry is required
+            tinyxml2::XMLElement* geom = col->FirstChildElement("geometry");
+            if (!ParseGeometry(geom)) {
+                std::cerr << "Failed to parse collision/geometry." << std::endl;
+                return;
+            }
+        }
+    }
+
+  private:
+    bool ParseGeometry(tinyxml2::XMLElement* geom) {
+        if (!geom || !geom->FirstChildElement())
+            return false;
+
+        if (tinyxml2::XMLElement* shape = geom->FirstChildElement(); std::string(shape->Value()) == "mesh") {
+            shape->SetAttribute("filename", ResolveFilename(shape->Attribute("filename")).c_str());
+        }
+
+        return true;
+    }
+
+    bool ParseMaterial(tinyxml2::XMLElement* mat) {
+        if (tinyxml2::XMLElement* tex = mat->FirstChildElement("texture")) {
+            tex->SetAttribute("filename", ResolveFilename(tex->Attribute("filename")).c_str());
+        }
+
+        return true;
+    }
+
+    /// rviz2 expects URI. Convert all the url filenames (i.e. don't have ://) to an absolute path prefixed with
+    /// file://.
+    std::string ResolveFilename(const std::string& filename) {
+        std::string resolved_filename = filename;
+
+        const std::string separator("://");
+        const size_t pos_separator = filename.find(separator);
+        if (pos_separator == std::string::npos) {
+            filesystem::path path(filename);
+            if (!path.is_absolute())
+                path = (filesystem::path(m_filepath) / path).make_absolute();
+            else
+                path = filesystem::path(filename);
+            resolved_filename = "file://" + path.str();
+        }
+
+        return resolved_filename;
+    }
+
+  private:
+    const std::string m_filepath;
+};
+
+ChROSRobotModelHandler::ChROSRobotModelHandler(double update_rate,
+                                               chrono::parsers::ChParserURDF& parser,
+                                               const std::string& topic_name)
+    : ChROSHandler(update_rate), m_topic_name(topic_name) {
+    auto filename = parser.GetFilename();
+    auto xml = parser.CustomProcess("link", std::make_shared<CustomProcessorFilenameResolver>(filename));
+    if (!xml) {
+        std::cerr << "Failed to parse RobotModel file: " << filename << std::endl;
+        return;
+    }
+
+    tinyxml2::XMLPrinter printer;
+    xml->Print(&printer);
+    m_robot_model = printer.CStr();
+}
+#endif
 
 bool ChROSRobotModelHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     auto node = interface->GetNode();
 
+    // rviz expects the QoS to use TRANSIENT_LOCAL.
     auto qos = rclcpp::QoS(rclcpp::KeepLast(1)).durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
     m_publisher = node->create_publisher<std_msgs::msg::String>(m_topic_name, qos);
 
@@ -44,30 +148,6 @@ bool ChROSRobotModelHandler::Initialize(std::shared_ptr<ChROSInterface> interfac
 
 void ChROSRobotModelHandler::Tick(double time) {
     m_publisher->publish(m_msg);
-}
-
-std::string ChROSRobotModelHandler::LoadRobotModel(const std::string& filename) {
-    // The robot model files used in chrono are relative to the chrono data directory
-    // ROS expects the file to be absolute, so we'll convert that here
-    auto robot_model_path = std::filesystem::canonical(filename).parent_path().string();
-
-    const std::string to_replace = "filename=\"./";
-    const std::string replacement = "filename=\"file://" + robot_model_path + "/";
-
-    // Read input file into XML string
-    std::string line;
-    std::string robot_model;
-    std::fstream file(filename, std::fstream::in);
-    while (std::getline(file, line)) {
-        size_t pos = line.find(to_replace);
-        if (pos != std::string::npos)
-            line.replace(pos, to_replace.size(), replacement);
-
-        robot_model += (line + "\n");
-    }
-    file.close();
-
-    return robot_model;
 }
 
 }  // namespace ros

@@ -77,13 +77,13 @@ int main(int argc, char* argv[]) {
     ////parser.EnableCollisionVisualization();
 
     // Display raw XML string
-    std::cout << "\nURDF input\n" << std::endl;
-    std::cout << parser.GetXMLstring() << std::endl;
+    // std::cout << "\nURDF input\n" << std::endl;
+    // std::cout << parser.GetXMLstring() << std::endl;
 
     // Report parsed elements
-    parser.PrintModelBodyTree();
-    parser.PrintModelBodies();
-    parser.PrintModelJoints();
+    // parser.PrintModelBodyTree();
+    // parser.PrintModelBodies();
+    // parser.PrintModelJoints();
 
     // Create the Chrono model
     parser.PopulateSystem(sys);
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     // Optional custom processing
     std::cout << "\nCustom processing example - scan elements \"link\"\n" << std::endl;
     class MyCustomProcessor : public ChParserURDF::CustomProcessor {
-        virtual void Process(const tinyxml2::XMLElement& element, ChSystem& system) override {
+        virtual void Process(tinyxml2::XMLElement& element, ChSystem& system) override {
             std::cout << "Process element: " << element.Name() << std::endl;
             if (element.FirstChildElement()) {
                 std::cout << "   First child name: " << element.FirstChildElement()->Name() << std::endl;
