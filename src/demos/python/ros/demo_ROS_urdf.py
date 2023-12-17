@@ -150,7 +150,7 @@ def main():
     # Create a robot model handler that will publish the URDF file as a string for rviz to load
     # The QoS of this publisher is set to transient local, meaning we can publish once and late subscribers will still
     # receive the message. We do this by setting the update rate to infinity.
-    robot_model_handler = chros.ChROSRobotModelHandler(float("inf"), robot_urdf)
+    robot_model_handler = chros.ChROSRobotModelHandler(float("inf"), robot)
     ros_manager.RegisterHandler(robot_model_handler)
 
     # Finally, initialize the ROS manager

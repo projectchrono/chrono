@@ -28,9 +28,12 @@ For more detail, read the [Chrono::ROS](@ref manual_ros) section of the referenc
 ## Optional Dependencies
 
   - Some features (detailed in the [reference manual](@ref manual_ros)) are conditionally built based on some optional dependencies. These dependencies include:
-    - `interactive_markers`
     - [chrono_ros_interfaces](https://github.com/projectchrono/chrono_ros_interfaces)
   - To build URDF support for Chrono::ROS, you will also need to enable the [Chrono::Parsers](@ref module_parsers_installation) module.
+
+<div class="ce-info">
+NOTE: If you enable Chrono::Parsers with URDF support and you're using a ROS 2 distribution new than Iron, ensure the `urdfdom_DIR` is set <i>not</i> to the ROS 2 installation. The `ChParserURDF` class uses a newer version of urdfdom.
+</div>
 
 ## Building instructions
 

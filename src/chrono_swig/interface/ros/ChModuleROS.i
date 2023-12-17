@@ -14,6 +14,21 @@
 //  'import pychrono.ros'
 
 
+%define MODULEIMPORT
+"
+try:
+  if __package__ or "." in __name__:
+      from . import _ros
+  else:
+      import _ros
+except Exception as e:
+  import os
+  if "ROS_DISTRO" not in os.environ or "AMENT_PREFIX_PATH" not in os.environ:
+    raise Exception("Cannot import ros. It appears like you haven't sourced your ROS installation.")
+  raise e
+"
+%enddef
+
 %module(directors="1") ros
 
 
@@ -70,10 +85,6 @@
 #ifdef CHRONO_ROS_HAS_INTERFACES
 #include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
 #include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
-#endif
-
-#ifdef CHRONO_ROS_HAS_INTERACTIVE_MARKER
-#include "chrono_ros/handlers/ChROSInteractiveMarkerHandler.h"
 #endif
 
 using namespace chrono;
@@ -144,10 +155,6 @@ using namespace chrono::ros;
 %shared_ptr(chrono::ros::ChROSViperDCMotorControlHandler)
 #endif
 
-#ifdef CHRONO_ROS_HAS_INTERACTIVE_MARKER
-%shared_ptr(chrono::ros::ChROSInteractiveMarkerHandler)
-#endif
-
 
 //
 // B- INCLUDE HEADERS
@@ -197,10 +204,6 @@ using namespace chrono::ros;
 #ifdef CHRONO_ROS_HAS_INTERFACES
 %include "../../../chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
 %include "../../../chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
-#endif
-
-#ifdef CHRONO_ROS_HAS_INTERACTIVE_MARKER
-%include "../../../chrono_ros/handlers/ChROSInteractiveMarkerHandler.h"
 #endif
 
 //
