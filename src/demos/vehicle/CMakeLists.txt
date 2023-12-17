@@ -16,8 +16,6 @@ add_subdirectory(test_rigs)
 add_subdirectory(terrain)
 add_subdirectory(controllers)
 
-add_subdirectory(external_driver)
-
 add_subdirectory(multicore)
 add_subdirectory(articulated_vehicle)
 add_subdirectory(two_cars)
