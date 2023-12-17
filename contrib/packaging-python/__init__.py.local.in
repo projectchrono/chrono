@@ -59,7 +59,6 @@ try:
 except:
     pass
 try:
-    # TODO: How to print error message about ROS not being sourced if importing doesn't succeed
     import _ros
 except:
     pass
