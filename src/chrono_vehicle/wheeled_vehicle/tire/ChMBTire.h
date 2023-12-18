@@ -254,12 +254,13 @@ class MBTireModel : public ChPhysicsItem {
     };
 
     struct Spring3 {
-        int node_c;  // index of central node
-        int node_p;  // index of previous node
-        int node_n;  // index of next node
-        double a0;   // spring free angle
-        double k;    // spring coefficient
-        double c;    // damping coefficient
+        int node_c;     // index of central node
+        int node_p;     // index of previous node
+        int node_n;     // index of next node
+        ChVector<> t0;  // initial normal direction (in wheel frame)
+        double a0;      // spring free angle
+        double k;       // spring coefficient
+        double c;       // damping coefficient
     };
 
     std::vector<Spring2> m_mesh_lin_springs;  // node-node translational springs

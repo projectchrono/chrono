@@ -368,6 +368,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             spring.node_p = node_p;
             spring.node_c = node_c;
             spring.node_n = node_n;
+            spring.t0 = ChVector<>(0, 1, 0);
             spring.a0 = std::asin(length_cross);
             spring.k = m_kB;
             spring.c = m_cB;
@@ -377,6 +378,9 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
 
     // Create transversal rotational springs (node-node and node-rim)
     for (int id = 0; id < m_num_divs; id++) {
+        double phi = id * dphi;
+        ChVector<> t0(-std::sin(phi), 0, std::cos(phi));
+
         // torsional springs connected to the rim at first ring
         {
             int node_p = RimNodeIndex(0, id);
@@ -395,6 +399,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             spring.node_p = node_p;
             spring.node_c = node_c;
             spring.node_n = node_n;
+            spring.t0 = t0;
             spring.a0 = std::asin(length_cross);
             spring.k = m_kB;
             spring.c = m_cB;
@@ -419,6 +424,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             spring.node_p = node_p;
             spring.node_c = node_c;
             spring.node_n = node_n;
+            spring.t0 = t0;
             spring.a0 = std::asin(length_cross);
             spring.k = m_kB;
             spring.c = m_cB;
@@ -443,6 +449,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             spring.node_p = node_p;
             spring.node_c = node_c;
             spring.node_n = node_n;
+            spring.t0 = -t0;
             spring.a0 = std::asin(length_cross);
             spring.k = m_kB;
             spring.c = m_cB;
@@ -663,11 +670,19 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         if (std::abs(angle - spring.a0) < zero_angle)
             continue;
 
-        assert(length_cross > zero_length);
-        cross /= length_cross;
+        if (length_cross > zero_length) {
+            cross /= length_cross;
+        } else {  // colinear points
+            cross = wheel_frame.TransformDirectionLocalToParent(spring.t0);
+        }
 
-        ChVector<> F_p = m_kB * ((angle - spring.a0) / length_p) * Vcross(cross, dir_p);
-        ChVector<> F_n = m_kB * ((angle - spring.a0) / length_n) * Vcross(cross, dir_n);
+        ////auto foo = wheel_frame.TransformDirectionLocalToParent(spring.t0);
+        ////if ((cross - foo).Length() > zero_length) {
+        ////    std::cout << "MESH SPRING  | " << cross << "   |   " << foo << "\n" << std::endl;
+        ////}
+
+        auto F_p = m_kB * ((angle - spring.a0) / length_p) * Vcross(cross, dir_p);
+        auto F_n = m_kB * ((angle - spring.a0) / length_n) * Vcross(cross, dir_n);
 
         nodal_forces[spring.node_p] += -F_p;
         nodal_forces[spring.node_c] += F_p + F_n;
@@ -698,11 +713,19 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         if (std::abs(angle - spring.a0) < zero_angle)
             continue;
 
-        assert(length_cross > zero_length);
-        cross /= length_cross;
+        if (length_cross > zero_length) {
+            cross /= length_cross;
+        } else {  // colinear points
+            cross = wheel_frame.TransformDirectionLocalToParent(spring.t0);
+        }
 
-        ChVector<> F_p = m_kB * ((angle - spring.a0) / length_p) * Vcross(cross, dir_p);
-        ChVector<> F_n = m_kB * ((angle - spring.a0) / length_n) * Vcross(cross, dir_n);
+        ////auto foo = wheel_frame.TransformDirectionLocalToParent(spring.t0);
+        ////if ((cross - foo).Length() > zero_length) {
+        ////    std::cout << "EDGE SPRING  | " << cross << "   |   " << foo << "\n" << std::endl;
+        ////}
+
+        auto F_p = m_kB * ((angle - spring.a0) / length_p) * Vcross(cross, dir_p);
+        auto F_n = m_kB * ((angle - spring.a0) / length_n) * Vcross(cross, dir_n);
 
         m_wheel_force += -F_p;
         nodal_forces[spring.node_c] += F_p + F_n;
