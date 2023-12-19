@@ -613,8 +613,25 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         foreach(CS ${Chrono_CSHARP_VEHICLE_SOURCES})
           list(APPEND CHRONO_CSHARP_SOURCES "${Chrono_CSHARP_VEHICLE_DIR}/${CS}")
         endforeach()
-      endif()   
+      endif() 
 
+      if(Chrono_POSTPROCESS_REQUESTED AND Chrono_POSTPROCESS_AVAILABLE)
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_postprocess")
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_postprocess.dll")
+
+        set(Chrono_CSHARP_POSTPROCESS_DIR "${CHRONO_CSHARP_SOURCE_DIR}/postprocess")
+        file(GLOB Chrono_CSHARP_POSTPROCESS_SOURCES 
+             LIST_DIRECTORIES false 
+             RELATIVE "${Chrono_CSHARP_POSTPROCESS_DIR}" 
+             CONFIGURE_DEPENDS 
+             "${Chrono_CSHARP_POSTPROCESS_DIR}/*.cs")
+        FindDuplicates(Chrono_CSHARP_POSTPROCESS_DUPLICATES "${Chrono_CSHARP_CORE_SOURCES}"
+                                                            "${Chrono_CSHARP_POSTPROCESS_SOURCES}")
+        list(REMOVE_ITEM Chrono_CSHARP_POSTPROCESS_SOURCES ${Chrono_CSHARP_POSTPROCESS_DUPLICATES})
+        foreach(CS ${Chrono_CSHARP_POSTPROCESS_SOURCES})
+           list(APPEND CHRONO_CSHARP_SOURCES "${Chrono_CSHARP_POSTPROCESS_DIR}/${CS}")
+        endforeach()
+       endif()
     endif()
 
   endif()

@@ -75,3 +75,17 @@
 %}
 
 #endif             // --------------------------------------------------------------------- PYTHON
+
+// Include global functions not directly accessible because they're defined outside the ChVector Class
+// TODO: add more. Testing vdot and vcross for now for vehicle module (rollover demo)
+extern double Vdot(const chrono::ChVector<double>& va, const chrono::ChVector<double>& vb);
+extern chrono::ChVector<double> Vcross(const chrono::ChVector<double>& va, const chrono::ChVector<double>& vb);
+
+%inline %{
+    double Vdot(const chrono::ChVector<double>& va, const chrono::ChVector<double>& vb) {
+        return chrono::Vdot(va, vb);
+    }
+    chrono::ChVector<double> Vcross(const chrono::ChVector<double>& va, const chrono::ChVector<double>& vb) {
+        return chrono::Vcross(va, vb);
+    }
+%}

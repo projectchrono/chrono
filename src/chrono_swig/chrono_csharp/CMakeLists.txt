@@ -131,6 +131,74 @@ if(DBG_SCRIPT)
 endif()
 
 #-----------------------------------------------------------------------------
+# MODULE for the postprocess csharp wrapper.
+#-----------------------------------------------------------------------------
+
+if(ENABLE_MODULE_POSTPROCESS)
+
+  message(STATUS "...add CSharp POSTPROCESS module")
+
+  set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/postprocess")
+
+  # Module name
+  set(CH_CSHARP_POSTPROCESS ChronoEngine_csharp_postprocess)
+
+  # Interface files
+  set(CH_CSHARP_POSTPROCESS_MODULE_FILE
+      ../interface/postprocess/ChModulePostprocess.i
+      )
+  
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set_source_files_properties(${CH_CSHARP_POSTPROCESS_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+  endif()
+  set_source_files_properties(${CH_CSHARP_POSTPROCESS_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+
+  # Create the SWIG module.
+  SWIG_ADD_LIBRARY(${CH_CSHARP_POSTPROCESS} LANGUAGE csharp SOURCES ${CH_CSHARP_POSTPROCESS_MODULE_FILE})
+  SWIG_LINK_LIBRARIES(${CH_CSHARP_POSTPROCESS} ChronoEngine ChronoEngine_postprocess)
+
+  # Ensure that the .cs library files are generated in the bin/ directory.
+  set_target_properties(${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME} PROPERTIES
+                        PROJECT_LABEL "${CH_CSHARP_POSTPROCESS}"
+                        OUTPUT_NAME   "${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME}"
+                        LIBRARY_OUTPUT_DIRECTORY "${LIB_OUT_DIR}"
+                        )
+
+  target_compile_definitions(${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
+  target_compile_definitions(${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME} PRIVATE "IGNORE_DEPRECATED_WARNING")
+
+  add_dependencies(${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME} ChronoEngine)
+  add_dependencies(${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME} ChronoEngine_postprocess)
+  add_dependencies(${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME} ${SWIG_MODULE_${CH_CSHARP_CORE}_REAL_NAME})
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    install(TARGETS ${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME}
+            LIBRARY DESTINATION bin)
+  else()
+      install(TARGETS ${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME}
+              LIBRARY DESTINATION lib)
+  endif()
+
+  if (DBG_SCRIPT)
+    message("Module name:     ${CH_CSHARP_POSTPROCESS}")
+    message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME}")
+  endif()
+
+  #---------------------------------------------- Remove duplicates----
+    # Custom command to remove duplicate .cs files from the vehicle directory and log the actions
+  if(WIN32)
+    add_custom_command(
+        TARGET ${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME} POST_BUILD
+        COMMAND PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& {Get-ChildItem '${CMAKE_SWIG_OUTDIR}/*.cs' | ForEach-Object {$name = $_.Name; $fullName = $_.FullName; If (Test-Path ('${PROJECT_BINARY_DIR}/chrono_csharp/core/' + $name)) {Remove-Item $fullName; Write-Host 'Deleted: ' + $fullName}}}"
+        COMMENT "Removing duplicate .cs files from the postprocess module"
+        )
+  endif()
+#------------------------------------------------------Remove duplicates
+
+endif()
+
+
+#-----------------------------------------------------------------------------
 # MODULE for the irrlicht csharp wrapper.
 #-----------------------------------------------------------------------------
 
@@ -219,6 +287,10 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
   if (ENABLE_MODULE_IRRLICHT)
      SWIG_LINK_LIBRARIES(${MODULE_VEHICLE} ChronoEngine_irrlicht ChronoEngine_vehicle_irrlicht)
   endif()
+
+  if (ENABLE_MODULE_POSTPROCESS)
+     SWIG_LINK_LIBRARIES(${MODULE_VEHICLE} ChronoEngine_postprocess)
+  endif()
   
   set_target_properties(${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME} PROPERTIES 
                         PROJECT_LABEL "${MODULE_VEHICLE}"
@@ -236,6 +308,9 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
   if (ENABLE_MODULE_IRRLICHT)
     ADD_DEPENDENCIES(${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME} ${SWIG_MODULE_${CH_CSHARP_IRRLICHT}_REAL_NAME})
   endif()
+  if (ENABLE_MODULE_POSTPROCESS)
+    ADD_DEPENDENCIES(${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME} ${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME})
+  endif()
   
   
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -246,10 +321,21 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
               LIBRARY DESTINATION lib)
   endif()
   
+
   if (DBG_SCRIPT)
     message(STATUS "Module name:     ${MODULE_VEHICLE}")
     message(STATUS "SWIG_REAL_NAME:  ${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME}")
   endif()
+
+#---------------------------------------------- Remove duplicates
+#    # Custom command to remove duplicate .cs files from the vehicle directory and log the actions
+#  if(WIN32)
+#    add_custom_command(
+#        TARGET ${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME} POST_BUILD
+#        COMMAND PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& {Get-ChildItem '${CMAKE_SWIG_OUTDIR}/*.cs' | ForEach-Object {$name = $_.Name; $fullName = $_.FullName; If (Test-Path ('${PROJECT_BINARY_DIR}/chrono_csharp/core/' + $name)) {Remove-Item $fullName; Write-Host 'Deleted: ' + $fullName}}}"
+#        COMMENT "Removing duplicate .cs files from the vehicle module"
+#        )
+#  endif()
 
 endif()
 

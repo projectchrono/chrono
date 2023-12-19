@@ -46,6 +46,10 @@
 
 #include "chrono_models/vehicle/m113/M113.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
+
+#include "chrono_models/vehicle/kraz/Kraz.h"
+#include "chrono_models/vehicle/kraz/Kraz_tractor.h"
+#include "chrono_models/vehicle/kraz/Kraz_trailer.h"
 %}
 
 
@@ -89,6 +93,11 @@
 %shared_ptr(chrono::vehicle::m113::M113_Vehicle_DoublePin)
 %shared_ptr(chrono::vehicle::m113::M113_Vehicle_BandBushing)
 %shared_ptr(chrono::vehicle::m113::M113_Vehicle_BandANCF)
+
+%shared_ptr(chrono::vehicle::kraz::kraz)
+%shared_ptr(chrono::vehicle::kraz::Kraz_tractor)
+%shared_ptr(chrono::vehicle::kraz::Kraz_trailer)
+
 
 #ifdef SWIGCSHARP
 %import "chrono_swig/interface/core/ChMaterialSurface.i"
@@ -148,3 +157,7 @@
 
 %include "../../../chrono_models/vehicle/m113/M113.h"
 %include "../../../chrono_models/vehicle/m113/M113_Vehicle.h"
+
+%include "../../../chrono_models/vehicle/kraz/Kraz.h"
+%include "../../../chrono_models/vehicle/kraz/Kraz_tractor.h"
+%include "../../../chrono_models/vehicle/kraz/Kraz_trailer.h"
