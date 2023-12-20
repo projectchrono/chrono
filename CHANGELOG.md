@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Updated ChBlender exporter to Blender4.0](#changed-updated-chblender-exporter-to-blender40)
+  - [Added unilateral distance constraint](#added-added-unilateral-distance-constraint)
   - [Collision detection refactoring](#changed-collision-detection-refactoring)
   - [Application of terrain forces to vehicle systems](#changed-application-of-terrain-forces-to-vehicle-systems)
   - [Modifications to the HHT integrator](#changed-modifications-to-the-hht-integrator)
@@ -93,6 +95,17 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Updated ChBlender exporter to Blender4.0
+Due to some obsoleted methods the ChBlender exported was not compatible with the latest Blender4.0. It is now updated.
+
+### [Added] Added unilateral distance constraint
+The `ChLinkDistance` has been expanded to include also unilateral distance constraints. Through `SetMode`/`GetMode` three different behaviours are now available:
++ `BILATERAL` (default): current_distance = imposed_distance;
++ `UNILATERAL_MAXDISTANCE`: current_distance < imposed_distance; (e.g. a rope)
++ `UNILATERAL_MINDISTANCE`: current_distance > imposed_distance;
+
+For the latter two cases a [*VI* solver](https://api.projectchrono.org/development/simulation_system.html#solvers) is required since the unilateral constraints are non-smooth.
 
 ### [Changed] Collision detection refactoring
 

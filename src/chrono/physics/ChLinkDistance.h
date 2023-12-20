@@ -25,6 +25,12 @@ namespace chrono {
 /// owner ChBody, and the amount of the distance is assumed not to change during the simulation.
 class ChApi ChLinkDistance : public ChLink {
   public:
+    enum class Mode {
+        BILATERAL,               ///< bilateral joint
+        UNILATERAL_MAXDISTANCE,  ///< unilateral, imposed max distance, current <= imposed
+        UNILATERAL_MINDISTANCE   ///< unilateral, imposed min distance, current >= imposed
+    };
+
     ChLinkDistance();
     ChLinkDistance(const ChLinkDistance& other);
     ~ChLinkDistance() {}
@@ -41,7 +47,8 @@ class ChApi ChLinkDistance : public ChLink {
                    ChVector<> mpos2,  ///< pos. of distance endpoint, for 2nd body (rel. or abs., see flag above)
                    bool auto_distance =
                        true,  ///< if true, initializes the imposed distance as the distance between mpos1 and mpos2
-                   double mdistance = 0  ///< imposed distance (no need to define, if auto_distance=true.)
+                   double mdistance = 0,        ///< imposed distance (no need to define, if auto_distance=true.)
+                   Mode mode = Mode::BILATERAL  ///< set distance constraining mode
     );
 
     /// Get the number of (bilateral) constraints introduced by this link.
@@ -78,6 +85,14 @@ class ChApi ChLinkDistance : public ChLink {
 
     /// Get the distance currently existing between the two endpoints
     double GetCurrentDistance() const { return curr_dist; }
+
+    /// Set link mode
+    /// The joint can act as bilateral or unilateral; in this latter case, it can either limit the maximum or minimum
+    /// distance; if in unilateral mode, a VI solver is required!
+    void SetMode(Mode mode);
+
+    /// Get link mode
+    Mode GetMode() const { return this->mode; }
 
     /// Get the constraint violation
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return C; }
@@ -128,6 +143,8 @@ class ChApi ChLinkDistance : public ChLink {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
+    Mode mode;                 ///< current mode
+    double mode_sign;          ///< current mode
     double distance;           ///< imposed distance
     double curr_dist;          ///< current distance
     ChVector<> pos1;           ///< first endpoint, in body rel. coords
