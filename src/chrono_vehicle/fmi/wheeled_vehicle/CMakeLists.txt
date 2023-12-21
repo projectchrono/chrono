@@ -1,0 +1,78 @@
+set(COMPONENT_NAME "wheeled_vehicle_FMU")
+set(COMPONENT_SOURCES wheeled_vehicle_FMU.h wheeled_vehicle_FMU.cpp)
+set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_irrlicht)
+set(COMPONENT_DLL_DEPENDENCIES "")
+set(FMU_HOST_SOURCES FmuHost.cpp)
+
+#--------------------------------------------------------------
+
+# Set include paths, compiler & linker flags, and libraries
+include_directories(${CH_INCLUDES})
+set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
+list(APPEND LIBS "ChronoEngine")
+
+if(ENABLE_MODULE_IRRLICHT)
+  include_directories(${CH_IRRLICHT_INCLUDES})
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+  list(APPEND LIBS "ChronoEngine_irrlicht")
+endif()
+
+#==============================================================
+
+message(STATUS "   FetchContent(fmu_tools)")
+
+set(FMU_MODEL_IDENTIFIER ${COMPONENT_NAME} CACHE INTERNAL "FMU Model Identifier: should fulfill operating system and C-function naming standards.")
+set(BUILD_FMU_HOST OFF CACHE INTERNAL "Enable fmu_host.")
+set(USE_EXTERNAL_FMU_COMPONENT_SOURCES ON CACHE INTERNAL "")
+set(USE_CUSTOM_TYPESPLATFORM OFF CACHE INTERNAL "")
+set(FMU_MSG_PREFIX "   - ")
+
+FetchContent_Declare(
+    ${FMU_MODEL_IDENTIFIER}
+    SOURCE_DIR ${FMU_TOOLS_DIR}
+)
+
+FetchContent_MakeAvailable(${FMU_MODEL_IDENTIFIER})
+
+string(TOUPPER ${FMU_MODEL_IDENTIFIER} FMU_MODEL_IDENTIFIER_UPPERCASE)
+MARK_AS_ADVANCED(FETCHCONTENT_BASE_DIR)
+MARK_AS_ADVANCED(FETCHCONTENT_FULLY_DISCONNECTED)
+MARK_AS_ADVANCED(FETCHCONTENT_QUIET)
+MARK_AS_ADVANCED(FETCHCONTENT_SOURCE_DIR_${FMU_MODEL_IDENTIFIER_UPPERCASE})
+MARK_AS_ADVANCED(FETCHCONTENT_UPDATES_DISCONNECTED)
+MARK_AS_ADVANCED(FETCHCONTENT_UPDATES_DISCONNECTED_${FMU_MODEL_IDENTIFIER_UPPERCASE})
+
+#--------------------------------------------------------------
+
+add_dependencies(${FMU_MODEL_IDENTIFIER} ${COMPONENT_CHRONO_DEPENDENCIES})
+
+# add FMU source files to target
+target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE ${COMPONENT_SOURCES})
+
+set_target_properties(${FMU_MODEL_IDENTIFIER} PROPERTIES FOLDER demos COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
+target_link_libraries(${FMU_MODEL_IDENTIFIER} ${LIBS})  
+
+# set target binary output directory 
+set_target_properties(${FMU_MODEL_IDENTIFIER}
+                      PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${FMU_RUNTIME_OUTPUT_DIRECTORY}
+                                 RUNTIME_OUTPUT_DIRECTORY_DEBUG ${FMU_RUNTIME_OUTPUT_DIRECTORY})
+
+#---------------------------------------------------------------
+
+if(BUILD_FMU_HOST)
+  target_sources(fmu_host_${FMU_MODEL_IDENTIFIER} PRIVATE ${FMU_HOST_SOURCES})
+endif()
+
+#---------------------------------------------------------------
+
+set(FMU_MODEL_IDENTIFIER ${FMU_MODEL_IDENTIFIER} PARENT_SCOPE)
+set(FMU_MAIN_DIRECTORY "${CMAKE_BINARY_DIR}/${FMU_MODEL_IDENTIFIER}" PARENT_SCOPE)
+set(FMU_FILENAME "${CMAKE_BINARY_DIR}/${FMU_MODEL_IDENTIFIER}/${FMU_MODEL_IDENTIFIER}.fmu" PARENT_SCOPE)
+set(FMU_RUNTIME_OUTPUT_DIRECTORY ${FMU_RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(FMU_COMPONENT_DLL_DEPENDENCIES ${COMPONENT_DLL_DEPENDENCIES} PARENT_SCOPE)
+else()
+  set(FMU_COMPONENT_DLL_DEPENDENCIES "" PARENT_SCOPE)
+endif()
+
