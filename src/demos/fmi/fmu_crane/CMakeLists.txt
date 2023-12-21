@@ -21,12 +21,13 @@ endif()
 #==============================================================
 
 message(STATUS "...add ${COMPONENT_NAME}")
-message(STATUS "FetchContent(fmu_tools) --------------")
+message(STATUS "   FetchContent(fmu_tools)")
 
 set(FMU_MODEL_IDENTIFIER "${COMPONENT_NAME}" CACHE INTERNAL "FMU Model Identifier: should fulfill operating system and C-function naming standards.")
 set(BUILD_FMU_HOST OFF CACHE INTERNAL "Enable fmu_host.")
 set(USE_EXTERNAL_FMU_COMPONENT_SOURCES ON CACHE INTERNAL "")
 set(USE_CUSTOM_TYPESPLATFORM OFF CACHE INTERNAL "")
+set(FMU_MSG_PREFIX "   - ")
 
 FetchContent_Declare(
     ${FMU_MODEL_IDENTIFIER}
