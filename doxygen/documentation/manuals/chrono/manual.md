@@ -30,10 +30,12 @@ Chrono Reference Manual {#manual_root}
 
 * @subpage markers
 
-* @subpage collision_shapes
-	* [Collision models](@ref collision_models)
-	* [Collision families](@ref collision_families)
-	* [Collision materials](@ref collision_materials)
+* @subpage collisions
+	* [Collision Models and Shapes](@ref collision_models_shapes)
+	* [Collision Families](@ref collision_families)
+	* [Collision Materials](@ref collision_materials)
+	* [Collision Tolerances](@ref collision_tolerances)
+	* [Collision Callbacks](@ref collision_callbacks)
 
 * @subpage visualization_system
 	* [Visualization models](@ref manual_vismodel)

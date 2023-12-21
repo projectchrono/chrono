@@ -83,7 +83,7 @@ The following example illustrates it.
 
 ## 1) Create a ChMesh 
 
-- Create the mesh (do this using std::make_shared, so it will be handled by a shared pointer, and you will not worry about deleting it)
+- Create the mesh (do this using chrono_types::make_shared, so it will be handled by a shared pointer, and you will not worry about deleting it)
 - Add the mesh to a physical system:
 
 ~~~{.cpp}
@@ -92,7 +92,7 @@ The following example illustrates it.
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
@@ -107,10 +107,10 @@ The following example illustrates it.
 ~~~{.cpp}
     // Create some point-like nodes with x,y,z degrees of freedom
     // While creating them, also set X0 undeformed positions.
-    auto mnode1 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnode2 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 1));
-    auto mnode3 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
-    auto mnode4 = std::make_shared<ChNodeFEAxyz>(ChVector<>(1, 0, 0));
+    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 1));
+    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(1, 0, 0));
     
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnode1);
@@ -140,7 +140,7 @@ The following example illustrates it.
 
 ~~~{.cpp}
 	// Create a material, that will be assigned to each element,
-    auto mmaterial = std::make_shared<ChContinuumElastic>();
+    auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
 
     // …and set its parameters
     mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
@@ -156,7 +156,7 @@ The following example illustrates it.
 
 ~~~{.cpp}
 	// Create the tetrahedron element, 
-    auto melement1 = std::make_shared<ChElementTetraCorot_4>();
+    auto melement1 = chrono_types::make_shared<ChElementTetraCorot_4>();
     
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melement1);
