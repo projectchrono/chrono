@@ -73,6 +73,9 @@ int main(int argc, char* argv[]) {
     ////mat.kn = 2.5e6;
     ////parser.SetBodyContactMaterial("head", mat);  // hardcoded for R2D2 model
 
+    // Optional: enable visualization of collision geometry
+    ////parser.EnableCollisionVisualization();
+
     // Display raw XML string
     std::cout << "\nURDF input\n" << std::endl;
     std::cout << parser.GetXMLstring() << std::endl;

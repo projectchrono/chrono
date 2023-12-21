@@ -254,6 +254,7 @@ void ChGenericWheeledSuspension::DefineRSDA(const std::string& name,
         m_rsdas.insert({{name, -1}, r});
     } else {
         m_rsdas.insert({{name, 0}, r});
+        r.axis *= ChVector<>(-1, 0, -1);
         m_rsdas.insert({{name, 1}, r});
     }
 }
@@ -592,6 +593,20 @@ std::vector<ChSuspension::ForceTSDA> ChGenericWheeledSuspension::ReportSuspensio
     }
 
     return forces;
+}
+
+std::vector<ChSuspension::ForceRSDA> ChGenericWheeledSuspension::ReportSuspensionTorque(VehicleSide side) const {
+    std::vector<ChSuspension::ForceRSDA> torques;
+
+    for (const auto& item : m_rsdas) {
+        if (item.first.side != side)
+            continue;
+        auto rsda = item.second.rsda;
+        torques.push_back(
+            ChSuspension::ForceRSDA(item.first.name, rsda->GetTorque(), rsda->GetAngle(), rsda->GetVelocity()));
+    }
+
+    return torques;
 }
 
 void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {

@@ -166,6 +166,17 @@ void ChExternalDynamics::IntLoadResidual_Mv(const unsigned int off,      // offs
     R.segment(off, m_nstates) += c * v.segment(off, m_nstates);
 }
 
+void ChExternalDynamics::IntLoadLumpedMass_Md(const unsigned int off,
+                                              ChVectorDynamic<>& Md,
+                                              double& error,
+                                              const double c  
+) {
+    if (!IsActive())
+        return;
+
+    Md.segment(off, m_nstates).array() += c * 1.0;
+}
+
 void ChExternalDynamics::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                          const ChStateDelta& v,
                                          const ChVectorDynamic<>& R,
@@ -193,8 +204,8 @@ void ChExternalDynamics::IntFromDescriptor(const unsigned int off_v,  // offset 
 
 void ChExternalDynamics::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
     if (IsStiff()) {
-        // Recall to flip sign to load K = -dQ/dx and R = -dQ/dv
-        m_KRM.Get_K() = -Rfactor * m_jac;
+        // Recall to flip sign to load R = -dQ/dv (K is zero here)
+        m_KRM.Get_K() = Mfactor * ChMatrixDynamic<>::Identity(m_nstates, m_nstates) - Rfactor * m_jac;
     }
 }
 

@@ -37,7 +37,7 @@ ChSystemSMC::ChSystemSMC(bool use_material_properties)
       m_adhesion_model(AdhesionForceModel::Constant),
       m_tdispl_model(OneStep),
       m_stiff_contact(false),
-      m_force_algo(new ChDefaultContactForceSMC) {
+      m_force_algo(new ChDefaultContactForceTorqueSMC) {
     descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
     SetSolverType(ChSolver::Type::PSOR);
@@ -64,7 +64,7 @@ void ChSystemSMC::SetSlipVelocityThreshold(double vel) {
     m_minSlipVelocity = std::max(vel, std::numeric_limits<double>::epsilon());
 }
 
-void ChSystemSMC::SetContactForceAlgorithm(std::unique_ptr<ChContactForceSMC>&& algorithm) {
+void ChSystemSMC::SetContactForceTorqueAlgorithm(std::unique_ptr<ChContactForceTorqueSMC>&& algorithm) {
     m_force_algo = std::move(algorithm);
 }
 

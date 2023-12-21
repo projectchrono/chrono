@@ -76,7 +76,9 @@
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
+#ifdef CHRONO_COLLISION
 #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
+#endif
 
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -217,7 +219,9 @@ using namespace chrono::fea;
 
 %shared_ptr(chrono::ChCollisionSystem)
 %shared_ptr(chrono::ChCollisionSystemBullet)
+#ifdef CHRONO_COLLISION
 %shared_ptr(chrono::ChCollisionSystemMulticore)
+#endif
 
 %shared_ptr(chrono::ChCollisionSystem::BroadphaseCallback)
 %shared_ptr(chrono::ChCollisionSystem::NarrowphaseCallback)
@@ -348,8 +352,9 @@ using namespace chrono::fea;
 %include "ChCollisionInfo.i"
 %include "../../../chrono/collision/ChCollisionSystem.h"
 %include "../../../chrono/collision/bullet/ChCollisionSystemBullet.h"
+#ifdef CHRONO_COLLISION
 %include "../../../chrono/collision/multicore/ChCollisionSystemMulticore.h"
-
+#endif
 
 // motion_functions/   classes
 %include "ChFunction.i"
@@ -490,8 +495,9 @@ using namespace chrono::fea;
 
 
 %DefSharedPtrDynamicDowncast(chrono, ChCollisionSystem, ChCollisionSystemBullet)
+#ifdef CHRONO_COLLISION
 %DefSharedPtrDynamicDowncast(chrono, ChCollisionSystem, ChCollisionSystemMulticore)
-
+#endif
 
 %DefSharedPtrDynamicDowncast(chrono, ChBodyFrame, ChBody)
 %DefSharedPtrDynamicDowncast(chrono, ChBodyFrame, ChBodyAuxRef)

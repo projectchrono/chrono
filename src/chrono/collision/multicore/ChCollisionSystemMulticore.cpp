@@ -20,6 +20,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChParticleCloud.h"
+#include "chrono/utils/ChProfiler.h"
 
 #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #include "chrono/collision/multicore/ChRayTest.h"
@@ -301,15 +302,21 @@ void ChCollisionSystemMulticore::Run() {
     }
 
     // Broadphase
-    m_timer_broad.start();
-    GenerateAABB();
-    broadphase.Process();
-    m_timer_broad.stop();
+    {
+        CH_PROFILE("Broad-phase");
+        m_timer_broad.start();
+        GenerateAABB();
+        broadphase.Process();
+        m_timer_broad.stop();
+    }
 
     // Narrowphase
-    m_timer_narrow.start();
-    narrowphase.Process();
-    m_timer_narrow.stop();
+    {
+        CH_PROFILE("Narrow-phase");
+        m_timer_narrow.start();
+        narrowphase.Process();
+        m_timer_narrow.stop();
+    }
 }
 
 // -----------------------------------------------------------------------------
