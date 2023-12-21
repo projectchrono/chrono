@@ -16,13 +16,27 @@ MESSAGE(STATUS "\n==== Chrono FMI module ====\n")
 # -------------------------------------------------
 
 if (BUILD_SHARED_LIBS)
-  message(NOTICE "For FMI support, Chrono must be configured and built in static mode (as suggested by FMI reference).")
-  message("Chrono FMI module disabled.")
+  message(NOTICE "For FMI support, Chrono must be configured and built in static mode (as suggested by FMI reference). Disable 'BUILD_SHARED_LIBS'.")
+  message(NOTICE "Chrono FMI module disabled.")
   set(ENABLE_MODULE_FMI OFF CACHE BOOL "Enable the Chrono::FMI module" FORCE)
   return()
 endif()
 
+if(MSVC)
+  if (NOT USE_MSVC_STATIC_RUNTIME)
+    message(NOTICE "For FMI support on Windows, Chrono must be configured and built with a statically-linked runtime library. Enable 'USE_MSVC_STATIC_RUNTIME'.")
+    message(NOTICE "Chrono FMI module disabled.")
+    set(ENABLE_MODULE_FMI OFF CACHE BOOL "Enable the Chrono::FMI module" FORCE)
+    return()
+  endif()
+endif()
+
 set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/../../fmu_tools/" CACHE PATH "Path to fmu_tools.")
+if(NOT EXISTS "${FMU_TOOLS_DIR}")
+  message(NOTICE "Set `FMU_TOOLS_DIR` to the directory containing the fmu_tools' utilities.")
+  message(NOTICE "Chrono FMI module not functional.")
+  return()
+endif()
 
 # -------------------------------------------------
 # Set Architecture and Operating System Flags
@@ -53,7 +67,6 @@ if(UNKNOWN_TARGET_SYSTEM)
     set(TARGET_SYSTEM "win64" CACHE STRING "Target operating system and architecture (e.g. win64, linux32, ...)")
     mark_as_advanced(CLEAR TARGET_SYSTEM)
 else()
-    message(STATUS "Architecture: ${FMI_PLATFORM}")
     mark_as_advanced(FORCE TARGET_SYSTEM)
 endif()
 
