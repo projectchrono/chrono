@@ -53,7 +53,8 @@ class ChVector {
     const Real& y() const { return m_data[1]; }
     const Real& z() const { return m_data[2]; }
 
-    /// Return const pointer to underlying array storage.
+    /// Access to underlying array storage.
+    Real* data() { return m_data; }
     const Real* data() const { return m_data; }
 
     // EIGEN INTER-OPERABILITY
