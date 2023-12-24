@@ -94,7 +94,10 @@ void ChWheel::Synchronize() {
     if (!m_tire)
         return;
 
-    auto tire_force = m_tire->GetTireForce();
+    Synchronize(m_tire->GetTireForce());
+}
+
+void ChWheel::Synchronize(const TerrainForce& tire_force) {
     m_spindle_terrain_force->SetForce(tire_force.force, false);
     m_spindle_terrain_force->SetApplicationPoint(tire_force.point, false);
     m_spindle_terrain_torque->SetTorque(tire_force.moment, false);
