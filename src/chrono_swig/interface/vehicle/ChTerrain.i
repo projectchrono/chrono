@@ -15,7 +15,9 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_vehicle/terrain/SCMTerrain.h"
-
+#ifdef SWIGCSHARP
+    #include "chrono_vehicle/terrain/CRGTerrain.h"
+#endif
 #include "chrono_thirdparty/rapidjson/document.h"
 %}
 
@@ -49,6 +51,10 @@
 %shared_ptr(chrono::vehicle::SCMTerrain)
 %shared_ptr(chrono::vehicle::SCMTerrain::SoilParametersCallback)
 
+#ifdef SWIGCSHARP
+%shared_ptr(chrono::vehicle::CRGTerrain)
+#endif
+
 %template(ChPatchList) std::vector<std::shared_ptr<chrono::vehicle::RigidTerrain::Patch>>;
 
 // Parse the header file to generate wrappers
@@ -63,4 +69,6 @@
 %pointer_functions(double, doublep)
 %include "../../../chrono_vehicle/terrain/SCMTerrain.h"
 
-//%include "../../../chrono_vehicle/terrain/CRGTerrain.h"
+#ifdef SWIGCSHARP
+%include "../../../chrono_vehicle/terrain/CRGTerrain.h"
+#endif

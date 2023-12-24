@@ -163,6 +163,7 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 
 %template(ChVectorDynamicD) chrono::ChVectorDynamic<double>;
 
+#ifdef SWIGPYCHRONO //------------------------------Python
 %extend chrono::ChVectorDynamic<double>{
 		public:
 			double __getitem__(int i) {
@@ -188,7 +189,36 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 						}
 				}
 		};
-		
+#endif // -----------------------------------------Python
+
+#ifdef SWIGCSHARP //------------------------------CSharp
+%extend chrono::ChVectorDynamic<double>{
+		public:
+			double GetItem(int i) {
+				return (*$self)(i,1);
+				}
+			void SetItem(int i, double v) {
+				(*$self)(i, 1) = v;
+				}
+
+			const int Size() {
+				const int r = $self->rows();
+				return r;
+				}
+			void GetVectorData(double* p, int len) {
+				for (int i = 0; i < len; i++){
+					p[i] =  (double)(*$self)(i, 1);
+						}
+				}
+			void SetVect(int numel, double* q){
+				($self)->resize(numel);
+				for (int i = 0; i < numel; i++){
+					(*$self)(i, 1) = q[i];
+						}
+				}
+		};
+#endif // -----------------------------------------Csharp
+
 %template(ChVectorDynamicI) chrono::ChVectorDynamic<int>;
 
 %extend chrono::ChVectorDynamic<int>{

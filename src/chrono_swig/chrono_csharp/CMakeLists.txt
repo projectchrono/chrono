@@ -83,6 +83,41 @@ else()
 endif()
 
 #-----------------------------------------------------------------------------
+# Post build duplicate removal - for windows and unix (untested)
+#-----------------------------------------------------------------------------
+# Checks againt the binary directory (core) and removes duplicates in the glob directory (each module)
+function(add_csharp_postbuild_command target_name glob_dir binary_dir)
+    if(WIN32)
+        # Windows-specific command
+        add_custom_command(
+            TARGET ${target_name} POST_BUILD
+            #COMMAND ${CMAKE_COMMAND} -E echo "Removing duplicate .cs files from ${target_name} (Windows)"
+            COMMAND for %%f in ("${binary_dir}\\*.cs") do (
+                if exist "${glob_dir}\\%%~nxf" (
+                    ${CMAKE_COMMAND} -E remove "${glob_dir}\\%%~nxf"
+                )
+            )
+            COMMENT "Removed all detected duplicate .cs files wrapped from ${target_name}"
+        )
+    else()
+        # Unix (possibly MacOS) specific command
+        add_custom_command(
+            TARGET ${target_name} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E echo "Removing duplicate .cs files from ${target_name} (Unix-like)"
+            COMMAND for f in "${binary_dir}"/*.cs; do (
+                if [ -f "${glob_dir}"/$(basename "$f") ]; then (
+                    ${CMAKE_COMMAND} -E remove "${glob_dir}"/$(basename "$f")
+                )
+            ) done
+            COMMENT "Removed all detected duplicate .cs files wrapped from ${target_name}"
+        )
+    endif()
+endfunction()
+
+
+
+
+#-----------------------------------------------------------------------------
 # Wrapper for CORE Chrono module
 #-----------------------------------------------------------------------------
 
@@ -184,19 +219,18 @@ if(ENABLE_MODULE_POSTPROCESS)
     message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME}")
   endif()
 
-  #---------------------------------------------- Remove duplicates----
-    # Custom command to remove duplicate .cs files from the vehicle directory and log the actions
-  if(WIN32)
-    add_custom_command(
-        TARGET ${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME} POST_BUILD
-        COMMAND PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& {Get-ChildItem '${CMAKE_SWIG_OUTDIR}/*.cs' | ForEach-Object {$name = $_.Name; $fullName = $_.FullName; If (Test-Path ('${PROJECT_BINARY_DIR}/chrono_csharp/core/' + $name)) {Remove-Item $fullName; Write-Host 'Deleted: ' + $fullName}}}"
-        COMMENT "Removing duplicate .cs files from the postprocess module"
-        )
-  endif()
+#------------------------------------------------------Remove duplicates
+#Uncomment for use
+#    # Custom command to remove duplicate .cs files from the vehicle directory and log the actions
+#    set(GLOB_DIR ${CMAKE_SWIG_OUTDIR})
+#    set(BINARY_DIR ${PROJECT_BINARY_DIR}/chrono_csharp/core)
+#
+#    # Call the function for the vehicle module
+#    add_csharp_postbuild_command(${SWIG_MODULE_${CH_CSHARP_POSTPROCESS}_REAL_NAME} ${GLOB_DIR} ${BINARY_DIR})
+#
 #------------------------------------------------------Remove duplicates
 
 endif()
-
 
 #-----------------------------------------------------------------------------
 # MODULE for the irrlicht csharp wrapper.
@@ -327,15 +361,16 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
     message(STATUS "SWIG_REAL_NAME:  ${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME}")
   endif()
 
-#---------------------------------------------- Remove duplicates
+#------------------------------------------------------Remove duplicates
+#Uncomment for use
 #    # Custom command to remove duplicate .cs files from the vehicle directory and log the actions
-#  if(WIN32)
-#    add_custom_command(
-#        TARGET ${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME} POST_BUILD
-#        COMMAND PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& {Get-ChildItem '${CMAKE_SWIG_OUTDIR}/*.cs' | ForEach-Object {$name = $_.Name; $fullName = $_.FullName; If (Test-Path ('${PROJECT_BINARY_DIR}/chrono_csharp/core/' + $name)) {Remove-Item $fullName; Write-Host 'Deleted: ' + $fullName}}}"
-#        COMMENT "Removing duplicate .cs files from the vehicle module"
-#        )
-#  endif()
+#    set(GLOB_DIR ${CMAKE_SWIG_OUTDIR})
+#    set(BINARY_DIR ${PROJECT_BINARY_DIR}/chrono_csharp/core)
+#
+#    # Call the function for the vehicle module
+#    add_csharp_postbuild_command(${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME} ${GLOB_DIR} ${BINARY_DIR})
+#
+#------------------------------------------------------Remove duplicates
 
 endif()
 
@@ -345,3 +380,5 @@ endif()
 install(DIRECTORY ${CMAKE_SWIG_OUTDIR}/
         DESTINATION include/chrono_csharp
         FILES_MATCHING PATTERN "*.cs")
+
+

@@ -35,6 +35,9 @@
 
 #endif             // --------------------------------------------------------------------- PYTHON
 
+#ifdef SWIGCSHARP //--------------------------------------------------------------------------CSHARP
+#include "chrono_vehicle/driver/ChHumanDriver.h"
+#endif            //--------------------------------------------------------------------------CSHARP
 %}
 
 #ifdef SWIGPYCHRONO
@@ -81,6 +84,12 @@
 #endif
 #endif             // --------------------------------------------------------------------- PYTHON
 
+#ifdef SWIGCSHARP //--------------------------------------------------------------------------CSHARP
+%shared_ptr(chrono::vehicle::ChHumanDriver)
+#endif            //--------------------------------------------------------------------------CSHARP
+
+
+
 // Are these python specific?
 %rename(DriverInputs) chrono::vehicle::ChDriver::Inputs;
 %rename(DataDriverEntry) chrono::vehicle::ChDataDriver::Entry;
@@ -106,6 +115,8 @@
 %include "../../../chrono_vehicle/utils/ChSteeringController.h"
 %include "../../../chrono_vehicle/utils/ChAdaptiveSpeedController.h"
 
+
+
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 #ifdef CHRONO_IRRLICHT
@@ -124,3 +135,7 @@
 #endif
 
 #endif             // --------------------------------------------------------------------- PYTHON
+
+#ifdef SWIGCSHARP //--------------------------------------------------------------------------CSHARP
+%include "../../../chrono_vehicle/driver/ChHumanDriver.h"
+#endif            //--------------------------------------------------------------------------CSHARP
