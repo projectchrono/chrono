@@ -1,5 +1,5 @@
 
-Shared pointers                 {#shared_pointers}
+Shared Pointers                 {#shared_pointers}
 ==============================
 
 In Chrono, most of the 'heavyweight objects', such as rigid bodies, links, etc., are managed

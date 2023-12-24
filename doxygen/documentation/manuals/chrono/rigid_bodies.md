@@ -66,7 +66,7 @@ Remarks:
 - Calls such as mybody->GetPos(), mybody->GetRot(), mybody->GetPos_dt(), mybody->GetWvel(), etc., will report the kinematic quantities ''for the COG frame''. If you need those of the REF, do mybody->GetFrame_REF_to_abs().GetPos(), etc.
 - The REF frame is used for
   - [collision shapes](@ref collisions)
-  - [visualization model](@ref visualization_system)
+  - [visualization assets](@ref visualization_system)
 
 The following is a short example on how to set the position 
 of the body using the REF frame:
@@ -127,6 +127,6 @@ See @ref chrono::ChConveyor "ChConveyor" for API details.
 
 # Examples
 See:
-- [demo_crank](@ref tutorial_demo_crank)
-- [demo_buildsystem](@ref tutorial_demo_buildsystem)
-- [demo_conveyor](@ref tutorial_demo_conveyor)
+- [demo_CH_buildsystem](@ref tutorial_demo_buildsystem)
+- [demo_MBS_crank](@ref tutorial_demo_crank)
+- [demo_MBS_conveyor](@ref tutorial_demo_conveyor)

@@ -8,7 +8,7 @@ The contact problem includes two different aspects:
 - **collision detection**: finding the point pairs that are, or may come, in contact in the next future;
 - **contact formulation**: defining the reaction forces between shapes in contact.
 
-### Contact Formulation
+<h4> Contact Formulation </h4>
 As described in the [ChSystem manual](@ref manual_ChSystem), Chrono can setup two different kind of systems, depending on the contact method:
 
 - \ref chrono::ChSystemNSC "ChSystemNSC" implements **Non Smooth Contacts** (NSC):
@@ -25,13 +25,13 @@ As described in the [ChSystem manual](@ref manual_ChSystem), Chrono can setup tw
 
 Users should carefully consider which system fits better their needs, since timesteps might differ up to two or three orders of magnitude. On the contrary, the two system types are completely equivalente if no collisions are involved.
 
-### Collision Detection
+<h4> Collision Detection </h4>
 
 In Chrono, two different collision systems are available:
-+ a customized version of [Bullet](https://github.com/bulletphysics/bullet3);
-+ an in-house multicore collision engine (enabled only if Thrust is available on the machine).
++ \ref chrono::ChCollisionSystemBullet "ChCollisionSystemBullet": a customized version of [Bullet](https://github.com/bulletphysics/bullet3);
++ \ref chrono::ChCollisionSystemMulticore "ChCollisionSystemMulticore": an in-house multicore collision engine (enabled only if Thrust is available on the machine).
 
-The choice between these two is made by calling \ref chrono::ChSystem::SetCollisionSystemType "ChSystem::SetCollisionSystemType". For example:
+The choice between these two is made by calling \ref chrono::ChSystem::SetCollisionSystemType "ChSystem::SetCollisionSystemType" on \ref chrono::ChSystem "ChSystem". For example:
 
 ~~~{.cpp}
 sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -56,11 +56,13 @@ Collision objects for the \ref chrono::ChBody "ChBody" classes are discussed mor
 
 Each \ref chrono::ChBody "ChBody" (as well as any other object derived from \ref chrono::ChContactable "ChContactable") carries information about its collision properties through a \ref chrono::ChCollisionModel "ChCollisionModel" object. The _ChCollisionModel_ object may contain multiple \ref chrono::ChCollisionShape "ChCollisionShape"s, each of which carrying a geometric shape object together with its [Collision Surface Material](#collision_materials).
 
-Each \ref chrono::ChBody "ChBody" contains:
-  + \ref chrono::ChCollisionModel "ChCollisionModel", that contains (multiple):
-    + \ref chrono::ChCollisionShape "ChCollisionShape", each of which containing:
-      + \ref chrono::geometry::ChGeometry "ChGeometry"
-      + \ref chrono::ChMaterialSurface "ChMaterialSurface"
+Each \ref chrono::ChBody "ChBody" may contain a:
++ \ref chrono::ChCollisionModel "ChCollisionModel", that contains (multiple):
+ + \ref chrono::ChCollisionShape "ChCollisionShape", each of which containing:
+   + \ref chrono::geometry::ChGeometry "ChGeometry"
+   + \ref chrono::ChMaterialSurface "ChMaterialSurface"
+
+A similar structure can be found also for the [Visualization System](#visualization_system).
 
 Actually, as many other objects in Chrono, items within the *ChCollisionModel* are stored through pointers, so to allow to easily share them across different bodies. This is very useful especially for *ChMaterialSurface* objects.
 
@@ -113,7 +115,9 @@ Please note that:
 
 - collision shapes and visualization assets do not need to match; e.g. one may have a detailed visualization shape for rendering purposes, yet the collision shape being much simpler to avoid a slowdown of the simulation.
 
-- avoid shapes that are too thin, too flat or in general that lead to extreme size ratios 
+- avoid shapes that are too thin, too flat or in general that lead to extreme size ratios
+- 
+- to retrieve the contact forces acting on a body: \ref chrono::ChBody::GetContactForce() "ChBody::GetContactForce()" and similarly for torques;
 
 
 # Collision Families {#collision_families}
