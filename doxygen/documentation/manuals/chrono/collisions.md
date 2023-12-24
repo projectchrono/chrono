@@ -62,7 +62,7 @@ Each \ref chrono::ChBody "ChBody" may contain a:
    + \ref chrono::geometry::ChGeometry "ChGeometry"
    + \ref chrono::ChMaterialSurface "ChMaterialSurface"
 
-A similar structure can be found also for the [Visualization System](#visualization_system).
+A similar structure can be found also for the [Visualization System](@ref visualization_system).
 
 Actually, as many other objects in Chrono, items within the *ChCollisionModel* are stored through pointers, so to allow to easily share them across different bodies. This is very useful especially for *ChMaterialSurface* objects.
 

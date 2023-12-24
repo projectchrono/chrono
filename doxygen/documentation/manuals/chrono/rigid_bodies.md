@@ -1,10 +1,10 @@
 ﻿
-Rigid bodies      {#rigid_bodies}
+Rigid Bodies      {#rigid_bodies}
 ============
 
 Rigid bodies play an important role in Chrono as they represent parts of mechanisms.  
 You can add a rigid body using different methods:
- - [using chrono::ChBody directly](@ref manual_ChBody); in this case, the body will not come with any visualization asset nor collision shape: you will need to add them in a second step;
+ - [using ChBody directly](@ref manual_ChBody); in this case, the body will not come with any visualization asset nor collision shape: you will need to add them in a second step;
  - [using 'Easy' bodies](@ref manual_easybodies); if you need basic shapes (sphere, cylinder, box, convex hull, cluster of spheres) this is the way to go; the visualization and collision shapes are (optionally) added automatically;
 
 Rigid bodies are not the only option. Chrono can simulate also flexible finite-elements bodies. Please refer to [FEA manual](@ref manual_fea) for a description of the FEA capabilities.
@@ -97,9 +97,9 @@ The syntax differs among the different classes, but basically is of the type
 
 ~~~{.cpp}
 auto mySphere = chrono_types::make_shared<ChBodyEasySphere>(4,      // radius
-                                                   8000,   // density
-                                                   true,   // visualization enabled
-                                                   true);  // collision enabled
+                                                            8000,   // density
+                                                            true,   // visualization enabled
+                                                            true);  // collision enabled
 system.Add(mySphere);
 ~~~
 
