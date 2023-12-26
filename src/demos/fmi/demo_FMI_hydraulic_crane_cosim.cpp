@@ -37,8 +37,8 @@ using namespace chrono;
 
 // -----------------------------------------------------------------------------
 
-std::string actuator_unpack_directory = ACTUATOR_FMU_MAIN_DIRECTORY + std::string("/.") + ACTUATOR_FMU_MODEL_IDENTIFIER;
-std::string crane_unpack_directory = CRANE_FMU_MAIN_DIRECTORY + std::string("/.") + CRANE_FMU_MODEL_IDENTIFIER;
+std::string actuator_unpack_directory = ACTUATOR_FMU_DIRECTORY + std::string("/.") + ACTUATOR_FMU_MODEL_IDENTIFIER;
+std::string crane_unpack_directory = CRANE_FMU_DIRECTORY + std::string("/.") + CRANE_FMU_MODEL_IDENTIFIER;
 
 // -----------------------------------------------------------------------------
 
