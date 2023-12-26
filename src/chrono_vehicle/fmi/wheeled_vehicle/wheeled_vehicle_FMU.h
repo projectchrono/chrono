@@ -2,12 +2,16 @@
 
 // #define FMI2_FUNCTION_PREFIX MyModel_
 #include <FmuToolsExport.h>
+#include <string>
 #include <vector>
 #include <array>
 
-#include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChHydraulicActuator.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono_vehicle/ChConfigVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+#endif
 
 class FmuComponent : public FmuComponentBase {
   public:
@@ -29,24 +33,53 @@ class FmuComponent : public FmuComponentBase {
     virtual bool is_cosimulation_available() const override { return true; }
     virtual bool is_modelexchange_available() const override { return false; }
 
-    void CalculateActuatorForce();
-    void CalculatePistonPressures();
-    void CalculateValvePosition();
+    void AddFmuVecVariable(chrono::ChVector<>& v,
+                           const std::string& name,
+                           const std::string& unit_name,
+                           const std::string& description,
+                           FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
+                           FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous);
+    void AddFmuQuatVariable(chrono::ChQuaternion<>& q,
+                            const std::string& name,
+                            const std::string& unit_name,
+                            const std::string& description,
+                            FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
+                            FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous);
 
-    chrono::ChSystemSMC sys;
+    void CreateVehicle();
+    void ConfigureSystem();
+    void SynchronizeVehicle(double time);
+    void CalculateVehicleOutputs();
 
-    double s;       // actuator length (FMU input)
-    double sd;      // actuator length rate (FMU input)
-    double F;       // actuator force (FMU output)
-    double Uref;    // input signal (FMU input)
-    double init_F;  // initial load (FMU initialization input)
+    /// Exchange data for vehicle wheels.
+    struct WheelData {
+        std::shared_ptr<chrono::vehicle::ChWheel> wheel;
+        std::string identifier;
+        chrono::vehicle::WheelState state;
+        chrono::vehicle::TerrainForce load;
+    };
 
-    double p1;  // piston pressure 1
-    double p2;  // piston pressure 2
-    double U;   // valve position
+    std::shared_ptr<chrono::vehicle::WheeledVehicle> vehicle;  ///< underlying wheeled vehicle
 
-    std::shared_ptr<chrono::ChHydraulicActuator2> m_actuator;
-    std::shared_ptr<chrono::ChFunction_Setpoint> m_actuation;
+#ifdef CHRONO_IRRLICHT
+    std::shared_ptr<chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht> vis_sys;
+#endif
+
+    // FMU parameters
+    std::string vehicle_JSON;       ///< JSON vehicle specification file
+    std::string engine_JSON;        ///< JSON engine specification file
+    std::string transmission_JSON;  ///< JSON transmission specification file
+    fmi2Boolean system_SMC = true;  ///< use SMC contact formulation (NSC otherwise)
+    fmi2Boolean vis = false;        ///< enable/disable run-time visualization
+    chrono::ChVector<> init_loc;    ///< initial vehicle location
+    double init_yaw;                ///< initial vehicle orientation
+    double step_size;               ///< integration step size
+
+    // FMU outputs and inputs for co-simulation
+    chrono::vehicle::DriverInputs driver_inputs;  ///< vehicle control inputs
+    std::array<WheelData, 4> wheel_data;          ///< wheel state and applied forces
+
+    //// TODO - more outputs
 };
 
 // Create an instance of this FMU

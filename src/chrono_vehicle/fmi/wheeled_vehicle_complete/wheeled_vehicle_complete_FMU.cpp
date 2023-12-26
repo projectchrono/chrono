@@ -1,20 +1,17 @@
 
 // #define FMI2_FUNCTION_PREFIX MyModel_
 #include <cassert>
-#include <vector>
-#include <array>
 #include <map>
 #include <algorithm>
 
-#include "chrono/physics/ChLoadContainer.h"
-#include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono/serialization/ChArchive.h"
-
+#include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_fmi/FmuToolsChrono.h"
 
 #include "wheeled_vehicle_complete_FMU.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
     : FmuComponentBase(_instanceName, _fmuType, _fmuGUID) {
@@ -22,179 +19,170 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     initializeType(_fmuType);
 
     // Set initial values for FMU input variables
-    F = 0;
+    driver_inputs = {0, 0, 0, 0};
+    terrain_height = {0.0, 0.0, 0.0, 0.0};
+    terrain_normal = {ChVector<>(0, 0, 1), ChVector<>(0, 0, 1), ChVector<>(0, 0, 1), ChVector<>(0, 0, 1)};
 
     // Set configuration flags for this FMU
     AddFmuVariable(&vis, "vis", FmuVariable::Type::Boolean, "1", "enable visualization",         //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
 
     // Set FIXED PARAMETERS for this FMU
-    AddFmuVariable(&crane_mass, "crane_mass", FmuVariable::Type::Real, "kg", "crane mass",                   //
-                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);              //
-    AddFmuVariable(&crane_length, "crane_length", FmuVariable::Type::Real, "m", "crane length",              //
-                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);              //
-    AddFmuVariable(&pend_mass, "pend_mass", FmuVariable::Type::Real, "kg", "pendulum mass",                  //
-                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);              //
-    AddFmuVariable(&pend_length, "pend_length", FmuVariable::Type::Real, "m", "pendulum length",             //
-                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);              //
-    AddFmuVariable(&init_crane_angle, "crane_angle", FmuVariable::Type::Real, "rad", "initial crane angle",  //
-                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);              //
+    AddFmuVariable(&vehicle_JSON, "vehicle_JSON", FmuVariable::Type::String, "1", "vehicle JSON",                 //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);                   //
+    AddFmuVariable(&tire_JSON, "tire_JSON", FmuVariable::Type::String, "1", "tire JSON",                          //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);                   //
+    AddFmuVariable(&engine_JSON, "engine_JSON", FmuVariable::Type::String, "1", "engine JSON",                    //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);                   //
+    AddFmuVariable(&transmission_JSON, "transmission_JSON", FmuVariable::Type::String, "1", "transmission JSON",  //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);                   //
 
-    // Set CONTINOUS INPUTS and OUTPUTS for this FMU
-    AddFmuVariable(&init_F, "init_F", FmuVariable::Type::Real, "N", "initial load",                //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&s, "s", FmuVariable::Type::Real, "m", "actuator length",                       //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&sd, "sd", FmuVariable::Type::Real, "m/s", "actuator length rate",              //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&F, "F", FmuVariable::Type::Real, "N", "actuator force",                        //
-                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
+    AddFmuVariable(&system_SMC, "system_SMC", FmuVariable::Type::Boolean, "1", "use SMC system",  //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);   //
 
-    // Hardcoded mount points
-    m_point_ground = ChVector<>(std::sqrt(3.0) / 2, 0, 0);
-    m_point_crane = ChVector<>(0, 0, 0);
+    AddFmuVariable(&init_loc.x(), "init_loc_x", FmuVariable::Type::Real, "m", "initial location X",  //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);      //
+    AddFmuVariable(&init_loc.y(), "init_loc_y", FmuVariable::Type::Real, "m", "initial location Y",  //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);      //
+    AddFmuVariable(&init_loc.z(), "init_loc_z", FmuVariable::Type::Real, "m", "initial location Z",  //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);      //
+    AddFmuVariable(&init_yaw, "init_yaw", FmuVariable::Type::Real, "rad", "initial location Z",      //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);      //
 
-    // Initial crane and pendulum positions
-    ChVector<> crane_pos(0.5 * crane_length * std::cos(init_crane_angle), 0,
-                         0.5 * crane_length * std::sin(init_crane_angle));
-    ChVector<> pend_pos = 2.0 * crane_pos + ChVector<>(0, 0, -pend_length);
+    AddFmuVariable(&step_size, "step_size", FmuVariable::Type::Real, "s", "integration step size",  //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);     //
 
-    // Set gravitational acceleration
-    ChVector<> Gacc(0, 0, -9.8);
-    sys.Set_G_acc(Gacc);
+    // Set CONTINOUS INPUTS for this FMU
+    AddFmuVariable(&driver_inputs.m_steering, "steering", FmuVariable::Type::Real, "1", "steering input",  //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
+    AddFmuVariable(&driver_inputs.m_throttle, "throttle", FmuVariable::Type::Real, "1", "throttle input",  //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
+    AddFmuVariable(&driver_inputs.m_braking, "braking", FmuVariable::Type::Real, "1", "braking input",     //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
+    AddFmuVariable(&driver_inputs.m_clutch, "clutch", FmuVariable::Type::Real, "1", "clutch input",        //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
 
-    // Estimate initial required force (moment balance about crane pivot)
-    auto Gtorque = Vcross(crane_mass * Gacc, crane_pos) + Vcross(pend_mass * Gacc, pend_pos);
-    auto dir = (crane_pos - m_point_ground).GetNormalized();
-    init_F = Gtorque.Length() / Vcross(dir, crane_pos).Length();  // mass balance about crane pivot
+    AddFmuVariable(&terrain_height[0], "height_FL", FmuVariable::Type::Real, "m", "terrain height FL",  //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);        //
+    AddFmuVariable(&terrain_height[1], "height_FR", FmuVariable::Type::Real, "m", "terrain height FR",  //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);        //
+    AddFmuVariable(&terrain_height[2], "height_RL", FmuVariable::Type::Real, "m", "terrain height RL",  //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);        //
+    AddFmuVariable(&terrain_height[3], "height_RR", FmuVariable::Type::Real, "m", "terrain height RR",  //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);        //
 
-    // Visualization of connection points
-    auto connection_sph = chrono_types::make_shared<ChVisualShapeSphere>(0.02);
-    connection_sph->SetColor(ChColor(0.7f, 0.3f, 0.3f));
-
-    // Create bodies
-    auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
-    ground->AddVisualShape(connection_sph, ChFrame<>());
-    ground->AddVisualShape(connection_sph, ChFrame<>(m_point_ground, QUNIT));
-    sys.AddBody(ground);
-
-    m_crane = chrono_types::make_shared<ChBody>();
-    m_crane->SetMass(crane_mass);
-    m_crane->SetPos(crane_pos);
-    m_crane->SetRot(Q_from_AngY(-init_crane_angle));
-    m_crane->AddVisualShape(connection_sph, ChFrame<>(m_point_crane, QUNIT));
-    m_crane->AddVisualShape(connection_sph, ChFrame<>(ChVector<>(crane_length / 2, 0, 0), QUNIT));
-    auto crane_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.015, crane_length);
-    m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
-    sys.AddBody(m_crane);
-
-    auto ball = chrono_types::make_shared<ChBody>();
-    ball->SetMass(pend_mass);
-    ball->SetPos(pend_pos);
-    auto ball_sph = chrono_types::make_shared<ChVisualShapeSphere>(0.04);
-    ball->AddVisualShape(ball_sph);
-    auto ball_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.005, pend_length);
-    ball->AddVisualShape(ball_cyl, ChFrame<>(ChVector<>(0, 0, pend_length / 2), QUNIT));
-    sys.AddBody(ball);
-
-    // Create joints
-    auto rev_joint = chrono_types::make_shared<ChLinkRevolute>();
-    rev_joint->Initialize(ground, m_crane, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-    sys.AddLink(rev_joint);
-
-    auto sph_joint = chrono_types::make_shared<ChLinkLockSpherical>();
-    sph_joint->Initialize(m_crane, ball, ChCoordsys<>(2.0 * crane_pos, QUNIT));
-    sys.AddLink(sph_joint);
-
-    // Create an external force load on crane
-    auto load_container = std::make_shared<ChLoadContainer>();
-    m_external_load = chrono_types::make_shared<ChLoadBodyForce>(m_crane, VNULL, false, VNULL, false);
-    load_container->Add(m_external_load);
-    sys.Add(load_container);
-
-    // Set solver and integrator
-    auto solver = chrono_types::make_shared<ChSolverSparseQR>();
-    sys.SetSolver(solver);
-    solver->UseSparsityPatternLearner(true);
-    solver->LockSparsityPattern(true);
-    solver->SetVerbose(false);
-
-    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
-    auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
-    integrator->SetMaxiters(50);
-    integrator->SetAbsTolerances(1e-4, 1e2);
-
-    // Initialize FMU outputs (in case they are queried before the first step)
-    CalculateActuatorLength();
+    //// TODO terrain normals
 
     // Specify functions to process input variables (at beginning of step)
-    preStepCallbacks.push_back([this]() { this->ProcessActuatorForce(); });
+    preStepCallbacks.push_back([this]() { this->SynchronizeVehicle(this->GetTime()); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    postStepCallbacks.push_back([this]() { this->CalculateActuatorLength(); });
+    postStepCallbacks.push_back([this]() { this->CalculateVehicleOutputs(); });
 }
 
-void FmuComponent::ProcessActuatorForce() {
-    // Set actuator force (F received from outside)
-    const auto& P1 = m_point_ground;
-    auto P2 = m_crane->TransformPointLocalToParent(m_point_crane);
-    ChVector<> dir = (P2 - P1).GetNormalized();
-    ChVector<> force = F * dir;
-    m_external_load->SetForce(force, false);
-    m_external_load->SetApplicationPoint(P2, false);
+void FmuComponent::CreateVehicle() {
+    // Create the vehicle system
+    vehicle = chrono_types::make_shared<WheeledVehicle>(vehicle_JSON,
+                                                        system_SMC ? ChContactMethod::SMC : ChContactMethod::NSC);
+    vehicle->Initialize(ChCoordsys<>(init_loc, Q_from_AngZ(init_yaw)));
+    vehicle->GetChassis()->SetFixed(false);
+
+    //// TODO: allow setting through FMU variables
+    vehicle->SetChassisVisualizationType(VisualizationType::MESH);
+    vehicle->SetChassisRearVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle->SetSubchassisVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle->SetWheelVisualizationType(VisualizationType::MESH);
+
+    // Create and initialize the powertrain system
+    auto engine = ReadEngineJSON(engine_JSON);
+    auto transmission = ReadTransmissionJSON(transmission_JSON);
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+    vehicle->InitializePowertrain(powertrain);
+
+    // Create and initialize the tires
+    for (auto& axle : vehicle->GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            auto tire = ReadTireJSON(tire_JSON);
+            vehicle->InitializeTire(tire, wheel, VisualizationType::MESH);
+        }
+    }
 }
 
-void FmuComponent::CalculateActuatorLength() {
-    const auto& P1 = m_point_ground;
-    const auto& V1 = VNULL;
+void FmuComponent::ConfigureSystem() {
+    // Containing system
+    auto system = vehicle->GetSystem();
 
-    auto P2 = this->m_crane->TransformPointLocalToParent(m_point_crane);
-    auto V2 = this->m_crane->PointSpeedLocalToParent(m_point_crane);
+    // Associate a collision system
+    system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    ChVector<> dir = (P2 - P1).GetNormalized();
+    // Modify solver settings if the vehicle model contains bushings
+    if (vehicle->HasBushings()) {
+        auto solver = chrono_types::make_shared<ChSolverMINRES>();
+        system->SetSolver(solver);
+        solver->SetMaxIterations(150);
+        solver->SetTolerance(1e-10);
+        solver->EnableDiagonalPreconditioner(true);
+        solver->EnableWarmStart(true);
+        solver->SetVerbose(false);
 
-    s = (P2 - P1).Length();   // actuator length
-    sd = Vdot(dir, V2 - V1);  // actuator length rate
+        step_size = std::min(step_size, 2e-4);
+        system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    }
 }
 
-void FmuComponent::_preModelDescriptionExport() {
-    _exitInitializationMode();
-    ////ChArchiveFmu archive_fmu(*this);
-    ////archive_fmu << CHNVP(sys);
+void FmuComponent::SynchronizeVehicle(double time) {
+    //// TODO
+    ////vehicle->Synchronize(time, driver_inputs, terrain);
+    if (vis) {
+#ifdef CHRONO_IRRLICHT
+        vissys->Synchronize(time, driver_inputs);
+#endif
+    }
 }
+
+void FmuComponent::CalculateVehicleOutputs() {
+    //// TODO
+}
+
+void FmuComponent::_preModelDescriptionExport() {}
 
 void FmuComponent::_postModelDescriptionExport() {}
 
 void FmuComponent::_enterInitializationMode() {}
 
 void FmuComponent::_exitInitializationMode() {
+    // Create the vehicle system
+    CreateVehicle();
+
+    // Configure Chrono system
+    ////ConfigureSystem();
+
     // Initialize runtime visualization (if requested and if available)
     if (vis) {
 #ifdef CHRONO_IRRLICHT
         sendToLog("Enable run-time visualization", fmi2Status::fmi2OK, "logAll");
-        vissys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
-        vissys->AttachSystem(&sys);
-        vissys->SetWindowSize(800, 600);
-        vissys->SetWindowTitle("Hydraulic crane");
-        vissys->SetCameraVertical(CameraVerticalDir::Z);
+
+        vissys = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+        vissys->SetWindowTitle("Wheeled Vehicle FMU");
+        vissys->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
         vissys->Initialize();
-        vissys->AddCamera(ChVector<>(0.5, -1, 0.5), ChVector<>(0.5, 0, 0.5));
-        vissys->AddTypicalLights();
+        vissys->AddLightDirectional();
+        vissys->AttachVehicle(vehicle.get());
 #else
         sendToLog("Run-time visualization not available", fmi2Status::fmi2OK, "logAll");
 #endif
     }
-
-    sys.DoFullAssembly();
 }
 
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                  fmi2Real communicationStepSize,
                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
     while (time < currentCommunicationPoint + communicationStepSize) {
-        fmi2Real step_size = std::min((currentCommunicationPoint + communicationStepSize - time),
-                                      std::min(communicationStepSize, stepSize));
+        fmi2Real h = std::min((currentCommunicationPoint + communicationStepSize - time),
+                              std::min(communicationStepSize, step_size));
+        vehicle->Advance(h);
 
         if (vis) {
 #ifdef CHRONO_IRRLICHT
@@ -202,13 +190,14 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
             vissys->BeginScene(true, true, ChColor(0.33f, 0.6f, 0.78f));
             vissys->Render();
             vissys->EndScene();
+
+            vissys->Advance(h);
 #endif
         }
 
-        sys.DoStepDynamics(step_size);
-        sendToLog("time: " + std::to_string(time) + "\n", fmi2Status::fmi2OK, "logAll");
+        ////sendToLog("time: " + std::to_string(time) + "\n", fmi2Status::fmi2OK, "logAll");
 
-        time = time + step_size;
+        time = time + h;
     }
 
     return fmi2Status::fmi2OK;

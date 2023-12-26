@@ -1,19 +1,43 @@
 
 // #define FMI2_FUNCTION_PREFIX MyModel_
 #include <cassert>
-#include <vector>
-#include <array>
 #include <map>
 #include <algorithm>
 
-#include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono/serialization/ChArchive.h"
-
+#include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_fmi/FmuToolsChrono.h"
 
 #include "wheeled_vehicle_FMU.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
+
+void FmuComponent::AddFmuVecVariable(ChVector<>& v,
+                                     const std::string& name,
+                                     const std::string& unit_name,
+                                     const std::string& description,
+                                     FmuVariable::CausalityType causality,
+                                     FmuVariable::VariabilityType variability) {
+    std::string comp[3] = {"x", "y", "z"};
+    for (int i = 0; i < 3; i++) {
+        AddFmuVariable(&v.data()[i], name + "." + comp[i], FmuVariable::Type::Real, unit_name,
+                       description + " (" + comp[i] + ")", causality, variability);
+    }
+}
+
+void FmuComponent::AddFmuQuatVariable(ChQuaternion<>& q,
+                                      const std::string& name,
+                                      const std::string& unit_name,
+                                      const std::string& description,
+                                      FmuVariable::CausalityType causality,
+                                      FmuVariable::VariabilityType variability) {
+    std::string comp[4] = {"e0", "e1", "e2", "e3"};
+    for (int i = 0; i < 4; i++) {
+        AddFmuVariable(&q.data()[i], name + "." + comp[i], FmuVariable::Type::Real, unit_name,
+                       description + " (" + comp[i] + ")", causality, variability);
+    }
+}
 
 FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
     : FmuComponentBase(_instanceName, _fmuType, _fmuGUID) {
@@ -21,105 +45,198 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     initializeType(_fmuType);
 
     // Set initial values for FMU input variables
-    init_F = 0;
-    s = 0;
-    sd = 0;
-    Uref = 0;
+    driver_inputs = {0, 0, 0, 0};
 
-    // Set CONTINOUS INPUTS and OUTPUTS for this FMU
-    AddFmuVariable(&init_F, "init_F", FmuVariable::Type::Real, "N", "initial load",                //
-                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
-    AddFmuVariable(&s, "s", FmuVariable::Type::Real, "m", "actuator length",                       //
-                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
-    AddFmuVariable(&sd, "sd", FmuVariable::Type::Real, "m/s", "actuator length rate",              //
-                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
-    AddFmuVariable(&F, "F", FmuVariable::Type::Real, "N", "actuator force",                        //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&Uref, "Uref", FmuVariable::Type::Real, "1", "input signal",                    //
-                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
+    // Set wheel identifier strings
+    wheel_data[0].identifier = "FL";
+    wheel_data[1].identifier = "FR";
+    wheel_data[2].identifier = "RL";
+    wheel_data[3].identifier = "RR";
 
-    // Set additional CONTINUOUS OUTPUTS from this FMU
-    AddFmuVariable(&p1, "p1", FmuVariable::Type::Real, "N/m2", "piston pressure 1",                //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&p2, "p2", FmuVariable::Type::Real, "N/m2", "piston pressure 2",                //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&U, "U", FmuVariable::Type::Real, "1", "valve position",                        //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
+    // Set configuration flags for this FMU
+    AddFmuVariable(&vis, "vis", FmuVariable::Type::Boolean, "1", "enable visualization",         //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
 
-    // Set gravitational acceleration
-    ChVector<> Gacc(0, 0, -9.8);
-    sys.Set_G_acc(Gacc);
+    // Set FIXED PARAMETERS for this FMU
+    AddFmuVariable(&vehicle_JSON, "vehicle_JSON", FmuVariable::Type::String, "1", "vehicle JSON",                 //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);                   //
+    AddFmuVariable(&engine_JSON, "engine_JSON", FmuVariable::Type::String, "1", "engine JSON",                    //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);                   //
+    AddFmuVariable(&transmission_JSON, "transmission_JSON", FmuVariable::Type::String, "1", "transmission JSON",  //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);                   //
 
-    // Create the actuation object
-    m_actuation = chrono_types::make_shared<ChFunction_Setpoint>();
+    AddFmuVariable(&system_SMC, "system_SMC", FmuVariable::Type::Boolean, "1", "use SMC system",  //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);   //
 
-    // Construct the hydraulic actuator
-    m_actuator = chrono_types::make_shared<ChHydraulicActuator2>();
-    m_actuator->SetInputFunction(m_actuation);
-    m_actuator->Cylinder().SetInitialChamberLengths(0.221, 0.221);
-    m_actuator->Cylinder().SetInitialChamberPressures(3.3e6, 4.4e6);
-    m_actuator->DirectionalValve().SetInitialSpoolPosition(0);
-    sys.Add(m_actuator);
+    AddFmuVecVariable(init_loc, "init_loc", "m", "initial location",                                //
+                      FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
+    AddFmuVariable(&init_yaw, "init_yaw", FmuVariable::Type::Real, "rad", "initial location Z",     //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);     //
+
+    AddFmuVariable(&step_size, "step_size", FmuVariable::Type::Real, "s", "integration step size",  //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);     //
+
+    // Set CONTINOUS INPUTS for this FMU (driver inputs)
+    AddFmuVariable(&driver_inputs.m_steering, "steering", FmuVariable::Type::Real, "1", "steering input",  //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
+    AddFmuVariable(&driver_inputs.m_throttle, "throttle", FmuVariable::Type::Real, "1", "throttle input",  //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
+    AddFmuVariable(&driver_inputs.m_braking, "braking", FmuVariable::Type::Real, "1", "braking input",     //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
+    AddFmuVariable(&driver_inputs.m_clutch, "clutch", FmuVariable::Type::Real, "1", "clutch input",        //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
+
+    // Set CONTINOUS INPUTS and OUTPUTS for this FMU (wheel state and forces)
+    for (int iw = 0; iw < 4; iw++) {
+        std::string prefix = "wheel_" + wheel_data[iw].identifier;
+
+        AddFmuVecVariable(wheel_data[iw].load.force, prefix + "_frc", "N", prefix + " force",            //
+                          FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
+        AddFmuVecVariable(wheel_data[iw].load.moment, prefix + "_trq", "Nm", prefix + " torque",         //
+                          FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
+
+        AddFmuVecVariable(wheel_data[iw].state.pos, prefix + "_pos", "m", prefix + " position",                  //
+                          FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);         //
+        AddFmuQuatVariable(wheel_data[iw].state.rot, prefix + "_rot", "1", prefix + " rotation",                 //
+                           FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);        //
+        AddFmuVecVariable(wheel_data[iw].state.lin_vel, prefix + "_vel", "m/s", prefix + " linear velocity",     //
+                          FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);         //
+        AddFmuVecVariable(wheel_data[iw].state.ang_vel, prefix + "_omg", "rad/s", prefix + " angular velocity",  //
+                          FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);         //
+    }
 
     // Specify functions to process input variables (at beginning of step)
-    preStepCallbacks.push_back([this]() { this->m_actuator->SetActuatorLength(s, sd); });
-    preStepCallbacks.push_back([this]() { this->m_actuation->SetSetpoint(Uref, this->GetTime()); });
+    preStepCallbacks.push_back([this]() { this->SynchronizeVehicle(this->GetTime()); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    postStepCallbacks.push_back([this]() { this->CalculateActuatorForce(); });
-    postStepCallbacks.push_back([this]() { this->CalculatePistonPressures(); });
-    postStepCallbacks.push_back([this]() { this->CalculateValvePosition(); });
+    postStepCallbacks.push_back([this]() { this->CalculateVehicleOutputs(); });
 }
 
-void FmuComponent::CalculateActuatorForce() {
-    F = m_actuator->GetActuatorForce();
+void FmuComponent::CreateVehicle() {
+    // Create the vehicle system
+    vehicle = chrono_types::make_shared<WheeledVehicle>(vehicle_JSON,
+                                                        system_SMC ? ChContactMethod::SMC : ChContactMethod::NSC);
+    vehicle->Initialize(ChCoordsys<>(init_loc, Q_from_AngZ(init_yaw)));
+    vehicle->GetChassis()->SetFixed(false);
+
+    // Cache vehicle wheels
+    wheel_data[0].wheel = vehicle->GetWheel(0, VehicleSide::LEFT);
+    wheel_data[1].wheel = vehicle->GetWheel(0, VehicleSide::RIGHT);
+    wheel_data[2].wheel = vehicle->GetWheel(1, VehicleSide::LEFT);
+    wheel_data[3].wheel = vehicle->GetWheel(1, VehicleSide::RIGHT);
+
+    //// TODO: allow setting through FMU variables
+    vehicle->SetChassisVisualizationType(VisualizationType::MESH);
+    vehicle->SetChassisRearVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle->SetSubchassisVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle->SetWheelVisualizationType(VisualizationType::MESH);
+
+    // Create and initialize the powertrain system
+    auto engine = ReadEngineJSON(engine_JSON);
+    auto transmission = ReadTransmissionJSON(transmission_JSON);
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+    vehicle->InitializePowertrain(powertrain);
 }
 
-void FmuComponent::CalculatePistonPressures() {
-    auto p = m_actuator->GetCylinderPressures();
-    p1 = p[0];
-    p2 = p[1];
+void FmuComponent::ConfigureSystem() {
+    // Containing system
+    auto system = vehicle->GetSystem();
+
+    // Associate a collision system
+    system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
+    // Modify solver settings if the vehicle model contains bushings
+    if (vehicle->HasBushings()) {
+        auto solver = chrono_types::make_shared<ChSolverMINRES>();
+        system->SetSolver(solver);
+        solver->SetMaxIterations(150);
+        solver->SetTolerance(1e-10);
+        solver->EnableDiagonalPreconditioner(true);
+        solver->EnableWarmStart(true);
+        solver->SetVerbose(false);
+
+        step_size = std::min(step_size, 2e-4);
+        system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    }
 }
 
-void FmuComponent::CalculateValvePosition() {
-    U = m_actuator->GetValvePosition();
+void FmuComponent::SynchronizeVehicle(double time) {
+    // Apply tire forces (received from outside) to wheel bodies
+    for (int iw = 0; iw < 4; iw++) {
+        wheel_data[iw].wheel->Synchronize(wheel_data[iw].load);
+    }
+
+    vehicle->Synchronize(time, driver_inputs);
+
+    if (vis) {
+#ifdef CHRONO_IRRLICHT
+        vis_sys->Synchronize(time, driver_inputs);
+#endif
+    }
 }
 
-void FmuComponent::_preModelDescriptionExport() {
-    _exitInitializationMode();
-    ////ChArchiveFmu archive_fmu(*this);
-    ////archive_fmu << CHNVP(sys);
+void FmuComponent::CalculateVehicleOutputs() {
+    for (int iw = 0; iw < 4; iw++) {
+        wheel_data[iw].state = wheel_data[iw].wheel->GetState();
+    }
+
+    //// TODO - other vehicle outputs...
 }
+
+void FmuComponent::_preModelDescriptionExport() {}
 
 void FmuComponent::_postModelDescriptionExport() {}
 
 void FmuComponent::_enterInitializationMode() {}
 
 void FmuComponent::_exitInitializationMode() {
-    // Complete construction of the hydraulic actuator (must have s and init_F)
-    m_actuator->SetActuatorInitialLength(s);
-    m_actuator->SetInitialLoad(init_F);
-    m_actuator->Initialize();
+    // Create the vehicle system
+    CreateVehicle();
 
-    // Initialize FMU outputs (in case they are queried before the first step)
-    CalculateActuatorForce();
-    CalculatePistonPressures();
-    CalculateValvePosition();
+    // Configure Chrono system
+    ConfigureSystem();
 
-    sys.DoFullAssembly();
+    // Initialize runtime visualization (if requested and if available)
+    if (vis) {
+#ifdef CHRONO_IRRLICHT
+        sendToLog("Enable run-time visualization", fmi2Status::fmi2OK, "logAll");
+
+        vis_sys = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+        vis_sys->SetWindowTitle("Wheeled Vehicle FMU");
+        vis_sys->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+        vis_sys->Initialize();
+        vis_sys->AddLightDirectional();
+        vis_sys->AttachVehicle(vehicle.get());
+#else
+        sendToLog("Run-time visualization not available", fmi2Status::fmi2OK, "logAll");
+#endif
+    }
 }
 
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                  fmi2Real communicationStepSize,
                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
     while (time < currentCommunicationPoint + communicationStepSize) {
-        fmi2Real _stepSize = std::min((currentCommunicationPoint + communicationStepSize - time),
-                                      std::min(communicationStepSize, stepSize));
+        fmi2Real h = std::min((currentCommunicationPoint + communicationStepSize - time),
+                              std::min(communicationStepSize, step_size));
+        vehicle->Advance(h);
 
-        sys.DoStepDynamics(_stepSize);
-        sendToLog("time: " + std::to_string(time) + "\n", fmi2Status::fmi2OK, "logAll");
+        if (vis) {
+#ifdef CHRONO_IRRLICHT
+            vis_sys->Run();
+            vis_sys->BeginScene(true, true, ChColor(0.33f, 0.6f, 0.78f));
+            vis_sys->Render();
+            vis_sys->EndScene();
 
-        time = time + _stepSize;
+            vis_sys->Advance(h);
+#endif
+        }
+
+        ////sendToLog("time: " + std::to_string(time) + "\n", fmi2Status::fmi2OK, "logAll");
+
+        time = time + h;
     }
 
     return fmi2Status::fmi2OK;

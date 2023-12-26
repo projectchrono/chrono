@@ -2,15 +2,15 @@
 
 // #define FMI2_FUNCTION_PREFIX MyModel_
 #include <FmuToolsExport.h>
+#include <string>
 #include <vector>
 #include <array>
 
-#include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChLoadsBody.h"
+#include "chrono_vehicle/ChConfigVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
 class FmuComponent : public FmuComponentBase {
@@ -33,37 +33,41 @@ class FmuComponent : public FmuComponentBase {
     virtual bool is_cosimulation_available() const override { return true; }
     virtual bool is_modelexchange_available() const override { return false; }
 
-    void ProcessActuatorForce();
-    void CalculateActuatorLength();
+    void CreateVehicle();
+    void ConfigureSystem();
+    void SynchronizeVehicle(double time);
+    void CalculateVehicleOutputs();
 
-    chrono::ChSystemSMC sys;
+    std::shared_ptr<chrono::vehicle::WheeledVehicle> vehicle;
 
-#ifdef CHRONO_IRRLICHT
-    std::shared_ptr<chrono::irrlicht::ChVisualSystemIrrlicht> vissys;
-#endif
+    // JSON specification files
+    std::string vehicle_JSON;
+    std::string tire_JSON;
+    std::string engine_JSON;
+    std::string transmission_JSON;
+
+    fmi2Boolean system_SMC = true;
+
+    chrono::ChVector<> init_loc;
+    double init_yaw;
+
+    double step_size;
 
     // Enable/disable run-time visualization
     fmi2Boolean vis = false;
 
-    // Body properties (with default values)
-    double crane_mass = 500;
-    double crane_length = 1.0;
-    double pend_mass = 100;
-    double pend_length = 0.3;
+#ifdef CHRONO_IRRLICHT
+    std::shared_ptr<chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht> vissys;
+#endif
 
-    double init_crane_angle = chrono::CH_C_PI / 6;  // Initial crane angle (default value)
-    double init_F;                                  // initial load
+    // FMU inputs
+    chrono::vehicle::DriverInputs driver_inputs;
+    std::array<double, 4> terrain_height;
+    std::array<chrono::ChVector<>, 4> terrain_normal;
 
-    double s;   // actuator length (FMU output)
-    double sd;  // actuator length rate (FMU output)
-    double F;   // actuator force (FMU input)
+    // FMU outputs
 
-    // Mount points
-    chrono::ChVector<> m_point_ground;
-    chrono::ChVector<> m_point_crane;
-
-    std::shared_ptr<chrono::ChBody> m_crane;
-    std::shared_ptr<chrono::ChLoadBodyForce> m_external_load;
+    //// TODO
 };
 
 // Create an instance of this FMU
