@@ -1,7 +1,8 @@
 set(COMPONENT_NAME "wheeled_vehicle_FMU")
+set(COMPONENT_MAIN_DIR "${CMAKE_BINARY_DIR}")
 set(COMPONENT_SOURCES wheeled_vehicle_FMU.h wheeled_vehicle_FMU.cpp)
-set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_irrlicht)
-set(COMPONENT_DLL_DEPENDENCIES "")
+set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle ChronoEngine_irrlicht ChronoEngine_vehicle_irrlicht)
+set(COMPONENT_DLL_DEPENDENCIES ${CH_IRRLICHT_DLL})
 set(FMU_HOST_SOURCES FmuHost.cpp)
 
 #--------------------------------------------------------------
@@ -11,21 +12,25 @@ include_directories(${CH_INCLUDES})
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS ChronoEngine_vehicle)
 
 if(ENABLE_MODULE_IRRLICHT)
   include_directories(${CH_IRRLICHT_INCLUDES})
   set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
   list(APPEND LIBS "ChronoEngine_irrlicht")
+  list(APPEND LIBS ChronoEngine_vehicle_irrlicht)
 endif()
 
 #==============================================================
 
 message(STATUS "   FetchContent(fmu_tools)")
 
-set(FMU_MODEL_IDENTIFIER ${COMPONENT_NAME} CACHE INTERNAL "FMU Model Identifier: should fulfill operating system and C-function naming standards.")
-set(BUILD_FMU_HOST OFF CACHE INTERNAL "Enable fmu_host.")
+set(FMU_MODEL_IDENTIFIER ${COMPONENT_NAME} CACHE INTERNAL "")
+set(BUILD_FMU_HOST OFF CACHE INTERNAL "")
 set(USE_EXTERNAL_FMU_COMPONENT_SOURCES ON CACHE INTERNAL "")
 set(USE_CUSTOM_TYPESPLATFORM OFF CACHE INTERNAL "")
+
+set(FMU_MAIN_DIRECTORY ${COMPONENT_MAIN_DIR})
 set(FMU_MSG_PREFIX "   - ")
 
 FetchContent_Declare(
@@ -67,8 +72,8 @@ endif()
 #---------------------------------------------------------------
 
 set(FMU_MODEL_IDENTIFIER ${FMU_MODEL_IDENTIFIER} PARENT_SCOPE)
-set(FMU_MAIN_DIRECTORY "${CMAKE_BINARY_DIR}/${FMU_MODEL_IDENTIFIER}" PARENT_SCOPE)
-set(FMU_FILENAME "${CMAKE_BINARY_DIR}/${FMU_MODEL_IDENTIFIER}/${FMU_MODEL_IDENTIFIER}.fmu" PARENT_SCOPE)
+set(FMU_DIRECTORY ${FMU_DIRECTORY} PARENT_SCOPE)
+set(FMU_FILENAME ${FMU_FILENAME} PARENT_SCOPE)
 set(FMU_RUNTIME_OUTPUT_DIRECTORY ${FMU_RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(FMU_COMPONENT_DLL_DEPENDENCIES ${COMPONENT_DLL_DEPENDENCIES} PARENT_SCOPE)
