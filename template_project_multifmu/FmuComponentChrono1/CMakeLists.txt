@@ -30,13 +30,10 @@ list(APPEND FMU_RUNTIME_OUTPUT_DIRECTORIES ${FMU_RUNTIME_OUTPUT_DIRECTORY})
 set(FMU_RUNTIME_OUTPUT_DIRECTORIES ${FMU_RUNTIME_OUTPUT_DIRECTORIES} PARENT_SCOPE)
 
 # add FMU target
-target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE FmuComponentChrono.h FmuComponentChrono.cpp) ## FMU_ACTION: put your source code here
+target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE FmuComponentChrono1.h FmuComponentChrono1.cpp) ## FMU_ACTION: put your source code here
 target_compile_definitions(${FMU_MODEL_IDENTIFIER} PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
 target_compile_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_CXX_FLAGS})
 target_link_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_LINKER_FLAGS})
 target_link_libraries(${FMU_MODEL_IDENTIFIER} ${CHRONO_LIBRARIES})
 
 add_dependencies(${FMU_MODEL_IDENTIFIER} COPY_DLLS_FMU)
-
-
-

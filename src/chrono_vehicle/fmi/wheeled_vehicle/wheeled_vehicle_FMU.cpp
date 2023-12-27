@@ -1,3 +1,16 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
 // #define FMI2_FUNCTION_PREFIX MyModel_
 #include <cassert>
@@ -6,41 +19,14 @@
 
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_fmi/FmuToolsChrono.h"
 
 #include "wheeled_vehicle_FMU.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
 
-void FmuComponent::AddFmuVecVariable(ChVector<>& v,
-                                     const std::string& name,
-                                     const std::string& unit_name,
-                                     const std::string& description,
-                                     FmuVariable::CausalityType causality,
-                                     FmuVariable::VariabilityType variability) {
-    std::string comp[3] = {"x", "y", "z"};
-    for (int i = 0; i < 3; i++) {
-        AddFmuVariable(&v.data()[i], name + "." + comp[i], FmuVariable::Type::Real, unit_name,
-                       description + " (" + comp[i] + ")", causality, variability);
-    }
-}
-
-void FmuComponent::AddFmuQuatVariable(ChQuaternion<>& q,
-                                      const std::string& name,
-                                      const std::string& unit_name,
-                                      const std::string& description,
-                                      FmuVariable::CausalityType causality,
-                                      FmuVariable::VariabilityType variability) {
-    std::string comp[4] = {"e0", "e1", "e2", "e3"};
-    for (int i = 0; i < 4; i++) {
-        AddFmuVariable(&q.data()[i], name + "." + comp[i], FmuVariable::Type::Real, unit_name,
-                       description + " (" + comp[i] + ")", causality, variability);
-    }
-}
-
 FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
-    : FmuComponentBase(_instanceName, _fmuType, _fmuGUID) {
+    : FmuChronoComponentBase(_instanceName, _fmuType, _fmuGUID) {
     // Initialize FMU type
     initializeType(_fmuType);
 
@@ -86,14 +72,16 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     AddFmuVariable(&driver_inputs.m_clutch, "clutch", FmuVariable::Type::Real, "1", "clutch input",        //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
 
-    // Set CONTINOUS INPUTS and OUTPUTS for this FMU (wheel state and forces)
+    // Set CONTINOUS INPUTS and OUTPUTS for this FMU (wheel state and forces for co-simulation)
     for (int iw = 0; iw < 4; iw++) {
         std::string prefix = "wheel_" + wheel_data[iw].identifier;
 
-        AddFmuVecVariable(wheel_data[iw].load.force, prefix + "_frc", "N", prefix + " force",            //
-                          FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
-        AddFmuVecVariable(wheel_data[iw].load.moment, prefix + "_trq", "Nm", prefix + " torque",         //
-                          FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
+        AddFmuVecVariable(wheel_data[iw].load.point, prefix + "_point", "m", prefix + " application point",  //
+                          FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);      //
+        AddFmuVecVariable(wheel_data[iw].load.force, prefix + "_frc", "N", prefix + " applied force",        //
+                          FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);      //
+        AddFmuVecVariable(wheel_data[iw].load.moment, prefix + "_trq", "Nm", prefix + " applied torque",     //
+                          FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);      //
 
         AddFmuVecVariable(wheel_data[iw].state.pos, prefix + "_pos", "m", prefix + " position",                  //
                           FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);         //

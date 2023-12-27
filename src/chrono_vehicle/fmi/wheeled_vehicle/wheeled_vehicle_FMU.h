@@ -1,7 +1,19 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
+
 #pragma once
 
-// #define FMI2_FUNCTION_PREFIX MyModel_
-#include <FmuToolsExport.h>
 #include <string>
 #include <vector>
 #include <array>
@@ -9,11 +21,14 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
+// #define FMI2_FUNCTION_PREFIX MyModel_
+#include "chrono_fmi/ChFmuToolsExport.h"
+
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
-class FmuComponent : public FmuComponentBase {
+class FmuComponent : public chrono::FmuChronoComponentBase {
   public:
     FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID);
     virtual ~FmuComponent() {}
@@ -32,19 +47,6 @@ class FmuComponent : public FmuComponentBase {
 
     virtual bool is_cosimulation_available() const override { return true; }
     virtual bool is_modelexchange_available() const override { return false; }
-
-    void AddFmuVecVariable(chrono::ChVector<>& v,
-                           const std::string& name,
-                           const std::string& unit_name,
-                           const std::string& description,
-                           FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
-                           FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous);
-    void AddFmuQuatVariable(chrono::ChQuaternion<>& q,
-                            const std::string& name,
-                            const std::string& unit_name,
-                            const std::string& description,
-                            FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
-                            FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous);
 
     void CreateVehicle();
     void ConfigureSystem();

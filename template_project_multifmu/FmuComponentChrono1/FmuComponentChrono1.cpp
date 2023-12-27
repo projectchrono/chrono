@@ -9,24 +9,18 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// External project template for building 2nd of 2 Chrono co-simulation FMUs.
+// External project template for building 1st of 2 Chrono co-simulation FMUs.
 // =============================================================================
 
+#include "chrono/physics/ChBodyEasy.h"
+
 // #define FMI2_FUNCTION_PREFIX MyModel_
-#include <cassert>
-#include <vector>
-#include <array>
-#include <map>
-#include <algorithm>
+#include "FmuComponentChrono1.h"
 
-#include "chrono/core/ChVector.h"
-#include "chrono/serialization/ChArchive.h"
-#include "chrono_fmi/FmuToolsChrono.h"
-
-#include "FmuComponentChrono.h"
+using namespace chrono;
 
 FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
-    : FmuComponentBase(_instanceName, _fmuType, _fmuGUID) {
+    : FmuChronoComponentBase(_instanceName, _fmuType, _fmuGUID) {
     initializeType(_fmuType);
 
     SetChronoDataPath(CHRONO_DATA_DIR);

@@ -1,22 +1,31 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
 // #define FMI2_FUNCTION_PREFIX MyModel_
 #include <cassert>
-#include <vector>
-#include <array>
 #include <map>
 #include <algorithm>
 
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/serialization/ChArchive.h"
 
-#include "chrono_fmi/FmuToolsChrono.h"
-
 #include "actuatorFMU.h"
 
 using namespace chrono;
 
 FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
-    : FmuComponentBase(_instanceName, _fmuType, _fmuGUID) {
+    : FmuChronoComponentBase(_instanceName, _fmuType, _fmuGUID) {
     // Initialize FMU type
     initializeType(_fmuType);
 

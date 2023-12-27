@@ -14,21 +14,16 @@
 
 #pragma once
 
-#include <FmuToolsExport.h>
-#include <vector>
-#include <array>
-
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChBodyEasy.h"
 #include "chrono/core/ChRealtimeStep.h"
+
+#include "chrono_fmi/ChFmuToolsExport.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
 
-using namespace chrono;
-
-class FmuComponent : public FmuComponentBase {
+class FmuComponent : public chrono::FmuChronoComponentBase {
   public:
     FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID);
 
@@ -49,9 +44,8 @@ class FmuComponent : public FmuComponentBase {
     virtual bool is_modelexchange_available() const override { return false; }
 
     // Problem-specific data members
-    ChSystemNSC sys;
-
-    ChRealtimeStepTimer realtime_timer;
+    chrono::ChSystemNSC sys;
+    chrono::ChRealtimeStepTimer realtime_timer;
 
 #ifdef CHRONO_IRRLICHT
     std::shared_ptr<chrono::irrlicht::ChVisualSystemIrrlicht> vis;

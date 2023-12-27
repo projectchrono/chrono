@@ -1,15 +1,27 @@
-#pragma once
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
-// #define FMI2_FUNCTION_PREFIX MyModel_
-#include <FmuToolsExport.h>
-#include <vector>
-#include <array>
+#pragma once
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChHydraulicActuator.h"
 #include "chrono/motion_functions/ChFunction.h"
 
-class FmuComponent : public FmuComponentBase {
+// #define FMI2_FUNCTION_PREFIX MyModel_
+#include "chrono_fmi/ChFmuToolsExport.h"
+
+class FmuComponent : public chrono::FmuChronoComponentBase {
   public:
     FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID);
     virtual ~FmuComponent() {}

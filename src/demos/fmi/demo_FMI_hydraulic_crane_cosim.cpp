@@ -17,9 +17,6 @@
 //
 // =============================================================================
 
-#include <iostream>
-#include <string>
-
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChMathematics.h"
 #include "chrono/motion_functions/ChFunction.h"
@@ -31,7 +28,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "FmuToolsImport.hpp"
+#include "chrono_fmi/ChFmuToolsImport.h"
 
 using namespace chrono;
 
@@ -42,7 +39,7 @@ std::string crane_unpack_directory = CRANE_FMU_DIRECTORY + std::string("/.") + C
 
 // -----------------------------------------------------------------------------
 
-void CreateCraneFMU(FmuUnit& crane_fmu,
+void CreateCraneFMU(FmuChronoUnit& crane_fmu,
                     double start_time,
                     double stop_time,
                     const std::vector<std::string>& logCategories) {
@@ -84,7 +81,7 @@ void CreateCraneFMU(FmuUnit& crane_fmu,
 
 // -----------------------------------------------------------------------------
 
-void CreateActuatorFMU(FmuUnit& actuator_fmu,
+void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
                        double start_time,
                        double stop_time,
                        const std::vector<std::string>& logCategories) {
@@ -133,8 +130,8 @@ int main(int argc, char* argv[]) {
     double stop_time = 20;
 
     // Create the 2 FMUs
-    FmuUnit crane_fmu;
-    FmuUnit actuator_fmu;
+    FmuChronoUnit crane_fmu;
+    FmuChronoUnit actuator_fmu;
     try {
         CreateCraneFMU(crane_fmu, start_time, stop_time, logCategories);
     } catch (std::exception& e) {

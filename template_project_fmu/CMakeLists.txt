@@ -50,7 +50,7 @@ endif()
 
 MESSAGE(STATUS "-------------- FetchContent(fmu_tools) --------------")
 
-set(FMU_MODEL_IDENTIFIER "myFmuComponentChrono" CACHE STRING "FMU Model Identifier: should fulfill operating system and C-function naming standards.")
+set(FMU_MODEL_IDENTIFIER "FmuComponentChrono" CACHE STRING "FMU Model Identifier: should fulfill operating system and C-function naming standards.")
 set(BUILD_TESTING ON CACHE BOOL "Enable testing.")
 set(USE_EXTERNAL_FMU_COMPONENT_SOURCES ON CACHE INTERNAL "")
 
@@ -78,7 +78,7 @@ add_DLL_copy_command()
 
 MESSAGE(STATUS "---------------------------------------------------------")
 
-target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE myFmuComponentChrono.h myFmuComponentChrono.cpp) ## FMU_ACTION: put your source code here
+target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE FmuComponentChrono.h FmuComponentChrono.cpp) ## FMU_ACTION: put your source code here
 target_compile_definitions(${FMU_MODEL_IDENTIFIER} PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
 target_compile_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_CXX_FLAGS})
 target_link_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_LINKER_FLAGS})

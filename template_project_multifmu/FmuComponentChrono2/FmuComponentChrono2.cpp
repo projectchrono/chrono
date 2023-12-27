@@ -9,24 +9,18 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// External project template for building a Chrono co-simulation FMU.
+// External project template for building 2nd of 2 Chrono co-simulation FMUs.
 // =============================================================================
 
+#include "chrono/physics/ChBodyEasy.h"
+
 // #define FMI2_FUNCTION_PREFIX MyModel_
-#include <cassert>
-#include <vector>
-#include <array>
-#include <map>
-#include <algorithm>
+#include "FmuComponentChrono2.h"
 
-#include "chrono/core/ChVector.h"
-#include "chrono/serialization/ChArchive.h"
-#include "chrono_fmi/FmuToolsChrono.h"
-
-#include "myFmuComponentChrono.h"
+using namespace chrono;
 
 FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
-    : FmuComponentBase(_instanceName, _fmuType, _fmuGUID) {
+    : FmuChronoComponentBase(_instanceName, _fmuType, _fmuGUID) {
     initializeType(_fmuType);
 
     SetChronoDataPath(CHRONO_DATA_DIR);
@@ -86,7 +80,6 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     vis->AddTypicalLights();
 #endif
 
-    // Specify functions to calculate FMU outputs (at end of step)
     postStepCallbacks.push_back([this]() { x_tt = this->sys.SearchBodyID(10)->GetPos_dtdt().x(); });
     postStepCallbacks.push_back([this]() { x_t = this->sys.SearchBodyID(10)->GetPos_dt().x(); });
     postStepCallbacks.push_back([this]() { x = this->sys.SearchBodyID(10)->GetPos().x(); });
