@@ -3,13 +3,16 @@
 
 #pragma import_defines (VSG_INSTANCE_POSITIONS, VSG_BILLBOARD, VSG_DISPLACEMENT_MAP)
 
+#define VIEW_DESCRIPTOR_SET 0
+#define MATERIAL_DESCRIPTOR_SET 1
+
 layout(push_constant) uniform PushConstants {
     mat4 projection;
     mat4 modelView;
 } pc;
 
 #ifdef VSG_DISPLACEMENT_MAP
-layout(binding = 6) uniform sampler2D displacementMap;
+layout(set = MATERIAL_DESCRIPTOR_SET, binding = 6) uniform sampler2D displacementMap;
 #endif
 
 layout(location = 0) in vec3 vsg_Vertex;

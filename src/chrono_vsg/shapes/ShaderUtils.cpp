@@ -13,7 +13,6 @@
 // =============================================================================
 
 #include "chrono_vsg/shapes/ShaderUtils.h"
-//#include "chrono_thirdparty/stb/stb_image.h"
 #include "chrono_vsg/resources/chronoLineShader_vert.h"
 #include "chrono_vsg/resources/chronoLineShader_frag.h"
 #include "chrono_vsg/resources/chronoPbrShader_vert.h"
