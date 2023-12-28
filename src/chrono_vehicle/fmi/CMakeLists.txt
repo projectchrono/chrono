@@ -6,8 +6,7 @@
 
 # List of FMU subdirectories
 set(FMUS 
-    wheeled_vehicle
-    wheeled_vehicle_complete)
+    wheeled_vehicle)
 
 # Create custom target with commands for copying FMU dependencies
 add_custom_target(COPY_VEHICLE_FMU_DEPENDENCIES)
