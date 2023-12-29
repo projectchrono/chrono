@@ -56,20 +56,20 @@ ChSpeedController::~ChSpeedController() {
     delete m_csv;
 }
 
-void ChSpeedController::Reset(const ChVehicle& vehicle) {
-    m_speed = vehicle.GetSpeed();
+void ChSpeedController::Reset(const ChFrameMoving<>& ref_frame) {
+    m_speed = Vdot(ref_frame.GetPos_dt(), ref_frame.GetA().Get_A_Xaxis());
     m_err = 0;
     m_erri = 0;
     m_errd = 0;
 }
 
-double ChSpeedController::Advance(const ChVehicle& vehicle, double target_speed, double step) {
+double ChSpeedController::Advance(const ChFrameMoving<>& ref_frame, double target_speed, double time, double step) {
     // Current vehicle speed.
-    m_speed = vehicle.GetSpeed();
+    m_speed = Vdot(ref_frame.GetPos_dt(), ref_frame.GetA().Get_A_Xaxis());
 
     // If data collection is enabled, append current target and sentinel locations.
     if (m_collect) {
-        *m_csv << vehicle.GetChTime() << target_speed << m_speed << std::endl;
+        *m_csv << time << target_speed << m_speed << std::endl;
     }
 
     // Calculate current error.

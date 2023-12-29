@@ -24,6 +24,7 @@
 
 #include <string>
 
+#include "chrono/core/ChFrameMoving.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -63,12 +64,12 @@ class CH_VEHICLE_API ChSpeedController {
     double GetCurrentSpeed() const { return m_speed; }
 
     /// Reset the PID controller.
-    virtual void Reset(const ChVehicle& vehicle);
+    void Reset(const ChFrameMoving<>& ref_frame);
 
     /// Advance the state of the PID controller.
     /// This function performs the required integration for the integral
     /// component of the PID controller and returns the calculated controller value.
-    double Advance(const ChVehicle& vehicle, double target_speed, double step);
+    double Advance(const ChFrameMoving<>& ref_frame, double target_speed, double time, double step);
 
     /// Start/restart data collection.
     void StartDataCollection();

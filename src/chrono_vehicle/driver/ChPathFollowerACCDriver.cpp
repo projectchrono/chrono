@@ -72,8 +72,8 @@ ChPathFollowerACCDriver::ChPathFollowerACCDriver(ChVehicle& vehicle,
 
 void ChPathFollowerACCDriver::Create() {
     // Reset the steering and speed controllers
-    m_steeringPID.Reset(m_vehicle);
-    m_speedPID.Reset(m_vehicle);
+    m_steeringPID.Reset(m_vehicle.GetRefFrame());
+    m_speedPID.Reset(m_vehicle.GetRefFrame());
 
     // Create a fixed body to carry a visualization asset for the path
     auto road = chrono_types::make_shared<ChBody>();
@@ -92,14 +92,14 @@ void ChPathFollowerACCDriver::Create() {
 }
 
 void ChPathFollowerACCDriver::Reset() {
-    m_steeringPID.Reset(m_vehicle);
-    m_speedPID.Reset(m_vehicle);
+    m_steeringPID.Reset(m_vehicle.GetRefFrame());
+    m_speedPID.Reset(m_vehicle.GetRefFrame());
 }
 
 void ChPathFollowerACCDriver::Advance(double step) {
     // Set the throttle and braking values based on the output from the speed controller.
-    double out_speed = m_speedPID.Advance(m_vehicle, m_target_speed, m_target_following_time, m_target_min_distance,
-                                          m_current_distance, step);
+    double out_speed = m_speedPID.Advance(m_vehicle.GetRefFrame(), m_target_speed, m_target_following_time,
+                                          m_target_min_distance, m_current_distance, m_vehicle.GetChTime(), step);
     ChClampValue(out_speed, -1.0, 1.0);
 
     if (out_speed > 0) {
@@ -117,7 +117,7 @@ void ChPathFollowerACCDriver::Advance(double step) {
     }
 
     // Set the steering value based on the output from the steering controller.
-    double out_steering = m_steeringPID.Advance(m_vehicle, step);
+    double out_steering = m_steeringPID.Advance(m_vehicle.GetRefFrame(), m_vehicle.GetChTime(), step);
     ChClampValue(out_steering, -1.0, 1.0);
     m_steering = out_steering;
 }
