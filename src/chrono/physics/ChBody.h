@@ -486,7 +486,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                     const double c) override;
     virtual void IntLoadLumpedMass_Md(const unsigned int off,  
                                       ChVectorDynamic<>& Md,  
-                                      double& error,         
+                                      double& err,         
                                       const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,

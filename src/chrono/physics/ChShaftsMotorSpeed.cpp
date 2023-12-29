@@ -136,7 +136,7 @@ void ChShaftsMotorSpeed::IntLoadResidual_Mv(const unsigned int off,      // offs
 
 void ChShaftsMotorSpeed::IntLoadLumpedMass_Md(const unsigned int off,
                                               ChVectorDynamic<>& Md,
-                                              double& error,
+                                              double& err,
                                               const double c 
 ) {
     Md(off) += c * 1.0;

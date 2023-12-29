@@ -105,7 +105,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Initialize the visualization system.
     /// This creates the Irrlicht device using the current values for the optional device parameters.
-    virtual void Initialize();
+    virtual void Initialize() override;
 
     /// Add a logo in a 3D scene.
     /// Has no effect, unles called after Initialize().

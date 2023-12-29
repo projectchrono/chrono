@@ -124,7 +124,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
                                     const double c) override;
     virtual void IntLoadLumpedMass_Md(const unsigned int off,
                                       ChVectorDynamic<>& Md,
-                                      double& error,
+                                      double& err,
                                       const double c) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,

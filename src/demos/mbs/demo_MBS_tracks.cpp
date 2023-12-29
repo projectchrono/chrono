@@ -305,8 +305,8 @@ class MySimpleTank {
 
             // Collision:
             auto coll_model = chrono_types::make_shared<ChCollisionModel>();
-            coll_model->SetSafeMargin(0.004);  // inward safe margin
-            coll_model->SetEnvelope(0.010);    // distance of the outward "collision envelope"
+            coll_model->SetSafeMargin(0.004f);  // inward safe margin
+            coll_model->SetEnvelope(0.010f);    // distance of the outward "collision envelope"
             auto coll_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(
                 chrono_types::make_shared<ChMaterialSurfaceNSC>(), trimesh, false, false, 0.005);
             coll_model->AddShape(coll_shape, ChFrame<>(mesh_displacement, QUNIT));

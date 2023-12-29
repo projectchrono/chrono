@@ -1,5 +1,5 @@
 
-Shared pointers                 {#shared_pointers}
+Shared Pointers                 {#shared_pointers}
 ==============================
 
 In Chrono, most of the 'heavyweight objects', such as rigid bodies, links, etc., are managed
@@ -25,7 +25,7 @@ Example: create an object and handle it with via a shared pointer.
 std::shared_ptr<ChBody> my_body(new ChBody);
 ~~~
 
-A better alternative is to use ```std::make_shared``` (which requires a single memory allocation and is a bit faster). However, ```std::make_shared``` will use the incorrect allocator for objects of classes that contain fixed-size vecorizable Eigen types.  Chrono provides an alternative function that automatically infers whether or not it is safe to fallback on using ```std::make_shared```.  As such, user code should **always** use 
+A better alternative is to use ```chrono_types::make_shared``` (which requires a single memory allocation and is a bit faster). However, ```chrono_types::make_shared``` will use the incorrect allocator for objects of classes that contain fixed-size vecorizable Eigen types.  Chrono provides an alternative function that automatically infers whether or not it is safe to fallback on using ```chrono_types::make_shared```.  As such, user code should **always** use 
 
 ~~~{.cpp}
 auto my_body = chrono_types::make_shared<ChBody>();
