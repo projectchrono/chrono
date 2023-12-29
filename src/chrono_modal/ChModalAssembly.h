@@ -125,8 +125,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     bool use_inertial_damping = true;
     bool use_quadratic_velocity_term = true;
 
-    // void SetLocalFloatingFrameOfReference(std::shared_ptr<fea::ChNodeFEAbase> m_node);
-
     /// For displaying modes, you can use the following function. It sets the state of this subassembly
     /// (both boundary and inner items) using the n-th eigenvector multiplied by a "amplitude" factor * sin(phase).
     /// If you increment the phase during an animation, you will see the n-th mode
@@ -149,9 +147,14 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Computes the increment of the subassembly (the increment of the current configuration respect
     /// to the initial undeformed snapshot configuration), and also gets the current speed.
-    /// Dx_local = [qB^bar; eta],  v_local = [qB^bar_dt; eta_dt]
-    /// Both Dx and v are expressed in the local frame of reference F
-    void GetStateLocal(ChStateDelta& Dx_local, ChStateDelta& v_local);
+    /// u_locred = P_W^T*[\delta qB; \delta eta]
+    /// e_locred = [qB^bar; eta],  edt_locred = [qB^bar_dt; eta_dt]
+    /// u_locred, e_locred and edt_locred are all expressed in the local frame of reference F.
+    /// Two different algorithms are provided: 1. definition, 2. projection
+    void GetStateLocal(ChStateDelta& u_locred,
+                       ChStateDelta& e_locred,
+                       ChStateDelta& edt_locred,
+                       const std::string& opt = "definition");
 
     /// Optimization flag. Default true: when in modal reduced mode, during simulations the internal (discarded)
     /// nodes are updated anyway by superposition of modal shapes etc., for visualization or postprocessing reasons.

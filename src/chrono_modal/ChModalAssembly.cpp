@@ -380,10 +380,6 @@ void ChModalAssembly::ComputeMassCenter() {
     }
 }
 
-// void ChModalAssembly::SetLocalFloatingFrameOfReference(std::shared_ptr<fea::ChNodeFEAbase> m_node) {
-//     this->attached_node_as_local_frame = m_node;
-// }
-
 void ChModalAssembly::DebugBlock() {
     int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
     int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
@@ -395,39 +391,14 @@ void ChModalAssembly::DebugBlock() {
     v_mod.setZero(bou_mod_coords_w, nullptr);
     this->IntStateGather(0, x_mod, 0, v_mod, fooT);
 
-    ChStateDelta e_locred;
-    e_locred.setZero(bou_mod_coords_w, nullptr);
-    ChStateDelta edt_locred;
-    edt_locred.setZero(bou_mod_coords_w, nullptr);
-    this->GetStateLocal(e_locred, edt_locred);
+    ChStateDelta u_locred(bou_mod_coords_w, nullptr);
+    ChStateDelta e_locred_def(bou_mod_coords_w, nullptr);
+    ChStateDelta edt_locred_def(bou_mod_coords_w, nullptr);
+    this->GetStateLocal(u_locred, e_locred_def, edt_locred_def, "definition");
 
-    
-    auto ComputeElasticDeformationLocal = [&](ChVectorDynamic<>& displ_loc) {
-        displ_loc.setZero(bou_mod_coords_w);
-        displ_loc.tail(n_modes_coords_w) = x_mod.segment(n_boundary_coords, n_modes_coords_w);
-
-        // method 1:
-        for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
-            ChVector<> r_B = x_mod.segment(7 * i_bou, 3);
-            ChVector<> r_BF0 = floating_frame_F0.GetRot().RotateBack(
-                (modes_assembly_x0.segment(7 * i_bou, 3) - floating_frame_F0.GetPos().eigen()));
-            displ_loc.segment(6 * i_bou, 3) =
-                (floating_frame_F.GetRot().RotateBack((r_B - floating_frame_F.GetPos())) - r_BF0).eigen();
-
-            ChQuaternion<> quat_bou = x_mod.segment(7 * i_bou + 3, 4);
-            ChQuaternion<> quat_bou0 = modes_assembly_x0.segment(7 * i_bou + 3, 4);
-            ChQuaternion<> q_delta = quat_bou0.GetConjugate() * floating_frame_F0.GetRot() *
-                                     floating_frame_F.GetRot().GetConjugate() * quat_bou;
-            // displ_loc.segment(6 * i_bou + 3, 3) = q_delta.Q_to_Rotv().eigen();
-
-            double delta_rot_angle;
-            ChVector<> delta_rot_dir;
-            q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
-            displ_loc.segment(6 * i_bou + 3, 3) = delta_rot_angle * delta_rot_dir.eigen();
-        }
-    };
-    ChVectorDynamic<> e_locred2;
-    ComputeElasticDeformationLocal(e_locred2);
+    ChStateDelta e_locred_proj(bou_mod_coords_w, nullptr);
+    ChStateDelta edt_locred_proj(bou_mod_coords_w, nullptr);
+    this->GetStateLocal(u_locred, e_locred_proj, edt_locred_proj, "projection");
 
     GetLog() << "ChTime: " << ChTime << "\t";
     GetLog() << "floating_frame_F: " << floating_frame_F.GetPos().x() << "\t" << floating_frame_F.GetPos().y() << "\t"
@@ -438,27 +409,6 @@ void ChModalAssembly::DebugBlock() {
     // displacement terms
     ***/
 
-    ChVectorDynamic<> u_locred(bou_mod_coords_w);
-    u_locred.setZero();
-    u_locred.tail(n_modes_coords_w) = modal_q;
-    for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
-        u_locred.segment(6 * i_bou, 3) =
-            floating_frame_F.GetRot().RotateBack(x_mod.segment(7 * i_bou, 3)).eigen() -
-            floating_frame_F0.GetRot().RotateBack(modes_assembly_x0.segment(7 * i_bou, 3)).eigen();
-
-        ChQuaternion<> q_F0 = floating_frame_F0.GetRot();
-        ChQuaternion<> q_F = floating_frame_F.GetRot();
-        ChQuaternion<> q_B0 = modes_assembly_x0.segment(7 * i_bou + 3, 4);
-        ChQuaternion<> q_B = x_mod.segment(7 * i_bou + 3, 4);
-        ChQuaternion<> rel_q = q_B0.GetConjugate() * q_F0 * q_F.GetConjugate() * q_B;
-        // u_locred.segment(6 * i_bou + 3, 3) = rel_q.Q_to_Rotv().eigen();
-
-        double delta_rot_angle;
-        ChVector<> delta_rot_dir;
-        rel_q.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
-        u_locred.segment(6 * i_bou + 3, 3) = delta_rot_angle * delta_rot_dir.eigen();
-    }
-
     // GetLog() << "u_locred: " << u_locred << "\n";
 
     ChVectorDynamic<> u_F(6);
@@ -468,27 +418,22 @@ void ChModalAssembly::DebugBlock() {
 
     // check 1: six constraints to eliminate the redundant DOFs of floating frame F
     ChVectorDynamic<> C_F_locred(6);
-    C_F_locred = U_locred.transpose() * M_red * e_locred2;  // should be zero
+    C_F_locred = U_locred.transpose() * M_red * e_locred_def;  // should be zero
     GetLog() << "C_F_locred: " << C_F_locred.norm() << "\t";
 
     // check 2: rigid body motion
-    ChVectorDynamic<> uF_rigid1(bou_mod_coords_w);
-    uF_rigid1 = U_locred * u_F;
-    ChVectorDynamic<> uF_rigid2(bou_mod_coords_w);
-    uF_rigid2 = P_parallel * u_locred;
-    ChVectorDynamic<> uF_rigid_cmp(bou_mod_coords_w);
-    uF_rigid_cmp = uF_rigid1 - uF_rigid2;  // should be zero
-    GetLog() << "uF_rigid_cmp: " << uF_rigid_cmp.norm() << "\t";
-    // GetLog() << "\nuF_rigid1: " << uF_rigid1 << "\n";
+    // ChVectorDynamic<> uF_rigid1(bou_mod_coords_w);
+    // uF_rigid1 = U_locred * u_F;
+    // ChVectorDynamic<> uF_rigid2(bou_mod_coords_w);
+    // uF_rigid2 = P_parallel * u_locred;
+    // ChVectorDynamic<> uF_rigid_cmp(bou_mod_coords_w);
+    // uF_rigid_cmp = uF_rigid1 - uF_rigid2;  // should be zero
+    // GetLog() << "uF_rigid_cmp: " << uF_rigid_cmp.norm() << "\t";
 
     // check 3: elastic deformation
-
     ChVectorDynamic<> e_locred_cmp;
-    e_locred_cmp = e_locred - e_locred2;  // should be zero
-    GetLog() << "e_locred_cmp: " << e_locred_cmp.norm() << "\t";
-    // GetLog() << "e_locred: " << e_locred << "\n";
-    // GetLog() << "e_locred2: " << e_locred2 << "\n";
-    GetLog() << "\n";
+    e_locred_cmp = e_locred_def - e_locred_proj;  // should be zero
+    GetLog() << "e_locred_cmp: " << e_locred_cmp.norm() << "\n";
 
     /***
     // velocity terms
@@ -498,36 +443,31 @@ void ChModalAssembly::DebugBlock() {
     ChVectorDynamic<> udt_F(6);
     udt_F = Q * udt_locred;
     // GetLog() << "udt_F: " << udt_F(0) << " " << udt_F(1) << " " << udt_F(2) << " " << udt_F(3) << " " << udt_F(4) <<
-    // " "
-    //          << udt_F(5) << "\t";
+    // " " << udt_F(5) << "\t";
 
     ChVectorDynamic<> C_Fdt_locred(6);
-    C_Fdt_locred = U_locred.transpose() * M_red * edt_locred;  // should be zero
+    C_Fdt_locred = U_locred.transpose() * M_red * edt_locred_def;  // should be zero
     GetLog() << "C_Fdt_locred: " << C_Fdt_locred.norm() << "\t";
 
-    ChVectorDynamic<> udtF_rigid1(6);
-    udtF_rigid1 = U_locred * udt_F;
-    ChVectorDynamic<> udtF_rigid2(6);
-    udtF_rigid2 = P_parallel * udt_locred;
-    ChVectorDynamic<> udtF_rigid_cmp(6);
-    udtF_rigid_cmp = udtF_rigid1 - udtF_rigid2;  // should be zero
-    GetLog() << "udtF_rigid_cmp: " << udtF_rigid_cmp.norm() << "\t";
-    // GetLog() << "udtF_rigid1: " << udtF_rigid1.norm() << "\t";
+    // ChVectorDynamic<> udtF_rigid1(6);
+    // udtF_rigid1 = U_locred * udt_F;
+    // ChVectorDynamic<> udtF_rigid2(6);
+    // udtF_rigid2 = P_parallel * udt_locred;
+    // ChVectorDynamic<> udtF_rigid_cmp(6);
+    // udtF_rigid_cmp = udtF_rigid1 - udtF_rigid2;  // should be zero
+    // GetLog() << "udtF_rigid_cmp: " << udtF_rigid_cmp.norm() << "\t";
 
-    ChVectorDynamic<> edt_locred2;
-    edt_locred2 = P_perp * P_W.transpose() * v_mod;
     ChVectorDynamic<> edt_locred_cmp;
-    edt_locred_cmp = edt_locred - edt_locred2;  // should be zero
+    edt_locred_cmp = edt_locred_def - edt_locred_proj;  // should be zero
     GetLog() << "edt_locred_cmp: " << edt_locred_cmp.norm() << "\t";
-    // GetLog() << "edt_locred: " << edt_locred << "\n";
 
-    ChVectorDynamic<> residual_F(bou_mod_coords_w);
-    residual_F.setZero();
-    residual_F -= P_W * P_perp.transpose() * (this->K_red * e_locred) + this->modal_R * v_mod;
-     //GetLog() << "residual_F: " << residual_F << "\t";
+    // ChVectorDynamic<> residual_F(bou_mod_coords_w);
+    // residual_F.setZero();
+    // residual_F -= P_W * P_perp.transpose() * (this->K_red * e_locred_proj) + this->modal_R * v_mod;
+    // GetLog() << "residual_F: " << residual_F << "\t";
 
     double kinetic_energy = 0.5 * v_mod.transpose() * (M_sup * v_mod);
-    double elastic_energy = 0.5 * e_locred.transpose() * (K_red * e_locred);
+    double elastic_energy = 0.5 * e_locred_proj.transpose() * (K_red * e_locred_proj);
     double sum_energy = kinetic_energy + elastic_energy;
     GetLog() << "energy:  K=" << kinetic_energy << "\t V=" << elastic_energy << "\t Sum=" << sum_energy;
 
@@ -557,66 +497,19 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
         GetLog() << "*** Floating frame F is initialized at COG.\n";
 
     } else {
-        // solve floating frame F using Newton-Raphson iteration
+        // solve the configuration of the floating frame F using Newton-Raphson iteration
 
         // int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
         int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
-
-        auto ComputeElasticDeformationLocal = [&](ChVectorDynamic<>& displ_loc) {
-            displ_loc.setZero(bou_mod_coords_w);
-            displ_loc.tail(n_modes_coords_w) = assembly_x.segment(n_boundary_coords, n_modes_coords_w);
-
-            // method 1:
-            for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
-                ChVector<> r_B = assembly_x.segment(7 * i_bou, 3);
-                ChVector<> r_BF0 = floating_frame_F0.GetRot().RotateBack(
-                    (modes_assembly_x0.segment(7 * i_bou, 3) - floating_frame_F0.GetPos().eigen()));
-                displ_loc.segment(6 * i_bou, 3) =
-                    (floating_frame_F.GetRot().RotateBack((r_B - floating_frame_F.GetPos())) - r_BF0).eigen();
-
-                ChQuaternion<> quat_bou = assembly_x.segment(7 * i_bou + 3, 4);
-                ChQuaternion<> quat_bou0 = modes_assembly_x0.segment(7 * i_bou + 3, 4);
-                ChQuaternion<> q_delta = quat_bou0.GetConjugate() * floating_frame_F0.GetRot() *
-                                         floating_frame_F.GetRot().GetConjugate() * quat_bou;
-                // displ_loc.segment(6 * i_bou + 3, 3) = q_delta.Q_to_Rotv().eigen();
-
-                double delta_rot_angle;
-                ChVector<> delta_rot_dir;
-                q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
-                displ_loc.segment(6 * i_bou + 3, 3) = delta_rot_angle * delta_rot_dir.eigen();
-            }
-
-            //// method 2: using the perpendicular projector
-            // ChVectorDynamic<> u_locred(bou_mod_coords_w);
-            // u_locred.setZero();
-            // u_locred.tail(n_modes_coords_w) = modal_q;
-            // for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
-            //     u_locred.segment(6 * i_bou, 3) =
-            //         floating_frame_F.GetRot().RotateBack(assembly_x.segment(7 * i_bou, 3)).eigen() -
-            //         floating_frame_F0.GetRot().RotateBack(modes_assembly_x0.segment(7 * i_bou, 3)).eigen();
-
-            //    ChQuaternion<> q_F0 = floating_frame_F0.GetRot();
-            //    ChQuaternion<> q_F = floating_frame_F.GetRot();
-            //    ChQuaternion<> q_B0 = modes_assembly_x0.segment(7 * i_bou + 3, 4);
-            //    ChQuaternion<> q_B = assembly_x.segment(7 * i_bou + 3, 4);
-            //    ChQuaternion<> rel_q = q_B0.GetConjugate() * q_F0 * q_F.GetConjugate() * q_B;
-            //    // u_locred.segment(6 * i_bou + 3, 3) = rel_q.Q_to_Rotv().eigen();
-
-            //    double delta_rot_angle;
-            //    ChVector<> delta_rot_dir;
-            //    rel_q.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
-            //    u_locred.segment(6 * i_bou + 3, 3) = delta_rot_angle * delta_rot_dir.eigen();
-            //}
-            // displ_loc = P_perp * u_locred;
-        };
 
         auto ComputeResidual_ConstrF = [&](ChVectorDynamic<>& mC_F) {
             this->UpdateTransformationMatrix();
             this->ComputeProjectionMatrix();
 
-            ChStateDelta e_locred;
-            e_locred.setZero(bou_mod_coords_w, nullptr);
-            ComputeElasticDeformationLocal(e_locred);
+            ChStateDelta u_locred(bou_mod_coords_w, nullptr);
+            ChStateDelta e_locred(bou_mod_coords_w, nullptr);
+            ChStateDelta edt_locred(bou_mod_coords_w, nullptr);
+            this->GetStateLocal(u_locred, e_locred, edt_locred, "definition");
 
             // six constraints on F to eliminate the redundant DOFs of floating frame F
             mC_F = this->U_locred.transpose() * this->M_red * e_locred;  // expected to be zero
@@ -657,9 +550,10 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
         auto ComputeJacobian_ConstrF_Analytical = [&](ChMatrixDynamic<>& mJac_F) {
             mJac_F.setZero(6, 6);
 
-            ChStateDelta e_locred;
-            e_locred.setZero(bou_mod_coords_w, nullptr);
-            ComputeElasticDeformationLocal(e_locred);
+            ChStateDelta u_locred(bou_mod_coords_w, nullptr);
+            ChStateDelta e_locred(bou_mod_coords_w, nullptr);
+            ChStateDelta edt_locred(bou_mod_coords_w, nullptr);
+            this->GetStateLocal(u_locred, e_locred, edt_locred, "definition");
 
             ChVectorDynamic<> h_loc_zeta(n_boundary_coords_w + n_modes_coords_w);
             h_loc_zeta = M_red * e_locred;
@@ -723,8 +617,10 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
             floating_frame_F.SetRot(rot_F);
 
             if (C_F0.norm() < tol)  // tend to be more stable
-                // if (delta_F.norm() < tol)//tend to be more unstable
+            // if (delta_F.norm() < tol)//tend to be more unstable
+            {
                 converged_flag_F = true;
+            }
 
             iteration_count++;
         }
@@ -732,15 +628,6 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
         this->UpdateTransformationMatrix();
 
         this->ComputeProjectionMatrix();
-
-        {  // check C_F
-            ChStateDelta e_locred;
-            e_locred.setZero(bou_mod_coords_w, nullptr);
-            ComputeElasticDeformationLocal(e_locred);
-            // six constraints on F to eliminate the redundant DOFs of floating frame F
-            ChVectorDynamic<> mC_F = this->U_locred.transpose() * this->M_red * e_locred;  // expected to be zero
-            GetLog() << "\nmC_F:\n" << mC_F;
-        }
 
         ChVectorDynamic<> vel_F(6);  // qdt_F
         vel_F = Q * (P_W.transpose() * assembly_v);
@@ -822,7 +709,6 @@ void ChModalAssembly::ComputeProjectionMatrix() {
     ChMatrixDynamic<> UMU = U_locred.transpose() * M_red * U_locred;  // of size (6,6)
     UMU_inv_solver = UMU.colPivHouseholderQr();
     Q.setZero(6, bou_mod_coords_w);
-    // Q = UMU.inverse() * U_locred.transpose() * M_red;
     Q = UMU_inv_solver.solve(U_locred.transpose() * M_red);
 
     P_parallel.setZero(bou_mod_coords_w, bou_mod_coords_w);
@@ -1432,39 +1318,20 @@ void ChModalAssembly::ComputeStiffnessMatrix() {
         v_mod.setZero(bou_mod_coords_w, nullptr);
         this->IntStateGather(0, x_mod, 0, v_mod, fooT);
 
-        ChStateDelta displ_loc(bou_mod_coords_w, nullptr);
-        ChStateDelta vel_loc(bou_mod_coords_w, nullptr);
-        this->GetStateLocal(displ_loc, vel_loc);
+        ChStateDelta u_locred(bou_mod_coords_w, nullptr);
+        ChStateDelta e_locred(bou_mod_coords_w, nullptr);
+        ChStateDelta edt_locred(bou_mod_coords_w, nullptr);
+        this->GetStateLocal(u_locred, e_locred, edt_locred, "projection");
+
 
         // local internal forces of reduced superelement
-        g_loc = K_red * displ_loc;
+        g_loc = K_red * e_locred;
 
         // geometrical stiffness matrix of reduced superelement
         ChVectorDynamic<> g_loc_alpha(bou_mod_coords_w);
         g_loc_alpha = P_perp.transpose() * g_loc;
         ChVectorDynamic<> g_loc_beta(6);
         g_loc_beta = UMU_inv_solver.solve(U_locred.transpose() * g_loc);
-
-        ChVectorDynamic<> u_locred(bou_mod_coords_w);
-        u_locred.setZero();
-        u_locred.tail(n_modes_coords_w) = modal_q;
-        for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
-            u_locred.segment(6 * i_bou, 3) =
-                floating_frame_F.GetRot().RotateBack(x_mod.segment(7 * i_bou, 3)).eigen() -
-                floating_frame_F0.GetRot().RotateBack(modes_assembly_x0.segment(7 * i_bou, 3)).eigen();
-
-            ChQuaternion<> q_F0 = floating_frame_F0.GetRot();
-            ChQuaternion<> q_F = floating_frame_F.GetRot();
-            ChQuaternion<> q_B0 = modes_assembly_x0.segment(7 * i_bou + 3, 4);
-            ChQuaternion<> q_B = x_mod.segment(7 * i_bou + 3, 4);
-            ChQuaternion<> rel_q = q_B0.GetConjugate() * q_F0 * q_F.GetConjugate() * q_B;
-
-            // u_locred.segment(6 * i_bou + 3, 3) = rel_q.Q_to_Rotv().eigen();
-            ChVector<> delta_rot_dir1;
-            double delta_rot_angle1;
-            rel_q.Q_to_AngAxis(delta_rot_angle1, delta_rot_dir1);
-            u_locred.segment(6 * i_bou + 3, 3) = delta_rot_angle1 * delta_rot_dir1.eigen();
-        }
 
         ChVectorDynamic<> h_loc_gamma(6);
         h_loc_gamma = Q * u_locred;  //=u_F
@@ -1774,17 +1641,16 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
 
     if (do_linear_update) {  // Update w.r.t. the undeformed configuration
 
-        ChStateDelta displ_loc;
-        displ_loc.setZero(bou_mod_coords_w, nullptr);
-        ChStateDelta vel_loc;
-        vel_loc.setZero(bou_mod_coords_w, nullptr);
-        this->GetStateLocal(displ_loc, vel_loc);
+        ChStateDelta u_locred(bou_mod_coords_w, nullptr);
+        ChStateDelta e_locred(bou_mod_coords_w, nullptr);
+        ChStateDelta edt_locred(bou_mod_coords_w, nullptr);
+        this->GetStateLocal(u_locred, e_locred, edt_locred, "projection");
 
         ChStateDelta Dx_internal_local;  // =[delta_qI^bar]
         Dx_internal_local.setZero(this->n_internal_coords_w, nullptr);
         Dx_internal_local.segment(0, this->n_internal_coords_w) =
-            Psi_S * displ_loc.segment(0, n_boundary_coords_w) +
-            Psi_D * displ_loc.segment(n_boundary_coords_w, n_modes_coords_w);
+            Psi_S * e_locred.segment(0, n_boundary_coords_w) +
+            Psi_D * e_locred.segment(n_boundary_coords_w, n_modes_coords_w);
 
         ChState assembly_x_new;  // =[qB_new; qI_new]
         assembly_x_new.setZero(bou_int_coords, nullptr);
@@ -1948,17 +1814,6 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
 
         if (needs_temporary_bou_int)
             this->is_modal = true;
-
-        // bool converged_flag_F = false;
-        // int iteration_count = 0;
-        // while (converged_flag_F == false && iteration_count < 5) {
-        //     // this->ComputeMassCenter();
-        //     converged_flag_F = this->UpdateFloatingFrameOfReference();
-        //     this->UpdateTransformationMatrix();
-        //     iteration_count++;
-        // }
-        // this->CpmputeMappingMatrix();
-        //  GetLog() << "iteration_count for F:\t" << iteration_count << "\n";
 
         // store the full state for the computation in next time step
         full_assembly_x_old = assembly_x_new;
@@ -2554,7 +2409,10 @@ void ChModalAssembly::SetNoSpeedNoAcceleration() {
     }
 }
 
-void ChModalAssembly::GetStateLocal(ChStateDelta& Dx_local, ChStateDelta& v_local) {
+void ChModalAssembly::GetStateLocal(ChStateDelta& u_locred,
+                                    ChStateDelta& e_locred,
+                                    ChStateDelta& edt_locred,
+                                    const std::string& opt) {
     if (is_modal == false) {
         // to do? not useful for the moment.
         return;
@@ -2562,8 +2420,9 @@ void ChModalAssembly::GetStateLocal(ChStateDelta& Dx_local, ChStateDelta& v_loca
         int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
         int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
 
-        Dx_local.setZero(bou_mod_coords_w, nullptr);  // =[qB^bar; eta]
-        v_local.setZero(bou_mod_coords_w, nullptr);   // =[qB^bar_dt; eta_dt]
+        u_locred.setZero(bou_mod_coords_w, nullptr);    // =u_locred =P_W^T*[\delta qB; \delta eta]
+        e_locred.setZero(bou_mod_coords_w, nullptr);    // =e_locred =[qB^bar; eta]
+        edt_locred.setZero(bou_mod_coords_w, nullptr);  // =edt_locred =[qB^bar_dt; eta_dt]
 
         // fetch the state snapshot (modal reduced)
         double fooT;
@@ -2573,34 +2432,6 @@ void ChModalAssembly::GetStateLocal(ChStateDelta& Dx_local, ChStateDelta& v_loca
         v_mod.setZero(bou_mod_coords_w, nullptr);
         this->IntStateGather(0, x_mod, 0, v_mod, fooT);
 
-        // method 1:
-        // ChVectorDynamic<> displ_loc;
-        // displ_loc.setZero(bou_mod_coords_w);
-        // displ_loc.tail(n_modes_coords_w) = x_mod.segment(n_boundary_coords, n_modes_coords_w);
-        // for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
-        //    ChVector<> r_B = x_mod.segment(7 * i_bou, 3);
-        //    ChVector<> r_BF0 = floating_frame_F0.GetRot().RotateBack(
-        //        (modes_assembly_x0.segment(7 * i_bou, 3) - floating_frame_F0.GetPos().eigen()));
-        //    displ_loc.segment(6 * i_bou, 3) =
-        //        (floating_frame_F.GetRot().RotateBack((r_B - floating_frame_F.GetPos())) - r_BF0).eigen();
-
-        //    ChQuaternion<> quat_bou = x_mod.segment(7 * i_bou + 3, 4);
-        //    ChQuaternion<> quat_bou0 = modes_assembly_x0.segment(7 * i_bou + 3, 4);
-        //    ChQuaternion<> q_delta = quat_bou0.GetConjugate() * floating_frame_F0.GetRot() *
-        //                             floating_frame_F.GetRot().GetConjugate() * quat_bou;
-        //    // displ_loc.segment(6 * i_bou + 3, 3) = q_delta.Q_to_Rotv().eigen();
-
-        //    double delta_rot_angle;
-        //    ChVector<> delta_rot_dir;
-        //    q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
-        //    displ_loc.segment(6 * i_bou + 3, 3) = delta_rot_angle * delta_rot_dir.eigen();
-        //}
-        // Dx_local = displ_loc;
-
-        // method 2: using the perpendicular projector to extract the pure elastic deformation
-        //***Below code is more stable?? seems more consistent with the update algorithm of floating frame F
-        ChVectorDynamic<> u_locred(bou_mod_coords_w);
-        u_locred.setZero();
         u_locred.tail(n_modes_coords_w) = modal_q;
         for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
             u_locred.segment(6 * i_bou, 3) =
@@ -2619,25 +2450,62 @@ void ChModalAssembly::GetStateLocal(ChStateDelta& Dx_local, ChStateDelta& v_loca
             rel_q.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
             u_locred.segment(6 * i_bou + 3, 3) = delta_rot_angle * delta_rot_dir.eigen();
         }
-        Dx_local = P_perp * u_locred;
 
-        // local velocity
-        ChVectorDynamic<> vel_loc;
-        vel_loc.setZero(bou_mod_coords_w);
-        vel_loc.tail(n_modes_coords_w) = v_mod.segment(n_boundary_coords_w, n_modes_coords_w);
-        for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
-            ChVector<> r_B = x_mod.segment(7 * i_bou, 3);
-            ChVector<> v_B = v_mod.segment(6 * i_bou, 3);
-            ChVector<> r_BF_loc = floating_frame_F.GetRot().RotateBack(r_B - floating_frame_F.GetPos());
-            vel_loc.segment(6 * i_bou, 3) = (floating_frame_F.GetRot().RotateBack(v_B - floating_frame_F.GetPos_dt()) +
-                                             ChStarMatrix33(r_BF_loc) * floating_frame_F.GetWvel_loc())
-                                                .eigen();
+        if (opt == "definition") {
+            // method 1: solved according to the definition
 
-            ChVector<> wloc_B = v_mod.segment(6 * i_bou + 3, 3);
-            ChQuaternion<> quat_bou = x_mod.segment(7 * i_bou + 3, 4);
-            vel_loc.segment(6 * i_bou + 3, 3) = (wloc_B - quat_bou.RotateBack(floating_frame_F.GetWvel_par())).eigen();
+            // local displacement
+            e_locred.tail(n_modes_coords_w) = x_mod.segment(n_boundary_coords, n_modes_coords_w);
+            for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
+                ChVector<> r_B = x_mod.segment(7 * i_bou, 3);
+                ChVector<> r_BF0 = floating_frame_F0.GetRot().RotateBack(
+                    (modes_assembly_x0.segment(7 * i_bou, 3) - floating_frame_F0.GetPos().eigen()));
+                e_locred.segment(6 * i_bou, 3) =
+                    (floating_frame_F.GetRot().RotateBack((r_B - floating_frame_F.GetPos())) - r_BF0).eigen();
+
+                ChQuaternion<> quat_bou = x_mod.segment(7 * i_bou + 3, 4);
+                ChQuaternion<> quat_bou0 = modes_assembly_x0.segment(7 * i_bou + 3, 4);
+                ChQuaternion<> q_delta = quat_bou0.GetConjugate() * floating_frame_F0.GetRot() *
+                                         floating_frame_F.GetRot().GetConjugate() * quat_bou;
+                // e_locred.segment(6 * i_bou + 3, 3) = q_delta.Q_to_Rotv().eigen();
+
+                double delta_rot_angle;
+                ChVector<> delta_rot_dir;
+                q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
+                e_locred.segment(6 * i_bou + 3, 3) = delta_rot_angle * delta_rot_dir.eigen();
+            }
+
+            // local velocity
+            edt_locred.tail(n_modes_coords_w) = v_mod.segment(n_boundary_coords_w, n_modes_coords_w);
+            for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
+                ChVector<> r_B = x_mod.segment(7 * i_bou, 3);
+                ChVector<> v_B = v_mod.segment(6 * i_bou, 3);
+                ChVector<> r_BF_loc = floating_frame_F.GetRot().RotateBack(r_B - floating_frame_F.GetPos());
+                edt_locred.segment(6 * i_bou, 3) =
+                    (floating_frame_F.GetRot().RotateBack(v_B - floating_frame_F.GetPos_dt()) +
+                     ChStarMatrix33(r_BF_loc) * floating_frame_F.GetWvel_loc())
+                        .eigen();
+
+                ChVector<> wloc_B = v_mod.segment(6 * i_bou + 3, 3);
+                ChQuaternion<> quat_bou = x_mod.segment(7 * i_bou + 3, 4);
+                edt_locred.segment(6 * i_bou + 3, 3) =
+                    (wloc_B - quat_bou.RotateBack(floating_frame_F.GetWvel_par())).eigen();
+            }
+
+        } else if (opt == "projection") {
+            // method 2: using the perpendicular projector to extract the pure elastic deformation and velocity
+            //***Below code is more stable?? seems more consistent with the update algorithm of floating frame F
+
+            // local displacement
+            e_locred = P_perp * u_locred;
+
+            // local velocity
+            edt_locred = P_perp * (P_W.transpose() * v_mod);
+
+        } else {
+            GetLog() << "The GetStateLocal() type is specified incorrectly...\n";
+            assert(0);
         }
-        v_local = vel_loc;
     }
 }
 
@@ -2951,13 +2819,14 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
 
         // 1-
         // Add elastic forces from current modal deformations
-        ChStateDelta Dx_locred(bou_mod_coords_w, nullptr);
-        ChStateDelta v_locred(bou_mod_coords_w, nullptr);
-        this->GetStateLocal(Dx_locred, v_locred);
+        ChStateDelta u_locred(bou_mod_coords_w, nullptr);
+        ChStateDelta e_locred(bou_mod_coords_w, nullptr);
+        ChStateDelta edt_locred(bou_mod_coords_w, nullptr);
+        this->GetStateLocal(u_locred, e_locred, edt_locred, "projection");
 
         //// note: - sign
         R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -=
-            c * (P_W * P_perp.transpose() * (this->K_red * Dx_locred) + this->modal_R * v_mod);
+            c * (P_W * P_perp.transpose() * (this->K_red * e_locred) + this->modal_R * v_mod);
 
         if (use_quadratic_velocity_term) {
             ChMatrixDynamic<> V;
