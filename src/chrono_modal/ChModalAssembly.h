@@ -120,6 +120,10 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void ComputeDampingMatrix();
     void ComputeModalKRMmatrix();
     void DebugBlock();
+    bool use_geometric_stiffness = true;
+    bool use_inertial_stiffness = true;
+    bool use_inertial_damping = true;
+    bool use_quadratic_velocity_term = true;
 
     // void SetLocalFloatingFrameOfReference(std::shared_ptr<fea::ChNodeFEAbase> m_node);
 
