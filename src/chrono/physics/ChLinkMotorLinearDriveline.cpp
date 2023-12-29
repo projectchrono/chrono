@@ -246,14 +246,14 @@ void ChLinkMotorLinearDriveline::IntLoadResidual_Mv(const unsigned int off,
 
 void ChLinkMotorLinearDriveline::IntLoadLumpedMass_Md(const unsigned int off,
                                                       ChVectorDynamic<>& Md,
-                                                      double& error,
+                                                      double& err,
                                                       const double c) {
     // First, inherit to parent class
-    ChLinkMotorLinear::IntLoadLumpedMass_Md(off, Md, error, c);
+    ChLinkMotorLinear::IntLoadLumpedMass_Md(off, Md, err, c);
 
-    innershaft1lin->IntLoadLumpedMass_Md(off + 0, Md, error, c);
-    innershaft2lin->IntLoadLumpedMass_Md(off + 1, Md, error, c);
-    innershaft2rot->IntLoadLumpedMass_Md(off + 2, Md, error, c);
+    innershaft1lin->IntLoadLumpedMass_Md(off + 0, Md, err, c);
+    innershaft2lin->IntLoadLumpedMass_Md(off + 1, Md, err, c);
+    innershaft2rot->IntLoadLumpedMass_Md(off + 2, Md, err, c);
 }
 
 void ChLinkMotorLinearDriveline::IntLoadResidual_CqL(const unsigned int off_L,

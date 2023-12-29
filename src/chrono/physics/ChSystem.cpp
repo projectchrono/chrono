@@ -1223,20 +1223,18 @@ void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w,
     contact_container->IntLoadResidual_Mv(displ_v + contact_container->GetOffset_w(), R, w, c);
 }
 
-/// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
-/// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
-///    Md += c*diag(M)    or   Md += c*HRZ(M)
-void ChSystem::LoadLumpedMass_Md(ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
-                                  double& error,          ///< result: not touched if lumping does not introduce errors
-                                  const double c) {
+// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
+// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
+//    Md += c*diag(M)    or   Md += c*HRZ(M)
+void ChSystem::LoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, const double c) {
     unsigned int off = 0;
 
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntLoadLumpedMass_Md(off, Md, error, c);
+    assembly.IntLoadLumpedMass_Md(off, Md, err, c);
 
     // Use also on contact container: [ does nothing anyway ]
     unsigned int displ_v = off - assembly.offset_w;
-    contact_container->IntLoadLumpedMass_Md(displ_v + contact_container->GetOffset_w(), Md, error, c); 
+    contact_container->IntLoadLumpedMass_Md(displ_v + contact_container->GetOffset_w(), Md, err, c); 
 }
 
 // Increment a vectorR with the term Cq'*L:

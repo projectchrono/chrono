@@ -178,7 +178,7 @@ void ChLoadCustom::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDy
     }
 }
 
-void ChLoadCustom::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, const double c) {
+void ChLoadCustom::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, const double c) {
     if (!this->jacobians)
         return;
     // do computation Md=c*diag(M)
@@ -192,7 +192,7 @@ void ChLoadCustom::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error
             }
         }
     }
-    error = this->jacobians->M.sum() - this->jacobians->M.diagonal().sum();
+    err = this->jacobians->M.sum() - this->jacobians->M.diagonal().sum();
 }
 
 void ChLoadCustom::CreateJacobianMatrices() {
@@ -370,7 +370,7 @@ void ChLoadCustomMultiple::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const Ch
     }
 }
 
-void ChLoadCustomMultiple::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, double c) {
+void ChLoadCustomMultiple::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, double c) {
     if (!this->jacobians)
         return;
     // do computation Md=c*diag(M)
@@ -386,7 +386,7 @@ void ChLoadCustomMultiple::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, doubl
             }
         }
     }
-    error = this->jacobians->M.sum() - this->jacobians->M.diagonal().sum();
+    err = this->jacobians->M.sum() - this->jacobians->M.diagonal().sum();
 }
 
 void ChLoadCustomMultiple::CreateJacobianMatrices() {

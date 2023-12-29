@@ -388,7 +388,7 @@ void ChLinkTSDA::IntLoadResidual_Mv(const unsigned int off,      // offset in R 
 
 void ChLinkTSDA::IntLoadLumpedMass_Md(const unsigned int off,
                                       ChVectorDynamic<>& Md,
-                                      double& error,
+                                      double& err,
                                       const double c
 ) {
     if (!IsActive())

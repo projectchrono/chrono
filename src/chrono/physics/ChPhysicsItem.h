@@ -295,8 +295,8 @@ class ChApi ChPhysicsItem : public ChObj {
     ///    Md += c*diag(M)
     virtual void IntLoadLumpedMass_Md(const unsigned int off,  ///< offset in Md vector
                                       ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
-                                      double& error,          ///< result: not touched if lumping does not introduce errors
-                                      const double c          ///< a scaling factor
+                                      double& err,    ///< result: not touched if lumping does not introduce errors
+                                      const double c  ///< a scaling factor
     ) {}
 
     /// Takes the term Cq'*L, scale and adds to R at given offset:

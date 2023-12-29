@@ -106,7 +106,7 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
 
     /// Initialize the visualization system.
     /// This creates the Irrlicht device using the current values for the optional device parameters.
-    virtual void Initialize();
+    virtual void Initialize() override;
 
     /// Add a camera to the 3d scene.
     virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) override;
