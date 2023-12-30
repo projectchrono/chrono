@@ -297,6 +297,11 @@ endif()
 
 if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
 
+    if (ENABLE_MODULE_IRRLICHT)
+     #Append the CHRONO_IRRLICHT flag, for vehicle visual irrlicht
+     set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
+    endif()
+
   message(STATUS "...add CSharp VEHICLE module")
   
   # Set module name.
@@ -311,6 +316,9 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
     set_source_files_properties(${INTERFACE_FILE_VEHICLE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
   endif()
   set_source_files_properties(${INTERFACE_FILE_VEHICLE} PROPERTIES CPLUSPLUS ON)
+
+  # Apply custom SWIG flags
+    set_source_files_properties(${INTERFACE_FILE_VEHICLE} PROPERTIES COMPILE_FLAGS "${CMAKE_SWIG_FLAGS}")
   
   # Create the SWIG module.
   SWIG_ADD_LIBRARY(${MODULE_VEHICLE} LANGUAGE csharp SOURCES ${INTERFACE_FILE_VEHICLE})

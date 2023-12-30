@@ -382,7 +382,7 @@ namespace ChronoDemo
             // ----------------------------
 
 
-            // Implement Vehicle choice - do not intialise until after terrian initialisation. CRG requirement.
+            // Implement Vehicle choice - do not intialise until after terrain initialisation. CRG requirement.
             // TODO: move away from dynamic usage and specify top level statement instead
             dynamic CreateVehicleInstance(string vehicleType)
             {

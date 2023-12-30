@@ -32,5 +32,17 @@ set(ALL_DEPENDENCY_DLLS "${ALL_DEPENDENCY_DLLS}" PARENT_SCOPE)
 foreach(PROGRAM ${DEMOS})
   message(STATUS "...add ${PROGRAM}")
   add_executable(${PROGRAM} "${PROGRAM}.cs" ${CHRONO_CSHARP_SOURCES})
+
+  # Applying specific reference dependencies to CRGTerrain demo (uses dynamic objects)
+  if (${PROGRAM} STREQUAL "demo_VEH_CRGTerrain_IRR")
+    # add reference to Microsoft.CSharp or Mono libraries
+    if(WIN32)
+      set_property(TARGET ${PROGRAM} PROPERTY VS_DOTNET_REFERENCES "Microsoft.CSharp")
+    else()
+      # Assuming use of Mono on Unix/Linux (this is currently untested)
+      find_package(Mono REQUIRED)
+    endif()
+  endif()
+
 endforeach()
 
