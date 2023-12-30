@@ -55,14 +55,14 @@ Look at the [API section](group__mumps__module.html) of this module for a more i
 - Simply add this snippet anywhere in your code, before running the main simulation loop.<br>
 This will inform Chrono to use the interface to the MUMPS solver.
 ~~~{.cpp}
-auto mumps_solver = std::make_shared<ChSolverMumps>();
+auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
 my_system.SetSolver(mumps_solver);
 ~~~
 
 
 - (Optional) Turn on the sparsity pattern lock (see @ref chrono::ChSolverMumps and @ref chrono::ChDirectSolverLS for further details)
 ~~~{.cpp}
-auto mumps_solver = std::make_shared<ChSolverMumps>();
+auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
 mumps_solver->SetSparsityPatternLock(true);
 my_system.SetSolver(mumps_solver);
 ~~~

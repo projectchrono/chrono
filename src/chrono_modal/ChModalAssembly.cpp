@@ -2903,6 +2903,36 @@ void ChModalAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offse
     }
 }
 
+void ChModalAssembly::IntLoadLumpedMass_Md(const unsigned int off,
+                                           ChVectorDynamic<>& Md,
+                                           double& err,
+                                           const double c 
+) {
+    unsigned int displ_v = off - this->offset_w;
+
+    if (is_modal == false) {
+        ChAssembly::IntLoadLumpedMass_Md(off, Md, err, c);  // parent
+
+        for (auto& body : internal_bodylist) {
+            if (body->IsActive())
+                body->IntLoadLumpedMass_Md(displ_v + body->GetOffset_w(), Md, err, c);
+        }
+        for (auto& link : internal_linklist) {
+            if (link->IsActive())
+                link->IntLoadLumpedMass_Md(displ_v + link->GetOffset_w(), Md, err, c);
+        }
+        for (auto& mesh : internal_meshlist) {
+            mesh->IntLoadLumpedMass_Md(displ_v + mesh->GetOffset_w(), Md, err, c);
+        }
+        for (auto& item : internal_otherphysicslist) {
+            item->IntLoadLumpedMass_Md(displ_v + item->GetOffset_w(), Md, err, c);
+        }
+    } else {
+        Md.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) += c * this->modal_M.diagonal();
+        err += (Md.sum() - Md.diagonal().sum()); // lumping should not be used when modal reduced assembly has full, nondiagonal modal_M 
+    }
+}
+
 void ChModalAssembly::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
                                           ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                           const ChVectorDynamic<>& L,  ///< the L vector

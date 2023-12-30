@@ -94,17 +94,20 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     /// contact model (when rigid) and sync it.
     virtual ChCoordsys<> GetCsysForCollisionModel() override { return this->coord; }
 
-    /// Apply the force, expressed in absolute reference, applied in pos, to the
+    /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
     virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+                                            const ChVector<>& T,
                                             const ChVector<>& abs_point,
                                             ChVectorDynamic<>& R) override;
 
-    /// Apply the given force at the given point and load the generalized force array.
+    /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
+    /// Used for computing stiffness matrix (square force jacobian) by backward differentiation.
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactForceLoadQ(const ChVector<>& F,
+    virtual void ContactComputeQ(const ChVector<>& F,
+                                   const ChVector<>& T,
                                    const ChVector<>& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
@@ -265,6 +268,10 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c) override;
+    virtual void IntLoadLumpedMass_Md(const unsigned int off,
+                                      ChVectorDynamic<>& Md,
+                                      double& err,
+                                      const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,

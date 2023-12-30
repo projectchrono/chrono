@@ -145,6 +145,15 @@ void ChConveyor::IntLoadResidual_Mv(const unsigned int off,      // offset in R 
     conveyor_plate->IntLoadResidual_Mv(off + 6, R, w, c);
 }
 
+void ChConveyor::IntLoadLumpedMass_Md(const unsigned int off, 
+                                      ChVectorDynamic<>& Md, 
+                                      double& err, 
+                                      const double c
+) {
+    conveyor_truss->IntLoadLumpedMass_Md(off, Md, err, c);
+    conveyor_plate->IntLoadLumpedMass_Md(off + 6, Md, err, c);
+}
+
 void ChConveyor::IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,

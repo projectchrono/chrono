@@ -165,7 +165,7 @@ void ChParserURDF::SetBodyContactMaterial(const std::string& body_name, const Ch
 
 void ChParserURDF::EnableCollisionVisualization() {
     if (m_sys) {
-        cerr << "WARNING: SetBodyContactMaterial must be called before PopulateSystem." << endl;
+        cerr << "WARNING: EnableCollisionVisualization must be called before PopulateSystem." << endl;
         return;
     }
 
@@ -261,6 +261,7 @@ std::shared_ptr<ChVisualShape> ChParserURDF::toChVisualShape(const urdf::Geometr
             auto mesh = std::static_pointer_cast<urdf::Mesh>(geometry);
             auto modelfile_shape = chrono_types::make_shared<ChVisualShapeModelFile>();
             modelfile_shape->SetFilename(m_filepath + "/" + mesh->filename);
+            modelfile_shape->SetScale(toChVector(mesh->scale));
             vis_shape = modelfile_shape;
             break;
         }

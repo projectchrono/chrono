@@ -54,7 +54,12 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
                                    ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
                                    const ChVectorDynamic<>& w,  ///< the w vector
                                    const double c               ///< a scaling factor
-                                   ) override;
+                                    ) override;
+    virtual void IntLoadLumpedMass_Md(const unsigned int off,  ///< offset in Md vector
+                                      ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+                                      double& err,    ///< result: not touched if lumping does not introduce errors
+                                      const double c  ///< a scaling factor
+                                      ) override;
 
     /// Tell to a system descriptor that there are items of type
     /// ChKblock in this object (for further passing it to a solver)

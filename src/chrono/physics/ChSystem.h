@@ -599,6 +599,14 @@ class ChApi ChSystem : public ChIntegrableIIorder {
                                  const double c               ///< a scaling factor
                                  ) override;
 
+    /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
+    /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
+    ///    Md += c*diag(M)    or   Md += c*HRZ(M)
+    virtual void LoadLumpedMass_Md(ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+                                   double& err,            ///< result: not touched if lumping does not introduce errors
+                                   const double c          ///< a scaling factor
+                                   ) override;
+
     /// Increment a vectorR with the term Cq'*L:
     ///    R += c*Cq'*L
     virtual void LoadResidual_CqL(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L

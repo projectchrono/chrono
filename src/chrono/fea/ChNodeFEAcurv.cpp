@@ -179,6 +179,15 @@ void ChNodeFEAcurv::NodeIntLoadResidual_Mv(const unsigned int off,
     }
 }
 
+void ChNodeFEAcurv::NodeIntLoadLumpedMass_Md(const unsigned int off,
+                                             ChVectorDynamic<>& Md,
+                                             double& error,
+                                             const double c) {
+    for (int i = 0; i < 9; i++) {
+        Md(off + i) += c * GetMassDiagonal()(i);
+    }
+}
+
 void ChNodeFEAcurv::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
     m_variables->Get_qb().segment(0, 9) = v.segment(off_v, 9);
     m_variables->Get_fb().segment(0, 9) = R.segment(off_v, 9);

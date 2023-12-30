@@ -118,6 +118,14 @@ void ChShaft::IntLoadResidual_Mv(const unsigned int off,      // offset in R res
     R(off) += c * inertia * w(off);
 }
 
+void ChShaft::IntLoadLumpedMass_Md(const unsigned int off,
+                                   ChVectorDynamic<>& Md,
+                                   double& err,
+                                   const double c  
+) {
+    Md(off) += c * inertia;
+}
+
 void ChShaft::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                               const ChStateDelta& v,
                               const ChVectorDynamic<>& R,

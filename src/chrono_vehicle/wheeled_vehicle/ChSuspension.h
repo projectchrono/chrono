@@ -46,6 +46,15 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
         ForceTSDA(const std::string& n, double f, double l, double v) : name(n), force(f), length(l), velocity(v) {}
     };
 
+    struct ForceRSDA {
+        std::string name;
+        double torque;
+        double angle;
+        double velocity;
+        ForceRSDA() : name(""), torque(0), angle(0), velocity(0) {}
+        ForceRSDA(const std::string& n, double t, double a, double v) : name(n), torque(t), angle(a), velocity(v) {}
+    };
+
     virtual ~ChSuspension();
 
     /// Specify whether or not this suspension can be steered.
@@ -139,7 +148,10 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     virtual double GetTrack() = 0;
 
     /// Return current suspension TSDA force information on the specified side.
-    virtual std::vector<ForceTSDA> ReportSuspensionForce(VehicleSide side) const = 0;
+    virtual std::vector<ForceTSDA> ReportSuspensionForce(VehicleSide side) const { return {}; }
+
+    /// Return current RSDA torque information on the specified side.
+    virtual std::vector<ForceRSDA> ReportSuspensionTorque(VehicleSide side) const { return {}; }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) {}

@@ -20,7 +20,7 @@ attached to [rigid bodies](@ref rigid_bodies).
 Example:
 
 ~~~{.cpp}
-auto marker_c = std::make_shared<ChMarker>();
+auto marker_c = chrono_types::make_shared<ChMarker>();
 
 marker_c->Impose_Abs_Coord(X_ca); // or.. marker_c->Impose_Rel_Coord(X_cb);
 

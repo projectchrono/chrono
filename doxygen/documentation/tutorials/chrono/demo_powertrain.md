@@ -70,7 +70,7 @@ until they have the same speed.
 
 First, create a ChShaft that starts with nonzero angular velocity:
 
-\skip auto my_shaftA = std::make_shared<ChShaft>();
+\skip auto my_shaftA = chrono_types::make_shared<ChShaft>();
 \until my_system.Add(my_shaftA);
 
 Next, create another ChShaft with opposite initial angular velocity:
@@ -116,7 +116,7 @@ of free shafts are shown as flywheels `||` , and fixed shafts are marked with `*
 
 First, create shaft A with an applied torque:
 
-\skip auto my_shaftA = std::make_shared<ChShaft>();
+\skip auto my_shaftA = chrono_types::make_shared<ChShaft>();
 \until my_system.Add(my_shaftA);
 
 Next, create shaft B:
@@ -178,7 +178,7 @@ that connects shafts `A` and `C` (C is shown as `*` because fixed).
 
 First, create 'A', a 1D shaft:
 
-\skip auto my_shaftA = std::make_shared<ChShaft>();
+\skip auto my_shaftA = chrono_types::make_shared<ChShaft>();
 \until my_system.Add(my_shaftA);
 
 Next, create 'C', a 1D shaft, fixed:
@@ -218,7 +218,7 @@ the thermal engine is marked with `[ e ]`, and the breaking torque is `Tb`
 
 First, create 'A', a 1D shaft:
 
-\skip auto my_shaftA = std::make_shared<ChShaft>();
+\skip auto my_shaftA = chrono_types::make_shared<ChShaft>();
 \until my_system.Add(my_shaftA);
  
 Next, create 'B', a 1D shaft:
@@ -250,7 +250,7 @@ reaction torque back to a truss (the motor block).
 **Option A**: use a ChShaftsMotor in MOT_MODE_TORQUE mode.
 It works, but most often this is more useful when in MOT_MODE_SPEED.
 
-\skip auto my_motor = std::make_shared<ChShaftsMotor>();
+\skip auto my_motor = chrono_types::make_shared<ChShaftsMotor>();
 \until my_system.Add(my_motor);
 
 **Option B**: use a ChShaftsTorque - it simply applies a torque
@@ -259,14 +259,14 @@ to my_shaftD (say, the motor block).
 It is a quick approach. Note that 
 the torque should be changed at each timestep if a torque curve is to be emulated.
 
-\skip auto my_motor = std::make_shared<ChShaftsTorque>();
+\skip auto my_motor = chrono_types::make_shared<ChShaftsTorque>();
 \until my_system.Add(my_motor);
 
 **Option C**: a more versatile approach where one can
 define a torque curve and a throttle value via the
 ChShaftsThermalEngine.
 
-\skip auto my_motor = std::make_shared<ChShaftsThermalEngine>();
+\skip auto my_motor = chrono_types::make_shared<ChShaftsThermalEngine>();
 \until my_motor->SetTorqueCurve(mTw);
 
 

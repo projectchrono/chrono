@@ -192,6 +192,22 @@ void ChBody::IntLoadResidual_Mv(const unsigned int off,      // offset in R resi
     R.segment(off + 3, 3) += Iw.eigen();
 }
 
+void ChBody::IntLoadLumpedMass_Md(const unsigned int off,
+                                  ChVectorDynamic<>& Md,
+                                  double& err,
+                                  const double c
+) {
+    Md(off + 0) += c * GetMass();
+    Md(off + 1) += c * GetMass();
+    Md(off + 2) += c * GetMass();
+    Md(off + 3) += c * GetInertia()(0, 0);
+    Md(off + 4) += c * GetInertia()(1, 1);
+    Md(off + 5) += c * GetInertia()(2, 2);
+    // if there is off-diagonal inertia, add to error, as lumping can give inconsistent results
+    err += GetInertia()(0, 1) + GetInertia()(0, 2) + GetInertia()(1, 2);
+}
+
+
 void ChBody::IntToDescriptor(const unsigned int off_v,
                              const ChStateDelta& v,
                              const ChVectorDynamic<>& R,
@@ -770,15 +786,21 @@ ChCoordsys<> ChBody::GetCsysForCollisionModel() {
     return ChCoordsys<>(GetFrame_REF_to_abs().coord);
 }
 
-void ChBody::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
-    ChVector<> m_p1_loc = Point_World2Body(abs_point);
-    ChVector<> force1_loc = Dir_World2Body(F);
+void ChBody::ContactForceLoadResidual_F(const ChVector<>& F,
+                                        const ChVector<>& T,
+                                        const ChVector<>& abs_point,
+                                        ChVectorDynamic<>& R) {
+    ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
+    ChVector<> force1_loc = this->Dir_World2Body(F);
     ChVector<> torque1_loc = Vcross(m_p1_loc, force1_loc);
-    R.segment(GetOffset_w() + 0, 3) += F.eigen();
-    R.segment(GetOffset_w() + 3, 3) += torque1_loc.eigen();
+    if (!T.IsNull())
+        torque1_loc += this->Dir_World2Body(T);
+    R.segment(this->GetOffset_w() + 0, 3) += F.eigen();
+    R.segment(this->GetOffset_w() + 3, 3) += torque1_loc.eigen();
 }
 
-void ChBody::ContactForceLoadQ(const ChVector<>& F,
+void ChBody::ContactComputeQ(const ChVector<>& F,
+                               const ChVector<>& T,
                                const ChVector<>& point,
                                const ChState& state_x,
                                ChVectorDynamic<>& Q,
@@ -787,6 +809,8 @@ void ChBody::ContactForceLoadQ(const ChVector<>& F,
     ChVector<> point_loc = csys.TransformPointParentToLocal(point);
     ChVector<> force_loc = csys.TransformDirectionParentToLocal(F);
     ChVector<> torque_loc = Vcross(point_loc, force_loc);
+    if (!T.IsNull())
+        torque_loc += csys.TransformDirectionParentToLocal(T);
     Q.segment(offset + 0, 3) = F.eigen();
     Q.segment(offset + 3, 3) = torque_loc.eigen();
 }

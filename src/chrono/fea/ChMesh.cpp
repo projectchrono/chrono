@@ -421,6 +421,26 @@ void ChMesh::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R re
     }
 }
 
+void ChMesh::IntLoadLumpedMass_Md(const unsigned int off,
+                                  ChVectorDynamic<>& Md,
+                                  double& err,
+                                  const double c
+) {
+    // nodal masses
+    unsigned int local_off_v = 0;
+    for (unsigned int j = 0; j < vnodes.size(); j++) {
+        if (!vnodes[j]->IsFixed()) {
+            vnodes[j]->NodeIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
+            local_off_v += vnodes[j]->GetNdofW_active();
+        }
+    }
+
+    // internal masses
+    for (unsigned int ie = 0; ie < velements.size(); ie++) {
+        velements[ie]->EleIntLoadLumpedMass_Md(Md, err, c);
+    }
+}
+
 void ChMesh::IntToDescriptor(const unsigned int off_v,
                              const ChStateDelta& v,
                              const ChVectorDynamic<>& R,

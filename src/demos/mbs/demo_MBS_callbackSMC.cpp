@@ -109,10 +109,10 @@ class CompsiteMaterial : public ChMaterialCompositionStrategy {
 // -----------------------------------------------------------------------------
 // Class for overriding the default SMC contact force calculation
 // -----------------------------------------------------------------------------
-class ContactForce : public ChSystemSMC::ChContactForceSMC {
+class ContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
   public:
     // Demonstration only.
-    virtual ChVector<> CalculateForce(
+    virtual std::pair<ChVector<>, ChVector<>> CalculateForceTorque(
         const ChSystemSMC& sys,             ///< containing sys
         const ChVector<>& normal_dir,       ///< normal contact direction (expressed in global frame)
         const ChVector<>& p1,               ///< most penetrated point on obj1 (expressed in global frame)
@@ -123,7 +123,9 @@ class ContactForce : public ChSystemSMC::ChContactForceSMC {
         double delta,                       ///< overlap in normal direction
         double eff_radius,                  ///< effective radius of curvature at contact
         double mass1,                       ///< mass of obj1
-        double mass2                        ///< mass of obj2
+        double mass2,                       ///< mass of obj2
+        ChContactable* objA,                ///< pointer to contactable obj1
+        ChContactable* objB                 ///< pointer to contactable obj2
     ) const override {
         // Relative velocity at contact
         ChVector<> relvel = vel2 - vel1;
@@ -155,8 +157,11 @@ class ContactForce : public ChSystemSMC::ChContactForceSMC {
         ChVector<> force = forceN * normal_dir;
         if (relvel_t_mag >= sys.GetSlipVelocityThreshold())
             force -= (forceT / relvel_t_mag) * relvel_t;
+        
+        // for torque do nothing (this could be used to simulate rolling or spinning friction, if needed)
+        ChVector<> torque = VNULL;
 
-        return force;
+        return std::make_pair(force, torque);
     }
 };
 
@@ -294,7 +299,7 @@ int main(int argc, char* argv[]) {
 
     // User-defined SMC contact force calculation
     auto cforce = chrono_types::make_unique<ContactForce>();
-    sys.SetContactForceAlgorithm(std::move(cforce));
+    sys.SetContactForceTorqueAlgorithm(std::move(cforce));
 
     // User-defined composite coefficent of friction
     auto cmat = chrono_types::make_unique<ChMaterialCompositionStrategy>();

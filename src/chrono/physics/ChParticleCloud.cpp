@@ -103,15 +103,21 @@ ChVector<> ChAparticle::GetContactPointSpeed(const ChVector<>& abs_point) {
     return this->PointSpeedLocalToParent(m_p1_loc);
 }
 
-void ChAparticle::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
+void ChAparticle::ContactForceLoadResidual_F(const ChVector<>& F,
+                                             const ChVector<>& T,
+                                             const ChVector<>& abs_point,
+                                             ChVectorDynamic<>& R) {
     ChVector<> m_p1_loc = this->TransformPointParentToLocal(abs_point);
     ChVector<> force1_loc = this->TransformDirectionParentToLocal(F);
     ChVector<> torque1_loc = Vcross(m_p1_loc, force1_loc);
+    if (!T.IsNull())
+        torque1_loc += this->TransformDirectionParentToLocal(T);
     R.segment(Variables().GetOffset() + 0, 3) += F.eigen();
     R.segment(Variables().GetOffset() + 3, 3) += torque1_loc.eigen();
 }
 
-void ChAparticle::ContactForceLoadQ(const ChVector<>& F,
+void ChAparticle::ContactComputeQ(const ChVector<>& F,
+                                    const ChVector<>& T,
                                     const ChVector<>& point,
                                     const ChState& state_x,
                                     ChVectorDynamic<>& Q,
@@ -120,6 +126,8 @@ void ChAparticle::ContactForceLoadQ(const ChVector<>& F,
     ChVector<> point_loc = csys.TransformPointParentToLocal(point);
     ChVector<> force_loc = csys.TransformDirectionParentToLocal(F);
     ChVector<> torque_loc = Vcross(point_loc, force_loc);
+    if (!T.IsNull())
+        torque_loc += csys.TransformDirectionParentToLocal(T);
     Q.segment(offset + 0, 3) = F.eigen();
     Q.segment(offset + 3, 3) = torque_loc.eigen();
 }
@@ -445,6 +453,23 @@ void ChParticleCloud::IntLoadResidual_Mv(const unsigned int off,      // offset 
         ChVector<> Iw = c * (particle_mass.GetBodyInertia() * ChVector<>(w.segment(off + 6 * j + 3, 3)));
         R.segment(off + 6 * j + 3, 3) += Iw.eigen();
     }
+}
+void ChParticleCloud::IntLoadLumpedMass_Md(const unsigned int off,
+                                           ChVectorDynamic<>& Md,
+                                           double& err,
+                                           const double c   
+) {
+    for (unsigned int j = 0; j < particles.size(); j++) {
+        Md(off + 6 * j + 0) += c * particle_mass.GetBodyMass();
+        Md(off + 6 * j + 1) += c * particle_mass.GetBodyMass();
+        Md(off + 6 * j + 2) += c * particle_mass.GetBodyMass();
+        Md(off + 6 * j + 3) += c * particle_mass.GetBodyInertia()(0, 0);
+        Md(off + 6 * j + 4) += c * particle_mass.GetBodyInertia()(1, 1);
+        Md(off + 6 * j + 5) += c * particle_mass.GetBodyInertia()(2, 2);
+    }
+    // if there is off-diagonal inertia, add to error, as lumping can give inconsistent results
+    err += particles.size() * (particle_mass.GetBodyInertia()(0, 1) + particle_mass.GetBodyInertia()(0, 2) +
+                               particle_mass.GetBodyInertia()(1, 2));
 }
 
 void ChParticleCloud::IntToDescriptor(const unsigned int off_v,  // offset in v, R
