@@ -113,6 +113,43 @@ class FmuChronoUnit : public FmuUnit {
         auto status = SetCsysVariable(name, frame.GetCoord());
         return status;
     }
+
+    /// Load the given ChFrameMoving from FMU variables with the specified name.
+    fmi2Status GetFrameMovingVariable(const std::string& name, ChFrameMoving<>& frame) {
+        ChCoordsys<> csys;
+        auto status_csys = GetCsysVariable(name, csys);
+        if (status_csys != fmi2OK)
+            return status_csys;
+        ChVector<> pos_dt;
+        auto status_pos_dt = GetVecVariable(name + ".pos_dt", pos_dt);
+        if (status_pos_dt != fmi2OK)
+            return status_pos_dt;
+        ChQuaternion<> rot_dt;
+        auto status_rot_dt = GetQuatVariable(name + ".rot_dt", rot_dt);
+        if (status_rot_dt != fmi2OK)
+            return status_rot_dt;
+
+        frame = ChFrameMoving<>(csys);
+        frame.SetPos_dt(pos_dt);
+        frame.SetRot_dt(rot_dt);
+
+        return fmi2OK;
+    }
+
+    /// Set the FMU variable with specified name to the values of the given ChgFrameMoving.
+    fmi2Status SetFrameVariable(const std::string& name, const ChFrameMoving<>& frame) {
+        auto status_csys = SetCsysVariable(name, frame.GetCoord());
+        if (status_csys != fmi2OK)
+            return status_csys;
+        auto status_pos_dt = SetVecVariable(name + ".pos_dt", frame.GetPos_dt());
+        if (status_pos_dt != fmi2OK)
+            return status_pos_dt;
+        auto status_rot_dt = SetQuatVariable(name + ".rot_dt", frame.GetRot_dt());
+        if (status_rot_dt != fmi2OK)
+            return status_rot_dt;
+
+        return fmi2OK;
+    }
 };
 
 }  // end namespace chrono
