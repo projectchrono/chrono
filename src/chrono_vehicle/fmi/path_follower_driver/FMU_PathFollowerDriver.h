@@ -58,20 +58,20 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     std::shared_ptr<chrono::vehicle::ChPathSteeringController> steeringPID;  ///< steering controller
     std::shared_ptr<chrono::vehicle::ChSpeedController> speedPID;            ///< speed controller
 
-    std::string path_file;         ///< name of file with path Bezier curve data
-    double look_ahead_dist = 5.0;  ///< look ahead distance for lateral PID controller
-    double Kp_steering = 0.8;      ///< steering PID proportional gain
-    double Ki_steering = 0.0;      ///< steering PID integral gain
-    double Kd_steering = 0.0;      ///< steering PID derivative gain
+    std::string path_file;   ///< name of file with path Bezier curve data
+    double look_ahead_dist;  ///< look ahead distance for lateral PID controller
+    double Kp_steering;      ///< steering PID proportional gain
+    double Ki_steering;      ///< steering PID integral gain
+    double Kd_steering;      ///< steering PID derivative gain
 
-    double throttle_threshold;
-    double Kp_speed = 0.4;  ///< speed PID proportional gain
-    double Ki_speed = 0.0;  ///< speed PID integral gain
-    double Kd_speed = 0.0;  ///< speed PID derivative gain
+    double throttle_threshold;  ///< threshold throttle/braking control
+    double Kp_speed;            ///< speed PID proportional gain
+    double Ki_speed;            ///< speed PID integral gain
+    double Kd_speed;            ///< speed PID derivative gain
 
     double step_size;  ///< integration step size
 
-    double target_speed = 0;            ///< current target speed (FMU input)
+    double target_speed;                ///< current target speed (FMU input)
     chrono::ChFrameMoving<> ref_frame;  ///< vehicle reference frame (FMU input)
 
     // Vehicle driver commands (FMU output)
@@ -79,7 +79,7 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double throttle;  ///< throttle command, in [0,1]
     double braking;   ///< braking command, in [0,1]
 
-    fmi2Boolean vis = false;  ///< enable/disable run-time visualization
+    fmi2Boolean vis;          ///< enable/disable run-time visualization
     chrono::ChSystemSMC sys;  ///< containing system (visualization use only)
     int ipath;                ///< ID for path visualization shape
     int iballS;               ///< ID for sentinel visualization shape

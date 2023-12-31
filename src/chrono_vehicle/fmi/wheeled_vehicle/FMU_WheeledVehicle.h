@@ -71,15 +71,17 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     std::string vehicle_JSON;       ///< JSON vehicle specification file
     std::string engine_JSON;        ///< JSON engine specification file
     std::string transmission_JSON;  ///< JSON transmission specification file
-    fmi2Boolean system_SMC = true;  ///< use SMC contact formulation (NSC otherwise)
-    fmi2Boolean vis = false;        ///< enable/disable run-time visualization
+    fmi2Boolean system_SMC;         ///< use SMC contact formulation (NSC otherwise)
+    fmi2Boolean vis;                ///< enable/disable run-time visualization
     chrono::ChVector<> init_loc;    ///< initial vehicle location
     double init_yaw;                ///< initial vehicle orientation
+    chrono::ChVector<> g_acc;       ///< gravitational acceleration
     double step_size;               ///< integration step size
 
-    // FMU outputs and inputs for co-simulation
-    chrono::vehicle::DriverInputs driver_inputs;  ///< vehicle control inputs
-    std::array<WheelData, 4> wheel_data;          ///< wheel state and applied forces
+    // FMU inputs and outputs for co-simulation
+    chrono::vehicle::DriverInputs driver_inputs;  ///< vehicle control inputs (input)
+    std::array<WheelData, 4> wheel_data;          ///< wheel state and applied forces (output/input)
+    chrono::ChFrameMoving<> ref_frame;            ///< vehicle reference frame (output)
 
     //// TODO - more outputs
 };

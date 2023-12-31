@@ -30,8 +30,15 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     // Initialize FMU type
     initializeType(_fmuType);
 
-    // Set initial values for FMU input variables
+    // Set initial/default values for FMU variables
+    g_acc = {0, 0, -9.8};
     driver_inputs = {0, 0, 0, 0};
+    init_loc = {0, 0, 0};
+    init_yaw = 0;
+
+    system_SMC = true;
+    vis = false;
+    step_size = 1e-3;
 
     // Set wheel identifier strings
     wheel_data[0].identifier = "FL";
@@ -59,6 +66,9 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     AddFmuVariable(&init_yaw, "init_yaw", FmuVariable::Type::Real, "rad", "initial location Z",     //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);     //
 
+    AddFmuVecVariable(g_acc, "g_acc", "m/s2", "gravitational acceleration",                         //
+                      FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
+
     AddFmuVariable(&step_size, "step_size", FmuVariable::Type::Real, "s", "integration step size",  //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);     //
 
@@ -71,6 +81,10 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
     AddFmuVariable(&driver_inputs.m_clutch, "clutch", FmuVariable::Type::Real, "1", "clutch input",        //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
+
+    // Set CONTINUOUS OUTPUTS for this FMU (vehicle reference frame)
+    AddFmuFrameMovingVariable(ref_frame, "ref_frame", "m", "m/s", "reference frame",                          //
+                              FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
 
     // Set CONTINOUS INPUTS and OUTPUTS for this FMU (wheel state and forces for co-simulation)
     for (int iw = 0; iw < 4; iw++) {
@@ -101,11 +115,22 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
 }
 
 void FmuComponent::CreateVehicle() {
+    std::cout << "Vehicle JSON file:      " << vehicle_JSON << std::endl;
+    std::cout << "Engine JSON file:       " << engine_JSON << std::endl;
+    std::cout << "Transmission JSON file: " << transmission_JSON << std::endl;
+    std::cout << "Initial location: " << init_loc << std::endl;
+    std::cout << "Initial yaw:      " << init_yaw << std::endl;
+
     // Create the vehicle system
     vehicle = chrono_types::make_shared<WheeledVehicle>(vehicle_JSON,
                                                         system_SMC ? ChContactMethod::SMC : ChContactMethod::NSC);
     vehicle->Initialize(ChCoordsys<>(init_loc, Q_from_AngZ(init_yaw)));
-    vehicle->GetChassis()->SetFixed(false);
+    vehicle->GetChassis()->SetFixed(true);
+    std::cout << "\n\nATTENTION: vehicle chassis fixed to ground!\n\n" << std::endl;
+
+    // Initialize the vehicle reference frame
+    ref_frame.SetPos(init_loc);
+    ref_frame.SetRot(Q_from_AngZ(init_yaw));
 
     // Cache vehicle wheels
     wheel_data[0].wheel = vehicle->GetWheel(0, VehicleSide::LEFT);
@@ -131,6 +156,8 @@ void FmuComponent::CreateVehicle() {
 void FmuComponent::ConfigureSystem() {
     // Containing system
     auto system = vehicle->GetSystem();
+
+    system->Set_G_acc(g_acc);
 
     // Associate a collision system
     system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -166,9 +193,13 @@ void FmuComponent::SynchronizeVehicle(double time) {
 }
 
 void FmuComponent::CalculateVehicleOutputs() {
+    // Extract wheel states
     for (int iw = 0; iw < 4; iw++) {
         wheel_data[iw].state = wheel_data[iw].wheel->GetState();
     }
+
+    // Set vehicle reference frame
+    ref_frame = vehicle->GetRefFrame();
 
     //// TODO - other vehicle outputs...
 }

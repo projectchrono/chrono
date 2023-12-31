@@ -29,6 +29,26 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     // Initialize FMU type
     initializeType(_fmuType);
 
+    // Set initial/default values for FMU variables
+    steering = 0;
+    throttle = 0;
+    braking = 0;
+    
+    target_speed = 0;
+
+    step_size = 1e-3;
+    vis = false;
+
+    look_ahead_dist = 5.0;
+    Kp_steering = 0.8;
+    Ki_steering = 0.0;
+    Kd_steering = 0.0;
+
+    throttle_threshold = 0.2;
+    Kp_speed = 0.4;
+    Ki_speed = 0.0;
+    Kd_speed = 0.0;
+
     // Set configuration flags for this FMU
     AddFmuVariable(&vis, "vis", FmuVariable::Type::Boolean, "1", "enable visualization",         //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
@@ -128,7 +148,7 @@ void FmuComponent::_exitInitializationMode() {
         vis_sys->SetWindowTitle("Path-follower vehicle driver");
         vis_sys->SetCameraVertical(CameraVerticalDir::Z);
         vis_sys->Initialize();
-        vis_sys->AddCamera(ChVector<>(0.5, -1, 0.5), ChVector<>(0.5, 0, 0.5));
+        vis_sys->AddCamera(ChVector<>(-4, 0, 0.5), ChVector<>(0, 0, 0));
         vis_sys->AddTypicalLights();
 
         // Create path visualization
