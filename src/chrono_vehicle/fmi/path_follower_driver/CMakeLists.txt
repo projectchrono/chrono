@@ -1,9 +1,8 @@
-set(COMPONENT_NAME "FMU_WheeledVehicle")
+set(COMPONENT_NAME "FMU_PathFollowerDriver")
 set(COMPONENT_MAIN_DIR "${CMAKE_BINARY_DIR}")
-set(COMPONENT_SOURCES FMU_WheeledVehicle.h FMU_WheeledVehicle.cpp)
-set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle ChronoEngine_irrlicht ChronoEngine_vehicle_irrlicht)
+set(COMPONENT_SOURCES FMU_PathFollowerDriver.h FMU_PathFollowerDriver.cpp)
+set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle ChronoEngine_irrlicht)
 set(COMPONENT_DLL_DEPENDENCIES ${CH_IRRLICHT_DLL})
-set(FMU_HOST_SOURCES FmuHost.cpp)
 
 #--------------------------------------------------------------
 
@@ -11,22 +10,20 @@ set(FMU_HOST_SOURCES FmuHost.cpp)
 include_directories(${CH_INCLUDES})
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
-list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS ChronoEngine)
 list(APPEND LIBS ChronoEngine_vehicle)
 
 if(ENABLE_MODULE_IRRLICHT)
   include_directories(${CH_IRRLICHT_INCLUDES})
   set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-  list(APPEND LIBS "ChronoEngine_irrlicht")
-  list(APPEND LIBS ChronoEngine_vehicle_irrlicht)
+  list(APPEND LIBS ChronoEngine_irrlicht)
 endif()
 
 #==============================================================
 
 message(STATUS "   FetchContent(fmu_tools)")
 
-set(FMU_MODEL_IDENTIFIER ${COMPONENT_NAME} CACHE INTERNAL "")
-set(BUILD_FMU_HOST OFF CACHE INTERNAL "")
+set(FMU_MODEL_IDENTIFIER "${COMPONENT_NAME}" CACHE INTERNAL "")
 set(USE_EXTERNAL_FMU_COMPONENT_SOURCES ON CACHE INTERNAL "")
 set(USE_CUSTOM_TYPESPLATFORM OFF CACHE INTERNAL "")
 
@@ -63,13 +60,7 @@ set_target_properties(${FMU_MODEL_IDENTIFIER}
                       PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${FMU_RUNTIME_OUTPUT_DIRECTORY}
                                  RUNTIME_OUTPUT_DIRECTORY_DEBUG ${FMU_RUNTIME_OUTPUT_DIRECTORY})
 
-#---------------------------------------------------------------
-
-if(BUILD_FMU_HOST)
-  target_sources(fmu_host_${FMU_MODEL_IDENTIFIER} PRIVATE ${FMU_HOST_SOURCES})
-endif()
-
-#---------------------------------------------------------------
+#--------------------------------------------------------------
 
 set(FMU_MODEL_IDENTIFIER ${FMU_MODEL_IDENTIFIER} PARENT_SCOPE)
 set(FMU_DIRECTORY ${FMU_DIRECTORY} PARENT_SCOPE)

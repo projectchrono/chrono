@@ -20,7 +20,7 @@
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "wheeled_vehicle_FMU.h"
+#include "FMU_WheeledVehicle.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
