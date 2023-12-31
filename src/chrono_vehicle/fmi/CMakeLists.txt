@@ -4,6 +4,14 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
+# Set common output directory for all Chrono::Vehicle FMUs
+set(VEHICLE_FMU_COMPONENT_MAIN_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/vehicleFMU")
+
+# Generate configuration header ChConfigVehicleFMI.h
+set(CHRONO_VEHICLE_FMU_DIR "#define CHRONO_VEHICLE_FMU_DIR \"${VEHICLE_FMU_COMPONENT_MAIN_DIR}/\"")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicleFMI.h.in
+               ${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicleFMI.h)  
+
 # List of FMU subdirectories
 set(FMUS 
     wheeled_vehicle
