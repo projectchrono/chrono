@@ -137,7 +137,7 @@ class FmuChronoUnit : public FmuUnit {
     }
 
     /// Set the FMU variable with specified name to the values of the given ChgFrameMoving.
-    fmi2Status SetFrameVariable(const std::string& name, const ChFrameMoving<>& frame) {
+    fmi2Status SetFrameMovingVariable(const std::string& name, const ChFrameMoving<>& frame) {
         auto status_csys = SetCsysVariable(name, frame.GetCoord());
         if (status_csys != fmi2OK)
             return status_csys;
