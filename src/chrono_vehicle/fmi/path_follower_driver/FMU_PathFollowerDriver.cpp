@@ -117,6 +117,20 @@ void FmuComponent::CreateDriver() {
     steeringPID->SetLookAheadDistance(look_ahead_dist);
     steeringPID->SetGains(Kp_steering, Ki_steering, Kd_steering);
     speedPID->SetGains(Kp_speed, Ki_speed, Kd_speed);
+
+#ifdef CHRONO_IRRLICHT
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetBodyFixed(true);
+    sys.AddBody(ground);
+
+    auto num_points = static_cast<unsigned int>(path->getNumPoints());
+    auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
+    path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(path));
+    path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
+    path_asset->SetName("path");
+    path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
+    ground->AddVisualShape(path_asset);
+#endif
 }
 
 void FmuComponent::SynchronizeDriver(double time) {
@@ -150,16 +164,6 @@ void FmuComponent::_exitInitializationMode() {
         vis_sys->Initialize();
         vis_sys->AddCamera(ChVector<>(-4, 0, 0.5), ChVector<>(0, 0, 0));
         vis_sys->AddTypicalLights();
-
-        // Create path visualization
-        auto bezier_curve = steeringPID->GetPath();
-        auto num_points = static_cast<unsigned int>(bezier_curve->getNumPoints());
-        auto path_shape = chrono_types::make_shared<ChVisualShapeLine>();
-        path_shape->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve));
-        path_shape->SetColor(ChColor(0.8f, 0.8f, 0.0f));
-        path_shape->SetName("path");
-        path_shape->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
-        ipath = vis_sys->AddVisualModel(path_shape, ChFrame<>());
 
         // Create visualization objects for steering controller (sentinel and target points)
         auto sentinel_shape = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
@@ -206,17 +210,26 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
 
         if (vis) {
 #ifdef CHRONO_IRRLICHT
+            sys.Update(true);
+
+            // Update camera position
+            auto x_dir = ref_frame.GetA().Get_A_Xaxis();
+            auto camera_target = ref_frame.GetPos();
+            auto camera_pos = camera_target - 2.0 * x_dir + ChVector<>(0, 0, 0.5);
+            vis_sys->UpdateCamera(camera_pos, camera_target);
+
             // Update sentinel and target location markers for the path-follower controller.
             vis_sys->UpdateVisualModel(iballS, ChFrame<>(steeringPID->GetSentinelLocation()));
             vis_sys->UpdateVisualModel(iballT, ChFrame<>(steeringPID->GetTargetLocation()));
 
-            vis_sys->Run();
+            auto status = vis_sys->Run();
+            if (!status)
+                return fmi2Discard;
             vis_sys->BeginScene(true, true, ChColor(0.33f, 0.6f, 0.78f));
             vis_sys->Render();
             vis_sys->EndScene();
 #endif
         }
-
         ////sendToLog("time: " + std::to_string(time) + "\n", fmi2Status::fmi2OK, "logAll");
 
         time = time + h;

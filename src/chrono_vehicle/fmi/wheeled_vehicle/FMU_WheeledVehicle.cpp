@@ -244,7 +244,9 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
 
         if (vis) {
 #ifdef CHRONO_IRRLICHT
-            vis_sys->Run();
+            auto status = vis_sys->Run();
+            if (!status)
+                return fmi2Discard;
             vis_sys->BeginScene(true, true, ChColor(0.33f, 0.6f, 0.78f));
             vis_sys->Render();
             vis_sys->EndScene();
