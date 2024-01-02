@@ -41,6 +41,16 @@ ChLineBezier::ChLineBezier(const ChLineBezier& source) : ChLine(source) {
     complexityU = source.complexityU;
 }
 
+ChAABB ChLineBezier::GetBoundingBox() const {
+    ChAABB aabb;
+    for (const auto& p : m_path->getPoints()) {
+        aabb.min = Vmin(aabb.min, p);
+        aabb.max = Vmax(aabb.max, p);
+    }
+
+    return aabb;
+}
+
 ChVector<> ChLineBezier::Evaluate(double parU) const {
     double par = ChClamp(parU, 0.0, 1.0);
     size_t numIntervals = m_path->getNumPoints() - 1;
