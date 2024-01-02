@@ -130,6 +130,8 @@ void FmuComponent::CreateDriver() {
     path_asset->SetName("path");
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
     ground->AddVisualShape(path_asset);
+
+    path_aabb = path_asset->GetLineGeometry()->GetBoundingBox();
 #endif
 }
 
@@ -156,11 +158,19 @@ void FmuComponent::_exitInitializationMode() {
 #ifdef CHRONO_IRRLICHT
         sendToLog("Enable run-time visualization", fmi2Status::fmi2OK, "logAll");
 
+        // Calculate grid dimensions based on path AABB
+        double spacing = 0.5;
+        int grid_x = 2 * (int)std::ceil(path_aabb.Size().x() / spacing);
+        int grid_y = 2 * (int)std::ceil(path_aabb.Size().y() / spacing);
+        auto aabb = steeringPID->GetPath();
+
+        // Create run-time visualization system
         vis_sys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
         vis_sys->AttachSystem(&sys);
         vis_sys->SetWindowSize(800, 600);
         vis_sys->SetWindowTitle("Path-follower vehicle driver");
         vis_sys->SetCameraVertical(CameraVerticalDir::Z);
+        vis_sys->AddGrid(spacing, spacing, grid_x, grid_y, ChCoordsys<>(), ChColor(0.31f, 0.43f, 0.43f));
         vis_sys->Initialize();
         vis_sys->AddCamera(ChVector<>(-4, 0, 0.5), ChVector<>(0, 0, 0));
         vis_sys->AddTypicalLights();
@@ -227,6 +237,7 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                 return fmi2Discard;
             vis_sys->BeginScene(true, true, ChColor(0.33f, 0.6f, 0.78f));
             vis_sys->Render();
+            vis_sys->RenderFrame(ref_frame);
             vis_sys->EndScene();
 #endif
         }
