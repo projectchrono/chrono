@@ -590,10 +590,10 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
             // mXi_F2 = mXi_F1.transpose();
             // mXi_F << ChMatrix33<>(0), mXi_F1, mXi_F2, mXi_F3;
 
-            ChMatrixDynamic<> UTMU = (U_locred.transpose() * M_red * U_locred).diagonal().asDiagonal();
+            //ChMatrixDynamic<> UTMU = U_locred.transpose() * M_red * U_locred;
             // mJac_F = -mXi_F - UTMU;
 
-            mJac_F = -UTMU;
+            mJac_F = -U_locred.transpose() * M_red * U_locred;
         };
 
         int iteration_count = 0;
@@ -711,7 +711,7 @@ void ChModalAssembly::ComputeProjectionMatrix() {
     U_locred.setZero(bou_mod_coords_w, 6);
     U_locred.topRows(n_boundary_coords_w) = P_B2.transpose() * P_B1;
 
-    ChMatrixDynamic<> UTMU = (U_locred.transpose() * M_red * U_locred).diagonal().asDiagonal();  // of size (6,6)
+    ChMatrixDynamic<> UTMU = U_locred.transpose() * M_red * U_locred;  // of size (6,6)
     UTMU_inv_solver = UTMU.colPivHouseholderQr();
     Q.setZero(6, bou_mod_coords_w);
     Q = UTMU_inv_solver.solve(U_locred.transpose() * M_red);
