@@ -9,9 +9,9 @@ set(PROGRAM demo_VEH_FMI_WheeledVehicle)
 
 message(STATUS "...add ${PROGRAM}")
 
-message("FMU_TOOLS_DIR = ${FMU_TOOLS_DIR}")
-message("FMI_PLATFORM = ${FMI_PLATFORM}")
-message("CMAKE_SHARED_LIBRARY_SUFFIX = ${CMAKE_SHARED_LIBRARY_SUFFIX}")
+#message("FMU_TOOLS_DIR = ${FMU_TOOLS_DIR}")
+#message("FMI_PLATFORM = ${FMI_PLATFORM}")
+#message("CMAKE_SHARED_LIBRARY_SUFFIX = ${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
 add_executable(${PROGRAM})
 source_group("" FILES ${PROGRAM}.cpp)

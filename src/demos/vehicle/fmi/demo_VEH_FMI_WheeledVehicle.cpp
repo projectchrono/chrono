@@ -17,18 +17,18 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/ChConfigVehicleFMI.h"
+#include <array>
 
-#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChBody.h"
+
+#include "chrono_vehicle/ChConfigVehicleFMI.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/terrain/FlatTerrain.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-
-#include "chrono/utils/ChUtilsInputOutput.h"
-
-#ifdef CHRONO_POSTPROCESS
-    #include "chrono_postprocess/ChGnuPlot.h"
-#endif
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -54,6 +54,7 @@ std::string DRIVER_UNPACK_DIR = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_") + D
 // -----------------------------------------------------------------------------
 
 void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
+                      double step_size,
                       double start_time,
                       double stop_time,
                       const std::vector<std::string>& logCategories) {
@@ -90,11 +91,13 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
     vehicle_fmu.SetVariable("transmission_JSON", transmission_JSON);
     vehicle_fmu.SetVecVariable("init_loc", init_loc);
     vehicle_fmu.SetVariable("init_yaw", init_yaw, FmuVariable::Type::Real);
+    vehicle_fmu.SetVariable("step_size", step_size, FmuVariable::Type::Real);
 }
 
 // -----------------------------------------------------------------------------
 
 void CreateDriverFMU(FmuChronoUnit& driver_fmu,
+                     double step_size,
                      double start_time,
                      double stop_time,
                      const std::vector<std::string>& logCategories) {
@@ -122,10 +125,104 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
     // Set fixed parameters
     std::string path_file = vehicle::GetDataFile("paths/ISO_double_lane_change2.txt");
     double throttle_threshold = 0.2;
+    double look_ahead_dist = 5.0;
+
     driver_fmu.SetVariable("path_file", path_file);
     driver_fmu.SetVariable("throttle_threshold", throttle_threshold, FmuVariable::Type::Real);
+    driver_fmu.SetVariable("look_ahead_dist", look_ahead_dist, FmuVariable::Type::Real);
+    driver_fmu.SetVariable("step_size", step_size, FmuVariable::Type::Real);
+}
 
-    //// TODO
+// -----------------------------------------------------------------------------
+
+class DummyWheel : public ChWheel {
+  public:
+    DummyWheel() : ChWheel("tire_wheel"), m_inertia(ChVector<>(0)) {}
+    virtual double GetWheelMass() const override { return 0; }
+    virtual const ChVector<>& GetWheelInertia() const override { return m_inertia; }
+    virtual double GetRadius() const override { return 1; }
+    virtual double GetWidth() const override { return 1; }
+
+  private:
+    ChVector<> m_inertia;
+};
+
+struct WheelTire {
+    std::string id;
+    std::shared_ptr<ChWheel> wheel;
+    std::shared_ptr<ChTire> tire;
+};
+
+void CreateTires(ChSystem& sys, std::array<WheelTire, 4>& wt) {
+    std::string tire_JSON = vehicle::GetDataFile("hmmwv/tire/HMMWV_TMeasyTire.json");
+
+    std::string id[4] = {"wheel_FL", "wheel_FR", "wheel_RL", "wheel_RR"};
+
+    for (int i = 0; i < 4; i++) {
+        wt[i].id = id[i];
+        auto spindle = chrono_types::make_shared<ChBody>();
+        sys.AddBody(spindle);
+
+        wt[i].wheel = chrono_types::make_shared<DummyWheel>();
+        wt[i].wheel->Initialize(nullptr, spindle, LEFT);
+
+        wt[i].tire = ReadTireJSON(tire_JSON);
+        wt[i].wheel->SetTire(wt[i].tire);
+        wt[i].tire->Initialize(wt[i].wheel);
+    }
+}
+
+BodyState GetWheelState(FmuChronoUnit& vehicle_fmu, const std::string& id) {
+    BodyState state;
+    vehicle_fmu.GetVecVariable(id + "_pos", state.pos);
+    vehicle_fmu.GetQuatVariable(id + "_rot", state.rot);
+    vehicle_fmu.GetVecVariable(id + "_vel", state.lin_vel);
+    vehicle_fmu.GetVecVariable(id + "_omg", state.ang_vel);
+    return state;
+}
+
+void SetTireForce(FmuChronoUnit& vehicle_fmu, const std::string& id, const TerrainForce& force) {
+    vehicle_fmu.SetVecVariable(id + "_point", force.point);
+    vehicle_fmu.SetVecVariable(id + "_frc", force.force);
+    vehicle_fmu.SetVecVariable(id + "_trq", force.moment);
+}
+
+void SynchronizeTires(double time, FmuChronoUnit& vehicle_fmu, ChTerrain& terrain, std::array<WheelTire, 4>& wt) {
+    for (int i = 0; i < 4; i++) {
+        // Get wheel state
+        auto state = GetWheelState(vehicle_fmu, wt[i].id);
+
+        // Get tire force
+        auto force = wt[i].tire->ReportTireForce(&terrain);
+
+        // Synchronize wheel and tire
+        auto spindle = wt[i].wheel->GetSpindle();
+        spindle->SetPos(state.pos);
+        spindle->SetRot(state.rot);
+        spindle->SetPos_dt(state.lin_vel);
+        spindle->SetWvel_par(state.ang_vel);
+        wt[i].tire->Synchronize(time, terrain);
+
+        // Apply tire force
+        SetTireForce(vehicle_fmu, wt[i].id, force);
+    
+        if (i == 3) {
+            std::cout << "   state.pos     = " << state.pos << std::endl;
+            std::cout << "   state.rot     = " << state.rot << std::endl;
+            std::cout << "   state.lin_vel = " << state.lin_vel << std::endl;
+            std::cout << "   state.ang_vel = " << state.ang_vel << std::endl;
+            std::cout << std::endl;
+            std::cout << "   tire force    = " << force.force << std::endl;
+            std::cout << "   tire torque   = " << force.moment << std::endl;
+            std::cout << std::endl;
+        }
+    }
+}
+
+void AdvanceTires(double step_size, std::array<WheelTire, 4>& wt) {
+    for (int i = 0; i < 4; i++) {
+        wt[i].tire->Advance(step_size);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -143,6 +240,7 @@ int main(int argc, char* argv[]) {
 
     double start_time = 0;
     double stop_time = 20;
+    double step_size = 1e-3;
 
     // Create the 2 FMUs
     std::cout << "Vehicle FMU dir: >" << VEHICLE_FMU_DIR << "<" << std::endl;
@@ -155,13 +253,13 @@ int main(int argc, char* argv[]) {
     FmuChronoUnit vehicle_fmu;
     FmuChronoUnit driver_fmu;
     try {
-        CreateVehicleFMU(vehicle_fmu, start_time, stop_time, logCategories);
+        CreateVehicleFMU(vehicle_fmu, step_size, start_time, stop_time, logCategories);
     } catch (std::exception& e) {
         std::cout << "ERROR loading vehicle FMU: " << e.what() << "\n";
         return 1;
     }
     try {
-        CreateDriverFMU(driver_fmu, start_time, stop_time, logCategories);
+        CreateDriverFMU(driver_fmu, step_size, start_time, stop_time, logCategories);
     } catch (std::exception& e) {
         std::cout << "ERROR loading driver FMU: " << e.what() << "\n";
         return 1;
@@ -181,14 +279,25 @@ int main(int argc, char* argv[]) {
     vehicle_fmu.ExitInitializationMode();
     driver_fmu.ExitInitializationMode();
 
+    // Create terrain
+    FlatTerrain terrain(0.0);
+
+    // Create wheels and tires
+    ChSystemSMC sys;
+    std::array<WheelTire, 4> wt;
+    CreateTires(sys, wt);
+
     // Simulation loop
     double time = 0;
-    double dt = 1e-3;
 
     while (time < stop_time) {
         std::cout << "time = " << time << std::endl;
 
-        // --------- Exchange data
+        // ----------- Set FMU control variables
+        double target_speed = 10;
+        driver_fmu.SetVariable("target_speed", target_speed, FmuVariable::Type::Real);
+
+        // --------- Exchange data between FMUs
         double steering;
         double throttle;
         double braking;
@@ -203,16 +312,23 @@ int main(int argc, char* argv[]) {
         vehicle_fmu.GetFrameMovingVariable("ref_frame", ref_frame);
         driver_fmu.SetFrameMovingVariable("ref_frame", ref_frame);
 
-        double target_speed = 10;
-        driver_fmu.SetVariable("target_speed", target_speed, FmuVariable::Type::Real);
+        // ----------- Exchange data between vehicle FMU and tires
+        SynchronizeTires(time, vehicle_fmu, terrain, wt);
 
         // ----------- Advance FMUs
-        vehicle_fmu.DoStep(time, dt, fmi2True);
+        auto status_vehicle = vehicle_fmu.DoStep(time, step_size, fmi2True);
         std::cout << "   vehicle advance done" << std::endl;
-        driver_fmu.DoStep(time, dt, fmi2True);
+        auto status_driver = driver_fmu.DoStep(time, step_size, fmi2True);
         std::cout << "   driver advance done" << std::endl;
 
-        time += dt;
+        if (status_vehicle == fmi2Discard || status_driver == fmi2Discard)
+            break;
+
+        // ----------- Advance system for tires
+        AdvanceTires(step_size, wt);
+        sys.DoStepDynamics(step_size);
+
+        time += step_size;
     }
 
     return 0;
