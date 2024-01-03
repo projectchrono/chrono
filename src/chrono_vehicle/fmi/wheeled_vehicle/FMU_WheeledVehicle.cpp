@@ -115,22 +115,22 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
 }
 
 void FmuComponent::CreateVehicle() {
-    std::cout << "Vehicle JSON file:      " << vehicle_JSON << std::endl;
-    std::cout << "Engine JSON file:       " << engine_JSON << std::endl;
-    std::cout << "Transmission JSON file: " << transmission_JSON << std::endl;
-    std::cout << "Initial location: " << init_loc << std::endl;
-    std::cout << "Initial yaw:      " << init_yaw << std::endl;
+    std::cout << "Create vehicle FMU" << std::endl;
+    std::cout << " Vehicle JSON:      " << vehicle_JSON << std::endl;
+    std::cout << " Engine JSON:       " << engine_JSON << std::endl;
+    std::cout << " Transmission JSON: " << transmission_JSON << std::endl;
+    std::cout << " Initial location:  " << init_loc << std::endl;
+    std::cout << " Initial yaw:       " << init_yaw << std::endl;
 
     // Create the vehicle system
     vehicle = chrono_types::make_shared<WheeledVehicle>(vehicle_JSON,
                                                         system_SMC ? ChContactMethod::SMC : ChContactMethod::NSC);
-    vehicle->Initialize(ChCoordsys<>(init_loc, Q_from_AngZ(init_yaw)));
+    vehicle->Initialize(ChCoordsys<>(init_loc + ChVector<>(0, 0, 0.5), Q_from_AngZ(init_yaw)));
     ////vehicle->GetChassis()->SetFixed(true);
     ////std::cout << "\n\nATTENTION: vehicle chassis fixed to ground!\n\n" << std::endl;
 
     // Initialize the vehicle reference frame
-    ref_frame.SetPos(init_loc);
-    ref_frame.SetRot(Q_from_AngZ(init_yaw));
+    ref_frame = vehicle->GetRefFrame();
 
     // Cache vehicle wheels
     wheel_data[0].wheel = vehicle->GetWheel(0, VehicleSide::LEFT);
@@ -198,7 +198,7 @@ void FmuComponent::CalculateVehicleOutputs() {
         wheel_data[iw].state = wheel_data[iw].wheel->GetState();
     }
 
-    // Set vehicle reference frame
+    // Update the vehicle reference frame
     ref_frame = vehicle->GetRefFrame();
 
     //// TODO - other vehicle outputs...
@@ -220,17 +220,19 @@ void FmuComponent::_exitInitializationMode() {
     // Initialize runtime visualization (if requested and if available)
     if (vis) {
 #ifdef CHRONO_IRRLICHT
-        sendToLog("Enable run-time visualization", fmi2Status::fmi2OK, "logAll");
+        std::cout << " Enable run-time visualization" << std::endl;
 
         vis_sys = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+        vis_sys->SetLogLevel(irr::ELL_NONE);
         vis_sys->SetWindowTitle("Wheeled Vehicle FMU");
         vis_sys->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-        vis_sys->AddGrid(0.5, 0.5, 20, 20, ChCoordsys<>(), ChColor(0.31f, 0.43f, 0.43f));
+        vis_sys->AddGrid(0.5, 0.5, 400, 400, ChCoordsys<>(init_loc, Q_from_AngZ(init_yaw)),
+                         ChColor(0.31f, 0.43f, 0.43f));
         vis_sys->Initialize();
         vis_sys->AddLightDirectional();
         vis_sys->AttachVehicle(vehicle.get());
 #else
-        sendToLog("Run-time visualization not available", fmi2Status::fmi2OK, "logAll");
+        std::cout << " Run-time visualization not available" << std::endl;
 #endif
     }
 }
@@ -250,6 +252,7 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                 return fmi2Discard;
             vis_sys->BeginScene(true, true, ChColor(0.33f, 0.6f, 0.78f));
             vis_sys->Render();
+            vis_sys->RenderFrame(ref_frame);
             vis_sys->EndScene();
 
             vis_sys->Advance(h);

@@ -49,6 +49,9 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     Ki_speed = 0.0;
     Kd_speed = 0.0;
 
+    init_loc = VNULL;
+    init_yaw = 0;
+
     // Set configuration flags for this FMU
     AddFmuVariable(&vis, "vis", FmuVariable::Type::Boolean, "1", "enable visualization",         //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
@@ -87,6 +90,12 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     AddFmuVariable(&step_size, "step_size", FmuVariable::Type::Real, "s", "integration step size",  //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);     //
 
+    // Set CONSTANT OUTPUT for this FMU
+    AddFmuVecVariable(init_loc, "init_loc", "m", "location of first path point",                                //
+                      FmuVariable::CausalityType::output, FmuVariable::VariabilityType::constant);              //
+    AddFmuVariable(&init_yaw, "init_yaw", FmuVariable::Type::Real, "rad", "orientation of first path segment",  //
+                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::constant);                 //
+
     // Set CONTINOUS INPUTS for this FMU
     AddFmuFrameMovingVariable(ref_frame, "ref_frame", "m", "m/s", "reference frame",                         //
                               FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
@@ -109,6 +118,9 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
 }
 
 void FmuComponent::CreateDriver() {
+    std::cout << "Create driver FMU" << std::endl;
+    std::cout << " Path file: " << path_file << std::endl;
+
     auto path = ChBezierCurve::read(path_file, false);
 
     speedPID = chrono_types::make_shared<ChSpeedController>();
@@ -117,6 +129,14 @@ void FmuComponent::CreateDriver() {
     steeringPID->SetLookAheadDistance(look_ahead_dist);
     steeringPID->SetGains(Kp_steering, Ki_steering, Kd_steering);
     speedPID->SetGains(Kp_speed, Ki_speed, Kd_speed);
+
+    auto point0 = path->getPoint(0);
+    auto point1 = path->getPoint(1);
+    init_loc = point0;
+    init_yaw = std::atan2(point1.y() - point0.y(), point1.x() - point0.x());
+
+    ref_frame.SetPos(init_loc);
+    ref_frame.SetRot(Q_from_AngZ(init_yaw));
 
 #ifdef CHRONO_IRRLICHT
     auto ground = chrono_types::make_shared<ChBody>();
@@ -136,7 +156,8 @@ void FmuComponent::CreateDriver() {
 }
 
 void FmuComponent::SynchronizeDriver(double time) {
-    //// TODO
+    // Set the rotation matrix of the reference frame
+    ref_frame.GetA().Set_A_quaternion(ref_frame.GetRot());
 }
 
 void FmuComponent::CalculateDriverOutputs() {
@@ -156,21 +177,24 @@ void FmuComponent::_exitInitializationMode() {
     // Initialize runtime visualization (if requested and if available)
     if (vis) {
 #ifdef CHRONO_IRRLICHT
-        sendToLog("Enable run-time visualization", fmi2Status::fmi2OK, "logAll");
+        std::cout << " Enable run-time visualization" << std::endl;
 
         // Calculate grid dimensions based on path AABB
         double spacing = 0.5;
-        int grid_x = 2 * (int)std::ceil(path_aabb.Size().x() / spacing);
+        int grid_x = (int)std::ceil(path_aabb.Size().x() / spacing);
         int grid_y = 2 * (int)std::ceil(path_aabb.Size().y() / spacing);
-        auto aabb = steeringPID->GetPath();
+        auto grid_pos = path_aabb.Center() - ChVector<>(0, 0, 0.05);
+        auto grid_rot = Q_from_AngZ(init_yaw);
 
         // Create run-time visualization system
         vis_sys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+        vis_sys->SetLogLevel(irr::ELL_NONE);
         vis_sys->AttachSystem(&sys);
         vis_sys->SetWindowSize(800, 600);
         vis_sys->SetWindowTitle("Path-follower vehicle driver");
         vis_sys->SetCameraVertical(CameraVerticalDir::Z);
-        vis_sys->AddGrid(spacing, spacing, grid_x, grid_y, ChCoordsys<>(), ChColor(0.31f, 0.43f, 0.43f));
+        vis_sys->AddGrid(spacing, spacing, grid_x, grid_y, ChCoordsys<>(grid_pos, grid_rot),
+                         ChColor(0.31f, 0.43f, 0.43f));
         vis_sys->Initialize();
         vis_sys->AddCamera(ChVector<>(-4, 0, 0.5), ChVector<>(0, 0, 0));
         vis_sys->AddTypicalLights();
@@ -183,7 +207,7 @@ void FmuComponent::_exitInitializationMode() {
         iballS = vis_sys->AddVisualModel(sentinel_shape, ChFrame<>());
         iballT = vis_sys->AddVisualModel(target_shape, ChFrame<>());
 #else
-        sendToLog("Run-time visualization not available", fmi2Status::fmi2OK, "logAll");
+        std::cout << " Run-time visualization not available" << std::endl;
 #endif
     }
 }

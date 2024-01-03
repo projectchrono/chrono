@@ -78,7 +78,7 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     chrono::ChVector<> g_acc;       ///< gravitational acceleration
     double step_size;               ///< integration step size
 
-    // FMU inputs and outputs for co-simulation
+    // FMU continuous inputs and outputs for co-simulation
     chrono::vehicle::DriverInputs driver_inputs;  ///< vehicle control inputs (input)
     std::array<WheelData, 4> wheel_data;          ///< wheel state and applied forces (output/input)
     chrono::ChFrameMoving<> ref_frame;            ///< vehicle reference frame (output)
