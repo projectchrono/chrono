@@ -6,7 +6,7 @@ https://de.wikipedia.org/wiki/Mowag_Duro
 and:
 https://militaerfahrzeuge.ch/detail_11_21_198_190.html
 
-Simple drawing at:
+Simple drawings at:
 https://a.d-cd.net/4cdb45s-960.jpg
 http://www.duro.ch/duro039.jpg
 

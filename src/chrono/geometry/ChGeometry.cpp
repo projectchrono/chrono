@@ -87,7 +87,7 @@ ChAABB::ChAABB()
 ChAABB::ChAABB(const ChVector<>& aabb_min, const ChVector<>& aabb_max) : min(aabb_min), max(aabb_max) {}
 
 ChVector<> ChAABB::Center() const {
-    return 0.5 * (max - min);
+    return 0.5 * (max + min);
 }
 
 ChVector<> ChAABB::Size() const {
