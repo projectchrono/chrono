@@ -109,6 +109,9 @@ class FmuChronoUnit : public FmuUnit {
     }
 
     /// Set the FMU variable with specified name to the values of the given ChFrame.
+    /// Note that only the base data members of the FMU's ChFrame object are set (namely, the position vector and
+    /// orientation quaternion). If the rotation matrix of the ChFrame object is needed, it must be explicitly
+    /// calculated before use through a call to ChFrame::Set_A_quaternion (e.g., in a pre-step callback).
     fmi2Status SetFrameVariable(const std::string& name, const ChFrame<>& frame) {
         auto status = SetCsysVariable(name, frame.GetCoord());
         return status;
@@ -137,6 +140,10 @@ class FmuChronoUnit : public FmuUnit {
     }
 
     /// Set the FMU variable with specified name to the values of the given ChgFrameMoving.
+    /// Note that only the base data members of the FMU's ChFrameMoving object are set (namely, the position vector and
+    /// orientation quaternion and their time derivatives). If the rotation matrix of the ChFrameMoving object is
+    /// needed, it must be explicitly calculated before use through a call to ChFrame::Set_A_quaternion (e.g., in a
+    /// pre-step callback).
     fmi2Status SetFrameMovingVariable(const std::string& name, const ChFrameMoving<>& frame) {
         auto status_csys = SetCsysVariable(name, frame.GetCoord());
         if (status_csys != fmi2OK)
