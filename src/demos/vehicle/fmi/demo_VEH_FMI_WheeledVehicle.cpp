@@ -174,17 +174,17 @@ void CreateTires(ChSystem& sys, std::array<WheelTire, 4>& wt) {
 
 BodyState GetWheelState(FmuChronoUnit& vehicle_fmu, const std::string& id) {
     BodyState state;
-    vehicle_fmu.GetVecVariable(id + "_pos", state.pos);
-    vehicle_fmu.GetQuatVariable(id + "_rot", state.rot);
-    vehicle_fmu.GetVecVariable(id + "_vel", state.lin_vel);
-    vehicle_fmu.GetVecVariable(id + "_omg", state.ang_vel);
+    vehicle_fmu.GetVecVariable(id + ".pos", state.pos);
+    vehicle_fmu.GetQuatVariable(id + ".rot", state.rot);
+    vehicle_fmu.GetVecVariable(id + ".lin_vel", state.lin_vel);
+    vehicle_fmu.GetVecVariable(id + ".ang_vel", state.ang_vel);
     return state;
 }
 
 void SetTireForce(FmuChronoUnit& vehicle_fmu, const std::string& id, const TerrainForce& force) {
-    vehicle_fmu.SetVecVariable(id + "_point", force.point);
-    vehicle_fmu.SetVecVariable(id + "_frc", force.force);
-    vehicle_fmu.SetVecVariable(id + "_trq", force.moment);
+    vehicle_fmu.SetVecVariable(id + ".point", force.point);
+    vehicle_fmu.SetVecVariable(id + ".force", force.force);
+    vehicle_fmu.SetVecVariable(id + ".moment", force.moment);
 }
 
 void SynchronizeTires(double time, FmuChronoUnit& vehicle_fmu, ChTerrain& terrain, std::array<WheelTire, 4>& wt) {

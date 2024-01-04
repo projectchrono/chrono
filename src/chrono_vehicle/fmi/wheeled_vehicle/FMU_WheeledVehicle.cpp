@@ -90,21 +90,21 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     for (int iw = 0; iw < 4; iw++) {
         std::string prefix = "wheel_" + wheel_data[iw].identifier;
 
-        AddFmuVecVariable(wheel_data[iw].load.point, prefix + "_point", "m", prefix + " application point",  //
-                          FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);      //
-        AddFmuVecVariable(wheel_data[iw].load.force, prefix + "_frc", "N", prefix + " applied force",        //
-                          FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);      //
-        AddFmuVecVariable(wheel_data[iw].load.moment, prefix + "_trq", "Nm", prefix + " applied torque",     //
-                          FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);      //
+        AddFmuVecVariable(wheel_data[iw].load.point, prefix + ".point", "m", prefix + " load application point",  //
+                          FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
+        AddFmuVecVariable(wheel_data[iw].load.force, prefix + ".force", "N", prefix + " load applied force",      //
+                          FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
+        AddFmuVecVariable(wheel_data[iw].load.moment, prefix + ".moment", "Nm", prefix + " load applied moment",  //
+                          FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
 
-        AddFmuVecVariable(wheel_data[iw].state.pos, prefix + "_pos", "m", prefix + " position",                  //
-                          FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);         //
-        AddFmuQuatVariable(wheel_data[iw].state.rot, prefix + "_rot", "1", prefix + " rotation",                 //
-                           FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);        //
-        AddFmuVecVariable(wheel_data[iw].state.lin_vel, prefix + "_vel", "m/s", prefix + " linear velocity",     //
-                          FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);         //
-        AddFmuVecVariable(wheel_data[iw].state.ang_vel, prefix + "_omg", "rad/s", prefix + " angular velocity",  //
-                          FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);         //
+        AddFmuVecVariable(wheel_data[iw].state.pos, prefix + ".pos", "m", prefix + " position",                      //
+                          FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);             //
+        AddFmuQuatVariable(wheel_data[iw].state.rot, prefix + ".rot", "1", prefix + " rotation",                     //
+                           FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);            //
+        AddFmuVecVariable(wheel_data[iw].state.lin_vel, prefix + ".lin_vel", "m/s", prefix + " linear velocity",     //
+                          FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);             //
+        AddFmuVecVariable(wheel_data[iw].state.ang_vel, prefix + ".ang_vel", "rad/s", prefix + " angular velocity",  //
+                          FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);             //
     }
 
     // Specify functions to process input variables (at beginning of step)

@@ -35,14 +35,14 @@
 class FmuComponent : public chrono::FmuChronoComponentBase {
   public:
     FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID);
-    virtual ~FmuComponent() {}
+    ~FmuComponent() {}
 
     /// Advance dynamics
     virtual fmi2Status _doStep(fmi2Real currentCommunicationPoint,
                                fmi2Real communicationStepSize,
                                fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
 
-  protected:
+  private:
     virtual void _enterInitializationMode() override;
     virtual void _exitInitializationMode() override;
 
