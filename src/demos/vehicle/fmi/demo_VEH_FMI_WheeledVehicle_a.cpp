@@ -12,8 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo code for co-simulating a Chrono wheeld vehicle FMU and a path-follower
-// driver FMU.
+// Demo illustrating the co-simulation of a Chrono wheeled vehicle FMU and a
+// path-follower driver FMU.
 //
 // =============================================================================
 
@@ -172,30 +172,19 @@ void CreateTires(ChSystem& sys, std::array<WheelTire, 4>& wt) {
     }
 }
 
-BodyState GetWheelState(FmuChronoUnit& vehicle_fmu, const std::string& id) {
-    BodyState state;
-    vehicle_fmu.GetVecVariable(id + ".pos", state.pos);
-    vehicle_fmu.GetQuatVariable(id + ".rot", state.rot);
-    vehicle_fmu.GetVecVariable(id + ".lin_vel", state.lin_vel);
-    vehicle_fmu.GetVecVariable(id + ".ang_vel", state.ang_vel);
-    return state;
-}
-
-void SetTireForce(FmuChronoUnit& vehicle_fmu, const std::string& id, const TerrainForce& force) {
-    vehicle_fmu.SetVecVariable(id + ".point", force.point);
-    vehicle_fmu.SetVecVariable(id + ".force", force.force);
-    vehicle_fmu.SetVecVariable(id + ".moment", force.moment);
-}
-
 void SynchronizeTires(double time, FmuChronoUnit& vehicle_fmu, ChTerrain& terrain, std::array<WheelTire, 4>& wt) {
     for (int i = 0; i < 4; i++) {
-        // Get wheel state
-        auto state = GetWheelState(vehicle_fmu, wt[i].id);
+        // Get wheel state from vehicle FMU
+        WheelState state;
+        vehicle_fmu.GetVecVariable(wt[i].id + ".pos", state.pos);
+        vehicle_fmu.GetQuatVariable(wt[i].id + ".rot", state.rot);
+        vehicle_fmu.GetVecVariable(wt[i].id + ".lin_vel", state.lin_vel);
+        vehicle_fmu.GetVecVariable(wt[i].id + ".ang_vel", state.ang_vel);
 
         // Get tire force
         auto force = wt[i].tire->ReportTireForce(&terrain);
 
-        // Synchronize wheel and tire
+        // Set spindle/wheel state and synchronize tire
         auto spindle = wt[i].wheel->GetSpindle();
         spindle->SetPos(state.pos);
         spindle->SetRot(state.rot);
@@ -203,9 +192,11 @@ void SynchronizeTires(double time, FmuChronoUnit& vehicle_fmu, ChTerrain& terrai
         spindle->SetWvel_par(state.ang_vel);
         wt[i].tire->Synchronize(time, terrain);
 
-        // Apply tire force
-        SetTireForce(vehicle_fmu, wt[i].id, force);
-    
+        // Set tire force to vehicle FMU
+        vehicle_fmu.SetVecVariable(wt[i].id + ".point", force.point);
+        vehicle_fmu.SetVecVariable(wt[i].id + ".force", force.force);
+        vehicle_fmu.SetVecVariable(wt[i].id + ".moment", force.moment);
+
         ////if (i == 3) {
         ////    std::cout << "   state.pos     = " << state.pos << std::endl;
         ////    std::cout << "   state.rot     = " << state.rot << std::endl;
@@ -229,7 +220,7 @@ void AdvanceTires(double step_size, std::array<WheelTire, 4>& wt) {
 
 int main(int argc, char* argv[]) {
     // Create (if needed) output directory
-    std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLE_FMI_COSIM";
+    std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLE_FMI_COSIM_A";
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
