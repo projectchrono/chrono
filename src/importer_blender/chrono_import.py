@@ -132,7 +132,8 @@ def create_chrono_path( nameID,
     return gpencil
     
     
-def make_bsdf_material(nameID, colorRGB, metallic=0, specular=0, specular_tint=0, roughness=0.5, index_refraction=1.450, transmission=0, emissionRGB=(0,0,0,1), emission_strength=1, bump_map=0, bump_height=1.0):
+
+def make_bsdf_material(nameID, colorRGB, metallic=0, specular=0, specular_tint=(1,0,0,0), roughness=0.5, index_refraction=1.450, transmission=0, emissionRGB=(0,0,0,1), emission_strength=1, bump_map=0, bump_height=1.0):
     new_mat = bpy.data.materials.new(name=nameID)
 
     new_mat.use_nodes = True
@@ -145,53 +146,56 @@ def make_bsdf_material(nameID, colorRGB, metallic=0, specular=0, specular_tint=0
     links = new_mat.node_tree.links
     output = nodes.new(type='ShaderNodeOutputMaterial')
     shader = nodes.new(type='ShaderNodeBsdfPrincipled')
-    
+
+
     if type(colorRGB) == tuple:
-        nodes["Principled BSDF"].inputs[0].default_value = colorRGB
+        nodes["Principled BSDF"].inputs["Base Color"].default_value = colorRGB
+
     if type(colorRGB) == str:
         if os.path.exists(colorRGB):
             texturenode = nodes.new(type="ShaderNodeTexImage")
             texturenode.image = bpy.data.images.load(colorRGB)
-            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs[0])
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs["Base Color"])
             
     if type(metallic) == float or type(metallic) == int:
-        nodes["Principled BSDF"].inputs[6].default_value = metallic
+        nodes["Principled BSDF"].inputs["Metallic"].default_value = metallic
     if type(metallic) == str:
+
         if os.path.exists(metallic):
             texturenode = nodes.new(type="ShaderNodeTexImage")
             texturenode.image = bpy.data.images.load(metallic)
-            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs[6])
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs["Metallic"])
             
-    nodes["Principled BSDF"].inputs[7].default_value = specular
-    nodes["Principled BSDF"].inputs[8].default_value = specular_tint
+    nodes["Principled BSDF"].inputs["Specular IOR Level"].default_value = specular
+    nodes["Principled BSDF"].inputs["Specular Tint"].default_value = specular_tint
 
     if type(roughness) == float or type(roughness) == int:
-        nodes["Principled BSDF"].inputs[9].default_value = roughness
+        nodes["Principled BSDF"].inputs["Roughness"].default_value = roughness
     if type(roughness) == str:
         if os.path.exists(roughness):
             texturenode = nodes.new(type="ShaderNodeTexImage")
             texturenode.image = bpy.data.images.load(roughness)
-            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs[9])
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs["Roughness"])
     
-    nodes["Principled BSDF"].inputs[16].default_value = index_refraction
+    nodes["Principled BSDF"].inputs["IOR"].default_value = index_refraction
 
     if type(transmission) == float or type(transmission) == int:
-        nodes["Principled BSDF"].inputs[17].default_value = transmission
+        nodes["Principled BSDF"].inputs["Transmission Weight"].default_value = transmission
     if type(transmission) == str:
         if os.path.exists(transmission):
             texturenode = nodes.new(type="ShaderNodeTexImage")
             texturenode.image = bpy.data.images.load(transmission)
-            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs[17])
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs["Transmission Weight"])
     
     if type(emissionRGB) == tuple:
-        nodes["Principled BSDF"].inputs[19].default_value = emissionRGB
+        nodes["Principled BSDF"].inputs["Emission Color"].default_value = emissionRGB
     if type(emissionRGB) == str:
         if os.path.exists(emissionRGB):
             texturenode = nodes.new(type="ShaderNodeTexImage")
             texturenode.image = bpy.data.images.load(emissionRGB)
-            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs[19])
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs["Emission Color"])
             
-    nodes["Principled BSDF"].inputs[20].default_value = emission_strength
+    nodes["Principled BSDF"].inputs["Emission Strength"].default_value = emission_strength
     
     if type(bump_map) == str:
         if os.path.exists(bump_map):

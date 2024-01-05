@@ -358,10 +358,11 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
     ///    Md += c*diag(M)    or   Md += c*HRZ(M)
     virtual void LoadLumpedMass_Md(ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
-                                      double& error,  ///< result: not touched if lumping does not introduce errors
-                                      const double c  ///< a scaling factor
+                                   double& err,            ///< result: not touched if lumping does not introduce errors
+                                   const double c          ///< a scaling factor
     ) {
-        throw ChException("LoadLumpedMass_Md() not implemented, explicit integrators with mass lumping cannot be used. ");
+        throw ChException(
+            "LoadLumpedMass_Md() not implemented, explicit integrators with mass lumping cannot be used. ");
     }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L

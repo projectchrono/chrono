@@ -174,7 +174,7 @@ class HMMWV_Driver : public ChDriver {
     void SetGains(double Kp, double Ki, double Kd) { m_steeringPID.SetGains(Kp, Ki, Kd); }
     void SetLookAheadDistance(double dist) { m_steeringPID.SetLookAheadDistance(dist); }
 
-    void Reset() { m_steeringPID.Reset(m_vehicle); }
+    void Reset() { m_steeringPID.Reset(m_vehicle.GetRefFrame()); }
 
     virtual void Synchronize(double time) override;
 
@@ -193,7 +193,7 @@ HMMWV_Driver::HMMWV_Driver(chrono::vehicle::ChVehicle& vehicle,
                            double time_start,
                            double time_max)
     : chrono::vehicle::ChDriver(vehicle), m_steeringPID(path), m_start(time_start), m_end(time_max) {
-    m_steeringPID.Reset(m_vehicle);
+    m_steeringPID.Reset(m_vehicle.GetRefFrame());
 
     auto road = chrono_types::make_shared<ChBody>();
     road->SetBodyFixed(true);
@@ -218,7 +218,7 @@ void HMMWV_Driver::Synchronize(double time) {
 }
 
 void HMMWV_Driver::Advance(double step) {
-    double out_steering = m_steeringPID.Advance(m_vehicle, step);
+    double out_steering = m_steeringPID.Advance(m_vehicle.GetRefFrame(), m_vehicle.GetChTime(), step);
     chrono::ChClampValue(out_steering, -1.0, 1.0);
     m_steering = out_steering;
 }
@@ -479,9 +479,9 @@ int main(int argc, char* argv[]) {
 
             // Save output
             if (output && sim_frame == next_out_frame) {
-                ChVector<> pv = hmmwv->GetChassisBody()->GetFrame_REF_to_abs().GetPos();
-                ChVector<> vv = hmmwv->GetChassisBody()->GetFrame_REF_to_abs().GetPos_dt();
-                ChVector<> av = hmmwv->GetChassisBody()->GetFrame_REF_to_abs().GetPos_dtdt();
+                ChVector<> pv = hmmwv->GetRefFrame().GetPos();
+                ChVector<> vv = hmmwv->GetRefFrame().GetPos_dt();
+                ChVector<> av = hmmwv->GetRefFrame().GetPos_dtdt();
 
                 ofile << sys->GetChTime() << del;
                 ofile << driver_inputs.m_throttle << del << driver_inputs.m_steering << del;

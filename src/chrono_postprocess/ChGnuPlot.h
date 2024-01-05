@@ -420,6 +420,9 @@ class ChGnuPlot {
         commandfile += "'\n";
     }
 
+    /// Close current plot command (e.g., for use in multiplot).
+    void FlushPlots() { FlushPlots(commandfile); }
+
   protected:
     void FlushPlots(std::string& mscript) {
         // generate the  plot xxx , yyy , zzz stuff:

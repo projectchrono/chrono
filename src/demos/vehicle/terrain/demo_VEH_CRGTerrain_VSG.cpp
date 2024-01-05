@@ -365,6 +365,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    hmmwv.GetVehicle().EnableRealtime(true);
+
     // Number of simulation steps between image outputs
     double render_step_size = 1 / fps;
     int render_steps = (int)std::ceil(render_step_size / step_size);

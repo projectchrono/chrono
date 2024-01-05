@@ -603,9 +603,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
     ///    Md += c*diag(M)    or   Md += c*HRZ(M)
     virtual void LoadLumpedMass_Md(ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
-                                      double& error,  ///< result: not touched if lumping does not introduce errors
-                                      const double c  ///< a scaling factor
-    ) override;
+                                   double& err,            ///< result: not touched if lumping does not introduce errors
+                                   const double c          ///< a scaling factor
+                                   ) override;
 
     /// Increment a vectorR with the term Cq'*L:
     ///    R += c*Cq'*L

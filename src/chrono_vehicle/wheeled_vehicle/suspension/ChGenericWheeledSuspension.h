@@ -175,6 +175,9 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     /// Return current suspension TSDA force information on the specified side.
     virtual std::vector<ForceTSDA> ReportSuspensionForce(VehicleSide side) const override;
 
+    /// Return current RSDA torque information on the specified side.
+    virtual std::vector<ForceRSDA> ReportSuspensionTorque(VehicleSide side) const override;
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
 

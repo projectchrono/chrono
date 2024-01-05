@@ -40,7 +40,7 @@ class SYN_API ChMultiplePathSteeringController : public vehicle::ChSteeringContr
 
     /// Reset the PID controller.
     /// This function resets the underlying path tracker using the current location of the sentinel point.
-    virtual void Reset(const vehicle::ChVehicle& vehicle) override;
+    virtual void Reset(const ChFrameMoving<>& ref_frame) override;
 
     /// Calculate the current target point location.
     /// The target point is the point on the associated path that is closest to the current location of the sentinel point.
@@ -48,7 +48,7 @@ class SYN_API ChMultiplePathSteeringController : public vehicle::ChSteeringContr
 
     /// Advance the state of the PID controller.
     /// This function performs the required integration for the integral component of the PID controller and returns the calculated steering value.
-    virtual double Advance(const vehicle::ChVehicle& vehicle, double step) override;
+    virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) override;
 
   private:
     int m_lane;

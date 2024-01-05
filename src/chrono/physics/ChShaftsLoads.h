@@ -101,12 +101,7 @@ class ChApi ChShaftsTorsionSpringDamper : public ChShaftsLoad {
     virtual void ComputeShaftShaftTorque(const double rel_rot, const double rel_rot_dt, double& result_torque) override;
 };
 
-/// Class for defining a torsional spring-damper between two 1D parts;
-/// i.e., shafts that can be used to build 1D models of powertrains. This is
-/// more efficient than simulating power trains modeled with full 3D ChBody
-/// objects.
-/// This supersedes the old ChShaftsTorsionSpring (which cannot handle
-/// extremely stiff spring values)
+/// Elastic gear coupling between two shafts
 
 class ChApi ChShaftsElasticGear : public ChLoadCustomMultiple {
   public:
