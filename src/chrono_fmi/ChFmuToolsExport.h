@@ -125,12 +125,12 @@ class FmuChronoComponentBase : public FmuComponentBase {
     _fmucomp->AddFmuVariable(                                                                         \
         std::make_pair(std::function<fmi2##returnType(void)>([&bVal]() -> fmi2##returnType codeGet),  \
                        std::function<void(fmi2##returnType)>([&bVal](fmi2##returnType val) codeSet)), \
-        current_parent_fullname + bVal.name(), FmuVariable::Type::##returnType, "", "",               \
+        current_parent_fullname + bVal.name(), FmuVariable::Type::returnType, "", "",                 \
         CausalityType_conv.at(bVal.GetCausality()), VariabilityType_conv.at(bVal.GetVariability()));
 
-#define ADD_BVAL_AS_FMU_POINTER(returnType)                                                                           \
-    _fmucomp->AddFmuVariable(&(bVal.value()), current_parent_fullname + bVal.name(), FmuVariable::Type::##returnType, \
-                             "", "", CausalityType_conv.at(bVal.GetCausality()),                                      \
+#define ADD_BVAL_AS_FMU_POINTER(returnType)                                                                         \
+    _fmucomp->AddFmuVariable(&(bVal.value()), current_parent_fullname + bVal.name(), FmuVariable::Type::returnType, \
+                             "", "", CausalityType_conv.at(bVal.GetCausality()),                                    \
                              VariabilityType_conv.at(bVal.GetVariability()));
 
 const std::unordered_map<chrono::ChVariabilityType, FmuVariable::VariabilityType> VariabilityType_conv = {
