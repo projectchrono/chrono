@@ -11,6 +11,11 @@
 // =============================================================================
 // Authors: Radu Serban
 // =============================================================================
+//
+// Co-simulation FMU encapsulating a wheeled vehicle system with 4 wheels.
+// The vehicle includes a powertrain and transmission, but no tires.
+//
+// =============================================================================
 
 // #define FMI2_FUNCTION_PREFIX MyModel_
 #include <cassert>

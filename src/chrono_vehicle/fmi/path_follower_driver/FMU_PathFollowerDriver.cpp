@@ -11,6 +11,12 @@
 // =============================================================================
 // Authors: Radu Serban
 // =============================================================================
+//
+// Co-simulation FMU encapsulating a vehicle path-follower driver system.
+// The driver model includes a lateral path-following PID controller and a
+// longitudinal PID cruise controller.
+//
+// =============================================================================
 
 #include <cassert>
 #include <algorithm>
@@ -33,7 +39,7 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     steering = 0;
     throttle = 0;
     braking = 0;
-    
+
     target_speed = 0;
 
     step_size = 1e-3;
@@ -191,7 +197,7 @@ void FmuComponent::_exitInitializationMode() {
         vis_sys->SetLogLevel(irr::ELL_NONE);
         vis_sys->AttachSystem(&sys);
         vis_sys->SetWindowSize(800, 600);
-        vis_sys->SetWindowTitle("Path-follower vehicle driver");
+        vis_sys->SetWindowTitle("Path-follower Driver FMU");
         vis_sys->SetCameraVertical(CameraVerticalDir::Z);
         vis_sys->AddGrid(spacing, spacing, grid_x, grid_y, ChCoordsys<>(grid_pos, grid_rot),
                          ChColor(0.31f, 0.43f, 0.43f));

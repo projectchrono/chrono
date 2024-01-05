@@ -11,6 +11,22 @@
 // =============================================================================
 // Authors: Radu Serban
 // =============================================================================
+//
+// Co-simulation FMU encapsulating a wheeled vehicle system with 4 wheels.
+// The vehicle includes a powertrain and transmission, but no tires.
+//
+// The wrapped Chrono::Vehicle model is defined through JSON specification files
+// for the vehicle, engine, and transmission.
+//
+// This vehicle FMU must be co-simulated with a driver system which provides
+// vehicle commands and 4 tire systems which provide tire loads for each of the
+// 4 wheels (of type TerrainForce).
+//
+// This vehicle FMU defines continuous output variables for:
+//   - vehicle reference frame (of type ChFrameMoving)
+//   - wheel states (of type WheelState)
+//
+// =============================================================================
 
 #pragma once
 
@@ -33,7 +49,7 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID);
     ~FmuComponent() {}
 
-    /// Advance dynamics
+    /// Advance dynamics.
     virtual fmi2Status _doStep(fmi2Real currentCommunicationPoint,
                                fmi2Real communicationStepSize,
                                fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
@@ -48,9 +64,20 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     virtual bool is_cosimulation_available() const override { return true; }
     virtual bool is_modelexchange_available() const override { return false; }
 
+    /// Create the vehicle system.
+    /// This function is invoked in _exitInitializationMode(), once FMU parameters are set.
     void CreateVehicle();
+
+    /// Configure the underlying Chrono system.
+    /// This function is invoked in _exitInitializationMode(), once FMU parameters are set.
     void ConfigureSystem();
+
+    /// Update vehicle system with current FMU continuous inputs.
+    /// This function is called before advancing dynamics of the vehicle.
     void SynchronizeVehicle(double time);
+
+    /// Extract FMU continuous outputs from the vehicle system.
+    /// This function is called after advancing dynamics of the vehicle.
     void CalculateVehicleOutputs();
 
     /// Exchange data for vehicle wheels.

@@ -15,6 +15,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicleFMI.h.in
 # List of FMU subdirectories
 set(FMUS 
     wheeled_vehicle
+    force_element_tire
     path_follower_driver
     )
 
