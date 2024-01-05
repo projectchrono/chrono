@@ -133,6 +133,7 @@ if(MSVC OR XCODE_VERSION)
 else()
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
     set(CPACK_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 endif()
 
