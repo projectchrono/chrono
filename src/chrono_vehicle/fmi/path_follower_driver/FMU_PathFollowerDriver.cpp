@@ -43,7 +43,7 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     target_speed = 0;
 
     step_size = 1e-3;
-    vis = false;
+    vis = 0;
 
     look_ahead_dist = 5.0;
     Kp_steering = 0.8;
@@ -250,6 +250,7 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
 
         if (vis) {
 #ifdef CHRONO_IRRLICHT
+            // Update system and all visual assets
             sys.Update(true);
 
             // Update camera position

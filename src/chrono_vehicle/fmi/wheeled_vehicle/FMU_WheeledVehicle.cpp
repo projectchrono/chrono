@@ -41,8 +41,8 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     init_loc = {0, 0, 0};
     init_yaw = 0;
 
-    system_SMC = true;
-    vis = false;
+    system_SMC = 1;
+    vis = 0;
     step_size = 1e-3;
 
     // Set wheel identifier strings

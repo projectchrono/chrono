@@ -19,6 +19,8 @@
 
 #include <array>
 
+#include "chrono/core/ChTimer.h"
+
 #include "chrono_vehicle/ChConfigVehicleFMI.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -186,10 +188,13 @@ int main(int argc, char* argv[]) {
     double stop_time = 20;
     double step_size = 1e-3;
 
+    bool vis_vehicle = true;
+    bool vis_driver = true;
+
     // -----------------------
     // Create the FMUs
     // -----------------------
- 
+
     ////std::cout << "Vehicle FMU dir: >" << VEHICLE_FMU_DIR << "<" << std::endl;
     ////std::cout << "Tire FMU dir:    >" << TIRE_FMU_DIR << "<" << std::endl;
     ////std::cout << "Driver FMU dir:  >" << DRIVER_FMU_DIR << "<" << std::endl;
@@ -233,7 +238,7 @@ int main(int argc, char* argv[]) {
     driver_fmu.EnterInitializationMode();
     {
         // Optionally, enable run-time visualization for the driver FMU
-        driver_fmu.SetVariable("vis", true, FmuVariable::Type::Boolean);
+        driver_fmu.SetVariable("vis", vis_driver ? 1 : 0, FmuVariable::Type::Boolean);
     }
     driver_fmu.ExitInitializationMode();
 
@@ -248,7 +253,7 @@ int main(int argc, char* argv[]) {
         vehicle_fmu.SetVariable("init_yaw", init_yaw, FmuVariable::Type::Real);
 
         // Optionally, enable run-time visualization for the vehicle FMU
-        vehicle_fmu.SetVariable("vis", true, FmuVariable::Type::Boolean);
+        vehicle_fmu.SetVariable("vis", vis_vehicle ? 1 : 0, FmuVariable::Type::Boolean);
     }
     vehicle_fmu.ExitInitializationMode();
 
@@ -270,6 +275,8 @@ int main(int argc, char* argv[]) {
     std::string wheel_id[4] = {"wheel_FL", "wheel_FR", "wheel_RL", "wheel_RR"};
 
     double time = 0;
+    ChTimer timer;
+    timer.start();
 
     while (time < stop_time) {
         ////std::cout << "time = " << time << std::endl;
@@ -334,10 +341,16 @@ int main(int argc, char* argv[]) {
             break;
         for (int i = 0; i < 4; i++) {
             auto status_tire = tire_fmu[i].DoStep(time, step_size, fmi2True);
+            if (status_tire == fmi2Discard)
+                break;
         }
 
         time += step_size;
     }
+
+    timer.stop();
+    std::cout << "Sim time: " << time << std::endl;
+    std::cout << "Run time: " << timer() << std::endl;
 
     return 0;
 }

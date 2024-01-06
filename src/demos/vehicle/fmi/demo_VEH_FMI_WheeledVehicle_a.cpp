@@ -21,6 +21,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/core/ChTimer.h"
 
 #include "chrono_vehicle/ChConfigVehicleFMI.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -233,6 +234,9 @@ int main(int argc, char* argv[]) {
     double stop_time = 20;
     double step_size = 1e-3;
 
+    bool vis_vehicle = true;
+    bool vis_driver = true;
+
     // Create the 2 FMUs
     ////std::cout << "Vehicle FMU dir: >" << VEHICLE_FMU_DIR << "<" << std::endl;
     ////std::cout << "Driver FMU dir:  >" << DRIVER_FMU_DIR << "<" << std::endl;
@@ -260,7 +264,7 @@ int main(int argc, char* argv[]) {
     driver_fmu.EnterInitializationMode();
     {
         // Optionally, enable run-time visualization for the driver FMU
-        driver_fmu.SetVariable("vis", true, FmuVariable::Type::Boolean);
+        driver_fmu.SetVariable("vis", vis_driver ? 1 : 0, FmuVariable::Type::Boolean);
     }
     driver_fmu.ExitInitializationMode();
 
@@ -275,7 +279,7 @@ int main(int argc, char* argv[]) {
         vehicle_fmu.SetVariable("init_yaw", init_yaw, FmuVariable::Type::Real);
 
         // Optionally, enable run-time visualization for the vehicle FMU
-        vehicle_fmu.SetVariable("vis", true, FmuVariable::Type::Boolean);
+        vehicle_fmu.SetVariable("vis", vis_vehicle ? 1 : 0, FmuVariable::Type::Boolean);
     }
     vehicle_fmu.ExitInitializationMode();
 
@@ -289,6 +293,8 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     double time = 0;
+    ChTimer timer;
+    timer.start();
 
     while (time < stop_time) {
         ////std::cout << "time = " << time << std::endl;
@@ -328,6 +334,10 @@ int main(int argc, char* argv[]) {
 
         time += step_size;
     }
+
+    timer.stop();
+    std::cout << "Sim time: " << time << std::endl;
+    std::cout << "Run time: " << timer() << std::endl;
 
     return 0;
 }
