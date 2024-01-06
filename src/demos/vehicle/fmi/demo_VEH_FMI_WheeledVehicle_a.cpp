@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
     driver_fmu.EnterInitializationMode();
     {
         // Optionally, enable run-time visualization for the driver FMU
-        driver_fmu.SetVariable("vis", vis_driver ? 1 : 0, FmuVariable::Type::Boolean);
+        driver_fmu.SetVariable("vis", vis_driver);
     }
     driver_fmu.ExitInitializationMode();
 
@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
         vehicle_fmu.SetVariable("init_yaw", init_yaw, FmuVariable::Type::Real);
 
         // Optionally, enable run-time visualization for the vehicle FMU
-        vehicle_fmu.SetVariable("vis", vis_vehicle ? 1 : 0, FmuVariable::Type::Boolean);
+        vehicle_fmu.SetVariable("vis", vis_vehicle);
     }
     vehicle_fmu.ExitInitializationMode();
 
