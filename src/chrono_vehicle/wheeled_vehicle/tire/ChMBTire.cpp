@@ -676,11 +676,6 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
             cross = wheel_frame.TransformDirectionLocalToParent(spring.t0);
         }
 
-        ////auto foo = wheel_frame.TransformDirectionLocalToParent(spring.t0);
-        ////if ((cross - foo).Length() > zero_length) {
-        ////    std::cout << "MESH SPRING  | " << cross << "   |   " << foo << "\n" << std::endl;
-        ////}
-
         auto F_p = m_kB * ((angle - spring.a0) / length_p) * Vcross(cross, dir_p);
         auto F_n = m_kB * ((angle - spring.a0) / length_n) * Vcross(cross, dir_n);
 
@@ -976,6 +971,14 @@ void MBTireModel::IntLoadResidual_Mv(const unsigned int off,
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntLoadResidual_Mv(off + local_off_v, R, w, c);
+        local_off_v += node->GetNdofW_active();
+    }
+}
+
+void MBTireModel::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
+    unsigned int local_off_v = 0;
+    for (auto& node : m_nodes) {
+        node->NodeIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
         local_off_v += node->GetNdofW_active();
     }
 }
