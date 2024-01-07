@@ -822,7 +822,7 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
         }
     }
 
-    for (int i = 0; i < node->getMaterialCount(); i++)
+    for (u32 i = 0; i < node->getMaterialCount(); i++)
         node->getMaterial(i).ColorMaterial = video::ECM_NONE;
 }
 

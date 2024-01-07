@@ -139,6 +139,26 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
                         }
                         i_friction_comp = 0;
                     }
+                } else if (mconstraints[ic]->GetMode() == CONSTRAINT_UNILATERAL) {
+                    // update:   lambda += delta_lambda;
+                    old_lambda_friction[0] = mconstraints[ic]->Get_l_i();
+                    mconstraints[ic]->Set_l_i(old_lambda_friction[0] + deltal);
+
+                    candidate_violation = fabs(ChMin(0.0, mresidual));
+                    mconstraints[ic]->Project();
+                    double new_lambda_0 = mconstraints[ic]->Get_l_i();
+                    if (m_shlambda != 1.0) {
+                        new_lambda_0 = m_shlambda * new_lambda_0 + (1.0 - m_shlambda) * old_lambda_friction[0];
+                        mconstraints[ic]->Set_l_i(new_lambda_0);
+                    }
+
+                    double true_delta_0 = new_lambda_0 - old_lambda_friction[0];
+                    mconstraints[ic]->Increment_q(true_delta_0);
+
+                    if (this->record_violation_history) {
+                        maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_0));
+                    }
+
                 } else {
                     // update:   lambda += delta_lambda;
                     double old_lambda = mconstraints[ic]->Get_l_i();
