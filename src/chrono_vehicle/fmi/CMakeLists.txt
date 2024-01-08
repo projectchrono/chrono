@@ -25,7 +25,15 @@ add_dependencies(COPY_VEHICLE_FMU_DEPENDENCIES ChronoEngine_vehicle)
 
 message(STATUS "Add Chrono::Vehicle FMUs...")
 
-# Create each FMU and add custom command to copy its necessary dependencies 
+# Create each FMU and add a custom command to copy its necessary dependencies.
+# Note that we use a single custom target (COPY_VEHICLE_FMU_DEPENDENCIES) to hold all
+# necessary custom commands for each FMU. The dependencies must be copied and available
+# during the build process of the FMUs (since the FMU code must be executed in order
+# to generate its model description). As such, the copying must happen in a pre-build
+# phase. However, the target directories are created only during the FMU build process;
+# to address this circular dependency, we also add explicit commands to create the output
+# directories.
+
 foreach(FMU ${FMUS})
 
   message(STATUS "...add ${FMU} FMU")
@@ -41,8 +49,13 @@ foreach(FMU ${FMUS})
   if(NOT ${FMU_COMPONENT_DLL_DEPENDENCIES} STREQUAL "")
     message(STATUS "   Add command to copy ${FMU} FMU DLL dependencies")
     add_custom_command(
-      TARGET COPY_VEHICLE_FMU_DEPENDENCIES POST_BUILD
-      COMMENT "Copy ${FMU} FMU DLL dependencies"
+      TARGET COPY_VEHICLE_FMU_DEPENDENCIES PRE_BUILD
+      COMMENT "Create directory for ${FMU} FMU DLL dependencies."
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${FMU_RUNTIME_OUTPUT_DIRECTORY}
+    )
+    add_custom_command(
+      TARGET COPY_VEHICLE_FMU_DEPENDENCIES PRE_BUILD
+      COMMENT "Copy ${FMU} FMU DLL dependencies."
       COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FMU_COMPONENT_DLL_DEPENDENCIES} ${FMU_RUNTIME_OUTPUT_DIRECTORY}
     )
   endif()
