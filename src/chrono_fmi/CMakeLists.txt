@@ -31,12 +31,7 @@ if(MSVC)
   endif()
 endif()
 
-set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/../../fmu_tools/" CACHE PATH "Path to fmu_tools.")
-if(NOT EXISTS "${FMU_TOOLS_DIR}")
-  message(NOTICE "Set `FMU_TOOLS_DIR` to the directory containing the fmu_tools' utilities.")
-  message(NOTICE "Chrono FMI module not functional.")
-  return()
-endif()
+set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/fmu_tools/" CACHE INTERNAL "Path to fmu_tools.")
 
 # -------------------------------------------------
 # Set Architecture and Operating System Flags

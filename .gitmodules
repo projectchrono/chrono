@@ -17,3 +17,7 @@
 	path = src/chrono_thirdparty/DEM-Engine
 	url = https://github.com/projectchrono/DEM-Engine
 	branch = main
+[submodule "src/chrono_thirdparty/fmu_tools"]
+	path = src/chrono_thirdparty/fmu_tools
+	url = https://github.com/DigitalDynamicsLab/fmu_tools.git
+	branch = main
