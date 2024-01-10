@@ -17,7 +17,6 @@
 // =============================================================================
 
 //// TODO:
-//// - implement CalculateForces (currently called from Setup())
 //// - implement CalculateInertiaProperties
 //// - extract force on wheel spindle
 //// - add false coloring support
@@ -112,8 +111,8 @@ void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
         CreateContactMaterial();
 
     // Construct the underlying tire model, attached to the wheel spindle body
-    m_model->m_wheel = wheel->GetSpindle().get();
-    m_model->Construct(*wheel->GetSpindle());
+    m_model->m_wheel = wheel->GetSpindle();
+    m_model->Construct();
 }
 
 void ChMBTire::Synchronize(double time, const ChTerrain& terrain) {
@@ -148,7 +147,7 @@ void ChMBTire::InitializeInertiaProperties() {
         return;
 
     ChVector<> com;
-    m_model->CalculateInertiaProperties(*(m_wheel->GetSpindle().get()), com, m_inertia);
+    m_model->CalculateInertiaProperties(com, m_inertia);
     m_com = ChFrame<>(com, QUNIT);
 }
 
@@ -157,7 +156,7 @@ void ChMBTire::UpdateInertiaProperties() {
         return;
 
     ChVector<> com;
-    m_model->CalculateInertiaProperties(*(m_wheel->GetSpindle().get()), com, m_inertia);
+    m_model->CalculateInertiaProperties(com, m_inertia);
     m_com = ChFrame<>(com, QUNIT);
 }
 
@@ -208,7 +207,7 @@ void MBTireModel::CalcNormal(int ir, int id, ChVector<>& normal, double& area) {
     normal = dir / area;
 }
 
-void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
+void MBTireModel::Construct() {
     m_num_rim_nodes = 2 * m_num_divs;
     m_num_nodes = m_num_rings * m_num_divs;
     m_num_faces = 2 * (m_num_rings - 1) * m_num_divs;
@@ -239,7 +238,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             double phi = id * dphi;
             double x = r * std::cos(phi);
             double z = r * std::sin(phi);
-            vertices[k] = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            vertices[k] = m_wheel->TransformPointLocalToParent(ChVector<>(x, y, z));
             m_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(vertices[k]);
             m_nodes[k]->SetMass(m_node_mass);
             k++;
@@ -255,7 +254,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             double phi = id * dphi;
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
-            auto loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            auto loc = m_wheel->TransformPointLocalToParent(ChVector<>(x, y, z));
             m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
             m_rim_nodes[k]->SetMass(m_node_mass);
             k++;
@@ -267,7 +266,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             double phi = id * dphi;
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
-            auto loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            auto loc = m_wheel->TransformPointLocalToParent(ChVector<>(x, y, z));
             m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
             m_rim_nodes[k]->SetMass(m_node_mass);
             k++;
@@ -284,8 +283,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             const auto& pos1 = m_nodes[node1]->GetPos();
             const auto& pos2 = m_nodes[node2]->GetPos();
 
-            Spring2 spring;
-            spring.type = SpringType::CIRCUMFERENTIAL;
+            Spring2 spring(SpringType::CIRCUMFERENTIAL);
             spring.node1 = node1;
             spring.node2 = node2;
             spring.l0 = (pos2 - pos1).Length();
@@ -304,8 +302,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             const auto& pos1 = m_rim_nodes[node1]->GetPos();
             const auto& pos2 = m_nodes[node2]->GetPos();
 
-            Spring2 spring;
-            spring.type = SpringType::RADIAL;
+            Spring2 spring(SpringType::RADIAL);
             spring.node1 = node1;
             spring.node2 = node2;
             spring.l0 = (pos2 - pos1).Length();
@@ -321,8 +318,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             const auto& pos1 = m_nodes[node1]->GetPos();
             const auto& pos2 = m_nodes[node2]->GetPos();
 
-            Spring2 spring;
-            spring.type = SpringType::TRANSVERSAL;
+            Spring2 spring(SpringType::TRANSVERSAL);
             spring.node1 = node1;
             spring.node2 = node2;
             spring.l0 = (pos2 - pos1).Length();
@@ -338,8 +334,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             const auto& pos1 = m_rim_nodes[node1]->GetPos();
             const auto& pos2 = m_nodes[node2]->GetPos();
 
-            Spring2 spring;
-            spring.type = SpringType::RADIAL;
+            Spring2 spring(SpringType::RADIAL);
             spring.node1 = node1;
             spring.node2 = node2;
             spring.l0 = (pos2 - pos1).Length();
@@ -556,9 +551,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
     }
 }
 
-void MBTireModel::CalculateInertiaProperties(const ChFrameMoving<>& wheel_frame,
-                                             ChVector<>& com,
-                                             ChMatrix33<>& inertia) {
+void MBTireModel::CalculateInertiaProperties(ChVector<>& com, ChMatrix33<>& inertia) {
     //// TODO
 }
 
@@ -568,19 +561,51 @@ static const double zero_length = 1e-6;
 // Constant threshold for checking zero angles
 static const double zero_angle = 1e-3;
 
-// Calculate forces at each vertex, then use ChNodeFEAxyz::SetForce
-void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
+// Set position and velocity of rim nodes from wheel/spindle state
+void MBTireModel::SetRimNodeStates() {
+    double dphi = CH_C_2PI / m_num_divs;
+    int k = 0;
+    {
+        double y = m_offsets[0];
+        for (int id = 0; id < m_num_divs; id++) {
+            double phi = id * dphi;
+
+            double x = m_rim_radius * std::cos(phi);
+            double z = m_rim_radius * std::sin(phi);
+            auto pos_loc = ChVector<>(x, y, z);
+            m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
+            m_rim_nodes[k]->SetPos_dt(m_wheel->PointSpeedLocalToParent(pos_loc));
+            k++;
+        }
+    }
+    {
+        double y = m_offsets[m_num_rings - 1];
+        for (int id = 0; id < m_num_divs; id++) {
+            double phi = id * dphi;
+
+            double x = m_rim_radius * std::cos(phi);
+            double z = m_rim_radius * std::sin(phi);
+            auto pos_loc = ChVector<>(x, y, z);
+            m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
+            m_rim_nodes[k]->SetPos_dt(m_wheel->PointSpeedLocalToParent(pos_loc));
+            k++;
+        }
+    }
+}
+
+// Calculate forces at each node, then use ChNodeFEAxyz::SetForce
+void MBTireModel::CalculateForces() {
     // Initialize nodal force accumulators
     std::vector<ChVector<>> nodal_forces(m_num_nodes, VNULL);
 
     // Initialize wheel force and moment accumulators
     //// TODO: update wheel torque
-    m_wheel_force = VNULL;
-    m_wheel_torque = VNULL;
+    m_wheel_force = VNULL;   // body force, expressed in global frame
+    m_wheel_torque = VNULL;  // body torque, expressed in local frame
 
     // Wheel center position and velocity (expressed in absolute frame)
-    const auto& w_pos = wheel_frame.GetPos();
-    const auto& w_vel = wheel_frame.GetPos_dt();
+    const auto& w_pos = m_wheel->GetPos();
+    const auto& w_vel = m_wheel->GetPos_dt();
 
     // ------------ Gravitational and pressure forces
 
@@ -673,7 +698,7 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         if (length_cross > zero_length) {
             cross /= length_cross;
         } else {  // colinear points
-            cross = wheel_frame.TransformDirectionLocalToParent(spring.t0);
+            cross = m_wheel->TransformDirectionLocalToParent(spring.t0);
         }
 
         auto F_p = m_kB * ((angle - spring.a0) / length_p) * Vcross(cross, dir_p);
@@ -711,7 +736,7 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         if (length_cross > zero_length) {
             cross /= length_cross;
         } else {  // colinear points
-            cross = wheel_frame.TransformDirectionLocalToParent(spring.t0);
+            cross = m_wheel->TransformDirectionLocalToParent(spring.t0);
         }
 
         ////auto foo = wheel_frame.TransformDirectionLocalToParent(spring.t0);
@@ -787,49 +812,13 @@ void MBTireModel::Setup() {
         m_dofs_w += node->GetNdofW_active();
     }
 
-    // Impose position and velocity of rim nodes
-    double dphi = CH_C_2PI / m_num_divs;
-    int k = 0;
-    {
-        double y = m_offsets[0];
-        for (int id = 0; id < m_num_divs; id++) {
-            double phi = id * dphi;
-
-            double x = m_rim_radius * std::cos(phi);
-            double z = m_rim_radius * std::sin(phi);
-            auto pos_loc = ChVector<>(x, y, z);
-            m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
-            m_rim_nodes[k]->SetPos_dt(m_wheel->PointSpeedLocalToParent(pos_loc));
-            k++;
-        }
-    }
-    {
-        double y = m_offsets[m_num_rings - 1];
-        for (int id = 0; id < m_num_divs; id++) {
-            double phi = id * dphi;
-
-            double x = m_rim_radius * std::cos(phi);
-            double z = m_rim_radius * std::sin(phi);
-            auto pos_loc = ChVector<>(x, y, z);
-            m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
-            m_rim_nodes[k]->SetPos_dt(m_wheel->PointSpeedLocalToParent(pos_loc));
-            k++;
-        }
-    }
-
-    // Calculate nodal forces
-    CalculateForces(*m_wheel);
-
-    // Apply tire force and moment to wheel (spindle) body
-    //// TODO
-
     // Update visualization mesh
     auto trimesh = m_trimesh_shape->GetMesh();
     auto& vertices = trimesh->getCoordsVertices();
     auto& normals = trimesh->getCoordsNormals();
     auto& colors = trimesh->getCoordsColors();
 
-    for (k = 0; k < m_num_nodes; k++) {
+    for (int k = 0; k < m_num_nodes; k++) {
         vertices[k] = m_nodes[k]->GetPos();
     }
 
@@ -839,8 +828,6 @@ void MBTireModel::Setup() {
 void MBTireModel::Update(double t, bool update_assets) {
     // Parent class update
     ChPhysicsItem::Update(t, update_assets);
-
-    //// TODO: move call to CalculateForces() here?
 }
 
 // -----------------------------------------------------------------------------
@@ -956,11 +943,27 @@ void MBTireModel::IntStateGetIncrement(const unsigned int off_x,
 }
 
 void MBTireModel::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
-    // Applied nodal forces (calculated in CalculateForces)
+    // Synchronize position and velocity of rim nodes with wheel/spindle state
+    SetRimNodeStates();
+
+    // Calculate spring forces:
+    // - set them as applied forces on the FEA nodes
+    // - accumulate force and torque on wheel/spindle body
+    CalculateForces();
+
+    // Load nodal forces into R
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntLoadResidual_F(off + local_off_v, R, c);
         local_off_v += node->GetNdofW_active();
+    }
+
+    ////std::cout << "   " << m_wheel_force << "             " << m_wheel_torque << std::endl;
+
+    // Load wheel body forces into R
+    if (m_wheel->Variables().IsActive()) {
+        R.segment(m_wheel->Variables().GetOffset() + 0, 3) += c * m_wheel_force.eigen();
+        R.segment(m_wheel->Variables().GetOffset() + 3, 3) += c * m_wheel_torque.eigen();
     }
 }
 

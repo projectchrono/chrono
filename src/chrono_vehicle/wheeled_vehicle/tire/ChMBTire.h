@@ -130,14 +130,17 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
 // Underlying (private) implementation of the MB tire model.
 class MBTireModel : public ChPhysicsItem {
   private:
-    // Construct the MB tire relative to the specified frame (frame of associated wheel).
-    void Construct(const ChFrameMoving<>& wheel_frame);
+    // Construct the MB tire relative to the associated wheel/spindle body.
+    void Construct();
 
-    // Calculate COG and inertia, expressed relative to the specified frame.
-    void CalculateInertiaProperties(const ChFrameMoving<>& wheel_frame, ChVector<>& com, ChMatrix33<>& inertia);
+    // Calculate COG and inertia, expressed relative to the frame of the associated wheel/spindle body.
+    void CalculateInertiaProperties(ChVector<>& com, ChMatrix33<>& inertia);
+
+    // Set position and velocity of rim nodes from wheel/spindle state.
+    void MBTireModel::SetRimNodeStates();
 
     // Calculate nodal forces (expressed in the global frame).
-    void CalculateForces(const ChFrameMoving<>& wheel_frame);
+    void CalculateForces();
 
     // ChPhysicsItem overrides
     virtual bool GetCollide() const override { return true; }
@@ -255,6 +258,8 @@ class MBTireModel : public ChPhysicsItem {
         double l0;        // spring free length
         double k;         // spring coefficient
         double c;         // damping coefficient
+
+        Spring2(SpringType t) : type(t) {}
     };
 
     struct Spring3 {
@@ -272,11 +277,11 @@ class MBTireModel : public ChPhysicsItem {
     std::vector<Spring3> m_mesh_rot_springs;  // node-node torsional springs
     std::vector<Spring3> m_edge_rot_springs;  // node-rim torsional springs (first and last ring)
 
-    ChVector<> m_wheel_force;   // applied wheel spindle force
-    ChVector<> m_wheel_torque;  // applied wheel spindle torque
+    std::shared_ptr<ChBody> m_wheel;  // associated wheel body
+    ChVector<> m_wheel_force;         // applied wheel spindle force (in global frame)
+    ChVector<> m_wheel_torque;        // applied wheel spindle torque (in body frame)
 
     ChMBTire* m_tire;  // owner ChMBTire object
-    ChBody* m_wheel;   // associated wheel body
 
     friend class ChMBTire;
 };
