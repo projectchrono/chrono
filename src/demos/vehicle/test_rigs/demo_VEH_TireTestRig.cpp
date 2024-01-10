@@ -16,7 +16,12 @@
 //
 // =============================================================================
 
+////#include <float.h>
+////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
+
 #include <algorithm>
+
+#include "chrono/core/ChTimer.h"
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
@@ -60,6 +65,9 @@ using namespace chrono::vehicle;
 
 // Contact formulation type (SMC or NSC)
 ChContactMethod contact_method = ChContactMethod::SMC;
+
+// Enable run-time visualization
+bool vis = true;
 
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
@@ -189,9 +197,11 @@ int main() {
     switch (contact_method) {
         case ChContactMethod::SMC:
             sys = new ChSystemSMC;
-            step_size = 1e-5;
-            solver_type = ChSolver::Type::PARDISO_MKL;
-            integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+            step_size = 2e-5;
+            ////solver_type = ChSolver::Type::PARDISO_MKL;
+            solver_type = ChSolver::Type::SPARSE_QR;
+            ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+            integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
             std::static_pointer_cast<ChDeformableTire>(tire)->SetContactFaceThickness(0.02);
             break;
 
@@ -244,7 +254,7 @@ int main() {
     //   longitudinal speed: 0.2 m/s
     //   angular speed: 10 RPM
     //   slip angle: sinusoidal +- 5 deg with 5 s period
-    rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
+    rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(2.0));
     ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10 * CH_C_RPM_TO_RPS));
     ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.2, 5 * CH_C_DEG_TO_RAD));
 
@@ -252,7 +262,7 @@ int main() {
     ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
 
     // Initialize the tire test rig
-    rig.SetTimeDelay(1.0);
+    rig.SetTimeDelay(0.0);
     ////rig.Initialize(ChTireTestRig::Mode::SUSPEND);
     ////rig.Initialize(ChTireTestRig::Mode::DROP);
     rig.Initialize(ChTireTestRig::Mode::TEST);
@@ -270,50 +280,53 @@ int main() {
     }
 
     // Create the vehicle run-time visualization interface and the interactive driver
+    std::shared_ptr<ChVisualSystem> vis_sys;
+
+    if (vis) {
 #ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
+        if (vis_type == ChVisualSystem::Type::IRRLICHT)
+            vis_type = ChVisualSystem::Type::VSG;
 #endif
 #ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
+        if (vis_type == ChVisualSystem::Type::VSG)
+            vis_type = ChVisualSystem::Type::IRRLICHT;
 #endif
 
-    std::shared_ptr<ChVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
+        switch (vis_type) {
+            case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
-            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-            vis_irr->AttachSystem(sys);
-            vis_irr->SetCameraVertical(CameraVerticalDir::Z);
-            vis_irr->SetWindowSize(600, 600);
-            vis_irr->SetWindowTitle("Tire Test Rig");
-            vis_irr->Initialize();
-            vis_irr->AddLogo();
-            vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector<>(1.0, 2.5, 1.0));
-            vis_irr->AddLightDirectional();
+                auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+                vis_irr->AttachSystem(sys);
+                vis_irr->SetCameraVertical(CameraVerticalDir::Z);
+                vis_irr->SetWindowSize(600, 600);
+                vis_irr->SetWindowTitle("Tire Test Rig");
+                vis_irr->Initialize();
+                vis_irr->AddLogo();
+                vis_irr->AddSkyBox();
+                vis_irr->AddCamera(ChVector<>(1.0, 2.5, 1.0));
+                vis_irr->AddLightDirectional();
 
-            vis_irr->GetActiveCamera()->setFOV(irr::core::PI / 4.5f);
+                vis_irr->GetActiveCamera()->setFOV(irr::core::PI / 4.5f);
 
-            vis = vis_irr;
+                vis_sys = vis_irr;
 #endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
+                break;
+            }
+            default:
+            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
-            vis_vsg->AttachSystem(sys);
-            vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
-            vis_vsg->SetWindowSize(1200, 600);
-            vis_vsg->SetWindowTitle("Tire Test Rig");
-            vis_vsg->AddCamera(ChVector<>(1.0, 2.5, 1.0));
-            vis_vsg->Initialize();
+                auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+                vis_vsg->AttachSystem(sys);
+                vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
+                vis_vsg->SetWindowSize(1200, 600);
+                vis_vsg->SetWindowTitle("Tire Test Rig");
+                vis_vsg->AddCamera(ChVector<>(1.0, 2.5, 1.0));
+                vis_vsg->Initialize();
 
-            vis = vis_vsg;
+                vis_sys = vis_vsg;
 #endif
-            break;
+                break;
+            }
         }
     }
 
@@ -337,40 +350,53 @@ int main() {
 #endif
 
     // Perform the simulation
+#ifdef CHRONO_POSTPROCESS
     ChFunction_Recorder long_slip;
     ChFunction_Recorder slip_angle;
     ChFunction_Recorder camber_angle;
+    double time_skip = 0.5;
+#endif
 
-    double time_offset = 0.5;
+    ChTimer timer;
+    double time_end = 1.0;
+    double time = 0.0;
 
-    while (vis->Run()) {
-        double time = sys->GetChTime();
+    timer.start();
 
-        if (time > time_offset) {
+    while (vis || time < time_end) {
+        time = sys->GetChTime();
+
+#ifdef CHRONO_POSTPROCESS
+        if (gnuplot_output && time > time_skip) {
             long_slip.AddPoint(time, tire->GetLongitudinalSlip());
             slip_angle.AddPoint(time, tire->GetSlipAngle() * CH_C_RAD_TO_DEG);
             camber_angle.AddPoint(time, tire->GetCamberAngle() * CH_C_RAD_TO_DEG);
         }
+#endif
 
-        ////auto& loc = rig.GetPos();
-        ////vis->UpdateCamera(loc + ChVector<>(1.0, 2.5, 0.5), loc + ChVector<>(0, 0.25, -0.25));
-
-        ChVector<> loc = rig.GetWheelPos();
-        ////vis->UpdateCamera(loc + ChVector<>(2.0, 0., 0.0), loc);
-        vis->UpdateCamera(loc + ChVector<>(1.4, 1.4, 0.0), loc);
-
-        vis->BeginScene();
-        vis->Render();
-        ////tools::drawAllContactPoints(vis.get(), 1.0, ContactsDrawMode::CONTACT_NORMALS);
         rig.Advance(step_size);
-        vis->EndScene();
+
+        if (vis) {
+            ////auto& loc = rig.GetPos();
+            ////vis_sys->UpdateCamera(loc + ChVector<>(1.0, 2.5, 0.5), loc + ChVector<>(0, 0.25, -0.25));
+
+            ChVector<> loc = rig.GetWheelPos();
+            ////vis_sys->UpdateCamera(loc + ChVector<>(2.0, 0., 0.0), loc);
+            vis_sys->UpdateCamera(loc + ChVector<>(1.4, 1.4, 0.0), loc);
+
+            if (!vis_sys->Run())
+                break;
+            vis_sys->BeginScene();
+            vis_sys->Render();
+            vis_sys->EndScene();
+        }
 
 #ifdef CHRONO_POSTPROCESS
         if (blender_output)
             blender_exporter.ExportData();
 #endif
 
-        ////std::cout << sys.GetChTime() << std::endl;
+        ////std::cout << sys->GetChTime() << std::endl;
         ////auto long_slip = tire->GetLongitudinalSlip();
         ////auto slip_angle = tire->GetSlipAngle();
         ////auto camber_angle = tire->GetCamberAngle();
@@ -383,6 +409,9 @@ int main() {
         ////std::cout << "   " << pnt.x() << " " << pnt.y() << " " << pnt.z() << std::endl;
         ////std::cout << "   " << trq.x() << " " << trq.y() << " " << trq.z() << std::endl;
     }
+
+    timer.stop();
+    std::cout << "Overall RTF = " << timer() / sys->GetChTime() << std::endl;
 
 #ifdef CHRONO_POSTPROCESS
     if (gnuplot_output && sys->GetChTime() > time_offset) {
