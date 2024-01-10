@@ -324,7 +324,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_spindle_body->SetName("rig_spindle");
     m_spindle_body->SetIdentifier(4);
     m_spindle_body->SetMass(0);
-    m_spindle_body->SetInertiaXX(ChVector<>(0, 0, 0));
+    m_spindle_body->SetInertiaXX(ChVector<>(0.01, 0.02, 0.01));
     m_spindle_body->SetPos(ChVector<>(0, 3 * dim, -4 * dim));
     m_spindle_body->SetRot(qc);
     ChVehicleGeometry::AddVisualizationCylinder(m_spindle_body,              //
