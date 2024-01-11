@@ -72,6 +72,9 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
     /// If stiff, Jacobian information will be generated.
     void IsStiff(bool val);
 
+    /// Include the applied wheel forces in Jacobian calculation (default: false).
+    void UseFullJacobian(bool val);
+
     /// Set contact material properties.
     void SetTireContactMaterial(const ChContactMaterialData& mat_data);
 
@@ -262,12 +265,16 @@ class MBTireModel : public ChPhysicsItem {
         fea::ChNodeFEAxyz* node1;
         fea::ChNodeFEAxyz* node2;
 
+        ChBody* wheel;
+
         double l0;        // spring free length
         double k;         // spring coefficient
         double c;         // damping coefficient
 
         ChVector<> force1;
         ChVector<> force2;
+
+        ChKblockGeneric KRM;
 
         void Initialize();
         void CalculateForce();
@@ -283,6 +290,8 @@ class MBTireModel : public ChPhysicsItem {
         fea::ChNodeFEAxyz* node_c;
         fea::ChNodeFEAxyz* node_n;
 
+        ChBody* wheel;
+
         ChVector<> t0;  // initial normal direction (in wheel frame)
         double a0;      // spring free angle
         double k;       // spring coefficient
@@ -292,14 +301,36 @@ class MBTireModel : public ChPhysicsItem {
         ChVector<> force_c;
         ChVector<> force_n;
 
+        ChKblockGeneric KRM;
+
         void Initialize();
-        void CalculateForce(const ChFrame<>& wheel);
+        void CalculateForce();
     };
 
-    std::vector<Spring2> m_grid_lin_springs;  // node-node translational springs
-    std::vector<Spring2> m_edge_lin_springs;  // node-rim translational springs (first and last ring)
-    std::vector<Spring3> m_grid_rot_springs;  // node-node torsional springs
-    std::vector<Spring3> m_edge_rot_springs;  // node-rim torsional springs (first and last ring)
+    struct GridSpring2 : public Spring2 {
+        void Initialize(bool stiff);
+        void CalculateJacobian(double Kfactor, double Rfactor);
+    };
+
+    struct EdgeSpring2 : public Spring2 {
+        void Initialize(bool stiff, bool full_jac);
+        void CalculateJacobian(bool full_jac, double Kfactor, double Rfactor);
+    };
+
+    struct GridSpring3 : public Spring3 {
+        void Initialize(bool stiff);
+        void CalculateJacobian(double Kfactor, double Rfactor);
+    };
+
+    struct EdgeSpring3 : public Spring3 {
+        void Initialize(bool stiff, bool full_jac);
+        void CalculateJacobian(bool full_jac, double Kfactor, double Rfactor);
+    };
+
+    std::vector<GridSpring2> m_grid_lin_springs;  // node-node translational springs
+    std::vector<EdgeSpring2> m_edge_lin_springs;  // node-rim translational springs (first and last ring)
+    std::vector<GridSpring3> m_grid_rot_springs;  // node-node torsional springs
+    std::vector<EdgeSpring3> m_edge_rot_springs;  // node-rim torsional springs (first and last ring)
 
     std::shared_ptr<ChBody> m_wheel;  // associated wheel body
     ChVector<> m_wheel_force;         // applied wheel spindle force (in global frame)

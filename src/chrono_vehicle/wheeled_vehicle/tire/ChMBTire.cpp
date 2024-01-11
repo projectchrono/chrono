@@ -18,7 +18,6 @@
 
 //// TODO:
 //// - implement CalculateInertiaProperties
-//// - extract force on wheel spindle
 //// - add false coloring support
 
 #include <algorithm>
@@ -75,6 +74,10 @@ void ChMBTire::SetRadialSpringCoefficients(double kR, double cR) {
 
 void ChMBTire::IsStiff(bool val) {
     m_model->m_stiff = val;
+}
+
+void ChMBTire::UseFullJacobian(bool val) {
+    m_model->m_full_jac = val;
 }
 
 void ChMBTire::SetTireContactMaterial(const ChContactMaterialData& mat_data) {
@@ -228,6 +231,63 @@ void MBTireModel::Spring2::Initialize() {
     l0 = (pos2 - pos1).Length();
 }
 
+void MBTireModel::GridSpring2::Initialize(bool stiff) {
+    Spring2::Initialize();
+    if (stiff) {
+        std::vector<ChVariables*> vars;
+        vars.push_back(&node1->Variables());
+        vars.push_back(&node2->Variables());
+        KRM.SetVariables(vars);
+    }
+}
+
+void MBTireModel::EdgeSpring2::Initialize(bool stiff, bool full_jac) {
+    Spring2::Initialize();
+    if (stiff) {
+        std::vector<ChVariables*> vars;
+        if (full_jac)
+            vars.push_back(&wheel->Variables());
+        vars.push_back(&node2->Variables());
+        KRM.SetVariables(vars);
+    }
+}
+
+void MBTireModel::Spring3::Initialize() {
+    const auto& pos_p = node_p->GetPos();
+    const auto& pos_c = node_c->GetPos();
+    const auto& pos_n = node_n->GetPos();
+
+    auto dir_p = (pos_c - pos_p).GetNormalized();
+    auto dir_n = (pos_n - pos_c).GetNormalized();
+    auto cross = Vcross(dir_p, dir_n);
+    double length_cross = cross.Length();
+
+    a0 = std::asin(length_cross);
+}
+
+void MBTireModel::GridSpring3::Initialize(bool stiff) {
+    Spring3::Initialize();
+    if (stiff) {
+        std::vector<ChVariables*> vars;
+        vars.push_back(&node_p->Variables());
+        vars.push_back(&node_c->Variables());
+        vars.push_back(&node_n->Variables());
+        KRM.SetVariables(vars);
+    }
+}
+
+void MBTireModel::EdgeSpring3::Initialize(bool stiff, bool full_jac) {
+    Spring3::Initialize();
+    if (stiff) {
+        std::vector<ChVariables*> vars;
+        if (full_jac)
+            vars.push_back(&wheel->Variables());
+        vars.push_back(&node_c->Variables());
+        vars.push_back(&node_n->Variables());
+        KRM.SetVariables(vars);
+    }
+}
+
 void MBTireModel::Spring2::CalculateForce() {
     const auto& pos1 = node1->GetPos();
     const auto& pos2 = node2->GetPos();
@@ -246,20 +306,7 @@ void MBTireModel::Spring2::CalculateForce() {
     force2 = +vforce;
 }
 
-void MBTireModel::Spring3::Initialize() {
-    const auto& pos_p = node_p->GetPos();
-    const auto& pos_c = node_c->GetPos();
-    const auto& pos_n = node_n->GetPos();
-
-    auto dir_p = (pos_c - pos_p).GetNormalized();
-    auto dir_n = (pos_n - pos_c).GetNormalized();
-    auto cross = Vcross(dir_p, dir_n);
-    double length_cross = cross.Length();
-
-    a0 = std::asin(length_cross);
-}
-
-void MBTireModel::Spring3::CalculateForce(const ChFrame<>& wheel) {
+void MBTireModel::Spring3::CalculateForce() {
     const auto& pos_p = node_p->GetPos();
     const auto& pos_c = node_c->GetPos();
     const auto& pos_n = node_n->GetPos();
@@ -290,7 +337,7 @@ void MBTireModel::Spring3::CalculateForce(const ChFrame<>& wheel) {
     if (length_cross > zero_length) {
         cross /= length_cross;
     } else {  // colinear points
-        cross = wheel.TransformDirectionLocalToParent(t0);
+        cross = wheel->TransformDirectionLocalToParent(t0);
     }
 
     auto F_p = k * ((angle - a0) / length_p) * Vcross(cross, dir_p);
@@ -299,6 +346,67 @@ void MBTireModel::Spring3::CalculateForce(const ChFrame<>& wheel) {
     force_p = -F_p;
     force_c = F_p + F_n;
     force_n = -F_n;
+}
+
+// Jacobian matrices are linear combination of the form:
+//    Kfactor * [K] + Rfactor *[R]
+// where
+// - [K] is the partial derivative wrt position-level states ("stiffness")
+// - [R] is the partial derivative wrt velocity-level states ("damping")
+
+// For a linear spring connecting two grid nodes, the Jacobian is a 6x6 matrix:
+//   d[f1;f2]/d[n1;n2]
+// where f1, f2 are the nodal forces and n1, n2 are the states of the 2 nodes.
+void MBTireModel::GridSpring2::CalculateJacobian(double Kfactor, double Rfactor) {
+    ChMatrixRef K = KRM.Get_K();
+
+    std::cout << "Grid spring2 " << inode1 << "-" << inode2;
+    std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
+
+    //// TODO
+}
+
+// For a linear spring connecting a rim node and a grid node, the Jacobian is a:
+//    9x9 matrix (if full_jac=true) or
+//    3x3 matrix (if full_jac=false)
+// Note the order of generalized forces and states is:
+//    wheel state (6)
+//    node2 state (3)
+void MBTireModel::EdgeSpring2::CalculateJacobian(bool full_jac, double Kfactor, double Rfactor) {
+    ChMatrixRef K = KRM.Get_K();
+
+    std::cout << "Edge spring2 " << inode1 << "-" << inode2;
+    std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
+
+    //// TODO
+}
+
+// For a rotational spring connecting three grid nodes, the Jacobian is a 9x9 matrix:
+//   d[f_p;f_c;f_n]/d[n_p;n_c;n_n]
+// where f_p, f_c, and f_n are the nodal forces and n_p, n_c, and n_n are the states of the 3 nodes.
+void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor, double Rfactor) {
+    ChMatrixRef K = KRM.Get_K();
+
+    std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
+    std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
+
+    //// TODO
+}
+
+// For a rotational spring connecting a rim node and 2 grid nodes, the Jacobian is a:
+//    12x12 matrix (if full_jac=true) or
+//    6x6 matrix (if full_jac=false)
+// Note the order of generalized forces and states is:
+//    wheel state (6)
+//    node_c state (3)
+//    node_n state (3)
+void MBTireModel::EdgeSpring3::CalculateJacobian(bool full_jac, double Kfactor, double Rfactor) {
+    ChMatrixRef K = KRM.Get_K();
+
+    std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
+    std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
+
+    //// TODO
 }
 
 // -----------------------------------------------------------------------------
@@ -377,15 +485,16 @@ void MBTireModel::Construct() {
             int inode1 = NodeIndex(ir, id);
             int inode2 = NodeIndex(ir, id + 1);
 
-            Spring2 spring;
+            GridSpring2 spring;
             spring.inode1 = inode1;
             spring.inode2 = inode2;
             spring.node1 = m_nodes[inode1].get();
             spring.node2 = m_nodes[inode2].get();
+            spring.wheel = m_wheel.get();
             spring.k = m_kC;
             spring.c = m_cC;
 
-            spring.Initialize();
+            spring.Initialize(m_stiff);
             m_grid_lin_springs.push_back(spring);
         }
     }
@@ -397,15 +506,16 @@ void MBTireModel::Construct() {
             int inode1 = RimNodeIndex(0, id);
             int inode2 = NodeIndex(0, id);
 
-            Spring2 spring;
+            EdgeSpring2 spring;
             spring.inode1 = inode1;
             spring.inode2 = inode2;
             spring.node1 = m_rim_nodes[inode1].get();
             spring.node2 = m_nodes[inode2].get();
+            spring.wheel = m_wheel.get();
             spring.k = m_kR;
             spring.c = m_cR;
 
-            spring.Initialize();
+            spring.Initialize(m_stiff, m_full_jac);
             m_edge_lin_springs.push_back(spring);
         }
 
@@ -414,15 +524,16 @@ void MBTireModel::Construct() {
             int inode1 = NodeIndex(ir, id);
             int inode2 = NodeIndex(ir + 1, id);
 
-            Spring2 spring;
+            GridSpring2 spring;
             spring.inode1 = inode1;
             spring.inode2 = inode2;
             spring.node1 = m_nodes[inode1].get();
             spring.node2 = m_nodes[inode2].get();
+            spring.wheel = m_wheel.get();
             spring.k = m_kT;
             spring.c = m_cT;
 
-            spring.Initialize();
+            spring.Initialize(m_stiff);
             m_grid_lin_springs.push_back(spring);
         }
 
@@ -431,15 +542,16 @@ void MBTireModel::Construct() {
             int inode1 = RimNodeIndex(m_num_rings - 1, id);
             int inode2 = NodeIndex(m_num_rings - 1, id);
 
-            Spring2 spring;
+            EdgeSpring2 spring;
             spring.inode1 = inode1;
             spring.inode2 = inode2;
             spring.node1 = m_rim_nodes[inode1].get();
             spring.node2 = m_nodes[inode2].get();
+            spring.wheel = m_wheel.get();
             spring.k = m_kR;
             spring.c = m_cR;
 
-            spring.Initialize();
+            spring.Initialize(m_stiff, m_full_jac);
             m_edge_lin_springs.push_back(spring);
         }
     }
@@ -451,18 +563,19 @@ void MBTireModel::Construct() {
             int inode_c = NodeIndex(ir, id);
             int inode_n = NodeIndex(ir, id + 1);
 
-            Spring3 spring;
+            GridSpring3 spring;
             spring.inode_p = inode_p;
             spring.inode_c = inode_c;
             spring.inode_n = inode_n;
             spring.node_p = m_nodes[inode_p].get();
             spring.node_c = m_nodes[inode_c].get();
             spring.node_n = m_nodes[inode_n].get();
+            spring.wheel = m_wheel.get();
             spring.t0 = ChVector<>(0, 1, 0);
             spring.k = m_kB;
             spring.c = m_cB;
 
-            spring.Initialize();
+            spring.Initialize(m_stiff);
             m_grid_rot_springs.push_back(spring);
         }
     }
@@ -478,18 +591,19 @@ void MBTireModel::Construct() {
             int inode_c = NodeIndex(0, id);
             int inode_n = NodeIndex(1, id);
 
-            Spring3 spring;
+            EdgeSpring3 spring;
             spring.inode_p = inode_p;
             spring.inode_c = inode_c;
             spring.inode_n = inode_n;
             spring.node_p = m_rim_nodes[inode_p].get();
             spring.node_c = m_nodes[inode_c].get();
             spring.node_n = m_nodes[inode_n].get();
+            spring.wheel = m_wheel.get();
             spring.t0 = t0;
             spring.k = m_kB;
             spring.c = m_cB;
 
-            spring.Initialize();
+            spring.Initialize(m_stiff, m_full_jac);
             m_edge_rot_springs.push_back(spring);
         }
 
@@ -499,18 +613,19 @@ void MBTireModel::Construct() {
             int inode_c = NodeIndex(ir, id);
             int inode_n = NodeIndex(ir + 1, id);
 
-            Spring3 spring;
+            GridSpring3 spring;
             spring.inode_p = inode_p;
             spring.inode_c = inode_c;
             spring.inode_n = inode_n;
             spring.node_p = m_nodes[inode_p].get();
             spring.node_c = m_nodes[inode_c].get();
             spring.node_n = m_nodes[inode_n].get();
+            spring.wheel = m_wheel.get();
             spring.t0 = t0;
             spring.k = m_kB;
             spring.c = m_cB;
 
-            spring.Initialize();
+            spring.Initialize(m_stiff);
             m_grid_rot_springs.push_back(spring);
         }
 
@@ -520,18 +635,19 @@ void MBTireModel::Construct() {
             int inode_c = NodeIndex(m_num_rings - 1, id);
             int inode_n = NodeIndex(m_num_rings - 2, id);
 
-            Spring3 spring;
+            EdgeSpring3 spring;
             spring.inode_p = inode_p;
             spring.inode_c = inode_c;
             spring.inode_n = inode_n;
             spring.node_p = m_rim_nodes[inode_p].get();
             spring.node_c = m_nodes[inode_c].get();
             spring.node_n = m_nodes[inode_n].get();
+            spring.wheel = m_wheel.get();
             spring.t0 = -t0;
             spring.k = m_kB;
             spring.c = m_cB;
 
-            spring.Initialize();
+            spring.Initialize(m_stiff, m_full_jac);
             m_edge_rot_springs.push_back(spring);
         }
     }
@@ -674,7 +790,6 @@ void MBTireModel::SetRimNodeStates() {
 // Calculate forces at each node and accumulate wheel loads, then use ChNodeFEAxyz::SetForce
 void MBTireModel::CalculateForces() {
     // Initialize nodal force accumulators
-    
     std::vector<ChVector<>> nodal_forces(m_num_nodes, VNULL);
 
     // Initialize wheel force and moment accumulators
@@ -728,7 +843,7 @@ void MBTireModel::CalculateForces() {
 
     // Forces in mesh rotational springs (node-node)
     for (auto& spring : m_grid_rot_springs) {
-        spring.CalculateForce(*m_wheel);
+        spring.CalculateForce();
         nodal_forces[spring.inode_p] += spring.force_p;
         nodal_forces[spring.inode_c] += spring.force_c;
         nodal_forces[spring.inode_n] += spring.force_n;
@@ -736,7 +851,7 @@ void MBTireModel::CalculateForces() {
 
     // Forces in edge rotational springs (rim node: node_p)
     for (auto& spring : m_edge_rot_springs) {
-        spring.CalculateForce(*m_wheel);
+        spring.CalculateForce();
         m_wheel_force += spring.force_p;
         nodal_forces[spring.inode_c] += spring.force_c;
         nodal_forces[spring.inode_n] += spring.force_n;
@@ -848,16 +963,31 @@ void MBTireModel::InjectVariables(ChSystemDescriptor& descriptor) {
 }
 
 void MBTireModel::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
-    if (m_stiff) {
-        //// TODO
-    }
+    if (!m_stiff)
+        return;
+
+    for (auto& spring : m_grid_lin_springs)
+        descriptor.InsertKblock(&spring.KRM);
+    for (auto& spring : m_edge_lin_springs)
+        descriptor.InsertKblock(&spring.KRM);
+    for (auto& spring : m_grid_rot_springs)
+        descriptor.InsertKblock(&spring.KRM);
+    for (auto& spring : m_edge_rot_springs)
+        descriptor.InsertKblock(&spring.KRM);
 }
 
 void MBTireModel::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
     if (!m_stiff)
         return;
 
-    //// TODO
+    for (auto& spring : m_grid_lin_springs)
+        spring.CalculateJacobian(Kfactor, Rfactor);
+    for (auto& spring : m_edge_lin_springs)
+        spring.CalculateJacobian(m_full_jac, Kfactor, Rfactor);
+    for (auto& spring : m_grid_rot_springs)
+        spring.CalculateJacobian(Kfactor, Rfactor);
+    for (auto& spring : m_edge_rot_springs)
+        spring.CalculateJacobian(m_full_jac, Kfactor, Rfactor);
 }
 
 void MBTireModel::IntStateGather(const unsigned int off_x,
