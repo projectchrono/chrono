@@ -32,6 +32,8 @@ namespace vehicle {
 ChMBTire::ChMBTire(const std::string& name) : ChDeformableTire(name) {
     m_model = chrono_types::make_shared<MBTireModel>();
     m_model->m_tire = this;
+    m_model->m_stiff = false;
+    m_model->m_full_jac = false;
 }
 
 void ChMBTire::SetTireGeometry(const std::vector<double>& ring_radii,
@@ -69,6 +71,10 @@ void ChMBTire::SetBendingSpringCoefficients(double kB, double cB) {
 void ChMBTire::SetRadialSpringCoefficients(double kR, double cR) {
     m_model->m_kR = kR;
     m_model->m_cR = cR;
+}
+
+void ChMBTire::IsStiff(bool val) {
+    m_model->m_stiff = val;
 }
 
 void ChMBTire::SetTireContactMaterial(const ChContactMaterialData& mat_data) {
@@ -207,6 +213,96 @@ void MBTireModel::CalcNormal(int ir, int id, ChVector<>& normal, double& area) {
     normal = dir / area;
 }
 
+// -----------------------------------------------------------------------------
+
+// Constant threshold for checking zero length vectors
+static const double zero_length = 1e-6;
+
+// Constant threshold for checking zero angles
+static const double zero_angle = 1e-3;
+
+void MBTireModel::Spring2::Initialize() {
+    const auto& pos1 = node1->GetPos();
+    const auto& pos2 = node2->GetPos();
+
+    l0 = (pos2 - pos1).Length();
+}
+
+void MBTireModel::Spring2::CalculateForce() {
+    const auto& pos1 = node1->GetPos();
+    const auto& pos2 = node2->GetPos();
+    const auto& vel1 = node1->GetPos_dt();
+    const auto& vel2 = node2->GetPos_dt();
+
+    auto dir = pos2 - pos1;
+    double length = dir.Length();
+    assert(length > zero_length);
+    dir /= length;
+    double speed = Vdot(vel2 - vel1, dir);
+    double force = -k * (length - l0) - c * speed;
+
+    ChVector<> vforce = force * dir;
+    force1 = -vforce;
+    force2 = +vforce;
+}
+
+void MBTireModel::Spring3::Initialize() {
+    const auto& pos_p = node_p->GetPos();
+    const auto& pos_c = node_c->GetPos();
+    const auto& pos_n = node_n->GetPos();
+
+    auto dir_p = (pos_c - pos_p).GetNormalized();
+    auto dir_n = (pos_n - pos_c).GetNormalized();
+    auto cross = Vcross(dir_p, dir_n);
+    double length_cross = cross.Length();
+
+    a0 = std::asin(length_cross);
+}
+
+void MBTireModel::Spring3::CalculateForce(const ChFrame<>& wheel) {
+    const auto& pos_p = node_p->GetPos();
+    const auto& pos_c = node_c->GetPos();
+    const auto& pos_n = node_n->GetPos();
+    ////const auto& vel_p = node_p->GetPos_dt();
+    ////const auto& vel_c = node_c->GetPos_dt();
+    ////const auto& vel_n = node_n->GetPos_dt();
+
+    auto dir_p = pos_c - pos_p;
+    auto dir_n = pos_n - pos_c;
+    double length_p = dir_p.Length();
+    double length_n = dir_n.Length();
+    assert(length_p > zero_length);
+    assert(length_n > zero_length);
+    dir_p /= length_p;
+    dir_n /= length_n;
+
+    auto cross = Vcross(dir_p, dir_n);
+    double length_cross = cross.Length();
+    double angle = std::asin(length_cross);
+
+    if (std::abs(angle - a0) < zero_angle) {
+        force_p = VNULL;
+        force_c = VNULL;
+        force_n = VNULL;
+        return;
+    }
+
+    if (length_cross > zero_length) {
+        cross /= length_cross;
+    } else {  // colinear points
+        cross = wheel.TransformDirectionLocalToParent(t0);
+    }
+
+    auto F_p = k * ((angle - a0) / length_p) * Vcross(cross, dir_p);
+    auto F_n = k * ((angle - a0) / length_n) * Vcross(cross, dir_n);
+
+    force_p = -F_p;
+    force_c = F_p + F_n;
+    force_n = -F_n;
+}
+
+// -----------------------------------------------------------------------------
+
 void MBTireModel::Construct() {
     m_num_rim_nodes = 2 * m_num_divs;
     m_num_nodes = m_num_rings * m_num_divs;
@@ -278,18 +374,19 @@ void MBTireModel::Construct() {
     // Create circumferential linear springs (node-node)
     for (int ir = 0; ir < m_num_rings; ir++) {
         for (int id = 0; id < m_num_divs; id++) {
-            int node1 = NodeIndex(ir, id);
-            int node2 = NodeIndex(ir, id + 1);
-            const auto& pos1 = m_nodes[node1]->GetPos();
-            const auto& pos2 = m_nodes[node2]->GetPos();
+            int inode1 = NodeIndex(ir, id);
+            int inode2 = NodeIndex(ir, id + 1);
 
-            Spring2 spring(SpringType::CIRCUMFERENTIAL);
-            spring.node1 = node1;
-            spring.node2 = node2;
-            spring.l0 = (pos2 - pos1).Length();
+            Spring2 spring;
+            spring.inode1 = inode1;
+            spring.inode2 = inode2;
+            spring.node1 = m_nodes[inode1].get();
+            spring.node2 = m_nodes[inode2].get();
             spring.k = m_kC;
             spring.c = m_cC;
-            m_mesh_lin_springs.push_back(spring);
+
+            spring.Initialize();
+            m_grid_lin_springs.push_back(spring);
         }
     }
 
@@ -297,49 +394,52 @@ void MBTireModel::Construct() {
     for (int id = 0; id < m_num_divs; id++) {
         // radial springs connected to the rim at first ring
         {
-            int node1 = RimNodeIndex(0, id);
-            int node2 = NodeIndex(0, id);
-            const auto& pos1 = m_rim_nodes[node1]->GetPos();
-            const auto& pos2 = m_nodes[node2]->GetPos();
+            int inode1 = RimNodeIndex(0, id);
+            int inode2 = NodeIndex(0, id);
 
-            Spring2 spring(SpringType::RADIAL);
-            spring.node1 = node1;
-            spring.node2 = node2;
-            spring.l0 = (pos2 - pos1).Length();
+            Spring2 spring;
+            spring.inode1 = inode1;
+            spring.inode2 = inode2;
+            spring.node1 = m_rim_nodes[inode1].get();
+            spring.node2 = m_nodes[inode2].get();
             spring.k = m_kR;
             spring.c = m_cR;
+
+            spring.Initialize();
             m_edge_lin_springs.push_back(spring);
         }
 
         // node-node springs
         for (int ir = 0; ir < m_num_rings - 1; ir++) {
-            int node1 = NodeIndex(ir, id);
-            int node2 = NodeIndex(ir + 1, id);
-            const auto& pos1 = m_nodes[node1]->GetPos();
-            const auto& pos2 = m_nodes[node2]->GetPos();
+            int inode1 = NodeIndex(ir, id);
+            int inode2 = NodeIndex(ir + 1, id);
 
-            Spring2 spring(SpringType::TRANSVERSAL);
-            spring.node1 = node1;
-            spring.node2 = node2;
-            spring.l0 = (pos2 - pos1).Length();
+            Spring2 spring;
+            spring.inode1 = inode1;
+            spring.inode2 = inode2;
+            spring.node1 = m_nodes[inode1].get();
+            spring.node2 = m_nodes[inode2].get();
             spring.k = m_kT;
             spring.c = m_cT;
-            m_mesh_lin_springs.push_back(spring);
+
+            spring.Initialize();
+            m_grid_lin_springs.push_back(spring);
         }
 
         // radial springs connected to the rim at last ring
         {
-            int node1 = RimNodeIndex(m_num_rings - 1, id);
-            int node2 = NodeIndex(m_num_rings - 1, id);
-            const auto& pos1 = m_rim_nodes[node1]->GetPos();
-            const auto& pos2 = m_nodes[node2]->GetPos();
+            int inode1 = RimNodeIndex(m_num_rings - 1, id);
+            int inode2 = NodeIndex(m_num_rings - 1, id);
 
-            Spring2 spring(SpringType::RADIAL);
-            spring.node1 = node1;
-            spring.node2 = node2;
-            spring.l0 = (pos2 - pos1).Length();
+            Spring2 spring;
+            spring.inode1 = inode1;
+            spring.inode2 = inode2;
+            spring.node1 = m_rim_nodes[inode1].get();
+            spring.node2 = m_nodes[inode2].get();
             spring.k = m_kR;
             spring.c = m_cR;
+
+            spring.Initialize();
             m_edge_lin_springs.push_back(spring);
         }
     }
@@ -347,27 +447,23 @@ void MBTireModel::Construct() {
     // Create circumferential rotational springs (node-node)
     for (int ir = 0; ir < m_num_rings; ir++) {
         for (int id = 0; id < m_num_divs; id++) {
-            int node_p = NodeIndex(ir, id - 1);
-            int node_c = NodeIndex(ir, id);
-            int node_n = NodeIndex(ir, id + 1);
-            const auto& pos_p = m_nodes[node_p]->GetPos();
-            const auto& pos_c = m_nodes[node_c]->GetPos();
-            const auto& pos_n = m_nodes[node_n]->GetPos();
-
-            auto dir_p = (pos_c - pos_p).GetNormalized();
-            auto dir_n = (pos_n - pos_c).GetNormalized();
-            auto cross = Vcross(dir_p, dir_n);
-            double length_cross = cross.Length();
+            int inode_p = NodeIndex(ir, id - 1);
+            int inode_c = NodeIndex(ir, id);
+            int inode_n = NodeIndex(ir, id + 1);
 
             Spring3 spring;
-            spring.node_p = node_p;
-            spring.node_c = node_c;
-            spring.node_n = node_n;
+            spring.inode_p = inode_p;
+            spring.inode_c = inode_c;
+            spring.inode_n = inode_n;
+            spring.node_p = m_nodes[inode_p].get();
+            spring.node_c = m_nodes[inode_c].get();
+            spring.node_n = m_nodes[inode_n].get();
             spring.t0 = ChVector<>(0, 1, 0);
-            spring.a0 = std::asin(length_cross);
             spring.k = m_kB;
             spring.c = m_cB;
-            m_mesh_rot_springs.push_back(spring);
+
+            spring.Initialize();
+            m_grid_rot_springs.push_back(spring);
         }
     }
 
@@ -378,76 +474,64 @@ void MBTireModel::Construct() {
 
         // torsional springs connected to the rim at first ring
         {
-            int node_p = RimNodeIndex(0, id);
-            int node_c = NodeIndex(0, id);
-            int node_n = NodeIndex(1, id);
-            const auto& pos_p = m_rim_nodes[node_p]->GetPos();
-            const auto& pos_c = m_nodes[node_c]->GetPos();
-            const auto& pos_n = m_nodes[node_n]->GetPos();
-
-            auto dir_p = (pos_c - pos_p).GetNormalized();
-            auto dir_n = (pos_n - pos_c).GetNormalized();
-            auto cross = Vcross(dir_p, dir_n);
-            double length_cross = cross.Length();
+            int inode_p = RimNodeIndex(0, id);
+            int inode_c = NodeIndex(0, id);
+            int inode_n = NodeIndex(1, id);
 
             Spring3 spring;
-            spring.node_p = node_p;
-            spring.node_c = node_c;
-            spring.node_n = node_n;
+            spring.inode_p = inode_p;
+            spring.inode_c = inode_c;
+            spring.inode_n = inode_n;
+            spring.node_p = m_rim_nodes[inode_p].get();
+            spring.node_c = m_nodes[inode_c].get();
+            spring.node_n = m_nodes[inode_n].get();
             spring.t0 = t0;
-            spring.a0 = std::asin(length_cross);
             spring.k = m_kB;
             spring.c = m_cB;
+
+            spring.Initialize();
             m_edge_rot_springs.push_back(spring);
         }
 
         // node-node torsional springs
         for (int ir = 1; ir < m_num_rings - 1; ir++) {
-            int node_p = NodeIndex(ir - 1, id);
-            int node_c = NodeIndex(ir, id);
-            int node_n = NodeIndex(ir + 1, id);
-            const auto& pos_p = m_nodes[node_p]->GetPos();
-            const auto& pos_c = m_nodes[node_c]->GetPos();
-            const auto& pos_n = m_nodes[node_n]->GetPos();
-
-            auto dir_p = (pos_c - pos_p).GetNormalized();
-            auto dir_n = (pos_n - pos_c).GetNormalized();
-            auto cross = Vcross(dir_p, dir_n);
-            double length_cross = cross.Length();
+            int inode_p = NodeIndex(ir - 1, id);
+            int inode_c = NodeIndex(ir, id);
+            int inode_n = NodeIndex(ir + 1, id);
 
             Spring3 spring;
-            spring.node_p = node_p;
-            spring.node_c = node_c;
-            spring.node_n = node_n;
+            spring.inode_p = inode_p;
+            spring.inode_c = inode_c;
+            spring.inode_n = inode_n;
+            spring.node_p = m_nodes[inode_p].get();
+            spring.node_c = m_nodes[inode_c].get();
+            spring.node_n = m_nodes[inode_n].get();
             spring.t0 = t0;
-            spring.a0 = std::asin(length_cross);
             spring.k = m_kB;
             spring.c = m_cB;
-            m_mesh_rot_springs.push_back(spring);
+
+            spring.Initialize();
+            m_grid_rot_springs.push_back(spring);
         }
 
         // torsional springs connected to the rim at last ring
         {
-            int node_p = RimNodeIndex(m_num_rings - 1, id);
-            int node_c = NodeIndex(m_num_rings - 1, id);
-            int node_n = NodeIndex(m_num_rings - 2, id);
-            const auto& pos_p = m_rim_nodes[node_p]->GetPos();
-            const auto& pos_c = m_nodes[node_c]->GetPos();
-            const auto& pos_n = m_nodes[node_n]->GetPos();
-
-            auto dir_p = (pos_c - pos_p).GetNormalized();
-            auto dir_n = (pos_n - pos_c).GetNormalized();
-            auto cross = Vcross(dir_p, dir_n);
-            double length_cross = cross.Length();
+            int inode_p = RimNodeIndex(m_num_rings - 1, id);
+            int inode_c = NodeIndex(m_num_rings - 1, id);
+            int inode_n = NodeIndex(m_num_rings - 2, id);
 
             Spring3 spring;
-            spring.node_p = node_p;
-            spring.node_c = node_c;
-            spring.node_n = node_n;
+            spring.inode_p = inode_p;
+            spring.inode_c = inode_c;
+            spring.inode_n = inode_n;
+            spring.node_p = m_rim_nodes[inode_p].get();
+            spring.node_c = m_nodes[inode_c].get();
+            spring.node_n = m_nodes[inode_n].get();
             spring.t0 = -t0;
-            spring.a0 = std::asin(length_cross);
             spring.k = m_kB;
             spring.c = m_cB;
+
+            spring.Initialize();
             m_edge_rot_springs.push_back(spring);
         }
     }
@@ -555,12 +639,6 @@ void MBTireModel::CalculateInertiaProperties(ChVector<>& com, ChMatrix33<>& iner
     //// TODO
 }
 
-// Constant threshold for checking zero length vectors
-static const double zero_length = 1e-6;
-
-// Constant threshold for checking zero angles
-static const double zero_angle = 1e-3;
-
 // Set position and velocity of rim nodes from wheel/spindle state
 void MBTireModel::SetRimNodeStates() {
     double dphi = CH_C_2PI / m_num_divs;
@@ -593,9 +671,10 @@ void MBTireModel::SetRimNodeStates() {
     }
 }
 
-// Calculate forces at each node, then use ChNodeFEAxyz::SetForce
+// Calculate forces at each node and accumulate wheel loads, then use ChNodeFEAxyz::SetForce
 void MBTireModel::CalculateForces() {
     // Initialize nodal force accumulators
+    
     std::vector<ChVector<>> nodal_forces(m_num_nodes, VNULL);
 
     // Initialize wheel force and moment accumulators
@@ -634,122 +713,33 @@ void MBTireModel::CalculateForces() {
     // ------------ Spring forces
 
     // Forces in mesh linear springs (node-node)
-    for (const auto& spring : m_mesh_lin_springs) {
-        const auto& pos1 = m_nodes[spring.node1]->GetPos();
-        const auto& pos2 = m_nodes[spring.node2]->GetPos();
-        const auto& vel1 = m_nodes[spring.node1]->GetPos_dt();
-        const auto& vel2 = m_nodes[spring.node2]->GetPos_dt();
-
-        auto dir = pos2 - pos1;
-        double length = dir.Length();
-        assert(length > zero_length);
-        dir /= length;
-        double speed = Vdot(vel2 - vel1, dir);
-        double force = -spring.k * (length - spring.l0) - spring.c * speed;
-        ChVector<> vforce = force * dir;
-
-        nodal_forces[spring.node1] += -vforce;
-        nodal_forces[spring.node2] += vforce;
+    for (auto& spring : m_grid_lin_springs) {
+        spring.CalculateForce();
+        nodal_forces[spring.inode1] += spring.force1;
+        nodal_forces[spring.inode2] += spring.force2;
     }
 
     // Forces in edge linear springs (rim node: node1)
-    for (const auto& spring : m_edge_lin_springs) {
-        const auto& pos1 = m_rim_nodes[spring.node1]->GetPos();
-        const auto& pos2 = m_nodes[spring.node2]->GetPos();
-        const auto& vel1 = m_rim_nodes[spring.node1]->GetPos_dt();
-        const auto& vel2 = m_nodes[spring.node2]->GetPos_dt();
-
-        auto dir = pos2 - pos1;
-        double length = dir.Length();
-        assert(length > zero_length);
-        dir /= length;
-        double speed = Vdot(vel2 - vel1, dir);
-        double force = -spring.k * (length - spring.l0) - spring.c * speed;
-        ChVector<> vforce = force * dir;
-
-        m_wheel_force += -vforce;
-        nodal_forces[spring.node2] += vforce;
+    for (auto& spring : m_edge_lin_springs) {
+        spring.CalculateForce();
+        m_wheel_force += spring.force1;
+        nodal_forces[spring.inode2] += spring.force2;
     }
 
     // Forces in mesh rotational springs (node-node)
-    for (const auto& spring : m_mesh_rot_springs) {
-        const auto& pos_p = m_nodes[spring.node_p]->GetPos();
-        const auto& pos_c = m_nodes[spring.node_c]->GetPos();
-        const auto& pos_n = m_nodes[spring.node_n]->GetPos();
-        ////const auto& vel_p = m_nodes[spring.node_p]->GetPos_dt();
-        ////const auto& vel_c = m_nodes[spring.node_c]->GetPos_dt();
-        ////const auto& vel_n = m_nodes[spring.node_n]->GetPos_dt();
-
-        auto dir_p = pos_c - pos_p;
-        auto dir_n = pos_n - pos_c;
-        double length_p = dir_p.Length();
-        double length_n = dir_n.Length();
-        assert(length_p > zero_length);
-        assert(length_n > zero_length);
-        dir_p /= length_p;
-        dir_n /= length_n;
-
-        auto cross = Vcross(dir_p, dir_n);
-        double length_cross = cross.Length();
-        double angle = std::asin(length_cross);
-        if (std::abs(angle - spring.a0) < zero_angle)
-            continue;
-
-        if (length_cross > zero_length) {
-            cross /= length_cross;
-        } else {  // colinear points
-            cross = m_wheel->TransformDirectionLocalToParent(spring.t0);
-        }
-
-        auto F_p = m_kB * ((angle - spring.a0) / length_p) * Vcross(cross, dir_p);
-        auto F_n = m_kB * ((angle - spring.a0) / length_n) * Vcross(cross, dir_n);
-
-        nodal_forces[spring.node_p] += -F_p;
-        nodal_forces[spring.node_c] += F_p + F_n;
-        nodal_forces[spring.node_n] += -F_n;
+    for (auto& spring : m_grid_rot_springs) {
+        spring.CalculateForce(*m_wheel);
+        nodal_forces[spring.inode_p] += spring.force_p;
+        nodal_forces[spring.inode_c] += spring.force_c;
+        nodal_forces[spring.inode_n] += spring.force_n;
     }
 
     // Forces in edge rotational springs (rim node: node_p)
-    for (const auto& spring : m_edge_rot_springs) {
-        const auto& pos_p = m_rim_nodes[spring.node_p]->GetPos();
-        const auto& pos_c = m_nodes[spring.node_c]->GetPos();
-        const auto& pos_n = m_nodes[spring.node_n]->GetPos();
-        ////const auto& vel_p = m_rim_nodes[spring.node_p]->GetPos_dt();
-        ////const auto& vel_c = m_nodes[spring.node_c]->GetPos_dt();
-        ////const auto& vel_n = m_nodes[spring.node_n]->GetPos_dt();
-
-        auto dir_p = pos_c - pos_p;
-        auto dir_n = pos_n - pos_c;
-        double length_p = dir_p.Length();
-        double length_n = dir_n.Length();
-        assert(length_p > zero_length);
-        assert(length_n > zero_length);
-        dir_p /= length_p;
-        dir_n /= length_n;
-
-        auto cross = Vcross(dir_p, dir_n);
-        double length_cross = cross.Length();
-        double angle = std::asin(length_cross);
-        if (std::abs(angle - spring.a0) < zero_angle)
-            continue;
-
-        if (length_cross > zero_length) {
-            cross /= length_cross;
-        } else {  // colinear points
-            cross = m_wheel->TransformDirectionLocalToParent(spring.t0);
-        }
-
-        ////auto foo = wheel_frame.TransformDirectionLocalToParent(spring.t0);
-        ////if ((cross - foo).Length() > zero_length) {
-        ////    std::cout << "EDGE SPRING  | " << cross << "   |   " << foo << "\n" << std::endl;
-        ////}
-
-        auto F_p = m_kB * ((angle - spring.a0) / length_p) * Vcross(cross, dir_p);
-        auto F_n = m_kB * ((angle - spring.a0) / length_n) * Vcross(cross, dir_n);
-
-        m_wheel_force += -F_p;
-        nodal_forces[spring.node_c] += F_p + F_n;
-        nodal_forces[spring.node_n] += -F_n;
+    for (auto& spring : m_edge_rot_springs) {
+        spring.CalculateForce(*m_wheel);
+        m_wheel_force += spring.force_p;
+        nodal_forces[spring.inode_c] += spring.force_c;
+        nodal_forces[spring.inode_n] += spring.force_n;
     }
 
     // ------------ Apply loads on FEA nodes
@@ -858,11 +848,16 @@ void MBTireModel::InjectVariables(ChSystemDescriptor& descriptor) {
 }
 
 void MBTireModel::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
-    //// TODO -- needed here because stiff system!
+    if (m_stiff) {
+        //// TODO
+    }
 }
 
 void MBTireModel::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
-    //// TODO -- needed here because stiff system!
+    if (!m_stiff)
+        return;
+
+    //// TODO
 }
 
 void MBTireModel::IntStateGather(const unsigned int off_x,
