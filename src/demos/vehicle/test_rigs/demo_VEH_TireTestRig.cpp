@@ -414,7 +414,7 @@ int main() {
     std::cout << "Overall RTF = " << timer() / sys->GetChTime() << std::endl;
 
 #ifdef CHRONO_POSTPROCESS
-    if (gnuplot_output && sys->GetChTime() > time_offset) {
+    if (gnuplot_output && sys->GetChTime() > time_skip) {
         postprocess::ChGnuPlot gplot_long_slip(out_dir + "/tmp1.gpl");
         gplot_long_slip.SetGrid();
         gplot_long_slip.SetLabelX("time (s)");
