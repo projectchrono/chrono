@@ -145,7 +145,7 @@ class MBTireModel : public ChPhysicsItem {
     void CalculateInertiaProperties(ChVector<>& com, ChMatrix33<>& inertia);
 
     // Set position and velocity of rim nodes from wheel/spindle state.
-    void MBTireModel::SetRimNodeStates();
+    void SetRimNodeStates();
 
     // Calculate nodal forces (expressed in the global frame).
     void CalculateForces();
