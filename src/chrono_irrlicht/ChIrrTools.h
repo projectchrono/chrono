@@ -26,7 +26,10 @@
 
 #include "chrono_irrlicht/ChApiIrr.h"
 
+/// Main Irrlicht namespace  (Chrono extensions).
 namespace irr {
+
+/// Irrlicht base classes (Chrono extensions).
 namespace core {
 
 /// Utility class to convert a Chrono vector into an Irrlicht vector3df.
