@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     ChVector<> Gacc(0, 0, -9.8);
     sys.Set_G_acc(Gacc);
 
-    ChVector<> attachment_ground(std::sqrt(3) / 2, 0, 0);
+    ChVector<> attachment_ground(std::sqrt(3.0) / 2, 0, 0);
     ChVector<> attachment_crane(0, 0, 0);
 
     double crane_mass = 500;

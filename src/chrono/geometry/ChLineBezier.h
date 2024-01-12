@@ -45,6 +45,9 @@ class ChApi ChLineBezier : public ChLine {
     virtual void Set_closed(bool mc) override {}
     virtual void Set_complexity(int mc) override {}
 
+    /// Compute bounding in the frame of the Bezier curve knots.
+    virtual ChAABB GetBoundingBox() const override;
+
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
     virtual ChVector<> Evaluate(double U) const override;
 

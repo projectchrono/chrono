@@ -98,6 +98,9 @@ class ChApi ChBezierCurve {
     /// Return the knot point with specified index.
     const ChVector<>& getPoint(size_t i) const { return m_points[i]; }
 
+    /// Return all curve knots.
+    const std::vector<ChVector<>> getPoints() const { return m_points; }
+
     /// Evaluate the value of the Bezier curve.
     /// This function calculates and returns the point on the curve at the
     /// given curve parameter (assumed to be in [0,1]).  
