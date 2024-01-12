@@ -71,7 +71,8 @@ class ChQuaternion {
     const Real& e2() const { return m_data[2]; }
     const Real& e3() const { return m_data[3]; }
 
-    /// Return const pointer to underlying array storage.
+    /// Access to underlying array storage.
+    Real* data() { return m_data; }
     const Real* data() const { return m_data; }
 
     // EIGEN INTER-OPERABILITY

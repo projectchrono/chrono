@@ -82,6 +82,9 @@
 // If module MODAL was enabled, define CHRONO_MODAL
 @CHRONO_MODAL@
 
+// If module FMI was enabled, define CHRONO_FMI
+@CHRONO_FMI@
+
 // -----------------------------------------------------------------------------
 // OpenMP settings
 // -----------------------------------------------------------------------------

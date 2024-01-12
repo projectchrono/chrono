@@ -62,7 +62,7 @@ std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_CRANE_COSIM";
 class Crane {
   public:
     Crane(ChSystem& sys) : m_sys(sys) {
-        m_point_ground = ChVector<>(std::sqrt(3) / 2, 0, 0);
+        m_point_ground = ChVector<>(std::sqrt(3.0) / 2, 0, 0);
         m_point_crane = ChVector<>(0, 0, 0);
 
         double crane_mass = 500;

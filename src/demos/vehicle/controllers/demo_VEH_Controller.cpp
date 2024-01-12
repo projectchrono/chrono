@@ -109,8 +109,8 @@ bool debug_output = false;
 double debug_fps = 10;
 
 // Output directories
-const std::string out_dir = GetChronoOutputPath() + "STEERING_CONTROLLER";
-const std::string pov_dir = out_dir + "/POVRAY";
+std::string out_dir = "STEERING_CONTROLLER";
+std::string pov_dir = out_dir + "/POVRAY";
 
 // POV-Ray output
 bool povray_output = false;
@@ -264,6 +264,8 @@ int main(int argc, char* argv[]) {
     // Initialize output
     // -----------------
 
+    out_dir = GetChronoOutputPath() + out_dir; 
+    pov_dir = GetChronoOutputPath() + pov_dir; 
     state_output = state_output || povray_output;
 
     if (state_output) {
