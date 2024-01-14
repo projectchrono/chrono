@@ -38,7 +38,8 @@ ChTire::ChTire(const std::string& name)
       m_stepsize(1e-3),
       m_slip_angle(0),
       m_longitudinal_slip(0),
-      m_camber_angle(0) {}
+      m_camber_angle(0),
+      m_pressure(0.0) {}
 
 // -----------------------------------------------------------------------------
 // Initialize this tire by associating it to the specified wheel.
