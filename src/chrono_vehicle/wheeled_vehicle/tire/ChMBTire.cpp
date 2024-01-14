@@ -112,11 +112,11 @@ void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     system->Add(m_model);
 
     // Set internal tire pressure (if enabled)
-    if (IsPressureEnabled() && m_pressure <= 0)
+    if (m_pressure_enabled && m_pressure <= 0)
         m_pressure = GetDefaultPressure();
 
     // Set contact material properties (if enabled)
-    if (IsContactEnabled())
+    if (m_contact_enabled)
         CreateContactMaterial();
 
     // Construct the underlying tire model, attached to the wheel spindle body
@@ -445,6 +445,7 @@ void MBTireModel::Construct() {
             vertices[k] = m_wheel->TransformPointLocalToParent(ChVector<>(x, y, z));
             m_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(vertices[k]);
             m_nodes[k]->SetMass(m_node_mass);
+            m_nodes[k]->m_TotalMass = m_node_mass;
             k++;
         }
     }
@@ -461,6 +462,7 @@ void MBTireModel::Construct() {
             auto loc = m_wheel->TransformPointLocalToParent(ChVector<>(x, y, z));
             m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
             m_rim_nodes[k]->SetMass(m_node_mass);
+            m_rim_nodes[k]->m_TotalMass = m_node_mass;
             k++;
         }
     }
@@ -473,6 +475,7 @@ void MBTireModel::Construct() {
             auto loc = m_wheel->TransformPointLocalToParent(ChVector<>(x, y, z));
             m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
             m_rim_nodes[k]->SetMass(m_node_mass);
+            m_rim_nodes[k]->m_TotalMass = m_node_mass;
             k++;
         }
     }
@@ -804,6 +807,7 @@ void MBTireModel::CalculateForces() {
     // ------------ Gravitational and pressure forces
 
     ChVector<> gforce = m_node_mass * GetSystem()->Get_G_acc();
+    bool pressure_enabled = m_tire->IsPressureEnabled();
     double pressure = m_tire->GetPressure();
     ChVector<> normal;
     double area;
@@ -812,16 +816,18 @@ void MBTireModel::CalculateForces() {
             int k = NodeIndex(ir, id);
             nodal_forces[k] = gforce;
 
-            //// TODO: revisit pressure forces when springs are in place (to hold the mesh together)
+            if (pressure_enabled) {
+                //// TODO: revisit pressure forces when springs are in place (to hold the mesh together)
 
-            // Option 1
-            CalcNormal(ir, id, normal, area);
-            assert(Vdot(m_nodes[k]->GetPos() - w_pos, normal) > 0);  // sanity check
-            nodal_forces[k] += (0.5 * pressure * area) * normal;
+                // Option 1
+                CalcNormal(ir, id, normal, area);
+                assert(Vdot(m_nodes[k]->GetPos() - w_pos, normal) > 0);  // sanity check
+                nodal_forces[k] += (0.5 * pressure * area) * normal;
 
-            // Option 2
-            ////normal = (m_nodes[k]->GetPos() - w_pos).GetNormalized();
-            /// nodal_forces[k] += (pressure * area) * normal;
+                // Option 2
+                ////normal = (m_nodes[k]->GetPos() - w_pos).GetNormalized();
+                /// nodal_forces[k] += (pressure * area) * normal;
+            }
         }
     }
 
