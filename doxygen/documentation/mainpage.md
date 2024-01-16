@@ -17,7 +17,7 @@ Instructions on **how to set up a project** that uses Chrono.
 
 <h3>User Manuals</h3>
 
-- **[Chrono Core](@ref manual_core)**
+- [Chrono Core](@ref manual_core)
 
   Detailed documentation of Chrono's main features.
 

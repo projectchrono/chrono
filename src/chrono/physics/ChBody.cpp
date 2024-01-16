@@ -1082,11 +1082,11 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(tempforces, "forces");
     // trick needed because the "Add...() functions are required
     RemoveAllMarkers();
-    for (auto i : tempmarkers) {
+    for (auto& i : tempmarkers) {
         AddMarker(i);
     }
     RemoveAllForces();
-    for (auto i : tempforces) {
+    for (auto& i : tempforces) {
         AddForce(i);
     }
 

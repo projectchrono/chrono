@@ -353,7 +353,7 @@ ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords() {
 
 int ChLinkPointFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> node,
                                  std::shared_ptr<ChBodyFrame> body,
-                                 ChVector<>* pos) {
+                                 const ChVector<>* pos) {
     assert(node && body);
 
     m_body = body;
