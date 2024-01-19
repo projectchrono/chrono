@@ -40,6 +40,8 @@ ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::string& filename, bool
     std::string line;
 
     while (std::getline(ifile, line)) {
+        // skip empty line, if present
+        if(line.length() == 0) continue;
         std::istringstream iss(line);
 
         double time, steering, throttle, braking;
