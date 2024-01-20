@@ -290,7 +290,7 @@ void ChTMeasyTire::CombinedCoulombForces(double& fx, double& fy, double fz, doub
         } break;
         case FrictionModel::DAHL: {
             /*
-             The Dahl Friction Model elastic tread blocks representated by a single bristle. At tire stand still it acts
+             The Dahl Friction Model has elastic tread blocks representated by a single bristle. At tire stand still it acts
              like a spring which enables holding of a vehicle on a slope without creeping (hopefully). Damping terms
              have been added to calm down the oscillations of the pure spring.
 
@@ -319,6 +319,59 @@ void ChTMeasyTire::CombinedCoulombForces(double& fx, double& fy, double fz, doub
             double bry = (fc * m_states.bry + fc * h * m_states.vsy) /
                          (fc + h * m_par.sigma0 * fabs(m_states.vsy));                     // Backward Euler (implicit)
             double bry_dot = m_states.vsy - m_par.sigma0 * bry * fabs(m_states.vsy) / fc;  // needed for damping
+            F.x() = -(m_par.sigma0 * brx + m_par.sigma1 * brx_dot);
+            F.y() = -(m_par.sigma0 * bry + m_par.sigma1 * bry_dot);
+            m_states.brx = brx;
+            m_states.bry = bry;
+        } break;
+        case FrictionModel::DAHL_DYN: {
+            /*
+             The Dahl Friction Model has elastic tread blocks representated by a single bristle. At tire stand still
+             it acts like a spring which enables holding of a vehicle on a slope without creeping (hopefully). Damping
+             terms have been added to calm down the oscillations of the pure spring. This augmented model considers
+             dynamic Friction Fc and static friction Fs with Fs > Fc.
+
+             The time step h must be actually the same as for the vehicle system!
+
+             This model is experimental and needs some testing.
+
+             With bristle deformation z, Coulomb force fc, static force fs, sliding velocity v and stiffness sigma0 we
+             have this differential equation: 
+                dz/dt = v(1 - sigma0*z*sign(v)*g/fs)
+             with
+                g = 1 if |v| <= v_zero
+             or
+                g = fs/fc if |v| > v_zero
+
+             When z is known, the friction force F can be calulated to:
+                F = sigma0 * z
+
+             For practical use some damping is needed, that leads to:
+                F = sigma0 * z + sigma1 * dz/dt
+
+             Longitudinal and lateral forces are calculated separately and then combined. For stand still a friction
+             circle is used.
+             
+             Backwards Euler (implicit A-stable) integrator is used.
+             */
+            double fs = fz * muscale;
+            double fc = 0.9 * fs;  // just a test value
+            double h = this->m_stepsize;
+            double v_zero = 0.1;  // defines zero velocity intervall, where fs is used
+            double gx = 1.0;
+            if (fabs(m_states.vsx) > v_zero)
+                gx = fs / fc;
+            double gy = 1.0;
+            if (fabs(m_states.vsy) > v_zero)
+                gy = fs / fc;
+            double brx = (fs * m_states.brx + fs * h * m_states.vsx) /
+                         (fs + gx * h * m_par.sigma0 * m_states.vsx * ChSignum(m_states.vsx));
+            double brx_dot = m_states.vsx * (1.0 - m_par.sigma0 * m_states.brx * ChSignum(m_states.vsx) * gx /
+                                                       fs);  // needed for damping
+            double bry = (fs * m_states.bry + fs * h * m_states.vsy) /
+                         (fs + gy * h * m_par.sigma0 * m_states.vsy * ChSignum(m_states.vsy));
+            double bry_dot = m_states.vsy * (1.0 - m_par.sigma0 * m_states.bry * ChSignum(m_states.vsy) * gy /
+                                                       fs);  // needed for damping
             F.x() = -(m_par.sigma0 * brx + m_par.sigma1 * brx_dot);
             F.y() = -(m_par.sigma0 * bry + m_par.sigma1 * bry_dot);
             m_states.brx = brx;
