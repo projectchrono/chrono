@@ -27,16 +27,13 @@
 namespace chrono {
 namespace vehicle {
 
-ChVehicleOutputASCII::ChVehicleOutputASCII(const std::string& filename) : m_owns_stream(true), m_stream(m_file_stream) {
-    m_file_stream.open(filename, std::ios_base::out);
-}
+ChVehicleOutputASCII::ChVehicleOutputASCII(const std::string& filename) : m_file_stream(filename), m_stream(m_file_stream) {}
 
-ChVehicleOutputASCII::ChVehicleOutputASCII(std::ostream& stream) : m_owns_stream(false), m_stream(stream) {}
+ChVehicleOutputASCII::ChVehicleOutputASCII(std::ostream& stream) : m_file_stream(), m_stream(stream) {}
 
 ChVehicleOutputASCII::~ChVehicleOutputASCII() {
-    if (m_owns_stream) {
+    if (m_file_stream.is_open())
         m_file_stream.close();
-    }
 }
 
 void ChVehicleOutputASCII::WriteTime(int frame, double time) {

@@ -53,7 +53,6 @@ class CH_VEHICLE_API ChVehicleOutputASCII : public ChVehicleOutput {
 
     std::ostream& m_stream;
     std::ofstream m_file_stream;
-    bool m_owns_stream;
 };
 
 /// @} vehicle

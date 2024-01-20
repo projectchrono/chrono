@@ -243,7 +243,10 @@ int main(int argc, char* argv[]) {
     hmmwv.GetVehicle().SetChassisOutput(true);
     hmmwv.GetVehicle().SetSuspensionOutput(0, true);
     hmmwv.GetVehicle().SetSteeringOutput(0, true);
+    // ASCII output to a file
     hmmwv.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    // ASCII output to a stream
+    ////hmmwv.GetVehicle().SetOutput(ChVehicleOutput::ASCII, std::cout, 0.1);
 
     // Generate JSON information with available output channels
     hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
