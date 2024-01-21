@@ -24,7 +24,7 @@ namespace parsers {
 /// @addtogroup parsers_module
 /// @{
 
-/// Class for a Python parser. 
+/// Class for a Python parser.
 /// This is an interpreter that can parse Python programs, from a single formula up to large programs.
 class ChApiParsers ChPythonEngine {
   public:
@@ -79,16 +79,11 @@ class ChApiParsers ChPythonEngine {
     bool GetList(const char* variable, std::vector<double>& return_val);
 
     /// Load a .py file as it is saved by the SolidWorks add-in exporter.
-    /// You can pass a path too, ex "mydir/myotherdir/mysystem", but do NOT add .py
-    /// at the end!
-    /// That .py file, created when pressing the add-in button in SolidWorks CAD,
-    /// contains a python program that creates an equivalent mechanism in Chrono:
-    /// so it contains a sequce of creations of ChPhysicsItem objects (bodies, links, etc.).
-    /// If you want to add these python C::E objects to your ChSystem that you created
-    /// in a C++ program, call this function: it will parse the .py textblock and add the created
-    /// items to the ChSystem.
-    /// If fails, it throws an exception, so it is wise to put it inside try..catch blocks.
-    void ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem);
+    /// Such a .py file is a Python program that creates an equivalent mechanism in Chrono and contains a sequence of
+    /// Chrono physics item object (bodies, links, etc.).  This function populates the specified Chrono system with all
+    /// these Chrono objects.
+    /// This function may throw on error, so it should be called in a try-catch block
+    void ImportSolidWorksSystem(const std::string& solidworks_py_file, ChSystem& msystem);
 };
 
 /// @} parsers_module

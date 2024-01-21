@@ -144,6 +144,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Base class for a user-defined custom force/torque acting on the chassis body.
     class ExternalForceTorque {
       public:
+        ExternalForceTorque(const std::string& name = "") { m_name = name; }
         virtual ~ExternalForceTorque() {}
 
         /// The external load is updated at each vehicle synchronization.
@@ -154,6 +155,8 @@ class CH_VEHICLE_API ChChassis : public ChPart {
                             ChVector<>& force,
                             ChVector<>& point,
                             ChVector<>& torque) {}
+
+        std::string m_name;
     };
 
     /// Utility force to add an external load to the chassis body.

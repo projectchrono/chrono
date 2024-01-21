@@ -34,6 +34,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleOutputASCII : public ChVehicleOutput {
   public:
     ChVehicleOutputASCII(const std::string& filename);
+    ChVehicleOutputASCII(std::ostream& stream);
     ~ChVehicleOutputASCII();
 
   private:
@@ -50,7 +51,8 @@ class CH_VEHICLE_API ChVehicleOutputASCII : public ChVehicleOutput {
     virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) override;
     virtual void WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
 
-    std::ofstream m_stream;
+    std::ostream& m_stream;
+    std::ofstream m_file_stream;
 };
 
 /// @} vehicle

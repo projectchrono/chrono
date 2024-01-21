@@ -90,8 +90,6 @@ void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_input
 }
 
 void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) {
-    Synchronize(time, driver_inputs);
-
     // Synchronize any associated tires
     for (auto& axle : m_axles) {
         for (auto& wheel : axle->GetWheels()) {
@@ -99,6 +97,8 @@ void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_input
                 wheel->m_tire->Synchronize(time, terrain);
         }
     }
+
+    Synchronize(time, driver_inputs);
 }
 
 // -----------------------------------------------------------------------------
