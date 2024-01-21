@@ -144,7 +144,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
                                     const double c) override;
     virtual void IntLoadLumpedMass_Md(const unsigned int off,
                                       ChVectorDynamic<>& Md,
-                                      double& error,
+                                      double& err,
                                       const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,

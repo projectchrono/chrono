@@ -57,6 +57,14 @@ class ChArchiveIn;
 /// templates, to select which specialized template to use
 // CH_CREATE_MEMBER_DETECTOR(ArchiveContainerName) already defined in ChClassFactory
 
+#define MAKE_GETSET_FUNPAIR(returnType, codeGet, codeSet) \
+std::make_pair(std::function<returnType()>([this]() -> returnType  \
+    codeGet \
+), \
+std::function<void(returnType)>([this](returnType val)  \
+    codeSet \
+))
+
 /// Exceptions for archives should inherit from this
 class ChExceptionArchive : public ChException {
   public:
@@ -889,15 +897,18 @@ class ChArchiveOut : public ChArchive {
     virtual void out(ChNameValue<ChEnumMapperBase> bVal) = 0;
 
     // handling methods (only for in-memory dump)
-    virtual void out(ChNameValue<std::function<bool(void)>> bVal) const {}
-    virtual void out(ChNameValue<std::function<int(void)>> bVal) const {}
-    virtual void out(ChNameValue<std::function<double(void)>> bVal) const {}
-    virtual void out(ChNameValue<std::function<float(void)>> bVal) const {}
-    virtual void out(ChNameValue<std::function<char(void)>> bVal) const {}
-    virtual void out(ChNameValue<std::function<unsigned int(void)>> bVal) const {}
-    virtual void out(ChNameValue<std::function<std::string(void)>> bVal) const {}
-    virtual void out(ChNameValue<std::function<unsigned long(void)>> bVal) const {}
-    virtual void out(ChNameValue<std::function<unsigned long long(void)>> bVal) const {}
+    template<class T>
+    using FunGetSet = std::pair<std::function<T(void)>, std::function<void(T)>>;
+
+    virtual void out(ChNameValue<FunGetSet<bool>> bVal) const {}
+    virtual void out(ChNameValue<FunGetSet<int>> bVal) const {}
+    virtual void out(ChNameValue<FunGetSet<double>> bVal) const {}
+    virtual void out(ChNameValue<FunGetSet<float>> bVal) const {}
+    virtual void out(ChNameValue<FunGetSet<char>> bVal) const {}
+    virtual void out(ChNameValue<FunGetSet<unsigned int>> bVal) const {}
+    virtual void out(ChNameValue<FunGetSet<const char *>> bVal) const {}
+    virtual void out(ChNameValue<FunGetSet<unsigned long>> bVal) const {}
+    virtual void out(ChNameValue<FunGetSet<unsigned long long>> bVal) const {}
 
     // for custom C++ objects - see 'wrapping' trick below
     virtual void out(ChValue& bVal, bool tracked, size_t obj_ID) = 0;

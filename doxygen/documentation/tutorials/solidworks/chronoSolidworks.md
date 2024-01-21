@@ -2,7 +2,7 @@ Chrono::SolidWorks&copy; tutorials {#tutorial_table_of_content_chrono_solidworks
 ==========================
 
 
-Tutorials for users that installed the [Chrono::Solidworks](@ref introduction_chrono_solidworks) add-in for SolidWorks
+Tutorials for users that installed the [Chrono::Solidworks](@ref introduction_chrono_solidworks) add-in for SolidWorks.
 
 <br>
 -   @subpage tutorial_chrono_solidworks_demo_engine
@@ -35,7 +35,7 @@ Tutorials for users that installed the [Chrono::Solidworks](@ref introduction_ch
     - move the ground to simulate an earthquake 
 
 <br>
--   @subpage tutorial_pychrono_demo_spider_robot
+-   @subpage tutorial_chrono_solidworks_demo_spider_robot
 
     Import a SolidWorks model of a crawling robot into your PyChrono program, and simulate it.
 
@@ -44,4 +44,20 @@ Tutorials for users that installed the [Chrono::Solidworks](@ref introduction_ch
     - add actuators and additional items not modeled in CAD
     - show the simulation in an Irrlicht 3D view
 	
+
+## Tutorials using pre-exported models
+
+These tutorials come with pre-exported models to allow the user to test the import functionalities without having to install the add-in straight away.
+	
+- [demo_SW_irrlicht](https://github.com/projectchrono/chrono-solidworks/tree/master/to_put_in_app_dir/examples/swiss_escapement/demo_SW_irrlicht.py)
+
+    - simulation by PyChrono
+    - uses Irrlicht rendering
+
+<br>
+
+- [demo_SW_povray](https://github.com/projectchrono/chrono-solidworks/tree/master/to_put_in_app_dir/examples/swiss_escapement/demo_SW_povray.py)
+
+    - simulation by PyChrono
+    - rendering with POVray
 

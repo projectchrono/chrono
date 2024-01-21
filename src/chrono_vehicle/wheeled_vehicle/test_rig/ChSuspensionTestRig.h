@@ -325,10 +325,10 @@ class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
 
     void AddRodVisualization(std::shared_ptr<ChBody> rod, const ChColor& color);
 
-    std::vector<std::shared_ptr<ChBody>> m_rod_L;                ///< left rod bodies (for visualization only)
-    std::vector<std::shared_ptr<ChBody>> m_rod_R;                ///< right rod bodies (for visualization only)
-    std::vector<std::shared_ptr<ChLinkLinActuator>> m_linact_L;  ///< left rod linear actuators
-    std::vector<std::shared_ptr<ChLinkLinActuator>> m_linact_R;  ///< right rod linear actuators
+    std::vector<std::shared_ptr<ChBody>> m_rod_L;                        ///< left rod bodies (for visualization only)
+    std::vector<std::shared_ptr<ChBody>> m_rod_R;                        ///< right rod bodies (for visualization only)
+    std::vector<std::shared_ptr<ChLinkMotorLinearPosition>> m_linact_L;  ///< left rod linear actuators
+    std::vector<std::shared_ptr<ChLinkMotorLinearPosition>> m_linact_R;  ///< right rod linear actuators
 
     static const double m_rod_length;
     static const double m_rod_radius;

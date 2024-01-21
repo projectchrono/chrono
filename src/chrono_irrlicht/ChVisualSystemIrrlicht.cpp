@@ -308,6 +308,10 @@ void ChVisualSystemIrrlicht::AddGrid(double x_step, double y_step, int nx, int n
     m_grids.push_back({x_step, y_step, nx, ny, pos, col});
 }
 
+void ChVisualSystemIrrlicht::UpdateGrid(int id, const ChCoordsys<>& csys) {
+    m_grids[id].csys = csys;
+}
+
 void ChVisualSystemIrrlicht::SetCameraPosition(int id, const ChVector<>& pos) {
     m_cameras[id]->setPosition(core::vector3dfCH(pos));
 }
@@ -629,7 +633,7 @@ void ChVisualSystemIrrlicht::Render() {
         GetSceneManager()->drawAll();  // draw 3D scene the usual way, if no shadow maps
 
     for (auto& g : m_grids) {
-        irrlicht::tools::drawGrid(this, g.x_step, g.y_step, g.nx, g.ny, g.pos, g.col, true);
+        irrlicht::tools::drawGrid(this, g.x_step, g.y_step, g.nx, g.ny, g.csys, g.col, true);
     }
 
     m_gui->Render();
@@ -822,7 +826,7 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
         }
     }
 
-    for (int i = 0; i < node->getMaterialCount(); i++)
+    for (u32 i = 0; i < node->getMaterialCount(); i++)
         node->getMaterial(i).ColorMaterial = video::ECM_NONE;
 }
 

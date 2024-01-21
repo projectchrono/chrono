@@ -105,7 +105,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Initialize the visualization system.
     /// This creates the Irrlicht device using the current values for the optional device parameters.
-    virtual void Initialize();
+    virtual void Initialize() override;
 
     /// Add a logo in a 3D scene.
     /// Has no effect, unles called after Initialize().
@@ -126,6 +126,8 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
                          ChCoordsys<> pos = CSYSNORM,             ///< grid reference frame
                          ChColor col = ChColor(0.1f, 0.1f, 0.1f)  ///< grid line color
                          ) override;
+
+    void UpdateGrid(int id, const ChCoordsys<>& csys);
 
     /// Set the location of the specified camera.
     virtual void SetCameraPosition(int id, const ChVector<>& pos) override;
@@ -368,7 +370,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
         double y_step;
         int nx;
         int ny;
-        ChCoordsys<> pos;
+        ChCoordsys<> csys;
         ChColor col;
     };
 

@@ -478,7 +478,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
             *mfile << "try: \n"
                    << "    bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection \n"
                    << "    file_loc = '" << abspath_obj.c_str() << "'\n"
-                   << "    imported_object = bpy.ops.import_scene.obj(filepath=file_loc) \n"
+                   << "    import_result = bpy.ops.wm.obj_import(filepath=file_loc) \n"
                    << "    new_object = bpy.context.selected_objects[-1] \n"
                    << "    new_object.name= '" << shapename << "' \n"
                    << "    new_object.data.materials.append(None) \n"

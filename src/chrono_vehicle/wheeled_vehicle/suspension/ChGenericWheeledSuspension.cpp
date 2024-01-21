@@ -254,6 +254,7 @@ void ChGenericWheeledSuspension::DefineRSDA(const std::string& name,
         m_rsdas.insert({{name, -1}, r});
     } else {
         m_rsdas.insert({{name, 0}, r});
+        r.axis *= ChVector<>(-1, 0, -1);
         m_rsdas.insert({{name, 1}, r});
     }
 }
@@ -583,10 +584,10 @@ std::vector<ChSuspension::ForceTSDA> ChGenericWheeledSuspension::ReportSuspensio
         if (item.first.side != side)
             continue;
         auto tsda = item.second.tsda;
-        ////std::cout << "TSDA " << item.first.name << std::endl;
-        ////std::cout << "  force:    " << tsda->GetForce() << std::endl;
-        ////std::cout << "  length:   " << tsda->GetLength() << std::endl;
-        ////std::cout << "  velocity: " << tsda->GetVelocity() << std::endl;
+        ////GetLog() << "TSDA " << item.first.name << "\n";
+        ////GetLog() << "  force:    " << tsda->GetForce() << "\n";
+        ////GetLog() << "  length:   " << tsda->GetLength() << "\n";
+        ////GetLog() << "  velocity: " << tsda->GetVelocity() << "\n";
         forces.push_back(
             ChSuspension::ForceTSDA(item.first.name, tsda->GetForce(), tsda->GetLength(), tsda->GetVelocity()));
     }
@@ -612,8 +613,8 @@ void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
     // Spindle revolute joint
     {
         const auto& C = m_revolute[side]->GetConstraintViolation();
-        std::cout << "Spindle revolute " << std::endl;
-        std::cout << "   " << C.transpose() << std::endl;
+        GetLog() << "Spindle revolute " << "\n";
+        GetLog() << "   " << C.transpose() << "\n";
     }
 
     // Suspension joints
@@ -626,9 +627,9 @@ void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
         auto link = joint->GetAsLink();
         const auto& C = link->GetConstraintViolation();
         assert(C.size() == link->GetDOC_c());
-        std::cout << "Joint " << item.first.name << " type: " << ChVehicleJoint::GetTypeString(item.second.type)
-                  << std::endl;
-        std::cout << "   " << C.transpose() << std::endl;
+        GetLog() << "Joint " << item.first.name << " type: " << ChVehicleJoint::GetTypeString(item.second.type)
+                  << "\n";
+        GetLog() << "   " << C.transpose() << "\n";
     }
 
     // Distance constraints
@@ -637,8 +638,8 @@ void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
             continue;
         const auto& dist = item.second.dist;
         const auto& C = dist->GetConstraintViolation();
-        std::cout << "Distance constraint " << item.first.name << std::endl;
-        std::cout << "   " << C.transpose() << std::endl;
+        GetLog() << "Distance constraint " << item.first.name << "\n";
+        GetLog() << "   " << C.transpose() << "\n";
     }
 }
 

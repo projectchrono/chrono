@@ -76,8 +76,12 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     void SetCollide(bool state) { m_spindle->SetCollide(state); }
 
     /// Synchronize the wheel subsystem. 
-    /// This queries the forces from the attached tire and passes it to the associated suspension.
+    /// This version queries the forces from the attached tire and applies them to the associated suspension.
     void Synchronize();
+
+    /// Synchronize the wheel subsystem. 
+    /// This version uses the provided forces as external applied tire/terrain forces.
+    void Synchronize(const TerrainForce& tire_force);
 
     /// Get the tire attached to this wheel.
     std::shared_ptr<ChTire> GetTire() const { return m_tire; }

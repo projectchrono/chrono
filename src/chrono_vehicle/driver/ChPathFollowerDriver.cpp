@@ -70,13 +70,13 @@ void ChClosedLoopDriver::Initialize() {
 }
 
 void ChClosedLoopDriver::Reset() {
-    m_speedPID->Reset(m_vehicle);
-    m_steeringPID->Reset(m_vehicle);
+    m_speedPID->Reset(m_vehicle.GetRefFrame());
+    m_steeringPID->Reset(m_vehicle.GetRefFrame());
 }
 
 void ChClosedLoopDriver::Advance(double step) {
     // Set the throttle and braking values based on the output from the speed controller.
-    double out_speed = m_speedPID->Advance(m_vehicle, m_target_speed, step);
+    double out_speed = m_speedPID->Advance(m_vehicle.GetRefFrame(), m_target_speed, m_vehicle.GetChTime(), step);
     ChClampValue(out_speed, -1.0, 1.0);
 
     if (out_speed > 0) {
@@ -94,7 +94,7 @@ void ChClosedLoopDriver::Advance(double step) {
     }
 
     // Set the steering value based on the output from the steering controller.
-    double out_steering = m_steeringPID->Advance(m_vehicle, step);
+    double out_steering = m_steeringPID->Advance(m_vehicle.GetRefFrame(), m_vehicle.GetChTime(), step);
     ChClampValue(out_steering, -1.0, 1.0);
     m_steering = out_steering;
 }

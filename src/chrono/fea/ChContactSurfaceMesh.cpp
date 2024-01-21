@@ -830,10 +830,20 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             std::shared_ptr<ChNodeFEAxyzrot> nB = mbeam->GetNodeB();
 
             double capsule_radius = ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
-            if (auto mdrawshape = mbeam->GetSection()->GetDrawShape()) {
+            if (sphere_swept > 0.0) {
+                capsule_radius = sphere_swept;
+            } else {
                 double ymin, ymax, zmin, zmax;
-                mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
-                capsule_radius = 0.5 * sqrt(pow(ymax - ymin, 2) + pow(zmax - zmin, 2));
+                auto mdrawshape = mbeam->GetSection()->GetDrawShape();
+                if (mdrawshape) {
+                    mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
+
+                    if (std::dynamic_pointer_cast<ChBeamSectionEulerEasyCircular>(mbeam->GetSection())) {
+                        capsule_radius = 0.5 * std::max(std::abs(ymax - ymin), std::abs(zmax - zmin));
+                    } else {
+                        capsule_radius = 0.5 * sqrt(pow(ymax - ymin, 2) + pow(zmax - zmin, 2));
+                    }
+                }
             }
 
             AddFace(nA, nB, nB,                 // vertices

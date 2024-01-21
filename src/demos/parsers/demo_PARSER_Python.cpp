@@ -12,18 +12,17 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 //
-// Demo code about
-// - using the unit_PYPARSER for executing some Python program or formula
-// - using the unit_PYPARSER for loading a .py scene description saved from the
-//   SolidWorks add-in
+// Demo code illustrating the use of the Chrono Python parser to execute some
+// Python program or formulas
 //
 // =============================================================================
+
+#include <iostream>
+#include <sstream>
 
 #include "chrono_parsers/ChParserPython.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyAuxRef.h"
-#include <iostream>
-#include <sstream>
 
 using namespace chrono;
 using namespace chrono::parsers;
@@ -96,41 +95,6 @@ int main(int argc, char* argv[]) {
         my_python.Run("a= this_itGoInG_TO_giVe_ErroRs!()");
     } catch (const ChException&) {
         GetLog() << "Ok, Python parsing error caught as expected.\n";
-    }
-
-    //
-    // TEST 6   -   load mechanical system, previously saved to disk from SolidWorks add-in
-    //
-
-    GetLog() << "\n\n PyChrono Test 6.\n";
-    ChSystemNSC sys;
-
-    try {
-        // This is the instruction that loads the .py (as saved from SolidWorks) and
-        // fills the system:
-
-        my_python.ImportSolidWorksSystem(GetChronoDataFile("solidworks/swiss_escapement").c_str(),
-                                         sys);  // note, don't type the .py suffic in filename..
-
-        sys.ShowHierarchy(GetLog());
-
-        // In case you want to fetch an item, remember that they got the
-        // names that you see in the CAD interface, for example suppose you know that
-        // a ChBodyAuxRef has the name "escape_wheel^escapement-1":
-        std::shared_ptr<ChBodyAuxRef> mbody;
-        for (auto body : sys.Get_bodylist()) {
-            GetLog() << body->GetNameString().c_str() << "\n";
-            if (body->GetNameString() == "escape_wheel-1")
-                mbody = std::dynamic_pointer_cast<ChBodyAuxRef>(body);
-        }
-
-        if (!mbody)
-            throw ChException("Error. Could not find body from its name in SolidWorks exported file");
-        else
-            GetLog() << "Found body  its name in SolidWorks exported file, pos.x()=" << mbody->GetPos().x() << "\n";
-
-    } catch (const ChException& myerror) {
-        GetLog() << myerror.what();
     }
 
     return 0;

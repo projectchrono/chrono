@@ -81,7 +81,6 @@ patch.GetGroundBody().AddVisualShape(path_asset)
 steeringPID = veh.ChPathSteeringController(path)
 steeringPID.SetLookAheadDistance(5)
 steeringPID.SetGains(0.8, 0, 0)
-steeringPID.Reset(hmmwv.GetVehicle())
 
 # Create the vehicle Irrlicht application
 vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
@@ -134,10 +133,7 @@ while vis.Run() :
     vis.Synchronize(time, driver_inputs)
     
     # Advance simulation for one timestep for all modules
-    steeringPID_output = steeringPID.Advance(hmmwv.GetVehicle(), step_size)
+    steeringPID_output = steeringPID.Advance(hmmwv.GetRefFrame(), time, step_size)
     terrain.Advance(step_size)
     hmmwv.Advance(step_size)
     vis.Advance(step_size)
-
-
-

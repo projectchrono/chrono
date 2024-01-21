@@ -136,13 +136,14 @@ class ChApi ChLoadBase : public ChObj {
                                         double c                     ///< scaling factor
                                         ) = 0;
     /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
-    /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
+    /// If mass lumping is impossible or approximate, adds scalar error to "err" parameter.
     ///    Md += c*diag(M)
     /// Not needed (ex. override to {} ) if no M is involved, ex. no inertial effects.
-    virtual void LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
-                                          double& error,  ///< result: not touched if lumping does not introduce errors
-                                          const double c  ///< a scaling factor
-                                        ) = 0;
+    virtual void LoadIntLoadLumpedMass_Md(
+        ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+        double& err,            ///< result: not touched if lumping does not introduce errors
+        const double c          ///< a scaling factor
+        ) = 0;
 
     /// Tell to a system descriptor that there are item(s) of type
     /// ChKblock in this object (for further passing it to a solver)
@@ -213,11 +214,11 @@ class ChLoad : public ChLoadBase {
 
     /// If possible, override this to bypass jacobian computation, if analytical expression of lumped mass is known.
     /// Not needed (ex. override to {} ) if no M is involved, ex. no inertial effects.
-    virtual void LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
-                                        double& error,          ///< result: not touched if lumping does not introduce errors
-                                        const double c          ///< a scaling factor
+    virtual void LoadIntLoadLumpedMass_Md(
+        ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+        double& err,            ///< result: not touched if lumping does not introduce errors
+        const double c          ///< a scaling factor
         ) override;
-
 
     /// Default: load is stiff if the loader is stiff. Override if needed.
     virtual bool IsStiff() override { return loader.IsStiff(); }
@@ -275,10 +276,11 @@ class ChApi ChLoadCustom : public ChLoadBase {
 
     /// If possible, override this to bypass jacobian computation, if analytical expression of lumped mass is known.
     /// Not needed (ex. override to {} ) if no M is involved, ex. no inertial effects.
-    virtual void LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
-                                        double& error,          ///< result: not touched if lumping does not introduce errors
-                                        const double c          ///< a scaling factor
-                                        ) override;
+    virtual void LoadIntLoadLumpedMass_Md(
+        ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+        double& err,            ///< result: not touched if lumping does not introduce errors
+        const double c          ///< a scaling factor
+        ) override;
 
     /// Create the jacobian loads if needed, and also
     /// set the ChVariables referenced by the sparse KRM block.
@@ -347,7 +349,7 @@ class ChApi ChLoadCustomMultiple : public ChLoadBase {
     /// Not needed (ex. override to {} ) if no M is involved, ex. no inertial effects.
     virtual void LoadIntLoadLumpedMass_Md(
         ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
-        double& error,          ///< result: not touched if lumping does not introduce errors
+        double& err,            ///< result: not touched if lumping does not introduce errors
         const double c          ///< a scaling factor
         ) override;
 
@@ -491,7 +493,7 @@ inline void ChLoad<Tloader>::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const 
 }
 
 template <class Tloader>
-inline void ChLoad<Tloader>::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, double c) {
+inline void ChLoad<Tloader>::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, double c) {
     if (!this->jacobians)
         return;
     // do computation Md=c*diag(M)
@@ -500,12 +502,12 @@ inline void ChLoad<Tloader>::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, dou
         if (this->loader.GetLoadable()->IsSubBlockActive(i)) {
             unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
-                Md(row + moffset) += c * this->jacobians->M(rowQ,rowQ);
+                Md(row + moffset) += c * this->jacobians->M(rowQ, rowQ);
                 ++rowQ;
             }
         }
     }
-    error = this->jacobians->M.sum() - this->jacobians->M.diagonal().sum();
+    err = this->jacobians->M.sum() - this->jacobians->M.diagonal().sum();
 }
 
 template <class Tloader>

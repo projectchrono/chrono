@@ -1,3 +1,3 @@
-Off-line visualization with Blender {#blender_visualization}
+Blender Visualization (Offline) {#blender_visualization}
 ==================================
 

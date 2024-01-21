@@ -22,9 +22,9 @@
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_IRRLICHT)
-#define ChApiIrr ChApiEXPORT
+    #define ChApiIrr ChApiEXPORT
 #else
-#define ChApiIrr ChApiIMPORT
+    #define ChApiIrr ChApiIMPORT
 #endif
 
 /**
@@ -53,6 +53,6 @@ namespace tools {}
 
 /// @}
 
-}
+}  // namespace chrono
 
 #endif

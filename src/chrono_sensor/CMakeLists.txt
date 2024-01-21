@@ -37,6 +37,20 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 # ------------------------------------------------------------------------------
+# Hack to deal with MSVC runtime libraries
+# ------------------------------------------------------------------------------
+
+if(MSVC)
+  if(USE_MSVC_STATIC_RUNTIME)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+  else()
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+  endif()
+endif()
+
+# ------------------------------------------------------------------------------
 # Find optional GL support
 # ------------------------------------------------------------------------------
 

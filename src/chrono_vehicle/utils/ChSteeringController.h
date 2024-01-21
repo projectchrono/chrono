@@ -33,11 +33,11 @@
 #include <string>
 
 #include "chrono/core/ChBezierCurve.h"
+#include "chrono/core/ChFrameMoving.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChVehicle.h"
 
 namespace chrono {
 namespace vehicle {
@@ -51,19 +51,6 @@ namespace vehicle {
 /// The base class implements the basic functionality to control the error between the location of a sentinel point (a
 /// point at a look-ahead distance in front of the vehicle) and the current target point.
 ///
-/// The parameters of a steering controller can also be specified through a JSON file; sample JSON input file:
-/// <pre>
-///      {
-///          "Gains":
-///          {
-///              "Kp":   0.5,
-///              "Ki" : 0.0,
-///              "Kd" : 0.0
-///          },
-///
-///          "Lookahead Distance": 20.0
-///      }
-/// </pre>
 /// Data collection from the steering controller can be started (restarted) and suspended (stopped) as many times as
 /// desired.  Data collected so far can be written to a file.  The tab-separated output ASCII file contains on each line
 /// the time, location of the target point, and location of the sentinel point.
@@ -92,10 +79,10 @@ class CH_VEHICLE_API ChSteeringController {
     /// This function must be called at a configuration where a valid location for the sentinel point can be calculated.
     /// The default implementation in the base class simply calculates the new sentinel point location and sets all
     /// errors to 0.
-    virtual void Reset(const ChVehicle& vehicle);
+    virtual void Reset(const ChFrameMoving<>& ref_frame);
 
     /// Advance the state of the PID controller.
-    virtual double Advance(const ChVehicle& vehicle, double step) = 0;
+    virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) = 0;
 
     /// Start/restart data collection.
     void StartDataCollection();
@@ -141,6 +128,20 @@ class CH_VEHICLE_API ChSteeringController {
 /// Path-following steering PID controller.
 /// The path to be followed is specified as a ChBezierCurve object and the target point is defined to be the point on
 /// that path that is closest to the current location of the sentinel point.
+///
+/// The parameters of a steering controller can also be specified through a JSON file; sample JSON input file:
+/// <pre>
+///      {
+///          "Gains":
+///          {
+///              "Kp":   0.5,
+///              "Ki" : 0.0,
+///              "Kd" : 0.0
+///          },
+///
+///          "Lookahead Distance": 20.0
+///      }
+/// </pre>
 class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
   public:
     /// Construct a steering controller to track the specified path.
@@ -160,7 +161,7 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
     /// Reset the PID controller.
     /// This function resets the underlying path tracker using the current location
     /// of the sentinel point.
-    virtual void Reset(const ChVehicle& vehicle) override;
+    virtual void Reset(const ChFrameMoving<>& ref_frame) override;
 
     /// Calculate the current target point location.
     /// The target point is the point on the associated path that is closest to
@@ -170,7 +171,7 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
     /// Advance the state of the PID controller.
     /// This function performs the required integration for the integral component of the PID controller and returns the
     /// calculated steering value.
-    virtual double Advance(const ChVehicle& vehicle, double step) override;
+    virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) override;
 
   private:
     std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
@@ -205,7 +206,7 @@ class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
 
     /// Reset the PID controller.
     /// This function resets the underlying path tracker using the current location of the sentinel point.
-    virtual void Reset(const ChVehicle& vehicle) override;
+    virtual void Reset(const ChFrameMoving<>& ref_frame) override;
 
     /// Set the gains (weighting factors) for the eXTended controller.
     void SetGains(double Kp = 0.4, double W_y_err = 1.0, double W_heading_err = 1.0, double W_ackermann = 1.0);
@@ -216,7 +217,7 @@ class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
     virtual void CalcTargetLocation() override;
 
     /// Advance the state of the XT controller.
-    virtual double Advance(const ChVehicle& vehicle, double step) override;
+    virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) override;
 
   private:
     double CalcHeadingError(ChVector<>& a, ChVector<>& b);
@@ -282,11 +283,11 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
     void SetPreviewTime(double Tp = 0.5);
 
     /// Advance the state of the SR controller.
-    virtual double Advance(const ChVehicle& vehicle, double step) override;
+    virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) override;
 
     /// Reset the PID controller.
     /// This function resets the underlying path tracker using the current location of the sentinel point.
-    virtual void Reset(const ChVehicle& vehicle) override;
+    virtual void Reset(const ChFrameMoving<>& ref_frame) override;
 
     /// Calculate the current target point location.
     /// The target point is the point on the associated path that is closest to the current location of the sentinel
@@ -349,11 +350,11 @@ class CH_VEHICLE_API ChPathSteeringControllerStanley : public ChSteeringControll
     void SetDeadZone(double dead_zone = 0.0) { m_deadZone = std::abs(dead_zone); }
 
     /// Advance the state of the Stanley controller.
-    virtual double Advance(const ChVehicle& vehicle, double step) override;
+    virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) override;
 
     /// Reset the PID controller.
     /// This function resets the underlying path tracker using the current location of the sentinel point.
-    virtual void Reset(const ChVehicle& vehicle) override;
+    virtual void Reset(const ChFrameMoving<>& ref_frame) override;
 
     /// Calculate the current target point location.
     /// The target point is the point on the associated path that is closest to the current location of the sentinel

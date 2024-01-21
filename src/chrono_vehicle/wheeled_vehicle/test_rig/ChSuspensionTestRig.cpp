@@ -510,22 +510,22 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
             gplot.SetCommand("set terminal wxt size 800, 1200");
             gplot.SetCommand("set multiplot layout 2,1");
 
-            gplot.SetTitle("Axle " + std::to_string(ia) + " - Actuator Forces");
-            gplot.SetCommand("set format y '%4.1f'");
+            gplot.SetTitle("Axle " + std::to_string(ia) + " - Actuator");
+            gplot.SetCommand("set format y '%4.2f'");
             gplot.SetCommand(lsL);
             gplot.SetCommand(lsR);
+
+            gplot.SetLabelX("time [s]");
+            gplot.SetLabelY("displacement [N]");
+            gplot.Plot(outfileL, 1, 3, "left", " with lines ls 1");
+            gplot.Plot(outfileR, 1, 3, "right", " with lines ls 2");
+
+            gplot.FlushPlots();
 
             gplot.SetLabelX("time [s]");
             gplot.SetLabelY("force [N]");
             gplot.Plot(outfileL, 1, 4, "left", " with lines ls 1");
             gplot.Plot(outfileR, 1, 4, "right", " with lines ls 2");
-
-            gplot.FlushPlots();
-
-            gplot.SetLabelX("displacement [m]");
-            gplot.SetLabelY("force [N]");
-            gplot.Plot(outfileL, 3, 4, "left", " with lines ls 1");
-            gplot.Plot(outfileR, 3, 4, "right", " with lines ls 2");
 
             gplot.FlushPlots();
 
@@ -535,16 +535,29 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
         {
             postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_wheels.gpl").c_str());
 
-            gplot.SetCommand("set terminal wxt size 800, 600");
-            gplot.SetTitle("Axle " + std::to_string(ia) + " - Camber angles");
+            gplot.SetCommand("set terminal wxt size 800, 1200");
+            gplot.SetCommand("set multiplot layout 2,1");
+
+            gplot.SetTitle("Axle " + std::to_string(ia) + " - Wheel");
             gplot.SetCommand("set format y '%4.1f'");
             gplot.SetCommand(lsL);
             gplot.SetCommand(lsR);
+
+            gplot.SetLabelX("time [s]");
+            gplot.SetLabelY("camber angle [deg]");
+            gplot.Plot(outfileL.c_str(), 1, 12, "left", " with lines ls 1");
+            gplot.Plot(outfileR.c_str(), 1, 12, "right", " with lines ls 2");
+
+            gplot.FlushPlots();
 
             gplot.SetLabelX("wheel travel [m]");
             gplot.SetLabelY("camber angle [deg]");
             gplot.Plot(outfileL.c_str(), 11, 12, "left", " with lines ls 1");
             gplot.Plot(outfileR.c_str(), 11, 12, "right", " with lines ls 2");
+
+            gplot.FlushPlots();
+
+            gplot.SetCommand("unset multiplot");
         }
 
         auto num_tsda = m_plot_data[ia].num_tsda;
@@ -559,24 +572,24 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
             gplot.SetCommand(lsR);
 
             for (int is = 0; is < num_tsda; is++) {
-                gplot.SetTitle("Axle " + std::to_string(ia) + " - TSDA " + std::to_string(is) + " Forces");
+                gplot.SetTitle("Axle " + std::to_string(ia) + " - TSDA " + std::to_string(is));
 
                 gplot.SetLabelX("time [s]");
-                gplot.SetLabelY("Force [N]");
+                gplot.SetLabelY("force [N]");
                 gplot.Plot(outfileL, 1, 13 + is, "left", " with lines ls 1");
                 gplot.Plot(outfileR, 1, 13 + is, "right", " with lines ls 2");
 
                 gplot.FlushPlots();
 
                 gplot.SetLabelX("wheel travel [m]");
-                gplot.SetLabelY("Force [N]");
+                gplot.SetLabelY("force [N]");
                 gplot.Plot(outfileL, 11, 13 + is, "left", " with lines ls 1");
                 gplot.Plot(outfileR, 11, 13 + is, "right", " with lines ls 2");
 
                 gplot.FlushPlots();
 
                 gplot.SetLabelX("wheel vertical speed [m/s]");
-                gplot.SetLabelY("Force [N]");
+                gplot.SetLabelY("force [N]");
                 gplot.Plot(outfileL, 10, 13 + is, "left", " with lines ls 1");
                 gplot.Plot(outfileR, 10, 13 + is, "right", " with lines ls 2");
 
@@ -588,7 +601,7 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
 
         auto num_rsda = m_plot_data[ia].num_rsda;
         if (num_rsda > 0) {
-            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_tsdas.gpl").c_str());
+            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_rsdas.gpl").c_str());
 
             gplot.SetCommand("set terminal wxt size 1200, 1200");
             gplot.SetCommand("set multiplot layout 3," + std::to_string(num_rsda) + " columnsfirst ");
@@ -598,24 +611,24 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
             gplot.SetCommand(lsR);
 
             for (int is = 0; is < num_rsda; is++) {
-                gplot.SetTitle("Axle " + std::to_string(ia) + " - RSDA " + std::to_string(is) + " Torques");
+                gplot.SetTitle("Axle " + std::to_string(ia) + " - RSDA " + std::to_string(is));
 
                 gplot.SetLabelX("time [s]");
-                gplot.SetLabelY("Torque [Nm]");
+                gplot.SetLabelY("torque [Nm]");
                 gplot.Plot(outfileL, 1, 13 + num_tsda + is, "left", " with lines ls 1");
                 gplot.Plot(outfileR, 1, 13 + num_tsda + is, "right", " with lines ls 2");
 
                 gplot.FlushPlots();
 
                 gplot.SetLabelX("wheel travel [m]");
-                gplot.SetLabelY("Torque [Nm]");
+                gplot.SetLabelY("torque [Nm]");
                 gplot.Plot(outfileL, 11, 13 + num_tsda + is, "left", " with lines ls 1");
                 gplot.Plot(outfileR, 11, 13 + num_tsda + is, "right", " with lines ls 2");
 
                 gplot.FlushPlots();
 
                 gplot.SetLabelX("wheel vertical speed [m/s]");
-                gplot.SetLabelY("Torque [Nm]");
+                gplot.SetLabelY("torque [Nm]");
                 gplot.Plot(outfileL, 10, 13 + num_tsda + is, "left", " with lines ls 1");
                 gplot.Plot(outfileR, 10, 13 + num_tsda + is, "right", " with lines ls 2");
 
@@ -670,11 +683,11 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(post_mat, m_post_radius, m_post_height);
 
         // Create the left post body (green)
-        ChVector<> spindle_L_pos = suspension->GetSpindlePos(LEFT);
-        ChVector<> post_L_pos = spindle_L_pos - ChVector<>(0, 0, tire_radius);
+        ChVector<> pos_spindleL = suspension->GetSpindlePos(LEFT);
+        ChVector<> pos_postL = pos_spindleL - ChVector<>(0, 0, tire_radius);
 
         auto post_L = chrono_types::make_shared<ChBody>();
-        post_L->SetPos(post_L_pos);
+        post_L->SetPos(pos_postL);
         post_L->SetMass(100);
         post_L->SetCollide(true);
         sys->Add(post_L);
@@ -683,11 +696,11 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         post_L->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
 
         // Create the right post body (red)
-        ChVector<> spindle_R_pos = suspension->GetSpindlePos(RIGHT);
-        ChVector<> post_R_pos = spindle_R_pos - ChVector<>(0, 0, tire_radius);
+        ChVector<> pos_spindleR = suspension->GetSpindlePos(RIGHT);
+        ChVector<> pos_postR = pos_spindleR - ChVector<>(0, 0, tire_radius);
 
         auto post_R = chrono_types::make_shared<ChBody>();
-        post_R->SetPos(post_R_pos);
+        post_R->SetPos(pos_postR);
         post_R->SetMass(100);
         post_R->SetCollide(true);
         sys->Add(post_R);
@@ -702,15 +715,13 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         auto linact_L = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_L->SetNameString("L_post_linActuator");
         linact_L->SetMotionFunction(func_L);
-        linact_L->Initialize(m_vehicle->GetChassisBody(), post_L,
-                             ChFrame<>(ChVector<>(post_L_pos), Q_from_AngY(CH_C_PI_2)));
+        linact_L->Initialize(post_L, m_vehicle->GetChassisBody(), ChFrame<>(pos_postL, Q_from_AngY(CH_C_PI_2)));
         sys->AddLink(linact_L);
 
         auto linact_R = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_R->SetNameString("R_post_linActuator");
         linact_R->SetMotionFunction(func_R);
-        linact_R->Initialize(m_vehicle->GetChassisBody(), post_R,
-                             ChFrame<>(ChVector<>(post_R_pos), Q_from_AngY(CH_C_PI_2)));
+        linact_R->Initialize(post_R, m_vehicle->GetChassisBody(), ChFrame<>(pos_postR, Q_from_AngY(CH_C_PI_2)));
         sys->AddLink(linact_R);
 
         // Cache bodies and actuators
@@ -763,15 +774,20 @@ void ChSuspensionTestRigPlatform::UpdateActuators(std::vector<double> displ_left
     for (int ia = 0; ia < m_naxles; ia++) {
         auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_L[ia]->GetMotionFunction());
         auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_R[ia]->GetMotionFunction());
-        func_L->SetSetpointAndDerivatives(displ_left[ia], displ_speed_left[ia], 0.0);
-        func_R->SetSetpointAndDerivatives(displ_right[ia], displ_speed_right[ia], 0.0);
+
+        // Flip signs (because of motor definition) so that positive input represents upward motion
+        func_L->SetSetpointAndDerivatives(-displ_left[ia], -displ_speed_left[ia], 0.0);
+        func_R->SetSetpointAndDerivatives(-displ_right[ia], -displ_speed_right[ia], 0.0);
     }
 }
 
 double ChSuspensionTestRigPlatform::GetActuatorDisp(int axle, VehicleSide side) {
     double time = m_vehicle->GetChTime();
-    return (side == LEFT) ? m_linact_L[axle]->GetMotionFunction()->Get_y(time)
-                          : m_linact_R[axle]->GetMotionFunction()->Get_y(time);
+    auto displ = (side == LEFT) ? m_linact_L[axle]->GetMotionFunction()->Get_y(time)
+                                : m_linact_R[axle]->GetMotionFunction()->Get_y(time);
+
+    // Flip sign (because of motor definition) so that positive input represents upward motion
+    return -displ;
 }
 
 double ChSuspensionTestRigPlatform::GetActuatorForce(int axle, VehicleSide side) {
@@ -816,41 +832,39 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
 
         // Create and initialize the linear actuators.
         // These connect the spindle centers with ground points directly below the spindles at the initial
-        // configuration.
+        // configuration. To enforce this, the order of connected bodies is important (motor master frame must be
+        // aligned with chassis frame).
         auto func_L = chrono_types::make_shared<ChFunction_Setpoint>();
         auto func_R = chrono_types::make_shared<ChFunction_Setpoint>();
 
-        const auto& pos_sL = suspension->GetSpindle(LEFT)->GetCoord();
-        const auto& pos_sR = suspension->GetSpindle(RIGHT)->GetCoord();
+        const auto& pos_spindleL = suspension->GetSpindle(LEFT)->GetPos();
+        const auto& pos_spindleR = suspension->GetSpindle(RIGHT)->GetPos();
 
-        auto pos_gL = pos_sL;
-        auto pos_gR = pos_sR;
-        pos_gL.pos.z() = -m_rod_length;
-        pos_gR.pos.z() = -m_rod_length;
-
-        auto linact_L = chrono_types::make_shared<ChLinkLinActuator>();
-        linact_L->SetNameString("L_rod_actuator");
-        linact_L->SetActuatorFunction(func_L);
-        linact_L->Initialize(m_vehicle->GetChassisBody(), suspension->GetSpindle(LEFT), false, pos_gL, pos_sL);
-        linact_L->SetDistanceOffset(m_rod_length);
+        auto linact_L = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+        linact_L->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
+        linact_L->SetNameString("L_rod_linActuator");
+        linact_L->SetMotionFunction(func_L);
+        linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(),
+                             ChFrame<>(pos_spindleL, Q_from_AngY(CH_C_PI_2)));
         sys->AddLink(linact_L);
 
-        auto linact_R = chrono_types::make_shared<ChLinkLinActuator>();
-        linact_R->SetNameString("R_rod_actuator");
-        linact_R->SetActuatorFunction(func_R);
-        linact_R->Initialize(m_vehicle->GetChassisBody(), suspension->GetSpindle(RIGHT), false, pos_gR, pos_sR);
-        linact_R->SetDistanceOffset(m_rod_length);
+        auto linact_R = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+        linact_R->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
+        linact_R->SetNameString("R_rod_linActuator");
+        linact_R->SetMotionFunction(func_R);
+        linact_R->Initialize(suspension->GetSpindle(RIGHT), m_vehicle->GetChassisBody(),
+                             ChFrame<>(pos_spindleR, Q_from_AngY(CH_C_PI_2)));
         sys->AddLink(linact_R);
 
         // Create the two rod bodies (used only for visualization)
         auto rod_L = chrono_types::make_shared<ChBody>();
-        rod_L->SetPos(pos_sL.pos);
+        rod_L->SetPos(pos_spindleL);
         rod_L->SetBodyFixed(true);
         sys->Add(rod_L);
         AddRodVisualization(rod_L, ChColor(0.1f, 0.8f, 0.15f));
 
         auto rod_R = chrono_types::make_shared<ChBody>();
-        rod_R->SetPos(pos_sR.pos);
+        rod_R->SetPos(pos_spindleR);
         rod_R->SetBodyFixed(true);
         sys->Add(rod_R);
         AddRodVisualization(rod_R, ChColor(0.8f, 0.1f, 0.1f));
@@ -887,10 +901,12 @@ void ChSuspensionTestRigPushrod::UpdateActuators(std::vector<double> displ_left,
                                                  std::vector<double> displ_right,
                                                  std::vector<double> displ_speed_right) {
     for (int ia = 0; ia < m_naxles; ia++) {
-        auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_L[ia]->GetActuatorFunction());
-        auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_R[ia]->GetActuatorFunction());
-        func_L->SetSetpointAndDerivatives(displ_left[ia], displ_speed_left[ia], 0.0);
-        func_R->SetSetpointAndDerivatives(displ_right[ia], displ_speed_right[ia], 0.0);
+        auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_L[ia]->GetMotionFunction());
+        auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_R[ia]->GetMotionFunction());
+
+        // Flip signs (because of motor definition) so that positive input represents upward motion
+        func_L->SetSetpointAndDerivatives(-displ_left[ia], -displ_speed_left[ia], 0.0);
+        func_R->SetSetpointAndDerivatives(-displ_right[ia], -displ_speed_right[ia], 0.0);
 
         // Move the rod visualization bodies
         const auto& axle = m_vehicle->GetAxle(m_axle_index[ia]);
@@ -901,14 +917,15 @@ void ChSuspensionTestRigPushrod::UpdateActuators(std::vector<double> displ_left,
 
 double ChSuspensionTestRigPushrod::GetActuatorDisp(int axle, VehicleSide side) {
     double time = m_vehicle->GetChTime();
-    return (side == LEFT) ? m_linact_L[axle]->GetActuatorFunction()->Get_y(time)
-                          : m_linact_R[axle]->GetActuatorFunction()->Get_y(time);
+    auto displ = (side == LEFT) ? m_linact_L[axle]->GetMotionFunction()->Get_y(time)
+                                : m_linact_R[axle]->GetMotionFunction()->Get_y(time);
+
+    // Flip sign (because of motor definition) so that positive input represents upward motion
+    return -displ;
 }
 
 double ChSuspensionTestRigPushrod::GetActuatorForce(int axle, VehicleSide side) {
-    //// TODO
-    ////ChVector<> react = m_linact_L[ia]->Get_react_force();
-    return 0;
+    return (side == LEFT) ? m_linact_L[axle]->Get_react_force().x() : m_linact_R[axle]->Get_react_force().x();
 }
 
 double ChSuspensionTestRigPushrod::GetRideHeight(int axle) const {

@@ -14,7 +14,7 @@ Chrono::Sensor Reference Manual {#manual_sensor}
 
 **Additional documentation pages**
 
-* [Chrono Reference Manual](@ref manual_root)
+* [Chrono Reference Manual](@ref manual_core)
 
 * [PyChrono](@ref pychrono_introduction)
 

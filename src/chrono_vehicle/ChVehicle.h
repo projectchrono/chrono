@@ -99,6 +99,10 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the current vehicle inertia (relative to the vehicle COM frame).
     const ChMatrix33<>& GetInertia() const { return m_inertia; }
 
+    /// Get the current vehicle reference frame.
+    /// This is the same as the reference frame of the chassis.
+    const ChFrameMoving<>& GetRefFrame() const { return GetChassisBody()->GetFrame_REF_to_abs(); }
+
     /// Get the current vehicle transform relative to the global frame.
     /// This is the same as the global transform of the main chassis.
     const ChFrame<>& GetTransform() const { return m_chassis->GetTransform(); }
@@ -151,6 +155,12 @@ class CH_VEHICLE_API ChVehicle {
     void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB
                    const std::string& out_dir,   ///< [in] output directory name
                    const std::string& out_name,  ///< [in] rootname of output file
+                   double output_step            ///< [in] interval between output times
+    );
+
+    /// Enable output for this vehicle system using an existing output stream.
+    void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB
+                   std::ostream& out_stream,     ///< [in] output stream
                    double output_step            ///< [in] interval between output times
     );
 
