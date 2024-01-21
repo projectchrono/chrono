@@ -61,6 +61,8 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create ChLoad objects to apply terrain forces on spindle
     m_spindle_terrain_force = chrono_types::make_shared<ChLoadBodyForce>(m_spindle, VNULL, false, VNULL, false);
     m_spindle_terrain_torque = chrono_types::make_shared<ChLoadBodyTorque>(m_spindle, VNULL, false);
+    m_spindle_terrain_force->SetNameString(m_name + "_terrain_force");
+    m_spindle_terrain_torque->SetNameString(m_name + "_terrain_torque");
 
     // Add terrain loads to a container
     if (chassis) {
