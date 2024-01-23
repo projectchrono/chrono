@@ -115,7 +115,7 @@ class ChGnuPlot {
               ChVectorDynamic<>& y,
               const std::string& title = "",
               const std::string& customsettings = " with lines ") {
-        assert(mx.size() == my.size());
+        assert(x.size() == y.size());
 
         ChGnuPlotDataplot mdataplot;
         mdataplot.data.resize(x.size(), 2);
