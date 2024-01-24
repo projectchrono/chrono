@@ -168,13 +168,14 @@ void ChPythonEngine::SetString(const char* variable, std::string& val) {
     this->Run(sstream.str().c_str());
 }
 
-
 void ChPythonEngine::SetList(const char* variable, const std::vector<double>& val) {
     std::ostringstream sstream;
-    sstream << variable << "=" << "[";
+    sstream << variable << "="
+            << "[";
     for (int i = 0; i < val.size(); ++i)
         sstream << (double)val[i] << ",";
-    sstream << "]" << "\n";
+    sstream << "]"
+            << "\n";
     this->Run(sstream.str().c_str());
 }
 
@@ -191,14 +192,14 @@ bool ChPythonEngine::GetList(const char* variable, std::vector<double>& return_v
 
     if (PyList_Check(result)) {
         int length = (int)PyObject_Length(result);
-        return_val.clear(); // initially clear for safety
+        return_val.clear();  // initially clear for safety
         for (int i = 0; i < length; ++i) {
             auto item = PyList_GetItem(result, i);
             if (PyLong_Check(item)) {
-                double tmp = PyLong_AsDouble(item); // whether list item is a py integer or a number like 3.0, interpret it as a double
+                double tmp = PyLong_AsDouble(
+                    item);  // whether list item is a py integer or a number like 3.0, interpret it as a double
                 return_val.push_back(tmp);
-            }
-            else if (PyFloat_Check(item)) {
+            } else if (PyFloat_Check(item)) {
                 double tmp = PyFloat_AS_DOUBLE(item);
                 return_val.push_back(tmp);
             }
@@ -206,30 +207,16 @@ bool ChPythonEngine::GetList(const char* variable, std::vector<double>& return_v
         return true;
     }
 
-
     return false;
 }
 
-
-
-/*
-typedef struct {
-  PyObject ob_base;
-  void *ptr;
-  void *ty;
-  int own;
-  PyObject *next;
-
-} SwigPyObject;
-*/
-void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem) {
+void ChPythonEngine::ImportSolidWorksSystem(const std::string& solidworks_py_file, ChSystem& msystem) {
     std::ostringstream sstream;
-    // sstream << "from " << std::string(solidworks_py_file) << " import exported_items\n";
- 
+
     sstream << "import builtins\n";
     sstream << "import sys\n";
     sstream << "import os\n";
-    sstream << "mpath = \"" << std::string(solidworks_py_file) << "\"\n";
+    sstream << "mpath = \"" << solidworks_py_file << "\"\n";
     sstream << "mdirname, mmodulename = os.path.split(mpath)\n";
     sstream << "builtins.exported_system_relpath = mdirname + '/'\n";
     sstream << "try:\n";
@@ -249,22 +236,22 @@ void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSy
     sstream << "    print(f\"Error loading module: {e}\")\n";
     sstream << "exported_items = imported_mod.exported_items\n";
     this->Run(sstream.str().c_str());
- 
+
     PyObject* module = PyImport_AddModule("__main__");  // borrowed reference
     if (!module)
         throw ChException("ERROR. No Python __main__ module?");
- 
+
     PyObject* dictionary = PyModule_GetDict(module);  // borrowed reference
     if (!dictionary)
         throw ChException("ERROR. No Python dictionary?");
- 
+
     PyObject* result = PyDict_GetItemString(dictionary, "exported_items");  // borrowed reference
     if (!result)
         throw ChException("ERROR. Missing Python object 'exported_items' in SolidWorks file");
- 
+
     if (PyList_Check(result)) {
         int nitems = (int)PyList_Size(result);
- 
+
         for (int i = 0; i < nitems; i++) {
             PyObject* mobj = PyList_GetItem(result, i);
             if (mobj) {
@@ -272,7 +259,7 @@ void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSy
                 if (mswigobj) {
                     void* objptr = mswigobj->ptr;
                     std::shared_ptr<ChPhysicsItem>* pt_to_shp = (std::shared_ptr<ChPhysicsItem>*)objptr;
- 
+
                     /// Add the ChPhysicsItem to the ChSystem
                     msystem.Add((*pt_to_shp));
                 } else {
@@ -281,10 +268,10 @@ void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSy
                 }
             }
         }
- 
+
         msystem.Setup();
         msystem.Update();
- 
+
     } else {
         throw ChException("ERROR. exported_items python object is not a list.");
     }
@@ -292,4 +279,3 @@ void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSy
 
 }  // end namespace parsers
 }  // namespace chrono
-

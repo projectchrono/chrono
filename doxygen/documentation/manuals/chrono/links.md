@@ -25,11 +25,11 @@ Some general information are fundamental to effectively use these classes:
 | 6 | Fix | Fix position and rotation | @ref chrono::ChLinkMateFix "ChLinkMateFix" <br> @ref chrono::ChLinkLockLock "ChLinkLockLock" |
 | 6\|3 | Bushing | Linear compliance + optional spherical joint | @ref chrono::ChLinkBushing "ChLinkBushing" |
 | 5 | Revolute | Allows rotation along Z axis | @ref chrono::ChLinkMateRevolute "ChLinkMateRevolute" <br> @ref chrono::ChLinkLockRevolute "ChLinkLockRevolute" <br> @ref chrono::ChLinkRevolute "ChLinkRevolute" |
-| 5 | Prismatic | Allows translation along Z axis  | @ref chrono::ChLinkLockPrismatic "ChLinkLockPrismatic" |
+| 5 | Prismatic | Allows translation along axis  | @ref chrono::ChLinkMatePrismatic "ChLinkMatePrismatic" (X axis) <br> @ref chrono::ChLinkLockPrismatic "ChLinkLockPrismatic" (Z axis) |
 | 4 | Universal | Universal joint (along X and Y axes) | @ref chrono::ChLinkUniversal "ChLinkUniversal" |
 | 4 | Revolute+Prismatic | Allow translation along X axis and rotation along Z axis | @ref chrono::ChLinkLockRevolutePrismatic "ChLinkLockRevolutePrismatic" |
 | 4 | Oldham | Oldham joint; does not fix axes position | @ref chrono::ChLinkLockOldham "ChLinkLockOldham" |
-| 4 | Cylindrical | Z axes are collinear | @ref chrono::ChLinkMateCoaxial "ChLinkMateCoaxial" <br> @ref chrono::ChLinkLockCylindrical "ChLinkLockCylindrical" |
+| 4 | Cylindrical | Axes are collinear  | @ref chrono::ChLinkMateCoaxial "ChLinkMateCoaxial" (X axis) <br> @ref chrono::ChLinkLockCylindrical "ChLinkLockCylindrical" (Z axis) |
 | 3 | Spherical | Fix translations | @ref chrono::ChLinkMateSpherical "ChLinkMateSpherical" <br> @ref chrono::ChLinkLockSpherical "ChLinkLockSpherical" |
 | 3 | Planar | YZ planes are coplanar | @ref chrono::ChLinkLockPlanePlane "ChLinkLockPlanePlane" <br> @ref chrono::ChLinkMatePlane "ChLinkMatePlane" |
 | 3 | Aligned | Fix rotations | @ref chrono::ChLinkLockAlign "ChLinkLockAlign" |

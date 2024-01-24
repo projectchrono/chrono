@@ -129,6 +129,27 @@ void ChVehicle::SetOutput(ChVehicleOutput::Type type,
     }
 }
 
+void ChVehicle::SetOutput(ChVehicleOutput::Type type,
+                          std::ostream& out_stream,
+                          double output_step) {
+    m_output = true;
+    m_output_step = output_step;
+
+    switch (type) {
+        case ChVehicleOutput::ASCII:
+            m_output_db = new ChVehicleOutputASCII(out_stream);
+            break;
+        case ChVehicleOutput::JSON:
+            //// TODO
+            break;
+        case ChVehicleOutput::HDF5:
+#ifdef CHRONO_HAS_HDF5
+            //// TODO
+#endif
+            break;
+    }
+}
+
 // -----------------------------------------------------------------------------
 
 void ChVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {

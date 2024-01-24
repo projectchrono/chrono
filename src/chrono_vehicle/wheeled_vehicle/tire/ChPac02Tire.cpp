@@ -52,7 +52,7 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
       m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
       m_mu0(0.8),
       m_measured_side(LEFT),
-      m_allow_mirroring(false),
+      m_allow_mirroring(true),
       m_use_mode(0),
       m_vcoulomb(1.0),
       m_frblend_begin(1.0),

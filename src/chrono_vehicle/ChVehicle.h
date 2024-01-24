@@ -158,6 +158,12 @@ class CH_VEHICLE_API ChVehicle {
                    double output_step            ///< [in] interval between output times
     );
 
+    /// Enable output for this vehicle system using an existing output stream.
+    void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB
+                   std::ostream& out_stream,     ///< [in] output stream
+                   double output_step            ///< [in] interval between output times
+    );
+
     /// Initialize this vehicle at the specified global location and orientation.
     /// Derived classes must invoke this base class implementation after they initialize all their subsystem.
     virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
