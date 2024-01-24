@@ -600,6 +600,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChFrameMoving<>
         floating_frame_F;  // the floating frame of reference F of the subassembly. Can be at one node or mass center
     ChFrameMoving<> com_frame;
+    ChFrameMoving<> floating_frame_F_old;
 
     // Projection matrix according to Bauchau2021
     ChMatrixDynamic<> Q;           // mapping matrix for the displacement of the floating frame F
@@ -607,6 +608,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> P_perp;      // perpendicular projector
     ChMatrixDynamic<> U_locred;    // rigid body modes in local frame for the reduced subassembly
     Eigen::ColPivHouseholderQR<ChMatrixDynamic<>> UTMU_inv_solver;
+    bool is_initialized_U_locred_0 = false;
+    ChMatrixDynamic<> U_locred_0;  // rigid body modes in local frame for the reduced subassembly
+    ChMatrixDynamic<> Q_0;
+    ChMatrixDynamic<> P_parallel_0;
+    ChMatrixDynamic<> P_perp_0;
 
     ChMatrixDynamic<> Psi_S;  // static mode transformation matrix in the mode acceleration method
     ChMatrixDynamic<> Psi_D;  // dynamic mode transformation matrix in the mode acceleration method
@@ -619,7 +625,15 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         P_I1;  // transformation matrix for the part from the coordinate of F to the coordinate of internal nodes I
     ChMatrixDynamic<> P_I2;  // transformation matrix for the part from the relative coordinate(elastic deformation) of
                              // I to the coordinate of internal nodes I
-    ChMatrixDynamic<> P_W;   // extended transformation matrix, = diag[P_B2,I]
+    
+    ChMatrixDynamic<> U_loc_B;
+    ChMatrixDynamic<> U_loc_I;
+    ChMatrixDynamic<> U_loc_B_0;
+    ChMatrixDynamic<> U_loc_I_0;
+    ChMatrixDynamic<> U_loc;
+
+    ChMatrixDynamic<> P_W;  // extended transformation matrix, = diag[P_B2,I]
+    ChMatrixDynamic<> P_F;// = diag[R_F, I]
 
     ChVectorDynamic<> g_loc;  // the local internal forces of the reduced superelement in the floating frame F
     ChVectorDynamic<> g_quad;  // the quadratic velocity term of the reduced superelement
