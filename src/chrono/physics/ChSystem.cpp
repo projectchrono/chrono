@@ -1471,7 +1471,6 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     ChSparseMatrix Cq;
     GetSystemDescriptor()->ConvertToMatrixForm(&Cq, nullptr, nullptr, nullptr, nullptr, nullptr, true, true);
     int Cq_rows = Cq.rows();
-    int Cq_cols = Cq.cols();
 
     ChSparseMatrix CqT = Cq.transpose();
     CqT.makeCompressed();
@@ -1494,15 +1493,25 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     if (verbose) {
         std::cout << "Removing redundant constraints." << std::endl;
         std::cout << "   QR decomposition rank: " << QR_dec.rank() << std::endl;
-        std::cout << "   Number of starting constraints: " << GetSystemDescriptor()->CountActiveConstraints()
-                  << std::endl;
-        std::cout << "   Number of indipendent constraints: " << independent_row_count << std::endl;
-        std::cout << "   Number of dependent constraints: " << Cq_rows - independent_row_count << std::endl;
-        std::cout << "   Number of total variables: " << GetSystemDescriptor()->CountActiveVariables() << std::endl;
-        std::cout << "   Index of redundant constraints: " << redundant_constraints_idx.transpose() << std::endl;
-        std::cout << "   Link offset in lagrangian multiplier:" << std::endl;
-        for (auto& link : Get_linklist())
-            std::cout << "      " << link->GetName() << "->GetOffset_L(): " << link->GetOffset_L() << std::endl;
+        std::cout << "   Number of constraints:" << std::endl;
+        std::cout << "   - total (before removal): " << GetSystemDescriptor()->CountActiveConstraints() << std::endl;
+        std::cout << "   - independent: " << independent_row_count << std::endl;
+        std::cout << "   - dependent: " << Cq_rows - independent_row_count << std::endl;
+        std::cout << "   Redundant constraints [Cq_global row idx , linkname, Cq_link row idx]:" << std::endl;
+        for (auto c_sel = 0; c_sel < redundant_constraints_idx.size(); ++c_sel){
+            // find corresponding link
+            std::shared_ptr<ChLinkBase> corr_link;
+            for (const auto& link : Get_linklist()){
+                if (redundant_constraints_idx[c_sel] >= link->GetOffset_L() && redundant_constraints_idx[c_sel] < link->GetOffset_L() + link->GetDOC()){
+                    corr_link = link;
+                    break;
+                }
+            }
+
+
+            std::cout << "      - [" << redundant_constraints_idx[c_sel] << "]: " << corr_link->GetName()
+                              << "[" << (redundant_constraints_idx[c_sel] - corr_link->GetOffset_L()) << "/" << corr_link->GetDOC() << "]" << std::endl;
+        }
     }
 
     // Remove identified redundant constraints
@@ -1567,14 +1576,8 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     Update();
     DescriptorPrepareInject(*descriptor);
 
-    ChSparseMatrix Cq_check;
-    GetSystemDescriptor()->ConvertToMatrixForm(&Cq_check, nullptr, nullptr, nullptr, nullptr, nullptr, true, true);
-
     if (verbose) {
         std::cout << "   New number of constraints: " << GetSystemDescriptor()->CountActiveConstraints() << std::endl;
-        std::cout << "   Cq size before redundancy removal: " << Cq_rows << " X " << Cq_cols << std::endl;
-        std::cout << "   Cq size after redundancy removal: " << Cq_check.rows() << " X " << Cq_check.cols()
-                  << std::endl;
     }
 
     // Actually REMOVE links now having DoC = 0 from system link list
@@ -1589,8 +1592,7 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     }
 
     // Return number of deactivated constraints
-    int reduced_rows = Cq_rows - Cq_check.rows();
-    return reduced_rows;
+    return static_cast<int>(redundant_constraints_idx.size());
 }
 
 // -----------------------------------------------------------------------------
