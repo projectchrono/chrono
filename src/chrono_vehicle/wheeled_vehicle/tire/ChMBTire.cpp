@@ -349,7 +349,7 @@ void MBTireModel::Spring3::CalculateForce() {
 }
 
 // Jacobian matrices are linear combination of the form:
-//    Kfactor * [K] + Rfactor *[R]
+//    Kfactor * [K] + Rfactor * [R]
 // where
 // - [K] is the partial derivative wrt position-level states ("stiffness")
 // - [R] is the partial derivative wrt velocity-level states ("damping")
@@ -358,6 +358,11 @@ void MBTireModel::Spring3::CalculateForce() {
 //   d[f1;f2]/d[n1;n2]
 // where f1, f2 are the nodal forces and n1, n2 are the states of the 2 nodes.
 void MBTireModel::GridSpring2::CalculateJacobian(double Kfactor, double Rfactor) {
+    const auto& pos1 = node1->GetPos();
+    const auto& pos2 = node2->GetPos();
+    const auto& vel1 = node1->GetPos_dt();
+    const auto& vel2 = node2->GetPos_dt();
+
     ChMatrixRef K = KRM.Get_K();
 
     std::cout << "Grid spring2 " << inode1 << "-" << inode2;
@@ -385,6 +390,13 @@ void MBTireModel::EdgeSpring2::CalculateJacobian(bool full_jac, double Kfactor, 
 //   d[f_p;f_c;f_n]/d[n_p;n_c;n_n]
 // where f_p, f_c, and f_n are the nodal forces and n_p, n_c, and n_n are the states of the 3 nodes.
 void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor, double Rfactor) {
+    const auto& pos_p = node_p->GetPos();
+    const auto& pos_c = node_c->GetPos();
+    const auto& pos_n = node_n->GetPos();
+    ////const auto& vel_p = node_p->GetPos_dt();
+    ////const auto& vel_c = node_c->GetPos_dt();
+    ////const auto& vel_n = node_n->GetPos_dt();
+
     ChMatrixRef K = KRM.Get_K();
 
     std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n;

@@ -175,7 +175,10 @@ int main() {
                 break;
             }
             case TireType::MB: {
-                tire = chrono_types::make_shared<hmmwv::HMMWV_MBTire>("Multibody Tire");
+                auto mb_tire = chrono_types::make_shared<hmmwv::HMMWV_MBTire>("Multibody Tire");
+                ////mb_tire->IsStiff(true);   
+                ////mb_tire->UseFullJacobian(false);            
+                tire = mb_tire;
                 break;
             }
         }
