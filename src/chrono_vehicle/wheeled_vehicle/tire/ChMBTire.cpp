@@ -217,6 +217,13 @@ void MBTireModel::CalcNormal(int ir, int id, ChVector<>& normal, double& area) {
 }
 
 // -----------------------------------------------------------------------------
+// Spring forces and Jacobians
+//
+// Jacobian matrices are linear combination of the form:
+//    Kfactor * [K] + Rfactor * [R]
+// where
+// - [K] is the partial derivative wrt position-level states ("stiffness")
+// - [R] is the partial derivative wrt velocity-level states ("damping")
 
 // Constant threshold for checking zero length vectors
 static const double zero_length = 1e-6;
@@ -250,6 +257,98 @@ void MBTireModel::EdgeSpring2::Initialize(bool stiff, bool full_jac) {
         vars.push_back(&node2->Variables());
         KRM.SetVariables(vars);
     }
+}
+
+void MBTireModel::Spring2::CalculateForce() {
+    const auto& pos1 = node1->GetPos();
+    const auto& pos2 = node2->GetPos();
+    const auto& vel1 = node1->GetPos_dt();
+    const auto& vel2 = node2->GetPos_dt();
+
+    auto d = pos2 - pos1;
+    double l = d.Length();
+    assert(l > zero_length);
+    d /= l;
+    double ld = Vdot(vel2 - vel1, d);
+
+    double f = k * (l - l0) + c * ld;
+
+    ChVector<> vforce = f * d;
+    force1 = +vforce;
+    force2 = -vforce;
+}
+
+// Calculate a 3x3 block used in assembling Jacobians for Spring2
+ChMatrix33<> MBTireModel::Spring2::CalculateJacobianBlock(double Kfactor, double Rfactor) {
+    const auto& pos1 = node1->GetPos();
+    const auto& pos2 = node2->GetPos();
+    const auto& vel1 = node1->GetPos_dt();
+    const auto& vel2 = node2->GetPos_dt();
+
+    ChMatrixRef K = KRM.Get_K();
+
+    std::cout << "Grid spring2 " << inode1 << "-" << inode2;
+    std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
+
+    auto d = pos2 - pos1;
+    double l = d.Length();
+    assert(l > zero_length);
+    d /= l;
+    double ld = Vdot(vel2 - vel1, d);
+    auto dd = (vel2 - vel1 - ld * d) / l;
+
+    ChVectorN<double, 3> d_vec = d.eigen();
+    ChVectorN<double, 3> dd_vec = dd.eigen();
+
+    ChMatrix33<> D = d_vec * d_vec.transpose();
+    ChMatrix33<> DD = d_vec * dd_vec.transpose();
+
+    double f = k * (l - l0) + c * ld;
+
+    ChMatrix33<> A = (Kfactor * k + Rfactor * c - Kfactor * f / l) * D +  //
+                     (Kfactor * f / l) * ChMatrix33<>::Identity() +       //
+                     Kfactor * c * DD;
+
+    return A;
+}
+
+// For a linear spring connecting two grid nodes, the Jacobian is a 6x6 matrix:
+//   d[f1;f2]/d[n1;n2]
+// where f1, f2 are the nodal forces and n1, n2 are the states of the 2 nodes.
+void MBTireModel::GridSpring2::CalculateJacobian(double Kfactor, double Rfactor) {
+    ChMatrixRef K = KRM.Get_K();
+
+    ////std::cout << "Grid spring2 " << inode1 << "-" << inode2;
+    ////std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
+
+    auto A = CalculateJacobianBlock(Kfactor, Rfactor);
+
+    K.block(0, 0, 3, 3) = -A;  // block for F1 and node1
+    K.block(0, 3, 3, 3) = A;   // block for F1 and node2
+    K.block(3, 0, 3, 3) = A;   // block for F2 and node1
+    K.block(3, 3, 3, 3) = -A;  // block for F2 and node2
+}
+
+// For a linear spring connecting a rim node and a grid node, the Jacobian is a:
+//    9x9 matrix (if full_jac=true) or
+//    3x3 matrix (if full_jac=false)
+// Note the order of generalized forces and states is:
+//    wheel state (6)
+//    node2 state (3)
+void MBTireModel::EdgeSpring2::CalculateJacobian(bool full_jac, double Kfactor, double Rfactor) {
+    ChMatrixRef K = KRM.Get_K();
+
+    ////std::cout << "Edge spring2 " << inode1 << "-" << inode2;
+    ////std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
+
+    auto A = CalculateJacobianBlock(Kfactor, Rfactor);
+
+    if (!full_jac) {
+        K.block(0, 0, 3, 3) = A;  // block for F2 and node2
+        return;
+    }
+
+    //// TODO - full_jac = true
 }
 
 void MBTireModel::Spring3::Initialize() {
@@ -288,24 +387,6 @@ void MBTireModel::EdgeSpring3::Initialize(bool stiff, bool full_jac) {
     }
 }
 
-void MBTireModel::Spring2::CalculateForce() {
-    const auto& pos1 = node1->GetPos();
-    const auto& pos2 = node2->GetPos();
-    const auto& vel1 = node1->GetPos_dt();
-    const auto& vel2 = node2->GetPos_dt();
-
-    auto dir = pos2 - pos1;
-    double length = dir.Length();
-    assert(length > zero_length);
-    dir /= length;
-    double speed = Vdot(vel2 - vel1, dir);
-    double force = -k * (length - l0) - c * speed;
-
-    ChVector<> vforce = force * dir;
-    force1 = -vforce;
-    force2 = +vforce;
-}
-
 void MBTireModel::Spring3::CalculateForce() {
     const auto& pos_p = node_p->GetPos();
     const auto& pos_c = node_c->GetPos();
@@ -314,20 +395,20 @@ void MBTireModel::Spring3::CalculateForce() {
     ////const auto& vel_c = node_c->GetPos_dt();
     ////const auto& vel_n = node_n->GetPos_dt();
 
-    auto dir_p = pos_c - pos_p;
-    auto dir_n = pos_n - pos_c;
-    double length_p = dir_p.Length();
-    double length_n = dir_n.Length();
-    assert(length_p > zero_length);
+    auto d_p = pos_c - pos_p;
+    auto d_n = pos_n - pos_c;
+    double l_p = d_p.Length();
+    double l_n = d_n.Length();
+    assert(l_p > zero_length);
     assert(length_n > zero_length);
-    dir_p /= length_p;
-    dir_n /= length_n;
+    d_p /= l_p;
+    d_n /= l_n;
 
-    auto cross = Vcross(dir_p, dir_n);
+    auto cross = Vcross(d_p, d_n);
     double length_cross = cross.Length();
-    double angle = std::asin(length_cross);
+    double a = std::asin(length_cross);
 
-    if (std::abs(angle - a0) < zero_angle) {
+    if (std::abs(a - a0) < zero_angle) {
         force_p = VNULL;
         force_c = VNULL;
         force_n = VNULL;
@@ -340,67 +421,22 @@ void MBTireModel::Spring3::CalculateForce() {
         cross = wheel->TransformDirectionLocalToParent(t0);
     }
 
-    auto F_p = k * ((angle - a0) / length_p) * Vcross(cross, dir_p);
-    auto F_n = k * ((angle - a0) / length_n) * Vcross(cross, dir_n);
+    auto F_p = k * ((a - a0) / l_p) * Vcross(cross, d_p);
+    auto F_n = k * ((a - a0) / l_n) * Vcross(cross, d_n);
 
     force_p = -F_p;
     force_c = F_p + F_n;
     force_n = -F_n;
 }
 
-// Jacobian matrices are linear combination of the form:
-//    Kfactor * [K] + Rfactor * [R]
-// where
-// - [K] is the partial derivative wrt position-level states ("stiffness")
-// - [R] is the partial derivative wrt velocity-level states ("damping")
-
-// For a linear spring connecting two grid nodes, the Jacobian is a 6x6 matrix:
-//   d[f1;f2]/d[n1;n2]
-// where f1, f2 are the nodal forces and n1, n2 are the states of the 2 nodes.
-void MBTireModel::GridSpring2::CalculateJacobian(double Kfactor, double Rfactor) {
-    const auto& pos1 = node1->GetPos();
-    const auto& pos2 = node2->GetPos();
-    const auto& vel1 = node1->GetPos_dt();
-    const auto& vel2 = node2->GetPos_dt();
-
-    ChMatrixRef K = KRM.Get_K();
-
-    std::cout << "Grid spring2 " << inode1 << "-" << inode2;
-    std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
-
-    //// TODO
-}
-
-// For a linear spring connecting a rim node and a grid node, the Jacobian is a:
-//    9x9 matrix (if full_jac=true) or
-//    3x3 matrix (if full_jac=false)
-// Note the order of generalized forces and states is:
-//    wheel state (6)
-//    node2 state (3)
-void MBTireModel::EdgeSpring2::CalculateJacobian(bool full_jac, double Kfactor, double Rfactor) {
-    ChMatrixRef K = KRM.Get_K();
-
-    std::cout << "Edge spring2 " << inode1 << "-" << inode2;
-    std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
-
-    //// TODO
-}
-
 // For a rotational spring connecting three grid nodes, the Jacobian is a 9x9 matrix:
 //   d[f_p;f_c;f_n]/d[n_p;n_c;n_n]
 // where f_p, f_c, and f_n are the nodal forces and n_p, n_c, and n_n are the states of the 3 nodes.
 void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor, double Rfactor) {
-    const auto& pos_p = node_p->GetPos();
-    const auto& pos_c = node_c->GetPos();
-    const auto& pos_n = node_n->GetPos();
-    ////const auto& vel_p = node_p->GetPos_dt();
-    ////const auto& vel_c = node_c->GetPos_dt();
-    ////const auto& vel_n = node_n->GetPos_dt();
-
     ChMatrixRef K = KRM.Get_K();
 
-    std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
-    std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
+    ////std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
+    ////std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
 
     //// TODO
 }
@@ -415,8 +451,8 @@ void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor, double Rfactor)
 void MBTireModel::EdgeSpring3::CalculateJacobian(bool full_jac, double Kfactor, double Rfactor) {
     ChMatrixRef K = KRM.Get_K();
 
-    std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
-    std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
+    ////std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
+    ////std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
 
     //// TODO
 }
@@ -802,7 +838,8 @@ void MBTireModel::SetRimNodeStates() {
     }
 }
 
-// Calculate forces at each node and accumulate wheel loads, then use ChNodeFEAxyz::SetForce
+// Calculate and set forces at each node and accumulate wheel loads.
+// Note: the positions and velocities of nodes attached to the wheel are assumed to be updated.
 void MBTireModel::CalculateForces() {
     // Initialize nodal force accumulators
     std::vector<ChVector<>> nodal_forces(m_num_nodes, VNULL);
@@ -811,10 +848,6 @@ void MBTireModel::CalculateForces() {
     //// TODO: update wheel torque
     m_wheel_force = VNULL;   // body force, expressed in global frame
     m_wheel_torque = VNULL;  // body torque, expressed in local frame
-
-    // Wheel center position and velocity (expressed in absolute frame)
-    const auto& w_pos = m_wheel->GetPos();
-    const auto& w_vel = m_wheel->GetPos_dt();
 
     // ------------ Gravitational and pressure forces
 

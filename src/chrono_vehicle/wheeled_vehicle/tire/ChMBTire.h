@@ -278,6 +278,7 @@ class MBTireModel : public ChPhysicsItem {
 
         void Initialize();
         void CalculateForce();
+        ChMatrix33<> CalculateJacobianBlock(double Kfactor, double Rfactor);
     };
 
     // Rotational spring between three FEA nodes.
