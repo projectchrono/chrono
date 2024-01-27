@@ -688,7 +688,7 @@ class ChEnumMapper : public ChEnumMapperBase {
         }
         // not found, just string as number:
         char buffer[10];
-        sprintf(buffer, "%d", GetValueAsInt());
+        snprintf(buffer, sizeof(buffer), "%d", GetValueAsInt());
         return std::string(buffer);
     };
 
@@ -938,7 +938,7 @@ class ChArchiveOut : public ChArchive {
         this->out_array_pre(specVal, arraysize);
         for (size_t i = 0; i < arraysize; ++i) {
             char buffer[20];
-            sprintf(buffer, "%lu", (unsigned long)i);
+            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)i);
             ChNameValue<T> array_val(buffer, bVal.value()[i]);
             this->out(array_val);
             this->out_array_between(specVal, arraysize);
@@ -953,7 +953,7 @@ class ChArchiveOut : public ChArchive {
         this->out_array_pre(specVal, bVal.value().size());
         for (size_t i = 0; i < bVal.value().size(); ++i) {
             char buffer[20];
-            sprintf(buffer, "%lu", (unsigned long)i);
+            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)i);
             ChNameValue<T> array_val(buffer, bVal.value()[i]);
             this->out(array_val);
             this->out_array_between(specVal, bVal.value().size());
@@ -969,7 +969,7 @@ class ChArchiveOut : public ChArchive {
         size_t i = 0;
         for (iter = bVal.value().begin(); iter != bVal.value().end(); ++iter, ++i) {
             char buffer[20];
-            sprintf(buffer, "%lu", (unsigned long)i);
+            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)i);
             ChNameValue<T> array_val(buffer, (*iter));
             this->out(array_val);
             this->out_array_between(specVal, bVal.value().size());
@@ -991,7 +991,7 @@ class ChArchiveOut : public ChArchive {
         int i = 0;
         for (auto it = bVal.value().begin(); it != bVal.value().end(); ++it) {
             char buffer[20];
-            sprintf(buffer, "%lu", (unsigned long)i);
+            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)i);
             ChNameValue<std::pair<T, Tv>> array_key(buffer, (*it));
             this->out(array_key);
             this->out_array_between(specVal, bVal.value().size());
@@ -1230,7 +1230,7 @@ class ChArchiveIn : public ChArchive {
         }
         for (size_t i = 0; i < arraysize; ++i) {
             char idname[20];
-            sprintf(idname, "%lu", (unsigned long)i);
+            snprintf(idname, sizeof(idname), "%lu", (unsigned long)i);
             T element;
             ChNameValue<T> array_val(idname, element);
             this->in(array_val);
@@ -1251,7 +1251,7 @@ class ChArchiveIn : public ChArchive {
         bVal.value().resize(arraysize);
         for (size_t i = 0; i < arraysize; ++i) {
             char idname[20];
-            sprintf(idname, "%lu", (unsigned long)i);
+            snprintf(idname, sizeof(idname), "%lu", (unsigned long)i);
             T element;
             ChNameValue<T> array_val(idname, element);
             this->in(array_val);
@@ -1270,7 +1270,7 @@ class ChArchiveIn : public ChArchive {
             return false;
         for (size_t i = 0; i < arraysize; ++i) {
             char idname[20];
-            sprintf(idname, "%lu", (unsigned long)i);
+            snprintf(idname, sizeof(idname), "%lu", (unsigned long)i);
             T element;
             ChNameValue<T> array_val(idname, element);
             this->in(array_val);
@@ -1297,7 +1297,7 @@ class ChArchiveIn : public ChArchive {
             return false;
         for (size_t i = 0; i < arraysize; ++i) {
             char idname[20];
-            sprintf(idname, "%lu", (unsigned long)i);
+            snprintf(idname, sizeof(idname), "%lu", (unsigned long)i);
             std::pair<T, Tv> mpair;
             ChNameValue<std::pair<T, Tv>> array_val(idname, mpair);
             this->in(array_val);

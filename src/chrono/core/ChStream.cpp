@@ -47,7 +47,7 @@ ChStreamOutAscii& ChStreamOutAscii::operator<<(const char* str) {
 ChStreamOutAscii& ChStreamOutAscii::operator<<(int unVal) {
     char buffer[100];
 
-    sprintf(buffer, "%d", unVal);
+    snprintf(buffer, sizeof(buffer), "%d", unVal);
 
     Output(buffer, strlen(buffer));
 
@@ -57,7 +57,7 @@ ChStreamOutAscii& ChStreamOutAscii::operator<<(int unVal) {
 ChStreamOutAscii& ChStreamOutAscii::operator<<(unsigned int unVal) {
     char buffer[100];
 
-    sprintf(buffer, "%u", unVal);
+    snprintf(buffer, sizeof(buffer), "%u", unVal);
 
     Output(buffer, strlen(buffer));
 
@@ -66,7 +66,7 @@ ChStreamOutAscii& ChStreamOutAscii::operator<<(unsigned int unVal) {
 ChStreamOutAscii& ChStreamOutAscii::operator<<(unsigned long unVal) {
     char buffer[100];
 
-    sprintf(buffer, "%lu", unVal);
+    snprintf(buffer, sizeof(buffer), "%lu", unVal);
 
     Output(buffer, strlen(buffer));
 
@@ -75,7 +75,7 @@ ChStreamOutAscii& ChStreamOutAscii::operator<<(unsigned long unVal) {
 ChStreamOutAscii& ChStreamOutAscii::operator<<(unsigned long long unVal) {
     char buffer[100];
 
-    sprintf(buffer, "%llu", unVal);
+    snprintf(buffer, sizeof(buffer), "%llu", unVal);
 
     Output(buffer, strlen(buffer));
 
@@ -86,7 +86,7 @@ ChStreamOutAscii& ChStreamOutAscii::operator <<(long lVal)
 {
     char buffer[100];
 
-    sprintf(buffer, "%ld", lVal);
+    snprintf(buffer, sizeof(buffer), "%ld", lVal);
 
     Output(buffer, strlen(buffer));
 
@@ -105,7 +105,7 @@ ChStreamOutAscii& ChStreamOutAscii::operator <<(unsigned long ulVal)
 {
     char buffer[100];
 
-    sprintf(buffer, "%lu", ulVal);
+    snprintf(buffer, sizeof(buffer), "%lu", ulVal);
 
     Output(buffer, strlen(buffer));
 
@@ -115,7 +115,7 @@ ChStreamOutAscii& ChStreamOutAscii::operator <<(unsigned long ulVal)
 ChStreamOutAscii& ChStreamOutAscii::operator<<(double dVal) {
     char buffer[100];
 
-    sprintf(buffer, number_format, dVal);
+    snprintf(buffer, sizeof(buffer), number_format, dVal);
 
     Output(buffer, strlen(buffer));
 
@@ -125,7 +125,7 @@ ChStreamOutAscii& ChStreamOutAscii::operator<<(double dVal) {
 ChStreamOutAscii& ChStreamOutAscii::operator<<(float dVal) {
     char buffer[100];
 
-    sprintf(buffer, number_format, ((double)dVal));
+    snprintf(buffer, sizeof(buffer), number_format, ((double)dVal));
 
     Output(buffer, strlen(buffer));
 

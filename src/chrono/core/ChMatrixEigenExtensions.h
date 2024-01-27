@@ -97,7 +97,7 @@ void ArchiveOut(chrono::ChArchiveOut& marchive) {
         marchive.out_array_pre(specVal, tot_elements);
 		char idname[21]; // only for xml, xml serialization needs unique element name
         for (size_t i = 0; i < tot_elements; i++) {
-			sprintf(idname, "%lu", (unsigned long)i);
+			snprintf(idname, sizeof(idname), "%lu", (unsigned long)i);
             marchive << chrono::CHNVP(derived()((Eigen::Index)i), idname);
             marchive.out_array_between(specVal, tot_elements);
         }
@@ -122,7 +122,7 @@ void ArchiveIn(chrono::ChArchiveIn& marchive) {
     marchive.in_array_pre("data", tot_elements);
 	char idname[20]; // only for xml, xml serialization needs unique element name
     for (size_t i = 0; i < tot_elements; i++) {
-		sprintf(idname, "%lu", (unsigned long)i);
+		snprintf(idname, sizeof(idname), "%lu", (unsigned long)i);
         marchive >> chrono::CHNVP(derived()((Eigen::Index)i), idname);
         marchive.in_array_between("data");
     }

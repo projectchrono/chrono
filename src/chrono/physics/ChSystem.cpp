@@ -1430,7 +1430,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
     if (save_M) {
         ChSparseMatrix mM;
         this->GetMassMatrix(&mM);
-        sprintf(filename, "%s%s", path, "_M.dat");
+        snprintf(filename, sizeof(filename), "%s%s", path, "_M.dat");
         ChStreamOutAsciiFile file_M(filename);
         file_M.SetNumFormat(numformat);
         StreamOutSparseMatlabFormat(mM, file_M);
@@ -1438,7 +1438,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
     if (save_K) {
         ChSparseMatrix mK;
         this->GetStiffnessMatrix(&mK);
-        sprintf(filename, "%s%s", path, "_K.dat");
+        snprintf(filename, sizeof(filename), "%s%s", path, "_K.dat");
         ChStreamOutAsciiFile file_K(filename);
         file_K.SetNumFormat(numformat);
         StreamOutSparseMatlabFormat(mK, file_K);
@@ -1446,7 +1446,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
     if (save_R) {
         ChSparseMatrix mR;
         this->GetDampingMatrix(&mR);
-        sprintf(filename, "%s%s", path, "_R.dat");
+        snprintf(filename, sizeof(filename), "%s%s", path, "_R.dat");
         ChStreamOutAsciiFile file_R(filename);
         file_R.SetNumFormat(numformat);
         StreamOutSparseMatlabFormat(mR, file_R);
@@ -1454,7 +1454,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
     if (save_Cq) {
         ChSparseMatrix mCq;
         this->GetConstraintJacobianMatrix(&mCq);
-        sprintf(filename, "%s%s", path, "_Cq.dat");
+        snprintf(filename, sizeof(filename), "%s%s", path, "_Cq.dat");
         ChStreamOutAsciiFile file_Cq(filename);
         file_Cq.SetNumFormat(numformat);
         StreamOutSparseMatlabFormat(mCq, file_Cq);

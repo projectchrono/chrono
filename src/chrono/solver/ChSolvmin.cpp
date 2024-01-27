@@ -337,7 +337,7 @@ bool ChOptimizerLocal::DoOptimize() {
     /*
     switch (err_code)
     {
-    case 0: sprintf (err_message, "OK: objective function optimized in %d steps", iters_done); break;
+    case 0: snprintf (err_message, sizeof(err_message), "OK: objective function optimized in %d steps", iters_done); break;
     case 2: strcpy  (err_message, "Error: insufficient memory for NR optimization"); break;
     case 3: strcpy  (err_message, "Error: objective function equals infinity"); break;
     case 4: strcpy  (err_message, "Error: zero gradient in local optimization"); break;
@@ -1010,20 +1010,20 @@ bool ChOptimizerGenetic::DoOptimize() {
         // -- break cycle conditions
         if (stop_by_stdeviation)
             if (stdeviation <= stop_stdeviation) {
-                sprintf(err_message, "OK, imposed standard deviation reached in %ld generations",
+                snprintf(err_message, sizeof(err_message), "OK, imposed standard deviation reached in %ld generations",
                         (long)generations_done);
                 break;
             }
         if (stop_by_fitness)
             if (max_fitness >= stop_fitness) {
-                sprintf(err_message, "OK, imposed max fitness reached in %ld generations", (long)generations_done);
+                snprintf(err_message, sizeof(err_message), "OK, imposed max fitness reached in %ld generations", (long)generations_done);
                 break;
             }
 
         // -- user break?
         if (user_break) {
             if (*err_message == 0)
-                sprintf(err_message, "OK, user break");
+                snprintf(err_message, sizeof(err_message), "OK, user break");
             break;
         }
 
@@ -1049,7 +1049,7 @@ bool ChOptimizerGenetic::DoOptimize() {
     GetLog().SetCurrentLevel(oldfilemode);
 
     if (generations_done >= max_generations)
-        sprintf(err_message, "OK, all %d generations done", max_generations);
+        snprintf(err_message, sizeof(err_message), "OK, all %d generations done", max_generations);
 
     // on termination, reset the system at the value of the fenotypes of the best indiv.
 
@@ -1240,7 +1240,7 @@ bool ChOptimizerGradient::DoOptimize() {
 
             if (fabs(fxmid - fx) <= fun_tol) {
                 // cout << "\n              ---- ";
-                sprintf(err_message, "OK,function tolerance reached.");
+                snprintf(err_message, sizeof(err_message), "OK,function tolerance reached.");
                 goto end_opt;
             }
             // ***TO DO*** stop after "arg_tol" passed
@@ -1262,13 +1262,13 @@ bool ChOptimizerGradient::DoOptimize() {
 
         if (fx_evaluations > maxevaluations) {
             // cout << "\n          limit on fx evals----= ";
-            sprintf(err_message, "OK, limit on max number of fx evaluations reached in %ld steps",
+            snprintf(err_message, sizeof(err_message), "OK, limit on max number of fx evaluations reached in %ld steps",
                     (long)grad_evaluations);
             break;
         }
         if (grad_evaluations > maxgradients) {
             // cout << "\n          limit on max gradients ---- ";
-            sprintf(err_message, "OK, limit on max number of %ld gradient evaluations reached.",
+            snprintf(err_message, sizeof(err_message), "OK, limit on max number of %ld gradient evaluations reached.",
                     (long)grad_evaluations);
             break;
         }
