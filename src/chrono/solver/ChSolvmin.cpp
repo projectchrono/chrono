@@ -40,7 +40,6 @@ namespace chrono {
 void null_entry_solv_opt(double x[], double g[]) {}
 
 ChOptimizer::ChOptimizer() {
-    strcpy(err_message, "");
     C_vars = 0;
     afunction = 0;
     afunctionGrad = 0;
@@ -64,7 +63,7 @@ ChOptimizer::ChOptimizer() {
 
 ChOptimizer::ChOptimizer(const ChOptimizer& other) {
     // copy error message
-    strcpy(err_message, other.err_message);
+    err_message = other.err_message;
 
     minimize = other.minimize;
     error_code = other.error_code;
@@ -181,13 +180,13 @@ bool ChOptimizer::PreOptimize() {
     break_cyclecounter = 0;
 
     // reset error message
-    strcpy(err_message, "");
+    err_message = "";
 
     // check count vars
     int nv = GetNumOfVars();
     if (nv < 1) {
         error_code = OPT_ERR_NOVARS;
-        strcpy(err_message, "Error: no variables defined");
+        err_message = "Error: no variables defined";
         return false;
     }
 
@@ -335,14 +334,25 @@ bool ChOptimizerLocal::DoOptimize() {
 
     // parse the error message
     /*
-    switch (err_code)
-    {
-    case 0: sprintf (err_message, "OK: objective function optimized in %d steps", iters_done); break;
-    case 2: strcpy  (err_message, "Error: insufficient memory for NR optimization"); break;
-    case 3: strcpy  (err_message, "Error: objective function equals infinity"); break;
-    case 4: strcpy  (err_message, "Error: zero gradient in local optimization"); break;
-    case 7: strcpy  (err_message, "Warning: number of iterations exceeded the limit"); break;
-    case 8: strcpy  (err_message, "Warning: user imposed stop"); break;
+    switch (err_code) {
+        case 0:
+            err_message = "OK: objective function optimized in " + std::to_string(iters_done) + " steps ";
+            break;
+        case 2:
+            err_message = "Error: insufficient memory for NR optimization";
+            break;
+        case 3:
+            err_message = "Error: objective function equals infinity";
+            break;
+        case 4:
+            err_message = "Error: zero gradient in local optimization";
+            break;
+        case 7:
+            err_message = "Warning: number of iterations exceeded the limit";
+            break;
+        case 8:
+            err_message = "Warning: user imposed stop";
+            break;
     }
     */
 
@@ -1010,20 +1020,19 @@ bool ChOptimizerGenetic::DoOptimize() {
         // -- break cycle conditions
         if (stop_by_stdeviation)
             if (stdeviation <= stop_stdeviation) {
-                sprintf(err_message, "OK, imposed standard deviation reached in %ld generations",
-                        (long)generations_done);
+                err_message = "OK, imposed std. dev. reached in " + std::to_string(generations_done) + " generations";
                 break;
             }
         if (stop_by_fitness)
             if (max_fitness >= stop_fitness) {
-                sprintf(err_message, "OK, imposed max fitness reached in %ld generations", (long)generations_done);
+                err_message = "OK, imposed max fitness reached in " + std::to_string(generations_done) + "generations";
                 break;
             }
 
         // -- user break?
         if (user_break) {
-            if (*err_message == 0)
-                sprintf(err_message, "OK, user break");
+            if (err_message.empty())
+                err_message = "OK, user break";
             break;
         }
 
@@ -1049,7 +1058,7 @@ bool ChOptimizerGenetic::DoOptimize() {
     GetLog().SetCurrentLevel(oldfilemode);
 
     if (generations_done >= max_generations)
-        sprintf(err_message, "OK, all %d generations done", max_generations);
+        err_message = "OK, all " + std::to_string(max_generations) + " generations done";
 
     // on termination, reset the system at the value of the fenotypes of the best indiv.
 
@@ -1067,7 +1076,6 @@ bool ChOptimizerGenetic::DoOptimize() {
     }
 
     memcpy(xv, myvars, (sizeof(double) * nv));
-    //	Vars_to_System(myvars);
 
     free(myvars);  // delete the array of variables
 
@@ -1239,8 +1247,7 @@ bool ChOptimizerGradient::DoOptimize() {
             }
 
             if (fabs(fxmid - fx) <= fun_tol) {
-                // cout << "\n              ---- ";
-                sprintf(err_message, "OK,function tolerance reached.");
+                err_message = "OK,function tolerance reached.";
                 goto end_opt;
             }
             // ***TO DO*** stop after "arg_tol" passed
@@ -1261,15 +1268,13 @@ bool ChOptimizerGradient::DoOptimize() {
         fx = Eval_fx(mX);
 
         if (fx_evaluations > maxevaluations) {
-            // cout << "\n          limit on fx evals----= ";
-            sprintf(err_message, "OK, limit on max number of fx evaluations reached in %ld steps",
-                    (long)grad_evaluations);
+            err_message =
+                "OK, limit on max number of fx evaluations reached in " + std::to_string(grad_evaluations) + " steps";
             break;
         }
         if (grad_evaluations > maxgradients) {
-            // cout << "\n          limit on max gradients ---- ";
-            sprintf(err_message, "OK, limit on max number of %ld gradient evaluations reached.",
-                    (long)grad_evaluations);
+            err_message =
+                "OK, limit on max number of " + std::to_string(grad_evaluations) + " gradient evaluations reached.";
             break;
         }
     }
@@ -1343,7 +1348,7 @@ bool ChOptimizerHybrid::DoOptimize() {
         current_phase = 1;
 
         if (!genetic_opt->Optimize()) {
-            strcpy(err_message, genetic_opt->err_message);
+            err_message = genetic_opt->err_message;
             return false;
         }
 
@@ -1358,7 +1363,7 @@ bool ChOptimizerHybrid::DoOptimize() {
         current_phase = 2;
 
         if (!local_opt->Optimize()) {
-            strcpy(err_message, local_opt->err_message);
+            err_message = local_opt->err_message;
             return false;
         }
 
@@ -1370,7 +1375,7 @@ bool ChOptimizerHybrid::DoOptimize() {
     current_phase = 0;
 
     // set class values after optimization
-    strcpy(err_message, "Ok, hybrid optimization has been terminated");
+    err_message = "Ok, hybrid optimization has been terminated";
 
     // on termination, reset the system at the value of the fenotypes of the best indiv.
     GetLog() << "\n\nHYBRID OPTIMIZATION TERMINATED.";
