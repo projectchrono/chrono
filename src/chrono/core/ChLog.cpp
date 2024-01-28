@@ -67,18 +67,4 @@ ChLog& ChLog::operator-(eChLogLevel mnewlev) {
     return *this;
 }
 
-/*
-void ChLog::PrintCurTime()
-{
-    char dateString[52];
-    SYSTEMTIME cur;
-    GetSystemTime(&cur);
-
-    sprintf(dateString,"%d/%d/%d, %d:%d:%d - \n\n", cur.wYear, cur.wMonth,
-            cur.wDay, cur.wHour, cur.wMinute, cur.wSecond);
-
-    Output(dateString);
-}
-*/
-
 }  // end namespace chrono

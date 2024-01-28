@@ -14,15 +14,13 @@
 #define CHFILEPS_H
 
 #include "chrono/core/ChStream.h"
-//#include "chrono/core/ChMatrix.h"
+// #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChVector2.h"
 
 namespace chrono {
 
-/// Class for RGB color for a PostScript
-/// item (line, circle, etc)
-
+/// Class for RGB color for a PostScript item (line, circle, etc).
 class ChApi ChFile_ps_color {
   public:
     double r;
@@ -51,9 +49,7 @@ class ChApi ChFile_ps_color {
     static const ChFile_ps_color BLACK;
 };
 
-/// Class for settings of an axis (x or y, or t) of a 2D
-/// plotting of a function on a EPS file.
-
+/// Class for settings of an axis (x or y, or t) of a 2D plotting of a function on a EPS file.
 class ChApi ChFile_ps_axis_setting {
   public:
     bool axis;
@@ -86,9 +82,7 @@ class ChApi ChFile_ps_axis_setting {
     }
 };
 
-/// Class for generic settings of a 2D
-/// plotting of a function on a EPS file.
-
+/// Class for generic settings of a 2D plotting of a function on a EPS file.
 class ChApi ChFile_ps_graph_setting {
   public:
     ChFile_ps_axis_setting Xaxis;
@@ -125,22 +119,19 @@ class ChApi ChFile_ps_graph_setting {
 };
 
 /// Class for postScript(TM) output.
-/// Defines special file class ChFile_ps for EPS
-/// or PS output, i.e. Encapsulated PostScript or
-/// PostScript (TM) files including vectorial plots,
-/// graphs, lines, fonts, etc.
-
+/// Defines special file class ChFile_ps for EPS or PS output, i.e. Encapsulated PostScript or PostScript (TM) files
+/// including vectorial plots, graphs, lines, fonts, etc.
 class ChApi ChFile_ps : public ChStreamOutAsciiFile {
   protected:
-    double unit_scale;     // (72)/(current length unit, in inches)
+    double unit_scale;      // (72)/(current length unit, in inches)
     ChVector2<> page_size;  // max width/height, or initial w/h of bbox for eps
 
     // graph-viewport variables, for transformation 2d graph space <-> page space
-    ChVector2<> G_p;         // viewport position of left-lower corner, in page space
-    ChVector2<> Gs_p;        // viewport width/height, in page space
-    ChVector2<> Gc_g;        // viewport center, in world or graph space;
-    ChVector2<> Gz;          // viewport x,y zoom factors, as (page unit)/(2dgraph units)
-    char prolog_file[150];  // path and name of Chrono eps prolog file (default "prolog.ps")
+    ChVector2<> G_p;          // viewport position of left-lower corner, in page space
+    ChVector2<> Gs_p;         // viewport width/height, in page space
+    ChVector2<> Gc_g;         // viewport center, in world or graph space;
+    ChVector2<> Gz;           // viewport x,y zoom factors, as (page unit)/(2dgraph units)
+    std::string prolog_file;  // path and name of Chrono eps prolog file (default "prolog.ps")
 
   public:
     enum class Justification {
@@ -149,33 +140,23 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
         CENTER,
     };
 
-    enum class Space {
-        PAGE,
-        GRAPH
-    };
+    enum class Space { PAGE, GRAPH };
 
     static const double PS_SCALE_CENTIMETERS;
     static const double PS_SCALE_INCHES;
 
-    //
-    // CONSTRUCTORS
-    //
-
-    // ChFile_ps(char m_name[]) : ChStreamOutAsciiFile(m_name);
     /// Constructor, with optional position and size of bounding box
-    ChFile_ps(char* m_name,
+    ChFile_ps(const std::string& filename,
               double x = 1,
               double y = 1,
               double w = 20,
               double h = 29,
-              char* m_prolog_file = (char*)"prolog.ps");
+              const std::string& prolog_filename = "prolog.ps");
 
     /// Destructor. Write trailer to PS file and close it.
     ~ChFile_ps();
 
-    //
     // FUNCTIONS
-    //
 
     // Functions for setting the viewport of graphs for graph plotting
 
@@ -233,7 +214,7 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
 
     void CustomPsCommand(char* command);
     void MoveTo(ChVector2<> mp);  // move the cursor
-    void StartLine();            // always sequence StartLine()..AddLinePoint()..PaintStroke()
+    void StartLine();             // always sequence StartLine()..AddLinePoint()..PaintStroke()
     void AddLinePoint(ChVector2<> mp);
     void CloseLine();
     void PaintStroke();  // after the line has been set, this draws it!
@@ -287,7 +268,6 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
 
 extern ChApi ChVector2<> pv_set(double x, double y);
 extern ChApi ChVector2<> pv_set(ChVector<> mv);
-
 
 }  // end namespace chrono
 
