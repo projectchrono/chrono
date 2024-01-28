@@ -107,7 +107,7 @@ class ChApi ChStreamOutAscii : public ChStreamOut {
     ChStreamOutAscii& operator<<(unsigned int unVal);
     ChStreamOutAscii& operator<<(char* str);
     ChStreamOutAscii& operator<<(const char* str);
-    ChStreamOutAscii& operator<<(std::string& str);
+    ChStreamOutAscii& operator<<(const std::string& str);
     ChStreamOutAscii& operator<<(unsigned long unVal);
     ChStreamOutAscii& operator<<(unsigned long long unVal);
 
@@ -265,7 +265,7 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
     ChStreamOutBinary& operator<<(unsigned int Val);
     ChStreamOutBinary& operator<<(double Val);
     ChStreamOutBinary& operator<<(float Val);
-    ChStreamOutBinary& operator<<(std::string& str);
+    ChStreamOutBinary& operator<<(const std::string& str);
     ChStreamOutBinary& operator<<(long Val);
     ChStreamOutBinary& operator<<(unsigned long Val);
     ChStreamOutBinary& operator<<(unsigned long long Val);
