@@ -98,10 +98,10 @@ int main(int argc, char* argv[]) {
 
         // Step 1.
         // create a .dat file with three columns of demo data:
-        std::string datafile = out_dir + "/test_gnuplot_data.dat";
-        ChStreamOutAsciiFile mdatafile(datafile.c_str());
+        std::string datafilename = out_dir + "/test_gnuplot_data.dat";
+        ChStreamOutAsciiFile datafile(datafilename);
         for (double x = 0; x < 10; x += 0.1)
-            mdatafile << x << ", " << sin(x) << ", " << cos(x) << "\n";
+            datafile << x << ", " << sin(x) << ", " << cos(x) << "\n";
 
         // Step 2.
         // Create the plot.
@@ -112,8 +112,8 @@ int main(int argc, char* argv[]) {
         mplot.SetGrid();
         mplot.SetLabelX("x");
         mplot.SetLabelY("y");
-        mplot.Plot(datafile, 1, 2, "sine", " with lines lt -1 lw 2");
-        mplot.Plot(datafile, 1, 3, "cosine", " with lines lt 2 lw 2");
+        mplot.Plot(datafilename, 1, 2, "sine", " with lines lt -1 lw 2");
+        mplot.Plot(datafilename, 1, 3, "cosine", " with lines lt 2 lw 2");
     }
 
     {

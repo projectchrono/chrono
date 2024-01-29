@@ -1072,7 +1072,6 @@ set(ChronoEngine_motion_functions_SOURCES
     motion_functions/ChFunction_DoubleS.cpp
     motion_functions/ChFunction_Fillet3.cpp
     motion_functions/ChFunction_Integrate.cpp
-    motion_functions/ChFunction_Matlab.cpp
     motion_functions/ChFunction_Mirror.cpp
     motion_functions/ChFunction_Mocap.cpp
     motion_functions/ChFunction_Noise.cpp
@@ -1110,7 +1109,6 @@ set(ChronoEngine_motion_functions_HEADERS
     motion_functions/ChFunction_DoubleS.h
     motion_functions/ChFunction_Fillet3.h
     motion_functions/ChFunction_Integrate.h
-    motion_functions/ChFunction_Matlab.h
     motion_functions/ChFunction_Mirror.h
     motion_functions/ChFunction_Mocap.h
     motion_functions/ChFunction_Noise.h

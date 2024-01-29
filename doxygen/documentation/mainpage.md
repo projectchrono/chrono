@@ -41,7 +41,7 @@ Instructions on **how to set up a project** that uses Chrono.
  
   External GPU solver for DEM simulations
 
-- [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
+- [Chrono::SolidWorks](@ref manual_chrono_solidworks)
 
   SolidWorks plugin for exporting CAD data to Chrono
   

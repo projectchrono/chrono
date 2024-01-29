@@ -157,8 +157,7 @@ class JSONStats : public opengl::ChOpenGLStats {
     JSONStats() : ChOpenGLStats() {}
     virtual void GenerateStats(ChSystem& sys) override {
         char buffer[150];
-        sprintf(buffer, "JSON FILE:  %s", json_file.c_str());
-        text.Render(buffer, screen.LEFT, screen.TOP - 1 * screen.SPACING, screen.SX, screen.SY);
+        text.Render("JSON FILE: " + json_file, screen.LEFT, screen.TOP - 1 * screen.SPACING, screen.SX, screen.SY);
 
         sprintf(buffer, "TIME:       %04f", sys.GetChTime());
         text.Render(buffer, screen.LEFT, screen.TOP - 3 * screen.SPACING, screen.SX, screen.SY);

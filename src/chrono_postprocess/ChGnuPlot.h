@@ -477,7 +477,7 @@ class ChGnuPlot {
     void ExecuteGnuplot(std::string& script) {
         // Create a tmp .gpl file
         {
-            ChStreamOutAsciiFile gnuplot_command(this->gpl_filename.c_str());
+            ChStreamOutAsciiFile gnuplot_command(this->gpl_filename);
             gnuplot_command << script;
         }
 

@@ -136,8 +136,7 @@ bool ChOpenGLStatsDefault::Initialize(ChOpenGLCamera* camera) {
 }
 
 void ChOpenGLStatsDefault::GenerateStats(ChSystem& sys) {
-    sprintf(buffer, "Press h for help");
-    text.Render(buffer, screen.CENTER, screen.TOP, screen.SX, screen.SY);
+    text.Render("Press h for help", screen.CENTER, screen.TOP, screen.SX, screen.SY);
 
     sprintf(buffer, "TIME:  %04f  [%04f]", sys.GetChTime(), sys.GetStep());
     text.Render(buffer, screen.LEFT, screen.TOP, screen.SX, screen.SY);
@@ -188,8 +187,8 @@ void ChOpenGLStatsDefault::GenerateCamera() {
     sprintf(buffer, "CAM UPV [%07.5f, %07.5f, %07.5f]", render_camera->camera_up.x, render_camera->camera_up.y,
             render_camera->camera_up.z);
     text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 3, screen.SX, screen.SY);
-    sprintf(buffer, "--------------------------------");
-    text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 4, screen.SX, screen.SY);
+
+    text.Render("--------------------------------", screen.LEFT, screen.TOP - screen.SPACING * 4, screen.SX, screen.SY);
 }
 
 void ChOpenGLStatsDefault::GenerateSystem(ChSystem& sys) {
@@ -273,8 +272,7 @@ void ChOpenGLStatsDefault::GenerateSystem(ChSystem& sys) {
     }
 #endif
 
-    sprintf(buffer, "MODEL INFO");
-    text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 5, screen.SX, screen.SY);
+    text.Render("MODEL INFO", screen.LEFT, screen.TOP - screen.SPACING * 5, screen.SX, screen.SY);
     sprintf(buffer, "BODIES R,F %04d, %04d", num_rigid_bodies, num_fluid_bodies);
     text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 6, screen.SX, screen.SY);
     sprintf(buffer, "AABB       %04d", num_shapes);
@@ -284,11 +282,10 @@ void ChOpenGLStatsDefault::GenerateSystem(ChSystem& sys) {
     sprintf(buffer, "BILATERALS %04d", num_bilaterals);
     text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 9, screen.SX, screen.SY);
 
-    sprintf(buffer, "--------------------------------");
-    text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 10, screen.SX, screen.SY);
+    text.Render("--------------------------------", screen.LEFT, screen.TOP - screen.SPACING * 10, screen.SX,
+                screen.SY);
 
-    sprintf(buffer, "TIMING INFO");
-    text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 22, screen.SX, screen.SY);
+    text.Render("TIMING INFO", screen.LEFT, screen.TOP - screen.SPACING * 22, screen.SX, screen.SY);
     sprintf(buffer, "STEP     %04f", timer_step);
     text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 23, screen.SX, screen.SY);
     sprintf(buffer, "BROAD    %04f", timer_collision_broad);
@@ -299,8 +296,9 @@ void ChOpenGLStatsDefault::GenerateSystem(ChSystem& sys) {
     text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 26, screen.SX, screen.SY);
     sprintf(buffer, "UPDATE   %04f", timer_update);
     text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 27, screen.SX, screen.SY);
-    sprintf(buffer, "--------------------------------");
-    text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 28, screen.SX, screen.SY);
+
+    text.Render("--------------------------------", screen.LEFT, screen.TOP - screen.SPACING * 28, screen.SX,
+                screen.SY);
 }
 
 void ChOpenGLStatsDefault::GenerateSolver(ChSystem& sys) {
@@ -312,16 +310,16 @@ void ChOpenGLStatsDefault::GenerateSolver(ChSystem& sys) {
     double residual = vhist.size() > 0 ? vhist.back() : 0.0;
     double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
 
-    sprintf(buffer, "SOLVER INFO");
-    text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 11, screen.SX, screen.SY);
+    text.Render("SOLVER INFO", screen.LEFT, screen.TOP - screen.SPACING * 11, screen.SX, screen.SY);
     sprintf(buffer, "ITERS    %04d", int(iters));
     text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 12, screen.SX, screen.SY);
     sprintf(buffer, "RESIDUAL %04f", residual);
     text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 13, screen.SX, screen.SY);
     sprintf(buffer, "CORRECT  %04f", dlambda);
     text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 14, screen.SX, screen.SY);
-    sprintf(buffer, "--------------------------------");
-    text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 15, screen.SX, screen.SY);
+
+    text.Render("--------------------------------", screen.LEFT, screen.TOP - screen.SPACING * 15, screen.SX,
+                screen.SY);
 }
 
 void ChOpenGLStatsDefault::GenerateCD(ChSystem& sys) {
@@ -329,8 +327,8 @@ void ChOpenGLStatsDefault::GenerateCD(ChSystem& sys) {
     if (ChSystemMulticore* parallel_sys = dynamic_cast<ChSystemMulticore*>(&sys)) {
         vec3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
         real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size;
-        sprintf(buffer, "COLLISION INFO");
-        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 16, screen.SX, screen.SY);
+
+        text.Render("COLLISION INFO", screen.LEFT, screen.TOP - screen.SPACING * 16, screen.SX, screen.SY);
         sprintf(buffer, "DIMS  [%d,%d,%d]", bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
         text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 17, screen.SX, screen.SY);
         sprintf(buffer, "SIZE  [%07.5f,%07.5f,%07.5f]", bin_size_vec.x, bin_size_vec.y, bin_size_vec.z);
@@ -340,15 +338,15 @@ void ChOpenGLStatsDefault::GenerateCD(ChSystem& sys) {
                 parallel_sys->data_manager->cd_data->num_rigid_fluid_contacts,
                 parallel_sys->data_manager->cd_data->num_fluid_contacts);
         text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 20, screen.SX, screen.SY);
-        sprintf(buffer, "--------------------------------");
-        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 21, screen.SX, screen.SY);
+
+        text.Render("--------------------------------", screen.LEFT, screen.TOP - screen.SPACING * 21, screen.SX,
+                    screen.SY);
     }
 #endif
 }
 
 void ChOpenGLStatsDefault::GenerateRenderer() {
-    sprintf(buffer, "RENDER INFO");
-    text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 29, screen.SX, screen.SY);
+    text.Render("RENDER INFO", screen.LEFT, screen.TOP - screen.SPACING * 29, screen.SX, screen.SY);
     sprintf(buffer, "GEOMETRY %04f", time_geometry);
     text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 30, screen.SX, screen.SY);
     sprintf(buffer, "TEXT     %04f", time_text);

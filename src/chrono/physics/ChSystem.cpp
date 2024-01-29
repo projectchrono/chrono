@@ -1114,11 +1114,11 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
             descriptor->WriteMatrixBlocks(output_dir, prefix);
         }
 
-        chrono::ChStreamOutAsciiFile file_x((output_dir + "/" + prefix + "_x_pre.dat").c_str());
+        ChStreamOutAsciiFile file_x(output_dir + "/" + prefix + "_x_pre.dat");
         file_x.SetNumFormat(numformat);
         StreamOutDenseMatlabFormat(x, file_x);
 
-        chrono::ChStreamOutAsciiFile file_v((output_dir + "/" + prefix + "_v_pre.dat").c_str());
+        ChStreamOutAsciiFile file_v(output_dir + "/" + prefix + "_v_pre.dat");
         file_v.SetNumFormat(numformat);
         StreamOutDenseMatlabFormat(v, file_v);
     }
@@ -1150,11 +1150,11 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         const char* numformat = "%.12g";
         std::string prefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount) + "_";
 
-        chrono::ChStreamOutAsciiFile file_Dv((output_dir + "/" + prefix + "Dv.dat").c_str());
+        ChStreamOutAsciiFile file_Dv(output_dir + "/" + prefix + "Dv.dat");
         file_Dv.SetNumFormat(numformat);
         StreamOutDenseMatlabFormat(Dv, file_Dv);
 
-        chrono::ChStreamOutAsciiFile file_L((output_dir + "/" + prefix + "L.dat").c_str());
+        ChStreamOutAsciiFile file_L(output_dir + "/" + prefix + "L.dat");
         file_L.SetNumFormat(numformat);
         StreamOutDenseMatlabFormat(L, file_L);
 
@@ -1163,7 +1163,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         ChVectorDynamic<> tempF(this->GetNcoords_v());
         tempF.setZero();
         LoadResidual_F(tempF, 1.0);
-        chrono::ChStreamOutAsciiFile file_F((output_dir + "/" + prefix + "F_pre.dat").c_str());
+        ChStreamOutAsciiFile file_F(output_dir + "/" + prefix + "F_pre.dat");
         file_F.SetNumFormat(numformat);
         StreamOutDenseMatlabFormat(tempF, file_F);
     }
@@ -1420,8 +1420,7 @@ void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix* Cq) {
     this->GetSystemDescriptor()->ConvertToMatrixForm(Cq, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
-void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const char* path) {
-    char filename[300];
+void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path) {
     const char* numformat = "%.12g";
 
     // Prepare lists of variables and constraints, if not already prepared.
@@ -1430,32 +1429,28 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
     if (save_M) {
         ChSparseMatrix mM;
         this->GetMassMatrix(&mM);
-        snprintf(filename, sizeof(filename), "%s%s", path, "_M.dat");
-        ChStreamOutAsciiFile file_M(filename);
+        ChStreamOutAsciiFile file_M(path + "_M.dat");
         file_M.SetNumFormat(numformat);
         StreamOutSparseMatlabFormat(mM, file_M);
     }
     if (save_K) {
         ChSparseMatrix mK;
         this->GetStiffnessMatrix(&mK);
-        snprintf(filename, sizeof(filename), "%s%s", path, "_K.dat");
-        ChStreamOutAsciiFile file_K(filename);
+        ChStreamOutAsciiFile file_K(path + "_K.dat");
         file_K.SetNumFormat(numformat);
         StreamOutSparseMatlabFormat(mK, file_K);
     }
     if (save_R) {
         ChSparseMatrix mR;
         this->GetDampingMatrix(&mR);
-        snprintf(filename, sizeof(filename), "%s%s", path, "_R.dat");
-        ChStreamOutAsciiFile file_R(filename);
+        ChStreamOutAsciiFile file_R(path + "_R.dat");
         file_R.SetNumFormat(numformat);
         StreamOutSparseMatlabFormat(mR, file_R);
     }
     if (save_Cq) {
         ChSparseMatrix mCq;
         this->GetConstraintJacobianMatrix(&mCq);
-        snprintf(filename, sizeof(filename), "%s%s", path, "_Cq.dat");
-        ChStreamOutAsciiFile file_Cq(filename);
+        ChStreamOutAsciiFile file_Cq(path + "_Cq.dat");
         file_Cq.SetNumFormat(numformat);
         StreamOutSparseMatlabFormat(mCq, file_Cq);
     }
@@ -1471,7 +1466,6 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     ChSparseMatrix Cq;
     GetSystemDescriptor()->ConvertToMatrixForm(&Cq, nullptr, nullptr, nullptr, nullptr, nullptr, true, true);
     int Cq_rows = Cq.rows();
-    int Cq_cols = Cq.cols();
 
     ChSparseMatrix CqT = Cq.transpose();
     CqT.makeCompressed();
@@ -1494,15 +1488,25 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     if (verbose) {
         std::cout << "Removing redundant constraints." << std::endl;
         std::cout << "   QR decomposition rank: " << QR_dec.rank() << std::endl;
-        std::cout << "   Number of starting constraints: " << GetSystemDescriptor()->CountActiveConstraints()
-                  << std::endl;
-        std::cout << "   Number of indipendent constraints: " << independent_row_count << std::endl;
-        std::cout << "   Number of dependent constraints: " << Cq_rows - independent_row_count << std::endl;
-        std::cout << "   Number of total variables: " << GetSystemDescriptor()->CountActiveVariables() << std::endl;
-        std::cout << "   Index of redundant constraints: " << redundant_constraints_idx.transpose() << std::endl;
-        std::cout << "   Link offset in lagrangian multiplier:" << std::endl;
-        for (auto& link : Get_linklist())
-            std::cout << "      " << link->GetName() << "->GetOffset_L(): " << link->GetOffset_L() << std::endl;
+        std::cout << "   Number of constraints:" << std::endl;
+        std::cout << "   - total (before removal): " << GetSystemDescriptor()->CountActiveConstraints() << std::endl;
+        std::cout << "   - independent: " << independent_row_count << std::endl;
+        std::cout << "   - dependent: " << Cq_rows - independent_row_count << std::endl;
+        std::cout << "   Redundant constraints [Cq_global row idx , linkname, Cq_link row idx]:" << std::endl;
+        for (auto c_sel = 0; c_sel < redundant_constraints_idx.size(); ++c_sel){
+            // find corresponding link
+            std::shared_ptr<ChLinkBase> corr_link;
+            for (const auto& link : Get_linklist()){
+                if (redundant_constraints_idx[c_sel] >= link->GetOffset_L() && redundant_constraints_idx[c_sel] < link->GetOffset_L() + link->GetDOC()){
+                    corr_link = link;
+                    break;
+                }
+            }
+
+
+            std::cout << "      - [" << redundant_constraints_idx[c_sel] << "]: " << corr_link->GetName()
+                              << "[" << (redundant_constraints_idx[c_sel] - corr_link->GetOffset_L()) << "/" << corr_link->GetDOC() << "]" << std::endl;
+        }
     }
 
     // Remove identified redundant constraints
@@ -1567,14 +1571,8 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     Update();
     DescriptorPrepareInject(*descriptor);
 
-    ChSparseMatrix Cq_check;
-    GetSystemDescriptor()->ConvertToMatrixForm(&Cq_check, nullptr, nullptr, nullptr, nullptr, nullptr, true, true);
-
     if (verbose) {
         std::cout << "   New number of constraints: " << GetSystemDescriptor()->CountActiveConstraints() << std::endl;
-        std::cout << "   Cq size before redundancy removal: " << Cq_rows << " X " << Cq_cols << std::endl;
-        std::cout << "   Cq size after redundancy removal: " << Cq_check.rows() << " X " << Cq_check.cols()
-                  << std::endl;
     }
 
     // Actually REMOVE links now having DoC = 0 from system link list
@@ -1589,8 +1587,7 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     }
 
     // Return number of deactivated constraints
-    int reduced_rows = Cq_rows - Cq_check.rows();
-    return reduced_rows;
+    return static_cast<int>(redundant_constraints_idx.size());
 }
 
 // -----------------------------------------------------------------------------
@@ -1781,15 +1778,15 @@ bool ChSystem::DoStaticLinear() {
         descriptor->WriteMatrixBlocks("", "solve");
 
         // optional check for correctness in result
-        chrono::ChVectorDynamic<double> md;
+        ChVectorDynamic<double> md;
         GetSystemDescriptor()->BuildDiVector(md);  // d={f;-b}
 
-        chrono::ChVectorDynamic<double> mx;
+        ChVectorDynamic<double> mx;
         GetSystemDescriptor()->FromUnknownsToVector(mx, true);  // x ={q,-l}
-        chrono::ChStreamOutAsciiFile file_x("solve_x.dat");
+        ChStreamOutAsciiFile file_x("solve_x.dat");
         StreamOutDenseMatlabFormat(mx, file_x);
 
-        chrono::ChVectorDynamic<double> mZx;
+        ChVectorDynamic<double> mZx;
         GetSystemDescriptor()->SystemProduct(mZx, mx);  // Zx = Z*x
 
         GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";

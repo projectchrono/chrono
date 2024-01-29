@@ -86,6 +86,26 @@ double ChChassis::GetCOMSpeed() const {
     return Vdot(vel, x_dir);
 }
 
+double ChChassis::GetRollRate() const {
+    auto w = m_body->GetFrame_REF_to_abs().GetWvel_loc();
+    return w.x();
+}
+
+double ChChassis::GetPitchRate() const {
+    auto w = m_body->GetFrame_REF_to_abs().GetWvel_loc();
+    return w.y();
+}
+
+double ChChassis::GetYawRate() const {
+    auto w = m_body->GetFrame_REF_to_abs().GetWvel_loc();
+    return w.z();
+}
+
+double ChChassis::GetTurnRate() const {
+    auto w = m_body->GetFrame_REF_to_abs().GetWvel_par();
+    return Vdot(w, ChWorldFrame::Vertical());
+}
+
 void ChChassis::Initialize(ChSystem* system,
                            const ChCoordsys<>& chassisPos,
                            double chassisFwdVel,
@@ -138,11 +158,11 @@ void ChChassis::AddMarker(const std::string& name, const ChCoordsys<>& pos) {
 
 void ChChassis::AddExternalForceTorque(std::shared_ptr<ExternalForceTorque> load) {
     m_external_loads.push_back(load);
-    
+
     auto force_load = chrono_types::make_shared<ChLoadBodyForce>(m_body, ChVector<>(0), true, ChVector<>(0), true);
     force_load->SetNameString(load->m_name + "_force");
     m_container_external->Add(force_load);
-    
+
     auto torque_load = chrono_types::make_shared<ChLoadBodyTorque>(m_body, ChVector<>(0), true);
     torque_load->SetNameString(load->m_name + "_torque");
     m_container_external->Add(torque_load);
