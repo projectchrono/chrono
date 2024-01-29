@@ -371,21 +371,21 @@ void ChIrrGUI::AddUserEventReceiver(irr::IEventReceiver* receiver) {
 void ChIrrGUI::SetSymbolscale(double val) {
     symbolscale = ChMax(10e-12, val);
     char message[50];
-    sprintf(message, "%g", symbolscale);
+    snprintf(message, sizeof(message), "%g", symbolscale);
     g_symbolscale->setText(irr::core::stringw(message).c_str());
 }
 
 void ChIrrGUI::SetModalAmplitude(double val) {
     modal_amplitude = ChMax(0.0, val);
     char message[50];
-    sprintf(message, "%g", modal_amplitude);
+    snprintf(message, sizeof(message), "%g", modal_amplitude);
     g_modal_amplitude->setText(irr::core::stringw(message).c_str());
 }
 
 void ChIrrGUI::SetModalSpeed(double val) {
     modal_speed = ChMax(0.0, val);
     char message[50];
-    sprintf(message, "%g", modal_speed);
+    snprintf(message, sizeof(message), "%g", modal_speed);
     g_modal_speed->setText(irr::core::stringw(message).c_str());
 }
 
@@ -562,10 +562,10 @@ void ChIrrGUI::Render() {
     if (modal_show) {
         char message[50];
         if (modal_current_dampingfactor)
-            sprintf(message, "n = %i\nf = %.3g Hz\nz = %.2g", modal_mode_n, modal_current_freq,
+            snprintf(message, sizeof(message), "n = %i\nf = %.3g Hz\nz = %.2g", modal_mode_n, modal_current_freq,
                     modal_current_dampingfactor);
         else
-            sprintf(message, "n = %i\nf = %.3g Hz", modal_mode_n, modal_current_freq);
+            snprintf(message, sizeof(message), "n = %i\nf = %.3g Hz", modal_mode_n, modal_current_freq);
         g_modal_mode_n_info->setText(irr::core::stringw(message).c_str());
 
         g_modal_mode_n->setPos(modal_mode_n);

@@ -65,23 +65,23 @@ void ChTrackedVehicleVisualSystemIrrlicht::renderOtherStats(int left, int top) {
     double toRPM = 30 / CH_C_PI;
 
     double shaft_speed = driveline->GetOutputDriveshaftSpeed() * toRPM;
-    sprintf(msg, "Driveshaft (RPM): %+.2f", shaft_speed);
+    snprintf(msg, sizeof(msg), "Driveshaft (RPM): %+.2f", shaft_speed);
     renderLinGauge(std::string(msg), shaft_speed / 2000, true, left, top, 170, 15);
 
     double speedL = driveline->GetSprocketSpeed(LEFT) * toRPM;
-    sprintf(msg, "L (RPM): %+.2f", speedL);
+    snprintf(msg, sizeof(msg), "L (RPM): %+.2f", speedL);
     renderLinGauge(std::string(msg), speedL / 2000, true, left, top + 30, 170, 15);
 
     double torqueL = driveline->GetSprocketTorque(LEFT);
-    sprintf(msg, "T.L (Nm): %+.2f", torqueL);
+    snprintf(msg, sizeof(msg), "T.L (Nm): %+.2f", torqueL);
     renderLinGauge(std::string(msg), torqueL / 5000, true, left, top + 50, 170, 15);
 
     double speedR = driveline->GetSprocketSpeed(RIGHT) * toRPM;
-    sprintf(msg, "R (RPM): %+.2f", speedR);
+    snprintf(msg, sizeof(msg), "R (RPM): %+.2f", speedR);
     renderLinGauge(std::string(msg), speedR / 2000, true, left + 190, top + 30, 170, 15);
 
     double torqueR = driveline->GetSprocketTorque(RIGHT);
-    sprintf(msg, "T.R (Nm): %+.2f", torqueR);
+    snprintf(msg, sizeof(msg), "T.R (Nm): %+.2f", torqueR);
     renderLinGauge(std::string(msg), torqueR / 5000, true, left + 190, top + 50, 170, 15);
 }
 
