@@ -224,11 +224,11 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
         if (hht_stepper != nullptr) {
             // hht_stepper->SetVerbose(false);
             hht_stepper->SetStepControl(false);
-             hht_stepper->SetRelTolerance(1e-6);
-             hht_stepper->SetAbsTolerances(1e-12);
-             hht_stepper->SetAlpha(-0.3);
-            // hht_stepper->SetModifiedNewton(false);
-             hht_stepper->SetMaxiters(20);
+             //hht_stepper->SetRelTolerance(1e-6);
+             //hht_stepper->SetAbsTolerances(1e-12);
+             //hht_stepper->SetAlpha(-0.3);
+             //hht_stepper->SetModifiedNewton(false);
+             //hht_stepper->SetMaxiters(20);
         }
 
         double omega = 4;
