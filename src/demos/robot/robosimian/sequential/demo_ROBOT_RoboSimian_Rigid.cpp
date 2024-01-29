@@ -369,14 +369,20 @@ int main(int argc, char* argv[]) {
         // Output POV-Ray date and/or snapshot images
         if (sim_frame % render_steps == 0) {
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%04d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(my_sys, filename);
+                std::ostringstream filename;
+                filename << pov_dir
+                         << "/data_"
+                         // Frame number is zero padded for nicer alphabetical file sorting
+                         << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(my_sys, filename.str());
             }
             if (image_output) {
-                char filename[100];
-                sprintf(filename, "%s/img_%04d.jpg", img_dir.c_str(), render_frame + 1);
-                vis->WriteImageToFile(filename);
+                std::ostringstream filename;
+                filename << img_dir
+                         << "/img_"
+                         // Frame number is zero padded for nicer alphabetical file sorting
+                         << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+                vis->WriteImageToFile(filename.str());
             }
 
             render_frame++;

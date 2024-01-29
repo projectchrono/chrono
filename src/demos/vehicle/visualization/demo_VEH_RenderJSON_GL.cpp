@@ -53,7 +53,9 @@ class HMMWV_Setup : public Setup {
   public:
     virtual std::string VehicleJSON() const override { return "hmmwv/vehicle/HMMWV_Vehicle.json"; }
     virtual std::string EngineJSON() const override { return "hmmwv/powertrain/HMMWV_EngineShafts.json"; }
-    virtual std::string TransmissionJSON() const override { return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"; }
+    virtual std::string TransmissionJSON() const override {
+        return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json";
+    }
     virtual std::string TireJSON() const override { return "hmmwv/tire/HMMWV_TMeasyTire.json"; }
 };
 
@@ -159,12 +161,11 @@ class JSONStats : public opengl::ChOpenGLStats {
         char buffer[150];
         text.Render("JSON FILE: " + json_file, screen.LEFT, screen.TOP - 1 * screen.SPACING, screen.SX, screen.SY);
 
-        sprintf(buffer, "TIME:       %04f", sys.GetChTime());
+        snprintf(buffer, sizeof(buffer), "TIME:       %04f", sys.GetChTime());
         text.Render(buffer, screen.LEFT, screen.TOP - 3 * screen.SPACING, screen.SX, screen.SY);
 
-        sprintf(buffer, "FPS:        %04d", int(fps));
+        snprintf(buffer, sizeof(buffer), "FPS:        %04d", int(fps));
         text.Render(buffer, screen.LEFT, screen.TOP - 4 * screen.SPACING, screen.SX, screen.SY);
-
     }
     std::string json_file;
 };

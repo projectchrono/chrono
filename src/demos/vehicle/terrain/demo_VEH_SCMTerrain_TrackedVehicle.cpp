@@ -66,7 +66,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // Terrain dimensions
 double terrain_length = 20.0;  // size in X direction
 double terrain_width = 4.0;    // size in Y direction
-double delta = 0.05;          // SCM grid spacing
+double delta = 0.05;           // SCM grid spacing
 
 // Simulation step size
 double step_size = 5e-4;
@@ -138,7 +138,8 @@ int main(int argc, char* argv[]) {
     ////m113.GetVehicle().SetCollide(TrackedCollisionFlag::NONE);
 
     // Monitor internal contacts for the left sprocket, left idler, and first shoe on the left track.
-    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
+    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT |
+    ///TrackedCollisionFlag::IDLER_LEFT);
 
     // Collect contact information
     ////m113.GetVehicle().SetContactCollection(true);
@@ -328,9 +329,13 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
 
             if (img_output) {
-                char filename[100];
-                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-                vis->WriteImageToFile(filename);
+                std::ostringstream filename;
+                filename << img_dir
+                         << "/img_"
+                         // Frame number is zero padded for nicer alphabetical file sorting
+                         // Is 3 digits enough space for all the frames?
+                         << std::setw(3) << std::setfill('0') << render_frame + 1 << ".jpg";
+                vis->WriteImageToFile(filename.str());
                 render_frame++;
             }
         }
@@ -380,7 +385,7 @@ void AddFixedObstacles(ChSystem* system) {
     cyl_shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
     obstacle->AddVisualShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
-    auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(terrain_length, 2*length, 0.1);
+    auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(terrain_length, 2 * length, 0.1);
     box_shape->SetColor(ChColor(0.2f, 0.2f, 0.2f));
     obstacle->AddVisualShape(box_shape, ChFrame<>(ChVector<>(0, 0, 1.5), QUNIT));
 
