@@ -398,9 +398,13 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
 
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(hmmwv.GetSystem(), filename);
+                std::ostringstream filename;
+                filename
+                    << pov_dir << "/data_"
+                    // Frame number is zero padded for nicer alphabetical file sorting
+                    << std::setw(3) << std::setfill('0') << render_frame + 1
+                    << ".dat";
+                utils::WriteVisualizationAssets(hmmwv.GetSystem(), filename.str());
             }
 
 #ifdef CHRONO_POSTPROCESS

@@ -412,16 +412,26 @@ int main(int argc, char* argv[]) {
 
         if (step_number % render_steps == 0) {
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(vehicle.GetSystem(), filename);
+                std::ostringstream filename;
+                filename
+                    << pov_dir
+                    << "/data_" 
+                    // Frame number is zero padded for nicer alphabetical file sorting
+                    << std::setw(3) << std::setfill('0') << render_frame + 1
+                    << ".dat";
+                utils::WriteVisualizationAssets(vehicle.GetSystem(), filename.str());
             }
 
 #ifdef USE_IRRLICHT
             if (img_output && step_number > 200) {
-                char filename[100];
-                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-                vis->WriteImageToFile(filename);
+                std::ostringstream filename;
+                filename
+                    << img_dir
+                    << "/img_" 
+                    // Frame number is zero padded for nicer alphabetical file sorting
+                    << std::setw(3) << std::setfill('0') << render_frame + 1
+                    << ".jpg";
+                vis->WriteImageToFile(filename.str());
             }
 #endif
             render_frame++;
