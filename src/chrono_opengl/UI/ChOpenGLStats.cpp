@@ -328,20 +328,18 @@ void ChOpenGLStatsDefault::GenerateCD(ChSystem& sys) {
         vec3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
         real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size;
 
-        text.Render("COLLISION INFO", screen.LEFT, screen.TOP - screen.SPACING * 16, screen.SX, screen.SY);
-        snprintf(buffer, sizeof(buffer), "RESIDUAL %04f", residual);
- "DIMS  [%d,%d,%d]", bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
- text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 17, screen.SX, screen.SY);
- snprintf(buffer, sizeof(buffer), "RESIDUAL %04f", residual);
- "SIZE  [%07.5f,%07.5f,%07.5f]", bin_size_vec.x, bin_size_vec.y, bin_size_vec.z);
- text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 18, screen.SX, screen.SY);
+        snprintf(buffer, sizeof(buffer), "DIMS  [%d,%d,%d]", bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
+        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 17, screen.SX, screen.SY);
+        snprintf(buffer, sizeof(buffer), "SIZE  [%07.5f,%07.5f,%07.5f]", bin_size_vec.x, bin_size_vec.y,
+                 bin_size_vec.z);
+        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 18, screen.SX, screen.SY);
+        snprintf(buffer, sizeof(buffer), "R: %d B: %d F: %d", parallel_sys->data_manager->cd_data->num_rigid_contacts,
+                 parallel_sys->data_manager->cd_data->num_rigid_fluid_contacts,
+                 parallel_sys->data_manager->cd_data->num_fluid_contacts);
+        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 20, screen.SX, screen.SY);
 
- snprintf(buffer, sizeof(buffer), "R: %d B: %d F: %d", parallel_sys->data_manager->cd_data->num_rigid_contacts,
-          parallel_sys->data_manager->cd_data->num_rigid_fluid_contacts,
-          parallel_sys->data_manager->cd_data->num_fluid_contacts);
- text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 20, screen.SX, screen.SY);
-
- text.Render("--------------------------------", screen.LEFT, screen.TOP - screen.SPACING * 21, screen.SX, screen.SY);
+        text.Render("--------------------------------", screen.LEFT, screen.TOP - screen.SPACING * 21, screen.SX,
+                    screen.SY);
     }
 #endif
 }
