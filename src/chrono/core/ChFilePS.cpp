@@ -103,11 +103,14 @@ void ChFile_ps_graph_setting::InitializeDefaults() {
     def_line_width = 0.035;
 }
 
-ChFile_ps::ChFile_ps(char m_name[], double x, double y, double w, double h, char* m_prolog_file)
-    : ChStreamOutAsciiFile(m_name) {
-    this->SetNumFormat("%g");
-
-    strncpy(prolog_file, m_prolog_file, sizeof(prolog_file)-1);
+ChFile_ps::ChFile_ps(const std::string& filename,
+                     double x,
+                     double y,
+                     double w,
+                     double h,
+                     const std::string& prolog_filename)
+    : ChStreamOutAsciiFile(filename), prolog_file(prolog_filename) {
+    SetNumFormat("%g");
 
     // init vars..
     unit_scale = PS_SCALE_CENTIMETERS;
@@ -351,7 +354,7 @@ void ChFile_ps::DrawText(ChVector2<> mfrom, char* string, Space space, Justifica
 
 void ChFile_ps::DrawText(ChVector2<> mfrom, double number, Space space, Justification justified) {
     char mbuff[20];
-    sprintf(mbuff, this->number_format, number);
+    sprintf(mbuff, number_format, number);
     DrawText(mfrom, mbuff, space, justified);
 }
 
@@ -412,7 +415,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
             double tw = w;
             if (fabs(w) < 1.e-15)
                 tw = 0;
-            sprintf(numstr, this->number_format, tw);
+            sprintf(numstr, number_format, tw);
             DrawText(cp1, numstr, Space::PAGE);
         }
     }
@@ -456,7 +459,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
             double th = h;
             if (fabs(th) < 1.e-15)
                 th = 0;
-            sprintf(numstr, this->number_format, th);
+            sprintf(numstr, number_format, th);
             DrawText(cp1, numstr, Space::PAGE);
         }
     }

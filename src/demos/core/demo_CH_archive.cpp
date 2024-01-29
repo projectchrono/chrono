@@ -627,8 +627,7 @@ int main(int argc, char* argv[]) {
 
     // Example: SERIALIZE TO ASCII DUMP (useful for debugging etc.):
     {
-        std::string asciifile = out_dir + "/foo_archive.txt";
-        ChStreamOutAsciiFile mfileo(asciifile.c_str());
+        ChStreamOutAsciiFile mfileo(out_dir + "/foo_archive.txt");
 
         // Create an ASCII archive object, for dumping C++ objects into a readable file
         ChArchiveAsciiDump marchiveout(mfileo);
@@ -638,8 +637,7 @@ int main(int argc, char* argv[]) {
 
     // Example: SERIALIZE TO/FROM BINARY:
     {
-        std::string binfile = out_dir + "/foo_archive.dat";
-        ChStreamOutBinaryFile mfileo(binfile.c_str());
+        ChStreamOutBinaryFile mfileo(out_dir + "/foo_archive.dat");
 
         // Use a binary archive object to serialize C++ objects into the binary file
         ChArchiveOutBinary marchiveout(mfileo);
@@ -648,8 +646,7 @@ int main(int argc, char* argv[]) {
     }
 
     {
-        std::string binfile = out_dir + "/foo_archive.dat";
-        ChStreamInBinaryFile mfilei(binfile.c_str());
+        ChStreamInBinaryFile mfilei(out_dir + "/foo_archive.dat");
 
         // Use a binary archive object to deserialize C++ objects from the binary file
         ChArchiveInBinary marchivein(mfilei);
@@ -659,8 +656,7 @@ int main(int argc, char* argv[]) {
 
     // Example: SERIALIZE TO/FROM JSON:
     {
-        std::string jsonfile = out_dir + "/foo_archive.json";
-        ChStreamOutAsciiFile mfileo(jsonfile.c_str());
+        ChStreamOutAsciiFile mfileo(out_dir + "/foo_archive.json");
 
         // Use a JSON archive object to serialize C++ objects into the file
         ChArchiveOutJSON marchiveout(mfileo);
@@ -669,8 +665,7 @@ int main(int argc, char* argv[]) {
     }
 
     {
-        std::string jsonfile = out_dir + "/foo_archive.json";
-        ChStreamInAsciiFile mfilei(jsonfile.c_str());
+        ChStreamInAsciiFile mfilei(out_dir + "/foo_archive.json");
 
         // Use a JSON archive object to deserialize C++ objects from the file
         ChArchiveInJSON marchivein(mfilei);
@@ -680,8 +675,7 @@ int main(int argc, char* argv[]) {
 
     // Example: SERIALIZE TO/FROM XML
     {
-        std::string xmlfile = out_dir + "/foo_archive.xml";
-        ChStreamOutAsciiFile mfileo(xmlfile.c_str());
+        ChStreamOutAsciiFile mfileo(out_dir + "/foo_archive.xml");
 
         // Use a XML archive object to serialize C++ objects into the file
         ChArchiveOutXML marchiveout(mfileo);
@@ -690,8 +684,7 @@ int main(int argc, char* argv[]) {
     }
 
     {
-        std::string xmlfile = out_dir + "/foo_archive.xml";
-        ChStreamInAsciiFile mfilei(xmlfile.c_str());
+        ChStreamInAsciiFile mfilei(out_dir + "/foo_archive.xml");
 
         // Use a XML archive object to deserialize C++ objects from the file
         ChArchiveInXML marchivein(mfilei);
@@ -704,8 +697,7 @@ int main(int argc, char* argv[]) {
 
     // Example: SERIALIZE A FULL CHRONO SYSTEM TO/FROM JSON
     {
-        std::string jsonfile = out_dir + "/chsystem_archive.json";
-        ChStreamOutAsciiFile mfileo(jsonfile.c_str());
+        ChStreamOutAsciiFile mfileo(out_dir + "/chsystem_archive.json");
 
         // Use a JSON archive object to serialize C++ objects into the file
         ChArchiveOutJSON marchiveout(mfileo);
@@ -714,8 +706,7 @@ int main(int argc, char* argv[]) {
     }
 
     {
-        std::string jsonfile = out_dir + "/chsystem_archive.json";
-        ChStreamInAsciiFile mfilei(jsonfile.c_str());
+        ChStreamInAsciiFile mfilei(out_dir + "/chsystem_archive.json");
 
         // Use a JSON archive object to deserialize C++ objects from the file
         ChArchiveInJSON marchivein(mfilei);

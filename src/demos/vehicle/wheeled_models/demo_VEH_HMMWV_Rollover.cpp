@@ -12,7 +12,9 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Illustration of using collision geometry for the vehicle chassis
+// Illustration of using collision geometry for the vehicle chassis:
+// - rollover if no obstacle present
+// - frontal contact with a cylindrical obstacle otherwise
 //
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -43,11 +45,27 @@ using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
 
+// Chassis collision model
+auto chassis_coll_type = CollisionType::HULLS;
+
+// Obstacle collision model (nbo obstacle if CollisionType::NONE)
+auto obstacle_coll_type = CollisionType::NONE;
+
+// Contact formulation
+auto contact_method = ChContactMethod::NSC;
+
+// Collision system
+auto collision_system_type = ChCollisionSystem::Type::BULLET;
+
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+auto vis_type = ChVisualSystem::Type::VSG;
 
 // Simulation step size
 double step_size = 2e-3;
+
+// =============================================================================
+
+void AddObstacle(ChSystem* sys);
 
 // =============================================================================
 
@@ -56,9 +74,9 @@ int main(int argc, char* argv[]) {
 
     // Create vehicle
     HMMWV_Full hmmwv;
-    hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    hmmwv.SetContactMethod(ChContactMethod::NSC);
-    hmmwv.SetChassisCollisionType(CollisionType::HULLS);  // automatically enables collision for the chassis
+    hmmwv.SetCollisionSystemType(collision_system_type);
+    hmmwv.SetContactMethod(contact_method);
+    hmmwv.SetChassisCollisionType(chassis_coll_type);
     hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(0, 0, 0.5), QUNIT));
     hmmwv.SetEngineType(EngineModelType::SHAFTS);
     hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
@@ -99,6 +117,9 @@ int main(int argc, char* argv[]) {
     ramp->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 2, 2);
 
     terrain.Initialize();
+
+    // Add a mesh obstacle
+    AddObstacle(hmmwv.GetSystem());
 
     // Create the vehicle run-time visualization
 
@@ -181,4 +202,52 @@ int main(int argc, char* argv[]) {
     }
 
     return 0;
+}
+
+void AddObstacle(ChSystem* sys) {
+    if (obstacle_coll_type == CollisionType::NONE)
+        return;
+
+    auto pos = ChVector<>(8, 0, 1);
+    double radius = 1;
+    double length = 2;
+
+    std::string text_filename = "textures/rock.jpg";
+
+    auto body = chrono_types::make_shared<ChBody>();
+    body->SetPos(pos);
+    body->SetBodyFixed(true);
+    body->SetCollide(true);
+    sys->Add(body);
+
+    std::shared_ptr<ChMaterialSurface> mat = ChMaterialSurface::DefaultMaterial(sys->GetContactMethod());
+
+    if (obstacle_coll_type == CollisionType::PRIMITIVES) {
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(mat, radius, length);
+        body->AddCollisionShape(ct_shape);
+
+        auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
+        vis_shape->SetTexture(GetChronoDataFile(text_filename));
+        body->AddVisualShape(vis_shape);
+
+        return;
+    }
+
+    auto mesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cylinderZ.obj"),
+                                                                           false, true);
+    mesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(ChVector<>(radius, radius, length)));
+
+    if (obstacle_coll_type == CollisionType::MESH) {
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, mesh, false, false, 0.005);
+        body->AddCollisionShape(ct_shape);
+    } else {
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(mat, mesh->getCoordsVertices());
+        body->AddCollisionShape(ct_shape);
+    }
+
+    auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+    vis_shape->SetMesh(mesh);
+    vis_shape->SetBackfaceCull(true);
+    vis_shape->SetTexture(GetChronoDataFile(text_filename));
+    body->AddVisualShape(vis_shape);
 }

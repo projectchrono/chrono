@@ -25,7 +25,6 @@ namespace chrono {
 /// it is up to you to do the proper static_cast<> to the class of the object. There
 /// are some shortcuts though, to access double, int and other fundamental types with
 /// a single statement.
-
 class ChArchiveExplorer : public ChArchiveOut {
   public:
     ChArchiveExplorer() {
@@ -378,9 +377,9 @@ class ChArchiveExplorer : public ChArchiveOut {
         return !*wildcard;
     }
 
-    bool MatchName(const std::string& token, const char* string) {
+    bool MatchName(const std::string& token, const std::string& string) {
         if (use_wildcards) {
-            if (wildcard_compare(token.c_str(), string))
+            if (wildcard_compare(token.c_str(), string.c_str()))
                 return true;
         } else {
             if (token == string)

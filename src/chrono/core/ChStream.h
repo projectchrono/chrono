@@ -26,19 +26,17 @@
 #include "chrono/core/ChApiCE.h"
 
 namespace chrono {
-/// Ugly hack added by hammad to get code to compile on osx.
-/// Compiler had trouble finding the create function,
-/// adding include to ChClassRegister made other things break in ChLog so I couldn't do that....
+
+// Ugly hack added by hammad to get code to compile on osx.
+// Compiler had trouble finding the create function,
+// adding include to ChClassRegister made other things break in ChLog so I couldn't do that.
 template <class T>
 void create(std::string cls_name, T** ppObj);
 
-///
-/// This is a base class for input/output (streaming)
-///
-
+/// Base class for input/output (streaming).
 class ChApi ChStream {
   public:
-    /// Modes for chrono files (the ch-modes) - obsolete -
+    /// [Obsolete] Modes for chrono files (the ch-modes).
     enum eChMode {
         CHFILE_NORMAL = 0,  ///< writes/reads as a normal file
         CHFILE_NOWRITE,     ///< force do not write even if in w or wb (write mode)
@@ -46,48 +44,33 @@ class ChApi ChStream {
         CHFILE_OPENLATER,   ///< creates the file only as soon as first writing is attempted
     };
 
-    /// Errors for chrono files (the ch-modes)
+    /// Errors for chrono files (the ch-modes).
     enum eChStreamError {
         CHSTREAM_OK = 0,  ///< write/read operation successfull
         CHSTREAM_EOF,     ///< end of file
         CHSTREAM_FAIL,    ///< operation failed
     };
-
-  protected:
-    //
-    // DATA
-    //
 };
 
-///
-/// This is a base class for all OUTPUT streams.
-/// Does nothing special - it must be implemented by child classes
-///
-
+/// Base class for all OUTPUT streams.
+/// Does nothing special - it must be implemented by child classes.
 class ChApi ChStreamOut : public ChStream {
   public:
     ChStreamOut();
-
     virtual ~ChStreamOut();
 
   protected:
-    /// Outputs a raw chunk of data, from pointer 'data' up to 'n'
-    /// chars (bytes).
-    /// NOTE! Inherited class could override only this function to have
-    /// everything working, for example to output into a message box,
-    /// or to sockets, etc..
+    /// Outputs a raw chunk of data, from pointer 'data' up to 'n' chars (bytes).
+    /// NOTE: Inherited class could override only this function to have everything working, for example to output into a
+    /// message box, or to sockets, etc.
     virtual void Output(const char* data, size_t n) = 0;
 };
 
-///
-/// This is a base class for all INPUT streams.
-/// Does nothing special - it must be implemented by child classes
-///
-
+/// Base class for all INPUT streams.
+/// Does nothing special - it must be implemented by child classes.
 class ChApi ChStreamIn : public ChStream {
   public:
     ChStreamIn();
-
     virtual ~ChStreamIn();
 
     /// Returns true if end of stream reached.
@@ -95,25 +78,16 @@ class ChApi ChStreamIn : public ChStream {
     virtual bool End_of_stream() const { return true; }
 
   protected:
-    /// Inputs a raw chunk of data, from pointer 'data' up to 'n'
-    /// chars (bytes).
-    /// NOTE! Inherited class could override only this function to have
-    /// everything working, for example to output into a message box,
-    /// or to sockets, etc..
+    /// Inputs a raw chunk of data, from pointer 'data' up to 'n' chars (bytes).
+    /// NOTE: Inherited class could override only this function to have everything working, for example to output into a
+    /// message box, or to sockets, etc.
     virtual void Input(char* data, size_t n) = 0;
 };
 
-///
-/// This is a base class for all ASCII OUTPUT streams, in the
-/// sense that number are formatted into readable strings, etc.
-/// Defines some << operators from basic
-/// types, converting all them into calls to the Output() function.
-/// Also, defines the Format() function, which can be used a bit
-/// like the printf formatting.
-/// At least some inherited class should be used by the user in
-/// order to get some practical effect (file saving, etc.)
-///
-
+/// Base class for all ASCII OUTPUT streams, in the sense that number are formatted into readable strings.
+/// Defines some << operators from basic types, converting all them into calls to the Output() function. Also, defines
+/// the Format() function, which can be used a bit like the printf formatting. At least some inherited class should be
+/// used by the user in order to get some practical effect (file saving, etc.)
 class ChApi ChStreamOutAscii : public ChStreamOut {
   protected:
     char number_format[10];
@@ -121,23 +95,19 @@ class ChApi ChStreamOutAscii : public ChStreamOut {
 
   public:
     ChStreamOutAscii();
-
     virtual ~ChStreamOutAscii();
-
-    //  Operators
 
     /// Generic << operator for all classes which implement serialization
     /// by means of a method named  'void StreamOut(ChStreamOutAscii&)'
-
     ChStreamOutAscii& operator<<(bool bVal);
     ChStreamOutAscii& operator<<(char tch);
     ChStreamOutAscii& operator<<(const int nVal);
     ChStreamOutAscii& operator<<(const double dVal);
-    ChStreamOutAscii& operator<<(const float dVal);
+    ChStreamOutAscii& operator<<(const float fVal);
     ChStreamOutAscii& operator<<(unsigned int unVal);
     ChStreamOutAscii& operator<<(char* str);
     ChStreamOutAscii& operator<<(const char* str);
-    ChStreamOutAscii& operator<<(std::string& str);
+    ChStreamOutAscii& operator<<(const std::string& str);
     ChStreamOutAscii& operator<<(unsigned long unVal);
     ChStreamOutAscii& operator<<(unsigned long long unVal);
 
@@ -148,28 +118,29 @@ class ChApi ChStreamOutAscii : public ChStreamOut {
         return *this;
     }
 
-    /// Output the log message in form of a formatted string, like in printf()
+    /// Output the log message in form of a formatted string, like in printf().
     virtual void Format(char* formatString, ...);
 
-    /// Set the formatting string (ex "%f" or "%g" etc.) for float->text conversion
+    /// Set the formatting string (ex "%f" or "%g" etc.) for float->text conversion.
     void SetNumFormat(const char* mf) {
         if (strlen(mf) < 10)
             strcpy(number_format, mf);
     }
     char* GetNumFormat() { return number_format; }
-    /// Set the trailer symbol before each comment (example: "#" , or "//" etc.)
+
+    /// Set the trailer symbol before each comment (example: "#" , or "//").
     void SetCommentTrailer(char* mt) {
         if (strlen(mt) < 10)
             strcpy(comment_trailer, mt);
     }
 
-    /// Outputs carriage return
-    void CR() { *this << "\n"; };
+    /// Outputs carriage return.
+    void CR() { *this << "\n"; }
 
-    /// Output tab
-    void TAB() { *this << "\t"; };
+    /// Output tab.
+    void TAB() { *this << "\t"; }
 
-    /// Output comment with preceding trailer (ex #)
+    /// Output comment with preceding trailer (e.g., #).
     void Comment(char m_string[]) {
         TAB();
         TAB();
@@ -177,26 +148,20 @@ class ChApi ChStreamOutAscii : public ChStreamOut {
         *this << comment_trailer << m_string;
         CR();
     }
-    /// Output a separation bar in Ascii file
+
+    /// Output a separation bar in ASCII file.
     void Bar() { *this << comment_trailer << "#------------------------------------------------------------ \n"; };
 };
 
-///
-/// This is a base class for all ASCII INPUT streams, in the
-/// sense that number are formatted into readable strings, etc.
-/// Defines some << operators from basic
-/// types, converting all them into calls to the Input() function.
-/// At least some inherited class should be used by the user in
-/// order to get some practical effect (file loading, etc.)
-///
-
+/// Base class for all ASCII INPUT streams, in the sense that number are formatted into readable strings.
+/// Defines some << operators from basic types, converting all them into calls to the Input() function. At least some
+/// inherited class should be used by the user in order to get some practical effect (file loading, etc.)
 class ChApi ChStreamInAscii : public ChStreamIn {
   protected:
     char number_format[10];
 
   public:
     ChStreamInAscii();
-
     virtual ~ChStreamInAscii();
 
     //  Operators
@@ -217,11 +182,9 @@ class ChApi ChStreamInAscii : public ChStreamIn {
     }
 };
 
-/// Templated function for swapping bytes of objects of type 'T',
-/// in general fo whatever T type. This is used for cross-platform
-/// compatibility when sharing objects between big-endian and little-endian
-/// memory models, depending on the microprocessor type.
-
+/// Templated function for swapping bytes of objects of type 'T', for arbitrary T type.
+/// This is used for cross-platform compatibility when sharing objects between big-endian and little-endian memory
+/// models, depending on the microprocessor type.
 template <class T>
 inline void StreamSwapBytes(T* ptData) {
     char* acBytes = (char*)ptData;
@@ -235,28 +198,17 @@ inline void StreamSwapBytes(T* ptData) {
     }
 }
 
-///
-/// Base class for streams (either in or out) based on
-/// binary formats.
-///   This class implements a basic functionality
-/// about platform-independent treatment of data (the
-/// big-endian/little-endian issue).
-///   Also this class implements functionality to avoid
-/// storing multiple times the same object (persistent
-/// data archive).
-///
-
+/// Base class for streams (either in or out) based on binary formats.
+/// This class implements a basic functionality about platform-independent treatment of data (the
+/// big-endian/little-endian issue). Also this class implements functionality to avoid storing multiple times the same
+/// object (persistent data archive).
 class ChApi ChBinaryArchive {
   protected:
     bool big_endian_machine;
-
-    /// vector of pointers to stored/retrieved objects,
-    /// to avoid saving duplicates or deadlocks
-    std::vector<void*> objects_pointers;
+    std::vector<void*> objects_pointers;  ///< Vector of pointers to stored/retrieved objects
 
   public:
     ChBinaryArchive();
-
     virtual ~ChBinaryArchive();
 
     /// Returns true if the machine where the code runs
@@ -284,24 +236,15 @@ class ChApi ChBinaryArchive {
     }
 };
 
-///
-/// This is a base class for all BINARY OUTPUT streams, in a way such
-/// that the stream is platform independent (see the 'little endian' stuff
-/// in 'floating point to persistent data' topics..)
-/// Defines some << operators from basic
-/// types, converting all them into calls to the Output() function.
-/// At least some inherited class should be used by the user in
-/// order to get some practical effect (file saving, etc.)
-///
-
+/// Base class for all BINARY OUTPUT streams.
+/// Implemented in a way such that the stream is platform independent (see the 'little endian' stuff in 'floating point
+/// to persistent data' topics). Defines some << operators from basic types, converting all them into calls to the
+/// Output() function. At least some inherited class should be used by the user in order to get some practical effect
+/// (file saving, etc.)
 class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
-  private:
   public:
     ChStreamOutBinary();
-
     virtual ~ChStreamOutBinary();
-
-    //  Operators
 
     /// Generic << operator for all classes which implement serialization
     /// by means of a method named  'void StreamOut(ChStreamOutBinary&)'
@@ -322,7 +265,7 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
     ChStreamOutBinary& operator<<(unsigned int Val);
     ChStreamOutBinary& operator<<(double Val);
     ChStreamOutBinary& operator<<(float Val);
-    ChStreamOutBinary& operator<<(std::string& str);
+    ChStreamOutBinary& operator<<(const std::string& str);
     ChStreamOutBinary& operator<<(long Val);
     ChStreamOutBinary& operator<<(unsigned long Val);
     ChStreamOutBinary& operator<<(unsigned long long Val);
@@ -402,24 +345,15 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
     void VersionWrite(int mver);
 };
 
-///
-/// This is a base class for all BINARY INPUT streams, in a way such
-/// that the stream is platform independent (see the 'little endian' stuff
-/// in 'floating point to persistent data' topics..)
-/// Defines some << operators from basic
-/// types, converting all them into calls to the Output() function.
-/// At least some inherited class should be used by the user in
-/// order to get some practical effect (file saving, etc.)
-///
-
+/// Base class for all BINARY INPUT streams.
+/// Implemented in a way such that the stream is platform independent (see the 'little endian' stuff in 'floating point
+/// to persistent data' topics). Defines some << operators from basic types, converting all them into calls to the
+/// Output() function. At least some inherited class should be used by the user in order to get some practical effect
+/// (file saving, etc.)
 class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
-  private:
   public:
     ChStreamInBinary();
-
     virtual ~ChStreamInBinary();
-
-    //  Operators
 
     /// Generic >> operator for all classes which implement serialization
     /// by means of a method named  'void StreamIn(ChStreamInBinary&)'
@@ -429,10 +363,8 @@ class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
         return *this;
     }
 
-    /// Specialized operators for basic primitives (numbers like long,
-    /// double, int. etc., and booleans)
-    /// Handle byte ordering issues in little.endian/big.endian representations,
-    /// for cross platform portability.
+    /// Specialized operators for basic primitives (numbers like long, double, int, and booleans).
+    /// Handle byte ordering issues in little.endian/big.endian representations, for cross platform portability.
     ChStreamInBinary& operator>>(char& Val);
     ChStreamInBinary& operator>>(bool& Val);
     ChStreamInBinary& operator>>(int& Val);
@@ -447,10 +379,9 @@ class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
     /// Specialized operator for C strings
     ChStreamInBinary& operator>>(char* str);
 
-    /// Generic operator for raw binary streaming of generic objects
-    /// WARNING!!! raw byte streaming! If class 'T' contains double,
-    /// int, long, etc, these may give problems when loading on another
-    /// platform which has big-endian ordering, if generated on a little-endian platform...
+    /// Generic operator for raw binary streaming of generic objects.
+    /// WARNING: raw byte streaming! If class 'T' contains double, int, long, etc, these may give problems when
+    /// loading on another platform which has big-endian ordering, if generated on a little-endian platform.
     template <class T>
     void GenericBinaryInput(T& ogg) {
         // from stream to object, all bytes of objects of 'T' type
@@ -458,13 +389,10 @@ class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
     }
 
     /// Extract an object from the archive, and assignes the pointer to it.
-    /// This function can be used to load objects whose class is not
-    /// known in advance (anyway, assuming the class had been registered
-    /// with Chrono class factory registration). It _creates_ the object
-    /// of the proper downcasted class, and deserializes it.
-    /// Note: the object must be saved with ChStreamOutBinary::AbstractWrite()
-    /// Also, the AbstractWrite()-AbstractReadCreate() mechanism avoids
-    /// storing/creating multiple times the shared objects.
+    /// This function can be used to load objects whose class is not known in advance (anyway, assuming the class had
+    /// been registered with Chrono class factory registration). It _creates_ the object of the proper downcasted class,
+    /// and deserializes it. Note: the object must be saved with ChStreamOutBinary::AbstractWrite(). Also, the
+    /// AbstractWrite()-AbstractReadCreate() mechanism avoids storing/creating multiple times the shared objects.
     /// Supports only objects with Chrono RTTI and serializer member StreamIn().
     template <class t>
     t* AbstractReadCreate(t** mObj) {
@@ -541,23 +469,16 @@ class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
     int VersionRead();
 };
 
-///
-/// This is a base class for typical output on system's file,
-/// on a disk, using the typical C++ 'fstream' handler.
-///
-
+/// Base class for typical output on system's file, on a disk, using the typical C++ 'fstream' handler.
 class ChApi ChStreamFile {
   private:
-    /// Handler to a C++ file
-    std::fstream file;
-    /// The file name
-    char name[180];
+    std::fstream file;  ///< Handler to a C++ file
+    std::string name;   ///< File name
 
   public:
-    /// Creates a system file, like the C++ fstream, and opens it,
-    /// given filename on disk, and the opening mode (ex: std::ios::out or
-    /// std::ios::in)
-    ChStreamFile(const char* filename, std::ios::openmode mmode);
+    /// Creates and open a file, given the filename on disk and the opening mode.
+    /// (e.g.: std::ios::out or std::ios::in)
+    ChStreamFile(const std::string& filename, std::ios::openmode mode);
 
     /// Destruction means that the file stream is also closed.
     virtual ~ChStreamFile();
@@ -581,23 +502,16 @@ class ChApi ChStreamFile {
     std::fstream& GetFstream() { return file; }
 };
 
-///
-/// This is a wrapper for already-opened std::ostream
-/// output streams (like std::cout or similar)
-///
-
+/// Wrapper for already-opened std::ostream output streams (std::cout or similar).
 class ChApi ChStreamOstreamWrapper {
   private:
-    /// Handler to a C++ file
-    std::ostream* afile;
+    std::ostream* afile;  ///< Handler to a C++ file
 
   public:
-    /// Creates a wrapper for an already existing, already opened,
-    /// ostream, given the pointer to that ostream.
+    /// Creates a wrapper for an already existing, already opened, ostream, given the pointer to that ostream.
     ChStreamOstreamWrapper(std::ostream* mfile);
 
-    /// Deleting this stream wrapper does not delete nor closes
-    /// the wrapped ostream!
+    /// Deleting this stream wrapper does not delete nor closes the wrapped ostream.
     virtual ~ChStreamOstreamWrapper();
 
     /// Writes raw data to file, up to n chars.
@@ -611,23 +525,16 @@ class ChApi ChStreamOstreamWrapper {
     std::ostream* GetOstream() const { return afile; }
 };
 
-///
-/// This is a wrapper for already-opened std::istream
-/// input streams
-///
-
+/// Wrapper for already-opened std::istream input streams.
 class ChApi ChStreamIstreamWrapper {
   private:
-    /// Handler to a C++ stream
-    std::istream* afile;
+    std::istream* afile;  ///< Handler to a C++ stream
 
   public:
-    /// Creates a wrapper for an already existing, already opened,
-    /// istream, given the pointer to that istream.
+    /// Creates a wrapper for an already existing, already opened, istream, given the pointer to that istream.
     ChStreamIstreamWrapper(std::istream* mfile);
 
-    /// Deleting this stream wrapper does not delete nor closes
-    /// the wrapped istream!
+    /// Deleting this stream wrapper does not delete nor closes the wrapped istream.
     virtual ~ChStreamIstreamWrapper();
 
     /// Reads from stream, up to n chars.
@@ -641,10 +548,7 @@ class ChApi ChStreamIstreamWrapper {
     std::istream* GetIstream() { return afile; }
 };
 
-///
-/// This is a wrapper for a std::vector<char> (buffer of chars)
-///
-
+/// Wrapper for a std::vector<char> (buffer of chars).
 class ChApi ChStreamVectorWrapper {
   private:
     /// Handler to a C++ stream
@@ -652,12 +556,10 @@ class ChApi ChStreamVectorWrapper {
     int pos;
 
   public:
-    /// Creates a wrapper for an already existing std::vector<char>,
-    /// given the pointer to that vector.
+    /// Creates a wrapper for an already existing std::vector<char>, given the pointer to that vector.
     ChStreamVectorWrapper(std::vector<char>* mchars);
 
-    /// Deleting this wrapper does not delete nor closes
-    /// the wrapped buffer!
+    /// Deleting this wrapper does not delete nor closes the wrapped buffer.
     virtual ~ChStreamVectorWrapper();
 
     /// Reads from vector, up to n chars.
@@ -679,14 +581,11 @@ class ChApi ChStreamVectorWrapper {
     void Seek(int position) { pos = position; }
 };
 
-///
-/// This is a specialized class for BINARY output to wrapped std::ostream,
-///
-
+/// Specialized class for BINARY output to wrapped std::ostream.
 class ChApi ChStreamOutBinaryStream : public ChStreamOstreamWrapper, public ChStreamOutBinary {
   public:
-    ChStreamOutBinaryStream(std::ostream* mfile) : ChStreamOstreamWrapper(mfile), ChStreamOutBinary(){};
-    virtual ~ChStreamOutBinaryStream(){};
+    ChStreamOutBinaryStream(std::ostream* mfile) : ChStreamOstreamWrapper(mfile), ChStreamOutBinary() {}
+    virtual ~ChStreamOutBinaryStream() {}
 
     virtual bool End_of_stream() const override { return ChStreamOstreamWrapper::End_of_stream(); }
 
@@ -694,14 +593,11 @@ class ChApi ChStreamOutBinaryStream : public ChStreamOstreamWrapper, public ChSt
     virtual void Output(const char* data, size_t n) override { ChStreamOstreamWrapper::Write(data, n); }
 };
 
-///
-/// This is a specialized class for BINARY input from wrapped std::istream,
-///
-
+/// Specialized class for BINARY input from wrapped std::istream,
 class ChApi ChStreamInBinaryStream : public ChStreamIstreamWrapper, public ChStreamInBinary {
   public:
-    ChStreamInBinaryStream(std::istream* mfile) : ChStreamIstreamWrapper(mfile), ChStreamInBinary(){};
-    virtual ~ChStreamInBinaryStream(){};
+    ChStreamInBinaryStream(std::istream* mfile) : ChStreamIstreamWrapper(mfile), ChStreamInBinary() {}
+    virtual ~ChStreamInBinaryStream() {}
 
     virtual bool End_of_stream() const override { return ChStreamIstreamWrapper::End_of_stream(); }
 
@@ -709,14 +605,11 @@ class ChApi ChStreamInBinaryStream : public ChStreamIstreamWrapper, public ChStr
     virtual void Input(char* data, size_t n) override { ChStreamIstreamWrapper::Read(data, n); }
 };
 
-///
-/// This is a specialized class for BINARY output to wrapped std::vector<char>,
-///
-
+/// Specialized class for BINARY output to wrapped std::vector<char>
 class ChApi ChStreamOutBinaryVector : public ChStreamVectorWrapper, public ChStreamOutBinary {
   public:
-    ChStreamOutBinaryVector(std::vector<char>* mchars) : ChStreamVectorWrapper(mchars), ChStreamOutBinary(){};
-    virtual ~ChStreamOutBinaryVector(){};
+    ChStreamOutBinaryVector(std::vector<char>* mchars) : ChStreamVectorWrapper(mchars), ChStreamOutBinary() {}
+    virtual ~ChStreamOutBinaryVector() {}
 
     virtual bool End_of_stream() const override { return ChStreamVectorWrapper::End_of_stream(); }
 
@@ -724,14 +617,11 @@ class ChApi ChStreamOutBinaryVector : public ChStreamVectorWrapper, public ChStr
     virtual void Output(const char* data, size_t n) override { ChStreamVectorWrapper::Write(data, n); }
 };
 
-///
-/// This is a specialized class for BINARY input from wrapped std::vector<char>,
-///
-
+/// Specialized class for BINARY input from wrapped std::vector<char>,
 class ChApi ChStreamInBinaryVector : public ChStreamVectorWrapper, public ChStreamInBinary {
   public:
-    ChStreamInBinaryVector(std::vector<char>* mchars) : ChStreamVectorWrapper(mchars), ChStreamInBinary(){};
-    virtual ~ChStreamInBinaryVector(){};
+    ChStreamInBinaryVector(std::vector<char>* mchars) : ChStreamVectorWrapper(mchars), ChStreamInBinary() {}
+    virtual ~ChStreamInBinaryVector() {}
 
     virtual bool End_of_stream() const override { return ChStreamVectorWrapper::End_of_stream(); }
 
@@ -739,14 +629,11 @@ class ChApi ChStreamInBinaryVector : public ChStreamVectorWrapper, public ChStre
     virtual void Input(char* data, size_t n) override { ChStreamVectorWrapper::Read(data, n); }
 };
 
-///
-/// This is a specialized class for ASCII output to wrapped std::vector<char>,
-///
-
+/// Specialized class for ASCII output to wrapped std::vector<char>.
 class ChApi ChStreamOutAsciiVector : public ChStreamVectorWrapper, public ChStreamOutAscii {
   public:
-    ChStreamOutAsciiVector(std::vector<char>* mchars) : ChStreamVectorWrapper(mchars), ChStreamOutAscii(){};
-    virtual ~ChStreamOutAsciiVector(){};
+    ChStreamOutAsciiVector(std::vector<char>* mchars) : ChStreamVectorWrapper(mchars), ChStreamOutAscii() {}
+    virtual ~ChStreamOutAsciiVector() {}
 
     virtual bool End_of_stream() const override { return ChStreamVectorWrapper::End_of_stream(); }
 
@@ -754,14 +641,11 @@ class ChApi ChStreamOutAsciiVector : public ChStreamVectorWrapper, public ChStre
     virtual void Output(const char* data, size_t n) override { ChStreamVectorWrapper::Write(data, n); }
 };
 
-///
-/// This is a specialized class for ASCII input from wrapped std::vector<char>,
-///
-
+/// Specialized class for ASCII input from wrapped std::vector<char>.
 class ChApi ChStreamInAsciiVector : public ChStreamVectorWrapper, public ChStreamInAscii {
   public:
-    ChStreamInAsciiVector(std::vector<char>* mchars) : ChStreamVectorWrapper(mchars), ChStreamInAscii(){};
-    virtual ~ChStreamInAsciiVector(){};
+    ChStreamInAsciiVector(std::vector<char>* mchars) : ChStreamVectorWrapper(mchars), ChStreamInAscii() {}
+    virtual ~ChStreamInAsciiVector() {}
 
     virtual bool End_of_stream() const override { return ChStreamVectorWrapper::End_of_stream(); }
 
@@ -769,39 +653,30 @@ class ChApi ChStreamInAsciiVector : public ChStreamVectorWrapper, public ChStrea
     virtual void Input(char* data, size_t n) override { ChStreamVectorWrapper::Read(data, n); }
 };
 
-///
-/// This is a specialized class for BINARY output on system's file,
-///
-
+/// Specialized class for BINARY output on system's file.
 class ChApi ChStreamOutBinaryFile : public ChStreamFile, public ChStreamOutBinary {
   public:
-    ChStreamOutBinaryFile(const char* filename, std::ios::openmode mmode = std::ios::trunc);  // trunc or app
+    ChStreamOutBinaryFile(const std::string& filename, std::ios::openmode mode = std::ios::trunc);
     virtual ~ChStreamOutBinaryFile();
 
   private:
     virtual void Output(const char* data, size_t n) { ChStreamFile::Write(data, n); }
 };
 
-///
-/// This is a specialized class for ASCII output on system's file,
-///
-
+/// Specialized class for ASCII output on system's file.
 class ChApi ChStreamOutAsciiFile : public ChStreamFile, public ChStreamOutAscii {
   public:
-    ChStreamOutAsciiFile(const char* filename, std::ios::openmode mmode = std::ios::trunc);  // trunc or app);
+    ChStreamOutAsciiFile(const std::string& filename, std::ios::openmode mode = std::ios::trunc);
     virtual ~ChStreamOutAsciiFile();
 
   private:
     virtual void Output(const char* data, size_t n) { ChStreamFile::Write(data, n); }
 };
 
-///
-/// This is a specialized class for BINARY input on system's file,
-///
-
+/// Specialized class for BINARY input on system's file.
 class ChApi ChStreamInBinaryFile : public ChStreamFile, public ChStreamInBinary {
   public:
-    ChStreamInBinaryFile(const char* filename);
+    ChStreamInBinaryFile(const std::string& filename);
     virtual ~ChStreamInBinaryFile();
 
     virtual bool End_of_stream() const override { return ChStreamFile::End_of_stream(); }
@@ -810,13 +685,10 @@ class ChApi ChStreamInBinaryFile : public ChStreamFile, public ChStreamInBinary 
     virtual void Input(char* data, size_t n) override { ChStreamFile::Read(data, n); }
 };
 
-///
-/// This is a specialized class for ASCII input on system's file,
-///
-
+/// Specialized class for ASCII input on system's file.
 class ChApi ChStreamInAsciiFile : public ChStreamFile, public ChStreamInAscii {
   public:
-    ChStreamInAsciiFile(const char* filename);
+    ChStreamInAsciiFile(const std::string& filename);
     virtual ~ChStreamInAsciiFile();
 
     virtual bool End_of_stream() const override { return ChStreamFile::End_of_stream(); }

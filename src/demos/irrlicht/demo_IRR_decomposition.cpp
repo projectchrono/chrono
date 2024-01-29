@@ -130,7 +130,7 @@ void DecomposeModel(ChVisualSystemIrrlicht* vis) {
     modelNode->setVisible(false);
 }
 
-void SaveHullsWavefront(ChVisualSystemIrrlicht* vis, const char* filename) {
+void SaveHullsWavefront(ChVisualSystemIrrlicht* vis, const std::string& filename) {
     // Save the convex decomposition to a
     // file using the .obj fileformat.
 
@@ -142,7 +142,7 @@ void SaveHullsWavefront(ChVisualSystemIrrlicht* vis, const char* filename) {
     }
 }
 
-void SaveHullsChulls(ChVisualSystemIrrlicht* vis, const char* filename) {
+void SaveHullsChulls(ChVisualSystemIrrlicht* vis, const std::string& filename) {
     // Save the convex decomposition to a
     // file using the .obj fileformat.
 

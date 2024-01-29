@@ -11,6 +11,7 @@ SET(TESTS
     utest_SMC_sliding_gravity
     utest_SMC_spinning_gravity
     utest_SMC_stacking
+    utest_SMC_sphere_sphere
 )
 
 MESSAGE(STATUS "Unit test programs for SMC contact in core module...")
