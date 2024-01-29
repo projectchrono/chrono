@@ -115,8 +115,9 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
                     GetLog() << "Stop saving Blender postprocessing scripts.\n";
                 }
 #else
-                GetLog() << "Saving Blender3D files not supported. Rebuild the solution with ENABLE_MODULE_POSTPROCESSING "
-                            "in CMake. \n";
+                GetLog()
+                    << "Saving Blender3D files not supported. Rebuild the solution with ENABLE_MODULE_POSTPROCESSING "
+                       "in CMake. \n";
 #endif
                 return true;
             default:
@@ -306,7 +307,7 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
                                                  L"Draw collision shapes");
 
     g_plot_abscoord = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 390, 200, 390 + 15), g_tab1, 9904,
-        L"Draw abs coordsys");
+                                          L"Draw abs coordsys");
 
     g_plot_convergence = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 405, 200, 405 + 15), g_tab1, 9903,
                                              L"Plot convergence");
@@ -389,8 +390,7 @@ void ChIrrGUI::SetModalSpeed(double val) {
     g_modal_speed->setText(irr::core::stringw(message).c_str());
 }
 
-void ChIrrGUI::SetModalModesMax(int maxModes)
-{
+void ChIrrGUI::SetModalModesMax(int maxModes) {
     int newMaxModes = std::max(maxModes, 1);
     g_modal_mode_n->setMax(newMaxModes);
     modal_mode_n = std::min(modal_mode_n, newMaxModes);
@@ -563,7 +563,7 @@ void ChIrrGUI::Render() {
         char message[50];
         if (modal_current_dampingfactor)
             snprintf(message, sizeof(message), "n = %i\nf = %.3g Hz\nz = %.2g", modal_mode_n, modal_current_freq,
-                    modal_current_dampingfactor);
+                     modal_current_dampingfactor);
         else
             snprintf(message, sizeof(message), "n = %i\nf = %.3g Hz", modal_mode_n, modal_current_freq);
         g_modal_mode_n_info->setText(irr::core::stringw(message).c_str());
@@ -611,12 +611,7 @@ void ChIrrGUI::EndScene() {
         blender_num++;
     }
 #endif
-
 }
-
-
-
-
 
 #ifdef CHRONO_POSTPROCESS
 
@@ -631,30 +626,30 @@ void ChIrrGUI::SetBlenderSave(bool val) {
 
     if (blender_save && !blender_exporter) {
         blender_exporter = std::unique_ptr<postprocess::ChBlender>(new postprocess::ChBlender(m_system));
-        
+
         // Set the path where it will save all .pov, .ini, .asset and .dat files,
         // a directory will be created if not existing
         blender_exporter->SetBasePath("blender_project");
 
         // Add all items (already in scene) to the Blender exporter
         blender_exporter->AddAll();
-        
+
         if (m_vis->GetCameraVertical() == CameraVerticalDir::Z)
             blender_exporter->SetBlenderUp_is_ChronoZ();
         if (m_vis->GetCameraVertical() == CameraVerticalDir::Y)
             blender_exporter->SetBlenderUp_is_ChronoY();
 
         // Static default camera in Blender matches the one in Irrlicht at the moment of starting saving
-        //blender_exporter->SetCamera(ChVectorIrr(GetActiveCamera()->getAbsolutePosition()), ChVectorIrr(GetActiveCamera()->getTarget()),
+        // blender_exporter->SetCamera(ChVectorIrr(GetActiveCamera()->getAbsolutePosition()),
+        // ChVectorIrr(GetActiveCamera()->getTarget()),
         //    GetActiveCamera()->getFOV() * GetActiveCamera()->getAspectRatio() * chrono::CH_C_RAD_TO_DEG);
-        
+
         blender_exporter->ExportScript();
 
         blender_num = 0;
     }
 }
 #endif
-
 
 }  // end namespace irrlicht
 }  // end namespace chrono

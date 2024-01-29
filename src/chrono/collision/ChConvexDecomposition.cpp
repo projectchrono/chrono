@@ -17,7 +17,6 @@
 
 namespace chrono {
 
-
 //
 // Utility functions to process bad topology in meshes with repeated vertices
 //  (to be optimized for performance; in future it is better to use hash lookup)
@@ -56,12 +55,10 @@ void FuseMesh(std::vector<ChVector<double> >& vertexIN,
 ////////////////////////////////////////////////////////////////////////////
 
 /// Basic constructor
-ChConvexDecomposition::ChConvexDecomposition() {
-}
+ChConvexDecomposition::ChConvexDecomposition() {}
 
 /// Destructor
-ChConvexDecomposition::~ChConvexDecomposition() {
-}
+ChConvexDecomposition::~ChConvexDecomposition() {}
 
 bool ChConvexDecomposition::AddTriangle(const geometry::ChTriangle& t1) {
     return this->AddTriangle(t1.p1, t1.p2, t1.p3);  // add the input mesh one triangle at a time.
@@ -256,7 +253,8 @@ void ChConvexDecompositionHACD::WriteConvexHullsAsWavefrontObj(ChStreamOutAscii&
         vcount_total += (NxU32)nPoints;
         tcount_total += (NxU32)nTriangles;
         for (unsigned int i = 0; i < nPoints; i++) {
-            snprintf(buffer, sizeof(buffer), "v %0.9f %0.9f %0.9f\r\n", pointsCH[i].X(), pointsCH[i].Y(), pointsCH[i].Z());
+            snprintf(buffer, sizeof(buffer), "v %0.9f %0.9f %0.9f\r\n", pointsCH[i].X(), pointsCH[i].Y(),
+                     pointsCH[i].Z());
             mstream << buffer;
         }
         for (unsigned int i = 0; i < nTriangles; i++) {

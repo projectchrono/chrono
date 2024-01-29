@@ -268,7 +268,8 @@ int main(int argc, char* argv[]) {
 
     // Change (SMC) contact force model
     ////if (contact_method == ChContactMethod::SMC) {
-    ////    static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
+    ////
+    ///static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     ////}
 
     // --------------------------------------------------
@@ -624,22 +625,20 @@ int main(int argc, char* argv[]) {
 
             if (povray_output) {
                 std::ostringstream filename;
-                filename
-                    << pov_dir << "/data_"
-                    // Frame number is zero padded for nicer alphabetical file sorting
-                    // Is 3 digits enough space for all the frames?
-                    << std::setw(3) << std::setfill('0') << render_frame + 1
-                    << ".dat";
+                filename << pov_dir
+                         << "/data_"
+                         // Frame number is zero padded for nicer alphabetical file sorting
+                         // Is 3 digits enough space for all the frames?
+                         << std::setw(3) << std::setfill('0') << render_frame + 1 << ".dat";
                 chrono::utils::WriteVisualizationAssets(m113.GetSystem(), filename.str());
             }
             if (img_output && step_number > 200) {
                 std::ostringstream filename;
-                filename
-                    << img_dir << "/img_"
-                    // Frame number is zero padded for nicer alphabetical file sorting
-                    // Is 3 digits enough space for all the frames?
-                    << std::setw(3) << std::setfill('0') << render_frame + 1
-                    << ".jpg";
+                filename << img_dir
+                         << "/img_"
+                         // Frame number is zero padded for nicer alphabetical file sorting
+                         // Is 3 digits enough space for all the frames?
+                         << std::setw(3) << std::setfill('0') << render_frame + 1 << ".jpg";
                 vis->WriteImageToFile(filename.str());
             }
             render_frame++;

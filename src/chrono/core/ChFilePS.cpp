@@ -148,7 +148,7 @@ ChFile_ps::ChFile_ps(const std::string& filename,
             *this << mch;
             copied++;
         }
-    } catch (const std::exception &) {
+    } catch (const std::exception&) {
         if (!copied) {
             throw ChException("Could not include the 'prolog.ps'. Is the prolog.ps file properly installed?");
         }
@@ -483,14 +483,14 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
     DrawLine(cp1, cp2, Space::GRAPH);
 
     // draw xy labels
-    //if (msetting->Xaxis.label) { // pointers to static arrays are always TRUE
+    // if (msetting->Xaxis.label) { // pointers to static arrays are always TRUE
     cp1.x() = G_p.x() + Gs_p.x() - 0.4;
     cp1.y() = G_p.y() + 0.4;
     SetRGB(msetting->Xaxis.label_color);
     SetFont(ch_font_labels[msetting->Xaxis.label_fontname], msetting->Xaxis.label_fontsize);
     DrawText(cp1, msetting->Xaxis.label, Space::PAGE, Justification::RIGHT);
     //}
-    //if (msetting->Yaxis.label) { // pointers to static arrays are always TRUE
+    // if (msetting->Yaxis.label) { // pointers to static arrays are always TRUE
     cp1.x() = G_p.x() + 0.7;
     cp1.y() = G_p.y() + Gs_p.y() - 0.3;
     SetRGB(msetting->Yaxis.label_color);
@@ -506,7 +506,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
     DrawRectangle(G_p, Gs_p, Space::PAGE, false);
 
     // draw title
-    //if (msetting->title) // pointers to static arrays are always TRUE
+    // if (msetting->title) // pointers to static arrays are always TRUE
     if (*msetting->title != 0) {
         SetFont(ch_font_labels[msetting->title_fontname], msetting->title_fontsize);
         SetRGB(msetting->title_color);

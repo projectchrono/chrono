@@ -272,7 +272,8 @@ class _label_reporter_class : public ChContactContainer::ReportContactCallback {
                 snprintf(buffer, sizeof(buffer), "% 6.3g", react_torques.x());
                 break;
             case ContactsLabelMode::CONTACT_TORQUES_R_VAL:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", ChVector<>(0, react_torques.y(), react_torques.z()).Length());
+                snprintf(buffer, sizeof(buffer), "% 6.3g",
+                         ChVector<>(0, react_torques.y(), react_torques.z()).Length());
                 break;
             default:
                 break;
@@ -941,8 +942,8 @@ void drawProfilerRecursive(utils::ChProfileIterator* profileIterator,
             irr::video::SColor(100, ((xspacing * 200) % 255), ((-xspacing * 151 + 200) % 255), 230), mrect);
 
         snprintf(buffer, sizeof(buffer), "%d -- %s (%.2f %% parent, %.2f %% tot.) :: %.3f ms / frame (%d calls)\n", i,
-                profileIterator->Get_Current_Name(), fraction, fraction_tot,
-                (current_total_time / (double)frames_since_reset), profileIterator->Get_Current_Total_Calls());
+                 profileIterator->Get_Current_Name(), fraction, fraction_tot,
+                 (current_total_time / (double)frames_since_reset), profileIterator->Get_Current_Total_Calls());
         irr::core::stringw mstring(buffer);
         font->draw(mstring, irr::core::rect<irr::s32>(mx + xspacing, my + ypos, mx + sx, my + ypos + 20), mcol);
         ypos += 20;
@@ -962,8 +963,8 @@ void drawProfilerRecursive(utils::ChProfileIterator* profileIterator,
     device->getVideoDriver()->draw2DRectangle(
         irr::video::SColor(100, ((xspacing * 200) % 255), ((-xspacing * 151 + 200) % 255), 230), mrect);
 
-    snprintf(buffer, sizeof(buffer), "n -- %s (%.2f %% parent, %.2f %% tot.) :: %.3f ms\n", "Unaccounted:", fraction, fraction_tot,
-            parent_time - accumulated_time);
+    snprintf(buffer, sizeof(buffer), "n -- %s (%.2f %% parent, %.2f %% tot.) :: %.3f ms\n", "Unaccounted:", fraction,
+             fraction_tot, parent_time - accumulated_time);
     irr::core::stringw mstringu(buffer);
     font->draw(mstringu, irr::core::rect<irr::s32>(mx + xspacing, my + ypos, mx + sx, my + ypos + 20), mcol);
     ypos += 20;

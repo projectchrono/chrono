@@ -40,11 +40,11 @@ using namespace chrono::vehicle::hmmwv;
 // Select Path Follower, uncomment to select the pure PID steering controller
 #define USE_PID 1
 // The extended steering controller only works inside the path limits
-//#define USE_XT 1
+// #define USE_XT 1
 // The simple realistic steering controller should start inside the path limits, after passing the last point
 // a) closed loop course: the vehicle goes into the next round
 // b) open loop course (this example):  the vehicle keeps the last driving direction (forever)
-//#define USE_SR 1
+// #define USE_SR 1
 // =============================================================================
 // Problem parameters
 
@@ -264,8 +264,8 @@ int main(int argc, char* argv[]) {
     // Initialize output
     // -----------------
 
-    out_dir = GetChronoOutputPath() + out_dir; 
-    pov_dir = GetChronoOutputPath() + pov_dir; 
+    out_dir = GetChronoOutputPath() + out_dir;
+    pov_dir = GetChronoOutputPath() + pov_dir;
     state_output = state_output || povray_output;
 
     if (state_output) {
@@ -354,12 +354,11 @@ int main(int argc, char* argv[]) {
         if (sim_frame % render_steps == 0) {
             if (povray_output) {
                 std::ostringstream filename;
-                filename
-                    << pov_dir << "/data_"
-                    // Frame number is zero padded for nicer alphabetical file sorting
-                    // Is 3 digits enough space for all the frames?
-                    << std::setw(3) << std::setfill('0') << render_frame + 1
-                    << ".dat";
+                filename << pov_dir
+                         << "/data_"
+                         // Frame number is zero padded for nicer alphabetical file sorting
+                         // Is 3 digits enough space for all the frames?
+                         << std::setw(3) << std::setfill('0') << render_frame + 1 << ".dat";
                 utils::WriteVisualizationAssets(hmmwv.GetSystem(), filename.str());
             }
 

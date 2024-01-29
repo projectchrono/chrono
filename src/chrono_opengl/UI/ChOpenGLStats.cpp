@@ -179,13 +179,13 @@ void ChOpenGLStatsDefault::GenerateHelp() {
 
 void ChOpenGLStatsDefault::GenerateCamera() {
     snprintf(buffer, sizeof(buffer), "CAM POS [%07.5f, %07.5f, %07.5f]", render_camera->camera_position.x,
-            render_camera->camera_position.y, render_camera->camera_position.z);
+             render_camera->camera_position.y, render_camera->camera_position.z);
     text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 1, screen.SX, screen.SY);
     snprintf(buffer, sizeof(buffer), "CAM EYE [%07.5f, %07.5f, %07.5f]", render_camera->camera_look_at.x,
-            render_camera->camera_look_at.y, render_camera->camera_look_at.z);
+             render_camera->camera_look_at.y, render_camera->camera_look_at.z);
     text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 2, screen.SX, screen.SY);
-    snprintf(buffer, sizeof(buffer), "CAM UPV [%07.5f, %07.5f, %07.5f]", render_camera->camera_up.x, render_camera->camera_up.y,
-            render_camera->camera_up.z);
+    snprintf(buffer, sizeof(buffer), "CAM UPV [%07.5f, %07.5f, %07.5f]", render_camera->camera_up.x,
+             render_camera->camera_up.y, render_camera->camera_up.z);
     text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 3, screen.SX, screen.SY);
 
     text.Render("--------------------------------", screen.LEFT, screen.TOP - screen.SPACING * 4, screen.SX, screen.SY);
@@ -331,18 +331,17 @@ void ChOpenGLStatsDefault::GenerateCD(ChSystem& sys) {
         text.Render("COLLISION INFO", screen.LEFT, screen.TOP - screen.SPACING * 16, screen.SX, screen.SY);
         snprintf(buffer, sizeof(buffer), "RESIDUAL %04f", residual);
  "DIMS  [%d,%d,%d]", bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
-        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 17, screen.SX, screen.SY);
-        snprintf(buffer, sizeof(buffer), "RESIDUAL %04f", residual);
+ text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 17, screen.SX, screen.SY);
+ snprintf(buffer, sizeof(buffer), "RESIDUAL %04f", residual);
  "SIZE  [%07.5f,%07.5f,%07.5f]", bin_size_vec.x, bin_size_vec.y, bin_size_vec.z);
-        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 18, screen.SX, screen.SY);
+ text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 18, screen.SX, screen.SY);
 
-        snprintf(buffer, sizeof(buffer), "R: %d B: %d F: %d", parallel_sys->data_manager->cd_data->num_rigid_contacts,
-                parallel_sys->data_manager->cd_data->num_rigid_fluid_contacts,
-                parallel_sys->data_manager->cd_data->num_fluid_contacts);
-        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 20, screen.SX, screen.SY);
+ snprintf(buffer, sizeof(buffer), "R: %d B: %d F: %d", parallel_sys->data_manager->cd_data->num_rigid_contacts,
+          parallel_sys->data_manager->cd_data->num_rigid_fluid_contacts,
+          parallel_sys->data_manager->cd_data->num_fluid_contacts);
+ text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 20, screen.SX, screen.SY);
 
-        text.Render("--------------------------------", screen.LEFT, screen.TOP - screen.SPACING * 21, screen.SX,
-                    screen.SY);
+ text.Render("--------------------------------", screen.LEFT, screen.TOP - screen.SPACING * 21, screen.SX, screen.SY);
     }
 #endif
 }

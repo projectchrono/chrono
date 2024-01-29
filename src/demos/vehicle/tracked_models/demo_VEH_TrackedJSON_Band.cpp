@@ -37,11 +37,11 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_MUMPS
-#include "chrono_mumps/ChSolverMumps.h"
+    #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #define USE_IRRLICHT
@@ -257,11 +257,14 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    //Setup chassis position output with column headers
+    // Setup chassis position output with column headers
     utils::CSV_writer csv("\t");
     csv.stream().setf(std::ios::scientific | std::ios::showpos);
     csv.stream().precision(6);
-    csv << "Time (s)" << "Chassis X Pos (m)" << "Chassis Y Pos (m)" << "Chassis Z Pos (m)" << endl;
+    csv << "Time (s)"
+        << "Chassis X Pos (m)"
+        << "Chassis Y Pos (m)"
+        << "Chassis Z Pos (m)" << endl;
 
     // Set up vehicle output
     ////vehicle.SetChassisOutput(true);
@@ -413,24 +416,20 @@ int main(int argc, char* argv[]) {
         if (step_number % render_steps == 0) {
             if (povray_output) {
                 std::ostringstream filename;
-                filename
-                    << pov_dir
-                    << "/data_" 
-                    // Frame number is zero padded for nicer alphabetical file sorting
-                    << std::setw(3) << std::setfill('0') << render_frame + 1
-                    << ".dat";
+                filename << pov_dir
+                         << "/data_"
+                         // Frame number is zero padded for nicer alphabetical file sorting
+                         << std::setw(3) << std::setfill('0') << render_frame + 1 << ".dat";
                 utils::WriteVisualizationAssets(vehicle.GetSystem(), filename.str());
             }
 
 #ifdef USE_IRRLICHT
             if (img_output && step_number > 200) {
                 std::ostringstream filename;
-                filename
-                    << img_dir
-                    << "/img_" 
-                    // Frame number is zero padded for nicer alphabetical file sorting
-                    << std::setw(3) << std::setfill('0') << render_frame + 1
-                    << ".jpg";
+                filename << img_dir
+                         << "/img_"
+                         // Frame number is zero padded for nicer alphabetical file sorting
+                         << std::setw(3) << std::setfill('0') << render_frame + 1 << ".jpg";
                 vis->WriteImageToFile(filename.str());
             }
 #endif

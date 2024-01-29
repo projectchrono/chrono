@@ -399,11 +399,10 @@ int main(int argc, char* argv[]) {
 
             if (povray_output) {
                 std::ostringstream filename;
-                filename
-                    << pov_dir << "/data_"
-                    // Frame number is zero padded for nicer alphabetical file sorting
-                    << std::setw(3) << std::setfill('0') << render_frame + 1
-                    << ".dat";
+                filename << pov_dir
+                         << "/data_"
+                         // Frame number is zero padded for nicer alphabetical file sorting
+                         << std::setw(3) << std::setfill('0') << render_frame + 1 << ".dat";
                 utils::WriteVisualizationAssets(hmmwv.GetSystem(), filename.str());
             }
 
