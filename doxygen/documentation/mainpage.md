@@ -21,6 +21,10 @@ Instructions on **how to set up a project** that uses Chrono.
 
   Detailed documentation of Chrono's main features.
 
+- [Visualization](@ref manual_visualization)  
+
+  Chrono support for run-time and off-line visualization
+
 - [Chrono::Vehicle](@ref manual_vehicle)
 
   Ground vehicle modeling and simulation with the Chrono::Vehicle module
@@ -28,6 +32,10 @@ Instructions on **how to set up a project** that uses Chrono.
 - [Chrono::Sensor](@ref manual_sensor)
 
   Sensor modeling and simulation with the Chrono::Sensor module
+
+- [Chrono::Parsers](@ref manual_parsers)
+  
+  tools to import external models and to interact with other languages
 
 - [PyChrono](@ref pychrono_introduction)
 
@@ -49,9 +57,7 @@ Instructions on **how to set up a project** that uses Chrono.
 
   Add-on for importing Chrono simulations in Blender for rigging, editing and rendering
 
-- [Visualization](@ref manual_visualization)  
 
-  Chrono support for run-time and off-line visualization
 
 ---
 
