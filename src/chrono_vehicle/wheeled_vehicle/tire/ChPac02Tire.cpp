@@ -91,7 +91,7 @@ void ChPac02Tire::CombinedCoulombForces(double& fx, double& fy, double fz) {
 
      This model is experimental and needs some testing.
 
-     With bristle deformation z, kinematic force fc, sliding velocity v and stiffness sigma we have this
+     With bristle deformation z, Coulomb force fc, sliding velocity v and stiffness sigma we have this
      differential equation:
          dz/dt = v - sigma0*z*abs(v)/fc
 
@@ -107,17 +107,15 @@ void ChPac02Tire::CombinedCoulombForces(double& fx, double& fy, double fz) {
     double muscale = m_states.mu_road / m_mu0;
     double fc = fz * muscale;
     double h = this->m_stepsize;
-    double brx = (fc * m_states.brx + fc * h * m_states.vsx) /
-                 (fc + h * m_par.sigma0 * fabs(m_states.vsx));                     // Backward Euler (implicit)
-    double brx_dot = m_states.vsx - m_par.sigma0 * brx * fabs(m_states.vsx) / fc;  // needed for damping
-    double bry = (fc * m_states.bry + fc * h * m_states.vsy) /
-                 (fc + h * m_par.sigma0 * fabs(m_states.vsy));                     // Backward Euler (implicit)
-    double bry_dot = m_states.vsy - m_par.sigma0 * bry * fabs(m_states.vsy) / fc;  // needed for damping
-    F.x() = -(m_par.sigma0 * brx + m_par.sigma1 * brx_dot);
-    F.y() = -(m_par.sigma0 * bry + m_par.sigma1 * bry_dot);
-    m_states.brx = brx;
-    m_states.bry = bry;
-
+    // Longitudinal Friction Force
+    double brx_dot = m_states.vsx - m_par.sigma0 * m_states.brx * fabs(m_states.vsx) / fc;  // dz/dt
+    F.x() = -(m_par.sigma0 * m_states.brx + m_par.sigma1 * brx_dot);
+    // Lateral Friction Force
+    double bry_dot = m_states.vsy - m_par.sigma0 * m_states.bry * fabs(m_states.vsy) / fc;  // dz/dt
+    F.y() = -(m_par.sigma0 * m_states.bry + m_par.sigma1 * bry_dot);
+    // Calculate the new ODE states (implicit Euler)
+    m_states.brx = (fc * m_states.brx + fc * h * m_states.vsx) / (fc + h * m_par.sigma0 * fabs(m_states.vsx));
+    m_states.bry = (fc * m_states.bry + fc * h * m_states.vsy) / (fc + h * m_par.sigma0 * fabs(m_states.vsy));
     // combine forces (friction circle)
     if (F.Length() > fz * muscale) {
         F.Normalize();
