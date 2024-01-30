@@ -488,11 +488,11 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
     bool converged_flag_F = false;
 
     double fooT;
-    ChState assembly_x;
-    ChStateDelta assembly_v;
-    assembly_x.setZero(this->ncoords, nullptr);
-    assembly_v.setZero(this->ncoords_w, nullptr);
-    this->IntStateGather(0, assembly_x, 0, assembly_v, fooT);
+    ChState x_mod;
+    ChStateDelta v_mod;
+    x_mod.setZero(this->ncoords, nullptr);
+    v_mod.setZero(this->ncoords_w, nullptr);
+    this->IntStateGather(0, x_mod, 0, v_mod, fooT);
 
     // ChStateDelta assembly_a;
     // assembly_a.setZero(this->ncoords_w, nullptr);
@@ -510,7 +510,6 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
     } else {
         // solve the configuration of the floating frame F using Newton-Raphson iteration
 
-        // int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
         int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
 
         auto ComputeResidual_ConstrF = [&](ChVectorDynamic<>& mC_F) {
@@ -617,20 +616,15 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
         }
 
         ChVectorDynamic<> vel_F(6);  // qdt_F
-        vel_F = P_F * Q_0 * (P_W.transpose() * assembly_v);
+        vel_F = P_F * Q_0 * (P_W.transpose() * v_mod);
         floating_frame_F.SetPos_dt(vel_F.head(3));
         floating_frame_F.SetWvel_loc(vel_F.tail(3));
-
-        // floating_frame_F.SetPos(ChVector<>(floating_frame_F.GetPos().x(), floating_frame_F.GetPos().y(),0));
-        // ChQuaternion<> q_root(assembly_x.segment(3, 4));
-        // floating_frame_F.SetRot(q_root);
-        // ChVector<> w_root(assembly_v.segment(3, 3));
-        // floating_frame_F.SetWvel_loc(w_root);
 
         this->UpdateTransformationMatrix();
 
         this->ComputeProjectionMatrix();
 
+        // Update the velocity of F, but not convergent
         // iteration_count = 0;
         // bool converged_flag_Fdt = false;
         // while (converged_flag_Fdt == false && iteration_count < NR_limit) {
@@ -2467,8 +2461,8 @@ void ChModalAssembly::Update(bool update_assets) {
         if (m_custom_F_full_callback)
             m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
 
-        //if (update_assets)
-            this->UpdateFloatingFrameOfReference();
+        // if (update_assets)
+        this->UpdateFloatingFrameOfReference();
     }
 }
 
@@ -2929,13 +2923,15 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -=
             c * (P_W * P_perp_0.transpose() * (this->K_red * e_locred));
         R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -=
-            c * (P_W * P_perp_0.transpose() * (this->R_red * edt_locred));  // wrong
-        // R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -= c * Rm_sup * v_mod;//more correct, but
-        // why?
-        ChMatrixDynamic<> R1 = P_W * P_perp_0.transpose() * R_red * P_perp_0 * P_W.transpose();
-        ChMatrixDynamic<> R_diff = R1 - Rm_sup;
-        GetLog() << "*** R_diff.norm():\t" << R_diff.norm() << "\n";
+            c * (P_W * P_perp_0.transpose() * (this->R_red * edt_locred));  // More correct?
+        // R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -=
+        // c * (P_W * P_perp_0.transpose() * (this->R_red * (P_perp_0*P_W.transpose() * v_mod)));  // More correct?
+        // R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -= c * Rm_sup * v_mod;//more correct?
 
+        // for test:
+        // ChMatrixDynamic<> R1 = P_W * P_perp_0.transpose() * R_red * P_perp_0 * P_W.transpose();
+        // ChMatrixDynamic<> R_diff = R1 - Rm_sup;
+        // GetLog() << "*** R_diff.norm():\t" << R_diff.norm() << "\n";
 
         if (use_quadratic_velocity_term) {
             ChMatrixDynamic<> V;
@@ -2959,7 +2955,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
             g_quad.setZero(bou_mod_coords_w);
             // g_quad = (mat_O + mat_M - mat_M.transpose()) * v_mod;
             g_quad += mat_OF * v_mod;
-            // g_quad += mat_OB * v_mod;
+            // g_quad += mat_OB * v_mod;//leading to divergence
             g_quad += (mat_M - mat_M.transpose()) * v_mod;
 
             //// note: - sign
@@ -3011,6 +3007,15 @@ void ChModalAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offse
                 item->IntLoadResidual_Mv(displ_v + item->GetOffset_w(), R, w, c);
         }
     } else {
+        // inertial mass matrix
+        this->M_sup = P_W * M_red * P_W.transpose();
+
+        // material mass matrix of reduced superelement
+        // M_sup = P_W * (P_perp_0.transpose() * M_red * P_perp_0 + P_parallel_0.transpose() * M_red * P_parallel_0) *
+        //        P_W.transpose();
+
+        this->modal_M = this->M_sup;
+
         ChVectorDynamic<> w_modal = w.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w);
         R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) += c * (this->modal_M * w_modal);
     }

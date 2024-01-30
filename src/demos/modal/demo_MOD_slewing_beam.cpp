@@ -47,7 +47,7 @@ using namespace filesystem;
 const std::string out_dir = GetChronoOutputPath() + "SLEWING_BEAM";
 
 constexpr double time_step = 0.002;
-constexpr double time_length = 40;
+constexpr double time_length = 50;
 
 constexpr bool RUN_ORIGIN = false;
 constexpr bool RUN_MODAL = true;
@@ -58,7 +58,7 @@ constexpr bool DO_DYNAMICS = true;
 
 constexpr bool USE_GEOMETRIC_STIFFNESS = true;
 constexpr bool USE_INERTIAL_STIFFNESS = false;
-constexpr bool USE_INERTIAL_DAMPING = false;
+constexpr bool USE_INERTIAL_DAMPING = true;
 constexpr bool USE_QUADRATIC_VELOCITY_TERM = true;
 
 void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdeflection) {
@@ -309,7 +309,7 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
             //     assembly->RegisterCallback_CustomForceFull(my_callback);
             // }
 
-            if (sys.GetChTime() > time_length * 0.95)
+            if (sys.GetChTime() > time_length * 0.98)
                 assembly->verbose = true;
             else
                 assembly->verbose = false;
