@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -350,15 +351,12 @@ int main(int argc, char* argv[]) {
         vis->Render();
         vis->EndScene();
 
-        // Output POV-Ray data
+        // Output POV-Ray data.
+        // Zero-pad frame numbers in file names for postprocessing.
         if (sim_frame % render_steps == 0) {
             if (povray_output) {
                 std::ostringstream filename;
-                filename << pov_dir
-                         << "/data_"
-                         // Frame number is zero padded for nicer alphabetical file sorting
-                         // Is 3 digits enough space for all the frames?
-                         << std::setw(3) << std::setfill('0') << render_frame + 1 << ".dat";
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
                 utils::WriteVisualizationAssets(hmmwv.GetSystem(), filename.str());
             }
 

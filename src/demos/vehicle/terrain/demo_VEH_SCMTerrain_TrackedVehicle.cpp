@@ -329,12 +329,9 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
 
             if (img_output) {
+                // Zero-pad frame numbers in file names for postprocessing
                 std::ostringstream filename;
-                filename << img_dir
-                         << "/img_"
-                         // Frame number is zero padded for nicer alphabetical file sorting
-                         // Is 3 digits enough space for all the frames?
-                         << std::setw(3) << std::setfill('0') << render_frame + 1 << ".jpg";
+                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
                 vis->WriteImageToFile(filename.str());
                 render_frame++;
             }

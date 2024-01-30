@@ -224,11 +224,9 @@ std::string ChVehicleCosimBaseNode::OutputFilename(const std::string& dir,
                                                    const std::string& ext,
                                                    int frame,
                                                    int frame_digits) {
+    // Frame number is zero padded for postprocessing
     std::ostringstream filename;
-    filename << dir << "/" << root
-             << "_"
-             // Frame number is zero padded for nicer alphabetical file sorting
-             << std::setw(frame_digits) << std::setfill('0') << frame << "." << ext;
+    filename << dir << "/" << root << "_" << std::setw(frame_digits) << std::setfill('0') << frame << "." << ext;
     return filename.str();
 }
 
