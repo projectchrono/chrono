@@ -2936,8 +2936,6 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         ChMatrixDynamic<> R_diff = R1 - Rm_sup;
         GetLog() << "*** R_diff.norm():\t" << R_diff.norm() << "\n";
 
-        if (use_inertial_damping)
-            R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -= c * this->Ri_sup * v_mod;
 
         if (use_quadratic_velocity_term) {
             ChMatrixDynamic<> V;
