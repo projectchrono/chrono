@@ -2,7 +2,9 @@ Chrono::SolidWorks&copy; tutorials {#tutorial_table_of_content_chrono_solidworks
 ==========================
 
 
-Tutorials for users that installed the [Chrono::Solidworks](@ref introduction_chrono_solidworks) add-in for SolidWorks
+Tutorials for users that installed the [Chrono::Solidworks](@ref manual_chrono_solidworks) add-in for SolidWorks.
+
+Ohter examples can be found directly in the Chrono::SolidWorks repository under [examples](https://github.com/projectchrono/chrono-solidworks/tree/master/to_put_in_app_dir/examples).
 
 <br>
 -   @subpage tutorial_chrono_solidworks_demo_engine
@@ -35,7 +37,7 @@ Tutorials for users that installed the [Chrono::Solidworks](@ref introduction_ch
     - move the ground to simulate an earthquake 
 
 <br>
--   @subpage tutorial_pychrono_demo_spider_robot
+-   @subpage tutorial_chrono_solidworks_demo_spider_robot
 
     Import a SolidWorks model of a crawling robot into your PyChrono program, and simulate it.
 
@@ -44,4 +46,21 @@ Tutorials for users that installed the [Chrono::Solidworks](@ref introduction_ch
     - add actuators and additional items not modeled in CAD
     - show the simulation in an Irrlicht 3D view
 	
+
+## Tutorials using pre-exported models
+
+These tutorials come with pre-exported models to allow the user to test the import functionalities without having to install the add-in straight away.
+	
+- [demo_PARSER_Python_SolidWorks.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/parsers/demo_PARSER_Python_SolidWorks.py)
+
+    - simulation by PyChrono
+    - uses either Irrlicht or POVRAy rendering
+
+<br>
+
+- [demo_PARSER_Python_SolidWorks.cpp](https://github.com/projectchrono/chrono/blob/main/src/demos/parsers/demo_PARSER_Python_SolidWorks.cpp)
+
+    - simulation with Chrono (C++) by loading a Python exported model (requires PARSERS module)
+
+
 

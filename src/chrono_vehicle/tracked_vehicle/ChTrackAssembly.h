@@ -231,8 +231,8 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     bool m_roller_as_cylinder;
 
     // Used only in a co-simulation framework
-    std::vector<std::shared_ptr<ChLoadBodyForce>> m_spindle_terrain_forces;    ///< terrain force loads on track shoes
-    std::vector<std::shared_ptr<ChLoadBodyTorque>> m_spindle_terrain_torques;  ///< terrain torque loads on track shoes
+    std::vector<std::shared_ptr<ChLoadBodyForce>> m_shoe_terrain_forces;    ///< terrain force loads on track shoes
+    std::vector<std::shared_ptr<ChLoadBodyTorque>> m_shoe_terrain_torques;  ///< terrain torque loads on track shoes
 
     friend class ChTrackedVehicle;
     friend class ChTrackTestRig;

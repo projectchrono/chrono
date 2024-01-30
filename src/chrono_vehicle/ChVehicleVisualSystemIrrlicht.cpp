@@ -282,11 +282,10 @@ void ChVehicleVisualSystemIrrlicht::renderTextBox(const std::string& msg,
 void ChVehicleVisualSystemIrrlicht::renderStats() {
     char msg[100];
 
-    sprintf(msg, "Camera:%s", m_camera->GetStateName().c_str());
-    renderTextBox(std::string(msg), m_HUD_x, m_HUD_y, 170, 15);
+    renderTextBox("Camera: " + m_camera->GetStateName(), m_HUD_x, m_HUD_y, 170, 15);
 
     double speed = m_vehicle->GetSpeed();
-    sprintf(msg, "Speed(m/s): %+.2f", speed);
+    snprintf(msg, sizeof(msg), "Speed(m/s): %+.2f", speed);
     renderLinGauge(std::string(msg), speed / 30, false, m_HUD_x, m_HUD_y + 30, 170, 15);
 
     // Display information from powertrain system
@@ -297,11 +296,11 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
         const auto& transmission = powertrain->GetTransmission();
 
         double engine_rpm = engine->GetMotorSpeed() * 60 / CH_C_2PI;
-        sprintf(msg, "Eng.speed(RPM): %+.2f", engine_rpm);
+        snprintf(msg, sizeof(msg), "Eng.speed(RPM): %+.2f", engine_rpm);
         renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 50, 170, 15);
 
         double engine_torque = engine->GetOutputMotorshaftTorque();
-        sprintf(msg, "Eng.torque(Nm): %+.2f", engine_torque);
+        snprintf(msg, sizeof(msg), "Eng.torque(Nm): %+.2f", engine_torque);
         renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 70, 170, 15);
 
         char msgT[5];
@@ -311,89 +310,89 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
             auto transmission_auto = transmission->asAutomatic();
 
             double tc_slip = transmission_auto->GetTorqueConverterSlippage();
-            sprintf(msg, "T.conv.slip: %+.2f", tc_slip);
+            snprintf(msg, sizeof(msg), "T.conv.slip: %+.2f", tc_slip);
             renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 90, 170, 15);
 
             double tc_torquein = transmission_auto->GetTorqueConverterInputTorque();
-            sprintf(msg, "T.conv.in(Nm): %+.2f", tc_torquein);
+            snprintf(msg, sizeof(msg), "T.conv.in(Nm): %+.2f", tc_torquein);
             renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 110, 170, 15);
 
             double tc_torqueout = transmission_auto->GetTorqueConverterOutputTorque();
-            sprintf(msg, "T.conv.out(Nm): %+.2f", tc_torqueout);
+            snprintf(msg, sizeof(msg), "T.conv.out(Nm): %+.2f", tc_torqueout);
             renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 170, 15);
 
             double tc_rpmout = transmission_auto->GetTorqueConverterOutputSpeed() * 60 / CH_C_2PI;
-            sprintf(msg, "T.conv.out(RPM): %+.2f", tc_rpmout);
+            snprintf(msg, sizeof(msg), "T.conv.out(RPM): %+.2f", tc_rpmout);
             renderLinGauge(std::string(msg), tc_rpmout / 7000, false, m_HUD_x, m_HUD_y + 150, 170, 15);
             switch (transmission_auto->GetShiftMode()) {
                 case ChAutomaticTransmission::ShiftMode::AUTOMATIC:
-                    sprintf(msgT, "[A]");
+                    snprintf(msgT, sizeof(msgT), "[A]");
                     break;
                 case ChAutomaticTransmission::ShiftMode::MANUAL:
-                    sprintf(msgT, "[M]");
+                    snprintf(msgT, sizeof(msgT), "[M]");
                     break;
                 default:
-                    sprintf(msgT, "  ");
+                    snprintf(msgT, sizeof(msgT), "  ");
                     break;
             }
             ChAutomaticTransmission::DriveMode drivemode = transmission_auto->GetDriveMode();
             switch (drivemode) {
                 case ChAutomaticTransmission::DriveMode::FORWARD:
-                    sprintf(msg, "%s Gear: Forward %d", msgT, ngear);
+                    snprintf(msg, sizeof(msg), "%s Gear: Forward %d", msgT, ngear);
                     break;
                 case ChAutomaticTransmission::DriveMode::NEUTRAL:
-                    sprintf(msg, "%s Gear: Neutral", msgT);
+                    snprintf(msg, sizeof(msg), "%s Gear: Neutral", msgT);
                     break;
                 case ChAutomaticTransmission::DriveMode::REVERSE:
-                    sprintf(msg, "%s Gear: Reverse", msgT);
+                    snprintf(msg, sizeof(msg), "%s Gear: Reverse", msgT);
                     break;
                 default:
-                    sprintf(msg, "Gear:");
+                    snprintf(msg, sizeof(msg), "Gear:");
                     break;
             }
         } else if (transmission->IsManual()) {
-            sprintf(msg, "[M] Gear: %d", ngear);
+            snprintf(msg, sizeof(msg), "[M] Gear: %d", ngear);
         } else {
-            sprintf(msgT, "[?]");
+            snprintf(msgT, sizeof(msgT), "[?]");
         }
         renderLinGauge(std::string(msg), (double)ngear / (double)maxgear, false, m_HUD_x, m_HUD_y + 170, 170, 15);
     }
 
     // Display information from driver system.
     int ypos = m_HUD_y + 10;
-    sprintf(msg, "Steering: %+.2f", m_steering);
+    snprintf(msg, sizeof(msg), "Steering: %+.2f", m_steering);
     renderLinGauge(std::string(msg), -m_steering, true, m_HUD_x + 190, ypos, 170, 15);
     ypos += 20;
 
     if (powertrain && powertrain->GetTransmission()->IsManual()) {
-        sprintf(msg, "Clutch: %+.2f", m_clutch * 100.);
+        snprintf(msg, sizeof(msg), "Clutch: %+.2f", m_clutch * 100.);
         renderLinGauge(std::string(msg), m_clutch, false, m_HUD_x + 190, ypos, 170, 15);
         ypos += 20;
     }
 
-    sprintf(msg, "Throttle: %+.2f", m_throttle * 100.);
+    snprintf(msg, sizeof(msg), "Throttle: %+.2f", m_throttle * 100.);
     renderLinGauge(std::string(msg), m_throttle, false, m_HUD_x + 190, ypos, 170, 15);
     ypos += 20;
 
-    sprintf(msg, "Braking: %+.2f", m_braking * 100.);
+    snprintf(msg, sizeof(msg), "Braking: %+.2f", m_braking * 100.);
     renderLinGauge(std::string(msg), m_braking, false, m_HUD_x + 190, ypos, 170, 15);
 
     // Display current global location
     auto pos = m_vehicle->GetPos();
-    sprintf(msg, "  x: %+.1f", pos.x());
+    snprintf(msg, sizeof(msg), "  x: %+.1f", pos.x());
     renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 95, 170, 15);
-    sprintf(msg, "  y: %+.1f", pos.y());
+    snprintf(msg, sizeof(msg), "  y: %+.1f", pos.y());
     renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 110, 170, 15);
-    sprintf(msg, "  z: %+.1f", pos.z());
+    snprintf(msg, sizeof(msg), "  z: %+.1f", pos.z());
     renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 125, 170, 15);
 
     // Display current simulation time.
-    sprintf(msg, "Time %.2f", m_vehicle->GetChTime());
+    snprintf(msg, sizeof(msg), "Time %.2f", m_vehicle->GetChTime());
     renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 150, 170, 15, irr::video::SColor(255, 250, 0, 0));
 
     // Display estimated RTF
     if (m_vehicle->GetRTF() > 0) {
-        sprintf(msg, "RTF %3.2f", GetSimulationRTF());
+        snprintf(msg, sizeof(msg), "RTF %3.2f", GetSimulationRTF());
         renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 170, 170, 15, irr::video::SColor(255, 250, 0, 0));
     }
 

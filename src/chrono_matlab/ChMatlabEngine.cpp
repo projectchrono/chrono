@@ -108,9 +108,8 @@ bool ChMatlabEngine::PutSparseMatrix(const ChSparseMatrix& mmatr, std::string va
 
     this->PutVariable(transfer, varname.c_str());
 
-    char buff[100];
-    sprintf(buff, "%s=spconvert(%s)", varname.c_str(), varname.c_str());
-    this->Eval(buff);
+    std::string buf = varname + " = spconvert(" + varname + ")";
+    this->Eval(buf);
 
     return true;
 }

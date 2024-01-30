@@ -17,7 +17,6 @@
 // =============================================================================
 
 #include <sstream>
-#include <iomanip>
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -268,7 +267,8 @@ int main(int argc, char* argv[]) {
 
     // Change (SMC) contact force model
     ////if (contact_method == ChContactMethod::SMC) {
-    ////    static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
+    ////
+    ///static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     ////}
 
     // --------------------------------------------------
@@ -622,15 +622,16 @@ int main(int argc, char* argv[]) {
             vis->Render();
             vis->EndScene();
 
+            // Zero-pad frame numbers in file names for postprocessing
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                chrono::utils::WriteVisualizationAssets(m113.GetSystem(), filename);
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                chrono::utils::WriteVisualizationAssets(m113.GetSystem(), filename.str());
             }
             if (img_output && step_number > 200) {
-                char filename[100];
-                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-                vis->WriteImageToFile(filename);
+                std::ostringstream filename;
+                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+                vis->WriteImageToFile(filename.str());
             }
             render_frame++;
         }

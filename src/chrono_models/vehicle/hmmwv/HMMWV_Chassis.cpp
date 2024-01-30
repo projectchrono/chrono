@@ -82,6 +82,11 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, CollisionType 
             m_geometry.m_coll_hulls.push_back(hull);
             break;
         }
+        case CollisionType::MESH: {
+            ChVehicleGeometry::TrimeshShape trimesh(ChVector<>(), "hmmwv/hmmwv_chassis_simple.obj", 0.005, 0);
+            m_geometry.m_coll_meshes.push_back(trimesh);
+            break;
+        }
         default:
             break;
     }

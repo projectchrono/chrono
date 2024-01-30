@@ -209,7 +209,7 @@ bool ChFsiVisualizationVSG::Render() {
         thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkersD2->posRadD;
 
         // List of proxy bodies
-        const auto& blist = m_system->Get_bodylist();
+        ////const auto& blist = m_system->Get_bodylist();
 
         size_t p = 0;
 
@@ -221,21 +221,21 @@ bool ChFsiVisualizationVSG::Render() {
         p += m_systemFSI->GetNumFluidMarkers();
 
         if (m_bndry_bce_markers) {
-            for (size_t i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
+            for (unsigned int i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
                 m_bndry_bce_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumBoundaryMarkers();
 
         if (m_rigid_bce_markers) {
-            for (size_t i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
+            for (unsigned int i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
                 m_rigid_bce_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumRigidBodyMarkers();
 
         if (m_flex_bce_markers) {
-            for (size_t i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
+            for (unsigned int i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
                 m_flex_bce_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }

@@ -29,27 +29,9 @@ option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 if (MSVC)
     option(USE_MSVC_STATIC_RUNTIME "Compile with a multi-threaded statically-linked runtime library" OFF)
     if (USE_MSVC_STATIC_RUNTIME)
-        message(STATUS "Enabling STATIC run-time library")
-        message(STATUS "  CMAKE_CXX_FLAGS (IN):          ${CMAKE_CXX_FLAGS}")
-        message(STATUS "  CMAKE_CXX_FLAGS_RELEASE (IN):  ${CMAKE_CXX_FLAGS_RELEASE}")
-        message(STATUS "  CMAKE_CXX_FLAGS_DEBUG (IN):    ${CMAKE_CXX_FLAGS_DEBUG}")
-
-        foreach(flag_var
-                CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-                CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
-                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-          if(${flag_var} MATCHES "/MD")
-            string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-          endif()
-          if(${flag_var} MATCHES "/MDd")
-            string(REGEX REPLACE "/MDd" "/MTd" ${flag_var} "${${flag_var}}")
-          endif()
-        endforeach(flag_var)
-
-        message(STATUS "  CMAKE_CXX_FLAGS (OUT):         ${CMAKE_CXX_FLAGS}")
-        message(STATUS "  CMAKE_CXX_FLAGS_RELEASE (OUT): ${CMAKE_CXX_FLAGS_RELEASE}")
-        message(STATUS "  CMAKE_CXX_FLAGS_DEBUG (OUT):   ${CMAKE_CXX_FLAGS_DEBUG}")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    else()
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     endif()
 endif()
 
@@ -68,10 +50,10 @@ set(CH_LINKERFLAG_LIB "")
 if (NOT BUILD_SHARED_LIBS)
   set(CH_STATIC ON)
   add_compile_definitions(CH_STATIC)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 else()
   set(CH_STATIC OFF)
 endif()
-
 
 #-----------------------------------------------------------------------------
 # Check for C++14 and C++17 support
@@ -730,6 +712,7 @@ add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_irrlicht)
 add_subdirectory(chrono_vsg)
+add_subdirectory(chrono_fmi)
 add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_modal)
 add_subdirectory(chrono_postprocess)
@@ -941,6 +924,12 @@ if(ENABLE_MODULE_SYNCHRONO)
   set(CHRONO_SYNCHRONO "#define CHRONO_SYNCHRONO")
 else()
   set(CHRONO_SYNCHRONO "#undef CHRONO_SYNCHRONO")
+endif()
+
+if(ENABLE_MODULE_FMI)
+  set(CHRONO_FMI "#define CHRONO_FMI")
+else()
+  set(CHRONO_FMI "#undef CHRONO_FMI")
 endif()
 
 if(USE_SIMD)

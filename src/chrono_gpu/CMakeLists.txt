@@ -28,6 +28,19 @@ if(NOT CUDA_FOUND)
     return()
 endif()
 
+# ------------------------------------------------------------------------------
+# Hack to deal with MSVC runtime libraries
+# ------------------------------------------------------------------------------
+
+if(MSVC)
+  if(USE_MSVC_STATIC_RUNTIME)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+  else()
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+  endif()
+endif()
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration header file.
@@ -157,6 +170,7 @@ CUDA_ADD_LIBRARY(ChronoEngine_gpu
                  )
 
 set_target_properties(ChronoEngine_gpu PROPERTIES
+                      COMPILE_FLAGS "${CH_GPU_CXX_FLAGS}"
                       LINK_FLAGS "${CH_GPU_LINKER_FLAGS}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_GPU ${CH_CPU_COMPILE_DEFS}")
 

@@ -423,8 +423,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     // This is needed if you want to see things in Irrlicht 3D view.
     vis->AttachSystem(&sys);
 
-    std::string filename = out_dir + "/plasticity.dat";
-    ChStreamOutAsciiFile my_plasticfile(filename.c_str());
+    ChStreamOutAsciiFile my_plasticfile(out_dir + "/plasticity.dat");
 
     while (vis->Run()) {
         vis->BeginScene();
@@ -594,8 +593,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     // This is needed if you want to see things in Irrlicht 3D view.
     vis->AttachSystem(&sys);
 
-    std::string filename = out_dir + "/rotor_displ.dat";
-    chrono::ChStreamOutAsciiFile file_out1(filename.c_str());
+    chrono::ChStreamOutAsciiFile file_out1(out_dir + "/rotor_displ.dat");
 
     // Set to a more precise HHT timestepper if needed
     // sys.SetTimestepperType(ChTimestepper::Type::HHT);

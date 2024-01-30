@@ -1,4 +1,4 @@
-The data for the LMTV model implemented was obtained from the following publicly available source:
+The data for the Chrono::Vehicle LMTV models was obtained from the following publicly available source:
 
 OPERATOR’S INSTRUCTIONS MANUAL M1078 SERIES, 2-1/2 TON, 4x4, LIGHT MEDIUM TACTICAL VEHICLES (LMTV)
 

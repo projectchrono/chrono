@@ -56,8 +56,8 @@ void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
 // and 1, steering between -1 and +1, braking between 0 and 1), and a reference
 // to the terrain system.
 // -----------------------------------------------------------------------------
-void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) {
-    double powertrain_torque = m_powertrain_assembly ? m_powertrain_assembly->GetOutputTorque()  : 0;
+void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_inputs) {
+    double powertrain_torque = m_powertrain_assembly ? m_powertrain_assembly->GetOutputTorque() : 0;
     double driveline_speed = m_driveline ? m_driveline->GetOutputDriveshaftSpeed() : 0;
 
     // Set driveshaft speed for the transmission output shaft
@@ -78,18 +78,27 @@ void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_input
         connector->Synchronize(time, driver_inputs);
     }
 
-    // Synchronize the vehicle's axle subsystems
+    // Synchronize the vehicle's axle subsystems and any associated tires
+    for (auto& axle : m_axles) {
+        axle->Synchronize(time, driver_inputs);
+    }
+
+    // Synchronize the main and rear chassis subsystems
+    m_chassis->Synchronize(time);
+    for (auto& c : m_chassis_rear)
+        c->Synchronize(time);
+}
+
+void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) {
+    // Synchronize any associated tires
     for (auto& axle : m_axles) {
         for (auto& wheel : axle->GetWheels()) {
             if (wheel->m_tire)
                 wheel->m_tire->Synchronize(time, terrain);
         }
-        axle->Synchronize(time, driver_inputs);
     }
 
-    m_chassis->Synchronize(time);
-    for (auto& c : m_chassis_rear)
-        c->Synchronize(time);
+    Synchronize(time, driver_inputs);
 }
 
 // -----------------------------------------------------------------------------
