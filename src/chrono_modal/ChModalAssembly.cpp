@@ -2951,7 +2951,8 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
             // g_quad = (mat_O + mat_M - mat_M.transpose()) * v_mod;
             g_quad += mat_OF * v_mod;
             // g_quad += mat_OB * v_mod;//leading to divergence
-            g_quad += (mat_M - mat_M.transpose()) * v_mod;
+            // g_quad += (mat_M - mat_M.transpose()) * v_mod;//donot use; the result (logarithmic decrement; oscillation
+            // frequency) is better
 
             //// note: - sign
             R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -= c * g_quad;
