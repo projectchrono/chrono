@@ -51,7 +51,7 @@ Ohter examples can be found directly in the Chrono::SolidWorks repository under 
 
 These tutorials come with pre-exported models to allow the user to test the import functionalities without having to install the add-in straight away.
 	
-- [demo_PARSER_Python_SolidWorks](https://github.com/projectchrono/chrono/blob/main/src/demos/python/parsers/demo_PARSER_Python_SolidWorks.py)
+- [demo_PARSER_Python_SolidWorks.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/parsers/demo_PARSER_Python_SolidWorks.py)
 
     - simulation by PyChrono
     - uses either Irrlicht or POVRAy rendering

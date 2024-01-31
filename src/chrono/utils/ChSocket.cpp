@@ -1021,7 +1021,7 @@ int ChSocketTCP::sendMessage(std::string& message)
 
 
     char msgLength[MSG_HEADER_LEN+1];
-    sprintf(msgLength,"%6d",message.size());
+    snprintf(msgLength,sizeof(msgLength),"%6d",message.size());
     std::string sendMsg = std::string(msgLength);
     sendMsg += message;
 
@@ -1065,7 +1065,7 @@ int ChSocketTCP::sendMessage(std::string& message) {
 
     char msgLength[MSG_HEADER_LEN + 1];
     std::string fmt = "%" + std::to_string(MSG_HEADER_LEN) + "ld";
-    sprintf(msgLength, fmt.c_str(), static_cast<uint64_t>(message.size()));
+    snprintf(msgLength, MSG_HEADER_LEN, fmt.c_str(), static_cast<uint64_t>(message.size()));
     std::string sendMsg(msgLength);
     sendMsg += message;
 

@@ -227,7 +227,7 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
         ImGui::SameLine();
         val = m_min_val + stride * 4.0 / 6.0;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv23, 0.0, alpha));
-        snprintf(label, nstr - 1, "%.3f", val);
+        snprintf(label, nstr, "%.3f", val);
         ImGui::Button(label);
         ImGui::PopStyleColor(1);
         ImGui::SameLine();
@@ -639,12 +639,12 @@ void ChVisualSystemVSG::SetCameraTarget(const ChVector<>& target) {
 }
 
 ChVector<> ChVisualSystemVSG::GetCameraPosition() const {
-    auto p = m_lookAt->eye;
+    const auto& p = m_lookAt->eye;
     return ChVector<>(p.x, p.y, p.z);
 }
 
 ChVector<> ChVisualSystemVSG::GetCameraTarget() const {
-    auto p = m_lookAt->center;
+    const auto& p = m_lookAt->center;
     return ChVector<>(p.x, p.y, p.z);
 }
 
@@ -766,7 +766,7 @@ void ChVisualSystemVSG::Initialize() {
         return;
     }
     auto& limits = m_window->getOrCreatePhysicalDevice()->getProperties().limits;  // VkPhysicalDeviceLimits
-    auto prop = m_window->getPhysicalDevice()->getProperties();
+    const auto& prop = m_window->getPhysicalDevice()->getProperties();
 
     if (m_verbose) {
         GetLog() << "****************************************************\n";

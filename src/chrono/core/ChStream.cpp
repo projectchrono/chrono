@@ -90,7 +90,7 @@ ChStreamOutAscii& ChStreamOutAscii::operator<<(unsigned long ulVal) {
 ChStreamOutAscii& ChStreamOutAscii::operator<<(double dVal) {
     char buffer[100];
 
-    sprintf(buffer, number_format, dVal);
+    snprintf(buffer, sizeof(buffer), number_format, dVal);
 
     Output(buffer, strlen(buffer));
 

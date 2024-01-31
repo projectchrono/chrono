@@ -517,7 +517,7 @@ class MyEventReceiver : public IEventReceiver {
 
                         // show stiffness as formatted text in interface screen
                         char message[150];
-                        sprintf(message, "Spring K [N/m]: %g", newstiff);
+                        snprintf(message, sizeof(message), "Spring K [N/m]: %g", newstiff);
 
                         std::cout << "K = " << newstiff << std::endl;
 
@@ -535,7 +535,7 @@ class MyEventReceiver : public IEventReceiver {
 
                         // show stiffness as formatted text in interface screen
                         char message[150];
-                        sprintf(message, "Damper R [Ns/m]: %g", newdamping);
+                        snprintf(message, sizeof(message), "Damper R [Ns/m]: %g", newdamping);
                         text_FdamperR->setText(core::stringw(message).c_str());
                     }
                     if (id == 104)  // id of 'spring rest length' slider..
@@ -550,7 +550,7 @@ class MyEventReceiver : public IEventReceiver {
 
                         // show stiffness as formatted text in interface screen
                         char message[50];
-                        sprintf(message, "Spring L [m]: %g", newlength);
+                        snprintf(message, sizeof(message), "Spring L [m]: %g", newlength);
                         text_FspringL->setText(core::stringw(message).c_str());
                     }
                     if (id == 100)  // id of 'throttle' slider..

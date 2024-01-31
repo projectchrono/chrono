@@ -98,12 +98,12 @@ class ChFsiLinearSolver {
     virtual void Solve(int SIZE, int NNZ, Real* A, unsigned int* ArowIdx, unsigned int* AcolIdx, Real* x, Real* b) = 0;
 
   protected:
-    Real rel_res = 1e-3;
-    Real abs_res = 1e-6;
+    Real rel_res = Real(1e-3);
+    Real abs_res = Real(1e-6);
+    Real residual = Real(1e5);
     int max_iter = 500;
     bool verbose = false;
     int Iterations = 0;
-    Real residual = 1e5;
     int solver_status = 0;
 
   private:

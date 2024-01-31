@@ -64,7 +64,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     ~ChVisualSystemVSG();
 
     /// Initialize the visualization system.
-    virtual void Initialize();
+    virtual void Initialize() override;
 
     /// Process all visual assets in the associated ChSystem.
     /// This function is called by default by Initialize(), but can also be called later if further modifications to

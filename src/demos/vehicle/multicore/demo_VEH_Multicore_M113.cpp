@@ -20,12 +20,10 @@
 
 #include <iostream>
 
-// Chrono::Engine header files
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-// Chrono::Multicore header files
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
 
@@ -36,17 +34,14 @@
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
-// Chrono utility header files
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-// Chrono vehicle header files
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
 
-// M113 model header files
 #include "chrono_models/vehicle/m113/M113.h"
 
 #include "chrono_thirdparty/filesystem/path.h"

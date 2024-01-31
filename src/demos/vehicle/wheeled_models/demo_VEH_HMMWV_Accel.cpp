@@ -70,7 +70,7 @@ TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
 // Type of tire model (RIGID, RIGID_MESH, FIALA, PAC89, PAC02, TMEASY, TMSIMPLE)
-TireModelType tire_model = TireModelType::TMSIMPLE;
+TireModelType tire_model = TireModelType::TMEASY;
 
 enum class TerrainType { FLAT, RIGID };
 TerrainType terrain_type = TerrainType::RIGID;
