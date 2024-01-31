@@ -12,14 +12,14 @@
 // Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// Generic Fiala tire subsystem
+// Generic PAC89 tire subsystem
 //
 // =============================================================================
 
-#ifndef GENERIC_FIALA_TIRE_H
-#define GENERIC_FIALA_TIRE_H
+#ifndef GENERIC_PAC89_TIRE_H
+#define GENERIC_PAC89_TIRE_H
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -30,34 +30,32 @@ namespace generic {
 /// @addtogroup vehicle_models_generic
 /// @{
 
-/// Fiala tire model for the Generic vehicle vehicle.
-class CH_MODELS_API Generic_FialaTire : public ChFialaTire {
+/// PAC89 tire model for the Generic vehicle vehicle.
+class CH_MODELS_API Generic_Pac89Tire : public ChPac89Tire {
   public:
-    Generic_FialaTire(const std::string& name);
-    ~Generic_FialaTire() {}
+    Generic_Pac89Tire(const std::string& name);
+    ~Generic_Pac89Tire() {}
 
     virtual double GetNormalStiffnessForce(double depth) const override;
-    virtual double GetNormalDampingForce(double depth, double velocity) const override;
-
-    virtual double GetVisualizationWidth() const override { return 0.25; }
-
-    virtual void SetFialaParams() override;
+    virtual double GetNormalDampingForce(double depth, double velocity) const override {
+        return m_normalDamping * velocity;
+    }
 
     virtual double GetTireMass() const override { return m_mass; }
     virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+
+    virtual double GetVisualizationWidth() const override { return m_width; }
+
+    virtual void SetPac89Params() override;
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
 
   private:
-    ChFunction_Recorder m_vert_map;
-    double m_max_depth;
-    double m_max_val;
-    double m_slope;
-
     static const double m_normalDamping;
     static const double m_mass;
     static const ChVector<> m_inertia;
+    ChFunction_Recorder m_vert_map;
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;

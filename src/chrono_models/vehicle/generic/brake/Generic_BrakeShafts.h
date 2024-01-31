@@ -12,13 +12,14 @@
 // Authors: Radu Serban
 // =============================================================================
 //
+// Generic shafts-based brake model.
 //
 // =============================================================================
 
-#ifndef GENERIC_FUNCDRIVER_H
-#define GENERIC_FUNCDRIVER_H
+#ifndef GENERIC_BRAKE_SHAFTS_H
+#define GENERIC_BRAKE_SHAFTS_H
 
-#include "chrono_vehicle/ChDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -29,29 +30,18 @@ namespace generic {
 /// @addtogroup vehicle_models_generic
 /// @{
 
-/// Open-loop driver model for use with a generic vehicle.
-class Generic_FuncDriver : public ChDriver {
+/// Shafts-based generic vehicle brake subsystem (uses a clutch between two shafts).
+class CH_MODELS_API Generic_BrakeShafts : public ChBrakeShafts {
   public:
-    Generic_FuncDriver(ChVehicle& vehicle) : ChDriver(vehicle) {}
-    ~Generic_FuncDriver() {}
+    Generic_BrakeShafts(const std::string& name);
+    ~Generic_BrakeShafts() {}
 
-    virtual void Synchronize(double time) override {
-        if (time < 0.5)
-            m_throttle = 0;
-        else if (time < 1.5)
-            m_throttle = 0.4 * (time - 0.5);
-        else
-            m_throttle = 0.4;
+    virtual double GetMaxBrakingTorque() override { return m_maxtorque; }
+    virtual double GetShaftInertia() override { return m_shaft_inertia; }
 
-        if (time < 4)
-            m_steering = 0;
-        else if (time < 6)
-            m_steering = 0.25 * (time - 4);
-        else if (time < 10)
-            m_steering = -0.25 * (time - 6) + 0.5;
-        else
-            m_steering = -0.5;
-    }
+  private:
+    static const double m_maxtorque;
+    static const double m_shaft_inertia;
 };
 
 /// @} vehicle_models_generic

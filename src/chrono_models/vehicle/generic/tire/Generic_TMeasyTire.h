@@ -9,17 +9,17 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// Generic Fiala tire subsystem
+// Generic TMeasy tire subsystem
 //
 // =============================================================================
 
-#ifndef GENERIC_FIALA_TIRE_H
-#define GENERIC_FIALA_TIRE_H
+#ifndef GENERIC_TMEASY_TIRE_H
+#define GENERIC_TMEASY_TIRE_H
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -30,34 +30,28 @@ namespace generic {
 /// @addtogroup vehicle_models_generic
 /// @{
 
-/// Fiala tire model for the Generic vehicle vehicle.
-class CH_MODELS_API Generic_FialaTire : public ChFialaTire {
+/// TMeasy tire model for the Generic vehicle.
+class CH_MODELS_API Generic_TMeasyTire : public ChTMeasyTire {
   public:
-    Generic_FialaTire(const std::string& name);
-    ~Generic_FialaTire() {}
+    Generic_TMeasyTire(const std::string& name);
+    ~Generic_TMeasyTire() {}
 
-    virtual double GetNormalStiffnessForce(double depth) const override;
-    virtual double GetNormalDampingForce(double depth, double velocity) const override;
+    virtual double GetVisualizationWidth() const override { return m_width; }
 
-    virtual double GetVisualizationWidth() const override { return 0.25; }
-
-    virtual void SetFialaParams() override;
-
+    virtual void SetTMeasyParams() override;
     virtual double GetTireMass() const override { return m_mass; }
     virtual ChVector<> GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
 
-  private:
-    ChFunction_Recorder m_vert_map;
-    double m_max_depth;
-    double m_max_val;
-    double m_slope;
+    void GenerateCharacteristicPlots(const std::string& dirname);
 
-    static const double m_normalDamping;
+  private:
     static const double m_mass;
     static const ChVector<> m_inertia;
+
+    ChFunction_Recorder m_stiffnessMap;
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,24 +9,22 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Marcel Offermans
+// Authors: Radu Serban
+// =============================================================================
+//
+// Generic simple brake model.
+//
 // =============================================================================
 
-#include "chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimple.h"
+#include "chrono_models/vehicle/generic/brake/Generic_BrakeSimple.h"
 
 namespace chrono {
 namespace vehicle {
 namespace generic {
 
-// -----------------------------------------------------------------------------
-Generic_AutomaticTransmissionSimple::Generic_AutomaticTransmissionSimple(const std::string& name) : ChAutomaticTransmissionSimpleMap(name) {}
+const double Generic_BrakeSimple::m_maxtorque = 4000;
 
-void Generic_AutomaticTransmissionSimple::SetGearRatios(std::vector<double>& fwd, double& rev) {
-    rev = -0.3;
-    fwd.push_back(0.3);
-}
-
-void Generic_AutomaticTransmissionSimple::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {}
+Generic_BrakeSimple::Generic_BrakeSimple(const std::string& name) : ChBrakeSimple(name) {}
 
 }  // end namespace generic
 }  // end namespace vehicle

@@ -12,25 +12,20 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Generic simple brake model.
+// Generic vehicle shafts-based brake model.
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/generic/Generic_BrakeSimple.h"
+#include "chrono_models/vehicle/generic/brake/Generic_BrakeShafts.h"
 
 namespace chrono {
 namespace vehicle {
 namespace generic {
 
-// -----------------------------------------------------------------------------
-// Static variables
-// -----------------------------------------------------------------------------
+const double Generic_BrakeShafts::m_maxtorque = 4000;
+const double Generic_BrakeShafts::m_shaft_inertia = 0.4;
 
-const double Generic_BrakeSimple::m_maxtorque = 4000;
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-Generic_BrakeSimple::Generic_BrakeSimple(const std::string& name) : ChBrakeSimple(name) {}
+Generic_BrakeShafts::Generic_BrakeShafts(const std::string& name) : ChBrakeShafts(name) {}
 
 }  // end namespace generic
 }  // end namespace vehicle

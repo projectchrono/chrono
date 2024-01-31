@@ -9,17 +9,18 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Marcel Offermans
+// Authors: Radu Serban
 // =============================================================================
 //
-// Generic simple engine model based on hyperbolical speed-torque curve (CVT)
+// Generic vehicle engine model based on ChShaft objects.
 //
 // =============================================================================
 
-#ifndef GENERIC_ENGINE_SIMPLE_H
-#define GENERIC_ENGINE_SIMPLE_H
+#ifndef GENERIC_ENGINE_SHAFTS_H
+#define GENERIC_ENGINE_SHAFTS_H
 
-#include "chrono_vehicle/powertrain/ChEngineSimple.h"
+#include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/powertrain/ChEngineShafts.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -30,19 +31,23 @@ namespace generic {
 /// @addtogroup vehicle_models_generic
 /// @{
 
-/// Simple engine model for the generic vehicle (purely kinematic).
-class CH_MODELS_API Generic_EngineSimple : public ChEngineSimple {
+/// Shafts-based engine model for the generic vehicle.
+class CH_MODELS_API Generic_EngineShafts : public ChEngineShafts {
   public:
-    Generic_EngineSimple(const std::string& name);
+    Generic_EngineShafts(const std::string& name);
 
-    virtual double GetMaxTorque() const override { return m_max_torque; }
-    virtual double GetMaxPower() const override { return m_max_power; }
-    virtual double GetMaxSpeed() const override { return m_max_speed; }
+    ~Generic_EngineShafts() {}
+
+    virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
+    virtual double GetMotorshaftInertia() const override { return m_motorshaft_inertia; }
+
+    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) override;
+    virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) override;
 
   private:
-    static const double m_max_torque;  ///< maximum motor torque
-    static const double m_max_power;   ///< maximum motor power
-    static const double m_max_speed;   ///< maximum engine speed
+    // Shaft inertias.
+    static const double m_motorblock_inertia;
+    static const double m_motorshaft_inertia;
 };
 
 /// @} vehicle_models_generic
