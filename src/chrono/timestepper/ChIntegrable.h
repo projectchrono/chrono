@@ -25,6 +25,34 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 
+/// Helper class for lumping parameters
+class ChLumpingParms {
+public:
+    ChLumpingParms(double Ck = 1000, double Cr = 0) : Ck_penalty(Ck), Cr_penalty(Cr), error(0) {};
+    double error;   // store here the error done when trying lumping masses
+    double Ck_penalty;   // stiffness penalty for constraints if any
+    double Cr_penalty;      // damping penalty for constraints if any
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) {
+        // version number
+        archive.VersionWrite(1);
+        // serialize all member data:
+        archive << CHNVP(Ck_penalty);
+        archive << CHNVP(Cr_penalty);
+    }
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) {
+        // version number
+        /*int version =*/ archive.VersionRead();
+        // stream in all member data:
+        archive >> CHNVP(Ck_penalty);
+        archive >> CHNVP(Cr_penalty);
+    }
+};
+
+
 /// Interface class for all objects that support time integration.
 /// Derived concrete classes can use time integrators for the ChTimestepper hierarchy.
 class ChApi ChIntegrable {
@@ -94,7 +122,8 @@ class ChApi ChIntegrable {
                             const double T,            ///< current time T
                             const double dt,           ///< timestep (if needed, ex. in DVI)
                             bool force_state_scatter,  ///< if false, y and T are not scattered to the system
-                            bool full_update           ///< if true, perform a full update during scatter
+                            bool full_update,          ///< if true, perform a full update during scatter
+                            ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix, and uses penalty for constraints.
                             ) = 0;
 
     /// Increment state array: y_new = y + Dy.
@@ -273,7 +302,8 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                              const double T,            ///< current time T
                              const double dt,           ///< timestep (if needed)
                              bool force_state_scatter,  ///< if false, x,v and T are not scattered to the system
-                             bool full_update           ///< if true, perform a full update during scatter
+                             bool full_update,          ///< if true, perform a full update during scatter
+                             ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix, and uses penalty for constraints.
     );
 
     /// Increment state array:  x_new = x + dx    for x in    Y = {x, dx/dt}
@@ -343,7 +373,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     virtual void LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                                 const double c         ///< a scaling factor
                                 ) override {
-        throw ChException("LoadResidual_F() not implemented, implicit integrators cannot be used. ");
+        throw ChException("LoadResidual_F() not implemented, integrator cannot be used. ");
     }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
@@ -474,7 +504,8 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                             const double T,            ///< current time T
                             const double dt,           ///< timestep (if needed, ex. in DVI)
                             bool force_state_scatter,  ///< if false, y and T are not scattered to the system
-                            bool full_update           ///< if true, perform a full update during scatter
+                            bool full_update,          ///< if true, perform a full update during scatter
+                            ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix, and uses penalty for constraints.
                             ) override;
 
     /// Override of method for Ist order implicit integrators.
