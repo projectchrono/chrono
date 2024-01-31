@@ -340,7 +340,7 @@ void ChElementShellBST::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, 
 
 	if (Kfactor) {
 		ChMatrixDynamic<> K(mrows_w, mrows_w);
-		GetLog() << "Kfactor =" << Kfactor << "\n";
+		
 		ChState       state_x_inc(mrows_x, nullptr);
 		ChStateDelta  state_delta(mrows_w, nullptr);
 
@@ -376,7 +376,7 @@ void ChElementShellBST::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, 
 		ChStateDelta  state_w_inc(mrows_w, nullptr);
 		state_w_inc = state_w;
 		ChMatrixDynamic<> R(mrows_w, mrows_w);
-		GetLog() << "Rfactor =" << Rfactor << "\n";
+		
 		for (int i = 0; i < mrows_w; ++i) {
 			Q1.setZero(mrows_w);
 
@@ -403,7 +403,7 @@ void ChElementShellBST::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, 
 		// Heuristic, simplified 'lumped' mass matrix to central three nodes.
 		// This is simpler than the stiffness-consistent mass matrix that would require
 		// integration over gauss points.
-		GetLog() << "Mfactor =" << Mfactor << "\n";
+		
 		double nodemass = (1.0 / 3.0) * (this->area * mass_per_area);
 
 		for (int n = 0; n < 3; n++) {
