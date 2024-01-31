@@ -68,18 +68,6 @@ set(CE_VSG_BASE_FILES
 )
 
 set(CE_VSG_SHAPES_FILES
-    shapes/GetBoxShapeData.cpp
-    shapes/GetBoxShapeData.h
-    shapes/GetCapsuleShapeData.cpp
-    shapes/GetCapsuleShapeData.h
-    shapes/GetConeShapeData.cpp
-    shapes/GetConeShapeData.h
-    shapes/GetCylinderShapeData.cpp
-    shapes/GetCylinderShapeData.h
-    shapes/GetDieShapeData.cpp
-    shapes/GetDieShapeData.h
-    shapes/GetSphereShapeData.cpp
-    shapes/GetSphereShapeData.h
     shapes/GetSurfaceShapeData.cpp
     shapes/GetSurfaceShapeData.h
     shapes/ShaderUtils.cpp
