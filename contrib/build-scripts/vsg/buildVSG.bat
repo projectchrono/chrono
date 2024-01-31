@@ -16,7 +16,7 @@
 @rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.0
 @rem      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 latest
 @rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.0
-@rem      assimp (github.com/assimp/assimp):                          Tag v5.2.5
+@rem      assimp (github.com/assimp/assimp):                          Tag v5.3.1
 @rem ---------------------------------------------------------------------------------------------------------
 
 set DOWNLOAD=ON
@@ -70,7 +70,7 @@ if "%~1" NEQ "" (
     set VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
-    git clone -c advice.detachedHead=false --depth 1 --branch v5.2.5 "https://github.com/assimp/assimp" "download_vsg/assimp"
+    git clone -c advice.detachedHead=false --depth 1 --branch v5.3.1 "https://github.com/assimp/assimp" "download_vsg/assimp"
     set ASSIMP_SOURCE_DIR="download_vsg/assimp"
 ) else (
     echo "Using provided source directories"
@@ -82,8 +82,9 @@ rmdir /S/Q %VSG_INSTALL_DIR% 2>nul
 
 rem --- assimp -------------------------------------------------------------
 
+cd %ASSIMP_SOURCE_DIR%
 rmdir /S/Q build_assimp 2>nul
-cmake -B build_assimp -S %ASSIMP_SOURCE_DIR%  ^
+cmake . -B build_assimp -S .  ^
       -DBUILD_SHARED_LIBS:BOOL=OFF ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
@@ -100,6 +101,8 @@ if %BUILDDEBUG% EQU ON (
 ) else (
     echo "No Debug build of assimp"
 )
+
+cd c:\Source
 
 rem --- vsg ----------------------------------------------------------------
 
@@ -126,7 +129,7 @@ cmake -B build_vsgXchange -S %VSGXCHANGE_SOURCE_DIR%  ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
       -Dvsg_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsg ^
-      -Dassimp_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/assimp-5.2
+      -Dassimp_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/assimp-5.3
 
 cmake --build build_vsgXchange --config Release
 cmake --install build_vsgXchange --config Release --prefix %VSG_INSTALL_DIR%
