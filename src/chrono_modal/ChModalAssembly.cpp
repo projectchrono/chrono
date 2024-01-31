@@ -1297,7 +1297,7 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
     // P_W * (P_perp_0.transpose() * M_red * P_perp_0 + P_parallel_0.transpose() * M_red * P_parallel_0) *
     // P_W.transpose();
 
-    if (use_inertial_damping || use_inertial_stiffness) {
+    if (this->use_inertial_damping || this->use_inertial_stiffness) {
         // fetch the state snapshot (modal reduced)
         int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
         int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
@@ -1348,19 +1348,21 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
         }
 
         // inertial damping matrix
-        if (use_inertial_damping) {
-            ChMatrixDynamic<> VrPFQ = V_rmom * P_F * Q;
-            //  Ri_sup = P_W * (O_F * M_red - M_red * O_F) * P_W.transpose() +
-            //           P_W * (MVPFQ - MVPFQ.transpose()) * P_W.transpose() +
-            //           P_W * (VrPFQ.transpose() - VrPFQ) * P_W.transpose() - O_thetamom + O_B * M_red *
-            //           P_W.transpose();
-            Ri_sup = P_W * (O_F * M_red - M_red * O_F) * P_W.transpose() +
-                     P_W * (MVPFQ - MVPFQ.transpose()) * P_W.transpose() +
-                     P_W * (VrPFQ.transpose() - VrPFQ) * P_W.transpose();
+        if (this->use_inertial_damping) {
+            // ChMatrixDynamic<> VrPFQ = V_rmom * P_F * Q;
+            //   Ri_sup = P_W * (O_F * M_red - M_red * O_F) * P_W.transpose() +
+            //            P_W * (MVPFQ - MVPFQ.transpose()) * P_W.transpose() +
+            //            P_W * (VrPFQ.transpose() - VrPFQ) * P_W.transpose() - O_thetamom + O_B * M_red *
+            //            P_W.transpose();
+            Ri_sup = P_W * (O_F * M_red) * P_W.transpose();//only this term exists from g_quad.
+            //Ri_sup += P_W * (-M_red * O_F) * P_W.transpose();
+            // Ri_sup += P_W * (MVPFQ - MVPFQ.transpose()) * P_W.transpose();
+            // Ri_sup += P_W * (VrPFQ.transpose() - VrPFQ) * P_W.transpose();
+            // Ri_sup += -O_thetamom + O_B * M_red * P_W.transpose();
         }
 
-        // inertial stiffness matrix
-        if (use_inertial_stiffness) {
+        // inertial stiffness matrix. Useless term.
+        if (this->use_inertial_stiffness) {
             ChVectorDynamic<> h_loc_alpha(6);
             h_loc_alpha = Q_0 * (P_W.transpose() * v_mod);
             ChVector<> VF_alpha = h_loc_alpha.head(3);
@@ -2180,7 +2182,11 @@ void ChModalAssembly::GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq)
     // Cq->makeCompressed();
 }
 
-void ChModalAssembly::DumpSubassemblyMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path) {
+void ChModalAssembly::DumpSubassemblyMatrices(bool save_M,
+                                              bool save_K,
+                                              bool save_R,
+                                              bool save_Cq,
+                                              const std::string& path) {
     const char* numformat = "%.12g";
 
     if (save_M) {
@@ -2928,7 +2934,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         // ChMatrixDynamic<> R_diff = R1 - Rm_sup;
         // GetLog() << "*** R_diff.norm():\t" << R_diff.norm() << "\n";
 
-        if (use_quadratic_velocity_term) {
+        if (this->use_quadratic_velocity_term) {
             ChMatrixDynamic<> V;
             ChMatrixDynamic<> O_B;
             ChMatrixDynamic<> O_F;
@@ -2945,8 +2951,8 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
 
             // quadratic velocity term
             ChMatrixDynamic<> mat_OF = P_W * O_F * M_red * P_W.transpose();
-            ChMatrixDynamic<> mat_OB = P_W * O_B * M_red * P_W.transpose();
-            ChMatrixDynamic<> mat_M = P_W * M_red * V * P_F * Q_0 * P_W.transpose();
+            // ChMatrixDynamic<> mat_OB = P_W * O_B * M_red * P_W.transpose();
+            // ChMatrixDynamic<> mat_M = P_W * M_red * V * P_F * Q_0 * P_W.transpose();
             g_quad.setZero(bou_mod_coords_w);
             // g_quad = (mat_O + mat_M - mat_M.transpose()) * v_mod;
             g_quad += mat_OF * v_mod;
