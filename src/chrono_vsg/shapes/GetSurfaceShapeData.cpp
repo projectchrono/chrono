@@ -36,10 +36,10 @@ void GetSurfaceShapeData(std::shared_ptr<ChVisualShapeSurface> surface,
     int itri = 0;
 
     for (auto iv = 0; iv <= sections_v; ++iv) {
-        double mV = 1.0 * ((double)iv / (double)(sections_v));  // v abscissa
+        double mV = iv / (double)sections_v;  // v abscissa
 
         for (auto iu = 0; iu <= sections_u; ++iu) {
-            double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
+            double mU = iu / (double)sections_u;  // u abscissa
 
             ChVector<> P = surface->GetSurfaceGeometry()->Evaluate(mU, mV);
             ////P = vis->Pos + vis->Rot * P;

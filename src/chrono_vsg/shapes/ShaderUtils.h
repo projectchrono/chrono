@@ -12,13 +12,13 @@
 // Rainer Gericke
 // =============================================================================
 
+#ifndef CH_SHADER_UTILS_H
+#define CH_SHADER_UTILS_H
+
 #include <vsg/all.h>
 #include <vsgXchange/all.h>
 
-#ifndef CH_SHADER_UTILS_H
-    #define CH_SHADER_UTILS_H
-
-    #include "chrono/assets/ChVisualModel.h"
+#include "chrono/assets/ChVisualModel.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -41,4 +41,5 @@ vsg::ref_ptr<vsg::PhongMaterialValue> createPhongMaterialFromChronoMaterial(
 
 }  // namespace vsg3d
 }  // namespace chrono
+
 #endif
