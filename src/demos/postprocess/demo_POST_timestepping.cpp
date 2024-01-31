@@ -589,12 +589,13 @@ void example5(const std::string& out_dir) {
         virtual void StateScatterReactions(const ChVectorDynamic<>& L) override { mreaction = L(0); };
 
         /// Compute the correction with linear system
-        ///  Dv = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R
+        ///  | Dv| = [ c_a*M + c_v*dF/dv + c_x*dF/dx    Cq']^-1 * | R |
+        ///  |-Dl|   [   Cq                              0 ]      |-Qc|
         virtual bool StateSolveCorrection(
             ChStateDelta& Dv,             ///< result: computed Dv
-            ChVectorDynamic<>& L,         ///< result: computed lagrangian multipliers, if any
+            ChVectorDynamic<>& Dl,        ///< result: computed Dl lagrangian multipliers, if any, note the sign
             const ChVectorDynamic<>& R,   ///< the R residual
-            const ChVectorDynamic<>& Qc,  ///< the Qc residual
+            const ChVectorDynamic<>& Qc,  ///< the Qc residual, note the sign 
             const double c_a,             ///< the factor in c_a*M
             const double c_v,             ///< the factor in c_v*dF/dv
             const double c_x,             ///< the factor in c_x*dF/dv
@@ -611,9 +612,9 @@ void example5(const std::string& out_dir) {
             ChVector<> dirpend(-mpx, -mpy, 0);
             dirpend.Normalize();
             ChVectorDynamic<> b(3);
-            b(0) = R(0);
-            b(1) = R(1);
-            b(2) = Qc(0);
+            b(0) =  R(0);
+            b(1) =  R(1);
+            b(2) = -Qc(0); // note assume input Qc has no minus sign, so flip sign here
             ChMatrixDynamic<> A(3, 3);
             A.setZero();
             A(0, 0) = c_a * this->M + c_v * (-this->R) + c_x * (-this->K);
@@ -665,7 +666,7 @@ void example5(const std::string& out_dir) {
                                       const double mclam = 1e30     ///< clamping value
                                       ) override {
             ChVector<> distpend(-mpx, -mpy, 0);
-            Qc(0) += -c * (-distpend.Length() + mlength);
+            Qc(0) += c * (-distpend.Length() + mlength);
         };
 
         /// nothing to do here- no rheonomic part

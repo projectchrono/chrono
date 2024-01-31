@@ -130,16 +130,18 @@ class ChApi ChIntegrable {
     /// </pre>
     /// For a DAE with constraints:
     /// <pre>
-    ///  |Dy| = [ G   Cq' ]^-1 * | R |
-    ///  |DL|   [ Cq  0   ]      | Qc|
+    ///  | Dy| = [ G   Cq' ]^-1 * | R |
+    ///  |-DL|   [ Cq  0   ]      |-Qc|
     /// </pre>
-    /// where R is a given residual and dF/dy is the Jacobian of F.
+    /// where R and Qc are given residuals, and dF/dy is the Jacobian of F. 
+    /// Note the sign of DL (the method returns DL, not -DL) and the sign of Qc 
+    /// (the method expects Qc, not -Qc), because the linear system uses them with flipped signs.
     ///
     /// This function must return true if successful and false otherwise.
     virtual bool StateSolveCorrection(ChStateDelta& Dy,             ///< result: computed Dy
-                                      ChVectorDynamic<>& L,         ///< result: computed lagrangian multipliers, if any
+                                      ChVectorDynamic<>& DL,        ///< result: computed DL lagrangian multipliers. Note the sign.
                                       const ChVectorDynamic<>& R,   ///< the R residual
-                                      const ChVectorDynamic<>& Qc,  ///< the Qc residual
+                                      const ChVectorDynamic<>& Qc,  ///< the Qc residual. Note the sign.
                                       const double a,               ///< the factor in c_a*H
                                       const double b,               ///< the factor in c_b*dF/dy
                                       const ChState& y,             ///< current state y
@@ -301,15 +303,17 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// implicit integration scheme. 
     /// If in ODE case: <pre>
     ///  Du = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R
-    ///  Du = [ G ]^-1 * R
+    ///  Du = [ H ]^-1 * R
     /// </pre>
     /// If with DAE constraints:
     /// <pre>
-    ///  |Du| = [ G   Cq' ]^-1 * | R |
-    ///  |DL|   [ Cq  0   ]      | Qc|
+    ///  | Du| = [ H   Cq' ]^-1 * | R |
+    ///  |-DL|   [ Cq  0   ]      |-Qc|
     /// </pre>
-    /// where R is a given residual, dF/dv and dF/dx, dF/dv are jacobians (that are also
+    /// where R is a given residual, H=c_a*M + c_v*dF/dv + c_x*dF/dx  (here F/dv and dF/dx, dF/dv are jacobians, that are also
     /// -R and -K, damping and stiffness (tangent) matrices in many mechanical problems, note the minus sign!).
+    /// Note the sign of DL (the method must return DL, not -DL) and the sign of Qc 
+    /// (the method expects Qc, not -Qc), because the linear system uses them with flipped signs.
     /// It is up to the derived class how to solve such linear system.
     ///
     /// This function must return true if successful and false otherwise.

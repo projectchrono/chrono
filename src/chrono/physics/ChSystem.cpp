@@ -1058,14 +1058,14 @@ void ChSystem::StateIncrementX(ChState& x_new, const ChState& x, const ChStateDe
 //       C(x,t) = 0
 // this function computes the solution of the change Du (in a or v or x) for a Newton
 // iteration within an implicit integration scheme.
-//  |Du| = [ G   Cq' ]^-1 * | R |
-//  |DL|   [ Cq  0   ]      | Qc|
-// for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]
+//  | Du| = [ H   Cq' ]^-1 * | R |
+//  |-Dl|   [ Cq  0   ]      |-Qc|
+// for given residuals R and -Qc, and  H = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]
 // This function returns true if successful and false otherwise.
 bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: computed Dv
-                                    ChVectorDynamic<>& L,         // result: computed lagrangian multipliers, if any
+                                    ChVectorDynamic<>& Dl,        // result: computed Dl lagrangian multipliers, if any. Note sign.
                                     const ChVectorDynamic<>& R,   // the R residual
-                                    const ChVectorDynamic<>& Qc,  // the Qc residual
+                                    const ChVectorDynamic<>& Qc,  // the Qc residual. Note sign.
                                     const double c_a,             // the factor in c_a*M
                                     const double c_v,             // the factor in c_v*dF/dv
                                     const double c_x,             // the factor in c_x*dF/dx
@@ -1081,8 +1081,8 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     if (force_state_scatter)
         StateScatter(x, v, T, full_update);
 
-    // R and Qc vectors  --> solver sparse solver structures  (also sets L and Dv to warmstart)
-    IntToDescriptor(0, Dv, R, 0, L, Qc);
+    // R and Qc vectors  --> solver sparse solver structures  (also sets Dl and Dv to warmstart)
+    IntToDescriptor(0, Dv, R, 0, Dl, Qc);
 
     // If the solver's Setup() must be called or if the solver's Solve() requires it,
     // fill the sparse system structures with information in G and Cq.
@@ -1142,8 +1142,8 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     GetSolver()->Solve(*descriptor);
     timer_ls_solve.stop();
 
-    // Dv and L vectors  <-- sparse solver structures
-    IntFromDescriptor(0, Dv, 0, L);
+    // Dv and Dl vectors  <-- sparse solver structures
+    IntFromDescriptor(0, Dv, 0, Dl);
 
     // Diagnostics:
     if (write_matrix) {
@@ -1154,9 +1154,9 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         file_Dv.SetNumFormat(numformat);
         StreamOutDenseMatlabFormat(Dv, file_Dv);
 
-        chrono::ChStreamOutAsciiFile file_L((output_dir + "/" + prefix + "L.dat").c_str());
+        chrono::ChStreamOutAsciiFile file_L((output_dir + "/" + prefix + "Dl.dat").c_str());
         file_L.SetNumFormat(numformat);
-        StreamOutDenseMatlabFormat(L, file_L);
+        StreamOutDenseMatlabFormat(Dl, file_L);
 
         // Just for diagnostic, dump also unscaled loads (forces,torques),
         // since the .._f.dat vector dumped in WriteMatrixBlocks() might contain scaled loads, and also +M*v
