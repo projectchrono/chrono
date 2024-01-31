@@ -61,7 +61,7 @@ BrakeType brake_type = BrakeType::SHAFTS;
 DrivelineTypeWV driveline_type = DrivelineTypeWV::AWD;
 
 EngineModelType engine_type = EngineModelType::SHAFTS;
-TransmissionModelType transmission_type = TransmissionModelType::SHAFTS;
+TransmissionModelType transmission_type = TransmissionModelType::AUTOMATIC_SHAFTS;
 
 TireModelType tire_type = TireModelType::PAC02;
 
@@ -71,7 +71,7 @@ TireModelType tire_type = TireModelType::PAC02;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 1.0);
+ChVector<> initLoc(0, 0, 0.5);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -86,7 +86,7 @@ double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 2e-3;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50

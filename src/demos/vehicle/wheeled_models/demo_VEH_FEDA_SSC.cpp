@@ -81,7 +81,7 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 EngineModelType engine_model = EngineModelType::SIMPLE_MAP;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SIMPLE_MAP;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SIMPLE_MAP;
 
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;

@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
     m113.SetDrivelineType(driveline_type);
     m113.SetBrakeType(brake_type);
     m113.SetEngineType(EngineModelType::SIMPLE_MAP);
-    m113.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
+    m113.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     m113.SetChassisCollisionType(chassis_collision_type);
 
     m113.SetChassisFixed(fix_chassis);

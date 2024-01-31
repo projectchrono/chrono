@@ -35,7 +35,7 @@ FEDA::FEDA()
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
-      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
@@ -55,7 +55,7 @@ FEDA::FEDA(ChSystem* system)
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
-      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
@@ -130,11 +130,11 @@ void FEDA::Initialize() {
     }
 
     switch (m_transmissionType) {
-        case TransmissionModelType::SHAFTS:
+        case TransmissionModelType::AUTOMATIC_SHAFTS:
             // transmission = chrono_types::make_shared<FEDA_AutomaticTransmissionShafts>("Transmission");
-            GetLog() << "TransmissionModelType::SHAFTS not implemented for this model.\n";
+            GetLog() << "TransmissionModelType::AUTOMATIC_SHAFTS not implemented for this model.\n";
             break;
-        case TransmissionModelType::SIMPLE_MAP:
+        case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<FEDA_AutomaticTransmissionSimpleMap>("Transmission");
             break;
     }

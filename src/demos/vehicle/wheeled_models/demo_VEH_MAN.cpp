@@ -66,7 +66,7 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 EngineModelType engine_model = EngineModelType::SIMPLE;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SIMPLE_MAP;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SIMPLE_MAP;
 
 // Type of tire model (TMEASY, TMSIMPLE)
 TireModelType tire_model = TireModelType::TMSIMPLE;

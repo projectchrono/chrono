@@ -65,7 +65,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 EngineModelType engine_model = EngineModelType::SHAFTS;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SHAFTS;
 
 // Type of driveline model
 DrivelineTypeWV driveline_model = DrivelineTypeWV::AWD;

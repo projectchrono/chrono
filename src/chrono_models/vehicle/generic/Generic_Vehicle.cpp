@@ -518,10 +518,10 @@ void Generic_Vehicle::CreateAndInitializePowertrain(EngineModelType engine_type,
     }
     switch (transmission_type) {
         default:
-        case TransmissionModelType::SHAFTS:
+        case TransmissionModelType::AUTOMATIC_SHAFTS:
             transmission = chrono_types::make_shared<Generic_AutomaticTransmissionShafts>("Transmission");
             break;
-        case TransmissionModelType::SIMPLE_MAP:
+        case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<Generic_AutomaticTransmissionSimpleMap>("Transmission");
             break;
     }
