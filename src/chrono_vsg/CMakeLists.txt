@@ -36,8 +36,8 @@ if(VULKAN_SDK)
     set(ENV{VULKAN_SDK} ${VULKAN_SDK})
 endif()
 
-find_package(vsg 1.0.8 REQUIRED)
-find_package(vsgXchange 1.0.4 REQUIRED)
+find_package(vsg 1.1.0 REQUIRED)
+find_package(vsgXchange 1.1.0 REQUIRED)
 find_package(vsgImGui REQUIRED)
 
 message(STATUS "vsg version:        ${vsg_VERSION}")

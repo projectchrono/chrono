@@ -82,9 +82,8 @@ rmdir /S/Q %VSG_INSTALL_DIR% 2>nul
 
 rem --- assimp -------------------------------------------------------------
 
-cd %ASSIMP_SOURCE_DIR%
 rmdir /S/Q build_assimp 2>nul
-cmake . -B build_assimp -S .  ^
+cmake -B build_assimp -S %ASSIMP_SOURCE_DIR%  ^
       -DBUILD_SHARED_LIBS:BOOL=OFF ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
@@ -101,8 +100,6 @@ if %BUILDDEBUG% EQU ON (
 ) else (
     echo "No Debug build of assimp"
 )
-
-cd c:\Source
 
 rem --- vsg ----------------------------------------------------------------
 
