@@ -270,7 +270,7 @@ void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable) {
 // This is one Newton iteration to solve for a_new
 //
 // [ M - h*gamma*dF/dv - h^2*beta*dF/dx    Cq' ] [ Da ] =
-// [ Cq                                    0   ] [ Dl ]
+// [ Cq                                    0   ] [-Dl ]
 //                [ -1/(1+alpha)*M*(a_new) + (f_new +Cq*l_new) - (alpha/(1+alpha))(f_old +Cq*l_old)]
 //                [  1/(beta*h^2)*C                                                                ]
 //
@@ -286,7 +286,7 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable) {
     integrable->LoadResidual_F(R, 1.0);                                              //  f_new
     integrable->LoadResidual_CqL(R, Lnew, 1.0);                                      //  Cq'*l_new
     integrable->LoadResidual_Mv(R, Anew, -1 / (1 + alpha));                          // -1/(1+alpha)*M*a_new
-    integrable->LoadConstraint_C(Qc, 1 / (beta * h * h), Qc_do_clamp, Qc_clamping);  //  1/(beta*h^2)*C
+    integrable->LoadConstraint_C(Qc, 1 / (beta * h * h), Qc_do_clamp, Qc_clamping);  //  Qc= 1/(beta*h^2)*C  (sign will be flipped later in StateSolveCorrection)
 
     // Solve linear system
     integrable->StateSolveCorrection(Da, Dl, R, Qc,

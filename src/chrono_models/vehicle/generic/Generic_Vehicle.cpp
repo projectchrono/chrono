@@ -59,6 +59,7 @@
 #include "chrono_models/vehicle/generic/powertrain/Generic_EngineSimpleMap.h"
 #include "chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionShafts.h"
 #include "chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimpleMap.h"
+#include "chrono_models/vehicle/generic/powertrain/Generic_ManualTransmissionShafts.h"
 
 namespace chrono {
 namespace vehicle {
@@ -523,6 +524,9 @@ void Generic_Vehicle::CreateAndInitializePowertrain(EngineModelType engine_type,
             break;
         case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<Generic_AutomaticTransmissionSimpleMap>("Transmission");
+            break;
+        case TransmissionModelType::MANUAL_SHAFTS:
+            transmission = chrono_types::make_shared<Generic_ManualTransmissionShafts>("Transmission");
             break;
     }
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
