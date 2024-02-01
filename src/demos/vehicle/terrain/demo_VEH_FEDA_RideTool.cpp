@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
         my_feda.SetChassisFixed(false);
         my_feda.SetInitPosition(init_csys);
         my_feda.SetEngineType(EngineModelType::SIMPLE_MAP);
-        my_feda.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
+        my_feda.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
         my_feda.SetDamperMode(FEDA::DamperMode::PASSIVE_LOW);  // use semiactive dampers
         my_feda.SetRideHeight_ObstacleCrossing();              // high static height
         my_feda.Initialize();
