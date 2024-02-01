@@ -30,7 +30,7 @@ namespace generic {
 /// @addtogroup vehicle_models_generic
 /// @{
 
-/// Fiala tire model for a generic vehicle.
+/// Fiala tire model for the Generic vehicle vehicle.
 class CH_MODELS_API Generic_FialaTire : public ChFialaTire {
   public:
     Generic_FialaTire(const std::string& name);
@@ -39,16 +39,29 @@ class CH_MODELS_API Generic_FialaTire : public ChFialaTire {
     virtual double GetNormalStiffnessForce(double depth) const override;
     virtual double GetNormalDampingForce(double depth, double velocity) const override;
 
-    virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual double GetVisualizationWidth() const override { return 0.25; }
 
     virtual void SetFialaParams() override;
 
+    virtual double GetTireMass() const override { return m_mass; }
+    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+    virtual void RemoveVisualizationAssets() override final;
+
   private:
-    static const double m_normalStiffness;
+    ChFunction_Recorder m_vert_map;
+    double m_max_depth;
+    double m_max_val;
+    double m_slope;
+
     static const double m_normalDamping;
     static const double m_mass;
     static const ChVector<> m_inertia;
+
+    static const std::string m_meshFile_left;
+    static const std::string m_meshFile_right;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// @} vehicle_models_generic

@@ -11,7 +11,6 @@
 #include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
 
-#include "chrono_models/vehicle/generic/Generic_BrakeSimple.h"
 #include "chrono_models/vehicle/hmmwv/brake/HMMWV_BrakeSimple.h"
 #include "chrono_models/vehicle/hmmwv/brake/HMMWV_BrakeShafts.h"
 #include "chrono_models/vehicle/sedan/Sedan_BrakeSimple.h"
@@ -37,7 +36,6 @@
 %import "../chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
 %import "../chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
 
-%shared_ptr(chrono::vehicle::generic::Generic_BrakeSimple)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_BrakeSimple)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_BrakeShafts)
 %shared_ptr(chrono::vehicle::sedan::Sedan_BrakeSimple)
@@ -60,7 +58,6 @@
 %shared_ptr(chrono::vehicle::m113::M113_BrakeShafts)
 
 // Model:
-%include "../../../chrono_models/vehicle/generic/Generic_BrakeSimple.h"
 %include "../../../chrono_models/vehicle/hmmwv/brake/HMMWV_BrakeSimple.h"
 %include "../../../chrono_models/vehicle/hmmwv/brake/HMMWV_BrakeShafts.h"
 %include "../../../chrono_models/vehicle/sedan/Sedan_BrakeSimple.h"

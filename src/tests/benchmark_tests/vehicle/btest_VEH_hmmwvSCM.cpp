@@ -102,7 +102,7 @@ class HmmwvScmTest : public utils::ChBenchmarkTest {
 template <int TIRE_TYPE, bool OBJECTS>
 HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     EngineModelType engine_model = EngineModelType::SHAFTS;
-    TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
+    TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SHAFTS;
     DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
     TireModelType tire_type = (TIRE_TYPE == MESH_TIRE) ? TireModelType::RIGID_MESH : TireModelType::RIGID;
     VisualizationType tire_vis = (TIRE_TYPE == MESH_TIRE) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;

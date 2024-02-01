@@ -18,7 +18,10 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
-// -----------------------------------------------------------------------------
+const double Generic_EngineSimple::m_max_torque = 330;
+const double Generic_EngineSimple::m_max_power = 110000;
+const double Generic_EngineSimple::m_max_speed = 10000;
+
 Generic_EngineSimple::Generic_EngineSimple(const std::string& name) : ChEngineSimple(name) {}
 
 }  // end namespace generic

@@ -84,7 +84,7 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 EngineModelType engine_model = EngineModelType::SHAFTS;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
@@ -321,6 +321,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             // Create the interactive VSG driver system
@@ -390,6 +391,10 @@ int main(int argc, char* argv[]) {
         // End simulation
         if (time >= t_end)
             break;
+
+        if (render_frame == 142) {
+            vis->WriteImageToFile(out_dir + "/hmmwv.png");  // does not work with frame == 0!
+        }
 
         // Render scene and output post-processing data
         if (step_number % render_steps == 0) {

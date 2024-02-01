@@ -35,7 +35,7 @@ Duro::Duro()
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
-      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
@@ -53,7 +53,7 @@ Duro::Duro(ChSystem* system)
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
-      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
@@ -108,10 +108,10 @@ void Duro::Initialize() {
     }
 
     switch (m_transmissionType) {
-        case TransmissionModelType::SHAFTS:
+        case TransmissionModelType::AUTOMATIC_SHAFTS:
             transmission = chrono_types::make_shared<Duro_AutomaticTransmissionShafts>("Transmission");
             break;
-        case TransmissionModelType::SIMPLE_MAP:
+        case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             // transmission = chrono_types::make_shared<Duro_AutomaticTransmissionSimpleMap>("Transmission");
             break;
     }

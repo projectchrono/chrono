@@ -15,7 +15,6 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
-#include "chrono_models/vehicle/generic/Generic_Chassis.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
 #include "chrono_models/vehicle/sedan/Sedan_Chassis.h"
 #include "chrono_models/vehicle/citybus/CityBus_Chassis.h"
@@ -31,7 +30,6 @@
 %}
 
 
-%shared_ptr(chrono::vehicle::generic::Generic_Chassis)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_Chassis)
 %shared_ptr(chrono::vehicle::sedan::Sedan_Chassis)
 %shared_ptr(chrono::vehicle::citybus::CityBus_Chassis)
@@ -49,7 +47,6 @@
 %import "chrono_swig/interface/vehicle/ChChassis.i"
 
 // Model:
-%include "../../../chrono_models/vehicle/generic/Generic_Chassis.h"
 %include "../../../chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
 %include "../../../chrono_models/vehicle/sedan/Sedan_Chassis.h"
 %include "../../../chrono_models/vehicle/citybus/CityBus_Chassis.h"
