@@ -1,7 +1,25 @@
-#version 450
+#include <vsg/io/VSG.h>
+#include <vsg/io/mem_stream.h>
+static auto chronoPbrShader_vert = []() {
+static const char str[] = 
+R"(#vsga 1.1.0
+Root id=1 vsg::ShaderStage
+{
+  userObjects 0
+  mask 18446744073709551615
+  stage 1
+  entryPointName "main"
+  module id=2 vsg::ShaderModule
+  {
+    userObjects 0
+    hints id=0
+    source "#version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-#pragma import_defines (VSG_INSTANCE_POSITIONS, VSG_DISPLACEMENT_MAP)
+#pragma import_defines (VSG_INSTANCE_POSITIONS, VSG_BILLBOARD, VSG_DISPLACEMENT_MAP)
+
+#define VIEW_DESCRIPTOR_SET 0
+#define MATERIAL_DESCRIPTOR_SET 1
 
 layout(push_constant) uniform PushConstants {
     mat4 projection;
@@ -9,7 +27,7 @@ layout(push_constant) uniform PushConstants {
 } pc;
 
 #ifdef VSG_DISPLACEMENT_MAP
-layout(binding = 6) uniform sampler2D displacementMap;
+layout(set = MATERIAL_DESCRIPTOR_SET, binding = 6) uniform sampler2D displacementMap;
 #endif
 
 layout(location = 0) in vec3 vsg_Vertex;
@@ -17,7 +35,10 @@ layout(location = 1) in vec3 vsg_Normal;
 layout(location = 2) in vec2 vsg_TexCoord0;
 layout(location = 3) in vec4 vsg_Color;
 
-#ifdef VSG_INSTANCE_POSITIONS
+
+#ifdef VSG_BILLBOARD
+layout(location = 4) in vec4 vsg_position_scaleDistance;
+#elif defined(VSG_INSTANCE_POSITIONS)
 layout(location = 4) in vec3 vsg_position;
 #endif
 
@@ -29,6 +50,25 @@ layout(location = 3) out vec2 texCoord0;
 layout(location = 5) out vec3 viewDir;
 
 out gl_PerVertex{ vec4 gl_Position; };
+
+#ifdef VSG_BILLBOARD
+mat4 computeBillboadMatrix(vec4 center_eye, float autoScaleDistance)
+{
+    float distance = -center_eye.z;
+
+    float scale = (distance < autoScaleDistance) ? distance/autoScaleDistance : 1.0;
+    mat4 S = mat4(scale, 0.0, 0.0, 0.0,
+                  0.0, scale, 0.0, 0.0,
+                  0.0, 0.0, scale, 0.0,
+                  0.0, 0.0, 0.0, 1.0);
+
+    mat4 T = mat4(1.0, 0.0, 0.0, 0.0,
+                  0.0, 1.0, 0.0, 0.0,
+                  0.0, 0.0, 1.0, 0.0,
+                  center_eye.x, center_eye.y, center_eye.z, 1.0);
+    return T*S;
+}
+#endif
 
 void main()
 {
@@ -65,19 +105,31 @@ void main()
     normal.xyz = normalize(dx * vsg_Normal.x + dy * vsg_Normal.y + dz * vsg_Normal.z);
 #endif
 
-
 #ifdef VSG_INSTANCE_POSITIONS
-   vertex.xyz = vertex.xyz + vsg_position;
+    vertex.xyz = vertex.xyz + vsg_position;
 #endif
 
-    gl_Position = (pc.projection * pc.modelView) * vertex;
+#ifdef VSG_BILLBOARD
+    mat4 mv = computeBillboadMatrix(pc.modelView * vec4(vsg_position_scaleDistance.xyz, 1.0), vsg_position_scaleDistance.w);
+#else
+    mat4 mv = pc.modelView;
+#endif
 
-    eyePos = (pc.modelView * vertex).xyz;
-
-    vec4 lpos = /*vsg_LightSource.position*/ vec4(0.0, 0.0, 1.0, 0.0);
-    viewDir = - (pc.modelView * vertex).xyz;
-    normalDir = (pc.modelView * normal).xyz;
+    gl_Position = (pc.projection * mv) * vertex;
+    eyePos = (mv * vertex).xyz;
+    viewDir = - (mv * vertex).xyz;
+    normalDir = (mv * normal).xyz;
 
     vertexColor = vsg_Color;
     texCoord0 = vsg_TexCoord0;
 }
+"
+    code 0
+    
+  }
+  NumSpecializationConstants 0
+}
+)";
+vsg::VSG io;
+return io.read_cast<vsg::ShaderStage>(reinterpret_cast<const uint8_t*>(str), sizeof(str));
+};

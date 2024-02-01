@@ -12,8 +12,8 @@
 // Rainer Gericke
 // =============================================================================
 
-#ifndef CH_BOX_SHAPE_DATA_H
-#define CH_BOX_SHAPE_DATA_H
+#ifndef CH_DIE_SHAPE_DATA_H
+#define CH_DIE_SHAPE_DATA_H
 
 #include <iostream>
 #include <string>
@@ -27,11 +27,11 @@
 
 namespace chrono {
 namespace vsg3d {
-void GetBoxShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
+
+void GetDieShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
                      vsg::ref_ptr<vsg::vec3Array>& normals,
                      vsg::ref_ptr<vsg::vec2Array>& texcoords,
-                     vsg::ref_ptr<vsg::ushortArray>& indices,
-                     float& boundingSphereRadius);
+                     vsg::ref_ptr<vsg::ushortArray>& indices);
 
 }  // namespace vsg3d
 }  // namespace chrono

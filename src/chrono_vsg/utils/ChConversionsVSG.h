@@ -54,4 +54,14 @@ class CH_VSG_API dmat4CH : public dmat4 {
 
 }  // namespace vsg
 
+inline std::ostream& operator<<(std::ostream& out, const vsg::vec2& v) {
+    out << v.x << "  " << v.y;
+    return out;
+}
+
+inline std::ostream& operator<<(std::ostream& out, const vsg::vec3& v) {
+    out << v.x << "  " << v.y << " " << v.z;
+    return out;
+}
+
 #endif

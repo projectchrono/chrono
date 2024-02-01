@@ -39,14 +39,14 @@
 #include "chrono_vehicle/terrain/CRGTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
-#include "chrono_models/vehicle/hmmwv/HMMWV.h"
+#include "chrono_models/vehicle/feda/FEDA.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
-using namespace chrono::vehicle::hmmwv;
+using namespace chrono::vehicle::feda;
 
 // =============================================================================
 // Problem parameters
@@ -59,8 +59,8 @@ enum class DriverModelType {
     HUMAN     // simple realistic human driver
 };
 
-// Type of tire model (LUGRE, FIALA, PACEJKA, TMSIMPLE or TMEASY)
-TireModelType tire_model = TireModelType::TMSIMPLE;
+// Type of tire model (RIGID, PAC02, TMSIMPLE, TMEASY)
+TireModelType tire_model = TireModelType::PAC02;
 
 // Road visualization (mesh or boundary lines)
 bool useMesh = true;
@@ -68,12 +68,8 @@ bool useMesh = true;
 // Desired vehicle speed (m/s)
 double target_speed = 12;
 
-// Minimum / maximum speed (m/s) for Human driver type
-double minimum_speed = 12;
-double maximum_speed = 30;
-
 // Simulation step size
-double step_size = 3e-3;
+double step_size = 1e-3;
 double tire_step_size = 1e-3;
 
 // Output frame images
@@ -82,20 +78,16 @@ double fps = 60;
 const std::string out_dir = GetChronoOutputPath() + "OPENCRG_DEMO";
 
 DriverModelType DriverModelFromString(const std::string& str) {
-    if (str == "HUMAN")
-        return DriverModelType::HUMAN;
     if (str == "PID")
         return DriverModelType::PID;
     if (str == "STANLEY")
         return DriverModelType::STANLEY;
     if (str == "SR")
         return DriverModelType::SR;
-    if (str == "XT")
-        return DriverModelType::XT;
     std::cerr << "String \"" + str +
-                     "\" does not represent a valid DriverModelType (HUMAN/PID/SR/XT) - returned DriverModelType::HUMAN"
+                     "\" does not represent a valid DriverModelType (PID/SR/STANLEY) - returned DriverModelType::PID"
               << std::endl;
-    return DriverModelType::HUMAN;
+    return DriverModelType::PID;
 }
 
 // =============================================================================
@@ -132,19 +124,6 @@ class MyDriver {
                 m_steering_controller = &driverStanley->GetSteeringController();
                 break;
             }
-            case DriverModelType::XT: {
-                m_driver_type = "XT";
-
-                auto driverXT = chrono_types::make_shared<ChPathFollowerDriverXT>(
-                    vehicle, path, "my_path", target_speed, vehicle.GetMaxSteeringAngle());
-                driverXT->GetSteeringController().SetLookAheadDistance(5);
-                driverXT->GetSteeringController().SetGains(0.4, 1, 1, 1);
-                driverXT->GetSpeedController().SetGains(0.4, 0, 0);
-
-                m_driver = driverXT;
-                m_steering_controller = &driverXT->GetSteeringController();
-                break;
-            }
             case DriverModelType::SR: {
                 m_driver_type = "SR";
 
@@ -158,27 +137,8 @@ class MyDriver {
                 m_steering_controller = &driverSR->GetSteeringController();
                 break;
             }
-            case DriverModelType::HUMAN: {
-                m_driver_type = "HUMAN";
-
-                // Driver model read from JSON file
-                ////auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(
-                ////    vehicle::GetDataFile("hmmwv/driver/HumanController.json"), vehicle, path, "my_path",
-                ////    road_width, vehicle.GetMaxSteeringAngle(), 3.2);
-
-                auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(vehicle, path, "my_path", road_width,
-                                                                            vehicle.GetMaxSteeringAngle(), 3.2);
-                driverHUMAN->SetPreviewTime(0.5);
-                driverHUMAN->SetLateralGains(0.1, 2);
-                driverHUMAN->SetLongitudinalGains(0.1, 0.1, 0.2);
-                driverHUMAN->SetSpeedRange(minimum_speed, maximum_speed);
-
-                m_driver = driverHUMAN;
-                break;
-            }
         }
     }
-
     DriverInputs GetInputs() { return m_driver->GetInputs(); }
     void Initialize() { m_driver->Initialize(); }
     void Synchronize(double time) { m_driver->Synchronize(time); }
@@ -187,31 +147,11 @@ class MyDriver {
     const std::string& GetDriverType() { return m_driver_type; }
 
     ChVector<> GetTargetLocation() {
-        if (m_type == DriverModelType::HUMAN)
-            return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetTargetLocation();
-        else
             return m_steering_controller->GetTargetLocation();
     }
 
     ChVector<> GetSentinelLocation() {
-        if (m_type == DriverModelType::HUMAN)
-            return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetSentinelLocation();
-        else
             return m_steering_controller->GetSentinelLocation();
-    }
-
-    void PrintStats() {
-        if (m_type != DriverModelType::HUMAN)
-            return;
-
-        auto driverHUMAN = std::static_pointer_cast<ChHumanDriver>(m_driver);
-        std::cout << std::endl;
-        std::cout << "Traveled Distance    = " << driverHUMAN->GetTraveledDistance() << " m" << std::endl;
-        std::cout << "Average Speed        = " << driverHUMAN->GetAverageSpeed() << " m/s" << std::endl;
-        std::cout << "Maximum Speed        = " << driverHUMAN->GetMaxSpeed() << " m/s" << std::endl;
-        std::cout << "Minimum Speed        = " << driverHUMAN->GetMinSpeed() << " m/s" << std::endl;
-        std::cout << "Maximum Lateral Acc. = " << driverHUMAN->GetMaxLatAcc() << " m^2/s" << std::endl;
-        std::cout << "Minimum Lateral Acc. = " << driverHUMAN->GetMinLatAcc() << " m^2/s" << std::endl;
     }
 
   private:
@@ -226,22 +166,28 @@ class MyDriver {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    const double mph_to_mps = 0.44704;
+    const double mps_to_mph = 1.0/mph_to_mps;
+    const double psi_to_pascal = 6894.76;
+    
     ChCLI cli(argv[0]);
 
     // Set up parameter defaults and command-line arguments
-    DriverModelType driver_type = DriverModelType::HUMAN;
-    std::string crg_road_file = "terrain/crg_roads/RoadCourse.crg";
+    DriverModelType driver_type = DriverModelType::PID;
+    std::string crg_road_file = "terrain/crg_roads/detrended_rms_course_1in.crg";
     bool yup = false;
 
-    cli.AddOption<std::string>("Demo", "m,model", "Controller model type - PID, STANLEY, XT, SR, HUMAN", "HUMAN");
+    cli.AddOption<std::string>("Demo", "m,model", "Controller model type - PID, STANLEY, SR", "PID");
     cli.AddOption<std::string>("Demo", "f,roadfile", "CRG road filename", crg_road_file);
+    cli.AddOption<std::string>("Demo", "s,speed", "Desired speed (mph)", "1.0");
     cli.AddOption<bool>("Demo", "y,yup", "Use YUP world frame", std::to_string(yup));
-
     if (!cli.Parse(argc, argv, true))
         return 1;
 
     driver_type = DriverModelFromString(cli.GetAsType<std::string>("model"));
     crg_road_file = vehicle::GetDataFile(cli.GetAsType<std::string>("roadfile"));
+    std::string speed_s = cli.GetAsType<std::string>("speed");
+    target_speed = mph_to_mps * std::stod(speed_s);
     yup = cli.GetAsType<bool>("yup");
 
     // ----------------
@@ -269,7 +215,6 @@ int main(int argc, char* argv[]) {
     // ----------------------------
 
     ChSystemSMC sys;
-    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys.Set_G_acc(-9.81 * ChWorldFrame::Vertical());
     sys.SetSolverMaxIterations(150);
     sys.SetMaxPenetrationRecoverySpeed(4.0);
@@ -314,43 +259,50 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     // Initial location and orientation from CRG terrain (create vehicle 0.5 m above road)
-    init_csys.pos += 0.5 * ChWorldFrame::Vertical();
+    init_csys.pos += 0.5 * ChWorldFrame::Vertical()+ChVector<>(1,0,0);
 
+    double tire_pressure_psi = 35.0;
+    
     // Create the HMMWV vehicle, set parameters, and initialize
-    HMMWV_Full hmmwv(&sys);
-    hmmwv.SetContactMethod(ChContactMethod::SMC);
-    hmmwv.SetChassisFixed(false);
-    hmmwv.SetInitPosition(init_csys);
-    hmmwv.SetEngineType(EngineModelType::SHAFTS);
-    hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
-    hmmwv.SetDriveType(DrivelineTypeWV::RWD);
-    hmmwv.SetTireType(tire_model);
-    hmmwv.SetTireStepSize(tire_step_size);
-    hmmwv.Initialize();
+    FEDA my_feda(&sys);
+    my_feda.SetContactMethod(ChContactMethod::SMC);
+    my_feda.SetTireCollisionType(ChTire::CollisionType::ENVELOPE);
+    my_feda.SetTirePressure(tire_pressure_psi * psi_to_pascal); // CDT / KRC Test conditions
+    my_feda.SetTireType(tire_model);
+    my_feda.SetTireStepSize(tire_step_size);
+    my_feda.SetChassisFixed(false);
+    my_feda.SetInitPosition(init_csys);
+    my_feda.SetEngineType(EngineModelType::SIMPLE_MAP);
+    my_feda.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
+    my_feda.SetDamperMode(FEDA::DamperMode::PASSIVE_LOW);   // use semiactive dampers
+    my_feda.SetRideHeight_ObstacleCrossing(); // high static height
+    my_feda.Initialize();
 
-    hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-    hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
-    hmmwv.SetTireVisualizationType(VisualizationType::MESH);
+    my_feda.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    my_feda.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    my_feda.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    my_feda.SetWheelVisualizationType(VisualizationType::NONE);
+    my_feda.SetTireVisualizationType(VisualizationType::MESH);
 
     // --------------------
     // Create driver system
     // --------------------
 
-    MyDriver driver(driver_type, hmmwv.GetVehicle(), path, road_width);
+    MyDriver driver(driver_type, my_feda.GetVehicle(), path, road_width);
     driver.Initialize();
 
     std::cout << "Driver model: " << driver.GetDriverType() << std::endl << std::endl;
 
+    double vel = 0;
     // -------------------------------
     // Create the visualization system
     // -------------------------------
 
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-    vis->SetWindowTitle("OpenCRG Steering");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    vis->AttachVehicle(&hmmwv.GetVehicle());
+    vis->SetWindowTitle("FEDA RMS Test");
+    vis->SetWindowSize(1200, 800);
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 10.0, 0.5);
+    vis->AttachVehicle(&my_feda.GetVehicle());
 
     auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
@@ -365,8 +317,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    hmmwv.GetVehicle().EnableRealtime(true);
-
     // Number of simulation steps between image outputs
     double render_step_size = 1 / fps;
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -375,9 +325,18 @@ int main(int argc, char* argv[]) {
     int sim_frame = 0;
     int render_frame = 0;
 
-    while (vis->Run()) {
-        double time = hmmwv.GetSystem()->GetChTime();
+    double max_travel = 404.0;
 
+    chrono::utils::ChISO2631_Vibration_SeatCushionLogger cushion(step_size);
+    
+    while (vis->Run()) {
+        double time = my_feda.GetSystem()->GetChTime();
+        ChVector<> xpos = my_feda.GetVehicle().GetPos();
+        ChVector<> sacc = my_feda.GetVehicle().GetPointAcceleration(ChVector<>(-1.0,1.0,0.5));
+        vel = my_feda.GetVehicle().GetSpeed();
+        if(xpos.x() > 100.0) {
+            cushion.AddData(vel, sacc);
+        }
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
 
@@ -392,8 +351,8 @@ int main(int argc, char* argv[]) {
             if (output_images) {
                 char filename[200];
                 int nstr = sizeof(filename) - 1;
-                    snprintf(filename, nstr, "%s/image_%05d.png", out_dir.c_str(), render_frame);
-                    vis->WriteImageToFile(filename);
+                snprintf(filename, nstr, "%s/image_%05d.bmp", out_dir.c_str(), render_frame);
+                vis->WriteImageToFile(filename);
                 render_frame++;
             }
         }
@@ -401,21 +360,28 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        hmmwv.Synchronize(time, driver_inputs, terrain);
+        my_feda.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        hmmwv.Advance(step_size);
+        my_feda.Advance(step_size);
         vis->Advance(step_size);
         sys.DoStepDynamics(step_size);
 
         // Increment simulation frame number
         sim_frame++;
+        if(xpos.x() > max_travel) {
+            GetLog() << "Front wheels at x = " << xpos.x() << " m\n";
+            GetLog() << "End of rms surface reached. Regular simulation end.\n";
+            break;
+        }
     }
 
-    driver.PrintStats();
-
+    double velAvg = mps_to_mph * cushion.GetAVGSpeed();
+    double absPow = cushion.GetAbsorbedPowerVertical();
+    GetLog() << "Average Velocity = " << velAvg << " miles/h\n";
+    GetLog() << "Absorbed Power = " << absPow << " W\n";
     return 0;
 }
