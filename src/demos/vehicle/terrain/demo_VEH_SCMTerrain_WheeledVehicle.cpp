@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetChassisFixed(false);
     hmmwv.SetInitPosition(ChCoordsys<>(init_loc, QUNIT));
     hmmwv.SetEngineType(EngineModelType::SHAFTS);
-    hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
+    hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     switch (tire_type) {
         case TireType::CYLINDRICAL:
@@ -415,9 +415,10 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         if (img_output && step_number % render_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-            vis->WriteImageToFile(filename);
+            // Zero-pad frame numbers in file names for postprocessing
+            std::ostringstream filename;
+            filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+            vis->WriteImageToFile(filename.str());
             render_frame++;
         }
 

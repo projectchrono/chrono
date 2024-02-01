@@ -68,7 +68,7 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 EngineModelType engine_model = EngineModelType::SHAFTS;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD6;
@@ -287,9 +287,10 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
 
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(mrole.GetSystem(), filename);
+                // Zero-pad frame numbers in file names for postprocessing
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(mrole.GetSystem(), filename.str());
             }
 
             render_frame++;

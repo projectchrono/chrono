@@ -21,7 +21,6 @@
 #include "chrono/motion_functions/ChFunction_DoubleS.h"
 #include "chrono/motion_functions/ChFunction_Fillet3.h"
 #include "chrono/motion_functions/ChFunction_Integrate.h"
-#include "chrono/motion_functions/ChFunction_Matlab.h"
 #include "chrono/motion_functions/ChFunction_Mirror.h"
 #include "chrono/motion_functions/ChFunction_Mocap.h"
 #include "chrono/motion_functions/ChFunction_Noise.h"

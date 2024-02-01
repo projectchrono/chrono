@@ -135,7 +135,7 @@ void SynTrackedVehicleDescriptionMessage::ConvertFromFlatBuffers(const SynFlatBu
     m_source_key = AgentKey(message->source_key());
     m_destination_key = message->destination_key();
 
-    if (description->json()->Length())
+    if (description->json()->size())
         this->json = description->json()->str();
     else {
         auto vehicle_description = description->description_as_TrackedVehicle_Description();

@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetChassisFixed(false);
     hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     hmmwv.SetEngineType(EngineModelType::SHAFTS);
-    hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
+    hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     hmmwv.SetTireType(TireModelType::RIGID);
     hmmwv.Initialize();

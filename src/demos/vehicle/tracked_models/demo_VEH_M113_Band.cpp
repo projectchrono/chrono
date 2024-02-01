@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     m113.SetANCFTrackShoeNumElements(num_elements_length, num_elements_width);
     m113.SetANCFTrackShoeCurvatureConstraints(constrain_curvature);
     m113.SetEngineType(EngineModelType::SIMPLE_MAP);
-    m113.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
+    m113.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     m113.SetDrivelineType(DrivelineTypeTV::SIMPLE);
     m113.SetBrakeType(BrakeType::SIMPLE);
     m113.SetSuspensionBushings(false);

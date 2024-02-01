@@ -41,14 +41,14 @@ A mediawiki link ```[http://www.povray.org POVray]``` becomes ```[POVray](http:/
 If the page starts with
 
 ~~~
-About Chrono::Solidworks {#introduction_chrono_solidworks}
+About Chrono::Solidworks
 ==========================
 ~~~
 
 In the header you can reference it with the ```@ref``` command
 
 ~~~
-[Chrono::SolidWorks](@ref introduction_chrono_solidworks)
+[Chrono::SolidWorks](@ref manual_chrono_solidworks)
 ~~~
 
 ###Headings 

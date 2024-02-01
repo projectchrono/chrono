@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Updated Chrono::VSG module](#changed-updated-chronovsg-module)
   - [New motion functions and filters](#added-new-motion-functions-and-filters)
   - [Updated ChBlender exporter to Blender4.0](#changed-updated-chblender-exporter-to-blender40)
   - [Added unilateral distance constraint](#added-added-unilateral-distance-constraint)
@@ -96,6 +97,24 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+## [Changed] Updated Chrono::VSG module
+
+The Chrono::VSG m,odule was updated to use newer version of the VSG libraries.
+- Adds shadow support (enabled in several demos).
+- Includes an optional argument to the `ChVisualSystemVSG` constructor to specify the tesselation resolution for round primitive shapes. This is provided as a number of divisions of a full circle, with a default value of 24, corresponding to a 15 degree angular increment. 
+- No other changes to the public API.
+
+The **required** VSG library versions are as follows:
+- vsg 1.1.0
+- vsgXchange 1.1.0
+- vsgExamples 1.1.0
+- vsgImGui - latest
+- assimp 5.3.1
+
+If the above requirements are not met, an error is issued during CMake configuration (if the Chrono::VSG moduile is enabled).  
+The simplest way to satisfy the VSG version requirements is to build and install them using the scripts provided with the Chrono distribution (see the Chrono::VSG installation instructions).
+
 
 ### [Added] New motion functions and filters
 The following functions were added

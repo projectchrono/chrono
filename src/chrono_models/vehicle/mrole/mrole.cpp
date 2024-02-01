@@ -47,7 +47,7 @@ mrole::mrole()
       m_brake_type(BrakeType::SIMPLE),
       m_driveType(DrivelineTypeWV::AWD),
 m_engineType(EngineModelType::SHAFTS),
-m_transmissionType(TransmissionModelType::SHAFTS),
+m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
  m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
@@ -67,7 +67,7 @@ mrole::mrole(ChSystem* system)
       m_brake_type(BrakeType::SIMPLE),
       m_driveType(DrivelineTypeWV::AWD),
 m_engineType(EngineModelType::SHAFTS),
-m_transmissionType(TransmissionModelType::SHAFTS),
+m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
 m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
@@ -118,10 +118,10 @@ void mrole::Initialize() {
     }
 
     switch (m_transmissionType) {
-        case TransmissionModelType::SHAFTS:
+        case TransmissionModelType::AUTOMATIC_SHAFTS:
             transmission = chrono_types::make_shared<mrole_AutomaticTransmissionShafts>("Transmission");
             break;
-        case TransmissionModelType::SIMPLE_MAP:
+        case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<mrole_AutomaticTransmissionSimpleMap>("Transmission");
             break;
     }

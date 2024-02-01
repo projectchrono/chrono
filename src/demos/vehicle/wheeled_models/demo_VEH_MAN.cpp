@@ -66,7 +66,7 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 EngineModelType engine_model = EngineModelType::SIMPLE;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SIMPLE_MAP;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SIMPLE_MAP;
 
 // Type of tire model (TMEASY, TMSIMPLE)
 TireModelType tire_model = TireModelType::TMSIMPLE;
@@ -279,9 +279,10 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
 
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(truck.GetSystem(), filename);
+                // Zero-pad frame numbers in file names for postprocessing
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(truck.GetSystem(), filename.str());
             }
 
             render_frame++;

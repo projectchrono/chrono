@@ -326,7 +326,7 @@ int main(int argc, char* argv[]) {
     feda.SetChassisFixed(false);
     feda.SetInitPosition(init_csys);
     feda.SetEngineType(EngineModelType::SIMPLE_MAP);
-    feda.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
+    feda.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     feda.SetTireType(tire_model);
     feda.SetTireStepSize(tire_step_size);
     feda.Initialize();

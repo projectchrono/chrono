@@ -64,13 +64,13 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 EngineModelType engine_model = EngineModelType::SHAFTS;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
 // Type of tire model (RIGID, RIGID_MESH, FIALA, PAC89, PAC02, TMEASY, TMSIMPLE)
-TireModelType tire_model = TireModelType::TMSIMPLE;
+TireModelType tire_model = TireModelType::TMEASY;
 
 enum class TerrainType { FLAT, RIGID };
 TerrainType terrain_type = TerrainType::RIGID;

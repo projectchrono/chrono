@@ -66,9 +66,6 @@ class ChApi ChLog : public ChStreamOutAscii {
     ///   GetLog() - ChLog::CHERROR << "a big error in " << mynumber << " items \n" ;
     ChLog& operator-(eChLogLevel mnewlev);
 
-    /// Prints current time to the log
-    // void PrintCurTime();
-
   private:
 };
 

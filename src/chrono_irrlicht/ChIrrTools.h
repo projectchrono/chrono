@@ -238,6 +238,15 @@ ChApiIrr void drawProfiler(ChVisualSystemIrrlicht* vis);
 /// Draw RGB coordinate system.
 ChApiIrr void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord = CSYSNORM, double scale = 1);
 
+/// Draw a line arrow in 3D space with given color.
+ChApiIrr void drawArrow(ChVisualSystemIrrlicht* vis,           ///< visual system
+                        ChVector<> start,                      ///< arrow start point
+                        ChVector<> end,                        ///< arrow end point
+                        ChVector<> plane_normal = VECT_Y,      ///< normal to plane containing arrow segments
+                        bool sharp = false,                    ///< set arrow shape as 'sharp' or 'wide'
+                        ChColor col = ChColor(1.f, 1.f, 1.f),  ///< color
+                        bool use_Zbuffer = false);             ///< use Z buffer
+
 }  // end namespace tools
 
 /// @} irrlicht_module

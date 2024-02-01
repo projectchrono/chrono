@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -40,11 +41,11 @@ using namespace chrono::vehicle::hmmwv;
 // Select Path Follower, uncomment to select the pure PID steering controller
 #define USE_PID 1
 // The extended steering controller only works inside the path limits
-//#define USE_XT 1
+// #define USE_XT 1
 // The simple realistic steering controller should start inside the path limits, after passing the last point
 // a) closed loop course: the vehicle goes into the next round
 // b) open loop course (this example):  the vehicle keeps the last driving direction (forever)
-//#define USE_SR 1
+// #define USE_SR 1
 // =============================================================================
 // Problem parameters
 
@@ -58,7 +59,7 @@ TireModelType tire_model = TireModelType::TMEASY;
 EngineModelType engine_model = EngineModelType::SHAFTS;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::RWD;
@@ -264,8 +265,8 @@ int main(int argc, char* argv[]) {
     // Initialize output
     // -----------------
 
-    out_dir = GetChronoOutputPath() + out_dir; 
-    pov_dir = GetChronoOutputPath() + pov_dir; 
+    out_dir = GetChronoOutputPath() + out_dir;
+    pov_dir = GetChronoOutputPath() + pov_dir;
     state_output = state_output || povray_output;
 
     if (state_output) {
@@ -350,12 +351,13 @@ int main(int argc, char* argv[]) {
         vis->Render();
         vis->EndScene();
 
-        // Output POV-Ray data
+        // Output POV-Ray data.
+        // Zero-pad frame numbers in file names for postprocessing.
         if (sim_frame % render_steps == 0) {
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(hmmwv.GetSystem(), filename);
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(hmmwv.GetSystem(), filename.str());
             }
 
             if (state_output) {

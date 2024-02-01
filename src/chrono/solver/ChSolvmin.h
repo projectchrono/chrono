@@ -44,10 +44,10 @@ class ChApi ChOptimizer {
 
     double opt_fx;  ///< best resulting value of objective function
 
-    char err_message[200];  ///< the ok/warning/error messages are written here
-    int error_code;
-    long fx_evaluations;    ///< number of function evaluations
-    long grad_evaluations;  ///< number of gradient evaluations
+    std::string err_message;  ///< error message
+    int error_code;           ///< numeric error code
+    long fx_evaluations;      ///< number of function evaluations
+    long grad_evaluations;    ///< number of gradient evaluations
 
     int (*break_funct)();    ///< if not null, this function is called each 'break_cycles' evaluations
     int break_cycles;        ///< how many fx evaluations per check

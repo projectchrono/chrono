@@ -583,8 +583,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "\n\n\nHere's the system hierarchy: \n\n ";
         sys.ShowHierarchy(GetLog());
 
-        std::string out_file = out_dir + "/test_clutch.txt";
-        ChStreamOutAsciiFile file_results(out_file.c_str());
+        ChStreamOutAsciiFile file_results(out_dir + "/test_clutch.txt");
 
         // Perform a very simple simulation loop..
         double chronoTime = 0;

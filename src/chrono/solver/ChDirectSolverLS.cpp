@@ -213,7 +213,7 @@ double ChDirectSolverLS::SolveCurrent() {
 // ---------------------------------------------------------------------------
 
 void ChDirectSolverLS::WriteMatrix(const std::string& filename, const ChSparseMatrix& M) {
-    ChStreamOutAsciiFile file(filename.c_str());
+    ChStreamOutAsciiFile file(filename);
     file.SetNumFormat("%.12g");
     for (int i = 0; i < M.rows(); i++) {
         for (int j = 0; j < M.cols(); j++) {
@@ -226,7 +226,7 @@ void ChDirectSolverLS::WriteMatrix(const std::string& filename, const ChSparseMa
 }
 
 void ChDirectSolverLS::WriteVector(const std::string& filename, const ChVectorDynamic<double>& v) {
-    ChStreamOutAsciiFile file(filename.c_str());
+    ChStreamOutAsciiFile file(filename);
     file.SetNumFormat("%.12g");
     for (int i = 0; i < v.size(); i++)
         file << v(i) << "\n";

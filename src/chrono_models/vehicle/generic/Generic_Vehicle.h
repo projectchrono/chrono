@@ -41,7 +41,13 @@ namespace generic {
 /// subsystems (suspensions, steering, tires, etc.)
 class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
   public:
-    Generic_Vehicle(const bool fixed, SuspensionTypeWV suspType, ChContactMethod contactMethod = ChContactMethod::NSC);
+    /// Create a generic vehicle with the specified types of subsystems.
+    Generic_Vehicle(const bool fixed,
+                    SuspensionTypeWV suspension_type,
+                    SteeringTypeWV steering_type,
+                    DrivelineTypeWV driveline_type,
+                    BrakeType brake_type,
+                    ChContactMethod contactMethod = ChContactMethod::NSC);
 
     ~Generic_Vehicle() {}
 
@@ -59,14 +65,24 @@ class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
     double GetShockLength(int axle, VehicleSide side) const;
     double GetShockVelocity(int axle, VehicleSide side) const;
 
+    /// Initialize the vehicle at the specified location and with specified orientation.
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
+
+    /// Utility function to create and initialize the 4 vehicle tires to the specified type.
+    void CreateAndInitializeTires(TireModelType tire_type, VisualizationType vis_type);
+
+    /// Utility function to create and initialize the powertrain system using the specified types.
+    void CreateAndInitializePowertrain(EngineModelType engine_type, TransmissionModelType transmission_type);
 
     // Log debugging information
     void LogHardpointLocations();  /// suspension hardpoints at design
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    SuspensionTypeWV m_suspType;
+    SuspensionTypeWV m_suspension_type;
+    SteeringTypeWV m_steering_type;
+    DrivelineTypeWV m_driveline_type;
+    BrakeType m_brake_type;
 };
 
 /// @} vehicle_models_generic

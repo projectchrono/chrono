@@ -31,7 +31,7 @@ inline void fillRandom(Scalar min, Scalar max) {
 }
 
 /// Test if this matrix is within given tolerance from specified matrix (element-wise).
-template<typename OtherDerived>
+template <typename OtherDerived>
 inline bool equals(const MatrixBase<OtherDerived>& other, Scalar tolerance) {
     return (derived() - other).cwiseAbs().maxCoeff() <= tolerance;
 }
@@ -65,7 +65,8 @@ friend const CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const ConstantReturn
 
 void ArchiveOut(chrono::ChArchiveOut& marchive) {
     // suggested: use versioning
-	marchive.VersionWrite<chrono::ChMatrix_dense_version_tag>(); // btw use the ChMatrixDynamic version tag also for all other templates.
+    marchive.VersionWrite<chrono::ChMatrix_dense_version_tag>();  // btw use the ChMatrixDynamic version tag also for
+                                                                  // all other templates.
 
     // stream out all member data
 
@@ -86,19 +87,17 @@ void ArchiveOut(chrono::ChArchiveOut& marchive) {
         }
     } else {
         size_t m_row = derived().rows();
-		size_t m_col = derived().cols();
+        size_t m_col = derived().cols();
         marchive << chrono::make_ChNameValue("rows", m_row);
         marchive << chrono::make_ChNameValue("columns", m_col);
-         
+
         // NORMAL array-based serialization:
-        size_t tot_elements = derived().rows() *  derived().cols();
-		double* foo = 0;
-        chrono::ChValueSpecific< double* > specVal(foo, "data", 0);
+        size_t tot_elements = derived().rows() * derived().cols();
+        double* foo = 0;
+        chrono::ChValueSpecific<double*> specVal(foo, "data", 0);
         marchive.out_array_pre(specVal, tot_elements);
-		char idname[21]; // only for xml, xml serialization needs unique element name
         for (size_t i = 0; i < tot_elements; i++) {
-			sprintf(idname, "%lu", (unsigned long)i);
-            marchive << chrono::CHNVP(derived()((Eigen::Index)i), idname);
+            marchive << chrono::CHNVP(derived()((Eigen::Index)i), std::to_string(i).c_str());
             marchive.out_array_between(specVal, tot_elements);
         }
         marchive.out_array_end(specVal, tot_elements);
@@ -107,23 +106,22 @@ void ArchiveOut(chrono::ChArchiveOut& marchive) {
 
 void ArchiveIn(chrono::ChArchiveIn& marchive) {
     // suggested: use versioning
-    /*int version =*/ marchive.VersionRead<chrono::ChMatrix_dense_version_tag>(); // btw use the ChMatrixDynamic version tag also for all other templates.
-	
+    /*int version =*/marchive.VersionRead<chrono::ChMatrix_dense_version_tag>();  // btw use the ChMatrixDynamic version
+                                                                                  // tag also for all other templates.
+
     // stream in all member data
-    size_t m_row; 
-	size_t m_col;
+    size_t m_row;
+    size_t m_col;
     marchive >> chrono::make_ChNameValue("rows", m_row);
     marchive >> chrono::make_ChNameValue("columns", m_col);
-	
+
     derived().resize(m_row, m_col);
 
     // custom input of matrix data as array
     size_t tot_elements = derived().rows() * derived().cols();
     marchive.in_array_pre("data", tot_elements);
-	char idname[20]; // only for xml, xml serialization needs unique element name
     for (size_t i = 0; i < tot_elements; i++) {
-		sprintf(idname, "%lu", (unsigned long)i);
-        marchive >> chrono::CHNVP(derived()((Eigen::Index)i), idname);
+        marchive >> chrono::CHNVP(derived()((Eigen::Index)i), std::to_string(i).c_str());
         marchive.in_array_between("data");
     }
     marchive.in_array_end("data");
