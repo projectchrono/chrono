@@ -94,6 +94,11 @@ Generic_Vehicle::Generic_Vehicle(const bool fixed,
             ////m_axles[0]->m_suspension = chrono_types::make_shared<Generic_DoubleWishbone>("Front suspension");
             ////m_axles[1]->m_suspension = chrono_types::make_shared<Generic_DoubleWishbone>("Rear suspension");
             break;
+        case SuspensionTypeWV::DOUBLE_WISHBONE_REDUCED:
+            m_axles[0]->m_suspension =
+                chrono_types::make_shared<Generic_DoubleWishboneReducedFront>("Front suspension");
+            m_axles[1]->m_suspension = chrono_types::make_shared<Generic_DoubleWishboneReducedRear>("Rear suspension");
+            break;
         case SuspensionTypeWV::SOLID_AXLE:
             m_axles[0]->m_suspension = chrono_types::make_shared<Generic_SolidAxle>("Front Suspension");
             m_axles[1]->m_suspension = chrono_types::make_shared<Generic_SolidAxle>("Rear Suspension");
@@ -179,6 +184,9 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
     ChVector<> offset;
     switch (m_suspension_type) {
         case SuspensionTypeWV::DOUBLE_WISHBONE:
+            offset = ChVector<>(1.24498, 0, 0.101322);
+            break;
+        case SuspensionTypeWV::DOUBLE_WISHBONE_REDUCED:
             offset = ChVector<>(1.24498, 0, 0.101322);
             break;
         case SuspensionTypeWV::SOLID_AXLE:
