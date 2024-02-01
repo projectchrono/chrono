@@ -236,98 +236,6 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
 }
 
 // -----------------------------------------------------------------------------
-
-double Generic_Vehicle::GetSpringForce(int axle, VehicleSide side) const {
-    switch (m_suspension_type) {
-        case SuspensionTypeWV::DOUBLE_WISHBONE:
-            return std::static_pointer_cast<ChDoubleWishbone>(m_axles[axle]->m_suspension)->GetSpringForce(side);
-        case SuspensionTypeWV::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetSpringForce(side);
-        case SuspensionTypeWV::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_axles[axle]->m_suspension)->GetSpringForce(side);
-        case SuspensionTypeWV::MACPHERSON_STRUT:
-            return std::static_pointer_cast<ChMacPhersonStrut>(m_axles[axle]->m_suspension)->GetSpringForce(side);
-        default:
-            return -1;
-    }
-}
-
-double Generic_Vehicle::GetSpringLength(int axle, VehicleSide side) const {
-    switch (m_suspension_type) {
-        case SuspensionTypeWV::DOUBLE_WISHBONE:
-            return std::static_pointer_cast<ChDoubleWishbone>(m_axles[axle]->m_suspension)->GetSpringLength(side);
-        case SuspensionTypeWV::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetSpringLength(side);
-        case SuspensionTypeWV::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_axles[axle]->m_suspension)->GetSpringLength(side);
-        case SuspensionTypeWV::MACPHERSON_STRUT:
-            return std::static_pointer_cast<ChMacPhersonStrut>(m_axles[axle]->m_suspension)->GetSpringLength(side);
-        default:
-            return -1;
-    }
-}
-
-double Generic_Vehicle::GetSpringDeformation(int axle, VehicleSide side) const {
-    switch (m_suspension_type) {
-        case SuspensionTypeWV::DOUBLE_WISHBONE:
-            return std::static_pointer_cast<ChDoubleWishbone>(m_axles[axle]->m_suspension)->GetSpringDeformation(side);
-        case SuspensionTypeWV::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetSpringDeformation(side);
-        case SuspensionTypeWV::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_axles[axle]->m_suspension)->GetSpringDeformation(side);
-        case SuspensionTypeWV::MACPHERSON_STRUT:
-            return std::static_pointer_cast<ChMacPhersonStrut>(m_axles[axle]->m_suspension)->GetSpringDeformation(side);
-        default:
-            return -1;
-    }
-}
-
-double Generic_Vehicle::GetShockForce(int axle, VehicleSide side) const {
-    switch (m_suspension_type) {
-        case SuspensionTypeWV::DOUBLE_WISHBONE:
-            return std::static_pointer_cast<ChDoubleWishbone>(m_axles[axle]->m_suspension)->GetShockForce(side);
-        case SuspensionTypeWV::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetShockForce(side);
-        case SuspensionTypeWV::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_axles[axle]->m_suspension)->GetShockForce(side);
-        case SuspensionTypeWV::MACPHERSON_STRUT:
-            return std::static_pointer_cast<ChMacPhersonStrut>(m_axles[axle]->m_suspension)->GetShockForce(side);
-        default:
-            return -1;
-    }
-}
-
-double Generic_Vehicle::GetShockLength(int axle, VehicleSide side) const {
-    switch (m_suspension_type) {
-        case SuspensionTypeWV::DOUBLE_WISHBONE:
-            return std::static_pointer_cast<ChDoubleWishbone>(m_axles[axle]->m_suspension)->GetShockLength(side);
-        case SuspensionTypeWV::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetShockLength(side);
-        case SuspensionTypeWV::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_axles[axle]->m_suspension)->GetShockLength(side);
-        case SuspensionTypeWV::MACPHERSON_STRUT:
-            return std::static_pointer_cast<ChMacPhersonStrut>(m_axles[axle]->m_suspension)->GetShockLength(side);
-        default:
-            return -1;
-    }
-}
-
-double Generic_Vehicle::GetShockVelocity(int axle, VehicleSide side) const {
-    switch (m_suspension_type) {
-        case SuspensionTypeWV::DOUBLE_WISHBONE:
-            return std::static_pointer_cast<ChDoubleWishbone>(m_axles[axle]->m_suspension)->GetShockVelocity(side);
-        case SuspensionTypeWV::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetShockVelocity(side);
-        case SuspensionTypeWV::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_axles[axle]->m_suspension)->GetShockVelocity(side);
-        case SuspensionTypeWV::MACPHERSON_STRUT:
-            return std::static_pointer_cast<ChMacPhersonStrut>(m_axles[axle]->m_suspension)->GetShockVelocity(side);
-        default:
-            return -1;
-    }
-}
-
-// -----------------------------------------------------------------------------
 // Log the hardpoint locations for the front-right and rear-right suspension
 // subsystems (display in inches)
 // -----------------------------------------------------------------------------
@@ -377,33 +285,24 @@ void Generic_Vehicle::LogHardpointLocations() {
 }
 
 // -----------------------------------------------------------------------------
-// Log the spring length, deformation, and force.
-// Log the shock length, velocity, and force.
+// Log the spring and shock length and force.
 // Log constraint violations of suspension joints.
-//
-// Lengths are reported in inches, velocities in inches/s, and forces in lbf
 // -----------------------------------------------------------------------------
 void Generic_Vehicle::DebugLog(int what) {
-    GetLog().SetNumFormat("%10.2f");
+    GetLog().SetNumFormat("%10.3f");
 
-    if (what & OUT_SPRINGS) {
-        GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [inch]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
-                 << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
-        GetLog() << "Deformation [inch]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
-                 << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
-        GetLog() << "Force [lbf]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
-                 << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
-    }
-
-    if (what & OUT_SHOCKS) {
-        GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [inch]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
-                 << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
-        GetLog() << "Velocity [inch/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
-                 << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
-        GetLog() << "Force [lbf]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
-                 << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
+    if (what & OUT_SPRINGS || what & OUT_SHOCKS) {
+        GetLog() << "\n---- Spring and Shock information\n\n";
+        for (int axle = 0; axle < 2; axle++) {
+            std::string axlePosition = (axle == 0) ? "Front" : "Rear ";
+            for (int side = LEFT; side <= RIGHT; side++) {
+                for (auto& forceTSDA :
+                     m_axles[axle]->m_suspension->ReportSuspensionForce(static_cast<VehicleSide>(side))) {
+                    GetLog() << axlePosition << " " << (side == LEFT ? "Left " : "Right") << " ";
+                    GetLog() << forceTSDA.name << std::string(10 - std::max(0, (int) forceTSDA.name.size()), ' ') << " Length: " << forceTSDA.length << " m, Force: " << forceTSDA.force << " N\n";
+                }
+            }
+        }
     }
 
     if (what & OUT_CONSTRAINTS) {

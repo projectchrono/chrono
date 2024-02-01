@@ -57,14 +57,6 @@ class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
     virtual double GetMinTurningRadius() const override { return 8.0; }
     virtual double GetMaxSteeringAngle() const override { return 25 * CH_C_DEG_TO_RAD; }
 
-    double GetSpringForce(int axle, VehicleSide side) const;
-    double GetSpringLength(int axle, VehicleSide side) const;
-    double GetSpringDeformation(int axle, VehicleSide side) const;
-
-    double GetShockForce(int axle, VehicleSide side) const;
-    double GetShockLength(int axle, VehicleSide side) const;
-    double GetShockVelocity(int axle, VehicleSide side) const;
-
     /// Initialize the vehicle at the specified location and with specified orientation.
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
