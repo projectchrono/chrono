@@ -79,6 +79,22 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Return the speed measured at the chassis center of mass.
     double GetCOMSpeed() const;
 
+    /// Get the roll rate of the chassis.
+    /// The yaw rate is referenced to the chassis frame.
+    double GetRollRate() const;
+
+    /// Get the pitch rate of the chassis.
+    /// The yaw rate is referenced to the chassis frame.
+    double GetPitchRate() const;
+
+    /// Get the yaw rate of the chassis.
+    /// The yaw rate is referenced to the chassis frame.
+    double GetYawRate() const;
+
+    /// Get the turn rate of the chassis.
+    /// Unlike the yaw rate (referenced to the chassis frame), the turn rate is referenced to the global frame.
+    double GetTurnRate() const;
+
     /// Get the global position of the specified point.
     /// The point is assumed to be given relative to the chassis reference frame.
     /// The returned location is expressed in the global reference frame.

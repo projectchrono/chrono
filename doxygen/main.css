@@ -2200,7 +2200,7 @@ table.markdownTable {
   /* Set the border thickness to your desired value */
   border-width: 1px; /* Adjust as needed */
   border-style: solid;
-  padding: 0.1em;
+  border-color: lightgray;
   /* Add other styles as needed */
 }
 
@@ -2209,7 +2209,9 @@ table.markdownTable th,
 table.markdownTable td {
   /* Set the border thickness for inner borders */
   border-width: 0.01em; /* Adjust as needed */
-  border-style: dotted;
+  border-style: solid;
+  border-color: lightgray;
+  padding: 0.1em;
   /* Add other styles as needed */
 }
 
@@ -5969,7 +5971,7 @@ blockquote {
     font-weight: 300; }
 
 table {
-  font-size: 12px; }
+  font-size: 13px; }
 
 label,
 .control-label,

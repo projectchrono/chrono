@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     duro.SetChassisFixed(false);
     duro.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     duro.SetEngineType(EngineModelType::SHAFTS);
-    duro.SetTransmissionType(TransmissionModelType::SHAFTS);
+    duro.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     duro.SetTireType(tire_model);
     duro.SetTireStepSize(tire_step_size);
     duro.SetBrakeType(brake_model);
@@ -298,9 +298,10 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
 
             if (povray_output && step_number % render_steps == 0) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(duro.GetSystem(), filename);
+                // Zero-pad frame numbers in file names for postprocessing
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(3) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(duro.GetSystem(), filename.str());
             }
 
             render_frame++;

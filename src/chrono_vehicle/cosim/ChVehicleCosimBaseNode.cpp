@@ -224,15 +224,10 @@ std::string ChVehicleCosimBaseNode::OutputFilename(const std::string& dir,
                                                    const std::string& ext,
                                                    int frame,
                                                    int frame_digits) {
-    std::string format = "%s/%s_%0" + std::to_string(frame_digits) + "d.%s";
-
-    size_t buf_size = dir.size() + root.size() + ext.size() + 3 + frame_digits + 1;
-    auto buf = new char[buf_size];
-    sprintf(buf, format.c_str(), dir.c_str(), root.c_str(), frame, ext.c_str());
-    std::string filename(buf);
-    delete[] buf;
-
-    return filename;
+    // Frame number is zero padded for postprocessing
+    std::ostringstream filename;
+    filename << dir << "/" << root << "_" << std::setw(frame_digits) << std::setfill('0') << frame << "." << ext;
+    return filename.str();
 }
 
 bool ChVehicleCosimBaseNode::IsCosimNode() const {

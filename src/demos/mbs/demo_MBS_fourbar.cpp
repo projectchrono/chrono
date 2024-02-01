@@ -69,7 +69,7 @@ class MyEventReceiver : public IEventReceiver {
                             mfun->Set_yconst(newspeed);
                         // show speed as formatted text in interface screen
                         char message[50];
-                        sprintf(message, "Motor speed: %g [rad/s]", newspeed);
+                        snprintf(message, sizeof(message), "Motor speed: %g [rad/s]", newspeed);
                         text_motorspeed->setText(core::stringw(message).c_str());
                     }
                     break;

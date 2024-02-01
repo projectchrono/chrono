@@ -48,6 +48,8 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
             case vsg::KEY_V:
                 m_app->m_vehicle->LogConstraintViolations();
                 return;
+            default:
+                break;
         }
 
         switch (keyPress.keyBase) {
@@ -108,6 +110,8 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
             case vsg::KEY_5:
                 m_app->SetChaseCameraState(utils::ChChaseCamera::Free);
                 return;
+            default:
+                break;
         }
 
         if (m_transmission_auto) {
@@ -133,6 +137,8 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
                 case vsg::KEY_Leftbracket:
                     m_transmission_auto->ShiftDown();
                     return;
+                default:
+                    break;
             }
         }
 
@@ -152,6 +158,8 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
                     if (m_app->m_driver)
                         m_app->m_driver->DecreaseClutch();
                     return;
+                default:
+                    break;
             }
         }
     }

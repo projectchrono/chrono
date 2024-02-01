@@ -60,8 +60,7 @@ int main(int argc, char* argv[]) {
     // Exceptions thrown are of class ChException.
     try {
         // Open a file of class "ChStreamOutAsciiFile" for writing ascii
-        std::string asciifile = out_dir + "/foo_file.txt";
-        ChStreamOutAsciiFile mfileo(asciifile.c_str());
+        ChStreamOutAsciiFile mfileo(out_dir + "/foo_file.txt");
 
         // Write some items, space-separated, inside the ascii file.
         // The class ChStreamOutAsciiFile implements the << operator for most
@@ -78,8 +77,7 @@ int main(int argc, char* argv[]) {
     try {
         // Open a file for reading ascii: the ChStreamInAsciiFile has
         // some minimal parsing capabilities...
-        std::string asciifile = out_dir + "/foo_file.txt";
-        ChStreamInAsciiFile mfilei(asciifile.c_str());
+        ChStreamInAsciiFile mfilei(out_dir + "/foo_file.txt");
 
         // Try to load some text tokens and convert them (at least each token
         // separated by space or linefeed..)
@@ -111,8 +109,7 @@ int main(int argc, char* argv[]) {
 
     try {
         // Open a file of class "ChStreamOutBinaryFile" for serializing
-        std::string binfile = out_dir + "/foo_archive.dat";
-        ChStreamOutBinaryFile mfileo(binfile.c_str());
+        ChStreamOutBinaryFile mfileo(out_dir + "/foo_archive.dat");
 
         // Write from transient data into persistent binary file
         char m_text[] = "foo_string";
@@ -133,8 +130,7 @@ int main(int argc, char* argv[]) {
 
     try {
         // Open a file of class "ChStreamOutBinaryFile" for deserializing
-        std::string binfile = out_dir + "/foo_archive.dat";
-        ChStreamInBinaryFile mfilei(binfile.c_str());
+        ChStreamInBinaryFile mfilei(out_dir + "/foo_archive.dat");
 
         // Read from persistent binary file to transient data
         char m_text[200];

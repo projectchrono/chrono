@@ -3,7 +3,7 @@ Chrono FMI module tutorials {#tutorial_table_of_content_chrono_fmi}
 
 - Hydraulic crane co-simulation
 
-  This [demo](https://github.com/projectchrono/chrono/tree/main/fmu/src/demos/fmi) gnerates two Chrono FMUs and uses them in a co-simulation.
+  This [demo](https://github.com/projectchrono/chrono/tree/main/fmu/src/demos/fmi) generates two Chrono FMUs and uses them in a co-simulation.
 
   The first FMU, `demo_FMI_craneFMU`, encapsulates a simple multibody system consisting of an inverted pendulum (connected through a revolute joint to the ground) representing the main mast of the crane and a second pendulum representing the payload. The crane body accepts an externally-provided actuation force applied at a point on the body (as its primary continuous input FMI variable) and provides the actuator length and length rate of change as main FMI continuous outputs.
 

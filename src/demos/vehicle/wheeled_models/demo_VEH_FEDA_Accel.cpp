@@ -58,7 +58,7 @@ VisualizationType wheel_vis_type = VisualizationType::MESH;
 EngineModelType engine_model = EngineModelType::SIMPLE_MAP;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SIMPLE_MAP;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SIMPLE_MAP;
 
 // Type of tire model (PAC02, RIGID)
 TireModelType tire_model = TireModelType::PAC02;

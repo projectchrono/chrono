@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetChassisCollisionType(CollisionType::NONE);
     hmmwv.SetInitPosition(ChCoordsys<>(initLoc, Q_from_AngY(initYaw)));
     hmmwv.SetEngineType(EngineModelType::SIMPLE);
-    hmmwv.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
+    hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     hmmwv.SetDriveType(DrivelineTypeWV::RWD);
     hmmwv.SetTireType(tire_model);
     ////hmmwv.SetTireCollisionType(ChTire::CollisionType::ENVELOPE);

@@ -21,8 +21,7 @@ void GetSurfaceShapeData(std::shared_ptr<ChVisualShapeSurface> surface,
                          vsg::ref_ptr<vsg::vec3Array>& vertices,
                          vsg::ref_ptr<vsg::vec3Array>& normals,
                          vsg::ref_ptr<vsg::vec2Array>& texcoords,
-                         vsg::ref_ptr<vsg::ushortArray>& indices,
-                         float& boundingSphereRadius) {
+                         vsg::ref_ptr<vsg::ushortArray>& indices) {
     auto sections_u = surface->GetResolutionU() * 4;  //***TEST*** (from irrlicht surface)
     auto sections_v = surface->GetResolutionV() * 4;  //***TEST***
     auto nvertices = (sections_u + 1) * (sections_v + 1);
@@ -37,10 +36,10 @@ void GetSurfaceShapeData(std::shared_ptr<ChVisualShapeSurface> surface,
     int itri = 0;
 
     for (auto iv = 0; iv <= sections_v; ++iv) {
-        double mV = 1.0 * ((double)iv / (double)(sections_v));  // v abscissa
+        double mV = iv / (double)sections_v;  // v abscissa
 
         for (auto iu = 0; iu <= sections_u; ++iu) {
-            double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
+            double mU = iu / (double)sections_u;  // u abscissa
 
             ChVector<> P = surface->GetSurfaceGeometry()->Evaluate(mU, mV);
             ////P = vis->Pos + vis->Rot * P;
@@ -65,9 +64,6 @@ void GetSurfaceShapeData(std::shared_ptr<ChVisualShapeSurface> surface,
             }
         }
     }
-
-    // bounding sphere radius > sqrt(a^2+a^2+a^2)
-    boundingSphereRadius = 1.1f * surface->GetSurfaceGeometry()->GetBoundingSphereRadius();
 }
 
 }  // namespace vsg3d

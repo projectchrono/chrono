@@ -87,26 +87,26 @@ void RoboSimianVisualSystemIrrlicht::Render() {
 
     char msg[100];
 
-    sprintf(msg, "Time %.2f", m_robot->GetSystem()->GetChTime());
+    snprintf(msg, sizeof(msg), "Time %.2f", m_robot->GetSystem()->GetChTime());
     renderTextBox(msg, m_HUD_x, m_HUD_y, 120, 15, irr::video::SColor(255, 250, 200, 00));
 
     auto type = std::string("Contact method: ") +
                 (m_robot->GetSystem()->GetContactMethod() == ChContactMethod::NSC ? "NSC" : "SMC");
     renderTextBox(type.c_str(), m_HUD_x, m_HUD_y + 15, 120, 15, irr::video::SColor(255, 250, 200, 00));
 
-    sprintf(msg, "Driver phase: %s", m_driver->GetCurrentPhase().c_str());
+    snprintf(msg, sizeof(msg), "Driver phase: %s", m_driver->GetCurrentPhase().c_str());
     renderTextBox(msg, m_HUD_x, m_HUD_y + 30, 120, 15, irr::video::SColor(255, 250, 200, 00));
 
-    sprintf(msg, "omega FR: %.2f", std::abs(m_robot->GetWheelOmega(FR)));
+    snprintf(msg, sizeof(msg), "omega FR: %.2f", std::abs(m_robot->GetWheelOmega(FR)));
     renderTextBox(msg, m_HUD_x, m_HUD_y + 60, 120, 15, irr::video::SColor(255, 250, 200, 00));
 
-    sprintf(msg, "omega RR: %.2f", std::abs(m_robot->GetWheelOmega(RR)));
+    snprintf(msg, sizeof(msg), "omega RR: %.2f", std::abs(m_robot->GetWheelOmega(RR)));
     renderTextBox(msg, m_HUD_x, m_HUD_y + 75, 120, 15, irr::video::SColor(255, 250, 200, 00));
 
-    sprintf(msg, "omega FL: %.2f", std::abs(m_robot->GetWheelOmega(FL)));
+    snprintf(msg, sizeof(msg), "omega FL: %.2f", std::abs(m_robot->GetWheelOmega(FL)));
     renderTextBox(msg, m_HUD_x, m_HUD_y + 90, 120, 15, irr::video::SColor(255, 250, 200, 00));
 
-    sprintf(msg, "omega RL: %.2f", std::abs(m_robot->GetWheelOmega(RL)));
+    snprintf(msg, sizeof(msg), "omega RL: %.2f", std::abs(m_robot->GetWheelOmega(RL)));
     renderTextBox(msg, m_HUD_x, m_HUD_y + 105, 120, 15, irr::video::SColor(255, 250, 200, 00));
 }
 

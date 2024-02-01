@@ -121,9 +121,9 @@ class ChArchiveInBinary : public ChArchiveIn {
         return true;
     }
     // for wrapping arrays and lists
-    virtual bool in_array_pre(const char* name, size_t& msize) override { (*istream) >> msize; return true; }
-    virtual void in_array_between(const char* name) override {}
-    virtual void in_array_end(const char* name) override {}
+    virtual bool in_array_pre(const std::string& name, size_t& msize) override { (*istream) >> msize; return true; }
+    virtual void in_array_between(const std::string& name) override {}
+    virtual void in_array_end(const std::string& name) override {}
 
     //  for custom c++ objects:
     virtual bool in(ChNameValue<ChFunctorArchiveIn> bVal) {
@@ -186,14 +186,14 @@ class ChArchiveInBinary : public ChArchiveIn {
             (*istream) >> obj_ID;
 
             // see ChArchiveJSON for further details
-            bVal.value().CallConstructor(*this, true_classname.c_str());
+            bVal.value().CallConstructor(*this, true_classname);
 
             void* new_ptr_void = bVal.value().GetRawPtr();
 
             if (new_ptr_void) {
                 PutNewPointer(new_ptr_void, obj_ID);
                 // 3) Deserialize
-                bVal.value().CallArchiveIn(*this, true_classname.c_str());
+                bVal.value().CallArchiveIn(*this, true_classname);
             } else {
                 throw(ChExceptionArchive("Archive cannot create object" + true_classname + "\n"));
             }

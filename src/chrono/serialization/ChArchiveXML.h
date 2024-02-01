@@ -309,23 +309,11 @@ class ChArchiveInXML : public ChArchiveIn {
 
     virtual ~ChArchiveInXML(){};
 
-    rapidxml::xml_node<>* GetValueFromNameOrArray(const char* mname) {
-        rapidxml::xml_node<>* mnode = level->first_node(mname);
+    rapidxml::xml_node<>* GetValueFromNameOrArray(const std::string& mname) {
+        rapidxml::xml_node<>* mnode = level->first_node(mname.c_str());
         if (!mnode)
             token_notfound(mname);
         return mnode;
-        /*
-        rapidjson::Value* mval;
-        if (this->is_array.top() == true) {
-            if (!level->IsArray()) {throw (ChExceptionArchive( "Cannot retrieve from ID num in non-array object."));}
-            mval = &(*level)[this->array_index.top()];
-        } else {
-            if (level->HasMember(mname))
-                mval = &(*level)[mname];
-            else { token_notfound(mname);}
-        }
-        return mval;
-        */
     }
 
     virtual bool in(ChNameValue<bool> bVal) override {
@@ -439,7 +427,7 @@ class ChArchiveInXML : public ChArchiveIn {
     }
 
     // for wrapping arrays and lists
-    virtual bool in_array_pre(const char* name, size_t& msize) override {
+    virtual bool in_array_pre(const std::string& name, size_t& msize) override {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(name);
         if (!mval)
             return false;
@@ -454,9 +442,9 @@ class ChArchiveInXML : public ChArchiveIn {
         this->array_index.push(0);
         return true;
     }
-    virtual void in_array_between(const char* name) override { ++this->array_index.top(); }
+    virtual void in_array_between(const std::string& name) override { ++this->array_index.top(); }
 
-    virtual void in_array_end(const char* name) override {
+    virtual void in_array_end(const std::string& name) override {
         this->levels.pop();
         this->level = this->levels.top();
         this->is_array.pop();
@@ -536,7 +524,7 @@ class ChArchiveInXML : public ChArchiveIn {
 
             if (!is_reference) {
                 // See ChArchiveJSON for detailed explanation
-                bVal.value().CallConstructor(*this, true_classname.c_str());
+                bVal.value().CallConstructor(*this, true_classname);
 
                 void* new_ptr_void = bVal.value().GetRawPtr();
 
@@ -552,7 +540,7 @@ class ChArchiveInXML : public ChArchiveIn {
                 if (new_ptr_void) {
                     PutNewPointer(new_ptr_void, obj_ID);
                     // 3) Deserialize
-                    bVal.value().CallArchiveIn(*this, true_classname.c_str());
+                    bVal.value().CallArchiveIn(*this, true_classname);
                 } else {
                     throw(ChExceptionArchive("Archive cannot create object " + std::string(bVal.name()) + "\n"));
                 }
@@ -591,9 +579,9 @@ class ChArchiveInXML : public ChArchiveIn {
     }
 
   protected:
-    void token_notfound(const char* mname) {
+    void token_notfound(const std::string& mname) {
         if (!try_tolerate_missing_tokens)
-            throw(ChExceptionArchive("Cannot find '" + std::string(mname) + "'"));
+            throw(ChExceptionArchive("Cannot find '" + mname + "'"));
     }
 
     ChStreamInAsciiFile* istream;

@@ -49,7 +49,7 @@ ChMulticoreDataManager::~ChMulticoreDataManager() {
 
 int ChMulticoreDataManager::OutputBlazeVector(DynamicVector<real> src, std::string filename) {
     const char* numformat = "%.16g";
-    ChStreamOutAsciiFile stream(filename.c_str());
+    ChStreamOutAsciiFile stream(filename);
     stream.SetNumFormat(numformat);
 
     for (int i = 0; i < src.size(); i++)
@@ -60,7 +60,7 @@ int ChMulticoreDataManager::OutputBlazeVector(DynamicVector<real> src, std::stri
 
 int ChMulticoreDataManager::OutputBlazeMatrix(CompressedMatrix<real> src, std::string filename) {
     const char* numformat = "%.16g";
-    ChStreamOutAsciiFile stream(filename.c_str());
+    ChStreamOutAsciiFile stream(filename);
     stream.SetNumFormat(numformat);
 
     stream << src.rows() << " " << src.columns() << "\n";

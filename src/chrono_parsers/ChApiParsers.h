@@ -33,6 +33,7 @@
     @brief Parsers for various input data formats
 
     For additional information, see:
+    - the [user manual](@ref manual_parsers)
     - the [installation guide](@ref module_parsers_installation)
     - the [tutorials](@ref tutorial_root)
 */

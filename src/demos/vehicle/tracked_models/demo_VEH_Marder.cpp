@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     ////DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
     BrakeType brake_type = BrakeType::SIMPLE;
     EngineModelType engine_type = EngineModelType::SIMPLE;
-    TransmissionModelType transmission_type = TransmissionModelType::SIMPLE_MAP;
+    TransmissionModelType transmission_type = TransmissionModelType::AUTOMATIC_SIMPLE_MAP;
 
     Marder marder;
     marder.SetContactMethod(contact_method);
@@ -374,15 +374,16 @@ int main(int argc, char* argv[]) {
             vis->Render();
             vis->EndScene();
 
+            // Zero-pad frame numbers in file names for postprocessing
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(marder.GetSystem(), filename);
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(marder.GetSystem(), filename.str());
             }
             if (img_output && step_number > 200) {
-                char filename[100];
-                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-                vis->WriteImageToFile(filename);
+                std::ostringstream filename;
+                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+                vis->WriteImageToFile(filename.str());
             }
             render_frame++;
         }
