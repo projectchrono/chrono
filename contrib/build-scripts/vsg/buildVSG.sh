@@ -19,7 +19,7 @@
 #      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.0
 #      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 latest
 #      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.0
-#      assimp (github.com/assimp/assimp):                          Tag v5.2.5
+#      assimp (github.com/assimp/assimp):                          Tag v5.3.1
 # - We suggest using Ninja (ninja-build.org/) and the "Ninja Multi-Config" CMake generator.
 #   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
 # -------------------------------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ then
     VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
-    git clone -c advice.detachedHead=false --depth 1 --branch v5.2.5 "https://github.com/assimp/assimp" "download_vsg/assimp"
+    git clone -c advice.detachedHead=false --depth 1 --branch v5.3.1 "https://github.com/assimp/assimp" "download_vsg/assimp"
     ASSIMP_SOURCE_DIR="download_vsg/assimp"
 else
     echo "Using provided source directories"
