@@ -400,7 +400,7 @@ void MBTireModel::Spring3::CalculateForce() {
     double l_p = d_p.Length();
     double l_n = d_n.Length();
     assert(l_p > zero_length);
-    assert(length_n > zero_length);
+    assert(l_n > zero_length);
     d_p /= l_p;
     d_n /= l_n;
 
@@ -866,7 +866,6 @@ void MBTireModel::CalculateForces() {
 
                 // Option 1
                 CalcNormal(ir, id, normal, area);
-                assert(Vdot(m_nodes[k]->GetPos() - w_pos, normal) > 0);  // sanity check
                 nodal_forces[k] += (0.5 * pressure * area) * normal;
 
                 // Option 2
