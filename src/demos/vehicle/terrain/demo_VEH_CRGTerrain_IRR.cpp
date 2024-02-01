@@ -31,6 +31,8 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -392,9 +394,10 @@ int main(int argc, char* argv[]) {
         vis->RenderFrame(ChFrame<>(driver.GetSentinelLocation()));
 
         if (output_images && sim_frame % render_steps == 0) {
-            char filename[200];
-            sprintf(filename, "%s/image_%05d.bmp", out_dir.c_str(), render_frame);
-            vis->WriteImageToFile(filename);
+            // Zero-pad frame numbers in file names for postprocessing
+            std::ostringstream filename;
+            filename << out_dir << "/image_" << std::setw(5) << std::setfill('0') << render_frame << ".bmp";
+            vis->WriteImageToFile(filename.str());
             render_frame++;
         }
 

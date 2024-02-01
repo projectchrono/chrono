@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <cstddef>
 #include <cctype>
+#include <sstream>
+#include <iomanip>
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 #include "chrono_vsg/utils/ChConversionsVSG.h"
@@ -922,9 +924,10 @@ bool ChVisualSystemVSG::Run() {
 
 void ChVisualSystemVSG::Render() {
     if (m_write_images && m_frame_number > 0) {
-        char buf[300];
-        sprintf(buf, "%s/img_%04d.png", m_image_dir.c_str(), m_frame_number);
-        WriteImageToFile(std::string(buf));
+        // Zero-pad frame numbers in file names for postprocessing
+        std::ostringstream filename;
+        filename << m_image_dir << "/img_" << std::setw(4) << std::setfill('0') << m_frame_number << ".png";
+        WriteImageToFile(filename.str());
     }
 
     if (m_frame_number == 0)
