@@ -27,18 +27,19 @@ namespace fsi {
 class FSIStatsGL : public opengl::ChOpenGLStats {
   public:
     FSIStatsGL() : ChOpenGLStats() {}
+
     virtual void GenerateStats(ChSystem& sys) override {
-        sprintf(buffer, "SPH particles:  %lu", num_sph);
-        text.Render(buffer, screen.LEFT, screen.TOP - 1 * screen.SPACING, screen.SX, screen.SY);
+        text.Render("SPH particles:  " + std::to_string(num_sph), screen.LEFT, screen.TOP - 1 * screen.SPACING,
+                    screen.SX, screen.SY);
 
-        sprintf(buffer, "Boundary BCE:   %lu", num_bndry_bce);
-        text.Render(buffer, screen.LEFT, screen.TOP - 2 * screen.SPACING, screen.SX, screen.SY);
+        text.Render("Boundary BCE:   " + std::to_string(num_bndry_bce), screen.LEFT, screen.TOP - 2 * screen.SPACING,
+                    screen.SX, screen.SY);
 
-        sprintf(buffer, "Rigid body BCE: %lu", num_rigid_bce);
-        text.Render(buffer, screen.LEFT, screen.TOP - 3 * screen.SPACING, screen.SX, screen.SY);
+        text.Render("Rigid body BCE: " + std::to_string(num_rigid_bce), screen.LEFT, screen.TOP - 3 * screen.SPACING,
+                    screen.SX, screen.SY);
 
-        sprintf(buffer, "Flex body BCE:  %lu", num_flex_bce);
-        text.Render(buffer, screen.LEFT, screen.TOP - 4 * screen.SPACING, screen.SX, screen.SY);
+        text.Render("Flex body BCE:  " + std::to_string(num_flex_bce), screen.LEFT, screen.TOP - 4 * screen.SPACING,
+                    screen.SX, screen.SY);
 
         sprintf(buffer, "TIME: %04f", sys.GetChTime());
         text.Render(buffer, screen.LEFT, screen.TOP - 6 * screen.SPACING, screen.SX, screen.SY);
@@ -46,6 +47,7 @@ class FSIStatsGL : public opengl::ChOpenGLStats {
         sprintf(buffer, "FPS:  %04d", int(fps));
         text.Render(buffer, screen.LEFT, screen.TOP - 7 * screen.SPACING, screen.SX, screen.SY);
     }
+
     unsigned long num_sph;
     unsigned long num_bndry_bce;
     unsigned long num_rigid_bce;

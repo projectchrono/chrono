@@ -539,17 +539,17 @@ void test_anchorchain() {
 
         if (create_directory(path(out_dir))) {
             // coordinates of rigid bodies
-            ChStreamOutAsciiFile file_coords((out_dir + "/equilibrium_coords.dat").c_str());
+            ChStreamOutAsciiFile file_coords(out_dir + "/equilibrium_coords.dat");
             file_coords.SetNumFormat("%.12g");
             StreamOutDenseMatlabFormat(coords, file_coords);
 
             // catinary curve for comparison with the analytical formula
-            ChStreamOutAsciiFile file_catenary((out_dir + "/catenary_cmp.dat").c_str());
+            ChStreamOutAsciiFile file_catenary(out_dir + "/catenary_cmp.dat");
             file_catenary.SetNumFormat("%.12g");
             StreamOutDenseMatlabFormat(catenary_cmp, file_catenary);
 
             // reaction forces and torques of all joints
-            ChStreamOutAsciiFile file_reactions((out_dir + "/equilibrium_reactions.dat").c_str());
+            ChStreamOutAsciiFile file_reactions(out_dir + "/equilibrium_reactions.dat");
             file_reactions.SetNumFormat("%.12g");
             StreamOutDenseMatlabFormat(reactions, file_reactions);
         } else {
@@ -592,7 +592,7 @@ void test_anchorchain() {
                       [](auto const& r1, auto const& r2) { return r1(1) < r2(1); });
 
             if (create_directory(path(out_dir))) {
-                ChStreamOutAsciiFile file_shape((out_dir + "/modal_shape_" + std::to_string(imode) + ".dat").c_str());
+                ChStreamOutAsciiFile file_shape(out_dir + "/modal_shape_" + std::to_string(imode) + ".dat");
                 file_shape.SetNumFormat("%.12g");
                 StreamOutDenseMatlabFormat(modal_shape_i, file_shape);
             } else {
@@ -601,7 +601,7 @@ void test_anchorchain() {
         }
 
         if (create_directory(path(out_dir))) {
-            ChStreamOutAsciiFile file_freq((out_dir + "/modal_freq.dat").c_str());
+            ChStreamOutAsciiFile file_freq(out_dir + "/modal_freq.dat");
             file_freq.SetNumFormat("%.12g");
             StreamOutDenseMatlabFormat(modal_freq, file_freq);
         } else {
@@ -677,7 +677,7 @@ void test_anchorchain() {
             }
 
             if (create_directory(path(out_dir))) {
-                ChStreamOutAsciiFile file_vibration((out_dir + "/" + filename + ".dat").c_str());
+                ChStreamOutAsciiFile file_vibration(out_dir + "/" + filename + ".dat");
                 file_vibration.SetNumFormat("%.12g");
                 StreamOutDenseMatlabFormat(vibration, file_vibration);
             } else {

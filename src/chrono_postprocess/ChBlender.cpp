@@ -287,7 +287,7 @@ void ChBlender::ExportScript(const std::string& filename) {
 
     std::string assets_filename = out_script_filename + ".assets.py";
     {
-        ChStreamOutAsciiFile assets_file((base_path + assets_filename).c_str());
+        ChStreamOutAsciiFile assets_file(base_path + assets_filename);
         assets_file
             << "# File containing meshes and objects for rendering Blender scenes, shared through all frames.\n";
         assets_file << "# This file must be imported in Blender using File/Import/chrono import menu, \n";
@@ -1139,12 +1139,12 @@ void ChBlender::ExportData(const std::string& filename) {
 
     // Open the non-mutable single assets file in "append" mode:
     std::string assets_filename = out_script_filename + ".assets.py";
-    ChStreamOutAsciiFile assets_file((base_path + assets_filename).c_str(), std::ios::app);
+    ChStreamOutAsciiFile assets_file(base_path + assets_filename, std::ios::app);
 
     // Generate the nnnnn.dat and nnnnn.py files:
     try {
-        ChStreamOutAsciiFile data_file((base_path + filename + ".dat").c_str());
-        ChStreamOutAsciiFile state_file((base_path + filename + ".py").c_str());
+        ChStreamOutAsciiFile data_file(base_path + filename + ".dat");
+        ChStreamOutAsciiFile state_file(base_path + filename + ".py");
 
         // reset the maps of mutable (per-frame) assets, so that these will be saved at ExportAssets()
         m_blender_frame_shapes.clear();
@@ -1219,7 +1219,6 @@ void ChBlender::ExportData(const std::string& filename) {
         // #) saving contacts ?
         if (this->mSystem->GetNcontacts() &&
             (this->contacts_show == ContactSymbolType::VECTOR || this->contacts_show == ContactSymbolType::SPHERE)) {
-            // ChStreamOutAsciiFile data_contacts((base_path + filename + ".contacts").c_str());
 
             class _reporter_class : public ChContactContainer::ReportContactCallback {
               public:
@@ -1334,9 +1333,8 @@ void ChBlender::ExportData(const std::string& filename) {
         }
 
     } catch (const ChException&) {
-        char error[400];
-        sprintf(error, "Can't save data into file %s.py (or .dat)", filename.c_str());
-        throw(ChException(error));
+        std::string err = "Can't save data into file " + filename + ".py (or .dat)";
+        throw(ChException(err));
     }
 
     // Increment the number of the frame.

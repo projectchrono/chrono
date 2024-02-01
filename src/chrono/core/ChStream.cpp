@@ -21,6 +21,7 @@
 
 namespace chrono {
 
+// -----------------------------------------------------------------------------
 // ChStreamOutAscii
 
 ChStreamOutAscii& ChStreamOutAscii::operator<<(bool bVal) {
@@ -35,64 +36,43 @@ ChStreamOutAscii& ChStreamOutAscii::operator<<(char* str) {
     Output(str, strlen(str));
     return *this;
 }
-ChStreamOutAscii& ChStreamOutAscii::operator<<(std::string& str) {
-    Output(str.c_str(), strlen(str.c_str()));
+
+ChStreamOutAscii& ChStreamOutAscii::operator<<(const std::string& str) {
+    Output(str.c_str(), str.length());
     return *this;
 }
+
 ChStreamOutAscii& ChStreamOutAscii::operator<<(const char* str) {
     Output(str, strlen(str));
     return *this;
 }
 
 ChStreamOutAscii& ChStreamOutAscii::operator<<(int unVal) {
-    char buffer[100];
-
-    sprintf(buffer, "%d", unVal);
-
-    Output(buffer, strlen(buffer));
-
-    return *this;
+    auto str = std::to_string(unVal);
+    return operator<<(str);
 }
 
 ChStreamOutAscii& ChStreamOutAscii::operator<<(unsigned int unVal) {
-    char buffer[100];
-
-    sprintf(buffer, "%u", unVal);
-
-    Output(buffer, strlen(buffer));
-
-    return *this;
+    auto str = std::to_string(unVal);
+    return operator<<(str);
 }
+
 ChStreamOutAscii& ChStreamOutAscii::operator<<(unsigned long unVal) {
-    char buffer[100];
-
-    sprintf(buffer, "%lu", unVal);
-
-    Output(buffer, strlen(buffer));
-
-    return *this;
+    auto str = std::to_string(unVal);
+    return operator<<(str);
 }
+
 ChStreamOutAscii& ChStreamOutAscii::operator<<(unsigned long long unVal) {
-    char buffer[100];
-
-    sprintf(buffer, "%llu", unVal);
-
-    Output(buffer, strlen(buffer));
-
-    return *this;
+    auto str = std::to_string(unVal);
+    return operator<<(str);
 }
+
 /*
-ChStreamOutAscii& ChStreamOutAscii::operator <<(long lVal)
-{
-    char buffer[100];
-
-    sprintf(buffer, "%ld", lVal);
-
-    Output(buffer, strlen(buffer));
-
-    return *this;
+ChStreamOutAscii& ChStreamOutAscii::operator<<(long lVal) {
+    return operator<<(std::to_string(lVal));
 }
 */
+
 ChStreamOutAscii& ChStreamOutAscii::operator<<(char tch) {
     char szCh[2];
     szCh[0] = tch;
@@ -100,36 +80,25 @@ ChStreamOutAscii& ChStreamOutAscii::operator<<(char tch) {
     Output(szCh, 1);
     return *this;
 }
+
 /*
-ChStreamOutAscii& ChStreamOutAscii::operator <<(unsigned long ulVal)
-{
-    char buffer[100];
-
-    sprintf(buffer, "%lu", ulVal);
-
-    Output(buffer, strlen(buffer));
-
-    return *this;
+ChStreamOutAscii& ChStreamOutAscii::operator<<(unsigned long ulVal) {
+    return operator<<(std::to_string(ulVal));
 }
 */
+
 ChStreamOutAscii& ChStreamOutAscii::operator<<(double dVal) {
     char buffer[100];
 
-    sprintf(buffer, number_format, dVal);
+    snprintf(buffer, sizeof(buffer), number_format, dVal);
 
     Output(buffer, strlen(buffer));
 
     return *this;
 }
 
-ChStreamOutAscii& ChStreamOutAscii::operator<<(float dVal) {
-    char buffer[100];
-
-    sprintf(buffer, number_format, ((double)dVal));
-
-    Output(buffer, strlen(buffer));
-
-    return *this;
+ChStreamOutAscii& ChStreamOutAscii::operator<<(float fVal) {
+    return operator<<((double)fVal);
 }
 
 void ChStreamOutAscii::Format(char* formatString, ...) {
@@ -189,9 +158,7 @@ void ChStreamOutAscii::Format(char* formatString, ...) {
     }
 }
 
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-//
+// -----------------------------------------------------------------------------
 // ChStreamInAscii
 
 static void RemoveTrailingCommas(std::string mstring) {
@@ -230,6 +197,7 @@ ChStreamInAscii& ChStreamInAscii::operator>>(bool& bVal) {
         throw(ChException("String " + textboolean + " is not a valid 'true'/'false' value"));
     return *this;
 }
+
 /*
 ChStreamInAscii& ChStreamInAscii::operator >> (long	&lVal)
 {
@@ -239,6 +207,7 @@ ChStreamInAscii& ChStreamInAscii::operator >> (long	&lVal)
     lVal = atoi(buffer.c_str());
     return *this;
 }
+
 */
 ChStreamInAscii& ChStreamInAscii::operator>>(char& tch) {
     char loa[1];
@@ -254,6 +223,7 @@ ChStreamInAscii& ChStreamInAscii::operator>>(int& nVal) {
     nVal = atoi(buffer.c_str());
     return *this;
 }
+
 /*
 ChStreamInAscii& ChStreamInAscii::operator >>(unsigned	long	&ulVal)
 {
@@ -360,9 +330,7 @@ ChStreamInAscii& ChStreamInAscii::operator>>(std::string& str) {
     return *this;
 }
 
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-//
+// -----------------------------------------------------------------------------
 // ChBinaryArchive
 
 // Endian test
@@ -379,15 +347,14 @@ bool ChBinaryArchive::IsBigEndianMachine() {
     return false;
 }
 
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-//
+// -----------------------------------------------------------------------------
 // ChStreamOutBinary
 
 ChStreamOutBinary& ChStreamOutBinary::operator<<(char Val) {
     this->Output((char*)&Val, sizeof(char));
     return (*this);
 }
+
 ChStreamOutBinary& ChStreamOutBinary::operator<<(bool Val) {
     // convert booleans to char, for cross-platform compatibility.
     char tmp;
@@ -488,7 +455,7 @@ ChStreamOutBinary& ChStreamOutBinary::operator<<(char* str) {
     return *this;
 }
 
-ChStreamOutBinary& ChStreamOutBinary::operator<<(std::string& str) {
+ChStreamOutBinary& ChStreamOutBinary::operator<<(const std::string& str) {
     // save string length, including null termination
     int mlength = (int)strlen(str.c_str());
     *this << mlength;
@@ -501,9 +468,7 @@ void ChStreamOutBinary::VersionWrite(int mver) {
     *this << mver;
 }
 
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-//
+// -----------------------------------------------------------------------------
 // ChStreamInBinary
 
 ChStreamInBinary& ChStreamInBinary::operator>>(char& Val) {
@@ -639,24 +604,21 @@ int ChStreamInBinary::VersionRead() {
     return mres;
 }
 
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-//
+// -----------------------------------------------------------------------------
 // ChStreamFile
 
-ChStreamFile::ChStreamFile(const char* filename, std::ios::openmode mmode) {
+ChStreamFile::ChStreamFile(const std::string& filename, std::ios::openmode mode) : name(filename) {
     try {
         // file.exceptions(std::ios::failbit | std::ios::badbit);
         file.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
-        file.open(filename, mmode);
+        file.open(filename, mode);
     } catch (const std::exception&) {
-        std::string msg = "Cannot open stream " + std::string(filename); 
+        std::string msg = "Cannot open stream " + filename;
         throw ChException(msg);
     };
-    strncpy(name, filename, sizeof(name) - 1);
 }
 
-/// Destruction means that the file stream is also closed.
+// Destruction means that the file stream is also closed.
 ChStreamFile::~ChStreamFile() {
     file.flush();
     file.close();
@@ -682,14 +644,14 @@ void ChStreamFile::Read(char* data, size_t n) {
     };
 }
 
-//////////////////////////////////
+// -----------------------------------------------------------------------------
 
 ChStreamOstreamWrapper::ChStreamOstreamWrapper(std::ostream* mfile) {
     assert(mfile);
     afile = mfile;
 }
-ChStreamOstreamWrapper::~ChStreamOstreamWrapper() {
-}
+
+ChStreamOstreamWrapper::~ChStreamOstreamWrapper() {}
 
 void ChStreamOstreamWrapper::Write(const char* data, size_t n) {
     try {
@@ -699,14 +661,14 @@ void ChStreamOstreamWrapper::Write(const char* data, size_t n) {
     };
 }
 
-//////////////////////////////////
+// -----------------------------------------------------------------------------
 
 ChStreamIstreamWrapper::ChStreamIstreamWrapper(std::istream* mfile) {
     assert(mfile);
     afile = mfile;
 }
-ChStreamIstreamWrapper::~ChStreamIstreamWrapper() {
-}
+
+ChStreamIstreamWrapper::~ChStreamIstreamWrapper() {}
 
 void ChStreamIstreamWrapper::Read(char* data, size_t n) {
     try {
@@ -716,19 +678,20 @@ void ChStreamIstreamWrapper::Read(char* data, size_t n) {
     };
 }
 
-//////////////////////////////////
+// -----------------------------------------------------------------------------
 
 ChStreamVectorWrapper::ChStreamVectorWrapper(std::vector<char>* mchars) {
     assert(mchars);
     vbuffer = mchars;
     pos = 0;
 }
-ChStreamVectorWrapper::~ChStreamVectorWrapper() {
-}
+
+ChStreamVectorWrapper::~ChStreamVectorWrapper() {}
 
 void ChStreamVectorWrapper::Write(const char* data, size_t n) {
     std::copy(data, data + n, std::back_inserter(*vbuffer));
 }
+
 void ChStreamVectorWrapper::Read(char* data, size_t n) {
     if (pos + n > vbuffer->size())
         n = vbuffer->size() - pos;
@@ -738,77 +701,58 @@ void ChStreamVectorWrapper::Read(char* data, size_t n) {
         pos++;
     }
 }
+
 bool ChStreamVectorWrapper::End_of_stream() const {
     if (pos >= vbuffer->size())
         return true;
     return false;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-
+// -----------------------------------------------------------------------------
 // These constructors / destructors, though concise, cannot stay in .h because
 // the GNU GCC linker gives strange problems...
 
-ChStreamOut::ChStreamOut() {
-}
-ChStreamOut::~ChStreamOut() {
-}
+ChStreamOut::ChStreamOut() {}
+ChStreamOut::~ChStreamOut() {}
 
-ChStreamIn::ChStreamIn() {
-}
-ChStreamIn::~ChStreamIn() {
-}
+ChStreamIn::ChStreamIn() {}
+ChStreamIn::~ChStreamIn() {}
 
 ChStreamOutAscii::ChStreamOutAscii() {
     strcpy(number_format, "%g");
     strcpy(comment_trailer, "#");
 }
-ChStreamOutAscii::~ChStreamOutAscii() {
-}
+ChStreamOutAscii::~ChStreamOutAscii() {}
 
 ChStreamInAscii::ChStreamInAscii() {
     strcpy(number_format, "%g");
 }
-ChStreamInAscii::~ChStreamInAscii() {
-}
+ChStreamInAscii::~ChStreamInAscii() {}
 
-ChStreamOutBinary::ChStreamOutBinary() {
-}
-ChStreamOutBinary::~ChStreamOutBinary() {
-}
+ChStreamOutBinary::ChStreamOutBinary() {}
+ChStreamOutBinary::~ChStreamOutBinary() {}
 
 ChBinaryArchive::ChBinaryArchive() {
     Init();
 }
-ChBinaryArchive::~ChBinaryArchive() {
-}
+ChBinaryArchive::~ChBinaryArchive() {}
 
-ChStreamInBinary::ChStreamInBinary() {
-}
-ChStreamInBinary::~ChStreamInBinary() {
-}
+ChStreamInBinary::ChStreamInBinary() {}
+ChStreamInBinary::~ChStreamInBinary() {}
 
-ChStreamOutBinaryFile::ChStreamOutBinaryFile(const char* filename, std::ios::openmode mmode)
-    : ChStreamFile(filename, mmode | std::ios::out | std::ios::binary) {
-}
-ChStreamOutBinaryFile::~ChStreamOutBinaryFile() {
-}
+ChStreamOutBinaryFile::ChStreamOutBinaryFile(const std::string& filename, std::ios::openmode mode)
+    : ChStreamFile(filename, mode | std::ios::out | std::ios::binary) {}
+ChStreamOutBinaryFile::~ChStreamOutBinaryFile() {}
 
-ChStreamOutAsciiFile::ChStreamOutAsciiFile(const char* filename, std::ios::openmode mmode)
-    : ChStreamFile(filename, mmode | std::ios::out) {
-}
-ChStreamOutAsciiFile::~ChStreamOutAsciiFile() {
-}
+ChStreamOutAsciiFile::ChStreamOutAsciiFile(const std::string& filename, std::ios::openmode mode)
+    : ChStreamFile(filename, mode | std::ios::out) {}
+ChStreamOutAsciiFile::~ChStreamOutAsciiFile() {}
 
-ChStreamInBinaryFile::ChStreamInBinaryFile(const char* filename)
-    : ChStreamFile(filename, std::ios::in | std::ios::binary) {
-}
-ChStreamInBinaryFile::~ChStreamInBinaryFile() {
-}
+ChStreamInBinaryFile::ChStreamInBinaryFile(const std::string& filename)
+    : ChStreamFile(filename, std::ios::in | std::ios::binary) {}
+ChStreamInBinaryFile::~ChStreamInBinaryFile() {}
 
-ChStreamInAsciiFile::ChStreamInAsciiFile(const char* filename) : ChStreamFile(filename, std::ios::in) {
-}
-ChStreamInAsciiFile::~ChStreamInAsciiFile() {
-}
+ChStreamInAsciiFile::ChStreamInAsciiFile(const std::string& filename) : ChStreamFile(filename, std::ios::in) {}
+ChStreamInAsciiFile::~ChStreamInAsciiFile() {}
 
 }  // end namespace chrono

@@ -5,6 +5,7 @@
 #include "chrono/motion_functions/ChFunction_ConstAcc.h"
 #include "chrono/motion_functions/ChFunction_Cycloidal.h"
 #include "chrono/motion_functions/ChFunction_Derive.h"
+#include "chrono/motion_functions/ChFunction_DoubleS.h"
 #include "chrono/motion_functions/ChFunction_Fillet3.h"
 #include "chrono/motion_functions/ChFunction_Integrate.h"
 #include "chrono/motion_functions/ChFunction_Mirror.h"
@@ -99,6 +100,7 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %shared_ptr(chrono::ChFunction_ConstAcc)
 %shared_ptr(chrono::ChFunction_Cycloidal)
 %shared_ptr(chrono::ChFunction_Derive)
+%shared_ptr(chrono::ChFunction_DoubleS)
 %shared_ptr(chrono::ChFunction_Fillet3)
 %shared_ptr(chrono::ChFunction_Integrate)
 %shared_ptr(chrono::ChFunction_Mirror)
@@ -149,6 +151,7 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %include "../../../chrono/motion_functions/ChFunction_ConstAcc.h"
 %include "../../../chrono/motion_functions/ChFunction_Cycloidal.h"
 %include "../../../chrono/motion_functions/ChFunction_Derive.h"
+%include "../../../chrono/motion_functions/ChFunction_DoubleS.h"
 %include "../../../chrono/motion_functions/ChFunction_Fillet3.h"
 %include "../../../chrono/motion_functions/ChFunction_Integrate.h"
 %include "../../../chrono/motion_functions/ChFunction_Mirror.h"
@@ -190,6 +193,7 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_ConstAcc)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Cycloidal)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Derive)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_DoubleS)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Fillet3)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Integrate)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Mirror)

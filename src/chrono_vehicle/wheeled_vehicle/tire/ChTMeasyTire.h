@@ -60,8 +60,6 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
   public:
-    enum class FrictionModel { TANH_COULOMB, DAHL };
-
     ChTMeasyTire(const std::string& name);
 
     virtual ~ChTMeasyTire() {}
@@ -280,8 +278,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
     };
 
     TireStates m_states;
-
-    FrictionModel m_frictionModel{FrictionModel::DAHL};
 };
 
 }  // end namespace vehicle

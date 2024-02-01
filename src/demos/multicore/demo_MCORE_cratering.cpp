@@ -478,7 +478,7 @@ int main(int argc, char* argv[]) {
     int next_out_frame = 0;
     double exec_time = 0;
     int num_contacts = 0;
-    ChStreamOutAsciiFile hfile(height_file.c_str());
+    ChStreamOutAsciiFile hfile(height_file);
 
 #ifdef CHRONO_OPENGL
     opengl::ChVisualSystemOpenGL vis;

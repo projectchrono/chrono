@@ -36,11 +36,16 @@ Some more peculiar class has been excluded from this list: please look at @ref c
 
 The @ref chrono::ChForce "ChForce" can be applied directly to a @ref chrono::ChBody "ChBody" by calling:
 ~~~{.cpp}
-   auto force = chrono_types::make_shared<ChForce>();
-   body->AddForce(force)
+  auto force = chrono_types::make_shared<ChForce>();
+  body->AddForce(force)
+
+  // AFTER calling AddForce
+  force->SetMforce(10);
 ~~~
 
-Please mind that calling `force->SetBody()` it is not sufficient since the _ChForce_ wouldn't be considered by the _ChSystem_ in this case.
+Please mind that:
+- use `body->AddForce(force)` and not `force->SetBody(body)`: the latter it is not sufficient since the _ChForce_ wouldn't be considered by the _ChSystem_;
+- always call `ChForce` methods **after** having called `body->AddForce(force)`
 
 The application point, direction, position and modulus can be set either through constant values or through [ChFunctions](@ref ChFunction_objects). The reference system can be either relative to the body or absolute, but cannot be set to a generic frame.
 
@@ -52,11 +57,11 @@ These sets of loads allows for the maximum freedom and coupling with the Chrono 
 Contrary to @ref chrono::ChForce "ChForce", these other _ChLoad_s requires the introduction of a @ref chrono::ChLoadContainer "ChLoadContainer" in order to be added to the system. For example:
 
 ~~~{.cpp}
-    auto load_container = chrono_types::make_shared<ChLoadContainer>();
-   sys.Add(load_container);
+  auto load_container = chrono_types::make_shared<ChLoadContainer>();
+  sys.Add(load_container);
 
-   auto load_bb = chrono_types::make_shared<ChLoadBodyBodyTorque>(bodyA, bodyB, ChVector<>(0,10.0,0), false);
-   load_container->Add(load_bb);
+  auto load_bb = chrono_types::make_shared<ChLoadBodyBodyTorque>(bodyA, bodyB, ChVector<>(0,10.0,0), false);
+  load_container->Add(load_bb);
 ~~~
 
 For the case of the @ref chrono::ChLoad<Tloader> "ChLoad<Tloader>", the user is asked to either provide one of the pre-defined @ref chrono::ChLoader "ChLoader" objects or to write its own. Please refer to the documentation of each single _ChLoader_ to understand their use. This method considers the load applied to a single object.

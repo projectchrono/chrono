@@ -67,7 +67,7 @@ void example1(const std::string& out_dir) {
 
     // File to dump results
     std::string logfile = out_dir + "/log_timestepper_1.dat";
-    ChStreamOutAsciiFile log_file1(logfile.c_str());
+    ChStreamOutAsciiFile log_file1(out_dir + "/log_timestepper_1.dat");
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable;
@@ -163,7 +163,7 @@ void example2(const std::string& out_dir) {
 
     // File to dump results
     std::string logfile = out_dir + "/log_timestepper_2.dat";
-    ChStreamOutAsciiFile log_file2(logfile.c_str());
+    ChStreamOutAsciiFile log_file2(out_dir + "/log_timestepper_2.dat");
 
     // Try integrator Euler explicit
 
@@ -273,7 +273,8 @@ void example3(const std::string& out_dir) {
 
     // Create a file to dump results
     std::string logfile = out_dir + "/log_timestepper_3.dat";
-    ChStreamOutAsciiFile log_file3(logfile.c_str());
+    std::string logfilename = out_dir + "/log_timestepper_3.dat";
+    ChStreamOutAsciiFile log_file3(logfilename);
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable1;
@@ -305,9 +306,9 @@ void example3(const std::string& out_dir) {
     mplot.SetTitle("Integrate 2nd order oscillator with 2nd order timestepper");
     mplot.SetLabelX("t");
     mplot.SetLabelY("x");
-    mplot.Plot(logfile.c_str(), 1, 2, "RungeKutta", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 4, "Euler exp. IIorder", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 6, "Euler semi-implicit", " with lines");
+    mplot.Plot(logfilename, 1, 2, "RungeKutta", " with lines");
+    mplot.Plot(logfilename, 1, 4, "Euler exp. IIorder", " with lines");
+    mplot.Plot(logfilename, 1, 6, "Euler semi-implicit", " with lines");
 }
 
 void example4(const std::string& out_dir) {
@@ -446,8 +447,8 @@ void example4(const std::string& out_dir) {
     };
 
     // Create a file to dump results
-    std::string logfile = out_dir + "/log_timestepper_4.dat";
-    ChStreamOutAsciiFile log_file4(logfile.c_str());
+    std::string logfilename = out_dir + "/log_timestepper_4.dat";
+    ChStreamOutAsciiFile log_file4(logfilename);
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable1;
@@ -503,14 +504,14 @@ void example4(const std::string& out_dir) {
     mplot.SetTitle("Test: oscillator with implicit integrators");
     mplot.SetLabelX("t");
     mplot.SetLabelY("x");
-    mplot.Plot(logfile.c_str(), 1, 2, "Euler implicit", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 4, "Trapezoidal", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 6, "Euler expl.IIorder", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 8, "HHT alpha=0", " with lines dt 2");
-    mplot.Plot(logfile.c_str(), 1, 10, "HHT alpha=-0.33", " with lines dt 2");
-    mplot.Plot(logfile.c_str(), 1, 12, "Newmark g=0.5, b=1/4", " with lines dt 4");
-    mplot.Plot(logfile.c_str(), 1, 14, "Newmark g=0.5, b=1/6", " with lines dt 4");
-    mplot.Plot(logfile.c_str(), 1, 16, "Newmark g=1.0, b=1/4", " with lines dt 4");
+    mplot.Plot(logfilename, 1, 2, "Euler implicit", " with lines");
+    mplot.Plot(logfilename, 1, 4, "Trapezoidal", " with lines");
+    mplot.Plot(logfilename, 1, 6, "Euler expl.IIorder", " with lines");
+    mplot.Plot(logfilename, 1, 8, "HHT alpha=0", " with lines dt 2");
+    mplot.Plot(logfilename, 1, 10, "HHT alpha=-0.33", " with lines dt 2");
+    mplot.Plot(logfilename, 1, 12, "Newmark g=0.5, b=1/4", " with lines dt 4");
+    mplot.Plot(logfilename, 1, 14, "Newmark g=0.5, b=1/6", " with lines dt 4");
+    mplot.Plot(logfilename, 1, 16, "Newmark g=1.0, b=1/4", " with lines dt 4");
 }
 
 void example5(const std::string& out_dir) {
@@ -689,15 +690,15 @@ void example5(const std::string& out_dir) {
                                        ) override {}
     };
 
-    // Create files to dump results
-    std::string logfile5 = out_dir + "/log_timestepper_5.dat";
-    ChStreamOutAsciiFile log_file5(logfile5.c_str());
-    std::string logfile5r = out_dir + "/log_timestepper_5r.dat";
-    ChStreamOutAsciiFile log_file5r(logfile5r.c_str());
-    std::string logfile5e = out_dir + "/log_timestepper_5e.dat";
-    ChStreamOutAsciiFile log_file5e(logfile5e.c_str());
-    std::string logfile5er = out_dir + "/log_timestepper_5er.dat";
-    ChStreamOutAsciiFile log_file5er(logfile5er.c_str());
+    // Create a file to dump results
+    std::string logfilename5 = out_dir + "/log_timestepper_5.dat";
+    std::string logfilename5r = out_dir + "/log_timestepper_5r.dat";
+    std::string logfilename5e = out_dir + "/log_timestepper_5e.dat";
+    std::string logfilename5er = out_dir + "/log_timestepper_5er.dat";
+    ChStreamOutAsciiFile log_file5(logfilename5);
+    ChStreamOutAsciiFile log_file5r(logfilename5r);
+    ChStreamOutAsciiFile log_file5e(logfilename5e);
+    ChStreamOutAsciiFile log_file5er(logfilename5er);
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable1;
@@ -806,28 +807,28 @@ void example5(const std::string& out_dir) {
     mplot.SetTitle("Test: DAE, constrained pendulum");
     mplot.SetLabelX("t");
     mplot.SetLabelY("x");
-    mplot.Plot(logfile5.c_str(), 1, 2, "Euler impl. lineariz.", " with lines");
-    mplot.Plot(logfile5.c_str(), 1, 6, "Euler impl.", " with lines");
-    mplot.Plot(logfile5.c_str(), 1, 10, "Trapezoidal*", " with lines");
-    mplot.Plot(logfile5.c_str(), 1, 14, "HHT alpha=0", " with lines dt 2");
-    mplot.Plot(logfile5.c_str(), 1, 18, "HHT alpha=-0.3", " with lines dt 2");
-    mplot.Plot(logfile5.c_str(), 1, 22, "Newmark g=0.5,b=0.25", " with lines dt 4");
-    mplot.Plot(logfile5.c_str(), 1, 26, "HHT alpha=-0.3 in ChSystem", " with lines dt 6");
-    mplot.Plot(logfile5e.c_str(), 1, 2, "Euler explicit, penalty", " with lines");
+    mplot.Plot(logfilename5, 1, 2, "Euler impl. lineariz.", " with lines");
+    mplot.Plot(logfilename5, 1, 6, "Euler impl.", " with lines");
+    mplot.Plot(logfilename5, 1, 10, "Trapezoidal*", " with lines");
+    mplot.Plot(logfilename5, 1, 14, "HHT alpha=0", " with lines dt 2");
+    mplot.Plot(logfilename5, 1, 18, "HHT alpha=-0.3", " with lines dt 2");
+    mplot.Plot(logfilename5, 1, 22, "Newmark g=0.5,b=0.25", " with lines dt 4");
+    mplot.Plot(logfilename5, 1, 26, "HHT alpha=-0.3 in ChSystem", " with lines dt 6");
+	mplot.Plot(logfilename5e, 1, 2, "Euler explicit, penalty", " with lines");
 
     mplot.OutputWindow(1);
     mplot.SetGrid();
     mplot.SetTitle("Test: DAE, constrained pendulum reactions");
     mplot.SetLabelX("t [s]");
     mplot.SetLabelY("R [N]");
-    mplot.Plot(logfile5r.c_str(), 1, 2, "Euler impl. lineariz.", " with lines");
-    mplot.Plot(logfile5r.c_str(), 1, 3, "Euler impl.", " with lines");
-    mplot.Plot(logfile5r.c_str(), 1, 4, "Trapezoidal*", " with lines");
-    mplot.Plot(logfile5r.c_str(), 1, 5, "HHT alpha=0", " with lines dt 2");
-    mplot.Plot(logfile5r.c_str(), 1, 6, "HHT alpha=-0.3", " with lines dt 2");
-    mplot.Plot(logfile5r.c_str(), 1, 7, "Newmark g=0.5,b=0.25", " with lines dt 4");
-    mplot.Plot(logfile5r.c_str(), 1, 8, "HHT alpha=-0.3 in ChSystem", " with lines dt 6");
-    mplot.Plot(logfile5er.c_str(), 1, 2, "Euler explicit, penalty", " with lines dt 3 lc rgb \"pink\"");
+    mplot.Plot(logfilename5r, 1, 2, "Euler impl. lineariz.", " with lines");
+    mplot.Plot(logfilename5r, 1, 3, "Euler impl.", " with lines");
+    mplot.Plot(logfilename5r, 1, 4, "Trapezoidal*", " with lines");
+    mplot.Plot(logfilename5r, 1, 5, "HHT alpha=0", " with lines dt 2");
+    mplot.Plot(logfilename5r, 1, 6, "HHT alpha=-0.3", " with lines dt 2");
+    mplot.Plot(logfilename5r, 1, 7, "Newmark g=0.5,b=0.25", " with lines dt 4");
+    mplot.Plot(logfilename5r, 1, 8, "HHT alpha=-0.3 in ChSystem", " with lines dt 6");
+	mplot.Plot(logfilename5er, 1, 2, "Euler explicit, penalty", " with lines dt 3 lc rgb \"pink\"");
 
     mplot.OutputWindow(2);
     mplot.SetGrid();
@@ -837,12 +838,12 @@ void example5(const std::string& out_dir) {
     //mplot.SetRangeX(-0.15, 0.15);
     //mplot.SetRangeY(-1.025, -0.95);
     mplot.SetCommand("set size ratio 0.5");
-    mplot.Plot(logfile5.c_str(), 2, 3, "Euler impl. lineariz.", " pt 0");
-    mplot.Plot(logfile5.c_str(), 6, 7, "Euler impl.", " pt 1");
-    mplot.Plot(logfile5.c_str(), 10, 11, "Trapezoidal*", " pt 2");
-    mplot.Plot(logfile5.c_str(), 14, 15, "HHT alpha=0", " pt 3");
-    mplot.Plot(logfile5.c_str(), 18, 19, "HHT alpha=-0.2", " pt 4");
-    mplot.Plot(logfile5e.c_str(), 2, 3, "Euler explicit, penalty", " with lines");
+    mplot.Plot(logfilename5, 2, 3, "Euler impl. lineariz.", " pt 0");
+    mplot.Plot(logfilename5, 6, 7, "Euler impl.", " pt 1");
+    mplot.Plot(logfilename5, 10, 11, "Trapezoidal*", " pt 2");
+    mplot.Plot(logfilename5, 14, 15, "HHT alpha=0", " pt 3");
+    mplot.Plot(logfilename5, 18, 19, "HHT alpha=-0.2", " pt 4");
+	mplot.Plot(logfilename5e, 2, 3, "Euler explicit, penalty", " with lines");
 }
 
 int main(int argc, char* argv[]) {

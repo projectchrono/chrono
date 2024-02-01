@@ -385,9 +385,10 @@ int main(int argc, char* argv[]) {
 #endif
 
         if (povray_output && step_number % render_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-            utils::WriteVisualizationAssets(lmtv.GetSystem(), filename);
+            // Zero-pad frame numbers in file names for postprocessing
+            std::ostringstream filename;
+            filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+            utils::WriteVisualizationAssets(lmtv.GetSystem(), filename.str());
             render_frame++;
         }
 

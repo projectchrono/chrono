@@ -105,8 +105,10 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis, const ChVec
         this_shoe->Connect(next_shoe, this, chassis.get(), ccw);
         auto fload = chrono_types::make_shared<ChLoadBodyForce>(this_shoe->GetShoeBody(), VNULL, false, VNULL, false);
         auto tload = chrono_types::make_shared<ChLoadBodyTorque>(this_shoe->GetShoeBody(), VNULL, false);
-        m_spindle_terrain_forces.push_back(fload);
-        m_spindle_terrain_torques.push_back(tload);
+        fload->SetNameString(this_shoe->m_name + "_terrain_force");
+        tload->SetNameString(this_shoe->m_name + "_terrain_torque");
+        m_shoe_terrain_forces.push_back(fload);
+        m_shoe_terrain_torques.push_back(tload);
         chassis->AddTerrainLoad(fload);
         chassis->AddTerrainLoad(tload);
     }
@@ -235,9 +237,9 @@ void ChTrackAssembly::Synchronize(double time, double braking, const TerrainForc
 
     // Apply track shoe forces
     for (size_t i = 0; i < GetNumTrackShoes(); ++i) {
-        m_spindle_terrain_forces[i]->SetForce(shoe_forces[i].force, false);
-        m_spindle_terrain_forces[i]->SetApplicationPoint(shoe_forces[i].point, false);
-        m_spindle_terrain_torques[i]->SetTorque(shoe_forces[i].moment, false);
+        m_shoe_terrain_forces[i]->SetForce(shoe_forces[i].force, false);
+        m_shoe_terrain_forces[i]->SetApplicationPoint(shoe_forces[i].point, false);
+        m_shoe_terrain_torques[i]->SetTorque(shoe_forces[i].moment, false);
     }
 }
 

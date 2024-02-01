@@ -45,6 +45,7 @@ using namespace chrono::vsg3d;
 #endif
 
 #ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
     #include "chrono_postprocess/ChBlender.h"
 using namespace chrono::postprocess;
 #endif
@@ -128,9 +129,11 @@ const std::string out_dir = GetChronoOutputPath() + "HMMWV";
 const std::string pov_dir = out_dir + "/POVRAY";
 const std::string blender_dir = out_dir + "/BLENDER";
 
-// Debug logging
+// Record vehicle output
+bool vehicle_output = false;
+
+// Record debug test data
 bool debug_output = false;
-double debug_step_size = 1.0 / 1;  // FPS = 1
 
 // Post-processing output
 bool povray_output = false;
@@ -170,6 +173,8 @@ int main(int argc, char* argv[]) {
     hmmwv.SetSteeringVisualizationType(steering_vis_type);
     hmmwv.SetWheelVisualizationType(wheel_vis_type);
     hmmwv.SetTireVisualizationType(tire_vis_type);
+
+    auto& vehicle = hmmwv.GetVehicle();
 
     // Create the terrain
     RigidTerrain terrain(hmmwv.GetSystem());
@@ -239,14 +244,19 @@ int main(int argc, char* argv[]) {
     std::string driver_file = out_dir + "/driver_inputs.txt";
     utils::CSV_writer driver_csv(" ");
 
-    // Set up vehicle output
-    hmmwv.GetVehicle().SetChassisOutput(true);
-    hmmwv.GetVehicle().SetSuspensionOutput(0, true);
-    hmmwv.GetVehicle().SetSteeringOutput(0, true);
-    hmmwv.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    // Initialize output file for debug output
+    utils::CSV_writer vehicle_csv(" ");
+
+    // Enable vehicle output (ASCII file)
+    if (vehicle_output) {
+        vehicle.SetChassisOutput(true);
+        vehicle.SetSuspensionOutput(0, true);
+        vehicle.SetSteeringOutput(0, true);
+        vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "vehicle_output", 0.1);
+    }
 
     // Generate JSON information with available output channels
-    hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
+    vehicle.ExportComponentList(out_dir + "/component_list.json");
 
     // ------------------------------------------------------------------------------
     // Create the vehicle run-time visualization interface and the interactive driver
@@ -279,7 +289,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&hmmwv.GetVehicle());
+            vis_irr->AttachVehicle(&vehicle);
 
             // Create the interactive Irrlicht driver system
             auto driver_irr = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
@@ -303,7 +313,7 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("HMMWV Demo");
-            vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
+            vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->SetChaseCamera(trackPoint, 8.0, 0.5);
             vis_vsg->SetWindowSize(ChVector2<int>(1200, 900));
             vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
@@ -345,20 +355,23 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
+    chrono::utils::ChButterworth_Lowpass transTq(6, step_size, 10);
+    chrono::utils::ChButterworth_Lowpass tireTq(6, step_size, 10);
+
     // ---------------
     // Simulation loop
     // ---------------
 
-    hmmwv.GetVehicle().LogSubsystemTypes();
+    std::cout << "\n============ Vehicle subsystems ============" << std::endl;
+    vehicle.LogSubsystemTypes();
 
     if (debug_output) {
-        GetLog() << "\n\n============ System Configuration ============\n";
+        std::cout << "\n============ System Configuration ============" << std::endl;
         hmmwv.LogHardpointLocations();
     }
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
-    int debug_steps = (int)std::ceil(debug_step_size / step_size);
 
     // Initialize simulation frame counters
     int step_number = 0;
@@ -369,7 +382,7 @@ int main(int argc, char* argv[]) {
     ////    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     ////}
 
-    hmmwv.GetVehicle().EnableRealtime(true);
+    vehicle.EnableRealtime(true);
 
     while (vis->Run()) {
         double time = hmmwv.GetSystem()->GetChTime();
@@ -385,9 +398,10 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
 
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(hmmwv.GetSystem(), filename);
+                // Zero-pad frame numbers in file names for postprocessing
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(hmmwv.GetSystem(), filename.str());
             }
 
 #ifdef CHRONO_POSTPROCESS
@@ -399,21 +413,6 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        // Debug logging
-        if (debug_output && step_number % debug_steps == 0) {
-            GetLog() << "\n\n============ System Information ============\n";
-            GetLog() << "Time = " << time << "\n\n";
-            hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
-
-            auto marker_driver = hmmwv.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
-            auto marker_com = hmmwv.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
-            GetLog() << "Markers\n";
-            std::cout << "  Driver loc:      " << marker_driver.x() << " " << marker_driver.y() << " "
-                      << marker_driver.z() << std::endl;
-            std::cout << "  Chassis COM loc: " << marker_com.x() << " " << marker_com.y() << " " << marker_com.z()
-                      << std::endl;
-        }
-
         // Driver inputs
         DriverInputs driver_inputs = driver->GetInputs();
 
@@ -421,6 +420,28 @@ int main(int argc, char* argv[]) {
         if (driver_mode == DriverMode::RECORD) {
             driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking
                        << std::endl;
+        }
+
+        // Record debug test data
+        if (debug_output) {
+            double speed = vehicle.GetSpeed();
+            int gear = vehicle.GetPowertrainAssembly()->GetTransmission()->GetCurrentGear();
+            double engineTorque = vehicle.GetPowertrainAssembly()->GetEngine()->GetOutputMotorshaftTorque();
+            double trans_torque = vehicle.GetPowertrainAssembly()->GetTransmission()->GetOutputDriveshaftTorque();
+            double tire_torque = vehicle.GetWheel(0, LEFT)->GetTire()->ReportTireForce(&terrain).moment.y();
+            tire_torque += vehicle.GetWheel(0, RIGHT)->GetTire()->ReportTireForce(&terrain).moment.y();
+            tire_torque += vehicle.GetWheel(1, LEFT)->GetTire()->ReportTireForce(&terrain).moment.y();
+            tire_torque += vehicle.GetWheel(1, RIGHT)->GetTire()->ReportTireForce(&terrain).moment.y();
+
+            vehicle_csv << time;                          // Ch 1: time
+            vehicle_csv << speed;                         // Ch 2: speed
+            vehicle_csv << driver_inputs.m_throttle;      // Ch 3: throttle
+            vehicle_csv << driver_inputs.m_braking;       // Ch 4: brake
+            vehicle_csv << gear;                          // Ch 5: gear
+            vehicle_csv << engineTorque;                  // Ch 6: engine output torque
+            vehicle_csv << transTq.Filter(trans_torque);  // Ch 7: transmission output torque
+            vehicle_csv << tireTq.Filter(tire_torque);    // Ch 8: total tire torque
+            vehicle_csv << std::endl;
         }
 
         // Update modules (process inputs from other modules)
@@ -441,6 +462,65 @@ int main(int argc, char* argv[]) {
 
     if (driver_mode == DriverMode::RECORD) {
         driver_csv.write_to_file(driver_file);
+    }
+
+    if (debug_output) {
+        std::string filename = out_dir + "/debug_data_" + vehicle.GetTire(0, VehicleSide::LEFT)->GetTemplateName();
+        std::string data_file = filename + ".txt";
+        vehicle_csv.write_to_file(data_file);
+
+        std::cout << "\n============ Debug output ============" << std::endl;
+        std::cout << std::endl;
+        std::cout << "  Output data file:     " << data_file << std::endl;
+
+#ifdef CHRONO_POSTPROCESS
+        std::string gpl_file = filename + ".gpl";
+        std::string pdf_file = filename + ".pdf";
+
+        ChGnuPlot gplot(gpl_file);
+
+        gplot.OutputPDF(pdf_file);
+        gplot.SetTitle("HMMWV Test " + vehicle.GetTire(0, VehicleSide::LEFT)->GetTemplateName());
+
+        gplot.SetGrid(false, 0.2, ChColor(0.7f, 0.7f, 0.7f));
+        gplot.SetLegend("bottom center box opaque fillcolor '0xcfbbbbbb'");
+
+        gplot.SetLabelX("time (s)");
+        gplot.SetLabelY("Speed (m/s)");
+        gplot.SetLabelY2("throttle/brake");
+        gplot.SetRangeY(0, 25);
+        gplot.SetRangeY2(0, 1);
+        gplot.SetCommand("set xtics 5 nomirror");
+        gplot.SetCommand("set y2tics 0.25 nomirror");
+        gplot.Plot(data_file, 1, 2, "Speed", "with lines");
+        gplot.Plot(data_file, 1, 3, "Throttle", "axes x1y2 with lines");
+        gplot.Plot(data_file, 1, 4, "Brake", "axes x1y2 with lines");
+
+        gplot.FlushPlots();
+
+        gplot.SetLabelY2("gear");
+        gplot.SetRangeY2(0, 4);
+        gplot.SetCommand("set y2tics 1 nomirror");
+        gplot.Plot(data_file, 1, 2, "Speed", "with lines");
+        gplot.Plot(data_file, 1, 5, "Gear", "axes x1y2 with lines");
+
+        gplot.FlushPlots();
+
+        gplot.SetLabelY("Engine Output Torque (Nm)");
+        gplot.SetLabelY2("throttle");
+        gplot.SetCommand("unset yrange");
+        gplot.SetRangeY2(0, 1);
+        gplot.SetCommand("set y2tics 0.25 nomirror");
+        gplot.Plot(data_file, 1, 6, "Engine Output Torque", "with lines");
+        gplot.Plot(data_file, 1, 7, "Transmission Output Torque", "with lines");
+        gplot.Plot(data_file, 1, 8, "Total Tire Torque", "with lines");
+        gplot.Plot(data_file, 1, 3, "Throttle", "axes x1y2 with lines");
+
+        gplot.FlushPlots();
+
+        std::cout << "  GnuPlot command file: " << gpl_file << std::endl;
+        std::cout << "  PDF output file:      " << pdf_file << std::endl;
+#endif
     }
 
     return 0;

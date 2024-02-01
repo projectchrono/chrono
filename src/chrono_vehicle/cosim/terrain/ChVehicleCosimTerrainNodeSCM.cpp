@@ -280,13 +280,12 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
     auto proxy = chrono_types::make_shared<ProxyMesh>();
 
     // Note: it is assumed that there is one and only one mesh defined!
-    auto trimesh_shape = m_geometry[i_shape].m_coll_meshes[0];
-    auto trimesh = trimesh_shape.m_trimesh;
-    auto nt = trimesh->getNumTriangles();
+    const auto& trimesh_shape = m_geometry[i_shape].m_coll_meshes[0];
+    const auto& trimesh = trimesh_shape.m_trimesh;
     auto material = m_geometry[i_shape].m_materials[trimesh_shape.m_matID].CreateMaterial(m_method);
 
     //// RADU TODO:  better approximation of mass / inertia?
-    double mass_p = m_load_mass[i_shape] / nt;
+    ////double mass_p = m_load_mass[i_shape] / trimesh->getNumTriangles();
 
     // Create a contact surface mesh constructed from the provided trimesh
     auto surface = chrono_types::make_shared<fea::ChContactSurfaceMesh>(material);
@@ -436,7 +435,7 @@ void ChVehicleCosimTerrainNodeSCM::GetForceMeshProxy(unsigned int i, MeshContact
 
     ChVector<> force;
     mesh_contact.nv = 0;
-    for (auto node : proxy->ptr2ind_map) {
+    for (const auto& node : proxy->ptr2ind_map) {
         bool in_contact = m_terrain->GetContactForceNode(node.first, force);
         if (in_contact) {
             mesh_contact.vidx.push_back(node.second);

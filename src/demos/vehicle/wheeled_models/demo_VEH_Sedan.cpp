@@ -143,8 +143,8 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     128, 128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+                                     128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
 
     sedan.GetVehicle().EnableRealtime(true);
     utils::ChRunningAverage RTF_filter(50);
- 
+
     while (vis->Run()) {
         double time = sedan.GetSystem()->GetChTime();
 
@@ -251,9 +251,10 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
 
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(sedan.GetSystem(), filename);
+                // Zero-pad frame numbers in file names for postprocessing
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(sedan.GetSystem(), filename.str());
             }
 
             render_frame++;

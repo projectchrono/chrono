@@ -79,6 +79,22 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Return the speed measured at the chassis center of mass.
     double GetCOMSpeed() const;
 
+    /// Get the roll rate of the chassis.
+    /// The yaw rate is referenced to the chassis frame.
+    double GetRollRate() const;
+
+    /// Get the pitch rate of the chassis.
+    /// The yaw rate is referenced to the chassis frame.
+    double GetPitchRate() const;
+
+    /// Get the yaw rate of the chassis.
+    /// The yaw rate is referenced to the chassis frame.
+    double GetYawRate() const;
+
+    /// Get the turn rate of the chassis.
+    /// Unlike the yaw rate (referenced to the chassis frame), the turn rate is referenced to the global frame.
+    double GetTurnRate() const;
+
     /// Get the global position of the specified point.
     /// The point is assumed to be given relative to the chassis reference frame.
     /// The returned location is expressed in the global reference frame.
@@ -144,6 +160,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Base class for a user-defined custom force/torque acting on the chassis body.
     class ExternalForceTorque {
       public:
+        ExternalForceTorque(const std::string& name = "") { m_name = name; }
         virtual ~ExternalForceTorque() {}
 
         /// The external load is updated at each vehicle synchronization.
@@ -154,6 +171,8 @@ class CH_VEHICLE_API ChChassis : public ChPart {
                             ChVector<>& force,
                             ChVector<>& point,
                             ChVector<>& torque) {}
+
+        std::string m_name;
     };
 
     /// Utility force to add an external load to the chassis body.
