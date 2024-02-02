@@ -228,10 +228,11 @@ void ChAssembly::RemoveMesh(std::shared_ptr<fea::ChMesh> mesh) {
 
 void ChAssembly::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
     assert(!std::dynamic_pointer_cast<ChBody>(item));
+    assert(!std::dynamic_pointer_cast<ChShaft>(item));
     assert(!std::dynamic_pointer_cast<ChLinkBase>(item));
     assert(!std::dynamic_pointer_cast<ChMesh>(item));
     assert(std::find(std::begin(otherphysicslist), std::end(otherphysicslist), item) == otherphysicslist.end());
-    // assert(item->GetSystem()==nullptr); // should remove from other system before adding here
+     assert(item->GetSystem()==nullptr); // should remove from other system before adding here
 
     // set system and also add collision models to system
     item->SetSystem(system);
@@ -677,14 +678,16 @@ void ChAssembly::Update(bool update_assets) {
     for (int ip = 0; ip < (int)shaftlist.size(); ++ip) {
         shaftlist[ip]->Update(ChTime, update_assets);
     }
+    for (int ip = 0; ip < (int)meshlist.size(); ++ip) {
+        meshlist[ip]->Update(ChTime, update_assets);
+    }
     for (int ip = 0; ip < (int)otherphysicslist.size(); ++ip) {
         otherphysicslist[ip]->Update(ChTime, update_assets);
     }
+    // The state of links depends on the bodylist,shaftlist,meshlist,otherphysicslist,
+    // thus the update of linklist must be at the end.
     for (int ip = 0; ip < (int)linklist.size(); ++ip) {
         linklist[ip]->Update(ChTime, update_assets);
-    }
-    for (int ip = 0; ip < (int)meshlist.size(); ++ip) {
-        meshlist[ip]->Update(ChTime, update_assets);
     }
 }
 
@@ -769,16 +772,23 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
     for (auto& mesh : meshlist) {
         mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T, full_update);
     }
+    for (auto& item : otherphysicslist) {
+        if (item->IsActive())
+            item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T, full_update);
+        else
+            item->Update(T, full_update);
+    }
+    // Because the Update() of ChLink() depends on the frames of Body1 and Body2, the state scatter of linklist
+    // must be behind of bodylist,shaftlist,meshlist,otherphysicslist; otherwise, the Update() of ChLink() would
+    // use the old (un-updated) status of bodylist,shaftlist,meshlist, resulting in a delay of Update() of ChLink()
+    // for one time step, then the simulation might diverge!
     for (auto& link : linklist) {
         if (link->IsActive())
             link->IntStateScatter(displ_x + link->GetOffset_x(), x, displ_v + link->GetOffset_w(), v, T, full_update);
         else
             link->Update(T, full_update);
     }
-    for (auto& item : otherphysicslist) {
-        if (item->IsActive())
-            item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T, full_update);
-    }
+
     SetChTime(T);
 }
 
@@ -818,16 +828,16 @@ void ChAssembly::IntStateScatterAcceleration(const unsigned int off_a, const ChS
         if (shaft->IsActive())
             shaft->IntStateScatterAcceleration(displ_a + shaft->GetOffset_w(), a);
     }
-    for (auto& link : linklist) {
-        if (link->IsActive())
-            link->IntStateScatterAcceleration(displ_a + link->GetOffset_w(), a);
-    }
     for (auto& mesh : meshlist) {
         mesh->IntStateScatterAcceleration(displ_a + mesh->GetOffset_w(), a);
     }
     for (auto& item : otherphysicslist) {
         if (item->IsActive())
             item->IntStateScatterAcceleration(displ_a + item->GetOffset_w(), a);
+    }
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntStateScatterAcceleration(displ_a + link->GetOffset_w(), a);
     }
 }
 
@@ -868,16 +878,17 @@ void ChAssembly::IntStateScatterReactions(const unsigned int off_L, const ChVect
         if (shaft->IsActive())
             shaft->IntStateScatterReactions(displ_L + shaft->GetOffset_L(), L);
     }
-    for (auto& link : linklist) {
-        if (link->IsActive())
-            link->IntStateScatterReactions(displ_L + link->GetOffset_L(), L);
-    }
     for (auto& mesh : meshlist) {
         mesh->IntStateScatterReactions(displ_L + mesh->GetOffset_L(), L);
     }
     for (auto& item : otherphysicslist) {
         if (item->IsActive())
             item->IntStateScatterReactions(displ_L + item->GetOffset_L(), L);
+    }
+    // The state scatter of reactions of link depends on Body1 and Body2, thus it must be at the end.
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntStateScatterReactions(displ_L + link->GetOffset_L(), L);
     }
 }
 
