@@ -30,7 +30,7 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double HMMWV_FialaTire::m_normalDamping = 7500;
+const double HMMWV_FialaTire::m_normalDamping = 75;
 
 const double HMMWV_FialaTire::m_mass = 37.6;
 const ChVector<> HMMWV_FialaTire::m_inertia(3.84, 6.69, 3.84);
@@ -80,7 +80,7 @@ void HMMWV_FialaTire::SetFialaParams() {
 
     m_max_depth = 0.080;
     m_max_val = 21699;
-    m_slope = 3.22e5;
+    m_slope = 2.0 * (21699.0 - 20089.0) / 0.05;
 }
 
 double HMMWV_FialaTire::GetNormalStiffnessForce(double depth) const {
