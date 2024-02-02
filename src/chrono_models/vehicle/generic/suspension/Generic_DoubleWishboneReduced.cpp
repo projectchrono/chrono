@@ -37,39 +37,41 @@ static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 static const double lbfpin2Npm = 175.12677;
 
-const double Generic_DoubleWishboneReducedFront::m_uprightMass = 19.450;
-const double Generic_DoubleWishboneReducedFront::m_spindleMass = 14.705;
+// Entire wheel assembly = 195 lbs, includes upright, spindle and tire.
+// Tires run ~ 100 lbs, so the spindle and upright should be ~ 95 lbs combined
+const double Generic_DoubleWishboneReducedFront::m_uprightMass = lb2kg * 60.0;
+const double Generic_DoubleWishboneReducedFront::m_spindleMass = lb2kg * 35.0;
 
-const double Generic_DoubleWishboneReducedFront::m_spindleRadius = 0.10;
+const double Generic_DoubleWishboneReducedFront::m_spindleRadius = 0.15;
 const double Generic_DoubleWishboneReducedFront::m_spindleWidth = 0.06;
-const double Generic_DoubleWishboneReducedFront::m_uprightRadius = 0.04;
+const double Generic_DoubleWishboneReducedFront::m_uprightRadius = 0.02;
 
-const ChVector<> Generic_DoubleWishboneReducedFront::m_spindleInertia(0.04117, 0.07352, 0.04117);
-const ChVector<> Generic_DoubleWishboneReducedFront::m_uprightInertia(0.1656, 0.1934, 0.04367);
+const ChVector<> Generic_DoubleWishboneReducedFront::m_spindleInertia(1, 1, 1);
+const ChVector<> Generic_DoubleWishboneReducedFront::m_uprightInertia(5, 5, 5);
 
 const double Generic_DoubleWishboneReducedFront::m_axleInertia = 0.4;
 
-const double Generic_DoubleWishboneReducedFront::m_springCoefficient = 369149.000;
-const double Generic_DoubleWishboneReducedFront::m_dampingCoefficient = 22459.000;
-const double Generic_DoubleWishboneReducedFront::m_springRestLength = 0.339;
+const double Generic_DoubleWishboneReducedFront::m_springCoefficient = lbfpin2Npm * 954;
+const double Generic_DoubleWishboneReducedFront::m_dampingCoefficient = lbfpin2Npm * 128.25;
+const double Generic_DoubleWishboneReducedFront::m_springRestLength = in2m * 13.36;
 
 // -----------------------------------------------------------------------------
 
-const double Generic_DoubleWishboneReducedRear::m_uprightMass = 19.450;
-const double Generic_DoubleWishboneReducedRear::m_spindleMass = 14.705;
+const double Generic_DoubleWishboneReducedRear::m_uprightMass = lb2kg * 60.0;
+const double Generic_DoubleWishboneReducedRear::m_spindleMass = lb2kg * 35.0;
 
-const double Generic_DoubleWishboneReducedRear::m_spindleRadius = 0.10;
+const double Generic_DoubleWishboneReducedRear::m_spindleRadius = 0.15;
 const double Generic_DoubleWishboneReducedRear::m_spindleWidth = 0.06;
-const double Generic_DoubleWishboneReducedRear::m_uprightRadius = 0.04;
+const double Generic_DoubleWishboneReducedRear::m_uprightRadius = 0.02;
 
-const ChVector<> Generic_DoubleWishboneReducedRear::m_spindleInertia(0.04117, 0.07352, 0.04117);
-const ChVector<> Generic_DoubleWishboneReducedRear::m_uprightInertia(0.1656, 0.1934, 0.04367);
+const ChVector<> Generic_DoubleWishboneReducedRear::m_spindleInertia(1, 1, 1);
+const ChVector<> Generic_DoubleWishboneReducedRear::m_uprightInertia(5, 5, 5);
 
 const double Generic_DoubleWishboneReducedRear::m_axleInertia = 0.4;
 
-const double Generic_DoubleWishboneReducedRear::m_springCoefficient = 369149.000;
-const double Generic_DoubleWishboneReducedRear::m_dampingCoefficient = 22459.000;
-const double Generic_DoubleWishboneReducedRear::m_springRestLength = 0.382;
+const double Generic_DoubleWishboneReducedRear::m_springCoefficient = lbfpin2Npm * 2108;
+const double Generic_DoubleWishboneReducedRear::m_dampingCoefficient = lbfpin2Npm * 200.00;
+const double Generic_DoubleWishboneReducedRear::m_springRestLength = in2m * 15.03;
 
 // -----------------------------------------------------------------------------
 // Constructors
