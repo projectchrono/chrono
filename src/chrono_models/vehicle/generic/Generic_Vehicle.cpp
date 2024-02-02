@@ -33,6 +33,8 @@
 #include "chrono_models/vehicle/generic/suspension/Generic_MultiLink.h"
 #include "chrono_models/vehicle/generic/suspension/Generic_HendricksonPRIMAXX.h"
 #include "chrono_models/vehicle/generic/suspension/Generic_MacPhersonStrut.h"
+#include "chrono_models/vehicle/generic/suspension/Generic_RigidSuspension.h"
+#include "chrono_models/vehicle/generic/suspension/Generic_RigidPinnedAxle.h"
 
 #include "chrono_models/vehicle/generic/steering/Generic_RackPinion.h"
 #include "chrono_models/vehicle/generic/steering/Generic_PitmanArm.h"
@@ -67,17 +69,43 @@ namespace generic {
 
 // -----------------------------------------------------------------------------
 
-Generic_Vehicle::Generic_Vehicle(const bool fixed,
-                                 SuspensionTypeWV suspension_type,
+Generic_Vehicle::Generic_Vehicle(bool fixed,
+                                 SuspensionTypeWV suspension_type_front,
+                                 SuspensionTypeWV suspension_type_rear,
                                  SteeringTypeWV steering_type,
                                  DrivelineTypeWV driveline_type,
                                  BrakeType brake_type,
+                                 bool use_tirerod_bodies,
+                                 bool use_antiroll_bar,
                                  ChContactMethod contactMethod)
     : ChWheeledVehicle("GenericWV", contactMethod),
-      m_suspension_type(suspension_type),
+      m_suspension_type_front(suspension_type_front),
+      m_suspension_type_rear(suspension_type_rear),
       m_steering_type(steering_type),
       m_driveline_type(driveline_type),
       m_brake_type(brake_type) {
+    ConstructVehicle(fixed, use_tirerod_bodies, use_antiroll_bar);
+}
+
+Generic_Vehicle::Generic_Vehicle(ChSystem* system,
+                                 bool fixed,
+                                 SuspensionTypeWV suspension_type_front,
+                                 SuspensionTypeWV suspension_type_rear,
+                                 SteeringTypeWV steering_type,
+                                 DrivelineTypeWV driveline_type,
+                                 BrakeType brake_type,
+                                 bool use_tirerod_bodies,
+                                 bool use_antiroll_bar)
+    : ChWheeledVehicle("GenericWV", system),
+      m_suspension_type_front(suspension_type_front),
+      m_suspension_type_rear(suspension_type_rear),
+      m_steering_type(steering_type),
+      m_driveline_type(driveline_type),
+      m_brake_type(brake_type) {
+    ConstructVehicle(fixed, use_tirerod_bodies, use_antiroll_bar);
+}
+
+void Generic_Vehicle::ConstructVehicle(bool fixed, bool use_tirerod_bodies, bool use_antiroll_bar) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<Generic_Chassis>("Chassis", fixed);
 
@@ -86,38 +114,8 @@ Generic_Vehicle::Generic_Vehicle(const bool fixed,
     m_axles[0] = chrono_types::make_shared<ChAxle>();
     m_axles[1] = chrono_types::make_shared<ChAxle>();
 
-    switch (m_suspension_type) {
-        case SuspensionTypeWV::DOUBLE_WISHBONE:
-            m_axles[0]->m_suspension =
-                chrono_types::make_shared<Generic_DoubleWishboneFront>("Front suspension", false);
-            m_axles[1]->m_suspension = chrono_types::make_shared<Generic_DoubleWishboneRear>("Rear suspension", false);
-            ////m_axles[0]->m_suspension = chrono_types::make_shared<Generic_DoubleWishbone>("Front suspension");
-            ////m_axles[1]->m_suspension = chrono_types::make_shared<Generic_DoubleWishbone>("Rear suspension");
-            break;
-        case SuspensionTypeWV::DOUBLE_WISHBONE_REDUCED:
-            m_axles[0]->m_suspension =
-                chrono_types::make_shared<Generic_DoubleWishboneReducedFront>("Front suspension");
-            m_axles[1]->m_suspension = chrono_types::make_shared<Generic_DoubleWishboneReducedRear>("Rear suspension");
-            break;
-        case SuspensionTypeWV::SOLID_AXLE:
-            m_axles[0]->m_suspension = chrono_types::make_shared<Generic_SolidAxle>("Front Suspension");
-            m_axles[1]->m_suspension = chrono_types::make_shared<Generic_SolidAxle>("Rear Suspension");
-            break;
-        case SuspensionTypeWV::MULTI_LINK:
-            m_axles[0]->m_suspension = chrono_types::make_shared<Generic_MultiLink>("Front Suspension");
-            m_axles[1]->m_suspension = chrono_types::make_shared<Generic_MultiLink>("Rear Suspension");
-            break;
-        case SuspensionTypeWV::HENDRICKSON_PRIMAXX:
-            m_axles[0]->m_suspension = chrono_types::make_shared<Generic_HendricksonPRIMAXX>("Front suspension");
-            m_axles[1]->m_suspension = chrono_types::make_shared<Generic_HendricksonPRIMAXX>("Rear suspension");
-            break;
-        case SuspensionTypeWV::MACPHERSON_STRUT:
-            m_axles[0]->m_suspension = chrono_types::make_shared<Generic_MacPhersonStrut>("Front suspension");
-            m_axles[1]->m_suspension = chrono_types::make_shared<Generic_MacPhersonStrut>("Rear suspension");
-            break;
-        default:
-            break;
-    }
+    m_axles[0]->m_suspension = ConstructSuspension("Front", m_suspension_type_front, true, use_tirerod_bodies);
+    m_axles[1]->m_suspension = ConstructSuspension("Rear", m_suspension_type_rear, false, use_tirerod_bodies);
 
     m_axles[0]->m_wheels.resize(2);
     m_axles[0]->m_wheels[0] = chrono_types::make_shared<Generic_Wheel>("Wheel_FL");
@@ -143,9 +141,9 @@ Generic_Vehicle::Generic_Vehicle(const bool fixed,
     }
 
     // Create the antirollbar subsystem
-    ////if (m_axles[0]->m_suspension->IsIndependent()) {
-    ////  m_axles[0]->m_antirollbar = chrono_types::make_shared<Generic_AntirollBarRSD>("Antiroll Bar");
-    ////}
+    if (use_antiroll_bar && m_axles[0]->m_suspension->IsIndependent()) {
+        m_axles[0]->m_antirollbar = chrono_types::make_shared<Generic_AntirollBarRSD>("Antiroll Bar");
+    }
 
     // Create the steering subsystem
     m_steerings.resize(1);
@@ -173,6 +171,51 @@ Generic_Vehicle::Generic_Vehicle(const bool fixed,
     }
 }
 
+std::shared_ptr<ChSuspension> Generic_Vehicle::ConstructSuspension(const std::string& name,
+                                                                   SuspensionTypeWV type,
+                                                                   bool front,
+                                                                   bool use_tierod_bodies) {
+    std::shared_ptr<ChSuspension> suspension;
+    switch (type) {
+        case SuspensionTypeWV::DOUBLE_WISHBONE:
+            if (front)
+                suspension = chrono_types::make_shared<Generic_DoubleWishboneFront>(name, use_tierod_bodies);
+            else
+                suspension = chrono_types::make_shared<Generic_DoubleWishboneRear>(name, use_tierod_bodies);
+            break;
+        case SuspensionTypeWV::DOUBLE_WISHBONE_REDUCED:
+            suspension = chrono_types::make_shared<Generic_DoubleWishboneReducedFront>(name);
+            break;
+        case SuspensionTypeWV::SOLID_AXLE:
+            suspension = chrono_types::make_shared<Generic_SolidAxle>(name);
+            break;
+        case SuspensionTypeWV::MULTI_LINK:
+            suspension = chrono_types::make_shared<Generic_MultiLink>(name);
+            break;
+        case SuspensionTypeWV::HENDRICKSON_PRIMAXX:
+            suspension = chrono_types::make_shared<Generic_HendricksonPRIMAXX>(name);
+            break;
+        case SuspensionTypeWV::MACPHERSON_STRUT:
+            suspension = chrono_types::make_shared<Generic_MacPhersonStrut>(name);
+            break;
+        case SuspensionTypeWV::RIGID_SUSPENSION:
+            suspension = chrono_types::make_shared<Generic_RigidSuspension>(name);
+            break;
+        case SuspensionTypeWV::RIGID_PINNED:
+            suspension = chrono_types::make_shared<Generic_RigidPinnedAxle>(name);
+            break;
+        default:
+            break;
+    }
+
+    if (front && !suspension->IsSteerable()) {
+        std::cout << "Non-steerable front suspension." << std::endl;
+        throw ChException("Non-steerable front suspension");
+    }
+
+    return suspension;
+}
+
 // -----------------------------------------------------------------------------
 
 void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
@@ -182,7 +225,7 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
     // Initialize the steering subsystem
     // (specify the steering subsystem's frame relative to the chassis reference frame).
     ChVector<> offset;
-    switch (m_suspension_type) {
+    switch (m_suspension_type_front) {
         case SuspensionTypeWV::DOUBLE_WISHBONE:
             offset = ChVector<>(1.24498, 0, 0.101322);
             break;
@@ -236,55 +279,6 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
 }
 
 // -----------------------------------------------------------------------------
-// Log the hardpoint locations for the front-right and rear-right suspension
-// subsystems (display in inches)
-// -----------------------------------------------------------------------------
-void Generic_Vehicle::LogHardpointLocations() {
-    GetLog().SetNumFormat("%7.3f");
-
-    switch (m_suspension_type) {
-        case SuspensionTypeWV::DOUBLE_WISHBONE:
-            GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
-            std::static_pointer_cast<ChDoubleWishbone>(m_axles[0]->m_suspension)
-                ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-            GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
-            std::static_pointer_cast<ChDoubleWishbone>(m_axles[1]->m_suspension)
-                ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-            break;
-        case SuspensionTypeWV::SOLID_AXLE:
-            GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
-            std::static_pointer_cast<ChSolidAxle>(m_axles[0]->m_suspension)
-                ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-            GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
-            std::static_pointer_cast<ChSolidAxle>(m_axles[1]->m_suspension)
-                ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-            break;
-        case SuspensionTypeWV::MULTI_LINK:
-            GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
-            std::static_pointer_cast<ChMultiLink>(m_axles[0]->m_suspension)
-                ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-            GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
-            std::static_pointer_cast<ChMultiLink>(m_axles[1]->m_suspension)
-                ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-            break;
-        case SuspensionTypeWV::MACPHERSON_STRUT:
-            GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
-            std::static_pointer_cast<ChMacPhersonStrut>(m_axles[0]->m_suspension)
-                ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-            GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
-            std::static_pointer_cast<ChMacPhersonStrut>(m_axles[1]->m_suspension)
-                ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-            break;
-        default:
-            break;
-    }
-
-    GetLog() << "\n\n";
-
-    GetLog().SetNumFormat("%g");
-}
-
-// -----------------------------------------------------------------------------
 // Log the spring and shock length and force.
 // Log constraint violations of suspension joints.
 // -----------------------------------------------------------------------------
@@ -299,7 +293,8 @@ void Generic_Vehicle::DebugLog(int what) {
                 for (auto& forceTSDA :
                      m_axles[axle]->m_suspension->ReportSuspensionForce(static_cast<VehicleSide>(side))) {
                     GetLog() << axlePosition << " " << (side == LEFT ? "Left " : "Right") << " ";
-                    GetLog() << forceTSDA.name << std::string(10 - std::max(0, (int) forceTSDA.name.size()), ' ') << " Length: " << forceTSDA.length << " m, Force: " << forceTSDA.force << " N\n";
+                    GetLog() << forceTSDA.name << std::string(10 - std::max(0, (int)forceTSDA.name.size()), ' ')
+                             << " Length: " << forceTSDA.length << " m, Force: " << forceTSDA.force << " N\n";
                 }
             }
         }

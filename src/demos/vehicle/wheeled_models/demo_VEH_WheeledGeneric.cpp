@@ -71,7 +71,7 @@ TireModelType tire_type = TireModelType::PAC02;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 0.5);
+ChVector<> initLoc(0, 0, 0.6);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -115,9 +115,15 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
     // and visualization mode for the various vehicle components.
-    Generic_Vehicle vehicle(false,                                                       //
-                            suspension_type, steering_type, driveline_type, brake_type,  //
-                            ChContactMethod::NSC);
+    Generic_Vehicle vehicle(true,            // fixed chassis
+                            suspension_type,  // front suspension type
+                            suspension_type,  // rear suspension type
+                            steering_type,    // sterring mechanism type
+                            driveline_type,   // driveline type
+                            brake_type,       // brake type
+                            false,            // use bodies to model tierods
+                            false             // include an antiroll bar
+    );
 
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
@@ -173,7 +179,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("HMMWV Demo");
+            vis_irr->SetWindowTitle("Generic Vehicle Demo");
             vis_irr->SetChaseCamera(trackPoint, 6.0, 0.5);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
@@ -198,7 +204,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("HMMWV Demo");
+            vis_vsg->SetWindowTitle("Generic Vehicle Demo");
             vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->SetChaseCamera(trackPoint, 8.0, 0.5);
             vis_vsg->SetWindowSize(ChVector2<int>(1200, 900));

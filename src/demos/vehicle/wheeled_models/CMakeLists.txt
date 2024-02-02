@@ -22,6 +22,7 @@ set(DEMOS
     demo_VEH_UAZBUS
     demo_VEH_U401
     demo_VEH_WheeledGeneric
+    demo_VEH_WheeledGenericSet
     demo_VEH_WheeledJSON
 )
 
