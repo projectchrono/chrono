@@ -53,7 +53,7 @@ Marder::Marder()
       m_shoe_type(TrackShoeType::SINGLE_PIN),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_engineType(EngineModelType::SHAFTS),
-      m_transmissionType(TransmissionModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_apply_drag(false) {}
@@ -73,7 +73,7 @@ Marder::Marder(ChSystem* system)
       m_shoe_type(TrackShoeType::SINGLE_PIN),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_engineType(EngineModelType::SHAFTS),
-      m_transmissionType(TransmissionModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_apply_drag(false) {}
@@ -131,10 +131,10 @@ void Marder::Initialize() {
 
     if (!transmission) {
         switch (m_transmissionType) {
-            case TransmissionModelType::SHAFTS:
+            case TransmissionModelType::AUTOMATIC_SHAFTS:
                 transmission = chrono_types::make_shared<Marder_AutomaticTransmissionShafts>("Transmission");
                 break;
-            case TransmissionModelType::SIMPLE_MAP:
+            case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<Marder_AutomaticTransmissionSimpleMap>("Transmission");
                 break;
         }

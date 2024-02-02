@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetChassisCollisionType(chassis_coll_type);
     hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(0, 0, 0.5), QUNIT));
     hmmwv.SetEngineType(EngineModelType::SHAFTS);
-    hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
+    hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     hmmwv.UseTierodBodies(false);
     hmmwv.SetSteeringType(SteeringTypeWV::PITMAN_ARM);

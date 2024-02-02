@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     ////DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
     BrakeType brake_type = BrakeType::SIMPLE;
     EngineModelType engine_type = EngineModelType::SIMPLE;
-    TransmissionModelType transmission_type = TransmissionModelType::SIMPLE_MAP;
+    TransmissionModelType transmission_type = TransmissionModelType::AUTOMATIC_SIMPLE_MAP;
 
     Marder marder;
     marder.SetContactMethod(contact_method);

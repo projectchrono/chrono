@@ -9,7 +9,14 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Mike Taylor, Marcel Offermans
+// Authors: Radu Serban
+// =============================================================================
+//
+// Automatic transmssion model for the HMMWV vehicle.
+// - both power and torque limited
+// - no torque converter
+// - simple gear-shifting model (in automatic mode)
+//
 // =============================================================================
 
 #include "chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimpleMap.h"
@@ -24,23 +31,23 @@ Generic_AutomaticTransmissionSimpleMap::Generic_AutomaticTransmissionSimpleMap(c
     : ChAutomaticTransmissionSimpleMap(name) {}
 
 void Generic_AutomaticTransmissionSimpleMap::SetGearRatios(std::vector<double>& fwd, double& rev) {
-    rev = -0.3333;
+    rev = -0.2;
 
-    fwd.push_back(0.2857);
-    fwd.push_back(0.5155);
-    fwd.push_back(0.7937);
-    fwd.push_back(1.0753);
-    fwd.push_back(1.3158);
-    fwd.push_back(1.4815);
+    fwd.push_back(0.1708);
+    fwd.push_back(0.2791);
+    fwd.push_back(0.4218);
+    fwd.push_back(0.6223);
+    fwd.push_back(1.0173);
+    fwd.push_back(1.5361);
 }
 
 void Generic_AutomaticTransmissionSimpleMap::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
-    shift_bands.push_back(std::pair<double, double>(200, 600));
-    shift_bands.push_back(std::pair<double, double>(200, 600));
-    shift_bands.push_back(std::pair<double, double>(200, 600));
-    shift_bands.push_back(std::pair<double, double>(200, 600));
-    shift_bands.push_back(std::pair<double, double>(200, 600));
-    shift_bands.push_back(std::pair<double, double>(200, 600));
+    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2226 * rpm2rads));
+    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2225 * rpm2rads));
+    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2210 * rpm2rads));
+    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2226 * rpm2rads));
+    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2225 * rpm2rads));
+    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2700 * rpm2rads));
 }
 
 }  // end namespace generic

@@ -12,6 +12,9 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <iomanip>
+#include <sstream>
+
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCone.h"
 #include "chrono/assets/ChCamera.h"
@@ -1128,9 +1131,10 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
 //  state00001.dat, state00002.dat, ...
 // The user should call this function in the while() loop of the simulation, once per frame.
 void ChBlender::ExportData() {
-    char fullname[200];
-    sprintf(fullname, "%s%05d", out_data_filename.c_str(), framenumber);
-    ExportData(out_path + "/" + std::string(fullname));
+    // Zero-pad frame numbers in file names for postprocessing
+    std::ostringstream fullname;
+    fullname << out_data_filename << std::setw(5) << std::setfill('0') << framenumber;
+    ExportData(out_path + "/" + fullname.str());
 }
 
 void ChBlender::ExportData(const std::string& filename) {

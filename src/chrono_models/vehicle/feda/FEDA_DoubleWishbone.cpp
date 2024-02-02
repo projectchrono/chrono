@@ -39,12 +39,14 @@ const double FEDA_DoubleWishboneFront::m_UCAMass = 8.45;
 const double FEDA_DoubleWishboneFront::m_LCAMass = 31.55;
 const double FEDA_DoubleWishboneFront::m_uprightMass = 36.27;
 const double FEDA_DoubleWishboneFront::m_spindleMass = 13.08;
+const double FEDA_DoubleWishboneFront::m_tierodMass = 6.0;
 
 const double FEDA_DoubleWishboneFront::m_spindleRadius = 0.10;
 const double FEDA_DoubleWishboneFront::m_spindleWidth = 0.06;
 const double FEDA_DoubleWishboneFront::m_LCARadius = 0.03;
 const double FEDA_DoubleWishboneFront::m_UCARadius = 0.02;
 const double FEDA_DoubleWishboneFront::m_uprightRadius = 0.04;
+const double FEDA_DoubleWishboneFront::m_tierodRadius = 0.02;
 
 // TODO: Fix these values
 const ChVector<> FEDA_DoubleWishboneFront::m_spindleInertia(5.32e-4, 5.52E-04, 5.32e-4);
@@ -54,6 +56,7 @@ const ChVector<> FEDA_DoubleWishboneFront::m_LCAInertiaMoments(0.4, 0.4, 0.8938)
 const ChVector<> FEDA_DoubleWishboneFront::m_LCAInertiaProducts(0.0, 0.0, 0.0);
 const ChVector<> FEDA_DoubleWishboneFront::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
 const ChVector<> FEDA_DoubleWishboneFront::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> FEDA_DoubleWishboneFront::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double FEDA_DoubleWishboneFront::m_axleInertia = 0.4;
 
@@ -73,12 +76,14 @@ const double FEDA_DoubleWishboneRear::m_UCAMass = 8.45;
 const double FEDA_DoubleWishboneRear::m_LCAMass = 31.55;
 const double FEDA_DoubleWishboneRear::m_uprightMass = 36.27;
 const double FEDA_DoubleWishboneRear::m_spindleMass = 13.08;
+const double FEDA_DoubleWishboneRear::m_tierodMass = 6.0;
 
 const double FEDA_DoubleWishboneRear::m_spindleRadius = 0.10;
 const double FEDA_DoubleWishboneRear::m_spindleWidth = 0.06;
 const double FEDA_DoubleWishboneRear::m_LCARadius = 0.03;
 const double FEDA_DoubleWishboneRear::m_UCARadius = 0.02;
 const double FEDA_DoubleWishboneRear::m_uprightRadius = 0.04;
+const double FEDA_DoubleWishboneRear::m_tierodRadius = 0.02;
 
 // TODO: Fix these values
 const ChVector<> FEDA_DoubleWishboneRear::m_spindleInertia(5.32e-4, 5.52E-04, 5.32e-4);
@@ -88,6 +93,7 @@ const ChVector<> FEDA_DoubleWishboneRear::m_LCAInertiaMoments(0.4, 0.4, 0.8938);
 const ChVector<> FEDA_DoubleWishboneRear::m_LCAInertiaProducts(0.0, 0.0, 0.0);
 const ChVector<> FEDA_DoubleWishboneRear::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
 const ChVector<> FEDA_DoubleWishboneRear::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> FEDA_DoubleWishboneRear::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double FEDA_DoubleWishboneRear::m_axleInertia = 0.4;
 
@@ -330,7 +336,7 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
 // Constructors
 // -----------------------------------------------------------------------------
 FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int ride_height_mode, int damperMode)
-    : ChDoubleWishbone(name), m_damper_mode(damperMode) {
+    : ChDoubleWishbone(name), m_damper_mode(damperMode), m_use_tierod_bodies(true) {
     m_ride_height_mode = ChClamp(ride_height_mode, 0, 2);
     GetLog() << "Ride Height Front = " << m_ride_height_mode << " (Pressure = " << m_air_pressure[m_ride_height_mode]
              << " Pas)\n";
@@ -367,7 +373,7 @@ FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int 
 }
 
 FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ride_height_mode, int damperMode)
-    : ChDoubleWishbone(name), m_damper_mode(damperMode) {
+    : ChDoubleWishbone(name), m_damper_mode(damperMode), m_use_tierod_bodies(true) {
     m_ride_height_mode = ChClamp(ride_height_mode, 0, 2);
     GetLog() << "Ride Height Rear = " << m_ride_height_mode << " (Pressure = " << m_air_pressure[m_ride_height_mode]
              << " Pas)\n";
@@ -407,13 +413,17 @@ FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ri
 // Destructors
 // -----------------------------------------------------------------------------
 FEDA_DoubleWishboneFront::~FEDA_DoubleWishboneFront() {
+    /* what happens here?
     if (m_shockODE)
         delete m_shockODE;
+     */
 }
 
 FEDA_DoubleWishboneRear::~FEDA_DoubleWishboneRear() {
+    /* what happens here?
     if (m_shockODE)
         delete m_shockODE;
+     */
 }
 
 void FEDA_DoubleWishboneFront::Initialize(std::shared_ptr<ChChassis> chassis,

@@ -12,6 +12,9 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <iomanip>
+#include <sstream>
+
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChCamera.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
@@ -744,9 +747,10 @@ void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
 //  state0001.dat, state0002.dat, ...
 // The user should call this function in the while() loop of the simulation, once per frame.
 void ChPovRay::ExportData() {
-    char fullname[200];
-    sprintf(fullname, "%s%05d", out_data_filename.c_str(), framenumber);
-    ExportData(out_path + "/" + std::string(fullname));
+    // Zero-pad frame numbers in file names for postprocessing
+    std::ostringstream fullname;
+    fullname << out_data_filename << std::setw(5) << std::setfill('0') << framenumber;
+    ExportData(out_path + "/" + fullname.str());
 }
 
 void ChPovRay::ExportData(const std::string& filename) {

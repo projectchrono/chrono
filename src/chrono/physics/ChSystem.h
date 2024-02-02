@@ -566,15 +566,15 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// this function computes the solution of the change Du (in a or v or x) for a Newton
     /// iteration within an implicit integration scheme.
     /// <pre>
-    ///  |Du| = [ G   Cq' ]^-1 * | R |
-    ///  |DL|   [ Cq  0   ]      | Qc|
+    ///  | Du| = [ G   Cq' ]^-1 * | R |
+    ///  |-DL|   [ Cq  0   ]      |-Qc|
     /// </pre>
     /// for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ].\n
     /// This function returns true if successful and false otherwise.
     virtual bool StateSolveCorrection(ChStateDelta& Dv,             ///< result: computed Dv
-                                      ChVectorDynamic<>& L,         ///< result: computed lagrangian multipliers, if any
+                                      ChVectorDynamic<>& DL,        ///< result: computed lagrangian multipliers. Note the sign in system above.
                                       const ChVectorDynamic<>& R,   ///< the R residual
-                                      const ChVectorDynamic<>& Qc,  ///< the Qc residual
+                                      const ChVectorDynamic<>& Qc,  ///< the Qc residual. Note the sign in system above.
                                       const double c_a,             ///< the factor in c_a*M
                                       const double c_v,             ///< the factor in c_v*dF/dv
                                       const double c_x,             ///< the factor in c_x*dF/dv

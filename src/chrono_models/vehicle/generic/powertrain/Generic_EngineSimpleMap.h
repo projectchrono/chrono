@@ -12,13 +12,12 @@
 // Authors: Radu Serban, Mike Taylor, Marcel Offermans
 // =============================================================================
 //
-// Simple engine model for the generic vehicle.
-// - both power and torque limited
+// Simple engine model for the generic vehicle based on torque-speed engine maps
 //
 // =============================================================================
 
-#ifndef GENERIC_ENGINESIMPLEMAP_H
-#define GENERIC_ENGINESIMPLEMAP_H
+#ifndef GENERIC_ENGINE_SIMPLEMAP_H
+#define GENERIC_ENGINE_SIMPLEMAP_H
 
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/powertrain/ChEngineSimpleMap.h"
@@ -38,9 +37,7 @@ class CH_MODELS_API Generic_EngineSimpleMap : public ChEngineSimpleMap {
   public:
     Generic_EngineSimpleMap(const std::string& name);
     double GetMaxEngineSpeed() override;
-    void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< [out] engine map at zero throttle
-                             ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
-                             ) override;
+    void SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) override;
 };
 
 /// @} vehicle_models_generic

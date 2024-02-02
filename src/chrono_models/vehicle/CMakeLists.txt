@@ -509,6 +509,8 @@ source_group("man/suspension" FILES ${CVM_MAN_SUSPENSION_FILES})
 set(CVM_GENERIC_SUSPENSION_FILES
     generic/suspension/Generic_DoubleWishbone.cpp
     generic/suspension/Generic_DoubleWishbone.h
+    generic/suspension/Generic_DoubleWishboneReduced.cpp
+    generic/suspension/Generic_DoubleWishboneReduced.h
     generic/suspension/Generic_HendricksonPRIMAXX.cpp
     generic/suspension/Generic_HendricksonPRIMAXX.h
     generic/suspension/Generic_MacPhersonStrut.cpp
@@ -522,40 +524,61 @@ set(CVM_GENERIC_SUSPENSION_FILES
     generic/suspension/Generic_RigidPinnedAxle.h
     generic/suspension/Generic_RigidPinnedAxle.cpp
 )
+set(CVM_GENERIC_STEERING_FILES
+    generic/steering/Generic_PitmanArm.cpp
+    generic/steering/Generic_PitmanArm.h
+    generic/steering/Generic_RackPinion.cpp
+    generic/steering/Generic_RackPinion.h    
+)
 set(CVM_GENERIC_DRIVELINE_FILES
     generic/driveline/Generic_Driveline2WD.h
     generic/driveline/Generic_Driveline2WD.cpp
+    generic/driveline/Generic_Driveline4WD.h
+    generic/driveline/Generic_Driveline4WD.cpp
     generic/driveline/Generic_SimpleDriveline.cpp
     generic/driveline/Generic_SimpleDriveline.h
 )
+set(CVM_GENERIC_BRAKE_FILES
+    generic/brake/Generic_BrakeSimple.cpp
+    generic/brake/Generic_BrakeSimple.h
+    generic/brake/Generic_BrakeShafts.cpp
+    generic/brake/Generic_BrakeShafts.h
+)
 set(CVM_GENERIC_POWERTRAIN_FILES
-    generic/powertrain/Generic_AutomaticTransmissionSimple.h
-    generic/powertrain/Generic_AutomaticTransmissionSimple.cpp
-    generic/powertrain/Generic_EngineSimple.h
-    generic/powertrain/Generic_EngineSimple.cpp
-    generic/powertrain/Generic_AutomaticTransmissionSimpleMap.h
-    generic/powertrain/Generic_AutomaticTransmissionSimpleMap.cpp
+    generic/powertrain/Generic_EngineShafts.h
+    generic/powertrain/Generic_EngineShafts.cpp
     generic/powertrain/Generic_EngineSimpleMap.h
     generic/powertrain/Generic_EngineSimpleMap.cpp
+    generic/powertrain/Generic_EngineSimple.h
+    generic/powertrain/Generic_EngineSimple.cpp
+    generic/powertrain/Generic_AutomaticTransmissionShafts.h
+    generic/powertrain/Generic_AutomaticTransmissionShafts.cpp
+    generic/powertrain/Generic_AutomaticTransmissionSimpleMap.h
+    generic/powertrain/Generic_AutomaticTransmissionSimpleMap.cpp
+    generic/powertrain/Generic_ManualTransmissionShafts.h
+    generic/powertrain/Generic_ManualTransmissionShafts.cpp
 )
 set(CVM_GENERIC_TIRE_FILES
-    generic/tire/Generic_FialaTire.h
-    generic/tire/Generic_FialaTire.cpp
-    generic/tire/Generic_RigidTire.h
     generic/tire/Generic_RigidTire.cpp
+    generic/tire/Generic_RigidTire.h
+    generic/tire/Generic_FialaTire.cpp
+    generic/tire/Generic_FialaTire.h
+    generic/tire/Generic_Pac02Tire.cpp
+    generic/tire/Generic_Pac02Tire.h
+    generic/tire/Generic_Pac89Tire.cpp
+    generic/tire/Generic_Pac89Tire.h
+    generic/tire/Generic_TMeasyTire.cpp
+    generic/tire/Generic_TMeasyTire.h
+    generic/tire/Generic_TMsimpleTire.cpp
+    generic/tire/Generic_TMsimpleTire.h
     generic/tire/Generic_RigidMeshTire.h
     generic/tire/Generic_RigidMeshTire.cpp
 )
 set(CVM_GENERIC_VEHICLE_FILES
     generic/Generic_AntirollBarRSD.h
     generic/Generic_AntirollBarRSD.cpp
-    generic/Generic_BrakeSimple.h
-    generic/Generic_BrakeSimple.cpp
     generic/Generic_Chassis.cpp
     generic/Generic_Chassis.h
-    generic/Generic_FuncDriver.h
-    generic/Generic_RackPinion.h
-    generic/Generic_RackPinion.cpp
     generic/Generic_Vehicle.cpp
     generic/Generic_Vehicle.h
     generic/Generic_Wheel.h
@@ -564,13 +587,17 @@ set(CVM_GENERIC_VEHICLE_FILES
 set(CVM_GENERIC_FILES
     ${CVM_GENERIC_VEHICLE_FILES}
     ${CVM_GENERIC_SUSPENSION_FILES}
+    ${CVM_GENERIC_STEERING_FILES}
     ${CVM_GENERIC_DRIVELINE_FILES}
+    ${CVM_GENERIC_BRAKE_FILES}
     ${CVM_GENERIC_POWERTRAIN_FILES}
     ${CVM_GENERIC_TIRE_FILES}
 )
 source_group("generic" FILES ${CVM_GENERIC_VEHICLE_FILES})
 source_group("generic/suspension" FILES ${CVM_GENERIC_SUSPENSION_FILES})
+source_group("generic/steering" FILES ${CVM_GENERIC_STEERING_FILES})
 source_group("generic/driveline" FILES ${CVM_GENERIC_DRIVELINE_FILES})
+source_group("generic/brake" FILES ${CVM_GENERIC_BRAKE_FILES})
 source_group("generic/powertrain" FILES ${CVM_GENERIC_POWERTRAIN_FILES})
 source_group("generic/tire" FILES ${CVM_GENERIC_TIRE_FILES})
 

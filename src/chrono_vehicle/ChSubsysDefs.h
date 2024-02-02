@@ -432,8 +432,9 @@ enum class EngineModelType {
 
 /// Enum for available transmission model templates.
 enum class TransmissionModelType {
-    SHAFTS,     ///< transmission model based of ChShaft elements
-    SIMPLE_MAP  ///< transmission model based on TC maps
+    AUTOMATIC_SHAFTS,      ///< automatic transmission model based of ChShaft elements
+    AUTOMATIC_SIMPLE_MAP,  ///< automatic transmission model based on TC maps
+    MANUAL_SHAFTS          ///< manual transmission model based on ChShaft elements
 };
 
 /// Enum for available wheeled-vehicle suspension model templates.

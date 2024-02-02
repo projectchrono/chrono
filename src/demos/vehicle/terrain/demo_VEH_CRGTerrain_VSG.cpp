@@ -322,7 +322,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetChassisFixed(false);
     hmmwv.SetInitPosition(init_csys);
     hmmwv.SetEngineType(EngineModelType::SHAFTS);
-    hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
+    hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     hmmwv.SetDriveType(DrivelineTypeWV::RWD);
     hmmwv.SetTireType(tire_model);
     hmmwv.SetTireStepSize(tire_step_size);
@@ -392,8 +392,8 @@ int main(int argc, char* argv[]) {
             if (output_images) {
                 char filename[200];
                 int nstr = sizeof(filename) - 1;
-                snprintf(filename, nstr, "%s/image_%05d.bmp", out_dir.c_str(), render_frame);
-                vis->WriteImageToFile(filename);
+                    snprintf(filename, nstr, "%s/image_%05d.png", out_dir.c_str(), render_frame);
+                    vis->WriteImageToFile(filename);
                 render_frame++;
             }
         }

@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     duro.SetChassisFixed(false);
     duro.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     duro.SetEngineType(EngineModelType::SHAFTS);
-    duro.SetTransmissionType(TransmissionModelType::SHAFTS);
+    duro.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     duro.SetTireType(tire_model);
     duro.SetTireStepSize(tire_step_size);
     duro.SetBrakeType(brake_model);

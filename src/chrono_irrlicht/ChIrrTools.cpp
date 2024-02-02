@@ -998,6 +998,34 @@ void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord, double
     drawSegment(vis, pos, pos + rot.Rotate(VECT_Z) * scale, ChColor(0, 0, 1));
 }
 
+
+
+// -----------------------------------------------------------------------------
+/// Draw a line arrow in 3D space with given color.
+// -----------------------------------------------------------------------------
+void drawArrow(ChVisualSystemIrrlicht* vis,
+               ChVector<> start,
+               ChVector<> end,
+               ChVector<> plane_normal,
+               bool sharp,
+               ChColor col,
+               bool use_Zbuffer) {
+    drawSegment(vis, start, end, col, use_Zbuffer);  // main segment
+    ChVector<> dir = (end - start).GetNormalized();
+    ChVector<> u, v, w;
+    dir.DirToDxDyDz(u, v, w, plane_normal);
+    ChVector<> p1, p2;
+    if (!sharp) {
+        p1 = end + 0.25 * (w - dir);
+        p2 = end + 0.25 * (-w - dir);
+    } else {
+        p1 = end + 0.1 * w - 0.5 * dir;
+        p2 = end + 0.1 * -w - 0.5 * dir;
+    }
+    drawSegment(vis, end, p1, col, use_Zbuffer);  // arrow segment 1
+    drawSegment(vis, end, p2, col, use_Zbuffer);  // arrow segment 2
+}
+
 }  // end namespace tools
 }  // end namespace irrlicht
 }  // end namespace chrono

@@ -457,7 +457,7 @@ void XdirToDxDyDz(const ChVector<RealA>& Vxdir,
     Vy = Vcross(Vz, Vx);
 }
 
-/// Insertion ov 3d vector to output stream.
+/// Insertion of a 3D vector to output stream.
 template <typename Real>
 inline std::ostream& operator<<(std::ostream& out, const ChVector<Real>& v) {
     out << v.x() << "  " << v.y() << "  " << v.z();

@@ -168,6 +168,61 @@ class ChApi ChTimestepperIIorder : public ChTimestepper {
     using ChTimestepper::SetIntegrable;
 };
 
+
+/// Base properties for explicit solvers.
+/// Such integrators might require solution of a nonlinear problem if constraints 
+/// are added, otherwise they can use penalty in constraints and lumped masses to avoid the linear system.
+/// Diagonal lumping is off by default.
+/// Note that if you apply this 
+class ChApi ChExplicitTimestepper {
+  protected:
+      ChLumpingParms* lumping_parameters;
+
+  public:
+      ChExplicitTimestepper() : lumping_parameters(nullptr) {}
+      virtual ~ChExplicitTimestepper() { if (lumping_parameters) delete (lumping_parameters); }
+
+    /// Turn on the diagonal lumping. This can achieve a large speedup because no linear system is needeed 
+    /// to compute the derivative (i.e. acceleration in II order systems), but not all Chintegrable might 
+    /// support the diagonal lumping. 
+    /// If lumping not supported because ChIntegrable::LoadLumpedMass_Md() not implemented, throw exception. 
+    /// If lumping introduces some approximation, you'll get nonzero in GetLumpingError().
+    /// Optionally paramters: the stiffness penalty for constraints, and damping penalty for constraints.
+    void SetDiagonalLumpingON(double Ck = 1000, double Cr = 0) { lumping_parameters = new ChLumpingParms(Ck,Cr); }
+
+    /// Turn off the diagonal lumping (default is off)
+    void SetDiagonalLumpingOFF() { if (lumping_parameters) delete (lumping_parameters); }
+
+    /// Gets the diagonal lumping error done last time the integrator has been called
+    double GetLumpingError() {
+        if (this->lumping_parameters)
+            return lumping_parameters->error;
+        else
+            return 0;
+    }
+    /// Resets the diagonal lumping error.
+    void ResetLumpingError() {
+        if (this->lumping_parameters)
+            lumping_parameters->error = 0;
+    }
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) {
+        // version number
+        archive.VersionWrite(1);
+        // serialize all member data:
+        archive << CHNVP(lumping_parameters);
+    }
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) {
+        // version number
+        /*int version =*/ archive.VersionRead();
+        // stream in all member data:
+        archive >> CHNVP(lumping_parameters);
+    }
+};
+
 /// Base class for implicit solvers (double inheritance)
 class ChApi ChImplicitTimestepper {};
 
@@ -253,7 +308,7 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
 
 /// Euler explicit timestepper.
 /// This performs the typical  y_new = y+ dy/dt * dt integration with Euler formula.
-class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder {
+class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder, public ChExplicitTimestepper {
   public:
     /// Constructors (default empty)
     ChTimestepperEulerExpl(ChIntegrable* intgr = nullptr) : ChTimestepperIorder(intgr) {}
@@ -261,6 +316,12 @@ class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder {
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
     ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 };
 
 /// Euler explicit timestepper customized for II order.
@@ -269,7 +330,7 @@ class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder {
 /// This integrator implements the typical Euler scheme:
 ///    x_new = x + v * dt
 ///    v_new = v + a * dt
-class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
+class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder, public ChExplicitTimestepper {
   protected:
     ChStateDelta Dv;
 
@@ -282,6 +343,12 @@ class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 };
 
 /// Euler semi-implicit timestepper.
@@ -289,7 +356,7 @@ class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
 ///    v_new = v + a * dt
 ///    x_new = x + v_new * dt
 /// integration with Euler semi-implicit formula.
-class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder {
+class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder, public ChExplicitTimestepper {
   public:
     /// Constructors (default empty)
     ChTimestepperEulerSemiImplicit(ChIntegrableIIorder* intgr = nullptr) : ChTimestepperIIorder(intgr) {}
@@ -297,10 +364,16 @@ class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder {
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
     ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of a 4th order explicit Runge-Kutta integration scheme.
-class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
+class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder, public ChExplicitTimestepper {
   protected:
     ChState y_new;
     ChStateDelta Dydt1;
@@ -317,10 +390,16 @@ class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of a Heun explicit integrator. It is like a 2nd Runge Kutta.
-class ChApi ChTimestepperHeun : public ChTimestepperIorder {
+class ChApi ChTimestepperHeun : public ChTimestepperIorder, public ChExplicitTimestepper {
   protected:
     ChState y_new;
     ChStateDelta Dydt1;
@@ -335,13 +414,19 @@ class ChApi ChTimestepperHeun : public ChTimestepperIorder {
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of a Leapfrog explicit integrator.
 /// This is a symplectic method, with 2nd order accuracy, at least when F depends on positions only.
 /// Note: uses last step acceleration: changing or resorting  the numbering of DOFs will invalidate it.
 /// Suggestion: use the ChTimestepperEulerSemiImplicit, it gives the same accuracy with better performance.
-class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
+class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder, public ChExplicitTimestepper {
   protected:
     ChStateDelta Aold;
 
@@ -354,6 +439,12 @@ class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of Euler implicit for II order systems.
@@ -407,6 +498,11 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
     virtual void Advance(const double dt  ///< timestep to advance
                          ) override;
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of Euler implicit for II order systems using a semi implicit Euler without
@@ -432,6 +528,11 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
     virtual void Advance(const double dt  ///< timestep to advance
                          ) override;
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of trapezoidal implicit for II order systems.

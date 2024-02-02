@@ -45,7 +45,7 @@ MAN_5t::MAN_5t()
       m_fixed(false),
       m_brake_locking(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
-      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
       m_tire_step_size(-1),
@@ -61,7 +61,7 @@ MAN_5t::MAN_5t(ChSystem* system)
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
-      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
@@ -117,11 +117,11 @@ void MAN_5t::Initialize() {
     }
     if (!transmission) {
         switch (m_transmissionType) {
-            case TransmissionModelType::SHAFTS:
+            case TransmissionModelType::AUTOMATIC_SHAFTS:
                 // transmission = chrono_types::make_shared<MAN_5t_AutomaticTransmissionShafts>("Transmission");
-                GetLog() << "TransmissionModelType::SHAFTS not implemented for this model.\n";
+                GetLog() << "TransmissionModelType::AUTOMATIC_SHAFTS not implemented for this model.\n";
                 break;
-            case TransmissionModelType::SIMPLE_MAP:
+            case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<MAN_5t_AutomaticTransmissionSimpleMap>("Transmission");
                 break;
         }

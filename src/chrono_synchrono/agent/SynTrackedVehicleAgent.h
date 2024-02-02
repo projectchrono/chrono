@@ -15,7 +15,7 @@
 // Class for an agent that wraps a Chrono::Vehicle tracked vehicle. The
 // underlying dynamics are those of a tracked vehicle, state data consists of
 // the position and orientation of the chassis and the various track components
-/// of the vehicle
+// of the vehicle
 //
 // =============================================================================
 

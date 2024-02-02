@@ -27,13 +27,15 @@
 
 #include "chrono_synchrono/agent/SynAgent.h"
 
-/// TODO: Look into ChArchive related files
 
 namespace chrono {
 namespace synchrono {
 
 /// @addtogroup synchrono_agent
 /// @{
+
+// TODO: Look into ChArchive related files
+
 
 /// Generates SynTerrain's from JSON files
 /// Used to improve generality in Agent classes

@@ -54,8 +54,8 @@ const ChVector<> Generic_MultiLink::m_uprightInertia(0.0250, 0.00653, 0.0284);
 
 const double Generic_MultiLink::m_axleInertia = 0.166;
 
-const double Generic_MultiLink::m_springCoefficient = 167062.000;
-const double Generic_MultiLink::m_dampingCoefficient = 60068.000;
+const double Generic_MultiLink::m_springCoefficient = 120000.000;
+const double Generic_MultiLink::m_dampingCoefficient = 12000.000;
 const double Generic_MultiLink::m_springRestLength = 0.339;
 
 // -----------------------------------------------------------------------------

@@ -11,11 +11,6 @@
 
 //#include "chrono_models/ChApiModels.h"
 
-#include "chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimple.h"
-#include "chrono_models/vehicle/generic/powertrain/Generic_EngineSimple.h"
-#include "chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimpleMap.h"
-#include "chrono_models/vehicle/generic/powertrain/Generic_EngineSimpleMap.h"
-
 #include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineShafts.h"
 #include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineSimpleMap.h"
 #include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineSimple.h"
@@ -58,11 +53,6 @@
 #include "chrono_models/vehicle/m113/powertrain/M113_EngineSimple.h"
 #include "chrono_models/vehicle/m113/powertrain/M113_EngineSimpleMap.h"
 %}
-
-%shared_ptr(chrono::vehicle::generic::Generic_AutomaticTransmissionSimple)
-%shared_ptr(chrono::vehicle::generic::Generic_EngineSimple)
-%shared_ptr(chrono::vehicle::generic::Generic_AutomaticTransmissionSimpleMap)
-%shared_ptr(chrono::vehicle::generic::Generic_EngineSimpleMap)
 
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_EngineShafts)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_EngineSimpleMap)
@@ -109,11 +99,6 @@
 %import "chrono_swig/interface/vehicle/ChPowertrain.i"
 
 // Model:
-
-%include "../../../chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimple.h"
-%include "../../../chrono_models/vehicle/generic/powertrain/Generic_EngineSimple.h"
-%include "../../../chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimpleMap.h"
-%include "../../../chrono_models/vehicle/generic/powertrain/Generic_EngineSimpleMap.h"
 
 %include "../../../chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineShafts.h"
 %include "../../../chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineSimpleMap.h"
