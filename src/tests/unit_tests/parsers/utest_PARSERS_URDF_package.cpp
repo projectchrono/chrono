@@ -21,8 +21,6 @@
 
 #include "chrono_parsers/ChParserURDF.h"
 
-#include <filesystem>
-
 using namespace chrono;
 using namespace chrono::parsers;
 
@@ -30,8 +28,6 @@ TEST(ChParserURDF, URDF_package) {
     // Create the URDF parser with a file that contains a filename with package://
     const std::string filename = "robot/r2d2/r2d2-package.urdf";
     ChParserURDF parser(GetChronoDataFile(filename));
-
-    std::cout << std::filesystem::current_path() << std::endl;
 
 #ifdef HAVE_ROS
     EXPECT_TRUE(parser.GetModelTree() != nullptr);
