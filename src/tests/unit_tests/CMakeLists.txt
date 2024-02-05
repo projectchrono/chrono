@@ -67,7 +67,7 @@ IF(ENABLE_MODULE_ROS)
   option(BUILD_TESTING_ROS "Build unit tests for ROS module" TRUE)
   mark_as_advanced(FORCE BUILD_TESTING_ROS)
   if(BUILD_TESTING_ROS)
-    # ADD_SUBDIRECTORY(ros)
+    ADD_SUBDIRECTORY(ros)
   endif()
 ENDIF()
 
