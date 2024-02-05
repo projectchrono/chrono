@@ -14,7 +14,6 @@
 #define CHARCHIVEBINARY_H
 
 #include "chrono/serialization/ChArchive.h"
-#include "chrono/core/ChLog.h"
 
 namespace chrono {
 

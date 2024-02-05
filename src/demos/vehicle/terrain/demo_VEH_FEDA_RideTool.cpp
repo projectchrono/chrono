@@ -161,7 +161,7 @@ class MyDriver {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     const double mph_to_mps = 0.44704;
     const double mps_to_mph = 1.0 / mph_to_mps;
@@ -203,9 +203,9 @@ int main(int argc, char* argv[]) {
     if(pos_p != std::string::npos)
         rmsvstr[pos_p] = '.';
     double rmsValue = std::stod(rmsvstr);
-    GetLog() << "Data file: " << ride_data_file << "\n";
-    GetLog() << "Value string: " << rmsvstr << "\n";
-    GetLog() << "RMS Value: " << rmsValue << " in\n";
+    std::cout << "Data file: " << ride_data_file << "\n";
+    std::cout << "Value string: " << rmsvstr << "\n";
+    std::cout << "RMS Value: " << rmsValue << " in\n";
     
     
     // ----------------
@@ -410,16 +410,16 @@ int main(int argc, char* argv[]) {
             // Increment simulation frame number
             sim_frame++;
             if (xpos.x() > max_travel) {
-                GetLog() << "Front wheels at x = " << xpos.x() << " m\n";
-                GetLog() << "End of rms surface reached. Regular simulation end.\n";
+                std::cout << "Front wheels at x = " << xpos.x() << " m\n";
+                std::cout << "End of rms surface reached. Regular simulation end.\n";
                 vis->Quit();
             }
         }
 
         double velAvg = mps_to_mph * cushion.GetAVGSpeed();
         double absPow = cushion.GetAbsorbedPowerVertical();
-        GetLog() << "Average Velocity = " << velAvg << " miles/h\n";
-        GetLog() << "Absorbed Power = " << absPow << " W\n";
+        std::cout << "Average Velocity = " << velAvg << " miles/h\n";
+        std::cout << "Absorbed Power = " << absPow << " W\n";
         powRec.AddPoint(absPow, velAvg);
         mdatafile << velAvg << "\t" << absPow << "\t6.0" "\n";
         if(absPow >= 6.0) {
@@ -440,13 +440,13 @@ int main(int argc, char* argv[]) {
     mplot.Plot(datafile, 1, 3, "Absorbed Power Limit", " with lines");
 
     if(!power_limit_reached) {
-        GetLog() << "Could not find Absorbed Power limit!\n";
+        std::cout << "Could not find Absorbed Power limit!\n";
         double a, b;
         powRec.Estimate_x_range(a, b);
-        GetLog() << "Speed 6W beyond " << b << " miles/hour\n";
+        std::cout << "Speed 6W beyond " << b << " miles/hour\n";
     } else {
         double speed_6W = powRec.Get_y(6.0);
-        GetLog() << "Speed 6W = " << speed_6W << " miles/hour\n";
+        std::cout << "Speed 6W = " << speed_6W << " miles/hour\n";
     }
     return 0;
 }

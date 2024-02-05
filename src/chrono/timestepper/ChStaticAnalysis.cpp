@@ -12,6 +12,7 @@
 
 #include <cstdlib>
 
+#include"chrono/core/ChLog.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
 
 namespace chrono {

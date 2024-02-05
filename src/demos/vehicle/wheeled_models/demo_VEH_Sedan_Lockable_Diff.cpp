@@ -42,14 +42,14 @@ const std::string out_dir = GetChronoOutputPath() + "SEDAN";
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     bool lock_diff = (argc > 1) ? true : false;
 
     if (lock_diff) {
-        GetLog() << "The differential box is locked\n";
+        std::cout << "The differential box is locked\n";
     } else {
-        GetLog() << "The differential box is unlocked\n";
+        std::cout << "The differential box is unlocked\n";
     }
 
     // Create the vehicle

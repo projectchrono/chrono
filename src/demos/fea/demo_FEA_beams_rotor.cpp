@@ -43,7 +43,7 @@ using namespace chrono::postprocess;
 const std::string out_dir = GetChronoOutputPath() + "BEAM_ROTOR";
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     double beam_Young = 100.e6;
     double beam_density = 400;

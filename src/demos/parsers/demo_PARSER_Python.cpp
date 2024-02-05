@@ -28,9 +28,9 @@ using namespace chrono;
 using namespace chrono::parsers;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    GetLog() << " Test the execution of Python statements, formulas, programs.\n No graphical user interface.\n\n";
+    std::cout << " Test the execution of Python statements, formulas, programs.\n No graphical user interface.\n\n";
 
     // Use a ChPythonEngine object.
     // Note: currently no multiple ChPythonEngine objects can be used simultaneously.
@@ -43,16 +43,16 @@ int main(int argc, char* argv[]) {
     // TEST 1   -   figure out what version of Python is run under the hood
     //
 
-    GetLog() << " PyChrono Test 1.\n";
+    std::cout << " PyChrono Test 1.\n";
     my_python.Run("import sys");
-    GetLog() << "Python version run by Chrono:\n";
+    std::cout << "Python version run by Chrono:\n";
     my_python.Run("print (sys.version)");
 
     //
     // TEST 2   -   execute simple instructions
     //
 
-    GetLog() << "\n\n PyChrono Test 2.\n";
+    std::cout << "\n\n PyChrono Test 2.\n";
     my_python.Run("a =8.6");
     my_python.Run("b =4");
     my_python.Run("c ='blabla' ");
@@ -62,23 +62,23 @@ int main(int argc, char* argv[]) {
     // TEST 3   -   fetch a value from a python variable (in __main__ namespace)
     //
 
-    GetLog() << "\n\n PyChrono Test 3.\n";
+    std::cout << "\n\n PyChrono Test 3.\n";
     double mfval;
     my_python.GetFloat("a", mfval);
-    GetLog() << "In:C++    - Passed float variable 'a' from Python, a=" << mfval << "\n";
+    std::cout << "In:C++    - Passed float variable 'a' from Python, a=" << mfval << "\n";
     int mival;
     my_python.GetInteger("b", mival);
-    GetLog() << "In:C++    - Passed integer variable 'b' from Python, b=" << mival << "\n";
+    std::cout << "In:C++    - Passed integer variable 'b' from Python, b=" << mival << "\n";
     std::string msval;
     if (!my_python.GetString("c", msval))
-        GetLog() << "Can't fetch string \n";
-    GetLog() << "In:C++    - Passed string variable 'c' from Python, c=" << msval << "\n";
+        std::cerr << "Can't fetch string \n";
+    std::cout << "In:C++    - Passed string variable 'c' from Python, c=" << msval << "\n";
 
     //
     // TEST 4   -   set a value into a python variable (in __main__ namespace)
     //
 
-    GetLog() << "\n\n PyChrono Test 4.\n";
+    std::cout << "\n\n PyChrono Test 4.\n";
     my_python.SetFloat("d", 123.5);
     my_python.Run("print('In:Python - Passed variable d from c++, d=', d)");
 
@@ -90,11 +90,11 @@ int main(int argc, char* argv[]) {
     // In general, it is wise to enclose Python commands in a try-catch block
     // because errors are handled with exceptions:
 
-    GetLog() << "\n\n PyChrono Test 5.\n";
+    std::cout << "\n\n PyChrono Test 5.\n";
     try {
         my_python.Run("a= this_itGoInG_TO_giVe_ErroRs!()");
     } catch (const ChException&) {
-        GetLog() << "Ok, Python parsing error caught as expected.\n";
+        std::cout << "Ok, Python parsing error caught as expected.\n";
     }
 
     return 0;

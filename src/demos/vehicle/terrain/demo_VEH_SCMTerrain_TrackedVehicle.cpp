@@ -100,7 +100,7 @@ void AddMovingObstacles(ChSystem* system);
 
 // =============================================================================
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------------------
     // Construct the M113 vehicle
@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
     // Solver and integrator settings
     if (use_mkl) {
 #ifdef CHRONO_PARDISO_MKL
-        GetLog() << "Using PardisoMKL solver\n";
+        std::cout << "Using PardisoMKL solver\n";
         auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         system->SetSolver(mkl_solver);

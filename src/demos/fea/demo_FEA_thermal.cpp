@@ -42,7 +42,7 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
         ChMeshFileLoader::FromTetGenFile(my_mesh, GetChronoDataFile("fea/beam.node").c_str(),
                                          GetChronoDataFile("fea/beam.ele").c_str(), mmaterial);
     } catch (const ChException& myerr) {
-        GetLog() << myerr.what();
+        std::cerr << myerr.what() << std::endl;
         return 0;
     }
 
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
     for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             if (mnode->GetPos().x() < 0.01) {
-                GetLog() << "Node at y=" << mnode->GetPos().y() << " has T=" << mnode->GetP() << "\n";
+                std::cout << "Node at y=" << mnode->GetPos().y() << " has T=" << mnode->GetP() << "\n";
             }
         }
     }

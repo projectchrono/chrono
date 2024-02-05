@@ -98,16 +98,16 @@ int main(int argc, char* argv[]) {
 
     bool passBending = BendingQuasiStatic(FileInputBend);
     if (passBending)
-        GetLog() << "Passed\n";
+        std::cout << "Passed\n";
     bool passSwinging = SwingingShell(FileInputMat);
     if (passSwinging)
-        GetLog() << "Passed\n";
+        std::cout << "Passed\n";
     bool passJ2 = J2Plastic(FileInputJ2);
     if (passJ2)
-        GetLog() << "Passed\n";
+        std::cout << "Passed\n";
     bool passDP = DruckerPragerPlastic(FileInputDP);
     if (passDP)
-        GetLog() << "Passed\n";
+        std::cout << "Passed\n";
 
     if (passBending && passSwinging && passJ2 && passDP) {
         return 0;
@@ -125,10 +125,10 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     bool genRefFile = false;
     double precision = 1e-3;  // Precision for unit test
 
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "  9-Node, Large Deformation Brick Element: Bending Problem \n";
-    GetLog() << "-----------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------\n";
+    std::cout << "  9-Node, Large Deformation Brick Element: Bending Problem \n";
+    std::cout << "-----------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -292,7 +292,6 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
             RelVal2 = std::abs(nodetip->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
             RelVal3 = std::abs(nodetip->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
             RelVal = RelVal1 + RelVal2 + RelVal3;
-            // GetLog() << RelVal1 << RelVal2 << RelVal3 << RelVal << "\n";
             if (RelVal > precision) {
                 std::cout << "Unit test check failed \n";
                 return false;
@@ -311,10 +310,10 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     ChSystemNSC sys;
     sys.Set_G_acc(ChVector<>(0, 0, 0));
 
-    GetLog() << "--------------------------------------------------------------------\n";
-    GetLog() << "--------------------------------------------------------------------\n";
-    GetLog() << " 9-Node, Large Deformation Brick Element: Swinging (Bricked) Shell  \n";
-    GetLog() << "--------------------------------------------------------------------\n";
+    std::cout << "--------------------------------------------------------------------\n";
+    std::cout << "--------------------------------------------------------------------\n";
+    std::cout << " 9-Node, Large Deformation Brick Element: Swinging (Bricked) Shell  \n";
+    std::cout << "--------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -483,7 +482,6 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
             RelVal2 = std::abs(nodetip->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
             RelVal3 = std::abs(nodetip->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
             RelVal = RelVal1 + RelVal2 + RelVal3;
-            // GetLog() << RelVal << "\n";
             if (RelVal > precision) {
                 std::cout << "Unit test check failed \n";
                 return false;
@@ -502,10 +500,10 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     bool genRefFile = false;
     double precision = 1e-4;  // Precision for unit test
 
-    GetLog() << "-----------------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------------\n";
-    GetLog() << "  9-Node, Large Deformation Brick Element: J2 Plasticity Problem \n";
-    GetLog() << "-----------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------\n";
+    std::cout << "  9-Node, Large Deformation Brick Element: J2 Plasticity Problem \n";
+    std::cout << "-----------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -683,7 +681,6 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
             RelVal2 = std::abs(nodetip1->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
             RelVal3 = std::abs(nodetip1->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
             RelVal = RelVal1 + RelVal2 + RelVal3;
-            // GetLog() << RelVal1 << RelVal2 << RelVal3 << RelVal << "\n";
             if (RelVal > precision) {
                 std::cout << "Unit test check failed at step " << it  //
                           << "  rel error = " << RelVal               //
@@ -705,10 +702,10 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     bool genRefFile = false;
     double precision = 1e-4;  // Precision for unit test
 
-    GetLog() << "-----------------------------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------------------------\n";
-    GetLog() << "  9-Node, Large Deformation Brick Element: Drucker-Prager Plasticity Problem \n";
-    GetLog() << "-----------------------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------------------\n";
+    std::cout << "  9-Node, Large Deformation Brick Element: Drucker-Prager Plasticity Problem \n";
+    std::cout << "-----------------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();

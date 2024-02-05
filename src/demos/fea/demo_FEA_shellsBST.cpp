@@ -49,7 +49,7 @@ using namespace chrono::postprocess;
 const std::string out_dir = GetChronoOutputPath() + "FEA_SHELLS";
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -133,35 +133,35 @@ int main(int argc, char* argv[]) {
         // TEST
         sys.Setup();
         sys.Update();
-        GetLog() << "BST initial: \n"
-                 << "Area: " << element->area << "\n"
-                 << "l0: " << element->l0 << "\n"
-                 << "phi0: " << element->phi0 << "\n"
-                 << "k0: " << element->k0 << "\n"
-                 << "e0: " << element->e0 << "\n";
+        std::cout << "BST initial: \n"
+                  << "Area: " << element->area << "\n"
+                  << "l0: " << element->l0 << "\n"
+                  << "phi0: " << element->phi0 << "\n"
+                  << "k0: " << element->k0 << "\n"
+                  << "e0: " << element->e0 << "\n";
 
         node1->SetPos(node1->GetPos() + ChVector<>(0.1, 0, 0));
 
         sys.Update();
         ChVectorDynamic<double> Fi(element->GetNdofs());
         element->ComputeInternalForces(Fi);
-        GetLog() << "BST updated: \n"
-                 << "phi: " << element->phi << "\n"
-                 << "k: " << element->k << "\n"
-                 << "e: " << element->e << "\n"
-                 << "m: " << element->m << "\n"
-                 << "n: " << element->n << "\n";
+        std::cout << "BST updated: \n"
+                  << "phi: " << element->phi << "\n"
+                  << "k: " << element->k << "\n"
+                  << "e: " << element->e << "\n"
+                  << "m: " << element->m << "\n"
+                  << "n: " << element->n << "\n";
         ChVector<> resultant = VNULL;
-        GetLog() << "Fi= \n";
+        std::cout << "Fi= \n";
         for (int i = 0; i < Fi.size(); ++i) {
             if (i % 3 == 0) {
-                GetLog() << "-------" << i / 3 << "\n";
+                std::cout << "-------" << i / 3 << "\n";
                 ChVector<> fi = Fi.segment(i, 3);
                 resultant += fi;
             }
-            GetLog() << Fi(i) << "\n";
+            std::cout << Fi(i) << "\n";
         }
-        GetLog() << "resultant: " << resultant << "\n";
+        std::cout << "resultant: " << resultant << "\n";
         // system("pause");
     }
 
@@ -288,7 +288,8 @@ int main(int argc, char* argv[]) {
         auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(elasticity);
         material->SetDensity(density);
 
-        ChMeshFileLoader::BSTShellFromObjFile(mesh, GetChronoDataFile("models/sphere.obj").c_str(), material, thickness);
+        ChMeshFileLoader::BSTShellFromObjFile(mesh, GetChronoDataFile("models/sphere.obj").c_str(), material,
+                                              thickness);
 
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(0)))
             mnode->SetFixed(true);
@@ -378,13 +379,12 @@ int main(int argc, char* argv[]) {
         vsys->EndScene();
         sys.DoStepDynamics(timestep);
     }
-    
-    
+
     // EXPLICIT INTEGRATION
-    // 
+    //
     // Explicit integration is an alternative to implicit integration. If you want to test
     // the explicit integration, just delete the previous while(){...} loop and uncomment the following piece of code.
-    // 
+    //
     // As you may know, explicit integration does not have to solve systems with stiffness or damping matrices at each
     // time step, so each time step has less CPU overhead, but this comes at a cost: very short time steps must
     // be used otherwise the integration will diverge - especially if the system has high stiffness and/or low masses.
@@ -393,20 +393,20 @@ int main(int argc, char* argv[]) {
     //   ChTimestepperHeun              timestep = 0.0001   (Heun is like a 2nd order Runge Kutta)
     //   ChTimestepperRungeKuttaExpl    timestep = 0.0005   (the famous 4th order Runge Kutta, of course slower)
     //
-    // You will see that the explicit integrator does not introduce numerical damping unlike implicit integrators, 
+    // You will see that the explicit integrator does not introduce numerical damping unlike implicit integrators,
     // so the motion will be more oscillatory and undamped, thus amplificating the risk of divergence (if you add ù
     // structural damping, this might help with stability, by the way)
-    // 
+    //
     // In explicit integrators, you can optionally enable mass lumping via  SetDiagonalLumpingON() , just remember:
     // - this helps reducing CPU overhead because it does not lead to linear systems
     // - not all finite elements/bodies support this: nodes with non-diagonal inertias lead to approximation in lumping
-    // - to avoid linear systems, this option also enables "constraints by penalty". Constraints, if any, 
+    // - to avoid linear systems, this option also enables "constraints by penalty". Constraints, if any,
     //   will turn into penalty forces. Penalty factors can be set as optional parameters in SetDiagonalLumpingON(..)
-    //   It is not the case of this demo, but if you add constraints, you'll see that they will be satisfied approximately
-    //   with some oscillatory clearance. The higher the penalty, the smaller the amplitude of such clearances, but the higher
-    //   the risk of divergence.
-    // 
-    // Final tip: if the time step is extremely small, it is not worth while rendering all time steps, in some cases the 
+    //   It is not the case of this demo, but if you add constraints, you'll see that they will be satisfied
+    //   approximately with some oscillatory clearance. The higher the penalty, the smaller the amplitude of such
+    //   clearances, but the higher the risk of divergence.
+    //
+    // Final tip: if the time step is extremely small, it is not worth while rendering all time steps, in some cases the
     // video rendering could become the real bottleneck.
     /*
     auto explicit_timestepper = chrono_types::make_shared<ChTimestepperHeun>(&sys);

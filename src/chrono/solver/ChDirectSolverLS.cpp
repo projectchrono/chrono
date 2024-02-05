@@ -12,8 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/solver/ChDirectSolverLS.h"
+#include "chrono/core/ChLog.h"
 #include "chrono/core/ChSparsityPatternLearner.h"
+
+#include "chrono/solver/ChDirectSolverLS.h"
 
 #define SPM_DEF_SPARSITY 0.9  ///< default predicted sparsity (in [0,1])
 

@@ -33,7 +33,7 @@ using namespace chrono::particlefactory;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
 
         // Use the processor to count particle flow in the rectangle section:
         processor_flowcount.ProcessParticles(sys);
-        GetLog() << "Particles being flown across rectangle:" << counter->counter << "\n";
+        std::cout << "Particles being flown across rectangle:" << counter->counter << "\n";
 
         sys.DoStepDynamics(timestep);
     }

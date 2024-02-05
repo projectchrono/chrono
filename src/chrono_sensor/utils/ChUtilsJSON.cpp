@@ -50,12 +50,12 @@ namespace sensor {
 void ReadFileJSON(const std::string& filename, Document& d) {
     std::ifstream ifs(filename);
     if (!ifs.good()) {
-        GetLog() << "ERROR: Could not open JSON file: " << filename << "\n";
+        std::cerr << "ERROR: Could not open JSON file: " << filename << std::endl;
     } else {
         IStreamWrapper isw(ifs);
         d.ParseStream<ParseFlag::kParseCommentsFlag>(isw);
         if (d.IsNull()) {
-            GetLog() << "ERROR: Invalid JSON file: " << filename << "\n";
+            std::cerr << "ERROR: Invalid JSON file: " << filename << std::endl;
         }
     }
 }
@@ -431,7 +431,7 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
 
 std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
                                                    std::shared_ptr<chrono::ChBody> parent,
-                                                   chrono::ChFrame<double> offsetPose){
+                                                   chrono::ChFrame<double> offsetPose) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -445,7 +445,7 @@ std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
     // Extract the sensor type.
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
-    if (subtype.compare("Radar") != 0){
+    if (subtype.compare("Radar") != 0) {
         throw ChException("ChUtilsJSON::ReadRdarSensorJSON: Sensor type of " + subtype + " must be Radar");
     }
 
@@ -467,13 +467,12 @@ std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
         near_clip = properties["Near Clip"].GetFloat();
     }
 
-    auto radar = chrono_types::make_shared<ChRadarSensor>(
-        parent, updateRate, offsetPose, w, h, hfov, vfov, max_distance, near_clip
-    );
+    auto radar = chrono_types::make_shared<ChRadarSensor>(parent, updateRate, offsetPose, w, h, hfov, vfov,
+                                                          max_distance, near_clip);
 
     if (properties.HasMember("Collection Window")) {
         float exposure_time = properties["Collection Window"].GetFloat();
-    radar->SetCollectionWindow(exposure_time);
+        radar->SetCollectionWindow(exposure_time);
     }
 
     return radar;

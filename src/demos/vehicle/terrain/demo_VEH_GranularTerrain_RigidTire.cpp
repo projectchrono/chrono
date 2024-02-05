@@ -30,7 +30,7 @@ using namespace chrono;
 using namespace chrono::vehicle;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Simulation parameters
     double time_step = 5e-3;  // Integration time step (s)

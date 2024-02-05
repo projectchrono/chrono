@@ -146,7 +146,8 @@ void ChElementTetraCorot_4::ComputeStiffnessMatrix() {
             }
         }
     if (max_err > 1e-10)
-        GetLog() << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c << "\n";
+        std::cerr << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c
+                  << std::endl;
 }
 
 void ChElementTetraCorot_4::SetupInitial(ChSystem* system) {
@@ -178,8 +179,6 @@ void ChElementTetraCorot_4::UpdateRotation() {
     double det = ChPolarDecomposition<>::Compute(F, this->A, S, 1E-6);
     if (det < 0)
         this->A *= -1.0;
-
-    // GetLog() << "FEM rotation: \n" << A << "\n" ;
 }
 
 void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
@@ -210,8 +209,11 @@ void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
                 err_c = col;
             }
         }
+
     if (max_err > 1e-10)
-        GetLog() << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c << "\n";
+        std::cerr << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c
+                  << std::endl;
+
     max_err = 0;
     err_r = -1;
     err_c = -1;
@@ -227,9 +229,10 @@ void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
             if (CKCt(row, col) > maxval)
                 maxval = CKCt(row, col);
         }
+
     if (max_err > 1e-10)
-        GetLog() << "NONSYMMETRIC corotated matrix! err " << max_err << " at " << err_r << "," << err_c
-                 << ",   maxval=" << maxval << "\n";
+        std::cerr << "NONSYMMETRIC corotated matrix! err " << max_err << " at " << err_r << "," << err_c
+                  << ",   maxval=" << maxval << std::endl;
 
     // For K stiffness matrix and R damping matrix:
     double mkfactor = Kfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingK();

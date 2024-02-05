@@ -107,7 +107,7 @@ bool apply_detracking_force = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------------
     // Construct rig mechanism
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
                 break;
             }
             default:
-                GetLog() << "Track type NOT supported\n";
+                std::cout << "Track type NOT supported\n";
                 return 1;
         }
 

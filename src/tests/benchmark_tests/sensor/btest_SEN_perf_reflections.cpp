@@ -39,7 +39,7 @@ float end_time = 10.0f;
 
 int main(int argc, char* argv[]) {
     // for (int q = 0; q < 5; q++) {
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     // Create the system

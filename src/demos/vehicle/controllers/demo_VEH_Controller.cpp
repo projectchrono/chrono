@@ -123,7 +123,7 @@ int filter_window_size = 20;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // ----------------------
     // Create the Bezier path
@@ -373,10 +373,10 @@ int main(int argc, char* argv[]) {
 
         // Debug logging
         if (debug_output && sim_frame % debug_steps == 0) {
-            GetLog() << "driver acceleration:  " << acc_driver.x() << "  " << acc_driver.y() << "  " << acc_driver.z()
+            std::cout << "driver acceleration:  " << acc_driver.x() << "  " << acc_driver.y() << "  " << acc_driver.z()
                      << "\n";
-            GetLog() << "CG acceleration:      " << acc_CG.x() << "  " << acc_CG.y() << "  " << acc_CG.z() << "\n";
-            GetLog() << "\n";
+            std::cout << "CG acceleration:      " << acc_CG.x() << "  " << acc_CG.y() << "  " << acc_CG.z() << "\n";
+            std::cout << "\n";
         }
 
         // Update modules (process inputs from other modules)

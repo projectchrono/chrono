@@ -166,7 +166,7 @@ bool ChCascadeDoc::Load_STEP(const char* filename) {
     STEPCAFControl_Reader cafreader;
 
     if (!Interface_Static::SetCVal("xstep.cascade.unit", "M"))
-        GetLog() << "\n\n ERROR SETTING 'M' UNITS!!!..   \n\n\n";
+        std::cerr << "\n\n ERROR SETTING 'M' UNITS!!!..   \n\n" << std::endl;
 
     IFSelect_ReturnStatus aStatus = cafreader.ReadFile(filename);
 
@@ -181,21 +181,21 @@ class callback_CascadeDoc_dump : public ChCascadeDoc::callback_CascadeDoc {
   public:
     virtual bool ForShape(TopoDS_Shape& mshape, TopLoc_Location& mloc, char* mname, int mlevel, TDF_Label& mlabel) {
         for (int i = 0; i < mlevel; i++)
-            GetLog() << "  ";
-        GetLog() << "-Name :" << mname;
+            std::cout << "  ";
+        std::cout << "-Name :" << mname;
 
         if (mlevel == 0)
-            GetLog() << " (root)";
-        GetLog() << "\n";
+            std::cout << " (root)";
+        std::cout << "\n";
 
         for (int i = 0; i < mlevel; i++)
-            GetLog() << "  ";
+            std::cout << "  ";
         gp_XYZ mtr = mloc.Transformation().TranslationPart();
-        GetLog() << "      pos at: " << mtr.X() << " " << mtr.Y() << " " << mtr.Z() << " (absolute) \n";
+        std::cout << "      pos at: " << mtr.X() << " " << mtr.Y() << " " << mtr.Z() << " (absolute) \n";
         for (int i = 0; i < mlevel; i++)
-            GetLog() << "  ";
+            std::cout << "  ";
         gp_XYZ mtr2 = mshape.Location().Transformation().TranslationPart();
-        GetLog() << "      pos at: " << mtr2.X() << " " << mtr2.Y() << " " << mtr2.Z() << " (.Location)\n";
+        std::cout << "      pos at: " << mtr2.X() << " " << mtr2.Y() << " " << mtr2.Z() << " (.Location)\n";
 
         return true;
     }

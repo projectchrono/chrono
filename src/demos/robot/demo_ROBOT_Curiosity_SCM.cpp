@@ -82,7 +82,7 @@ const std::string out_dir = GetChronoOutputPath() + "CURIOSITY_SCM";
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Global parameter for moving patch size:
     double wheel_range = 0.5;

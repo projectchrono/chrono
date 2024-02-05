@@ -212,13 +212,13 @@ int main(int argc, char* argv[]) {
 
     switch (solver_type) {
         case DEFAULT_SOLVER: {
-            GetLog() << "Using DEFAULT solver.\n";
+            std::cout << "Using DEFAULT solver.\n";
             system.SetSolverMaxIterations(100);
             system.SetSolverForceTolerance(1e-6);
             break;
         }
         case MINRES_SOLVER: {
-            GetLog() << "Using MINRES solver.\n";
+            std::cout << "Using MINRES solver.\n";
             auto solver = chrono_types::make_shared<ChSolverMINRES>();
             system.SetSolver(solver);
             solver->SetMaxIterations(100);
@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
     // Setup integrator
     // ----------------
 
-    GetLog() << "Using HHT integrator.\n";
+    std::cout << "Using HHT integrator.\n";
     auto integrator = chrono_types::make_shared<ChTimestepperHHT>(&system);
     integrator->SetAlpha(0.0);
     integrator->SetMaxiters(100);
@@ -253,21 +253,21 @@ int main(int argc, char* argv[]) {
 
         system.GetContactContainer()->ComputeContactForces();
         ChVector<> contact_force = ground->GetContactForce();
-        GetLog() << "t = " << system.GetChTime() << " num contacts = " << system.GetContactContainer()->GetNcontacts()
+        std::cout << "t = " << system.GetChTime() << " num contacts = " << system.GetContactContainer()->GetNcontacts()
                  << "  force =  " << contact_force.z() << "\n";
-        GetLog() << "Vertical Displacement of a Node: " << nodeRef->GetPos().z() << "\n";
-        GetLog() << "Total Weight of Shell: " << total_weight << "\n";
+        std::cout << "Vertical Displacement of a Node: " << nodeRef->GetPos().z() << "\n";
+        std::cout << "Total Weight of Shell: " << total_weight << "\n";
 
         if (system.GetChTime() > start_time) {
             if (std::abs(1 - std::abs(contact_force.z()) / total_weight) > rtol) {
-                GetLog() << "t = " << system.GetChTime() << "  force =  " << contact_force.z() << "\n";
+                std::cout << "t = " << system.GetChTime() << "  force =  " << contact_force.z() << "\n";
                 passed = false;
                 break;
             }
         }
     }
 
-    GetLog() << "Test " << (passed ? "PASSED" : "FAILED") << "\n\n\n";
+    std::cout << "Test " << (passed ? "PASSED" : "FAILED") << "\n\n\n";
 
     return !passed;
 }

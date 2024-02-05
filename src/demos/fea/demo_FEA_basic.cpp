@@ -16,6 +16,7 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChLog.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
@@ -592,7 +593,7 @@ void test_5() {
 // Results will be simply text-formatted outputs in the console..
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     GetLog() << " Example: the FEM technology for finite elements \n\n\n";
 

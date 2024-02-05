@@ -18,8 +18,10 @@
 //
 // =============================================================================
 
-#include "chrono_parsers/ChParserPython.h"
+#include "chrono/core/ChLog.h"
 #include "chrono/core/ChRealtimeStep.h"
+
+#include "chrono_parsers/ChParserPython.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -28,7 +30,7 @@ using namespace chrono::parsers;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Cache current path to Chrono data files
     auto data_path = GetChronoDataPath();
@@ -52,7 +54,7 @@ int main(int argc, char* argv[]) {
         // escapement, that has been modeled in SolidWorks and saved using the Chrono SolidWorks add-in.
         my_python.ImportSolidWorksSystem(GetChronoDataFile("solidworks/swiss_escapement.py"), sys);
     } catch (const ChException& myerror) {
-        GetLog() << myerror.what();
+        std::cerr << myerror.what() << std::endl;
     }
 
     // At this point, the ChSystem has been populated with objects and assets loaded from the .py files.

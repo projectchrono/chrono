@@ -79,7 +79,7 @@ double step_size = 1e-3;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2018 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2018 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     const int heightVals[6] = {0, 50, 100, 150, 200, 250};
     int iObstacle = 1;
@@ -91,8 +91,8 @@ int main(int argc, char* argv[]) {
     switch (argc) {
         default:
         case 1:
-            GetLog() << "usage: demo_VEH_Shock [ObstacleNumber [Speed [TireNumberOneToFive]]\n\n";
-            GetLog() << "Using standard values for simulation:\n";
+            std::cout << "usage: demo_VEH_Shock [ObstacleNumber [Speed [TireNumberOneToFive]]\n\n";
+            std::cout << "Using standard values for simulation:\n";
             break;
         case 2:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 5) {
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
             }
             break;
     }
-    GetLog() << "Terrain No. = " << iObstacle << " (" << heightVals[iObstacle] << " mm Obstacle Height)\n"
+    std::cout << "Terrain No. = " << iObstacle << " (" << heightVals[iObstacle] << " mm Obstacle Height)\n"
              << "Speed       = " << target_speed << " m/s\n"
              << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka89, 4=Pacejka89) = " << iTire << "\n";
 
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::NONE);
 
-    GetLog() << "\nBe patient - startup may take some time... \n";
+    std::cout << "\nBe patient - startup may take some time... \n";
 
     // Associate a collision system
     vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -294,22 +294,22 @@ int main(int argc, char* argv[]) {
     double az_limit = 2.5;
     double az = seat_logger.GetLegacyAz();
 
-    GetLog() << "Shock Simulation Results #1 (ISO 2631-5 Method):\n";
-    GetLog() << "  Significant Speed                        Vsig = " << target_speed << " m/s\n";
-    GetLog() << "  Equivalent Static Spine Compressive Stress Se = " << se << " MPa\n";
+    std::cout << "Shock Simulation Results #1 (ISO 2631-5 Method):\n";
+    std::cout << "  Significant Speed                        Vsig = " << target_speed << " m/s\n";
+    std::cout << "  Equivalent Static Spine Compressive Stress Se = " << se << " MPa\n";
     if (se <= se_low) {
-        GetLog() << "Se <= " << se_low << " MPa (ok) - low risc of health effect, below limit for average occupants\n";
+        std::cout << "Se <= " << se_low << " MPa (ok) - low risc of health effect, below limit for average occupants\n";
     } else if (se >= se_high) {
-        GetLog() << "Se >= " << se_high << " MPa - severe risc of health effect!\n";
+        std::cout << "Se >= " << se_high << " MPa - severe risc of health effect!\n";
     } else {
-        GetLog() << "Se is between [" << se_low << ";" << se_high << "] - risc of health effects, above limit!\n";
+        std::cout << "Se is between [" << se_low << ";" << se_high << "] - risc of health effects, above limit!\n";
     }
-    GetLog() << "\nShock Simulation Results #2 (Traditional NRMM Method):\n";
-    GetLog() << "  Maximum Vertical Seat Acceleration = " << az << " g\n";
+    std::cout << "\nShock Simulation Results #2 (Traditional NRMM Method):\n";
+    std::cout << "  Maximum Vertical Seat Acceleration = " << az << " g\n";
     if (az <= az_limit) {
-        GetLog() << "Az <= " << az_limit << " g (ok)\n";
+        std::cout << "Az <= " << az_limit << " g (ok)\n";
     } else {
-        GetLog() << "Az > " << az_limit << " g - severe risk for average occupant!\n";
+        std::cout << "Az > " << az_limit << " g - severe risk for average occupant!\n";
     }
     return 0;
 }

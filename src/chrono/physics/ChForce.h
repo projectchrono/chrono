@@ -22,7 +22,6 @@
 #include <iostream>
 #include <string>
 
-#include "chrono/core/ChLog.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/motion_functions/ChFunction.h"
 #include "chrono/physics/ChObject.h"

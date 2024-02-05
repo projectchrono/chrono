@@ -431,7 +431,7 @@ class MyEventReceiver : public irr::IEventReceiver {
 };
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Directory for output data
     if (!filesystem::create_directory(filesystem::path(out_dir))) {

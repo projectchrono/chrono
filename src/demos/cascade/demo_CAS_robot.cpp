@@ -17,6 +17,7 @@
 //   - make Chrono::Engine objects out of those parts
 // =============================================================================
 
+#include "chrono/core/ChLog.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"

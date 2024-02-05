@@ -105,7 +105,7 @@ bool povray_output = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------
     // Create systems
@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     if (debug_output) {
-        GetLog() << "\n\n============ System Configuration ============\n";
+        std::cout << "\n\n============ System Configuration ============\n";
         my_bus.LogHardpointLocations();
     }
 
@@ -318,8 +318,8 @@ int main(int argc, char* argv[]) {
 
         // Debug logging
         if (debug_output && step_number % debug_steps == 0) {
-            GetLog() << "\n\n============ System Information ============\n";
-            GetLog() << "Time = " << time << "\n\n";
+            std::cout << "\n\n============ System Information ============\n";
+            std::cout << "Time = " << time << "\n\n";
             my_bus.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
         }
 

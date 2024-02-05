@@ -69,7 +69,7 @@ class MySpringForce : public ChLinkTSDA::ForceFunctor {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
     sys.Set_G_acc(ChVector<>(0, 0, 0));
@@ -213,11 +213,11 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         if (frame % 50 == 0) {
-            GetLog() << sys.GetChTime() << "  " << spring_1->GetLength() << "  " << spring_1->GetVelocity() << "  "
-                     << spring_1->GetForce() << "\n";
+            std::cout << sys.GetChTime() << "  " << spring_1->GetLength() << "  " << spring_1->GetVelocity() << "  "
+                      << spring_1->GetForce() << "\n";
 
-            GetLog() << "            " << spring_2->GetLength() << "  " << spring_2->GetVelocity() << "  "
-                     << spring_2->GetForce() << "\n\n";
+            std::cout << "            " << spring_2->GetLength() << "  " << spring_2->GetVelocity() << "  "
+                      << spring_2->GetForce() << "\n\n";
         }
 
         sys.DoStepDynamics(timestep);

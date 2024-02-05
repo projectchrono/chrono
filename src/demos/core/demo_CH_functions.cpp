@@ -26,7 +26,7 @@
 using namespace chrono;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_FUNCTIONS";
@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     // EXAMPLE 1: create a ramp ChFunction, set properties, evaluate it.
     //
 
-    GetLog() << "==== Test 1...\n\n";
+    std::cout << "==== Test 1...\n\n";
 
     ChFunction_Ramp f_ramp;
 
@@ -51,13 +51,13 @@ int main(int argc, char* argv[]) {
     // Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
     double ydx_ramp = f_ramp.Get_y_dx(10);
 
-    GetLog() << "   ChFunction_Ramp at x=0: y=" << y_ramp << "  dy/dx=" << ydx_ramp << "\n\n";
+    std::cout << "   ChFunction_Ramp at x=0: y=" << y_ramp << "  dy/dx=" << ydx_ramp << "\n\n";
 
     //
     // EXAMPLE 2: save values of a sine ChFunction  into a file
     //
 
-    GetLog() << "==== Test 2...\n\n";
+    std::cout << "==== Test 2...\n\n";
 
     ChFunction_Sine f_sine;
 
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     // EXAMPLE 3: use a custom function (see class at the beginning of this file)
     //
 
-    GetLog() << "==== Test 3...\n\n";
+    std::cout << "==== Test 3...\n\n";
 
     // The following class will be used as an example of how
     // how you can create custom functions based on the ChFunction interface.
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     // EXAMPLE 4: mount some functions in a sequence using ChFunction_Sequence
     //
 
-    GetLog() << "==== Test 4...\n\n";
+    std::cout << "==== Test 4...\n\n";
 
     ChFunction_Sequence f_sequence;
 
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     // EXAMPLE 5: a repeating sequence
     //
 
-    GetLog() << "==== Test 5...\n\n";
+    std::cout << "==== Test 5...\n\n";
 
     auto f_part1 = chrono_types::make_shared<ChFunction_Ramp>();
     f_part1->Set_ang(.50);

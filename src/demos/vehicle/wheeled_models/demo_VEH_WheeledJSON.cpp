@@ -325,7 +325,7 @@ const std::string out_dir = GetChronoOutputPath() + "WHEELED_JSON";
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Select vehicle model
     std::vector<std::pair<std::shared_ptr<Vehicle_Model>, std::string>> models = {

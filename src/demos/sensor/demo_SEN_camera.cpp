@@ -97,7 +97,7 @@ bool vis = true;
 const std::string out_dir = "SENSOR_OUTPUT/CAM_DEMO/";
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     // Create the system

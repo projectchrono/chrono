@@ -51,7 +51,7 @@ class MySpringTorque : public ChLinkRSDA::TorqueFunctor {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
     sys.Set_G_acc(ChVector<>(0, 0, 0));
@@ -139,8 +139,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     int frame = 0;
 
-    GetLog().SetNumFormat("%10.3f");
-
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
@@ -149,14 +147,14 @@ int main(int argc, char* argv[]) {
         sys.DoStepDynamics(1e-3);
 
         if (frame % 50 == 0) {
-            GetLog() << sys.GetChTime() << "\n";
-            GetLog() << "Body position" << body->GetPos() << "\n";
-            GetLog() << "Body lin. vel." << body->GetPos_dt() << "\n";
-            GetLog() << "Body absolute ang. vel." << body->GetWvel_par() << "\n";
-            GetLog() << "Body local ang. vel." << body->GetWvel_loc() << "\n";
-            GetLog() << "Rot. spring-damper  " << spring->GetAngle() << "  " << spring->GetVelocity() << "  "
-                     << spring->GetTorque() << "\n";
-            GetLog() << "---------------\n\n";
+            std::cout << sys.GetChTime() << "\n";
+            std::cout << "Body position" << body->GetPos() << "\n";
+            std::cout << "Body lin. vel." << body->GetPos_dt() << "\n";
+            std::cout << "Body absolute ang. vel." << body->GetWvel_par() << "\n";
+            std::cout << "Body local ang. vel." << body->GetWvel_loc() << "\n";
+            std::cout << "Rot. spring-damper  " << spring->GetAngle() << "  " << spring->GetVelocity() << "  "
+                      << spring->GetTorque() << "\n";
+            std::cout << "---------------\n\n";
         }
 
         frame++;

@@ -18,7 +18,6 @@
 
 #include <cmath>
 
-#include "chrono/core/ChLog.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChFrameMoving.h"

@@ -41,7 +41,7 @@ using namespace chrono;
 using namespace postprocess;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
@@ -354,7 +354,7 @@ int main(int argc, char* argv[]) {
     while (sys.GetChTime() < 1.5) {
         sys.DoStepDynamics(0.01);
 
-        GetLog() << "time= " << sys.GetChTime() << "\n";
+        std::cout << "time= " << sys.GetChTime() << std::endl;
 
         // 2) Create the incremental nnnnn.py files in output/ dir, that will be load
         //    by the Blender chrono_import add-on.

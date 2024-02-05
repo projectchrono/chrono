@@ -107,7 +107,7 @@ const std::string pov_dir = out_dir + "/POVRAY";
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------------------
     // Create the vehicle subsystems
@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
     vehicle.EnableRealtime(true);
 
 #ifdef DEBUG_LOG
-    GetLog() << "\n\n============ System Configuration ============\n";
+    std::cout << "\n\n============ System Configuration ============\n";
     vehicle.LogHardpointLocations();
 #endif
 
@@ -256,8 +256,8 @@ int main(int argc, char* argv[]) {
         int output_steps = (int)std::ceil(output_step_size / step_size);
 
         if (step_number % output_steps == 0) {
-            GetLog() << "\n\n============ System Information ============\n";
-            GetLog() << "Time = " << time << "\n\n";
+            std::cout << "\n\n============ System Information ============\n";
+            std::cout << "Time = " << time << "\n\n";
             vehicle.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
         }
 #endif

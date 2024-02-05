@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChLog.h"
+
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
@@ -474,7 +476,7 @@ void test_4() {
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // test_1();
     // test_2();

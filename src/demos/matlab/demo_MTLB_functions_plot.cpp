@@ -23,13 +23,13 @@
 using namespace chrono;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Better put the Matlab stuff inside a try{}, since it may throw exception if
     // the engine is not started (because Matlab not properly installed)
     try {
-        GetLog() << "PERFORM TESTS OF MATLAB<->CHRONOENGINE INTERACTION\n\n";
-        GetLog() << "(please wait few seconds: Matlab engine must be loaded)\n\n";
+        std::cout << "PERFORM TESTS OF MATLAB<->CHRONOENGINE INTERACTION\n\n";
+        std::cout << "(please wait few seconds: Matlab engine must be loaded)\n\n";
 
         // This is the object that you can use to access the Matlab engine.
         // As soon as created, it loads the Matlab engine (if troubles happen, it
@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 1: create a ramp ChFunction, set properties, evaluate it.
         //
 
-        GetLog() << "==== Test 1...\n\n";
+        std::cout << "==== Test 1...\n\n";
 
         ChFunction_Ramp f_ramp;
 
@@ -52,13 +52,13 @@ int main(int argc, char* argv[]) {
         // Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
         double ydx = f_ramp.Get_y_dx(10);
 
-        GetLog() << "   ChFunction_Ramp at x=0: y=" << y << "  dy/dx=" << ydx << "\n\n";
+        std::cout << "   ChFunction_Ramp at x=0: y=" << y << "  dy/dx=" << ydx << "\n\n";
 
         //
         // EXAMPLE 2: plot a sine ChFunction
         //
 
-        GetLog() << "==== Test 2...\n\n";
+        std::cout << "==== Test 2...\n\n";
 
         ChFunction_Sine f_sine;
 
@@ -90,10 +90,10 @@ int main(int argc, char* argv[]) {
         matlab_engine.Eval("grid on; plot(x_array,ydxdx_array,'r');");
         matlab_engine.Eval("legend ('y','dy/dx','ddy/dxdx');");
 
-        GetLog() << "Press a key to finish... \n";
+        std::cout << "Press a key to finish... \n";
         getchar();  // pause until key..
     } catch (ChException mex) {
-        GetLog() << mex.what();  // Print error on console, if Matlab did not start.
+        std::cerr << mex.what() << std::endl;  // Print error on console, if Matlab did not start.
     }
 
     return 0;

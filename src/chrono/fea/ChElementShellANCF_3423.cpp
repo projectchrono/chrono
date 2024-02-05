@@ -632,7 +632,7 @@ void ChElementShellANCF_3423::ComputeInternalForces(ChVectorDynamic<>& Fi) {
             alphaEAS -= sol;
 
             if (count >= 2)
-                GetLog() << "  count " << count << "  NormHE " << norm_HE << "\n";
+                std::cerr << "  count " << count << "  NormHE " << norm_HE << std::endl;
         }
 
         // Accumulate internal force

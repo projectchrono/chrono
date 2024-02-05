@@ -495,7 +495,7 @@ void ChContactContainerSMC::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
 
 // OBSOLETE
 void ChContactContainerSMC::ConstraintsFbLoadForces(double factor) {
-    GetLog() << "ChContactContainerSMC::ConstraintsFbLoadForces OBSOLETE - use new bookkeeping! \n";
+    std::cerr << "ChContactContainerSMC::ConstraintsFbLoadForces OBSOLETE - use new bookkeeping!" << std::endl;
 }
 
 void ChContactContainerSMC::ArchiveOut(ChArchiveOut& marchive) {

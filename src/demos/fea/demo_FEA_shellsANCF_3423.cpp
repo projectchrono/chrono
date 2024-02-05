@@ -31,15 +31,15 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, 0, -9.8));
 
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "     ANCF Shell Elements demo with implicit integration    \n";
-    GetLog() << "-----------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------\n";
+    std::cout << "     ANCF Shell Elements demo with implicit integration    \n";
+    std::cout << "-----------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();

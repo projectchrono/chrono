@@ -36,7 +36,7 @@ using namespace chrono;
 //   demo_archive.cpp 
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
     
     // To write something to the console, use the chrono::GetLog()
     // statement, which returns a global output stream to the console (just

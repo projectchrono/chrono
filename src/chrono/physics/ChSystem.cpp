@@ -14,6 +14,8 @@
 
 #include <algorithm>
 
+#include "chrono/core/ChLog.h"
+
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #ifdef CHRONO_COLLISION
     #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"

@@ -34,7 +34,7 @@ using namespace chrono::irrlicht;
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
 
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
             // Output the shaft angular velocities at the current time
             double omega_1 = shaft_1->GetWvel_loc().z();
             double omega_2 = shaft_2->GetWvel_loc().z();
-            GetLog() << sys.GetChTime() << "   " << omega_1 << "   " << omega_2 << "\n";
+            std::cout << sys.GetChTime() << "   " << omega_1 << "   " << omega_2 << "\n";
         }
 
         sys.DoStepDynamics(timestep);

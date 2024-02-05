@@ -98,7 +98,7 @@ void draw_affected_triangles(ChVisualSystemIrrlicht& vis,
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Global parameter for tire:
     double tire_rad = 0.8;
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
                                          GetChronoDataFile("models/tractor_wheel/tractor_wheel_coarse.INP").c_str(),
                                          mmaterial, node_sets, tire_center, tire_alignment);
     } catch (const ChException& myerr) {
-        GetLog() << myerr.what();
+        std::cerr << myerr.what() << std::endl;
         return 0;
     }
 

@@ -37,7 +37,7 @@ using namespace chrono::fea;
 using namespace chrono::vsg3d;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono system
     ChSystemSMC sys;
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
         ChMeshFileLoader::FromTetGenFile(mesh, GetChronoDataFile("fea/beam.node").c_str(),
                                          GetChronoDataFile("fea/beam.ele").c_str(), material);
     } catch (const ChException& myerr) {
-        GetLog() << myerr.what();
+        std::cerr << myerr.what() << std::endl;
         return 0;
     }
 

@@ -847,7 +847,7 @@ void example5(const std::string& out_dir) {
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     GetLog() << "CHRONO demo about low-level time integration of differential equations: \n\n";
 

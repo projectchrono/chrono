@@ -151,7 +151,7 @@ double t_end = t_hold + t_acc + 60.0;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
     ChFunction_Recorder steeringGear;
     steeringGear.AddPoint(-1.0, -648.0);
     steeringGear.AddPoint(0.0, 0.0);
@@ -163,12 +163,12 @@ int main(int argc, char* argv[]) {
             case 'L':
             default:
                 turn_direction_left = true;
-                GetLog() << "Turn left selected\n";
+                std::cout << "Turn left selected\n";
                 break;
             case 'r':
             case 'R':
                 turn_direction_left = false;
-                GetLog() << "Turn right selected\n";
+                std::cout << "Turn right selected\n";
                 break;
         }
     } else if (argc == 3) {
@@ -177,12 +177,12 @@ int main(int argc, char* argv[]) {
             case 'L':
             default:
                 turn_direction_left = true;
-                GetLog() << "Turn left selected\n";
+                std::cout << "Turn left selected\n";
                 break;
             case 'r':
             case 'R':
                 turn_direction_left = false;
-                GetLog() << "Turn right selected\n";
+                std::cout << "Turn right selected\n";
                 break;
         }
         switch (argv[2][0]) {
@@ -196,10 +196,10 @@ int main(int argc, char* argv[]) {
                 tire_model = TireModelType::TMEASY;
                 break;
             default:
-                GetLog() << "Unsupported tire model selected\n";
-                GetLog() << " 1 : Pac02Tire\n";
-                GetLog() << " 2 : TMsimple\n";
-                GetLog() << " 3 : TMeasy\n";
+                std::cout << "Unsupported tire model selected\n";
+                std::cout << " 1 : Pac02Tire\n";
+                std::cout << " 2 : TMsimple\n";
+                std::cout << " 3 : TMeasy\n";
                 return 99;
         }
     }
@@ -377,7 +377,7 @@ int main(int argc, char* argv[]) {
     feda.GetVehicle().LogSubsystemTypes();
 
     if (debug_output) {
-        GetLog() << "\n\n============ System Configuration ============\n";
+        std::cout << "\n\n============ System Configuration ============\n";
         feda.LogHardpointLocations();
     }
 
@@ -414,18 +414,18 @@ int main(int argc, char* argv[]) {
 
         // Engine Power Limit reached
         if (time > t_hold && real_throttle == 1.0) {
-            GetLog() << "Manoever ended because engine power limit is reached.\n";
+            std::cout << "Manoever ended because engine power limit is reached.\n";
             break;
         }
 
         // End simulation
         if (time >= t_end) {
-            GetLog() << "Manoever ended because max. time " << t_end << " s is reached.\n";
+            std::cout << "Manoever ended because max. time " << t_end << " s is reached.\n";
             break;
         }
 
         if (desired_speed > max_speed) {
-            GetLog() << "Manoever ended because max. speed " << max_speed << " m/s is reached.\n";
+            std::cout << "Manoever ended because max. speed " << max_speed << " m/s is reached.\n";
             break;
         }
 
@@ -447,13 +447,13 @@ int main(int argc, char* argv[]) {
 
         // Debug logging
         if (debug_output && step_number % debug_steps == 0) {
-            GetLog() << "\n\n============ System Information ============\n";
-            GetLog() << "Time = " << time << "\n\n";
+            std::cout << "\n\n============ System Information ============\n";
+            std::cout << "Time = " << time << "\n\n";
             feda.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
 
             auto marker_driver = feda.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
             auto marker_com = feda.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
-            GetLog() << "Markers\n";
+            std::cout << "Markers\n";
             std::cout << "  Driver loc:      " << marker_driver.x() << " " << marker_driver.y() << " "
                       << marker_driver.z() << std::endl;
             std::cout << "  Chassis COM loc: " << marker_com.x() << " " << marker_com.y() << " " << marker_com.z()
@@ -484,7 +484,7 @@ int main(int argc, char* argv[]) {
     // data at manoever end
     double vel_kmh = real_speed * 3.6;
     double vel_mph = vel_kmh / 1.602;
-    GetLog() << "Reached vehicle speed = " << vel_kmh << " km/h (" << vel_mph << " mph)\n";
-    GetLog() << "Reached lateral acceleration = " << real_accy2 / 9.81 << " g\n";
+    std::cout << "Reached vehicle speed = " << vel_kmh << " km/h (" << vel_mph << " mph)\n";
+    std::cout << "Reached lateral acceleration = " << real_accy2 / 9.81 << " g\n";
     return 0;
 }

@@ -11,6 +11,10 @@
 // =============================================================================
 // Authors: Alessandro Tasora
 // =============================================================================
+//
+// Based on the work of Liyang Yu in the tutorial of Codeproject
+//
+// =============================================================================
 
 #ifndef CHSOCKET_H
 #define CHSOCKET_H
@@ -25,10 +29,11 @@
     #define UNIX
 #endif
 
-// Based on the work of Liyang Yu in the tutorial of Codeproject
+#include <string>
+#include <iostream>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChLog.h"
+#include "chrono/core/ChException.h"
 
 #ifdef UNIX
     #include <sys/socket.h>
@@ -40,7 +45,6 @@
     #include <netinet/in.h>
     #include <iostream>
     #include <sys/types.h>
-    //#include <stropts.h>
     #include <sys/ioctl.h>
     #include <cstdio>
     #include <cstring>
@@ -246,9 +250,9 @@ class ChExceptionSocket : public ChException {
     // std::string& getErrMsg() { return std::string(this->what()); }
 
     void response() {
-        GetLog() << "TCP socket error: \n";
-        GetLog() << "		==> error code: " << errorCode << "\n";
-        GetLog() << "		==> error message: " << this->what() << "\n";
+        std::cerr << "TCP socket error:" << std::endl;
+        std::cerr << "		==> error code: " << errorCode << std::endl;
+        std::cerr << "		==> error message: " << what() << std::endl;
     }
 
   private:

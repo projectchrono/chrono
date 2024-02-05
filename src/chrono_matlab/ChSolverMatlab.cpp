@@ -50,14 +50,14 @@ double ChSolverMatlab::Solve(ChSystemDescriptor& sysd) {
 
     ChMatrixDynamic<> mx;
     if (!mengine->GetVariable(mx, "mdx"))
-        GetLog() << "ERROR!! cannot fetch mdx";
+        std::cerr << "ERROR!! cannot fetch mdx" << std::endl;
 
     sysd.FromVectorToUnknowns(mx);
 
     mengine->Eval("resid = norm(mdZ*mdx - mdd);");
     ChMatrixDynamic<> mres;
     mengine->GetVariable(mres, "resid");
-    GetLog() << " Matlab computed residual:" << mres(0, 0) << "\n";
+    std::cout << " Matlab computed residual:" << mres(0, 0) << std::endl;
 
     return 0;
 }

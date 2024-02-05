@@ -164,7 +164,7 @@ class MyDriver {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     const double mph_to_mps = 0.44704;
     const double mps_to_mph = 1.0/mph_to_mps;
@@ -373,15 +373,15 @@ int main(int argc, char* argv[]) {
         // Increment simulation frame number
         sim_frame++;
         if(xpos.x() > max_travel) {
-            GetLog() << "Front wheels at x = " << xpos.x() << " m\n";
-            GetLog() << "End of rms surface reached. Regular simulation end.\n";
+            std::cout << "Front wheels at x = " << xpos.x() << " m\n";
+            std::cout << "End of rms surface reached. Regular simulation end.\n";
             break;
         }
     }
 
     double velAvg = mps_to_mph * cushion.GetAVGSpeed();
     double absPow = cushion.GetAbsorbedPowerVertical();
-    GetLog() << "Average Velocity = " << velAvg << " miles/h\n";
-    GetLog() << "Absorbed Power = " << absPow << " W\n";
+    std::cout << "Average Velocity = " << velAvg << " miles/h\n";
+    std::cout << "Absorbed Power = " << absPow << " W\n";
     return 0;
 }

@@ -31,7 +31,7 @@ using namespace chrono;
 using namespace postprocess;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     GetLog() << "CHRONO demo that launches GNUplot for plotting graphs: \n\n";
 

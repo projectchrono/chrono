@@ -88,7 +88,7 @@ void ChLinkTrajectory::UpdateTime(double time) {
         deltaC_dt.rot = QNULL;
         deltaC_dtdt.rot = QNULL;
     } else {
-        GetLog() << "NO TRAJECTORY \n";
+        std::cerr << "NO TRAJECTORY" << std::endl;
     }
 }
 

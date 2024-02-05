@@ -26,6 +26,8 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChLog.h"
+
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLoadContainer.h"
@@ -60,7 +62,7 @@ void DPCapPress();
 const std::string out_dir = GetChronoOutputPath() + "FEA_BRICK9";
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) the output directory
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -89,10 +91,10 @@ void DPCapPress() {
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
     sys.Set_G_acc(ChVector<>(0, 0, 0));
 
-    GetLog() << "-----------------------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------------------\n";
-    GetLog() << "     9-Node, Large Deformation Brick Element with implicit integration \n";
-    GetLog() << "-----------------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------------\n";
+    std::cout << "     9-Node, Large Deformation Brick Element with implicit integration \n";
+    std::cout << "-----------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();

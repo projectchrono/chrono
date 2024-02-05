@@ -41,7 +41,7 @@ bool vis = true;
 
 int main(int argc, char* argv[]) {
     for (int q = 2; q <= 3; q++) {
-        GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+        std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
         // -----------------
         // Create the system

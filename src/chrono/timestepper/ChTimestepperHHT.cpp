@@ -14,6 +14,7 @@
 
 #include <cmath>
 
+#include "chrono/core/ChLog.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
 
 namespace chrono {

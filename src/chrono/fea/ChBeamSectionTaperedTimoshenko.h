@@ -15,6 +15,7 @@
 #ifndef CHBEAMSECTIONTAPEREDTIMOSHENKO_H
 #define CHBEAMSECTIONTAPEREDTIMOSHENKO_H
 
+#include "chrono/core/ChLog.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/fea/ChBeamSectionEuler.h"
 

@@ -95,7 +95,7 @@ std::string out_dir = GetChronoOutputPath() + "HMMWV_ACCELERATION";
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     if (terrain_type == TerrainType::FLAT &&
         (tire_model == TireModelType::RIGID || tire_model == TireModelType::RIGID_MESH)) {

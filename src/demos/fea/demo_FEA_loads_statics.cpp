@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChLog.h"
+
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
@@ -417,7 +419,7 @@ void test_1() {
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     test_1();
 

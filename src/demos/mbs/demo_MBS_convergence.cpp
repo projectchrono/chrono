@@ -92,7 +92,7 @@ void create_items(ChSystem& sys) {
             totmass += rigidBody->GetMass();
         }
 
-        GetLog() << "Expected contact force at bottom F=" << (totmass * sys.Get_G_acc().y()) << "\n";
+        std::cout << "Expected contact force at bottom F=" << (totmass * sys.Get_G_acc().y()) << "\n";
     }
 
     if (do_wall) {
@@ -127,8 +127,8 @@ void create_items(ChSystem& sys) {
 
         sys.Add(rigidHeavy);
 
-        GetLog() << "Expected contact deformation at side sphere="
-                 << (rigidHeavy->GetMass() * sys.Get_G_acc().y()) * material->GetCompliance() << "\n";
+        std::cout << "Expected contact deformation at side sphere="
+                  << (rigidHeavy->GetMass() * sys.Get_G_acc().y()) * material->GetCompliance() << "\n";
     }
 
     // Create the floor using a fixed rigid body of 'box' type:
@@ -161,7 +161,7 @@ void align_spheres() {
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a ChronoENGINE physical system
     ChSystemNSC sys;

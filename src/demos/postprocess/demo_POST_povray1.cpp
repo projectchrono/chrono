@@ -34,7 +34,7 @@ using namespace chrono;
 using namespace chrono::postprocess;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create output directory
     std::string out_dir = GetChronoOutputPath() + "POVRAY_1";
@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
     while (sys.GetChTime() < 1.5) {
         sys.DoStepDynamics(0.01);
 
-        GetLog() << "time= " << sys.GetChTime() << "\n";
+        std::cout << "time= " << sys.GetChTime() << std::endl;
 
         // 2) Create the incremental nnnn.dat and nnnn.pov files that will be load
         //    by the pov .ini script in POV-Ray (do this at each simulation timestep)

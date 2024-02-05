@@ -337,7 +337,7 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticst
                 dGdS.YZ() = mstress.YZ() / devsq;
                 dGdS.XZ() = mstress.XZ() / devsq;
             } else {
-                GetLog() << "      ... axial singularity - SHOULD NEVER OCCUR  - handled by polar cone\n";
+                std::cout << "      ... axial singularity - SHOULD NEVER OCCUR  - handled by polar cone" << std::endl;
                 dFdS.setZero();
                 dFdS.XX() = 1;
                 dFdS.YY() = 1;

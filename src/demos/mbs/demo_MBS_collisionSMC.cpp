@@ -157,7 +157,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Simulation and rendering time-step
     double time_step = 1e-4;

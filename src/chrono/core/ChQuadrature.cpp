@@ -16,8 +16,8 @@
 #include <cmath>
 #include <cfloat>
 
-#include "chrono/core/ChQuadrature.h"
 #include "chrono/core/ChLog.h"
+#include "chrono/core/ChQuadrature.h"
 #include "chrono/core/ChMathematics.h"
 
 namespace chrono {

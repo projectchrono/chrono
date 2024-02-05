@@ -28,8 +28,8 @@
 #include "chrono/serialization/ChArchiveExplorer.h"
 
 #include "chrono/core/ChGlobal.h"
-
 #include "chrono/core/ChLog.h"
+
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix.h"
@@ -128,7 +128,7 @@ class myEmployeeBoss : public myEmployee {
     bool is_dumb;
     myEmployee slave;
 
-    myEmployeeBoss(const myEmployeeBoss& other) { GetLog() << "------------------copy a boss \n"; }
+    myEmployeeBoss(const myEmployeeBoss& other) { std::cout << "------------------copy a boss" << std::endl; }
 
     myEmployeeBoss(int m_age = 38, double m_wages = 9000.4, bool m_is_dumb = true)
         : myEmployee(m_age, m_wages), is_dumb(m_is_dumb), slave(21, 300){};
@@ -436,10 +436,10 @@ void my_deserialization_example(ChArchiveIn& marchive) {
 
     // Just for safety, log some of the restored data:
 
-    GetLog() << "\n\nSome results of deserialization I/O: \n\n"
+    std::cout << "\n\nSome results of deserialization I/O: \n\n"
              << m_text << " \n"
              << m_int << " \n"
-             << m_double << "\n";
+             << m_double << std::endl;
     GetLog() << m_matr_NM;
     GetLog() << m_vect;
     GetLog() << m_quat;
@@ -607,7 +607,7 @@ void my_reflection_example() {
 
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     GetLog() << "CHRONO foundation classes demo: archives (serialization)\n\n";
 

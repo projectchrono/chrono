@@ -12,8 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-// Include some headers used by this tutorial...
-
+#include "chrono/core/ChLog.h"
 #include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChMatrix.h"
 
@@ -412,7 +411,7 @@ void test_3(const std::string& out_dir) {
 // Results will be simply text-formatted outputs in the console..
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_SOLVER";

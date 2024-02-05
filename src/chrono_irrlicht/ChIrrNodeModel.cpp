@@ -10,7 +10,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChLog.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono_irrlicht/ChIrrNodeModel.h"
 #include "chrono_irrlicht/ChIrrNodeShape.h"
@@ -40,7 +39,6 @@ void ChIrrNodeModel::OnRegisterSceneNode() {
 }
 
 scene::ISceneNode* ChIrrNodeModel::clone(scene::ISceneNode* new_parent, scene::ISceneManager* new_manager) {
-    // GetLog() << "Cloning!\n";
     if (!new_parent)
         new_parent = Parent;
     if (!new_manager)

@@ -56,7 +56,7 @@ class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
 };
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create the Chrono system, bodies, and collison shapes
     ChSystemNSC sys;

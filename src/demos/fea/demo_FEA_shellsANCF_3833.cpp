@@ -32,16 +32,16 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     double time_step = 1e-3;
 
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    GetLog() << "-----------------------------------------------------------------\n";
-    GetLog() << " Higher order ANCF Shell Element demo with different constraints \n";
-    GetLog() << "-----------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------\n";
+    std::cout << " Higher order ANCF Shell Element demo with different constraints \n";
+    std::cout << "-----------------------------------------------------------------\n";
 
     // Mesh properties
     double length = 1.0;       // m
@@ -283,16 +283,16 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         std::cout << "Time: " << sys.GetChTime() << "s. \n";
 
-        GetLog() << "  Beam1 Tip Node B vertical position:    " << nodetipB_beam1->GetPos().z() << "\n";
-        GetLog() << "  Beam2 Tip Node B vertical position:    " << nodetipB_beam2->GetPos().z() << "\n";
-        GetLog() << "  Delta vertical position (Beam1-Beam2): "
-                 << nodetipB_beam1->GetPos().z() - nodetipB_beam2->GetPos().z() << "\n";
-        GetLog() << "  Beam2 Base Node A Coordinates (xyz):   " << nodebaseA_beam2->GetPos().x() << " "
-                 << nodebaseA_beam2->GetPos().y() << " " << nodebaseA_beam2->GetPos().z() << "\n";
-        GetLog() << "  Beam2 Base Node A Coordinates (D):     " << nodebaseA_beam2->GetD().x() << " "
-                 << nodebaseA_beam2->GetD().y() << " " << nodebaseA_beam2->GetD().z() << "\n";
-        GetLog() << "  Beam2 Base Node A Coordinates (DD):    " << nodebaseA_beam2->GetDD().x() << " "
-                 << nodebaseA_beam2->GetDD().y() << " " << nodebaseA_beam2->GetDD().z() << "\n";
+        std::cout << "  Beam1 Tip Node B vertical position:    " << nodetipB_beam1->GetPos().z() << "\n";
+        std::cout << "  Beam2 Tip Node B vertical position:    " << nodetipB_beam2->GetPos().z() << "\n";
+        std::cout << "  Delta vertical position (Beam1-Beam2): "
+                  << nodetipB_beam1->GetPos().z() - nodetipB_beam2->GetPos().z() << "\n";
+        std::cout << "  Beam2 Base Node A Coordinates (xyz):   " << nodebaseA_beam2->GetPos().x() << " "
+                  << nodebaseA_beam2->GetPos().y() << " " << nodebaseA_beam2->GetPos().z() << "\n";
+        std::cout << "  Beam2 Base Node A Coordinates (D):     " << nodebaseA_beam2->GetD().x() << " "
+                  << nodebaseA_beam2->GetD().y() << " " << nodebaseA_beam2->GetD().z() << "\n";
+        std::cout << "  Beam2 Base Node A Coordinates (DD):    " << nodebaseA_beam2->GetDD().x() << " "
+                  << nodebaseA_beam2->GetDD().y() << " " << nodebaseA_beam2->GetDD().z() << "\n";
 
         vis->BeginScene();
         vis->Render();

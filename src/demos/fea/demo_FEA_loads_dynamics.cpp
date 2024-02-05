@@ -41,7 +41,7 @@ using namespace chrono::irrlicht;
 const std::string out_dir = GetChronoOutputPath() + "FEA_LOADS";  // Output directory
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -113,13 +113,13 @@ int main(int argc, char* argv[]) {
 #define LOAD_5
 ////#define LOAD_6
 
-    GetLog() << "Appled loads: \n";
+    std::cout << "Appled loads: \n";
 
 #ifdef LOAD_1
     // Example 1:
     // Add a vertical load to the end of the beam element
 
-    GetLog() << "   Vertical load acting on end node.\n";
+    std::cout << "   Vertical load acting on end node.\n";
 
     auto mwrench = chrono_types::make_shared<ChLoadBeamWrench>(elementA);
     mwrench->loader.SetApplication(1.0);  // in -1..+1 range, -1: end A, 0: mid, +1: end B
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     // Example 2:
     // Add a distributed load along the beam element:
 
-    GetLog() << "   Distributed load along beam element.\n";
+    std::cout << "   Distributed load along beam element.\n";
 
     auto mwrenchdis = chrono_types::make_shared<ChLoadBeamWrenchDistributed>(elementA);
     mwrenchdis->loader.SetForcePerUnit(ChVector<>(0, 400.0, 0));  // load per unit length
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     // Example 3:
     // Add gravity (constant volumetric load)
 
-    GetLog() << "   Gravitty load (constant volumetric load).\n";
+    std::cout << "   Gravitty load (constant volumetric load).\n";
 
     auto mgravity = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(elementA);
     loadcontainer->Add(mgravity);
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     // By the way, a triangular load will work as a constant one because a single Euler beam
     // cannot feel more than this.
 
-    GetLog() << "   Custom distributed load along beam element.\n";
+    std::cout << "   Custom distributed load along beam element.\n";
 
     class MyLoaderTriangular : public ChLoaderUdistributed {
       public:
@@ -202,7 +202,7 @@ int main(int argc, char* argv[]) {
     // As a stiff load, this will automatically generate a jacobian (tangent stiffness matrix K)
     // that will be used in statics, implicit integrators, etc.
 
-    GetLog() << "   Custom load with stiff force, acting on a single node (VER 1).\n";
+    std::cout << "   Custom load with stiff force, acting on a single node (VER 1).\n";
 
     auto nodeC = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
     mesh->AddNode(nodeC);
@@ -267,7 +267,7 @@ int main(int argc, char* argv[]) {
     // As a stiff load, this will automatically generate a jacobian (tangent stiffness matrix K)
     // that will be used in statics, implicit integrators, etc.
 
-    GetLog() << "   Custom load with stiff force, acting on a single node (VER 2).\n";
+    std::cout << "   Custom load with stiff force, acting on a single node (VER 2).\n";
 
     auto nodeD = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
     mesh->AddNode(nodeD);
@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
     // by default using numerical differentiation; but if you want you
     // can override ComputeJacobian() and compute mK, mR analytically - see prev.example.
 
-    ////GetLog() << "   Custom load with stiff force, acting on multiple nodes.\n";
+    ////std::cout << "   Custom load with stiff force, acting on multiple nodes.\n";
 
     auto nodeE = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
     mesh->AddNode(nodeE);

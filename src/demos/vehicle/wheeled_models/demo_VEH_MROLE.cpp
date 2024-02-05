@@ -116,7 +116,7 @@ bool povray_output = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------
     // Create systems
@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Vehicle Mass       = " << mrole.GetVehicle().GetMass() << " kg" << std::endl;
 
     if (debug_output) {
-        GetLog() << "\n\n============ System Configuration ============\n";
+        std::cout << "\n\n============ System Configuration ============\n";
         mrole.LogHardpointLocations();
     }
 
@@ -298,13 +298,13 @@ int main(int argc, char* argv[]) {
 
         // Debug logging
         if (debug_output && step_number % debug_steps == 0) {
-            GetLog() << "\n\n============ System Information ============\n";
-            GetLog() << "Time = " << time << "\n\n";
+            std::cout << "\n\n============ System Information ============\n";
+            std::cout << "Time = " << time << "\n\n";
             mrole.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
 
             auto marker_driver = mrole.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
             auto marker_com = mrole.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
-            GetLog() << "Markers\n";
+            std::cout << "Markers\n";
             std::cout << "  Driver loc:      " << marker_driver.x() << " " << marker_driver.y() << " "
                       << marker_driver.z() << std::endl;
             std::cout << "  Chassis COM loc: " << marker_com.x() << " " << marker_com.y() << " " << marker_com.z()

@@ -16,8 +16,6 @@
 #include <iterator>
 
 #include "chrono/core/ChStream.h"
-#include "chrono/core/ChException.h"
-#include "chrono/core/ChLog.h"
 
 namespace chrono {
 

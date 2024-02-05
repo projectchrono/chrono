@@ -98,7 +98,7 @@ double step_size = 1e-3;
 float end_time = 2000.0f;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();

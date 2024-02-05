@@ -19,11 +19,9 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunction_BSpline)
 
-
-ChFunction_BSpline::ChFunction_BSpline(
-    int p,                              ///< order
-    const ChVectorDynamic<>& cpoints,   ///< conrol points
-    ChVectorDynamic<>* knots            ///< knot vector
+ChFunction_BSpline::ChFunction_BSpline(int p,                             // order
+                                       const ChVectorDynamic<>& cpoints,  // conrol points
+                                       ChVectorDynamic<>* knots           // knot vector
 ) {
     if (p < 1)
         throw ChException("ChFunction_BSpline::Setup_Data() requires order >= 1.");
@@ -38,11 +36,12 @@ ChFunction_BSpline::ChFunction_BSpline(
 }
 
 ChFunction_BSpline::ChFunction_BSpline(
-    int p,                                  ///< order
-    const ChVectorDynamic<>& x_interp,      ///< parameters (eg. times) at which perform interpolation
-    const ChVectorDynamic<>& y_dN_interp,   ///< output value to interpolate, Nth derivative: y(x)^(Nth)
-    const ChVectorDynamic<int>& der_order,  ///< derivative order of given interpolation output (0: pos, 1: vel, 2: acc, ...)
-    ChVectorDynamic<>* knots                ///< knot vector
+    int p,                                 // order
+    const ChVectorDynamic<>& x_interp,     // parameters (eg. times) at which perform interpolation
+    const ChVectorDynamic<>& y_dN_interp,  // output value to interpolate, Nth derivative: y(x)^(Nth)
+    const ChVectorDynamic<int>&
+        der_order,            // derivative order of given interpolation output (0: pos, 1: vel, 2: acc, ...)
+    ChVectorDynamic<>* knots  // knot vector
 ) {
     if (p < 1)
         throw ChException("ChFunction_BSpline::Setup_Data() requires order >= 1.");
@@ -65,9 +64,9 @@ ChFunction_BSpline::ChFunction_BSpline(const ChFunction_BSpline& other) {
 }
 
 void ChFunction_BSpline::Setup_Data(int p, ChVectorDynamic<> cpoints, ChVectorDynamic<>* knots) {
-    m_p = p; // order
-    m_cpoints = cpoints; // control points
-    m_n = cpoints.size() + m_p; // number of knots
+    m_p = p;                     // order
+    m_cpoints = cpoints;         // control points
+    m_n = cpoints.size() + m_p;  // number of knots
     m_basis_tool = chrono_types::make_shared<geometry::ChBasisToolsBspline>();
 
     // If empty knot vector, set to equispaced and clamped at ends
@@ -80,7 +79,7 @@ void ChFunction_BSpline::Setup_Data(int p, ChVectorDynamic<> cpoints, ChVectorDy
 }
 
 ChVectorDynamic<> ChFunction_BSpline::Get_Control_Points_Abscissae() const {
-    int m = m_cpoints.size(); // number of control points
+    int m = m_cpoints.size();  // number of control points
     ChVectorDynamic<> cpoints_x(m);
     cpoints_x.setZero();
     // Averaging knots
@@ -137,19 +136,22 @@ double ChFunction_BSpline::Get_y_dxdxdx(double x) const {
 }
 
 void ChFunction_BSpline::Recompute_Constrained(
-    int p,                                  ///< order
-    const ChVectorDynamic<>& x_interp,      ///< parameters (eg. times) at which perform interpolation
-    const ChVectorDynamic<>& y_dN_interp,   ///< output value to interpolate, Nth derivative: y(x)^(Nth)
-    const ChVectorDynamic<int> der_order,   ///< derivative order of given interpolation output (0: pos, 1: vel, 2: acc, ...)
-    ChVectorDynamic<>* knots                ///< knot vector
+    int p,                                 // order
+    const ChVectorDynamic<>& x_interp,     // parameters (eg. times) at which perform interpolation
+    const ChVectorDynamic<>& y_dN_interp,  // output value to interpolate, Nth derivative: y(x)^(Nth)
+    const ChVectorDynamic<int>
+        der_order,            // derivative order of given interpolation output (0: pos, 1: vel, 2: acc, ...)
+    ChVectorDynamic<>* knots  // knot vector
 ) {
     if (x_interp.size() != y_dN_interp.size() || x_interp.size() != der_order.size())
-        throw ChException("ChFunction_BSpline::Recompute_Constrained() requires size(x_interp) == size(y_dN_interp) == size(der_order).");
+        throw ChException(
+            "ChFunction_BSpline::Recompute_Constrained() requires size(x_interp) == size(y_dN_interp) == "
+            "size(der_order).");
 
     // Initial update of bspline to new data
     Setup_Data(p, x_interp, knots);
 
-    int Ncpoints = x_interp.size(); // number of total control points
+    int Ncpoints = x_interp.size();  // number of total control points
 
     // Evaluate matrix of basis functions and respective derivatives, e.g.
     // A = [N0,p(t0),     N1,p(t0),     ...,     Nm,p(t0)]
@@ -160,11 +162,11 @@ void ChFunction_BSpline::Recompute_Constrained(
     //     [N0,p(tn)^(1), N1,p(tn)^(1), ..., Nm,p(tn)^(1)]
     //     [N0,p(tn),     N1,p(tn),     ...,     Nm,p(tn)]
     ChMatrixDynamic<> A(Ncpoints, Ncpoints);
-    int off = 0; // column offset: start placing data from this index
+    int off = 0;  // column offset: start placing data from this index
 
     for (int i = 0; i < Ncpoints; ++i) {
-        double x = x_interp(i); // point at which perform interpolation
-        int d = (int)der_order[i]; // constraint derivative order(0: pos, 1: vel, 2: acc, ...)
+        double x = x_interp(i);     // point at which perform interpolation
+        int d = (int)der_order[i];  // constraint derivative order(0: pos, 1: vel, 2: acc, ...)
         int spanU = m_basis_tool->FindSpan(m_p, x, m_knots);
 
         // If multiple constraints happen at same time tk (eg. q(tk)=c1, v(tk)=c2, a(tk)=c3), do not increment offset

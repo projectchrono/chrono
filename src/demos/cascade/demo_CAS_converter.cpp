@@ -16,6 +16,7 @@
 
 #include <cstdlib>
 
+#include "chrono/core/ChLog.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -130,7 +131,7 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
         decompositionNode->remove();
     decompositionNode = 0;
 
-    GetLog() << "\n\n 0-LOADING THE STEP MODEL..   \n\n\n";
+    std::cout << "\n\n 0-LOADING THE STEP MODEL..   \n\n\n";
 
     ChCascadeDoc mydoc;
     bool aRes = mydoc.Load_STEP(filename);

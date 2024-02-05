@@ -28,7 +28,7 @@ using namespace chrono::utils;
 using namespace chrono::cosimul;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // To write something to the console, use the chrono::GetLog()
 

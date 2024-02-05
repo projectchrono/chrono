@@ -197,7 +197,7 @@ std::shared_ptr<ChSuspensionTestRig> CreateFromSpecFile() {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Option 1: Create the suspension rig from an existing vehicle model
     ////auto rig = CreateFromVehicleModel(); 

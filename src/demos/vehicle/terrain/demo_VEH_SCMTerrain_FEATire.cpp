@@ -34,7 +34,7 @@ using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Global parameter for tire:
     double tire_rad = 0.5;
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
 
     // change the solver to PardisoMKL:
-    GetLog() << "Using PardisoMKL solver\n";
+    std::cout << "Using PardisoMKL solver\n";
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
     sys.SetSolver(mkl_solver);

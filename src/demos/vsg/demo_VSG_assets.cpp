@@ -309,16 +309,16 @@ int main(int argc, char* argv[]) {
     sceneMesh1->SetFilename(GetChronoDataFile("models/red_teapot.obj"));
     int teapotId1 = vis->AddVisualModel(sceneMesh1, ChFrame<>(ChVector<>(0, 3.5, 3), Zup));
     if (teapotId1 == -1)
-        GetLog() << "Could not get teapot!\n";
+        std::cerr << "Could not get teapot!" << std::endl;
     int teapotId2 = vis->AddVisualModel(sceneMesh1, ChFrame<>(ChVector<>(-5, 3.5, 3), Zup));
     if (teapotId2 == -1)
-        GetLog() << "Could not get teapot!\n";
+        std::cerr << "Could not get teapot!" << std::endl;
 
     auto sceneMesh2 = chrono_types::make_shared<ChVisualShapeModelFile>();
     sceneMesh2->SetFilename(GetChronoDataFile("models/bunny.glb"));
     int bunndyId = vis->AddVisualModel(sceneMesh2, ChFrame<>(ChVector<>(-5, 0, 5)));
     if (bunndyId == -1)
-        GetLog() << "Could not get bunny!\n";
+        std::cerr << "Could not get bunny!" << std::endl;
 
     auto boxShape = chrono_types::make_shared<ChVisualShapeBox>(0.6, 5.0, 0.2);
     boxShape->AddMaterial(orange_mat);

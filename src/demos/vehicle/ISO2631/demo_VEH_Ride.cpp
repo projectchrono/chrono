@@ -81,7 +81,7 @@ double xend = 400.0;  // end logging here, this also the end of our world
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2018 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2018 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     int iTire = 1;
     int iTerrain = 1;
@@ -95,8 +95,8 @@ int main(int argc, char* argv[]) {
     switch (argc) {
         default:
         case 1:
-            GetLog() << "usage: demo_VEH_Ride [TerrainNumber [Speed [TireNumberOneToFive]]\n\n";
-            GetLog() << "Using standard values for simulation:\n";
+            std::cout << "usage: demo_VEH_Ride [TerrainNumber [Speed [TireNumberOneToFive]]\n\n";
+            std::cout << "Using standard values for simulation:\n";
             break;
         case 2:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 8) {
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
             }
             break;
     }
-    GetLog() << "Terrain No. = " << iTerrain << "\n"
+    std::cout << "Terrain No. = " << iTerrain << "\n"
              << "Speed       = " << target_speed << " m/s\n"
              << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka89, 4=Pacejka02, 5=Rigid) = " << iTire << "\n";
 
@@ -349,30 +349,30 @@ int main(int argc, char* argv[]) {
     double svdv = seat_logger.GetSeverityVDV();
     double ap = seat_logger.GetAbsorbedPowerVertical();
 
-    GetLog() << "Ride Quality Results #1 (ISO 2631-1):\n";
-    GetLog() << "  Root Mean Square of the Road = " << rmsVal << " mm\n";
-    GetLog() << "  Average Speed                = " << avg_speed << " m/s\n";
-    GetLog() << "  Weighted Acceleration        = " << awv << " m/s^2\n";
-    GetLog() << "  Vibration Dose Value         = " << vdv << " m/s^1.75\n";
-    GetLog() << "  Vibration Exposure Time      = " << seat_logger.GetExposureTime() << " s\n";
-    GetLog() << "  Crest Factor                 = " << cf << "\n";
-    GetLog() << "  VDV based Severity Criterion = " << svdv << "\n";
+    std::cout << "Ride Quality Results #1 (ISO 2631-1):\n";
+    std::cout << "  Root Mean Square of the Road = " << rmsVal << " mm\n";
+    std::cout << "  Average Speed                = " << avg_speed << " m/s\n";
+    std::cout << "  Weighted Acceleration        = " << awv << " m/s^2\n";
+    std::cout << "  Vibration Dose Value         = " << vdv << " m/s^1.75\n";
+    std::cout << "  Vibration Exposure Time      = " << seat_logger.GetExposureTime() << " s\n";
+    std::cout << "  Crest Factor                 = " << cf << "\n";
+    std::cout << "  VDV based Severity Criterion = " << svdv << "\n";
     if (svdv < 1.75) {
-        GetLog() << "\nVDV Severitiy < 1.75: the Weighted Acceleration AWV ist the prefered result\n";
+        std::cout << "\nVDV Severitiy < 1.75: the Weighted Acceleration AWV ist the prefered result\n";
         if (awv <= ride_limit) {
-            GetLog() << "  AWV <= " << ride_limit << "m/s^2 (ok)\n";
+            std::cout << "  AWV <= " << ride_limit << "m/s^2 (ok)\n";
         } else {
-            GetLog() << "  AWV > " << ride_limit << "m/s^2 (above limit)\n";
+            std::cout << "  AWV > " << ride_limit << "m/s^2 (above limit)\n";
         }
     } else {
-        GetLog() << "\nVDV Severitiy >= 1.75: the Vibration Dose Value VDV ist the prefered result\n";
+        std::cout << "\nVDV Severitiy >= 1.75: the Vibration Dose Value VDV ist the prefered result\n";
         if (vdv <= ride_limit) {
-            GetLog() << "  VDV <= " << ride_limit << "m/s^1.75 (ok)\n";
+            std::cout << "  VDV <= " << ride_limit << "m/s^1.75 (ok)\n";
         } else {
-            GetLog() << "  VDV > " << ride_limit << "m/s^1.75 (above limit)\n";
+            std::cout << "  VDV > " << ride_limit << "m/s^1.75 (above limit)\n";
         }
     }
-    GetLog() << "\nRide Quality Results #2 (Absorbed Power Method):\n";
-    GetLog() << "  Absorbed Power                = " << ap << " W\n";
+    std::cout << "\nRide Quality Results #2 (Absorbed Power Method):\n";
+    std::cout << "  Absorbed Power                = " << ap << " W\n";
     return 0;
 }

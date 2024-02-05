@@ -66,7 +66,7 @@ int scaleFactor = 35;
 double dz = 0.01;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemSMC sys;
 
@@ -86,11 +86,11 @@ int main(int argc, char* argv[]) {
     mysurfmaterial->SetRestitution(0.5f);
     mysurfmaterial->SetAdhesion(0);
 
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << " 		ANCF Shell Contact   \n";
-    GetLog() << "-----------------------------------------------------------\n\n";
-    GetLog() << "-----------------------------------------------------------\n\n";
+    std::cout << "-----------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------\n";
+    std::cout << " 		ANCF Shell Contact   \n";
+    std::cout << "-----------------------------------------------------------\n\n";
+    std::cout << "-----------------------------------------------------------\n\n";
 
     // Adding the ground
     if (true) {
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
         ChMeshFileLoader::ANCFShellFromGMFFile(my_mesh, GetChronoDataFile("fea/Plate.mesh").c_str(), material,
                                                NODE_AVE_AREA, BC_NODES, Center, rot_transform, 0.8, false, false);
     } catch (ChException myerr) {
-        GetLog() << myerr.what();
+        std::cerr << myerr.what() << std::endl;
         return 0;
     }
 

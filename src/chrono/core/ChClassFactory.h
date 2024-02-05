@@ -36,8 +36,8 @@
 #include <unordered_map>
 #include <memory>
 
-#include "chrono/core/ChLog.h"
 #include "chrono/core/ChTemplateExpressions.h"
+#include "chrono/core/ChException.h"
 
 namespace chrono {
 
@@ -312,8 +312,6 @@ class ChApi ChClassFactory {
     }
 
     void _ClassUnregister(const std::string& keyName) {
-        // GetLog() << " unregister class: " << keyName << "  map n." << class_map.size() << "  map_typeids n." <<
-        // class_map_typeids.size() << "\n";
         class_map_typeids.erase(class_map[keyName]->get_type_index());
         class_map.erase(keyName);
     }

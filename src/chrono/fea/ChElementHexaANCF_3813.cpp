@@ -1217,7 +1217,7 @@ void ChElementHexaANCF_3813::ComputeInternalForces(ChVectorDynamic<>& Fi) {
                 ResidHE = KALPHA1.colPivHouseholderQr().solve(HE);
             }
             if (m_flag_HE == ANALYTICAL && count > 2) {
-                GetLog() << ie << "  count " << count << "  NormHE " << norm_HE << "\n";
+                std::cerr << ie << "  count " << count << "  NormHE " << norm_HE << std::endl;
             }
         }
         Fi = -Finternal;

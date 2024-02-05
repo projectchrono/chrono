@@ -60,13 +60,13 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
                 m_gui->m_vis->SetUtilityFlag(!m_gui->m_vis->GetUtilityFlag());
                 return true;
             case irr::KEY_F8: {
-                GetLog() << "Saving system in JSON format to dump.json file \n";
+                std::cout << "Saving system in JSON format to dump.json file \n";
                 ChStreamOutAsciiFile mfileo("dump.json");
                 ChArchiveOutJSON marchiveout(mfileo);
                 marchiveout.SetUseVersions(false);
                 marchiveout << CHNVP(m_gui->m_system, "System");
 
-                GetLog() << "Saving system in ASCII format to dump.txt file \n";
+                std::cout << "Saving system in ASCII format to dump.txt file \n";
                 ChStreamOutAsciiFile mfileo2("dump.txt");
                 ChArchiveAsciiDump marchiveout2(mfileo2);
                 marchiveout2.SetUseVersions(false);
@@ -75,15 +75,15 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
                 return true;
             }
             case irr::KEY_F6:
-                GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
+                std::cout << "Saving system vector and matrices to dump_xxyy.dat files.\n";
                 m_gui->DumpSystemMatrices();
                 return true;
             case irr::KEY_F7:
                 if (!m_gui->m_system->IsSolverMatrixWriteEnabled()) {
-                    GetLog() << "Start saving system vector and matrices to *.dat files...\n";
+                    std::cout << "Start saving system vector and matrices to *.dat files...\n";
                     m_gui->m_system->EnableSolverMatrixWrite(true);
                 } else {
-                    GetLog() << "Stop saving system vector and matrices to *.dat files.\n";
+                    std::cout << "Stop saving system vector and matrices to *.dat files.\n";
                     m_gui->m_system->EnableSolverMatrixWrite(false);
                 }
                 return true;
@@ -108,16 +108,15 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
             case irr::KEY_F12:
 #ifdef CHRONO_POSTPROCESS
                 if (m_gui->blender_save == false) {
-                    GetLog() << "Start saving Blender postprocessing scripts...\n";
+                    std::cout << "Start saving Blender postprocessing scripts...\n";
                     m_gui->SetBlenderSave(true);
                 } else {
                     m_gui->SetBlenderSave(false);
-                    GetLog() << "Stop saving Blender postprocessing scripts.\n";
+                    std::cout << "Stop saving Blender postprocessing scripts.\n";
                 }
 #else
-                GetLog()
-                    << "Saving Blender3D files not supported. Rebuild the solution with ENABLE_MODULE_POSTPROCESSING "
-                       "in CMake. \n";
+                std::cout << "Saving Blender3D files not supported\n.";
+                std::cout << "Rebuild the solution with ENABLE_MODULE_POSTPROCESSING in CMake." << std::endl;
 #endif
                 return true;
             default:

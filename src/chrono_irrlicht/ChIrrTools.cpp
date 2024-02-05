@@ -881,7 +881,7 @@ void drawPlot3D(ChVisualSystemIrrlicht* vis,
     vis->GetVideoDriver()->setMaterial(mattransp);
 
     if ((X.cols() != Y.cols()) || (X.cols() != Z.cols()) || (X.rows() != Y.rows()) || (X.rows() != Z.rows())) {
-        GetLog() << "drawPlot3D: X Y Z matrices must have the same size, as n.rows and n.columns \n";
+        std::cerr << "drawPlot3D: X Y Z matrices must have the same size, as n.rows and n.columns" << std::endl;
         return;
     }
 
