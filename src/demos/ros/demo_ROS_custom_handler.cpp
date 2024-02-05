@@ -42,14 +42,16 @@ using namespace chrono::geometry;
 
 class MyCustomHandler : public ChROSHandler {
   public:
-    MyCustomHandler(const std::string& topic) : ChROSHandler(30), m_topic(topic), m_ticker(0) {}
+    MyCustomHandler(const std::string& topic) : ChROSHandler(1), m_topic(topic), m_ticker(0) {}
 
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override {
+        std::cout << "Creating publisher for topic " << m_topic << " ..." << std::endl;
         m_publisher = interface->GetNode()->create_publisher<std_msgs::msg::Int64>(m_topic, 1);
         return true;
     }
 
     virtual void Tick(double time) override {
+        std::cout << "Publishing " << m_ticker << " ..." << std::endl;
         std_msgs::msg::Int64 msg;
         msg.data = m_ticker;
         m_publisher->publish(msg);
@@ -106,6 +108,10 @@ int main(int argc, char* argv[]) {
     auto tf_handler = chrono_types::make_shared<ChROSTFHandler>(100);
     tf_handler->AddTransform(floor, box);
     ros_manager->RegisterHandler(tf_handler);
+
+    // Create a custom handler
+    auto custom_handler = chrono_types::make_shared<MyCustomHandler>("~/my_topic");
+    ros_manager->RegisterHandler(custom_handler);
 
     // Finally, initialize the ros manager
     ros_manager->Initialize();

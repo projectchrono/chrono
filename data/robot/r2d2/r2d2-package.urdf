@@ -1,4 +1,3 @@
-<!-- This is identical to r2d2.urdf but it uses package://urdf_tutorial -->
 <?xml version="1.0"?>
 <robot name="physics">
 

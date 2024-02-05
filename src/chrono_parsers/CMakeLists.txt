@@ -107,9 +107,9 @@ source_group("" FILES ${ChronoEngine_PARSERS_SOURCES} ${ChronoEngine_PARSERS_HEA
 
 #-----------------------------------------------------------------------------
 
-set(HAVE_URDF "${HAVE_URDF}" PARENT_SCOPE)
-set(HAVE_PYTHON "${HAVE_PYTHON}" PARENT_SCOPE)
-set(HAVE_ROS "${HAVE_ROS}" PARENT_SCOPE)
+SET(HAVE_PYTHON "${HAVE_PYTHON}" PARENT_SCOPE)
+SET(HAVE_URDF "${HAVE_URDF}" PARENT_SCOPE)
+SET(HAVE_ROS "${HAVE_ROS}" PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
 

@@ -27,7 +27,7 @@ class MyCustomHandler(chros.ChROSHandler):
     """This custom handler will just publish int messages to a topic."""
 
     def __init__(self, topic):
-        super().__init__(30)  # 30 Hz
+        super().__init__(1)  # 1 Hz
 
         self.topic = topic
         self.publisher: rclpy.publisher.Publisher = None
@@ -35,14 +35,17 @@ class MyCustomHandler(chros.ChROSHandler):
         self.ticker = 0
 
     def Initialize(self, interface: chros.ChROSPythonInterface) -> bool:
+        print(f"Creating publisher for topic {self.topic} ...")
         self.publisher = interface.GetNode().create_publisher(Int64, self.topic, 1)
 
         return True
 
     def Tick(self, time: float):
+        print(f"Publishing {self.ticker} ...")
         msg = Int64()
         msg.data = self.ticker
         self.publisher.publish(msg)
+        self.ticekr += 1
 
 
 def main():
@@ -92,8 +95,6 @@ def main():
     while time < time_end:
         sys.DoStepDynamics(time_step)
         time = sys.GetChTime()
-
-        custom_handler.ticker += 1
 
         if not ros_manager.Update(time, time_step):
             break
