@@ -33,7 +33,7 @@ RotaryArm::RotaryArm(const std::string& filename) : ChRotaryArm("") {
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 RotaryArm::RotaryArm(const rapidjson::Document& d) : ChRotaryArm("") {

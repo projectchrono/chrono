@@ -49,7 +49,7 @@ ChSpeedController::ChSpeedController(const std::string& filename)
     m_Ki = d["Gains"]["Ki"].GetDouble();
     m_Kd = d["Gains"]["Kd"].GetDouble();
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 ChSpeedController::~ChSpeedController() {

@@ -37,7 +37,7 @@ TrackShoeBandANCF::TrackShoeBandANCF(const std::string& filename) : ChTrackShoeB
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 TrackShoeBandANCF::TrackShoeBandANCF(const rapidjson::Document& d) : ChTrackShoeBandANCF(""), m_has_mesh(false) {

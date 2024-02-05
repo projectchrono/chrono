@@ -83,7 +83,7 @@ void HMMWV_VehicleReduced::Create(bool fixed,
             m_steerings[0] = chrono_types::make_shared<HMMWV_RackPinion>("Steering");
             break;
         default:
-            GetLog() << "Steering type NOT supported\n";
+            std::cout << "Steering type NOT supported\n";
             break;
     }
 

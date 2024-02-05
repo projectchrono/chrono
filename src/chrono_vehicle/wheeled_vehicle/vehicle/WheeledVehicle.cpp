@@ -327,7 +327,7 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
         m_steer_angle = ChWheeledVehicle::GetMaxSteeringAngle();
     }
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------

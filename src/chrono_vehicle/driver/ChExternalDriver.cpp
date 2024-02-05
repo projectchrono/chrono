@@ -49,7 +49,7 @@ void ChExternalDriver::AddDataParser(std::shared_ptr<DataParserFunctor> functor)
 };
 
 bool ChExternalDriver::WaitConnection(int port) {
-    GetLog() << "Waiting for connection on port " << port << "...\n";
+    std::cout << "Waiting for connection on port " << port << "...\n";
 
     m_port = port;
 
@@ -69,7 +69,7 @@ bool ChExternalDriver::WaitConnection(int port) {
     if (!m_client)
         throw utils::ChExceptionSocket(0, "Server failed in getting the client socket.");
 
-    GetLog() << "Connected to client: (" << clientHostName << ", " << port << ")\n";
+    std::cout << "Connected to client: (" << clientHostName << ", " << port << ")\n";
 
     return true;
 }

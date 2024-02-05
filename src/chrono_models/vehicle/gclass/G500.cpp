@@ -143,7 +143,7 @@ void G500::Initialize() {
         }
 
         default:
-            GetLog() << "Unsupported Tire Model Type! Switching to TMeasy.\n";
+            std::cout << "Unsupported Tire Model Type! Switching to TMeasy.\n";
         case TireModelType::TMEASY: {
             auto tire_FL = chrono_types::make_shared<G500_TMeasyTireFront>("FL");
             auto tire_FR = chrono_types::make_shared<G500_TMeasyTireFront>("FR");

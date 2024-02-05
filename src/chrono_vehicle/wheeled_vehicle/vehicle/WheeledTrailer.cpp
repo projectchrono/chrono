@@ -153,7 +153,7 @@ void WheeledTrailer::Create(const std::string& filename, bool create_tires) {
         }
     }
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 void WheeledTrailer::Initialize(std::shared_ptr<ChChassis> frontChassis) {

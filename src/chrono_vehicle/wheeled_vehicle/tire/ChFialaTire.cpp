@@ -29,7 +29,6 @@
 #include <cmath>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChLog.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
@@ -297,7 +296,7 @@ void ChFialaTire::FialaPatchForces(double& fx, double& fy, double& mz, double ka
 
 void ChFialaTire::WritePlots(const std::string& plFileName, const std::string& plTireFormat) {
     if (m_c_slip == 0.0 || m_c_alpha == 0.0) {
-        GetLog() << "Fiala Tire Object is not yet initialized! No Plots available.\n";
+        std::cerr << "Fiala Tire Object is not yet initialized! No Plots available." << std::endl;
         return;
     }
     const double Fz_nom = 1.0;

@@ -151,12 +151,12 @@ void ChRotaryArm::LogConstraintViolations() {
     // Revolute joint
     ////{
     ////    ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
-    ////    GetLog() << "Revolute              ";
-    ////    GetLog() << "  " << C(0) << "  ";
-    ////    GetLog() << "  " << C(1) << "  ";
-    ////    GetLog() << "  " << C(2) << "  ";
-    ////    GetLog() << "  " << C(3) << "  ";
-    ////    GetLog() << "  " << C(4) << "\n";
+    ////    std::cout << "Revolute              ";
+    ////    std::cout << "  " << C(0) << "  ";
+    ////    std::cout << "  " << C(1) << "  ";
+    ////    std::cout << "  " << C(2) << "  ";
+    ////    std::cout << "  " << C(3) << "  ";
+    ////    std::cout << "  " << C(4) << "\n";
     ////}
 }
 

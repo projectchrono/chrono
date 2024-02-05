@@ -22,7 +22,6 @@
 
 #include <cmath>
 
-#include "chrono/core/ChLog.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
 
 using namespace chrono::fea;
@@ -185,8 +184,6 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         m_shoes[s]->Initialize(chassis, shoe_components_coordsys);
     }
 
-    ////GetLog() << "Track assembly done.  Number of track shoes: " << num_shoes << "\n";
-
     // Add contact for the mesh -- only if SMC!!!
 
     if (chassis->GetSystem()->GetContactMethod() == ChContactMethod::SMC) {
@@ -200,7 +197,6 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
                 auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(m_contact_material);
                 m_track_mesh->AddContactSurface(contact_surf);
                 contact_surf->AddAllNodes(thickness / 2);
-                ////GetLog() << "Node cloud web contact. Number of nodes: " << contact_surf->GetNnodes() << "\n";
 
                 // Place all collision triangles in the same collision family and disable contact with each other
                 for (auto& node : contact_surf->GetNodeList()) {
@@ -214,8 +210,6 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
                 auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>(m_contact_material);
                 m_track_mesh->AddContactSurface(contact_surf);
                 contact_surf->AddFacesFromBoundary(thickness / 2, false);
-                ////GetLog() << "Triangle mesh web contact. Number of faces: " << contact_surf->GetNumTriangles() <<
-                ///"\n";
 
                 // Place all collision triangles in the same collision family and disable contact with each other
                 for (auto& face : contact_surf->GetTriangleList()) {
@@ -226,7 +220,6 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
                 break;
             }
             case ContactSurfaceType::NONE: {
-                ////GetLog() << "No web contact.\n";
                 break;
             }
         }

@@ -153,19 +153,15 @@ double Gator_Vehicle::GetShockVelocity(int axle, VehicleSide side) const {
 // Log the hardpoint locations for the front-right and rear-right suspension
 // -----------------------------------------------------------------------------
 void Gator_Vehicle::LogHardpointLocations() {
-    GetLog().SetNumFormat("%7.3f");
-
-    GetLog() << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
+    std::cout << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
     std::static_pointer_cast<ChSingleWishbone>(m_axles[0]->m_suspension)
         ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
 
-    GetLog() << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
+    std::cout << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
     std::static_pointer_cast<ChSingleWishbone>(m_axles[1]->m_suspension)
         ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
 
-    GetLog() << "\n\n";
-
-    GetLog().SetNumFormat("%g");
+    std::cout << "\n\n";
 }
 
 // -----------------------------------------------------------------------------
@@ -174,15 +170,13 @@ void Gator_Vehicle::LogHardpointLocations() {
 // Log constraint violations of suspension joints.
 // -----------------------------------------------------------------------------
 void Gator_Vehicle::DebugLog(int what) {
-    GetLog().SetNumFormat("%10.2f");
-
     if (what & OUT_SHOCKS) {
-        GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
+        std::cout << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
+        std::cout << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
                  << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
-        GetLog() << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
+        std::cout << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
                  << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
-        GetLog() << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
+        std::cout << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
                  << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
     }
 
@@ -190,8 +184,6 @@ void Gator_Vehicle::DebugLog(int what) {
         // Report constraint violations for all joints
         LogConstraintViolations();
     }
-
-    GetLog().SetNumFormat("%g");
 }
 
 }  // end namespace gator

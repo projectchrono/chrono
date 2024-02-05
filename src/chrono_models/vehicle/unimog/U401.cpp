@@ -160,7 +160,7 @@ void U401::Initialize() {
         }
 
         default:
-            GetLog() << "Unsupported Tire Model Type! Switching to TMsimple.\n";
+            std::cout << "Unsupported Tire Model Type! Switching to TMsimple.\n";
         case TireModelType::TMSIMPLE: {
             auto tire_FL = chrono_types::make_shared<U401_TMsimpleTire>("FL");
             auto tire_FR = chrono_types::make_shared<U401_TMsimpleTire>("FR");

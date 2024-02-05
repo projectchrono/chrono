@@ -419,7 +419,7 @@ void ChHendricksonPRIMAXX::LogHardpointLocations(const ChVector<>& ref, bool inc
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
 
-        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
+        std::cout << "   " << m_pointNames[i] << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
 }
 
@@ -429,78 +429,78 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
         ChVectorDynamic<> C = m_revolute[side]->GetConstraintViolation();
-        GetLog() << "Spindle revolute      ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "  ";
-        GetLog() << "  " << C(4) << "\n";
+        std::cout << "Spindle revolute      ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "  ";
+        std::cout << "  " << C(3) << "  ";
+        std::cout << "  " << C(4) << "\n";
     }
     {
         ChVectorDynamic<> C = m_revoluteKingpin[side]->GetConstraintViolation();
-        GetLog() << "Kingpin revolute      ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "  ";
-        GetLog() << "  " << C(4) << "\n";
+        std::cout << "Kingpin revolute      ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "  ";
+        std::cout << "  " << C(3) << "  ";
+        std::cout << "  " << C(4) << "\n";
     }
     // Spherical joints
     {
         ChVectorDynamic<> C = m_sphericalTorquerod[side]->GetConstraintViolation();
-        GetLog() << "Torquerod spherical          ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "\n";
+        std::cout << "Torquerod spherical          ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "\n";
     }
     {
         ChVectorDynamic<> C = m_sphericalLowerbeam[side]->GetConstraintViolation();
-        GetLog() << "Lowerbeam spherical          ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "\n";
+        std::cout << "Lowerbeam spherical          ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "\n";
     }
 
     {
         ChVectorDynamic<> C = m_revoluteLowerbeam[side]->GetConstraintViolation();
-        GetLog() << "Lowerbeam revolute          ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "  ";
-        GetLog() << "  " << C(4) << "\n";
+        std::cout << "Lowerbeam revolute          ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "  ";
+        std::cout << "  " << C(3) << "  ";
+        std::cout << "  " << C(4) << "\n";
     }
 
     {
         ChVectorDynamic<> C = m_revoluteTorquerod[side]->GetConstraintViolation();
-        GetLog() << "Torquerod revolute          ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "  ";
-        GetLog() << "  " << C(4) << "\n";
+        std::cout << "Torquerod revolute          ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "  ";
+        std::cout << "  " << C(3) << "  ";
+        std::cout << "  " << C(4) << "\n";
     }
 
     // Tierod constraint
     if (UseTierodBodies()) {
         {
             const auto& C = m_sphericalTierod[side]->GetConstraintViolation();
-            GetLog() << "Tierod spherical      ";
-            GetLog() << "  " << C(0) << "  ";
-            GetLog() << "  " << C(1) << "  ";
-            GetLog() << "  " << C(2) << "\n";
+            std::cout << "Tierod spherical      ";
+            std::cout << "  " << C(0) << "  ";
+            std::cout << "  " << C(1) << "  ";
+            std::cout << "  " << C(2) << "\n";
         }
         {
             const auto& C = m_universalTierod[side]->GetConstraintViolation();
-            GetLog() << "Tierod universal      ";
-            GetLog() << "  " << C(0) << "  ";
-            GetLog() << "  " << C(1) << "  ";
-            GetLog() << "  " << C(2) << "\n";
-            GetLog() << "  " << C(3) << "\n";
+            std::cout << "Tierod universal      ";
+            std::cout << "  " << C(0) << "  ";
+            std::cout << "  " << C(1) << "  ";
+            std::cout << "  " << C(2) << "\n";
+            std::cout << "  " << C(3) << "\n";
         }
     } else {
-        GetLog() << "Tierod distance       ";
-        GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
+        std::cout << "Tierod distance       ";
+        std::cout << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
     }
 }
 

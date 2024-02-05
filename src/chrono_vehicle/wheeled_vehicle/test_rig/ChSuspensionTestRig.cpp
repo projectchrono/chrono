@@ -397,24 +397,20 @@ void ChSuspensionTestRig::Advance(double step) {
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChSuspensionTestRig::LogConstraintViolations() {
-    GetLog().SetNumFormat("%16.4e");
-
     // Report constraint violations for the suspension joints
     for (auto ia : m_axle_index) {
         const auto& axle = m_vehicle->GetAxle(ia);
-        GetLog() << "\n---- LEFT side suspension constraint violations\n\n";
+        std::cout << "\n---- LEFT side suspension constraint violations\n\n";
         axle->m_suspension->LogConstraintViolations(LEFT);
-        GetLog() << "\n---- RIGHT side suspension constraint violations\n\n";
+        std::cout << "\n---- RIGHT side suspension constraint violations\n\n";
         axle->m_suspension->LogConstraintViolations(RIGHT);
     }
 
     // Report constraint violations for the steering joints
     for (auto is : m_steering_index) {
-        GetLog() << "\n---- STEERING constrain violations\n\n";
+        std::cout << "\n---- STEERING constrain violations\n\n";
         m_vehicle->GetSteering(is)->LogConstraintViolations();
     }
-
-    GetLog().SetNumFormat("%g");
 }
 
 // -----------------------------------------------------------------------------

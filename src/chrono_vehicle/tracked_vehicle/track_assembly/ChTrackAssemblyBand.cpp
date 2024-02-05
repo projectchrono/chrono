@@ -27,7 +27,6 @@
 
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBand.h"
 
-#include "chrono/core/ChLog.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 namespace chrono {
@@ -429,7 +428,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
             }
 
             if (!FoundPoint) {
-                GetLog() << "Belt Assembly ERROR: Something went wrong\n";
+                std::cerr << "Belt Assembly ERROR: Something went wrong" << std::endl;
                 assert(FoundPoint);
                 return true;
             }
@@ -473,7 +472,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         }
 
         if (std::abs(ExtraLength) < Tolerance) {
-            GetLog() << "Belt Wrap Algorithm Conveged after " << iter << " iterations - Extra Length: " << ExtraLength
+            std::cout << "Belt Wrap Algorithm Conveged after " << iter << " iterations - Extra Length: " << ExtraLength
                       << " - Length Tolerance: " << Tolerance << "\n";
             break;
         }

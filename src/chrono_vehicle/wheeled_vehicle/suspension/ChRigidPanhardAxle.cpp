@@ -319,7 +319,7 @@ void ChRigidPanhardAxle::LogHardpointLocations(const ChVector<>& ref, bool inche
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
 
-        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
+        std::cout << "   " << m_pointNames[i] << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
 }
 
@@ -328,10 +328,10 @@ void ChRigidPanhardAxle::LogHardpointLocations(const ChVector<>& ref, bool inche
 void ChRigidPanhardAxle::LogConstraintViolations(VehicleSide side) {
     {
         ChVectorDynamic<> C = m_axleTubeGuide->GetConstraintViolation();
-        GetLog() << "Axle tube prismatic       ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "\n";
+        std::cout << "Axle tube prismatic       ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "\n";
     }
 }
 

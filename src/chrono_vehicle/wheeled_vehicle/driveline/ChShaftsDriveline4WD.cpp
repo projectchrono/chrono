@@ -218,8 +218,8 @@ void ChShaftsDriveline4WD::LockAxleDifferential(int axle, bool lock) {
         return;
     }
 
-    GetLog() << "WARNING: Incorrect axle specification in ChShaftsDriveline4WD::LockAxleDifferential.\n";
-    GetLog() << "         Driven axles are: " << m_driven_axles[0] << " and " << m_driven_axles[1] << "\n";
+    std::cerr << "WARNING: Incorrect axle specification in ChShaftsDriveline4WD::LockAxleDifferential." << std::endl;
+    std::cerr << "         Driven axles are: " << m_driven_axles[0] << " and " << m_driven_axles[1] << std::endl;
 }
 
 void ChShaftsDriveline4WD::LockCentralDifferential(int which, bool lock) {

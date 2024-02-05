@@ -385,15 +385,11 @@ void ChTrackedVehicle::UpdateInertiaProperties() {
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::LogConstraintViolations() {
-    GetLog().SetNumFormat("%16.4e");
-
     // Report constraint violations for the track assemblies.
-    GetLog() << "\n---- LEFT TRACK ASSEMBLY constraint violations\n\n";
+    std::cout << "\n---- LEFT TRACK ASSEMBLY constraint violations\n\n";
     m_tracks[0]->LogConstraintViolations();
-    GetLog() << "\n---- RIGHT TRACK ASSEMBLY constraint violations\n\n";
+    std::cout << "\n---- RIGHT TRACK ASSEMBLY constraint violations\n\n";
     m_tracks[1]->LogConstraintViolations();
-
-    GetLog().SetNumFormat("%g");
 }
 
 std::string ChTrackedVehicle::ExportComponentList() const {

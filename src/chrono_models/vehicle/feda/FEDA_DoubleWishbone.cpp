@@ -126,7 +126,7 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
         double A0 = pow(m_piston_radius, 2.0) * CH_C_PI;
         double V0 = m_cylinder_compression_length * A0;
         m_airSpringF0 = m_P0 * A0;
-        GetLog() << "Fzero = " << m_airSpringF0 << "N\n";
+        std::cout << "Fzero = " << m_airSpringF0 << "N\n";
         m_hf0 = m_P0 * V0 / m_airSpringF0;
 
         // From ADAMS/Car example
@@ -172,12 +172,12 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
 
         if (length > m_max_length) {
             defl_rebound = length - m_max_length;
-            // GetLog() << "Rebound Deflection: " << defl_rebound << " m\n";
+            // std::cout << "Rebound Deflection: " << defl_rebound << " m\n";
         }
 
         force = m_airSpringF0 * pow(m_hf0, m_kappa) / pow(m_hf0 - defl_spring, m_kappa) + defl_spring * m_k +
                 m_coilSpringF0 + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
-        // GetLog() << "d =" << defl_spring << " m\n";
+        // std::cout << "d =" << defl_spring << " m\n";
         return force;
     }
 
@@ -338,7 +338,7 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
 FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int ride_height_mode, int damperMode)
     : ChDoubleWishbone(name), m_damper_mode(damperMode), m_use_tierod_bodies(true) {
     m_ride_height_mode = ChClamp(ride_height_mode, 0, 2);
-    GetLog() << "Ride Height Front = " << m_ride_height_mode << " (Pressure = " << m_air_pressure[m_ride_height_mode]
+    std::cout << "Ride Height Front = " << m_ride_height_mode << " (Pressure = " << m_air_pressure[m_ride_height_mode]
              << " Pas)\n";
     m_springForceCB = chrono_types::make_shared<AirCoilSpringBistopForce>(
         m_springCoefficient, m_springRestLength - m_bumpstop_clearance, m_springRestLength + m_reboundstop_clearance,
@@ -347,11 +347,11 @@ FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int 
         case 1:
             // FSD mode f(frequency selective damper)
             m_shockForceCB = chrono_types::make_shared<FEDA_ShockForce>();
-            GetLog() << "FEDA_DoubleWishboneFront(): FSD mode selected.\n";
+            std::cout << "FEDA_DoubleWishboneFront(): FSD mode selected.\n";
             break;
         case 2: {
             // passive damper with low damping effect
-            GetLog() << "FEDA_DoubleWishboneFront(): passive low damping selected.\n";
+            std::cout << "FEDA_DoubleWishboneFront(): passive low damping selected.\n";
             const double c_expansion = 38097.1;
             const double degr_expansion = 2.83566;
             const double c_compression = 38097.1;
@@ -361,7 +361,7 @@ FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int 
         } break;
         case 3: {
             // passive damper with high damping effect
-            GetLog() << "FEDA_DoubleWishboneFront(): passive high damping selected.\n";
+            std::cout << "FEDA_DoubleWishboneFront(): passive high damping selected.\n";
             const double c_expansion = 160650;
             const double degr_expansion = 7.46883;
             const double c_compression = 160650;
@@ -375,7 +375,7 @@ FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int 
 FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ride_height_mode, int damperMode)
     : ChDoubleWishbone(name), m_damper_mode(damperMode), m_use_tierod_bodies(true) {
     m_ride_height_mode = ChClamp(ride_height_mode, 0, 2);
-    GetLog() << "Ride Height Rear = " << m_ride_height_mode << " (Pressure = " << m_air_pressure[m_ride_height_mode]
+    std::cout << "Ride Height Rear = " << m_ride_height_mode << " (Pressure = " << m_air_pressure[m_ride_height_mode]
              << " Pas)\n";
     m_springForceCB = chrono_types::make_shared<AirCoilSpringBistopForce>(
         m_springCoefficient, m_springRestLength - m_bumpstop_clearance, m_springRestLength + m_reboundstop_clearance,
@@ -384,11 +384,11 @@ FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ri
         case 1:
             // FSD mode f(frequency selective damper)
             m_shockForceCB = chrono_types::make_shared<FEDA_ShockForce>();
-            GetLog() << "FEDA_DoubleWishboneRear(): FSD mode selected.\n";
+            std::cout << "FEDA_DoubleWishboneRear(): FSD mode selected.\n";
             break;
         case 2: {
             // passive damper with low damping effect
-            GetLog() << "FEDA_DoubleWishboneRear(): passive low damping selected.\n";
+            std::cout << "FEDA_DoubleWishboneRear(): passive low damping selected.\n";
             const double c_expansion = 38097.1;
             const double degr_expansion = 2.83566;
             const double c_compression = 38097.1;
@@ -398,7 +398,7 @@ FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ri
         } break;
         case 3: {
             // passive damper with high damping effect
-            GetLog() << "FEDA_DoubleWishboneRear(): passive high damping selected.\n";
+            std::cout << "FEDA_DoubleWishboneRear(): passive high damping selected.\n";
             const double c_expansion = 160650;
             const double degr_expansion = 7.46883;
             const double c_compression = 160650;

@@ -44,7 +44,7 @@ DoubleWishbone::DoubleWishbone(const std::string& filename)
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 DoubleWishbone::DoubleWishbone(const rapidjson::Document& d)

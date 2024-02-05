@@ -22,7 +22,6 @@
 
 #include <cmath>
 
-#include "chrono/core/ChLog.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h"
 
 namespace chrono {
@@ -84,8 +83,6 @@ bool ChTrackAssemblyBandBushing::Assemble(std::shared_ptr<ChBodyAuxRef> chassis)
         // Initialize the track shoe system
         m_shoes[s]->Initialize(chassis, shoe_components_coordsys);
     }
-
-    ////GetLog() << "Track assembly done.  Number of track shoes: " << num_shoes << "\n";
 
     return ccw;
 }

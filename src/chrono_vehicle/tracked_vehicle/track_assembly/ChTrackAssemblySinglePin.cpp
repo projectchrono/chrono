@@ -22,8 +22,6 @@
 
 #include <cmath>
 
-#include "chrono/core/ChLog.h"
-
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h"
 
 namespace chrono {
@@ -191,8 +189,8 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     double gap = (p0 - p1).Length();
 
     if (num_left * shoe_pitch < gap) {
-        GetLog() << "\nInsufficient number of track shoes for this configuration.\n";
-        GetLog() << "Missing distance: " << gap - num_left * shoe_pitch << "\n\n";
+        std::cerr << "\nInsufficient number of track shoes for this configuration.\n" << std::endl;
+        std::cerr << "Missing distance: " << gap - num_left * shoe_pitch << "\n" << std::endl;
         for (size_t i = index; i < num_shoes; i++) {
             p2 = p1 - sign * shoe_pitch * ChVector<>(std::cos(angle), 0, -std::sin(angle));
             m_shoes[i]->SetIndex(i);
@@ -229,7 +227,6 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         ++index;
     }
 
-    ////GetLog() << "Track assembly done.  Number of track shoes: " << index << "\n";
     return ccw;
 }
 

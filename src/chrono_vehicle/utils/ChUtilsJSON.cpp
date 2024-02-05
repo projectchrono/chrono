@@ -105,12 +105,12 @@ namespace vehicle {
 void ReadFileJSON(const std::string& filename, Document& d) {
     std::ifstream ifs(filename);
     if (!ifs.good()) {
-        GetLog() << "ERROR: Could not open JSON file: " << filename << "\n";
+        std::cerr << "ERROR: Could not open JSON file: " << filename << std::endl;
     } else {
         IStreamWrapper isw(ifs);
         d.ParseStream<ParseFlag::kParseCommentsFlag>(isw);
         if (d.IsNull()) {
-            GetLog() << "ERROR: Invalid JSON file: " << filename << "\n";
+            std::cerr << "ERROR: Invalid JSON file: " << filename << std::endl;
         }
     }
 }

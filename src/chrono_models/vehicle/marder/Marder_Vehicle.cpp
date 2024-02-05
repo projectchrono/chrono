@@ -75,17 +75,17 @@ void Marder_Vehicle::Create(bool fixed,
         case TrackShoeType::DOUBLE_PIN:
             ////m_tracks[0] = chrono_types::make_shared<Marder_TrackAssemblyDoublePin>(LEFT, brake_type);
             ////m_tracks[1] = chrono_types::make_shared<Marder_TrackAssemblyDoublePin>(RIGHT, brake_type);
-            GetLog() << "Unimplemented track assembly model.\n";
+            std::cout << "Unimplemented track assembly model.\n";
             break;
         case TrackShoeType::BAND_BUSHING:
             ////m_tracks[0] = chrono_types::make_shared<Marder_TrackAssemblyBandBushing>(LEFT, brake_type);
             ////m_tracks[1] = chrono_types::make_shared<Marder_TrackAssemblyBandBushing>(RIGHT, brake_type);
-            GetLog() << "Unimplemented track assembly model.\n";
+            std::cout << "Unimplemented track assembly model.\n";
             break;
         case TrackShoeType::BAND_ANCF:
             ////m_tracks[0] = chrono_types::make_shared<Marder_TrackAssemblyBandANCF>(LEFT, brake_type);
             ////m_tracks[1] = chrono_types::make_shared<Marder_TrackAssemblyBandANCF>(RIGHT, brake_type);
-            GetLog() << "Unimplemented track assembly model.\n";
+            std::cout << "Unimplemented track assembly model.\n";
             break;
     }
 
@@ -96,7 +96,7 @@ void Marder_Vehicle::Create(bool fixed,
             break;
         case DrivelineTypeTV::BDS:
             ////m_driveline = chrono_types::make_shared<Marder_DrivelineBDS>();
-            GetLog() << "Unimplemented driveline model.\n";
+            std::cout << "Unimplemented driveline model.\n";
             break;
     }
 }

@@ -39,7 +39,7 @@ ReissnerTire::ReissnerTire(const std::string& filename) : ChReissnerTire("") {
 
     ProcessJSON(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 ReissnerTire::ReissnerTire(const rapidjson::Document& d) : ChReissnerTire("") {

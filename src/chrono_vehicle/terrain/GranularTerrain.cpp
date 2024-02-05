@@ -40,7 +40,6 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/core/ChLog.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/utils/ChUtilsGenerators.h"
@@ -185,14 +184,6 @@ void BoundaryContact::CheckFixedSpheres(ChBody* body, const ChVector<>& center) 
     double x_p = x_m + m_terrain->m_sep_x;
     double y_m = m_terrain->m_right + iy * m_terrain->m_sep_y;
     double y_p = y_m + m_terrain->m_sep_y;
-
-    ////double eps = 1e-6;
-    ////if (center.x() < x_m - eps || center.x() > x_p + eps) {
-    ////    GetLog() << "X problem  " << center.x() << " " << x_m << " " << x_p << "\n";
-    ////}
-    ////if (center.y() < y_m - eps || center.y() > y_p + eps) {
-    ////    GetLog() << "Y problem  " << center.y() << " " << y_m << " " << y_p << "\n";
-    ////}
 
     // Check potential collisions
     CheckFixedSphere(body, center, ChVector<>(x_m, y_m, m_terrain->m_bottom + m_radius));
@@ -377,9 +368,9 @@ void GranularTerrain::Initialize(const ChVector<>& center,
         }
 
         if (m_verbose) {
-            GetLog() << "Enable rough surface.\n";
-            GetLog() << "   X direction (" << m_nx << ") separation: " << m_sep_x << "\n";
-            GetLog() << "   Y direction (" << m_ny << ") separation: " << m_sep_y << "\n";
+            std::cout << "Enable rough surface.\n";
+            std::cout << "   X direction (" << m_nx << ") separation: " << m_sep_x << "\n";
+            std::cout << "   Y direction (" << m_ny << ") separation: " << m_sep_y << "\n";
         }
     }
 
@@ -418,7 +409,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
 
     while (layer < num_layers || m_num_particles < m_min_num_particles) {
         if (m_verbose)
-            GetLog() << "Create layer at height: " << layer_center.z() << "\n";
+            std::cout << "Create layer at height: " << layer_center.z() << "\n";
         generator.CreateObjectsBox(sampler, layer_center, layer_hdims, init_vel);
         layer_center.z() += 2 * r;
         m_num_particles = generator.getTotalNumBodies();
@@ -490,9 +481,9 @@ void GranularTerrain::Synchronize(double time) {
     m_moved = true;
 
     if (m_verbose) {
-        GetLog() << "Move patch at time " << time << "\n";
-        GetLog() << "   moved " << num_moved_particles << " particles\n";
-        GetLog() << "   rear: " << m_rear << "  front: " << m_front << "\n";
+        std::cout << "Move patch at time " << time << "\n";
+        std::cout << "   moved " << num_moved_particles << " particles\n";
+        std::cout << "   rear: " << m_rear << "  front: " << m_front << "\n";
     }
 }
 

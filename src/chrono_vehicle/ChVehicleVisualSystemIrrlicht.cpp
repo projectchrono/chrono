@@ -172,7 +172,7 @@ void ChVehicleVisualSystemIrrlicht::EnableSound(bool sound) {
                 m_sound_engine->play2D(GetChronoDataFile("vehicle/sounds/carsound.ogg").c_str(), true, false, true);
             m_car_sound->setIsPaused(true);
         } else
-            GetLog() << "Cannot start sound engine Irrklang \n";
+            std::cerr << "Cannot start sound engine Irrklang" << std::endl;
     } else {
         m_sound_engine = 0;
         m_car_sound = 0;

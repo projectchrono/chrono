@@ -112,7 +112,7 @@ void ChShaftsDriveline2WD::LockAxleDifferential(int axle, bool lock) {
 }
 
 void ChShaftsDriveline2WD::LockCentralDifferential(int which, bool lock) {
-    GetLog() << "WARNINIG: " << GetTemplateName() << " does not contain a central differential.\n";
+    std::cerr << "WARNINIG: " << GetTemplateName() << " does not contain a central differential." << std::endl;
 }
 
 // -----------------------------------------------------------------------------

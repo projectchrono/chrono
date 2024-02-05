@@ -211,12 +211,12 @@ void ChRotationalDamperSuspension::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 void ChRotationalDamperSuspension::LogConstraintViolations() {
     ChVectorDynamic<> C = m_joint->GetConstraintViolation();
-    GetLog() << "  Arm-chassis joint\n";
-    GetLog() << "  " << C(0) << "  ";
-    GetLog() << "  " << C(1) << "  ";
-    GetLog() << "  " << C(2) << "  ";
-    GetLog() << "  " << C(3) << "  ";
-    GetLog() << "  " << C(4) << "\n";
+    std::cout << "  Arm-chassis joint\n";
+    std::cout << "  " << C(0) << "  ";
+    std::cout << "  " << C(1) << "  ";
+    std::cout << "  " << C(2) << "  ";
+    std::cout << "  " << C(3) << "  ";
+    std::cout << "  " << C(4) << "\n";
 
     m_road_wheel->LogConstraintViolations();
 }

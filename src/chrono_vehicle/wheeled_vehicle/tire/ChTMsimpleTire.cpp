@@ -31,7 +31,6 @@
 #include <iomanip>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChLog.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMsimpleTire.h"
 
@@ -316,7 +315,7 @@ void ChTMsimpleTire::SetVerticalStiffness(std::vector<double>& defl, std::vector
     r = A.colPivHouseholderQr().solve(b);
     m_d1 = r(0);
     m_d2 = r(1);
-    GetLog() << "Stiffness Coeffs from test data d1 = " << m_d1 << "  d2 = " << m_d2 << "\n";
+    std::cout << "Stiffness Coeffs from test data d1 = " << m_d1 << "  d2 = " << m_d2 << "\n";
 }
 
 double ChTMsimpleTire::GetTireMaxLoad(unsigned int li) {
@@ -528,34 +527,30 @@ void ChTMsimpleTire::GuessPassCar70Par(double tireLoad,       // tire load force
 
 // Do some rough constency checks
 bool ChTMsimpleTire::CheckParameters() {
-    bool isOk = false;
-
     // Nominal Load set?
     if (m_par.pn < GetTireMaxLoad(0)) {
-        GetLog() << "TMsimpleCheckParameters(): Tire Nominal Load Problem!\n";
-        return isOk;
+        std::cerr << "TMsimpleCheckParameters(): Tire Nominal Load Problem!" << std::endl;
+        return false;
     }
 
     // Stiffness parameters, spring
     if (m_d1 <= 0.0) {
-        GetLog() << "TMsimpleCheckParameters(): Tire Vertical Stiffness Problem!\n";
-        return isOk;
+        std::cerr << "TMsimpleCheckParameters(): Tire Vertical Stiffness Problem!" << std::endl;
+        return false;
     }
 
     // Stiffness parameters, spring
     if (m_par.mu_0 <= 0.0) {
-        GetLog() << "TMsimpleCheckParameters(): Friction Coefficien Mu_0 unset!\n";
-        return isOk;
+        std::cerr << "TMsimpleCheckParameters(): Friction Coefficien Mu_0 unset!" << std::endl;
+        return false;
     }
 
     if (m_par.dz <= 0.0) {
-        GetLog() << "TMsimpleCheckParameters(): Tire Vertical Damping Problem!\n";
-        return isOk;
+        std::cerr << "TMsimpleCheckParameters(): Tire Vertical Damping Problem!" << std::endl;
+        return false;
     }
 
-    isOk = true;
-
-    return isOk;
+    return true;
 }
 
 // set tire reference coefficient of friction

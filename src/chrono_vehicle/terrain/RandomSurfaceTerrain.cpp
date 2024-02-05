@@ -141,8 +141,8 @@ ChVector<> RandomSurfaceTerrain::GetNormal(const ChVector<>& loc) const {
     r2 = pleft - p0;
     normal_ISO = Vcross(r1, r2);
     if (normal_ISO.z() <= 0.0) {
-        GetLog() << "Fatal: wrong surface normal!\n";
-        exit(99);
+        std::cerr << "Fatal: wrong surface normal!" << std::endl;
+        throw ChException("Fatal: wrong surface normal!");
     }
     ChVector<> normal = ChWorldFrame::FromISO(normal_ISO);
     normal.Normalize();

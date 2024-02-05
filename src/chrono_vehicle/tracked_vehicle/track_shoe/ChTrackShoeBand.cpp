@@ -51,13 +51,6 @@ static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, 
     // circle center
     ChVector2<> O(C.x() + direction * x_offset, C.y() + direction * y_offset);
 
-    ////GetLog() << "\n";
-    ////GetLog() << "radius: " << r << "\n";
-    ////GetLog() << A.x() << "  " << A.y() << "\n";
-    ////GetLog() << B.x() << "  " << B.y() << "\n";
-    ////GetLog() << O.x() << "  " << O.y() << "\n";
-    ////GetLog() << "Check: " << (A - O).Length() - r << "  " << (B - O).Length() - r << "\n\n";
-
     return O;
 }
 
@@ -245,10 +238,6 @@ int ChTrackShoeBand::ProfilePoints(std::vector<ChVector2<>>& points, std::vector
         points.push_back(pt);
         normals.push_back(nrm);
     }
-
-    ////GetLog() << "\n\n";
-    ////for (auto p : points)
-    ////    GetLog() << p.x() << "  " << p.y() << "\n";
 
     return (int)points.size();
 }

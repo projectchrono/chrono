@@ -123,7 +123,7 @@ void CityBus::Initialize() {
         }
 
         default:
-            GetLog() << "Unsupported Tire Model Type! Switching to TMeasy.\n";
+            std::cerr << "Unsupported Tire Model Type! Switching to TMeasy." << std::endl;
         case TireModelType::TMEASY: {
             auto tire_FL = chrono_types::make_shared<CityBus_TMeasyTire>("FL");
             auto tire_FR = chrono_types::make_shared<CityBus_TMeasyTire>("FR");

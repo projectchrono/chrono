@@ -104,7 +104,7 @@ void MAN_5t::Initialize() {
     switch (m_engineType) {
         case EngineModelType::SHAFTS:
             // engine = chrono_types::make_shared<MAN_5t_EngineShafts>("Engine");
-            GetLog() << "EngineModelType::SHAFTS not implemented for this model.\n";
+            std::cout << "EngineModelType::SHAFTS not implemented for this model.\n";
             break;
         case EngineModelType::SIMPLE_MAP:
             engine = chrono_types::make_shared<MAN_5t_EngineSimpleMap>("Engine");
@@ -119,7 +119,7 @@ void MAN_5t::Initialize() {
         switch (m_transmissionType) {
             case TransmissionModelType::AUTOMATIC_SHAFTS:
                 // transmission = chrono_types::make_shared<MAN_5t_AutomaticTransmissionShafts>("Transmission");
-                GetLog() << "TransmissionModelType::AUTOMATIC_SHAFTS not implemented for this model.\n";
+                std::cout << "TransmissionModelType::AUTOMATIC_SHAFTS not implemented for this model.\n";
                 break;
             case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<MAN_5t_AutomaticTransmissionSimpleMap>("Transmission");

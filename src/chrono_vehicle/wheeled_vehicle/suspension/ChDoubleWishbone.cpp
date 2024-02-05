@@ -385,7 +385,7 @@ void ChDoubleWishbone::LogHardpointLocations(const ChVector<>& ref, bool inches)
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
 
-        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
+        std::cout << "   " << m_pointNames[i] << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
 }
 
@@ -395,68 +395,68 @@ void ChDoubleWishbone::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
         const auto& C = m_revoluteLCA[side]->GetConstraintViolation();
-        GetLog() << "LCA revolute          ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "  ";
-        GetLog() << "  " << C(4) << "\n";
+        std::cout << "LCA revolute          ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "  ";
+        std::cout << "  " << C(3) << "  ";
+        std::cout << "  " << C(4) << "\n";
     }
     {
         const auto& C = m_revoluteUCA[side]->GetConstraintViolation();
-        GetLog() << "UCA revolute          ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "  ";
-        GetLog() << "  " << C(4) << "\n";
+        std::cout << "UCA revolute          ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "  ";
+        std::cout << "  " << C(3) << "  ";
+        std::cout << "  " << C(4) << "\n";
     }
     {
         const auto& C = m_revolute[side]->GetConstraintViolation();
-        GetLog() << "Spindle revolute      ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "  ";
-        GetLog() << "  " << C(4) << "\n";
+        std::cout << "Spindle revolute      ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "  ";
+        std::cout << "  " << C(3) << "  ";
+        std::cout << "  " << C(4) << "\n";
     }
 
     // Spherical joints
     {
         const auto& C = m_sphericalLCA[side]->GetConstraintViolation();
-        GetLog() << "LCA spherical         ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "\n";
+        std::cout << "LCA spherical         ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "\n";
     }
     {
         const auto& C = m_sphericalUCA[side]->GetConstraintViolation();
-        GetLog() << "UCA spherical         ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "\n";
+        std::cout << "UCA spherical         ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "\n";
     }
 
     // Tierod constraint
     if (UseTierodBodies()) {
         {
             const auto& C = m_sphericalTierod[side]->GetConstraintViolation();
-            GetLog() << "Tierod spherical      ";
-            GetLog() << "  " << C(0) << "  ";
-            GetLog() << "  " << C(1) << "  ";
-            GetLog() << "  " << C(2) << "\n";
+            std::cout << "Tierod spherical      ";
+            std::cout << "  " << C(0) << "  ";
+            std::cout << "  " << C(1) << "  ";
+            std::cout << "  " << C(2) << "\n";
         }
         {
             const auto& C = m_universalTierod[side]->GetConstraintViolation();
-            GetLog() << "Tierod universal      ";
-            GetLog() << "  " << C(0) << "  ";
-            GetLog() << "  " << C(1) << "  ";
-            GetLog() << "  " << C(2) << "\n";
-            GetLog() << "  " << C(3) << "\n";
+            std::cout << "Tierod universal      ";
+            std::cout << "  " << C(0) << "  ";
+            std::cout << "  " << C(1) << "  ";
+            std::cout << "  " << C(2) << "\n";
+            std::cout << "  " << C(3) << "\n";
         }
     } else {
-        GetLog() << "Tierod distance       ";
-        GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
+        std::cout << "Tierod distance       ";
+        std::cout << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
     }
 }
 

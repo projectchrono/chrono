@@ -36,7 +36,7 @@ FialaTire::FialaTire(const std::string& filename) : ChFialaTire(""), m_has_vert_
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 FialaTire::FialaTire(const rapidjson::Document& d) : ChFialaTire(""), m_has_vert_table(false), m_has_mesh(false) {

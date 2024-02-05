@@ -390,53 +390,49 @@ double ChWheeledVehicle::GetMaxSteeringAngle() const {
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::LogConstraintViolations() {
-    GetLog().SetNumFormat("%16.4e");
-
     // Report constraint violations for the suspension joints
     for (size_t i = 0; i < m_axles.size(); i++) {
-        GetLog() << "\n---- AXLE " << i << " LEFT side suspension constraint violations\n\n";
+        std::cout << "\n---- AXLE " << i << " LEFT side suspension constraint violations\n\n";
         m_axles[i]->m_suspension->LogConstraintViolations(LEFT);
-        GetLog() << "\n---- AXLE " << i << " RIGHT side suspension constraint violations\n\n";
+        std::cout << "\n---- AXLE " << i << " RIGHT side suspension constraint violations\n\n";
         m_axles[i]->m_suspension->LogConstraintViolations(RIGHT);
     }
 
     // Report constraint violations for the steering joints
     for (size_t i = 0; i < m_steerings.size(); i++) {
-        GetLog() << "\n---- STEERING subsystem " << i << " constraint violations\n\n";
+        std::cout << "\n---- STEERING subsystem " << i << " constraint violations\n\n";
         m_steerings[i]->LogConstraintViolations();
     }
-
-    GetLog().SetNumFormat("%g");
 }
 
 // -----------------------------------------------------------------------------
 
 void ChWheeledVehicle::LogSubsystemTypes() {
-    GetLog() << "\nSubsystem types\n";
-    GetLog() << "Chassis:        " << m_chassis->GetTemplateName().c_str() << "\n";
+    std::cout << "\nSubsystem types\n";
+    std::cout << "Chassis:        " << m_chassis->GetTemplateName().c_str() << "\n";
     if (m_powertrain_assembly) {
-        GetLog() << "Powertrain:\n";
-        GetLog() << "  Engine:       " << GetEngine()->GetTemplateName().c_str() << "\n";
-        GetLog() << "  Transmission: " << GetTransmission()->GetTemplateName().c_str() << "\n";
+        std::cout << "Powertrain:\n";
+        std::cout << "  Engine:       " << GetEngine()->GetTemplateName().c_str() << "\n";
+        std::cout << "  Transmission: " << GetTransmission()->GetTemplateName().c_str() << "\n";
     }
     if (m_driveline)
-        GetLog() << "Driveline:      " << m_driveline->GetTemplateName().c_str() << "\n";
+        std::cout << "Driveline:      " << m_driveline->GetTemplateName().c_str() << "\n";
 
     for (int i = 0; i < m_steerings.size(); i++) {
-        GetLog() << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName().c_str() << "\n";
+        std::cout << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName().c_str() << "\n";
     }
 
     for (int i = 0; i < m_axles.size(); i++) {
-        GetLog() << "Axle " << i << "\n";
-        GetLog() << "  Suspension:   " << m_axles[i]->m_suspension->GetTemplateName().c_str() << "\n";
+        std::cout << "Axle " << i << "\n";
+        std::cout << "  Suspension:   " << m_axles[i]->m_suspension->GetTemplateName().c_str() << "\n";
         if (m_axles[i]->m_antirollbar)
-            GetLog() << "  Antiroll bar: " << m_axles[i]->m_brake_left->GetTemplateName().c_str() << "\n";
+            std::cout << "  Antiroll bar: " << m_axles[i]->m_brake_left->GetTemplateName().c_str() << "\n";
         if (m_axles[i]->m_brake_left)
-            GetLog() << "  Brake:        " << m_axles[i]->m_brake_left->GetTemplateName().c_str() << "\n";
+            std::cout << "  Brake:        " << m_axles[i]->m_brake_left->GetTemplateName().c_str() << "\n";
         if (m_axles[i]->m_wheels.size() == 2)
-            GetLog() << "  Tire:         " << GetTire(i, LEFT, SINGLE)->GetTemplateName().c_str() << "\n";
+            std::cout << "  Tire:         " << GetTire(i, LEFT, SINGLE)->GetTemplateName().c_str() << "\n";
         else
-            GetLog() << "  Tire:         " << GetTire(i, LEFT, INNER)->GetTemplateName().c_str() << "\n";
+            std::cout << "  Tire:         " << GetTire(i, LEFT, INNER)->GetTemplateName().c_str() << "\n";
     }
 }
 

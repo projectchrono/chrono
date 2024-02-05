@@ -57,7 +57,7 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
     m_Q = ChMatrixDynamic<>::Zero(m_nx, m_ny);
     double ramp_angle = 0.0;
     double ramp_length = 1.0;
-    GetLog() << "m_aa = " << m_aa << "\n";
+
     if ((m_aa > 175.0) && (m_aa < 185.0)) {
         // flat terrain
         ramp_length = 1.0;
@@ -77,7 +77,6 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
         m_x[3] = m_xmin + m_obslength;
         if (2.0 * ramp_length > m_obslength) {
             m_obslength = 0.1 + 2.0 * ramp_length;
-            GetLog() << "Impossible configuration: obs length adjusted to " << m_obslength << " m\n";
             m_x[0] = m_xmin;
             m_x[1] = m_x[0] + ramp_length;
             m_x[2] = m_xmin + m_obslength - ramp_length;
@@ -94,7 +93,6 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
         ramp_length = m_obsheight / tan(ramp_angle);
         if (m_obslength <= 0.0) {
             m_obslength = 0.1;
-            GetLog() << "Impossible configuration: obs length adjusted to " << m_obslength << " m\n";
         }
         m_x[0] = m_xmin;
         m_x[1] = m_x[0] + ramp_length;
@@ -138,7 +136,7 @@ double ObsModTerrain::GetHeight(const ChVector<>& loc) const {
             }
         }
         if (ix1 == -1) {
-            GetLog() << "x intervall?\n";
+            std::cerr << "x intervall?\n";
         }
         int jy1 = -1;
         int jy2 = -1;
@@ -150,7 +148,7 @@ double ObsModTerrain::GetHeight(const ChVector<>& loc) const {
             }
         }
         if (jy1 == -1) {
-            GetLog() << "y intervall?\n";
+            std::cerr << "y intervall?\n";
         }
         double x = loc_ISO.x();
         double y = loc_ISO.y();
@@ -178,8 +176,8 @@ ChVector<> ObsModTerrain::GetNormal(const ChVector<>& loc) const {
     r2 = pleft - p0;
     normal_ISO = Vcross(r1, r2);
     if (normal_ISO.z() <= 0.0) {
-        GetLog() << "Fatal: wrong surface normal!\n";
-        exit(99);
+        std::cerr << "Fatal: wrong surface normal!" << std::endl;
+        throw ChException("Fatal: wrong surface normal!");
     }
     ChVector<> normal = ChWorldFrame::FromISO(normal_ISO);
     normal.Normalize();
@@ -192,9 +190,6 @@ float ObsModTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
 }
 
 void ObsModTerrain::Initialize(ObsModTerrain::VisualisationType vType) {
-    GetLog() << "Init Terrain:\n";
-    GetLog() << "Testhright 1 =  " << GetHeight(ChVector<>(0, 0, 0)) << "\n";
-    GetLog() << "Testheight 2 =  " << GetHeight(ChVector<>(m_x[1], m_y[1], 0)) << "\n";
     switch (vType) {
         case ObsModTerrain::VisualisationType::NONE:
             break;
@@ -213,7 +208,6 @@ void ObsModTerrain::GenerateMesh() {
     auto& normals = m_mesh->getCoordsNormals();
     auto& normidx = m_mesh->getIndicesNormals();
 
-    GetLog() << "***Q " << m_Q << "\n";
     for (size_t i = 0; i < m_nx; i++) {
         double x = m_x[i];
         for (size_t j = 0; j < m_y.size(); j++) {

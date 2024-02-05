@@ -104,7 +104,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
     } else if (subtype.compare("TrackAssemblyDoublePin") == 0) {
         m_track = chrono_types::make_shared<TrackAssemblyDoublePin>(d);
     }
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 
     Create(create_track, detracking_control);
     m_contact_manager = chrono_types::make_shared<ChTrackContactManager>();
@@ -359,11 +359,7 @@ void ChTrackTestRig::LogDriverInputs() {
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChTrackTestRig::LogConstraintViolations() {
-    GetLog().SetNumFormat("%16.4e");
-
     //// TODO
-
-    GetLog().SetNumFormat("%g");
 }
 
 // -----------------------------------------------------------------------------

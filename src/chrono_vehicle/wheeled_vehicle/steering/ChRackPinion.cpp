@@ -137,19 +137,19 @@ void ChRackPinion::LogConstraintViolations() {
     // Translational joint
     {
         ChVectorDynamic<> C = m_prismatic->GetConstraintViolation();
-        GetLog() << "Prismatic           ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "  ";
-        GetLog() << "  " << C(4) << "\n";
+        std::cout << "Prismatic           ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "  ";
+        std::cout << "  " << C(3) << "  ";
+        std::cout << "  " << C(4) << "\n";
     }
 
     // Actuator
     {
         ChVectorDynamic<> C = m_actuator->GetConstraintViolation();
-        GetLog() << "Actuator            ";
-        GetLog() << "  " << C(0) << "  ";
+        std::cout << "Actuator            ";
+        std::cout << "  " << C(0) << "  ";
     }
 }
 

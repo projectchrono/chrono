@@ -32,7 +32,7 @@ EngineSimple::EngineSimple(const std::string& filename) : ChEngineSimple("") {
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 EngineSimple::EngineSimple(const rapidjson::Document& d) : ChEngineSimple("") {

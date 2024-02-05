@@ -157,30 +157,30 @@ void ChAntirollBarRSD::LogConstraintViolations() {
     // Chassis revolute joint
     {
         ChVectorDynamic<> C = m_revolute_ch->GetConstraintViolation();
-        GetLog() << "Chassis revolute          ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "  ";
-        GetLog() << "  " << C(4) << "\n";
+        std::cout << "Chassis revolute          ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "  ";
+        std::cout << "  " << C(3) << "  ";
+        std::cout << "  " << C(4) << "\n";
     }
 
     // Central revolute joint
     {
         ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
-        GetLog() << "Central revolute          ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "  ";
-        GetLog() << "  " << C(4) << "\n";
+        std::cout << "Central revolute          ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "  ";
+        std::cout << "  " << C(3) << "  ";
+        std::cout << "  " << C(4) << "\n";
     }
 
     // Distance constraints (droplinks)
-    GetLog() << "Droplink distance (left)  ";
-    GetLog() << "  " << m_link_left->GetCurrentDistance() - m_link_left->GetImposedDistance() << "\n";
-    GetLog() << "Droplink distance (right) ";
-    GetLog() << "  " << m_link_right->GetCurrentDistance() - m_link_right->GetImposedDistance() << "\n";
+    std::cout << "Droplink distance (left)  ";
+    std::cout << "  " << m_link_left->GetCurrentDistance() - m_link_left->GetImposedDistance() << "\n";
+    std::cout << "Droplink distance (right) ";
+    std::cout << "  " << m_link_right->GetCurrentDistance() - m_link_right->GetImposedDistance() << "\n";
 }
 
 // -----------------------------------------------------------------------------

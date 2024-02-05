@@ -32,7 +32,6 @@
 
 #include <algorithm>
 
-#include "chrono/core/ChLog.h"
 #include "chrono/assets/ChVisualShapePath.h"
 #include "chrono/physics/ChBodyEasy.h"
 
@@ -95,7 +94,7 @@ void CRGTerrain::SetRoadDiffuseTextureFile(std::string texFile) {
     filesystem::path path(m_diffuse_texture_filename);
     if (path.is_file() && path.exists()) {
         m_use_diffuseTexture = true;
-        GetLog() << "Diffuse Texture file " << m_diffuse_texture_filename << " can be used.\n";
+        std::cout << "Diffuse Texture file " << m_diffuse_texture_filename << " can be used.\n";
     }
 }
 
@@ -104,7 +103,7 @@ void CRGTerrain::SetRoadNormalTextureFile(std::string texFile) {
     filesystem::path path(m_normal_texture_filename);
     if (path.is_file() && path.exists()) {
         m_use_normalTexture = true;
-        GetLog() << "Normal Texture file " << m_normal_texture_filename << " can be used.\n";
+        std::cout << "Normal Texture file " << m_normal_texture_filename << " can be used.\n";
     }
 }
 
@@ -113,7 +112,7 @@ void CRGTerrain::SetRoadRoughnessTextureFile(std::string texFile) {
     filesystem::path path(m_rough_texture_filename);
     if (path.is_file() && path.exists()) {
         m_use_roughTexture = true;
-        GetLog() << "Roughness Texture file " << m_rough_texture_filename << " can be used.\n";
+        std::cout << "Roughness Texture file " << m_rough_texture_filename << " can be used.\n";
     }
 }
 
@@ -123,35 +122,35 @@ void CRGTerrain::Initialize(const std::string& crg_file) {
     // Read the crg-file
     m_dataSetId = crgLoaderReadFile(crg_file.c_str());
     if (m_dataSetId <= 0) {
-        GetLog() << "CRGTerrain::CRGTTerrain(): error reading data file " << crg_file << "\n";
+        std::cerr << "CRGTerrain::CRGTTerrain(): error reading data file " << crg_file << std::endl;
         return;
     }
     // Check it
     if (!crgCheck(m_dataSetId)) {
-        GetLog() << "CRGTerrain::CRGTTerrain(): could not validate crg data.\n";
+        std::cerr << "CRGTerrain::CRGTTerrain(): could not validate crg data." << std::endl;
         return;
     }
     // Create a contact point
     m_cpId = crgContactPointCreate(m_dataSetId);
     if (m_cpId < 0) {
         // crgMsgPrint( dCrgMsgLevelFatal, "main: could not create contact point.\n" );
-        GetLog() << "CRGTerrain::CRGTTerrain(): could not create contact point!\n";
+        std::cerr << "CRGTerrain::CRGTTerrain(): could not create contact point!" << std::endl;
         return;
     }
 
     int urange_ok = crgDataSetGetURange(m_dataSetId, &m_ubeg, &m_uend);
     if (urange_ok != 1) {
-        GetLog() << "CRGTerrain::CRGTTerrain(): error with urange in data file " << crg_file << "\n";
+        std::cerr << "CRGTerrain::CRGTTerrain(): error with urange in data file " << crg_file << std::endl;
         return;
     }
     int vrange_ok = crgDataSetGetVRange(m_dataSetId, &m_vbeg, &m_vend);
     if (vrange_ok != 1) {
-        GetLog() << "CRGTerrain::CRGTTerrain(): error with vrange in data file " << crg_file << "\n";
+        std::cerr << "CRGTerrain::CRGTTerrain(): error with vrange in data file " << crg_file << std::endl;
         return;
     }
     int incr_ok = crgDataSetGetIncrements(m_dataSetId, &m_uinc, &m_vinc);
     if (incr_ok != 1) {
-        GetLog() << "CRGTerrain::CRGTTerrain(): could not get increments from data file " << crg_file << "\n";
+        std::cerr << "CRGTerrain::CRGTTerrain(): could not get increments from data file " << crg_file << std::endl;
         return;
     }
     // dirty hack:
@@ -161,22 +160,21 @@ void CRGTerrain::Initialize(const std::string& crg_file) {
         m_v.push_back(0.0);
         m_v.push_back(0.05);
         m_v.push_back(m_vend);
-        GetLog() << "\n";
-        GetLog() << " Caution:\n";
-        GetLog() << " Mesh seemes to be nonequidistant in v direction (vinc = " << m_vinc << "m).\n";
-        GetLog() << " We use 5 distinct v values [";
+        std::cout << " \nCaution:\n";
+        std::cout << " Mesh seemes to be nonequidistant in v direction (vinc = " << m_vinc << "m).\n";
+        std::cout << " We use 5 distinct v values [";
         for (size_t i = 0; i < m_v.size(); i++) {
-            GetLog() << " " << m_v[i];
+            std::cout << " " << m_v[i];
         }
-        GetLog() << " ] as fallback values.\n";
-        GetLog() << " If it does not work for you, only use v-eqidistant crg files with vinc > 0.01 m.\n\n";
+        std::cout << " ] as fallback values.\n";
+        std::cout << " If it does not work for you, only use v-eqidistant crg files with vinc > 0.01 m.\n\n";
     }
 
     int uIsClosed;
     double uCloseMin, uCloseMax;
     int cl_ok = crgDataSetGetUtilityDataClosedTrack(m_dataSetId, &uIsClosed, &uCloseMin, &uCloseMax);
     if (cl_ok != 1) {
-        GetLog() << "CRGTerrain::CRGTerrain(): could not get closedness from data file " << crg_file << "\n";
+        std::cerr << "CRGTerrain::CRGTerrain(): could not get closedness from data file " << crg_file << std::endl;
         return;
     } else {
         m_isClosed = (uIsClosed != 0);
@@ -210,16 +208,16 @@ void CRGTerrain::SetRoadsidePosts() {
         double xl, yl, zl;
         double xr, yr, zr;
         if (crgEvaluv2xy(m_cpId, u, vl, &xl, &yl) != 1) {
-            GetLog() << "could not get xl,yl in " << __func__ << "\n";
+            std::cerr << "could not get xl,yl in CRGTerrain::SetRoadsidePosts" << std::endl;
         }
         if (crgEvaluv2xy(m_cpId, u, vr, &xr, &yr) != 1) {
-            GetLog() << "could not get r,yr in " << __func__ << "\n";
+            std::cerr << "could not get r,yr in CRGTerrain::SetRoadsidePosts" << std::endl;
         }
         if (crgEvaluv2z(m_cpId, u, vl, &zl) != 1) {
-            GetLog() << "could not get zl in " << __func__ << "\n";
+            std::cerr << "could not get zl in CRGTerrain::SetRoadsidePosts" << std::endl;
         }
         if (crgEvaluv2z(m_cpId, u, vr, &zr) != 1) {
-            GetLog() << "could not get zr in " << __func__ << "\n";
+            std::cerr << "could not get zr in CRGTerrain::SetRoadsidePosts" << std::endl;
         }
 
         auto shape_l = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
@@ -236,8 +234,8 @@ double CRGTerrain::GetStartHeading() {
     double phi, curv;
 
     if (crgEvaluv2pk(m_cpId, 0, 0, &phi, &curv) != 1) {
-        GetLog() << "CRGTerrain::GetStartHeading(): error during uv -> pk coordinate transformation\n";
-        phi = 0;
+        std::cerr << "CRGTerrain::GetStartHeading(): error during uv -> pk coordinate transformation" << std::endl;
+        return 0;
     }
 
     return phi;
@@ -247,13 +245,13 @@ ChCoordsys<> CRGTerrain::GetStartPosition() {
     double x, y, z;
 
     if (crgEvaluv2xy(m_cpId, 0, 0, &x, &y) != 1) {
-        GetLog() << "CRGTerrain::GetStartPosition(): error during uv -> xy coordinate transformation\n";
+        std::cerr << "CRGTerrain::GetStartPosition(): error during uv -> xy coordinate transformation" << std::endl;
         x = 0;
         y = 0;
     }
 
     if (crgEvaluv2z(m_cpId, 0, 0, &z) != 1) {
-        GetLog() << "CRGTerrain::GetStartPosition(): error during uv -> z coordinate transformation\n";
+        std::cerr << "CRGTerrain::GetStartPosition(): error during uv -> z coordinate transformation" << std::endl;
         z = 0;
     }
 
@@ -265,7 +263,8 @@ double CRGTerrain::GetHeight(const ChVector<>& loc) const {
     double u, v, z;
     int uv_ok = crgEvalxy2uv(m_cpId, loc_ISO.x(), loc_ISO.y(), &u, &v);
     if (uv_ok != 1) {
-        GetLog() << "CRGTerrain::GetHeight(): error during xy -> uv coordinate transformation\n";
+        std::cerr << "CRGTerrain::GetHeight(): error during xy -> uv coordinate transformation" << std::endl;
+        return 0;
     }
 
     // when leaving the road the vehicle should not fall into an abyss
@@ -274,7 +273,8 @@ double CRGTerrain::GetHeight(const ChVector<>& loc) const {
 
     int z_ok = crgEvaluv2z(m_cpId, u, v, &z);
     if (z_ok != 1) {
-        GetLog() << "CRGTerrain::GetHeight(): error during uv -> z coordinate transformation\n";
+        std::cerr << "CRGTerrain::GetHeight(): error during uv -> z coordinate transformation" << std::endl;
+        return 0;
     }
 
     return z;
@@ -297,8 +297,8 @@ ChVector<> CRGTerrain::GetNormal(const ChVector<>& loc) const {
     r2 = pleft - p0;
     normal_ISO = Vcross(r1, r2);
     if (normal_ISO.z() <= 0.0) {
-        GetLog() << "Fatal: wrong surface normal!\n";
-        exit(99);
+        std::cerr << "Fatal: wrong surface normal!" << std::endl;
+        throw ChException("Fatal: wrong surface normal!");
     }
     ChVector<> normal = ChWorldFrame::FromISO(normal_ISO);
     normal.Normalize();
@@ -328,11 +328,11 @@ std::shared_ptr<ChBezierCurve> CRGTerrain::GetRoadCenterLine() {
         double xm, ym, zm;
         int xy_ok = crgEvaluv2xy(m_cpId, u, vm, &xm, &ym);
         if (xy_ok != 1) {
-            GetLog() << "CRGTerrain::SetupGraphics(): error during uv -> xy coordinate transformation\n";
+            std::cerr << "CRGTerrain::SetupGraphics(): error during uv -> xy coordinate transformation" << std::endl;
         }
         int z_ok = crgEvaluv2z(m_cpId, u, vm, &zm);
         if (z_ok != 1) {
-            GetLog() << "CRGTerrain::SetupGraphics(): error during uv -> z coordinate transformation\n";
+            std::cerr << "CRGTerrain::SetupGraphics(): error during uv -> z coordinate transformation" << std::endl;
         }
         ////zm = avg.Add(zm);
         pathpoints.push_back(ChWorldFrame::FromISO(ChVector<>(xm, ym, zm + 0.2)));
@@ -358,19 +358,19 @@ void CRGTerrain::GenerateCurves() {
 
         int xy_ok = crgEvaluv2xy(m_cpId, u, m_vbeg, &xl, &yl);
         if (xy_ok != 1) {
-            GetLog() << "CRGTerrain::SetupGraphics(): error during uv -> xy coordinate transformation\n";
+            std::cerr << "CRGTerrain::SetupGraphics(): error during uv -> xy coordinate transformation" << std::endl;
         }
         xy_ok = crgEvaluv2xy(m_cpId, u, m_vend, &xr, &yr);
         if (xy_ok != 1) {
-            GetLog() << "CRGTerrain::SetupGraphics(): error during uv -> xy coordinate transformation\n";
+            std::cerr << "CRGTerrain::SetupGraphics(): error during uv -> xy coordinate transformation" << std::endl;
         }
         int z_ok = crgEvaluv2z(m_cpId, u, m_vbeg, &zl);
         if (z_ok != 1) {
-            GetLog() << "CRGTerrain::SetupGraphics(): error during uv -> z coordinate transformation\n";
+            std::cerr << "CRGTerrain::SetupGraphics(): error during uv -> z coordinate transformation" << std::endl;
         }
         z_ok = crgEvaluv2z(m_cpId, u, m_vend, &zr);
         if (z_ok != 1) {
-            GetLog() << "CRGTerrain::SetupGraphics(): error during uv -> z coordinate transformation\n";
+            std::cerr << "CRGTerrain::SetupGraphics(): error during uv -> z coordinate transformation" << std::endl;
         }
         pl.push_back(ChWorldFrame::FromISO(ChVector<>(xl, yl, zl)));
         pr.push_back(ChWorldFrame::FromISO(ChVector<>(xr, yr, zr)));
@@ -435,13 +435,13 @@ void CRGTerrain::GenerateMesh() {
                 double tv = (v - m_vbeg) / (m_vend - m_vbeg);
                 int uv_ok = crgEvaluv2xy(m_cpId, u, v, &x, &y);
                 if (uv_ok != 1) {
-                    GetLog() << "main: error during uv -> xy coordinate transformation in crg file\n";
-                    exit(99);
+                    std::cerr << "Error during uv -> xy coordinate transformation in crg file" << std::endl;
+                    throw ChException("Error during uv -> xy coordinate transformation in crg file");
                 }
                 int z_ok = crgEvaluv2z(m_cpId, u, v, &z);
                 if (z_ok != 1) {
-                    GetLog() << "main: error during uv -> z coordinate transformation in crg file\n";
-                    exit(99);
+                    std::cerr << "Error during uv -> z coordinate transformation in crg file" << std::endl;
+                    throw ChException("Error during uv -> z coordinate transformation in crg file");
                 }
                 if (i == 0) {
                     x0.push_back(x);
@@ -471,13 +471,13 @@ void CRGTerrain::GenerateMesh() {
                 double x, y, z;
                 int uv_ok = crgEvaluv2xy(m_cpId, u, v, &x, &y);
                 if (uv_ok != 1) {
-                    GetLog() << "main: error during uv -> xy coordinate transformation in crg file\n";
-                    exit(99);
+                    std::cerr << "Error during uv -> xy coordinate transformation in crg file" << std::endl;
+                    throw ChException("Error during uv -> xy coordinate transformation in crg file");
                 }
                 int z_ok = crgEvaluv2z(m_cpId, u, v, &z);
                 if (z_ok != 1) {
-                    GetLog() << "main: error during uv -> z coordinate transformation in crg file\n";
-                    exit(99);
+                    std::cerr << "Error during uv -> z coordinate transformation in crg file" << std::endl;
+                    throw ChException("Error during uv -> z coordinate transformation in crg file");
                 }
                 if (i == 0) {
                     x0.push_back(x);
@@ -528,7 +528,6 @@ void CRGTerrain::SetupMeshGraphics() {
             material->SetRoughnessTexture(m_rough_texture_filename);
         vmesh->SetMaterial(0, material);
         m_ground->AddVisualShape(vmesh);
-        GetLog() << "Texture?\n";
     } else {
         auto vmesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         vmesh->SetMesh(m_mesh);

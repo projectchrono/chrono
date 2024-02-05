@@ -33,7 +33,7 @@ EngineShafts::EngineShafts(const std::string& filename) : ChEngineShafts("") {
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 EngineShafts::EngineShafts(const rapidjson::Document& d) : ChEngineShafts("") {

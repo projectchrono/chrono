@@ -37,7 +37,7 @@ DoubleTrackWheel::DoubleTrackWheel(const std::string& filename) : ChDoubleTrackW
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 DoubleTrackWheel::DoubleTrackWheel(const rapidjson::Document& d) : ChDoubleTrackWheel(""), m_has_mesh(false) {

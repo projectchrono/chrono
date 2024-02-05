@@ -143,7 +143,7 @@ void Sedan::Initialize() {
             break;
         }
         default:
-            GetLog() << "Unsupported Tire Model Type! Switching to TMeasy.\n";
+            std::cout << "Unsupported Tire Model Type! Switching to TMeasy.\n";
         case TireModelType::TMSIMPLE: {
             auto tire_FL = chrono_types::make_shared<Sedan_TMsimpleTire>("FL");
             auto tire_FR = chrono_types::make_shared<Sedan_TMsimpleTire>("FR");

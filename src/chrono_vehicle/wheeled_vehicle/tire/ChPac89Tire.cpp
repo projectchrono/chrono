@@ -244,19 +244,6 @@ void ChPac89Tire::Advance(double step) {
         My = myStartUp * m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
     }
 
-    // GetLog() << "Fx:" << Fx
-    //    << " Fy:" << Fy
-    //    << " Fz:" << Fz
-    //    << " Mx:" << Mx
-    //    << " My:" << My
-    //    << " Mz:" << Mz
-    //    << std::endl
-    //    << " G:" << gamma
-    //    << " A:" << alpha
-    //    << " K:" << kappa
-    //    << " O:" << m_states.omega
-    //    << "\n";
-
     // Compile the force and moment vectors so that they can be
     // transformed into the global coordinate system.
     // Convert from SAE to ISO Coordinates at the contact patch.

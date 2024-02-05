@@ -305,30 +305,30 @@ void ChPitmanArmShafts::LogConstraintViolations() {
     // Revolute joint
     {
         ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
-        GetLog() << "Revolute              ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "  ";
-        GetLog() << "  " << C(4) << "\n";
+        std::cout << "Revolute              ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "  ";
+        std::cout << "  " << C(3) << "  ";
+        std::cout << "  " << C(4) << "\n";
     }
 
     // Universal joint
     {
         ChVectorDynamic<> C = m_universal->GetConstraintViolation();
-        GetLog() << "Universal             ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "\n";
+        std::cout << "Universal             ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "  ";
+        std::cout << "  " << C(3) << "\n";
     }
 
     // Revolute-spherical joint
     {
         ChVectorDynamic<> C = m_revsph->GetConstraintViolation();
-        GetLog() << "Revolute-spherical    ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "\n";
+        std::cout << "Revolute-spherical    ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "\n";
     }
 
     //// TODO

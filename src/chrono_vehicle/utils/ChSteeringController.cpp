@@ -115,7 +115,7 @@ ChPathSteeringController::ChPathSteeringController(const std::string& filename, 
 
     m_dist = d["Lookahead Distance"].GetDouble();
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 void ChPathSteeringController::SetGains(double Kp, double Ki, double Kd) {
@@ -238,7 +238,7 @@ ChPathSteeringControllerXT::ChPathSteeringControllerXT(const std::string& filena
 
     m_dist = d["Lookahead Distance"].GetDouble();
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 void ChPathSteeringControllerXT::SetGains(double Kp, double W_y_err, double W_heading_err, double W_ackermann) {
@@ -446,11 +446,6 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(std::shared_ptr<ChBezierC
       m_idx_curr(0) {
     // retireve points
     CalcPathPoints();
-    if (m_isClosedPath) {
-        GetLog() << "Path is closed.\n";
-    } else {
-        GetLog() << "Path is open.\n";
-    }
 }
 
 ChPathSteeringControllerSR::ChPathSteeringControllerSR(const std::string& filename,
@@ -478,7 +473,7 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(const std::string& filena
 
     m_Tp = d["Preview Time"].GetDouble();
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 void ChPathSteeringControllerSR::CalcPathPoints() {
@@ -671,7 +666,7 @@ ChPathSteeringControllerStanley::ChPathSteeringControllerStanley(const std::stri
     if (d.HasMember("Dead Zone")) {
         m_deadZone = d["Dead Zone"].GetDouble();
     }
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 void ChPathSteeringControllerStanley::Reset(const ChFrameMoving<>& ref_frame) {

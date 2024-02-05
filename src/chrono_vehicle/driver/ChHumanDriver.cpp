@@ -123,72 +123,72 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
 
     if (d.HasMember("Preview Time")) {
         m_Tp = d["Preview Time"].GetDouble();
-        GetLog() << "Preview Time read from JSON file. Tp = " << m_Tp << " secs\n";
+        std::cout << "Preview Time read from JSON file. Tp = " << m_Tp << " secs\n";
     } else {
-        GetLog() << "Caution: I am using the default value for Preview Time Tp = " << m_Tp << " secs\n";
+        std::cout << "Caution: I am using the default value for Preview Time Tp = " << m_Tp << " secs\n";
     }
 
     if (d.HasMember("Speed Range")) {
         if (d["Speed Range"].HasMember("MinSpeed")) {
             m_u0 = d["Speed Range"]["MinSpeed"].GetDouble();
-            GetLog() << "Minimal speed U0 read from JSON file. U0 = " << m_u0 << " m/s\n";
+            std::cout << "Minimal speed U0 read from JSON file. U0 = " << m_u0 << " m/s\n";
         } else {
-            GetLog() << "Caution: I am using the default value for U0 = " << m_u0 << " m/s\n";
+            std::cout << "Caution: I am using the default value for U0 = " << m_u0 << " m/s\n";
         }
         if (d["Speed Range"].HasMember("MaxSpeed")) {
             m_umax = d["Speed Range"]["MaxSpeed"].GetDouble();
-            GetLog() << "Minimal speed Umax read from JSON file. Umax = " << m_umax << " m/s\n";
+            std::cout << "Minimal speed Umax read from JSON file. Umax = " << m_umax << " m/s\n";
         } else {
-            GetLog() << "Caution: I am using the default value for Umax = " << m_umax << " m/s\n";
+            std::cout << "Caution: I am using the default value for Umax = " << m_umax << " m/s\n";
         }
     } else {
-        GetLog() << "Caution: I am using the default values for U0 = " << m_u0 << " m/s  and  Umax = " << m_umax
+        std::cout << "Caution: I am using the default values for U0 = " << m_u0 << " m/s  and  Umax = " << m_umax
                  << " m/s\n";
     }
 
     if (d.HasMember("Lateral Gains")) {
         if (d["Lateral Gains"].HasMember("Klat")) {
             m_Klat = d["Lateral Gains"]["Klat"].GetDouble();
-            GetLog() << "Lateral gain Klat read from JSON file. Klat = " << m_Klat << "\n";
+            std::cout << "Lateral gain Klat read from JSON file. Klat = " << m_Klat << "\n";
         } else {
-            GetLog() << "Caution: I am using the default value for Klat = " << m_Klat << "\n";
+            std::cout << "Caution: I am using the default value for Klat = " << m_Klat << "\n";
         }
         if (d["Lateral Gains"].HasMember("Kug")) {
             m_Kug = d["Lateral Gains"]["Kug"].GetDouble();
-            GetLog() << "Lateral gain Kug read from JSON file. Kug = " << m_Kug << " deg/g\n";
+            std::cout << "Lateral gain Kug read from JSON file. Kug = " << m_Kug << " deg/g\n";
         } else {
-            GetLog() << "Caution: I am using the default value for Kug = " << m_Kug << " deg/g\n";
+            std::cout << "Caution: I am using the default value for Kug = " << m_Kug << " deg/g\n";
         }
     } else {
-        GetLog() << "Caution: I am using the default values for Klat= " << m_Klat << "  and  Kug = " << m_Kug
+        std::cout << "Caution: I am using the default values for Klat= " << m_Klat << "  and  Kug = " << m_Kug
                  << " deg/g\n";
     }
 
     if (d.HasMember("Longitudinal Gains")) {
         if (d["Longitudinal Gains"].HasMember("Klong")) {
             m_Klong = d["Longitudinal Gains"]["Klong"].GetDouble();
-            GetLog() << "Longitudinal gain Klong read from JSON file. Klong = " << m_Klong << " m/s\n";
+            std::cout << "Longitudinal gain Klong read from JSON file. Klong = " << m_Klong << " m/s\n";
         } else {
-            GetLog() << "Caution: I am using the default value for Klong = " << m_Klong << " \n";
+            std::cout << "Caution: I am using the default value for Klong = " << m_Klong << " \n";
         }
         if (d["Longitudinal Gains"].HasMember("Kplus")) {
             m_Kplus = d["Longitudinal Gains"]["Kplus"].GetDouble();
-            GetLog() << "Longitudinal gain Kplus read from JSON file. Kplus = " << m_Kplus << " m/s\n";
+            std::cout << "Longitudinal gain Kplus read from JSON file. Kplus = " << m_Kplus << " m/s\n";
         } else {
-            GetLog() << "Caution: I am using the default value for Kplus = " << m_Kplus << " \n";
+            std::cout << "Caution: I am using the default value for Kplus = " << m_Kplus << " \n";
         }
         if (d["Longitudinal Gains"].HasMember("Kminus")) {
             m_Kminus = d["Longitudinal Gains"]["Kminus"].GetDouble();
-            GetLog() << "Longitudinal gain Kminus read from JSON file. Kminus = " << m_Kminus << " m/s\n";
+            std::cout << "Longitudinal gain Kminus read from JSON file. Kminus = " << m_Kminus << " m/s\n";
         } else {
-            GetLog() << "Caution: I am using the default value for Kminus = " << m_Kminus << " \n";
+            std::cout << "Caution: I am using the default value for Kminus = " << m_Kminus << " \n";
         }
     } else {
-        GetLog() << "Caution: I am using the default values for Klong= " << m_Klong << "  ,  Kplus = " << m_Kplus
+        std::cout << "Caution: I am using the default values for Klong= " << m_Klong << "  ,  Kplus = " << m_Kplus
                  << "  ,  Kminus = " << m_Kminus << " \n";
     }
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 
     Create();
 }

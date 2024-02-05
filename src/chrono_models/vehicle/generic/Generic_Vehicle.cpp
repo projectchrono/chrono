@@ -283,17 +283,15 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
 // Log constraint violations of suspension joints.
 // -----------------------------------------------------------------------------
 void Generic_Vehicle::DebugLog(int what) {
-    GetLog().SetNumFormat("%10.3f");
-
     if (what & OUT_SPRINGS || what & OUT_SHOCKS) {
-        GetLog() << "\n---- Spring and Shock information\n\n";
+        std::cout << "\n---- Spring and Shock information\n\n";
         for (int axle = 0; axle < 2; axle++) {
             std::string axlePosition = (axle == 0) ? "Front" : "Rear ";
             for (int side = LEFT; side <= RIGHT; side++) {
                 for (auto& forceTSDA :
                      m_axles[axle]->m_suspension->ReportSuspensionForce(static_cast<VehicleSide>(side))) {
-                    GetLog() << axlePosition << " " << (side == LEFT ? "Left " : "Right") << " ";
-                    GetLog() << forceTSDA.name << std::string(10 - std::max(0, (int)forceTSDA.name.size()), ' ')
+                    std::cout << axlePosition << " " << (side == LEFT ? "Left " : "Right") << " ";
+                    std::cout << forceTSDA.name << std::string(10 - std::max(0, (int)forceTSDA.name.size()), ' ')
                              << " Length: " << forceTSDA.length << " m, Force: " << forceTSDA.force << " N\n";
                 }
             }
@@ -304,8 +302,6 @@ void Generic_Vehicle::DebugLog(int what) {
         // Report constraint violations for all joints
         LogConstraintViolations();
     }
-
-    GetLog().SetNumFormat("%g");
 }
 
 // -----------------------------------------------------------------------------
@@ -385,7 +381,7 @@ void Generic_Vehicle::CreateAndInitializeTires(TireModelType tire_type, Visualiz
         }
 
         default:
-            GetLog() << "Unsupported Tire Model Type! Switching to PAC02.\n";
+            std::cout << "Unsupported Tire Model Type! Switching to PAC02.\n";
         case TireModelType::PAC02: {
             auto tire_FL = chrono_types::make_shared<Generic_Pac02Tire>("FL");
             auto tire_FR = chrono_types::make_shared<Generic_Pac02Tire>("FR");

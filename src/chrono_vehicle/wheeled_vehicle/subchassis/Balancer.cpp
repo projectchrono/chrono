@@ -32,7 +32,7 @@ Balancer::Balancer(const std::string& filename) : ChBalancer(""), m_bushingData(
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 Balancer::Balancer(const rapidjson::Document& d) : ChBalancer(""), m_bushingData(nullptr) {

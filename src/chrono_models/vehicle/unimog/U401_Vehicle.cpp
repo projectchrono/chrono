@@ -86,7 +86,7 @@ void U401_Vehicle::Create(bool fixed,
 
     switch (brake_type) {
         case BrakeType::SIMPLE:
-            GetLog() << "Buggy simple brake changed to shafts brake!\n";
+            std::cout << "Buggy simple brake changed to shafts brake!\n";
         case BrakeType::SHAFTS:
             m_axles[0]->m_brake_left = chrono_types::make_shared<U401_BrakeShafts>("Brake_FL");
             m_axles[0]->m_brake_right = chrono_types::make_shared<U401_BrakeShafts>("Brake_FR");
@@ -163,19 +163,15 @@ double U401_Vehicle::GetShockVelocity(int axle, VehicleSide side) const {
 // subsystems (display in inches)
 // -----------------------------------------------------------------------------
 void U401_Vehicle::LogHardpointLocations() {
-    GetLog().SetNumFormat("%7.3f");
-
-    GetLog() << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
+    std::cout << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
     std::static_pointer_cast<ChToeBarPushPipeAxle>(m_axles[0]->m_suspension)
         ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
 
-    GetLog() << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
+    std::cout << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
     std::static_pointer_cast<ChPushPipeAxle>(m_axles[1]->m_suspension)
         ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
 
-    GetLog() << "\n\n";
-
-    GetLog().SetNumFormat("%g");
+    std::cout << "\n\n";
 }
 
 // -----------------------------------------------------------------------------
@@ -186,25 +182,23 @@ void U401_Vehicle::LogHardpointLocations() {
 // Lengths are reported in inches, velocities in inches/s, and forces in lbf
 // -----------------------------------------------------------------------------
 void U401_Vehicle::DebugLog(int what) {
-    GetLog().SetNumFormat("%10.2f");
-
     if (what & OUT_SPRINGS) {
-        GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [m]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
+        std::cout << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
+        std::cout << "Length [m]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
                  << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
-        GetLog() << "Deformation [m]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
+        std::cout << "Deformation [m]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
                  << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
-        GetLog() << "Force [N]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
+        std::cout << "Force [N]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
                  << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_SHOCKS) {
-        GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
+        std::cout << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
+        std::cout << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
                  << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
-        GetLog() << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
+        std::cout << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
                  << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
-        GetLog() << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
+        std::cout << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
                  << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
     }
 
@@ -212,11 +206,8 @@ void U401_Vehicle::DebugLog(int what) {
         // Report constraint violations for all joints
         LogConstraintViolations();
     }
-
-    GetLog().SetNumFormat("%g");
 }
 
 }  // end namespace unimog
 }  // end namespace vehicle
 }  // end namespace chrono
-

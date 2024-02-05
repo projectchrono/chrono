@@ -23,8 +23,6 @@
 
 #include <cmath>
 
-#include "chrono/core/ChLog.h"
-
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
@@ -349,16 +347,16 @@ void ChTrackAssembly::Output(ChVehicleOutput& database) const {
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChTrackAssembly::LogConstraintViolations() {
-    GetLog() << "SPROCKET constraint violations\n";
+    std::cout << "SPROCKET constraint violations\n";
     GetSprocket()->LogConstraintViolations();
-    GetLog() << "IDLER constraint violations\n";
+    std::cout << "IDLER constraint violations\n";
     m_idler->LogConstraintViolations();
     for (size_t i = 0; i < m_suspensions.size(); i++) {
-        GetLog() << "SUSPENSION #" << i << " constraint violations\n";
+        std::cout << "SUSPENSION #" << i << " constraint violations\n";
         m_suspensions[i]->LogConstraintViolations();
     }
     for (size_t i = 0; i < m_rollers.size(); i++) {
-        GetLog() << "ROLLER #" << i << " constraint violations\n";
+        std::cout << "ROLLER #" << i << " constraint violations\n";
         m_rollers[i]->LogConstraintViolations();
     }
 }

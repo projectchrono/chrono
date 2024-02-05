@@ -289,9 +289,9 @@ void ChShaftsDriveline6WD::LockAxleDifferential(int axle, bool lock) {
         return;
     }
 
-    GetLog() << "WARNING: Incorrect axle specification in ChShaftsDriveline6WD::LockAxleDifferential.\n";
+    std::cerr << "WARNING: Incorrect axle specification in ChShaftsDriveline6WD::LockAxleDifferential." << std::endl;
     for (size_t i = 0; i < m_driven_axles.size(); i++) {
-        GetLog() << "         Driven axles are: " << m_driven_axles[i] << "\n";
+        std::cerr << "         Driven axles are: " << m_driven_axles[i] << std::endl;
     }
 }
 
