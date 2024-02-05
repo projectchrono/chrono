@@ -159,9 +159,9 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction)
 
         // Just for logging the frequencies:
         for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-            GetLog()<< "Mode n." << i
-                    << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i)
-                    << "\n";
+            std::cout << "Mode n." << i
+                     << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i)
+                     << std::endl;
     }
 
 
@@ -245,7 +245,7 @@ class MyEventReceiver : public IEventReceiver {
 
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2021 projectchrono.org" << std::endl << "Chrono version: " << CHRONO_VERSION << std::endl << std::endl;
 
     // Directory for output data
     if (!filesystem::create_directory(filesystem::path(out_dir))) {

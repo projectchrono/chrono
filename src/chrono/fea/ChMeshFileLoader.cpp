@@ -214,7 +214,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
 
     std::ifstream fin(filename);
     if (fin.good())
-        GetLog() << "Parsing Abaqus INP file: " << filename << "\n";
+        std::cout << "Parsing Abaqus INP file: " << filename << std::endl;
     else
         throw ChException("ERROR opening Abaqus .inp file: " + std::string(filename) + "\n");
 
@@ -240,7 +240,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 if (nse > 0) {
                     std::string::size_type ncom = line.find(",", nse);
                     std::string s_node_set = line.substr(nse + 5, ncom - (nse + 5));
-                    GetLog() << "| parsing nodes " << s_node_set << "\n";
+                    std::cout << "| parsing nodes " << s_node_set << std::endl;
                 }
                 e_parse_section = E_PARSE_NODES_XYZ;
             }
@@ -268,7 +268,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 if (nse > 0) {
                     std::string::size_type ncom = line.find(",", nse);
                     std::string s_ele_set = line.substr(nse + 6, ncom - (nse + 6));
-                    GetLog() << "| parsing element set: " << s_ele_set << "\n";
+                    std::cout << "| parsing element set: " << s_ele_set << std::endl;
                 }
             }
 
@@ -277,7 +277,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 if (nse > 0) {
                     std::string::size_type ncom = line.find(",", nse);
                     std::string s_node_set = line.substr(nse + 5, ncom - (nse + 5));
-                    GetLog() << "| parsing nodeset: " << s_node_set << "\n";
+                    std::cout << "| parsing nodeset: " << s_node_set << std::endl;
                     auto new_node =
                         node_sets.insert(std::pair<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>>(
                             s_node_set, std::vector<std::shared_ptr<ChNodeFEAbase>>()));
@@ -504,8 +504,8 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
         if (line.find("Vertices") == 0) {
             std::getline(fin, line);
             TotalNumNodes = atoi(line.c_str());
-            printf("Found  %d nodes\n", TotalNumNodes);
-            GetLog() << "Parsing information from \"Vertices\" \n";
+            printf("Found %d nodes\n", TotalNumNodes);
+            std::cout << "Parsing information from \"Vertices\"" << std::endl;
             std::getline(fin, line);
             Normals.resize(TotalNumNodes);
             node_ave_area.resize(nodes_offset + TotalNumNodes);
@@ -565,7 +565,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
             std::getline(fin, line);
             TotalNumBEdges = atoi(line.c_str());
             printf("Found %d Edges.\n", TotalNumBEdges);
-            GetLog() << "Parsing edges from \"Edges\" \n";
+            std::cout << "Parsing edges from \"Edges\"" << std::endl;
             std::getline(fin, line);
 
             for (int edge = 0; edge < TotalNumBEdges; edge++) {
@@ -590,7 +590,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
             std::getline(fin, line);
             TotalNumElements = atoi(line.c_str());
             printf("Found %d elements.\n", TotalNumElements);
-            GetLog() << "Parsing nodeset from \"Quadrilaterals\" \n";
+            std::cout << "Parsing nodeset from \"Quadrilaterals\"" << std::endl;
             std::getline(fin, line);
 
             for (int ele = 0; ele < TotalNumElements; ele++) {
@@ -656,7 +656,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     printf("Mesh Bounding box is x [%f %f %f %f %f %f]\n", BoundingBox(0, 0), BoundingBox(0, 1), BoundingBox(0, 2),
            BoundingBox(0, 3), BoundingBox(0, 4), BoundingBox(0, 5));
 
-    GetLog() << "-----------------------------------------------------------\n\n";
+    std::cout << "-----------------------------------------------------------" << std::endl << std::endl;
     //
     for (int inode = 0; inode < TotalNumNodes; inode++) {
         ChVector<> node_normal = (Normals[inode] / num_Normals[inode]);
@@ -673,10 +673,10 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
         // Add node to mesh
         mesh->AddNode(node);
         if (printNodes) {
-            GetLog() << node->GetPos().x() << "  " << node->GetPos().y() << "  " << node->GetPos().z() << "\n";
+            std::cout << node->GetPos().x() << "  " << node->GetPos().y() << "  " << node->GetPos().z() << std::endl;
         }
     }
-    GetLog() << "-----------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------" << std::endl;
     for (int ielem = 0; ielem < 0 + TotalNumElements; ielem++) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element->SetNodes(
@@ -727,7 +727,7 @@ void ChMeshFileLoader::BSTShellFromObjFile(
         int i0 = v_indices[j][0];
         int i1 = v_indices[j][1];
         int i2 = v_indices[j][2];
-        // GetLog() << "nodes 012 ids= " << i0 << " " << i1 << " " << i2 << " " << "\n";
+        // std::cout << "nodes 012 ids= " << i0 << " " << i1 << " " << i2 << " " << std::endl;
 
         std::pair<int, int> medge0(i1, i2);
         std::pair<int, int> medge1(i2, i0);

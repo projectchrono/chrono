@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
                                                      GetChronoDataFile("fea/beam.ele").c_str(), mmaterial, ctot.pos,
                                                      mrot);
                 } catch (ChException myerr) {
-                    GetLog() << myerr.what();
+                    std::cerr << myerr.what();
                     return 0;
                 }
             }

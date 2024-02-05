@@ -245,8 +245,8 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
     /// NOTE: To be safe, it is recommended to  use GetMainInertiasInMassReference() instead,
     /// because Qmy,Qmz are ignored, although they are exactly zero in theory.
     virtual double GetInertiaJxxPerUnitLengthInMassReference() const {
-        GetLog() << "Warm warning: it is recommended to use GetMainInertiasInMassReference() instead, "
-                 << "and do calculation: Jmxx = Jmyy+Jmzz \n";
+        std::cerr << "WARNING: it is recommended to use GetMainInertiasInMassReference() instead, "
+                  << "and do calculation: Jmxx = Jmyy+Jmzz" << std::endl;
         return this->Jxx - this->mu * this->Mz * this->Mz - this->mu * this->My * this->My;
     };
 
@@ -366,7 +366,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     bool compute_Ri_Ki_by_num_diff = false;
 
     /// A lock to avoid computing avg_sec_par several times, initialized as false by default.
-    /// If one wants to recalculate the avg_sec_par again, set this variable to 'false' and 
+    /// If one wants to recalculate the avg_sec_par again, set this variable to 'false' and
     /// run ComputeAverageSectionParameters() again.
     bool compute_ave_sec_par = false;
 
@@ -385,7 +385,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     bool use_lumped_mass_matrix;
 
     // Some important average section parameters, to calculate only once, enable to access them conveniently.
-    std::shared_ptr<AverageSectionParameters> avg_sec_par;    
+    std::shared_ptr<AverageSectionParameters> avg_sec_par;
 
     /// Compute the 12x12 sectional inertia matrix in lumped format, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix)

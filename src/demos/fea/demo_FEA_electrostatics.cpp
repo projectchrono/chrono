@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             if (mnode->GetP() < 6.2) {
-                // GetLog() << "Node at y=" << mnode->GetPos().y << " has V=" << mnode->GetP() << "\n";
+                // std::cout << "Node at y=" << mnode->GetPos().y << " has V=" << mnode->GetP() << std::endl;
             }
         }
     }

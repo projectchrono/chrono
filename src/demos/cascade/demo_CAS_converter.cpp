@@ -131,7 +131,7 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
         decompositionNode->remove();
     decompositionNode = 0;
 
-    std::cout << "\n\n 0-LOADING THE STEP MODEL..   \n\n\n";
+    std::cout << std::endl << std::endl << "0-LOADING THE STEP MODEL..." << std::endl;
 
     ChCascadeDoc mydoc;
     bool aRes = mydoc.Load_STEP(filename);
@@ -162,11 +162,11 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
             ChStreamOutAsciiFile mobjfile("triangulated_step_model_root.obj");
             // afinder.res_shape.Location(TopLoc_Location()); // to reset CAD reference as center of obj.
             ChCascadeMeshTools::fillObjFileFromCascade(mobjfile, mshape, 0.5);
-            GetLog() << " .. done! \n";
+            std::cout << " ... done!" << std::endl;
         }
 
     } else
-        GetLog() << "\n.. Error with reading STEP!   \n\n\n";
+        std::cerr << std::endl << "Error while reading STEP!" << std::endl << std::endl;
 }
 
 void DecomposeModel(ChVisualSystemIrrlicht* application) {
@@ -217,8 +217,8 @@ void DecomposeModel(ChVisualSystemIrrlicht* application) {
             application->GetSceneManager()->addAnimatedMeshSceneNode(Amesh, decompositionNode);
         piece_node->getMaterial(0).EmissiveColor.set(255, 40, 40, 50);  // 255, 50, 50, 50);
         // piece_node->getMaterial(0).AmbientColor.set(255,30,30,30);//100, 0,0,0);
-        piece_node->getMaterial(0)
-            .DiffuseColor.set(255, clr.getRed(), clr.getGreen(), clr.getBlue());  // 255, 50, 50, 50);
+        piece_node->getMaterial(0).DiffuseColor.set(255, clr.getRed(), clr.getGreen(),
+                                                    clr.getBlue());  // 255, 50, 50, 50);
         // piece_node->getMaterial(0).Lighting = true;
         piece_node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
         scene::IAnimatedMeshSceneNode* piece_node2 =
@@ -300,14 +300,14 @@ class MyEventReceiver : public IEventReceiver {
         // ..add a GUI
         edit_hacd_maxhullvertexes = vis->GetGUIEnvironment()->addEditBox(
             irr::core::stringw((int)hacd_maxhullvertexes).c_str(), core::rect<s32>(510, 110, 650, 125), true, 0, 123);
-        text_hacd_maxhullvertexes = vis->GetGUIEnvironment()->addStaticText(
-            L"Max. vertexes per hull", core::rect<s32>(650, 110, 750, 125), false);
+        text_hacd_maxhullvertexes = vis->GetGUIEnvironment()->addStaticText(L"Max. vertexes per hull",
+                                                                            core::rect<s32>(650, 110, 750, 125), false);
 
         // ..add a GUI
         edit_hacd_concavity = vis->GetGUIEnvironment()->addEditBox(irr::core::stringw(hacd_concavity).c_str(),
-                                                                    core::rect<s32>(510, 135, 650, 150), true, 0, 124);
+                                                                   core::rect<s32>(510, 135, 650, 150), true, 0, 124);
         text_hacd_concavity = vis->GetGUIEnvironment()->addStaticText(L"Max. concavity (0..1)",
-                                                                       core::rect<s32>(650, 135, 750, 150), false);
+                                                                      core::rect<s32>(650, 135, 750, 150), false);
 
         // ..add a GUI
         edit_hacd_smallclusterthreshold = vis->GetGUIEnvironment()->addEditBox(
@@ -319,11 +319,11 @@ class MyEventReceiver : public IEventReceiver {
         edit_hacd_fusetolerance = vis->GetGUIEnvironment()->addEditBox(
             irr::core::stringw(hacd_fusetolerance).c_str(), core::rect<s32>(510, 185, 650, 200), true, 0, 126);
         text_hacd_fusetolerance = vis->GetGUIEnvironment()->addStaticText(L"Vertex fuse tolerance",
-                                                                           core::rect<s32>(650, 185, 750, 200), false);
+                                                                          core::rect<s32>(650, 185, 750, 200), false);
 
         // .. add buttons..
         button_decompose = vis->GetGUIEnvironment()->addButton(core::rect<s32>(510, 210, 650, 225), 0, 106,
-                                                                L"Decompose", L"Perform convex decomposition");
+                                                               L"Decompose", L"Perform convex decomposition");
 
         text_hacd_maxhullcount->setVisible(true);
         edit_hacd_maxhullcount->setVisible(true);

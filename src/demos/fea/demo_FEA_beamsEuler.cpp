@@ -217,18 +217,18 @@ int main(int argc, char* argv[]) {
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
-    GetLog() << "\n\n\n===========STATICS======== \n\n\n";
+    std::cout << std::endl << std::endl << "===========STATICS======== " << std::endl << std::endl;
 
     if (false) {
-        GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
+        std::cout << "BEAM RESULTS (LINEAR STATIC ANALYSIS)" << std::endl << std::endl;
         sys.DoStaticLinear();
     }
     if (false) {
-        GetLog() << "BEAM RESULTS (NON-LINEAR STATIC ANALYSIS, basic) \n\n";
+        std::cout << "BEAM RESULTS (NON-LINEAR STATIC ANALYSIS, basic)" << std::endl << std::endl;
         sys.DoStaticNonlinear(20);
     }
     if (true) {
-        GetLog() << "BEAM RESULTS (NON-LINEAR STATIC INCREMENTAL ANALYSIS) \n\n";
+        std::cout << "BEAM RESULTS (NON-LINEAR STATIC INCREMENTAL ANALYSIS)" << std::endl << std::endl;
 
         // Instead of using sys.DoStaticNonLinear(), which is quite basic, we will use ChStaticNonLinearIncremental.
         // This requires a custom callback for incrementing the external loads:
@@ -283,22 +283,22 @@ int main(int argc, char* argv[]) {
     ChVectorDynamic<> displ;
 
     belement1->GetStateBlock(displ);
-    GetLog() << displ;
+    std::cout << displ;
     for (double eta = -1; eta <= 1; eta += 0.4) {
         belement1->EvaluateSectionForceTorque(eta, F, M);
-        GetLog() << "  b1_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
-                 << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
+        std::cout << "  b1_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
+                 << " Ty=" << F.y() << " Tz=" << F.z() << std::endl;
     }
-    GetLog() << "\n";
+    std::cout << std::endl;
     belement2->GetStateBlock(displ);
     for (double eta = -1; eta <= 1; eta += 0.4) {
         belement2->EvaluateSectionForceTorque(eta, F, M);
-        GetLog() << "  b2_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
-                 << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
+        std::cout << "  b2_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
+                 << " Ty=" << F.y() << " Tz=" << F.z() << std::endl;
     }
 
-    GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x() << "    y=" << hnode3->Frame().GetPos().y()
-             << "    z=" << hnode3->Frame().GetPos().z() << "\n\n";
+    std::cout << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x() << "    y=" << hnode3->Frame().GetPos().y()
+             << "    z=" << hnode3->Frame().GetPos().z() << std::endl << std::endl;
 
     while (vis->Run()) {
         vis->BeginScene();

@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
                 ChMeshFileLoader::FromTetGenFile(my_mesh, GetChronoDataFile("fea/beam.node").c_str(),
                                                  GetChronoDataFile("fea/beam.ele").c_str(), mmaterial, ctot.pos, mrot);
             } catch (const ChException& myerr) {
-                GetLog() << myerr.what();
+                std::cerr << myerr.what();
                 return 0;
             }
         }

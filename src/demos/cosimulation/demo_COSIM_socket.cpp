@@ -25,10 +25,10 @@ using namespace chrono;
 using namespace chrono::utils;
 
 int main(int argc, char* argv[]) {
-    // To write something to the console, use the chrono::GetLog()
-    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl
+              << "Chrono version: " << CHRONO_VERSION << std::endl;
 
-    GetLog() << "CHRONO demo about sockets \n\n";
+    std::cout << "CHRONO demo about sockets" << std::endl << std::endl;
 
     try {
         ChSocketFramework* socket_tools = new ChSocketFramework;
@@ -38,9 +38,9 @@ int main(int argc, char* argv[]) {
 
         ChSocketHostInfo local_host;
 
-        GetLog() << " Local host information: \n";
-        GetLog() << "      Name:    " << local_host.getHostName() << "\n";
-        GetLog() << "      Address: " << local_host.getHostIPAddress() << "\n";
+        std::cout << " Local host information:" << std::endl;
+        std::cout << "      Name:    " << local_host.getHostName() << std::endl;
+        std::cout << "      Address: " << local_host.getHostIPAddress() << std::endl;
 
         // Test 2
         // create a server and listen to a client on a port
@@ -53,13 +53,13 @@ int main(int argc, char* argv[]) {
         ChSocketTCP myServer(PORT_NUMBER);
 
         // bind socket to server
-        GetLog() << "Binding to socket... \n";
+        std::cout << "Binding to socket..." << std::endl;
         myServer.bindSocket();
 
         // wait for a client to connect (this might put the program in
         // a long waiting state... a timeout can be useful then)
-        GetLog() << "Listening for connection... \n";
-        GetLog() << "(load 'data/cosimulation/test_socket.mdl' in Simulink and press Start...)\n\n";
+        std::cout << "Listening for connection..." << std::endl;
+        std::cout << "(load 'data/cosimulation/test_socket.mdl' in Simulink and press Start...)" << std::endl;
         myServer.listenToClient(1);
 
         ChSocketTCP* client;
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
         if (!client)
             throw(ChExceptionSocket(0, "Server failed in getting the client socket"));
 
-        GetLog() << "OK! Connected with client: " << clientHostName << "\n";
+        std::cout << "OK! Connected with client: " << clientHostName << std::endl;
 
         double a_out = 0;
         double a, b, c = 0;
@@ -82,8 +82,8 @@ int main(int argc, char* argv[]) {
 
             stream_out << a_out;
 
-            GetLog() << local_host.getHostName() << " will send a buffer of n." << stream_out.GetVector()->size()
-                     << " bytes. \n";
+            std::cout << local_host.getHostName() << " will send a buffer of n." << stream_out.GetVector()->size()
+                      << " bytes." << std::endl;
 
             // -----> SEND!!!
             client->SendBuffer(*stream_out.GetVector());
@@ -97,12 +97,12 @@ int main(int argc, char* argv[]) {
             // -----> RECEIVE!!!
             int numBytes = client->ReceiveBuffer(*stream_in.GetVector(), nbytes);
 
-            GetLog() << "Received " << numBytes << " bytes\n";
+            std::cout << "Received " << numBytes << " bytes" << std::endl;
 
             stream_in >> a;
             stream_in >> b;
             stream_in >> c;
-            GetLog() << " a = " << a << "\n b = " << b << "\n c = " << c << "\n";
+            std::cout << " a = " << a << std::endl << " b = " << b << std::endl << " c = " << c << std::endl;
 
             // change output var just for fun
             a_out = 0.5 * b;
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
         delete socket_tools;
 
     } catch (ChExceptionSocket exception) {
-        GetLog() << " ERRROR with socket system: \n" << exception.what() << "\n";
+        std::cerr << " ERROR with socket system:" << std::endl << exception.what() << std::endl;
     }
 
     return 0;

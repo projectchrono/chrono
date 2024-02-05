@@ -977,7 +977,7 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
             double Px = -this->Km.row(0) * displ;
             // ChVector<> mFo, mTo;
             // this->EvaluateSectionForceTorque(0, mFo, mTo);  // for double checking the Px value
-            // GetLog() << "   Px = " << Px << "  Px_eval = " << mFo.x() << " \n";
+            // std::cout << "   Px = " << Px << "  Px_eval = " << mFo.x() << "" << std::endl;
 
             // corotate Km + Kg  (where Kg = this->Kg * Px)
             ChMatrixCorotation::ComputeCK(this->Km + Px * this->Kg, R, 4, CK);
@@ -1200,19 +1200,19 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     }
 
 #ifdef BEAM_VERBOSE
-    GetLog() << "\nInternal forces (local): \n";
+    std::cout << std::endl << "Internal forces (local):" << std::endl;
     for (int c = 0; c < 6; c++)
-        GetLog() << FiK_local(c) << "  ";
-    GetLog() << "\n";
+        std::cout << FiK_local(c) << "  ";
+    std::cout << std::endl;
     for (int c = 6; c < 12; c++)
-        GetLog() << FiK_local(c) << "  ";
-    GetLog() << "\n\nInternal forces (ABS) : \n";
+        std::cout << FiK_local(c) << "  ";
+    std::cout << std::endl << std::endl << "Internal forces (ABS) :" << std::endl;
     for (int c = 0; c < 6; c++)
-        GetLog() << Fi(c) << "  ";
-    GetLog() << "\n";
+        std::cout << Fi(c) << "  ";
+    std::cout << std::endl;
     for (int c = 6; c < 12; c++)
-        GetLog() << Fi(c) << "  ";
-    GetLog() << "\n";
+        std::cout << Fi(c) << "  ";
+    std::cout << std::endl;
 #endif
 }
 
@@ -1315,19 +1315,19 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     }
 
 #ifdef BEAM_VERBOSE
-    GetLog() << "\nInternal forces (local): \n";
+    std::cout << std::endl << "Internal forces (local):" << std::endl;
     for (int c = 0; c < 6; c++)
-        GetLog() << FiK_local(c) << "  ";
-    GetLog() << "\n";
+        std::cout << FiK_local(c) << "  ";
+    std::cout << std::endl;
     for (int c = 6; c < 12; c++)
-        GetLog() << FiK_local(c) << "  ";
-    GetLog() << "\n\nInternal forces (ABS) : \n";
+        std::cout << FiK_local(c) << "  ";
+    std::cout << std::endl << std::endl << "Internal forces (ABS) :" << std::endl;
     for (int c = 0; c < 6; c++)
-        GetLog() << Fi(c) << "  ";
-    GetLog() << "\n";
+        std::cout << Fi(c) << "  ";
+    std::cout << std::endl;
     for (int c = 6; c < 12; c++)
-        GetLog() << Fi(c) << "  ";
-    GetLog() << "\n";
+        std::cout << Fi(c) << "  ";
+    std::cout << std::endl;
 #endif
 }
 

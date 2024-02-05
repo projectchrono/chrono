@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
     chrono::ChVector<double> omega = chrono::ChVector<double>(2.3, 0, 0);
     rot_frame.SetWvel_loc(omega);
     rot_frame.SetWacc_loc(VNULL);
-    GetLog() << "Frame w_loc =" << rot_frame.GetWvel_loc() << "   w_abs =" << rot_frame.GetWvel_par() << "\n";
+    std::cout << "Frame w_loc =" << rot_frame.GetWvel_loc() << "   w_abs =" << rot_frame.GetWvel_par() << std::endl;
 
     // solve the velocites and accelerations of point P due to the rotation of rot_frame
     auto TestCase = [&](const chrono::ChFrameMoving<double> m_rot_frame, const chrono::ChVector<double>& m_dpos_rel) {
@@ -292,16 +292,18 @@ int main(int argc, char* argv[]) {
         std::cout << "acc_par from chrono method:\t" << acc_par << std::endl;
         std::cout << "acc_par_ref from new method:\t" << acc_par_ref << std::endl;
         std::cout << "acc_par_ref from r*w^2:\t" << -7.0 * omega.x() * omega.x() << std::endl;
-        std::cout << "\n" << std::endl;
+        std::cout << std::endl << std::endl;
     };
 
     chrono::ChVector<double> dpos_rel1 = chrono::ChVector<double>(-7, 0, 0);
-    std::cout << "***Test case 1: a rotating point P along X axis, so its velocity and acceleration should be zero.\n"
+    std::cout << "***Test case 1: a rotating point P along X axis, so its velocity and acceleration should be zero."
+              << std::endl
               << "But the acceleration from chrono method is NOT zero!" << std::endl;
     TestCase(rot_frame, dpos_rel1);
 
     chrono::ChVector<double> dpos_rel2 = chrono::ChVector<double>(0, -7, 0);
-    std::cout << "Test case 2: a rotating point P along Y axis, so its velocity and accelerations have some values.\n"
+    std::cout << "Test case 2: a rotating point P along Y axis, so its velocity and accelerations have some values."
+              << std::endl
               << "But the acceleration from chrono methos is A HALF of new method." << std::endl;
     TestCase(rot_frame, dpos_rel2);
 
@@ -359,7 +361,7 @@ int main(int argc, char* argv[]) {
     analysis.SetMaxIterations(25);
     analysis.SetVerbose(true);
     analysis.SetCallbackIterationBegin(mycallback);
-    
+
     // As an alternative to providing the callback, a much simpler option is to let the static solver
     // compute the speed and acceleration as inferred by the rheonomic joints, instead of the
     // previous line just use:

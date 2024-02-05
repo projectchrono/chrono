@@ -29,8 +29,7 @@ using namespace chrono;
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // To write something to the console, use the chrono::GetLog()
-    GetLog() << "CHRONO demo about coordinate transformations: \n\n";
+    std::cout << "CHRONO demo about coordinate transformations:" << std::endl << std::endl;
 
     //
     // Some methods to achieve coordinate transformations, and some
@@ -72,44 +71,44 @@ int main(int argc, char* argv[]) {
     // TRANSFORM USING ROTATION MATRIX AND LINEAR ALGEBRA
     //
     mvect2 = vtraslA + mrotA * mvect1;  // like:  v2 = t + [A]*v1
-    GetLog() << mvect2 << " ..using linear algebra, \n";
+    std::cout << mvect2 << " ..using linear algebra" << std::endl;
 
     // TRANSFORM USING QUATERNION ROTATION
 
     mvect2 = vtraslA + qrotA.Rotate(mvect1);
-    GetLog() << mvect2 << " ..using quaternion rotation, \n";
+    std::cout << mvect2 << " ..using quaternion rotation" << std::endl;
 
     // TRANSFORM USING THE ChTransform STATIC METHODS
 
     mvect2 = ChTransform<>::TransformLocalToParent(mvect1, vtraslA, mrotA);
-    GetLog() << mvect2 << " ..using the ChTransform- vect and rot.matrix, \n";
+    std::cout << mvect2 << " ..using the ChTransform- vect and rot.matrix" << std::endl;
 
     mvect2 = ChTransform<>::TransformLocalToParent(mvect1, vtraslA, qrotA);
-    GetLog() << mvect2 << " ..using the ChTransform- vect and quat, \n";
+    std::cout << mvect2 << " ..using the ChTransform- vect and quat" << std::endl;
 
     // TRANSFORM USING A ChCoordys OBJECT
 
     mvect2 = csysA.TransformLocalToParent(mvect1);
-    GetLog() << mvect2 << " ..using a ChChCoordsys<> object, \n";
+    std::cout << mvect2 << " ..using a ChChCoordsys<> object" << std::endl;
 
     mvect2 = mvect1 >> csysA;
-    GetLog() << mvect2 << " ..using a ChChCoordsys<> '>>' operator, \n";
+    std::cout << mvect2 << " ..using a ChChCoordsys<> '>>' operator" << std::endl;
 
     mvect2 = csysA * mvect1;
-    GetLog() << mvect2 << " ..using a ChChCoordsys<> '*' operator, \n";
+    std::cout << mvect2 << " ..using a ChChCoordsys<> '*' operator" << std::endl;
 
     // TRANSFORM USING A ChFrame OBJECT
 
     ChFrame<> mframeA(vtraslA, qrotA);  // or ChFrame<> mframeA(csysA);
 
     mvect2 = mframeA.TransformLocalToParent(mvect1);
-    GetLog() << mvect2 << " ..using a ChFrame object function, \n";
+    std::cout << mvect2 << " ..using a ChFrame object function" << std::endl;
 
     mvect2 = mvect1 >> mframeA;
-    GetLog() << mvect2 << " ..using a ChFrame '>>' operator, \n";
+    std::cout << mvect2 << " ..using a ChFrame '>>' operator" << std::endl;
 
     mvect2 = mframeA * mvect1;
-    GetLog() << mvect2 << " ..using a ChFrame '*' operator, \n";
+    std::cout << mvect2 << " ..using a ChFrame '*' operator" << std::endl;
 
     //
     // Now perform transformations in a chain of frames, in
@@ -134,7 +133,7 @@ int main(int argc, char* argv[]) {
     // ...with linear algebra:
 
     mvect3 = v10 + m10 * (v21 + m21 * (v32 + m32 * mvect1));
-    GetLog() << mvect3 << " ..triple trsf. using linear algebra, \n";
+    std::cout << mvect3 << " ..triple trsf. using linear algebra" << std::endl;
 
     // ...with ChFrame '>>' operator or "*" operator
     // is by far much simplier!
@@ -144,14 +143,14 @@ int main(int argc, char* argv[]) {
     ChFrame<> f32(v32, q32);
 
     mvect3 = mvect1 >> f32 >> f21 >> f10;
-    GetLog() << mvect3 << " ..triple vector trsf. with ChFrame '>>' operator, \n";
+    std::cout << mvect3 << " ..triple vector trsf. with ChFrame '>>' operator" << std::endl;
 
     mvect3 = f10 * f21 * f32 * mvect1;
-    GetLog() << mvect3 << " ..triple vector trsf. with ChFrame '*' operator, \n";
+    std::cout << mvect3 << " ..triple vector trsf. with ChFrame '*' operator" << std::endl;
 
     ChFrame<> tempf(f10 * f21 * f32);
     mvect3 = tempf * mvect1;
-    GetLog() << mvect3 << " ..triple vector trsf. with ChFrame '*' operator, \n";
+    std::cout << mvect3 << " ..triple vector trsf. with ChFrame '*' operator" << std::endl;
 
     // Not only vectors, but also ChFrame can be transformed
     // with ">>" or "*" operators.
@@ -159,18 +158,18 @@ int main(int argc, char* argv[]) {
     ChFrame<> f_3(mvect1);
     ChFrame<> f_0;
     f_0 = f_3 >> f32 >> f21 >> f10;
-    GetLog() << f_0 << " ..triple frame trsf. with ChFrame '>>' operator,  \n";
+    std::cout << f_0 << " ..triple frame trsf. with ChFrame '>>' operator" << std::endl;
 
     f_0 = f10 * f21 * f32 * f_3;
-    GetLog() << f_0 << " ..triple frame trsf. with ChFrame '*' operator,  \n";
+    std::cout << f_0 << " ..triple frame trsf. with ChFrame '*' operator" << std::endl;
 
     // Test the  ">>" or "*" operators also for ChCoordsys:
     ChCoordsys<> c_0;
     c_0 = f_3.GetCoord() >> f32.GetCoord() >> f21.GetCoord() >> f10.GetCoord();
-    GetLog() << f_0 << " ..triple frame trsf. with ChCoordsys '>>' operator,  \n";
+    std::cout << f_0 << " ..triple frame trsf. with ChCoordsys '>>' operator" << std::endl;
 
     c_0 = f10.GetCoord() * f21.GetCoord() * f32.GetCoord() * f_3.GetCoord();
-    GetLog() << f_0 << " ..triple frame trsf. with ChCoordsys '*' operator,  \n";
+    std::cout << f_0 << " ..triple frame trsf. with ChCoordsys '*' operator" << std::endl;
 
     //
     // Now test inverse transformations too.
@@ -182,62 +181,62 @@ int main(int argc, char* argv[]) {
     // TRANSFORM USING ROTATION MATRIX AND LINEAR ALGEBRA
     //
 
-    GetLog() << mvect1 << " ..mvect1 \n";
+    std::cout << mvect1 << " ..mvect1" << std::endl;
     mvect1 = mrotA.transpose() * (mvect2 - vtraslA);  // like:  v1 = [A]'*(v2-t)
-    GetLog() << mvect1 << " ..inv, using linear algebra, \n";
+    std::cout << mvect1 << " ..inv, using linear algebra" << std::endl;
 
     // TRANSFORM USING QUATERNION ROTATION
 
     mvect1 = qrotA.RotateBack(mvect2 - vtraslA);
-    GetLog() << mvect1 << " ..inv, using quaternion rotation, \n";
+    std::cout << mvect1 << " ..inv, using quaternion rotation" << std::endl;
 
     // TRANSFORM USING THE ChTransform STATIC METHODS
 
     mvect1 = ChTransform<>::TransformParentToLocal(mvect2, vtraslA, mrotA);
-    GetLog() << mvect1 << " ..inv, using the ChTransform- vect and rot.matrix, \n";
+    std::cout << mvect1 << " ..inv, using the ChTransform- vect and rot.matrix" << std::endl;
 
     mvect1 = ChTransform<>::TransformParentToLocal(mvect2, vtraslA, qrotA);
-    GetLog() << mvect1 << " ..inv, using the ChTransform- vect and quat, \n";
+    std::cout << mvect1 << " ..inv, using the ChTransform- vect and quat" << std::endl;
 
     // TRANSFORM USING A ChCoordys OBJECT
 
     mvect1 = csysA.TransformParentToLocal(mvect2);
-    GetLog() << mvect1 << " ..inv, using a ChChCoordsys<> object, \n";
+    std::cout << mvect1 << " ..inv, using a ChChCoordsys<> object" << std::endl;
 
     // TRANSFORM USING A ChFrame OBJECT
 
     mvect1 = mframeA.TransformParentToLocal(mvect2);
-    GetLog() << mvect1 << " ..inv, using a ChFrame object function, \n";
+    std::cout << mvect1 << " ..inv, using a ChFrame object function" << std::endl;
 
     mvect1 = mvect2 >> mframeA.GetInverse();
-    GetLog() << mvect1 << " ..inv, using a ChFrame inverse and '>>' operator, \n";
+    std::cout << mvect1 << " ..inv, using a ChFrame inverse and '>>' operator" << std::endl;
 
     mvect1 = mframeA.GetInverse() * mvect2;
-    GetLog() << mvect1 << " ..inv, using a ChFrame inverse and  '*' operator, \n";
+    std::cout << mvect1 << " ..inv, using a ChFrame inverse and  '*' operator" << std::endl;
 
     mvect1 = mframeA / mvect2;
-    GetLog() << mvect1 << " ..inv, using a ChFrame '/' operator, \n";
+    std::cout << mvect1 << " ..inv, using a ChFrame '/' operator" << std::endl;
 
     ChFrame<> mframeAinv(mframeA);
     mframeAinv.Invert();
     mvect1 = mframeAinv * mvect2;
-    GetLog() << mvect1 << " ..inv, using an inverted ChFrame \n";
+    std::cout << mvect1 << " ..inv, using an inverted ChFrame" << std::endl;
 
     // ... also for inverting chain of transformations...
 
     // mvect3 =  f10 * f21 * f32 * mvect1;				// direct transf..
 
     mvect1 = (f10 * f21 * f32).GetInverse() * mvect3;  // inverse transf.
-    GetLog() << mvect1 << " ..inv three transf \n";
+    std::cout << mvect1 << " ..inv three transf" << std::endl;
 
     mvect1 = f32.GetInverse() * f21.GetInverse() * f10.GetInverse() * mvect3;
-    GetLog() << mvect1 << " ..inv three transf (another method) \n";
+    std::cout << mvect1 << " ..inv three transf (another method)" << std::endl;
 
     mvect1 = mvect3 >> (f32 >> f21 >> f10).GetInverse();
-    GetLog() << mvect1 << " ..inv three transf (another method) \n";
+    std::cout << mvect1 << " ..inv three transf (another method)" << std::endl;
 
     mvect1 = mvect3 >> f10.GetInverse() >> f21.GetInverse() >> f32.GetInverse();
-    GetLog() << mvect1 << " ..inv three transf (another method) \n";
+    std::cout << mvect1 << " ..inv three transf (another method)" << std::endl;
 
     //
     // Now test the * and >> operators with some mixed-types operators
@@ -267,7 +266,7 @@ int main(int argc, char* argv[]) {
     // BENCHMARK FOR EXECUTION SPEED
     //
 
-    GetLog() << " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% \n\n";
+    std::cout << " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl << std::endl;
 
     mrotA.Set_A_quaternion(qrotA);
     ChFpMatrix34<> Fp(qrotA);
@@ -280,7 +279,7 @@ int main(int argc, char* argv[]) {
     testa.SetWvel_loc(ChVector<>(1.1, 2.1, 5.1));
     testa.SetPos_dtdt(ChVector<>(7, 8, 9));
     testa.SetWacc_loc(ChVector<>(4.3, 5.3, 2.3));
-    GetLog() << testa << "a moving frame";
+    std::cout << testa << "a moving frame";
 
     ChVector<> locpos(0.1, 3.1, 1.1);
     ChVector<> locspeed(3.2, 9.2, 7.2);
@@ -298,7 +297,7 @@ int main(int argc, char* argv[]) {
 
     ChFrameMoving<> bres = (testPl >> testa);
 
-    GetLog() << bres << " trasf loc->abs \n";
+    std::cout << bres << " trasf loc->abs" << std::endl;
 
     ChQuaternion<> pollo(3, 5, 6, 7);
     ChVector<> pallo(2, 4, 6);
@@ -313,7 +312,7 @@ int main(int argc, char* argv[]) {
         testa.TransformLocalToParent(testPl, testPw);
     }
     timer.stop();
-    GetLog() << "TEST 10e6 of ChFrameMoving::TransformLocalToParent (1.38) Time: " << timer() << " \n";
+    std::cout << "TEST 10e6 of ChFrameMoving::TransformLocalToParent (1.38) Time: " << timer() << std::endl;
     // VC6   : 1.380
     // VC2003: 0.861
     // VC2005: 0.691
@@ -324,7 +323,7 @@ int main(int argc, char* argv[]) {
         mvect2 = mvect1 >> mframeA;
     }
     timer.stop();
-    GetLog() << "TEST 10e6 of mvect2 = mvect1 >> mframeA; (0.03)" << timer() << " \n";
+    std::cout << "TEST 10e6 of mvect2 = mvect1 >> mframeA; (0.03)" << timer() << std::endl;
     // VC6   : 0.03
     // VC2003: 0.03
     // VC2005: 0.03
@@ -335,7 +334,7 @@ int main(int argc, char* argv[]) {
         testa.PointAccelerationParentToLocal(vtraslA, vtraslA, vtraslA);
     }
     timer.stop();
-    GetLog() << "TEST 10e6 of PointAccelerationParentToLocal (0.811)" << timer() << " \n";
+    std::cout << "TEST 10e6 of PointAccelerationParentToLocal (0.811)" << timer() << std::endl;
     // VC6   : 0.811
     // VC2003: 0.531
     // VC2005: 0.410
@@ -356,7 +355,7 @@ int main(int argc, char* argv[]) {
            }
        }
        timer.stop();
-       GetLog() << "Test 3 frame transf. with >> ChFrame operator: " <<  timer() << " \n";
+       std::cout << "Test 3 frame transf. with >> ChFrame operator: " <<  timer() << std::endl;
 
 
        timer.start();
@@ -365,7 +364,7 @@ int main(int argc, char* argv[]) {
            testa.SetCoord(vtraslA,qrotA);
        }
        timer.stop();
-       GetLog() << "Test ChFrame::SetPos() " <<  timer() << " \n";
+       std::cout << "Test ChFrame::SetPos() " <<  timer() << std::endl;
 
 
    //ChQuaternion<> mqdt(1, 2, 3, 4);
@@ -375,7 +374,7 @@ int main(int argc, char* argv[]) {
            testa.SetRot_dt(mqdt);
        }
        timer.stop();
-       GetLog() << "Test ChFrame::SetRot_dt() " <<  timer() << " \n";
+       std::cout << "Test ChFrame::SetRot_dt() " <<  timer() << std::endl;
 
        timer.start();
        for (i= 0; i<1000000; i++)
@@ -383,7 +382,7 @@ int main(int argc, char* argv[]) {
            testa.SetRot_dtdt(mqdt);
        }
        timer.stop()
-       GetLog() << "Test ChFrame::SetRot_dtdt() " <<  timer() << " \n";
+       std::cout << "Test ChFrame::SetRot_dtdt() " <<  timer() << std::endl;
 
 
    ChVector<> mv(1, 2, 3);
@@ -393,7 +392,7 @@ int main(int argc, char* argv[]) {
            testa.SetWvel_loc(mv);
        }
        timer.stop();
-       GetLog() << "Test ChFrame::SetWvel_loc() " <<  timer() << " \n";
+       std::cout << "Test ChFrame::SetWvel_loc() " <<  timer() << std::endl;
 
        timer.start();
        for (i= 0; i<1000000; i++)
@@ -401,7 +400,7 @@ int main(int argc, char* argv[]) {
            testa.SetWacc_loc(mv);
        }
        timer.stop();
-       GetLog() << "Test ChFrame::SetWacc_loc() " <<  timer() << " \n";
+       std::cout << "Test ChFrame::SetWacc_loc() " <<  timer() << std::endl;
 
        timer.start();
        for (i= 0; i<1000000; i++)
@@ -409,7 +408,7 @@ int main(int argc, char* argv[]) {
            Vector p= testa.GetWvel_loc();
        }
        timer.stop();
-       GetLog() << "Test ChFrame::GetWvel_loc() " <<  timer() << " \n";
+       std::cout << "Test ChFrame::GetWvel_loc() " <<  timer() << std::endl;
 
        timer.start();
        for (i= 0; i<1000000; i++)
@@ -417,12 +416,12 @@ int main(int argc, char* argv[]) {
            ChVector<> p= testa.GetWacc_loc();
        }
        timer.stop();
-       GetLog() << "Test ChFrame::GetWacc_loc() " <<  timer() << " \n";
+       std::cout << "Test ChFrame::GetWacc_loc() " <<  timer() << std::endl;
 
 
    */
 
-    GetLog() << "\n  CHRONO execution terminated.";
+    std::cout << std::endl << "CHRONO execution terminated.";
 
     return 0;
 }

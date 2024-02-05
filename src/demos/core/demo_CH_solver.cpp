@@ -76,8 +76,8 @@ using namespace chrono;
 //  |  0  1  0  0 -1  0 .       | |-l_2|   | -1|   |c_2|
 
 void test_1(const std::string& out_dir) {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: generic system with two constraints \n\n";
+    std::cout << std::endl << "-------------------------------------------------" << std::endl;
+    std::cout << "TEST: generic system with two constraints" << std::endl << std::endl;
 
     // Important: create a 'system descriptor' object that
     // contains variables and constraints:
@@ -132,7 +132,7 @@ void test_1(const std::string& out_dir) {
 
     // Solve the problem with an iterative fixed-point solver, for an
     // approximate (but very fast) solution:
-    
+
     // Create the solver...
     ChSolverPSOR solver;
     solver.SetMaxIterations(1);
@@ -161,24 +161,25 @@ void test_1(const std::string& out_dir) {
         ChStreamOutAsciiFile fileCq(out_dir + "/dump_Cq_1.dat");
         StreamOutSparseMatlabFormat(matrM, fileM);
         StreamOutSparseMatlabFormat(matrCq, fileCq);
-    } catch (const ChException &myex) {
-        GetLog() << "FILE ERROR: " << myex.what();
+    } catch (const ChException& myex) {
+        std::cerr << "FILE ERROR: " << myex.what();
     }
 
     StreamOut(matrM, GetLog());
     StreamOut(matrCq, GetLog());
 
-    GetLog() << "**** Using ChSolverPSOR  ********** \n\n";
-    GetLog() << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "  \n\n";
-    GetLog() << "vars q_a and q_b -------------------\n";
-    GetLog() << mvarA.Get_qb();
-    GetLog() << mvarB.Get_qb() << "  \n";
-    GetLog() << "multipliers l_1 and l_2 ------------\n\n";
-    GetLog() << mca.Get_l_i() << " \n";
-    GetLog() << mcb.Get_l_i() << " \n\n";
-    GetLog() << "constraint residuals c_1 and c_2 ---\n";
-    GetLog() << mca.Get_c_i() << "  \n";
-    GetLog() << mcb.Get_c_i() << "  \n\n\n";
+    std::cout << "**** Using ChSolverPSOR  **********" << std::endl << std::endl;
+    std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << " " << std::endl
+              << std::endl;
+    std::cout << "vars q_a and q_b -------------------" << std::endl;
+    std::cout << mvarA.Get_qb();
+    std::cout << mvarB.Get_qb() << "  " << std::endl;
+    std::cout << "multipliers l_1 and l_2 ------------" << std::endl << std::endl;
+    std::cout << mca.Get_l_i() << " " << std::endl;
+    std::cout << mcb.Get_l_i() << " " << std::endl << std::endl;
+    std::cout << "constraint residuals c_1 and c_2 ---" << std::endl;
+    std::cout << mca.Get_c_i() << " " << std::endl;
+    std::cout << mcb.Get_c_i() << " " << std::endl << std::endl;
 
     // reset variables
     mvarA.Get_qb().setZero();
@@ -191,8 +192,8 @@ void test_1(const std::string& out_dir) {
 // represents, from a physical point of view, a long inverted multipendulum.
 
 void test_2(const std::string& out_dir) {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: 1D vertical pendulum \n\n";
+    std::cout << std::endl << "-------------------------------------------------" << std::endl;
+    std::cout << "TEST: 1D vertical pendulum" << std::endl << std::endl;
 
     ChSystemDescriptor mdescriptor;
 
@@ -235,23 +236,23 @@ void test_2(const std::string& out_dir) {
 
         chrono::ChStreamOutAsciiFile file_M(out_dir + "/dump_M_2.dat");
         StreamOutSparseMatlabFormat(mdM, file_M);
-        
+
         chrono::ChStreamOutAsciiFile file_Cq(out_dir + "/dump_Cq_2.dat");
         StreamOutSparseMatlabFormat(mdCq, file_Cq);
-        
+
         chrono::ChStreamOutAsciiFile file_E(out_dir + "/dump_E_2.dat");
         StreamOutSparseMatlabFormat(mdE, file_E);
-        
+
         chrono::ChStreamOutAsciiFile file_f(out_dir + "/dump_f_2.dat");
         StreamOutDenseMatlabFormat(mdf, file_f);
-        
+
         chrono::ChStreamOutAsciiFile file_b(out_dir + "/dump_b_2.dat");
         StreamOutDenseMatlabFormat(mdb, file_b);
 
         chrono::ChStreamOutAsciiFile file_fric(out_dir + "/dump_fric_2.dat");
         StreamOutDenseMatlabFormat(mdfric, file_fric);
-    } catch (const chrono::ChException &myexc) {
-        chrono::GetLog() << myexc.what();
+    } catch (const chrono::ChException& myexc) {
+        std::cerr << myexc.what();
     }
 
     // Create the solver...
@@ -259,19 +260,19 @@ void test_2(const std::string& out_dir) {
     solver.SetMaxIterations(20);
     solver.SetTolerance(1e-5);
     solver.SetVerbose(true);
-    
+
     // .. pass the constraint and the variables to the solver to solve
     solver.Setup(mdescriptor);
     solver.Solve(mdescriptor);
 
     // Output values
-    GetLog() << "VARIABLES: \n";
+    std::cout << "VARIABLES: " << std::endl;
     for (int im = 0; im < vars.size(); im++)
-        GetLog() << "   " << vars[im]->Get_qb()(0) << "\n";
+        std::cout << "   " << vars[im]->Get_qb()(0) << std::endl;
 
-    GetLog() << "CONSTRAINTS: \n";
+    std::cout << "CONSTRAINTS: " << std::endl;
     for (int ic = 0; ic < constraints.size(); ic++)
-        GetLog() << "   " << constraints[ic]->Get_l_i() << "\n";
+        std::cout << "   " << constraints[ic]->Get_l_i() << std::endl;
 }
 
 // Test 3
@@ -287,8 +288,8 @@ void test_2(const std::string& out_dir) {
 //  |  Cq   Cq      .     | |-l_1|   |  5|   |c_1|
 
 void test_3(const std::string& out_dir) {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: generic system with stiffness blocks \n\n";
+    std::cout << std::endl << "-------------------------------------------------" << std::endl;
+    std::cout << "TEST: generic system with stiffness blocks" << std::endl << std::endl;
 
     // Important: create a 'system descriptor' object that
     // contains variables and constraints:
@@ -321,7 +322,7 @@ void test_3(const std::string& out_dir) {
 
     ////ChMatrixDynamic<> foo(3, 4);
     ////foo.fillRandom(0, 10);
-    ////std::cout << "foo....\n" << foo << std::endl;
+    ////std::cout << "foo...." << std::endl << foo << std::endl;
     ////return;
 
     mdescriptor.InsertVariables(&mvarA);
@@ -400,10 +401,10 @@ void test_3(const std::string& out_dir) {
     // over the constraints (l values), as already shown in previous examples:
 
     for (int im = 0; im < mdescriptor.GetVariablesList().size(); im++)
-        GetLog() << "   " << mdescriptor.GetVariablesList()[im]->Get_qb()(0) << "\n";
+        std::cout << "   " << mdescriptor.GetVariablesList()[im]->Get_qb()(0) << std::endl;
 
     for (int ic = 0; ic < mdescriptor.GetConstraintsList().size(); ic++)
-        GetLog() << "   " << mdescriptor.GetConstraintsList()[ic]->Get_l_i() << "\n";
+        std::cout << "   " << mdescriptor.GetConstraintsList()[ic]->Get_l_i() << std::endl;
     */
 }
 
@@ -411,7 +412,7 @@ void test_3(const std::string& out_dir) {
 // Results will be simply text-formatted outputs in the console..
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl << "Chrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_SOLVER";

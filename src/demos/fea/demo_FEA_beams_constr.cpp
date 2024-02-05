@@ -51,24 +51,24 @@ int main(int argc, char* argv[]) {
         ChMatrixNM<double,6,6> mKi_num, mRi_num;
         auto minertia1 = chrono_types::make_shared<ChInertiaCosseratAdvanced>(270.0, 0.1, 0.2, 5, 8, 0.5);
         minertia1->ComputeQuadraticTerms(mFi, mTi, mWvel);
-        GetLog() << "ComputeQuadraticTerms: \n";
-        GetLog() << " Fi_v= " << mFi;
-        GetLog() << " Ti_v = " << mTi;
+        std::cout << "ComputeQuadraticTerms:" << std::endl;
+        std::cout << " Fi_v= " << mFi;
+        std::cout << " Ti_v = " << mTi;
         minertia1->ComputeInertialForce(mFi, mTi, mWvel, mWacc, mXacc);
-        GetLog() << "ComputeInertialForce: \n";
-        GetLog() << " Fi = " << mFi;
-        GetLog() << " Ti = " << mTi;
+        std::cout << "ComputeInertialForce:" << std::endl;
+        std::cout << " Fi = " << mFi;
+        std::cout << " Ti = " << mTi;
         minertia1->ComputeInertiaMatrix(mMi);
-        GetLog() << " Mi: \n" << mMi << "\n";
+        std::cout << " Mi:" << std::endl << mMi << std::endl;
         minertia1->ComputeInertiaDampingMatrix(mRi,mWvel);
-        GetLog() << " Ri: \n" << mRi << "\n";
+        std::cout << " Ri:" << std::endl << mRi << std::endl;
         minertia1->ComputeInertiaStiffnessMatrix(mKi,mWvel,mWacc,mXacc);
-        GetLog() << " Ki: \n" << mKi << "\n";
+        std::cout << " Ki:" << std::endl << mKi << std::endl;
         minertia1->compute_Ri_Ki_by_num_diff = true;
         minertia1->ComputeInertiaDampingMatrix(mRi_num,mWvel);
-        GetLog() << " Ri_num: \n" << mRi_num << "\n";
+        std::cout << " Ri_num:" << std::endl << mRi_num << std::endl;
         minertia1->ComputeInertiaStiffnessMatrix(mKi_num,mWvel,mWacc,mXacc);
-        GetLog() << " Ki_num: \n" << mKi_num << "\n";
+        std::cout << " Ki_num:" << std::endl << mKi_num << std::endl;
      return 1;
      */
     // Create a Chrono::Engine physical system

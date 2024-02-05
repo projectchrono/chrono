@@ -247,7 +247,7 @@ Using the / slash is like addressing a Unix directory (in fact the STEP file is 
 				// Note, it could be written also as   mrigidBody_base->GetBody() %= root_frame; 
 			mrigidBody_base->GetBody()->ConcatenatePreTransformation(root_frame);
 		}
-		else GetLog() << "Warning. Desired object not found in document \n";
+		else std::cout << "Warning. Desired object not found in document \n";
 
 
 		TopoDS_Shape shape_turret;
@@ -261,7 +261,7 @@ Using the / slash is like addressing a Unix directory (in fact the STEP file is 
 				// Move the body as for global displacement/rotation
 			mrigidBody_turret->GetBody()->ConcatenatePreTransformation(root_frame);
 		}
-		else GetLog() << "Warning. Desired object not found in document \n";
+		else std::cout << "Warning. Desired object not found in document \n";
 
 
 		TopoDS_Shape shape_bicep;
@@ -275,7 +275,7 @@ Using the / slash is like addressing a Unix directory (in fact the STEP file is 
 				// Move the body as for global displacement/rotation
 			mrigidBody_bicep->GetBody()->ConcatenatePreTransformation(root_frame);
 		}
-		else GetLog() << "Warning. Desired object not found in document \n";
+		else std::cout << "Warning. Desired object not found in document \n";
 
 
 		TopoDS_Shape shape_elbow;
@@ -289,7 +289,7 @@ Using the / slash is like addressing a Unix directory (in fact the STEP file is 
 				// Move the body as for global displacement/rotation
 			mrigidBody_elbow->GetBody()->ConcatenatePreTransformation(root_frame);
 		}
-		else GetLog() << "Warning. Desired object not found in document \n";
+		else std::cout << "Warning. Desired object not found in document \n";
 
 		
 		TopoDS_Shape shape_forearm;
@@ -303,7 +303,7 @@ Using the / slash is like addressing a Unix directory (in fact the STEP file is 
 				// Move the body as for global displacement/rotation
 			mrigidBody_forearm->GetBody()->ConcatenatePreTransformation(root_frame);
 		}
-		else GetLog() << "Warning. Desired object not found in document \n";
+		else std::cout << "Warning. Desired object not found in document \n";
 
 		
 		TopoDS_Shape shape_wrist;
@@ -317,7 +317,7 @@ Using the / slash is like addressing a Unix directory (in fact the STEP file is 
 				// Move the body as for global displacement/rotation
 			mrigidBody_wrist->GetBody()->ConcatenatePreTransformation(root_frame);
 		}
-		else GetLog() << "Warning. Desired object not found in document \n";
+		else std::cout << "Warning. Desired object not found in document \n";
 
 
 		TopoDS_Shape shape_hand;
@@ -333,7 +333,7 @@ Using the / slash is like addressing a Unix directory (in fact the STEP file is 
 				// Move the body as for global displacement/rotation
 			mrigidBody_hand->GetBody()->ConcatenatePreTransformation(root_frame);
 		}
-		else GetLog() << "Warning. Desired object not found in document \n";
+		else std::cout << "Warning. Desired object not found in document \n";
 
 
 		TopoDS_Shape shape_cylinder;
@@ -347,7 +347,7 @@ Using the / slash is like addressing a Unix directory (in fact the STEP file is 
 				// Move the body as for global displacement/rotation
 			mrigidBody_cylinder->GetBody()->ConcatenatePreTransformation(root_frame);
 		}
-		else GetLog() << "Warning. Desired object not found in document \n";
+		else std::cout << "Warning. Desired object not found in document \n";
 
 
 		TopoDS_Shape shape_rod;
@@ -361,11 +361,11 @@ Using the / slash is like addressing a Unix directory (in fact the STEP file is 
 				// Move the body as for global displacement/rotation
 			mrigidBody_rod->GetBody()->ConcatenatePreTransformation(root_frame);
 		}
-		else GetLog() << "Warning. Desired object not found in document \n";
+		else std::cout << "Warning. Desired object not found in document \n";
 
 
 	}
-	else GetLog() << "Warning. Desired STEP file could not be opened/parsed \n";
+	else std::cout << "Warning. Desired STEP file could not be opened/parsed \n";
 
 
 
@@ -393,7 +393,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 	ChFrame<> frame_marker_base_turret;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem8/marker#1" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_base_turret);
-	else GetLog() << "Warning. Desired marker not found in document \n";
+	else std::cout << "Warning. Desired marker not found in document \n";
 		// Transform the abs coordinates of the marker because everything was rotated/moved by 'root_frame' :
 	frame_marker_base_turret %= root_frame;
 
@@ -407,7 +407,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 	ChFrame<> frame_marker_turret_bicep;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem4/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_bicep);
-	else GetLog() << "Warning. Desired marker not found in document \n";
+	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_turret_bicep %= root_frame;
 
 	ChSharedPtr<ChLinkLockRevolute>  my_link2(new ChLinkLockRevolute);
@@ -420,7 +420,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 	ChFrame<> frame_marker_bicep_elbow;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem1/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_bicep_elbow);
-	else GetLog() << "Warning. Desired marker not found in document \n";
+	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_bicep_elbow %= root_frame;
 
 	ChSharedPtr<ChLinkLockRevolute>  my_link3(new ChLinkLockRevolute);
@@ -433,7 +433,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 	ChFrame<> frame_marker_elbow_forearm;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem5/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_elbow_forearm);
-	else GetLog() << "Warning. Desired marker not found in document \n";
+	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_elbow_forearm %= root_frame;
 	
 	ChSharedPtr<ChLinkLockRevolute>  my_link4(new ChLinkLockRevolute);
@@ -446,7 +446,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 	ChFrame<> frame_marker_forearm_wrist;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem7/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_forearm_wrist);
-	else GetLog() << "Warning. Desired marker not found in document \n";
+	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_forearm_wrist %= root_frame;
 
 	ChSharedPtr<ChLinkLockRevolute>  my_link5(new ChLinkLockRevolute);
@@ -459,7 +459,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 	ChFrame<> frame_marker_wrist_hand;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem6/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_wrist_hand);
-	else GetLog() << "Warning. Desired marker not found in document \n";
+	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_wrist_hand %= root_frame;
 
 	ChSharedPtr<ChLinkLockRevolute>  my_link6(new ChLinkLockRevolute);
@@ -472,7 +472,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 	ChFrame<> frame_marker_turret_cylinder;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem4/marker#3" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_cylinder);
-	else GetLog() << "Warning. Desired marker not found in document \n";
+	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_turret_cylinder %= root_frame;
 
 	ChSharedPtr<ChLinkLockRevolute>  my_link7(new ChLinkLockRevolute);
@@ -485,7 +485,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 	ChFrame<> frame_marker_cylinder_rod;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem3/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_cylinder_rod);
-	else GetLog() << "Warning. Desired marker not found in document \n";
+	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_cylinder_rod %= root_frame;
 
 	ChSharedPtr<ChLinkLockCylindrical>  my_link8(new ChLinkLockCylindrical);
@@ -498,7 +498,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 	ChFrame<> frame_marker_rod_bicep;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem2/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_rod_bicep);
-	else GetLog() << "Warning. Desired marker not found in document \n";
+	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_rod_bicep %= root_frame;
 
 	ChSharedPtr<ChLinkLockCylindrical>  my_link9(new ChLinkLockCylindrical);

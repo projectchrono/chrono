@@ -194,7 +194,7 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMeshConnected& me
     BRepTools::Clean(shape);
     BRepMesh_IncrementalMesh M(shape, tolerances.deflection, tolerances.deflection_is_relative,
                                tolerances.angular_deflection, true);
-    // GetLog() << "    ..inc.tesselation done \n";
+    // std::cout << "    ..inc.tesselation done" << std::endl;
 
     mesh.Clear();
 
@@ -212,7 +212,7 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
     BRepTools::Clean(shape);
     BRepMesh_IncrementalMesh M(shape, tolerances.deflection, tolerances.deflection_is_relative,
                                tolerances.angular_deflection, true);
-    // GetLog() << "    ..increm.tesselation done \n";
+    // std::cout << "    ..increm.tesselation done" << std::endl;
 
     TopExp_Explorer ex;
     int vertface = 0;
@@ -281,5 +281,3 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
 
     }  // end face loop
 }
-
-

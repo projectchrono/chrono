@@ -148,10 +148,10 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
 
     // Just for logging the frequencies:
     for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i) {
-        GetLog() << "Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
+        std::cout << "Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
                  << "  damping ratio:" << assembly->Get_modes_damping_ratios()(i)
                  << "    Re=" << assembly->Get_modes_eig()(i).real() << "  Im=" << assembly->Get_modes_eig()(i).imag()
-                 << "\n";
+                 << std::endl;
     }
 
     // Here we perform the complex-modal analysis (damped modes) on the ChModalAssembly.
@@ -179,10 +179,10 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
 
     // Just for logging the frequencies:
     for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i) {
-        GetLog() << "Damped mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
+        std::cout << "Damped mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
                  << "  damping ratio:" << assembly->Get_modes_damping_ratios()(i)
                  << "    Re=" << assembly->Get_modes_eig()(i).real() << "  Im=" << assembly->Get_modes_eig()(i).imag()
-                 << "\n";
+                 << std::endl;
     }
 
     // This is needed if you want to see things in Irrlicht
@@ -324,7 +324,7 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
 
     // Just for logging the frequencies:
     for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
-        GetLog() << "Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << "\n";
+        std::cout << "Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << std::endl;
 
     // This is needed if you want to see things in Irrlicht 3D view.
     vis.BindAll();

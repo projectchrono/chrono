@@ -86,7 +86,7 @@ ChCascadeDoc::~ChCascadeDoc() {
 }
 
 static bool recurse_CascadeDoc(TDF_Label label,
-                               Handle(XCAFDoc_ShapeTool)& shapeTool,
+                               Handle(XCAFDoc_ShapeTool) & shapeTool,
                                TopLoc_Location& parentloc,
                                int level,
                                ChCascadeDoc::callback_CascadeDoc& mcallback) {
@@ -171,7 +171,7 @@ bool ChCascadeDoc::Load_STEP(const char* filename) {
     IFSelect_ReturnStatus aStatus = cafreader.ReadFile(filename);
 
     if (aStatus == IFSelect_RetDone) {
-        /*Standard_Boolean aRes =*/ cafreader.Transfer((*doc));
+        /*Standard_Boolean aRes =*/cafreader.Transfer((*doc));
         return true;
     }
     return false;
@@ -207,7 +207,7 @@ void ChCascadeDoc::Dump(ChStreamOutAscii& mstream) {
 }
 
 int wildcard_compare(const char* wildcard, const char* string) {
-    const char* cp = 0, * mp = 0;
+    const char *cp = 0, *mp = 0;
 
     while ((*string) && (*wildcard != '*')) {
         if ((*wildcard != *string) && (*wildcard != '?')) {
@@ -371,20 +371,20 @@ bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,   ///< pass t
                                        ChVector<>& inertiaXY,        ///< get the inertia extradiagonal terms
                                        double& volume,               ///< get the volume
                                        double& mass                  ///< get the mass
-                                       ) {
+) {
     if (mshape.IsNull())
         return false;
 
     GProp_GProps vprops;
-    
-	// default density = 1;
+
+    // default density = 1;
 
     BRepGProp::VolumeProperties(mshape, vprops);
 
-	mass = vprops.Mass() * density; 
+    mass = vprops.Mass() * density;
     volume = vprops.Mass();
     gp_Pnt G = vprops.CentreOfMass();
-	gp_Mat I = vprops.MatrixOfInertia();
+    gp_Mat I = vprops.MatrixOfInertia();
 
     center_position.x() = G.X();
     center_position.y() = G.Y();
@@ -397,8 +397,8 @@ bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,   ///< pass t
     inertiaXY.y() = I(1, 3);
     inertiaXY.z() = I(2, 3);
 
-	inertiaXX *= density;
-	inertiaXY *= density;
+    inertiaXX *= density;
+    inertiaXY *= density;
 
     return true;
 }
@@ -430,19 +430,16 @@ void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Locat
     gp_Vec mtr(mpos.x(), mpos.y(), mpos.z());
 
     const ChMatrix33<>& from_mat = from_coord.GetA();
-	
-	gp_Trsf castrasf;
-	castrasf.SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
-		from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z());
 
-	to_coord = TopLoc_Location(castrasf);
+    gp_Trsf castrasf;
+    castrasf.SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
+                       from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z());
+
+    to_coord = TopLoc_Location(castrasf);
 
     //((gp_Trsf)(to_coord.Transformation()))
     //    .SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
     //               from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z()); //0, 0);
 }
-
-
-
 
 /////////////////////

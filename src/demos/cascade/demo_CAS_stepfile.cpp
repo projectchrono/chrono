@@ -67,9 +67,9 @@ int main(int argc, char* argv[]) {
     // In most CADs the Y axis is horizontal, but we want it vertical.
     // So define a root transformation for rotating all the imported objects.
     ChQuaternion<> rotation1;
-    rotation1.Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));  // 1: rotate 90° on X axis
+    rotation1.Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));  // 1: rotate 90ï¿½ on X axis
     ChQuaternion<> rotation2;
-    rotation2.Q_from_AngAxis(CH_C_PI, ChVector<>(0, 1, 0));  // 2: rotate 180° on vertical Y axis
+    rotation2.Q_from_AngAxis(CH_C_PI, ChVector<>(0, 1, 0));  // 2: rotate 180ï¿½ on vertical Y axis
     ChQuaternion<> tot_rotation = rotation2 % rotation1;     // rotate on 1 then on 2, using quaternion product
     ChFrameMoving<> root_frame(ChVector<>(0, 0, 0), tot_rotation);
 
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
             // Move the body as for global displacement/rotation (also mbody1 %= root_frame; )
             body1->ConcatenatePreTransformation(root_frame);
         } else
-            GetLog() << "Warning. Desired object not found in document \n";
+            std::cerr << "WARNING: Desired object not found in document" << std::endl;
 
         TopoDS_Shape shape2;
         if (mydoc.GetNamedShape(shape2, "Assem1/body2")) {
@@ -113,10 +113,10 @@ int main(int argc, char* argv[]) {
             // Move the body as for global displacement/rotation  (also mbody2 %= root_frame; )
             body2->ConcatenatePreTransformation(root_frame);
         } else
-            GetLog() << "Warning. Desired object not found in document \n";
+            std::cerr << "WARNING: Desired object not found in document" << std::endl;
 
     } else
-        GetLog() << "Warning. Desired STEP file could not be opened/parsed \n";
+        std::cerr << "WARNING: Desired STEP file could not be opened/parsed" << std::endl;
 
     // Create a revolute joint between the two parts
     // as in a pendulum. We assume we already know in advance

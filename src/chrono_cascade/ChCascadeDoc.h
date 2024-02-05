@@ -102,11 +102,10 @@ class ChApiCASCADE ChCascadeDoc {
     /// Convert Chrono coordinates into OpenCascade coordinates
     static void FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord);
 
-    
-
   private:
-    // cascade OCAF doc handle; ***note that if using simply the Handle(TDocStd_Document) doc; ie with no pointer to handle, it crashes.
-	Handle(TDocStd_Document)* doc;
+    // cascade OCAF doc handle; ***note that if using simply the Handle(TDocStd_Document) doc; ie with no pointer to
+    // handle, it crashes.
+    Handle(TDocStd_Document) * doc;
 };
 
 /// @} cascade_module

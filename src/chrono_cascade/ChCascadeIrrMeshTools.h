@@ -127,7 +127,7 @@ class ChCascadeIrrMeshTools {
                                             video::SColor clr = video::SColor(255, 255, 255, 255)) {
         BRepTools::Clean(mshape);
         BRepMesh_IncrementalMesh M(mshape, deflection, relative_deflection, angulardeflection, true);
-        // GetLog() << "    ..tesselation done \n";
+        // std::cout << "    ..tesselation done" << std::endl;
 
         // Loop on faces..
         TopExp_Explorer ex;

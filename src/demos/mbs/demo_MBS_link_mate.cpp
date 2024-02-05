@@ -108,13 +108,13 @@ class EigenSolver {
 
     void ShowAllEigenvalues() {
         if (all_eigen_vectors_and_values.size() == 0)
-            GetLog() << "There is not any eigenvalue found for the system.\n";
+            std::cerr << "There is not any eigenvalue found for the system." << std::endl;
         else {
-            GetLog() << "The eigenvalues of the system are:\n";
+            std::cout << "The eigenvalues of the system are:" << std::endl;
             for (int i = 0; i < all_eigen_vectors_and_values.size(); i++) {
-                GetLog() << "Eigenvalue " << std::to_string(i + 1).c_str()
-                         << ":\tReal: " << all_eigen_vectors_and_values.at(i).eigen_val.real()
-                         << "\tImag: " << all_eigen_vectors_and_values.at(i).eigen_val.imag() << "\n";
+                std::cout << "Eigenvalue " << std::to_string(i + 1).c_str()
+                          << ":\tReal: " << all_eigen_vectors_and_values.at(i).eigen_val.real()
+                          << "\tImag: " << all_eigen_vectors_and_values.at(i).eigen_val.imag() << std::endl;
             }
         }
     }
@@ -128,8 +128,9 @@ class EigenSolver {
         eig_o.eigen_vect = all_eigen_vectors_and_values.at(nmodes + imode - 1).eigen_vect;
         eig_o.eigen_vect = eig_o.eigen_vect / eig_o.eigen_vect.cwiseAbs().maxCoeff();  // normalized to unit
 
-        GetLog() << "\nThe eigenvalue of mode " << imode << " is: "
-                 << ":\tReal: " << eig_o.eigen_val.real() << ":\tImag: " << eig_o.eigen_val.imag() << "\n";
+        std::cout << std::endl
+                  << "The eigenvalue of mode " << imode << " is: "
+                  << ":\tReal: " << eig_o.eigen_val.real() << ":\tImag: " << eig_o.eigen_val.imag() << std::endl;
 
         return eig_o;
     }
@@ -142,8 +143,8 @@ class EigenSolver {
 // First example: Pendulum
 //====================================
 void test_pendulum() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: static and eigenvalue analysis of a pendulum\n\n";
+    std::cout << std::endl << "-------------------------------------------------" << std::endl;
+    std::cout << "TEST: static and eigenvalue analysis of a pendulum" << std::endl << std::endl;
 
     // Some variables to parameterize the model
     // The length of the pendulum, m
@@ -254,9 +255,10 @@ void test_pendulum() {
     // ====================================
     // Static analysis
     // ====================================
-    GetLog() << "\nThe initial position of the end mass is:\n"
-             << "\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
-             << "\tz:  " << my_mass->GetPos().z() << "\n";
+    std::cout << std::endl
+              << "The initial position of the end mass is:" << std::endl
+              << "\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
+              << "\tz:  " << my_mass->GetPos().z() << std::endl;
 
     // Firstly, we call DoFullAssembly() to calculate the reaction forces/torques at the initial configuration of
     // system.
@@ -271,16 +273,16 @@ void test_pendulum() {
         vis->EndScene();
     }
 
-    GetLog() << "\nAfter doing the nonlinear static analysis:\n";
-    GetLog() << "\tThe final position of the end mass is:\n"
-             << "\t\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
-             << "\tz:  " << my_mass->GetPos().z() << "\n";
-    GetLog() << "\tThe reaction forces at the root are:\n"
-             << "\t\tfx:  " << my_joint->Get_react_force().x() << "\tfy:  " << my_joint->Get_react_force().y()
-             << "\tfz:  " << my_joint->Get_react_force().z() << "\n";
-    GetLog() << "\tThe reaction torques at the root are:\n"
-             << "\t\tmx:  " << my_joint->Get_react_torque().x() << "\tmy:  " << my_joint->Get_react_torque().y()
-             << "\tmz:  " << my_joint->Get_react_torque().z() << "\n";
+    std::cout << std::endl << "After doing the nonlinear static analysis:" << std::endl;
+    std::cout << "\tThe final position of the end mass is:" << std::endl
+              << "\t\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
+              << "\tz:  " << my_mass->GetPos().z() << std::endl;
+    std::cout << "\tThe reaction forces at the root are:" << std::endl
+              << "\t\tfx:  " << my_joint->Get_react_force().x() << "\tfy:  " << my_joint->Get_react_force().y()
+              << "\tfz:  " << my_joint->Get_react_force().z() << std::endl;
+    std::cout << "\tThe reaction torques at the root are:" << std::endl
+              << "\t\tmx:  " << my_joint->Get_react_torque().x() << "\tmy:  " << my_joint->Get_react_torque().y()
+              << "\tmz:  " << my_joint->Get_react_torque().z() << std::endl;
 
     // ====================================
     // Eigenvalue analysis
@@ -288,7 +290,8 @@ void test_pendulum() {
     EigenSolver eig_solver(sys);
     eig_solver.ShowAllEigenvalues();
 
-    GetLog() << "\nThe theoretical oscillation frequency is:\t" << std::sqrt(gacc / length) << " rad/s\n";
+    std::cout << std::endl
+              << "The theoretical oscillation frequency is:\t" << std::sqrt(gacc / length) << " rad/s" << std::endl;
 }
 
 // ====================================
@@ -296,8 +299,8 @@ void test_pendulum() {
 // Second example: Anchor chain
 // ====================================
 void test_anchorchain() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: static and eigenvalue analysis of an anchor chain\n\n";
+    std::cout << std::endl << "-------------------------------------------------" << std::endl;
+    std::cout << "TEST: static and eigenvalue analysis of an anchor chain" << std::endl << std::endl;
 
     // The mass and inertia properties of every link in the anchor chain
     double mass = 10;
@@ -449,10 +452,10 @@ void test_anchorchain() {
 
     // Create output directory and output file
     std::string out_dir = GetChronoOutputPath() + "ANCHOR_CHAIN";
-    GetLog() << "out_dir is:\n" << out_dir << "\n";
+    std::cout << "out_dir is:" << std::endl << out_dir << std::endl;
 
     if (true) {  // static analysis
-        GetLog() << "\n\n ******** Static analysis ******** \n\n";
+        std::cout << std::endl << std::endl << "******** Static analysis ******** " << std::endl << std::endl;
 
         // Set solver for static analysis
         ChStaticNonLinearRigidMotion rigid_static_analysis;
@@ -470,9 +473,9 @@ void test_anchorchain() {
         // The mass per unit length of the anchor chain
         double mass_per_unit_length = total_mass / total_length;
 
-        GetLog() << "\nAt the initial configuration:\n";
-        GetLog() << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
-                 << anchorC->GetPos().z() << "\n";
+        std::cout << std::endl << "At the initial configuration:" << std::endl;
+        std::cout << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
+                  << anchorC->GetPos().z() << std::endl;
 
         // Firstly, we call DoFullAssembly() to calculate the reaction forces/torques at the initial configuration of
         // system.
@@ -480,9 +483,9 @@ void test_anchorchain() {
         // Secondly, we perform the static analysis using the solver ChStaticNonLinearRigidMotion().
         sys.DoStaticAnalysis(rigid_static_analysis);
 
-        GetLog() << "\nAfter doing the static nonlinear analysis:\n";
-        GetLog() << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
-                 << anchorC->GetPos().z() << "\n";
+        std::cout << std::endl << "After doing the static nonlinear analysis:" << std::endl;
+        std::cout << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
+                  << anchorC->GetPos().z() << std::endl;
 
         // The coordiantes of the rigid bodies in the equilibrium configuration
         ChMatrixDynamic<> coords;
@@ -555,12 +558,12 @@ void test_anchorchain() {
             file_reactions.SetNumFormat("%.12g");
             StreamOutDenseMatlabFormat(reactions, file_reactions);
         } else {
-            GetLog() << "  ...Error creating subdirectories\n";
+            std::cerr << "  ...Error creating subdirectories" << std::endl;
         }
     }
 
     if (true) {  // eigenvalue analysis
-        GetLog() << "\n\n ******** Eigenvalue analysis ******** \n\n";
+        std::cout << std::endl << std::endl << "******** Eigenvalue analysis ******** " << std::endl << std::endl;
 
         // solve the eigenvalues at the equilibrium status
         EigenSolver eig_solver(sys);
@@ -598,7 +601,7 @@ void test_anchorchain() {
                 file_shape.SetNumFormat("%.12g");
                 StreamOutDenseMatlabFormat(modal_shape_i, file_shape);
             } else {
-                GetLog() << "  ...Error creating subdirectories\n";
+                std::cerr << "  ...Error creating subdirectories" << std::endl;
             }
         }
 
@@ -607,12 +610,12 @@ void test_anchorchain() {
             file_freq.SetNumFormat("%.12g");
             StreamOutDenseMatlabFormat(modal_freq, file_freq);
         } else {
-            GetLog() << "  ...Error creating subdirectories\n";
+            std::cerr << "  ...Error creating subdirectories" << std::endl;
         }
     }
 
     if (true) {  // dynamic analysis
-        GetLog() << "\n\n ******** Dynamic analysis ******** \n\n";
+        std::cout << std::endl << std::endl << "******** Dynamic analysis ******** " << std::endl << std::endl;
 
         // use HHT second order integrator (but slower)
         sys.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -671,9 +674,9 @@ void test_anchorchain() {
                 vibration(frame, 3) = anchorC->GetPos().z();
 
                 if (frame % 20 == 0) {
-                    GetLog() << "t: " << sys.GetChTime() << "\t";
-                    GetLog() << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
-                             << anchorC->GetPos().z() << "\n";
+                    std::cout << "t: " << sys.GetChTime() << "\t";
+                    std::cout << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
+                              << anchorC->GetPos().z() << std::endl;
                 }
                 frame++;
             }
@@ -683,7 +686,7 @@ void test_anchorchain() {
                 file_vibration.SetNumFormat("%.12g");
                 StreamOutDenseMatlabFormat(vibration, file_vibration);
             } else {
-                GetLog() << "  ...Error creating subdirectories\n";
+                std::cout << "  ...Error creating subdirectories" << std::endl;
             }
         };
 
@@ -700,7 +703,7 @@ void test_anchorchain() {
         sys.StateGatherReactions(L0);
 
         // excitation in X direction (In-plane horizontal motion is expected)
-        GetLog() << "\n\nExcitation in +X direction\n\n";
+        std::cout << std::endl << "Excitation in +X direction" << std::endl << std::endl;
         ChVector<> vec_fx = ChVector<>(mass * gacc * 5, 0, 0);
         DoDynamicsUnderImpulse(vec_fx, "vibration_x");
 
@@ -709,7 +712,7 @@ void test_anchorchain() {
         sys.StateScatterAcceleration(A0);
         sys.StateScatterReactions(L0);
         // excitation in Y direction (Out-of-plane motion is expected)
-        GetLog() << "\n\nExcitation in +Y direction\n\n";
+        std::cout << std::endl << "Excitation in +Y direction" << std::endl << std::endl;
         ChVector<> vec_fy = ChVector<>(0, mass * gacc * 5, 0);
         DoDynamicsUnderImpulse(vec_fy, "vibration_y");
 
@@ -718,14 +721,15 @@ void test_anchorchain() {
         sys.StateScatterAcceleration(A0);
         sys.StateScatterReactions(L0);
         // excitation in Z direction (In-plane vertical motion is expected)
-        GetLog() << "\n\nExcitation in -Z direction\n\n";
+        std::cout << std::endl << "Excitation in -Z direction" << std::endl << std::endl;
         ChVector<> vec_fz = ChVector<>(0, 0, -mass * gacc * 5);
         DoDynamicsUnderImpulse(vec_fz, "vibration_z");
     }
 }
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl
+              << "Chrono version: " << CHRONO_VERSION << std::endl;
 
     // test_pendulum();
 

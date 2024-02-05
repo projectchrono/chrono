@@ -85,7 +85,7 @@ void PrintStepStatistics(std::ostream& os, const ChSystem& sys);
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl << std::endl;
 
     // ------------------------------------------------
     // CLI SETUP - Get parameters from the command line

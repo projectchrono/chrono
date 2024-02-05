@@ -36,7 +36,6 @@ namespace particlefactory {
 // Forward reference
 class ChRandomShapeCreator;
 
-
 /// BASE class for generators of random ChBody shapes
 class ChRandomShapeCreator {
   public:
@@ -350,8 +349,9 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
         auto mbody = chrono_types::make_shared<ChBodyEasyClusterOfSpheres>(
             points, radii, density->GetRandom(), this->add_visualization_asset, this->add_collision_shape, material);
 
-        // GetLog() << "Diameter:" << mdiameter << " length:" << mlength << " mass:" << mbody->GetMass() << "\n
-        // inertiaXX" << mbody->GetInertiaXX() << "\n inertiaXY:" <<  mbody->GetInertiaXY() << "\n";
+        // std::cout << "Diameter:" << mdiameter << " length:" << mlength << " mass:" << mbody->GetMass() << std::endl
+        // << " inertiaXX" << mbody->GetInertiaXX() << std::endl << " inertiaXY:" <<  mbody->GetInertiaXY() <<
+        // std::endl;
 
         mbody->SetCoord(mcoords);
         return mbody;

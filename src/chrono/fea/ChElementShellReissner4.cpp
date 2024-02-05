@@ -181,7 +181,7 @@ void ChElementShellReissner4::UpdateNodalAndAveragePosAndOrientation() {
         R_tilde_n[i] = T_overline.transpose() * Tn[i];
         phi_tilde_n[i] = rotutils::VecRot(R_tilde_n[i]);
         // if (phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG > 15)
-        //    GetLog() << "WARNING phi_tilde_n[" << i << "]=" <<  phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG << "°\n";
+        //    std::cout << "WARNING phi_tilde_n[" << i << "]=" <<  phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG << "deg" << std::endl;
     }
 }
 

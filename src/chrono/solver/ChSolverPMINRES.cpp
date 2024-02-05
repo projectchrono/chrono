@@ -40,7 +40,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
 
     int nc = sysd.CountActiveConstraints();
     if (verbose)
-        GetLog() << "\n-----Projected MINRES, solving nc=" << nc << "unknowns \n";
+        std::cout << std::endl << "-----Projected MINRES, solving nc=" << nc << "unknowns" << std::endl;
 
     ChVectorDynamic<> ml(nc);
     ChVectorDynamic<> mb(nc);
@@ -180,7 +180,8 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
 
         if (fabs(MNpNp) < 10e-30) {
             if (verbose)
-                GetLog() << "Iter=" << iter << " Rayleigh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";
+                std::cout << "Iter=" << iter << " Rayleigh quotient alpha breakdown: " << zNMr << " / " << MNpNp
+                          << std::endl;
             MNpNp = 10e-12;
         }
 
@@ -210,7 +211,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
         r_proj_resid = mr.norm();
         if (r_proj_resid < ChMax(rel_tol_b, abs_tol)) {
             if (verbose)
-                GetLog() << "Iter=" << iter << " P(r)-converged!  |P(r)|=" << r_proj_resid << "\n";
+                std::cout << "Iter=" << iter << " P(r)-converged!  |P(r)|=" << r_proj_resid << std::endl;
             break;
         }
 
@@ -238,8 +239,8 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
         // Robustness improver: restart if beta=0 or too large
         if (fabs(denominator) < 10e-30 || fabs(numerator) < 10e-30) {
             if (verbose)
-                GetLog() << "Iter=" << iter << " Ribiere quotient beta restart: " << numerator << " / " << denominator
-                         << "\n";
+                std::cout << "Iter=" << iter << " Ribiere quotient beta restart: " << numerator << " / " << denominator
+                          << std::endl;
             beta = 0;
         }
 
@@ -276,7 +277,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     }
 
     if (verbose)
-        GetLog() << "-----\n";
+        std::cout << "-----" << std::endl;
 
     return r_proj_resid;
 }
@@ -294,8 +295,9 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     int nx = nv + nc;  // total scalar unknowns, in x vector for full KKT system Z*x-d=0
 
     if (verbose)
-        GetLog() << "\n-----Projected MINRES -supporting stiffness-, n.vars nx=" << nx
-                 << "  max.iters=" << m_max_iterations << "\n";
+        std::cout << std::endl
+                  << "-----Projected MINRES -supporting stiffness-, n.vars nx=" << nx
+                  << "  max.iters=" << m_max_iterations << std::endl;
 
     ChVectorDynamic<> mx(nx);
     ChVectorDynamic<> md(nx);
@@ -355,7 +357,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
 
     // r = d - Z*x;
     sysd.SystemProduct(mr, mx);  // r = Z*x
-    mr = md - mr;                 // r =-Z*x+d
+    mr = md - mr;                // r =-Z*x+d
 
     if (m_use_precond)
         mp = mr.array() * mDi.array();
@@ -389,8 +391,8 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
         // Robustness improver: case of division by zero
         if (fabs(MZpZp) < 10e-30) {
             if (verbose)
-                GetLog() << "Rayleigh alpha denominator breakdown: " << zZMr << " / " << MZpZp << "=" << (zZMr / MZpZp)
-                         << "  iter=" << iter << "\n";
+                std::cout << "Rayleigh alpha denominator breakdown: " << zZMr << " / " << MZpZp << "=" << (zZMr / MZpZp)
+                          << "  iter=" << iter << std::endl;
             MZpZp = 10e-30;
         }
 
@@ -398,8 +400,8 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
         // constraints)
         if (fabs(zZMr) < 10e-30) {
             if (verbose)
-                GetLog() << "Rayleigh alpha numerator breakdown: " << zZMr << " / " << MZpZp << "=" << (zZMr / MZpZp)
-                         << "  iter=" << iter << "\n";
+                std::cout << "Rayleigh alpha numerator breakdown: " << zZMr << " / " << MZpZp << "=" << (zZMr / MZpZp)
+                          << "  iter=" << iter << std::endl;
             zZMr = 1;
             MZpZp = 1;
         }
@@ -408,7 +410,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
 
         if (alpha < 0)
             if (verbose)
-                GetLog() << "Rayleigh alpha < 0: " << alpha << "    iter=" << iter << "\n";
+                std::cout << "Rayleigh alpha < 0: " << alpha << "    iter=" << iter << std::endl;
 
         // x = x + alpha * p;
         mtmp = alpha * mp;
@@ -421,7 +423,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
 
         // r = d - Z*x;
         sysd.SystemProduct(mr, mx);  // r = Z*x
-        mr = md - mr;                 // r =-Z*x+d
+        mr = md - mr;                // r =-Z*x+d
 
         m_iterations++;
 
@@ -429,7 +431,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
         r_proj_resid = mr.norm();
         if (r_proj_resid < ChMax(rel_tol_d, abs_tol)) {
             if (verbose)
-                GetLog() << "P(r)-converged! iter=" << iter << " |P(r)|=" << r_proj_resid << "\n";
+                std::cout << "P(r)-converged! iter=" << iter << " |P(r)|=" << r_proj_resid << std::endl;
             break;
         }
 
@@ -461,8 +463,8 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
         // Robustness improver: restart if beta=0 or too large
         if (fabs(denominator) < 10e-30 || fabs(numerator) < 10e-30) {
             if (verbose)
-                GetLog() << "Ribiere quotient beta restart: " << numerator << " / " << denominator << "  iter=" << iter
-                         << "\n";
+                std::cout << "Ribiere quotient beta restart: " << numerator << " / " << denominator << "  iter=" << iter
+                          << std::endl;
             beta = 0;
         }
 
@@ -485,7 +487,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     sysd.FromVectorToUnknowns(mx);
 
     if (verbose)
-        GetLog() << "residual: " << mr.norm() << " ---\n";
+        std::cout << "residual: " << mr.norm() << " ---" << std::endl;
 
     return r_proj_resid;
 }
@@ -503,7 +505,7 @@ void ChSolverPMINRES::ArchiveOut(ChArchiveOut& marchive) {
 
 void ChSolverPMINRES::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSolverPMINRES>();
+    /*int version =*/marchive.VersionRead<ChSolverPMINRES>();
     // deserialize parent class
     ChIterativeSolverVI::ArchiveIn(marchive);
     // stream in all member data:

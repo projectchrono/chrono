@@ -11,7 +11,7 @@ class ChReportProximityCallbackP : public chrono::ChProximityContainer::ReportPr
         ChReportProximityCallbackP() {}
         virtual bool OnReportProximity(chrono::ChCollisionModel* modA,
                                        chrono::ChCollisionModel* modB) {
-            GetLog() << "You must implement OnReportProximity()!\n";
+            std::cout << "You must implement OnReportProximity()!" << std::endl;
             return false;
         }
 };
@@ -21,7 +21,7 @@ class ChAddProximityCallbackP : public chrono::ChProximityContainer::AddProximit
         ChAddProximityCallbackP() {}
         virtual void OnAddProximity(const chrono::ChCollisionModel& modA,
                                     const chrono::ChCollisionModel& modB) {
-            GetLog() << "You must implement OnAddProximity()!\n";
+            std::cout << "You must implement OnAddProximity()!" << std::endl;
         }
 };
 

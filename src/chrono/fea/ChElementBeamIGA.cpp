@@ -115,7 +115,7 @@ void ChElementBeamIGA::SetNodesGenericOrder(std::vector<std::shared_ptr<ChNodeFE
     double u2 = knots(knots.size() - order - 1);
 
     if (u1 < 0.5 && u2 >= 0.5) {
-        // GetLog() << " -- IS_MIDDLE ";
+        // std::cout << " -- IS_MIDDLE ";
         is_middle = true;
     }
     // Full integration for end elements:
@@ -191,9 +191,9 @@ void ChElementBeamIGA::SetNodesGenericOrder(std::vector<std::shared_ptr<ChNodeFE
     int_order_s = int_order_b;
 
     /*
-    GetLog() << "Element order p=" << this->order << ",   u in (" << u1 << ", " << u2 << ")";
-    GetLog() << "   orders:  b=" << int_order_b << "   s=" << int_order_s;
-    GetLog() << "\n";
+    std::cout << "Element order p=" << this->order << ",   u in (" << u1 << ", " << u2 << ")";
+    std::cout << "   orders:  b=" << int_order_b << "   s=" << int_order_s;
+    std::cout << std::endl;
     */
 }
 
@@ -619,8 +619,8 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
             Fi.segment(3 + i * 6, 3) += Torque_i.eigen();
         }
 
-        // GetLog() << "     gp n." << ig <<   "  J=" << this->Jacobian[ig] << "   strain_e= " << strain_e << "\n";
-        // GetLog() << "                    stress_n= " << stress_n << "\n";
+        // std::cout << "     gp n." << ig <<   "  J=" << this->Jacobian[ig] << "   strain_e= " << strain_e << std::endl;
+        // std::cout << "                    stress_n= " << stress_n << std::endl;
     }
 
     // Add also inertial quadratic terms: gyroscopic and centrifugal

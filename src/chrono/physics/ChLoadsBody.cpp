@@ -470,8 +470,8 @@ void ChLoadBodyBodyBushingPlastic::ComputeBodyBodyForceTorque(const ChFrameMovin
         plastic_def.z() = rel_AB.GetPos().z() - loc_force.z() / stiffness.z();
     }
 
-    // GetLog() << "loc_force" << loc_force << "\n";
-    // GetLog() << "plastic_def" << plastic_def << "\n";
+    // std::cout << "loc_force" << loc_force << std::endl;
+    // std::cout << "plastic_def" << plastic_def << std::endl;
     loc_torque = VNULL;
 }
 

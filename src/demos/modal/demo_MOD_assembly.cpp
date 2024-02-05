@@ -73,7 +73,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
                               bool add_force,
                               bool add_other_assemblies,
                               bool fix_subassembly) {
-    GetLog() << "\n\nRUN TEST\n";
+    std::cout << std::endl << std::endl << "RUN TEST" << std::endl;
 
     // Clear previous demo, if any:
     sys.Clear();
@@ -300,8 +300,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         assembly->ComputeModesDamped(0);
 
         for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
-            GetLog() << " Damped mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
-                     << "   damping factor z: " << assembly->Get_modes_damping_ratios()(i) << "\n";
+            std::cout << " Damped mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
+                     << "   damping factor z: " << assembly->Get_modes_damping_ratios()(i) << std::endl;
 
         // Finally, check if we approximately have the same eigenmodes of the original not reduced assembly:
         assembly->ComputeModes(12);
@@ -319,7 +319,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         */
 
         for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
-            GetLog() << " Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << "\n";
+            std::cout << " Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << std::endl;
 
     } else {
         // Otherwise we perform a conventional modal analysis on the full ChModalAssembly.
@@ -337,7 +337,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         */
 
         for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
-            GetLog() << " Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << "\n";
+            std::cout << " Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << std::endl;
     }
 
     // VISUALIZATION ASSETS:

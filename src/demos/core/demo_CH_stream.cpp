@@ -30,18 +30,16 @@
 
 using namespace chrono;
 
-// NOTE: the old serialization method, based on ChStream and StreamIn and StreamOut methods 
+// NOTE: the old serialization method, based on ChStream and StreamIn and StreamOut methods
 // has been replaced with the new serialization based on ChArchive and ArchiveIn and ArchiveOut methods,
-// so if you are interested on object serialization look rather at 
-//   demo_archive.cpp 
+// so if you are interested on object serialization look rather at
+//   demo_archive.cpp
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
-    
-    // To write something to the console, use the chrono::GetLog()
-    // statement, which returns a global output stream to the console (just
-    // like the std::out stream).
-    GetLog() << "\nCHRONO foundation classes demo: streaming and serialization\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl
+              << "Chrono version: " << CHRONO_VERSION << std::endl;
+
+    std::cout << std::endl << "CHRONO foundation classes demo: streaming and serialization" << std::endl << std::endl;
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_STREAM";
@@ -67,9 +65,9 @@ int main(int argc, char* argv[]) {
         // basic types (double, int, string, etc.).
         mfileo << "test_token  " << 123 << " " << 0.123437;
 
-    } catch (const ChException &myex) {
+    } catch (const ChException& myex) {
         // Ops.. file could not be opened or written.. echo what happened!
-        GetLog() << "ERROR: " << myex.what();
+        std::cerr << "ERROR: " << myex.what();
     }
 
     // Ok, you wrote something in your pollo_file.txt file,
@@ -87,11 +85,11 @@ int main(int argc, char* argv[]) {
         mfilei >> sbuff >> mint >> mdouble;
 
         // Write to the console the values which have been read from file..
-        GetLog() << "\nResult of ascii  I/O:  " << sbuff << " " << mint << " " << mdouble << "\n";
+        std::cout << "\nResult of ascii  I/O:  " << sbuff << " " << mint << " " << mdouble << std::endl;
 
-    } catch (const ChException &myex) {
+    } catch (const ChException& myex) {
         // Ops.. file could not be opened or read.. echo what happened!
-        GetLog() << "ERROR: " << myex.what();
+        std::cerr << "ERROR: " << myex.what();
     }
 
     /*
@@ -122,8 +120,8 @@ int main(int argc, char* argv[]) {
         mfileo << m_int;     // store data n.3
         mfileo << m_string;  // store data n.4
 
-    } catch (const ChException &myex) {
-        GetLog() << "ERROR: " << myex.what();
+    } catch (const ChException& myex) {
+        std::cerr << "ERROR: " << myex.what();
     }
 
     // Well, now try to load data back, to see if things worked ok...
@@ -143,11 +141,11 @@ int main(int argc, char* argv[]) {
         mfilei >> m_int;     // retrieve data n.3
         mfilei >> m_string;  // retrieve data n.4
 
-        GetLog() << "\nResult of binary I/O: " << m_text << " " << m_int << " " << m_double << "\n";
-        
-    } catch (const ChException &myex) {
+        std::cout << "\nResult of binary I/O: " << m_text << " " << m_int << " " << m_double << std::endl;
+
+    } catch (const ChException& myex) {
         // Ops.. file could not be opened or read.. echo what happened!
-        GetLog() << "ERROR: " << myex.what();
+        std::cerr << "ERROR: " << myex.what();
     }
 
     /*
@@ -173,11 +171,11 @@ int main(int argc, char* argv[]) {
         ChStreamInBinaryStream mchstreami(&mstream);
         mchstreami >> md_in;
 
-        GetLog() << "\nResult of binary I/O from wrapped std::stream: " << md_in << "\n";
+        std::cout << "\nResult of binary I/O from wrapped std::stream: " << md_in << std::endl;
 
-    } catch (const ChException &myex) {
+    } catch (const ChException& myex) {
         // Ops.. some error.. echo what happened!
-        GetLog() << "ERROR: " << myex.what();
+        std::cerr << "ERROR: " << myex.what();
     }
 
     return 0;

@@ -44,8 +44,8 @@ using namespace chrono;
 using namespace fea;
 
 void test_1() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: load applied to a beam                       \n\n";
+    std::cout << std::endl << "-------------------------------------------------" << std::endl;
+    std::cout << "TEST: load applied to a beam" << std::endl << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -404,18 +404,18 @@ void test_1() {
     // Perform a static analysis:
     sys.DoStaticLinear();
 
-    GetLog() << " constr_a reaction force  F= " << constr_a->Get_react_force() << "  \n";
-    GetLog() << " constr_a reaction torque T= " << constr_a->Get_react_torque() << "  \n";
+    std::cout << " constr_a reaction force  F= " << constr_a->Get_react_force() << std::endl;
+    std::cout << " constr_a reaction torque T= " << constr_a->Get_react_torque() << std::endl;
 
-    GetLog() << " mnodeC position = " << mnodeC->GetPos() << "  \n";
-    GetLog() << " mloadstiff K jacobian=" << mloadstiff->GetJacobians()->K << "\n";
+    std::cout << " mnodeC position = " << mnodeC->GetPos() << std::endl;
+    std::cout << " mloadstiff K jacobian=" << mloadstiff->GetJacobians()->K << std::endl;
 
-    GetLog() << " mnodeD position = " << mnodeD->GetPos() << "  \n";
-    GetLog() << " mloadcustom K jacobian=" << mloadcustom->GetJacobians()->K << "\n";
+    std::cout << " mnodeD position = " << mnodeD->GetPos() << std::endl;
+    std::cout << " mloadcustom K jacobian=" << mloadcustom->GetJacobians()->K << std::endl;
 
-    GetLog() << " mnodeE position = " << mnodeE->GetPos() << "  \n";
-    GetLog() << " mnodeF position = " << mnodeF->GetPos() << "  \n";
-    GetLog() << " mloadcustommultiple K jacobian=" << mloadcustommultiple->GetJacobians()->K << "\n";
+    std::cout << " mnodeE position = " << mnodeE->GetPos() << std::endl;
+    std::cout << " mnodeF position = " << mnodeF->GetPos() << std::endl;
+    std::cout << " mloadcustommultiple K jacobian=" << mloadcustommultiple->GetJacobians()->K << std::endl;
 }
 
 int main(int argc, char* argv[]) {

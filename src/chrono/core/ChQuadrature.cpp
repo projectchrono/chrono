@@ -64,15 +64,15 @@ void ChQuadratureTables::glege_roots(ChMatrixDynamic<>& lcoef, int N, int ntable
 }
 
 void ChQuadratureTables::PrintTables() {
-    GetLog() << "PrintTables: \n\n";
+    std::cout << "PrintTables: " << std::endl;
 
     for (unsigned int io = 0; io < Lroots.size(); ++io) {
-        GetLog() << "\nOrder: " << Lroots[io].size() << "  at table n." << io << " with roots&weights: \n";
+        std::cout << std::endl << "Order: " << Lroots[io].size() << "  at table n." << io << " with roots&weights:" << std::endl;
         for (unsigned int ir = 0; ir < Lroots[io].size(); ++ir)
-            GetLog() << "  " << Lroots[io][ir];
-        GetLog() << "\n";
+            std::cout << "  " << Lroots[io][ir];
+        std::cout << std::endl;
         for (unsigned int ir = 0; ir < Weight[io].size(); ++ir)
-            GetLog() << "  " << Weight[io][ir];
+            std::cout << "  " << Weight[io][ir];
     }
 }
 

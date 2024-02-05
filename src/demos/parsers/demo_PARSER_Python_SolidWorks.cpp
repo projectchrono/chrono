@@ -62,23 +62,23 @@ int main(int argc, char* argv[]) {
     // items to the ChSystem.
 
     // Log the names of all items inserted in the system
-    GetLog() << "SYSTEM ITEMS: \n";
+    std::cout << "SYSTEM ITEMS:" << std::endl;
     sys.ShowHierarchy(GetLog());
 
     // Restore path to Chrono data files (modified by the Python importer)
     SetChronoDataPath(data_path);
 
     for (auto body : sys.Get_bodylist()) {
-        GetLog() << "item:" << typeid(body).name() << "\n";
+        std::cout << "item:" << typeid(body).name() << std::endl;
     }
     for (auto link : sys.Get_linklist()) {
-        GetLog() << "item:" << typeid(link).name() << "\n";
+        std::cout << "item:" << typeid(link).name() << std::endl;
     }
     for (auto& mesh : sys.Get_meshlist()) {
-        GetLog() << "item:" << typeid(mesh).name() << "\n";
+        std::cout << "item:" << typeid(mesh).name() << std::endl;
     }
     for (auto ph : sys.Get_otherphysicslist()) {
-        GetLog() << "item:" << typeid(ph).name() << "\n";
+        std::cout << "item:" << typeid(ph).name() << std::endl;
     }
 
     // Fetch some bodies, given their names, and apply forces, constraints, etc.
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
         mescape_wheel->GetCollisionModel()->SetAllShapesMaterial(mat);
         manchor->GetCollisionModel()->SetAllShapesMaterial(mat);
     } else
-        GetLog() << "\n\nERROR: cannot find one or more objects from their names in the Chrono system!\n\n";
+        std::cerr << std::endl << std::endl << "ERROR: cannot find one or more objects from their names in the Chrono system!" << std::endl << std::endl;
 
     // Irrlicht run-time visualization
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();

@@ -222,9 +222,9 @@ void MakeAndRunDemo1(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
     double numerical_displ =
         builder.GetLastBeamNodes().back()->GetPos().y() - builder.GetLastBeamNodes().back()->GetX0().GetPos().y();
 
-    GetLog() << "\n LINEAR STATIC cantilever, order= " << order << "  nsections= " << nsections
+    std::cout << std::endl << "LINEAR STATIC cantilever, order= " << order << "  nsections= " << nsections
              << "  rel.error=  " << fabs((numerical_displ - analytic_timoshenko_displ) / analytic_timoshenko_displ)
-             << "\n";
+             << std::endl;
 
     while (vis->Run()) {
         vis->BeginScene();
@@ -628,7 +628,7 @@ int main(int argc, char* argv[]) {
     std::string models[] = {"static analysis", "curved beam connected to body", "plasticity", "Jeffcott rotor"};
 
     int which = 1;
-    std::cout << "Options:\n";
+    std::cout << "Options:" << std::endl;
     for (int i = 1; i <= 4; i++)
         std::cout << i << "  " << models[i - 1] << std::endl;
     std::cin >> which;

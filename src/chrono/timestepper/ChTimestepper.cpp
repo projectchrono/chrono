@@ -465,8 +465,8 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
         mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // Qc= C/dt  (sign flipped later in StateSolveCorrection)
 
         if (verbose)
-            GetLog() << " Euler iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                     << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << "\n";
+            std::cout << " Euler iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
+                     << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << std::endl;
 
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
             break;
@@ -783,8 +783,8 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
         mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // Qc= C/dt  (sign will be flipped later in StateSolveCorrection)
 
         if (verbose)
-            GetLog() << " Trapezoidal iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                     << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << "\n";
+            std::cout << " Trapezoidal iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
+                     << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << std::endl;
 
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
             break;
@@ -1098,18 +1098,18 @@ void ChTimestepperNewmark::Advance(const double dt) {
         mintegrable->LoadConstraint_C(Qc, (1.0 / (beta * dt * dt)), Qc_do_clamp, Qc_clamping);  //  Qc = 1/(beta*dt^2)*C  (sign will be flipped later in StateSolveCorrection) 
 
         if (verbose)
-            GetLog() << " Newmark iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                     << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << "\n";
+            std::cout << " Newmark iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
+                     << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << std::endl;
 
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL)) {
             if (verbose) {
-                GetLog() << " Newmark NR converged (" << i << ")." << "  T = " << T + dt << "  h = " << dt << "\n";
+                std::cout << " Newmark NR converged (" << i << ")." << "  T = " << T + dt << "  h = " << dt << std::endl;
             }
             break;
         }
 
         if (verbose && modified_Newton && call_setup)
-                GetLog() << " Newmark call Setup.\n";
+                std::cout << " Newmark call Setup." << std::endl;
 
         mintegrable->StateSolveCorrection(  //
             Da, Dl, R, Qc,                  //

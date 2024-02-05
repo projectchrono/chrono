@@ -112,7 +112,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
 			react_force.x() = reactions_cache[0];
 			react_force.y() = reactions_cache[1];
 			react_force.z() = reactions_cache[2];
-			//GetLog() << "Reset Fn=" << (double)reactions_cache[0] << "  at cache address:" << (int)this->reactions_cache << "\n";
+			//std::cout << "Reset Fn=" << (double)reactions_cache[0] << "  at cache address:" << (int)this->reactions_cache << std::endl;
 		}
 		else {
 			react_force = VNULL;
@@ -317,7 +317,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 Nx.Set_b_i(Nx.Get_b_i() + qc); 
 
             } else {
-                // GetLog()<< "rigid " << (int)this << "  recov_clamp=" << recovery_clamp << "\n";
+                // std::cout << "rigid " << (int)this << "  recov_clamp=" << recovery_clamp << std::endl;
                 if (do_clamp)
                     if (this->Nx.GetCohesion())
                         Nx.Set_b_i(Nx.Get_b_i() + ChMin(0.0, ChMax(factor * this->norm_dist, -recovery_clamp)));

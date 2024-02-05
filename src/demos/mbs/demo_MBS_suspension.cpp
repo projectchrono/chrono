@@ -435,8 +435,8 @@ class MySimpleCar {
         if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(link_motorR->GetTorqueFunction()))
             mfun->Set_yconst(singlewheeltorque);
         // debug:print infos on screen:
-        // GetLog() << "motor torque="<< motortorque<< "  speed=" << motorspeed << "  wheel torqe=" << singlewheeltorque
-        // <<"\n";
+        // std::cout << "motor torque="<< motortorque<< "  speed=" << motorspeed << "  wheel torqe=" << singlewheeltorque
+        //  << std::endl;
         // If needed, return also the value of wheel torque:
         return singlewheeltorque;
     }

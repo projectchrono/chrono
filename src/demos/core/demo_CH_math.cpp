@@ -28,10 +28,7 @@ using namespace chrono;
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // To write something to the console, use the chrono::GetLog()
-    // statement, which returns a global output stream to the console (just
-    // like the std::out stream).
-    GetLog() << "\n=== Computing integrals of functions in 1D/2D/3D ===\n\n";
+    std::cout << std::endl << "=== Computing integrals of functions in 1D/2D/3D ===" << std::endl << std::endl;
 
     // Define a y=f(x) function by inheriting ChIntegrable1D:
     class MySine1d : public ChIntegrable1D<double> {
@@ -44,7 +41,7 @@ int main(int argc, char* argv[]) {
     // Invoke 6th order Gauss-Legendre quadrature on 0..PI interval:
     double qresult = 0;
     ChQuadrature::Integrate1D<double>(qresult, mfx, 0, CH_C_PI, 6);
-    GetLog() << "Quadrature 1d result: " << qresult << " (analytic solution: 2.0) \n";
+    std::cout << "Quadrature 1d result: " << qresult << " (analytic solution: 2.0)" << std::endl;
 
     // Other quadrature tests, this time in 2D
     class MySine2d : public ChIntegrable2D<double> {
@@ -55,7 +52,7 @@ int main(int argc, char* argv[]) {
     MySine2d mfx2d;
     qresult = 0;
     ChQuadrature::Integrate2D<double>(qresult, mfx2d, 0, CH_C_PI, -1, 1, 6);
-    GetLog() << "Quadrature 2d result: " << qresult << " (analytic solution: 4.0) \n";
+    std::cout << "Quadrature 2d result: " << qresult << " (analytic solution: 4.0)" << std::endl;
 
     // Other quadrature tests, this time with vector function (that is, integrates 2x1 matrix)
     class MySine2dM : public ChIntegrable2D<ChMatrixNM<double, 1, 2>> {
@@ -70,7 +67,7 @@ int main(int argc, char* argv[]) {
     ChMatrixNM<double, 1, 2> resultM;
     resultM.setZero();
     ChQuadrature::Integrate2D<ChMatrixNM<double, 1, 2>>(resultM, mfx2dM, 0, 1, 0, 3, 6);
-    GetLog() << "Quadrature 2d matrix result: " << resultM << " (analytic solution: 2.25, 4.5) \n";
+    std::cout << "Quadrature 2d matrix result: " << resultM << " (analytic solution: 2.25, 4.5)" << std::endl;
 
     return 0;
 }

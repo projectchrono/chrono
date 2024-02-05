@@ -60,12 +60,12 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
     bool call_reserve = !m_use_learner && (m_setup_call == 0 || !m_lock);
 
     if (verbose) {
-        GetLog() << "Solver setup\n";
-        GetLog() << "  call number:    " << m_setup_call << "\n";
-        GetLog() << "  use learner?    " << m_use_learner << "\n";
-        GetLog() << "  pattern locked? " << m_lock << "\n";
-        GetLog() << "  CALL learner:   " << call_learner << "\n";
-        GetLog() << "  CALL reserve:   " << call_reserve << "\n";
+        std::cout << "Solver setup" << std::endl;
+        std::cout << "  call number:    " << m_setup_call << std::endl;
+        std::cout << "  use learner?    " << m_use_learner << std::endl;
+        std::cout << "  pattern locked? " << m_lock << std::endl;
+        std::cout << "  CALL learner:   " << call_learner << std::endl;
+        std::cout << "  CALL reserve:   " << call_reserve << std::endl;
     }
 
     if (call_learner) {
@@ -99,17 +99,17 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
         WriteMatrix("LS_" + frame_id + "_F.dat", m_mat);
 
     if (verbose) {
-        GetLog() << " Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros()
-                 << "\n";
-        GetLog() << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s\n"
-                 << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s\n";
+        std::cout << " Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros()
+                 << std::endl;
+        std::cout << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s" << std::endl
+                 << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s" << std::endl;
     }
 
     m_setup_call++;
 
     if (!result) {
         // If the factorization failed, let the concrete solver display an error message.
-        GetLog() << "Solver setup failed\n";
+        std::cerr << "Solver setup failed" << std::endl;
         PrintErrorMessage();
     }
 
@@ -141,14 +141,14 @@ double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
 
     if (verbose) {
         double res_norm = (m_rhs - m_mat * m_sol).norm();
-        GetLog() << " Solver solve [" << m_solve_call << "]  |residual| = " << res_norm << "\n\n";
-        GetLog() << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s\n"
-                 << "  solve:             " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << "\n";
+        std::cout << " Solver solve [" << m_solve_call << "]  |residual| = " << res_norm << std::endl << std::endl;
+        std::cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s" << std::endl
+                 << "  solve:             " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << std::endl;
     }
 
     if (!result) {
         // If the solution failed, let the concrete solver display an error message.
-        GetLog() << "Solver solve failed\n";
+        std::cerr << "Solver solve failed" << std::endl;
         PrintErrorMessage();
     }
 
@@ -169,17 +169,17 @@ bool ChDirectSolverLS::SetupCurrent() {
     m_timer_setup_solvercall.stop();
 
     if (verbose) {
-        GetLog() << " Solver SetupCurrent() [" << m_setup_call << "] n = " << m_dim
-                 << "  nnz = " << (int)m_mat.nonZeros() << "\n";
-        GetLog() << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s\n"
-                 << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s\n";
+        std::cout << " Solver SetupCurrent() [" << m_setup_call << "] n = " << m_dim
+                 << "  nnz = " << (int)m_mat.nonZeros() << std::endl;
+        std::cout << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s" << std::endl
+                 << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s" << std::endl;
     }
 
     m_setup_call++;
 
     if (!result) {
         // If the factorization failed, let the concrete solver display an error message.
-        GetLog() << "Solver SetupCurrent() failed\n";
+        std::cerr << "Solver SetupCurrent() failed" << std::endl;
         PrintErrorMessage();
     }
 
@@ -198,14 +198,14 @@ double ChDirectSolverLS::SolveCurrent() {
 
     if (verbose) {
         double res_norm = (m_rhs - m_mat * m_sol).norm();
-        GetLog() << " Solver SolveCurrent() [" << m_solve_call << "]  |residual| = " << res_norm << "\n\n";
-        GetLog() << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s\n"
-                 << "  solve:             " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << "\n";
+        std::cout << " Solver SolveCurrent() [" << m_solve_call << "]  |residual| = " << res_norm << std::endl << std::endl;
+        std::cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s" << std::endl
+                 << "  solve:             " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << std::endl;
     }
 
     if (!result) {
         // If the solution failed, let the concrete solver display an error message.
-        GetLog() << "Solver SolveCurrent() failed\n";
+        std::cerr << "Solver SolveCurrent() failed" << std::endl;
         PrintErrorMessage();
     }
 
@@ -280,13 +280,13 @@ void ChSolverSparseLU::PrintErrorMessage() {
     // There are only three possible return codes (see Eigen SparseLU.h)
     switch (m_engine.info()) {
         case Eigen::Success:
-            GetLog() << "computation was successful\n";
+            std::cout << "computation was successful" << std::endl;
             break;
         case Eigen::NumericalIssue:
-            GetLog() << "LU factorization reported a problem, zero diagonal for instance\n";
+            std::cout << "LU factorization reported a problem, zero diagonal for instance" << std::endl;
             break;
         case Eigen::InvalidInput:
-            GetLog() << "inputs are invalid, or the algorithm has been improperly called\n";
+            std::cout << "inputs are invalid, or the algorithm has been improperly called" << std::endl;
             break;
         default:
             break;
@@ -309,13 +309,13 @@ void ChSolverSparseQR::PrintErrorMessage() {
     // There are only three possible return codes (see Eigen SparseLU.h)
     switch (m_engine.info()) {
         case Eigen::Success:
-            GetLog() << "computation was successful\n";
+            std::cout << "computation was successful" << std::endl;
             break;
         case Eigen::NumericalIssue:
-            GetLog() << "QR factorization reported a problem\n";
+            std::cout << "QR factorization reported a problem" << std::endl;
             break;
         case Eigen::InvalidInput:
-            GetLog() << "inputs are invalid, or the algorithm has been improperly called\n";
+            std::cout << "inputs are invalid, or the algorithm has been improperly called" << std::endl;
             break;
         default:
             break;

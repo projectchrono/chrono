@@ -239,7 +239,7 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
 
         if (do_narrow_contactgeneration) {
             int numContacts = contactManifold->getNumContacts();
-            // GetLog() << "numContacts=" << numContacts << "\n";
+            // std::cout << "numContacts=" << numContacts << std::endl;
             for (int j = 0; j < numContacts; j++) {
                 cbtManifoldPoint& pt = contactManifold->getContactPoint(j);
 

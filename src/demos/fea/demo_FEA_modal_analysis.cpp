@@ -159,22 +159,22 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool base_fixed)
 
     // Just for logging the frequencies:
     for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-        GetLog() << "Mode n." << i
+        std::cout << "Mode n." << i
                  << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) 
                  << "  damping ratio:" << my_assembly->Get_modes_damping_ratios()(i) 
                  << "    Re=" << my_assembly->Get_modes_eig()(i).real() << "  Im=" <<   my_assembly->Get_modes_eig()(i).imag()
-                 << "\n";
+                 << std::endl;
     
     
     my_assembly->ComputeModesDamped(14);
     
     // Just for logging the frequencies:
     for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-        GetLog() << "DMode n." << i
+        std::cout << "DMode n." << i
                  << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) 
                  << "  damping ratio:" << my_assembly->Get_modes_damping_ratios()(i) 
                  << "    Re=" << my_assembly->Get_modes_eig()(i).real() << "  Im=" <<   my_assembly->Get_modes_eig()(i).imag()
-                 << "\n";
+                 << std::endl;
 
     // This is needed if you want to see things in Irrlicht 3D view.
     myapp.AssetBindAll();
@@ -319,11 +319,11 @@ void MakeAndRunDemoLbeam(ChIrrApp& myapp, bool body1fixed, bool body2fixed)
     
     // Just for logging the frequencies:
     for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-        GetLog() << "Mode n." << i
-                 << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) 
-                 << "  damping ratio:" << my_assembly->Get_modes_damping_ratios()(i) 
-                 << "    Re=" << my_assembly->Get_modes_eig()(i).real() << "  Im=" <<   my_assembly->Get_modes_eig()(i).imag()
-                 << "\n";
+        std::cout << "Mode n." << i
+                  << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) 
+                  << "  damping ratio:" << my_assembly->Get_modes_damping_ratios()(i) 
+                  << "    Re=" << my_assembly->Get_modes_eig()(i).real() << "  Im=" <<   my_assembly->Get_modes_eig()(i).imag()
+                  << std::endl;
 
     // This is needed if you want to see things in Irrlicht 3D view.
     myapp.AssetBindAll();
@@ -386,11 +386,11 @@ class MyEventReceiver : public IEventReceiver {
 
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2021 projectchrono.org" << std::endl << "Chrono version: " << CHRONO_VERSION << std::endl << std::endl;
 
     // Directory for output data
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
+        std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 

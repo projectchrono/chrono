@@ -555,7 +555,7 @@ void ChElementTetraCorot_10::UpdateRotation() {
     if (det < 0)
         this->A *= -1.0;
 
-    // GetLog() << "FEM rotation: \n" << A << "\n"
+    // std::cout << "FEM rotation:" << std::endl << A << std::endl
 }
 
 void ChElementTetraCorot_10::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {

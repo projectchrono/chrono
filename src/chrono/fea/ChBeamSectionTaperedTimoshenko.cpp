@@ -202,7 +202,7 @@ auto GetAverageValue = [](const double mv1, const double mv2) { return (mv1 + mv
 // For more information, please refer to ANSYS theory document in the chapters of tapered beam element.
 auto GetAverageValue3 = [](const double mv1, const double mv2) {
     if (mv1 * mv2 < 0.) {
-        // GetLog() << "WARNING: negative value, error!\n";
+        // std::cerr << "WARNING: negative value, error!" << std::endl;
         return GetAverageValue(mv1, mv2);
     }
     return (mv1 + pow(mv1 * mv2, 0.5) + mv2) / 3.0;
@@ -210,7 +210,7 @@ auto GetAverageValue3 = [](const double mv1, const double mv2) {
 // For more information, please refer to ANSYS theory document in the chapters of tapered beam element.
 auto GetAverageValue5 = [](const double mv1, const double mv2) {
     if (mv1 * mv2 < 0.) {
-        // GetLog() << "WARNING: negative value, error!\n";
+        // std::cerr << "WARNING: negative value, error!" << std::endl;
         return GetAverageValue(mv1, mv2);
     }
     return (mv1 + pow(mv1 * mv1 * mv1 * mv2, 0.25) + pow(mv1 * mv2, 0.5) + pow(mv1 * mv2 * mv2 * mv2, 0.25) + mv2) /
@@ -369,7 +369,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     if (abs(this->avg_sec_par->GAzz) > eps) {  // avoid dividing zero
         this->avg_sec_par->phiz = 12.0 * this->avg_sec_par->EIyy / (this->avg_sec_par->GAzz * LL);
     }
-    
+
     // update the status of lock, to avoid computing again.
     compute_ave_sec_par = true;
 }

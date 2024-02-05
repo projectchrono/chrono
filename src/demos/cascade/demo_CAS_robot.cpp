@@ -89,9 +89,9 @@ int main(int argc, char* argv[]) {
     // Note, In most CADs the Y axis is horizontal, but we want it vertical.
     // So define a root transformation for rotating all the imported objects.
     ChQuaternion<> rotation1;
-    rotation1.Q_from_AngAxis(-CH_C_PI / 2, VECT_X);  // 1: rotate 90° on X axis
+    rotation1.Q_from_AngAxis(-CH_C_PI / 2, VECT_X);  // 1: rotate 90ï¿½ on X axis
     ChQuaternion<> rotation2;
-    rotation2.Q_from_AngAxis(CH_C_PI, VECT_Y);            // 2: rotate 180° on vertical Y axis
+    rotation2.Q_from_AngAxis(CH_C_PI, VECT_Y);            // 2: rotate 180ï¿½ on vertical Y axis
     ChQuaternion<> tot_rotation = rotation2 % rotation1;  // rotate on 1 then on 2, using quaternion product
     ChFrameMoving<> root_frame(ChVector<>(0, 0, 0), tot_rotation);
 
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
             body_base->SetBodyFixed(true);
             body_base->ConcatenatePreTransformation(root_frame);
         } else
-            GetLog() << "Warning. Desired object not found in document \n";
+            std::cerr << "WARNING: Desired object not found in document" << std::endl;
 
         TopoDS_Shape shape_turret;
         if (mydoc.GetNamedShape(shape_turret, "Assem10/Assem4")) {
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
             // Move the body as for global displacement/rotation
             body_turret->ConcatenatePreTransformation(root_frame);
         } else
-            GetLog() << "Warning. Desired object not found in document \n";
+            std::cerr << "WARNING: Desired object not found in document" << std::endl;
 
         TopoDS_Shape shape_bicep;
         if (mydoc.GetNamedShape(shape_bicep, "Assem10/Assem1")) {
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
             // Move the body as for global displacement/rotation
             body_bicep->ConcatenatePreTransformation(root_frame);
         } else
-            GetLog() << "Warning. Desired object not found in document \n";
+            std::cerr << "WARNING: Desired object not found in document" << std::endl;
 
         TopoDS_Shape shape_elbow;
         if (mydoc.GetNamedShape(shape_elbow, "Assem10/Assem5")) {
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
             // Move the body as for global displacement/rotation
             body_elbow->ConcatenatePreTransformation(root_frame);
         } else
-            GetLog() << "Warning. Desired object not found in document \n";
+            std::cerr << "WARNING: Desired object not found in document" << std::endl;
 
         TopoDS_Shape shape_forearm;
         if (mydoc.GetNamedShape(shape_forearm, "Assem10/Assem7")) {
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
             // Move the body as for global displacement/rotation
             body_forearm->ConcatenatePreTransformation(root_frame);
         } else
-            GetLog() << "Warning. Desired object not found in document \n";
+            std::cerr << "WARNING: Desired object not found in document" << std::endl;
 
         TopoDS_Shape shape_wrist;
         if (mydoc.GetNamedShape(shape_wrist, "Assem10/Assem6")) {
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
             // Move the body as for global displacement/rotation
             body_wrist->ConcatenatePreTransformation(root_frame);
         } else
-            GetLog() << "Warning. Desired object not found in document \n";
+            std::cerr << "WARNING: Desired object not found in document" << std::endl;
 
         TopoDS_Shape shape_hand;
         if (mydoc.GetNamedShape(shape_hand, "Assem10/Assem9")) {
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
             sys.Add(mcubelink);
 
         } else
-            GetLog() << "Warning. Desired object not found in document \n";
+            std::cerr << "WARNING: Desired object not found in document" << std::endl;
 
         TopoDS_Shape shape_cylinder;
         if (mydoc.GetNamedShape(shape_cylinder, "Assem10/Assem3")) {
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
             // Move the body as for global displacement/rotation
             body_cylinder->ConcatenatePreTransformation(root_frame);
         } else
-            GetLog() << "Warning. Desired object not found in document \n";
+            std::cerr << "WARNING: Desired object not found in document" << std::endl;
 
         TopoDS_Shape shape_rod;
         if (mydoc.GetNamedShape(shape_rod, "Assem10/Assem2")) {
@@ -187,10 +187,10 @@ int main(int argc, char* argv[]) {
             // Move the body as for global displacement/rotation
             body_rod->ConcatenatePreTransformation(root_frame);
         } else
-            GetLog() << "Warning. Desired object not found in document \n";
+            std::cerr << "WARNING: Desired object not found in document" << std::endl;
 
     } else
-        GetLog() << "Warning. Desired STEP file could not be opened/parsed \n";
+        std::cerr << "WARNING: Desired STEP file could not be opened/parsed" << std::endl;
 
     if (!body_base || !body_turret || !body_bicep || !body_elbow || !body_forearm || !body_wrist || !body_hand) {
         return 1;
@@ -208,7 +208,7 @@ int main(int argc, char* argv[]) {
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem8/marker#1"))
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_base_turret);
     else
-        GetLog() << "Warning. Desired marker not found in document \n";
+        std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     // Transform the abs coordinates of the marker because everything was rotated/moved by 'root_frame' :
     frame_marker_base_turret %= root_frame;
 
@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem4/marker#2"))
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_bicep);
     else
-        GetLog() << "Warning. Desired marker not found in document \n";
+        std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_turret_bicep %= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link2(new ChLinkLockRevolute);
@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem1/marker#2"))
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_bicep_elbow);
     else
-        GetLog() << "Warning. Desired marker not found in document \n";
+        std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_bicep_elbow %= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link3(new ChLinkLockRevolute);
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem5/marker#2"))
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_elbow_forearm);
     else
-        GetLog() << "Warning. Desired marker not found in document \n";
+        std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_elbow_forearm %= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link4(new ChLinkLockRevolute);
@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem7/marker#2"))
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_forearm_wrist);
     else
-        GetLog() << "Warning. Desired marker not found in document \n";
+        std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_forearm_wrist %= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link5(new ChLinkLockRevolute);
@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem6/marker#2"))
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_wrist_hand);
     else
-        GetLog() << "Warning. Desired marker not found in document \n";
+        std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_wrist_hand %= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link6(new ChLinkLockRevolute);
@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem4/marker#3"))
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_cylinder);
     else
-        GetLog() << "Warning. Desired marker not found in document \n";
+        std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_turret_cylinder %= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link7(new ChLinkLockRevolute);
@@ -286,7 +286,7 @@ int main(int argc, char* argv[]) {
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem3/marker#2"))
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_cylinder_rod);
     else
-        GetLog() << "Warning. Desired marker not found in document \n";
+        std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_cylinder_rod %= root_frame;
 
     std::shared_ptr<ChLinkLockCylindrical> my_link8(new ChLinkLockCylindrical);
@@ -297,7 +297,7 @@ int main(int argc, char* argv[]) {
     if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem2/marker#2"))
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_rod_bicep);
     else
-        GetLog() << "Warning. Desired marker not found in document \n";
+        std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     frame_marker_rod_bicep %= root_frame;
 
     std::shared_ptr<ChLinkLockCylindrical> my_link9(new ChLinkLockCylindrical);

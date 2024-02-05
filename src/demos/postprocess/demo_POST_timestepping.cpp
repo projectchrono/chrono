@@ -33,7 +33,7 @@ using namespace chrono;
 using namespace postprocess;
 
 void example1(const std::string& out_dir) {
-    GetLog() << " Example 1: integrate dx/dt=e^t \n";
+    std::cout << " Example 1: integrate dx/dt=e^t " << std::endl;
 
     // Define a class inherited from ChIntegrable,
     // it will represent the differential equations
@@ -54,7 +54,8 @@ void example1(const std::string& out_dir) {
                                 const double dt,           ///< timestep (if needed)
                                 bool force_state_scatter,  ///< if false, y and T are not scattered to the system
                                 bool full_update,          ///< if true, perform a full update during scatter
-                                ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix. Not significant here.
+                                ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid
+                                                                   ///< inverting a mass matrix. Not significant here.
                                 ) override {
             if (force_state_scatter)
                 StateScatter(y, T, full_update);  // state -> system   (not needed here, btw.)
@@ -80,8 +81,8 @@ void example1(const std::string& out_dir) {
         mystepper.Advance(0.1);
 
         double exact_solution = exp(mystepper.GetTime()) - 1;
-        GetLog() << " T = " << mystepper.GetTime() << "  x=" << mystepper.get_Y()(0) << "  x_exact=" << exact_solution
-                 << "\n";
+        std::cout << " T = " << mystepper.GetTime() << "  x=" << mystepper.get_Y()(0) << "  x_exact=" << exact_solution
+                  << std::endl;
         log_file1 << mystepper.GetTime() << ", " << mystepper.get_Y()(0) << ", " << exact_solution << "\n";
     }
 
@@ -97,8 +98,11 @@ void example1(const std::string& out_dir) {
 }
 
 void example2(const std::string& out_dir) {
-    GetLog() << "\n\n Example 2: integrate 2nd order oscillator: M*ddx/dtdt + R*dx/dt + K*w = F(t) with a 1st "
-                "order integrator. \n";
+    std::cout
+        << std::endl
+        << std::endl
+        << "Example 2: integrate 2nd order oscillator: M*ddx/dtdt + R*dx/dt + K*w = F(t) with a 1st order integrator. "
+        << std::endl;
 
     // Define a class inherited from ChIntegrable,
     // it will represent the differential equations
@@ -147,7 +151,8 @@ void example2(const std::string& out_dir) {
                                 const double dt,           ///< timestep (if needed)
                                 bool force_state_scatter,  ///< if false, y and T are not scattered to the system
                                 bool full_update,          ///< if true, perform a full update during scatter
-                                ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix. Not significant here.
+                                ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid
+                                                                   ///< inverting a mass matrix. Not significant here.
                                 ) override {
             if (force_state_scatter)
                 StateScatter(y, T, full_update);
@@ -184,8 +189,8 @@ void example2(const std::string& out_dir) {
         mystepper.Advance(0.01);
         mystepper_rk.Advance(0.01);
 
-        GetLog() << " T = " << mystepper.GetTime() << "  x=" << mystepper.get_Y()(0) << "  v=" << mystepper.get_Y()(1)
-                 << "\n";
+        std::cout << " T = " << mystepper.GetTime() << "  x=" << mystepper.get_Y()(0) << "  v=" << mystepper.get_Y()(1)
+                  << std::endl;
         log_file2 << mystepper.GetTime() << ", " << mystepper.get_Y()(0) << ", " << mystepper.get_Y()(1) << ", "
                   << mystepper_rk.get_Y()(0) << ", " << mystepper_rk.get_Y()(1) << "\n";
     }
@@ -204,8 +209,11 @@ void example2(const std::string& out_dir) {
 }
 
 void example3(const std::string& out_dir) {
-    GetLog() << "\n\n Example 3: integrate 2nd order oscillator: M*ddx/dtdt + R*dx/dt + K*w = F(t) with a 2nd "
-                "order integrator. \n";
+    std::cout << std::endl
+              << std::endl
+              << "Example 3: integrate 2nd order oscillator: M*ddx/dtdt + R*dx/dt + K*w = F(t) with a 2nd "
+                 "order integrator. "
+              << std::endl;
 
     // Define a class inherited from ChIntegrableIIorder,
     // it will represent the differential equations
@@ -259,7 +267,8 @@ void example3(const std::string& out_dir) {
                                  const double dt,           ///< timestep (if needed)
                                  bool force_state_scatter,  ///< if false, y and T are not scattered to the system
                                  bool full_update,          ///< if true, perform a full update during scatter
-                                 ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix. Not significant here.
+                                 ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid
+                                                                    ///< inverting a mass matrix. Not significant here.
                                  ) override {
             if (force_state_scatter)
                 StateScatter(x, v, T, full_update);
@@ -292,8 +301,8 @@ void example3(const std::string& out_dir) {
         mystepper2.Advance(0.01);
         mystepper3.Advance(0.01);
 
-        GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_Y()(0) << "  v=" << mystepper1.get_Y()(1)
-                 << "\n";
+        std::cout << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_Y()(0)
+                  << "  v=" << mystepper1.get_Y()(1) << std::endl;
         log_file3 << mystepper1.GetTime() << ", " << mystepper1.get_Y()(0) << ", " << mystepper1.get_Y()(1) << ", "
                   << mystepper2.get_X()(0) << ", " << mystepper2.get_V()(0) << ", " << mystepper3.get_X()(0) << ", "
                   << mystepper3.get_V()(0) << "\n";
@@ -312,8 +321,11 @@ void example3(const std::string& out_dir) {
 }
 
 void example4(const std::string& out_dir) {
-    GetLog() << "\n\n Example 4: integrate 2nd order oscillator: M*ddx/dtdt + R*dx/dt + K*w = F(t) with an "
-                "implicit integrator \n";
+    std::cout << std::endl
+              << std::endl
+              << "Example 4: integrate 2nd order oscillator: M*ddx/dtdt + R*dx/dt + K*w = F(t) with an "
+                 "implicit integrator "
+              << std::endl;
 
     // Define a class inherited from ChIntegrableIIorder,
     // it will represent the differential equations
@@ -358,27 +370,26 @@ void example4(const std::string& out_dir) {
             mT = T;
         };
 
-        // gather/scatter of accelerations not needed for some solvers (exEuler linearized) but needed for others, ex. HHT 
-        virtual void StateGatherAcceleration(ChStateDelta& a) override {
-            a(0) = ma;
-        }
-        virtual void StateScatterAcceleration(const ChStateDelta& a) override {
-            ma = a(0);
-        }
+        // gather/scatter of accelerations not needed for some solvers (exEuler linearized) but needed for others, ex.
+        // HHT
+        virtual void StateGatherAcceleration(ChStateDelta& a) override { a(0) = ma; }
+        virtual void StateScatterAcceleration(const ChStateDelta& a) override { ma = a(0); }
 
         /// compute  dy/dt=f(y,t)
         /// (this function is optional: if not implemented the integrator can solve
         /// for acceleration also using StateSolveCorrection, although a bit less efficient)
-        virtual bool StateSolveA(ChStateDelta& dvdt,        ///< result: computed accel. a=dv/dt
-                                 ChVectorDynamic<>& L,      ///< result: computed lagrangian multipliers, if any
-                                 const ChState& x,          ///< current state, x
-                                 const ChStateDelta& v,     ///< current state, v
-                                 const double T,            ///< current time T
-                                 const double dt,           ///< timestep (if needed)
-                                 bool force_state_scatter,  ///< if false, y and T are not scattered to the system
-                                 bool full_update,          ///< if true, perform a full update during scatter
-                                 ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix, and uses penalty for constraints. Not significant here.
-                                 ) override {
+        virtual bool StateSolveA(
+            ChStateDelta& dvdt,                ///< result: computed accel. a=dv/dt
+            ChVectorDynamic<>& L,              ///< result: computed lagrangian multipliers, if any
+            const ChState& x,                  ///< current state, x
+            const ChStateDelta& v,             ///< current state, v
+            const double T,                    ///< current time T
+            const double dt,                   ///< timestep (if needed)
+            bool force_state_scatter,          ///< if false, y and T are not scattered to the system
+            bool full_update,                  ///< if true, perform a full update during scatter
+            ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix,
+                                               ///< and uses penalty for constraints. Not significant here.
+            ) override {
             if (force_state_scatter)
                 StateScatter(x, v, T, full_update);
             double F = sin(mT * 20) * 0.02;
@@ -487,8 +498,8 @@ void example4(const std::string& out_dir) {
         mystepper7.Advance(timestep);
         mystepper8.Advance(timestep);
 
-        GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0) << "  v=" << mystepper1.get_V()(0)
-                 << "\n";
+        std::cout << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0)
+                  << "  v=" << mystepper1.get_V()(0) << std::endl;
         log_file4 << mystepper1.GetTime() << ", " << mystepper1.get_X()(0) << ", " << mystepper1.get_V()(0) << ", "
                   << mystepper2.get_X()(0) << ", " << mystepper2.get_V()(0) << ", " << mystepper3.get_X()(0) << ", "
                   << mystepper3.get_V()(0) << ", " << mystepper4.get_X()(0) << ", " << mystepper4.get_V()(0) << ", "
@@ -515,7 +526,7 @@ void example4(const std::string& out_dir) {
 }
 
 void example5(const std::string& out_dir) {
-    GetLog() << "\n\n Example 5: integrate pendulum DAE \n";
+    std::cout << std::endl << std::endl << "Example 5: integrate pendulum DAE " << std::endl;
 
     // A) - a minimalistic pendulum DAE:
     //
@@ -600,7 +611,7 @@ void example5(const std::string& out_dir) {
             ChStateDelta& Dv,             ///< result: computed Dv
             ChVectorDynamic<>& Dl,        ///< result: computed Dl lagrangian multipliers, if any, note the sign
             const ChVectorDynamic<>& R,   ///< the R residual
-            const ChVectorDynamic<>& Qc,  ///< the Qc residual, note the sign 
+            const ChVectorDynamic<>& Qc,  ///< the Qc residual, note the sign
             const double c_a,             ///< the factor in c_a*M
             const double c_v,             ///< the factor in c_v*dF/dv
             const double c_x,             ///< the factor in c_x*dF/dv
@@ -617,9 +628,9 @@ void example5(const std::string& out_dir) {
             ChVector<> dirpend(-mpx, -mpy, 0);
             dirpend.Normalize();
             ChVectorDynamic<> b(3);
-            b(0) =  R(0);
-            b(1) =  R(1);
-            b(2) = -Qc(0); // note assume input Qc has no minus sign, so flip sign here
+            b(0) = R(0);
+            b(1) = R(1);
+            b(2) = -Qc(0);  // note assume input Qc has no minus sign, so flip sign here
             ChMatrixDynamic<> A(3, 3);
             A.setZero();
             A(0, 0) = c_a * this->M + c_v * (-this->R) + c_x * (-this->K);
@@ -638,19 +649,20 @@ void example5(const std::string& out_dir) {
 
         /// Adds the lumped mass to a Md vector. This method is OPTIONAL, and needed only
         /// if you want to use an explicit integrator with SetDiagonalLumpingON.
-        virtual void LoadLumpedMass_Md(ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
-                                       double& err,            ///< result: not touched if lumping does not introduce errors
-                                       const double c          ///< a scaling factor
+        virtual void LoadLumpedMass_Md(
+            ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+            double& err,            ///< result: not touched if lumping does not introduce errors
+            const double c          ///< a scaling factor
         ) {
-            Md(0) = this->M; 
-            Md(1) = this->M; 
+            Md(0) = this->M;
+            Md(1) = this->M;
         }
 
         ///    R += c*F
         void LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                             const double c         ///< a scaling factor
                             ) override {
-            R(0) += c * (- this->K * mpx - this->R * mvx);
+            R(0) += c * (-this->K * mpx - this->R * mvx);
             R(1) += c * -9.8 * this->M;  // vertical force
         };
 
@@ -716,18 +728,19 @@ void example5(const std::string& out_dir) {
     ChTimestepperHHT mystepper4(&mintegrable4);
     mystepper4.SetAlpha(0);  // HHT with no dissipation -> trapezoidal
     mystepper4.SetStepControl(false);
-    //mystepper4.SetVerbose(true);
+    // mystepper4.SetVerbose(true);
     ChTimestepperHHT mystepper5(&mintegrable5);
     mystepper5.SetAlpha(-0.3);  // HHT with dissipation
     mystepper5.SetStepControl(false);
-    //mystepper5.SetVerbose(true);
+    // mystepper5.SetVerbose(true);
     ChTimestepperNewmark mystepper6(&mintegrable6);
-    mystepper6.SetGammaBeta(0.5, 0.25);  // Newmark, Gamma: in [1/2, 1] where 1/2 no damping, beta in [0,1]. For (0.5, 0.25) -> trapezoidal
-    //mystepper6.SetVerbose(true);
+    mystepper6.SetGammaBeta(
+        0.5, 0.25);  // Newmark, Gamma: in [1/2, 1] where 1/2 no damping, beta in [0,1]. For (0.5, 0.25) -> trapezoidal
+    // mystepper6.SetVerbose(true);
 
-    //ChTimestepperEulerExplIIorder mystepper7(&mintegrable7);
+    // ChTimestepperEulerExplIIorder mystepper7(&mintegrable7);
     ChTimestepperRungeKuttaExpl mystepper7(&mintegrable7);
-    mystepper7.SetDiagonalLumpingON(20000); // this avoids calling the linear solver completely, even with constraints.
+    mystepper7.SetDiagonalLumpingON(20000);  // this avoids calling the linear solver completely, even with constraints.
 
     // B) - same pendulum, but multibody:
     //
@@ -740,9 +753,9 @@ void example5(const std::string& out_dir) {
     sys.AddBody(my_body_A);
     sys.AddBody(my_body_B);
 
-    my_body_A->SetBodyFixed(true);  
+    my_body_A->SetBodyFixed(true);
     my_body_B->SetMass(2.0);
-    my_body_B->SetInertiaXX(ChVector<>(1e-7, 1e-7, 1e-7)); // to approximate point-like mass as in MyIntegrable
+    my_body_B->SetInertiaXX(ChVector<>(1e-7, 1e-7, 1e-7));  // to approximate point-like mass as in MyIntegrable
     my_body_B->SetPos(ChVector<>(0, -5, 0));
     my_body_B->SetPos_dt(ChVector<>(0.8, 0, 0));
 
@@ -755,7 +768,7 @@ void example5(const std::string& out_dir) {
     sys.SetSolver(msolver);
     // use the HHT timestepper to compare with HHT in previous MyIntegrable simple case
     auto mstepper4b = chrono_types::make_shared<ChTimestepperHHT>(&sys);
-    mstepper4b->SetAlpha(-0.3);  // HHT dissipation 
+    mstepper4b->SetAlpha(-0.3);  // HHT dissipation
     sys.SetTimestepper(mstepper4b);
 
     // Execute the time integration with the implicit integrators
@@ -769,36 +782,39 @@ void example5(const std::string& out_dir) {
         mystepper6.Advance(timestep);
         sys.DoStepDynamics(timestep);
 
-        GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0) << "  y=" << mystepper1.get_X()(1)
-                 << "\n";
-        GetLog() << "  = " << mystepper1.GetTime() << "  x=" << my_body_B->GetPos().x() << "  y=" << my_body_B->GetPos().y()
-                 << "\n";
-        log_file5 << mystepper1.GetTime() << ", "
-            << mystepper1.get_X()(0) << ", " << mystepper1.get_X()(1) << ", " << mystepper1.get_V()(0) << ", " << mystepper1.get_V()(1) << ", "
-            << mystepper2.get_X()(0) << ", " << mystepper2.get_X()(1) << ", " << mystepper2.get_V()(0) << ", " << mystepper2.get_V()(1) << ", "
-            << mystepper3.get_X()(0) << ", " << mystepper3.get_X()(1) << ", " << mystepper3.get_V()(0) << ", " << mystepper3.get_V()(1) << ", "
-            << mystepper4.get_X()(0) << ", " << mystepper4.get_X()(1) << ", " << mystepper4.get_V()(0) << ", " << mystepper4.get_V()(1) << ", "
-            << mystepper5.get_X()(0) << ", " << mystepper5.get_X()(1) << ", " << mystepper5.get_V()(0) << ", " << mystepper5.get_V()(1) << ", "
-            << mystepper6.get_X()(0) << ", " << mystepper6.get_X()(1) << ", " << mystepper6.get_V()(0) << ", " << mystepper6.get_V()(1) << ", "
-            << my_body_B->GetPos().x() << ", " << my_body_B->GetPos().y() << ", " << my_body_B->GetPos_dt().x() << ", " << my_body_B->GetPos_dt().y() 
-            << "\n";
+        std::cout << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0)
+                  << "  y=" << mystepper1.get_X()(1) << std::endl;
+        std::cout << "  = " << mystepper1.GetTime() << "  x=" << my_body_B->GetPos().x()
+                  << "  y=" << my_body_B->GetPos().y() << std::endl;
+        log_file5 << mystepper1.GetTime() << ", " << mystepper1.get_X()(0) << ", " << mystepper1.get_X()(1) << ", "
+                  << mystepper1.get_V()(0) << ", " << mystepper1.get_V()(1) << ", " << mystepper2.get_X()(0) << ", "
+                  << mystepper2.get_X()(1) << ", " << mystepper2.get_V()(0) << ", " << mystepper2.get_V()(1) << ", "
+                  << mystepper3.get_X()(0) << ", " << mystepper3.get_X()(1) << ", " << mystepper3.get_V()(0) << ", "
+                  << mystepper3.get_V()(1) << ", " << mystepper4.get_X()(0) << ", " << mystepper4.get_X()(1) << ", "
+                  << mystepper4.get_V()(0) << ", " << mystepper4.get_V()(1) << ", " << mystepper5.get_X()(0) << ", "
+                  << mystepper5.get_X()(1) << ", " << mystepper5.get_V()(0) << ", " << mystepper5.get_V()(1) << ", "
+                  << mystepper6.get_X()(0) << ", " << mystepper6.get_X()(1) << ", " << mystepper6.get_V()(0) << ", "
+                  << mystepper6.get_V()(1) << ", " << my_body_B->GetPos().x() << ", " << my_body_B->GetPos().y() << ", "
+                  << my_body_B->GetPos_dt().x() << ", " << my_body_B->GetPos_dt().y() << "\n";
         log_file5r << mystepper1.GetTime() << ", " << mystepper1.get_L()(0) << ", " << mystepper2.get_L()(0) << ", "
                    << mystepper3.get_L()(0) << ", " << mystepper4.get_L()(0) << ", " << mystepper5.get_L()(0) << ", "
                    << mystepper6.get_L()(0) << ", " << my_link_AB->Get_react_force().y() << "\n";
     }
-    // Execute the time integration with the explicit integrator, 
-    // hence using smaller time step 
+    // Execute the time integration with the explicit integrator,
+    // hence using smaller time step
     while (mystepper7.GetTime() < 12) {
         double timestep = 0.0005;
         mystepper7.Advance(timestep);
 
-        log_file5e << mystepper7.GetTime() << ", "
-            //<< mystepper7.get_X()(0) << ", " << mystepper7.get_X()(1) << ", " << mystepper7.get_V()(0) << ", " << mystepper7.get_V()(1) << ", "
-            << mystepper7.get_Y()(0) << ", " << mystepper7.get_Y()(1) << ", " << mystepper7.get_Y()(2) << ", " << mystepper7.get_Y()(3) << ", "
-            << "\n";
+        log_file5e << mystepper7.GetTime()
+                   << ", "
+                   //<< mystepper7.get_X()(0) << ", " << mystepper7.get_X()(1) << ", " << mystepper7.get_V()(0) << ", "
+                   //<< mystepper7.get_V()(1) << ", "
+                   << mystepper7.get_Y()(0) << ", " << mystepper7.get_Y()(1) << ", " << mystepper7.get_Y()(2) << ", "
+                   << mystepper7.get_Y()(3) << ", "
+                   << "\n";
         log_file5er << mystepper7.GetTime() << ", " << mystepper7.get_L()(0) << "\n";
     }
-
 
     std::string gplfile = out_dir + "/tmp_timestepping_5.gpl";
     ChGnuPlot mplot(gplfile.c_str());
@@ -814,7 +830,7 @@ void example5(const std::string& out_dir) {
     mplot.Plot(logfilename5, 1, 18, "HHT alpha=-0.3", " with lines dt 2");
     mplot.Plot(logfilename5, 1, 22, "Newmark g=0.5,b=0.25", " with lines dt 4");
     mplot.Plot(logfilename5, 1, 26, "HHT alpha=-0.3 in ChSystem", " with lines dt 6");
-	mplot.Plot(logfilename5e, 1, 2, "Euler explicit, penalty", " with lines");
+    mplot.Plot(logfilename5e, 1, 2, "Euler explicit, penalty", " with lines");
 
     mplot.OutputWindow(1);
     mplot.SetGrid();
@@ -828,28 +844,28 @@ void example5(const std::string& out_dir) {
     mplot.Plot(logfilename5r, 1, 6, "HHT alpha=-0.3", " with lines dt 2");
     mplot.Plot(logfilename5r, 1, 7, "Newmark g=0.5,b=0.25", " with lines dt 4");
     mplot.Plot(logfilename5r, 1, 8, "HHT alpha=-0.3 in ChSystem", " with lines dt 6");
-	mplot.Plot(logfilename5er, 1, 2, "Euler explicit, penalty", " with lines dt 3 lc rgb \"pink\"");
+    mplot.Plot(logfilename5er, 1, 2, "Euler explicit, penalty", " with lines dt 3 lc rgb \"pink\"");
 
     mplot.OutputWindow(2);
     mplot.SetGrid();
     mplot.SetTitle("Test: DAE, constrained pendulum trajectory");
     mplot.SetLabelX("x");
     mplot.SetLabelY("y");
-    //mplot.SetRangeX(-0.15, 0.15);
-    //mplot.SetRangeY(-1.025, -0.95);
+    // mplot.SetRangeX(-0.15, 0.15);
+    // mplot.SetRangeY(-1.025, -0.95);
     mplot.SetCommand("set size ratio 0.5");
     mplot.Plot(logfilename5, 2, 3, "Euler impl. lineariz.", " pt 0");
     mplot.Plot(logfilename5, 6, 7, "Euler impl.", " pt 1");
     mplot.Plot(logfilename5, 10, 11, "Trapezoidal*", " pt 2");
     mplot.Plot(logfilename5, 14, 15, "HHT alpha=0", " pt 3");
     mplot.Plot(logfilename5, 18, 19, "HHT alpha=-0.2", " pt 4");
-	mplot.Plot(logfilename5e, 2, 3, "Euler explicit, penalty", " with lines");
+    mplot.Plot(logfilename5e, 2, 3, "Euler explicit, penalty", " with lines");
 }
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    GetLog() << "CHRONO demo about low-level time integration of differential equations: \n\n";
+    std::cout << "CHRONO demo about low-level time integration of differential equations:" << std::endl;
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_TIMESTEPPER";

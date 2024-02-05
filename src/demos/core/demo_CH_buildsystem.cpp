@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 1:
         //
 
-        GetLog() << " Example: create a physical system.. \n";
+        std::cout << " Example: create a physical system..." << std::endl;
 
         // The physical system: it contains all physical objects.
         ChSystemNSC sys;
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
         sys.AddBody(my_body_C);
 
         // Show the hierarchy in the shell window...
-        GetLog() << "Here's the system hierarchy which you built: \n\n ";
+        std::cout << "Here's the system hierarchy which you built:" << std::endl;
         sys.ShowHierarchy(GetLog());
 
         // Do you want to remove items? Use the
@@ -98,7 +98,10 @@ int main(int argc, char* argv[]) {
         my_marker_a1->SetName("JohnFoo");
         // ..so you can later use  my_body_B.SearchMarker("JohnFoo"); etc.
 
-        GetLog() << "\n\n\nHere's the system hierarchy after modifications: \n\n ";
+        std::cout << std::endl
+                  << std::endl
+                  << "Here's the system hierarchy after modifications:" << std::endl
+                  << std::endl;
         sys.ShowHierarchy(GetLog());
     }
 
@@ -107,7 +110,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 2:
         //
 
-        GetLog() << " Example: create a slider-crank system: \n";
+        std::cout << " Example: create a slider-crank system:" << std::endl;
 
         // The physical system: it contains all physical objects.
         ChSystemNSC sys;
@@ -174,12 +177,15 @@ int main(int argc, char* argv[]) {
         my_motor_AB->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI));
         sys.AddLink(my_motor_AB);
 
-        GetLog() << "\n\n\nHere's the system hierarchy for slider-crank: \n\n ";
+        std::cout << std::endl
+                  << std::endl
+                  << "Here's the system hierarchy for slider-crank:" << std::endl
+                  << std::endl;
         sys.ShowHierarchy(GetLog());
 
-        GetLog() << "Now use an interator to scan through already-added constraints:\n\n";
+        std::cout << "Now use an interator to scan through already-added constraints:" << std::endl << std::endl;
         for (auto link : sys.Get_linklist()) {
-            GetLog() << "   Link class: " << typeid(link).name() << "\n";
+            std::cout << "   Link class: " << typeid(link).name() << std::endl;
         }
 
         // OK! NOW GET READY FOR THE DYNAMICAL SIMULATION!
@@ -193,9 +199,9 @@ int main(int argc, char* argv[]) {
             sys.DoFrameDynamics(chronoTime);
 
             // Print something on the console..
-            GetLog() << "Time: " << chronoTime
-                     << "  Slider X position: " << my_link_CA->GetMarker1()->GetAbsCoord().pos.x()
-                     << "  Engine torque: " << my_motor_AB->GetMotorTorque() << "\n";
+            std::cout << "Time: " << chronoTime
+                      << "  Slider X position: " << my_link_CA->GetMarker1()->GetAbsCoord().pos.x()
+                      << "  Engine torque: " << my_motor_AB->GetMotorTorque() << std::endl;
         }
     }
 

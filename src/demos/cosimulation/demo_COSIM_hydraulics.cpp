@@ -30,12 +30,11 @@ using namespace chrono::utils;
 using namespace chrono::cosimul;
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl
+              << "Chrono version: " << CHRONO_VERSION << std::endl;
 
-    // To write something to the console, use the chrono::GetLog()
-
-    GetLog() << "CHRONO SimHydraulics cosimulation \n\n";
-    GetLog() << "NOTE! This requires a copy of Simulink with SimHydraulics. \n\n";
+    std::cout << "CHRONO SimHydraulics cosimulation" << std::endl << std::endl;
+    std::cout << "NOTE! This requires a copy of Simulink with SimHydraulics." << std::endl << std::endl;
 
     try {
         // Test
@@ -107,8 +106,9 @@ int main(int argc, char* argv[]) {
 
         // 4) Wait client (Simulink) to connect...
 
-        GetLog() << " *** Waiting Simulink to start... *** \n     (load 'data/cosimulation/test_cosim_hydraulics.mdl' "
-                    "in Simulink and press Start...)\n\n";
+        std::cout << " *** Waiting Simulink to start... ***" << std::endl
+                  << "(load 'data/cosimulation/test_cosim_hydraulics.mdl' in Simulink and press Start...)" << std::endl
+                  << std::endl;
 
         int PORT_NUMBER = 50009;
 
@@ -144,12 +144,12 @@ int main(int argc, char* argv[]) {
             data_out(0) = my_link_actuator->GetVelocity();
             data_out(1) = my_link_actuator->GetDeformation();
 
-            // GetLog() << "Send \n";
+            // std::cout << "Send" << std::endl;
             cosimul_interface.SendData(mytime, data_out);  // --> to Simulink
 
             // B.2) - RECEIVE data
 
-            // GetLog() << "Receive \n";
+            // std::cout << "Receive" << std::endl;
             cosimul_interface.ReceiveData(histime, data_in);  // <-- from Simulink
 
             // - Update the Chrono system with the force value that we received
@@ -158,11 +158,11 @@ int main(int argc, char* argv[]) {
 
             my_link_actuator->SetActuatorForce(data_in(0));
 
-            GetLog() << "--- time: " << mytime << "\n";
+            std::cout << "--- time: " << mytime << std::endl;
         }
 
     } catch (ChExceptionSocket exception) {
-        GetLog() << " ERRROR with socket system: \n" << exception.what() << "\n";
+        std::cerr << " ERRROR with socket system:" << std::endl << exception.what() << std::endl;
     }
 
     return 0;

@@ -342,7 +342,7 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
                 bt_shape->setMargin((cbtScalar)full_margin);
                 injectShape(shape_arc, bt_shape, frame);
             } else {
-                // GetLog() << "concave corner between " << i_next << " and " << i_next << "\n";
+                // std::cout << "concave corner between " << i_next << " and " << i_next << std::endl;
             }
         }
     }

@@ -677,7 +677,7 @@ private:
 %init %{
 
 		// Create a custom logger to be used all times the GetLog() 
-		// funciton is used in C::E to print something. 
+		// function is used in C::E to print something. 
 	static chrono::ChLogPython static_cout_logger;
 	SetLog(static_cout_logger);
 

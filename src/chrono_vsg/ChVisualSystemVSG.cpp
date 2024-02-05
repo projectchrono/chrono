@@ -470,7 +470,7 @@ void ChVisualSystemVSG::SetOutputScreen(int screenNum) {
         return;
     }
     int maxNum = vsg::Device::maxNumDevices();
-    std::cout << "Screens found: " << maxNum << "\n";
+    std::cout << "Screens found: " << maxNum << std::endl;
     if (screenNum >= 0 && screenNum < maxNum) {
         m_screen_num = screenNum;
     } else {
@@ -785,33 +785,33 @@ void ChVisualSystemVSG::Initialize() {
     const auto& prop = m_window->getOrCreatePhysicalDevice()->getProperties();
 
     if (m_verbose) {
-        std::cout << "****************************************************\n";
-        std::cout << "* Chrono::VSG Vulkan Scene Graph 3D-Visualization\n";
-        std::cout << "* GPU Name: " << prop.deviceName << "\n";
+        std::cout << "****************************************************" << std::endl;
+        std::cout << "* Chrono::VSG Vulkan Scene Graph 3D-Visualization" << std::endl;
+        std::cout << "* GPU Name: " << prop.deviceName << std::endl;
         switch (prop.deviceType) {
             default:
             case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_OTHER\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_OTHER" << std::endl;
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU" << std::endl;
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU" << std::endl;
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU" << std::endl;
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_CPU:
-                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_CPU\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_CPU" << std::endl;
                 break;
         }
         std::cout << "* Vulkan Version: " << VK_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE) << "."
                   << VK_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE) << "."
-                  << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE) << "\n";
-        std::cout << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << "\n";
-        std::cout << "* Graphic Output Possible on: " << vsg::Device::maxNumDevices() << " Screens.\n";
-        std::cout << "****************************************************\n";
+                  << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE) << std::endl;
+        std::cout << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << std::endl;
+        std::cout << "* Graphic Output Possible on: " << vsg::Device::maxNumDevices() << " Screens." << std::endl;
+        std::cout << "****************************************************" << std::endl;
     }
 
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
@@ -1289,7 +1289,7 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
         def_mesh.mesh_soup = true;
 
         def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
-        assert(def_mesh.vertices->size() == 3 * trimesh->GetMesh()->getNumTriangles(););
+        assert(def_mesh.vertices->size() == 3 * trimesh->GetMesh()->getNumTriangles());
         def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
         def_mesh.dynamic_vertices = true;
 

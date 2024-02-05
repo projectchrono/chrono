@@ -33,8 +33,6 @@ using namespace chrono;
 // system works, even with inheritance and versioning.
 
 class myEmployee {
-
-
   public:
     int age;
     double wages;
@@ -46,7 +44,7 @@ class myEmployee {
     // at least implement these two functions, with the exact names
     // StreamIn() and StreamOut():
 
-    virtual void StreamOut(ChStreamOutBinary& mstream)  //##### for Chrono serialization
+    virtual void StreamOut(ChStreamOutBinary& mstream)  // ##### for Chrono serialization
     {
         // suggested: use versioning
         mstream.VersionWrite(1);
@@ -54,7 +52,7 @@ class myEmployee {
         mstream << age;
         mstream << wages;
     }
-    virtual void StreamIn(ChStreamInBinary& mstream)  //##### for Chrono serialization
+    virtual void StreamIn(ChStreamInBinary& mstream)  // ##### for Chrono serialization
     {
         // suggested: use versioning
         int version = mstream.VersionRead();
@@ -76,7 +74,6 @@ CH_FACTORY_REGISTER(myEmployee)  //***** for _advanced_ Chrono serialization
 // ............ ok, more difficult! an inherited class ............
 
 class myEmployeeBoss : public myEmployee {
-
   public:
     bool is_dumb;
     myEmployee slave;
@@ -86,7 +83,7 @@ class myEmployeeBoss : public myEmployee {
 
     // MEMBER FUNCTIONS FOR BINARY I/O
 
-    virtual void StreamOut(ChStreamOutBinary& mstream)  //##### for Chrono serialization
+    virtual void StreamOut(ChStreamOutBinary& mstream)  // ##### for Chrono serialization
     {
         // suggested: use versioning
         mstream.VersionWrite(2);
@@ -97,7 +94,7 @@ class myEmployeeBoss : public myEmployee {
         mstream << is_dumb;
         mstream << slave;  // this added only from version >1
     }
-    virtual void StreamIn(ChStreamInBinary& mstream)  //##### for Chrono serialization
+    virtual void StreamIn(ChStreamInBinary& mstream)  // ##### for Chrono serialization
     {
         // suggested: use versioning
         int version = mstream.VersionRead();
@@ -119,14 +116,13 @@ class myEmployeeBoss : public myEmployee {
     }
 };
 
-CH_FACTORY_REGISTER(myEmployeeBoss) //***** for _advanced_ Chrono serialization
+CH_FACTORY_REGISTER(myEmployeeBoss)  //***** for _advanced_ Chrono serialization
 
 int main(int argc, char* argv[]) {
     // To write something to the console, use the chrono::GetLog()
     // statement, which returns a global output stream to the console (just
     // like the std::out stream).
-    GetLog() << "\n"
-             << "CHRONO foundation classes test: streaming and serialization\n\n";
+    std::cout << std::endl << "CHRONO foundation classes test: streaming and serialization";
 
     /*
      *  TEST SOME BASIC FILE I/O , AS ASCII FILE WRITE/SAVE

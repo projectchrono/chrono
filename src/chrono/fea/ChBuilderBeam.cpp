@@ -131,9 +131,9 @@ void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                
         ChQuaternion<> elrot = mrot.Get_A_quaternion();
         element->SetNodeAreferenceRot(elrot.GetConjugate() % element->GetNodeA()->Frame().GetRot());
         element->SetNodeBreferenceRot(elrot.GetConjugate() % element->GetNodeB()->Frame().GetRot());
-        // GetLog() << "Element n." << i << " with rotations: \n";
-        // GetLog() << "   Qa=" << element->GetNodeAreferenceRot() << "\n";
-        // GetLog() << "   Qb=" << element->GetNodeBreferenceRot() << "\n\n";
+        // std::cout << "Element n." << i << " with rotations:" << std::endl;
+        // std::cout << "   Qa=" << element->GetNodeAreferenceRot() << std::endl;
+        // std::cout << "   Qb=" << element->GetNodeBreferenceRot() << std::endl << std::endl;
         element->SetSection(sect);
     }
 }
@@ -508,9 +508,9 @@ void ChBuilderBeamTaperedTimoshenko::BuildBeam(
         ChQuaternion<> elrot = mrot.Get_A_quaternion();
         element->SetNodeAreferenceRot(elrot.GetConjugate() % element->GetNodeA()->Frame().GetRot());
         element->SetNodeBreferenceRot(elrot.GetConjugate() % element->GetNodeB()->Frame().GetRot());
-        // GetLog() << "Element n." << i << " with rotations: \n";
-        // GetLog() << "   Qa=" << element->GetNodeAreferenceRot() << "\n";
-        // GetLog() << "   Qb=" << element->GetNodeBreferenceRot() << "\n\n";
+        // std::cout << "Element n." << i << " with rotations:" << std::endl;
+        // std::cout << "   Qa=" << element->GetNodeAreferenceRot() << std::endl;
+        // std::cout << "   Qb=" << element->GetNodeBreferenceRot() << std::endl << std::endl;
         element->SetTaperedSection(sect);
     }
 }
@@ -632,9 +632,9 @@ void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
         ChQuaternion<> elrot = mrot.Get_A_quaternion();
         element->SetNodeAreferenceRot(elrot.GetConjugate() % element->GetNodeA()->Frame().GetRot());
         element->SetNodeBreferenceRot(elrot.GetConjugate() % element->GetNodeB()->Frame().GetRot());
-        // GetLog() << "Element n." << i << " with rotations: \n";
-        // GetLog() << "   Qa=" << element->GetNodeAreferenceRot() << "\n";
-        // GetLog() << "   Qb=" << element->GetNodeBreferenceRot() << "\n\n";
+        // std::cout << "Element n." << i << " with rotations:" << std::endl;
+        // std::cout << "   Qa=" << element->GetNodeAreferenceRot() << std::endl;
+        // std::cout << "   Qb=" << element->GetNodeBreferenceRot() << std::endl << std::endl;
         element->SetTaperedSection(sect);
     }
 }
@@ -703,7 +703,7 @@ void ChExtruderBeamEuler::Update() {
     ChVector<> P1 = node1->GetPos();
     double d1 = (outlet.TransformParentToLocal(P1)).x();
 
-    // GetLog() << " d1=" << d1 << "\n";
+    // std::cout << " d1=" << d1 << std::endl;
 
     if (d1 >= 0) {
         double d0 = d1 - this->h;
@@ -783,8 +783,8 @@ ChExtruderBeamIGA::ChExtruderBeamIGA(ChSystem* msystem,              // system t
     }
     beam_knots.push_back(100.);
 
-    GetLog() << "Create node n." << beam_nodes.size() << " at x=" << nodeA->GetPos().x()
-             << " x0=" << nodeA->GetX0().GetPos().x() << "\n";
+    std::cout << "Create node n." << beam_nodes.size() << " at x=" << nodeA->GetPos().x()
+             << " x0=" << nodeA->GetX0().GetPos().x() << std::endl;
 
     actuator = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
     mysystem->Add(actuator);
@@ -814,12 +814,12 @@ bool ChExtruderBeamIGA::Update() {
 
     mytime = mysystem->GetChTime();
 
-    // GetLog() << " d1=" << d1 << "\n";
+    // std::cout << " d1=" << d1 << std::endl;
 
     if (d1 < 0)
         return false;  // no additions
 
-    // GetLog() << "Makenode........ \n";
+    // std::cout << "Makenode........" << std::endl;
 
     double d0 = d1 - this->h;
     ChCoordsys<> C0;
@@ -864,7 +864,7 @@ bool ChExtruderBeamIGA::Update() {
         // first element created only after p+1 nodes added: so put nodes in proper
         // position otherwise they shake if they felt somewhere while unconnected
         if (beam_elems.size() == 0) {
-            // GetLog() << "Adjust row \n";
+            // std::cout << "Adjust row" << std::endl;
             for (int i_el_node = 0; i_el_node < p + 1; ++i_el_node) {
                 ChVector<> rect_pos =
                     beam_nodes.back()->GetPos() + outlet.TransformDirectionLocalToParent(VECT_X * h * i_el_node);
@@ -879,13 +879,13 @@ bool ChExtruderBeamIGA::Update() {
 
         // debug info
         /*
-        GetLog() << "KNOTS: ";
+        std::cout << "KNOTS: ";
         for (auto& i : my_el_knots)
-            GetLog() << "   " << i;
-        GetLog() << "\nCTRLP: ";
+            std::cout << "   " << i;
+        std::cout << "\nCTRLP: ";
         for (auto& i : my_el_nodes)
-            GetLog() << "   " << i->GetPos().x();
-        GetLog() << "\n";
+            std::cout << "   " << i->GetPos().x();
+        std::cout << std::endl;
         */
 
         // Adjust knots sequence for elements close to the one that we'll create
@@ -897,10 +897,10 @@ bool ChExtruderBeamIGA::Update() {
                         beam_knots_multiplends[beam_knots_multiplends.size() - 1 - 1 - i_el - i_el_knot]);
                 }
                 /*
-                GetLog() << "pre KNOTS at previous " << i_el << ":\n";
+                std::cout << "pre KNOTS at previous " << i_el << ":" << std::endl;
                 for (auto& i : my_el_knots_pre)
-                    GetLog() << " " << i;
-                GetLog() << "\n";
+                    std::cout << " " << i;
+                std::cout << std::endl;
                 */
                 for (int i = 0; i < p + p + 1 + 1; ++i) {
                     this->beam_elems[this->beam_elems.size() - 1 - i_el]->GetKnotSequence()(i) = my_el_knots_pre[i];

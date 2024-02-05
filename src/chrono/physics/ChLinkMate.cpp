@@ -574,14 +574,14 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
 
     //***TEST***
     /*
-        GetLog()<< "cload: " ;
-        if (this->c_x) GetLog()<< " x";
-        if (this->c_y) GetLog()<< " y";
-        if (this->c_z) GetLog()<< " z";
-        if (this->c_rx) GetLog()<< " Rx";
-        if (this->c_ry) GetLog()<< " Ry";
-        if (this->c_rz) GetLog()<< " Rz";
-        GetLog()<< *this->C << "\n";
+        std::cout << "cload: " ;
+        if (this->c_x) std::cout << " x";
+        if (this->c_y) std::cout << " y";
+        if (this->c_z) std::cout << " z";
+        if (this->c_rx) std::cout << " Rx";
+        if (this->c_ry) std::cout << " Ry";
+        if (this->c_rz) std::cout << " Rz";
+        std::cout << *this->C << std::endl;
     */
     int cnt = 0;
     for (int i = 0; i < mask.nconstr; i++) {

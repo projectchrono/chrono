@@ -134,7 +134,7 @@ See @ref chrono::ChFunction for API details and a list of subclasses.
 	// Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
 	double ydx	= f_ramp.Get_y_dx(10);
 
-	GetLog() << "   ChFunction_Ramp at x=0: y=" << y << "  dy/dx=" << ydx << "\n\n";
+	std::cout << "   ChFunction_Ramp at x=0: y=" << y << "  dy/dx=" << ydx << std::endl;
 ~~~
 
 
@@ -158,7 +158,7 @@ Save values of a sine ChFunction  into a file.
 		double y = f_sine.Get_y(x);
 		double ydx = f_sine.Get_y_dx(x);
 		double ydxdx = f_sine.Get_y_dxdx(x);
-		file_f_sine << x << " " << y << " " << ydx << " " << ydxdx << "\n";
+		file_f_sine << x << " " << y << " " << ydx << " " << ydxdx << std::endl;
 	}	
 ~~~
 
@@ -200,7 +200,7 @@ for (int i=0; i<100; i++)
 	double y = f_test.Get_y(x);
 	double ydx = f_test.Get_y_dx(x);
 	double ydxdx = f_test.Get_y_dxdx(x);
-	file_f_test << x << " " << y << " " << ydx << " " << ydxdx << "\n";
+	file_f_test << x << " " << y << " " << ydx << " " << ydxdx << std::endl;
 }
 ~~~
 
@@ -256,7 +256,7 @@ For N less than 10, the quadrature uses precomputed coefficients for maximum per
 	double qresult;	
 	ChQuadrature::Integrate1D<double>(qresult, mfx,  0, CH_C_PI,  6);
 	
-	GetLog()<< "Quadrature 1d result:" << qresult << " (analytic solution: 2.0) \n";
+	std::cout << "Quadrature 1d result:" << qresult << " (analytic solution: 2.0)" << std::endl;
 
 	
 	// Other quadrature tests, this time in 2D
@@ -269,7 +269,7 @@ For N less than 10, the quadrature uses precomputed coefficients for maximum per
 
 	MySine2d mfx2d;
 	ChQuadrature::Integrate2D<double>(qresult, mfx2d, 0, CH_C_PI, -1,1, 6);
-	GetLog()<< "Quadrature 2d result:" << qresult << " (analytic solution: 4.0) \n";
+	std::cout << "Quadrature 2d result:" << qresult << " (analytic solution: 4.0)" << std::endl;
 ~~~
 
 Note that thanks to templating, one can also integrate 
@@ -294,7 +294,7 @@ m-dimensional (vectorial, tensorial) functions
 	MySine2dM mfx2dM;
 	ChMatrixNM<double,2,1> resultM;
 	ChQuadrature::Integrate2D< ChMatrixNM<double,2,1> >(resultM, mfx2dM, 0, 1, 0,3, 6);
-	GetLog()<< "Quadrature 2d matrix result:" << resultM << " (analytic solution: 2.25, 4.5) \n";
+	std::cout << "Quadrature 2d matrix result:" << resultM << " (analytic solution: 2.25, 4.5)" << std::endl;
 ~~~
 
 <br><br><br>

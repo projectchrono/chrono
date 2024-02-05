@@ -203,8 +203,8 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     128, 128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+                                     128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
@@ -448,8 +448,8 @@ int main(int argc, char* argv[]) {
 
         // // Debug logging
         // if (debug_output && step_number % debug_steps == 0) {
-        //     GetLog() << "\n\n============ System Information ============\n";
-        //     GetLog() << "Time = " << time << "\n\n";
+        //     std::cout << std::endl << std::endl << "============ System Information ============" << std::endl;
+        //     std::cout << "Time = " << time << std::endl << std::endl;
         //     my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
         // }
 

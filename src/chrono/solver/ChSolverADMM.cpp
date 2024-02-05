@@ -100,7 +100,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         LS_solver->b() = k; 
 
         m_timer_convert.stop();
-        if (verbose) GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
+        if (verbose) std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s" << std::endl;
 
         // v = H\k
         LS_solver->SetupCurrent();
@@ -153,9 +153,9 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         y = - (Cq*v - E*l + b); //  dual residual exploiting the kkt form instead of - (N*l+r), faster!
             
         /*
-        GetLog() << "Y warmastarted:  \n";
+        std::cout << "Y warmastarted:" << std::endl;
         for (int k = 0; k < ChMin(y.rows(), 10); ++k)
-            GetLog() << "  " << y(k) << "\n";
+            std::cout << "  " << y(k) << std::endl;
         */
         
         // warmstarted z:
@@ -270,7 +270,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
     m_timer_convert.stop();
     if (verbose)
-        GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
+        std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s" << std::endl;
 
     m_timer_factorize.start();
 
@@ -278,7 +278,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
     m_timer_factorize.stop();
     if (verbose)
-        GetLog() << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s\n";
+        std::cout << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s" << std::endl;
 
     /*
     res_story.r_prim=zeros(1,1);
@@ -310,7 +310,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         LS_solver->SolveCurrent();                                                      // LU forward/backsolve ++++++++++++++++++++++++++++++++++++++
         
         m_timer_solve.stop();
-        if (verbose) GetLog() << " Time for solve : << " << m_timer_solve.GetTimeSecondsIntermediate() << "s\n";
+        if (verbose) std::cout << " Time for solve : << " << m_timer_solve.GetTimeSecondsIntermediate() << "s" << std::endl;
 
         // x = dA\B;      // A* x = B  with x = [v, -l]    
         l = -LS_solver->x().block(nv, 0, nc, 1);
@@ -354,7 +354,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         */
 
         if (verbose)
-            GetLog() << "ADMM iter=" << iter << " prim=" << r_prim << " dual=" << r_dual << "  rho=" << rho_i << "  tols=" << this->tol_prim << " " << this->tol_dual <<  "\n";
+            std::cout << "ADMM iter=" << iter << " prim=" << r_prim << " dual=" << r_dual << "  rho=" << rho_i << "  tols=" << this->tol_prim << " " << this->tol_dual <<  "" << std::endl;
 
         // For recording into violation history, if debugging
         if (this->record_violation_history) {
@@ -366,7 +366,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         // Termination:
         if ((r_prim < this->tol_prim) && (r_dual < this->tol_dual)) {
             if (verbose)
-                GetLog() << "ADMM converged ok! at iter=" << iter << "\n";
+                std::cout << "ADMM converged ok! at iter=" << iter << std::endl;
             break;
         }
 
@@ -442,7 +442,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
                 LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
                 m_timer_refactorize.stop();
-                if (verbose) GetLog() << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSecondsIntermediate() << "s\n";
+                if (verbose) std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSecondsIntermediate() << "s" << std::endl;
             }
 
         } // end step adjust
@@ -453,9 +453,9 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     l = l.cwiseProduct(S);
 
     /*
-    GetLog() << "Y resulting:  \n";
+    std::cout << "Y resulting:" << std::endl;
         for (int k = 0; k < ChMin(y.rows(), 10); ++k)
-            GetLog() << "  " << y(k) << "\n";
+            std::cout << "  " << y(k) << std::endl;
     */
 
     sysd.FromVectorToConstraints(l);
@@ -505,7 +505,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         LS_solver->b() = k; 
 
         m_timer_convert.stop();
-        if (verbose) GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
+        if (verbose) std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s" << std::endl;
 
         // v = H\k
         LS_solver->SetupCurrent();
@@ -561,9 +561,9 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         y = - (Cq*v - E*l + b); //  dual residual exploiting the kkt form instead of - (N*l+r), faster!
             
         /*
-        GetLog() << "Y warmastarted:  \n";
+        std::cout << "Y warmastarted:" << std::endl;
         for (int k = 0; k < ChMin(y.rows(), 10); ++k)
-            GetLog() << "  " << y(k) << "\n";
+            std::cout << "  " << y(k) << std::endl;
         */
         
         // warmstarted z:
@@ -676,14 +676,14 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  //  A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
 
     m_timer_convert.stop();
-    if (verbose) GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
+    if (verbose) std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s" << std::endl;
 
     m_timer_factorize.start();
                 
     LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
     m_timer_factorize.stop();
-    if (verbose) GetLog() << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s\n";
+    if (verbose) std::cout << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s" << std::endl;
 
     /*
     res_story.r_prim=zeros(1,1);
@@ -724,7 +724,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         LS_solver->SolveCurrent();                                                      // LU forward/backsolve ++++++++++++++++++++++++++++++++++++++
         
         m_timer_solve.stop();
-        if (verbose) GetLog() << " Time for solve : << " << m_timer_solve.GetTimeSecondsIntermediate() << "s\n";
+        if (verbose) std::cout << " Time for solve : << " << m_timer_solve.GetTimeSecondsIntermediate() << "s" << std::endl;
 
         // x = dA\B;      // A* x = B  with x = [v, -l]    
         l = -LS_solver->x().block(nv, 0, nc, 1);
@@ -759,7 +759,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
 
         if (verbose)
-            GetLog() << "ADMMfast iter=" << iter << " prim=" << r_prim << " dual=" << r_dual << "  rho=" << rho_i << " alpha=" << nalpha << "  tols=" << this->tol_prim << " " << this->tol_dual <<  "\n";
+            std::cout << "ADMMfast iter=" << iter << " prim=" << r_prim << " dual=" << r_dual << "  rho=" << rho_i << " alpha=" << nalpha << "  tols=" << this->tol_prim << " " << this->tol_dual << std::endl;
 
         // For recording into violation history, if debugging
         if (this->record_violation_history) {
@@ -773,7 +773,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         // Termination:
         if ((r_prim < this->tol_prim) && (r_dual < this->tol_dual)) {
             if (verbose)
-                GetLog() << "ADMMfast converged ok! at iter=" << iter << "\n";
+                std::cout << "ADMMfast converged ok! at iter=" << iter << std::endl;
             break;
         }
 
@@ -789,7 +789,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
                 c_k = c_k_p;
             }
             else{
-                if (verbose) GetLog() << "ADMMfast Nesterov restart." << iter << "\n";
+                if (verbose) std::cout << "ADMMfast Nesterov restart." << iter << std::endl;
                 nalpha = 1.0;
                 c_k = (1 / eta) * c_k_p;
             }
@@ -866,7 +866,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
                 LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
                 m_timer_refactorize.stop();
-                if (verbose) GetLog() << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSecondsIntermediate() << "s\n";
+                if (verbose) std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSecondsIntermediate() << "s" << std::endl;
             }
 
         } // end step adjust
@@ -877,9 +877,9 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
     l = l.cwiseProduct(S);
 
     /*
-    GetLog() << "Y resulting:  \n";
+    std::cout << "Y resulting:" << std::endl;
         for (int k = 0; k < ChMin(y.rows(), 10); ++k)
-            GetLog() << "  " << y(k) << "\n";
+            std::cout << "  " << y(k) << std::endl;
     */
 
     sysd.FromVectorToConstraints(l);

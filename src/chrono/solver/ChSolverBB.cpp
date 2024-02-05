@@ -29,7 +29,10 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     if (sysd.GetKblocksList().size() > 0) {
-        std::cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness matrices.\n" << std::endl;
+        std::cerr << std::endl
+                  << std::endl
+                  << "ChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness matrices." << std::endl
+                  << std::endl;
         throw ChException("ChSolverBB: Do NOT use Barzilai-Borwein solver if there are stiffness matrices.");
     }
 
@@ -53,7 +56,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 
     int nc = sysd.CountActiveConstraints();
     if (verbose)
-        GetLog() << "\n-----Barzilai-Borwein, solving nc=" << nc << "unknowns \n";
+        std::cout << std::endl << "-----Barzilai-Borwein, solving nc=" << nc << "unknowns" << std::endl;
 
     ChVectorDynamic<> ml(nc);
     ChVectorDynamic<> ml_candidate(nc);
@@ -217,7 +220,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
                 double lambdanew = -lambda * lambda * dTg / (2 * (mf_p - mf - lambda * dTg));
                 lambda = ChMax(sigma_min * lambda, ChMin(sigma_max * lambda, lambdanew));
                 if (verbose)
-                    GetLog() << " Repeat Armijo, new lambda=" << lambda << "\n";
+                    std::cout << " Repeat Armijo, new lambda=" << lambda << std::endl;
             } else {
                 armijo_repeat = false;
             }
@@ -308,7 +311,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
             AtIterationEnd(maxd, maxdeltalambda, iter);
 
         if (verbose)
-            GetLog() << "  iter=" << iter << "   f=" << mf_p << "  |d|=" << maxd << "  |s|=" << maxdeltalambda << "\n";
+            std::cout << "  iter=" << iter << "   f=" << mf_p << "  |d|=" << maxd << "  |s|=" << maxdeltalambda
+                      << std::endl;
 
         m_iterations++;
 
@@ -317,7 +321,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
         /*
         if (maxd < m_tolerance)
         {
-            GetLog() <<"BB premature proj.gradient break at i=" << iter << "\n";
+            std::cout <<"BB premature proj.gradient break at i=" << iter << std::endl;
             break;
         }
         */
@@ -343,7 +347,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     }
 
     if (verbose)
-        GetLog() << "-----\n";
+        std::cout << "-----" << std::endl;
 
     return lastgoodres;
 }
@@ -364,7 +368,7 @@ void ChSolverBB::ArchiveOut(ChArchiveOut& marchive) {
 
 void ChSolverBB::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSolverBB>();
+    /*int version =*/marchive.VersionRead<ChSolverBB>();
     // deserialize parent class
     ChIterativeSolverVI::ArchiveIn(marchive);
     // stream in all member data:

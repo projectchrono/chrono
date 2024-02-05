@@ -280,8 +280,8 @@ int main(int argc, char* argv[]) {
             ChFunction_Sigma mfuns(3000, tstart, tend);
             emitters[ie].ParticlesPerSecond() = mfuns.Get_y(sys.GetChTime());
             emitters[ie].EmitParticles(sys, timestep);
-            // GetLog() << ie << "  " << tstart << " " << mfuns.Get_y(application.GetSystem()->GetChTime()) << " " <<
-            // emitters[ie].ParticlesPerSecond() << "\n";
+            // std::cout << ie << "  " << tstart << " " << mfuns.Get_y(application.GetSystem()->GetChTime()) << " " <<
+            // emitters[ie].ParticlesPerSecond() << std::endl;
         }
 
         sys.DoStepDynamics(timestep);

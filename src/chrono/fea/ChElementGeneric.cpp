@@ -37,7 +37,7 @@ void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c
         }
         stride += GetNodeNdofs(in);
     }
-    // GetLog() << "EleIntLoadResidual_F , R=" << R << "\n";
+    // std::cout << "EleIntLoadResidual_F , R=" << R << std::endl;
 }
 
 void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {

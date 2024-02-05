@@ -114,7 +114,7 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
     // Scale constraints matrix
     double scaling = 0;
     if (settings.scaleCq) {
-        // GetLog() << "Scaling Cq\n";
+        // std::cout << "Scaling Cq" << std::endl;
         scaling = K.diagonal().mean();
         for (int k = 0; k < Cq.outerSize(); ++k)
             for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
@@ -173,25 +173,25 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
 
     if (settings.verbose) {
         if (eigen_solver.info() != CompInfo::Successful) {
-            std::cout << "KrylovSchurGEigsSolver FAILED. \n";
+            std::cout << "KrylovSchurGEigsSolver FAILED." << std::endl;
             if (eigen_solver.info() == CompInfo::NotComputed)
-                std::cout << " Error: not computed. \n";
+                std::cout << " Error: not computed." << std::endl;
             if (eigen_solver.info() == CompInfo::NotConverging)
-                std::cout << " Error: not converging. \n";
+                std::cout << " Error: not converging." << std::endl;
             if (eigen_solver.info() == CompInfo::NumericalIssue)
-                std::cout << " Error: numerical issue. \n";
-            std::cout << " nconv  = " << nconv << "\n";
-            std::cout << " niter  = " << eigen_solver.num_iterations() << "\n";
-            std::cout << " nops   = " << eigen_solver.num_operations() << "\n";
+                std::cout << " Error: numerical issue." << std::endl;
+            std::cout << " nconv  = " << nconv << std::endl;
+            std::cout << " niter  = " << eigen_solver.num_iterations() << std::endl;
+            std::cout << " nops   = " << eigen_solver.num_operations() << std::endl;
             return false;
         } else {
-            std::cout << "KrylovSchurGEigsSolver successfull. \n";
-            std::cout << " nconv   = " << nconv << "\n";
-            std::cout << " niter   = " << eigen_solver.num_iterations() << "\n";
-            std::cout << " nops    = " << eigen_solver.num_operations() << "\n";
-            std::cout << " n_modes = " << settings.n_modes << "\n";
-            std::cout << " n_vars  = " << n_vars << "\n";
-            std::cout << " n_constr= " << n_constr << "\n";
+            std::cout << "KrylovSchurGEigsSolver successful." << std::endl;
+            std::cout << " nconv   = " << nconv << std::endl;
+            std::cout << " niter   = " << eigen_solver.num_iterations() << std::endl;
+            std::cout << " nops    = " << eigen_solver.num_operations() << std::endl;
+            std::cout << " n_modes = " << settings.n_modes << std::endl;
+            std::cout << " n_vars  = " << n_vars << std::endl;
+            std::cout << " n_constr= " << n_constr << std::endl;
         }
     }
     Eigen::VectorXcd eigen_values = eigen_solver.eigenvalues();
@@ -275,25 +275,25 @@ bool ChGeneralizedEigenvalueSolverLanczos::Solve(
 
     if (settings.verbose) {
         if (eigen_solver.info() != CompInfo::Successful) {
-            std::cout << "Lanczos eigenvalue solver FAILED. \n";
+            std::cout << "Lanczos eigenvalue solver FAILED." << std::endl;
             if (eigen_solver.info() == CompInfo::NotComputed)
-                std::cout << " Error: not computed. \n";
+                std::cout << " Error: not computed." << std::endl;
             if (eigen_solver.info() == CompInfo::NotConverging)
-                std::cout << " Error: not converging. \n";
+                std::cout << " Error: not converging." << std::endl;
             if (eigen_solver.info() == CompInfo::NumericalIssue)
-                std::cout << " Error: numerical issue. \n";
-            std::cout << " nconv  = " << nconv << "\n";
-            std::cout << " niter  = " << eigen_solver.num_iterations() << "\n";
-            std::cout << " nops   = " << eigen_solver.num_operations() << "\n";
+                std::cout << " Error: numerical issue." << std::endl;
+            std::cout << " nconv  = " << nconv << std::endl;
+            std::cout << " niter  = " << eigen_solver.num_iterations() << std::endl;
+            std::cout << " nops   = " << eigen_solver.num_operations() << std::endl;
             return false;
         } else {
-            std::cout << "Lanczos eigenvalue solver successfull. \n";
-            std::cout << " nconv   = " << nconv << "\n";
-            std::cout << " niter   = " << eigen_solver.num_iterations() << "\n";
-            std::cout << " nops    = " << eigen_solver.num_operations() << "\n";
-            std::cout << " n_modes = " << settings.n_modes << "\n";
-            std::cout << " n_vars  = " << n_vars << "\n";
-            std::cout << " n_constr= " << n_constr << "\n";
+            std::cout << "Lanczos eigenvalue solver successfull." << std::endl;
+            std::cout << " nconv   = " << nconv << std::endl;
+            std::cout << " niter   = " << eigen_solver.num_iterations() << std::endl;
+            std::cout << " nops    = " << eigen_solver.num_operations() << std::endl;
+            std::cout << " n_modes = " << settings.n_modes << std::endl;
+            std::cout << " n_vars  = " << n_vars << std::endl;
+            std::cout << " n_constr= " << n_constr << std::endl;
         }
     }
     Eigen::VectorXcd eigen_values = eigen_solver.eigenvalues();
@@ -512,7 +512,7 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(
     // Scale constraints matrix
     double scaling = 0;
     if (settings.scaleCq) {
-        // GetLog() << "Scaling Cq\n";
+        // std::cout << "Scaling Cq" << std::endl;
         scaling = K.diagonal().mean();
         for (int k = 0; k < Cq.outerSize(); ++k)
             for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
@@ -635,16 +635,16 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(
 
     if (settings.verbose) {
         if (flag == 1) {
-            std::cout << "KrylovSchurEig FAILED. \n";
-            std::cout << " shift   = (" << settings.sigma.real() << "," << settings.sigma.imag() << ")\n";
-            std::cout << " nconv = " << nconv << "\n";
-            std::cout << " niter = " << niter << "\n";
+            std::cout << "KrylovSchurEig FAILED." << std::endl;
+            std::cout << " shift   = (" << settings.sigma.real() << "," << settings.sigma.imag() << ")" << std::endl;
+            std::cout << " nconv = " << nconv << std::endl;
+            std::cout << " niter = " << niter << std::endl;
             return false;
         } else {
-            std::cout << "KrylovSchurEig successfull. \n";
-            std::cout << " shift   = (" << settings.sigma.real() << "," << settings.sigma.imag() << ")\n";
-            std::cout << " nconv   = " << nconv << "\n";
-            std::cout << " niter   = " << niter << "\n";
+            std::cout << "KrylovSchurEig successfull." << std::endl;
+            std::cout << " shift   = (" << settings.sigma.real() << "," << settings.sigma.imag() << ")" << std::endl;
+            std::cout << " nconv   = " << nconv << std::endl;
+            std::cout << " niter   = " << niter << std::endl;
         }
     }
 
@@ -682,7 +682,7 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(
             std::cout << "   Sorted Eig " << i << "= " << all_eigen_values_and_vectors[i].eigen_val.real() << ", "
                       << all_eigen_values_and_vectors[i].eigen_val.imag() << "i "
                       << "   freq= " << (1.0 / CH_C_2PI) * std::abs(all_eigen_values_and_vectors[i].eigen_val)
-                      << "; res: " << resCallback.norm() << "\n";
+                      << "; res: " << resCallback.norm() << std::endl;
         }
     }
 

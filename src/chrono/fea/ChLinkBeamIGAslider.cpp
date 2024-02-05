@@ -75,8 +75,8 @@ void ChLinkBeamIGAslider::UpdateNodes() {
     // double u2 = m_beams[this->active_element]->GetU2();
     // double eta = (2.0*(this->tau - u1) / (u2 - u1)) - 1.0;
     // m_beams[this->active_element]->EvaluateSectionPoint(eta, point);
-    // GetLog() << "Update tau=" << this->tau << " eta=" << eta << " dist=" << mdist << " elem n." <<
-    // this->active_element << " on " << m_beams.size() << " pos=" << goodpoint << " outlet=" << absoutlet << "\n";
+    // std::cout << "Update tau=" << this->tau << " eta=" << eta << " dist=" << mdist << " elem n." <<
+    // this->active_element << " on " << m_beams.size() << " pos=" << goodpoint << " outlet=" << absoutlet << std::endl;
 
     m_nodes = m_beams[this->active_element]->GetNodes();
 
@@ -159,21 +159,21 @@ void ChLinkBeamIGAslider::IntLoadConstraint_C(const unsigned int off_L,  // offs
     double u2 = m_beams[this->active_element]->GetU2();
     double eta = (2.0 * (this->tau - u1) / (u2 - u1)) - 1.0;
     m_beams[this->active_element]->EvaluateSectionPoint(eta, splinepoint);
-    ////GetLog() << "active_element = " << active_element << "\n";
-    ////GetLog() << "tau = " << tau << "\n";
-    ////GetLog() << "u1 = " << u1 << "\n";
-    ////GetLog() << "u2 = " << u2 << "\n";
-    ////GetLog() << "eta = " << eta << "\n";
-    ////GetLog() << "point = " << splinepoint << "\n";
+    ////std::cout << "active_element = " << active_element << std::endl;
+    ////std::cout << "tau = " << tau << std::endl;
+    ////std::cout << "u1 = " << u1 << std::endl;
+    ////std::cout << "u2 = " << u2 << std::endl;
+    ////std::cout << "eta = " << eta << std::endl;
+    ////std::cout << "point = " << splinepoint << std::endl;
     ChVector<> res = Arw.transpose() * (splinepoint - m_body->TransformPointLocalToParent(m_csys.pos));
     ChVector<> cres = res * c;
-    ////GetLog() << "res = " << res << "\n";
+    ////std::cout << "res = " << res << std::endl;
     if (do_clamp) {
         cres.x() = ChMin(ChMax(cres.x(), -recovery_clamp), recovery_clamp);
         cres.y() = ChMin(ChMax(cres.y(), -recovery_clamp), recovery_clamp);
         cres.z() = ChMin(ChMax(cres.z(), -recovery_clamp), recovery_clamp);
     }
-    ////GetLog() << "cres = " << cres << "\n";
+    ////std::cout << "cres = " << cres << std::endl;
     ////Qc(off_L + 0) += cres.x();
     ////Qc(off_L + 0) += cres.y();
     ////Qc(off_L + 1) += cres.z();
@@ -285,7 +285,7 @@ void ChLinkBeamIGAslider::ConstraintsLoadJacobians() {
         ArwT_N = ArwT * N(i);
         constraint2.Get_Cq_N(i).segment(0, 3) = ArwT_N.row(1);
         constraint3.Get_Cq_N(i).segment(0, 3) = ArwT_N.row(2);
-        ////GetLog() << "N" << i << "=" << N(i) << "\n";
+        ////std::cout << "N" << i << "=" << N(i) << std::endl;
     }
 
     constraint2.Get_Cq_N(this->m_nodes.size()).segment(0, 3) = Jxb.row(1);

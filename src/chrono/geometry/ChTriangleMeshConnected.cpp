@@ -127,7 +127,6 @@ ChAABB ChTriangleMeshConnected::GetBoundingBox() const {
     return GetBoundingBox(m_vertices);
 }
 
-
 // Following function is a modified version of:
 //
 // Geometric Tools, LLC
@@ -564,7 +563,7 @@ bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::ar
             medgeC = std::pair<int, int>(medgeC.second, medgeC.first);
         if (edge_map.count(medgeA) > 2 || edge_map.count(medgeB) > 2 || edge_map.count(medgeC) > 2) {
             pathological_edges = true;
-            // GetLog() << "Warning, edge shared with more than two triangles! \n";
+            // std::cerr << "Warning, edge shared with more than two triangles!" << std::endl;
         }
         auto retA = edge_map.equal_range(medgeA);
         for (auto fedge = retA.first; fedge != retA.second; ++fedge) {
@@ -641,8 +640,8 @@ bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int, int>, s
         }
         if (nt == 3) {
             pathological_edges = true;
-            // GetLog() << "Warning: winged edge between "<< wing[0] << " and " << wing[1]  << " shared with more than
-            // two triangles.\n";
+            // std::cout << "Warning: winged edge between "<< wing[0] << " and " << wing[1]  << " shared with more than
+            // two triangles." << std::endl;
         }
     }
     return pathological_edges;
@@ -1056,7 +1055,7 @@ void ChTriangleMeshConnected::RefineMeshEdges(
             }
 
             if (L_max < edge_maxlen) {
-                //  GetLog() << "  already small triangle - pop it and break while " << "\n";
+                //  std::cerr << "  already small triangle - pop it and break while " << std::endl;
                 mlist.pop_back();
                 break;
             }

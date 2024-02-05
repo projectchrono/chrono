@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
         if (sys.GetStepcount() % 10 == 0) {
             f_pos_setpoint->SetSetpoint(0.2 * ChVector<>(cos(t * 12), sin(t * 12), 0), t);
             // f_rot_setpoint->SetSetpoint(Q_from_AngAxis(t*0.5, VECT_Z), t );
-            // GetLog() << "set p = " << f_setpoint->Get_p(t).y() << " at t=" << t  << "\n";
+            // std::cout << "set p = " << f_setpoint->Get_p(t).y() << " at t=" << t  << std::endl;
         }
 
         realtime_timer.Spin(timestep);

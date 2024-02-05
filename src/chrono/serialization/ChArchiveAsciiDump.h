@@ -211,6 +211,23 @@ ChStreamOutAscii& operator<<(ChStreamOutAscii& mstream, const T& obj) {
     return mstream << mystring;
 }
 
+
+//template <class T>
+//std::ostream& operator<<(std::ostream& mstream, const T& obj) {
+//    std::vector<char> mvect;
+//    std::ostream mtempstream(&mvect);
+//    mtempstream << std::setprecision(mstream.precision());
+//    ChArchiveAsciiDump marchive(mtempstream);
+//    // this avoids printing too much except the object:
+//    marchive.SetCutAllPointers(true);
+//    marchive.SetSuppressNames(true);
+//    marchive.SetUseVersions(false);
+//    marchive << CHNVP(obj, "");
+//    std::string mystring(mtempstream.GetVector()->begin(), mtempstream.GetVector()->end());
+//    return mstream << mystring;
+//}
+
+
 }  // end namespace chrono
 
 #endif

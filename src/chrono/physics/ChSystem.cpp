@@ -327,7 +327,7 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
             solver = chrono_types::make_shared<ChSolverSparseQR>();
             break;
         default:
-            std::cout << "Unknown solver type. No solver was set.\n";
+            std::cout << "Unknown solver type. No solver was set." << std::endl;
             std::cout << "Use SetSolver()." << std::endl;
             break;
     }
@@ -381,8 +381,8 @@ void ChSystem::SetCollisionSystemType(ChCollisionSystem::Type type) {
 
 #ifndef CHRONO_COLLISION
     if (type == ChCollisionSystem::Type::MULTICORE) {
-        std::cout << "Chrono was not built with Thrust support. Multicore collision system not available.\n";
-        std::cout << "Using Bullet collision system." << std::endl;
+        std::cerr << "Chrono was not built with Thrust support. Multicore collision system not available." << std::endl;
+        std::cerr << "Using Bullet collision system." << std::endl;
         coll_sys_type = ChCollisionSystem::Type::BULLET;
     }
 #endif
@@ -397,8 +397,8 @@ void ChSystem::SetCollisionSystemType(ChCollisionSystem::Type type) {
 #endif
             break;
         default:
-            std::cout << "Unknown collision system type. No collision system was set.\n";
-            std::cout << "Use SetCollisionSystem()." << std::endl;
+            std::cerr << "Unknown collision system type. No collision system was set." << std::endl;
+            std::cerr << "Use SetCollisionSystem()." << std::endl;
             return;
     }
 
@@ -1791,8 +1791,8 @@ bool ChSystem::DoStaticLinear() {
         ChVectorDynamic<double> mZx;
         GetSystemDescriptor()->SystemProduct(mZx, mx);  // Zx = Z*x
 
-        GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
-        GetLog() << (mZx - md).lpNorm<Eigen::Infinity>() << "\n";
+        std::cout << "CHECK: norm of solver residual: ||Z*x-d|| -------------------" << std::endl;
+        std::cout << (mZx - md).lpNorm<Eigen::Infinity>() << std::endl;
     }
 
     // Update any attached visualization system
@@ -1945,7 +1945,7 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 
     if (err) {
         last_err = true;
-        GetLog() << "WARNING: some constraints may be redundant, but couldn't be eliminated \n";
+        std::cerr << "WARNING: some constraints may be redundant, but couldn't be eliminated" << std::endl;
     }
 
     // Update any attached visualization system

@@ -92,7 +92,7 @@ void ChTimestepperHHT::Advance(const double dt) {
             h = new_h;
             num_successful_steps = 0;
             if (verbose)
-                GetLog() << " +++HHT increase stepsize to " << h << "\n";
+                std::cout << " +++HHT increase stepsize to " << h << std::endl;
         }
     } else {
         h = ChMin(h, dt);
@@ -119,7 +119,7 @@ void ChTimestepperHHT::Advance(const double dt) {
 
         for (it = 0; it < maxiters; it++) {
             if (verbose && modified_Newton && call_setup)
-                GetLog() << " HHT call Setup.\n";
+                std::cout << " HHT call Setup." << std::endl;
 
             // Solve linear system and increment state
             Increment(mintegrable);
@@ -151,8 +151,8 @@ void ChTimestepperHHT::Advance(const double dt) {
                 num_successful_steps = 0;
 
             if (verbose) {
-                GetLog() << " HHT NR converged (" << num_successful_steps << ").";
-                GetLog() << "  T = " << T + h << "  h = " << h << "\n";
+                std::cout << " HHT NR converged (" << num_successful_steps << ").";
+                std::cout << "  T = " << T + h << "  h = " << h << std::endl;
             }
 
             // Advance time (clamp to tfinal if close enough)
@@ -176,7 +176,7 @@ void ChTimestepperHHT::Advance(const double dt) {
 
                 // re-attempt step with updated matrix
                 if (verbose) {
-                    GetLog() << " HHT re-attempt step with updated matrix.\n";
+                    std::cout << " HHT re-attempt step with updated matrix." << std::endl;
                 }
 
                 call_setup = true;
@@ -190,8 +190,8 @@ void ChTimestepperHHT::Advance(const double dt) {
 
             // accept solution as is and complete step
             if (verbose) {
-                GetLog() << " HHT NR terminated.";
-                GetLog() << "  T = " << T + h << "  h = " << h << "\n";
+                std::cout << " HHT NR terminated.";
+                std::cout << "  T = " << T + h << "  h = " << h << std::endl;
             }
 
             T += h;
@@ -210,12 +210,12 @@ void ChTimestepperHHT::Advance(const double dt) {
             h *= step_decrease_factor;
 
             if (verbose)
-                GetLog() << " ---HHT reduce stepsize to " << h << "\n";
+                std::cout << " ---HHT reduce stepsize to " << h << std::endl;
 
             // bail out if stepsize reaches minimum allowable
             if (h < h_min) {
                 if (verbose)
-                    GetLog() << " HHT at minimum stepsize. Exiting...\n";
+                    std::cerr << " HHT at minimum stepsize. Exiting..." << std::endl;
                 throw ChException("HHT: Reached minimum allowable step size.");
             }
 
@@ -336,11 +336,11 @@ bool ChTimestepperHHT::CheckConvergence(int it) {
     }
 
     if (verbose) {
-        GetLog() << "   HHT iteration=" << numiters;
-        GetLog() << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm;
+        std::cout << "   HHT iteration=" << numiters;
+        std::cout << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm;
         if (it >= 2)
-            GetLog() << "  Conv. rate = " << convergence_rate;
-        GetLog() << "\n";
+            std::cout << "  Conv. rate = " << convergence_rate;
+        std::cout << std::endl;
     }
 
     if ((R_nrm < abstolS && Qc_nrm < abstolL) || (Da_nrm < 1 && Dl_nrm < 1))

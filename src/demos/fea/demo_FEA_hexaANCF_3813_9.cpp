@@ -91,10 +91,10 @@ void DPCapPress() {
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
     sys.Set_G_acc(ChVector<>(0, 0, 0));
 
-    std::cout << "-----------------------------------------------------------------------\n";
-    std::cout << "-----------------------------------------------------------------------\n";
-    std::cout << "     9-Node, Large Deformation Brick Element with implicit integration \n";
-    std::cout << "-----------------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
+    std::cout << "     9-Node, Large Deformation Brick Element with implicit integration " << std::endl;
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -376,8 +376,8 @@ void DPCapPress() {
         }
 
         Iter += mystepper->GetNumIterations();
-        GetLog() << "t = " << sys.GetChTime() << "\n";
-        GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n";
+        std::cout << "t = " << sys.GetChTime() << std::endl;
+        std::cout << "Last it: " << mystepper->GetNumIterations() << std::endl;
 
         fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         inc = inc / 2;
@@ -392,11 +392,11 @@ void DPCapPress() {
     }
 
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-    GetLog() << "Simulation Time: " << duration << "\n";
-    GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
-    GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << sys.GetTimerLSsolve() << "\n";
-    GetLog() << Iter << "\n";
+    std::cout << "Simulation Time: " << duration << std::endl;
+    std::cout << "Force Time: " << my_mesh->GetTimeInternalForces() << std::endl;
+    std::cout << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << std::endl;
+    std::cout << "Solver Time: " << sys.GetTimerLSsolve() << std::endl;
+    std::cout << Iter << std::endl;
 }
 
 // Test1 Case
@@ -408,10 +408,10 @@ void ShellBrickContact() {
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     sys.Set_G_acc(ChVector<>(0, 0, 0));
 
-    GetLog() << "-----------------------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------------------\n";
-    GetLog() << "     9-Node, Large Deformation Brick Element with implicit integration \n";
-    GetLog() << "-----------------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
+    std::cout << "     9-Node, Large Deformation Brick Element with implicit integration " << std::endl;
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -759,13 +759,13 @@ void ShellBrickContact() {
         sys.DoStepDynamics(timestep);
 
         Iter += mystepper->GetNumIterations();
-        GetLog() << "t = " << sys.GetChTime() << "\n";
-        GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n";
-        // GetLog() << "Body Contact F: " << Plate->GetContactForce() << "\n";
-        GetLog() << nodetip1->GetPos().x() << "\n";
-        GetLog() << nodetip1->GetPos().y() << "\n";
-        GetLog() << nodetip1->GetPos().z() << "\n";
-        GetLog() << nodetip1->GetPos_dt().z() << "\n";
+        std::cout << "t = " << sys.GetChTime() << std::endl;
+        std::cout << "Last it: " << mystepper->GetNumIterations() << std::endl;
+        // std::cout << "Body Contact F: " << Plate->GetContactForce() << std::endl;
+        std::cout << nodetip1->GetPos().x() << std::endl;
+        std::cout << nodetip1->GetPos().y() << std::endl;
+        std::cout << nodetip1->GetPos().z() << std::endl;
+        std::cout << nodetip1->GetPos_dt().z() << std::endl;
 
         fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         for (int in = 0; in < XYNumNodes; in++) {
@@ -780,11 +780,11 @@ void ShellBrickContact() {
     timecount++;
 
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-    GetLog() << "Simulation Time: " << duration << "\n";
-    GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
-    GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << sys.GetTimerLSsolve() << "\n";
-    GetLog() << Iter << "\n";
+    std::cout << "Simulation Time: " << duration << std::endl;
+    std::cout << "Force Time: " << my_mesh->GetTimeInternalForces() << std::endl;
+    std::cout << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << std::endl;
+    std::cout << "Solver Time: " << sys.GetTimerLSsolve() << std::endl;
+    std::cout << Iter << std::endl;
 }
 
 // Test Case
@@ -796,10 +796,10 @@ void SimpleBoxContact() {
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     sys.Set_G_acc(ChVector<>(0, 0, 0));
 
-    GetLog() << "-----------------------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------------------\n";
-    GetLog() << "     9-Node, Large Deformation Brick Element with implicit integration \n";
-    GetLog() << "-----------------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
+    std::cout << "     9-Node, Large Deformation Brick Element with implicit integration " << std::endl;
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -1047,15 +1047,15 @@ void SimpleBoxContact() {
         sys.DoStepDynamics(timestep);
 
         Iter += mystepper->GetNumIterations();
-        // GetLog() << "t = " << sys.GetChTime() << "\n";
-        // GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n";
-        // GetLog() << "Plate Pos: " << Plate->GetPos();
-        // GetLog() << "Plate Vel: " << Plate->GetPos_dt();
-        // GetLog() << "Body Contact F: " << Plate->GetContactForce() << "\n";
-        // GetLog() << nodetip1->GetPos().x() << "\n";
-        // GetLog() << nodetip1->GetPos().y() << "\n";
-        // GetLog() << nodetip1->GetPos().z() << "\n";
-        // GetLog() << nodetip1->GetPos_dt().z() << "\n";
+        // std::cout << "t = " << sys.GetChTime() << std::endl;
+        // std::cout << "Last it: " << mystepper->GetNumIterations() << std::endl;
+        // std::cout << "Plate Pos: " << Plate->GetPos();
+        // std::cout << "Plate Vel: " << Plate->GetPos_dt();
+        // std::cout << "Body Contact F: " << Plate->GetContactForce() << std::endl;
+        // std::cout << nodetip1->GetPos().x() << std::endl;
+        // std::cout << nodetip1->GetPos().y() << std::endl;
+        // std::cout << nodetip1->GetPos().z() << std::endl;
+        // std::cout << nodetip1->GetPos_dt().z() << std::endl;
         fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         for (int in = 0; in < XYNumNodes; in++) {
             auto nodetest = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(in));
@@ -1070,11 +1070,11 @@ void SimpleBoxContact() {
     }
 
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-    GetLog() << "Simulation Time: " << duration << "\n";
-    GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
-    GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << sys.GetTimerLSsolve() << "\n";
-    GetLog() << Iter << "\n";
+    std::cout << "Simulation Time: " << duration << std::endl;
+    std::cout << "Force Time: " << my_mesh->GetTimeInternalForces() << std::endl;
+    std::cout << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << std::endl;
+    std::cout << "Solver Time: " << sys.GetTimerLSsolve() << std::endl;
+    std::cout << Iter << std::endl;
 }
 
 // SoilBin Dynamic
@@ -1087,10 +1087,10 @@ void SoilBin() {
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
     sys.Set_G_acc(ChVector<>(0, 0, 0));
 
-    GetLog() << "-----------------------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------------------\n";
-    GetLog() << "     9-Node, Large Deformation Brick Element with implicit integration \n";
-    GetLog() << "-----------------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
+    std::cout << "     9-Node, Large Deformation Brick Element with implicit integration " << std::endl;
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -1405,11 +1405,11 @@ void SoilBin() {
     }
 
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-    GetLog() << "Simulation Time: " << duration << "\n";
-    GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
-    GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << sys.GetTimerLSsolve() << "\n";
-    GetLog() << Iter << "\n";
+    std::cout << "Simulation Time: " << duration << std::endl;
+    std::cout << "Force Time: " << my_mesh->GetTimeInternalForces() << std::endl;
+    std::cout << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << std::endl;
+    std::cout << "Solver Time: " << sys.GetTimerLSsolve() << std::endl;
+    std::cout << Iter << std::endl;
 }
 
 // Axial Dynamic
@@ -1418,10 +1418,10 @@ void AxialDynamics() {
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, 0, 0));
 
-    GetLog() << "-----------------------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------------------\n";
-    GetLog() << "     9-Node, Large Deformation Brick Element with implicit integration \n";
-    GetLog() << "-----------------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
+    std::cout << "     9-Node, Large Deformation Brick Element with implicit integration " << std::endl;
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -1643,8 +1643,8 @@ void AxialDynamics() {
         sys.DoStepDynamics(timestep);
         // application.EndScene();
         Iter += mystepper->GetNumIterations();
-        // GetLog() << "t = " << sys.GetChTime() << "\n";
-        // GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n\n";
+        // std::cout << "t = " << sys.GetChTime() << std::endl;
+        // std::cout << "Last it: " << mystepper->GetNumIterations() << "\n\n";
         // if (!application.GetPaused()) {
         fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
@@ -1654,11 +1654,11 @@ void AxialDynamics() {
         //}
     }
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-    GetLog() << "Simulation Time: " << duration << "\n";
-    GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
-    GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << sys.GetTimerLSsolve() << "\n";
-    GetLog() << Iter << "\n";
+    std::cout << "Simulation Time: " << duration << std::endl;
+    std::cout << "Force Time: " << my_mesh->GetTimeInternalForces() << std::endl;
+    std::cout << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << std::endl;
+    std::cout << "Solver Time: " << sys.GetTimerLSsolve() << std::endl;
+    std::cout << Iter << std::endl;
 }
 
 // QuasiStatic
@@ -1667,10 +1667,10 @@ void BendingQuasiStatic() {
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "  9-Node, Large Deformation Brick Element: Bending Problem \n";
-    GetLog() << "-----------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------" << std::endl;
+    std::cout << "-----------------------------------------------------------" << std::endl;
+    std::cout << "  9-Node, Large Deformation Brick Element: Bending Problem " << std::endl;
+    std::cout << "-----------------------------------------------------------" << std::endl;
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -1869,12 +1869,12 @@ void BendingQuasiStatic() {
 
         nodetip->SetForce(ChVector<>(0.0, 0.0, force));
 
-        GetLog() << sys.GetChTime() << " " << nodetip->GetPos().x() << " " << nodetip->GetPos().y() << " "
-                 << nodetip->GetPos().z() << "\n";
+        std::cout << sys.GetChTime() << " " << nodetip->GetPos().x() << " " << nodetip->GetPos().y() << " "
+                 << nodetip->GetPos().z() << std::endl;
 
         sys.DoStepDynamics(timestep);
 
-        GetLog() << "Force: " << force << "\n";
+        std::cout << "Force: " << force << std::endl;
         fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
         fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
@@ -1895,10 +1895,10 @@ void SwingingShell() {
     ground->SetBodyFixed(true);
     sys.AddBody(ground);
 
-    GetLog() << "--------------------------------------------------------------------\n";
-    GetLog() << "--------------------------------------------------------------------\n";
-    GetLog() << " 9-Node, Large Deformation Brick Element: Swinging (Bricked) Shell  \n";
-    GetLog() << "--------------------------------------------------------------------\n";
+    std::cout << "--------------------------------------------------------------------" << std::endl;
+    std::cout << "--------------------------------------------------------------------" << std::endl;
+    std::cout << " 9-Node, Large Deformation Brick Element: Swinging (Bricked) Shell  " << std::endl;
+    std::cout << "--------------------------------------------------------------------" << std::endl;
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -2097,7 +2097,7 @@ void SwingingShell() {
 
         vis->EndScene();
 
-        GetLog() << sys.GetChTime() << " " << nodetip->GetPos().x() << " " << nodetip->GetPos().y() << " "
-                 << nodetip->GetPos().z() << "\n";
+        std::cout << sys.GetChTime() << " " << nodetip->GetPos().x() << " " << nodetip->GetPos().y() << " "
+                 << nodetip->GetPos().z() << std::endl;
     }
 }

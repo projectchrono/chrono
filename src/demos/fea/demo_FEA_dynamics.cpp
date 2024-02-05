@@ -40,8 +40,8 @@ using namespace chrono;
 using namespace fea;
 
 void test_1() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: spring FEM dynamics,  implicit integration \n\n";
+    std::cout << std::endl << "-------------------------------------------------" << std::endl;
+    std::cout << "TEST: spring FEM dynamics,  implicit integration" << std::endl << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -114,13 +114,13 @@ void test_1() {
     while (sys.GetChTime() < 2) {
         sys.DoStepDynamics(timestep);
 
-        GetLog() << " t=" << sys.GetChTime() << "  nodeB pos.y()=" << mnodeB->GetPos().y() << "  \n";
+        std::cout << " t=" << sys.GetChTime() << "  nodeB pos.y()=" << mnodeB->GetPos().y() << std::endl;
     }
 }
 
 void test_2() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: bar FEM dynamics,  implicit integration \n\n";
+    std::cout << std::endl << "-------------------------------------------------" << std::endl;
+    std::cout << "TEST: bar FEM dynamics,  implicit integration" << std::endl << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -197,15 +197,15 @@ void test_2() {
     while (sys.GetChTime() < 0.2) {
         sys.DoStepDynamics(timestep);
 
-        GetLog() << " t=" << sys.GetChTime() << "  nodeB pos.y()=" << mnodeB->GetPos().y() << "  \n";
+        std::cout << " t=" << sys.GetChTime() << "  nodeB pos.y()=" << mnodeB->GetPos().y() << std::endl;
     }
 
-    GetLog() << " Bar mass = " << melementA->GetMass() << "  restlength = " << melementA->GetRestLength() << "\n";
+    std::cout << " Bar mass = " << melementA->GetMass() << "  restlength = " << melementA->GetRestLength() << std::endl;
 }
 
 void test_2b() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: spring FEM dynamics compare to bar \n\n";
+    std::cout << std::endl << "-------------------------------------------------" << std::endl;
+    std::cout << "TEST: spring FEM dynamics compare to bar" << std::endl << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -280,13 +280,13 @@ void test_2b() {
     while (sys.GetChTime() < 0.2) {
         sys.DoStepDynamics(timestep);
 
-        GetLog() << " t=" << sys.GetChTime() << "  nodeB pos.y()=" << mnodeB->GetPos().y() << "  \n";
+        std::cout << " t=" << sys.GetChTime() << "  nodeB pos.y()=" << mnodeB->GetPos().y() << std::endl;
     }
 }
 
 void test_3() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: tetrahedron FEM dynamics, implicit integration \n\n";
+    std::cout << std::endl << "-------------------------------------------------" << std::endl;
+    std::cout << "TEST: tetrahedron FEM dynamics, implicit integration" << std::endl << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -375,13 +375,13 @@ void test_3() {
     while (sys.GetChTime() < 0.1) {
         sys.DoStepDynamics(timestep);
 
-        GetLog() << " t =" << sys.GetChTime() << "  mnode3 pos.y()=" << mnode3->GetPos().y() << "  \n";
+        std::cout << " t =" << sys.GetChTime() << "  mnode3 pos.y()=" << mnode3->GetPos().y() << std::endl;
     }
 }
 
 void test_4() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: bar FEM dynamics (2 elements),  implicit integration \n\n";
+    std::cout << std::endl << "-------------------------------------------------" << std::endl;
+    std::cout << "TEST: bar FEM dynamics (2 elements),  implicit integration" << std::endl << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -470,8 +470,8 @@ void test_4() {
     while (sys.GetChTime() < 0.2) {
         sys.DoStepDynamics(timestep);
 
-        GetLog() << " t=" << sys.GetChTime() << "  nodeB pos.y()=" << mnodeB->GetPos().y()
-                 << "  nodeC pos.y()=" << mnodeC->GetPos().y() << "  \n";
+        std::cout << " t=" << sys.GetChTime() << "  nodeB pos.y()=" << mnodeB->GetPos().y()
+                  << "  nodeC pos.y()=" << mnodeC->GetPos().y() << std::endl;
     }
 }
 

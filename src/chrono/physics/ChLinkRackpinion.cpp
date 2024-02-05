@@ -100,10 +100,10 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
                          abs_rack.GetA().Get_A_Xaxis());  // with z as pinion shaft and x as suggested rack X dir
 
     /*
-    GetLog() << "abs_distpr " << abs_distpr << "\n";
-    GetLog() << "abs_rack Xaxis()" << abs_rack.GetA()->Get_A_Xaxis() << "\n";
-    GetLog() << "abs_Dpin " << abs_Dpin << "\n";
-    GetLog() << "abs_Dx " << abs_Dx << "\n";
+    std::cout << "abs_distpr " << abs_distpr << std::endl;
+    std::cout << "abs_rack Xaxis()" << abs_rack.GetA()->Get_A_Xaxis() << std::endl;
+    std::cout << "abs_Dpin " << abs_Dpin << std::endl;
+    std::cout << "abs_Dx " << abs_Dx << std::endl;
     */
 
     ChVector<> abs_Ro = abs_Dy * Vdot(abs_Dy, abs_distpr);

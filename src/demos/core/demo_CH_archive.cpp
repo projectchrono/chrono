@@ -88,7 +88,7 @@ class myEmployee {
     // NOTE!!!In order to allow serialization with Chrono approach,
     // at least implement these two functions, with the exact names
     // ArchiveIn() and ArchiveOut():
-    virtual void ArchiveOut(ChArchiveOut& marchive)  //##### for Chrono serialization
+    virtual void ArchiveOut(ChArchiveOut& marchive)  // ##### for Chrono serialization
     {
         // suggested: use versioning
         marchive.VersionWrite<myEmployee>();
@@ -135,7 +135,7 @@ class myEmployeeBoss : public myEmployee {
 
     // MEMBER FUNCTIONS FOR BINARY I/O
 
-    virtual void ArchiveOut(ChArchiveOut& marchive)  //##### for Chrono serialization
+    virtual void ArchiveOut(ChArchiveOut& marchive)  // ##### for Chrono serialization
     {
         // suggested: use versioning
         marchive.VersionWrite<myEmployeeBoss>();
@@ -482,10 +482,9 @@ void my_deserialization_example(ChArchiveIn& marchive) {
     delete a_boss;
 }
 
-// Example on how to serialize OUT complex Chrono data: 
+// Example on how to serialize OUT complex Chrono data:
 // we will serialize a ChSystem including its children objects (bodies, links etc.)
 void my_system_serialization_example(ChArchiveOut& marchive) {
-
     // ..create a system:
     ChSystemNSC sys;
 
@@ -497,7 +496,7 @@ void my_system_serialization_example(ChArchiveOut& marchive) {
     // ..create a flywheel
     auto my_body_B = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_B);
-    my_body_B->SetPos(ChVector<>(0, 0, 0)); 
+    my_body_B->SetPos(ChVector<>(0, 0, 0));
 
     // ..create a constraint, i.e. a motor between flywheel and truss:
     auto my_link_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -508,21 +507,18 @@ void my_system_serialization_example(ChArchiveOut& marchive) {
 
     // Serialize all the physical system (including bodies, links etc.),
     // it takes just a single line:
-    marchive << CHNVP(sys); 
+    marchive << CHNVP(sys);
 }
-
 
 // Example on how to serialize IN complex Chrono data:
 // we will deserialize a ChSystem including its children objects (bodies, links etc.)
 void my_system_deserialization_example(ChArchiveIn& marchive) {
-
     ChSystemNSC sys;
 
     // deserialize all the physical system (including bodies, links etc.),
     // it takes just a single line:
-    marchive >> CHNVP(sys);  
+    marchive >> CHNVP(sys);
 }
-
 
 // Example on how to use reflection (c++ introspection) to explore the properties exposed
 // through the ArchiveIn() and ArchiveOut() functions.
@@ -602,14 +598,10 @@ void my_reflection_example() {
     }
 }
 
-
-
-
-
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    GetLog() << "CHRONO foundation classes demo: archives (serialization)\n\n";
+    std::cout << "CHRONO foundation classes demo: archives (serialization)" <<  std::endl << std::endl;
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_ARCHIVE";
@@ -623,7 +615,6 @@ int main(int argc, char* argv[]) {
     // can be used to get them back. For example, file streams like
     // ChArchiveOutBinary and ChArchiveInBinary can be used for this
     // purpose.
-
 
     // Example: SERIALIZE TO ASCII DUMP (useful for debugging etc.):
     {
@@ -692,8 +683,7 @@ int main(int argc, char* argv[]) {
         my_deserialization_example(marchivein);
     }
 
-    GetLog() << "Serialization test ended with success.\n\n";
-
+    std::cout << "Serialization test ended with success." << std::endl << std::endl;
 
     // Example: SERIALIZE A FULL CHRONO SYSTEM TO/FROM JSON
     {
@@ -714,13 +704,11 @@ int main(int argc, char* argv[]) {
         my_system_deserialization_example(marchivein);
     }
 
-    GetLog() << "Serialization of ChSystem ended with success.\n\n";
-        
+    std::cout << "Serialization of ChSystem ended with success." << std::endl << std::endl;
 
     my_reflection_example();
 
-    GetLog() << "Reflection test ended with success.\n";
-
+    std::cout << "Reflection test ended with success." << std::endl;
 
     return 0;
 }

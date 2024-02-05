@@ -1202,7 +1202,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         }  // end if of Yield criteria
 
                         // if (FlagYieldType !=0 )
-                        // GetLog() << "FlagYieldType=" << FlagYieldType <<"\n";
+                        // std::cout << "FlagYieldType=" << FlagYieldType << std::endl;
 
                     } break;  // end of Case DruckerPrager_Cap
                 }
@@ -1971,7 +1971,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                         // double mm_DPCapBeta=m_element->m_DPCapBeta;
 
                         // alphUp = m_element->m_Alpha_Plast(m_element->m_InteCounter);
-                        // GetLog() << "m_DPVector1" << mm_DPVector1 << "m_DPVector2" << mm_DPVector2 <<"\n";
+                        // std::cout << "m_DPVector1" << mm_DPVector1 << "m_DPVector2" << mm_DPVector2 << std::endl;
 
                         // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
                         m_element->ComputeHardening(m_element->m_Alpha_Plast(m_element->m_InteCounter), MeanEffP, Hi);

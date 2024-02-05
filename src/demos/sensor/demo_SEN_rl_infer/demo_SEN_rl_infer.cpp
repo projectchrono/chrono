@@ -162,7 +162,7 @@ bool vis = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl << "Chrono version: " << CHRONO_VERSION << std::endl << std::endl;
 
     // --------------
     // Create systems
@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     if (debug_output) {
-        GetLog() << "\n\n============ System Configuration ============\n";
+        std::cout << std::endl << std::endl << "============ System Configuration ============\n";
         my_hmmwv.LogHardpointLocations();
     }
 
@@ -452,8 +452,8 @@ int main(int argc, char* argv[]) {
 
         // Debug logging
         if (debug_output && step_number % debug_steps == 0) {
-            GetLog() << "\n\n============ System Information ============\n";
-            GetLog() << "Time = " << ch_time << "\n\n";
+            std::cout << std::endl << std::endl << "============ System Information ============\n";
+            std::cout << "Time = " << ch_time << std::endl << std::endl;
             my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
         }
 
