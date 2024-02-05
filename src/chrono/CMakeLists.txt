@@ -1162,7 +1162,6 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSolverAPGD.cpp
     solver/ChSolverADMM.cpp
     solver/ChKblockGeneric.cpp
-    solver/ChSolvmin.cpp
     solver/ChNlsolver.cpp
     )
 
@@ -1185,7 +1184,6 @@ set(ChronoEngine_solver_HEADERS
     solver/ChSolverPSSOR.h
     solver/ChKblock.h
     solver/ChKblockGeneric.h
-    solver/ChSolvmin.h
     solver/ChNlsolver.h
     )
 
