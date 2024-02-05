@@ -15,6 +15,7 @@
 #ifndef CHBEAMSECTIONCOSSERAT_H
 #define CHBEAMSECTIONCOSSERAT_H
 
+#include "chrono/core/ChVector2.h"
 #include "chrono/fea/ChBeamSection.h"
 #include "chrono/motion_functions/ChFunction.h"
 

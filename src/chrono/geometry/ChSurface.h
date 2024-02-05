@@ -17,7 +17,6 @@
 
 #include <cmath>
 
-#include "chrono/core/ChFilePS.h"
 #include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {

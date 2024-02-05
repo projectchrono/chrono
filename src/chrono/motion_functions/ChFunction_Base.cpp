@@ -120,58 +120,6 @@ void ChFunction::ArchiveIn(ChArchiveIn& marchive) {
     /*int version =*/ marchive.VersionRead<ChFunction>();
 }
 
-int ChFunction::FilePostscriptPlot(ChFile_ps* m_file, int plotY, int plotDY, int plotDDY) {
-    int mresol = 800;
-    ChArray<> yf(mresol);
-    ChArray<> xf(mresol);
-    double mx, xmin, xmax;
-    ChVector2<> mp;
-
-    // xmin
-    mp = m_file->Get_G_p();
-    mp = m_file->To_graph_from_page(mp);
-    xmin = mp.x();
-    // xmax
-    mp = m_file->Get_G_p();
-    mp.x() = mp.x() + m_file->Get_Gs_p().x();
-    mp = m_file->To_graph_from_page(mp);
-    xmax = mp.x();
-
-    if (plotY) {
-        mx = xmin;
-        for (int j = 0; j < mresol; j++) {
-            mp.x() = mx;
-            mp.y() = this->Get_y(mx);
-            xf(j) = mp.x();
-            yf(j) = mp.y();
-            mx += ((xmax - xmin) / ((double)mresol - 1.0));
-        }
-        m_file->DrawGraphXY(yf, xf);
-    }
-    if (plotDY) {
-        mx = xmin;
-        for (int j = 0; j < mresol; j++) {
-            mp.x() = mx;
-            mp.y() = this->Get_y_dx(mx);
-            xf(j) = mp.x();
-            yf(j) = mp.y();
-            mx += ((xmax - xmin) / ((double)mresol - 1.0));
-        }
-        m_file->DrawGraphXY(yf, xf);
-    }
-    if (plotDDY) {
-        mx = xmin;
-        for (int j = 0; j < mresol; j++) {
-            mp.x() = mx;
-            mp.y() = this->Get_y_dxdx(mx);
-            xf(j) = mp.x();
-            yf(j) = mp.y();
-            mx += ((xmax - xmin) / ((double)mresol - 1.0));
-        }
-        m_file->DrawGraphXY(yf, xf);
-    }
-    return 1;
-}
 
 int ChFunction::FileAsciiPairsSave(ChStreamOutAscii& m_file, double mxmin, double mxmax, int msamples) {
     if (msamples <= 1)

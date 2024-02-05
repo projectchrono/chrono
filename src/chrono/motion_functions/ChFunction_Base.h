@@ -23,7 +23,6 @@
 #include <list>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChFilePS.h"
 #include "chrono/core/ChMath.h"
 
 namespace chrono {
@@ -169,11 +168,6 @@ class ChApi ChFunction {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive);
-
-    /// Plot function in graph space of the ChFile_ps postscript file
-    /// where zoom factor, centering, color, thickness etc. are already defined.
-    /// If plotDY=true, plots also the derivative, etc.
-    virtual int FilePostscriptPlot(ChFile_ps* m_file, int plotY, int plotDY, int plotDDY);
 
     /// Save function as X-Y pairs separated by space, with CR at each pair, into an ASCII file.
     /// The output file can be later loaded into Excel, GnuPlot or other tools.

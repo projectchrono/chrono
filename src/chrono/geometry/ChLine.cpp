@@ -260,37 +260,6 @@ double ChLine::Length(int sampling) const {
     return mres;
 }
 
-// Draw into the current graph viewport of a ChFile_ps file
-
-bool ChLine::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) {
-    ChVector2<> mp1;
-
-    mfle->GrSave();
-    mfle->ClipRectangle(mfle->Get_G_p(), mfle->Get_Gs_p(), ChFile_ps::Space::PAGE);
-    // start a line, move cursor to beginning
-    mfle->StartLine();
-    auto mv1 = this->Evaluate(0.0);
-    mp1.x() = mv1.x();
-    mp1.y() = mv1.y();
-    mp1 = mfle->To_page_from_graph(mp1);
-    mfle->MoveTo(mp1);
-    double maxpoints = this->Get_complexity() * 10;
-    // add points into line
-    for (int i = 1; i <= maxpoints; i++) {
-        mv1 = this->Evaluate(i / (double)maxpoints);
-        mp1.x() = mv1.x();
-        mp1.y() = mv1.y();
-        mp1 = mfle->To_page_from_graph(mp1);
-        mfle->AddLinePoint(mp1);
-    }
-    if (this->Get_closed())
-        mfle->CloseLine();  // if periodic curve, close it
-
-    mfle->PaintStroke();  // draw it!
-    mfle->GrRestore();    // restore old modes, with old clipping
-
-    return true;
-}
 
 void ChLine::ArchiveOut(ChArchiveOut& marchive) {
     // version number

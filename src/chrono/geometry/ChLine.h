@@ -17,7 +17,6 @@
 
 #include <cmath>
 
-#include "chrono/core/ChFilePS.h"
 #include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {
@@ -93,9 +92,6 @@ class ChApi ChLine : public ChGeometry {
     /// these functions return the maximum of the distances...
     double CurveCurveDistMax(ChLine* compline, int samples) const;
     double CurveSegmentDistMax(ChLine* complinesegm, int samples) const;
-
-    /// Draw into the current graph viewport of a ChFile_ps file
-    virtual bool DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

@@ -48,9 +48,6 @@ class ChApi ChLinePoly : public ChLine {
     /// Returns curve length. sampling does not matter
     virtual double Length(int sampling) const override;
 
-    /// Draw into the current graph viewport of a ChFile_ps file
-    virtual bool DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) override;
-
     /// Gets the number of control points
     size_t Get_numpoints() const;
 
