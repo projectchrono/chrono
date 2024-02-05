@@ -32,7 +32,7 @@ using namespace std;
 // -----------------------------------------------------------------------------
 
 class GuiComponentWrapper {
-   public:
+  public:
     GuiComponentWrapper(std::shared_ptr<ChGuiComponentVSG> component, ChVisualSystemVSG* app)
         : m_component(component), m_app(app) {}
 
@@ -44,13 +44,13 @@ class GuiComponentWrapper {
         return false;
     }
 
-   private:
+  private:
     std::shared_ptr<ChGuiComponentVSG> m_component;
     ChVisualSystemVSG* m_app;
 };
 
 class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
-   public:
+  public:
     ChBaseGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app) {}
 
     // Example here taken from the Dear imgui comments (mostly)
@@ -138,7 +138,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 };
 
 class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
-   public:
+  public:
     ChCameraGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app) { m_visible = false; }
 
     virtual void render() override {
@@ -184,7 +184,7 @@ class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
 };
 
 class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
-   public:
+  public:
     ChColorbarGuiComponentVSG(const std::string& title, double min_val, double max_val)
         : m_title(title), m_min_val(min_val), m_max_val(max_val) {}
 
@@ -247,7 +247,7 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
         ImGui::End();
     }
 
-   private:
+  private:
     std::string m_title;
     double m_min_val;
     double m_max_val;
@@ -256,19 +256,19 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
 // -----------------------------------------------------------------------------
 
 class EventHandlerWrapper : public vsg::Inherit<vsg::Visitor, EventHandlerWrapper> {
-   public:
+  public:
     EventHandlerWrapper(std::shared_ptr<ChEventHandlerVSG> component, ChVisualSystemVSG* app)
         : m_component(component), m_app(app) {}
 
     void apply(vsg::KeyPressEvent& keyPress) override { m_component->process(keyPress); }
 
-   private:
+  private:
     std::shared_ptr<ChEventHandlerVSG> m_component;
     ChVisualSystemVSG* m_app;
 };
 
 class ChBaseEventHandlerVSG : public ChEventHandlerVSG {
-   public:
+  public:
     ChBaseEventHandlerVSG(ChVisualSystemVSG* app) : m_app(app) {}
 
     virtual void process(vsg::KeyPressEvent& keyPress) override {
@@ -292,7 +292,7 @@ class ChBaseEventHandlerVSG : public ChEventHandlerVSG {
 // Note: since VSG v.1.0.8 VertexIndexDraw is used instead of BindVertexBuffers!
 template <int N>
 class FindVec3BufferData : public vsg::Visitor {
-   public:
+  public:
     FindVec3BufferData() : m_buffer(nullptr) {}
     void apply(vsg::Object& object) override { object.traverse(*this); }
     void apply(vsg::BindVertexBuffers& bvd) override {
@@ -321,7 +321,7 @@ class FindVec3BufferData : public vsg::Visitor {
 // Note: since VSG v.1.0.8 VertexIndexDraw is used instead of BindVertexBuffers!
 template <int N>
 class FindVec4BufferData : public vsg::Visitor {
-   public:
+  public:
     FindVec4BufferData() : m_buffer(nullptr) {}
     void apply(vsg::Object& object) override { object.traverse(*this); }
     void apply(vsg::BindVertexBuffers& bvd) override {
@@ -466,22 +466,22 @@ ChVisualSystemVSG::~ChVisualSystemVSG() {}
 
 void ChVisualSystemVSG::SetOutputScreen(int screenNum) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetOutputScreen must be used before initialization!" << std::endl;
         return;
     }
     int maxNum = vsg::Device::maxNumDevices();
-    GetLog() << "Screens found: " << maxNum << "\n";
+    std::cout << "Screens found: " << maxNum << "\n";
     if (screenNum >= 0 && screenNum < maxNum) {
         m_screen_num = screenNum;
     } else {
-        GetLog() << "Screen #" << screenNum << " cannot be used on this computer!\n";
-        exit(1);
+        std::cerr << "Screen #" << screenNum << " cannot be used on this computer!" << std::endl;
+        throw ChException("Screen #" + std::to_string(screenNum) + " cannot be used on this computer!");
     }
 }
 
 void ChVisualSystemVSG::SetFullscreen(bool yesno) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetFullscreen must be used before initialization!" << std::endl;
         return;
     }
     m_use_fullscreen = yesno;
@@ -523,7 +523,7 @@ void ChVisualSystemVSG::Quit() {
 
 void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize must be used before initialization!" << std::endl;
         return;
     }
     m_guiFontSize = theSize;
@@ -531,7 +531,7 @@ void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
 
 void ChVisualSystemVSG::SetWindowSize(const ChVector2<int>& size) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize must be used before initialization!" << std::endl;
         return;
     }
     m_windowWidth = size[0];
@@ -540,7 +540,7 @@ void ChVisualSystemVSG::SetWindowSize(const ChVector2<int>& size) {
 
 void ChVisualSystemVSG::SetWindowSize(int width, int height) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetWindowSize must be used before initialization!" << std::endl;
         return;
     }
     m_windowWidth = width;
@@ -549,7 +549,7 @@ void ChVisualSystemVSG::SetWindowSize(int width, int height) {
 
 void ChVisualSystemVSG::SetWindowPosition(const ChVector2<int>& pos) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition must be used before initialization!" << std::endl;
         return;
     }
     m_windowX = pos[0];
@@ -558,7 +558,7 @@ void ChVisualSystemVSG::SetWindowPosition(const ChVector2<int>& pos) {
 
 void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition must be used before initialization!" << std::endl;
         return;
     }
     m_windowX = from_left;
@@ -567,7 +567,7 @@ void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
 
 void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetWindowTitle must be used before initialization!" << std::endl;
         return;
     }
     m_windowTitle = title;
@@ -575,7 +575,7 @@ void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
 
 void ChVisualSystemVSG::SetClearColor(const ChColor& color) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetClearColor must be used before initialization!" << std::endl;
         return;
     }
     m_clearColor = color;
@@ -583,7 +583,7 @@ void ChVisualSystemVSG::SetClearColor(const ChColor& color) {
 
 void ChVisualSystemVSG::SetUseSkyBox(bool yesno) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetUseSkyBox must be used before initialization!" << std::endl;
         return;
     }
     m_useSkybox = yesno;
@@ -591,27 +591,29 @@ void ChVisualSystemVSG::SetUseSkyBox(bool yesno) {
 
 int ChVisualSystemVSG::AddCamera(const ChVector<>& pos, ChVector<> targ) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
-        return -1;
+        std::cerr << "Function ChVisualSystemVSG::AddCamera must be used before initialization!" << std::endl;
+        return 1;
     }
 
     ChVector<> test = pos - targ;
     if (test.Length() == 0.0) {
-        GetLog() << "Function '" << __func__ << "' Camera Pos and Target cannot be identical!\n";
-        GetLog() << "  pos    = { " << pos.x() << " ; " << pos.y() << " ; " << pos.z() << " }\n";
-        GetLog() << "  target = { " << targ.x() << " ; " << targ.y() << " ; " << targ.z() << " }\n";
-        exit(42);
+        std::cerr << "Function ChVisualSystemVSG::AddCamera Camera Pos and Target cannot be identical!" << std::endl;
+        std::cerr << "  pos    = { " << pos.x() << " ; " << pos.y() << " ; " << pos.z() << " }" << std::endl;
+        std::cerr << "  target = { " << targ.x() << " ; " << targ.y() << " ; " << targ.z() << " }" << std::endl;
+        throw ChException("Function ChVisualSystemVSG::AddCamera Camera Pos and Target cannot be identical!");
     }
     if (m_yup) {
         if (pos.x() == 0.0 && pos.z() == 0.0) {
-            GetLog() << "Function '" << __func__ << "' Line of sight is parallel to upvector! -> Corrected!!\n";
+            std::cout << "Function ChVisualSystemVSG::AddCamera Line of sight is parallel to upvector! -> Corrected!!"
+                      << std::endl;
             m_vsg_cameraEye = vsg::dvec3(pos.x() + 1.0, pos.y(), pos.z() + 1.0);
         } else {
             m_vsg_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
         }
     } else {
         if (pos.x() == 0.0 && pos.y() == 0.0) {
-            GetLog() << "Function '" << __func__ << "' Line of sight is parallel to upvector! -> Corrected!!\n";
+            std::cout << "Function ChVisualSystemVSG::AddCamera Line of sight is parallel to upvector! -> Corrected!!"
+                      << std::endl;
             m_vsg_cameraEye = vsg::dvec3(pos.x() + 1.0, pos.y() + 1.0, pos.z());
         } else {
             m_vsg_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
@@ -650,7 +652,7 @@ ChVector<> ChVisualSystemVSG::GetCameraTarget() const {
 
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetCameraVertical must be used before initialization!" << std::endl;
         return;
     }
     switch (upDir) {
@@ -671,7 +673,7 @@ void ChVisualSystemVSG::SetLightIntensity(float intensity) {
 
 void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetLightDirection must be used before initialization!" << std::endl;
         return;
     }
     m_azimuth = ChClamp(azimuth, -CH_C_PI, CH_C_PI);
@@ -751,7 +753,7 @@ void ChVisualSystemVSG::Initialize() {
         auto overheadLight = vsg::DirectionalLight::create();
         overheadLight->name = "head light";
         overheadLight->color.set(1.0f, 1.0f, 1.0f);
-        overheadLight->intensity = 0.2;
+        overheadLight->intensity = 0.2f;
         if (m_yup)
             overheadLight->direction.set(-ce * ca, -se, -ce * sa);
         else
@@ -783,33 +785,33 @@ void ChVisualSystemVSG::Initialize() {
     const auto& prop = m_window->getOrCreatePhysicalDevice()->getProperties();
 
     if (m_verbose) {
-        GetLog() << "****************************************************\n";
-        GetLog() << "* Chrono::VSG Vulkan Scene Graph 3D-Visualization\n";
-        GetLog() << "* GPU Name: " << prop.deviceName << "\n";
+        std::cout << "****************************************************\n";
+        std::cout << "* Chrono::VSG Vulkan Scene Graph 3D-Visualization\n";
+        std::cout << "* GPU Name: " << prop.deviceName << "\n";
         switch (prop.deviceType) {
             default:
             case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_OTHER\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_OTHER\n";
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU\n";
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU\n";
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU\n";
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_CPU:
-                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_CPU\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_CPU\n";
                 break;
         }
-        GetLog() << "* Vulkan Version: " << VK_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE) << "."
-                 << VK_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE) << "."
-                 << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE) << "\n";
-        GetLog() << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << "\n";
-        GetLog() << "* Graphic Output Possible on: " << vsg::Device::maxNumDevices() << " Screens.\n";
-        GetLog() << "****************************************************\n";
+        std::cout << "* Vulkan Version: " << VK_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE) << "."
+                  << VK_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE) << "."
+                  << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE) << "\n";
+        std::cout << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << "\n";
+        std::cout << "* Graphic Output Possible on: " << vsg::Device::maxNumDevices() << " Screens.\n";
+        std::cout << "****************************************************\n";
     }
 
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
@@ -864,7 +866,7 @@ void ChVisualSystemVSG::Initialize() {
 #ifdef __APPLE__
     } else {
         // ignore loadable ttf font
-        GetLog() << "App runs with standard resolution on the Mac. Font size setting ignored.\n";
+        std::cout << "App runs with standard resolution on the Mac. Font size setting ignored." << std::endl;
     }
 #endif
 
@@ -1285,10 +1287,9 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
         m_deformableScene->addChild(child);
 
         def_mesh.mesh_soup = true;
-        auto n_vertices = 3 * trimesh->GetMesh()->getNumTriangles();  // expected
 
         def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
-        assert(def_mesh.vertices->size() == n_vertices);
+        assert(def_mesh.vertices->size() == 3 * trimesh->GetMesh()->getNumTriangles(););
         def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
         def_mesh.dynamic_vertices = true;
 
