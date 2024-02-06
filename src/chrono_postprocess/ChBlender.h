@@ -246,16 +246,16 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
 
   private:
     void UpdateRenderList();
-    void ExportAssets(ChStreamOutAsciiFile& assets_file, ChStreamOutAsciiFile& state_file);
-    void ExportShapes(ChStreamOutAsciiFile& assets_file,
-                      ChStreamOutAsciiFile& state_file,
+    void ExportAssets(std::ofstream& assets_file, std::ofstream& state_file);
+    void ExportShapes(std::ofstream& assets_file,
+                      std::ofstream& state_file,
                       std::shared_ptr<ChPhysicsItem> item);
-    void ExportMaterials(ChStreamOutAsciiFile& mfile,
+    void ExportMaterials(std::ofstream& mfile,
                          std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>& m_materials,
                          const std::vector<std::shared_ptr<ChVisualMaterial>>& materials,
                          bool per_frame,
                          std::shared_ptr<ChVisualShape> mshape);
-    void ExportItemState(ChStreamOutAsciiFile& state_file,
+    void ExportItemState(std::ofstream& state_file,
                          std::shared_ptr<ChPhysicsItem> item,
                          const ChFrame<>& parentframe);
 

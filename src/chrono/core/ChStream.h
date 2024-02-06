@@ -663,15 +663,6 @@ class ChApi ChStreamOutBinaryFile : public ChStreamFile, public ChStreamOutBinar
     virtual void Output(const char* data, size_t n) { ChStreamFile::Write(data, n); }
 };
 
-/// Specialized class for ASCII output on system's file.
-class ChApi ChStreamOutAsciiFile : public ChStreamFile, public ChStreamOutAscii {
-  public:
-    ChStreamOutAsciiFile(const std::string& filename, std::ios::openmode mode = std::ios::trunc);
-    virtual ~ChStreamOutAsciiFile();
-
-  private:
-    virtual void Output(const char* data, size_t n) { ChStreamFile::Write(data, n); }
-};
 
 /// Specialized class for BINARY input on system's file.
 class ChApi ChStreamInBinaryFile : public ChStreamFile, public ChStreamInBinary {
@@ -685,17 +676,6 @@ class ChApi ChStreamInBinaryFile : public ChStreamFile, public ChStreamInBinary 
     virtual void Input(char* data, size_t n) override { ChStreamFile::Read(data, n); }
 };
 
-/// Specialized class for ASCII input on system's file.
-class ChApi ChStreamInAsciiFile : public ChStreamFile, public ChStreamInAscii {
-  public:
-    ChStreamInAsciiFile(const std::string& filename);
-    virtual ~ChStreamInAsciiFile();
-
-    virtual bool End_of_stream() const override { return ChStreamFile::End_of_stream(); }
-
-  private:
-    virtual void Input(char* data, size_t n) override { ChStreamFile::Read(data, n); }
-};
 
 }  // end namespace chrono
 

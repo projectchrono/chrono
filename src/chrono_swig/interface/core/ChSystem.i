@@ -2,7 +2,7 @@
 {
 // Allow serialization of System without wrapping of ChArchive
 void SerializeToJSON(std::string path) {
-  chrono::ChStreamOutAsciiFile mfileo(path.c_str());
+  std::ofstream mfileo(path.c_str());
   chrono::ChArchiveOutJSON marchiveout(mfileo);
   marchiveout << chrono::CHNVP(*$self, "sys");
 }

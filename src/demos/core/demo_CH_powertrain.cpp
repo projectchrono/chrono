@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
         sys.Add(my_shaft_gearAB);
 
         std::cout << std::endl << std::endl << "Here's the system hierarchy:" << std::endl << std::endl;
-        sys.ShowHierarchy(GetLog());
+        sys.ShowHierarchy(std::cout);
 
         // Perform a very simple simulation loop..
         double chronoTime = 0;
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
         my_shaft_clutchAB->SetModulation(0);
 
         std::cout << std::endl << std::endl << "Here's the system hierarchy:" << std::endl << std::endl;
-        sys.ShowHierarchy(GetLog());
+        sys.ShowHierarchy(std::cout);
 
         // Perform a very simple simulation loop..
         double chronoTime = 0;
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
         sys.Add(my_shaft_clutchBD);
 
         std::cout << std::endl << std::endl << "Here's the system hierarchy:" << std::endl << std::endl;
-        sys.ShowHierarchy(GetLog());
+        sys.ShowHierarchy(std::cout);
 
         // Perform a very simple simulation loop..
         double chronoTime = 0;
@@ -342,7 +342,7 @@ int main(int argc, char* argv[]) {
         sys.Add(my_shaftbody_connection);
 
         std::cout << std::endl << std::endl << "Here's the system hierarchy:" << std::endl << std::endl;
-        sys.ShowHierarchy(GetLog());
+        sys.ShowHierarchy(std::cout);
 
         // Perform a very simple simulation loop..
         double chronoTime = 0;
@@ -482,7 +482,7 @@ int main(int argc, char* argv[]) {
         my_motor->SetTorqueCurve(mTw);
 
         std::cout << std::endl << std::endl << "Here's the system hierarchy:" << std::endl << std::endl;
-        sys.ShowHierarchy(GetLog());
+        sys.ShowHierarchy(std::cout);
 
         // Perform a very simple simulation loop..
         double chronoTime = 0;
@@ -581,9 +581,9 @@ int main(int argc, char* argv[]) {
         sys.Add(my_clutch);
 
         std::cout << std::endl << std::endl << "Here's the system hierarchy:" << std::endl << std::endl;
-        sys.ShowHierarchy(GetLog());
+        sys.ShowHierarchy(std::cout);
 
-        ChStreamOutAsciiFile file_results(out_dir + "/test_clutch.txt");
+        std::ofstream file_results(out_dir + "/test_clutch.txt");
 
         // Perform a very simple simulation loop..
         double chronoTime = 0;

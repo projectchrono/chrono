@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
 
         // Show the hierarchy in the shell window...
         std::cout << "Here's the system hierarchy which you built:" << std::endl;
-        sys.ShowHierarchy(GetLog());
+        sys.ShowHierarchy(std::cout);
 
         // Do you want to remove items? Use the
         // Remove...() functions.
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
                   << std::endl
                   << "Here's the system hierarchy after modifications:" << std::endl
                   << std::endl;
-        sys.ShowHierarchy(GetLog());
+        sys.ShowHierarchy(std::cout);
     }
 
     {
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
                   << std::endl
                   << "Here's the system hierarchy for slider-crank:" << std::endl
                   << std::endl;
-        sys.ShowHierarchy(GetLog());
+        sys.ShowHierarchy(std::cout);
 
         std::cout << "Now use an interator to scan through already-added constraints:" << std::endl << std::endl;
         for (auto link : sys.Get_linklist()) {

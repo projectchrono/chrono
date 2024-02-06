@@ -23,9 +23,9 @@ namespace chrono {
 
 class ChArchiveOutBinary : public ChArchiveOut {
   public:
-    ChArchiveOutBinary(ChStreamOutBinary& mostream) { ostream = &mostream; };
+    ChArchiveOutBinary(ChStreamOutBinary& mostream) { ostream = &mostream; }
 
-    virtual ~ChArchiveOutBinary(){};
+    virtual ~ChArchiveOutBinary() {}
 
     virtual void out(ChNameValue<bool> bVal) { (*ostream) << bVal.value(); }
     virtual void out(ChNameValue<int> bVal) { (*ostream) << bVal.value(); }

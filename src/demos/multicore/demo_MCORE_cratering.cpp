@@ -69,7 +69,7 @@ static inline void progressbar(unsigned int x, unsigned int n, unsigned int w = 
 }
 
 // Utility function to print to console a few important step statistics
-static inline void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAsciiFile* ofile = NULL) {
+static inline void TimingOutput(chrono::ChSystem* mSys, std::ostream* ofile = NULL) {
     double TIME = mSys->GetChTime();
     double STEP = mSys->GetTimerStep();
     double BROD = mSys->GetTimerCollisionBroad();
@@ -478,7 +478,7 @@ int main(int argc, char* argv[]) {
     int next_out_frame = 0;
     double exec_time = 0;
     int num_contacts = 0;
-    ChStreamOutAsciiFile hfile(height_file);
+    std::ofstream hfile(height_file);
 
 #ifdef CHRONO_OPENGL
     opengl::ChVisualSystemOpenGL vis;
@@ -518,7 +518,7 @@ int main(int argc, char* argv[]) {
 
             // Save current projectile height.
             if (problem == ProblemPhase::DROPPING) {
-                hfile << time << "  " << ball->GetPos().z() << "\n";
+                hfile << time << "  " << ball->GetPos().z() << std::endl;
                 cout << "     Ball height:    " << ball->GetPos().z() << endl;
             }
 

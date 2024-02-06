@@ -312,7 +312,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
     /// Writes the hierarchy of contained bodies, markers, etc. in ASCII
     /// readable form, mostly for debugging purposes. Level is the tab spacing at the left.
-    void ShowHierarchy(ChStreamOutAscii& m_file, int level = 0) const;
+    void ShowHierarchy(std::ostream& outstream, int level = 0) const;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

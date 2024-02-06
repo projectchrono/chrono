@@ -159,7 +159,7 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
 
             // ---Convert to OBJ Wavefront file
 
-            ChStreamOutAsciiFile mobjfile("triangulated_step_model_root.obj");
+            std::ofstream mobjfile("triangulated_step_model_root.obj");
             // afinder.res_shape.Location(TopLoc_Location()); // to reset CAD reference as center of obj.
             ChCascadeMeshTools::fillObjFileFromCascade(mobjfile, mshape, 0.5);
             std::cout << " ... done!" << std::endl;
@@ -236,7 +236,7 @@ void SaveHullsWavefront(ChVisualSystemIrrlicht* application, const char* filenam
     // file using the .obj fileformat.
 
     try {
-        ChStreamOutAsciiFile decomposed_objfile(filename);
+        std::ofstream decomposed_objfile(filename);
         mydecompositionHACDv2.WriteConvexHullsAsWavefrontObj(decomposed_objfile);
     } catch (ChException myex) {
         application->GetGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
@@ -248,7 +248,7 @@ void SaveHullsChulls(ChVisualSystemIrrlicht* application, const char* filename) 
     // file using the .obj fileformat.
 
     try {
-        ChStreamOutAsciiFile decomposed_objfile(filename);
+        std::ofstream decomposed_objfile(filename);
         mydecompositionHACDv2.WriteConvexHullsAsChullsFile(decomposed_objfile);
     } catch (ChException myex) {
         application->GetGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");

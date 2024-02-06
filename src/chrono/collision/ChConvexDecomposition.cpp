@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono_thirdparty/HACDv2/wavefront.h"
 
@@ -72,9 +74,10 @@ bool ChConvexDecomposition::AddTriangleMesh(const geometry::ChTriangleMesh& tm) 
     return true;
 }
 
-bool ChConvexDecomposition::WriteConvexHullsAsChullsFile(ChStreamOutAscii& mstream) {
-    mstream.SetNumFormat("%0.9f");
-    mstream << "# Convex hulls obtained with Chrono::Engine \n# convex decomposition (.chulls format: only vertexes)\n";
+bool ChConvexDecomposition::WriteConvexHullsAsChullsFile(std::ostream& mstream) {
+    mstream << std::setprecision(9) << std::defaultfloat;
+    mstream << "# Convex hulls obtained with Chrono::Engine" << std::endl
+            << "# convex decomposition (.chulls format: only vertexes)\n";
 
     for (unsigned int ih = 0; ih < this->GetHullCount(); ih++) {
         std::vector<ChVector<double> > aconvexhull;
@@ -234,7 +237,7 @@ bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, geom
 // SERIALIZATION
 //
 
-void ChConvexDecompositionHACD::WriteConvexHullsAsWavefrontObj(ChStreamOutAscii& mstream) {
+void ChConvexDecompositionHACD::WriteConvexHullsAsWavefrontObj(std::ostream& mstream) {
     mstream << "# Convex hulls obtained with Chrono::Engine \n# convex decomposition \n\n";
     NxU32 vcount_base = 1;
     NxU32 vcount_total = 0;
@@ -435,7 +438,7 @@ bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex, ge
 // SERIALIZATION
 //
 
-void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(ChStreamOutAscii& mstream) {
+void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(std::ostream& mstream) {
     mstream << "# Convex hulls obtained with Chrono::Engine \n# convex decomposition \n\n";
 
     char buffer[200];

@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono_modal/ChModalDamping.h"
 #include "chrono_modal/ChModalAssembly.h"
 #include "chrono_modal/ChEigenvalueSolver.h"
@@ -166,29 +168,29 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     modal_R.block(0, 0, modal_R_nonzero.rows(), modal_R_nonzero.cols()) = modal_R_nonzero;
 
     if (true) {
-        ChStreamOutAsciiFile fileM("dump_modald_M.dat");
-        fileM.SetNumFormat("%.12g");
+        std::ofstream fileM("dump_modald_M.dat");
+        fileM << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(M_reduced.toDense(), fileM);
-        ChStreamOutAsciiFile fileK("dump_modald_K.dat");
-        fileK.SetNumFormat("%.12g");
+        std::ofstream fileK("dump_modald_K.dat");
+        fileK << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(K_reduced.toDense(), fileK);
-        ChStreamOutAsciiFile fileCq("dump_modald_Cq.dat");
-        fileCq.SetNumFormat("%.12g");
+        std::ofstream fileCq("dump_modald_Cq.dat");
+        fileCq << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(Cq_reduced.toDense(), fileCq);
-        ChStreamOutAsciiFile fileV("dump_modald_V.dat");
-        fileV.SetNumFormat("%.12g");
+        std::ofstream fileV("dump_modald_V.dat");
+        fileV << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(V, fileV);
-        ChStreamOutAsciiFile fileF("dump_modald_f.dat");
-        fileF.SetNumFormat("%.12g");
+        std::ofstream fileF("dump_modald_f.dat");
+        fileF << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(freq_reduced, fileF);
-        ChStreamOutAsciiFile fileRnz("dump_modald_Rnz.dat");
-        fileRnz.SetNumFormat("%.12g");
+        std::ofstream fileRnz("dump_modald_Rnz.dat");
+        fileRnz << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(modal_R_nonzero, fileRnz);
-        ChStreamOutAsciiFile fileMm("dump_modald_Mm.dat");
-        fileMm.SetNumFormat("%.12g");
+        std::ofstream fileMm("dump_modald_Mm.dat");
+        fileMm << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(Mmodal, fileMm);
-        ChStreamOutAsciiFile fileMm_matr("dump_modald_Mm_matr.dat");
-        fileMm_matr.SetNumFormat("%.12g");
+        std::ofstream fileMm_matr("dump_modald_Mm_matr.dat");
+        fileMm_matr << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(Mmodal_matr, fileMm_matr);
     }
 }

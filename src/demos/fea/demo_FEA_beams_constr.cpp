@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    chrono::ChStreamOutAsciiFile file_out1(out_dir + "/buckling_mid.dat");
+    std::ofstream file_out1(out_dir + "/buckling_mid.dat");
 
     while (vis->Run()) {
         vis->BeginScene();
@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
 
         // Save output for the first 0.4 seconds
         if (sys.GetChTime() <= 0.4) {
-            file_out1 << sys.GetChTime() << " " << node_mid->GetPos().z() << " " << node_mid->GetWvel_par().x() << "\n";
+            file_out1 << sys.GetChTime() << " " << node_mid->GetPos().z() << " " << node_mid->GetWvel_par().x() << std::endl;
         }
 
         vis->EndScene();

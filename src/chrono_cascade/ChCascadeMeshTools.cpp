@@ -206,7 +206,7 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMeshConnected& me
     }
 }
 
-void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
+void ChCascadeMeshTools::fillObjFileFromCascade(std::ofstream& objfile,
                                                 const TopoDS_Shape& shape,
                                                 const ChCascadeTriangulate& tolerances) {
     BRepTools::Clean(shape);
@@ -218,7 +218,7 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
     int vertface = 0;
     int vertshift = 1;
 
-    objfile << "# Wavefront .obj file created from Chrono::Engine\n\n";
+    objfile << "# Wavefront .obj file created from Chrono::Engine" << std::endl << std::endl;
 
     // Loop on faces..
     for (ex.Init(shape, TopAbs_FACE); ex.More(); ex.Next()) {

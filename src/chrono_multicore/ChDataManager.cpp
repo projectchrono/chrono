@@ -48,25 +48,23 @@ ChMulticoreDataManager::~ChMulticoreDataManager() {
 }
 
 int ChMulticoreDataManager::OutputBlazeVector(DynamicVector<real> src, std::string filename) {
-    const char* numformat = "%.16g";
-    ChStreamOutAsciiFile stream(filename);
-    stream.SetNumFormat(numformat);
+    std::ofstream stream(filename);
+    stream << std::setprecision(16) << std::scientific;
 
     for (int i = 0; i < src.size(); i++)
-        stream << src[i] << "\n";
+        stream << src[i] << std::endl;
 
     return 0;
 }
 
 int ChMulticoreDataManager::OutputBlazeMatrix(CompressedMatrix<real> src, std::string filename) {
-    const char* numformat = "%.16g";
-    ChStreamOutAsciiFile stream(filename);
-    stream.SetNumFormat(numformat);
+    std::ofstream stream(filename);
+    stream << std::setprecision(16) << std::scientific;
 
-    stream << src.rows() << " " << src.columns() << "\n";
+    stream << src.rows() << " " << src.columns() << std::endl;
     for (int i = 0; i < src.rows(); ++i) {
         for (CompressedMatrix<real>::Iterator it = src.begin(i); it != src.end(i); ++it) {
-            stream << i << " " << it->index() << " " << it->value() << "\n";
+            stream << i << " " << it->index() << " " << it->value() << std::endl;
         }
     }
 
@@ -127,12 +125,12 @@ int ChMulticoreDataManager::ExportCurrentSystem(std::string output_dir) {
 }
 
 void ChMulticoreDataManager::PrintMatrix(CompressedMatrix<real> src) {
-    std::cout << src.rows() << " " << src.columns() << "\n";
+    std::cout << src.rows() << " " << src.columns() << std::endl;
     for (int i = 0; i < src.rows(); ++i) {
         std::cout << i << " ";
         for (int j = 0; j < src.columns(); j++) {
             std::cout << src(i, j) << " ";
         }
-        std::cout << "\n";
+        std::cout << std::endl;
     }
 }

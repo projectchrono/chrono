@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     f_sine.Set_amp(2);     // set amplitude;
     f_sine.Set_freq(1.5);  // set frequency;
 
-    ChStreamOutAsciiFile file_f_sine(out_dir + "/f_sine_out.dat");
+    std::ofstream file_f_sine(out_dir + "/f_sine_out.dat");
 
     // Evaluate y=f(x) function along 100 x points, and its derivatives,
     // and save to file (later it can be loaded, for example, in Matlab using the 'load()' command)
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 
     ChFunction_MyTest f_test;
 
-    ChStreamOutAsciiFile file_f_test(out_dir + "/f_test_out.dat");
+    std::ofstream file_f_test(out_dir + "/f_test_out.dat");
 
     // Evaluate y=f(x) function along 100 x points, and its derivatives,
     // and save to file (later it can be loaded, for example, in Matlab using the 'load()' command)
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
 
     f_sequence.Setup();
 
-    ChStreamOutAsciiFile file_f_sequence(out_dir + "/f_sequence_out.dat");
+    std::ofstream file_f_sequence(out_dir + "/f_sequence_out.dat");
 
     // Evaluate y=f(x) function along 100 x points, and its derivatives,
     // and save to file (later it can be loaded, for example, in Matlab using the 'load()' command)
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     f_rep_seq->Set_window_start(0.0);
     f_rep_seq->Set_window_phase(3.0);
 
-    ChStreamOutAsciiFile file_f_repeat(out_dir + "/f_repeat_out.dat");
+    std::ofstream file_f_repeat(out_dir + "/f_repeat_out.dat");
     for (int i = 0; i < 1000; i++) {
         double x = (double)i / 50.0;
         double y = f_rep_seq->Get_y(x);

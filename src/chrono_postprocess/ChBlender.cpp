@@ -290,54 +290,54 @@ void ChBlender::ExportScript(const std::string& filename) {
 
     std::string assets_filename = out_script_filename + ".assets.py";
     {
-        ChStreamOutAsciiFile assets_file(base_path + assets_filename);
+        std::ofstream assets_file(base_path + assets_filename);
         assets_file
-            << "# File containing meshes and objects for rendering Blender scenes, shared through all frames.\n";
-        assets_file << "# This file must be imported in Blender using File/Import/chrono import menu, \n";
-        assets_file << "# that is available in Blender if you installed the chrono_import.py add-on.\n\n";
+            << "# File containing meshes and objects for rendering Blender scenes, shared through all frames." << std::endl;
+        assets_file << "# This file must be imported in Blender using File/Import/chrono import menu, " << std::endl;
+        assets_file << "# that is available in Blender if you installed the chrono_import.py add-on." << std::endl << std::endl;
 
         // Write Blender custom code
         if (custom_script.size() > 0) {
-            assets_file << "# Custom user-added script: \n\n";
+            assets_file << "# Custom user-added script:" << std::endl << std::endl;
             assets_file << custom_script;
-            assets_file << "\n\n";
+            assets_file << "" << std::endl << std::endl;
         }
 
         // write global settings for symbols
-        assets_file << "chrono_view_asset_csys =  " << (this->frames_asset_show ? "True" : "False") << "\n"
-                    << "chrono_view_asset_csys_size = " << this->frames_asset_size << "\n"
-                    << "chrono_view_item_csys =  " << (this->frames_item_show ? "True" : "False") << "\n"
-                    << "chrono_view_item_csys_size = " << this->frames_item_size << "\n"
-                    << "chrono_view_link_csys =  " << (this->frames_links_show ? "True" : "False") << "\n"
-                    << "chrono_view_link_csys_size = " << this->frames_links_size << "\n"
-                    << "\n";
+        assets_file << "chrono_view_asset_csys =  " << (this->frames_asset_show ? "True" : "False") << "" << std::endl
+                    << "chrono_view_asset_csys_size = " << this->frames_asset_size << "" << std::endl
+                    << "chrono_view_item_csys =  " << (this->frames_item_show ? "True" : "False") << "" << std::endl
+                    << "chrono_view_item_csys_size = " << this->frames_item_size << "" << std::endl
+                    << "chrono_view_link_csys =  " << (this->frames_links_show ? "True" : "False") << "" << std::endl
+                    << "chrono_view_link_csys_size = " << this->frames_links_size << "" << std::endl
+                    << "" << std::endl;
         std::string abspath_pic_output =
             filesystem::path(base_path + pic_path).make_absolute().str() + "/" + pic_filename + "_######";
         std::replace(abspath_pic_output.begin(), abspath_pic_output.end(), '\\', '/');
-        assets_file << "bpy.context.scene.render.filepath = '" << abspath_pic_output << "'\n"
-                    << "bpy.context.scene.render.resolution_x = " << this->picture_width << "\n"
-                    << "bpy.context.scene.render.resolution_y = " << this->picture_height << "\n"
-                    << "\n\n";
+        assets_file << "bpy.context.scene.render.filepath = '" << abspath_pic_output << "'" << std::endl
+                    << "bpy.context.scene.render.resolution_x = " << this->picture_width << "" << std::endl
+                    << "bpy.context.scene.render.resolution_y = " << this->picture_height << "" << std::endl
+                    << "" << std::endl << std::endl;
 
         // write default camera, if defined
         if (camera_add_default) {
             std::string cameraname("default_camera");
-            assets_file << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1)) \n"
-                        << "new_object = bpy.context.object \n"
-                        << "new_object.name= '" << cameraname << "' \n"
-                        << "new_object.data.lens_unit='FOV' \n";
+            assets_file << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1)) " << std::endl
+                        << "new_object = bpy.context.object " << std::endl
+                        << "new_object.name= '" << cameraname << "' " << std::endl
+                        << "new_object.data.lens_unit='FOV' " << std::endl;
             if (this->camera_orthographic) {
-                assets_file << "new_object.data.type='ORTHO'\n";
+                assets_file << "new_object.data.type='ORTHO'" << std::endl;
                 assets_file << "new_object.data.ortho_scale="
                             << double((camera_location - camera_aim).Length() *
                                       tan(0.5 * camera_angle * chrono::CH_C_DEG_TO_RAD))
-                            << "\n";
+                            << "" << std::endl;
             } else {
-                assets_file << "new_object.data.type='PERSP'\n";
-                assets_file << "new_object.data.angle=" << camera_angle * chrono::CH_C_DEG_TO_RAD << "\n";
+                assets_file << "new_object.data.type='PERSP'" << std::endl;
+                assets_file << "new_object.data.angle=" << camera_angle * chrono::CH_C_DEG_TO_RAD << "" << std::endl;
             }
-            assets_file << "chrono_cameras.objects.link(new_object) \n"
-                        << "bpy.context.scene.collection.objects.unlink(new_object) \n\n";
+            assets_file << "chrono_cameras.objects.link(new_object) " << std::endl
+                        << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl << std::endl;
             ChVector<> cdirzm = camera_aim - camera_location;
             ChVector<> cdirx = Vcross(cdirzm, VECT_Y);
             ChVector<> cdiry = Vcross(cdirx, cdirzm);
@@ -351,8 +351,8 @@ void ChBlender::ExportScript(const std::string& filename) {
                         << cframeabs.GetPos().z() << "),";
             assets_file << "(" << cframeabs.GetRot().e0() << "," << cframeabs.GetRot().e1() << ","
                         << cframeabs.GetRot().e2() << "," << cframeabs.GetRot().e3() << ")";
-            assets_file << ")\n";
-            assets_file << "bpy.context.scene.camera = new_object\n\n";
+            assets_file << ")" << std::endl;
+            assets_file << "bpy.context.scene.camera = new_object" << std::endl << std::endl;
         }
     }
 
@@ -362,15 +362,15 @@ void ChBlender::ExportScript(const std::string& filename) {
     this->framenumber--;  // so that it starts again from 0 when calling ExportData() in the simulation while() loop:
 }
 
-void ChBlender::ExportAssets(ChStreamOutAsciiFile& assets_file, ChStreamOutAsciiFile& state_file) {
+void ChBlender::ExportAssets(std::ofstream& assets_file, std::ofstream& state_file) {
     for (const auto& item : m_items) {
         ExportShapes(assets_file, state_file, item);
     }
 }
 
 // Write geometries and materials in the Blender assets script for all physics items with a visual model
-void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
-                             ChStreamOutAsciiFile& state_file,
+void ChBlender::ExportShapes(std::ofstream& assets_file,
+                             std::ofstream& state_file,
                              std::shared_ptr<ChPhysicsItem> item) {
     // Nothing to do if the item does not have a visual model
     if (!item->GetVisualModel())
@@ -380,7 +380,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
     for (const auto& shape_instance : item->GetVisualModel()->GetShapes()) {
         const auto& shape = shape_instance.first;
 
-        ChStreamOutAsciiFile* mfile;
+        std::ofstream* mfile;
         std::unordered_map<size_t, std::shared_ptr<ChVisualShape>>* m_shapes;
         std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>* m_materials;
         std::string collection;
@@ -414,63 +414,63 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
             continue;
 
         if (auto sphere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
-            *mfile << "bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.0, calc_uvs=True) \n"
-                   << "new_object = bpy.context.object \n"
-                   << "new_object.name = '" << shapename << "' \n"
-                   << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) \n"
-                   << "new_object.data.materials.append(None) \n"
-                   << collection << ".objects.link(new_object) \n"
-                   << "bpy.context.scene.collection.objects.unlink(new_object)\n\n";
+            *mfile << "bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.0, calc_uvs=True) " << std::endl
+                   << "new_object = bpy.context.object " << std::endl
+                   << "new_object.name = '" << shapename << "' " << std::endl
+                   << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) " << std::endl
+                   << "new_object.data.materials.append(None) " << std::endl
+                   << collection << ".objects.link(new_object) " << std::endl
+                   << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl << std::endl;
             // radius will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
         if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
-            *mfile << "bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.0, calc_uvs=True) \n"
-                   << "new_object = bpy.context.object \n"
-                   << "new_object.name = '" << shapename << "' \n"
-                   << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) \n"
-                   << "new_object.data.materials.append(None) \n"
-                   << collection << ".objects.link(new_object) \n"
-                   << "bpy.context.scene.collection.objects.unlink(new_object)\n\n";
+            *mfile << "bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.0, calc_uvs=True) " << std::endl
+                   << "new_object = bpy.context.object " << std::endl
+                   << "new_object.name = '" << shapename << "' " << std::endl
+                   << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) " << std::endl
+                   << "new_object.data.materials.append(None) " << std::endl
+                   << collection << ".objects.link(new_object) " << std::endl
+                   << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl << std::endl;
             // radii will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
         if (auto cylinder = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
-            *mfile << "bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=1.0, depth=1.0, calc_uvs=True) \n"
-                   << "new_object = bpy.context.object \n"
-                   << "new_object.name = '" << shapename << "' \n"
-                   << "new_object.data.materials.append(None) \n"
-                   << collection << ".objects.link(new_object) \n"
-                   << "bpy.context.scene.collection.objects.unlink(new_object)\n"
-                   << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
-                   << "    bpy.ops.object.shade_smooth(use_auto_smooth=True) \n\n";
+            *mfile << "bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=1.0, depth=1.0, calc_uvs=True) " << std::endl
+                   << "new_object = bpy.context.object " << std::endl
+                   << "new_object.name = '" << shapename << "' " << std::endl
+                   << "new_object.data.materials.append(None) " << std::endl
+                   << collection << ".objects.link(new_object) " << std::endl
+                   << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl
+                   << "with bpy.context.temp_override(selected_editable_objects=[new_object]):" << std::endl
+                   << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)" << std::endl << std::endl;
             // radius and height will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
         if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
             *mfile
-                << "bpy.ops.mesh.primitive_cone_add(vertices=32, radius1=1.0, radius2=0, depth=1.0, calc_uvs=True) \n"
-                << "new_object = bpy.context.object \n"
-                << "new_object.name = '" << shapename << "' \n"
-                << "new_object.data.materials.append(None) \n"
-                << collection << ".objects.link(new_object) \n"
-                << "bpy.context.scene.collection.objects.unlink(new_object)\n"
-                << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
-                << "    bpy.ops.object.shade_smooth(use_auto_smooth=True) \n\n";
+                << "bpy.ops.mesh.primitive_cone_add(vertices=32, radius1=1.0, radius2=0, depth=1.0, calc_uvs=True) " << std::endl
+                << "new_object = bpy.context.object " << std::endl
+                << "new_object.name = '" << shapename << "' " << std::endl
+                << "new_object.data.materials.append(None) " << std::endl
+                << collection << ".objects.link(new_object) " << std::endl
+                << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl
+                << "with bpy.context.temp_override(selected_editable_objects=[new_object]):" << std::endl
+                << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)" << std::endl << std::endl;
             // radius etc will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
         if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
-            *mfile << "bpy.ops.mesh.primitive_cube_add(size=1,calc_uvs=True) \n"
-                   << "new_object = bpy.context.object \n"
-                   << "new_object.name = '" << shapename << "' \n"
-                   << "new_object.data.materials.append(None) \n"
-                   << collection << ".objects.link(new_object) \n"
-                   << "bpy.context.scene.collection.objects.unlink(new_object)\n\n";
+            *mfile << "bpy.ops.mesh.primitive_cube_add(size=1,calc_uvs=True) " << std::endl
+                   << "new_object = bpy.context.object " << std::endl
+                   << "new_object.name = '" << shapename << "' " << std::endl
+                   << "new_object.data.materials.append(None) " << std::endl
+                   << collection << ".objects.link(new_object) " << std::endl
+                   << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl << std::endl;
             // xyz sizes will be set later in ExportItemState to avoid having n meshes
             m_shapes->insert({(size_t)shape.get(), shape});
         }
@@ -478,17 +478,17 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
         if (auto obj_shape = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
             std::string abspath_obj = filesystem::path(obj_shape->GetFilename()).make_absolute().str();
             std::replace(abspath_obj.begin(), abspath_obj.end(), '\\', '/');
-            *mfile << "try: \n"
-                   << "    bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection \n"
-                   << "    file_loc = '" << abspath_obj.c_str() << "'\n"
-                   << "    import_result = bpy.ops.wm.obj_import(filepath=file_loc) \n"
-                   << "    new_object = bpy.context.selected_objects[-1] \n"
-                   << "    new_object.name= '" << shapename << "' \n"
-                   << "    new_object.data.materials.append(None) \n"
-                   << "    " << collection << ".objects.link(new_object) \n"
-                   << "    bpy.context.scene.collection.objects.unlink(new_object) \n"
-                   << "except: \n"
-                   << "    print('Cannot load .OBJ file: ', file_loc) \n\n";
+            *mfile << "try: " << std::endl
+                   << "    bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection " << std::endl
+                   << "    file_loc = '" << abspath_obj.c_str() << "'" << std::endl
+                   << "    import_result = bpy.ops.wm.obj_import(filepath=file_loc) " << std::endl
+                   << "    new_object = bpy.context.selected_objects[-1] " << std::endl
+                   << "    new_object.name= '" << shapename << "' " << std::endl
+                   << "    new_object.data.materials.append(None) " << std::endl
+                   << "    " << collection << ".objects.link(new_object) " << std::endl
+                   << "    bpy.context.scene.collection.objects.unlink(new_object) " << std::endl
+                   << "except: " << std::endl
+                   << "    print('Cannot load .OBJ file: ', file_loc)" << std::endl << std::endl;
             // if it fails to load (ex.: missing file, bad obj, etc) it prints error to console
             m_shapes->insert({(size_t)shape.get(), shape});
         }
@@ -497,28 +497,28 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
             std::shared_ptr<ChTriangleMeshConnected> mesh = mesh_shape->GetMesh();
             bool wireframe = mesh_shape->IsWireframe();
 
-            *mfile << "verts = [ \n";
+            *mfile << "verts = [ " << std::endl;
             for (unsigned int iv = 0; iv < mesh->m_vertices.size(); iv++) {
                 *mfile << "(" << mesh->m_vertices[iv].x() << "," << mesh->m_vertices[iv].y() << ","
-                       << mesh->m_vertices[iv].z() << "),\n";
+                       << mesh->m_vertices[iv].z() << ")," << std::endl;
             }
-            *mfile << "] \n";
+            *mfile << "] " << std::endl;
 
-            *mfile << "faces = [ \n";
+            *mfile << "faces = [ " << std::endl;
             for (unsigned int ip = 0; ip < mesh->m_face_v_indices.size(); ip++) {
                 *mfile << "(" << mesh->m_face_v_indices[ip].x() << "," << mesh->m_face_v_indices[ip].y() << ","
-                       << mesh->m_face_v_indices[ip].z() << "),\n";
+                       << mesh->m_face_v_indices[ip].z() << ")," << std::endl;
             }
-            *mfile << "] \n";
+            *mfile << "] " << std::endl;
 
-            *mfile << "edges = [] \n";
+            *mfile << "edges = [] " << std::endl;
 
-            *mfile << "new_mesh = bpy.data.meshes.new('mesh_mesh') \n";
-            *mfile << "new_mesh.from_pydata(verts, edges, faces) \n";
+            *mfile << "new_mesh = bpy.data.meshes.new('mesh_mesh') " << std::endl;
+            *mfile << "new_mesh.from_pydata(verts, edges, faces) " << std::endl;
 
             if (mesh->m_face_uv_indices.size() == mesh->m_face_v_indices.size()) {
                 // UV per each triangle (corner):
-                *mfile << "uvs = [ \n";
+                *mfile << "uvs = [ " << std::endl;
                 for (unsigned int it = 0; it < mesh->m_face_uv_indices.size(); it++) {
                     *mfile << mesh->m_UV[mesh->m_face_uv_indices[it].x()].x() << ","
                            << mesh->m_UV[mesh->m_face_uv_indices[it].x()].y() << ","
@@ -526,15 +526,15 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
                            << mesh->m_UV[mesh->m_face_uv_indices[it].y()].y() << ","
                            << mesh->m_UV[mesh->m_face_uv_indices[it].z()].x() << ","
                            << mesh->m_UV[mesh->m_face_uv_indices[it].z()].y() << ","
-                           << "\n";
+                           << "" << std::endl;
                 }
-                *mfile << "] \n";
-                *mfile << "uv_layer = new_mesh.uv_layers.new(name = 'UVMap') \n";
-                *mfile << "uv_layer.data.foreach_set('uv', uvs) \n";
+                *mfile << "] " << std::endl;
+                *mfile << "uv_layer = new_mesh.uv_layers.new(name = 'UVMap') " << std::endl;
+                *mfile << "uv_layer.data.foreach_set('uv', uvs) " << std::endl;
             } else if (mesh->m_face_uv_indices.size() == 0 && mesh->m_UV.size() == mesh->m_vertices.size()) {
                 // UV per each vertex (no m_face_uv_indices, assume indexing in m_face_v_indices used per vertex
                 // coordinates )
-                *mfile << "uvs = [ \n";
+                *mfile << "uvs = [ " << std::endl;
                 for (unsigned int it = 0; it < mesh->m_UV.size(); it += 3) {
                     *mfile << mesh->m_UV[mesh->m_face_v_indices[it].x()].x() << ","
                            << mesh->m_UV[mesh->m_face_v_indices[it].x()].y() << ","
@@ -542,142 +542,142 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
                            << mesh->m_UV[mesh->m_face_v_indices[it].y()].y() << ","
                            << mesh->m_UV[mesh->m_face_v_indices[it].z()].x() << ","
                            << mesh->m_UV[mesh->m_face_v_indices[it].z()].y() << ","
-                           << "\n";
+                           << "" << std::endl;
                 }
-                *mfile << "] \n";
-                *mfile << "uv_layer = new_mesh.uv_layers.new(name = 'UVMap') \n";
-                *mfile << "uv_layer.data.foreach_set('uv', uvs) \n";
+                *mfile << "] " << std::endl;
+                *mfile << "uv_layer = new_mesh.uv_layers.new(name = 'UVMap') " << std::endl;
+                *mfile << "uv_layer.data.foreach_set('uv', uvs) " << std::endl;
             }
 
             if (mesh->m_face_mat_indices.size() == mesh->getNumTriangles()) {
-                *mfile << "mat_indices = [ \n";
+                *mfile << "mat_indices = [ " << std::endl;
                 for (unsigned int ip = 0; ip < mesh->m_face_mat_indices.size(); ip++) {
-                    *mfile << mesh->m_face_mat_indices[ip] << ",\n";
+                    *mfile << mesh->m_face_mat_indices[ip] << "," << std::endl;
                 }
-                *mfile << "] \n";
-                *mfile << "for i, myface in enumerate(new_mesh.polygons): \n";
-                *mfile << "     myface.material_index = mat_indices[i] \n";
+                *mfile << "] " << std::endl;
+                *mfile << "for i, myface in enumerate(new_mesh.polygons): " << std::endl;
+                *mfile << "     myface.material_index = mat_indices[i] " << std::endl;
             }
 
-            *mfile << "new_mesh.update() \n"
-                   << "new_object = bpy.data.objects.new('mesh_object', new_mesh) \n"
-                   << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) \n"
-                   << "new_object.name= '" << shapename << "' \n"
-                   << "new_object.data.materials.append(None) \n"
-                   << "modifier = new_object.modifiers.new(name='edgesplit', type='EDGE_SPLIT') \n"
-                   << "#modifier.split_angle = 1.0 \n";
+            *mfile << "new_mesh.update() " << std::endl
+                   << "new_object = bpy.data.objects.new('mesh_object', new_mesh) " << std::endl
+                   << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) " << std::endl
+                   << "new_object.name= '" << shapename << "' " << std::endl
+                   << "new_object.data.materials.append(None) " << std::endl
+                   << "modifier = new_object.modifiers.new(name='edgesplit', type='EDGE_SPLIT') " << std::endl
+                   << "#modifier.split_angle = 1.0 " << std::endl;
             if (wireframe) {
-                *mfile << "modifier = new_object.modifiers.new(name='wireframe', type='WIREFRAME') \n";
-                *mfile << "modifier.thickness = " << wireframe_thickness << "\n";
+                *mfile << "modifier = new_object.modifiers.new(name='wireframe', type='WIREFRAME') " << std::endl;
+                *mfile << "modifier.thickness = " << wireframe_thickness << "" << std::endl;
             }
-            *mfile << collection << ".objects.link(new_object) \n\n";
+            *mfile << collection << ".objects.link(new_object)" << std::endl << std::endl;
 
             if (mesh->m_colors.size() == mesh->m_vertices.size() || mesh->getPropertiesPerVertex().size() ||
                 mesh->getPropertiesPerFace().size()) {
-                *mfile << "meshsetting = setup_meshsetting(new_object)\n";
+                *mfile << "meshsetting = setup_meshsetting(new_object)" << std::endl;
             }
 
             if (mesh->m_colors.size() == mesh->m_vertices.size()) {
-                *mfile << "colors = [ \n";
+                *mfile << "colors = [ " << std::endl;
                 for (unsigned int iv = 0; iv < mesh->m_colors.size(); iv++) {
                     *mfile << "(" << mesh->m_colors[iv].R << "," << mesh->m_colors[iv].G << "," << mesh->m_colors[iv].B
-                           << "),\n";
+                           << ")," << std::endl;
                 }
-                *mfile << "] \n";
-                *mfile << "add_mesh_data_vectors(new_object, colors, 'chrono_color', mdomain='POINT') \n";
+                *mfile << "] " << std::endl;
+                *mfile << "add_mesh_data_vectors(new_object, colors, 'chrono_color', mdomain='POINT') " << std::endl;
 
                 *mfile << "property = setup_property_color(meshsetting, 'chrono_color', matname='mat_"
-                       << unique_bl_id((size_t)shape.get()).c_str() << "_col')\n";
-                *mfile << "mat = update_meshsetting_color_material(new_object,meshsetting, 'chrono_color')\n";
+                       << unique_bl_id((size_t)shape.get()).c_str() << "_col')" << std::endl;
+                *mfile << "mat = update_meshsetting_color_material(new_object,meshsetting, 'chrono_color')" << std::endl;
             }
 
             for (auto mprop : mesh->getPropertiesPerVertex()) {
                 if (auto mprop_scalar = dynamic_cast<ChPropertyT<double>*>(mprop)) {
-                    *mfile << "data_scalars = [ \n";
+                    *mfile << "data_scalars = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_scalar->data.size(); iv++) {
-                        *mfile << mprop_scalar->data[iv] << ",\n";
+                        *mfile << mprop_scalar->data[iv] << "," << std::endl;
                     }
-                    *mfile << "] \n";
+                    *mfile << "] " << std::endl;
                     *mfile << "add_mesh_data_floats(new_object, data_scalars, '" << mprop_scalar->name
-                           << "', mdomain='POINT') \n";
+                           << "', mdomain='POINT') " << std::endl;
 
                     *mfile << "property = setup_property_scalar(meshsetting, '" << mprop_scalar->name.c_str()
                            << "',min=" << mprop_scalar->min << ", max=" << mprop_scalar->max << ", matname='mat_"
                            << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str()
-                           << "')\n";
+                           << "')" << std::endl;
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
-                           << mprop_scalar->name.c_str() << "')\n";
+                           << mprop_scalar->name.c_str() << "')" << std::endl;
                 }
                 if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
-                    *mfile << "vectors = [ \n";
+                    *mfile << "vectors = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_vectors->data.size(); iv++) {
                         *mfile << "(" << mprop_vectors->data[iv].x() << "," << mprop_vectors->data[iv].y() << ","
-                               << mprop_vectors->data[iv].z() << "),\n";
+                               << mprop_vectors->data[iv].z() << ")," << std::endl;
                     }
-                    *mfile << "] \n";
+                    *mfile << "] " << std::endl;
                     *mfile << "add_mesh_data_vectors(new_object, vectors, '" << mprop_vectors->name
-                           << "', mdomain='POINT') \n";
+                           << "', mdomain='POINT') " << std::endl;
 
                     *mfile << "property = setup_property_vector(meshsetting, '" << mprop_vectors->name.c_str()
                            << "',min=" << mprop_vectors->min << ", max=" << mprop_vectors->max << ", matname='mat_"
                            << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str()
-                           << "')\n";
+                           << "')" << std::endl;
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
-                           << mprop_vectors->name.c_str() << "')\n";
+                           << mprop_vectors->name.c_str() << "')" << std::endl;
                 }
             }
             for (auto mprop : mesh->getPropertiesPerFace()) {
                 if (auto mprop_scalar = dynamic_cast<ChPropertyT<double>*>(mprop)) {
-                    *mfile << "data_scalars = [ \n";
+                    *mfile << "data_scalars = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_scalar->data.size(); iv++) {
-                        *mfile << mprop_scalar->data[iv] << ",\n";
+                        *mfile << mprop_scalar->data[iv] << "," << std::endl;
                     }
-                    *mfile << "] \n";
+                    *mfile << "] " << std::endl;
                     *mfile << "add_mesh_data_floats(new_object, data_scalars, '" << mprop_scalar->name
-                           << "', mdomain='POINT') \n";
+                           << "', mdomain='POINT') " << std::endl;
 
                     *mfile << "property = setup_property_scalar(meshsetting, '" << mprop_scalar->name.c_str()
                            << "',min=" << mprop_scalar->min << ", max=" << mprop_scalar->max << ", matname='mat_"
                            << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str()
-                           << "')\n";
+                           << "')" << std::endl;
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
-                           << mprop_scalar->name.c_str() << "')\n";
+                           << mprop_scalar->name.c_str() << "')" << std::endl;
                 }
                 if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
-                    *mfile << "vectors = [ \n";
+                    *mfile << "vectors = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_vectors->data.size(); iv++) {
                         *mfile << "(" << mprop_vectors->data[iv].x() << "," << mprop_vectors->data[iv].y() << ","
-                               << mprop_vectors->data[iv].z() << "),\n";
+                               << mprop_vectors->data[iv].z() << ")," << std::endl;
                     }
-                    *mfile << "] \n";
+                    *mfile << "] " << std::endl;
                     *mfile << "add_mesh_data_vectors(new_object, vectors, '" << mprop_vectors->name
-                           << "', mdomain='FACE') \n";
+                           << "', mdomain='FACE') " << std::endl;
 
                     *mfile << "property = setup_property_vector(meshsetting, '" << mprop_vectors->name.c_str()
                            << "',min=" << mprop_vectors->min << ", max=" << mprop_vectors->max << ", matname='mat_"
                            << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str()
-                           << "')\n";
+                           << "')" << std::endl;
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
-                           << mprop_vectors->name.c_str() << "')\n";
+                           << mprop_vectors->name.c_str() << "')" << std::endl;
                 }
             }
-            *mfile << "\n";
+            *mfile << "" << std::endl;
 
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
         if (auto glyph_shape = std::dynamic_pointer_cast<ChGlyphs>(shape)) {
-            *mfile << "points_" << shapename << " = [ \n";
+            *mfile << "points_" << shapename << " = [ " << std::endl;
             for (unsigned int iv = 0; iv < glyph_shape->points.size(); iv++) {
                 *mfile << "(" << glyph_shape->points[iv].x() << "," << glyph_shape->points[iv].y() << ","
-                       << glyph_shape->points[iv].z() << "),\n";
+                       << glyph_shape->points[iv].z() << ")," << std::endl;
             }
-            *mfile << "] \n";
+            *mfile << "] " << std::endl;
 
-            state_file << "glyphsetting = setup_glyph_setting('" << shapename << "',\n";
+            state_file << "glyphsetting = setup_glyph_setting('" << shapename << "'," << std::endl;
             if (glyph_shape->glyph_width_type == ChGlyphs::eCh_GlyphWidth::CONSTANT) {
                 state_file << "\twidth_type='CONST', width_scale=" << glyph_shape->glyph_scalewidth
-                           << ", \n";  // constant width
+                           << ", " << std::endl;  // constant width
             }
             if (glyph_shape->glyph_width_type == ChGlyphs::eCh_GlyphWidth::PROPERTY) {
                 auto mprop = std::find_if(std::begin(glyph_shape->m_properties), std::end(glyph_shape->m_properties),
@@ -686,30 +686,30 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
                     (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
                 state_file << "\twidth_type='PROPERTY', property_index_width=" << myprop_id
                            << ", width_scale=" << glyph_shape->glyph_scalewidth
-                           << ",\n";  // will use 1st property, the 'F', for width
+                           << "," << std::endl;  // will use 1st property, the 'F', for width
             }
             if (glyph_shape->glyph_color_type == ChGlyphs::eCh_GlyphColor::CONSTANT) {
                 state_file << "\tcolor_type='CONST', const_color=(" << glyph_shape->glyph_color_constant.R << ","
                            << glyph_shape->glyph_color_constant.G << "," << glyph_shape->glyph_color_constant.B
-                           << "), \n";  // constant color
+                           << "), " << std::endl;  // constant color
             }
             if (glyph_shape->glyph_color_type == ChGlyphs::eCh_GlyphColor::PROPERTY) {
                 auto mprop = std::find_if(std::begin(glyph_shape->m_properties), std::end(glyph_shape->m_properties),
                                           [&](auto const& p) { return p->name == glyph_shape->glyph_color_prop; });
                 int myprop_id =
                     (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
-                state_file << "\tcolor_type='PROPERTY', property_index_color=" << myprop_id << ", \n";
+                state_file << "\tcolor_type='PROPERTY', property_index_color=" << myprop_id << ", " << std::endl;
             }
             if (glyph_shape->GetDrawMode() == ChGlyphs::GLYPH_POINT) {
-                state_file << "\tglyph_type = 'POINT', \n";
+                state_file << "\tglyph_type = 'POINT', " << std::endl;
             }
             if (glyph_shape->GetDrawMode() == ChGlyphs::GLYPH_VECTOR) {
-                state_file << "\tglyph_type = 'VECTOR', \n";
-                state_file << "\tdir_type='PROPERTY', property_index_dir=0, \n";
-                state_file << "\tproperty_index_basis=0, \n";
+                state_file << "\tglyph_type = 'VECTOR', " << std::endl;
+                state_file << "\tdir_type='PROPERTY', property_index_dir=0, " << std::endl;
+                state_file << "\tproperty_index_basis=0, " << std::endl;
                 if (glyph_shape->glyph_length_type == ChGlyphs::eCh_GlyphLength::CONSTANT) {
                     state_file << "\tlength_type='CONST', length_scale=" << glyph_shape->glyph_scalelenght
-                               << ", \n";  // constant length
+                               << ", " << std::endl;  // constant length
                 }
                 if (glyph_shape->glyph_length_type == ChGlyphs::eCh_GlyphLength::PROPERTY) {
                     auto mprop =
@@ -718,20 +718,20 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
                     int myprop_id =
                         (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
                     state_file << "\tlength_type='PROPERTY', property_index_length=" << myprop_id
-                               << ", length_scale=" << glyph_shape->glyph_scalelenght << ",\n";
+                               << ", length_scale=" << glyph_shape->glyph_scalelenght << "," << std::endl;
                 }
                 if (glyph_shape->vector_tip)
-                    state_file << "\tdo_tip=True,\n";
+                    state_file << "\tdo_tip=True," << std::endl;
                 else
-                    state_file << "\tdo_tip=False,\n";
+                    state_file << "\tdo_tip=False," << std::endl;
             }
             if (glyph_shape->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS) {
-                state_file << "\tglyph_type = 'COORDSYS', \n";
+                state_file << "\tglyph_type = 'COORDSYS', " << std::endl;
                 if (glyph_shape->glyph_basis_type == ChGlyphs::eCh_GlyphBasis::CONSTANT) {
                     state_file << "\tbasis_type='CONST', const_basis=(" << glyph_shape->glyph_basis_constant.e0() << ","
                                << glyph_shape->glyph_basis_constant.e1() << ","
                                << glyph_shape->glyph_basis_constant.e2() << ","
-                               << glyph_shape->glyph_basis_constant.e3() << "), \n";  // constant basis
+                               << glyph_shape->glyph_basis_constant.e3() << "), " << std::endl;  // constant basis
                 }
                 if (glyph_shape->glyph_basis_type == ChGlyphs::eCh_GlyphBasis::PROPERTY) {
                     auto mprop =
@@ -739,16 +739,16 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
                                      [&](auto const& p) { return p->name == glyph_shape->glyph_basis_prop; });
                     int myprop_id =
                         (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
-                    state_file << "\tbasis_type='PROPERTY', property_index_basis=" << myprop_id << ", \n";
+                    state_file << "\tbasis_type='PROPERTY', property_index_basis=" << myprop_id << ", " << std::endl;
                 }
             }
             if (glyph_shape->GetDrawMode() == ChGlyphs::GLYPH_TENSOR) {
-                state_file << "\tglyph_type = 'TENSOR', \n";
+                state_file << "\tglyph_type = 'TENSOR', " << std::endl;
                 if (glyph_shape->glyph_basis_type == ChGlyphs::eCh_GlyphBasis::CONSTANT) {
                     state_file << "\tbasis_type='CONST', const_basis=(" << glyph_shape->glyph_basis_constant.e0() << ","
                                << glyph_shape->glyph_basis_constant.e1() << ","
                                << glyph_shape->glyph_basis_constant.e2() << ","
-                               << glyph_shape->glyph_basis_constant.e3() << "), \n";  // constant basis
+                               << glyph_shape->glyph_basis_constant.e3() << "), " << std::endl;  // constant basis
                 }
                 if (glyph_shape->glyph_basis_type == ChGlyphs::eCh_GlyphBasis::PROPERTY) {
                     auto mprop =
@@ -756,13 +756,13 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
                                      [&](auto const& p) { return p->name == glyph_shape->glyph_basis_prop; });
                     int myprop_id =
                         (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
-                    state_file << "\tbasis_type='PROPERTY', property_index_basis=" << myprop_id << ", \n";
+                    state_file << "\tbasis_type='PROPERTY', property_index_basis=" << myprop_id << ", " << std::endl;
                 }
                 if (glyph_shape->glyph_eigenvalues_type == ChGlyphs::eCh_GlyphEigenvalues::CONSTANT) {
                     state_file << "\teigenvalues_type='CONST', const_eigenvalues=("
                                << glyph_shape->glyph_eigenvalue_constant.x() << ","
                                << glyph_shape->glyph_eigenvalue_constant.y() << ","
-                               << glyph_shape->glyph_eigenvalue_constant.z() << "), \n";  // constant basis
+                               << glyph_shape->glyph_eigenvalue_constant.z() << "), " << std::endl;  // constant basis
                 }
                 if (glyph_shape->glyph_eigenvalues_type == ChGlyphs::eCh_GlyphEigenvalues::PROPERTY) {
                     auto mprop =
@@ -770,116 +770,116 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
                                      [&](auto const& p) { return p->name == glyph_shape->glyph_eigenvalues_prop; });
                     int myprop_id =
                         (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
-                    state_file << "\teigenvalues_type='PROPERTY', property_index_eigenvalues=" << myprop_id << ",\n";
+                    state_file << "\teigenvalues_type='PROPERTY', property_index_eigenvalues=" << myprop_id << "," << std::endl;
                 }
             }
-            state_file << "\t)\n";
+            state_file << "\t)" << std::endl;
 
             for (auto mprop : glyph_shape->getProperties()) {
                 if (auto mprop_scalar = dynamic_cast<ChPropertyT<double>*>(mprop)) {
-                    *mfile << "data_" << mprop_scalar->name.c_str() << " = [ \n";
+                    *mfile << "data_" << mprop_scalar->name.c_str() << " = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_scalar->data.size(); iv++) {
-                        *mfile << mprop_scalar->data[iv] << ",\n";
+                        *mfile << mprop_scalar->data[iv] << "," << std::endl;
                     }
-                    *mfile << "] \n";
+                    *mfile << "] " << std::endl;
                     *mfile << "property = setup_property_scalar(glyphsetting, '" << mprop_scalar->name.c_str()
                            << "',min=" << mprop_scalar->min << ", max=" << mprop_scalar->max << ", matname='mat_"
                            << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str()
-                           << "', per_instance=True)\n";
+                           << "', per_instance=True)" << std::endl;
                 }
                 if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
-                    *mfile << "data_" << mprop_vectors->name.c_str() << " = [ \n";
+                    *mfile << "data_" << mprop_vectors->name.c_str() << " = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_vectors->data.size(); iv++) {
                         *mfile << "(" << mprop_vectors->data[iv].x() << "," << mprop_vectors->data[iv].y() << ","
-                               << mprop_vectors->data[iv].z() << "),\n";
+                               << mprop_vectors->data[iv].z() << ")," << std::endl;
                     }
-                    *mfile << "] \n";
+                    *mfile << "] " << std::endl;
                     *mfile << "property = setup_property_vector(glyphsetting, '" << mprop_vectors->name.c_str()
                            << "',min=" << mprop_vectors->min << ", max=" << mprop_vectors->max << ", matname='mat_"
                            << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str()
-                           << "', per_instance=True)\n";
+                           << "', per_instance=True)" << std::endl;
                 }
                 if (auto mprop_rots = dynamic_cast<ChPropertyT<ChQuaternion<>>*>(mprop)) {
-                    *mfile << "data_" << mprop_rots->name.c_str() << " = [ \n";
+                    *mfile << "data_" << mprop_rots->name.c_str() << " = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_rots->data.size(); iv++) {
                         *mfile << "(" << mprop_rots->data[iv].e0() << "," << mprop_rots->data[iv].e1() << ","
-                               << mprop_rots->data[iv].e2() << "," << mprop_rots->data[iv].e3() << "),\n";
+                               << mprop_rots->data[iv].e2() << "," << mprop_rots->data[iv].e3() << ")," << std::endl;
                     }
-                    *mfile << "] \n";
+                    *mfile << "] " << std::endl;
                     *mfile << "property = setup_property_quaternion(glyphsetting, '" << mprop_rots->name.c_str()
                            << "',min=" << mprop_rots->min << ", max=" << mprop_rots->max << ", matname='mat_"
                            << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_rots->name.c_str()
-                           << "', per_instance=True)\n";
+                           << "', per_instance=True)" << std::endl;
                 }
                 if (auto mprop_cols = dynamic_cast<ChPropertyT<ChColor>*>(mprop)) {
-                    *mfile << "data_" << mprop_cols->name.c_str() << " = [ \n";
+                    *mfile << "data_" << mprop_cols->name.c_str() << " = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_cols->data.size(); iv++) {
                         *mfile << "(" << mprop_cols->data[iv].R << "," << mprop_cols->data[iv].G << ","
-                               << mprop_cols->data[iv].B << "),\n";
+                               << mprop_cols->data[iv].B << ")," << std::endl;
                     }
-                    *mfile << "] \n";
+                    *mfile << "] " << std::endl;
                     *mfile << "property = setup_property_color(glyphsetting, '" << mprop_cols->name.c_str()
                            << "', matname='mat_" << unique_bl_id((size_t)shape.get()).c_str() << "_"
-                           << mprop_cols->name.c_str() << "', per_instance=True)\n";
+                           << mprop_cols->name.c_str() << "', per_instance=True)" << std::endl;
                 }
             }
             state_file << "new_objects = update_make_glyphs(glyphsetting, '" << shapename << "',";
             state_file << "(" << blender_frame.GetPos().x() << "," << blender_frame.GetPos().y() << ","
                        << blender_frame.GetPos().z() << "),";
             state_file << "(" << blender_frame.GetRot().e0() << "," << blender_frame.GetRot().e1() << ","
-                       << blender_frame.GetRot().e2() << "," << blender_frame.GetRot().e3() << "), \n";
-            state_file << "  points_" << shapename << ",\n";
-            state_file << "  list_attributes=[ \n";
+                       << blender_frame.GetRot().e2() << "," << blender_frame.GetRot().e3() << "), " << std::endl;
+            state_file << "  points_" << shapename << "," << std::endl;
+            state_file << "  list_attributes=[ " << std::endl;
             for (auto mprop : glyph_shape->getProperties()) {
-                state_file << "   ['" << mprop->name.c_str() << "', data_" << mprop->name.c_str() << "], \n";
+                state_file << "   ['" << mprop->name.c_str() << "', data_" << mprop->name.c_str() << "], " << std::endl;
             }
-            state_file << "  ], \n";
-            state_file << ") \n";
+            state_file << "  ], " << std::endl;
+            state_file << ") " << std::endl;
 
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
         if (auto line_shape = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
-            *mfile << "create_chrono_path('" << shapename << "',\n";
-            *mfile << "[ \n";
+            *mfile << "create_chrono_path('" << shapename << "'," << std::endl;
+            *mfile << "[ " << std::endl;
             for (unsigned int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
                 auto pt = line_shape->GetLineGeometry()->Evaluate(i / (double)(line_shape->GetNumRenderPoints() - 1));
-                *mfile << "(" << pt.x() << "," << pt.y() << "," << pt.z() << "),\n";
+                *mfile << "(" << pt.x() << "," << pt.y() << "," << pt.z() << ")," << std::endl;
             }
-            *mfile << "],\n";
+            *mfile << "]," << std::endl;
             *mfile << "(" << line_shape->GetColor().R << "," << line_shape->GetColor().G << ","
-                   << line_shape->GetColor().B << ",1),\n";
-            *mfile << line_shape->GetThickness() << ",\n";
+                   << line_shape->GetColor().B << ",1)," << std::endl;
+            *mfile << line_shape->GetThickness() << "," << std::endl;
             if (per_frame)
                 *mfile << "chrono_frame_materials"
-                       << ",\n";
+                       << "," << std::endl;
             else
                 *mfile << "chrono_materials"
-                       << ",\n";
-            *mfile << collection << "\n";
-            *mfile << ")\n\n";
+                       << "," << std::endl;
+            *mfile << collection << "" << std::endl;
+            *mfile << ")" << std::endl << std::endl;
 
             m_shapes->insert({(size_t)shape.get(), shape});
         }
         if (auto line_shape = std::dynamic_pointer_cast<ChVisualShapePath>(shape)) {
-            *mfile << "create_chrono_path('" << shapename << "',\n";
-            *mfile << "[ \n";
+            *mfile << "create_chrono_path('" << shapename << "'," << std::endl;
+            *mfile << "[ " << std::endl;
             for (unsigned int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
                 auto pt = line_shape->GetPathGeometry()->Evaluate(i / (double)(line_shape->GetNumRenderPoints() - 1));
-                *mfile << "(" << pt.x() << "," << pt.y() << "," << pt.z() << "),\n";
+                *mfile << "(" << pt.x() << "," << pt.y() << "," << pt.z() << ")," << std::endl;
             }
-            *mfile << "],\n";
+            *mfile << "]," << std::endl;
             *mfile << "(" << line_shape->GetColor().R << "," << line_shape->GetColor().G << ","
-                   << line_shape->GetColor().B << ",1),\n";
-            *mfile << line_shape->GetThickness() << ",\n";
+                   << line_shape->GetColor().B << ",1)," << std::endl;
+            *mfile << line_shape->GetThickness() << "," << std::endl;
             if (per_frame)
                 *mfile << "chrono_frame_materials"
-                       << ",\n";
+                       << "," << std::endl;
             else
                 *mfile << "chrono_materials"
-                       << ",\n";
-            *mfile << collection << "\n";
-            *mfile << ")\n\n";
+                       << "," << std::endl;
+            *mfile << collection << "" << std::endl;
+            *mfile << ")" << std::endl << std::endl;
 
             m_shapes->insert({(size_t)shape.get(), shape});
         }
@@ -894,32 +894,32 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
         if (this->m_blender_cameras.find((size_t)camera_instance.get()) != this->m_blender_cameras.end())
             continue;
 
-        ChStreamOutAsciiFile* mfile;
+        std::ofstream* mfile;
         mfile = &assets_file;
 
         std::string cameraname("camera_" + unique_bl_id((size_t)camera_instance.get()));
-        *mfile << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1)) \n"
-               << "new_object = bpy.context.object \n"
-               << "new_object.name= '" << cameraname << "' \n"
-               << "new_object.data.lens_unit='FOV' \n";
+        *mfile << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1)) " << std::endl
+               << "new_object = bpy.context.object " << std::endl
+               << "new_object.name= '" << cameraname << "' " << std::endl
+               << "new_object.data.lens_unit='FOV' " << std::endl;
         if (camera_instance->IsOrthographic()) {
-            *mfile << "new_object.data.type='ORTHO'\n";
+            *mfile << "new_object.data.type='ORTHO'" << std::endl;
             *mfile << "new_object.data.ortho_scale="
                    << double((camera_instance->GetPosition() - camera_instance->GetAimPoint()).Length() *
                              tan(0.5 * camera_instance->GetAngle() * chrono::CH_C_DEG_TO_RAD))
-                   << "\n";
+                   << "" << std::endl;
         } else {
-            *mfile << "new_object.data.type='PERSP'\n";
-            *mfile << "new_object.data.angle=" << camera_instance->GetAngle() * chrono::CH_C_DEG_TO_RAD << "\n";
+            *mfile << "new_object.data.type='PERSP'" << std::endl;
+            *mfile << "new_object.data.angle=" << camera_instance->GetAngle() * chrono::CH_C_DEG_TO_RAD << "" << std::endl;
         }
-        *mfile << "chrono_cameras.objects.link(new_object) \n"
-               << "bpy.context.scene.collection.objects.unlink(new_object) \n\n";
+        *mfile << "chrono_cameras.objects.link(new_object) " << std::endl
+               << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl << std::endl;
 
         m_blender_cameras.insert({(size_t)camera_instance.get(), camera_instance});
     }
 }
 
-void ChBlender::ExportMaterials(ChStreamOutAsciiFile& mfile,
+void ChBlender::ExportMaterials(std::ofstream& mfile,
                                 std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>& m_materials,
                                 const std::vector<std::shared_ptr<ChVisualMaterial>>& materials,
                                 bool per_frame,
@@ -975,16 +975,16 @@ void ChBlender::ExportMaterials(ChStreamOutAsciiFile& mfile,
         mfile << "emissionRGB=(" << mat->GetEmissiveColor().R << "," << mat->GetEmissiveColor().G << ","
               << mat->GetEmissiveColor().B << ", 1"
               << ")";
-        mfile << ") \n";
+        mfile << ") " << std::endl;
 
         if (per_frame)
-            mfile << "chrono_frame_materials.append(new_mat) \n\n";
+            mfile << "chrono_frame_materials.append(new_mat)" << std::endl << std::endl;
         else
-            mfile << "chrono_materials.append(new_mat) \n\n";
+            mfile << "chrono_materials.append(new_mat)" << std::endl << std::endl;
     }
 }
 
-void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
+void ChBlender::ExportItemState(std::ofstream& state_file,
                                 std::shared_ptr<ChPhysicsItem> item,
                                 const ChFrame<>& parentframe) {
     auto vis_model = item->GetVisualModel();
@@ -1015,18 +1015,18 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                        << "(" << parentframe.GetPos().x() << "," << parentframe.GetPos().y() << ","
                        << parentframe.GetPos().z() << "),"
                        << "(" << parentframe.GetRot().e0() << "," << parentframe.GetRot().e1() << ","
-                       << parentframe.GetRot().e2() << "," << parentframe.GetRot().e3() << "), \n";
+                       << parentframe.GetRot().e2() << "," << parentframe.GetRot().e3() << "), " << std::endl;
         } else {
             state_file << "make_chrono_object_assetlist('" << item->GetName() << "',"
                        << "(" << parentframe.GetPos().x() << "," << parentframe.GetPos().y() << ","
                        << parentframe.GetPos().z() << "),"
                        << "(" << parentframe.GetRot().e0() << "," << parentframe.GetRot().e1() << ","
-                       << parentframe.GetRot().e2() << "," << parentframe.GetRot().e3() << "), \n";
+                       << parentframe.GetRot().e2() << "," << parentframe.GetRot().e3() << "), " << std::endl;
         }
 
         // List visual shapes to use as children of the Blender object (parent)
 
-        state_file << "[\n";
+        state_file << "[" << std::endl;
         for (const auto& shape_instance : vis_model->GetShapes()) {
             const auto& shape = shape_instance.first;
 
@@ -1072,12 +1072,12 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                 if (aux_scale != VNULL) {
                     state_file << "(" << aux_scale.x() << "," << aux_scale.y() << "," << aux_scale.z() << ")";
                 }
-                state_file << "],\n";
+                state_file << "]," << std::endl;
             }
 
         }  // end loop on shape instances
 
-        state_file << "],\n";
+        state_file << "]," << std::endl;
 
         // in case of particle clones, add array of positions&rotations of particles
 
@@ -1088,11 +1088,11 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                 ChCoordsys<> partframe = particleclones->GetParticle(m).GetCoord();
                 state_file << "[(" << partframe.pos.x() << "," << partframe.pos.y() << "," << partframe.pos.z() << "),";
                 state_file << "(" << partframe.rot.e0() << "," << partframe.rot.e1() << "," << partframe.rot.e2() << ","
-                           << partframe.rot.e3() << ")], \n";
+                           << partframe.rot.e3() << ")], " << std::endl;
             }
-            state_file << "]\n";
+            state_file << "]" << std::endl;
         }
-        state_file << ") \n\n";
+        state_file << ")" << std::endl << std::endl;
 
     }  // end if has_stored_assets
 
@@ -1114,14 +1114,14 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                        << cframeabs.GetPos().z() << "),";
             state_file << "(" << cframeabs.GetRot().e0() << "," << cframeabs.GetRot().e1() << ","
                        << cframeabs.GetRot().e2() << "," << cframeabs.GetRot().e3() << ")";
-            state_file << ")\n\n";
+            state_file << ")" << std::endl << std::endl;
         }
     }
 
     // Check if there are custom commands set for this physics item, assuming them always mutable (per-frame)
     auto commands = m_custom_commands.find((size_t)item.get());
     if (commands != m_custom_commands.end()) {
-        state_file << commands->second << "\n";
+        state_file << commands->second << "" << std::endl;
     }
 }
 
@@ -1143,12 +1143,12 @@ void ChBlender::ExportData(const std::string& filename) {
 
     // Open the non-mutable single assets file in "append" mode:
     std::string assets_filename = out_script_filename + ".assets.py";
-    ChStreamOutAsciiFile assets_file(base_path + assets_filename, std::ios::app);
+    std::ofstream assets_file(base_path + assets_filename, std::ios::app);
 
     // Generate the nnnnn.dat and nnnnn.py files:
     try {
-        ChStreamOutAsciiFile data_file(base_path + filename + ".dat");
-        ChStreamOutAsciiFile state_file(base_path + filename + ".py");
+        std::ofstream data_file(base_path + filename + ".dat");
+        std::ofstream state_file(base_path + filename + ".py");
 
         // reset the maps of mutable (per-frame) assets, so that these will be saved at ExportAssets()
         m_blender_frame_shapes.clear();
@@ -1161,9 +1161,9 @@ void ChBlender::ExportData(const std::string& filename) {
 
         // Write custom data commands, if provided by the user
         if (custom_data.size() > 0) {
-            state_file << "# Custom user-added script: \n\n";
+            state_file << "# Custom user-added script:" << std::endl << std::endl;
             state_file << custom_data;
-            state_file << "\n\n";
+            state_file << "" << std::endl << std::endl;
         }
 
         // Save time-dependent data for the geometry of objects in ...nnnn.POV and in ...nnnn.DAT file
@@ -1196,25 +1196,25 @@ void ChBlender::ExportData(const std::string& filename) {
                 if (linkmate->GetBody1() && linkmate->GetBody2() && frames_links_show) {
                     ChFrame<> frAabs = linkmate->GetFrame1() >> *linkmate->GetBody1() >> blender_frame;
                     ChFrame<> frBabs = linkmate->GetFrame2() >> *linkmate->GetBody2() >> blender_frame;
-                    state_file << "if chrono_view_links_csys:\n";
+                    state_file << "if chrono_view_links_csys:" << std::endl;
                     state_file << "\tmcsysA = make_chrono_csys(";
                     state_file << "(" << frAabs.GetPos().x() << ", " << frAabs.GetPos().y() << ", "
                                << frAabs.GetPos().z() << "),";
                     state_file << "(" << frAabs.GetRot().e0() << "," << frAabs.GetRot().e1() << ","
                                << frAabs.GetRot().e2() << "," << frAabs.GetRot().e3() << "),";
-                    state_file << "None, chrono_view_links_csys_size) \n";
+                    state_file << "None, chrono_view_links_csys_size) " << std::endl;
                     state_file << "\tmcsysA.name = '" << linkmate->GetName() << "_frame_A"
-                               << "'\n";
-                    state_file << "\tchrono_frame_objects.objects.link(mcsysA)\n";
+                               << "'" << std::endl;
+                    state_file << "\tchrono_frame_objects.objects.link(mcsysA)" << std::endl;
                     state_file << "\tmcsysB = make_chrono_csys(";
                     state_file << "(" << frBabs.GetPos().x() << ", " << frBabs.GetPos().y() << ", "
                                << frBabs.GetPos().z() << "),";
                     state_file << "(" << frBabs.GetRot().e0() << "," << frBabs.GetRot().e1() << ","
                                << frBabs.GetRot().e2() << "," << frBabs.GetRot().e3() << "),";
-                    state_file << "None, chrono_view_links_csys_size) \n";
+                    state_file << "None, chrono_view_links_csys_size) " << std::endl;
                     state_file << "\tmcsysB.name = '" << linkmate->GetName() << "_frame_B"
-                               << "'\n";
-                    state_file << "\tchrono_frame_objects.objects.link(mcsysB)\n";
+                               << "'" << std::endl;
+                    state_file << "\tchrono_frame_objects.objects.link(mcsysB)" << std::endl;
                 }
             }
 
@@ -1256,16 +1256,16 @@ void ChBlender::ExportData(const std::string& filename) {
                         (*mfile) << react_forces.x() << ", ";
                         (*mfile) << react_forces.y() << ", ";
                         (*mfile) << react_forces.z();
-                        (*mfile) << "],\n";
+                        (*mfile) << "]," << std::endl;
                     }
                     return true;  // to continue scanning contacts
                 }
                 // Data
-                ChStreamOutAsciiFile* mfile;
+                std::ofstream* mfile;
             };
 
-            state_file << "if chrono_view_contacts:\n";
-            state_file << "\tcontacts= np.array([ \n";
+            state_file << "if chrono_view_contacts:" << std::endl;
+            state_file << "\tcontacts= np.array([ " << std::endl;
 
             auto my_contact_reporter = chrono_types::make_shared<_reporter_class>();
             my_contact_reporter->mfile = &state_file;
@@ -1273,67 +1273,67 @@ void ChBlender::ExportData(const std::string& filename) {
             // scan all contacts
             mSystem->GetContactContainer()->ReportAllContacts(my_contact_reporter);
 
-            state_file << "\t])\n";
+            state_file << "\t])" << std::endl;
 
-            state_file << "\tif len(contacts):\n";
-            state_file << "\t\tglyphsetting = setup_glyph_setting('contacts', glyph_type ='VECTOR LOCAL',\n";
-            state_file << "\t\t\tdir_type='PROPERTY', property_index_dir=0, \n";  // will use 1st property, the 'F', for
+            state_file << "\tif len(contacts):" << std::endl;
+            state_file << "\t\tglyphsetting = setup_glyph_setting('contacts', glyph_type ='VECTOR LOCAL'," << std::endl;
+            state_file << "\t\t\tdir_type='PROPERTY', property_index_dir=0, " << std::endl;  // will use 1st property, the 'F', for
                                                                                   // direction of force vector, in local
                                                                                   // frame of contact plane
-            state_file << "\t\t\tproperty_index_basis=1, \n";  // will use 2nd property, the 'loc_rot', for local
+            state_file << "\t\t\tproperty_index_basis=1, " << std::endl;  // will use 2nd property, the 'loc_rot', for local
                                                                // rotation of contact plane
             if (this->contacts_vector_length_type == ContactSymbolVectorLength::CONSTANT) {
                 state_file << "\t\t\tlength_type='CONST', length_scale=" << this->contacts_vector_scalelenght
-                           << ", \n";  // constant length
+                           << ", " << std::endl;  // constant length
             }
             if (this->contacts_vector_length_type == ContactSymbolVectorLength::PROPERTY) {
                 state_file << "\t\t\tlength_type='PROPERTY', property_index_length=0, length_scale="
-                           << this->contacts_vector_scalelenght << ",\n";  // will use 1st property, the 'F', for length
+                           << this->contacts_vector_scalelenght << "," << std::endl;  // will use 1st property, the 'F', for length
             }
             if (this->contacts_vector_width_type == ContactSymbolVectorWidth::CONSTANT) {
                 state_file << "\t\t\twidth_type='CONST', width_scale=" << this->contacts_vector_scalewidth
-                           << ", \n";  // constant width
+                           << ", " << std::endl;  // constant width
             }
             if (this->contacts_vector_width_type == ContactSymbolVectorWidth::PROPERTY) {
                 state_file << "\t\t\twidth_type='PROPERTY', property_index_width=0, width_scale="
-                           << this->contacts_vector_scalewidth << ",\n";  // will use 1st property, the 'F', for width
+                           << this->contacts_vector_scalewidth << "," << std::endl;  // will use 1st property, the 'F', for width
             }
             if (this->contacts_color_type == ContactSymbolColor::CONSTANT) {
                 state_file << "\t\t\tcolor_type='CONST', const_color=(" << contacts_color_constant.R << ","
                            << contacts_color_constant.G << "," << contacts_color_constant.B
-                           << "), \n";  // constant color
+                           << "), " << std::endl;  // constant color
             }
             if (this->contacts_color_type == ContactSymbolColor::PROPERTY) {
                 state_file
-                    << "\t\t\tcolor_type='PROPERTY', property_index_color=0, \n";  // will use 1st property, the 'F',
+                    << "\t\t\tcolor_type='PROPERTY', property_index_color=0, " << std::endl;  // will use 1st property, the 'F',
                                                                                    // for color falsecolor scale
             }
             if (this->contacts_vector_tip)
-                state_file << "\t\t\tdo_tip=True,\n";
+                state_file << "\t\t\tdo_tip=True," << std::endl;
             else
-                state_file << "\t\t\tdo_tip=False,\n";
-            state_file << "\t\t)\n";
+                state_file << "\t\t\tdo_tip=False," << std::endl;
+            state_file << "\t\t)" << std::endl;
 
             state_file << "\t\tproperty = setup_property_vector(glyphsetting, 'F', matname = 'contacts_color_F', ";
             state_file << "mcolormap = 'colormap_cooltowarm', ";
             state_file << "min=" << this->contacts_colormap_startscale << ", ";
             state_file << "max=" << this->contacts_colormap_endscale << ", ";
-            state_file << "per_instance = True) \n";
+            state_file << "per_instance = True) " << std::endl;
 
             state_file << "\t\tproperty = setup_property_quaternion(glyphsetting, 'loc_rot', "
-                          "matname='contacts_color_rot', per_instance=True)\n";
+                          "matname='contacts_color_rot', per_instance=True)" << std::endl;
 
             state_file << "\t\tnew_objects = update_make_glyphs(glyphsetting, 'contacts',";
             state_file << "(" << blender_frame.GetPos().x() << "," << blender_frame.GetPos().y() << ","
                        << blender_frame.GetPos().z() << "),";
             state_file << "(" << blender_frame.GetRot().e0() << "," << blender_frame.GetRot().e1() << ","
-                       << blender_frame.GetRot().e2() << "," << blender_frame.GetRot().e3() << "), \n";
-            state_file << "\t\t  list(map(tuple,contacts[:,0:3])),\n";
-            state_file << "\t\t  list_attributes=[ \n";
-            state_file << "\t\t    ['F', list(map(tuple,contacts[:,7:10]))], \n";
-            state_file << "\t\t    ['loc_rot', list(map(tuple,contacts[:,3:7]))], \n";
-            state_file << "\t\t  ], \n";
-            state_file << "\t\t) \n";
+                       << blender_frame.GetRot().e2() << "," << blender_frame.GetRot().e3() << "), " << std::endl;
+            state_file << "\t\t  list(map(tuple,contacts[:,0:3]))," << std::endl;
+            state_file << "\t\t  list_attributes=[ " << std::endl;
+            state_file << "\t\t    ['F', list(map(tuple,contacts[:,7:10]))], " << std::endl;
+            state_file << "\t\t    ['loc_rot', list(map(tuple,contacts[:,3:7]))], " << std::endl;
+            state_file << "\t\t  ], " << std::endl;
+            state_file << "\t\t) " << std::endl;
         }
 
     } catch (const ChException&) {

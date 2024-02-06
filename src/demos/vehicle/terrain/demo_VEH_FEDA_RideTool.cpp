@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
     ChFunction_Recorder powRec;
     
     std::string datafile = out_dir + "/test_gnuplot_data.dat";
-    ChStreamOutAsciiFile mdatafile(datafile.c_str());
+    std::ofstream mdatafile(datafile.c_str());
 
     bool power_limit_reached = 0;
     double speed = speed_start;

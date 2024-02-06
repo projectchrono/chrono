@@ -338,7 +338,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
     std::cout << "Stiffness matr file dump. L=" << length << " A=" << m_section->Area << " E=" <<
     m_section->E << " I=" << m_section->Izz << std::endl;
     std::cout << StiffnessMatrix;
-    ChStreamOutAsciiFile mdump("dump_stiff.txt");
+    std::ofstream mdump("dump_stiff.txt");
     StiffnessMatrix.StreamOutDenseMatlabFormat(mdump);
     */
 }

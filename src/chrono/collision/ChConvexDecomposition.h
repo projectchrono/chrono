@@ -66,12 +66,12 @@ class ChApi ChConvexDecomposition {
 
     /// Write the convex decomposition to a ".chulls" file,
     /// where each hull is a sequence of x y z coords. Can throw exceptions.
-    virtual bool WriteConvexHullsAsChullsFile(ChStreamOutAscii& mstream);
+    virtual bool WriteConvexHullsAsChullsFile(std::ostream& mstream);
 
     /// Save the computed convex hulls as a Wavefront file using the
     /// '.obj' fileformat, with each hull as a separate group.
     /// May throw exceptions if file locked etc.
-    virtual void WriteConvexHullsAsWavefrontObj(ChStreamOutAscii& mstream) = 0;
+    virtual void WriteConvexHullsAsWavefrontObj(std::ostream& mstream) = 0;
 };
 
 /// Class for wrapping the HACD convex decomposition code by Khaled Mamou.
@@ -136,7 +136,7 @@ class ChApi ChConvexDecompositionHACD : public ChConvexDecomposition {
     /// Save the computed convex hulls as a Wavefront file using the
     /// '.obj' fileformat, with each hull as a separate group.
     /// May throw exceptions if file locked etc.
-    virtual void WriteConvexHullsAsWavefrontObj(ChStreamOutAscii& mstream);
+    virtual void WriteConvexHullsAsWavefrontObj(std::ostream& mstream);
 
   private:
     HACD::HACD* myHACD;
@@ -197,7 +197,7 @@ class ChApi ChConvexDecompositionHACDv2 : public ChConvexDecomposition {
     /// Save the computed convex hulls as a Wavefront file using the
     /// '.obj' fileformat, with each hull as a separate group.
     /// May throw exceptions if file locked etc.
-    virtual void WriteConvexHullsAsWavefrontObj(ChStreamOutAscii& mstream);
+    virtual void WriteConvexHullsAsWavefrontObj(std::ostream& mstream);
 
   private:
     HACD::HACD_API::Desc descriptor;

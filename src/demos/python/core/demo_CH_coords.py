@@ -67,11 +67,6 @@ print (mr*my_vect1);
 my_frame = chrono.ChFrameD(my_vect2, chrono.Q_from_AngAxis(20*chrono.CH_C_DEG_TO_RAD, chrono.ChVectorD(1,0,0)))
 my_vect5 = my_vect1 >> my_frame
 
-# Print the class hierarchy of a chrono class
-import inspect
-inspect.getmro(chrono.ChStreamOutAsciiFile)
-
-
 
 # Use the ChFunction classes
 my_funct = chrono.ChFunction_Sine(0,0.5,3)

@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
 
     // Log the names of all items inserted in the system
     std::cout << "SYSTEM ITEMS:" << std::endl;
-    sys.ShowHierarchy(GetLog());
+    sys.ShowHierarchy(std::cout);
 
     // Restore path to Chrono data files (modified by the Python importer)
     SetChronoDataPath(data_path);

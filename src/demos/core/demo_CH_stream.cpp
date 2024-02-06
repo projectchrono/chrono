@@ -48,49 +48,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    /*
-     *  TEST SOME BASIC FILE I/O , AS ASCII FILE WRITE/SAVE
-     *
-     */
-
-    // Chrono stream classes use exceptions for error handling,
-    // so you should use the try-catch mechanism.
-    // Exceptions thrown are of class ChException.
-    try {
-        // Open a file of class "ChStreamOutAsciiFile" for writing ascii
-        ChStreamOutAsciiFile mfileo(out_dir + "/foo_file.txt");
-
-        // Write some items, space-separated, inside the ascii file.
-        // The class ChStreamOutAsciiFile implements the << operator for most
-        // basic types (double, int, string, etc.).
-        mfileo << "test_token  " << 123 << " " << 0.123437;
-
-    } catch (const ChException& myex) {
-        // Ops.. file could not be opened or written.. echo what happened!
-        std::cerr << "ERROR: " << myex.what();
-    }
-
-    // Ok, you wrote something in your pollo_file.txt file,
-    // so now try to load from it...
-    try {
-        // Open a file for reading ascii: the ChStreamInAsciiFile has
-        // some minimal parsing capabilities...
-        ChStreamInAsciiFile mfilei(out_dir + "/foo_file.txt");
-
-        // Try to load some text tokens and convert them (at least each token
-        // separated by space or linefeed..)
-        char sbuff[200];
-        int mint;
-        double mdouble;
-        mfilei >> sbuff >> mint >> mdouble;
-
-        // Write to the console the values which have been read from file..
-        std::cout << "\nResult of ascii  I/O:  " << sbuff << " " << mint << " " << mdouble << std::endl;
-
-    } catch (const ChException& myex) {
-        // Ops.. file could not be opened or read.. echo what happened!
-        std::cerr << "ERROR: " << myex.what();
-    }
 
     /*
      *  TEST BINARY STREAMING

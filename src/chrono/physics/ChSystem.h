@@ -400,7 +400,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Write the hierarchy of contained bodies, markers, etc. in ASCII
     /// readable form, mostly for debugging purposes. Level is the tab spacing at the left.
-    void ShowHierarchy(ChStreamOutAscii& m_file, int level = 0) const { assembly.ShowHierarchy(m_file, level); }
+    void ShowHierarchy(std::ostream& m_file, int level = 0) const { assembly.ShowHierarchy(m_file, level); }
 
     /// Removes all bodies/marker/forces/links/contacts, also resets timers and events.
     void Clear();

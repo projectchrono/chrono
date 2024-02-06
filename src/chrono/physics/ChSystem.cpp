@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include <algorithm>
+#include <iomanip>
 
 #include "chrono/core/ChLog.h"
 
@@ -1064,19 +1065,20 @@ void ChSystem::StateIncrementX(ChState& x_new, const ChState& x, const ChStateDe
 //  |-Dl|   [ Cq  0   ]      |-Qc|
 // for given residuals R and -Qc, and  H = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]
 // This function returns true if successful and false otherwise.
-bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: computed Dv
-                                    ChVectorDynamic<>& Dl,        // result: computed Dl lagrangian multipliers, if any. Note sign.
-                                    const ChVectorDynamic<>& R,   // the R residual
-                                    const ChVectorDynamic<>& Qc,  // the Qc residual. Note sign.
-                                    const double c_a,             // the factor in c_a*M
-                                    const double c_v,             // the factor in c_v*dF/dv
-                                    const double c_x,             // the factor in c_x*dF/dx
-                                    const ChState& x,             // current state, x part
-                                    const ChStateDelta& v,        // current state, v part
-                                    const double T,               // current time T
-                                    bool force_state_scatter,     // if false, x,v and T are not scattered to the system
-                                    bool full_update,             // if true, perform a full update during scatter
-                                    bool force_setup              // if true, call the solver's Setup() function
+bool ChSystem::StateSolveCorrection(
+    ChStateDelta& Dv,             // result: computed Dv
+    ChVectorDynamic<>& Dl,        // result: computed Dl lagrangian multipliers, if any. Note sign.
+    const ChVectorDynamic<>& R,   // the R residual
+    const ChVectorDynamic<>& Qc,  // the Qc residual. Note sign.
+    const double c_a,             // the factor in c_a*M
+    const double c_v,             // the factor in c_v*dF/dv
+    const double c_x,             // the factor in c_x*dF/dx
+    const ChState& x,             // current state, x part
+    const ChStateDelta& v,        // current state, v part
+    const double T,               // current time T
+    bool force_state_scatter,     // if false, x,v and T are not scattered to the system
+    bool full_update,             // if true, perform a full update during scatter
+    bool force_setup              // if true, call the solver's Setup() function
 ) {
     CH_PROFILE("StateSolveCorrection");
 
@@ -1106,7 +1108,6 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
     // Diagnostics:
     if (write_matrix) {
-        const char* numformat = "%.12g";
         std::string prefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount);
 
         if (std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
@@ -1116,12 +1117,12 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
             descriptor->WriteMatrixBlocks(output_dir, prefix);
         }
 
-        ChStreamOutAsciiFile file_x(output_dir + "/" + prefix + "_x_pre.dat");
-        file_x.SetNumFormat(numformat);
+        std::ofstream file_x(output_dir + "/" + prefix + "_x_pre.dat");
+        file_x << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(x, file_x);
 
-        ChStreamOutAsciiFile file_v(output_dir + "/" + prefix + "_v_pre.dat");
-        file_v.SetNumFormat(numformat);
+        std::ofstream file_v(output_dir + "/" + prefix + "_v_pre.dat");
+        file_v << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(v, file_v);
     }
 
@@ -1149,15 +1150,14 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
     // Diagnostics:
     if (write_matrix) {
-        const char* numformat = "%.12g";
         std::string prefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount) + "_";
 
-        ChStreamOutAsciiFile file_Dv(output_dir + "/" + prefix + "Dv.dat");
-        file_Dv.SetNumFormat(numformat);
+        std::ofstream file_Dv(output_dir + "/" + prefix + "Dv.dat");
+        file_Dv << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(Dv, file_Dv);
 
-        ChStreamOutAsciiFile file_Dl(output_dir + "/" + prefix + "Dl.dat");
-        file_Dl.SetNumFormat(numformat);
+        std::ofstream file_Dl(output_dir + "/" + prefix + "Dl.dat");
+        file_Dl << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(Dl, file_Dl);
 
         // Just for diagnostic, dump also unscaled loads (forces,torques),
@@ -1165,8 +1165,8 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         ChVectorDynamic<> tempF(this->GetNcoords_v());
         tempF.setZero();
         LoadResidual_F(tempF, 1.0);
-        ChStreamOutAsciiFile file_F(output_dir + "/" + prefix + "F_pre.dat");
-        file_F.SetNumFormat(numformat);
+        std::ofstream file_F(output_dir + "/" + prefix + "F_pre.dat");
+        file_F << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(tempF, file_F);
     }
 
@@ -1236,7 +1236,7 @@ void ChSystem::LoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, const doubl
 
     // Use also on contact container: [ does nothing anyway ]
     unsigned int displ_v = off - assembly.offset_w;
-    contact_container->IntLoadLumpedMass_Md(displ_v + contact_container->GetOffset_w(), Md, err, c); 
+    contact_container->IntLoadLumpedMass_Md(displ_v + contact_container->GetOffset_w(), Md, err, c);
 }
 
 // Increment a vectorR with the term Cq'*L:
@@ -1431,29 +1431,29 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
     if (save_M) {
         ChSparseMatrix mM;
         this->GetMassMatrix(&mM);
-        ChStreamOutAsciiFile file_M(path + "_M.dat");
-        file_M.SetNumFormat(numformat);
+        std::ofstream file_M(path + "_M.dat");
+        file_M << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mM, file_M);
     }
     if (save_K) {
         ChSparseMatrix mK;
         this->GetStiffnessMatrix(&mK);
-        ChStreamOutAsciiFile file_K(path + "_K.dat");
-        file_K.SetNumFormat(numformat);
+        std::ofstream file_K(path + "_K.dat");
+        file_K << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mK, file_K);
     }
     if (save_R) {
         ChSparseMatrix mR;
         this->GetDampingMatrix(&mR);
-        ChStreamOutAsciiFile file_R(path + "_R.dat");
-        file_R.SetNumFormat(numformat);
+        std::ofstream file_R(path + "_R.dat");
+        file_R << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mR, file_R);
     }
     if (save_Cq) {
         ChSparseMatrix mCq;
         this->GetConstraintJacobianMatrix(&mCq);
-        ChStreamOutAsciiFile file_Cq(path + "_Cq.dat");
-        file_Cq.SetNumFormat(numformat);
+        std::ofstream file_Cq(path + "_Cq.dat");
+        file_Cq << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mCq, file_Cq);
     }
 }
@@ -1495,19 +1495,20 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
         std::cout << "   - independent: " << independent_row_count << std::endl;
         std::cout << "   - dependent: " << Cq_rows - independent_row_count << std::endl;
         std::cout << "   Redundant constraints [Cq_global row idx , linkname, Cq_link row idx]:" << std::endl;
-        for (auto c_sel = 0; c_sel < redundant_constraints_idx.size(); ++c_sel){
+        for (auto c_sel = 0; c_sel < redundant_constraints_idx.size(); ++c_sel) {
             // find corresponding link
             std::shared_ptr<ChLinkBase> corr_link;
-            for (const auto& link : Get_linklist()){
-                if (redundant_constraints_idx[c_sel] >= link->GetOffset_L() && redundant_constraints_idx[c_sel] < link->GetOffset_L() + link->GetDOC()){
+            for (const auto& link : Get_linklist()) {
+                if (redundant_constraints_idx[c_sel] >= link->GetOffset_L() &&
+                    redundant_constraints_idx[c_sel] < link->GetOffset_L() + link->GetDOC()) {
                     corr_link = link;
                     break;
                 }
             }
 
-
-            std::cout << "      - [" << redundant_constraints_idx[c_sel] << "]: " << corr_link->GetName()
-                              << "[" << (redundant_constraints_idx[c_sel] - corr_link->GetOffset_L()) << "/" << corr_link->GetDOC() << "]" << std::endl;
+            std::cout << "      - [" << redundant_constraints_idx[c_sel] << "]: " << corr_link->GetName() << "["
+                      << (redundant_constraints_idx[c_sel] - corr_link->GetOffset_L()) << "/" << corr_link->GetDOC()
+                      << "]" << std::endl;
         }
     }
 
@@ -1785,7 +1786,7 @@ bool ChSystem::DoStaticLinear() {
 
         ChVectorDynamic<double> mx;
         GetSystemDescriptor()->FromUnknownsToVector(mx, true);  // x ={q,-l}
-        ChStreamOutAsciiFile file_x("solve_x.dat");
+        std::ofstream file_x("solve_x.dat");
         StreamOutDenseMatlabFormat(mx, file_x);
 
         ChVectorDynamic<double> mZx;

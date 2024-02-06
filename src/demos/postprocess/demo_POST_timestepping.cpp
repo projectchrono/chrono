@@ -68,7 +68,7 @@ void example1(const std::string& out_dir) {
 
     // File to dump results
     std::string logfile = out_dir + "/log_timestepper_1.dat";
-    ChStreamOutAsciiFile log_file1(out_dir + "/log_timestepper_1.dat");
+    std::ofstream log_file1(out_dir + "/log_timestepper_1.dat");
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable;
@@ -83,7 +83,7 @@ void example1(const std::string& out_dir) {
         double exact_solution = exp(mystepper.GetTime()) - 1;
         std::cout << " T = " << mystepper.GetTime() << "  x=" << mystepper.get_Y()(0) << "  x_exact=" << exact_solution
                   << std::endl;
-        log_file1 << mystepper.GetTime() << ", " << mystepper.get_Y()(0) << ", " << exact_solution << "\n";
+        log_file1 << mystepper.GetTime() << ", " << mystepper.get_Y()(0) << ", " << exact_solution << std::endl;
     }
 
     // Plot results
@@ -168,7 +168,7 @@ void example2(const std::string& out_dir) {
 
     // File to dump results
     std::string logfile = out_dir + "/log_timestepper_2.dat";
-    ChStreamOutAsciiFile log_file2(out_dir + "/log_timestepper_2.dat");
+    std::ofstream log_file2(out_dir + "/log_timestepper_2.dat");
 
     // Try integrator Euler explicit
 
@@ -192,7 +192,7 @@ void example2(const std::string& out_dir) {
         std::cout << " T = " << mystepper.GetTime() << "  x=" << mystepper.get_Y()(0) << "  v=" << mystepper.get_Y()(1)
                   << std::endl;
         log_file2 << mystepper.GetTime() << ", " << mystepper.get_Y()(0) << ", " << mystepper.get_Y()(1) << ", "
-                  << mystepper_rk.get_Y()(0) << ", " << mystepper_rk.get_Y()(1) << "\n";
+                  << mystepper_rk.get_Y()(0) << ", " << mystepper_rk.get_Y()(1) << std::endl;
     }
 
     // Plot results
@@ -283,7 +283,7 @@ void example3(const std::string& out_dir) {
     // Create a file to dump results
     std::string logfile = out_dir + "/log_timestepper_3.dat";
     std::string logfilename = out_dir + "/log_timestepper_3.dat";
-    ChStreamOutAsciiFile log_file3(logfilename);
+    std::ofstream log_file3(logfilename);
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable1;
@@ -305,7 +305,7 @@ void example3(const std::string& out_dir) {
                   << "  v=" << mystepper1.get_Y()(1) << std::endl;
         log_file3 << mystepper1.GetTime() << ", " << mystepper1.get_Y()(0) << ", " << mystepper1.get_Y()(1) << ", "
                   << mystepper2.get_X()(0) << ", " << mystepper2.get_V()(0) << ", " << mystepper3.get_X()(0) << ", "
-                  << mystepper3.get_V()(0) << "\n";
+                  << mystepper3.get_V()(0) << std::endl;
     }
 
     // Plot results
@@ -459,7 +459,7 @@ void example4(const std::string& out_dir) {
 
     // Create a file to dump results
     std::string logfilename = out_dir + "/log_timestepper_4.dat";
-    ChStreamOutAsciiFile log_file4(logfilename);
+    std::ofstream log_file4(logfilename);
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable1;
@@ -505,7 +505,7 @@ void example4(const std::string& out_dir) {
                   << mystepper3.get_V()(0) << ", " << mystepper4.get_X()(0) << ", " << mystepper4.get_V()(0) << ", "
                   << mystepper5.get_X()(0) << ", " << mystepper5.get_V()(0) << ", " << mystepper6.get_X()(0) << ", "
                   << mystepper6.get_V()(0) << ", " << mystepper7.get_X()(0) << ", " << mystepper7.get_V()(0) << ", "
-                  << mystepper8.get_X()(0) << ", " << mystepper8.get_V()(0) << "\n";
+                  << mystepper8.get_X()(0) << ", " << mystepper8.get_V()(0) << std::endl;
     }
 
     // Plot results
@@ -707,10 +707,10 @@ void example5(const std::string& out_dir) {
     std::string logfilename5r = out_dir + "/log_timestepper_5r.dat";
     std::string logfilename5e = out_dir + "/log_timestepper_5e.dat";
     std::string logfilename5er = out_dir + "/log_timestepper_5er.dat";
-    ChStreamOutAsciiFile log_file5(logfilename5);
-    ChStreamOutAsciiFile log_file5r(logfilename5r);
-    ChStreamOutAsciiFile log_file5e(logfilename5e);
-    ChStreamOutAsciiFile log_file5er(logfilename5er);
+    std::ofstream log_file5(logfilename5);
+    std::ofstream log_file5r(logfilename5r);
+    std::ofstream log_file5e(logfilename5e);
+    std::ofstream log_file5er(logfilename5er);
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable1;
@@ -795,10 +795,10 @@ void example5(const std::string& out_dir) {
                   << mystepper5.get_X()(1) << ", " << mystepper5.get_V()(0) << ", " << mystepper5.get_V()(1) << ", "
                   << mystepper6.get_X()(0) << ", " << mystepper6.get_X()(1) << ", " << mystepper6.get_V()(0) << ", "
                   << mystepper6.get_V()(1) << ", " << my_body_B->GetPos().x() << ", " << my_body_B->GetPos().y() << ", "
-                  << my_body_B->GetPos_dt().x() << ", " << my_body_B->GetPos_dt().y() << "\n";
+                  << my_body_B->GetPos_dt().x() << ", " << my_body_B->GetPos_dt().y() << std::endl;
         log_file5r << mystepper1.GetTime() << ", " << mystepper1.get_L()(0) << ", " << mystepper2.get_L()(0) << ", "
                    << mystepper3.get_L()(0) << ", " << mystepper4.get_L()(0) << ", " << mystepper5.get_L()(0) << ", "
-                   << mystepper6.get_L()(0) << ", " << my_link_AB->Get_react_force().y() << "\n";
+                   << mystepper6.get_L()(0) << ", " << my_link_AB->Get_react_force().y() << std::endl;
     }
     // Execute the time integration with the explicit integrator,
     // hence using smaller time step
@@ -812,8 +812,8 @@ void example5(const std::string& out_dir) {
                    //<< mystepper7.get_V()(1) << ", "
                    << mystepper7.get_Y()(0) << ", " << mystepper7.get_Y()(1) << ", " << mystepper7.get_Y()(2) << ", "
                    << mystepper7.get_Y()(3) << ", "
-                   << "\n";
-        log_file5er << mystepper7.GetTime() << ", " << mystepper7.get_L()(0) << "\n";
+                   << std::endl;
+        log_file5er << mystepper7.GetTime() << ", " << mystepper7.get_L()(0) << std::endl;
     }
 
     std::string gplfile = out_dir + "/tmp_timestepping_5.gpl";
@@ -863,7 +863,7 @@ void example5(const std::string& out_dir) {
 }
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2021 projectchrono.org" << std::endl << "Chrono version: " << CHRONO_VERSION << std::endl;
 
     std::cout << "CHRONO demo about low-level time integration of differential equations:" << std::endl;
 

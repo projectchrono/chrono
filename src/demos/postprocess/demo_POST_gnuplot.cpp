@@ -99,9 +99,9 @@ int main(int argc, char* argv[]) {
         // Step 1.
         // create a .dat file with three columns of demo data:
         std::string datafilename = out_dir + "/test_gnuplot_data.dat";
-        ChStreamOutAsciiFile datafile(datafilename);
+        std::ofstream datafile(datafilename);
         for (double x = 0; x < 10; x += 0.1)
-            datafile << x << ", " << sin(x) << ", " << cos(x) << "\n";
+            datafile << x << ", " << sin(x) << ", " << cos(x) << std::endl;
 
         // Step 2.
         // Create the plot.

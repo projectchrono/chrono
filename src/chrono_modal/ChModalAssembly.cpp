@@ -12,6 +12,7 @@
 // Authors: Alessandro Tasora 
 // =============================================================================
 
+#include <iomanip>
 
 #include "chrono_modal/ChModalAssembly.h"
 #include "chrono/physics/ChSystem.h"
@@ -264,17 +265,17 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMat
 
     // Debug dump data. ***TODO*** remove
     if (true) {
-        ChStreamOutAsciiFile fileP("dump_modal_Psi.dat");
-        fileP.SetNumFormat("%.12g");
+        std::ofstream fileP("dump_modal_Psi.dat");
+        fileP << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(Psi, fileP);
-        ChStreamOutAsciiFile fileM("dump_modal_M.dat");
-        fileM.SetNumFormat("%.12g");
+        std::ofstream fileM("dump_modal_M.dat");
+        fileM << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(this->modal_M, fileM);
-        ChStreamOutAsciiFile fileK("dump_modal_K.dat");
-        fileK.SetNumFormat("%.12g");
+        std::ofstream fileK("dump_modal_K.dat");
+        fileK << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(this->modal_K, fileK);
-        ChStreamOutAsciiFile fileR("dump_modal_R.dat");
-        fileR.SetNumFormat("%.12g");
+        std::ofstream fileR("dump_modal_R.dat");
+        fileR << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(this->modal_R, fileR);
     }
 }
@@ -851,34 +852,33 @@ void ChModalAssembly::GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq)
 }
 
 void ChModalAssembly::DumpSubassemblyMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path) {
-    const char* numformat = "%.12g";
 
     if (save_M) {
         ChSparseMatrix mM;
         this->GetSubassemblyMassMatrix(&mM);
-        ChStreamOutAsciiFile file_M(path + "_M.dat");
-        file_M.SetNumFormat(numformat);
+        std::ofstream file_M(path + "_M.dat");
+        file_M << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mM, file_M);
     }
     if (save_K) {
         ChSparseMatrix mK;
         this->GetSubassemblyStiffnessMatrix(&mK);
-        ChStreamOutAsciiFile file_K(path + "_K.dat");
-        file_K.SetNumFormat(numformat);
+        std::ofstream file_K(path + "_K.dat");
+        file_K << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mK, file_K);
     }
     if (save_R) {
         ChSparseMatrix mR;
         this->GetSubassemblyDampingMatrix(&mR);
-        ChStreamOutAsciiFile file_R(path + "_R.dat");
-        file_R.SetNumFormat(numformat);
+        std::ofstream file_R(path + "_R.dat");
+        file_R << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mR, file_R);
     }
     if (save_Cq) {
         ChSparseMatrix mCq;
         this->GetSubassemblyConstraintJacobianMatrix(&mCq);
-        ChStreamOutAsciiFile file_Cq(path + "_Cq.dat");
-        file_Cq.SetNumFormat(numformat);
+        std::ofstream file_Cq(path + "_Cq.dat");
+        file_Cq << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mCq, file_Cq);
     }
 }

@@ -243,12 +243,12 @@ HMMWV_Full* CreateVehicle(ChSystem* sys, double vertical_offset);
 HMMWV_Driver* CreateDriver(HMMWV_Full* hmmwv);
 
 void progressbar(unsigned int x, unsigned int n, unsigned int w = 50);
-void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAsciiFile* ofile = NULL);
+void TimingOutput(chrono::ChSystem* mSys, std::ostream* ofile = NULL);
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl << "Chrono version: " << CHRONO_VERSION << std::endl;
 
     // ------------------------
     // Convert input parameters
@@ -274,13 +274,13 @@ int main(int argc, char* argv[]) {
 
     if (output || povray) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            cout << "Error creating directory " << out_dir << endl;
+            std::cerr << "Error creating directory " << out_dir << endl;
             return 1;
         }
 
         if (povray) {
             if (!filesystem::create_directory(filesystem::path(pov_dir))) {
-                std::cout << "Error creating directory " << pov_dir << std::endl;
+                std::cerr << "Error creating directory " << pov_dir << std::endl;
                 return 1;
             }
         }
@@ -615,7 +615,7 @@ void progressbar(unsigned int x, unsigned int n, unsigned int w) {
 }
 
 // Utility function to print to console a few important step statistics
-void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAsciiFile* ofile) {
+void TimingOutput(chrono::ChSystem* mSys, std::ostream* ofile) {
     double TIME = mSys->GetChTime();
     double STEP = mSys->GetTimerStep();
     double BROD = mSys->GetTimerCollisionBroad();

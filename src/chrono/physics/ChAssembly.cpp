@@ -1502,55 +1502,55 @@ void ChAssembly::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor)
 // -----------------------------------------------------------------------------
 //  STREAMING - FILE HANDLING
 
-void ChAssembly::ShowHierarchy(ChStreamOutAscii& m_file, int level) const {
+void ChAssembly::ShowHierarchy(std::ostream& outstream, int level) const {
     std::string mtabs;
     for (int i = 0; i < level; ++i)
         mtabs += "  ";
 
-    m_file << "\n" << mtabs << "List of the " << (int)bodylist.size() << " added rigid bodies: \n";
+    outstream << "\n" << mtabs << "List of the " << (int)bodylist.size() << " added rigid bodies:" << std::endl;
     for (auto& body : bodylist) {
-        m_file << mtabs << "  BODY:       " << body->GetName() << "\n";
+        outstream << mtabs << "  BODY:       " << body->GetName() << std::endl;
 
         for (auto& marker : body->GetMarkerList()) {
-            m_file << mtabs << "    MARKER:  " << marker->GetName() << "\n";
+            outstream << mtabs << "    MARKER:  " << marker->GetName() << std::endl;
         }
 
         for (auto& force : body->GetForceList()) {
-            m_file << mtabs << "    FORCE:  " << force->GetName() << "\n";
+            outstream << mtabs << "    FORCE:  " << force->GetName() << std::endl;
         }
     }
 
-    m_file << "\n" << mtabs << "List of the " << (int)shaftlist.size() << " added shafts: \n";
+    outstream << "\n" << mtabs << "List of the " << (int)shaftlist.size() << " added shafts:" << std::endl;
     for (auto& shaft : shaftlist) {
-        m_file << mtabs << "  SHAFT:      " << shaft->GetName() << "\n";
+        outstream << mtabs << "  SHAFT:      " << shaft->GetName() << std::endl;
     }
 
-    m_file << "\n" << mtabs << "List of the " << (int)linklist.size() << " added links: \n";
+    outstream << "\n" << mtabs << "List of the " << (int)linklist.size() << " added links:" << std::endl;
     for (auto& link : linklist) {
-        m_file << mtabs << "  LINK:       " << link->GetName() << " [" << typeid(link.get()).name() << "]\n";
+        outstream << mtabs << "  LINK:       " << link->GetName() << " [" << typeid(link.get()).name() << "]" << std::endl;
         if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
             if (malink->GetMarker1())
-                m_file << mtabs << "    marker1:  " << malink->GetMarker1()->GetName() << "\n";
+                outstream << mtabs << "    marker1:  " << malink->GetMarker1()->GetName() << std::endl;
             if (malink->GetMarker2())
-                m_file << mtabs << "    marker2:  " << malink->GetMarker2()->GetName() << "\n";
+                outstream << mtabs << "    marker2:  " << malink->GetMarker2()->GetName() << std::endl;
         }
     }
 
-    m_file << "\n" << mtabs << "List of the " << (int)meshlist.size() << " added meshes: \n";
+    outstream << "\n" << mtabs << "List of the " << (int)meshlist.size() << " added meshes:" << std::endl;
     for (auto& mesh : meshlist) {
-        m_file << mtabs << "  MESH :      " << mesh->GetName() << "\n";
+        outstream << mtabs << "  MESH :      " << mesh->GetName() << std::endl;
     }
 
-    m_file << "\n" << mtabs << "List of other " << (int)otherphysicslist.size() << " added physic items: \n";
+    outstream << "\n" << mtabs << "List of other " << (int)otherphysicslist.size() << " added physic items:" << std::endl;
     for (auto& item : otherphysicslist) {
-        m_file << mtabs << "  PHYSIC ITEM: " << item->GetName() << " [" << typeid(item.get()).name() << "]\n";
+        outstream << mtabs << "  PHYSIC ITEM: " << item->GetName() << " [" << typeid(item.get()).name() << "]" << std::endl;
 
         // recursion:
         if (auto assem = std::dynamic_pointer_cast<ChAssembly>(item))
-            assem->ShowHierarchy(m_file, level + 1);
+            assem->ShowHierarchy(outstream, level + 1);
     }
 
-    m_file << "\n\n";
+    outstream << std::endl;
 }
 
 void ChAssembly::ArchiveOut(ChArchiveOut& marchive) {

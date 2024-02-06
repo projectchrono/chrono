@@ -204,11 +204,11 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
 
   private:
     void UpdateRenderList();
-    void ExportAssets(ChStreamOutAsciiFile& assets_file);
-    void ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<ChPhysicsItem> item);
-    void ExportMaterials(ChStreamOutAsciiFile& assets_file,
+    void ExportAssets(std::ofstream& assets_file);
+    void ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysicsItem> item);
+    void ExportMaterials(std::ofstream& assets_file,
                          const std::vector<std::shared_ptr<ChVisualMaterial>>& materials);
-    void ExportObjData(ChStreamOutAsciiFile& pov_file,
+    void ExportObjData(std::ofstream& pov_file,
                        std::shared_ptr<ChPhysicsItem> item,
                        const ChFrame<>& parentframe);
 

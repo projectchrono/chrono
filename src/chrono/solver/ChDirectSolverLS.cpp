@@ -12,6 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChSparsityPatternLearner.h"
 
@@ -100,9 +102,10 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
 
     if (verbose) {
         std::cout << " Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros()
-                 << std::endl;
+                  << std::endl;
         std::cout << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s" << std::endl
-                 << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s" << std::endl;
+                  << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s"
+                  << std::endl;
     }
 
     m_setup_call++;
@@ -143,7 +146,7 @@ double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
         double res_norm = (m_rhs - m_mat * m_sol).norm();
         std::cout << " Solver solve [" << m_solve_call << "]  |residual| = " << res_norm << std::endl << std::endl;
         std::cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s" << std::endl
-                 << "  solve:             " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << std::endl;
+                  << "  solve:             " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << std::endl;
     }
 
     if (!result) {
@@ -170,9 +173,10 @@ bool ChDirectSolverLS::SetupCurrent() {
 
     if (verbose) {
         std::cout << " Solver SetupCurrent() [" << m_setup_call << "] n = " << m_dim
-                 << "  nnz = " << (int)m_mat.nonZeros() << std::endl;
+                  << "  nnz = " << (int)m_mat.nonZeros() << std::endl;
         std::cout << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s" << std::endl
-                 << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s" << std::endl;
+                  << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s"
+                  << std::endl;
     }
 
     m_setup_call++;
@@ -198,9 +202,10 @@ double ChDirectSolverLS::SolveCurrent() {
 
     if (verbose) {
         double res_norm = (m_rhs - m_mat * m_sol).norm();
-        std::cout << " Solver SolveCurrent() [" << m_solve_call << "]  |residual| = " << res_norm << std::endl << std::endl;
+        std::cout << " Solver SolveCurrent() [" << m_solve_call << "]  |residual| = " << res_norm << std::endl
+                  << std::endl;
         std::cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s" << std::endl
-                 << "  solve:             " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << std::endl;
+                  << "  solve:             " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << std::endl;
     }
 
     if (!result) {
@@ -215,23 +220,23 @@ double ChDirectSolverLS::SolveCurrent() {
 // ---------------------------------------------------------------------------
 
 void ChDirectSolverLS::WriteMatrix(const std::string& filename, const ChSparseMatrix& M) {
-    ChStreamOutAsciiFile file(filename);
-    file.SetNumFormat("%.12g");
+    std::ofstream file(filename);
+    file << std::setprecision(12) << std::scientific;
     for (int i = 0; i < M.rows(); i++) {
         for (int j = 0; j < M.cols(); j++) {
             double elVal = M.coeff(i, j);
             if (elVal || (i == M.rows() - 1 && j == M.cols() - 1)) {
-                file << i + 1 << " " << j + 1 << " " << elVal << "\n";
+                file << i + 1 << " " << j + 1 << " " << elVal << std::endl;
             }
         }
     }
 }
 
 void ChDirectSolverLS::WriteVector(const std::string& filename, const ChVectorDynamic<double>& v) {
-    ChStreamOutAsciiFile file(filename);
-    file.SetNumFormat("%.12g");
+    std::ofstream file(filename);
+    file << std::setprecision(12) << std::scientific;
     for (int i = 0; i < v.size(); i++)
-        file << v(i) << "\n";
+        file << v(i) << std::endl;
 }
 
 // ---------------------------------------------------------------------------

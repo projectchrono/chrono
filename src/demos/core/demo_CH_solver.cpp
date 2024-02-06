@@ -157,16 +157,16 @@ void test_1(const std::string& out_dir) {
     mdescriptor.ConvertToMatrixForm(&matrCq, &matrM, 0, 0, 0, 0, false, false);
 
     try {
-        ChStreamOutAsciiFile fileM(out_dir + "/dump_M_1.dat");
-        ChStreamOutAsciiFile fileCq(out_dir + "/dump_Cq_1.dat");
+        std::ofstream fileM(out_dir + "/dump_M_1.dat");
+        std::ofstream fileCq(out_dir + "/dump_Cq_1.dat");
         StreamOutSparseMatlabFormat(matrM, fileM);
         StreamOutSparseMatlabFormat(matrCq, fileCq);
     } catch (const ChException& myex) {
         std::cerr << "FILE ERROR: " << myex.what();
     }
 
-    StreamOut(matrM, GetLog());
-    StreamOut(matrCq, GetLog());
+    StreamOut(matrM, std::cout);
+    StreamOut(matrCq, std::cout);
 
     std::cout << "**** Using ChSolverPSOR  **********" << std::endl << std::endl;
     std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << " " << std::endl
@@ -234,22 +234,22 @@ void test_2(const std::string& out_dir) {
         ChVectorDynamic<double> mdfric;
         mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
-        chrono::ChStreamOutAsciiFile file_M(out_dir + "/dump_M_2.dat");
+        std::ofstream file_M(out_dir + "/dump_M_2.dat");
         StreamOutSparseMatlabFormat(mdM, file_M);
-
-        chrono::ChStreamOutAsciiFile file_Cq(out_dir + "/dump_Cq_2.dat");
+        
+        std::ofstream file_Cq(out_dir + "/dump_Cq_2.dat");
         StreamOutSparseMatlabFormat(mdCq, file_Cq);
-
-        chrono::ChStreamOutAsciiFile file_E(out_dir + "/dump_E_2.dat");
+        
+        std::ofstream file_E(out_dir + "/dump_E_2.dat");
         StreamOutSparseMatlabFormat(mdE, file_E);
-
-        chrono::ChStreamOutAsciiFile file_f(out_dir + "/dump_f_2.dat");
+        
+        std::ofstream file_f(out_dir + "/dump_f_2.dat");
         StreamOutDenseMatlabFormat(mdf, file_f);
-
-        chrono::ChStreamOutAsciiFile file_b(out_dir + "/dump_b_2.dat");
+        
+        std::ofstream file_b(out_dir + "/dump_b_2.dat");
         StreamOutDenseMatlabFormat(mdb, file_b);
 
-        chrono::ChStreamOutAsciiFile file_fric(out_dir + "/dump_fric_2.dat");
+        std::ofstream file_fric(out_dir + "/dump_fric_2.dat");
         StreamOutDenseMatlabFormat(mdfric, file_fric);
     } catch (const chrono::ChException& myexc) {
         std::cerr << myexc.what();

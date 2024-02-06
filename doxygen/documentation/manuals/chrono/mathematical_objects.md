@@ -148,7 +148,7 @@ Save values of a sine ChFunction  into a file.
 	f_sine.Set_amp(2);		// set amplitude;
 	f_sine.Set_freq(1.5);	// set frequency;
 
-	ChStreamOutAsciiFile file_f_sine ("f_sine_out.dat");
+	std::ofstream file_f_sine ("f_sine_out.dat");
 
 	// Evaluate y=f(x) function along 100 x points, and its derivatives, 
 	// and save to file (later it can be loaded, for example, in Matlab)
@@ -190,7 +190,7 @@ public:
 
 ChFunction_MyTest f_test;
 
-ChStreamOutAsciiFile file_f_test ("f_test_out.dat");
+std::ofstream file_f_test ("f_test_out.dat");
 
 // Evaluate y=f(x) function along 100 x points, and its derivatives, 
 // and save to file (later it can be loaded, for example, in Matlab)

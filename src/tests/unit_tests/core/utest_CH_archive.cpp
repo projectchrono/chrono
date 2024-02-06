@@ -245,23 +245,19 @@ void create_test(std::function<void(ChSystemNSC&)> assembler_fun,
 
         assembler_fun(system);
 
-        std::shared_ptr<ChStreamOut> streamout;
+        ChStreamOutBinaryFile outstreambinary(outputfile + extension);
+        std::ofstream outstreamfile(outputfile + extension);
         std::shared_ptr<ChArchiveOut> archiveout;
+
         switch (outtype) {
             case ArchiveType::BINARY:
-                streamout = chrono_types::make_shared<ChStreamOutBinaryFile>(outputfile + extension);
-                archiveout = chrono_types::make_shared<ChArchiveOutBinary>(
-                    *std::dynamic_pointer_cast<ChStreamOutBinaryFile>(streamout));
+                archiveout = chrono_types::make_shared<ChArchiveOutBinary>(outstreambinary);
                 break;
             case ArchiveType::JSON:
-                streamout = chrono_types::make_shared<ChStreamOutAsciiFile>(outputfile + extension);
-                archiveout = chrono_types::make_shared<ChArchiveOutJSON>(
-                    *std::dynamic_pointer_cast<ChStreamOutAsciiFile>(streamout));
+                archiveout = chrono_types::make_shared<ChArchiveOutJSON>(outstreamfile);
                 break;
             case ArchiveType::XML:
-                streamout = chrono_types::make_shared<ChStreamOutAsciiFile>(outputfile + extension);
-                archiveout = chrono_types::make_shared<ChArchiveOutXML>(
-                    *std::dynamic_pointer_cast<ChStreamOutAsciiFile>(streamout));
+                archiveout = chrono_types::make_shared<ChArchiveOutXML>(outstreamfile);
                 break;
         };
 
@@ -277,23 +273,18 @@ void create_test(std::function<void(ChSystemNSC&)> assembler_fun,
         system.StateGather(*state_before_archive, *state_delta_dummy, time_dummy);
     }
 
-    std::shared_ptr<ChStreamIn> streamin;
+    ChStreamInBinaryFile instreambinary(outputfile + extension);
+    std::ifstream instreamfile(outputfile + extension);
     std::shared_ptr<ChArchiveIn> archivein;
     switch (outtype) {
         case ArchiveType::BINARY:
-            streamin = chrono_types::make_shared<ChStreamInBinaryFile>(outputfile + extension);
-            archivein = chrono_types::make_shared<ChArchiveInBinary>(
-                *std::dynamic_pointer_cast<ChStreamInBinaryFile>(streamin));
+            archivein = chrono_types::make_shared<ChArchiveInBinary>(instreambinary);
             break;
         case ArchiveType::JSON:
-            streamin = chrono_types::make_shared<ChStreamInAsciiFile>(outputfile + extension);
-            archivein =
-                chrono_types::make_shared<ChArchiveInJSON>(*std::dynamic_pointer_cast<ChStreamInAsciiFile>(streamin));
+            archivein = chrono_types::make_shared<ChArchiveInJSON>(instreamfile);
             break;
         case ArchiveType::XML:
-            streamin = chrono_types::make_shared<ChStreamInAsciiFile>(outputfile + extension);
-            archivein =
-                chrono_types::make_shared<ChArchiveInXML>(*std::dynamic_pointer_cast<ChStreamInAsciiFile>(streamin));
+            archivein = chrono_types::make_shared<ChArchiveInXML>(instreamfile);
             break;
     };
 
@@ -341,7 +332,7 @@ TEST(ChArchiveJSON, Pendulum) {
         moving_body->SetIdentifier(101);
         system.Add(moving_body);
 
-        ChStreamOutAsciiFile mfileo("ChArchiveJSON_Pendulum.json");
+        std::ofstream mfileo("ChArchiveJSON_Pendulum.json");
         ChArchiveOutJSON marchiveout(mfileo);
         marchiveout << CHNVP(system);
 
@@ -356,7 +347,7 @@ TEST(ChArchiveJSON, Pendulum) {
         system.StateGather(*state_before_archive, *state_delta_dummy, time_dummy);
     }
 
-    ChStreamInAsciiFile mfilei("ChArchiveJSON_Pendulum.json");
+    std::ifstream mfilei("ChArchiveJSON_Pendulum.json");
     ChArchiveInJSON marchivein(mfilei);
     marchivein.TryTolerateMissingTokens(true);
 
@@ -421,7 +412,7 @@ TEST(ChArchiveJSON, Solver) {
         // std::cout << "solverVI_ptr   : " << solverVI_ptr << std::endl;
         // std::cout << "solverBase_ptr : " << solverBase_ptr << std::endl;
 
-        ChStreamOutAsciiFile mfileo(outputfile + ".json");
+        std::ofstream mfileo(outputfile + ".json");
         ChArchiveOutJSON marchiveout(mfileo);
 
         marchiveout << CHNVP(solverBase_ptr);
@@ -429,7 +420,7 @@ TEST(ChArchiveJSON, Solver) {
         delete solverPSOR_ptr;
     }
 
-    ChStreamInAsciiFile mfilei(outputfile + ".json");
+    std::ifstream mfilei(outputfile + ".json");
     ChArchiveInJSON marchivein(mfilei);
     ChSolver* solverBase_ptr;
     marchivein >> CHNVP(solverBase_ptr);
@@ -444,7 +435,7 @@ TEST(ChArchiveJSON, nullpointers) {
                              std::string(::testing::UnitTest::GetInstance()->current_test_info()->name());
 
     {
-        ChStreamOutAsciiFile mfileo(outputfile + ".json");
+        std::ofstream mfileo(outputfile + ".json");
         ChArchiveOutJSON marchiveout(mfileo);
 
         ChVector<>* chvector_nullptr = nullptr;
@@ -454,7 +445,7 @@ TEST(ChArchiveJSON, nullpointers) {
         marchiveout << CHNVP(chsolver_nullptr);
     }
 
-    ChStreamInAsciiFile mfilei(outputfile + ".json");
+    std::ifstream mfilei(outputfile + ".json");
     ChArchiveInJSON marchivein(mfilei);
 
     ChVector<>* chvector_nullptr;
@@ -526,7 +517,7 @@ TEST(ChArchiveJSON, nullpointers) {
 //         clutchBD->SetTorqueLimit(60);
 //         system.Add(clutchBD);
 //
-//         ChStreamOutAsciiFile mfileo("ChArchiveJSON_shafts_out.json");
+//         std::ofstream mfileo("ChArchiveJSON_shafts_out.json");
 //         ChArchiveOutJSON marchiveout(mfileo);
 //         marchiveout << CHNVP(system);
 //
@@ -542,7 +533,7 @@ TEST(ChArchiveJSON, nullpointers) {
 //
 //     }
 //
-//     ChStreamInAsciiFile mfilei("ChArchiveJSON_shafts_out.json");
+//     std::ifstream mfilei("ChArchiveJSON_shafts_out.json");
 //     ChArchiveInJSON marchivein(mfilei);
 //     ChSystemNSC system;
 //     marchivein >> CHNVP(system);
@@ -574,12 +565,12 @@ TEST(ChArchiveJSON, ChVectorDynamicTest) {
         myVect[2] = 3.0;
         myVect_before = myVect;
 
-        ChStreamOutAsciiFile mfileo(outputfile);
+        std::ofstream mfileo(outputfile);
         ChArchiveOutJSON marchiveout(mfileo);
         marchiveout << CHNVP(myVect);
     }
 
-    ChStreamInAsciiFile mfilei(outputfile);
+    std::ifstream mfilei(outputfile);
     ChArchiveInJSON marchivein(mfilei);
     ChVectorDynamic<> myVect;
     marchivein >> CHNVP(myVect);

@@ -27,13 +27,11 @@
 
 namespace chrono {
 
-///
-/// This is a class for serializing to JSON
-///
-
+/// Serialize objects using JSON format.
+/// Input stream should be kept valid for the entire lifespan of the archive class.
 class ChArchiveOutJSON : public ChArchiveOut {
   public:
-    ChArchiveOutJSON(ChStreamOutAsciiFile& mostream) {
+    ChArchiveOutJSON(std::ostream& mostream) {
         ostream = &mostream;
 
         (*ostream) << "{ ";
@@ -49,7 +47,7 @@ class ChArchiveOutJSON : public ChArchiveOut {
         nitems.pop();
         is_array.pop();
 
-        (*ostream) << "\n}\n";
+        (*ostream) << "\n}" << std::endl;
     };
 
     void indent() {
@@ -289,7 +287,7 @@ class ChArchiveOutJSON : public ChArchiveOut {
 
   protected:
     int tablevel;
-    ChStreamOutAsciiFile* ostream;
+    std::ostream* ostream;
     std::stack<int> nitems;
     std::stack<bool> is_array;
 };
@@ -300,11 +298,11 @@ class ChArchiveOutJSON : public ChArchiveOut {
 
 class ChArchiveInJSON : public ChArchiveIn {
   public:
-    ChArchiveInJSON(ChStreamInAsciiFile& mistream) {
+    ChArchiveInJSON(std::ifstream& mistream) {
         istream = &mistream;
 
         std::stringstream buffer;
-        buffer << istream->GetFstream().rdbuf();
+        buffer << istream->rdbuf();
         std::string mstr = buffer.str();
         const char* stringbuffer = mstr.c_str();
 
@@ -627,7 +625,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         }
     }
 
-    ChStreamInAsciiFile* istream;
+    std::ifstream* istream;
     rapidjson::Document document;
     rapidjson::Value* level;
     std::stack<rapidjson::Value*> levels;

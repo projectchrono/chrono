@@ -435,49 +435,61 @@ void my_deserialization_example(ChArchiveIn& marchive) {
     marchive >> CHNVP(vect_of_pointers);
 
     // Just for safety, log some of the restored data:
+    auto& streamConsole = std::cout;
+    ChArchiveAsciiDump archiveConsole(streamConsole);
 
-    std::cout << "\n\nSome results of deserialization I/O: \n\n"
-             << m_text << " \n"
-             << m_int << " \n"
-             << m_double << std::endl;
-    GetLog() << m_matr_NM;
-    GetLog() << m_vect;
-    GetLog() << m_quat;
-    GetLog() << m_string.c_str() << "\n";
-    GetLog() << m_stlvector;
-    GetLog() << m_stlpair;
-    GetLog() << m_stlunorderedmap;
-    GetLog() << m_boss;
-    GetLog() << a_vect;
+    archiveConsole.SetCutAllPointers(true);
+    archiveConsole.SetSuppressNames(true);
+    archiveConsole.SetUseVersions(false);
+    streamConsole << std::endl
+                  << std::endl
+                  << "Some results of deserialization I/O:" << std::endl
+                  << m_text << std::endl
+                  << m_int << std::endl
+                  << m_double << std::endl;
+    streamConsole << m_matr_NM;
+    streamConsole << m_vect;
+    streamConsole << m_quat;
+    streamConsole << m_string.c_str() << std::endl;
+
+    // TODO: can offer specialization of operator << for the following cases
+    archiveConsole << CHNVP(m_stlvector);
+    archiveConsole << CHNVP(m_stlpair);
+    archiveConsole << CHNVP(m_stlunorderedmap);
+    archiveConsole << CHNVP(m_boss);
+    archiveConsole << CHNVP(a_vect);
 
     if (a_boss) {
-        GetLog() << "\n\n We loaded an obj inherited from myEmployee class:\n";
-        GetLog() << a_boss;
+        streamConsole << std::endl << "We loaded an obj inherited from myEmployee class:\n";
+        streamConsole << a_boss;
     }
     if (a_boss2) {
-        GetLog() << "\n\n We loaded a 2nd obj inherited from myEmployee class (referencing the 1st):\n";
-        GetLog() << a_boss2;
+        streamConsole << std::endl << "We loaded a 2nd obj inherited from myEmployee class (referencing the 1st):\n";
+        streamConsole << a_boss2;
     }
     if (s_boss) {
-        GetLog() << "\n\n We loaded a 3nd obj inherited from myEmployee class:\n";
-        GetLog() << s_boss;
-        GetLog() << "(This object is handled by shared pointers, with ref.count=" << (int)s_boss.use_count() << ")\n";
+        streamConsole << std::endl << "We loaded a 3nd obj inherited from myEmployee class:\n";
+        streamConsole << s_boss;
+        streamConsole << "(This object is handled by shared pointers, with ref.count=" << (int)s_boss.use_count()
+                      << ")\n";
     }
     if (!null_boss) {
-        GetLog() << "\n\n We tried to load a 4th obj with shared pointer, but was null.\n";
+        streamConsole << std::endl << "We tried to load a 4th obj with shared pointer, and was null as expected.\n";
     }
     if (mcustomconstr) {
-        GetLog() << "\n\n We loaded a 5th object with non-default constructor with 2 parameters.\n";
-        GetLog() << mcustomconstr;
+        streamConsole << std::endl << "We loaded a 5th object with non-default constructor with 2 parameters.\n";
+        streamConsole << mcustomconstr;
     }
-    GetLog() << "\n\n We loaded a 6th object where sub-objects were unbind/rebind using IDs:\n";
-    GetLog() << vect_of_pointers;
-    GetLog() << *vect_of_pointers[0];
-    GetLog() << *vect_of_pointers[1];
+    streamConsole << std::endl << "We loaded a 6th object where sub-objects were unbind/rebind using IDs:\n";
+    archiveConsole << CHNVP(vect_of_pointers);
+    streamConsole << *vect_of_pointers[0];
+    streamConsole << *vect_of_pointers[1];
 
-    GetLog() << "\n";
-    GetLog() << "loaded object is a myEmployee?     :" << (dynamic_cast<myEmployee*>(a_boss) != nullptr) << "\n";
-    GetLog() << "loaded object is a myEmployeeBoss? :" << (dynamic_cast<myEmployeeBoss*>(a_boss) != nullptr) << "\n";
+    streamConsole << std::endl
+                  << "loaded object is a myEmployee?     :" << (dynamic_cast<myEmployee*>(a_boss) != nullptr)
+                  << std::endl
+                  << "loaded object is a myEmployeeBoss? :" << (dynamic_cast<myEmployeeBoss*>(a_boss) != nullptr)
+                  << std::endl;
 
     delete a_boss;
 }
@@ -531,28 +543,32 @@ void my_reflection_example() {
     m_boss.body = FAT;
 
     double my_wages;
-    if (mexplorer.FetchValue(my_wages, m_boss, "wages"))
-        GetLog() << "Property explorer : retrieved 'wages'=" << my_wages << "\n";
-    else
-        GetLog() << "Property explorer : cannot retrieve 'wages'! \n";
+    if (mexplorer.FetchValue(my_wages, m_boss, "wages")) {
+        std::cout << "Property explorer : retrieved 'wages'=" << my_wages << std::endl;
+    } else
+        std::cout << "Property explorer : cannot retrieve 'wages'!" << std::endl;
 
     myEmployee my_slave;
-    if (mexplorer.FetchValue(my_slave, m_boss, "slave"))
-        GetLog() << "Property explorer : retrieved 'slave'=\n" << my_slave << "\n";
-    else
-        GetLog() << "Property explorer : cannot retrieve 'slave'! \n";
+    if (mexplorer.FetchValue(my_slave, m_boss, "slave")) {
+        std::cout << "Property explorer : retrieved 'slave':\n" << std::endl;
+        // the class needs to be deserialized explicitely since it is not of a built-in type
+        ChArchiveAsciiDump tempArchiveo(std::cout);
+        my_slave.ArchiveOut(tempArchiveo);
+        std::cout << std::endl;
+    } else
+        std::cout << "Property explorer : cannot retrieve 'slave'!" << std::endl;
 
     int my_age;
     if (mexplorer.FetchValue(my_age, m_boss, "s?*e/age"))
-        GetLog() << "Property explorer : retrieved 'slave/age'=" << my_age << "\n";
+        std::cout << "Property explorer : retrieved 'slave/age'=" << my_age << std::endl;
     else
-        GetLog() << "Property explorer : cannot retrieve 'slave/age'! \n";
+        std::cout << "Property explorer : cannot retrieve 'slave/age'!" << std::endl;
 
     int my_foo = 123;
     if (mexplorer.FetchValue(my_foo, m_boss, "foo"))
-        GetLog() << "Property explorer : retrieved 'int foo'=" << my_foo << "\n";
+        std::cout << "Property explorer : retrieved 'int foo'=" << my_foo << std::endl;
     else
-        GetLog() << "Property explorer : cannot retrieve 'int foo'! \n";
+        std::cout << "Property explorer : cannot retrieve 'int foo'!" << std::endl;
 
     // Test access to containers (std::vector, arrays, etc.). Elements can
     // be fetched using two approaches: integer indexes or menmonic names.
@@ -564,36 +580,43 @@ void my_reflection_example() {
 
     // Method A: just use the index in the search string,
     //   ex: "stuff/arrayofpositions/6/x" as in:
-    if (mexplorer.FetchValue(a_employee, mcontainer, "1"))
-        GetLog() << "Property explorer : retrieved from element number in container '1' =\n" << a_employee << "\n";
+    if (mexplorer.FetchValue(a_employee, mcontainer, "1")) {
+        std::cout << "Property explorer : retrieved from element number in container '1':" << std::endl;
+        ChArchiveAsciiDump archiveo(std::cout);
+        a_employee.ArchiveOut(archiveo);
+    }
+
     else
-        GetLog() << "Property explorer : cannot retrieve from element number! \n";
+        std::cerr << "Property explorer : cannot retrieve from element number!" << std::endl;
 
     // Method B: if you deal if working with objects that implement
     // ArchiveContainerName(), you can use the name between single quotation marks '...',
     //   ex: "stuff/arrayofbodies/'Crank'/mass" as in:
-    if (mexplorer.FetchValue(a_employee, mcontainer, "'Marie'"))
-        GetLog() << "Property explorer : retrieved from element container name 'Marie' =\n" << a_employee << "\n";
-    else
-        GetLog() << "Property explorer : cannot retrieve from element container name! \n";
+    if (mexplorer.FetchValue(a_employee, mcontainer, "'Marie'")) {
+        std::cout << "Property explorer : retrieved from element container name 'Marie':" << std::endl;
+        ChArchiveAsciiDump tempArchiveo(std::cout);
+        a_employee.ArchiveOut(tempArchiveo);
+        std::cout << std::endl;
+    } else
+        std::cerr << "Property explorer : cannot retrieve from element container name!" << std::endl;
 
     // Test if some object can be explored
-    GetLog() << "This has sub properties? : " << mexplorer.IsObject(mcontainer) << "\n";
-    GetLog() << "This has sub properties? : " << mexplorer.IsObject(my_age) << "\n\n";
+    std::cout << "This has sub properties? : " << mexplorer.IsObject(mcontainer) << std::endl
+              << "This has sub properties? : " << mexplorer.IsObject(my_age) << std::endl;
 
     // Fetch all subproperties of an object using "*"
-    GetLog() << "List of fetched properties in std::vector of employees: \n";
+    std::cout << "List of fetched properties in std::vector of employees:" << std::endl;
     auto props = mexplorer.FetchValues(mcontainer, "*");
     for (auto i : props) {
-        GetLog() << " val: " << i->name() << ",  reg.class: " << i->GetClassRegisteredName()
-                 << ",  typeid: " << i->GetTypeidName() << "\n";
+        std::cout << " val: " << i->name() << ",  reg.class: " << i->GetClassRegisteredName()
+                  << ",  typeid: " << i->GetTypeidName() << std::endl;
         // if (auto pi = dynamic_cast<myEmployeeBoss*>(i->PointerUpCast<myEmployee>()))
-        //    GetLog() <<"   castable to myEmployeeBoss \n";
+        //    streamConsole <<"   castable to myEmployeeBoss" << std::endl;
         ChArchiveExplorer mexplorer2;
         auto props2 = mexplorer2.FetchValues(*i, "*");
         for (auto i2 : props2) {
-            GetLog() << "    val: " << i2->name() << ",  reg.class: " << i2->GetClassRegisteredName()
-                     << ",  typeid: " << i2->GetTypeidName() << "\n";
+            std::cout << "    val: " << i2->name() << ",  reg.class: " << i2->GetClassRegisteredName()
+                          << ",  typeid: " << i2->GetTypeidName() << std::endl;
         }
     }
 }
@@ -601,12 +624,12 @@ void my_reflection_example() {
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    std::cout << "CHRONO foundation classes demo: archives (serialization)" <<  std::endl << std::endl;
+    std::cout << "CHRONO foundation classes demo: archives (serialization)" << std::endl << std::endl;
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_ARCHIVE";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
+        std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
@@ -618,7 +641,7 @@ int main(int argc, char* argv[]) {
 
     // Example: SERIALIZE TO ASCII DUMP (useful for debugging etc.):
     {
-        ChStreamOutAsciiFile mfileo(out_dir + "/foo_archive.txt");
+        std::ofstream mfileo(out_dir + "/foo_archive.txt");
 
         // Create an ASCII archive object, for dumping C++ objects into a readable file
         ChArchiveAsciiDump marchiveout(mfileo);
@@ -647,7 +670,7 @@ int main(int argc, char* argv[]) {
 
     // Example: SERIALIZE TO/FROM JSON:
     {
-        ChStreamOutAsciiFile mfileo(out_dir + "/foo_archive.json");
+        std::ofstream mfileo(out_dir + "/foo_archive.json");
 
         // Use a JSON archive object to serialize C++ objects into the file
         ChArchiveOutJSON marchiveout(mfileo);
@@ -656,7 +679,7 @@ int main(int argc, char* argv[]) {
     }
 
     {
-        ChStreamInAsciiFile mfilei(out_dir + "/foo_archive.json");
+        std::ifstream mfilei(out_dir + "/foo_archive.json");
 
         // Use a JSON archive object to deserialize C++ objects from the file
         ChArchiveInJSON marchivein(mfilei);
@@ -666,7 +689,7 @@ int main(int argc, char* argv[]) {
 
     // Example: SERIALIZE TO/FROM XML
     {
-        ChStreamOutAsciiFile mfileo(out_dir + "/foo_archive.xml");
+        std::ofstream mfileo(out_dir + "/foo_archive.xml");
 
         // Use a XML archive object to serialize C++ objects into the file
         ChArchiveOutXML marchiveout(mfileo);
@@ -675,7 +698,7 @@ int main(int argc, char* argv[]) {
     }
 
     {
-        ChStreamInAsciiFile mfilei(out_dir + "/foo_archive.xml");
+        std::ifstream mfilei(out_dir + "/foo_archive.xml");
 
         // Use a XML archive object to deserialize C++ objects from the file
         ChArchiveInXML marchivein(mfilei);
@@ -687,7 +710,7 @@ int main(int argc, char* argv[]) {
 
     // Example: SERIALIZE A FULL CHRONO SYSTEM TO/FROM JSON
     {
-        ChStreamOutAsciiFile mfileo(out_dir + "/chsystem_archive.json");
+        std::ofstream mfileo(out_dir + "/chsystem_archive.json");
 
         // Use a JSON archive object to serialize C++ objects into the file
         ChArchiveOutJSON marchiveout(mfileo);
@@ -696,7 +719,7 @@ int main(int argc, char* argv[]) {
     }
 
     {
-        ChStreamInAsciiFile mfilei(out_dir + "/chsystem_archive.json");
+        std::ifstream mfilei(out_dir + "/chsystem_archive.json");
 
         // Use a JSON archive object to deserialize C++ objects from the file
         ChArchiveInJSON marchivein(mfilei);

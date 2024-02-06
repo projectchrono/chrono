@@ -12,6 +12,9 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <numeric>
+#include <iomanip>
+
 #include "chrono_modal/ChEigenvalueSolver.h"
 #include "chrono_modal/ChKrylovSchurEig.h"
 #include "chrono/core/ChMathematics.h"
@@ -21,8 +24,6 @@
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 #include <Eigen/Eigenvalues>
-
-#include <numeric>
 
 #include <Spectra/KrylovSchurGEigsSolver.h>
 #include <Spectra/SymGEigsSolver.h>
@@ -153,11 +154,11 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
 
     // Dump data for test. ***TODO*** remove when well tested
     if (false) {
-        ChStreamOutAsciiFile fileA("dump_modal_A.dat");
-        fileA.SetNumFormat("%.12g");
+        std::ofstream fileA("dump_modal_A.dat");
+        fileA << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(ChMatrixDynamic<>(A), fileA);
-        ChStreamOutAsciiFile fileB("dump_modal_B.dat");
-        fileB.SetNumFormat("%.12g");
+        std::ofstream fileB("dump_modal_B.dat");
+        fileB << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(ChMatrixDynamic<>(B), fileB);
     }
 

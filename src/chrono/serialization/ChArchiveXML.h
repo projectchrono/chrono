@@ -30,13 +30,10 @@
 
 namespace chrono {
 
-///
-/// This is a class for serializing to XML file format
-///
-
+/// Serialize objects using JSON format.
 class ChArchiveOutXML : public ChArchiveOut {
   public:
-    ChArchiveOutXML(ChStreamOutAsciiFile& mostream) {
+    ChArchiveOutXML(std::ostream& mostream) {
         ostream = &mostream;
 
         tablevel = 0;
@@ -47,8 +44,6 @@ class ChArchiveOutXML : public ChArchiveOut {
     virtual ~ChArchiveOutXML() {
         nitems.pop();
         is_array.pop();
-
-        (*ostream) << "\n";
     };
 
     void indent() {
@@ -68,6 +63,7 @@ class ChArchiveOutXML : public ChArchiveOut {
         (*ostream) << "</" << bVal.name() << ">\n";
         ++nitems.top();
     }
+
     virtual void out(ChNameValue<int> bVal) {
         indent();
         // if (is_array.top()==false)
@@ -77,6 +73,7 @@ class ChArchiveOutXML : public ChArchiveOut {
         (*ostream) << "</" << bVal.name() << ">\n";
         ++nitems.top();
     }
+
     virtual void out(ChNameValue<double> bVal) {
         indent();
         // if (is_array.top() == false)
@@ -86,6 +83,7 @@ class ChArchiveOutXML : public ChArchiveOut {
         (*ostream) << "</" << bVal.name() << ">\n";
         ++nitems.top();
     }
+
     virtual void out(ChNameValue<float> bVal) {
         indent();
         // if (is_array.top() == false)
@@ -95,6 +93,7 @@ class ChArchiveOutXML : public ChArchiveOut {
         (*ostream) << "</" << bVal.name() << ">\n";
         ++nitems.top();
     }
+
     virtual void out(ChNameValue<char> bVal) {
         indent();
         // if (is_array.top() == false)
@@ -104,6 +103,7 @@ class ChArchiveOutXML : public ChArchiveOut {
         (*ostream) << "</" << bVal.name() << ">\n";
         ++nitems.top();
     }
+
     virtual void out(ChNameValue<unsigned int> bVal) {
         indent();
         // if (is_array.top() == false)
@@ -113,6 +113,7 @@ class ChArchiveOutXML : public ChArchiveOut {
         (*ostream) << "</" << bVal.name() << ">\n";
         ++nitems.top();
     }
+
     virtual void out(ChNameValue<const char*> bVal) {
         indent();
         // if (is_array.top() == false)
@@ -122,6 +123,7 @@ class ChArchiveOutXML : public ChArchiveOut {
         (*ostream) << "</" << bVal.name() << ">\n";
         ++nitems.top();
     }
+
     virtual void out(ChNameValue<std::string> bVal) {
         indent();
         // if (is_array.top() == false)
@@ -131,6 +133,7 @@ class ChArchiveOutXML : public ChArchiveOut {
         (*ostream) << "</" << bVal.name() << ">\n";
         ++nitems.top();
     }
+
     virtual void out(ChNameValue<unsigned long> bVal) {
         indent();
         // if (is_array.top() == false)
@@ -140,6 +143,7 @@ class ChArchiveOutXML : public ChArchiveOut {
         (*ostream) << "</" << bVal.name() << ">\n";
         ++nitems.top();
     }
+
     virtual void out(ChNameValue<unsigned long long> bVal) {
         indent();
         // if (is_array.top() == false)
@@ -149,6 +153,7 @@ class ChArchiveOutXML : public ChArchiveOut {
         (*ostream) << "</" << bVal.name() << ">\n";
         ++nitems.top();
     }
+
     virtual void out(ChNameValue<ChEnumMapperBase> bVal) {
         indent();
         // if (is_array.top() == false)
@@ -172,7 +177,9 @@ class ChArchiveOutXML : public ChArchiveOut {
         nitems.push(0);
         is_array.push(true);
     }
+
     virtual void out_array_between(ChValue& bVal, size_t msize) {}
+
     virtual void out_array_end(ChValue& bVal, size_t msize) {
         --tablevel;
         nitems.pop();
@@ -270,7 +277,7 @@ class ChArchiveOutXML : public ChArchiveOut {
 
   protected:
     int tablevel;
-    ChStreamOutAsciiFile* ostream;
+    std::ostream* ostream;
     std::stack<int> nitems;
     std::stack<bool> is_array;
 };
@@ -281,10 +288,10 @@ class ChArchiveOutXML : public ChArchiveOut {
 
 class ChArchiveInXML : public ChArchiveIn {
   public:
-    ChArchiveInXML(ChStreamInAsciiFile& mistream) {
+    ChArchiveInXML(std::istream& mistream) {
         istream = &mistream;
 
-        buffer.assign((std::istreambuf_iterator<char>(istream->GetFstream())), std::istreambuf_iterator<char>());
+        buffer.assign((std::istreambuf_iterator<char>(*istream)), std::istreambuf_iterator<char>());
         buffer.push_back('\0');
 
         try {
@@ -403,7 +410,7 @@ class ChArchiveInXML : public ChArchiveIn {
         return true;
     }
     virtual bool in(ChNameValue<unsigned long long> bVal) override {
-        rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());     
+        rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
             return false;
         try {
@@ -456,7 +463,6 @@ class ChArchiveInXML : public ChArchiveIn {
         if (!mval)
             return false;
 
-        
         this->levels.push(mval);
         this->level = this->levels.top();
         this->is_array.push(false);
@@ -473,7 +479,6 @@ class ChArchiveInXML : public ChArchiveIn {
         if (bVal.flags() & NVP_TRACK_OBJECT) {
             PutNewPointer(bVal.value().GetRawPtr(), obj_ID);
         }
-
 
         bVal.value().CallArchiveIn(*this);
 
@@ -551,15 +556,15 @@ class ChArchiveInXML : public ChArchiveIn {
                                                  std::to_string((int)ref_ID) + " is not a valid number."));
                     }
 
-                    bVal.value().SetRawPtr(
-                        ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
+                    bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(),
+                                                                 internal_id_ptr[ref_ID]));
                 } else if (ext_ID) {
                     if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
                         throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the _external_ID " +
                                                  std::to_string((int)ext_ID) + " is not valid."));
                     }
-                    bVal.value().SetRawPtr(
-                        ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
+                    bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(),
+                                                                 external_id_ptr[ext_ID]));
                 } else
                     bVal.value().SetRawPtr(nullptr);
             }
@@ -583,7 +588,7 @@ class ChArchiveInXML : public ChArchiveIn {
             throw(ChExceptionArchive("Cannot find '" + mname + "'"));
     }
 
-    ChStreamInAsciiFile* istream;
+    std::istream* istream;
     rapidxml::xml_document<> document;
     rapidxml::xml_node<>* level;
     std::stack<rapidxml::xml_node<>*> levels;

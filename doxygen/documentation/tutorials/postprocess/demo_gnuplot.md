@@ -136,9 +136,9 @@ etc., but the `Plot()` functions make this easier.
 Step 1: create a .dat file with three columns of demo data:
 
 ~~~{.cpp}
-ChStreamOutAsciiFile mdatafile("test_gnuplot_data.dat");
+std::ofstream mdatafile("test_gnuplot_data.dat");
 for (double x = 0; x<10; x+=0.1)
-   mdatafile << x << ", " << sin(x) << ", "  << cos(x) << "\n";
+   mdatafile << x << ", " << sin(x) << ", "  << cos(x) << std::endl;
 ~~~
 
 Step 2: Create the plot. 

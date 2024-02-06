@@ -742,15 +742,8 @@ ChStreamOutBinaryFile::ChStreamOutBinaryFile(const std::string& filename, std::i
     : ChStreamFile(filename, mode | std::ios::out | std::ios::binary) {}
 ChStreamOutBinaryFile::~ChStreamOutBinaryFile() {}
 
-ChStreamOutAsciiFile::ChStreamOutAsciiFile(const std::string& filename, std::ios::openmode mode)
-    : ChStreamFile(filename, mode | std::ios::out) {}
-ChStreamOutAsciiFile::~ChStreamOutAsciiFile() {}
-
 ChStreamInBinaryFile::ChStreamInBinaryFile(const std::string& filename)
     : ChStreamFile(filename, std::ios::in | std::ios::binary) {}
 ChStreamInBinaryFile::~ChStreamInBinaryFile() {}
-
-ChStreamInAsciiFile::ChStreamInAsciiFile(const std::string& filename) : ChStreamFile(filename, std::ios::in) {}
-ChStreamInAsciiFile::~ChStreamInAsciiFile() {}
 
 }  // end namespace chrono

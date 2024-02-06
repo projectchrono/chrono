@@ -423,7 +423,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     // This is needed if you want to see things in Irrlicht 3D view.
     vis->AttachSystem(&sys);
 
-    ChStreamOutAsciiFile my_plasticfile(out_dir + "/plasticity.dat");
+    std::ofstream my_plasticfile(out_dir + "/plasticity.dat");
 
     while (vis->Run()) {
         vis->BeginScene();
@@ -441,7 +441,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
         my_plasticfile << sys.GetChTime() << " " << builder.GetLastBeamElements()[0]->GetStrainE()[0].x() << " "
                        << builder.GetLastBeamElements()[0]->GetStressN()[0].x() << " " << plasticdata->p_strain_acc
                        << " " << plasticdata->p_strain_e.x() << " " << mK(0, 0) << " " << motor->GetMotorForce() << " "
-                       << motor->GetMotorPos() << "\n";
+                       << motor->GetMotorPos() << std::endl;
         /*
         my_plasticfile << sys.GetChTime() << " "
             << builder.GetLastBeamElements()[0]->GetStrainK()[0].z() << " "
@@ -450,7 +450,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
             << plasticdata->p_strain_k.z() << " "
             << mK(5, 5) << " "
             << motor->GetMotorForce() << " "
-            << motor->GetMotorPos() << "\n";
+            << motor->GetMotorPos() << std::endl;
             */
     }
 }
@@ -593,7 +593,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     // This is needed if you want to see things in Irrlicht 3D view.
     vis->AttachSystem(&sys);
 
-    chrono::ChStreamOutAsciiFile file_out1(out_dir + "/rotor_displ.dat");
+    std::ofstream file_out1(out_dir + "/rotor_displ.dat");
 
     // Set to a more precise HHT timestepper if needed
     // sys.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -609,7 +609,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
         vis->Render();
         sys.DoStepDynamics(0.002);
         vis->EndScene();
-        file_out1 << sys.GetChTime() << " " << node_mid->GetPos().y() << " " << node_mid->GetPos().z() << "\n";
+        file_out1 << sys.GetChTime() << " " << node_mid->GetPos().y() << " " << node_mid->GetPos().z() << std::endl;
     }
 }
 

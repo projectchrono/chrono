@@ -25,21 +25,21 @@ namespace chrono {
 
 class ChArchiveAsciiDump : public ChArchiveOut {
   public:
-    ChArchiveAsciiDump(ChStreamOutAscii& mostream) {
+    ChArchiveAsciiDump(std::ostream& mostream) {
         ostream = &mostream;
         tablevel = 0;
         use_versions = false;
         suppress_names = false;
-    };
+    }
 
-    virtual ~ChArchiveAsciiDump(){};
+    virtual ~ChArchiveAsciiDump() {}
 
     /// If true, the variables names are not printed.
     /// Useful when used for GetLog() << ...  (for more compact formatting).
     void SetSuppressNames(bool msu) { suppress_names = msu; }
 
     /// Access the stream used by the archive.
-    ChStreamOutAscii* GetStream() { return ostream; }
+    std::ostream* GetStream() { return ostream; }
 
     void indent() {
         for (int i = 0; i < tablevel; ++i)
@@ -187,7 +187,7 @@ class ChArchiveAsciiDump : public ChArchiveOut {
 
   protected:
     int tablevel;
-    ChStreamOutAscii* ostream;
+    std::ostream* ostream;
     bool suppress_names;
 };
 
@@ -196,37 +196,35 @@ class ChArchiveAsciiDump : public ChArchiveOut {
 /// objects that have ArchiveOut implemented.
 /// For example:  GetLog() << mymatrix;
 
-template <class T>
-ChStreamOutAscii& operator<<(ChStreamOutAscii& mstream, const T& obj) {
-    std::vector<char> mvect;
-    ChStreamOutAsciiVector mtempstream(&mvect);
-    mtempstream.SetNumFormat(mstream.GetNumFormat());
-    ChArchiveAsciiDump marchive(mtempstream);
-    // this avoids printing too much except the object:
-    marchive.SetCutAllPointers(true);
-    marchive.SetSuppressNames(true);
-    marchive.SetUseVersions(false);
-    marchive << CHNVP(obj, "");
-    std::string mystring(mtempstream.GetVector()->begin(), mtempstream.GetVector()->end());
-    return mstream << mystring;
-}
+// template <class T>
+// ChStreamOutAscii& operator<<(ChStreamOutAscii& mstream, const T& obj) {
+//     std::vector<char> mvect;
+//     ChStreamOutAsciiVector mtempstream(&mvect);
+//     mtempstream.SetNumFormat(mstream.GetNumFormat());
+//     ChArchiveAsciiDump marchive(mtempstream);
+//     // this avoids printing too much except the object:
+//     marchive.SetCutAllPointers(true);
+//     marchive.SetSuppressNames(true);
+//     marchive.SetUseVersions(false);
+//     marchive << CHNVP(obj, "");
+//     std::string mystring(mtempstream.GetVector()->begin(), mtempstream.GetVector()->end());
+//     return mstream << mystring;
+// }
 
-
-//template <class T>
-//std::ostream& operator<<(std::ostream& mstream, const T& obj) {
-//    std::vector<char> mvect;
-//    std::ostream mtempstream(&mvect);
-//    mtempstream << std::setprecision(mstream.precision());
-//    ChArchiveAsciiDump marchive(mtempstream);
-//    // this avoids printing too much except the object:
-//    marchive.SetCutAllPointers(true);
-//    marchive.SetSuppressNames(true);
-//    marchive.SetUseVersions(false);
-//    marchive << CHNVP(obj, "");
-//    std::string mystring(mtempstream.GetVector()->begin(), mtempstream.GetVector()->end());
-//    return mstream << mystring;
-//}
-
+// template <class T>
+// std::ostream& operator<<(std::ostream& mstream, const T& obj) {
+//     std::vector<char> mvect;
+//     std::ostream mtempstream(&mvect);
+//     mtempstream << std::setprecision(mstream.precision());
+//     ChArchiveAsciiDump marchive(mtempstream);
+//     // this avoids printing too much except the object:
+//     marchive.SetCutAllPointers(true);
+//     marchive.SetSuppressNames(true);
+//     marchive.SetUseVersions(false);
+//     marchive << CHNVP(obj, "");
+//     std::string mystring(mtempstream.GetVector()->begin(), mtempstream.GetVector()->end());
+//     return mstream << mystring;
+// }
 
 }  // end namespace chrono
 
