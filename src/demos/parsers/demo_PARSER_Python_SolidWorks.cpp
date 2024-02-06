@@ -17,8 +17,7 @@
 // - simulating the system with Irrlicht run-time visualization
 //
 // =============================================================================
-
-#include "chrono/core/ChLog.h"
+
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_parsers/ChParserPython.h"

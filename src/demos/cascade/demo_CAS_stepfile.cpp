@@ -17,7 +17,6 @@
 //   - make Chrono::Engine objects out of those parts
 // =============================================================================
 
-#include "chrono/core/ChLog.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -59,7 +58,7 @@ int main(int argc, char* argv[]) {
     // or specify abs.path: ("C:\\data\\cascade\\assembly.stp");
 
     // print the contained shapes
-    mydoc.Dump(GetLog());
+    mydoc.Dump(std::cout);
 
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
     ChCollisionModel::SetDefaultSuggestedMargin(0.001);

@@ -23,7 +23,7 @@ namespace chrono {
 
 class ChArchiveOutBinary : public ChArchiveOut {
   public:
-    ChArchiveOutBinary(ChStreamOutBinary& mostream) { ostream = &mostream; }
+    ChArchiveOutBinary(std::ostream& mostream) { ostream = &mostream; }
 
     virtual ~ChArchiveOutBinary() {}
 
@@ -88,7 +88,7 @@ class ChArchiveOutBinary : public ChArchiveOut {
     }
 
   protected:
-    ChStreamOutBinary* ostream;
+    std::ostream* ostream;
 };
 
 ///
@@ -97,7 +97,7 @@ class ChArchiveOutBinary : public ChArchiveOut {
 
 class ChArchiveInBinary : public ChArchiveIn {
   public:
-    ChArchiveInBinary(ChStreamInBinary& mistream) {
+    ChArchiveInBinary(std::istream& mistream) {
         istream = &mistream;
         can_tolerate_missing_tokens = false;
     };
@@ -204,7 +204,7 @@ class ChArchiveInBinary : public ChArchiveIn {
     }
 
   protected:
-    ChStreamInBinary* istream;
+    std::istream* istream;
 };
 
 }  // end namespace chrono

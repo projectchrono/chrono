@@ -331,8 +331,6 @@ using namespace chrono::fea;
 #define Coordsys ChCoordsys<double>
 %include "ChFrame.i"
 %include "ChFrameMoving.i"
-%include "ChStream.i"
-%include "ChLog.i"
 %include "ChMathematics.i"
 %include "ChTimer.i"
 %include "ChRealtimeStep.i"
@@ -637,51 +635,6 @@ public:
     return curvature;
   }
 };
-
-%inline %{
-
-// Create a custom ChLog class for logging directly in the Python shell,
-// because the default ChLog was redirecting to std::cout that is not 
-// necessarily the console display of python.
-namespace chrono
-{
-class ChLogPython : public ChLog 
-{
-public:
-	ChLogPython() {}
-	virtual ~ChLogPython() {};
-			/// Redirect output stream to file wrapper.
-	virtual void	Output(const char* data, size_t n) 
-		{ 
-				char buffer[1000];
-				if (n>999) 
-					n=999;
-				strncpy(buffer, data, n);
-				buffer[n]=0;
-				PySys_WriteStdout("%s", buffer);
-		}
-private:
-};
-
-}
-
-%}
-
-
-
-
-//
-// INITIALIZATION CODE THAT IS EXECUTED AT THE STARTING OF TEH PYTHON UNIT
-//
-
-%init %{
-
-		// Create a custom logger to be used all times the GetLog() 
-		// function is used in C::E to print something. 
-	static chrono::ChLogPython static_cout_logger;
-	SetLog(static_cout_logger);
-
-%}
 
 
 //

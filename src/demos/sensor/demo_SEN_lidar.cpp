@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
-    mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
+    mesh_body->AddVisualShape(trimesh_shape, ChFrame<>());
     mesh_body->SetBodyFixed(true);
     // sys.Add(mesh_body);
 
@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
         // di_ideal_ptr =
         // lidar->GetMostRecentBuffer<UserDIBufferPtr>();
         // if (di_ideal_ptr->Buffer) {
-        //     std::cout << "DI buffer recieved from
+        //     std::cout << "DI buffer received from
         //     ideal lidar model." << std::endl;
         //     std::cout << "\tLidar resolution: " <<
         //     di_ideal_ptr->Width << "x" <<

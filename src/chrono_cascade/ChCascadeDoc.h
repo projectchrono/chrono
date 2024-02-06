@@ -17,7 +17,6 @@
 
 #include "chrono_cascade/ChApiCASCADE.h"
 
-#include "chrono/core/ChStream.h"
 #include "chrono/core/ChFrameMoving.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChMaterialSurface.h"
@@ -47,9 +46,9 @@ class ChApiCASCADE ChCascadeDoc {
     /// the STEP file, saved from some CAD. If load was ok, return true.
     bool Load_STEP(const char* filename);
 
-    /// Show shape hierarchy, writing on mstream (mstream could be GetLog()
+    /// Show shape hierarchy, writing on mstream
     /// to print in default console log)
-    void Dump(ChStreamOutAscii& mstream);
+    void Dump(std::ostream& mstream);
 
     /// Get the root shape. Note that there could be more than one root,
     /// if so, use 'num' to select the one that you need.

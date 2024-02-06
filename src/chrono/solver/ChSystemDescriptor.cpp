@@ -630,8 +630,6 @@ void ChSystemDescriptor::UnknownsProject(ChVectorDynamic<>& mx) {
 // -----------------------------------------------------------------------------
 
 void ChSystemDescriptor::WriteMatrix(const std::string& path, const std::string& prefix) {
-    const char* numformat = "%.12g";
-
     ChSparseMatrix Z;
     ChVectorDynamic<double> rhs;
     ConvertToMatrixForm(&Z, &rhs);
@@ -646,8 +644,6 @@ void ChSystemDescriptor::WriteMatrix(const std::string& path, const std::string&
 }
 
 void ChSystemDescriptor::WriteMatrixBlocks(const std::string& path, const std::string& prefix) {
-    const char* numformat = "%.12g";
-
     ChSparseMatrix mdM;
     ChSparseMatrix mdCq;
     ChSparseMatrix mdE;
@@ -682,8 +678,6 @@ void ChSystemDescriptor::WriteMatrixBlocks(const std::string& path, const std::s
 }
 
 void ChSystemDescriptor::WriteMatrixSpmv(const std::string& path, const std::string& prefix) {
-    const char* numformat = "%.12g";
-
     // Count constraints.
     int mn_c = 0;
     for (auto& cnstr : vconstraints) {

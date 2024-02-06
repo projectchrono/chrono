@@ -17,8 +17,7 @@
 // =============================================================================
 
 #include <cmath>
-
-#include "chrono/core/ChLog.h"
+
 #include "chrono/core/ChGlobal.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"

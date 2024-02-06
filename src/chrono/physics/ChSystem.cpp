@@ -14,8 +14,7 @@
 
 #include <algorithm>
 #include <iomanip>
-
-#include "chrono/core/ChLog.h"
+#include <fstream>
 
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #ifdef CHRONO_COLLISION
@@ -1423,8 +1422,6 @@ void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix* Cq) {
 }
 
 void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path) {
-    const char* numformat = "%.12g";
-
     // Prepare lists of variables and constraints, if not already prepared.
     DescriptorPrepareInject(*descriptor);
 
@@ -2251,33 +2248,5 @@ void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
     Setup();
 }
 
-#define CH_CHUNK_START "Chrono binary file start"
-#define CH_CHUNK_END "Chrono binary file end"
-
-int ChSystem::FileProcessChR(ChStreamInBinary& m_file) {
-    std::string mchunk;
-
-    m_file >> mchunk;
-    if (mchunk != CH_CHUNK_START)
-        throw ChException("Not a ChR data file.");
-
-    // StreamInall(m_file);
-
-    m_file >> mchunk;
-    if (mchunk != CH_CHUNK_END)
-        throw ChException("The end of ChR data file is badly formatted.");
-
-    return 1;
-}
-
-int ChSystem::FileWriteChR(ChStreamOutBinary& m_file) {
-    m_file << CH_CHUNK_START;
-
-    // StreamOutall(m_file);
-
-    m_file << CH_CHUNK_END;
-
-    return 1;
-}
 
 }  // end namespace chrono

@@ -17,8 +17,7 @@
 //
 // =============================================================================
 
-#include <iomanip>
-#include "chrono/core/ChLog.h"
+#include <iomanip>
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"

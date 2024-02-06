@@ -16,8 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChLog.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/core/ChException.h"

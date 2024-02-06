@@ -18,7 +18,6 @@
 #include "chrono_cascade/ChApiCASCADE.h"
 #include "chrono_cascade/ChCascadeTriangulate.h"
 
-#include "chrono/core/ChStream.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 class TopoDS_Face;

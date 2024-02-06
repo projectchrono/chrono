@@ -16,7 +16,6 @@
 
 #include <cstdlib>
 
-#include "chrono/core/ChLog.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -138,7 +137,7 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
 
     if (aRes) {
         // ---Print hierarchy on screen
-        mydoc.Dump(GetLog());
+        mydoc.Dump(std::cout);
 
         // ---Find all shapes and get as a single compound
         TopoDS_Shape mshape;

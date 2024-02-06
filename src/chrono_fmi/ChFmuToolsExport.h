@@ -26,7 +26,6 @@
 
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/core/ChFrameMoving.h"
-#include "chrono/core/ChLog.h"
 #include "chrono/core/ChMathematics.h"
 
 // fmu_tools

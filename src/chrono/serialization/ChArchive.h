@@ -24,7 +24,7 @@
 #include <algorithm>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChStream.h"
+
 #include "chrono/core/ChClassFactory.h"
 #include "chrono/core/ChTemplateExpressions.h"
 

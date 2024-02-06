@@ -1111,49 +1111,5 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(sleep_starttime);
 }
 
-void ChBody::StreamOutstate(ChStreamOutBinary& mstream) {
-    // Do not serialize parent classes and do not
-    // implement versioning, because this must be efficient
-    // and will be used just for domain decomposition.
-    mstream << coord.pos.x();
-    mstream << coord.pos.y();
-    mstream << coord.pos.z();
-    mstream << coord.rot.e0();
-    mstream << coord.rot.e1();
-    mstream << coord.rot.e2();
-    mstream << coord.rot.e3();
-    mstream << coord_dt.pos.x();
-    mstream << coord_dt.pos.y();
-    mstream << coord_dt.pos.z();
-    mstream << coord_dt.rot.e0();
-    mstream << coord_dt.rot.e1();
-    mstream << coord_dt.rot.e2();
-    mstream << coord_dt.rot.e3();
-}
-
-void ChBody::StreamInstate(ChStreamInBinary& mstream) {
-    // Do not serialize parent classes and do not
-    // implement versioning, because this must be efficient
-    // and will be used just for domain decomposition.
-    mstream >> coord.pos.x();
-    mstream >> coord.pos.y();
-    mstream >> coord.pos.z();
-    mstream >> coord.rot.e0();
-    mstream >> coord.rot.e1();
-    mstream >> coord.rot.e2();
-    mstream >> coord.rot.e3();
-    SetCoord(coord);
-    mstream >> coord_dt.pos.x();
-    mstream >> coord_dt.pos.y();
-    mstream >> coord_dt.pos.z();
-    mstream >> coord_dt.rot.e0();
-    mstream >> coord_dt.rot.e1();
-    mstream >> coord_dt.rot.e2();
-    mstream >> coord_dt.rot.e3();
-    SetCoord_dt(coord_dt);
-
-    Update();
-    SyncCollisionModels();
-}
 
 }  // end namespace chrono

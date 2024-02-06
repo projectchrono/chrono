@@ -27,8 +27,7 @@
 #include "chrono/serialization/ChArchiveXML.h"
 #include "chrono/serialization/ChArchiveExplorer.h"
 
-#include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChLog.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
@@ -651,7 +650,7 @@ int main(int argc, char* argv[]) {
 
     // Example: SERIALIZE TO/FROM BINARY:
     {
-        ChStreamOutBinaryFile mfileo(out_dir + "/foo_archive.dat");
+        std::ofstream mfileo(out_dir + "/foo_archive.dat");
 
         // Use a binary archive object to serialize C++ objects into the binary file
         ChArchiveOutBinary marchiveout(mfileo);
@@ -660,7 +659,7 @@ int main(int argc, char* argv[]) {
     }
 
     {
-        ChStreamInBinaryFile mfilei(out_dir + "/foo_archive.dat");
+        std::ifstream mfilei(out_dir + "/foo_archive.dat");
 
         // Use a binary archive object to deserialize C++ objects from the binary file
         ChArchiveInBinary marchivein(mfilei);

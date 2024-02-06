@@ -172,7 +172,7 @@ class ChApi ChFunction {
     /// Save function as X-Y pairs separated by space, with CR at each pair, into an ASCII file.
     /// The output file can be later loaded into Excel, GnuPlot or other tools.
     /// The function is 'sampled' for nsteps times, from xmin to xmax.
-    virtual int FileAsciiPairsSave(ChStreamOutAscii& m_file, double xmin = 0, double xmax = 1, int msamples = 200);
+    virtual int FileAsciiPairsSave(std::ostream& outfile, double xmin = 0, double xmax = 1, int msamples = 200);
 
     /// Sample function on entire interval, up to Nth derivative (der = 0: y, 1: y_dx, 2: y_dxdx, 3: y_dxdxdx).
     /// Store interval x=[xmin:step:xmax] and function evaluations as columns into (resized) matrix.

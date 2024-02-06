@@ -13,8 +13,7 @@
 // =============================================================================
 
 #include "chrono/solver/ChSolverAPGD.h"
-
-#include "chrono/core/ChStream.h"
+
 
 #include <iostream>
 #include <sstream>

@@ -347,13 +347,6 @@ sys.Add(my_reducer)
 # Btw:  later, if you want, you can access / plot speeds and
 # torques for whatever part of the driveline by putting lines like the following
 # in the  while() {...} simulation loop:
-#
-# GetLog() << " 1D shaft 'A' angular speed: "      << my_shaftA.GetPos_dt() << " [rad/s] \n"
-# GetLog() << " 1D Drive angular speed: rot-stat " << my_drive.GetMotorRot_dt() << " [rad/s] \n"
-# GetLog() << " 1D Drive torque: "                 << my_drive.GetMotorTorque() << " [Ns] \n"
-# GetLog() << " 3D motor angular speed: rot-stat " << rotmotor5.GetMotorRot_dt() << " [rad/s] \n"
-# GetLog() << " 3D motor torque: "                 << rotmotor5.GetMotorTorque() << " [Ns] \n"
-# etc.
 
 # EXAMPLE B.1
 #
@@ -686,13 +679,6 @@ sys.Add(my_rackpinion)
 # Btw:  later, if you want, you can access / plot speeds and
 # torques for whatever part of the driveline by putting lines like the   following
 # in the  while() {...} simulation loop:
-#
-# GetLog() << " 1D shaft 'B' angular speed: "      << my_shaftB.GetPos_dt() << " [rad/s] \n"
-# GetLog() << " 1D Drive angular speed: rot-stat " << my_driveli.GetMotorRot_dt() << " [rad/s] \n"
-# GetLog() << " 1D Drive torque: "                 << my_driveli.GetMotorTorque() << " [Ns] \n"
-# GetLog() << " 3D actuator speed: rot-stat " << motor5.GetMotorPos() << " [rad/s] \n"
-# GetLog() << " 3D actuator force: "                 << motor5.GetMotorForce() << " [Ns] \n"
-# etc.
 
 # EXAMPLE B.6
 #

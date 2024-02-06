@@ -26,7 +26,6 @@ out_dir = chrono.GetChronoOutputPath() + "FEA_SHELLS_BST"
 # If running from a different directory, you must change the path to the data directory with: 
 #chrono.SetChronoDataPath('path/to/data')
 
-#GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n"
 
 # Create (if needed) output directory
 try:

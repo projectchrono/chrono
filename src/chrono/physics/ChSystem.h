@@ -570,20 +570,21 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// </pre>
     /// for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ].\n
     /// This function returns true if successful and false otherwise.
-    virtual bool StateSolveCorrection(ChStateDelta& Dv,             ///< result: computed Dv
-                                      ChVectorDynamic<>& DL,        ///< result: computed lagrangian multipliers. Note the sign in system above.
-                                      const ChVectorDynamic<>& R,   ///< the R residual
-                                      const ChVectorDynamic<>& Qc,  ///< the Qc residual. Note the sign in system above.
-                                      const double c_a,             ///< the factor in c_a*M
-                                      const double c_v,             ///< the factor in c_v*dF/dv
-                                      const double c_x,             ///< the factor in c_x*dF/dv
-                                      const ChState& x,             ///< current state, x part
-                                      const ChStateDelta& v,        ///< current state, v part
-                                      const double T,               ///< current time T
-                                      bool force_state_scatter,  ///< if false, x and v are not scattered to the system
-                                      bool full_update,          ///< if true, perform a full update during scatter
-                                      bool force_setup           ///< if true, call the solver's Setup() function
-                                      ) override;
+    virtual bool StateSolveCorrection(
+        ChStateDelta& Dv,             ///< result: computed Dv
+        ChVectorDynamic<>& DL,        ///< result: computed lagrangian multipliers. Note the sign in system above.
+        const ChVectorDynamic<>& R,   ///< the R residual
+        const ChVectorDynamic<>& Qc,  ///< the Qc residual. Note the sign in system above.
+        const double c_a,             ///< the factor in c_a*M
+        const double c_v,             ///< the factor in c_v*dF/dv
+        const double c_x,             ///< the factor in c_x*dF/dv
+        const ChState& x,             ///< current state, x part
+        const ChStateDelta& v,        ///< current state, v part
+        const double T,               ///< current time T
+        bool force_state_scatter,     ///< if false, x and v are not scattered to the system
+        bool full_update,             ///< if true, perform a full update during scatter
+        bool force_setup              ///< if true, call the solver's Setup() function
+        ) override;
 
     /// Increment a vector R with the term c*F:
     ///    R += c*F
@@ -851,15 +852,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive);
-
-    /// Process a ".chr" binary file containing the full system object
-    /// hierarchy as exported -for example- by the R3D modeler, with chrono plug-in version,
-    /// or by using the FileWriteChR() function.
-    int FileProcessChR(ChStreamInBinary& m_file);
-
-    /// Write a ".chr" binary file containing the full system object
-    /// hierarchy (bodies, forces, links, etc.) (deprecated function - obsolete)
-    int FileWriteChR(ChStreamOutBinary& m_file);
 
   protected:
     ChAssembly assembly;

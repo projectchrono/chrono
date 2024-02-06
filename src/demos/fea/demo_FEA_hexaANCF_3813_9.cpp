@@ -25,8 +25,7 @@
 // The user can uncomment and run any of the seven demos
 //
 // =============================================================================
-
-#include "chrono/core/ChLog.h"
+
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"

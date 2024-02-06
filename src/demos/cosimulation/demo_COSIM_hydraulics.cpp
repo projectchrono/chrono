@@ -19,8 +19,7 @@
 // This example needs test_cosim_hydraulics.mdl to be loaded and run in Simulink
 //
 // =============================================================================
-
-#include "chrono/core/ChLog.h"
+
 #include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_cosimulation/ChCosimulation.h"

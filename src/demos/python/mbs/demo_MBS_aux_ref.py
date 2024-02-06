@@ -159,9 +159,9 @@ while vis.Run():
         # the centroidal frame for both pendulums:
         pos_1 = pend_1.GetPos()
         pos_2 = pend_2.GetPos()
-        chrono.GetLog() << "t = "<< sys.GetChTime() << "\n"
-        chrono.GetLog() << "     " << pos_1.x << "  " << pos_1.y << "\n"
-        chrono.GetLog() << "     " << pos_2.x << "  " << pos_2.y << "\n"
+        print("t = ", sys.GetChTime())
+        print("     ", pos_1.x, "  ", pos_1.y)
+        print("     ", pos_2.x, "  ", pos_2.y)
         frame_2 = pend_2.GetFrame_REF_to_abs()
         pos_2 = frame_2.GetPos()
 
@@ -172,14 +172,14 @@ while vis.Run():
         lin_vel_1 = pend_1.GetPos_dt()
         lin_vel_2 = pend_2.GetPos_dt()
 
-        chrono.GetLog() << "     " << lin_vel_1.x << "  " << lin_vel_1.y << "\n"
-        chrono.GetLog() << "     " << lin_vel_2.y << "  " << lin_vel_2.y << "\n"
+        print("     ", lin_vel_1.x, "  ", lin_vel_1.y)
+        print("     ", lin_vel_2.y, "  ", lin_vel_2.y)
 
         # To obtain the absolute linear velocity of the body reference frame, 
         # we use again GetPos_dt(), but this time for the reference frame,
         # using GetFrame_REF_to_abs() similarly for what we did for positions:
         lin_vel_2 = pend_2.GetFrame_REF_to_abs().GetPos_dt()
-        chrono.GetLog() << "    " << lin_vel_2.x << "  " << lin_vel_2.y << "\n"
+        print("    ", lin_vel_2.x, "  ", lin_vel_2.y)
 
         log_info = False
 

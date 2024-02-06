@@ -78,9 +78,6 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     float GetGn() const { return gn; }
     float GetGt() const { return gt; }
 
-    /// Method to allow serialization transient data into ASCII.
-    virtual void StreamOut(ChStreamOutAscii& mstream) { mstream << "Material SMC \n"; }
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
 

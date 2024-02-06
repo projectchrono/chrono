@@ -936,7 +936,7 @@ const char* const VSM_BLUR_P[ESE_COUNT] = {
 
 ///////////////////////////// EffectHandler.h
 
-/// Shadow mode enums, sets whether a node recieves shadows, casts shadows, or both.
+/// Shadow mode enums, sets whether a node receives shadows, casts shadows, or both.
 /// If the mode is ESM_CAST, it will not be affected by shadows or lighting.
 enum E_SHADOW_MODE { ESM_RECEIVE, ESM_CAST, ESM_BOTH, ESM_EXCLUDE, ESM_COUNT };
 
@@ -1610,11 +1610,8 @@ inline void EffectHandler::update(irr::video::ITexture* outputTarget) {
 
                 for (irr::u32 m = 0; m < CurrentMaterialCount; ++m) {
                     BufferMaterialList.push_back(ShadowNodeArray[i].node->getMaterial(m).MaterialType);
-                    ShadowNodeArray[i].node->getMaterial(m).MaterialType =
-                        (irr::video::E_MATERIAL_TYPE)(BufferMaterialList[m] ==
-                                                              irr::video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF
-                                                          ? DepthT
-                                                          : Depth);
+                    ShadowNodeArray[i].node->getMaterial(m).MaterialType = (irr::video::E_MATERIAL_TYPE)(
+                        BufferMaterialList[m] == irr::video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF ? DepthT : Depth);
                 }
 
                 ShadowNodeArray[i].node->OnAnimate(device->getTimer()->getTime());

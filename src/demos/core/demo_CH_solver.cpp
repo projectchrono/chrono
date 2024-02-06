@@ -11,8 +11,7 @@
 // =============================================================================
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
-
-#include "chrono/core/ChLog.h"
+
 #include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChMatrix.h"
 

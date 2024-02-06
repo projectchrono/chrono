@@ -15,8 +15,7 @@
 // FEA (basic introduction)
 //
 // =============================================================================
-
-#include "chrono/core/ChLog.h"
+
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 

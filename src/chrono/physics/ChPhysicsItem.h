@@ -131,13 +131,6 @@ class ChApi ChPhysicsItem : public ChObj {
     /// always get a point that must be inside AABB.
     virtual void GetCenter(ChVector<>& mcenter);
 
-    /// Method to deserialize only the state (position, speed)
-    /// Must be implemented by child classes.
-    virtual void StreamInstate(ChStreamInBinary& mstream) {}
-    /// Method to serialize only the state (position, speed)
-    /// Must be implemented by child classes.
-    virtual void StreamOutstate(ChStreamOutBinary& mstream) {}
-
     // UPDATING  - child classes may implement these functions
 
     /// This might recompute the number of coordinates, DOFs, constraints,

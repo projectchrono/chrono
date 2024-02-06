@@ -69,19 +69,16 @@ bool ChCosimulation::SendData(double mtime, ChVectorConstRef out_data) {
     if (!myClient)
         throw ChExceptionSocket(0, "Error. Attempted 'SendData' with no connected client.");
 
-    std::vector<char> mbuffer;                     // now zero length
-    ChStreamOutBinaryVector stream_out(&mbuffer);  // wrap the buffer, for easy formatting
-
-    // Serialize datas (little endian)...
-
+    std::vector<char> mbuffer(out_data.size() + 1);// now zero length
+    // Serialize data (little endian)...
     // time:
-    stream_out << mtime;
+    mbuffer[0] = mtime;
     // variables:
     for (int i = 0; i < out_data.size(); i++)
-        stream_out << out_data(i);
+        mbuffer[i + 1] = out_data(i);
 
     // -----> SEND!!!
-    this->myClient->SendBuffer(*stream_out.GetVector());
+    this->myClient->SendBuffer(mbuffer);
 
     return true;
 }
@@ -95,19 +92,18 @@ bool ChCosimulation::ReceiveData(double& mtime, ChVectorRef in_data) {
     // Receive from the client
     int nbytes = sizeof(double) * (this->in_n + 1);
     std::vector<char> rbuffer;
-    rbuffer.resize(nbytes);                      // reserve to number of expected bytes
-    ChStreamInBinaryVector stream_in(&rbuffer);  // wrap the buffer, for easy formatting
+    rbuffer.resize(nbytes); // reserve to number of expected bytes
 
     // -----> RECEIVE!!!
-    /*int numBytes =*/this->myClient->ReceiveBuffer(*stream_in.GetVector(), nbytes);
+    /*int numBytes =*/this->myClient->ReceiveBuffer(rbuffer, nbytes);
 
-    // Deserialize datas (little endian)...
+    // Deserialize data (little endian)...
 
     // time:
-    stream_in >> mtime;
+    mtime = rbuffer[0];
     // variables:
     for (int i = 0; i < in_data.size(); i++)
-        stream_in >> in_data(i);
+         in_data(i) = rbuffer[i + 1];
 
     return true;
 }

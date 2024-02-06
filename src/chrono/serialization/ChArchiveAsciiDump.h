@@ -34,8 +34,7 @@ class ChArchiveAsciiDump : public ChArchiveOut {
 
     virtual ~ChArchiveAsciiDump() {}
 
-    /// If true, the variables names are not printed.
-    /// Useful when used for GetLog() << ...  (for more compact formatting).
+    /// Suppress export of variable names
     void SetSuppressNames(bool msu) { suppress_names = msu; }
 
     /// Access the stream used by the archive.
@@ -191,40 +190,6 @@ class ChArchiveAsciiDump : public ChArchiveOut {
     bool suppress_names;
 };
 
-/// This is used to stream out in 'readable' form on a ChStreamOutAscii
-/// stream whatever C++ object that implements the archive serialization, i.e.
-/// objects that have ArchiveOut implemented.
-/// For example:  GetLog() << mymatrix;
-
-// template <class T>
-// ChStreamOutAscii& operator<<(ChStreamOutAscii& mstream, const T& obj) {
-//     std::vector<char> mvect;
-//     ChStreamOutAsciiVector mtempstream(&mvect);
-//     mtempstream.SetNumFormat(mstream.GetNumFormat());
-//     ChArchiveAsciiDump marchive(mtempstream);
-//     // this avoids printing too much except the object:
-//     marchive.SetCutAllPointers(true);
-//     marchive.SetSuppressNames(true);
-//     marchive.SetUseVersions(false);
-//     marchive << CHNVP(obj, "");
-//     std::string mystring(mtempstream.GetVector()->begin(), mtempstream.GetVector()->end());
-//     return mstream << mystring;
-// }
-
-// template <class T>
-// std::ostream& operator<<(std::ostream& mstream, const T& obj) {
-//     std::vector<char> mvect;
-//     std::ostream mtempstream(&mvect);
-//     mtempstream << std::setprecision(mstream.precision());
-//     ChArchiveAsciiDump marchive(mtempstream);
-//     // this avoids printing too much except the object:
-//     marchive.SetCutAllPointers(true);
-//     marchive.SetSuppressNames(true);
-//     marchive.SetUseVersions(false);
-//     marchive << CHNVP(obj, "");
-//     std::string mystring(mtempstream.GetVector()->begin(), mtempstream.GetVector()->end());
-//     return mstream << mystring;
-// }
 
 }  // end namespace chrono
 

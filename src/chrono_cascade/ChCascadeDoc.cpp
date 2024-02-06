@@ -201,7 +201,7 @@ class callback_CascadeDoc_dump : public ChCascadeDoc::callback_CascadeDoc {
     }
 };
 
-void ChCascadeDoc::Dump(ChStreamOutAscii& mstream) {
+void ChCascadeDoc::Dump(std::ostream& mstream) {
     callback_CascadeDoc_dump adumper;
     this->ScanCascadeShapes(adumper);
 }

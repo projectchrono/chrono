@@ -85,7 +85,7 @@ The key of the remaining process is the functionality of the ChCascadeDoc class.
 
 A small inconvenience happens here: because of a SolidEdge-specific issue, the names of the subassemblies in the STEP file are not always the same names that you read in the Assembly PAthFinder window. In detail, all the names of the assemblies are automatically translated to `Assem1`, `Assem2`, etc., whereas you would expect the names of the assemblies that you created, such as `Base`, `Turret`, etc.
 
-A workaround to this inconvenience is the following: you use the `mydoc.Dump(GetLog())` function to print the hierarchy on the console and take note of the STEP names on a piece of paper (or just use the demo_converter.exe to show that hierarchy), you will see something like:
+A workaround to this inconvenience is the following: you use the `mydoc.Dump(std::cout)` function to print the hierarchy on the console and take note of the STEP names on a piece of paper (or just use the demo_converter.exe to show that hierarchy), you will see something like:
 
 ~~~{.txt}
  -Name :Assem10 (root)
@@ -209,7 +209,7 @@ Load the STEP model using this command: (be sure to have the STEP file on the ha
 Print the contained shapes, showing the assembly hierarchy:
 
 ~~~{.cpp}
-	mydoc.Dump(GetLog());
+	mydoc.Dump(std::cout);
 
 	ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
 	ChCollisionModel::SetDefaultSuggestedMargin(0.001);

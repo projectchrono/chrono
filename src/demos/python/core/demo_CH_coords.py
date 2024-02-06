@@ -23,9 +23,9 @@ except ImportError:
         
 
 # Test logging
-chrono.GetLog().Bar()
-chrono.GetLog() << "result is: " << 11+1.5 << "\n"
-chrono.GetLog().Bar()
+print("-----------------------------")
+print("result is: ", 11+1.5)
+print("-----------------------------")
 
 
 # Test vectors
@@ -84,5 +84,5 @@ class MySquareFunct (chrono.ChFunction):
 
 
 my_funct2 = MySquareFunct()
-print ('function f(2) =', my_funct2.Get_y(3) )
-print ('function df/dx=', my_funct2.Get_y_dx(3) )
+print('function f(2) =', my_funct2.Get_y(3) )
+print('function df/dx=', my_funct2.Get_y_dx(3) )

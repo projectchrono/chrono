@@ -159,7 +159,7 @@ class ChApi ChSocketTCP : public ChSocket {
   private:
 #ifdef WINDOWS_XP
     // Windows NT version of the MSG_WAITALL option
-    int XPrecieveMessage(std::string&);
+    int XPReceiveMessage(std::string&);
 #endif
 
   public:
@@ -193,6 +193,7 @@ class ChApi ChSocketTCP : public ChSocket {
     /// the length of the buffer).
     int SendBuffer(std::vector<char>& source_buf  ///< source buffer
     );
+
     /// Receive a std::vector<char> (a buffer of bytes) from the connected host,
     /// without the header as in SendMessage (so one must know in advance
     /// the length of the buffer). If the receiving buffer size is not =bsize, it

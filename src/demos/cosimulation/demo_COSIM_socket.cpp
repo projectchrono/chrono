@@ -16,8 +16,7 @@
 // send messages between applications, for co-simulation)
 //
 // =============================================================================
-
-#include "chrono/core/ChLog.h"
+
 
 #include "chrono/utils/ChSocket.h"
 
@@ -77,31 +76,29 @@ int main(int argc, char* argv[]) {
         while (true) {
             // Send to the client
 
-            std::vector<char> mbuffer;                     // zero length
-            ChStreamOutBinaryVector stream_out(&mbuffer);  // wrap the buffer, for easy formatting
+            std::vector<char> mbuffer;// zero length
 
-            stream_out << a_out;
+            mbuffer.push_back(a_out);
 
-            std::cout << local_host.getHostName() << " will send a buffer of n." << stream_out.GetVector()->size()
+            std::cout << local_host.getHostName() << " will send a buffer of n." << mbuffer.size()
                       << " bytes." << std::endl;
 
             // -----> SEND!!!
-            client->SendBuffer(*stream_out.GetVector());
+            client->SendBuffer(mbuffer);
 
             // Receive from the client
             int nbytes = 8 * 3;
             std::vector<char> rbuffer;
-            rbuffer.resize(nbytes);                      // reserve to number of expected bytes
-            ChStreamInBinaryVector stream_in(&rbuffer);  // wrap the buffer, for easy formatting
+            rbuffer.resize(nbytes); // reserve to number of expected bytes
 
             // -----> RECEIVE!!!
-            int numBytes = client->ReceiveBuffer(*stream_in.GetVector(), nbytes);
+            int numBytes = client->ReceiveBuffer(rbuffer, nbytes);
 
             std::cout << "Received " << numBytes << " bytes" << std::endl;
 
-            stream_in >> a;
-            stream_in >> b;
-            stream_in >> c;
+            a = rbuffer[0];
+            b = rbuffer[1];
+            c = rbuffer[2];
             std::cout << " a = " << a << std::endl << " b = " << b << std::endl << " c = " << c << std::endl;
 
             // change output var just for fun

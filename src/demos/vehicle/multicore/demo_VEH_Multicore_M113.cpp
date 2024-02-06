@@ -20,8 +20,7 @@
 
 #include <iostream>
 
-#include "chrono/ChConfig.h"
-#include "chrono/core/ChStream.h"
+#include "chrono/ChConfig.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"

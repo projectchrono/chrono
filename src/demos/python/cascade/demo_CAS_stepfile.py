@@ -36,9 +36,6 @@ mydoc = cascade.ChCascadeDoc()
 # load the STEP model using this command:
 load_ok = mydoc.Load_STEP(chrono.GetChronoDataFile('cascade/assembly.stp'))  
 
-# print the contained shapes
-#mydoc.Dump(chrono.GetLog())
-
 # In most CAD systems the Y axis is horizontal, but we want it vertical.
 # So define a root transformation for rotating all the imported objects.
 rotation1 = chrono.ChQuaternionD()

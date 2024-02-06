@@ -245,13 +245,12 @@ void create_test(std::function<void(ChSystemNSC&)> assembler_fun,
 
         assembler_fun(system);
 
-        ChStreamOutBinaryFile outstreambinary(outputfile + extension);
         std::ofstream outstreamfile(outputfile + extension);
         std::shared_ptr<ChArchiveOut> archiveout;
 
         switch (outtype) {
             case ArchiveType::BINARY:
-                archiveout = chrono_types::make_shared<ChArchiveOutBinary>(outstreambinary);
+                archiveout = chrono_types::make_shared<ChArchiveOutBinary>(outstreamfile);
                 break;
             case ArchiveType::JSON:
                 archiveout = chrono_types::make_shared<ChArchiveOutJSON>(outstreamfile);
@@ -273,12 +272,11 @@ void create_test(std::function<void(ChSystemNSC&)> assembler_fun,
         system.StateGather(*state_before_archive, *state_delta_dummy, time_dummy);
     }
 
-    ChStreamInBinaryFile instreambinary(outputfile + extension);
     std::ifstream instreamfile(outputfile + extension);
     std::shared_ptr<ChArchiveIn> archivein;
     switch (outtype) {
         case ArchiveType::BINARY:
-            archivein = chrono_types::make_shared<ChArchiveInBinary>(instreambinary);
+            archivein = chrono_types::make_shared<ChArchiveInBinary>(instreamfile);
             break;
         case ArchiveType::JSON:
             archivein = chrono_types::make_shared<ChArchiveInJSON>(instreamfile);

@@ -15,8 +15,7 @@
 // FEA demo on applying loads to beams, shells, volumes, etc.
 //
 // =============================================================================
-
-#include "chrono/core/ChLog.h"
+
 
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLoadContainer.h"

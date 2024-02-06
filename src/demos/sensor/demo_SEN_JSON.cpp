@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
-    mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
+    mesh_body->AddVisualShape(trimesh_shape, ChFrame<>());
     mesh_body->SetBodyFixed(true);
     sys.Add(mesh_body);
 
@@ -149,25 +149,25 @@ int main(int argc, char* argv[]) {
         UserR8BufferPtr camera_data = cam->GetMostRecentBuffer<UserR8BufferPtr>();
         if (camera_data->Buffer) {
             num_camera_updates++;
-            // std::cout << "Data recieved from camera. Frame: " << num_camera_updates << std::endl;
+            // std::cout << "Data received from camera. Frame: " << num_camera_updates << std::endl;
         }
 
         UserXYZIBufferPtr lidar_data = lidar->GetMostRecentBuffer<UserXYZIBufferPtr>();
         if (lidar_data->Buffer) {
             num_lidar_updates++;
-            // std::cout << "Data recieved from lidar. Frame: " << num_lidar_updates << std::endl;
+            // std::cout << "Data received from lidar. Frame: " << num_lidar_updates << std::endl;
         }
 
         UserGPSBufferPtr gps_data = gps->GetMostRecentBuffer<UserGPSBufferPtr>();
         if (gps_data->Buffer) {
             num_gps_updates++;
-            // std::cout << "Data recieved from gps. Frame: " << num_gps_updates << std::endl;
+            // std::cout << "Data received from gps. Frame: " << num_gps_updates << std::endl;
         }
 
         UserAccelBufferPtr acc_data = acc->GetMostRecentBuffer<UserAccelBufferPtr>();
         if (acc_data->Buffer) {
             num_imu_updates++;
-            // std::cout << "Data recieved from imu. Frame: " << num_imu_updates << std::endl;
+            // std::cout << "Data received from imu. Frame: " << num_imu_updates << std::endl;
         }
 
         ch_time = (float)sys.GetChTime();

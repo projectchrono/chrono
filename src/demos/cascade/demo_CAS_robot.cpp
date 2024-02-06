@@ -17,7 +17,6 @@
 //   - make Chrono::Engine objects out of those parts
 // =============================================================================
 
-#include "chrono/core/ChLog.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -65,7 +64,7 @@ int main(int argc, char* argv[]) {
     bool load_ok = mydoc.Load_STEP(GetChronoDataFile("/cascade/IRB7600_23_500_m2000_rev1_01_decorated.stp").c_str());
 
     // print the contained shapes
-    mydoc.Dump(GetLog());
+    mydoc.Dump(std::cout);
 
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
     ChCollisionModel::SetDefaultSuggestedMargin(0.001);

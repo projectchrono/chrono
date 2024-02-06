@@ -11,8 +11,7 @@
 // =============================================================================
 // Authors: Alessandro Tasora
 // =============================================================================
-
-#include "chrono/core/ChLog.h"
+
 #include "chrono/core/ChSparsityPatternLearner.h"
 
 #include "chrono/solver/ChDirectSolverLScomplex.h"

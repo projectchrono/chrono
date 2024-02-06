@@ -35,9 +35,7 @@ include_directories(${CH_INCLUDES})
 # Core group
 
 set(ChronoEngine_core_SOURCES
-    core/ChLog.cpp
     core/ChClassFactory.cpp
-    core/ChStream.cpp
     core/ChMathematics.cpp
     core/ChQuaternion.cpp
     core/ChVector.cpp
@@ -58,7 +56,6 @@ set(ChronoEngine_core_HEADERS
     core/ChFrame.h
     core/ChFrameMoving.h
     core/ChLists.h
-    core/ChLog.h
     core/ChMath.h
     core/ChMathematics.h
     core/ChMatrix.h
@@ -70,7 +67,6 @@ set(ChronoEngine_core_HEADERS
     core/ChPlatform.h
     core/ChQuaternion.h
     core/ChRealtimeStep.h
-    core/ChStream.h
     core/ChTimer.h
     core/ChTransform.h
     core/ChVector.h

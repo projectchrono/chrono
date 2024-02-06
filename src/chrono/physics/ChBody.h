@@ -160,12 +160,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// The body AABB is the AABB of its collision model (if any).
     virtual geometry::ChAABB GetTotalAABB() override;
 
-    /// Method to deserialize only the state (position, speed).
-    virtual void StreamInstate(ChStreamInBinary& mstream) override;
-
-    /// Method to serialize only the state (position, speed).
-    virtual void StreamOutstate(ChStreamOutBinary& mstream) override;
-
     // DATABASE HANDLING
 
     /// Attach a marker to this body.
@@ -484,9 +478,9 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c) override;
-    virtual void IntLoadLumpedMass_Md(const unsigned int off,  
-                                      ChVectorDynamic<>& Md,  
-                                      double& err,         
+    virtual void IntLoadLumpedMass_Md(const unsigned int off,
+                                      ChVectorDynamic<>& Md,
+                                      double& err,
                                       const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
@@ -597,11 +591,11 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactComputeQ(const ChVector<>& F,
-                                   const ChVector<>& T,
-                                   const ChVector<>& point,
-                                   const ChState& state_x,
-                                   ChVectorDynamic<>& Q,
-                                   int offset) override;
+                                 const ChVector<>& T,
+                                 const ChVector<>& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item.
     /// For a ChBody, this updates the corresponding 1x6 jacobian.

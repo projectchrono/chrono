@@ -23,8 +23,7 @@
 // Y pointing to the left.
 //
 // =============================================================================
-
-#include "chrono/core/ChStream.h"
+
 #include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"

@@ -20,6 +20,7 @@
 #include <iostream>
 
 #include "chrono/motion_functions/ChFunction_Base.h"
+#include <iomanip>
 
 namespace chrono {
 
@@ -117,11 +118,10 @@ void ChFunction::ArchiveOut(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChFunction::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunction>();
+    /*int version =*/marchive.VersionRead<ChFunction>();
 }
 
-
-int ChFunction::FileAsciiPairsSave(ChStreamOutAscii& m_file, double mxmin, double mxmax, int msamples) {
+int ChFunction::FileAsciiPairsSave(std::ostream& outfile, double mxmin, double mxmax, int msamples) {
     if (msamples <= 1)
         throw(ChException("Warning! too short range or too long sampling period: no points can be saved"));
     if (msamples >= 100000)
@@ -129,16 +129,16 @@ int ChFunction::FileAsciiPairsSave(ChStreamOutAscii& m_file, double mxmin, doubl
     if (mxmax <= mxmin)
         throw(ChException("Warning! Cannot save ChFunction if Xmax < Xmin"));
 
-    m_file.SetNumFormat("%0.8f");
+    outfile << std::setprecision(8) << std::defaultfloat;
 
     double period = (mxmax - mxmin) / ((double)msamples - 1);
 
     double mX = mxmin;
     for (int cnt = 1; cnt <= msamples; cnt++) {
-        m_file << mX;
-        m_file << "    ";
-        m_file << this->Get_y(mX);
-        m_file.CR();
+        outfile << mX;
+        outfile << "    ";
+        outfile << this->Get_y(mX);
+        outfile << std::endl;
         mX += period;
     }
     return 1;
@@ -146,7 +146,7 @@ int ChFunction::FileAsciiPairsSave(ChStreamOutAscii& m_file, double mxmin, doubl
 
 void ChFunction::EvaluateIntervaldN(ChMatrixDynamic<>& data, double xmin, double xmax, double step, int der) {
     int num_samples = (xmax - xmin) / step;
-    data.resize(num_samples, der + 2); // data = [x, y(x), y_dx(x), ...]
+    data.resize(num_samples, der + 2);  // data = [x, y(x), y_dx(x), ...]
     double x = xmin;
     for (int i = 0; i < num_samples; ++i) {
         data(i, 0) = x;

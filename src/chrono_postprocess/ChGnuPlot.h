@@ -18,8 +18,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
-
-#include "chrono/core/ChStream.h"
+
 #include "chrono/core/ChMatrix.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/motion_functions/ChFunction_Base.h"

@@ -29,8 +29,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/assets/ChVisualShapeLine.h"
-#include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChStream.h"
+#include "chrono/core/ChMathematics.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 

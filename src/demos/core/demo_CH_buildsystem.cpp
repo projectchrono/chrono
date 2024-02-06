@@ -20,8 +20,7 @@
 //	   - perform a simulation
 //
 // =============================================================================
-
-#include "chrono/core/ChLog.h"
+
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
 

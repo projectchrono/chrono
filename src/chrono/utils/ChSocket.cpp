@@ -1096,89 +1096,8 @@ int ChSocketTCP::sendMessage(std::string& message) {
 }
 
 #ifdef WINDOWS_XP
-/*
-int ChSocketTCP::XPrecieveMessage(std::string& message)
-{
-    int numBytes = 0;                 // The number of bytes received
-    int currentSize = MSG_HEADER_LEN; // The number of bytes wanted to receive
-    int offsetSize = 0;               // The number of bytes currently received
 
-    // retrieve the length of the message received
-
-    char msgLength[MSG_HEADER_LEN+1];
-    memset(msgLength,0,sizeof(msgLength));
-
-    try
-    {
-        while ( numBytes < currentSize )
-        {
-            numBytes = recv(socketId,msgLength+offsetSize,currentSize,MSG_PEEK);
-            if (numBytes == -1)
-            {
-                int errorCode = 0;
-                std::string errorMsg = "error calling recv():\n";
-                detectErrorRecv(&errorCode,errorMsg);
-                ChExceptionSocket* socketRecvException = new ChExceptionSocket(errorCode,errorMsg);
-                throw socketRecvException;
-            }
-            else if ( numBytes < currentSize )
-            {
-                offsetSize += numBytes;
-                currentSize -= numBytes;
-            }
-        }
-
-    }
-    catch(ChExceptionSocket* excp)
-    {
-        excp->response();
-        delete excp;
-        exit(1);
-    }
-
-    // recieve the real message
-    currentSize = atoi(msgLength);
-    offsetSize = 0;
-
-    cout   << "[RECV:message length] " << msgLength << std::endl;
-    winLog << "[RECV:message length] " << msgLength << std::endl;
-
-    try
-    {
-        while ( numBytes < currentSize )
-        {
-            numBytes = recv(socketId,(char*)(message.c_str())+offsetSize,currentSize,0);
-            if (numBytes == -1)
-            {
-                int errorCode = 0;
-                std::string errorMsg = "error calling recv():\n";
-                detectErrorRecv(&errorCode,errorMsg);
-                ChExceptionSocket* socketRecvException = new ChExceptionSocket(errorCode,errorMsg);
-                throw socketRecvException;
-            }
-            else if ( numBytes < currentSize )
-            {
-                offsetSize += numBytes;
-                currentSize -= numBytes;
-            }
-        }
-
-    }
-    catch(ChExceptionSocket* excp)
-    {
-        excp->response();
-        delete excp;
-        exit(1);
-    }
-
-    cout   << "[RECV:message] " << message << std::endl;
-    winLog << "[RECV:message] " << message << std::endl;
-
-    return atoi(msgLength);
-}
-*/
-
-int ChSocketTCP::XPrecieveMessage(std::string& message) {
+int ChSocketTCP::XPReceiveMessage(std::string& message) {
     int received = 0;            // The number of bytes received
     int msgSize = MAX_RECV_LEN;  // The number of bytes wanted to receive
     bool headerFinished = false;
@@ -1231,7 +1150,7 @@ int ChSocketTCP::XPrecieveMessage(std::string& message) {
 
 int ChSocketTCP::receiveMessage(std::string& message) {
 #ifdef WINDOWS_XP
-    return XPrecieveMessage(message);
+    return XPReceiveMessage(message);
 #endif
 
     int64_t numBytes = 0;       // Number of received bytes on the last recv

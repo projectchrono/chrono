@@ -16,8 +16,7 @@
 // Attach multiple sensors to a hmmwv full vehicle model
 //
 // =============================================================================
-
-#include "chrono/core/ChStream.h"
+
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
