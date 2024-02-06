@@ -650,7 +650,7 @@ int main(int argc, char* argv[]) {
 
     // Example: SERIALIZE TO/FROM BINARY:
     {
-        std::ofstream mfileo(out_dir + "/foo_archive.dat");
+        std::ofstream mfileo(out_dir + "/foo_archive.dat", std::ios::binary);
 
         // Use a binary archive object to serialize C++ objects into the binary file
         ChArchiveOutBinary marchiveout(mfileo);
@@ -659,7 +659,7 @@ int main(int argc, char* argv[]) {
     }
 
     {
-        std::ifstream mfilei(out_dir + "/foo_archive.dat");
+        std::ifstream mfilei(out_dir + "/foo_archive.dat", std::ios::binary);
 
         // Use a binary archive object to deserialize C++ objects from the binary file
         ChArchiveInBinary marchivein(mfilei);
