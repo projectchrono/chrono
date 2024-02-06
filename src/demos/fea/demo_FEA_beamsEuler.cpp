@@ -217,18 +217,18 @@ int main(int argc, char* argv[]) {
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
-    std::cout << std::endl << std::endl << "===========STATICS======== " << std::endl << std::endl;
+    std::cout << "\n\n===========STATICS======== \n" << std::endl;
 
     if (false) {
-        std::cout << "BEAM RESULTS (LINEAR STATIC ANALYSIS)" << std::endl << std::endl;
+        std::cout << "BEAM RESULTS (LINEAR STATIC ANALYSIS)\n" << std::endl;
         sys.DoStaticLinear();
     }
     if (false) {
-        std::cout << "BEAM RESULTS (NON-LINEAR STATIC ANALYSIS, basic)" << std::endl << std::endl;
+        std::cout << "BEAM RESULTS (NON-LINEAR STATIC ANALYSIS, basic)\n" << std::endl;
         sys.DoStaticNonlinear(20);
     }
     if (true) {
-        std::cout << "BEAM RESULTS (NON-LINEAR STATIC INCREMENTAL ANALYSIS)" << std::endl << std::endl;
+        std::cout << "BEAM RESULTS (NON-LINEAR STATIC INCREMENTAL ANALYSIS)\n" << std::endl;
 
         // Instead of using sys.DoStaticNonLinear(), which is quite basic, we will use ChStaticNonLinearIncremental.
         // This requires a custom callback for incrementing the external loads:

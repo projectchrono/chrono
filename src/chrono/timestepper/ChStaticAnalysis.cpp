@@ -154,7 +154,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
             // Stopping test
             if ((R_norm < m_abstol) && (Qc_norm < m_abstol)) {
                 if (m_verbose) {
-                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations." << std::endl
+                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations.\n"
                               << std::endl;
                 }
                 break;
@@ -335,8 +335,8 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
                 true                           // force a call to the solver's Setup() function
             );
             /*
-            std::cout << "V=" << std::endl << V << std::endl;
-            std::cout << "Qc=" << std::endl <<  Qc << std::endl;
+            std::cout << "V=\n"<< V << std::endl;
+            std::cout << "Qc=\n"<<  Qc << std::endl;
             */
             Xnew =
                 X +
@@ -414,7 +414,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
             // Stopping test
             if ((R_norm < m_abstol) && (Qc_norm < m_abstol)) {
                 if (m_verbose) {
-                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations." << std::endl
+                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations.\n"
                               << std::endl;
                 }
                 break;
@@ -437,7 +437,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
         L += Dl;
 
         /*
-        std::cout << std::endl << std::endl << " Iteration " << i << std::endl << std::endl;
+        std::cout << "\n\n Iteration " << i << std::endl << std::endl;
         std::cout << "R=" <<  R << std::endl;
         std::cout << "Qc=" <<  Qc << std::endl;
         std::cout << "Dx=" <<  Dx << std::endl;
@@ -534,10 +534,10 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
         );
 
         /*
-        std::cout << std::endl << std::endl << " Last step " << std::endl << std::endl;
+        std::cout << "\n\n Last step \n" << std::endl;
         std::cout << "R=" <<  R << std::endl;
         std::cout << "Qc=" <<  Qc << std::endl;
-        std::cout << "V_last=" << std::endl << V << std::endl;
+        std::cout << "V_last=\n"<< V << std::endl;
         */
 
         integrable->StateScatter(X, V, T, true);  // state -> system
@@ -715,7 +715,7 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
                 // Stopping test
                 if ((R_norm < m_abstol) && (Qc_norm < m_abstol)) {
                     if (m_verbose) {
-                        std::cout << "+++   Newton procedure converged in " << i + 1 << " iterations" << std::endl
+                        std::cout << "+++   Newton procedure converged in " << i + 1 << " iterations\n"
                                   << std::endl;
                     }
                     break;
@@ -890,7 +890,7 @@ void ChStaticNonLinearRigidMotion::StaticAnalysis() {
             // Stopping test
             if ((R_norm < m_abstol) && (Qc_norm < m_abstol)) {
                 if (m_verbose) {
-                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations" << std::endl
+                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations\n"
                               << std::endl;
                 }
                 break;

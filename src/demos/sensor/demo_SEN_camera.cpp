@@ -423,14 +423,14 @@ int main(int argc, char* argv[]) {
         //     // Retreive and print the first RGBA pixel
         //     PixelRGBA8 first_pixel = rgba8_ptr->Buffer[0];
         //     std::cout << "First Pixel: [ " << unsigned(first_pixel.R) << ", " << unsigned(first_pixel.G) << ", "
-        //               << unsigned(first_pixel.B) << ", " << unsigned(first_pixel.A) << " ]" << std::endl
+        //               << unsigned(first_pixel.B) << ", " << unsigned(first_pixel.A) << " ]\n"
         //               << std::endl;
         //
         //     // Retreive and print the last RGBA pixel
         //     int buffer_length = rgba8_ptr->Height * rgba8_ptr->Width;
         //     PixelRGBA8 last_pixel = rgba8_ptr->Buffer[buffer_length - 1];
         //     std::cout << "Last Pixel: [ " << unsigned(last_pixel.R) << ", " << unsigned(last_pixel.G) << ", "
-        //               << unsigned(last_pixel.B) << ", " << unsigned(last_pixel.A) << " ]" << std::endl
+        //               << unsigned(last_pixel.B) << ", " << unsigned(last_pixel.A) << " ]\n"
         //               << std::endl;
         // }
 

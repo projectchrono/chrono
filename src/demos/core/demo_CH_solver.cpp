@@ -75,8 +75,8 @@ using namespace chrono;
 //  |  0  1  0  0 -1  0 .       | |-l_2|   | -1|   |c_2|
 
 void test_1(const std::string& out_dir) {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: generic system with two constraints" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: generic system with two constraints\n" << std::endl;
 
     // Important: create a 'system descriptor' object that
     // contains variables and constraints:
@@ -167,18 +167,18 @@ void test_1(const std::string& out_dir) {
     StreamOut(matrM, std::cout);
     StreamOut(matrCq, std::cout);
 
-    std::cout << "**** Using ChSolverPSOR  **********" << std::endl << std::endl;
-    std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << " " << std::endl
+    std::cout << "**** Using ChSolverPSOR  **********\n" << std::endl;
+    std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "\n"
               << std::endl;
     std::cout << "vars q_a and q_b -------------------" << std::endl;
     std::cout << mvarA.Get_qb();
     std::cout << mvarB.Get_qb() << "  " << std::endl;
-    std::cout << "multipliers l_1 and l_2 ------------" << std::endl << std::endl;
+    std::cout << "multipliers l_1 and l_2 ------------\n" << std::endl;
     std::cout << mca.Get_l_i() << " " << std::endl;
-    std::cout << mcb.Get_l_i() << " " << std::endl << std::endl;
+    std::cout << mcb.Get_l_i() << " \n" << std::endl;
     std::cout << "constraint residuals c_1 and c_2 ---" << std::endl;
     std::cout << mca.Get_c_i() << " " << std::endl;
-    std::cout << mcb.Get_c_i() << " " << std::endl << std::endl;
+    std::cout << mcb.Get_c_i() << " \n" << std::endl;
 
     // reset variables
     mvarA.Get_qb().setZero();
@@ -191,8 +191,8 @@ void test_1(const std::string& out_dir) {
 // represents, from a physical point of view, a long inverted multipendulum.
 
 void test_2(const std::string& out_dir) {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: 1D vertical pendulum" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: 1D vertical pendulum\n" << std::endl;
 
     ChSystemDescriptor mdescriptor;
 
@@ -287,8 +287,8 @@ void test_2(const std::string& out_dir) {
 //  |  Cq   Cq      .     | |-l_1|   |  5|   |c_1|
 
 void test_3(const std::string& out_dir) {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: generic system with stiffness blocks" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: generic system with stiffness blocks\n" << std::endl;
 
     // Important: create a 'system descriptor' object that
     // contains variables and constraints:
@@ -321,7 +321,7 @@ void test_3(const std::string& out_dir) {
 
     ////ChMatrixDynamic<> foo(3, 4);
     ////foo.fillRandom(0, 10);
-    ////std::cout << "foo...." << std::endl << foo << std::endl;
+    ////std::cout << "foo....\n"<< foo << std::endl;
     ////return;
 
     mdescriptor.InsertVariables(&mvarA);
@@ -411,7 +411,7 @@ void test_3(const std::string& out_dir) {
 // Results will be simply text-formatted outputs in the console..
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl << "Chrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2017 projectchrono.org\n"<< "Chrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_SOLVER";

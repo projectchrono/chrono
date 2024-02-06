@@ -102,7 +102,7 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
     if (verbose) {
         std::cout << " Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros()
                   << std::endl;
-        std::cout << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s" << std::endl
+        std::cout << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s\n"
                   << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s"
                   << std::endl;
     }
@@ -144,7 +144,7 @@ double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
     if (verbose) {
         double res_norm = (m_rhs - m_mat * m_sol).norm();
         std::cout << " Solver solve [" << m_solve_call << "]  |residual| = " << res_norm << std::endl << std::endl;
-        std::cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s" << std::endl
+        std::cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s\n"
                   << "  solve:             " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << std::endl;
     }
 
@@ -173,7 +173,7 @@ bool ChDirectSolverLS::SetupCurrent() {
     if (verbose) {
         std::cout << " Solver SetupCurrent() [" << m_setup_call << "] n = " << m_dim
                   << "  nnz = " << (int)m_mat.nonZeros() << std::endl;
-        std::cout << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s" << std::endl
+        std::cout << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s\n"
                   << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s"
                   << std::endl;
     }
@@ -203,7 +203,7 @@ double ChDirectSolverLS::SolveCurrent() {
         double res_norm = (m_rhs - m_mat * m_sol).norm();
         std::cout << " Solver SolveCurrent() [" << m_solve_call << "]  |residual| = " << res_norm << std::endl
                   << std::endl;
-        std::cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s" << std::endl
+        std::cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s\n"
                   << "  solve:             " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << std::endl;
     }
 

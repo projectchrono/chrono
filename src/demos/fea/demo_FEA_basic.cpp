@@ -35,8 +35,8 @@ using namespace fea;
 // First example: SPRING ELEMENT
 // ====================================
 void test_1() {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: spring element FEM" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: spring element FEM\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -103,10 +103,10 @@ void test_1() {
 
     // Output result
     std::cout << "poss after linear static analysis:" << std::endl;
-    std::cout << "  nodeA->pos" << std::endl << mnodeA->GetPos();
-    std::cout << "  nodeB->pos" << std::endl << mnodeB->GetPos();
+    std::cout << "  nodeA->pos\n"<< mnodeA->GetPos();
+    std::cout << "  nodeB->pos\n"<< mnodeB->GetPos();
     std::cout << "Forces after linear static analysis:" << std::endl;
-    std::cout << "  constraintA.react" << std::endl << constraintA->GetReactionOnBody();
+    std::cout << "  constraintA.react\n"<< constraintA->GetReactionOnBody();
 }
 
 //////////////////////////////////////////////////////////////////
@@ -115,8 +115,8 @@ void test_1() {
 // Second example: LINEAR TETRAHEDRAL ELEMENT				    //
 // ============================================================ //
 void test_2() {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: LINEAR tetrahedral element FEM" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: LINEAR tetrahedral element FEM\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -216,8 +216,8 @@ void test_2() {
 // Second example: QUADRATIC TETRAHEDRAL ELEMENT				//
 // ============================================================ //
 void test_3() {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: QUADRATIC tetrahedral element FEM" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: QUADRATIC tetrahedral element FEM\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -327,8 +327,8 @@ void test_3() {
 // Second example: LINEAR HEXAHEDRAL ELEMENT					//
 // ============================================================ //
 void test_4() {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: LINEAR hexahedral element FEM" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: LINEAR hexahedral element FEM\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -447,8 +447,8 @@ void test_4() {
 // Second example: QUADRATIC HEXAHEDRAL ELEMENT					//
 // ============================================================ //
 void test_5() {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: QUADRATIC hexahedral element FEM" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: QUADRATIC hexahedral element FEM\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -595,7 +595,7 @@ void test_5() {
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    std::cout << " Example: the FEM technology for finite elements" << std::endl << std::endl;
+    std::cout << " Example: the FEM technology for finite elements\n" << std::endl;
 
     // test_1(); //// NOT WORKING
     test_2();

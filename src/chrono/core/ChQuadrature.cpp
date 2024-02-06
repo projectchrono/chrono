@@ -66,7 +66,7 @@ void ChQuadratureTables::PrintTables() {
     std::cout << "PrintTables: " << std::endl;
 
     for (unsigned int io = 0; io < Lroots.size(); ++io) {
-        std::cout << std::endl << "Order: " << Lroots[io].size() << "  at table n." << io << " with roots&weights:" << std::endl;
+        std::cout << "\nOrder: " << Lroots[io].size() << "  at table n." << io << " with roots&weights:" << std::endl;
         for (unsigned int ir = 0; ir < Lroots[io].size(); ++ir)
             std::cout << "  " << Lroots[io][ir];
         std::cout << std::endl;

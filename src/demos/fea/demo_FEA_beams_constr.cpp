@@ -59,16 +59,16 @@ int main(int argc, char* argv[]) {
         std::cout << " Fi = " << mFi;
         std::cout << " Ti = " << mTi;
         minertia1->ComputeInertiaMatrix(mMi);
-        std::cout << " Mi:" << std::endl << mMi << std::endl;
+        std::cout << " Mi:\n"<< mMi << std::endl;
         minertia1->ComputeInertiaDampingMatrix(mRi,mWvel);
-        std::cout << " Ri:" << std::endl << mRi << std::endl;
+        std::cout << " Ri:\n"<< mRi << std::endl;
         minertia1->ComputeInertiaStiffnessMatrix(mKi,mWvel,mWacc,mXacc);
-        std::cout << " Ki:" << std::endl << mKi << std::endl;
+        std::cout << " Ki:\n"<< mKi << std::endl;
         minertia1->compute_Ri_Ki_by_num_diff = true;
         minertia1->ComputeInertiaDampingMatrix(mRi_num,mWvel);
-        std::cout << " Ri_num:" << std::endl << mRi_num << std::endl;
+        std::cout << " Ri_num:\n"<< mRi_num << std::endl;
         minertia1->ComputeInertiaStiffnessMatrix(mKi_num,mWvel,mWacc,mXacc);
-        std::cout << " Ki_num:" << std::endl << mKi_num << std::endl;
+        std::cout << " Ki_num:\n"<< mKi_num << std::endl;
      return 1;
      */
     // Create a Chrono::Engine physical system

@@ -76,7 +76,7 @@ bool ChConvexDecomposition::AddTriangleMesh(const geometry::ChTriangleMesh& tm) 
 
 bool ChConvexDecomposition::WriteConvexHullsAsChullsFile(std::ostream& mstream) {
     mstream << std::setprecision(9) << std::defaultfloat;
-    mstream << "# Convex hulls obtained with Chrono::Engine" << std::endl
+    mstream << "# Convex hulls obtained with Chrono::Engine\n"
             << "# convex decomposition (.chulls format: only vertexes)\n";
 
     for (unsigned int ih = 0; ih < this->GetHullCount(); ih++) {

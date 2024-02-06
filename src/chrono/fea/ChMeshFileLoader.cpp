@@ -655,7 +655,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     printf("Mesh Bounding box is x [%f %f %f %f %f %f]\n", BoundingBox(0, 0), BoundingBox(0, 1), BoundingBox(0, 2),
            BoundingBox(0, 3), BoundingBox(0, 4), BoundingBox(0, 5));
 
-    std::cout << "-----------------------------------------------------------" << std::endl << std::endl;
+    std::cout << "-----------------------------------------------------------\n" << std::endl;
     //
     for (int inode = 0; inode < TotalNumNodes; inode++) {
         ChVector<> node_normal = (Normals[inode] / num_Normals[inode]);

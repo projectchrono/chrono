@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 
         std::cout << std::endl
                   << std::endl
-                  << "Here's the system hierarchy after modifications:" << std::endl
+                  << "Here's the system hierarchy after modifications:\n"
                   << std::endl;
         sys.ShowHierarchy(std::cout);
     }
@@ -178,11 +178,11 @@ int main(int argc, char* argv[]) {
 
         std::cout << std::endl
                   << std::endl
-                  << "Here's the system hierarchy for slider-crank:" << std::endl
+                  << "Here's the system hierarchy for slider-crank:\n"
                   << std::endl;
         sys.ShowHierarchy(std::cout);
 
-        std::cout << "Now use an interator to scan through already-added constraints:" << std::endl << std::endl;
+        std::cout << "Now use an interator to scan through already-added constraints:\n" << std::endl;
         for (auto link : sys.Get_linklist()) {
             std::cout << "   Link class: " << typeid(link).name() << std::endl;
         }

@@ -43,8 +43,8 @@ using namespace chrono;
 using namespace fea;
 
 void test_1() {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: load applied to a beam" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: load applied to a beam\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;

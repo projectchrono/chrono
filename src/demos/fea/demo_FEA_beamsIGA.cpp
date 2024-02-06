@@ -222,7 +222,7 @@ void MakeAndRunDemo1(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
     double numerical_displ =
         builder.GetLastBeamNodes().back()->GetPos().y() - builder.GetLastBeamNodes().back()->GetX0().GetPos().y();
 
-    std::cout << std::endl << "LINEAR STATIC cantilever, order= " << order << "  nsections= " << nsections
+    std::cout << "\nLINEAR STATIC cantilever, order= " << order << "  nsections= " << nsections
              << "  rel.error=  " << fabs((numerical_displ - analytic_timoshenko_displ) / analytic_timoshenko_displ)
              << std::endl;
 

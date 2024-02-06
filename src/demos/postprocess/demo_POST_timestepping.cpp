@@ -525,7 +525,7 @@ void example4(const std::string& out_dir) {
 }
 
 void example5(const std::string& out_dir) {
-    std::cout << std::endl << std::endl << "Example 5: integrate pendulum DAE " << std::endl;
+    std::cout << "\n\nExample 5: integrate pendulum DAE " << std::endl;
 
     // A) - a minimalistic pendulum DAE:
     //
@@ -862,7 +862,7 @@ void example5(const std::string& out_dir) {
 }
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2021 projectchrono.org" << std::endl << "Chrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2021 projectchrono.org\n"<< "Chrono version: " << CHRONO_VERSION << std::endl;
 
     std::cout << "CHRONO demo about low-level time integration of differential equations:" << std::endl;
 

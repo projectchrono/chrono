@@ -306,7 +306,7 @@ bool ANCFBeamTest::GeneralizedGravityForceCheck(int msglvl) {
     bool passed_test = (MaxAbsError <= 0.001);
 
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Generalized Force due to Gravity = " << std::endl;
         std::cout << GeneralizedForceDueToGravity << std::endl;
     }
@@ -337,7 +337,7 @@ bool ANCFBeamTest::GeneralizedInternalForceNoDispNoVelCheck(int msglvl) {
     bool passed_test = (MaxAbsError <= 0.001);
 
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Generalized Internal Force - No Displacement, No Velocity = " << std::endl;
         std::cout << InternalForceNoDispNoVel << std::endl;
     }
@@ -379,7 +379,7 @@ bool ANCFBeamTest::GeneralizedInternalForceSmallDispNoVelCheck(int msglvl) {
     bool passed_test = (MaxAbsError <= 0.01 * Expected_InternalForceSmallDispNoVel.cwiseAbs().maxCoeff());
 
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Generalized Internal Force - Small Displacement, No Velocity = " << std::endl;
         std::cout << InternalForceSmallDispNoVel << std::endl;
     }
@@ -424,7 +424,7 @@ bool ANCFBeamTest::GeneralizedInternalForceNoDispSmallVelCheck(int msglvl) {
     bool passed_test = (MaxAbsError <= 0.01 * Expected_InternalForceNoDispSmallVel.cwiseAbs().maxCoeff());
 
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Generalized Internal Force - No Displacement, Small Velocity With Damping = " << std::endl;
         std::cout << InternalForceNoDispSmallVel << std::endl;
     }
@@ -505,7 +505,7 @@ bool ANCFBeamTest::JacobianNoDispNoVelNoDampingCheck(int msglvl) {
 
     // Print the results for the K terms (partial derivatives with respect to the nodal coordinates)
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Jacobian K Term - No Displacement, No Velocity, No Damping = " << std::endl;
         std::cout << JacobianK_NoDispNoVelNoDamping << std::endl;
         std::cout << "Expected Jacobian K Term - No Displacement, No Velocity, No Damping = " << std::endl;
@@ -540,7 +540,7 @@ bool ANCFBeamTest::JacobianNoDispNoVelNoDampingCheck(int msglvl) {
     // Print the results for the R term (partial derivatives with respect to the time derivative of the nodal
     // coordinates)
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Jacobian R Term - No Displacement, No Velocity, No Damping = " << std::endl;
         std::cout << JacobianR_NoDispNoVelNoDamping << std::endl;
     }
@@ -629,7 +629,7 @@ bool ANCFBeamTest::JacobianSmallDispNoVelNoDampingCheck(int msglvl) {
 
     // Print the results for the K terms (partial derivatives with respect to the nodal coordinates)
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Jacobian K Term - Small Displacement, No Velocity, No Damping = " << std::endl;
         std::cout << JacobianK_SmallDispNoVelNoDamping << std::endl;
         std::cout << "Expected Jacobian K Term - Small Displacement, No Velocity, No Damping = " << std::endl;
@@ -665,7 +665,7 @@ bool ANCFBeamTest::JacobianSmallDispNoVelNoDampingCheck(int msglvl) {
     // Print the results for the R term (partial derivatives with respect to the time derivative of the nodal
     // coordinates)
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Jacobian R Term - Small Displacement, No Velocity, No Damping = " << std::endl;
         std::cout << JacobianR_SmallDispNoVelNoDamping << std::endl;
     }
@@ -783,7 +783,7 @@ bool ANCFBeamTest::JacobianNoDispNoVelWithDampingCheck(int msglvl) {
 
     // Print the results for the K terms (partial derivatives with respect to the nodal coordinates)
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Jacobian K Term - No Displacement, No Velocity, With Damping = " << std::endl;
         std::cout << JacobianK_NoDispNoVelWithDamping << std::endl;
         std::cout << "Expected Jacobian K Term - No Displacement, No Velocity, With Damping = " << std::endl;
@@ -819,7 +819,7 @@ bool ANCFBeamTest::JacobianNoDispNoVelWithDampingCheck(int msglvl) {
     // Print the results for the R term (partial derivatives with respect to the time derivative of the nodal
     // coordinates)
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Jacobian R Term - No Displacement, No Velocity, With Damping = " << std::endl;
         std::cout << JacobianR_NoDispNoVelWithDamping << std::endl;
         std::cout << "Expected Jacobian R Term - No Displacement, No Velocity, With Damping = " << std::endl;
@@ -959,7 +959,7 @@ bool ANCFBeamTest::JacobianSmallDispNoVelWithDampingCheck(int msglvl) {
 
     // Print the results for the K terms (partial derivatives with respect to the nodal coordinates)
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Jacobian K Term - Small Displacement, No Velocity, With Damping = " << std::endl;
         std::cout << JacobianK_SmallDispNoVelWithDamping << std::endl;
         std::cout << "Expected Jacobian K Term - Small Displacement, No Velocity, With Damping = " << std::endl;
@@ -996,7 +996,7 @@ bool ANCFBeamTest::JacobianSmallDispNoVelWithDampingCheck(int msglvl) {
     // Print the results for the R term (partial derivatives with respect to the time derivative of the nodal
     // coordinates)
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Jacobian R Term - Small Displacement, No Velocity, With Damping = " << std::endl;
         std::cout << JacobianR_SmallDispNoVelWithDamping << std::endl;
         std::cout << "Expected Jacobian R Term - Small Displacement, No Velocity, With Damping = " << std::endl;
@@ -1137,7 +1137,7 @@ bool ANCFBeamTest::JacobianNoDispSmallVelWithDampingCheck(int msglvl) {
 
     // Print the results for the K terms (partial derivatives with respect to the nodal coordinates)
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Jacobian K Term - No Displacement, Small Velocity, With Damping = " << std::endl;
         std::cout << JacobianK_NoDispSmallVelWithDamping << std::endl;
         std::cout << "Expected Jacobian K Term - No Displacement, Small Velocity, With Damping = " << std::endl;
@@ -1174,7 +1174,7 @@ bool ANCFBeamTest::JacobianNoDispSmallVelWithDampingCheck(int msglvl) {
     // Print the results for the R term (partial derivatives with respect to the time derivative of the nodal
     // coordinates)
     if (msglvl >= 2) {
-        std::cout << std::endl << std::endl << "---------------------------" << std::endl << std::endl;
+        std::cout << "\n\n---------------------------\n" << std::endl;
         std::cout << "Jacobian R Term - No Displacement, Small Velocity, With Damping = " << std::endl;
         std::cout << JacobianR_NoDispSmallVelWithDamping << std::endl;
         std::cout << "Expected Jacobian R Term - No Displacement, Small Velocity, With Damping = " << std::endl;

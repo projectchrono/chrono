@@ -30,7 +30,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     if (sysd.GetKblocksList().size() > 0) {
         std::cerr << std::endl
                   << std::endl
-                  << "ChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness matrices." << std::endl
+                  << "ChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness matrices.\n"
                   << std::endl;
         throw ChException("ChSolverBB: Do NOT use Barzilai-Borwein solver if there are stiffness matrices.");
     }
@@ -55,7 +55,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 
     int nc = sysd.CountActiveConstraints();
     if (verbose)
-        std::cout << std::endl << "-----Barzilai-Borwein, solving nc=" << nc << "unknowns" << std::endl;
+        std::cout << "\n-----Barzilai-Borwein, solving nc=" << nc << "unknowns" << std::endl;
 
     ChVectorDynamic<> ml(nc);
     ChVectorDynamic<> ml_candidate(nc);

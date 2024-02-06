@@ -24,10 +24,10 @@ using namespace chrono;
 using namespace chrono::utils;
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl
+    std::cout << "Copyright (c) 2017 projectchrono.org\n"
               << "Chrono version: " << CHRONO_VERSION << std::endl;
 
-    std::cout << "CHRONO demo about sockets" << std::endl << std::endl;
+    std::cout << "CHRONO demo about sockets\n" << std::endl;
 
     try {
         ChSocketFramework* socket_tools = new ChSocketFramework;
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
         delete socket_tools;
 
     } catch (ChExceptionSocket exception) {
-        std::cerr << " ERROR with socket system:" << std::endl << exception.what() << std::endl;
+        std::cerr << " ERROR with socket system:\n"<< exception.what() << std::endl;
     }
 
     return 0;

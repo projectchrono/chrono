@@ -310,7 +310,7 @@ int main(int argc, char* argv[]) {
         //     di_ideal_ptr->Buffer[0].range << ", "
         //               <<
         //               di_ideal_ptr->Buffer[0].intensity
-        //               << "]" << std::endl
+        //               << "]\n"
         //               << std::endl;
         // }
 

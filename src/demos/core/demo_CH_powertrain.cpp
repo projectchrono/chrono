@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
         my_shaft_gearAB->SetTransmissionRatio(-0.1);  // ex., a couple of spur gears with 20 and 200 teeth
         sys.Add(my_shaft_gearAB);
 
-        std::cout << std::endl << std::endl << "Here's the system hierarchy:" << std::endl << std::endl;
+        std::cout << "\n\nHere's the system hierarchy:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
         // Perform a very simple simulation loop..
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
         // Let's begin the simulation with the clutch disengaged:
         my_shaft_clutchAB->SetModulation(0);
 
-        std::cout << std::endl << std::endl << "Here's the system hierarchy:" << std::endl << std::endl;
+        std::cout << "\n\nHere's the system hierarchy:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
         // Perform a very simple simulation loop..
@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
         my_shaft_clutchBD->SetTorqueLimit(60);
         sys.Add(my_shaft_clutchBD);
 
-        std::cout << std::endl << std::endl << "Here's the system hierarchy:" << std::endl << std::endl;
+        std::cout << "\n\nHere's the system hierarchy:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
         // Perform a very simple simulation loop..
@@ -340,7 +340,7 @@ int main(int argc, char* argv[]) {
         my_shaftbody_connection->Initialize(my_shaftA, my_bodyB, mshaftdir);
         sys.Add(my_shaftbody_connection);
 
-        std::cout << std::endl << std::endl << "Here's the system hierarchy:" << std::endl << std::endl;
+        std::cout << "\n\nHere's the system hierarchy:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
         // Perform a very simple simulation loop..
@@ -480,7 +480,7 @@ int main(int argc, char* argv[]) {
         mTw->AddPoint(500, -60);  // torque curve must be defined beyond max speed too - engine might be 'pulled'
         my_motor->SetTorqueCurve(mTw);
 
-        std::cout << std::endl << std::endl << "Here's the system hierarchy:" << std::endl << std::endl;
+        std::cout << "\n\nHere's the system hierarchy:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
         // Perform a very simple simulation loop..
@@ -579,7 +579,7 @@ int main(int argc, char* argv[]) {
         my_clutch->SetTorqueLimit(100);
         sys.Add(my_clutch);
 
-        std::cout << std::endl << std::endl << "Here's the system hierarchy:" << std::endl << std::endl;
+        std::cout << "\n\nHere's the system hierarchy:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
         std::ofstream file_results(out_dir + "/test_clutch.txt");

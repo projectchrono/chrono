@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     test_passed &= ValidateConstraints(test_name, 1e-5);
 
     // Return 0 if all tests passed and 1 otherwise
-    std::cout << std::endl << "UNIT TEST: " << (test_passed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "\nUNIT TEST: " << (test_passed ? "PASSED" : "FAILED") << std::endl;
     return !test_passed;
 }
 

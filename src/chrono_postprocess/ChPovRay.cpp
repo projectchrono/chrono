@@ -225,7 +225,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
         std::ofstream assets_file(base_path + assets_filename);
         assets_file << "// File containing meshes and objects for rendering POV scenes." << std::endl;
         assets_file << "// This file is automatically included by " << out_script_filename << ".pov , " << std::endl;
-        assets_file << "// and you should not modify it." << std::endl << std::endl;
+        assets_file << "// and you should not modify it.\n" << std::endl;
     }
 
     // Generate the .INI script
@@ -233,7 +233,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
     std::ofstream ini_file(base_path + out_script_filename + ".ini");
 
     ini_file << "; Script for rendering an animation with POV-Ray. " << std::endl;
-    ini_file << "; Generated automatically by Chrono::Engine." << std::endl << std::endl;
+    ini_file << "; Generated automatically by Chrono::Engine.\n" << std::endl;
     ini_file << "Version=3.7" << std::endl;
     ini_file << "Antialias=" << (antialias ? "On" : "Off") << "" << std::endl;
     ini_file << "Antialias_Threshold=" << antialias_treshold << "" << std::endl;
@@ -246,7 +246,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
     ini_file << "Final_Frame=0999" << std::endl;
     ini_file << "Initial_Clock=0" << std::endl;
     ini_file << "Final_Clock=1" << std::endl;
-    ini_file << "Pause_when_Done=Off" << std::endl << std::endl;
+    ini_file << "Pause_when_Done=Off\n" << std::endl;
 
     // Generate the .POV script:
 
@@ -276,13 +276,13 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     // Write default global settings and background
 
-    mfile << "global_settings { " << std::endl
-          << " ambient_light rgb<" << ambient_light.R << "," << ambient_light.G << "," << ambient_light.B << "> " << std::endl
+    mfile << "global_settings {\n"
+          << " ambient_light rgb<" << ambient_light.R << "," << ambient_light.G << "," << ambient_light.B << ">\n"
           << " assumed_gamma 1.0" << std::endl;
-    mfile << "}" << std::endl << std::endl << std::endl;
-    mfile << "background { " << std::endl
+    mfile << "}\n\n" << std::endl;
+    mfile << "background {\n"
           << " rgb <" << background.R << "," << background.G << "," << background.B << "> " << std::endl;
-    mfile << "}" << std::endl << std::endl << std::endl;
+    mfile << "}\n\n" << std::endl;
 
     // Write default camera
 
@@ -299,44 +299,44 @@ void ChPovRay::ExportScript(const std::string& filename) {
         mfile << " right -x*image_width/image_height " << std::endl;
         mfile << " angle " << camera_angle << " " << std::endl;
     }
-    mfile << " location <" << camera_location.x() << "," << camera_location.y() << "," << camera_location.z() << "> " << std::endl
-          << " look_at <" << camera_aim.x() << "," << camera_aim.y() << "," << camera_aim.z() << "> " << std::endl
+    mfile << " location <" << camera_location.x() << "," << camera_location.y() << "," << camera_location.z() << ">\n"
+          << " look_at <" << camera_aim.x() << "," << camera_aim.y() << "," << camera_aim.z() << ">\n"
           << " sky <" << camera_up.x() << "," << camera_up.y() << "," << camera_up.z() << "> " << std::endl;
-    mfile << "}" << std::endl << std::endl << std::endl;
+    mfile << "}\n\n" << std::endl;
 
     // Write default light
 
-    mfile << "light_source { " << std::endl
-          << " <" << def_light_location.x() << "," << def_light_location.y() << "," << def_light_location.z() << "> " << std::endl
+    mfile << "light_source {\n"
+          << " <" << def_light_location.x() << "," << def_light_location.y() << "," << def_light_location.z() << ">\n"
           << " color rgb<" << def_light_color.R << "," << def_light_color.G << "," << def_light_color.B << "> " << std::endl;
     if (!def_light_cast_shadows)
         mfile << " shadowless " << std::endl;
-    mfile << "}" << std::endl << std::endl << std::endl;
+    mfile << "}\n\n" << std::endl;
 
     // Write POV custom code
 
     if (custom_script.size() > 0) {
-        mfile << "// Custom user-added script:" << std::endl << std::endl;
+        mfile << "// Custom user-added script:\n" << std::endl;
         mfile << custom_script;
         mfile << std::endl << std::endl;
     }
 
     // Write POV code to open the asset file
 
-    mfile << "// Include shape assets (triangle meshes):" << std::endl << std::endl;
-    mfile << "#include \"" << assets_filename << "\"" << std::endl << std::endl;
+    mfile << "// Include shape assets (triangle meshes):\n" << std::endl;
+    mfile << "#include \"" << assets_filename << "\"\n" << std::endl;
 
     // Write POV code to open the n.th scene file
 
-    mfile << "// Include POV code to for the n.th scene file:" << std::endl << std::endl;
+    mfile << "// Include POV code to for the n.th scene file:\n" << std::endl;
     mfile << "#declare scene_file = concat(\"" << (out_path + "/" + out_data_filename).c_str()
           << "\", str(frame_number,-5,0), \".pov\") " << std::endl;
-    mfile << "#include scene_file" << std::endl << std::endl;
+    mfile << "#include scene_file\n" << std::endl;
 
     // Write POV code to load and display contacts
 
     if (contacts_show) {
-        mfile << "// Load contacts and create objects to show them:" << std::endl << std::endl;
+        mfile << "// Load contacts and create objects to show them:\n" << std::endl;
 
         mfile << "#declare contacts_scale=" << contacts_scale << ";" << std::endl;
         mfile << "#declare contacts_width=" << contacts_width << ";" << std::endl;
@@ -781,7 +781,7 @@ void ChPovRay::ExportData(const std::string& filename) {
 
         // Write custom data commands, if provided by the user
         if (custom_data.size() > 0) {
-            pov_file << "// Custom user-added script:" << std::endl << std::endl;
+            pov_file << "// Custom user-added script:\n" << std::endl;
             pov_file << custom_data;
             pov_file << std::endl << std::endl;
         }
@@ -790,7 +790,7 @@ void ChPovRay::ExportData(const std::string& filename) {
         // ChParticleClones for efficiency (xyz raw data with center of particles will
         // be saved in dat and load using a #while POV loop, helping to reduce size of .pov file)
         pov_file << "#declare dat_file = \"" << (filename + ".dat").c_str() << "\"" << std::endl;
-        pov_file << "#fopen MyDatFile dat_file read" << std::endl << std::endl;
+        pov_file << "#fopen MyDatFile dat_file read\n" << std::endl;
 
         // Save time-dependent data for the geometry of objects in ...nnnn.POV and in ...nnnn.DAT file
         for (const auto& item : m_items) {
@@ -948,10 +948,10 @@ void ChPovRay::ExportData(const std::string& filename) {
                 pov_file << " angle " << camera_angle << " " << std::endl;
             }
             pov_file << " location <" << camera_location.x() << "," << camera_location.y() << "," << camera_location.z()
-                     << "> " << std::endl
-                     << " look_at <" << camera_aim.x() << "," << camera_aim.y() << "," << camera_aim.z() << "> " << std::endl
+                     << ">\n"
+                     << " look_at <" << camera_aim.x() << "," << camera_aim.y() << "," << camera_aim.z() << ">\n"
                      << " sky <" << camera_up.x() << "," << camera_up.y() << "," << camera_up.z() << "> " << std::endl;
-            pov_file << "}" << std::endl << std::endl << std::endl;
+            pov_file << "}\n\n" << std::endl;
         }
 
         // At the end of the .pov file, remember to close the .dat

@@ -29,11 +29,11 @@ using namespace chrono::utils;
 using namespace chrono::cosimul;
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl
+    std::cout << "Copyright (c) 2017 projectchrono.org\n"
               << "Chrono version: " << CHRONO_VERSION << std::endl;
 
-    std::cout << "CHRONO SimHydraulics cosimulation" << std::endl << std::endl;
-    std::cout << "NOTE! This requires a copy of Simulink with SimHydraulics." << std::endl << std::endl;
+    std::cout << "CHRONO SimHydraulics cosimulation\n" << std::endl;
+    std::cout << "NOTE! This requires a copy of Simulink with SimHydraulics.\n" << std::endl;
 
     try {
         // Test
@@ -105,8 +105,8 @@ int main(int argc, char* argv[]) {
 
         // 4) Wait client (Simulink) to connect...
 
-        std::cout << " *** Waiting Simulink to start... ***" << std::endl
-                  << "(load 'data/cosimulation/test_cosim_hydraulics.mdl' in Simulink and press Start...)" << std::endl
+        std::cout << " *** Waiting Simulink to start... ***\n"
+                  << "(load 'data/cosimulation/test_cosim_hydraulics.mdl' in Simulink and press Start...)\n"
                   << std::endl;
 
         int PORT_NUMBER = 50009;
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
         }
 
     } catch (ChExceptionSocket exception) {
-        std::cerr << " ERRROR with socket system:" << std::endl << exception.what() << std::endl;
+        std::cerr << " ERRROR with socket system:\n"<< exception.what() << std::endl;
     }
 
     return 0;

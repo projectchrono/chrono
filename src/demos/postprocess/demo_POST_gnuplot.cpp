@@ -32,7 +32,7 @@ using namespace postprocess;
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    std::cout << "CHRONO demo that launches GNUplot for plotting graphs:" << std::endl << std::endl;
+    std::cout << "CHRONO demo that launches GNUplot for plotting graphs:\n" << std::endl;
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_GNUPLOT";
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
         mplot.Plot(matr, 2, 6, "from ChMatrix", " with lines lt 5");
     }
 
-    std::cout << std::endl << "CHRONO execution terminated.";
+    std::cout << "\nCHRONO execution terminated.";
 
     return 0;
 }

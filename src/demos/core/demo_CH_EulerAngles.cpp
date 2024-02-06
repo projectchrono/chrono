@@ -70,7 +70,7 @@ void test_Euler123() {
     eu = CH_C_RAD_TO_DEG * q.Q_to_Euler123();
     std::cout << "    eu = {" << eu.x() << ";" << eu.y() << ";" << eu.z() << "}" << std::endl;
 
-    std::cout << std::endl << "  Quaternion from Euler angles:" << std::endl;
+    std::cout << "\n  Quaternion from Euler angles:" << std::endl;
 
     eu = {alpha1, beta1, gamma1};
     std::cout << "    Input = {" << eu.x() << ";" << eu.y() << ";" << eu.z() << "}";
@@ -84,7 +84,7 @@ void test_Euler123() {
     eu = CH_C_RAD_TO_DEG * q.Q_to_Euler123();
     std::cout << "    Output = {" << eu.x() << ";" << eu.y() << ";" << eu.z() << "}" << std::endl;
 
-    std::cout << std::endl << "  Euler angles -> Quaternion -> Euler angles (using free functions):" << std::endl;
+    std::cout << "\n  Euler angles -> Quaternion -> Euler angles (using free functions):" << std::endl;
 
     eu = {alpha1, beta1, gamma1};
     std::cout << "    Input = {" << eu.x() << ";" << eu.y() << ";" << eu.z() << "}";
@@ -98,7 +98,7 @@ void test_Euler123() {
     eu = CH_C_RAD_TO_DEG * Q_to_Euler123(q);
     std::cout << "    Output = {" << eu.x() << ";" << eu.y() << ";" << eu.z() << "}" << std::endl;
 
-    std::cout << std::endl << "  Rotation matrix for sequence (90, 90, 90)" << std::endl;
+    std::cout << "\n  Rotation matrix for sequence (90, 90, 90)" << std::endl;
 
     eu = { CH_C_PI_2, CH_C_PI_2, CH_C_PI_2 };
     q = Q_from_Euler123(eu);

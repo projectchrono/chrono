@@ -294,37 +294,37 @@ void ChBlender::ExportScript(const std::string& filename) {
         assets_file
             << "# File containing meshes and objects for rendering Blender scenes, shared through all frames." << std::endl;
         assets_file << "# This file must be imported in Blender using File/Import/chrono import menu, " << std::endl;
-        assets_file << "# that is available in Blender if you installed the chrono_import.py add-on." << std::endl << std::endl;
+        assets_file << "# that is available in Blender if you installed the chrono_import.py add-on.\n" << std::endl;
 
         // Write Blender custom code
         if (custom_script.size() > 0) {
-            assets_file << "# Custom user-added script:" << std::endl << std::endl;
+            assets_file << "# Custom user-added script:\n" << std::endl;
             assets_file << custom_script;
-            assets_file << "" << std::endl << std::endl;
+            assets_file << "\n" << std::endl;
         }
 
         // write global settings for symbols
-        assets_file << "chrono_view_asset_csys =  " << (this->frames_asset_show ? "True" : "False") << "" << std::endl
-                    << "chrono_view_asset_csys_size = " << this->frames_asset_size << "" << std::endl
-                    << "chrono_view_item_csys =  " << (this->frames_item_show ? "True" : "False") << "" << std::endl
-                    << "chrono_view_item_csys_size = " << this->frames_item_size << "" << std::endl
-                    << "chrono_view_link_csys =  " << (this->frames_links_show ? "True" : "False") << "" << std::endl
-                    << "chrono_view_link_csys_size = " << this->frames_links_size << "" << std::endl
+        assets_file << "chrono_view_asset_csys =  " << (this->frames_asset_show ? "True" : "False") << "\n"
+                    << "chrono_view_asset_csys_size = " << this->frames_asset_size << "\n"
+                    << "chrono_view_item_csys =  " << (this->frames_item_show ? "True" : "False") << "\n"
+                    << "chrono_view_item_csys_size = " << this->frames_item_size << "\n"
+                    << "chrono_view_link_csys =  " << (this->frames_links_show ? "True" : "False") << "\n"
+                    << "chrono_view_link_csys_size = " << this->frames_links_size << "\n"
                     << "" << std::endl;
         std::string abspath_pic_output =
             filesystem::path(base_path + pic_path).make_absolute().str() + "/" + pic_filename + "_######";
         std::replace(abspath_pic_output.begin(), abspath_pic_output.end(), '\\', '/');
-        assets_file << "bpy.context.scene.render.filepath = '" << abspath_pic_output << "'" << std::endl
-                    << "bpy.context.scene.render.resolution_x = " << this->picture_width << "" << std::endl
-                    << "bpy.context.scene.render.resolution_y = " << this->picture_height << "" << std::endl
-                    << "" << std::endl << std::endl;
+        assets_file << "bpy.context.scene.render.filepath = '" << abspath_pic_output << "'\n"
+                    << "bpy.context.scene.render.resolution_x = " << this->picture_width << "\n"
+                    << "bpy.context.scene.render.resolution_y = " << this->picture_height << "\n"
+                    << "\n" << std::endl;
 
         // write default camera, if defined
         if (camera_add_default) {
             std::string cameraname("default_camera");
-            assets_file << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1)) " << std::endl
-                        << "new_object = bpy.context.object " << std::endl
-                        << "new_object.name= '" << cameraname << "' " << std::endl
+            assets_file << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1))\n"
+                        << "new_object = bpy.context.object\n"
+                        << "new_object.name= '" << cameraname << "'\n"
                         << "new_object.data.lens_unit='FOV' " << std::endl;
             if (this->camera_orthographic) {
                 assets_file << "new_object.data.type='ORTHO'" << std::endl;
@@ -336,8 +336,8 @@ void ChBlender::ExportScript(const std::string& filename) {
                 assets_file << "new_object.data.type='PERSP'" << std::endl;
                 assets_file << "new_object.data.angle=" << camera_angle * chrono::CH_C_DEG_TO_RAD << "" << std::endl;
             }
-            assets_file << "chrono_cameras.objects.link(new_object) " << std::endl
-                        << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl << std::endl;
+            assets_file << "chrono_cameras.objects.link(new_object)\n"
+                        << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
             ChVector<> cdirzm = camera_aim - camera_location;
             ChVector<> cdirx = Vcross(cdirzm, VECT_Y);
             ChVector<> cdiry = Vcross(cdirx, cdirzm);
@@ -352,7 +352,7 @@ void ChBlender::ExportScript(const std::string& filename) {
             assets_file << "(" << cframeabs.GetRot().e0() << "," << cframeabs.GetRot().e1() << ","
                         << cframeabs.GetRot().e2() << "," << cframeabs.GetRot().e3() << ")";
             assets_file << ")" << std::endl;
-            assets_file << "bpy.context.scene.camera = new_object" << std::endl << std::endl;
+            assets_file << "bpy.context.scene.camera = new_object\n" << std::endl;
         }
     }
 
@@ -414,63 +414,63 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
             continue;
 
         if (auto sphere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
-            *mfile << "bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.0, calc_uvs=True) " << std::endl
-                   << "new_object = bpy.context.object " << std::endl
-                   << "new_object.name = '" << shapename << "' " << std::endl
-                   << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) " << std::endl
-                   << "new_object.data.materials.append(None) " << std::endl
-                   << collection << ".objects.link(new_object) " << std::endl
-                   << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl << std::endl;
+            *mfile << "bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.0, calc_uvs=True)\n"
+                   << "new_object = bpy.context.object\n"
+                   << "new_object.name = '" << shapename << "'\n"
+                   << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons))\n"
+                   << "new_object.data.materials.append(None)\n"
+                   << collection << ".objects.link(new_object)\n"
+                   << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
             // radius will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
         if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
-            *mfile << "bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.0, calc_uvs=True) " << std::endl
-                   << "new_object = bpy.context.object " << std::endl
-                   << "new_object.name = '" << shapename << "' " << std::endl
-                   << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) " << std::endl
-                   << "new_object.data.materials.append(None) " << std::endl
-                   << collection << ".objects.link(new_object) " << std::endl
-                   << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl << std::endl;
+            *mfile << "bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.0, calc_uvs=True)\n"
+                   << "new_object = bpy.context.object\n"
+                   << "new_object.name = '" << shapename << "'\n"
+                   << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons))\n"
+                   << "new_object.data.materials.append(None)\n"
+                   << collection << ".objects.link(new_object)\n"
+                   << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
             // radii will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
         if (auto cylinder = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
-            *mfile << "bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=1.0, depth=1.0, calc_uvs=True) " << std::endl
-                   << "new_object = bpy.context.object " << std::endl
-                   << "new_object.name = '" << shapename << "' " << std::endl
-                   << "new_object.data.materials.append(None) " << std::endl
-                   << collection << ".objects.link(new_object) " << std::endl
-                   << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl
-                   << "with bpy.context.temp_override(selected_editable_objects=[new_object]):" << std::endl
-                   << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)" << std::endl << std::endl;
+            *mfile << "bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=1.0, depth=1.0, calc_uvs=True)\n"
+                   << "new_object = bpy.context.object\n"
+                   << "new_object.name = '" << shapename << "'\n"
+                   << "new_object.data.materials.append(None)\n"
+                   << collection << ".objects.link(new_object)\n"
+                   << "bpy.context.scene.collection.objects.unlink(new_object)\n"
+                   << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
+                   << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)\n" << std::endl;
             // radius and height will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
         if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
             *mfile
-                << "bpy.ops.mesh.primitive_cone_add(vertices=32, radius1=1.0, radius2=0, depth=1.0, calc_uvs=True) " << std::endl
-                << "new_object = bpy.context.object " << std::endl
-                << "new_object.name = '" << shapename << "' " << std::endl
-                << "new_object.data.materials.append(None) " << std::endl
-                << collection << ".objects.link(new_object) " << std::endl
-                << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl
-                << "with bpy.context.temp_override(selected_editable_objects=[new_object]):" << std::endl
-                << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)" << std::endl << std::endl;
+                << "bpy.ops.mesh.primitive_cone_add(vertices=32, radius1=1.0, radius2=0, depth=1.0, calc_uvs=True)\n"
+                << "new_object = bpy.context.object\n"
+                << "new_object.name = '" << shapename << "'\n"
+                << "new_object.data.materials.append(None)\n"
+                << collection << ".objects.link(new_object)\n"
+                << "bpy.context.scene.collection.objects.unlink(new_object)\n"
+                << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
+                << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)\n" << std::endl;
             // radius etc will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
         if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
-            *mfile << "bpy.ops.mesh.primitive_cube_add(size=1,calc_uvs=True) " << std::endl
-                   << "new_object = bpy.context.object " << std::endl
-                   << "new_object.name = '" << shapename << "' " << std::endl
-                   << "new_object.data.materials.append(None) " << std::endl
-                   << collection << ".objects.link(new_object) " << std::endl
-                   << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl << std::endl;
+            *mfile << "bpy.ops.mesh.primitive_cube_add(size=1,calc_uvs=True)\n"
+                   << "new_object = bpy.context.object\n"
+                   << "new_object.name = '" << shapename << "'\n"
+                   << "new_object.data.materials.append(None)\n"
+                   << collection << ".objects.link(new_object)\n"
+                   << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
             // xyz sizes will be set later in ExportItemState to avoid having n meshes
             m_shapes->insert({(size_t)shape.get(), shape});
         }
@@ -478,17 +478,17 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
         if (auto obj_shape = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
             std::string abspath_obj = filesystem::path(obj_shape->GetFilename()).make_absolute().str();
             std::replace(abspath_obj.begin(), abspath_obj.end(), '\\', '/');
-            *mfile << "try: " << std::endl
-                   << "    bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection " << std::endl
-                   << "    file_loc = '" << abspath_obj.c_str() << "'" << std::endl
-                   << "    import_result = bpy.ops.wm.obj_import(filepath=file_loc) " << std::endl
-                   << "    new_object = bpy.context.selected_objects[-1] " << std::endl
-                   << "    new_object.name= '" << shapename << "' " << std::endl
-                   << "    new_object.data.materials.append(None) " << std::endl
-                   << "    " << collection << ".objects.link(new_object) " << std::endl
-                   << "    bpy.context.scene.collection.objects.unlink(new_object) " << std::endl
-                   << "except: " << std::endl
-                   << "    print('Cannot load .OBJ file: ', file_loc)" << std::endl << std::endl;
+            *mfile << "try:\n"
+                   << "    bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection\n"
+                   << "    file_loc = '" << abspath_obj.c_str() << "'\n"
+                   << "    import_result = bpy.ops.wm.obj_import(filepath=file_loc)\n"
+                   << "    new_object = bpy.context.selected_objects[-1]\n"
+                   << "    new_object.name= '" << shapename << "'\n"
+                   << "    new_object.data.materials.append(None)\n"
+                   << "    " << collection << ".objects.link(new_object)\n"
+                   << "    bpy.context.scene.collection.objects.unlink(new_object)\n"
+                   << "except:\n"
+                   << "    print('Cannot load .OBJ file: ', file_loc)\n" << std::endl;
             // if it fails to load (ex.: missing file, bad obj, etc) it prints error to console
             m_shapes->insert({(size_t)shape.get(), shape});
         }
@@ -559,18 +559,18 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                 *mfile << "     myface.material_index = mat_indices[i] " << std::endl;
             }
 
-            *mfile << "new_mesh.update() " << std::endl
-                   << "new_object = bpy.data.objects.new('mesh_object', new_mesh) " << std::endl
-                   << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) " << std::endl
-                   << "new_object.name= '" << shapename << "' " << std::endl
-                   << "new_object.data.materials.append(None) " << std::endl
-                   << "modifier = new_object.modifiers.new(name='edgesplit', type='EDGE_SPLIT') " << std::endl
+            *mfile << "new_mesh.update()\n"
+                   << "new_object = bpy.data.objects.new('mesh_object', new_mesh)\n"
+                   << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons))\n"
+                   << "new_object.name= '" << shapename << "'\n"
+                   << "new_object.data.materials.append(None)\n"
+                   << "modifier = new_object.modifiers.new(name='edgesplit', type='EDGE_SPLIT')\n"
                    << "#modifier.split_angle = 1.0 " << std::endl;
             if (wireframe) {
                 *mfile << "modifier = new_object.modifiers.new(name='wireframe', type='WIREFRAME') " << std::endl;
                 *mfile << "modifier.thickness = " << wireframe_thickness << "" << std::endl;
             }
-            *mfile << collection << ".objects.link(new_object)" << std::endl << std::endl;
+            *mfile << collection << ".objects.link(new_object)\n" << std::endl;
 
             if (mesh->m_colors.size() == mesh->m_vertices.size() || mesh->getPropertiesPerVertex().size() ||
                 mesh->getPropertiesPerFace().size()) {
@@ -857,7 +857,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                 *mfile << "chrono_materials"
                        << "," << std::endl;
             *mfile << collection << "" << std::endl;
-            *mfile << ")" << std::endl << std::endl;
+            *mfile << ")\n" << std::endl;
 
             m_shapes->insert({(size_t)shape.get(), shape});
         }
@@ -879,7 +879,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                 *mfile << "chrono_materials"
                        << "," << std::endl;
             *mfile << collection << "" << std::endl;
-            *mfile << ")" << std::endl << std::endl;
+            *mfile << ")\n" << std::endl;
 
             m_shapes->insert({(size_t)shape.get(), shape});
         }
@@ -898,9 +898,9 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
         mfile = &assets_file;
 
         std::string cameraname("camera_" + unique_bl_id((size_t)camera_instance.get()));
-        *mfile << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1)) " << std::endl
-               << "new_object = bpy.context.object " << std::endl
-               << "new_object.name= '" << cameraname << "' " << std::endl
+        *mfile << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1))\n"
+               << "new_object = bpy.context.object\n"
+               << "new_object.name= '" << cameraname << "'\n"
                << "new_object.data.lens_unit='FOV' " << std::endl;
         if (camera_instance->IsOrthographic()) {
             *mfile << "new_object.data.type='ORTHO'" << std::endl;
@@ -912,8 +912,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
             *mfile << "new_object.data.type='PERSP'" << std::endl;
             *mfile << "new_object.data.angle=" << camera_instance->GetAngle() * chrono::CH_C_DEG_TO_RAD << "" << std::endl;
         }
-        *mfile << "chrono_cameras.objects.link(new_object) " << std::endl
-               << "bpy.context.scene.collection.objects.unlink(new_object)" << std::endl << std::endl;
+        *mfile << "chrono_cameras.objects.link(new_object)\n"
+               << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
 
         m_blender_cameras.insert({(size_t)camera_instance.get(), camera_instance});
     }
@@ -978,9 +978,9 @@ void ChBlender::ExportMaterials(std::ofstream& mfile,
         mfile << ") " << std::endl;
 
         if (per_frame)
-            mfile << "chrono_frame_materials.append(new_mat)" << std::endl << std::endl;
+            mfile << "chrono_frame_materials.append(new_mat)\n" << std::endl;
         else
-            mfile << "chrono_materials.append(new_mat)" << std::endl << std::endl;
+            mfile << "chrono_materials.append(new_mat)\n" << std::endl;
     }
 }
 
@@ -1092,7 +1092,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
             }
             state_file << "]" << std::endl;
         }
-        state_file << ")" << std::endl << std::endl;
+        state_file << ")\n" << std::endl;
 
     }  // end if has_stored_assets
 
@@ -1114,7 +1114,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
                        << cframeabs.GetPos().z() << "),";
             state_file << "(" << cframeabs.GetRot().e0() << "," << cframeabs.GetRot().e1() << ","
                        << cframeabs.GetRot().e2() << "," << cframeabs.GetRot().e3() << ")";
-            state_file << ")" << std::endl << std::endl;
+            state_file << ")\n" << std::endl;
         }
     }
 
@@ -1161,9 +1161,9 @@ void ChBlender::ExportData(const std::string& filename) {
 
         // Write custom data commands, if provided by the user
         if (custom_data.size() > 0) {
-            state_file << "# Custom user-added script:" << std::endl << std::endl;
+            state_file << "# Custom user-added script:\n" << std::endl;
             state_file << custom_data;
-            state_file << "" << std::endl << std::endl;
+            state_file << "\n" << std::endl;
         }
 
         // Save time-dependent data for the geometry of objects in ...nnnn.POV and in ...nnnn.DAT file

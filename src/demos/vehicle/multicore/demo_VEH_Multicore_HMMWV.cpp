@@ -247,7 +247,7 @@ void TimingOutput(chrono::ChSystem* mSys, std::ostream* ofile = NULL);
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl << "Chrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2017 projectchrono.org\n"<< "Chrono version: " << CHRONO_VERSION << std::endl;
 
     // ------------------------
     // Convert input parameters

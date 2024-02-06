@@ -73,7 +73,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
                               bool add_force,
                               bool add_other_assemblies,
                               bool fix_subassembly) {
-    std::cout << std::endl << std::endl << "RUN TEST" << std::endl;
+    std::cout << "\n\nRUN TEST" << std::endl;
 
     // Clear previous demo, if any:
     sys.Clear();

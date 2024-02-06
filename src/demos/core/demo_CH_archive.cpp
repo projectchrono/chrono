@@ -442,7 +442,7 @@ void my_deserialization_example(ChArchiveIn& marchive) {
     archiveConsole.SetUseVersions(false);
     streamConsole << std::endl
                   << std::endl
-                  << "Some results of deserialization I/O:" << std::endl
+                  << "Some results of deserialization I/O:\n"
                   << m_text << std::endl
                   << m_int << std::endl
                   << m_double << std::endl;
@@ -623,7 +623,7 @@ void my_reflection_example() {
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    std::cout << "CHRONO foundation classes demo: archives (serialization)" << std::endl << std::endl;
+    std::cout << "CHRONO foundation classes demo: archives (serialization)\n" << std::endl;
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_ARCHIVE";
@@ -705,7 +705,7 @@ int main(int argc, char* argv[]) {
         my_deserialization_example(marchivein);
     }
 
-    std::cout << "Serialization test ended with success." << std::endl << std::endl;
+    std::cout << "Serialization test ended with success.\n" << std::endl;
 
     // Example: SERIALIZE A FULL CHRONO SYSTEM TO/FROM JSON
     {
@@ -726,7 +726,7 @@ int main(int argc, char* argv[]) {
         my_system_deserialization_example(marchivein);
     }
 
-    std::cout << "Serialization of ChSystem ended with success." << std::endl << std::endl;
+    std::cout << "Serialization of ChSystem ended with success.\n" << std::endl;
 
     my_reflection_example();
 

@@ -39,7 +39,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
 
     int nc = sysd.CountActiveConstraints();
     if (verbose)
-        std::cout << std::endl << "-----Projected MINRES, solving nc=" << nc << "unknowns" << std::endl;
+        std::cout << "\n-----Projected MINRES, solving nc=" << nc << "unknowns" << std::endl;
 
     ChVectorDynamic<> ml(nc);
     ChVectorDynamic<> mb(nc);

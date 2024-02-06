@@ -28,7 +28,7 @@ using namespace chrono;
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    std::cout << "CHRONO demo about coordinate transformations:" << std::endl << std::endl;
+    std::cout << "CHRONO demo about coordinate transformations:\n" << std::endl;
 
     //
     // Some methods to achieve coordinate transformations, and some
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
     // BENCHMARK FOR EXECUTION SPEED
     //
 
-    std::cout << " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl << std::endl;
+    std::cout << " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" << std::endl;
 
     mrotA.Set_A_quaternion(qrotA);
     ChFpMatrix34<> Fp(qrotA);
@@ -420,7 +420,7 @@ int main(int argc, char* argv[]) {
 
    */
 
-    std::cout << std::endl << "CHRONO execution terminated.";
+    std::cout << "\nCHRONO execution terminated.";
 
     return 0;
 }

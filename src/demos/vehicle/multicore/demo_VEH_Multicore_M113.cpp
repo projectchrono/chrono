@@ -404,7 +404,7 @@ int main(int argc, char* argv[]) {
 
         // Release the vehicle chassis at the end of the hold time.
         if (m113.GetChassisBody()->GetBodyFixed() && time > time_hold) {
-            std::cout << std::endl << "Release vehicle t = " << time << std::endl;
+            std::cout << "\nRelease vehicle t = " << time << std::endl;
             m113.GetChassisBody()->SetBodyFixed(false);
         }
 

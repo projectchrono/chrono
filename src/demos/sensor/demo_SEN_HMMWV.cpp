@@ -447,7 +447,7 @@ int main(int argc, char* argv[]) {
 
         // // Debug logging
         // if (debug_output && step_number % debug_steps == 0) {
-        //     std::cout << std::endl << std::endl << "============ System Information ============" << std::endl;
+        //     std::cout << "\n\n============ System Information ============" << std::endl;
         //     std::cout << "Time = " << time << std::endl << std::endl;
         //     my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
         // }

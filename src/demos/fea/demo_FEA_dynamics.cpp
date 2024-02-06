@@ -39,8 +39,8 @@ using namespace chrono;
 using namespace fea;
 
 void test_1() {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: spring FEM dynamics,  implicit integration" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: spring FEM dynamics,  implicit integration\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -118,8 +118,8 @@ void test_1() {
 }
 
 void test_2() {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: bar FEM dynamics,  implicit integration" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: bar FEM dynamics,  implicit integration\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -203,8 +203,8 @@ void test_2() {
 }
 
 void test_2b() {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: spring FEM dynamics compare to bar" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: spring FEM dynamics compare to bar\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -284,8 +284,8 @@ void test_2b() {
 }
 
 void test_3() {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: tetrahedron FEM dynamics, implicit integration" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: tetrahedron FEM dynamics, implicit integration\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -379,8 +379,8 @@ void test_3() {
 }
 
 void test_4() {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: bar FEM dynamics (2 elements),  implicit integration" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: bar FEM dynamics (2 elements),  implicit integration\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;

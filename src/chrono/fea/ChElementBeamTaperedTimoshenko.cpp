@@ -1200,13 +1200,13 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     }
 
 #ifdef BEAM_VERBOSE
-    std::cout << std::endl << "Internal forces (local):" << std::endl;
+    std::cout << "\nInternal forces (local):" << std::endl;
     for (int c = 0; c < 6; c++)
         std::cout << FiK_local(c) << "  ";
     std::cout << std::endl;
     for (int c = 6; c < 12; c++)
         std::cout << FiK_local(c) << "  ";
-    std::cout << std::endl << std::endl << "Internal forces (ABS) :" << std::endl;
+    std::cout << "\n\nInternal forces (ABS) :" << std::endl;
     for (int c = 0; c < 6; c++)
         std::cout << Fi(c) << "  ";
     std::cout << std::endl;
@@ -1315,13 +1315,13 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     }
 
 #ifdef BEAM_VERBOSE
-    std::cout << std::endl << "Internal forces (local):" << std::endl;
+    std::cout << "\nInternal forces (local):" << std::endl;
     for (int c = 0; c < 6; c++)
         std::cout << FiK_local(c) << "  ";
     std::cout << std::endl;
     for (int c = 6; c < 12; c++)
         std::cout << FiK_local(c) << "  ";
-    std::cout << std::endl << std::endl << "Internal forces (ABS) :" << std::endl;
+    std::cout << "\n\nInternal forces (ABS) :" << std::endl;
     for (int c = 0; c < 6; c++)
         std::cout << Fi(c) << "  ";
     std::cout << std::endl;
@@ -1332,7 +1332,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
 }
 
 void ChElementBeamTaperedTimoshenko::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
-    // no so efficient... a temporary mass matrix here:
+    // not so efficient... a temporary mass matrix here:
     ChMatrixDynamic<> mM(12, 12);
     this->ComputeMmatrixGlobal(mM);
 

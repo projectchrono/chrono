@@ -27,7 +27,7 @@ using namespace chrono;
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    std::cout << std::endl << "=== Computing integrals of functions in 1D/2D/3D ===" << std::endl << std::endl;
+    std::cout << "\n=== Computing integrals of functions in 1D/2D/3D ===\n" << std::endl;
 
     // Define a y=f(x) function by inheriting ChIntegrable1D:
     class MySine1d : public ChIntegrable1D<double> {

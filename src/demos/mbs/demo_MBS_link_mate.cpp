@@ -143,8 +143,8 @@ class EigenSolver {
 // First example: Pendulum
 //====================================
 void test_pendulum() {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: static and eigenvalue analysis of a pendulum" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: static and eigenvalue analysis of a pendulum\n" << std::endl;
 
     // Some variables to parameterize the model
     // The length of the pendulum, m
@@ -256,7 +256,7 @@ void test_pendulum() {
     // Static analysis
     // ====================================
     std::cout << std::endl
-              << "The initial position of the end mass is:" << std::endl
+              << "The initial position of the end mass is:\n"
               << "\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
               << "\tz:  " << my_mass->GetPos().z() << std::endl;
 
@@ -273,14 +273,14 @@ void test_pendulum() {
         vis->EndScene();
     }
 
-    std::cout << std::endl << "After doing the nonlinear static analysis:" << std::endl;
-    std::cout << "\tThe final position of the end mass is:" << std::endl
+    std::cout << "\nAfter doing the nonlinear static analysis:" << std::endl;
+    std::cout << "\tThe final position of the end mass is:\n"
               << "\t\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
               << "\tz:  " << my_mass->GetPos().z() << std::endl;
-    std::cout << "\tThe reaction forces at the root are:" << std::endl
+    std::cout << "\tThe reaction forces at the root are:\n"
               << "\t\tfx:  " << my_joint->Get_react_force().x() << "\tfy:  " << my_joint->Get_react_force().y()
               << "\tfz:  " << my_joint->Get_react_force().z() << std::endl;
-    std::cout << "\tThe reaction torques at the root are:" << std::endl
+    std::cout << "\tThe reaction torques at the root are:\n"
               << "\t\tmx:  " << my_joint->Get_react_torque().x() << "\tmy:  " << my_joint->Get_react_torque().y()
               << "\tmz:  " << my_joint->Get_react_torque().z() << std::endl;
 
@@ -299,8 +299,8 @@ void test_pendulum() {
 // Second example: Anchor chain
 // ====================================
 void test_anchorchain() {
-    std::cout << std::endl << "-------------------------------------------------" << std::endl;
-    std::cout << "TEST: static and eigenvalue analysis of an anchor chain" << std::endl << std::endl;
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: static and eigenvalue analysis of an anchor chain\n" << std::endl;
 
     // The mass and inertia properties of every link in the anchor chain
     double mass = 10;
@@ -452,10 +452,10 @@ void test_anchorchain() {
 
     // Create output directory and output file
     std::string out_dir = GetChronoOutputPath() + "ANCHOR_CHAIN";
-    std::cout << "out_dir is:" << std::endl << out_dir << std::endl;
+    std::cout << "out_dir is:\n"<< out_dir << std::endl;
 
     if (true) {  // static analysis
-        std::cout << std::endl << std::endl << "******** Static analysis ******** " << std::endl << std::endl;
+        std::cout << "\n\n******** Static analysis ******** \n" << std::endl;
 
         // Set solver for static analysis
         ChStaticNonLinearRigidMotion rigid_static_analysis;
@@ -473,7 +473,7 @@ void test_anchorchain() {
         // The mass per unit length of the anchor chain
         double mass_per_unit_length = total_mass / total_length;
 
-        std::cout << std::endl << "At the initial configuration:" << std::endl;
+        std::cout << "\nAt the initial configuration:" << std::endl;
         std::cout << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
                   << anchorC->GetPos().z() << std::endl;
 
@@ -483,7 +483,7 @@ void test_anchorchain() {
         // Secondly, we perform the static analysis using the solver ChStaticNonLinearRigidMotion().
         sys.DoStaticAnalysis(rigid_static_analysis);
 
-        std::cout << std::endl << "After doing the static nonlinear analysis:" << std::endl;
+        std::cout << "\nAfter doing the static nonlinear analysis:" << std::endl;
         std::cout << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
                   << anchorC->GetPos().z() << std::endl;
 
@@ -563,7 +563,7 @@ void test_anchorchain() {
     }
 
     if (true) {  // eigenvalue analysis
-        std::cout << std::endl << std::endl << "******** Eigenvalue analysis ******** " << std::endl << std::endl;
+        std::cout << "\n\n******** Eigenvalue analysis ******** \n" << std::endl;
 
         // solve the eigenvalues at the equilibrium status
         EigenSolver eig_solver(sys);
@@ -615,7 +615,7 @@ void test_anchorchain() {
     }
 
     if (true) {  // dynamic analysis
-        std::cout << std::endl << std::endl << "******** Dynamic analysis ******** " << std::endl << std::endl;
+        std::cout << "\n\n******** Dynamic analysis ******** \n" << std::endl;
 
         // use HHT second order integrator (but slower)
         sys.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -703,7 +703,7 @@ void test_anchorchain() {
         sys.StateGatherReactions(L0);
 
         // excitation in X direction (In-plane horizontal motion is expected)
-        std::cout << std::endl << "Excitation in +X direction" << std::endl << std::endl;
+        std::cout << "\nExcitation in +X direction\n" << std::endl;
         ChVector<> vec_fx = ChVector<>(mass * gacc * 5, 0, 0);
         DoDynamicsUnderImpulse(vec_fx, "vibration_x");
 
@@ -712,7 +712,7 @@ void test_anchorchain() {
         sys.StateScatterAcceleration(A0);
         sys.StateScatterReactions(L0);
         // excitation in Y direction (Out-of-plane motion is expected)
-        std::cout << std::endl << "Excitation in +Y direction" << std::endl << std::endl;
+        std::cout << "\nExcitation in +Y direction\n" << std::endl;
         ChVector<> vec_fy = ChVector<>(0, mass * gacc * 5, 0);
         DoDynamicsUnderImpulse(vec_fy, "vibration_y");
 
@@ -721,14 +721,14 @@ void test_anchorchain() {
         sys.StateScatterAcceleration(A0);
         sys.StateScatterReactions(L0);
         // excitation in Z direction (In-plane vertical motion is expected)
-        std::cout << std::endl << "Excitation in -Z direction" << std::endl << std::endl;
+        std::cout << "\nExcitation in -Z direction\n" << std::endl;
         ChVector<> vec_fz = ChVector<>(0, 0, -mass * gacc * 5);
         DoDynamicsUnderImpulse(vec_fz, "vibration_z");
     }
 }
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl
+    std::cout << "Copyright (c) 2017 projectchrono.org\n"
               << "Chrono version: " << CHRONO_VERSION << std::endl;
 
     // test_pendulum();
