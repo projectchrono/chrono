@@ -54,7 +54,7 @@ class ChApiCASCADE ChCascadeMeshTools {
     /// This function can be used to convert a OpenCASCADE shape into a
     /// 'obj' file format. The file 'objfile' must be already opened, and empty.
     /// Also normals are saved.
-    static void fillObjFileFromCascade(ChStreamOutAscii& objfile,  ///< the .obj file will be written here
+    static void fillObjFileFromCascade(std::ofstream& objfile,  ///< the .obj file will be written here
                                        const TopoDS_Shape& shape,  ///< OpenCASCADE face to be output as 'obj' file
                                        const ChCascadeTriangulate& tolerances  ///< tesselation tolerances
     );
