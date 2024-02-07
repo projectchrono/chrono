@@ -8,6 +8,7 @@ Change Log
   - [Refactored ChArchive](#changed-refactored-charchive)
   - [Removed ChLog](#removed-removed-chlog)
   - [Removed ChStream](#removed-removed-chstream)
+  - [Removed ChList](#removed-removed-chlist)
   - [Removed ChException](#removed-removed-chexception)
   - [Updated Chrono::VSG module](#changed-updated-chronovsg-module)
   - [New motion functions and filters](#added-new-motion-functions-and-filters)
@@ -125,6 +126,9 @@ Few changes are particuarly relevant:
 - the `operator<<` associated to `ChStreamOutAscii` has been removed: this means that it is not possible to stream custom classes through this operator;
   this option has been replaced by appropriate overloads of STL streams (clearly limited to data members publicly accessible) or by the direct usage of `ChOutputASCII`
 - `ChStream[In/Out]Binary` features to operate on streams through the `read|write` methods have been incorporated into the only other class that was using it `ChArchiveBinary`: users that have to deal with binary streams should take care of their own implementation now;
+
+## [Removed] Removed ChList
+This old implementation has been removed since it was unused.
 
 ## [Removed] Removed ChException
 `ChException` classes used to offer a wrap to STL exceptions while adding some limited features. Since they were inheriting from `stl::exception` their replacement with standrard STL objects should be straightforward. It is advisable to take the chance to revisit the code so to use more dedicated version of `std::exceptions` (e.g. `std::runtime_error`, `std::invalid_argument`, etc)

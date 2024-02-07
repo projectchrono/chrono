@@ -54,7 +54,6 @@ set(ChronoEngine_core_HEADERS
     core/ChCoordsys.h
     core/ChFrame.h
     core/ChFrameMoving.h
-    core/ChLists.h
     core/ChMath.h
     core/ChMathematics.h
     core/ChMatrix.h
