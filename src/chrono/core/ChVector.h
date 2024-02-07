@@ -22,7 +22,7 @@
 #include "chrono/core/ChClassFactory.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/serialization/ChArchive.h"
-#include "chrono/serialization/ChArchiveAsciiDump.h"
+#include "chrono/serialization/ChOutputASCII.h"
 
 namespace chrono {
 

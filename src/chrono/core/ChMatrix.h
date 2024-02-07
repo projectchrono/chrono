@@ -19,7 +19,7 @@
 
 // Include these before ChMatrixEigenExtensions
 #include "chrono/serialization/ChArchive.h"
-#include "chrono/serialization/ChArchiveAsciiDump.h"
+#include "chrono/serialization/ChOutputASCII.h"
 
 // -----------------------------------------------------------------------------
 

@@ -22,10 +22,10 @@
 
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/serialization/ChArchiveBinary.h"
-#include "chrono/serialization/ChArchiveAsciiDump.h"
+#include "chrono/serialization/ChOutputASCII.h"
 #include "chrono/serialization/ChArchiveJSON.h"
 #include "chrono/serialization/ChArchiveXML.h"
-#include "chrono/serialization/ChArchiveExplorer.h"
+#include "chrono/serialization/ChObjectExplorer.h"
 
 #include "chrono/core/ChGlobal.h"
 
@@ -434,7 +434,7 @@ void my_deserialization_example(ChArchiveIn& marchive) {
 
     // Just for safety, log some of the restored data:
     auto& streamConsole = std::cout;
-    ChArchiveAsciiDump archiveConsole(streamConsole);
+    ChOutputASCII archiveConsole(streamConsole);
 
     archiveConsole.SetCutAllPointers(true);
     archiveConsole.SetSuppressNames(true);
@@ -533,7 +533,7 @@ void my_system_deserialization_example(ChArchiveIn& marchive) {
 // Example on how to use reflection (c++ introspection) to explore the properties exposed
 // through the ArchiveIn() and ArchiveOut() functions.
 void my_reflection_example() {
-    ChArchiveExplorer mexplorer;
+    ChObjectExplorer mexplorer;
     mexplorer.SetUseWildcards(true);
     mexplorer.SetUseUserNames(true);
 
@@ -550,7 +550,7 @@ void my_reflection_example() {
     if (mexplorer.FetchValue(my_slave, m_boss, "slave")) {
         std::cout << "Property explorer : retrieved 'slave':\n" << std::endl;
         // the class needs to be deserialized explicitely since it is not of a built-in type
-        ChArchiveAsciiDump tempArchiveo(std::cout);
+        ChOutputASCII tempArchiveo(std::cout);
         my_slave.ArchiveOut(tempArchiveo);
         std::cout << std::endl;
     } else
@@ -580,7 +580,7 @@ void my_reflection_example() {
     //   ex: "stuff/arrayofpositions/6/x" as in:
     if (mexplorer.FetchValue(a_employee, mcontainer, "1")) {
         std::cout << "Property explorer : retrieved from element number in container '1':" << std::endl;
-        ChArchiveAsciiDump archiveo(std::cout);
+        ChOutputASCII archiveo(std::cout);
         a_employee.ArchiveOut(archiveo);
     }
 
@@ -592,7 +592,7 @@ void my_reflection_example() {
     //   ex: "stuff/arrayofbodies/'Crank'/mass" as in:
     if (mexplorer.FetchValue(a_employee, mcontainer, "'Marie'")) {
         std::cout << "Property explorer : retrieved from element container name 'Marie':" << std::endl;
-        ChArchiveAsciiDump tempArchiveo(std::cout);
+        ChOutputASCII tempArchiveo(std::cout);
         a_employee.ArchiveOut(tempArchiveo);
         std::cout << std::endl;
     } else
@@ -610,7 +610,7 @@ void my_reflection_example() {
                   << ",  typeid: " << i->GetTypeidName() << std::endl;
         // if (auto pi = dynamic_cast<myEmployeeBoss*>(i->PointerUpCast<myEmployee>()))
         //    streamConsole <<"   castable to myEmployeeBoss" << std::endl;
-        ChArchiveExplorer mexplorer2;
+        ChObjectExplorer mexplorer2;
         auto props2 = mexplorer2.FetchValues(*i, "*");
         for (auto i2 : props2) {
             std::cout << "    val: " << i2->name() << ",  reg.class: " << i2->GetClassRegisteredName()
@@ -642,7 +642,7 @@ int main(int argc, char* argv[]) {
         std::ofstream mfileo(out_dir + "/foo_archive.txt");
 
         // Create an ASCII archive object, for dumping C++ objects into a readable file
-        ChArchiveAsciiDump marchiveout(mfileo);
+        ChOutputASCII marchiveout(mfileo);
 
         my_serialization_example(marchiveout);
     }

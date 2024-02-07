@@ -90,15 +90,21 @@ source_group(core FILES
 # Serialization group
 
 set(ChronoEngine_serialization_SOURCES
+    serialization/ChArchive.cpp
+    serialization/ChArchiveBinary.cpp
+    serialization/ChObjectExplorer.cpp
+    serialization/ChArchiveJSON.cpp
+    serialization/ChArchiveXML.cpp
+    serialization/ChOutputASCII.cpp
     )
 
 set(ChronoEngine_serialization_HEADERS
     serialization/ChArchive.h
     serialization/ChArchiveBinary.h
-    serialization/ChArchiveAsciiDump.h
+    serialization/ChObjectExplorer.h
     serialization/ChArchiveJSON.h
     serialization/ChArchiveXML.h
-    serialization/ChArchiveExplorer.h
+    serialization/ChOutputASCII.h
     )
 
 source_group(serialization FILES

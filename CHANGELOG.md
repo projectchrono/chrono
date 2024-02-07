@@ -5,6 +5,9 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Refactored ChArchive](#changed-refactored-charchive)
+  - [Removed ChLog](#removed-removed-chlog)
+  - [Removed ChStream](#removed-removed-chstream)
   - [Removed ChException](#removed-removed-chexception)
   - [Updated Chrono::VSG module](#changed-updated-chronovsg-module)
   - [New motion functions and filters](#added-new-motion-functions-and-filters)
@@ -98,6 +101,30 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+## [Changed] Refactored ChArchive
+`ChArchive` classes have been refactored to adapt to the direct use of STL streams and have been renamed to differentiate between:
+- proper serialization/deserialization classes, that kept the same name:
+  + `ChArchiveJSON[In/Out]`
+  + `ChArchiveXML[In/Out]`
+  + `ChArchiveBinary[In/Out]`
+- auxiliary classes that, while still leveraging the `ChArchive` features, allowed only to export, but not to load back objects;
+  this have been renamed to reflect the fact that are _not_ archives in the strict sense;
+  + `ChArchiveAsciiDump` --> `ChOutputASCII`
+  + `ChArchiveExplorer` --> `ChObjectExplorer`
+
+The behaviour is untouched, except for the removal of `ChStream`.
+
+## [Removed] Removed ChLog 
+`ChLog` classes used to offer a way to simplify the logging of various messages either to console or to file, also providing different levels of verbosity. However, due to the obsolescence of the methods, combined to the fact that the usage of the verbosity level were none, the class and its inherited has been removed.
+
+## [Removed] Removed ChStream
+`ChStream` classes used to offer helper/auxiliary methods to operate on streams, while internally hiding (not inheriting from) STL objects. The entire code has been now refactored to operate on STL streams directly, in order to simplify the API and to allow the user a more familiar interaction with streams in Chrono.
+
+Few changes are particuarly relevant:
+- the `operator<<` associated to `ChStreamOutAscii` has been removed: this means that it is not possible to stream custom classes through this operator;
+  this option has been replaced by appropriate overloads of STL streams (clearly limited to data members publicly accessible) or by the direct usage of `ChOutputASCII`
+- `ChStream[In/Out]Binary` features to operate on streams through the `read|write` methods have been incorporated into the only other class that was using it `ChArchiveBinary`: users that have to deal with binary streams should take care of their own implementation now;
 
 ## [Removed] Removed ChException
 `ChException` classes used to offer a wrap to STL exceptions while adding some limited features. Since they were inheriting from `stl::exception` their replacement with standrard STL objects should be straightforward. It is advisable to take the chance to revisit the code so to use more dedicated version of `std::exceptions` (e.g. `std::runtime_error`, `std::invalid_argument`, etc)

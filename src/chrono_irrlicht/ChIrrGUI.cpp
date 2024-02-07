@@ -12,9 +12,9 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChProfiler.h"
-#include "chrono/serialization/ChArchiveAsciiDump.h"
+#include "chrono/serialization/ChOutputASCII.h"
 #include "chrono/serialization/ChArchiveJSON.h"
-#include "chrono/serialization/ChArchiveExplorer.h"
+#include "chrono/serialization/ChObjectExplorer.h"
 
 #include "chrono_irrlicht/ChIrrGUI.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -68,7 +68,7 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
 
                 std::cout << "Saving system in ASCII format to dump.txt file \n";
                 std::ofstream mfileo2("dump.txt");
-                ChArchiveAsciiDump marchiveout2(mfileo2);
+                ChOutputASCII marchiveout2(mfileo2);
                 marchiveout2.SetUseVersions(false);
                 marchiveout2 << CHNVP(m_gui->m_system, "System");
 
@@ -415,7 +415,7 @@ void ChIrrGUI::DumpSystemMatrices() {
 // -----------------------------------------------------------------------------
 
 static void recurse_update_tree_node(ChValue* value, irr::gui::IGUITreeViewNode* mnode) {
-    ChArchiveExplorer mexplorer2;
+    ChObjectExplorer mexplorer2;
     mexplorer2.FetchValues(*value, "*");
     int ni = 0;
     auto subnode = mnode->getFirstChild();
@@ -466,7 +466,7 @@ static void recurse_update_tree_node(ChValue* value, irr::gui::IGUITreeViewNode*
             recurse_update_tree_node(j, subnode);
 
         // this to show the "+" symbol for not yet explored nodes
-        ChArchiveExplorer mexplorer3;
+        ChObjectExplorer mexplorer3;
         mexplorer3.FetchValues(*j, "*");
         if (subnode->getChildCount() == 0 && mexplorer3.GetFetchResults().size()) {
             subnode->addChildBack(L"_foo_to_set_");

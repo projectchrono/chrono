@@ -70,20 +70,20 @@ void ArchiveOut(chrono::ChArchiveOut& marchive) {
 
     // stream out all member data
 
-    if (chrono::ChArchiveAsciiDump* mascii = dynamic_cast<chrono::ChArchiveAsciiDump*>(&marchive)) {
-        // CUSTOM row x col 'intuitive' table-like log when using ChArchiveAsciiDump:
+    if (chrono::ChOutputASCII* mascii = dynamic_cast<chrono::ChOutputASCII*>(&marchive)) {
+        // CUSTOM row x col 'intuitive' table-like log when using ChOutputASCII:
         mascii->indent();
-        mascii->GetStream()->operator<<((int)derived().rows());
-        mascii->GetStream()->operator<<(" rows,  ");
-        mascii->GetStream()->operator<<((int)derived().cols());
-        mascii->GetStream()->operator<<(" columns:\n");
+        mascii->GetStream().operator<<((int)derived().rows());
+        mascii->GetStream().operator<<(" rows,  ");
+        mascii->GetStream().operator<<((int)derived().cols());
+        mascii->GetStream().operator<<(" columns:\n");
         for (int i = 0; i < derived().rows(); i++) {
             mascii->indent();
             for (int j = 0; j < derived().cols(); j++) {
-                (*mascii->GetStream()) << derived()(i, j);
-                mascii->GetStream()->operator<<(", ");
+                mascii->GetStream() << derived()(i, j);
+                mascii->GetStream().operator<<(", ");
             }
-            mascii->GetStream()->operator<<("\n");
+            mascii->GetStream().operator<<("\n");
         }
     } else {
         size_t m_row = derived().rows();

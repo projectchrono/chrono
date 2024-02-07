@@ -61,7 +61,6 @@ class ChArchiveIn;
     std::make_pair(std::function<returnType()>([this]() -> returnType codeGet), \
                    std::function<void(returnType)>([this](returnType val) codeSet))
 
-
 /// Functor to call the ArchiveIn function for unrelated classes that
 /// implemented them. This helps stripping out the templating, to make ChArchiveIn
 /// easier and equippable with virtual functions.
@@ -551,7 +550,7 @@ class ChValueSpecific : public ChValue {
 
     virtual void CallArchiveOutConstructor(ChArchiveOut& marchive) { this->_archive_out_constructor(marchive); }
 
-    virtual void CallOut(ChArchiveOut& marchive);
+    virtual void CallOut(ChArchiveOut& marchive) { marchive.out(CHNVP(*this->_ptr_to_val, this->_name.c_str())); }
 
   private:
     virtual void thrower() const { throw static_cast<TClass*>(_ptr_to_val); }
@@ -764,7 +763,7 @@ class _wrap_pair {
 };
 
 /// Base class for archives with pointers to shared objects.
-class ChArchive {
+class ChApi ChArchive {
   protected:
     bool cluster_class_versions;
 
@@ -773,26 +772,23 @@ class ChArchive {
     bool use_versions;
 
   public:
-    ChArchive() {
-        use_versions = true;
-        cluster_class_versions = true;
-    }
+    ChArchive();
 
     virtual ~ChArchive(){};
 
     /// Turn off version info in archives.
     /// By default, version numbers are saved in archives
     /// Either save/load both with version info, or not, do not mix because it could give problems in binary archives.
-    void SetUseVersions(bool muse) { this->use_versions = muse; }
+    void SetUseVersions(bool muse);
 
     /// If true, the version number is not saved in each class.
     /// Rather, it is saved only the first time that class is encountered.
     /// The same setting must be used for both serialization and deserialization.
-    void SetClusterClassVersions(bool mcl) { this->cluster_class_versions = mcl; }
+    void SetClusterClassVersions(bool mcl);
 };
 
 /// Base class for serializing into archives.
-class ChArchiveOut : public ChArchive {
+class ChApi ChArchiveOut : public ChArchive {
   protected:
     std::unordered_map<void*, size_t> internal_ptr_id;
     size_t currentID;
@@ -847,20 +843,7 @@ class ChArchiveOut : public ChArchive {
     /// was not previously inserted. Returns already_stored=false if was
     /// already inserted. Return 'obj_ID' offset in vector in any case.
     /// For null pointers, always return 'already_stored'=true, and 'obj_ID'=0.
-    void PutPointer(void* object, bool& already_stored, size_t& obj_ID) {
-        if (this->internal_ptr_id.find(static_cast<void*>(object)) != this->internal_ptr_id.end()) {
-            already_stored = true;
-            obj_ID = internal_ptr_id[static_cast<void*>(object)];
-            return;
-        }
-
-        // wasn't in list.. add to it
-        ++currentID;
-        obj_ID = currentID;
-        internal_ptr_id[static_cast<void*>(object)] = obj_ID;
-        already_stored = false;
-        return;
-    }
+    void PutPointer(void* object, bool& already_stored, size_t& obj_ID);
 
   public:
     //---------------------------------------------------
@@ -1081,22 +1064,11 @@ class ChArchiveOut : public ChArchive {
     }
 
   protected:
-    virtual void out_version(int mver, const std::type_index mtypeid) {
-        if (use_versions) {
-            std::string class_name = ChClassFactory::IsClassRegistered(mtypeid)
-                                         ? ChClassFactory::GetClassTagName(mtypeid)
-                                         : std::string(mtypeid.name());
-            // to avoid troubles in xml archives
-            std::replace(class_name.begin(), class_name.end(), '<', '[');
-            std::replace(class_name.begin(), class_name.end(), '>', ']');
-            std::replace(class_name.begin(), class_name.end(), ' ', '_');
-            this->out(ChNameValue<int>(("_version_" + class_name).c_str(), mver));
-        }
-    }
+    virtual void out_version(int mver, const std::type_index mtypeid);
 };
 
 /// Base class for deserializing from archives.
-class ChArchiveIn : public ChArchive {
+class ChApi ChArchiveIn : public ChArchive {
   protected:
     std::unordered_map<void*, size_t> internal_ptr_id;
     std::unordered_map<size_t, void*> internal_id_ptr;
@@ -1110,12 +1082,7 @@ class ChArchiveIn : public ChArchive {
     bool try_tolerate_missing_tokens;
 
   public:
-    ChArchiveIn() : can_tolerate_missing_tokens(false) {
-        internal_ptr_id.clear();
-        internal_ptr_id[nullptr] = 0;  // null pointer -> ID=0.
-        internal_id_ptr.clear();
-        internal_id_ptr[0] = nullptr;  // ID=0 -> null pointer.
-    }
+    ChArchiveIn();
 
     virtual ~ChArchiveIn() {}
 
@@ -1393,23 +1360,8 @@ class ChArchiveIn : public ChArchive {
     }
 
   protected:
-    virtual int in_version(const std::type_index mtypeid) {
-        int mver;
-        std::string class_name = ChClassFactory::IsClassRegistered(mtypeid) ? ChClassFactory::GetClassTagName(mtypeid)
-                                                                            : std::string(mtypeid.name());
-        // to avoid troubles in xml archives
-        std::replace(class_name.begin(), class_name.end(), '<', '[');
-        std::replace(class_name.begin(), class_name.end(), '>', ']');
-        std::replace(class_name.begin(), class_name.end(), ' ', '_');
-        this->in(ChNameValue<int>(("_version_" + class_name).c_str(), mver));
-        return mver;
-    }
+    virtual int in_version(const std::type_index mtypeid);
 };
-
-template <class TClass>
-void ChValueSpecific<TClass>::CallOut(ChArchiveOut& marchive) {
-    marchive.out(CHNVP(*this->_ptr_to_val, this->_name.c_str()));
-}
 
 /// @} chrono_serialization
 
