@@ -209,8 +209,8 @@ std::shared_ptr<ChSuspension> Generic_Vehicle::ConstructSuspension(const std::st
     }
 
     if (front && !suspension->IsSteerable()) {
-        std::cout << "Non-steerable front suspension." << std::endl;
-        throw ChException("Non-steerable front suspension");
+        std::cerr << "Non-steerable front suspension." << std::endl;
+        throw std::invalid_argument("Non-steerable front suspension");
     }
 
     return suspension;

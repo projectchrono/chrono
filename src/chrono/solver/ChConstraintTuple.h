@@ -67,7 +67,7 @@ class ChConstraintTuple_1vars {
 
     void SetVariables(T& m_tuple_carrier) {
         if (!m_tuple_carrier.GetVariables1()) {
-            throw ChException("ERROR. SetVariables() getting null pointer. \n");
+            throw std::runtime_error("ERROR: SetVariables() getting null pointer.");
         }
         variables = m_tuple_carrier.GetVariables1();
     }
@@ -181,7 +181,7 @@ class ChConstraintTuple_2vars {
 
     void SetVariables(T& m_tuple_carrier) {
         if (!m_tuple_carrier.GetVariables1() || !m_tuple_carrier.GetVariables2()) {
-            throw ChException("ERROR. SetVariables() getting null pointer. \n");
+            throw std::runtime_error("ERROR: SetVariables() getting null pointer.");
         }
         variables_1 = m_tuple_carrier.GetVariables1();
         variables_2 = m_tuple_carrier.GetVariables2();
@@ -335,7 +335,7 @@ class ChConstraintTuple_3vars {
 
     void SetVariables(T& m_tuple_carrier) {
         if (!m_tuple_carrier.GetVariables1() || !m_tuple_carrier.GetVariables2() || !m_tuple_carrier.GetVariables3()) {
-            throw ChException("ERROR. SetVariables() getting null pointer. \n");
+            throw std::runtime_error("ERROR: SetVariables() getting null pointer.");
         }
         variables_1 = m_tuple_carrier.GetVariables1();
         variables_2 = m_tuple_carrier.GetVariables2();
@@ -446,7 +446,6 @@ class ChConstraintTuple_3vars {
     }
 };
 
-
 /// Case of tuple with reference to 4 ChVariable objects:
 
 template <class T>
@@ -529,8 +528,9 @@ class ChConstraintTuple_4vars {
     ChVariables* GetVariables_4() { return variables_4; }
 
     void SetVariables(T& m_tuple_carrier) {
-        if (!m_tuple_carrier.GetVariables1() || !m_tuple_carrier.GetVariables2() || !m_tuple_carrier.GetVariables3() || !m_tuple_carrier.GetVariables4() ) {
-            throw ChException("ERROR. SetVariables() getting null pointer. \n");
+        if (!m_tuple_carrier.GetVariables1() || !m_tuple_carrier.GetVariables2() || !m_tuple_carrier.GetVariables3() ||
+            !m_tuple_carrier.GetVariables4()) {
+            throw std::runtime_error("ERROR: SetVariables() getting null pointer.");
         }
         variables_1 = m_tuple_carrier.GetVariables1();
         variables_2 = m_tuple_carrier.GetVariables2();

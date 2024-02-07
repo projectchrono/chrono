@@ -195,23 +195,23 @@ void ChSuspensionTestRig::IncludeSteeringMechanism(int index) {
 void ChSuspensionTestRig::Initialize() {
     for (auto ia : m_axle_index) {
         if (ia < 0 || ia >= m_vehicle->GetNumberAxles()) {
-            throw ChException("Incorrect axle index " + std::to_string(ia) + " for the given vehicle");
+            throw std::runtime_error("Incorrect axle index " + std::to_string(ia) + " for the given vehicle");
         }
         for (const auto& wheel : m_vehicle->GetAxle(ia)->GetWheels()) {
             if (!wheel->GetTire()) {
-                throw ChException("No tires attached to axle " + std::to_string(ia) + " for the given vehicle");
+                throw std::runtime_error("No tires attached to axle " + std::to_string(ia) + " for the given vehicle");
             }
         }
     }
 
     for (auto is : m_steering_index) {
         if (is < 0 || is >= (int)m_vehicle->GetSteerings().size()) {
-            throw ChException("Incorrect steering index " + std::to_string(is) + " for the given vehicle");
+            throw std::runtime_error("Incorrect steering index " + std::to_string(is) + " for the given vehicle");
         }
     }
 
     if (!m_driver) {
-        throw ChException("No driver system provided");
+        throw std::runtime_error("No driver system provided");
     }
 
     // Initialize visualization for all vehicle subsystems

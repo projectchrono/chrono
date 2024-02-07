@@ -23,7 +23,6 @@
 #include <cmath>
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/core/ChException.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -40,8 +39,7 @@ const int ChElementShellANCF_3423::m_maxIterationsEAS = 100;
 // Constructor
 // ------------------------------------------------------------------------------
 
-ChElementShellANCF_3423::ChElementShellANCF_3423()
-    : m_numLayers(0), m_lenX(0), m_lenY(0), m_thickness(0), m_Alpha(0) {
+ChElementShellANCF_3423::ChElementShellANCF_3423() : m_numLayers(0), m_lenX(0), m_lenY(0), m_thickness(0), m_Alpha(0) {
     m_nodes.resize(4);
 }
 

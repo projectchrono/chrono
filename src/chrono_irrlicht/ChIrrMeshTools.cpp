@@ -718,8 +718,8 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
                 for (k = 0; k < 3; k++) {                   // three verts per triangle
                     index = mb_indices[j + k];
                     if (index > numVertices)
-                        throw(chrono::ChException(
-                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh."));
+                        throw std::runtime_error(
+                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh.");
                     vertices[k] = chrono::ChVector<>(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
                                                      mb_vertices[index].Pos.Z);
                 }
@@ -734,8 +734,8 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
                 for (k = 0; k < 3; k++) {
                     index = mb_indices[j + k];
                     if (index > numVertices)
-                        throw(chrono::ChException(
-                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh."));
+                        throw std::runtime_error(
+                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh.");
                     vertices[k] = chrono::ChVector<>(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
                                                      mb_vertices[index].Pos.Z);
                 }

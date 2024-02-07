@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
-
+
 #include "chrono/core/ChMathematics.h"
 
 #include "chrono/solver/ChSolverBB.h"
@@ -28,11 +28,9 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     if (sysd.GetKblocksList().size() > 0) {
-        std::cerr << std::endl
-                  << std::endl
-                  << "ChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness matrices.\n"
+        std::cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness matrices."
                   << std::endl;
-        throw ChException("ChSolverBB: Do NOT use Barzilai-Borwein solver if there are stiffness matrices.");
+        throw std::runtime_error("ChSolverBB: Do NOT use Barzilai-Borwein solver if there are stiffness matrices.");
     }
 
     // Tuning of the spectral gradient search

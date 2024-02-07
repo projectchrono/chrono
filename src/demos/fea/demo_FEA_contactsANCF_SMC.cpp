@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     try {
         ChMeshFileLoader::ANCFShellFromGMFFile(my_mesh, GetChronoDataFile("fea/Plate.mesh").c_str(), material,
                                                NODE_AVE_AREA, BC_NODES, Center, rot_transform, 0.8, false, false);
-    } catch (ChException myerr) {
+    } catch (std::exception myerr) {
         std::cerr << myerr.what() << std::endl;
         return 0;
     }

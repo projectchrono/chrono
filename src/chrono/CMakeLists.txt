@@ -52,7 +52,6 @@ set(ChronoEngine_core_HEADERS
     core/ChChrono.h
     core/ChClassFactory.h
     core/ChCoordsys.h
-    core/ChException.h
     core/ChFrame.h
     core/ChFrameMoving.h
     core/ChLists.h

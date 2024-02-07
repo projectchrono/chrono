@@ -63,13 +63,13 @@ void ChFunctionRotation_spline::SetupData(
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     if (morder < 1)
-        throw ChException("ChFunctionRotation_spline::SetupData requires order >= 1.");
+        throw std::invalid_argument("ChFunctionRotation_spline::SetupData requires order >= 1.");
 
     if (mrotations.size() < morder + 1)
-        throw ChException("ChFunctionRotation_spline::SetupData requires at least order+1 control points.");
+        throw std::invalid_argument("ChFunctionRotation_spline::SetupData requires at least order+1 control points.");
 
     if (mknots && (size_t)mknots->size() != (mrotations.size() + morder + 1))
-        throw ChException("ChFunctionRotation_spline::SetupData: knots must have size=n_points+order+1");
+        throw std::invalid_argument("ChFunctionRotation_spline::SetupData: knots must have size=n_points+order+1");
 
     this->p = morder;
     this->rotations = mrotations;

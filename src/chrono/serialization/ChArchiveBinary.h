@@ -235,8 +235,8 @@ class ChArchiveInBinary : public ChArchiveIn {
             binaryRead(ref_ID);
 
             if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end())
-                throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the reference ID " +
-                                         std::to_string((int)ref_ID) + " is not a valid number."));
+                throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the reference ID " +
+                                         std::to_string((int)ref_ID) + " is not a valid number.");
 
             bVal.value().SetRawPtr(
                 ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
@@ -246,8 +246,8 @@ class ChArchiveInBinary : public ChArchiveIn {
             binaryRead(ext_ID);
 
             if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end())
-                throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the external reference ID " +
-                                         std::to_string((int)ext_ID) + " cannot be rebuilt."));
+                throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the external reference ID " +
+                                         std::to_string((int)ext_ID) + " cannot be rebuilt.");
 
             bVal.value().SetRawPtr(
                 ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
@@ -265,7 +265,7 @@ class ChArchiveInBinary : public ChArchiveIn {
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this, true_classname);
             } else {
-                throw(ChExceptionArchive("Archive cannot create object" + true_classname + "\n"));
+                throw std::runtime_error("Archive cannot create object" + true_classname);
             }
             new_ptr = bVal.value().GetRawPtr();
         }

@@ -760,7 +760,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// matrix (at the current configuration).
     /// These can be later used for linearized motion, modal analysis, buckling analysis, etc.
     /// The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat
-    /// Might throw ChException if file can't be saved.
+    /// Might throw exception if file can't be saved.
     void DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path);
 
     /// Compute the system-level mass matrix.

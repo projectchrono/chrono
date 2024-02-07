@@ -15,7 +15,6 @@
 // neighbouring triangles) as in the BST Basic Shell Triangle (Onate et al.)
 // =============================================================================
 
-#include "chrono/core/ChException.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/timestepper/ChState.h"
 #include "chrono/fea/ChElementShellBST.h"

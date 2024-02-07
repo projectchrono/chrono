@@ -180,7 +180,7 @@ class ChApi ChIntegrable {
                                       bool full_update,             ///< if true, perform a full update during scatter
                                       bool force_setup              ///< if true, call the solver's Setup() function
     ) {
-        throw ChException("StateSolveCorrection() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("StateSolveCorrection() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Increment a vector R (usually the residual in a Newton Raphson iteration
@@ -190,7 +190,7 @@ class ChApi ChIntegrable {
                                  const ChVectorDynamic<>& v,  ///< the v vector
                                  const double c               ///< a scaling factor
                                  ) {
-        throw ChException("LoadResidual_Hv() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadResidual_Hv() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Increment a vector R (usually the residual in a Newton Raphson iteration
@@ -199,7 +199,7 @@ class ChApi ChIntegrable {
     virtual void LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                                 const double c         ///< a scaling factor
                                 ) {
-        throw ChException("LoadResidual_F() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadResidual_F() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Increment a vector R (usually the residual in a Newton Raphson iteration
@@ -209,7 +209,7 @@ class ChApi ChIntegrable {
                                   const ChVectorDynamic<>& L,  ///< the L vector
                                   const double c               ///< a scaling factor
                                   ) {
-        throw ChException("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Increment a vector Qc (usually the residual in a Newton Raphson iteration
@@ -220,7 +220,7 @@ class ChApi ChIntegrable {
                                   const bool do_clamp = false,  ///< enable optional clamping of Qc
                                   const double mclam = 1e30     ///< clamping value
                                   ) {
-        throw ChException("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Increment a vector Qc (usually the residual in a Newton Raphson iteration
@@ -229,7 +229,7 @@ class ChApi ChIntegrable {
     virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
                                    const double c          ///< a scaling factor
                                    ) {
-        throw ChException("LoadConstraint_Ct() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadConstraint_Ct() not implemented, implicit integrators cannot be used. ");
     }
 };
 
@@ -362,7 +362,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
         bool full_update,             ///< if true, perform a full update during scatter
         bool force_setup              ///< if true, call the solver's Setup() function
     ) {
-        throw ChException("StateSolveCorrection() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("StateSolveCorrection() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
@@ -373,7 +373,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     virtual void LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                                 const double c         ///< a scaling factor
                                 ) override {
-        throw ChException("LoadResidual_F() not implemented, integrator cannot be used. ");
+        throw std::runtime_error("LoadResidual_F() not implemented, integrator cannot be used. ");
     }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
@@ -385,7 +385,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                  const ChVectorDynamic<>& w,  ///< the w vector
                                  const double c               ///< a scaling factor
                                  ) {
-        throw ChException("LoadResidual_Mv() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadResidual_Mv() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
@@ -395,7 +395,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                    double& err,            ///< result: not touched if lumping does not introduce errors
                                    const double c          ///< a scaling factor
     ) {
-        throw ChException(
+        throw std::runtime_error(
             "LoadLumpedMass_Md() not implemented, explicit integrators with mass lumping cannot be used. ");
     }
 
@@ -408,7 +408,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                   const ChVectorDynamic<>& L,  ///< the L vector
                                   const double c               ///< a scaling factor
                                   ) override {
-        throw ChException("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
@@ -421,7 +421,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                   const bool do_clamp = false,  ///< enable optional clamping of Qc
                                   const double mclam = 1e30     ///< clamping value
                                   ) override {
-        throw ChException("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
@@ -432,7 +432,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
                                    const double c          ///< a scaling factor
                                    ) override {
-        throw ChException("LoadConstraint_Ct() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadConstraint_Ct() not implemented, implicit integrators cannot be used. ");
     }
 
     //
@@ -522,7 +522,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                       bool force_state_scatter,
                                       bool full_update,
                                       bool force_setup) override final {
-        throw ChException(
+        throw std::runtime_error(
             "StateSolveCorrection() not implemented for ChIntegrableIIorder, implicit integrators for Ist order cannot "
             "be used. ");
     }

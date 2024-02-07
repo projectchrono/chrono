@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
         // In this example, we load a mechanical system that represents a (quite simplified and approximated) clock
         // escapement, that has been modeled in SolidWorks and saved using the Chrono SolidWorks add-in.
         my_python.ImportSolidWorksSystem(GetChronoDataFile("solidworks/swiss_escapement.py"), sys);
-    } catch (const ChException& myerror) {
+    } catch (std::exception myerror) {
         std::cerr << myerror.what() << std::endl;
     }
 

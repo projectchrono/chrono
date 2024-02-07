@@ -262,7 +262,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
             char m;
             try {
                 templatefile >> m;
-            } catch (const ChException&) {
+            } catch (const std::exception&) {
             }
 
             buffer_template += m;
@@ -445,7 +445,7 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
                 if (temp_allocated_loadtrimesh) {
                     mesh = temp_allocated_loadtrimesh;
                 } else {
-                    throw(ChException("Cannot read .obj file " + obj_shape->GetFilename()));
+                    throw std::runtime_error("Cannot read .obj file " + obj_shape->GetFilename());
                 }
             } else if (mesh_shape) {
                 mesh = mesh_shape->GetMesh();
@@ -956,8 +956,8 @@ void ChPovRay::ExportData(const std::string& filename) {
 
         // At the end of the .pov file, remember to close the .dat
         pov_file << std::endl << std::endl << "#fclose MyDatFile " << std::endl;
-    } catch (const ChException&) {
-        throw(ChException("Can't save data into file " + filename));
+    } catch (const std::exception&) {
+        throw std::runtime_error("Can't save data into file " + filename);
     }
 
     // Increment the number of the frame.

@@ -20,7 +20,6 @@
 //// - more use of Eigen expressions
 //// - split up the ridiculously big switch cases!
 
-#include "chrono/core/ChException.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/fea/ChElementHexaANCF_3813_9.h"
 
@@ -371,7 +370,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
     // element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::DruckerPrager);
     // if (ChElementHexaANCF_3813_9::Hencky == element->GetStrainFormulation) {
     switch (m_element->m_strain_form) {
-        case ChElementHexaANCF_3813_9::StrainFormulation::GreenLagrange : {
+        case ChElementHexaANCF_3813_9::StrainFormulation::GreenLagrange: {
             // ddNx = e^{T}*Nx^{T}*Nx, ddNy = e^{T}*Ny^{T}*Ny, ddNz = e^{T}*Nz^{T}*Nz
             ChVectorN<double, 11> ddNx = m_element->m_ddT * Nx.transpose();
             ChVectorN<double, 11> ddNy = m_element->m_ddT * Ny.transpose();
@@ -464,7 +463,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
             // Internal force calculation
             result = (detJ0 * m_element->m_GaussScaling) * strainD.transpose() * E_eps * strain;
         } break;
-        case ChElementHexaANCF_3813_9::StrainFormulation::Hencky : {
+        case ChElementHexaANCF_3813_9::StrainFormulation::Hencky: {
             ChMatrixNM<double, 3, 3> CCPinv;  // Inverse of F^{pT}*F^{p}, where F^{p} is the plastic deformation
                                               // gradient stemming from multiplicative decomposition
             ChMatrix33<double> BETRI;         // Left Cauchy-Green tensor for elastic deformation
@@ -560,7 +559,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                 // Vector of eigenvalues of current logarithmic strain
                 ChVector<double> lambda;
                 switch (m_element->m_plast_form) {
-                    case ChElementHexaANCF_3813_9::PlasticityFormulation::J2 : {
+                    case ChElementHexaANCF_3813_9::PlasticityFormulation::J2: {
                         // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
                         hydroP = (StressK_eig(0) + StressK_eig(1) + StressK_eig(2)) / 3.0;
                         // Deviatoric stress
@@ -733,7 +732,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                     break;
 
                                 if (ii == m_element->GetDPIterationNo() - 1)
-                                    throw ChException(
+                                    throw std::runtime_error(
                                         "Maximum number of iterations reached in Drucker-Prager Newton-Raphson "
                                         "algorithm");
                             }
@@ -798,7 +797,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         }
                     } break;
 
-                    case ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager_Cap : {
+                    case ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager_Cap: {
                         // Hydrostatic pressure (Cap)
                         double hydroPt;
                         // Current value of yield function (Cap)
@@ -925,7 +924,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                         break;
 
                                     if (ii == m_element->GetDPIterationNo() - 1)
-                                        throw ChException(
+                                        throw std::runtime_error(
                                             "Maximum number of iterations reached in Drucker-Prager Surface "
                                             "Newton-Raphson algorithm");
                                 }
@@ -1056,7 +1055,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                     }
 
                                     if (ii == m_element->GetDPIterationNo() - 1)
-                                        throw ChException(
+                                        throw std::runtime_error(
                                             "Maximum number of iterations reached in Drucker-Prager Cap surface "
                                             "Newton-Raphson algorithm");
                                 }  // End of Newton raphson
@@ -1140,7 +1139,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                                 break;
                                         }
                                         if (ii == m_element->GetDPIterationNo() - 1)
-                                            throw ChException(
+                                            throw std::runtime_error(
                                                 "Hit the max iteration for Transient Cap_surf and DP_surf return "
                                                 "mapping");
                                     }  // End of Newton raphson
@@ -1361,7 +1360,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
     E_eps(4, 4) = C2;
     E_eps(5, 5) = C2;
     switch (m_element->m_strain_form) {
-        case ChElementHexaANCF_3813_9::StrainFormulation::GreenLagrange: {  
+        case ChElementHexaANCF_3813_9::StrainFormulation::GreenLagrange: {
             // ddNx = e^{T}*Nx^{T}*Nx, ddNy = e^{T}*Ny^{T}*Ny, ddNz = e^{T}*Nz^{T}*Nz
             ChVectorN<double, 11> ddNx = m_element->m_ddT * Nx.transpose();
             ChVectorN<double, 11> ddNy = m_element->m_ddT * Ny.transpose();
@@ -1624,7 +1623,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                 ChVector<double> lambda;
 
                 switch (m_element->m_plast_form) {
-                    case ChElementHexaANCF_3813_9::PlasticityFormulation::J2: {  
+                    case ChElementHexaANCF_3813_9::PlasticityFormulation::J2: {
                         // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
                         hydroP = (StressK_eig(0) + StressK_eig(1) + StressK_eig(2)) / 3.0;
 
@@ -1801,7 +1800,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                     break;
                                 }
                                 if (ii == m_element->GetDPIterationNo() - 1) {
-                                    throw ChException(
+                                    throw std::runtime_error(
                                         "Maximum number of iterations reached in Drucker-Prager Newton-Raphson "
                                         "algorithm. Jacobian \n");
                                 }
@@ -2009,7 +2008,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                         break;
 
                                     if (ii == m_element->GetDPIterationNo() - 1)
-                                        throw ChException(
+                                        throw std::runtime_error(
                                             "Maximum number of iterations reached in Drucker-Prager Surface "
                                             "Newton-Raphson algorithm");
                                 }
@@ -2181,7 +2180,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                             break;
                                     }
                                     if (ii == m_element->GetDPIterationNo() - 1)
-                                        throw ChException(
+                                        throw std::runtime_error(
                                             "Maximum number of iterations reached in Drucker-Prager Cap surface "
                                             "Newton-Raphson algorithm");
                                 }  // End of Newton raphson
@@ -2264,7 +2263,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                                 break;
                                         }
                                         if (ii == m_element->GetDPIterationNo() - 1)
-                                            throw ChException(
+                                            throw std::runtime_error(
                                                 "Hit the max iteration for Transient Cap_surf and DP_surf return "
                                                 "mapping");
                                     }  // End of Newton raphson

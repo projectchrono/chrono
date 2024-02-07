@@ -83,16 +83,16 @@ void ChLineNurbs::SetupData(
     ChVectorDynamic<>* weights          ///< weights, size w. Required w=n. If not provided, all weights as 1.
 ) {
     if (morder < 1)
-        throw ChException("ChLineNurbs::SetupData requires order >= 1.");
+        throw std::invalid_argument("ChLineNurbs::SetupData requires order >= 1.");
 
     if (mpoints.size() < morder + 1)
-        throw ChException("ChLineNurbs::SetupData requires at least order+1 control points.");
+        throw std::invalid_argument("ChLineNurbs::SetupData requires at least order+1 control points.");
 
     if (mknots && (size_t)mknots->size() != (mpoints.size() + morder + 1))
-        throw ChException("ChLineNurbs::SetupData: knots must have size=n_points+order+1");
+        throw std::invalid_argument("ChLineNurbs::SetupData: knots must have size=n_points+order+1");
 
     if (weights && (size_t)weights->size() != mpoints.size())
-        throw ChException("ChLineNurbs::SetupData: weights must have size=n_points");
+        throw std::invalid_argument("ChLineNurbs::SetupData: weights must have size=n_points");
 
     this->p = morder;
     this->points = mpoints;

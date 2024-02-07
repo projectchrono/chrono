@@ -658,7 +658,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
     for (auto& mesh : m_geometry[i_shape].m_coll_meshes) {
         auto imesh = m_systemGPU->AddMesh(mesh.m_trimesh, (float)m_load_mass[i]);
         if (imesh != i + num_obstacles) {
-            throw ChException("Error adding GPU mesh for object " + std::to_string(i));
+            throw std::runtime_error("Error adding GPU mesh for object " + std::to_string(i));
         }
     }
 

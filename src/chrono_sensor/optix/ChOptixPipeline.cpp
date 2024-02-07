@@ -495,7 +495,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             break;
         }
         default:
-            throw ChException("Unsupported pipeline type: unknown type");
+            throw std::invalid_argument("Unsupported pipeline type: unknown type");
     }
 
     program_groups.push_back(m_hit_box_group);

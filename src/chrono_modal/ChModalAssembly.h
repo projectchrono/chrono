@@ -346,7 +346,7 @@ public:
     /// Assumes the rows/columns of the matrices are ordered as the ChVariable objects used in this assembly, 
     /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
     /// The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat 
-    /// Might throw ChException if file can't be saved.
+    /// Might throw exception if file can't be saved.
     void DumpSubassemblyMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path);
 
     /// Compute the mass matrix of the subassembly. 

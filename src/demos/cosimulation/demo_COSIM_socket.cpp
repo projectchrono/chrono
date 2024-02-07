@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
         client = myServer.acceptClient(clientHostName);  // pick up the call!
 
         if (!client)
-            throw(ChExceptionSocket(0, "Server failed in getting the client socket"));
+            throw std::runtime_error("Server failed in getting the client socket");
 
         std::cout << "OK! Connected with client: " << clientHostName << std::endl;
 
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
         // Last stuff to do
         delete socket_tools;
 
-    } catch (ChExceptionSocket exception) {
+    } catch (std::exception exception) {
         std::cerr << " ERROR with socket system:\n"<< exception.what() << std::endl;
     }
 

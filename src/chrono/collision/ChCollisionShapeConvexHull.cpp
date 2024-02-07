@@ -41,8 +41,8 @@ std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> ChCollisionShapeConvexH
     try {
         ifile.open(filename.c_str());
     } catch (const std::exception&) {
-        std::cout << "ChCollisionShapeConvexHull::Read - cannot open input file " << filename << std::endl;
-        throw ChException("Cannot open input file");
+        std::cerr << "ChCollisionShapeConvexHull::Read - cannot open input file " << filename << std::endl;
+        throw std::invalid_argument("Cannot open input file");
     }
 
     std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> hulls;

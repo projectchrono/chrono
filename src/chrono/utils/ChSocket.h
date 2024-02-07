@@ -33,7 +33,6 @@
 #include <iostream>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChException.h"
 
 #ifdef UNIX
     #include <sys/socket.h>
@@ -238,27 +237,6 @@ class ChApi ChSocketFramework {
     ~ChSocketFramework();
 };
 
-/// Class for exceptions that are thrown by TCP socket connections,
-/// used for example when connecting with other sw for cosimulation.
-
-class ChExceptionSocket : public ChException {
-  public:
-    ChExceptionSocket(int code, const std::string& what) : ChException(what), errorCode(code){};
-
-    // get socket error code in thrown exception
-    int getErrCode() { return errorCode; }
-
-    // std::string& getErrMsg() { return std::string(this->what()); }
-
-    void response() {
-        std::cerr << "TCP socket error:" << std::endl;
-        std::cerr << "		==> error code: " << errorCode << std::endl;
-        std::cerr << "		==> error message: " << what() << std::endl;
-    }
-
-  private:
-    int errorCode;
-};
 
 /*
   Liyang Yu, Jan 9th, 2004, version 0.0

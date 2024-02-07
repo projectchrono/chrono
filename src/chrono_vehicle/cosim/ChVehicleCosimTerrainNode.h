@@ -136,7 +136,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Use information in the provided MeshState struct (vertex positions and velocities expressed in absolute frame).
     virtual void UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {
         if (SupportsMeshInterface()) {
-            throw ChException("Current terrain type does not support the MESH communication interface!");
+            throw std::runtime_error("Current terrain type does not support the MESH communication interface!");
         }
     }
 
@@ -145,7 +145,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// into the provided MeshContact struct.
     virtual void GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
         if (SupportsMeshInterface()) {
-            throw ChException("Current terrain type does not the MESH communication interface!");
+            throw std::runtime_error("Current terrain type does not the MESH communication interface!");
         }
     }
 

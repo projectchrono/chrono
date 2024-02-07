@@ -298,7 +298,7 @@ ChVector<> CRGTerrain::GetNormal(const ChVector<>& loc) const {
     normal_ISO = Vcross(r1, r2);
     if (normal_ISO.z() <= 0.0) {
         std::cerr << "Fatal: wrong surface normal!" << std::endl;
-        throw ChException("Fatal: wrong surface normal!");
+        throw std::runtime_error("Fatal: wrong surface normal!");
     }
     ChVector<> normal = ChWorldFrame::FromISO(normal_ISO);
     normal.Normalize();
@@ -436,12 +436,12 @@ void CRGTerrain::GenerateMesh() {
                 int uv_ok = crgEvaluv2xy(m_cpId, u, v, &x, &y);
                 if (uv_ok != 1) {
                     std::cerr << "Error during uv -> xy coordinate transformation in crg file" << std::endl;
-                    throw ChException("Error during uv -> xy coordinate transformation in crg file");
+                    throw std::runtime_error("Error during uv -> xy coordinate transformation in crg file");
                 }
                 int z_ok = crgEvaluv2z(m_cpId, u, v, &z);
                 if (z_ok != 1) {
                     std::cerr << "Error during uv -> z coordinate transformation in crg file" << std::endl;
-                    throw ChException("Error during uv -> z coordinate transformation in crg file");
+                    throw std::runtime_error("Error during uv -> z coordinate transformation in crg file");
                 }
                 if (i == 0) {
                     x0.push_back(x);
@@ -472,12 +472,12 @@ void CRGTerrain::GenerateMesh() {
                 int uv_ok = crgEvaluv2xy(m_cpId, u, v, &x, &y);
                 if (uv_ok != 1) {
                     std::cerr << "Error during uv -> xy coordinate transformation in crg file" << std::endl;
-                    throw ChException("Error during uv -> xy coordinate transformation in crg file");
+                    throw std::runtime_error("Error during uv -> xy coordinate transformation in crg file");
                 }
                 int z_ok = crgEvaluv2z(m_cpId, u, v, &z);
                 if (z_ok != 1) {
                     std::cerr << "Error during uv -> z coordinate transformation in crg file" << std::endl;
-                    throw ChException("Error during uv -> z coordinate transformation in crg file");
+                    throw std::runtime_error("Error during uv -> z coordinate transformation in crg file");
                 }
                 if (i == 0) {
                     x0.push_back(x);

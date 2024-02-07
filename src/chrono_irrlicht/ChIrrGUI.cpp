@@ -407,7 +407,7 @@ void ChIrrGUI::DumpSystemMatrices() {
         // Save M mass matrix, K stiffness matrix, R damping matrix, Cq jacobians:
         m_system->DumpSystemMatrices(true, true, true, true, "dump_");
 
-    } catch (const ChException& myexc) {
+    } catch (const std::exception& myexc) {
         std::cerr << myexc.what() << std::endl;
     }
 }

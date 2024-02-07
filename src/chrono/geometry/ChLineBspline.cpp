@@ -94,13 +94,13 @@ void ChLineBspline::SetupData(
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     if (morder < 1)
-        throw ChException("ChLineBspline::SetupData requires order >= 1.");
+        throw std::invalid_argument("ChLineBspline::SetupData requires order >= 1.");
 
     if (mpoints.size() < morder + 1)
-        throw ChException("ChLineBspline::SetupData requires at least order+1 control points.");
+        throw std::invalid_argument("ChLineBspline::SetupData requires at least order+1 control points.");
 
     if (mknots && (size_t)mknots->size() != (mpoints.size() + morder + 1))
-        throw ChException("ChLineBspline::SetupData: knots must have size=n_points+order+1");
+        throw std::invalid_argument("ChLineBspline::SetupData: knots must have size=n_points+order+1");
 
     this->p = morder;
     this->points = mpoints;

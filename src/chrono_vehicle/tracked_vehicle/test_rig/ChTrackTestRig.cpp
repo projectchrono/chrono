@@ -205,7 +205,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
 
 void ChTrackTestRig::Initialize() {
     if (!m_driver) {
-        throw ChException("No driver system provided");
+        throw std::runtime_error("No driver system provided");
     }
 
     // Calculate post displacement offset (if any) to set reference position at specified ride height

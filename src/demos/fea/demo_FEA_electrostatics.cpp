@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     try {
         ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/electrostatics.INP").c_str(), mmaterial,
                                          node_sets);
-    } catch (const ChException &myerr) {
+    } catch (std::exception myerr) {
         std::cerr << myerr.what() << std::endl;
         return 1;
     }

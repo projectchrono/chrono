@@ -140,11 +140,11 @@ void ChElementGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double Mf
 }
 
 void ChElementGeneric::VariablesFbLoadInternalForces(double factor) {
-    throw(ChException("ChElementGeneric::VariablesFbLoadInternalForces is deprecated"));
+    throw(std::runtime_error("ChElementGeneric::VariablesFbLoadInternalForces is deprecated"));
 }
 
 void ChElementGeneric::VariablesFbIncrementMq() {
-    throw(ChException("ChElementGeneric::VariablesFbIncrementMq is deprecated"));
+    throw(std::runtime_error("ChElementGeneric::VariablesFbIncrementMq is deprecated"));
 }
 
 }  // end namespace fea

@@ -61,11 +61,6 @@ class ChArchiveIn;
     std::make_pair(std::function<returnType()>([this]() -> returnType codeGet), \
                    std::function<void(returnType)>([this](returnType val) codeSet))
 
-/// Exceptions for archives should inherit from this
-class ChExceptionArchive : public ChException {
-  public:
-    ChExceptionArchive(std::string swhat) : ChException(swhat){};
-};
 
 /// Functor to call the ArchiveIn function for unrelated classes that
 /// implemented them. This helps stripping out the templating, to make ChArchiveIn
@@ -121,21 +116,21 @@ class ChFunctorArchiveInSpecific : public ChFunctorArchiveIn {
     }
 
     virtual void CallConstructor(ChArchiveIn& marchive, const std::string& classname) override {
-        throw(ChExceptionArchive("Cannot call CallConstructor() for a constructed object."));
+        throw std::runtime_error("Cannot call CallConstructor() for a constructed object.");
     }
 
     virtual void CallConstructorDefault(const std::string& classname) override {
-        throw(ChExceptionArchive("Cannot call CallConstructorDefault() for a constructed object."));
+        throw std::runtime_error("Cannot call CallConstructorDefault() for a constructed object.");
     }
 
     virtual void SetRawPtr(void* mptr) override {
-        throw(ChExceptionArchive("Cannot call SetRawPtr() for a constructed object."));
+        throw std::runtime_error("Cannot call SetRawPtr() for a constructed object.");
     }
 
     virtual void* GetRawPtr() override { return getVoidPointer<TClass>(pt2Object); };
 
     virtual bool IsPolymorphic() override {
-        throw(ChExceptionArchive("Cannot call IsPolymorphic() for a constructed object."));
+        throw std::runtime_error("Cannot call IsPolymorphic() for a constructed object.");
     }
 
     virtual std::type_index GetObjectPtrTypeindex() override { return std::type_index(typeid(pt2Object)); }
@@ -251,8 +246,8 @@ class ChFunctorArchiveInSpecificPtr : public ChFunctorArchiveIn {
         if (ChClassFactory::IsClassRegistered(classname))
             ChClassFactory::create(classname, pt2Object);
         else
-            throw(ChExceptionArchive("Cannot call CallConstructorDefault(). Class  " + classname +
-                                     " not registered, and is an abstract class."));
+            throw std::runtime_error("Cannot call CallConstructorDefault(). Class  " + classname +
+                                     " not registered, and is an abstract class.");
     }
 
     template <class Tc = TClass>
@@ -261,8 +256,8 @@ class ChFunctorArchiveInSpecificPtr : public ChFunctorArchiveIn {
         if (ChClassFactory::IsClassRegistered(classname))
             ChClassFactory::create(classname, pt2Object);
         else
-            throw(ChExceptionArchive("Cannot call CallConstructorDefault(). Class " + classname +
-                                     " not registered, and is without default constructor."));
+            throw std::runtime_error("Cannot call CallConstructorDefault(). Class " + classname +
+                                     " not registered, and is without default constructor.");
     }
 
     template <class Tc = TClass>
@@ -1048,8 +1043,8 @@ class ChArchiveOut : public ChArchive {
             void* idptr = getVoidPointer<T>(mptr);
             PutPointer(idptr, already_stored, obj_ID);
             if (already_stored) {
-                throw(ChExceptionArchive("Cannot serialize tracked object '" + std::string(bVal.name()) +
-                                         "' by value, AFTER already serialized by pointer."));
+                throw std::runtime_error("Cannot serialize tracked object '" + std::string(bVal.name()) +
+                                         "' by value, AFTER already serialized by pointer.");
             }
             tracked = true;
         }
@@ -1162,7 +1157,7 @@ class ChArchiveIn : public ChArchive {
     void PutNewPointer(void* object, size_t obj_ID) {
         if (internal_ptr_id.find(object) != internal_ptr_id.end() ||
             internal_id_ptr.find(obj_ID) != internal_id_ptr.end())
-            throw(ChExceptionArchive("Expected to create a new object from pointer, but was already created."));
+            throw std::runtime_error("Expected to create a new object from pointer, but was already created.");
 
         internal_ptr_id[object] = obj_ID;
         internal_id_ptr[obj_ID] = object;
@@ -1213,8 +1208,8 @@ class ChArchiveIn : public ChArchive {
         if (!this->in_array_pre(bVal.name(), arraysize))
             return false;
         if (arraysize != sizeof(bVal.value()) / sizeof(T)) {
-            throw(ChExceptionArchive("Size of [] saved array does not match size of receiver array " +
-                                     std::string(bVal.name()) + "."));
+            throw std::runtime_error("Size of [] saved array does not match size of receiver array " +
+                                     std::string(bVal.name()) + ".");
         }
         for (size_t i = 0; i < arraysize; ++i) {
             T element;

@@ -24,7 +24,6 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
-#include "chrono/core/ChException.h"
 
 namespace chrono {
 namespace vehicle {

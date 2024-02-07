@@ -125,7 +125,7 @@ void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
 
     if (m_par.pn <= 0.0) {
         std::cerr << "FATAL error in ChTMeasyTire::Synchronize - Nominal Force has not been set!" << std::endl;
-        throw ChException("FATAL error in ChTMeasyTire::Synchronize - Nominal Force has not been set!");
+        throw std::runtime_error("FATAL error in ChTMeasyTire::Synchronize - Nominal Force has not been set!");
     }
     m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
 

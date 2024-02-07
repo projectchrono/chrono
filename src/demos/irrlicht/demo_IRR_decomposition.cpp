@@ -137,7 +137,7 @@ void SaveHullsWavefront(ChVisualSystemIrrlicht* vis, const std::string& filename
     try {
         std::ofstream decomposed_objfile(filename);
         mydecompositionHACDv2.WriteConvexHullsAsWavefrontObj(decomposed_objfile);
-    } catch (const ChException&) {
+    } catch (std::exception) {
         vis->GetGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
 }
@@ -149,7 +149,7 @@ void SaveHullsChulls(ChVisualSystemIrrlicht* vis, const std::string& filename) {
     try {
         std::ofstream decomposed_objfile(filename);
         mydecompositionHACDv2.WriteConvexHullsAsChullsFile(decomposed_objfile);
-    } catch (const ChException&) {
+    } catch (std::exception) {
         vis->GetGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
 }

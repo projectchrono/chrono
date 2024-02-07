@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
         ChMeshFileLoader::FromAbaqusFile(my_mesh,
                                          GetChronoDataFile("models/tractor_wheel/tractor_wheel_coarse.INP").c_str(),
                                          mmaterial, node_sets, tire_center, tire_alignment);
-    } catch (const ChException& myerr) {
+    } catch (std::exception myerr) {
         std::cerr << myerr.what() << std::endl;
         return 0;
     }

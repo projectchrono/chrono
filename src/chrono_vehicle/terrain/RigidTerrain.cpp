@@ -281,7 +281,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     // Read the image file (request only 1 channel) and extract number of pixels
     STB hmap;
     if (!hmap.ReadFromFile(heightmap_file, 1)) {
-        throw ChException("Cannot open height map image file");
+        throw std::invalid_argument("Cannot open height map image file");
     }
     int nv_x = hmap.GetWidth();
     int nv_y = hmap.GetHeight();

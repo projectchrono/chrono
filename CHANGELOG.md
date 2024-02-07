@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Removed ChException](#removed-removed-chexception)
   - [Updated Chrono::VSG module](#changed-updated-chronovsg-module)
   - [New motion functions and filters](#added-new-motion-functions-and-filters)
   - [Updated ChBlender exporter to Blender4.0](#changed-updated-chblender-exporter-to-blender40)
@@ -98,9 +99,13 @@ Change Log
 
 ## Unreleased (development branch)
 
+## [Removed] Removed ChException
+`ChException` classes used to offer a wrap to STL exceptions while adding some limited features. Since they were inheriting from `stl::exception` their replacement with standrard STL objects should be straightforward. It is advisable to take the chance to revisit the code so to use more dedicated version of `std::exceptions` (e.g. `std::runtime_error`, `std::invalid_argument`, etc)
+
+
 ## [Changed] Updated Chrono::VSG module
 
-The Chrono::VSG m,odule was updated to use newer version of the VSG libraries.
+The Chrono::VSG module was updated to use newer version of the VSG libraries.
 - Adds shadow support (enabled in several demos).
 - Includes an optional argument to the `ChVisualSystemVSG` constructor to specify the tesselation resolution for round primitive shapes. This is provided as a number of divisions of a full circle, with a default value of 24, corresponding to a 15 degree angular increment. 
 - No other changes to the public API.

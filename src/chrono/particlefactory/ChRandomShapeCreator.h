@@ -413,7 +413,7 @@ class ChRandomShapeCreatorFromFamilies : public ChRandomShapeCreator {
 
     virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsys<> mcoords) override {
         if (family_generators.size() == 0)
-            throw ChException("Error, cannot randomize particles from a zero length vector of samples");
+            throw std::invalid_argument("Error: cannot randomize particles from a zero length vector of samples");
 
         std::shared_ptr<ChBody> sample;  // default null
 

@@ -177,7 +177,7 @@ class CH_VEHICLE_API ChTrackCustomContact : public ChLoadContainer {
         ChVector<>& forceShoe                     ///< [out] force on track shoe at contact point, in abs. frame
     ) {
         std::cout << "ERROR: Idler-shoe custom contact force calculation not implemented!" << std::endl;
-        throw(ChException("Idler-shoe custom contact force calculation not implemented."));
+        throw std::runtime_error("Idler-shoe custom contact force calculation not implemented.");
     }
 
     /// For the given collision between a road-wheel and a track shoe, compute the contact force on the track shoe at
@@ -190,7 +190,7 @@ class CH_VEHICLE_API ChTrackCustomContact : public ChLoadContainer {
         ChVector<>& forceShoe                     ///< [out] force on track shoe at contact point, in abs. frame
     ) {
         std::cout << "ERROR: Wheel-shoe custom contact force calculation not implemented!" << std::endl;
-        throw(ChException("Wheel-shoe custom contact force calculation not implemented."));
+        throw std::runtime_error("Wheel-shoe custom contact force calculation not implemented.");
     }
 
     /// For the given collision between ground and a track shoe, compute the contact force on the track shoe at
@@ -203,7 +203,7 @@ class CH_VEHICLE_API ChTrackCustomContact : public ChLoadContainer {
         ChVector<>& forceShoe                     ///< [out] force on track shoe at contact point, in abs. frame
     ) {
         std::cout << "ERROR: Ground-shoe custom contact force calculation not implemented!" << std::endl;
-        throw(ChException("Ground-shoe custom contact force calculation not implemented."));
+        throw std::runtime_error("Ground-shoe custom contact force calculation not implemented.");
     }
 
   private:

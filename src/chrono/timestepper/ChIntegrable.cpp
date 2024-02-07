@@ -199,7 +199,7 @@ void ChIntegrableIIorder::StateIncrement(ChState& y_new,         // resulting y_
         return;
     }
 
-    throw ChException("StateIncrement() called with a wrong number of elements");
+    throw std::runtime_error("StateIncrement() called with a wrong number of elements");
 }
 
 bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,        // result: computed dydt

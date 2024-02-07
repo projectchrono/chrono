@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
 
         matlab_engine.Eval("pause(60)");
 
-    } catch (ChException mex) {
+    } catch (std::exception mex) {
         std::cerr << mex.what() << std::endl;  // Print error on console, if Matlab did not start.
     }
 

@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     std::cout << "\n\n PyChrono Test 5.\n";
     try {
         my_python.Run("a= this_itGoInG_TO_giVe_ErroRs!()");
-    } catch (const ChException&) {
+    } catch (std::exception) {
         std::cout << "Ok, Python parsing error caught as expected.\n";
     }
 

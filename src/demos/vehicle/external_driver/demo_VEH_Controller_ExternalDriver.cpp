@@ -292,8 +292,8 @@ int main(int argc, char* argv[]) {
                     client.sendMessage(message);
                 }
 
-            } catch (utils::ChExceptionSocket& exception) {
-                std::cout << " ERROR with socket system: \n" << exception.what() << "\n";
+            } catch (std::exception exception) {
+                std::cerr << " ERROR with socket system: \n" << exception.what() << std::endl;
             }
         }
         return 0;

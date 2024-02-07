@@ -85,7 +85,7 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
             SetVerticalStiffness(defl, frc);
         } else {
             std::cerr << "FATAL: No Vertical Tire Stiffness Definition!" << std::endl;
-            throw ChException("FATAL: No Vertical Tire Stiffness Definition!");
+            throw std::runtime_error("FATAL: No Vertical Tire Stiffness Definition!");
         }
         m_par.dz = d["Parameters"]["Vertical"]["Vertical Tire Damping [Ns/m]"].GetDouble();
 
@@ -166,7 +166,7 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
         }
     } else {
         std::cerr << "ERROR: Incorrect TMsimple JSON specification." << std::endl;
-        throw ChException("ERROR: Incorrect TMsimple JSON specification.");
+        throw std::runtime_error("ERROR: Incorrect TMsimple JSON specification.");
     }
 
     // Coefficient of friction and rolling resistance coefficients.

@@ -195,7 +195,7 @@ TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain) const {
 
 TerrainForce ChDeformableTire::ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
     std::cerr << "ChDeformableTire::ReportTireForceLocal not implemented." << std::endl;
-    throw ChException("ChDeformableTire::ReportTireForceLocal not implemented.");
+    throw std::runtime_error("ChDeformableTire::ReportTireForceLocal not implemented.");
 }
 
 }  // end namespace vehicle

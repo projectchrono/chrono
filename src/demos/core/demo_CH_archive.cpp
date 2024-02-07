@@ -32,7 +32,6 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChException.h"
 #include "chrono/solver/ChConstraintTuple.h"
 
 #include "chrono/physics/ChSystemNSC.h"

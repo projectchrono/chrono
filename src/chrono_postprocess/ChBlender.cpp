@@ -1336,9 +1336,8 @@ void ChBlender::ExportData(const std::string& filename) {
             state_file << "\t\t) " << std::endl;
         }
 
-    } catch (const ChException&) {
-        std::string err = "Can't save data into file " + filename + ".py (or .dat)";
-        throw(ChException(err));
+    } catch (const std::exception&) {
+        throw std::runtime_error("Can't save data into file " + filename + ".py (or .dat)");
     }
 
     // Increment the number of the frame.

@@ -136,7 +136,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     /// Use information in the m_geometry struct (collision geometry expressed in local frame).
     virtual void CreateMeshProxy(unsigned int i) {
         if (SupportsMeshInterface()) {
-            throw ChException("Current terrain type does not support the MESH communication interface!");
+            throw std::runtime_error("Current terrain type does not support the MESH communication interface!");
         }
     }
 

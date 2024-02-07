@@ -24,13 +24,13 @@ ChFunction_BSpline::ChFunction_BSpline(int p,                             // ord
                                        ChVectorDynamic<>* knots           // knot vector
 ) {
     if (p < 1)
-        throw ChException("ChFunction_BSpline::Setup_Data() requires order >= 1.");
+        throw std::invalid_argument("ChFunction_BSpline::Setup_Data() requires order >= 1.");
 
     if (cpoints.size() < p + 1)
-        throw ChException("ChFunction_BSpline::Setup_Data() requires size(cpoints) >= order + 1.");
+        throw std::invalid_argument("ChFunction_BSpline::Setup_Data() requires size(cpoints) >= order + 1.");
 
     if (knots && (size_t)knots->size() != (cpoints.size() + p) + 1)
-        throw ChException("ChFunction_BSpline::Setup_Data() requires size(knots) = size(cpoints) + order + 1.");
+        throw std::invalid_argument("ChFunction_BSpline::Setup_Data() requires size(knots) = size(cpoints) + order + 1.");
 
     Setup_Data(p, cpoints, knots);
 }
@@ -44,13 +44,13 @@ ChFunction_BSpline::ChFunction_BSpline(
     ChVectorDynamic<>* knots  // knot vector
 ) {
     if (p < 1)
-        throw ChException("ChFunction_BSpline::Setup_Data() requires order >= 1.");
+        throw std::invalid_argument("ChFunction_BSpline::Setup_Data() requires order >= 1.");
 
     if (x_interp.size() < p + 1)
-        throw ChException("ChFunction_BSpline::Setup_Data() requires size(cpoints) >= order + 1.");
+        throw std::invalid_argument("ChFunction_BSpline::Setup_Data() requires size(cpoints) >= order + 1.");
 
     if (knots && (size_t)knots->size() != (x_interp.size() + p) + 1)
-        throw ChException("ChFunction_BSpline::Setup_Data() requires size(knots) = size(x_interp) + order + 1.");
+        throw std::invalid_argument("ChFunction_BSpline::Setup_Data() requires size(knots) = size(x_interp) + order + 1.");
 
     Recompute_Constrained(p, x_interp, y_dN_interp, der_order, knots);
 }
@@ -144,7 +144,7 @@ void ChFunction_BSpline::Recompute_Constrained(
     ChVectorDynamic<>* knots  // knot vector
 ) {
     if (x_interp.size() != y_dN_interp.size() || x_interp.size() != der_order.size())
-        throw ChException(
+        throw std::invalid_argument(
             "ChFunction_BSpline::Recompute_Constrained() requires size(x_interp) == size(y_dN_interp) == "
             "size(der_order).");
 

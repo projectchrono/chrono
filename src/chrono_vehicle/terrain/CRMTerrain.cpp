@@ -69,7 +69,7 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     //// TODO: calculate OOBB (for possible use with "moving patch")
 
     if (m_initialized)
-        throw ChException("CRMTerrain: obstacles cannot be added after initialization");
+        throw std::runtime_error("CRMTerrain: obstacles cannot be added after initialization");
 
     if (m_verbose) {
         cout << "Add obstacle" << endl;
@@ -263,7 +263,7 @@ void CRMTerrain::Construct(const std::string& heightmap_file,
     // Read the image file (request only 1 channel) and extract number of pixels
     STB hmap;
     if (!hmap.ReadFromFile(heightmap_file, 1)) {
-        throw ChException("Cannot open height map image file");
+        throw std::invalid_argument("Cannot open height map image file");
     }
 
     if (m_verbose) {
@@ -509,7 +509,7 @@ void CRMTerrain::ProcessObstacleMesh(RigidObstacle& o) {
         // Safeguard -- stop as soon as we spill out of the obstacle AABB
         if (!(crt > aabb_min && crt < aabb_max)) {
             std::cout << "Obstacle BCE set is NOT watertight!" << std::endl;
-            throw ChException("Obstacle BCE set is NOT watertight!");
+            throw std::invalid_argument("Obstacle BCE set is NOT watertight!");
         }
 
         // Loop through all 6 neighbors of the current node and add them to the end of the work queue

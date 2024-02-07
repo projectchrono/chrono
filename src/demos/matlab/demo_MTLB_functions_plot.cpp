@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
 
         std::cout << "Press a key to finish... \n";
         getchar();  // pause until key..
-    } catch (ChException mex) {
+    } catch (std::exception mex) {
         std::cerr << mex.what() << std::endl;  // Print error on console, if Matlab did not start.
     }
 

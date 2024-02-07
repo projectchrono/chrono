@@ -80,23 +80,23 @@ void ChSurfaceNurbs::SetupData(
     ChMatrixDynamic<>* weights    // weights, size nuxnv. If not provided, all weights as 1.
 ) {
     if (morder_u < 1)
-        throw ChException("ChSurfaceNurbs::SetupData requires u order >= 1.");
+        throw std::invalid_argument("ChSurfaceNurbs::SetupData requires u order >= 1.");
 
     if (morder_v < 1)
-        throw ChException("ChSurfaceNurbs::SetupData requires v order >= 1.");
+        throw std::invalid_argument("ChSurfaceNurbs::SetupData requires v order >= 1.");
 
     if (mpoints.rows() < morder_u + 1)
-        throw ChException("ChSurfaceNurbs::SetupData requires at least (order_u+1)x(order_v+1) control points.");
+        throw std::invalid_argument("ChSurfaceNurbs::SetupData requires at least (order_u+1)x(order_v+1) control points.");
     if (mpoints.cols() < morder_v + 1)
-        throw ChException("ChSurfaceNurbs::SetupData requires at least (order_u+1)x(order_v+1) control points.");
+        throw std::invalid_argument("ChSurfaceNurbs::SetupData requires at least (order_u+1)x(order_v+1) control points.");
 
     if (mknots_u && mknots_u->size() != (mpoints.rows() + morder_u + 1))
-        throw ChException("ChSurfaceNurbs::SetupData: knots_u must have size=n_points_u+order_u+1");
+        throw std::invalid_argument("ChSurfaceNurbs::SetupData: knots_u must have size=n_points_u+order_u+1");
     if (mknots_v && mknots_v->size() != (mpoints.cols() + morder_v + 1))
-        throw ChException("ChSurfaceNurbs::SetupData: knots_v must have size=n_points_v+order_v+1");
+        throw std::invalid_argument("ChSurfaceNurbs::SetupData: knots_v must have size=n_points_v+order_v+1");
 
     if (weights && (weights->rows() != mpoints.rows() || weights->cols() != mpoints.cols()))
-        throw ChException("ChSurfaceNurbs::SetupData: weights matrix must have size as point matrix");
+        throw std::invalid_argument("ChSurfaceNurbs::SetupData: weights matrix must have size as point matrix");
 
     this->p_u = morder_u;
     this->p_v = morder_v;

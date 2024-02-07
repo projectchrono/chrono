@@ -300,11 +300,11 @@ class ChArchiveInXML : public ChArchiveIn {
         } catch (const rapidxml::parse_error& merror) {
             std::string line(merror.where<char>());
             line.erase(std::find_if(line.begin(), line.end(), [](int c) { return (c == *"\n"); }), line.end());
-            throw ChExceptionArchive(std::string("XML parsing error: ") + merror.what() + " at: \n" + line + "\n");
+            throw std::invalid_argument(std::string("XML parsing error: ") + merror.what() + " at: \n" + line);
         }
 
         if (!document.first_node())
-            throw(ChExceptionArchive("The file is not a valid XML document"));
+            throw std::runtime_error("The file is not a valid XML document");
 
         level = &document;  //.first_node();
         levels.push(level);
@@ -335,7 +335,7 @@ class ChArchiveInXML : public ChArchiveIn {
             bVal.value() = false;
             return true;
         }
-        throw(ChExceptionArchive("Invalid true/false flag after '" + std::string(bVal.name()) + "'"));
+        throw std::runtime_error("Invalid true/false flag after '" + std::string(bVal.name()) + "'");
     }
     virtual bool in(ChNameValue<int> bVal) override {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
@@ -344,7 +344,7 @@ class ChArchiveInXML : public ChArchiveIn {
         try {
             bVal.value() = std::stoi(mval->value());
         } catch (...) {
-            throw(ChExceptionArchive("Invalid integer number after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid integer number after '" + std::string(bVal.name()) + "'");
         }
         return true;
     }
@@ -355,7 +355,7 @@ class ChArchiveInXML : public ChArchiveIn {
         try {
             bVal.value() = std::stod(mval->value());
         } catch (...) {
-            throw(ChExceptionArchive("Invalid number after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid number after '" + std::string(bVal.name()) + "'");
         }
         return true;
     }
@@ -366,7 +366,7 @@ class ChArchiveInXML : public ChArchiveIn {
         try {
             bVal.value() = std::stof(mval->value());
         } catch (...) {
-            throw(ChExceptionArchive("Invalid number after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid number after '" + std::string(bVal.name()) + "'");
         }
         return true;
     }
@@ -377,7 +377,7 @@ class ChArchiveInXML : public ChArchiveIn {
         try {
             bVal.value() = (char)std::stoi(mval->value());
         } catch (...) {
-            throw(ChExceptionArchive("Invalid char code after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid char code after '" + std::string(bVal.name()) + "'");
         }
         return true;
     }
@@ -388,7 +388,7 @@ class ChArchiveInXML : public ChArchiveIn {
         try {
             bVal.value() = std::stoul(mval->value());
         } catch (...) {
-            throw(ChExceptionArchive("Invalid unsigned integer number after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid unsigned integer number after '" + std::string(bVal.name()) + "'");
         }
         return true;
     }
@@ -406,7 +406,7 @@ class ChArchiveInXML : public ChArchiveIn {
         try {
             bVal.value() = std::stoul(mval->value());
         } catch (...) {
-            throw(ChExceptionArchive("Invalid unsigned long integer number after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid unsigned long integer number after '" + std::string(bVal.name()) + "'");
         }
         return true;
     }
@@ -417,8 +417,8 @@ class ChArchiveInXML : public ChArchiveIn {
         try {
             bVal.value() = std::stoull(mval->value());
         } catch (...) {
-            throw(ChExceptionArchive("Invalid unsigned long long integer number after '" + std::string(bVal.name()) +
-                                     "'"));
+            throw std::runtime_error("Invalid unsigned long long integer number after '" + std::string(bVal.name()) +
+                                     "'");
         }
         return true;
     }
@@ -428,7 +428,7 @@ class ChArchiveInXML : public ChArchiveIn {
             return false;
         std::string mstr = mval->value();
         if (!bVal.value().SetValueAsString(mstr)) {
-            throw(ChExceptionArchive("Not recognized enum type '" + mstr + "'"));
+            throw std::runtime_error("Not recognized enum type '" + mstr + "'");
         }
         return true;
     }
@@ -473,7 +473,7 @@ class ChArchiveInXML : public ChArchiveIn {
             try {
                 obj_ID = std::stoull(midval->value());
             } catch (...) {
-                throw(ChExceptionArchive("Invalid _object_ID in '" + std::string(bVal.name()) + "'"));
+                throw std::runtime_error("Invalid _object_ID in '" + std::string(bVal.name()) + "'");
             }
         }
 
@@ -513,7 +513,7 @@ class ChArchiveInXML : public ChArchiveIn {
                 try {
                     ref_ID = std::stoull(midval->value());
                 } catch (...) {
-                    throw(ChExceptionArchive("Invalid _reference_ID in '" + std::string(bVal.name()) + "'"));
+                    throw std::runtime_error("Invalid _reference_ID in '" + std::string(bVal.name()) + "'");
                 }
                 is_reference = true;
             }
@@ -522,7 +522,7 @@ class ChArchiveInXML : public ChArchiveIn {
                 try {
                     ext_ID = std::stoull(midval->value());
                 } catch (...) {
-                    throw(ChExceptionArchive("Invalid _external_ID in '" + std::string(bVal.name()) + "'"));
+                    throw std::runtime_error("Invalid _external_ID in '" + std::string(bVal.name()) + "'");
                 }
                 is_reference = true;
             }
@@ -538,7 +538,7 @@ class ChArchiveInXML : public ChArchiveIn {
                     try {
                         obj_ID = std::stoull(midval->value());
                     } catch (...) {
-                        throw(ChExceptionArchive("Invalid _object_ID in '" + std::string(bVal.name()) + "'"));
+                        throw std::runtime_error("Invalid _object_ID in '" + std::string(bVal.name()) + "'");
                     }
                 }
 
@@ -547,22 +547,22 @@ class ChArchiveInXML : public ChArchiveIn {
                     // 3) Deserialize
                     bVal.value().CallArchiveIn(*this, true_classname);
                 } else {
-                    throw(ChExceptionArchive("Archive cannot create object " + std::string(bVal.name()) + "\n"));
+                    throw std::runtime_error("Archive cannot create object " + std::string(bVal.name()) + "\n");
                 }
                 new_ptr = bVal.value().GetRawPtr();
             } else {
                 if (ref_ID) {
                     if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
-                        throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the _reference_ID " +
-                                                 std::to_string((int)ref_ID) + " is not a valid number."));
+                        throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _reference_ID " +
+                                                 std::to_string((int)ref_ID) + " is not a valid number.");
                     }
 
                     bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(),
                                                                  internal_id_ptr[ref_ID]));
                 } else if (ext_ID) {
                     if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
-                        throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the _external_ID " +
-                                                 std::to_string((int)ext_ID) + " is not valid."));
+                        throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _external_ID " +
+                                                 std::to_string((int)ext_ID) + " is not valid.");
                     }
                     bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(),
                                                                  external_id_ptr[ext_ID]));
@@ -586,7 +586,7 @@ class ChArchiveInXML : public ChArchiveIn {
   protected:
     void token_notfound(const std::string& mname) {
         if (!try_tolerate_missing_tokens)
-            throw(ChExceptionArchive("Cannot find '" + mname + "'"));
+            throw std::runtime_error("Cannot find '" + mname + "'");
     }
 
     std::istream* istream;

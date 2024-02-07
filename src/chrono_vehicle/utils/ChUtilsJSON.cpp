@@ -651,7 +651,7 @@ std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
     if (subtype.compare("RigidChassis") == 0) {
         chassis = chrono_types::make_shared<RigidChassis>(d);
     } else {
-        throw ChException("Chassis type not supported in ReadChassisJSON.");
+        throw std::invalid_argument("Chassis type not supported in ReadChassisJSON.");
     }
 
     return chassis;
@@ -678,7 +678,7 @@ std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::string& filename) 
     if (subtype.compare("RigidChassisRear") == 0) {
         chassis = chrono_types::make_shared<RigidChassisRear>(d);
     } else {
-        throw ChException("Chassis type not supported in ReadChassisRearJSON.");
+        throw std::invalid_argument("Chassis type not supported in ReadChassisRearJSON.");
     }
 
     return chassis;
@@ -709,7 +709,7 @@ std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& 
     } else if (subtype.compare("ChassisConnectorTorsion") == 0) {
         connector = chrono_types::make_shared<ChassisConnectorTorsion>(d);
     } else {
-        throw ChException("Chassis type not supported in ReadChassisConnectorJSON.");
+        throw std::invalid_argument("Chassis type not supported in ReadChassisConnectorJSON.");
     }
 
     return connector;
@@ -740,7 +740,7 @@ std::shared_ptr<ChEngine> ReadEngineJSON(const std::string& filename) {
     } else if (subtype.compare("EngineShafts") == 0) {
         engine = chrono_types::make_shared<EngineShafts>(d);
     } else {
-        throw ChException("Engine type not supported in ReadEngineJSON.");
+        throw std::invalid_argument("Engine type not supported in ReadEngineJSON.");
     }
 
     return engine;
@@ -771,7 +771,7 @@ std::shared_ptr<ChTransmission> ReadTransmissionJSON(const std::string& filename
     } else if (subtype.compare("ManualTransmissionShafts") == 0) {
         transmission = chrono_types::make_shared<ManualTransmissionShafts>(d);
     } else {
-        throw ChException("Transmission type not supported in ReadTransmissionJSON.");
+        throw std::invalid_argument("Transmission type not supported in ReadTransmissionJSON.");
     }
 
     return transmission;
@@ -840,7 +840,7 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
     } else if (subtype.compare("GenericWheeledSuspension") == 0) {
         suspension = chrono_types::make_shared<GenericWheeledSuspension>(d);
     } else {
-        throw ChException("Suspension type not supported in ReadSuspensionJSON.");
+        throw std::invalid_argument("Suspension type not supported in ReadSuspensionJSON.");
     }
 
     return suspension;
@@ -871,7 +871,7 @@ std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename) {
     } else if (subtype.compare("RotaryArm") == 0) {
         steering = chrono_types::make_shared<RotaryArm>(d);
     } else {
-        throw ChException("Steering type not supported in ReadSteeringJSON.");
+        throw std::invalid_argument("Steering type not supported in ReadSteeringJSON.");
     }
 
     return steering;
@@ -904,7 +904,7 @@ std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename) 
     } else if (subtype.compare("SimpleDrivelineXWD") == 0) {
         driveline = chrono_types::make_shared<SimpleDrivelineXWD>(d);
     } else {
-        throw ChException("Driveline type not supported in ReadDrivelineWVJSON.");
+        throw std::invalid_argument("Driveline type not supported in ReadDrivelineWVJSON.");
     }
 
     return driveline;
@@ -931,7 +931,7 @@ std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename) 
     if (subtype.compare("AntirollBarRSD") == 0) {
         antirollbar = chrono_types::make_shared<AntirollBarRSD>(d);
     } else {
-        throw ChException("AntirollBar type not supported in ReadAntirollbarJSON.");
+        throw std::invalid_argument("AntirollBar type not supported in ReadAntirollbarJSON.");
     }
 
     return antirollbar;
@@ -958,7 +958,7 @@ std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename) {
     if (subtype.compare("Wheel") == 0) {
         wheel = chrono_types::make_shared<Wheel>(d);
     } else {
-        throw ChException("Wheel type not supported in ReadWheelJSON.");
+        throw std::invalid_argument("Wheel type not supported in ReadWheelJSON.");
     }
 
     return wheel;
@@ -985,7 +985,7 @@ std::shared_ptr<ChSubchassis> ReadSubchassisJSON(const std::string& filename) {
     if (subtype.compare("Balancer") == 0) {
         chassis = chrono_types::make_shared<Balancer>(d);
     } else {
-        throw ChException("Subchassis type not supported in ReadSubchassisJSON.");
+        throw std::invalid_argument("Subchassis type not supported in ReadSubchassisJSON.");
     }
 
     return chassis;
@@ -1014,7 +1014,7 @@ std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
     } else if (subtype.compare("BrakeShafts") == 0) {
         brake = chrono_types::make_shared<BrakeShafts>(d);
     } else {
-        throw ChException("Brake type not supported in ReadBrakeJSON.");
+        throw std::invalid_argument("Brake type not supported in ReadBrakeJSON.");
     }
 
     return brake;
@@ -1057,7 +1057,7 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
     } else if (subtype.compare("FEATire") == 0) {
         tire = chrono_types::make_shared<FEATire>(d);
     } else {
-        throw ChException("Tire type not supported in ReadTireJSON.");
+        throw std::invalid_argument("Tire type not supported in ReadTireJSON.");
     }
 
     return tire;
@@ -1092,7 +1092,7 @@ std::shared_ptr<ChTrackAssembly> ReadTrackAssemblyJSON(const std::string& filena
     } else if (subtype.compare("TrackAssemblyBandANCF") == 0) {
         track = chrono_types::make_shared<TrackAssemblyBandANCF>(d);
     } else {
-        throw ChException("TrackAssembly type not supported in ReadTrackAssemblyJSON.");
+        throw std::invalid_argument("TrackAssembly type not supported in ReadTrackAssemblyJSON.");
     }
 
     return track;
@@ -1121,7 +1121,7 @@ std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename) 
     } else if (subtype.compare("TrackDrivelineBDS") == 0) {
         driveline = chrono_types::make_shared<TrackDrivelineBDS>(d);
     } else {
-        throw ChException("Driveline type not supported in ReadTrackDrivelineJSON.");
+        throw std::invalid_argument("Driveline type not supported in ReadTrackDrivelineJSON.");
     }
 
     return driveline;
@@ -1150,7 +1150,7 @@ std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename) {
     } else if (subtype.compare("TrackBrakeShafts") == 0) {
         brake = chrono_types::make_shared<TrackBrakeShafts>(d);
     } else {
-        throw ChException("Brake type not supported in ReadTrackBrakeJSON.");
+        throw std::invalid_argument("Brake type not supported in ReadTrackBrakeJSON.");
     }
 
     return brake;
@@ -1179,7 +1179,7 @@ std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
     } else if (subtype.compare("DistanceIdler") == 0) {
         idler = chrono_types::make_shared<DistanceIdler>(d);
     } else {
-        throw ChException("Idler type not supported in ReadIdlerJSON.");
+        throw std::invalid_argument("Idler type not supported in ReadIdlerJSON.");
     }
 
     return idler;
@@ -1208,7 +1208,7 @@ std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const std::string& fi
     } else if (subtype.compare("RotationalDamperSuspension") == 0) {
         suspension = chrono_types::make_shared<RotationalDamperSuspension>(d, has_shock, lock_arm);
     } else {
-        throw ChException("Suspension type not supported in ReadTrackSuspensionJSON.");
+        throw std::invalid_argument("Suspension type not supported in ReadTrackSuspensionJSON.");
     }
 
     return suspension;
@@ -1237,7 +1237,7 @@ std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename) {
     } else if (subtype.compare("DoubleTrackWheel") == 0) {
         wheel = chrono_types::make_shared<DoubleTrackWheel>(d);
     } else {
-        throw ChException("Road-wheel type not supported in ReadTrackWheelJSON.");
+        throw std::invalid_argument("Road-wheel type not supported in ReadTrackWheelJSON.");
     }
 
     return wheel;

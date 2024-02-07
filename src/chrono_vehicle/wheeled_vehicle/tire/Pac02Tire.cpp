@@ -68,19 +68,19 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
         m_mass = d["Mass"].GetDouble();
     } else {
         std::cerr << "Fatal: Mass not set!" << std::endl;
-        throw ChException("Fatal: Mass not set!");
+        throw std::runtime_error("Fatal: Mass not set!");
     }
     if (d.HasMember("Inertia")) {
         m_inertia = ReadVectorJSON(d["Inertia"]);
     } else {
         std::cerr << "Fatal: Inertia not set!" << std::endl;
-        throw ChException("Fatal: Inertia not set!");
+        throw std::runtime_error("Fatal: Inertia not set!");
     }
     if (d.HasMember("Coefficient of Friction")) {
         m_mu0 = d["Coefficient of Friction"].GetDouble();
     } else {
         std::cerr << "Fatal: Friction not set!" << std::endl;
-        throw ChException("Fatal: Friction not set!");
+        throw std::runtime_error("Fatal: Friction not set!");
     }
 
     // Check if TIR specification file provided
@@ -107,7 +107,7 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
             m_par.RIM_WIDTH = d["Dimension"]["Rim Width"].GetDouble();
         } else {
             std::cerr << "Fatal: Dimension not set!" << std::endl;
-            throw ChException("Fatal: Dimension not set!");
+            throw std::runtime_error("Fatal: Dimension not set!");
         }
         if (d.HasMember("Vertical")) {
             m_par.VERTICAL_STIFFNESS = d["Vertical"]["Vertical Stiffness"].GetDouble();
@@ -117,7 +117,7 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
             m_par.QFZ2 = 0;
         } else {
             std::cerr << "Fatal: Vertical not set!" << std::endl;
-            throw ChException("Fatal: Vertical not set!");
+            throw std::runtime_error("Fatal: Vertical not set!");
         }
         if (d.HasMember("Scaling Factors")) {
             if (d["Scaling Factors"].HasMember("LFZO"))
@@ -242,7 +242,7 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
                 m_par.PPX4 = d["Longitudinal Coefficients"]["PPX4"].GetDouble();
         } else {
             std::cerr << "Fatal: Longitudinal Coefficients not set!" << std::endl;
-            throw ChException("Fatal: Longitudinal Coefficients not set!");
+            throw std::runtime_error("Fatal: Longitudinal Coefficients not set!");
         }
         if (d.HasMember("Lateral Coefficients")) {
             if (d["Lateral Coefficients"].HasMember("PCY1"))
@@ -323,7 +323,7 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
                 m_par.PPY4 = d["Lateral Coefficients"]["PPY4"].GetDouble();
         } else {
             std::cerr << "Fatal: Lateral Coefficients not set!" << std::endl;
-            throw ChException("Fatal: Lateral Coefficients not set!");
+            throw std::runtime_error("Fatal: Lateral Coefficients not set!");
         }
         if (d.HasMember("Aligning Coefficients")) {
             if (d["Aligning Coefficients"].HasMember("QBZ1"))
@@ -394,7 +394,7 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
                 m_par.MBELT = d["Aligning Coefficients"]["MBELT"].GetDouble();
         } else {
             std::cerr << "Fatal: Aligning Coefficients not set!" << std::endl;
-            throw ChException("Fatal: Aligning Coefficients not set!");
+            throw std::runtime_error("Fatal: Aligning Coefficients not set!");
         }
         if (d.HasMember("Overturning Coefficients")) {
             if (d["Overturning Coefficients"].HasMember("QSX1"))
@@ -423,7 +423,7 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
                 m_par.QPX1 = d["Overturning Coefficients"]["QPX1"].GetDouble();
         } else {
             std::cerr << "Fatal: Overturning Coefficients not set!" << std::endl;
-            throw ChException("Fatal: Overturning Coefficients not set!");
+            throw std::runtime_error("Fatal: Overturning Coefficients not set!");
         }
         if (d.HasMember("Rolling Coefficients")) {
             if (d["Rolling Coefficients"].HasMember("QSY1"))
@@ -444,7 +444,7 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
                 m_par.QSY8 = d["Rolling Coefficients"]["QSY8"].GetDouble();
         } else {
             std::cerr << "Fatal: Rolling Coefficients not set!" << std::endl;
-            throw ChException("Fatal: Rolling Coefficients not set!");
+            throw std::runtime_error("Fatal: Rolling Coefficients not set!");
         }
 
         if (!m_tire_conditions_found) {

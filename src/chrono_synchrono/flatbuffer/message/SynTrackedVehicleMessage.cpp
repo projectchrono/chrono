@@ -195,7 +195,7 @@ void SynTrackedVehicleDescriptionMessage::SetZombieVisualizationFilesFromJSON(co
     rapidjson::Document d;
     vehicle::ReadFileJSON(filename, d);
     if (d.IsNull())
-        throw ChException("Vehicle file not read properly in SetZombieVisualizationFilesFromJSON.");
+        throw std::runtime_error("Vehicle file not read properly in SetZombieVisualizationFilesFromJSON.");
 
     // Read top-level data
     assert(d.HasMember("Name"));

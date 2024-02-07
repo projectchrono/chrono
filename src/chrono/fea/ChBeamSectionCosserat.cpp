@@ -575,7 +575,7 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
     auto mydata_new = dynamic_cast<ChInternalDataLumpedCosserat*>(&data_new);
 
     if (!mydata)
-        throw ChException("ComputeStressWithReturnMapping cannot cast data to ChInternalDataLumpedCosserat*.");
+        throw std::invalid_argument("ComputeStressWithReturnMapping cannot cast data to ChInternalDataLumpedCosserat*.");
 
     // Implement return mapping for a simple 1D plasticity model.
 

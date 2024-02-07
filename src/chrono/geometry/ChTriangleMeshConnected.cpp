@@ -1064,7 +1064,7 @@ void ChTriangleMeshConnected::RefineMeshEdges(
             mlist.push_back(t_N1);
 
             if (mlist.size() > 1000)
-                throw ChException("overflow in ChTriangleMeshConnected::RefineMeshEdges");
+                throw std::runtime_error("overflow in ChTriangleMeshConnected::RefineMeshEdges");
 
             // if boundary edge: always terminal edge
             if (t_N1 == -1) {

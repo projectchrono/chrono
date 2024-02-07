@@ -73,7 +73,7 @@ double ChZhangDistribution::GetRandom() {
 
 ChContinuumDistribution::ChContinuumDistribution(ChVectorDynamic<>& mx, ChVectorDynamic<>& my) : x(mx), y(my) {
     if (mx.size() != my.size())
-        throw ChException("Probability curve must have same number of elements in abscysse and ordinates");
+        throw std::invalid_argument("Probability curve must have same number of elements in abscysse and ordinates");
 
     cdf_x = mx;
     cdf_y = my;
@@ -123,7 +123,7 @@ double ChContinuumDistribution::GetRandom() {
 
 ChDiscreteDistribution::ChDiscreteDistribution(ChVectorDynamic<>& mx, ChVectorDynamic<>& my) : x(mx), y(my) {
     if (mx.size() != my.size())
-        throw ChException("Probability values and percentages must have the same size");
+        throw std::invalid_argument("Probability values and percentages must have the same size");
 
     cdf_y = my;
 

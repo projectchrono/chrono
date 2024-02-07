@@ -512,7 +512,7 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
             timestepper = chrono_types::make_shared<ChTimestepperNewmark>(this);
             break;
         default:
-            throw ChException("SetTimestepperType: timestepper not supported");
+            throw std::invalid_argument("SetTimestepperType: timestepper not supported");
     }
 }
 

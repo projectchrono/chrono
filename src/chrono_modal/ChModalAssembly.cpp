@@ -470,7 +470,7 @@ void ChModalAssembly::SetFullStateWithModeOverlay(int n_mode, double phase, doub
 
     if (n_mode >= this->modes_V.cols()) {
         this->Update();
-        throw ChException("Error: mode " + std::to_string(n_mode) + " is beyond the " + std::to_string(this->modes_V.cols()) + " computed eigenvectors.");
+        throw std::invalid_argument("Error: mode " + std::to_string(n_mode) + " is beyond the " + std::to_string(this->modes_V.cols()) + " computed eigenvectors.");
     }
 
     if (this->modes_V.rows() != this->ncoords_w) {
@@ -980,11 +980,11 @@ void ChModalAssembly::Setup() {
     for (auto& body : internal_bodylist) {
         if (body->GetBodyFixed())
         {
-            //throw ChException("Cannot use a fixed body as internal");
+            //throw std::runtime_error("Cannot use a fixed body as internal");
         }
         else if (body->GetSleeping())
         {
-            //throw ChException("Cannot use a sleeping body as internal");
+            //throw std::runtime_error("Cannot use a sleeping body as internal");
         }
         else {
             n_internal_bodies++;

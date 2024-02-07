@@ -68,7 +68,7 @@ std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(const std::string& file
         ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
         ifile.open(filename.c_str());
     } catch (std::exception&) {
-        throw ChException("Cannot open input file");
+        throw std::invalid_argument("Cannot open input file");
     }
 
     // Read number of knots and type of curve
@@ -117,7 +117,7 @@ std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(const std::string& file
 
     // Not the expected number of columns.  Close the file and throw an exception.
     ifile.close();
-    throw ChException("Invalid input file");
+    throw std::invalid_argument("Invalid input file");
 }
 
 // TODO Add support for altitude

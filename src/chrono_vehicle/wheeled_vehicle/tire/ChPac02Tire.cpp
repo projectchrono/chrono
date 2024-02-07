@@ -338,7 +338,7 @@ void ChPac02Tire::SetMFParamsByFile(const std::string& tirFileName) {
     FILE* fp = fopen(tirFileName.c_str(), "r+");
     if (fp == NULL) {
         std::cerr << "TIR File not found <" << tirFileName << ">!" << std::endl;
-        throw ChException("TIR File not found <" + tirFileName + ">!");
+        throw std::runtime_error("TIR File not found <" + tirFileName + ">!");
     }
     LoadSectionUnits(fp);
     LoadSectionModel(fp);
@@ -592,7 +592,7 @@ void ChPac02Tire::LoadSectionModel(FILE* fp) {
             sval = sval.substr(a1pos, a2pos - a1pos + 1);
             if (sval.compare("'PAC2002'") != 0 && sval.compare("'MF_05'") != 0) {
                 std::cerr << "FATAL: unknown file format " << sval << std::endl;
-                throw ChException("FATAL: unknown file format " + sval);
+                throw std::runtime_error("FATAL: unknown file format " + sval);
             }
         }
         if (skey.compare("TYRESIDE") == 0) {

@@ -315,7 +315,6 @@ using namespace chrono::fea;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 //  core/  classes
-%include "ChException.i"
 %include "ChClassFactory.i"
 %include "../../../chrono/core/ChGlobal.h"
 //%include "ChArchive.i"

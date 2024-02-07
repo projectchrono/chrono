@@ -14,7 +14,6 @@
 // Four node shell with geom.exact kinematics
 // =============================================================================
 
-#include "chrono/core/ChException.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/timestepper/ChState.h"
 #include "chrono/fea/ChElementShellReissner4.h"
@@ -22,9 +21,9 @@
 #include <cmath>
 
 #define CHUSE_ANS
-//#define CHUSE_EAS
+////#define CHUSE_EAS
 #define CHUSE_KGEOMETRIC
-//#define CHSIMPLIFY_DROT
+////#define CHSIMPLIFY_DROT
 
 namespace chrono {
 namespace fea {
@@ -181,7 +180,8 @@ void ChElementShellReissner4::UpdateNodalAndAveragePosAndOrientation() {
         R_tilde_n[i] = T_overline.transpose() * Tn[i];
         phi_tilde_n[i] = rotutils::VecRot(R_tilde_n[i]);
         // if (phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG > 15)
-        //    std::cout << "WARNING phi_tilde_n[" << i << "]=" <<  phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG << "deg" << std::endl;
+        //    std::cout << "WARNING phi_tilde_n[" << i << "]=" <<  phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG << "deg" <<
+        //    std::endl;
     }
 }
 
@@ -694,9 +694,9 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     InterpolateOrientation();
 
     /*
-	for (unsigned int i = 1; i <= iGetNumDof(); i++) {
-		beta(i) = XCurr(iFirstReactionIndex + i);
-	}
+    for (unsigned int i = 1; i <= iGetNumDof(); i++) {
+        beta(i) = XCurr(iFirstReactionIndex + i);
+    }
     */  //***TODO*** EAS internal variables not yet implemented
 
     ComputeIPCurvature();
@@ -835,9 +835,9 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // 		int tmpidx1[5] = {0, 1, 5, 4, 2};
     // 		for (int i = 0; i < NUMIP; i++) {
     // 			for (int n = 1; n <= 4; n++) {
-    //#if 0
+    // #if 0
     // 				CopyMatrixRow(B_overline_m_i[i], n, B_overline_i[i], tmpidx1[n]);
-    //#endif
+    // #endif
     // 				B_overline_m_i[i].CopyMatrixRow(n, B_overline_i[i], tmpidx1[n]);
     // 			}
     // 		}
@@ -875,10 +875,10 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
             m2 += l_m2;
         }
 
-        stress_i[i].segment(0,3) = n1.eigen();
-        stress_i[i].segment(3,3) = n2.eigen();
-        stress_i[i].segment(6,3) = m1.eigen();
-        stress_i[i].segment(9,3) = m2.eigen();
+        stress_i[i].segment(0, 3) = n1.eigen();
+        stress_i[i].segment(3, 3) = n2.eigen();
+        stress_i[i].segment(6, 3) = m1.eigen();
+        stress_i[i].segment(9, 3) = m2.eigen();
 
         ChMatrix33<> Hh;
         ChVector<> Tn1 = T_i[i] * n1;
@@ -918,7 +918,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 #endif
     }
 
-    // Add damping: 
+    // Add damping:
 
     // fills velocities with speeds of nodes:
     // {dxdt_1, angular_vel_1,  dxdt_2, angular_vel_2, ...}
@@ -928,7 +928,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     this->LoadableGetStateBlock_w(0, velocities);
 
     // Note that, in case of ChDampingReissnerRayleigh (rayleigh damping), this
-	// is like computing Fi_damping = -beta*[Km]*v   without explicitly building [Km],
+    // is like computing Fi_damping = -beta*[Km]*v   without explicitly building [Km],
     // rather exploit the factorization B'CB, as:
     //   Alpha*[Km]*v = beta * [sum_integraton_points ( [B_i]'*[C]*[B_i] * a_i * w_i )] *v
     //   Alpha*[Km]*v = sum_integraton_points ( [B_i]' * (beta * [C]*[B_i] *v) * a_i * w_i )
@@ -939,7 +939,6 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChVectorN<double, 12> stress_damp;
 
     for (int i = 0; i < NUMIP; i++) {
-			
         strain_dt = B_overline_i[i] * velocities;  // [B_i] *v
 
         ChVector<> eps_dt_1(strain_dt.segment(0, 3));
@@ -950,17 +949,16 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         ChVector<> l_n1, l_n2, l_m1, l_m2;
         // loop on layers
         for (size_t il = 0; il < this->m_layers.size(); ++il) {
-
-			if (m_layers[il].GetMaterial()->GetDamping()) {
-
-				// compute layer stresses (per-unit-length forces and torques), and accumulate  [C]*[B_i]*v
-				m_layers[il].GetMaterial()->GetDamping()->ComputeStress(l_n1, l_n2, l_m1, l_m2, eps_dt_1, eps_dt_2, k_dt_1, k_dt_2,
-					m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
-				n1 += l_n1;
-				n2 += l_n2;
-				m1 += l_m1;
-				m2 += l_m2;
-			}
+            if (m_layers[il].GetMaterial()->GetDamping()) {
+                // compute layer stresses (per-unit-length forces and torques), and accumulate  [C]*[B_i]*v
+                m_layers[il].GetMaterial()->GetDamping()->ComputeStress(l_n1, l_n2, l_m1, l_m2, eps_dt_1, eps_dt_2,
+                                                                        k_dt_1, k_dt_2, m_layers_z[il],
+                                                                        m_layers_z[il + 1], m_layers[il].Get_theta());
+                n1 += l_n1;
+                n2 += l_n2;
+                m1 += l_m1;
+                m2 += l_m2;
+            }
         }
         stress_damp.segment(0, 3) = n1.eigen();
         stress_damp.segment(3, 3) = n2.eigen();
@@ -969,8 +967,6 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 
         Fi.segment(0, 24) += (-alpha_i[i] * w_i[i]) * B_overline_i[i].transpose() * stress_damp;
     }
-
-
 }
 
 // -----------------------------------------------------------------------------
@@ -984,7 +980,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
 
     ChMatrixNM<double, 24, 24> Kg;
     ChMatrixNM<double, 24, 24> Km;
-	ChMatrixNM<double, 24, 24> Rm;
+    ChMatrixNM<double, 24, 24> Rm;
     ChMatrixNM<double, IDOFS, 24> K_beta_q;
     ChMatrixNM<double, IDOFS, IDOFS> K_beta_beta;
 
@@ -1023,7 +1019,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
 
         double dCoef = 1.0;  //***TODO*** autoset this
 
-		Km *= (alpha_i[i] * w_i[i] * dCoef * Kfactor); // was: ... * dCoef * (Kfactor+Rfactor * m_Alpha));
+        Km *= (alpha_i[i] * w_i[i] * dCoef * Kfactor);  // was: ... * dCoef * (Kfactor+Rfactor * m_Alpha));
         m_JacobianMatrix += Km;
 
 #ifdef CHUSE_KGEOMETRIC
@@ -1040,25 +1036,23 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
         m_JacobianMatrix.block(24, 4, 7, 7) += K_beta_beta;
 #endif
 
-		// Damping matrix 
+        // Damping matrix
 
-		C.setZero();
+        C.setZero();
         l_C.setZero();
         // loop on layers
         for (size_t il = 0; il < m_layers.size(); ++il) {
             // compute layer damping matrix
-			if (m_layers[il].GetMaterial()->GetDamping()) {
-				m_layers[il].GetMaterial()->GetDamping()->ComputeDampingMatrix(
-					l_C, 
-					VNULL, VNULL, VNULL, VNULL, //***TODO*** should be more general: eps_dt_tilde_1_i[i], eps_dt_tilde_2_i[i], k_dt_tilde_1_i[i], k_dt_tilde_2_i[i], 
-					m_layers_z[il],
-					m_layers_z[il + 1],
-					m_layers[il].Get_theta());  
-				C += l_C;
-			}
+            if (m_layers[il].GetMaterial()->GetDamping()) {
+                m_layers[il].GetMaterial()->GetDamping()->ComputeDampingMatrix(
+                    l_C, VNULL, VNULL, VNULL, VNULL,  //***TODO*** should be more general: eps_dt_tilde_1_i[i],
+                                                      //eps_dt_tilde_2_i[i], k_dt_tilde_1_i[i], k_dt_tilde_2_i[i],
+                    m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
+                C += l_C;
+            }
         }
-		Rm = B_overline_i[i].transpose() * C * B_overline_i[i];
-		Rm *= (alpha_i[i] * w_i[i] * dCoef * Rfactor);
+        Rm = B_overline_i[i].transpose() * C * B_overline_i[i];
+        Rm *= (alpha_i[i] * w_i[i] * dCoef * Rfactor);
         m_JacobianMatrix += Rm;
     }
 }
@@ -1121,9 +1115,7 @@ void ChElementShellReissner4::EvaluateSectionFrame(const double u,
     rot = QUNIT;  // or maybe use gram-schmidt to get csys of section from slopes?
 }
 
-void ChElementShellReissner4::EvaluateSectionPoint(const double u,
-                                                   const double v,
-                                                   ChVector<>& point) {
+void ChElementShellReissner4::EvaluateSectionPoint(const double u, const double v, ChVector<>& point) {
     ShapeVector N;
     this->ShapeFunctions(N, u, v);
 
@@ -1163,9 +1155,13 @@ void ChElementShellReissner4::LoadableGetStateBlock_w(int block_offset, ChStateD
     mD.segment(block_offset + 21, 3) = m_nodes[3]->GetWvel_loc().eigen();
 }
 
-void ChElementShellReissner4::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
+void ChElementShellReissner4::LoadableStateIncrement(const unsigned int off_x,
+                                                     ChState& x_new,
+                                                     const ChState& x,
+                                                     const unsigned int off_v,
+                                                     const ChStateDelta& Dv) {
     for (int i = 0; i < 4; i++) {
-        this->m_nodes[i]->NodeIntStateIncrement(off_x  + 7 * i  , x_new, x, off_v  + 6 * i  , Dv);
+        this->m_nodes[i]->NodeIntStateIncrement(off_x + 7 * i, x_new, x, off_v + 6 * i, Dv);
     }
 }
 
@@ -1193,7 +1189,7 @@ void ChElementShellReissner4::ComputeNF(
     const ChVectorDynamic<>& F,  // Input F vector, size is =n. field coords.
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
-    ) {
+) {
     ShapeVector N;
     ShapeFunctions(N, U, V);
 
@@ -1223,15 +1219,15 @@ void ChElementShellReissner4::ComputeNF(
     const ChVectorDynamic<>& F,  // Input F vector, size is = n.field coords.
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
-    ) {
+) {
     ShapeVector N;
     ShapeFunctions(N, U, V);
 
     detJ = GetLengthX() * GetLengthY() / 4.0;  // approximate
     detJ *= GetThickness();
 
-    Qi.segment(0,3) = N(0) * F.segment(0,3);
-    Qi.segment(3,3) = N(0) * F.segment(3,3);
+    Qi.segment(0, 3) = N(0) * F.segment(0, 3);
+    Qi.segment(3, 3) = N(0) * F.segment(3, 3);
 
     Qi.segment(6, 3) = N(1) * F.segment(0, 3);
     Qi.segment(9, 3) = N(1) * F.segment(3, 3);

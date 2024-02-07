@@ -312,11 +312,11 @@ class ChArchiveInJSON : public ChArchiveIn {
             errstrA.resize(10);
             std::string errstrB((const char*)(&stringbuffer[document.GetErrorOffset()]));
             errstrB.resize(20);
-            throw(ChExceptionArchive("the file has bad JSON syntax," + std::to_string(document.GetParseError()) +
-                                     " \n\n[...]" + errstrA + " <--- " + errstrB + "[...]\n"));
+            throw std::invalid_argument("ERROR: the file has bad JSON syntax," + std::to_string(document.GetParseError()) +
+                                     " \n\n[...]" + errstrA + " <--- " + errstrB + "[...]");
         }
         if (!document.IsObject())
-            throw(ChExceptionArchive("the file is not a valid JSON document"));
+            throw std::invalid_argument("ERROR: the file is not a valid JSON document");
 
         level = &document;
         levels.push(level);
@@ -332,7 +332,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         rapidjson::Value* mval = nullptr;
         if (this->is_array.top() == true) {
             if (!level->IsArray()) {
-                throw(ChExceptionArchive("Cannot retrieve from ID num in non-array object."));
+                throw(std::runtime_error("Cannot retrieve from ID num in non-array object."));
             }
             mval = &(*level)[this->array_index.top()];
         } else {
@@ -350,7 +350,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (!mval)
             return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsBool()) {
-            throw(ChExceptionArchive("Invalid true/false flag after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid true/false flag after '" + std::string(bVal.name()) + "'");
         }
         bVal.value() = mval->GetBool();
         return true;
@@ -360,7 +360,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (!mval)
             return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsInt()) {
-            throw(ChExceptionArchive("Invalid integer number after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid integer number after '" + std::string(bVal.name()) + "'");
         }
         bVal.value() = mval->GetInt();
         return true;
@@ -370,7 +370,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (!mval)
             return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsNumber()) {
-            throw(ChExceptionArchive("Invalid number after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid number after '" + std::string(bVal.name()) + "'");
         }
         bVal.value() = mval->GetDouble();
         return true;
@@ -380,7 +380,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (!mval)
             return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsNumber()) {
-            throw(ChExceptionArchive("Invalid number after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid number after '" + std::string(bVal.name()) + "'");
         }
         bVal.value() = (float)mval->GetDouble();
         return true;
@@ -390,7 +390,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (!mval)
             return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsInt()) {
-            throw(ChExceptionArchive("Invalid char code after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid char code after '" + std::string(bVal.name()) + "'");
         }
         bVal.value() = (char)mval->GetInt();
         return true;
@@ -400,7 +400,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (!mval)
             return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsUint()) {
-            throw(ChExceptionArchive("Invalid unsigned integer number after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid unsigned integer number after '" + std::string(bVal.name()) + "'");
         }
         bVal.value() = mval->GetUint();
         return true;
@@ -410,7 +410,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (!mval)
             return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsString()) {
-            throw(ChExceptionArchive("Invalid string after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid string after '" + std::string(bVal.name()) + "'");
         }
         bVal.value() = mval->GetString();
         return true;
@@ -420,7 +420,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (!mval)
             return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsUint64()) {
-            throw(ChExceptionArchive("Invalid unsigned long number after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid unsigned long number after '" + std::string(bVal.name()) + "'");
         }
         bVal.value() = (unsigned long)mval->GetUint64();
         return true;
@@ -430,7 +430,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (!mval)
             return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsUint64()) {
-            throw(ChExceptionArchive("Invalid unsigned long long number after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid unsigned long long number after '" + std::string(bVal.name()) + "'");
         }
         bVal.value() = mval->GetUint64();
         return true;
@@ -440,11 +440,11 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (!mval)
             return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsString()) {
-            throw(ChExceptionArchive("Invalid string after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid string after '" + std::string(bVal.name()) + "'");
         }
         std::string mstr = mval->GetString();
         if (!bVal.value().SetValueAsString(mstr)) {
-            throw(ChExceptionArchive("Not recognized enum type '" + mstr + "'"));
+            throw std::runtime_error("Not recognized enum type '" + mstr + "'");
         }
         return true;
     }
@@ -457,7 +457,7 @@ class ChArchiveInJSON : public ChArchiveIn {
             return false;
         } else {
             if (!mval->IsArray()) {
-                throw(ChExceptionArchive("Invalid array [...] after '" + std::string(name) + "'"));
+                throw std::runtime_error("Invalid array [...] after '" + std::string(name) + "'");
             }
             msize = mval->Size();
             this->levels.push(mval);
@@ -482,7 +482,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (!mval)
             return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsObject()) {
-            throw(ChExceptionArchive("Invalid object {...} after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid object {...} after '" + std::string(bVal.name()) + "'");
         }
 
         this->levels.push(mval);
@@ -493,12 +493,12 @@ class ChArchiveInJSON : public ChArchiveIn {
             size_t obj_ID = 0;
             if (level->HasMember("_object_ID")) {
                 if (!(*level)["_object_ID"].IsUint64()) {
-                    throw(ChExceptionArchive("Wrong _object_ID for entry: '" + std::string(bVal.name()) + "'"));
+                    throw std::runtime_error("Wrong _object_ID for entry: '" + std::string(bVal.name()) + "'");
                 }
                 obj_ID = (*level)["_object_ID"].GetUint64();
             }
             else
-                throw(ChExceptionArchive("Missing _object_ID for entry: '" + std::string(bVal.name()) + "'"));
+                throw std::runtime_error("Missing _object_ID for entry: '" + std::string(bVal.name()) + "'");
 
             PutNewPointer(bVal.value().GetRawPtr(), obj_ID);
         }
@@ -521,7 +521,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (!mval)
             return false;
         if (!mval->IsObject()) {
-            throw(ChExceptionArchive("Invalid object {...} after '" + std::string(bVal.name()) + "'"));
+            throw std::runtime_error("Invalid object {...} after '" + std::string(bVal.name()) + "'");
         }
         this->levels.push(mval);
         this->level = this->levels.top();
@@ -530,7 +530,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (bVal.value().IsPolymorphic()) {
             if (level->HasMember("_type")) {
                 if (!(*level)["_type"].IsString()) {
-                    throw(ChExceptionArchive("Invalid string after '" + std::string(bVal.name()) + "'"));
+                    throw std::runtime_error("Invalid string after '" + std::string(bVal.name()) + "'");
                 }
                 true_classname = (*level)["_type"].GetString();
             }
@@ -539,7 +539,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         size_t ref_ID = 0;
         if (level->HasMember("_reference_ID")) {
             if (!(*level)["_reference_ID"].IsUint64()) {
-                throw(ChExceptionArchive("Wrong _reference_ID for entry: '" + std::string(bVal.name()) + "'"));
+                throw std::runtime_error("Wrong _reference_ID for entry: '" + std::string(bVal.name()) + "'");
             }
             ref_ID = (*level)["_reference_ID"].GetUint64();
             is_reference = true;
@@ -547,7 +547,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         size_t ext_ID = 0;
         if (level->HasMember("_external_ID")) {
             if (!(*level)["_external_ID"].IsUint64()) {
-                throw(ChExceptionArchive("Wrong _external_ID for entry: '" + std::string(bVal.name()) + "'"));
+                throw std::runtime_error("Wrong _external_ID for entry: '" + std::string(bVal.name()) + "'");
             }
             ext_ID = (*level)["_external_ID"].GetUint64();
             is_reference = true;
@@ -562,12 +562,12 @@ class ChArchiveInJSON : public ChArchiveIn {
             size_t obj_ID = 0;
             if (level->HasMember("_object_ID")) {
                 if (!(*level)["_object_ID"].IsUint64()) {
-                    throw(ChExceptionArchive("Wrong _object_ID for entry: '" + std::string(bVal.name()) + "'"));
+                    throw std::runtime_error("Wrong _object_ID for entry: '" + std::string(bVal.name()) + "'");
                 }
                 obj_ID = (*level)["_object_ID"].GetUint64();
             }
             else
-                throw(ChExceptionArchive("Missing _object_ID for entry: '" + std::string(bVal.name()) + "'"));
+                throw std::runtime_error("Missing _object_ID for entry: '" + std::string(bVal.name()) + "'");
 
             // Calling bVal.value().GetRawPtr() will retrieve the true address of the object
             void* true_ptr = bVal.value().GetRawPtr();
@@ -579,23 +579,23 @@ class ChArchiveInJSON : public ChArchiveIn {
                 // compared to the true object, while we need to call the ArchiveIn of the proper derived class.
                 bVal.value().CallArchiveIn(*this, true_classname);
             } else {
-                throw(ChExceptionArchive("Archive cannot create object " + std::string(bVal.name()) + "\n"));
+                throw std::runtime_error("Archive cannot create object " + std::string(bVal.name()) + "\n");
             }
 
             new_ptr = bVal.value().GetRawPtr();
         } else {
             if (ref_ID) {
                 if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
-                    throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the _reference_ID " +
-                                             std::to_string((int)ref_ID) + " is not a valid number."));
+                    throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _reference_ID " +
+                                             std::to_string((int)ref_ID) + " is not a valid number.");
                 }
                 bVal.value().SetRawPtr(
                     ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
 
             } else if (ext_ID) {
                 if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
-                    throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the _external_ID " +
-                                             std::to_string((int)ext_ID) + " is not valid."));
+                    throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _external_ID " +
+                                             std::to_string((int)ext_ID) + " is not valid.");
                 }
                 bVal.value().SetRawPtr(
                     ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
@@ -621,7 +621,7 @@ class ChArchiveInJSON : public ChArchiveIn {
     void token_notfound(const std::string& mname) {
         if (!try_tolerate_missing_tokens){
             std::cerr << "Cannot find '" + mname + "'" << std::endl;
-            throw(ChExceptionArchive("Cannot find '" + mname + "'"));
+            throw std::runtime_error("Cannot find '" + mname + "'");
         }
     }
 

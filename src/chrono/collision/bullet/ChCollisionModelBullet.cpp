@@ -284,7 +284,7 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
     for (size_t i = 0; i < path.GetSubLinesCount(); ++i) {
         if (auto segment = std::dynamic_pointer_cast<geometry::ChLineSegment>(path.GetSubLineN(i))) {
             if (segment->pA.z() != segment->pB.z())
-                throw ChException("Error! injectPath2D: sub segment of ChLinePath not parallel to XY plane!");
+                throw std::runtime_error("Error! injectPath2D: sub segment of ChLinePath not parallel to XY plane!");
             ChVector<> pA(segment->pA.x(), segment->pA.y(), 0);
             ChVector<> pB(segment->pB.x(), segment->pB.y(), 0);
             auto shape_seg = chrono_types::make_shared<ChCollisionShapeSegment2D>(material, *segment, thickness);
@@ -294,7 +294,7 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
             injectShape(shape_seg, bt_shape, frame);
         } else if (auto arc = std::dynamic_pointer_cast<geometry::ChLineArc>(path.GetSubLineN(i))) {
             if ((arc->origin.rot.e1() != 0) || (arc->origin.rot.e2() != 0))
-                throw ChException("Error! injectPath2D: a sub arc of ChLinePath not parallel to XY plane!");
+                throw std::invalid_argument("Error! injectPath2D: a sub arc of ChLinePath not parallel to XY plane!");
 
             double angle1 = arc->angle1;
             double angle2 = arc->angle2;
@@ -307,7 +307,7 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
             bt_shape->setMargin((cbtScalar)full_margin);
             injectShape(shape_arc, bt_shape, frame);
         } else {
-            throw ChException("Error! injectPath2D: ChLinePath must contain only ChLineArc and/or ChLineSegment.");
+            throw std::invalid_argument("Error! injectPath2D: ChLinePath must contain only ChLineArc and/or ChLineSegment.");
         }
 
         size_t i_prev = i;
@@ -327,7 +327,7 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
 
             // check if connected segments
             if ((pos_prev - pos_next).Length() > 1e-9)
-                throw ChException(
+                throw std::runtime_error(
                     "Error! injectPath2D: ChLinePath must contain sequence of connected segments/arcs, with no gaps");
 
             // insert a 0-radius fillet arc at sharp corners, to allow for sharp-corner vs arc/segment

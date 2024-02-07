@@ -67,7 +67,7 @@ bool ChExternalDriver::WaitConnection(int port) {
     m_client = m_server->acceptClient(clientHostName);
 
     if (!m_client)
-        throw utils::ChExceptionSocket(0, "Server failed in getting the client socket.");
+        throw std::runtime_error("Server failed in getting the client socket.");
 
     std::cout << "Connected to client: (" << clientHostName << ", " << port << ")\n";
 
@@ -76,7 +76,7 @@ bool ChExternalDriver::WaitConnection(int port) {
 
 bool ChExternalDriver::SendData(double time) {
     if (!m_client)
-        throw utils::ChExceptionSocket(0, "Error. Attempted 'SendData' with no connected client.");
+        throw std::runtime_error("Error: Attempted 'SendData' with no connected client.");
 
     ChJSONWriter writer;
 
@@ -104,7 +104,7 @@ bool ChExternalDriver::SendData(double time) {
 
 bool ChExternalDriver::ReceiveData() {
     if (!m_client)
-        throw utils::ChExceptionSocket(0, "Error. Attempted 'ReceiveData' with no connected client.");
+        throw std::runtime_error("Error: Attempted 'ReceiveData' with no connected client.");
 
     // Receive from the client
     std::string message;

@@ -256,7 +256,7 @@ const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(
     for (size_t i = 0; i < profile->GetSubLinesCount(); ++i) {
         if (auto msegment = std::dynamic_pointer_cast<::chrono::geometry::ChLineSegment>(profile->GetSubLineN(i))) {
             if (msegment->pA.z() != msegment->pB.z())
-                throw ChException(
+                throw std::runtime_error(
                     "Error! ChCascadeBodyEasyProfile: sub segment of ChLinePath not parallel to XY plane!");
 
             gp_Pnt aPntA(msegment->pA.x(), msegment->pA.y(), msegment->pA.z());
@@ -269,7 +269,7 @@ const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(
 
         } else if (auto marc = std::dynamic_pointer_cast<::chrono::geometry::ChLineArc>(profile->GetSubLineN(i))) {
             if ((marc->origin.rot.e1() != 0) || (marc->origin.rot.e2() != 0))
-                throw ChException("Error! ChCascadeBodyEasyProfile: a sub arc of ChLinePath not parallel to XY plane!");
+                throw std::runtime_error("Error! ChCascadeBodyEasyProfile: a sub arc of ChLinePath not parallel to XY plane!");
 
             gp_Circ aCirc(
                 gp_Ax2(gp_Pnt(marc->origin.pos.x(), marc->origin.pos.y(), marc->origin.pos.z()), gp_Dir(0., 0., 1.)),
@@ -289,13 +289,13 @@ const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(
             mwirebuilder.Add(aEdge);
 
         } else {
-            throw ChException(
+            throw std::runtime_error(
                 "Error! ChCascadeBodyEasyProfile: ChLinePath must contain only ChLineArc and/or ChLineSegment.");
         }
     }
 
     if (!mwirebuilder.IsDone()) {
-        throw ChException("Error! ChCascadeBodyEasyProfile: profile is not closed.");
+        throw std::runtime_error("Error! ChCascadeBodyEasyProfile: profile is not closed.");
     }
 
     return mwirebuilder.Wire();

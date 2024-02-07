@@ -61,10 +61,10 @@ namespace chrono {
 		ChVectorDynamic<>* mknots           ///< knots, as many as control points. If not provided, initialized to uniform.
 	) {
 		if (mrotations.size() < 2)
-			throw ChException("ChFunctionRotation_SQUAD::SetupData requires at least 2control points.");
+			throw std::invalid_argument("ChFunctionRotation_SQUAD::SetupData requires at least 2 control points.");
 
 		if (mknots && (size_t)mknots->size() != mrotations.size())
-			throw ChException("ChFunctionRotation_SQUAD::SetupData: knots must be as many as control points");
+			throw std::invalid_argument("ChFunctionRotation_SQUAD::SetupData: knots must be as many as control points");
 
 		this->rotations = mrotations;
 		auto n = (int)rotations.size();

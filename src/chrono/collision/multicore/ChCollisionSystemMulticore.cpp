@@ -194,8 +194,8 @@ void ChCollisionSystemMulticore::Clear() {
 
 void ChCollisionSystemMulticore::Remove(std::shared_ptr<ChCollisionModel> model) {
     //// TODO
-    std::cout << "\nChCollisionSystemMulticore::Remove() not yet implemented.\n" << std::endl;
-    throw ChException("ChCollisionSystemMulticore::Remove() not yet implemented.");
+    std::cerr << "\nChCollisionSystemMulticore::Remove() not yet implemented.\n" << std::endl;
+    throw std::runtime_error("ChCollisionSystemMulticore::Remove() not yet implemented.");
 }
 
 #undef ERASE_MACRO

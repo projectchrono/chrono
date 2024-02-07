@@ -160,7 +160,7 @@ void test_1(const std::string& out_dir) {
         std::ofstream fileCq(out_dir + "/dump_Cq_1.dat");
         StreamOutSparseMatlabFormat(matrM, fileM);
         StreamOutSparseMatlabFormat(matrCq, fileCq);
-    } catch (const ChException& myex) {
+    } catch (const std::exception& myex) {
         std::cerr << "FILE ERROR: " << myex.what();
     }
 
@@ -250,7 +250,7 @@ void test_2(const std::string& out_dir) {
 
         std::ofstream file_fric(out_dir + "/dump_fric_2.dat");
         StreamOutDenseMatlabFormat(mdfric, file_fric);
-    } catch (const chrono::ChException& myexc) {
+    } catch (const std::exception& myexc) {
         std::cerr << myexc.what();
     }
 

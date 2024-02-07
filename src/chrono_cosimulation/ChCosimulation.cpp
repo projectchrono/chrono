@@ -58,16 +58,16 @@ bool ChCosimulation::WaitConnection(int aport) {
     this->myClient = this->myServer->acceptClient(clientHostName);  // pick up the call!
 
     if (!this->myClient)
-        throw(ChExceptionSocket(0, "Server failed in getting the client socket"));
+        throw std::runtime_error("Server failed in getting the client socket");
 
     return true;
 }
 
 bool ChCosimulation::SendData(double mtime, ChVectorConstRef out_data) {
     if (out_data.size() != this->out_n)
-        throw ChExceptionSocket(0, "Error. Sent data must be a vector of size N.");
+        throw std::runtime_error("ERROR: Sent data must be a vector of size N.");
     if (!myClient)
-        throw ChExceptionSocket(0, "Error. Attempted 'SendData' with no connected client.");
+        throw std::runtime_error("ERROR: Attempted 'SendData' with no connected client.");
 
     std::vector<char> mbuffer(out_data.size() + 1);// now zero length
     // Serialize data (little endian)...
@@ -85,9 +85,9 @@ bool ChCosimulation::SendData(double mtime, ChVectorConstRef out_data) {
 
 bool ChCosimulation::ReceiveData(double& mtime, ChVectorRef in_data) {
     if (in_data.size() != this->in_n)
-        throw ChExceptionSocket(0, "Error. Received data must be a vector of size N.");
+        throw std::runtime_error("ERROR: Received data must be a vector of size N.");
     if (!myClient)
-        throw ChExceptionSocket(0, "Error. Attempted 'ReceiveData' with no connected client.");
+        throw std::runtime_error("ERROR: Attempted 'ReceiveData' with no connected client.");
 
     // Receive from the client
     int nbytes = sizeof(double) * (this->in_n + 1);

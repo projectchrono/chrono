@@ -215,7 +215,7 @@ void ChTimestepperHHT::Advance(const double dt) {
             if (h < h_min) {
                 if (verbose)
                     std::cerr << " HHT at minimum stepsize. Exiting..." << std::endl;
-                throw ChException("HHT: Reached minimum allowable step size.");
+                throw std::runtime_error("HHT: Reached minimum allowable step size.");
             }
 
             // force a matrix re-evaluation (due to change in stepsize)

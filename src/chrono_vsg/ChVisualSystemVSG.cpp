@@ -475,7 +475,7 @@ void ChVisualSystemVSG::SetOutputScreen(int screenNum) {
         m_screen_num = screenNum;
     } else {
         std::cerr << "Screen #" << screenNum << " cannot be used on this computer!" << std::endl;
-        throw ChException("Screen #" + std::to_string(screenNum) + " cannot be used on this computer!");
+        throw std::runtime_error("Screen #" + std::to_string(screenNum) + " cannot be used on this computer!");
     }
 }
 
@@ -600,7 +600,7 @@ int ChVisualSystemVSG::AddCamera(const ChVector<>& pos, ChVector<> targ) {
         std::cerr << "Function ChVisualSystemVSG::AddCamera Camera Pos and Target cannot be identical!" << std::endl;
         std::cerr << "  pos    = { " << pos.x() << " ; " << pos.y() << " ; " << pos.z() << " }" << std::endl;
         std::cerr << "  target = { " << targ.x() << " ; " << targ.y() << " ; " << targ.z() << " }" << std::endl;
-        throw ChException("Function ChVisualSystemVSG::AddCamera Camera Pos and Target cannot be identical!");
+        throw std::runtime_error("Function ChVisualSystemVSG::AddCamera Camera Pos and Target cannot be identical!");
     }
     if (m_yup) {
         if (pos.x() == 0.0 && pos.z() == 0.0) {

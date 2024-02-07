@@ -37,7 +37,6 @@
 #include <memory>
 
 #include "chrono/core/ChTemplateExpressions.h"
-#include "chrono/core/ChException.h"
 
 namespace chrono {
 
@@ -337,7 +336,7 @@ class ChApi ChClassFactory {
         if (it != class_map_typeids.end()) {
             return it->second->get_tag_name();
         }
-        throw(ChException("ChClassFactory::GetClassTagName() cannot find the class with type_index::name: " +
+        throw(std::runtime_error("ChClassFactory::GetClassTagName() cannot find the class with type_index::name: " +
                           std::string(mtypeid.name()) + ". Please register it.\n"));
     }
 
@@ -348,7 +347,7 @@ class ChApi ChClassFactory {
         if (it != class_map.end()) {
             return it->second->create();
         }
-        throw(ChException("ChClassFactory::create() cannot find the class with name " + keyName +
+        throw(std::runtime_error("ChClassFactory::create() cannot find the class with name " + keyName +
                           ". Please register it.\n"));
     }
 
@@ -357,7 +356,7 @@ class ChApi ChClassFactory {
         if (it != class_map.end()) {
             return it->second->archive_in_create(marchive);
         }
-        throw(ChException("ChClassFactory::create() cannot find the class with name " + keyName +
+        throw(std::runtime_error("ChClassFactory::create() cannot find the class with name " + keyName +
                           ". Please register it.\n"));
     }
 
@@ -366,7 +365,7 @@ class ChApi ChClassFactory {
         if (it != class_map.end()) {
             it->second->archive_in(marchive, ptr);
         } else
-            throw(ChException("ChClassFactory::archive_in() cannot find the class with name " + keyName +
+            throw(std::runtime_error("ChClassFactory::archive_in() cannot find the class with name " + keyName +
                               ". Please register it.\n"));
     }
 
@@ -375,7 +374,7 @@ class ChApi ChClassFactory {
         if (it != class_map.end()) {
             it->second->archive_out(marchive, ptr);
         } else
-            throw(ChException("ChClassFactory::archive_out() cannot find the class with name " + keyName +
+            throw(std::runtime_error("ChClassFactory::archive_out() cannot find the class with name " + keyName +
                               ". Please register it.\n"));
     }
 
@@ -384,7 +383,7 @@ class ChApi ChClassFactory {
         if (it != class_map.end()) {
             it->second->archive_out_constructor(marchive, ptr);
         } else
-            throw(ChException("ChClassFactory::archive_out() cannot find the class with name " + keyName +
+            throw(std::runtime_error("ChClassFactory::archive_out() cannot find the class with name " + keyName +
                               ". Please register it.\n"));
     }
 

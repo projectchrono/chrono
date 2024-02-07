@@ -409,7 +409,7 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
         // Error if a discarded body was connected to its parent with anything but a FIXED joint
         if (link->parent_joint->type != urdf::Joint::FIXED) {
             cerr << "ERROR: Body with ZERO inertia not connected through FIXED joint to parent." << endl;
-            throw ChException("Body with ZERO inertia not connected through FIXED joint to parent.");
+            throw std::runtime_error("Body with ZERO inertia not connected through FIXED joint to parent.");
         }
 
         // Get the parent link and the Chrono parent body
@@ -477,7 +477,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
         return nullptr;
     if (!child) {
         cerr << "ERROR: Body " << child_link_name << " not found." << endl;
-        throw ChException("Body not found.");
+        throw std::runtime_error("Body not found.");
     }
 
     // Create 3 mutually orthogonal directions, with d1 being the joint axis.

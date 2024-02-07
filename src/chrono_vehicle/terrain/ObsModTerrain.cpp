@@ -177,7 +177,7 @@ ChVector<> ObsModTerrain::GetNormal(const ChVector<>& loc) const {
     normal_ISO = Vcross(r1, r2);
     if (normal_ISO.z() <= 0.0) {
         std::cerr << "Fatal: wrong surface normal!" << std::endl;
-        throw ChException("Fatal: wrong surface normal!");
+        throw std::runtime_error("Fatal: wrong surface normal!");
     }
     ChVector<> normal = ChWorldFrame::FromISO(normal_ISO);
     normal.Normalize();

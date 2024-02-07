@@ -123,11 +123,11 @@ void ChFunction::ArchiveIn(ChArchiveIn& marchive) {
 
 int ChFunction::FileAsciiPairsSave(std::ostream& outfile, double mxmin, double mxmax, int msamples) {
     if (msamples <= 1)
-        throw(ChException("Warning! too short range or too long sampling period: no points can be saved"));
+        throw std::invalid_argument("Warning! too short range or too long sampling period: no points can be saved");
     if (msamples >= 100000)
-        throw(ChException("Warning! Too many points should be saved"));
+        throw std::invalid_argument("Warning! Too many points should be saved");
     if (mxmax <= mxmin)
-        throw(ChException("Warning! Cannot save ChFunction if Xmax < Xmin"));
+        throw std::invalid_argument("Warning! Cannot save ChFunction if Xmax < Xmin");
 
     outfile << std::setprecision(8) << std::defaultfloat;
 

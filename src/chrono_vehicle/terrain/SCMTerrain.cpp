@@ -49,10 +49,10 @@ namespace vehicle {
 
 SCMTerrain::SCMTerrain(ChSystem* system, bool visualization_mesh) {
     if (!system->GetCollisionSystem()) {
-        std::cout << "\nError: SCMTerrain requires collision detection.\n";
-        std::cout << "A collision system must be associated to the Chrono system before constructing the SCMTerrain."
+        std::cerr << "\nError: SCMTerrain requires collision detection.\n";
+        std::cerr << "A collision system must be associated to the Chrono system before constructing the SCMTerrain."
                   << std::endl;
-        throw(ChException("SCMTerrain requires a collision system be associated with the Chrono system."));
+        throw std::runtime_error("SCMTerrain requires a collision system be associated with the Chrono system.");
     }
     m_loader = chrono_types::make_shared<SCMLoader>(system, visualization_mesh);
     system->Add(m_loader);
@@ -432,8 +432,8 @@ void SCMLoader::Initialize(const std::string& heightmap_file,
     // Read the image file (request only 1 channel) and extract number of pixels.
     STB hmap;
     if (!hmap.ReadFromFile(heightmap_file, 1)) {
-        std::cout << "STB error in reading height map file " << heightmap_file << std::endl;
-        throw ChException("Cannot read height map image file");
+        std::cerr << "STB error in reading height map file " << heightmap_file << std::endl;
+        throw std::runtime_error("Cannot read height map image file");
     }
     int nx_img = hmap.GetWidth();
     int ny_img = hmap.GetHeight();

@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
             std::cout << "--- time: " << mytime << std::endl;
         }
 
-    } catch (ChExceptionSocket exception) {
+    } catch (std::exception exception) {
         std::cerr << " ERRROR with socket system:\n"<< exception.what() << std::endl;
     }
 

@@ -65,7 +65,7 @@ class ChApi ChBasisToolsBspline {
                                                double kend = 1.0          ///< range end
     ) {
         if (knotU.size() < 2 * (p + 1))
-            throw ChException("ComputeKnotUniformMultipleEnds: knots must have size>=2*(order+1)");
+            throw std::invalid_argument("ComputeKnotUniformMultipleEnds: knots must have size>=2*(order+1)");
 
         int k = (int)knotU.size();
         // intermediate knots:
@@ -90,7 +90,7 @@ class ChApi ChBasisToolsBspline {
                                    double kend = 1.0          ///< range end
     ) {
         if (knotU.size() < 2 * (p + 1))
-            throw ChException("ComputeKnotUniform: knots must have size>=2*(order+1)");
+            throw std::invalid_argument("ComputeKnotUniform: knots must have size>=2*(order+1)");
 
         int nk = (int)knotU.size();
         // intermediate knots:
