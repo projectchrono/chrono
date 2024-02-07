@@ -52,7 +52,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
     int mixerId = -201;
 
     // Create a common material
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
     mat->SetYoungModulus(2e5f);
     mat->SetFriction(0.4f);
     mat->SetRestitution(0.1f);
@@ -105,7 +105,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemMulticoreSMC* sys) {
     // Common material
-    auto ballMat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto ballMat = chrono_types::make_shared<ChContactMaterialSMC>();
     ballMat->SetYoungModulus(2e5f);
     ballMat->SetFriction(0.4f);
     ballMat->SetRestitution(0.1f);

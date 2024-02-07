@@ -34,7 +34,7 @@ std::vector<std::shared_ptr<ChBody> > mspheres;
 void create_items(ChSystem& sys) {
     // Create some spheres in a vertical stack
 
-    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto material = chrono_types::make_shared<ChContactMaterialNSC>();
     material->SetFriction(0.4f);
     material->SetCompliance(0.001f / 1200);               // as 1/K, in m/N. es: 1mm/1200N
     material->SetComplianceT(material->GetCompliance());  // use tangential compliance as normal compliance

@@ -90,21 +90,21 @@ int main(int argc, char* argv[]) {
     RigidTerrain terrain(hmmwv.GetSystem());
 
     if (true) {
-        auto patch1_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto patch1_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         patch1_mat->SetFriction(0.9f);
         patch1_mat->SetRestitution(0.01f);
         auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(-16, 0, 0), QUNIT), 32, 20);
         patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
         patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 20, 20);
 
-        auto patch2_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto patch2_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         patch2_mat->SetFriction(0.9f);
         patch2_mat->SetRestitution(0.01f);
         auto patch2 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(16, 0, 0.08), QUNIT), 32, 20);
         patch2->SetColor(ChColor(1.0f, 0.5f, 0.5f));
         patch2->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 20, 20);
 
-        auto patch3_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto patch3_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         patch3_mat->SetFriction(0.9f);
         patch3_mat->SetRestitution(0.01f);
         auto patch3 = terrain.AddPatch(patch3_mat, ChCoordsys<>(ChVector<>(0, -42, 0), QUNIT),
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
         patch3->SetColor(ChColor(0.5f, 0.5f, 0.8f));
         patch3->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
 
-        auto patch4_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto patch4_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         patch4_mat->SetFriction(0.9f);
         patch4_mat->SetRestitution(0.01f);
         auto patch4 = terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector<>(0, 42, 0), QUNIT),
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (false) {
-        auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         patch_mat->SetFriction(0.9f);
         patch_mat->SetRestitution(0.01f);
         auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(0, 0, 10), QUNIT),

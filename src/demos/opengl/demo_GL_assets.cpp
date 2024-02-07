@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     floor->SetBodyFixed(true);
 
     // Contact material
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Define a collision shape
     auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
 
     // Note: the collision shape, if needed, must be specified before creating particles.
     // This will be shared among all particles in the ChParticleCloud.
-    auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto particle_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, particle_radius);
     particles->AddCollisionShape(particle_shape);
     particles->SetCollide(true);
@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
     points.push_back(ChVector<>(0.0, 0.0, 0.3) + displ);
     points.push_back(ChVector<>(0.8, 0.0, 0.3) + displ);
     auto hull = chrono_types::make_shared<ChBodyEasyConvexHullAuxRef>(
-        points, 1000, true, true, chrono_types::make_shared<ChMaterialSurfaceNSC>());
+        points, 1000, true, true, chrono_types::make_shared<ChContactMaterialNSC>());
     hull->Move(ChVector<>(2, 0.3, 0));
     sys.Add(hull);
 

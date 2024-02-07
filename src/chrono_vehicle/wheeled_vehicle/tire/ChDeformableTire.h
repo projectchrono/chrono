@@ -73,7 +73,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     /// Get the tire contact material.
     /// Note that this is not set until after tire initialization.
-    std::shared_ptr<ChMaterialSurfaceSMC> GetContactMaterial() const { return m_contact_mat; }
+    std::shared_ptr<ChContactMaterialSMC> GetContactMaterial() const { return m_contact_mat; }
 
     /// Enable/disable tire pressure (default: true).
     void EnablePressure(bool val) { m_pressure_enabled = val; }
@@ -164,7 +164,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     double m_contact_node_radius;       ///< node radius (for node cloud contact surface)
     double m_contact_face_thickness;    ///< face thickness (for mesh contact surface)
 
-    std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;  ///< tire contact material
+    std::shared_ptr<ChContactMaterialSMC> m_contact_mat;  ///< tire contact material
     std::shared_ptr<ChVisualShapeFEA> m_visualization;    ///< tire mesh visualization
 
     // The mass properties of a deformable tire are implicitly included through the FEA mesh.

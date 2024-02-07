@@ -55,7 +55,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
     if (remaind > ChRandom())
         particles_dt += 1;
 
-    auto item_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto item_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     item_mat->SetFriction(0.3f);
 
     for (int i = 0; i < particles_dt; i++) {
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     ChCollisionModel::SetDefaultSuggestedMargin(0.002);
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    auto bowl_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto bowl_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     bowl_mat->SetFriction(0.2f);
 
     // Create the feeder bowl. Whatever object with collision can be used.

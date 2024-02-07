@@ -109,7 +109,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
 
-    auto mat_terrain = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat_terrain = chrono_types::make_shared<ChContactMaterialSMC>();
     mat_terrain->SetFriction(0.9f);
     mat_terrain->SetRestitution(0);
     mat_terrain->SetYoungModulus(8e5f);
@@ -123,7 +123,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
                           ChQuaternion<>(1, 0, 0, 0), true);
 
     // Shared proxy contact material
-    auto mat_proxy = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat_proxy = chrono_types::make_shared<ChContactMaterialSMC>();
     mat_proxy->SetFriction(0.9f);
     mat_proxy->SetRestitution(0);
     mat_proxy->SetYoungModulus(2e7f);

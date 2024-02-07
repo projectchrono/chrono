@@ -203,7 +203,7 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
 void ChVehicleGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
                                               int collision_family,
                                               ChContactMethod contact_method) {
-    std::vector<std::shared_ptr<ChMaterialSurface>> materials;
+    std::vector<std::shared_ptr<ChContactMaterial>> materials;
     for (const auto& minfo : m_materials) {
         materials.push_back(minfo.CreateMaterial(contact_method));
     }

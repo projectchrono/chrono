@@ -15,27 +15,27 @@
 #include <algorithm>
 #include <cmath>
 
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChContactMaterial.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
-CH_FACTORY_REGISTER(ChMaterialSurface)
+CH_FACTORY_REGISTER(ChContactMaterial)
 CH_FACTORY_REGISTER(ChContactMaterialData);
-CH_FACTORY_REGISTER(ChMaterialComposite);
-CH_FACTORY_REGISTER(ChMaterialCompositionStrategy);
+CH_FACTORY_REGISTER(ChContactMaterialComposite);
+CH_FACTORY_REGISTER(ChContactMaterialCompositionStrategy);
 
 // -----------------------------------------------------------------------------
 
-ChMaterialSurface::ChMaterialSurface()
+ChContactMaterial::ChContactMaterial()
     : static_friction(0.6f),
       sliding_friction(0.6f),
       rolling_friction(0),
       spinning_friction(0),
       restitution(0.4f) {}
 
-ChMaterialSurface::ChMaterialSurface(const ChMaterialSurface& other) {
+ChContactMaterial::ChContactMaterial(const ChContactMaterial& other) {
     static_friction = other.static_friction;
     sliding_friction = other.sliding_friction;
     rolling_friction = other.rolling_friction;
@@ -43,14 +43,14 @@ ChMaterialSurface::ChMaterialSurface(const ChMaterialSurface& other) {
     restitution = other.restitution;
 }
 
-void ChMaterialSurface::SetFriction(float val) {
-    SetSfriction(val);
-    SetKfriction(val);
+void ChContactMaterial::SetFriction(float val) {
+    SetStaticFriction(val);
+    SetSlidingFriction(val);
 }
 
-void ChMaterialSurface::ArchiveOut(ChArchiveOut& marchive) {
+void ChContactMaterial::ArchiveOut(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChMaterialSurface>();
+    marchive.VersionWrite<ChContactMaterial>();
 
     // serialize all member data:
     marchive << CHNVP(static_friction);
@@ -60,9 +60,9 @@ void ChMaterialSurface::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(restitution);
 }
 
-void ChMaterialSurface::ArchiveIn(ChArchiveIn& marchive) {
+void ChContactMaterial::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChMaterialSurface>();
+    /*int version =*/ marchive.VersionRead<ChContactMaterial>();
 
     // stream in all member data:
     marchive >> CHNVP(static_friction);
@@ -72,12 +72,12 @@ void ChMaterialSurface::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(restitution);
 }
 
-std::shared_ptr<ChMaterialSurface> ChMaterialSurface::DefaultMaterial(ChContactMethod contact_method) {
+std::shared_ptr<ChContactMaterial> ChContactMaterial::DefaultMaterial(ChContactMethod contact_method) {
     switch (contact_method) {
         case ChContactMethod::NSC:
-            return chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            return chrono_types::make_shared<ChContactMaterialNSC>();
         case ChContactMethod::SMC:
-            return chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            return chrono_types::make_shared<ChContactMaterialSMC>();
     }
     return nullptr;
 }
@@ -95,16 +95,16 @@ ChContactMaterialData::ChContactMaterialData(float mu_,
                                              float gt_)
     : mu(mu_), cr(cr_), Y(Y_), nu(nu_), kn(kn_), gn(gn_), kt(kt_), gt(gt_) {}
 
-std::shared_ptr<ChMaterialSurface> ChContactMaterialData::CreateMaterial(ChContactMethod contact_method) const {
+std::shared_ptr<ChContactMaterial> ChContactMaterialData::CreateMaterial(ChContactMethod contact_method) const {
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
             matNSC->SetFriction(mu);
             matNSC->SetRestitution(cr);
             return matNSC;
         }
         case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
             matSMC->SetFriction(mu);
             matSMC->SetRestitution(cr);
             matSMC->SetYoungModulus(Y);
@@ -116,7 +116,7 @@ std::shared_ptr<ChMaterialSurface> ChContactMaterialData::CreateMaterial(ChConta
             return matSMC;
         }
         default:
-            return std::shared_ptr<ChMaterialSurface>();
+            return std::shared_ptr<ChContactMaterial>();
     }
 }
 
@@ -148,21 +148,21 @@ void ChContactMaterialData::ArchiveIn(ChArchiveIn& marchive) {
 
 
 
-void ChMaterialComposite::ArchiveOut(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChMaterialComposite>();
+void ChContactMaterialComposite::ArchiveOut(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChContactMaterialComposite>();
 }
 
-void ChMaterialComposite::ArchiveIn(ChArchiveIn& marchive) {
-    marchive.VersionRead<ChMaterialComposite>();
+void ChContactMaterialComposite::ArchiveIn(ChArchiveIn& marchive) {
+    marchive.VersionRead<ChContactMaterialComposite>();
 }
 
 
-void ChMaterialCompositionStrategy::ArchiveOut(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChMaterialCompositionStrategy>();
+void ChContactMaterialCompositionStrategy::ArchiveOut(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChContactMaterialCompositionStrategy>();
 }
 
-void ChMaterialCompositionStrategy::ArchiveIn(ChArchiveIn& marchive) {
-    marchive.VersionRead<ChMaterialCompositionStrategy>();
+void ChContactMaterialCompositionStrategy::ArchiveIn(ChArchiveIn& marchive) {
+    marchive.VersionRead<ChContactMaterialCompositionStrategy>();
 }
 
 }  // end namespace chrono

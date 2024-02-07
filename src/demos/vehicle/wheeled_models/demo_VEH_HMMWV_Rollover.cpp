@@ -220,7 +220,7 @@ void AddObstacle(ChSystem* sys) {
     body->SetCollide(true);
     sys->Add(body);
 
-    std::shared_ptr<ChMaterialSurface> mat = ChMaterialSurface::DefaultMaterial(sys->GetContactMethod());
+    std::shared_ptr<ChContactMaterial> mat = ChContactMaterial::DefaultMaterial(sys->GetContactMethod());
 
     if (obstacle_coll_type == CollisionType::PRIMITIVES) {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(mat, radius, length);

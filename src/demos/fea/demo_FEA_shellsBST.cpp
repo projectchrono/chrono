@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
 
     if (false) {
         // Create a contact material
-        auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+        auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
         mat->SetYoungModulus(6e4f);
         mat->SetFriction(0.3f);
         mat->SetRestitution(0.5f);

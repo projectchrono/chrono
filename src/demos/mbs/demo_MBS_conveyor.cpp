@@ -127,14 +127,14 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
     if (remaind > ChRandom())
         particles_dt += 1;
 
-    auto sphere_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto sphere_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     sphere_mat->SetFriction(0.2f);
     sphere_mat->SetRestitution(0.8f);
 
-    auto box_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto box_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     box_mat->SetFriction(0.4f);
 
-    auto cyl_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto cyl_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     cyl_mat->SetFriction(0.2f);
 
     for (int i = 0; i < particles_dt; i++) {
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create two conveyor fences
-    auto fence_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto fence_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     fence_mat->SetFriction(0.1f);
 
     auto fence1 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true, fence_mat);
@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
 
     // Create the conveyor belt (this is a pure Chrono::Engine object,
     // because an Irrlicht 'SceneNode' wrapper is not yet available, so it is invisible - no 3D preview)
-    auto conveyor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto conveyor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     conveyor_mat->SetFriction(0.35f);
 
     auto conveyor = chrono_types::make_shared<ChConveyor>(2, 0.05, 0.6);

@@ -22,7 +22,7 @@ CH_UPCASTING(ChCollisionShapePath2D, ChCollisionShape)
 
 ChCollisionShapePath2D::ChCollisionShapePath2D() : ChCollisionShape(Type::PATH2D) {}
 
-ChCollisionShapePath2D::ChCollisionShapePath2D(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapePath2D::ChCollisionShapePath2D(std::shared_ptr<ChContactMaterial> material,
                                                std::shared_ptr<geometry::ChLinePath> path,
                                                double radius)
     : ChCollisionShape(Type::PATH2D, material), gpath(path) {

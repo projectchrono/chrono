@@ -446,7 +446,7 @@ class ChApi ChContactSegmentXYZ {
 /// higher computational overhead.
 class ChApi ChContactSurfaceMesh : public ChContactSurface {
   public:
-    ChContactSurfaceMesh(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh = nullptr);
+    ChContactSurfaceMesh(std::shared_ptr<ChContactMaterial> material, ChMesh* mesh = nullptr);
 
     virtual ~ChContactSurfaceMesh() {}
 

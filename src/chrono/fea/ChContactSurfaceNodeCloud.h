@@ -266,7 +266,7 @@ class ChApi ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
 /// Might be an efficient option in case of dense tessellations (but misses the node-vs-face and edge-vs-edge cases)
 class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
   public:
-    ChContactSurfaceNodeCloud(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh = nullptr);
+    ChContactSurfaceNodeCloud(std::shared_ptr<ChContactMaterial> material, ChMesh* mesh = nullptr);
 
     virtual ~ChContactSurfaceNodeCloud() {}
 

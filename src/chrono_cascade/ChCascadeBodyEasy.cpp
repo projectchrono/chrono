@@ -19,7 +19,7 @@ ChCascadeBodyEasy::ChCascadeBodyEasy(TopoDS_Shape& shape,
                                      double density,
                                      std::shared_ptr<ChCascadeTriangulate> vis_params,
                                      bool collide,
-                                     std::shared_ptr<ChMaterialSurface> mat) {
+                                     std::shared_ptr<ChContactMaterial> mat) {
     Init(shape, density, vis_params, collide, mat);
 }
 
@@ -27,7 +27,7 @@ ChCascadeBodyEasy::ChCascadeBodyEasy(TopoDS_Shape& shape,
                                      double density,
                                      bool visualize,
                                      bool collide,
-                                     std::shared_ptr<ChMaterialSurface> mat) {
+                                     std::shared_ptr<ChContactMaterial> mat) {
     if (visualize)
         Init(shape, density, chrono_types::make_shared<ChCascadeTriangulate>(), collide, mat);
     else
@@ -38,7 +38,7 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
                              double density,
                              std::shared_ptr<ChCascadeTriangulate> vis_params,
                              bool collide,
-                             std::shared_ptr<ChMaterialSurface> mat) {
+                             std::shared_ptr<ChContactMaterial> mat) {
     chrono::ChFrame<>* user_ref_to_abs = 0;  // as parameter?
     chrono::ChFrame<> frame_ref_to_abs;
 
@@ -97,7 +97,7 @@ ChCascadeBodyEasyProfile::ChCascadeBodyEasyProfile(std::vector<std::shared_ptr<:
                                                    double density,
                                                    std::shared_ptr<ChCascadeTriangulate> vis_params,
                                                    bool collide,
-                                                   std::shared_ptr<ChMaterialSurface> mat) {
+                                                   std::shared_ptr<ChContactMaterial> mat) {
     AddProfile(wires, holes, thickness, density, vis_params, collide, mat);
 }
 
@@ -107,7 +107,7 @@ void ChCascadeBodyEasyProfile::AddProfile(std::vector<std::shared_ptr<::chrono::
                                           double density,
                                           std::shared_ptr<ChCascadeTriangulate> vis_params,
                                           bool collide,
-                                          std::shared_ptr<ChMaterialSurface> mat) {
+                                          std::shared_ptr<ChContactMaterial> mat) {
     ChCascadeExtrusionFace face;
     face.wires = wires;
     face.holes = holes;

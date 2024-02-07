@@ -33,8 +33,8 @@
 #include "chrono/core/ChVector.h"
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemSMC.h"
 
@@ -65,7 +65,7 @@ class ChApi MixtureIngredient {
     MixtureIngredient(Generator* generator, MixtureType type, double ratio);
     ~MixtureIngredient();
 
-    void setDefaultMaterial(std::shared_ptr<ChMaterialSurface> mat);
+    void setDefaultMaterial(std::shared_ptr<ChContactMaterial> mat);
     void setDefaultDensity(double density);
     void setDefaultSize(const ChVector<>& size);
 
@@ -104,8 +104,8 @@ class ChApi MixtureIngredient {
     void calcGeometricProps(const ChVector<>& size, double& volume, ChVector<>& gyration);
     double calcMinSeparation();
 
-    void setMaterialProperties(std::shared_ptr<ChMaterialSurfaceNSC> mat);
-    void setMaterialProperties(std::shared_ptr<ChMaterialSurfaceSMC> mat);
+    void setMaterialProperties(std::shared_ptr<ChContactMaterialNSC> mat);
+    void setMaterialProperties(std::shared_ptr<ChContactMaterialSMC> mat);
 
     Generator* m_generator;
 
@@ -113,8 +113,8 @@ class ChApi MixtureIngredient {
     double m_ratio;
     double m_cumRatio;
 
-    std::shared_ptr<ChMaterialSurfaceNSC> m_defMaterialNSC;
-    std::shared_ptr<ChMaterialSurfaceSMC> m_defMaterialSMC;
+    std::shared_ptr<ChContactMaterialNSC> m_defMaterialNSC;
+    std::shared_ptr<ChContactMaterialSMC> m_defMaterialSMC;
 
     float m_minFriction, m_maxFriction;
     float m_minCohesion, m_maxCohesion;

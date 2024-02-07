@@ -22,7 +22,7 @@ CH_UPCASTING(ChCollisionShapeBox, ChCollisionShape)
 
 ChCollisionShapeBox::ChCollisionShapeBox(): ChCollisionShape(Type::BOX) {}
 
-ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material,
                                          double length_x,
                                          double length_y,
                                          double length_z)
@@ -30,12 +30,12 @@ ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChMaterialSurface> mate
     gbox.SetLengths(ChVector<>(length_x, length_y, length_z));
 }
 
-ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChMaterialSurface> material, const ChVector<>& lengths)
+ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const ChVector<>& lengths)
     : ChCollisionShape(Type::BOX, material) {
     gbox.SetLengths(lengths);
 }
 
-ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChMaterialSurface> material, const geometry::ChBox& box)
+ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const geometry::ChBox& box)
     : ChCollisionShape(Type::BOX, material), gbox(box) {}
 
 void ChCollisionShapeBox::ArchiveOut(ChArchiveOut& marchive) {

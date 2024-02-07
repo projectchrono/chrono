@@ -59,7 +59,7 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
     float kt = 0;
     float gt = 0;
 
-    std::shared_ptr<ChMaterialSurface> material;
+    std::shared_ptr<ChContactMaterial> material;
 
     switch (GetParam()) {
         case ChContactMethod::SMC: {
@@ -69,7 +69,7 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
             sysSMC->GetSettings()->solver.use_material_properties = use_mat_properties;
             sys = sysSMC;
 
-            auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
             mat->SetYoungModulus(young_modulus);
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
@@ -91,7 +91,7 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
             sysNSC->ChangeSolverType(SolverType::APGD);
             sys = sysNSC;
 
-            auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
             material = mat;

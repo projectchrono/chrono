@@ -62,7 +62,7 @@ class CH_MODELS_API ViperPart {
   public:
     ViperPart(const std::string& name,                 ///< part name
               const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-              std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+              std::shared_ptr<ChContactMaterial> mat,  ///< contact material
               bool collide                             ///< enable collision?
     );
     virtual ~ViperPart() {}
@@ -118,7 +118,7 @@ class CH_MODELS_API ViperPart {
 
     std::string m_name;                        ///< part name
     std::shared_ptr<ChBodyAuxRef> m_body;      ///< part rigid body
-    std::shared_ptr<ChMaterialSurface> m_mat;  ///< contact material
+    std::shared_ptr<ChContactMaterial> m_mat;  ///< contact material
 
     std::string m_mesh_name;  ///< visualization mesh name
     ChFrame<> m_mesh_xform;   ///< mesh transform (translate, rotate, scale)
@@ -137,7 +137,7 @@ class CH_MODELS_API ViperPart {
 class CH_MODELS_API ViperChassis : public ViperPart {
   public:
     ViperChassis(const std::string& name,                ///< part name
-                 std::shared_ptr<ChMaterialSurface> mat  ///< contact material
+                 std::shared_ptr<ChContactMaterial> mat  ///< contact material
     );
     ~ViperChassis() {}
 
@@ -150,7 +150,7 @@ class CH_MODELS_API ViperWheel : public ViperPart {
   public:
     ViperWheel(const std::string& name,                 ///< part name
                const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-               std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+               std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                ViperWheelType wheel_type                ///< wheel type
     );
     ~ViperWheel() {}
@@ -163,7 +163,7 @@ class CH_MODELS_API ViperUpperArm : public ViperPart {
   public:
     ViperUpperArm(const std::string& name,                 ///< part name
                   const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                  std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                  std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                   const int& side                          ///< vehicle side 0: L, 1: R
     );
     ~ViperUpperArm() {}
@@ -174,7 +174,7 @@ class CH_MODELS_API ViperLowerArm : public ViperPart {
   public:
     ViperLowerArm(const std::string& name,                 ///< part name
                   const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                  std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                  std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                   const int& side                          ///< vehicle side 0: L, 1: R
     );
     ~ViperLowerArm() {}
@@ -187,7 +187,7 @@ class CH_MODELS_API ViperUpright : public ViperPart {
   public:
     ViperUpright(const std::string& name,                 ///< part name
                  const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                 std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                 std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                  const int& side                          ///< vehicle side 0: L, 1: R
     );
     ~ViperUpright() {}
@@ -213,7 +213,7 @@ class CH_MODELS_API Viper {
     void SetDriver(std::shared_ptr<ViperDriver> driver);
 
     /// Set wheel contact material.
-    void SetWheelContactMaterial(std::shared_ptr<ChMaterialSurface> mat);
+    void SetWheelContactMaterial(std::shared_ptr<ChContactMaterial> mat);
 
     /// Fix the chassis to ground.
     void SetChassisFixed(bool fixed);
@@ -336,8 +336,8 @@ class CH_MODELS_API Viper {
 
     std::shared_ptr<ViperDriver> m_driver;  ///< rover driver system
 
-    std::shared_ptr<ChMaterialSurface> m_default_material;  ///< common contact material for all non-wheel parts
-    std::shared_ptr<ChMaterialSurface> m_wheel_material;    ///< wheel contact material (shared across limbs)
+    std::shared_ptr<ChContactMaterial> m_default_material;  ///< common contact material for all non-wheel parts
+    std::shared_ptr<ChContactMaterial> m_wheel_material;    ///< wheel contact material (shared across limbs)
 
     static const double m_max_steer_angle;  ///< maximum steering angle
 

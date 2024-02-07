@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChBodyAuxRef> rock_6;
 
     // create default SMC materials for the obstacles
-    std::shared_ptr<ChMaterialSurface> rockSufaceMaterial = ChMaterialSurface::DefaultMaterial(sys.GetContactMethod());
+    std::shared_ptr<ChContactMaterial> rockSufaceMaterial = ChContactMaterial::DefaultMaterial(sys.GetContactMethod());
 
     for (int i = 0; i < 2; i++) {
         // Create a rock

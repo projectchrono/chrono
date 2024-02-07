@@ -22,7 +22,7 @@ CH_UPCASTING(ChCollisionShapeCapsule, ChCollisionShape)
 
 ChCollisionShapeCapsule::ChCollisionShapeCapsule(): ChCollisionShape(Type::CAPSULE) {}
 
-ChCollisionShapeCapsule::ChCollisionShapeCapsule(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeCapsule::ChCollisionShapeCapsule(std::shared_ptr<ChContactMaterial> material,
                                                  double radius,
                                                  double height)
     : ChCollisionShape(Type::CAPSULE, material) {
@@ -30,7 +30,7 @@ ChCollisionShapeCapsule::ChCollisionShapeCapsule(std::shared_ptr<ChMaterialSurfa
     gcapsule.h = height;
 }
 
-ChCollisionShapeCapsule::ChCollisionShapeCapsule(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeCapsule::ChCollisionShapeCapsule(std::shared_ptr<ChContactMaterial> material,
                                                  const geometry::ChCapsule& cap)
     : ChCollisionShape(Type::CAPSULE, material), gcapsule(cap) {}
 

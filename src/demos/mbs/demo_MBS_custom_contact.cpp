@@ -46,8 +46,8 @@ class MyCustomCollisionDetection : public ChSystem::CustomCollisionCallback {
   public:
     MyCustomCollisionDetection(std::shared_ptr<ChBody> ball,
                                std::shared_ptr<ChBody> ground,
-                               std::shared_ptr<ChMaterialSurface> ball_mat,
-                               std::shared_ptr<ChMaterialSurface> obst_mat,
+                               std::shared_ptr<ChContactMaterial> ball_mat,
+                               std::shared_ptr<ChContactMaterial> obst_mat,
                                double ball_radius,
                                const MyObstacle& obstacle)
         : m_ball(ball),
@@ -94,8 +94,8 @@ class MyCustomCollisionDetection : public ChSystem::CustomCollisionCallback {
 
     std::shared_ptr<ChBody> m_ball;
     std::shared_ptr<ChBody> m_ground;
-    std::shared_ptr<ChMaterialSurface> m_ball_mat;
-    std::shared_ptr<ChMaterialSurface> m_obst_mat;
+    std::shared_ptr<ChContactMaterial> m_ball_mat;
+    std::shared_ptr<ChContactMaterial> m_obst_mat;
     double m_ball_radius;
     double m_obst_radius;
     ChVector<> m_obst_center;
@@ -112,21 +112,21 @@ int main(int argc, char* argv[]) {
 
     // Create the system and the various contact materials
     ChSystem* sys = nullptr;
-    std::shared_ptr<ChMaterialSurface> ground_mat;
-    std::shared_ptr<ChMaterialSurface> ball_mat;
-    std::shared_ptr<ChMaterialSurface> obst_mat;
+    std::shared_ptr<ChContactMaterial> ground_mat;
+    std::shared_ptr<ChContactMaterial> ball_mat;
+    std::shared_ptr<ChContactMaterial> obst_mat;
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
             sys = new ChSystemNSC;
 
-            auto g_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto g_mat = chrono_types::make_shared<ChContactMaterialNSC>();
             g_mat->SetRestitution(0.9f);
             g_mat->SetFriction(0.4f);
-            auto b_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto b_mat = chrono_types::make_shared<ChContactMaterialNSC>();
             b_mat->SetRestitution(0.9f);
             b_mat->SetFriction(0.5f);
-            auto o_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto o_mat = chrono_types::make_shared<ChContactMaterialNSC>();
             o_mat->SetRestitution(0.9f);
             o_mat->SetFriction(0.4f);
 
@@ -139,13 +139,13 @@ int main(int argc, char* argv[]) {
         case ChContactMethod::SMC: {
             sys = new ChSystemSMC;
 
-            auto g_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto g_mat = chrono_types::make_shared<ChContactMaterialSMC>();
             g_mat->SetRestitution(0.9f);
             g_mat->SetFriction(0.4f);
-            auto b_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto b_mat = chrono_types::make_shared<ChContactMaterialSMC>();
             b_mat->SetRestitution(0.9f);
             b_mat->SetFriction(0.5f);
-            auto o_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto o_mat = chrono_types::make_shared<ChContactMaterialSMC>();
             o_mat->SetRestitution(0.9f);
             o_mat->SetFriction(0.4f);
 

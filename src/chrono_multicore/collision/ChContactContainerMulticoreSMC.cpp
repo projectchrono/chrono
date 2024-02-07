@@ -46,8 +46,8 @@ void ChContactContainerMulticoreSMC::EndAddContact() {
 }
 
 void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo,
-                                                std::shared_ptr<ChMaterialSurface> mat1,
-                                                std::shared_ptr<ChMaterialSurface> mat2) {
+                                                std::shared_ptr<ChContactMaterial> mat1,
+                                                std::shared_ptr<ChContactMaterial> mat2) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -77,8 +77,8 @@ void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo,
 
         // Composite material for added contact
         ChMaterialCompositeSMC cmat(data_manager->composition_strategy.get(),
-                                    std::static_pointer_cast<ChMaterialSurfaceSMC>(mat1),
-                                    std::static_pointer_cast<ChMaterialSurfaceSMC>(mat2));
+                                    std::static_pointer_cast<ChContactMaterialSMC>(mat1),
+                                    std::static_pointer_cast<ChContactMaterialSMC>(mat2));
 
         // Load composite material properties in global data structure
         data_manager->host_data.fric_rigid_rigid.push_back(real3(cmat.mu_eff, cmat.muRoll_eff, cmat.muSpin_eff));
@@ -139,8 +139,8 @@ void ChContactContainerMulticoreSMC::AddContact(int index, int b1, int s1, int b
     auto shape2 = modelB->m_shapes[s2_index].get();
 
     // Contact materials of the two colliding shapes
-    auto mat1 = std::static_pointer_cast<ChMaterialSurfaceSMC>(shape1->GetMaterial());
-    auto mat2 = std::static_pointer_cast<ChMaterialSurfaceSMC>(shape2->GetMaterial());
+    auto mat1 = std::static_pointer_cast<ChContactMaterialSMC>(shape1->GetMaterial());
+    auto mat2 = std::static_pointer_cast<ChContactMaterialSMC>(shape2->GetMaterial());
 
     // Composite material
     ChMaterialCompositeSMC cmat(data_manager->composition_strategy.get(), mat1, mat2);

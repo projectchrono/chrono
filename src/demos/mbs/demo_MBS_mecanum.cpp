@@ -122,7 +122,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
     centralWheel->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));
     sys.Add(centralWheel);
 
-    auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto wheel_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     wheel_mat->SetFriction(STATIC_wheelfriction);
 
     double half_length_roller = 0.5 * wheel_width * 1.0 / (cos(roller_angle));
@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
     sys.AddLink(link_shaftC);
 
     // Create the ground for the collision
-    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     ground_mat->SetFriction(STATIC_wheelfriction);
 
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(200, 1, 200,  // size

@@ -124,10 +124,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.)
-    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy);
+    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy);
 
     /// Accessor for the current composition laws for contact surface material.
-    const ChMaterialCompositionStrategy& GetMaterialCompositionStrategy() const { return *composition_strategy; }
+    const ChContactMaterialCompositionStrategy& GetMaterialCompositionStrategy() const { return *composition_strategy; }
 
     /// For elastic collisions, with objects that have nonzero
     /// restitution coefficient: objects will rebounce only if their
@@ -900,7 +900,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     std::shared_ptr<ChCollisionSystem> collision_system;                        ///< collision engine
     std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;  ///< user-defined collision callbacks
-    std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;        /// material composition strategy
+    std::unique_ptr<ChContactMaterialCompositionStrategy> composition_strategy;        /// material composition strategy
 
     ChVisualSystem* visual_system;  ///< run-time visualization engine
 

@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create a surface material to be used for collisions, if any
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialNSC>();
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0);
 

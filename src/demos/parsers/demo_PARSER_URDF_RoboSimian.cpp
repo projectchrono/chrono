@@ -56,12 +56,12 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem& sys, double length, double width
     float Y = 1e7f;
     float cr = 0.0f;
 
-    auto ground_mat = ChMaterialSurface::DefaultMaterial(sys.GetContactMethod());
+    auto ground_mat = ChContactMaterial::DefaultMaterial(sys.GetContactMethod());
     ground_mat->SetFriction(friction);
     ground_mat->SetRestitution(cr);
 
     if (sys.GetContactMethod() == ChContactMethod::SMC) {
-        std::static_pointer_cast<ChMaterialSurfaceSMC>(ground_mat)->SetYoungModulus(Y);
+        std::static_pointer_cast<ChContactMaterialSMC>(ground_mat)->SetYoungModulus(Y);
     }
 
     auto ground = chrono_types::make_shared<ChBody>();

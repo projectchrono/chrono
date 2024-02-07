@@ -45,7 +45,7 @@ void Little_Hexy::AddVisualizationAssets() {
 
 // Add collision shapes
 // The collision shape is a boundary box, anything more sophisticated is probably an overkill
-void Little_Hexy::AddCollisionShapes(std::shared_ptr<ChMaterialSurface> material) {
+void Little_Hexy::AddCollisionShapes(std::shared_ptr<ChContactMaterial> material) {
     // Legs and body boundary box
     auto box = chrono_types::make_shared<ChCollisionShapeBox>(material, 0.558, 0.558, 0.92);
     chassis->AddCollisionShape(box);

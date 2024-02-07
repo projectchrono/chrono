@@ -39,8 +39,8 @@ MixtureIngredient::MixtureIngredient(Generator* generator, MixtureType type, dou
       m_type(type),
       m_ratio(ratio),
       m_cumRatio(0),
-      m_defMaterialNSC(chrono_types::make_shared<ChMaterialSurfaceNSC>()),
-      m_defMaterialSMC(chrono_types::make_shared<ChMaterialSurfaceSMC>()),
+      m_defMaterialNSC(chrono_types::make_shared<ChContactMaterialNSC>()),
+      m_defMaterialSMC(chrono_types::make_shared<ChContactMaterialSMC>()),
       m_defDensity(1),
       m_defSize(ChVector<>(1, 1, 1)),
       m_frictionDist(nullptr),
@@ -60,13 +60,13 @@ MixtureIngredient::~MixtureIngredient() {
 }
 
 // Set constant material properties for all objects based on this ingredient.
-void MixtureIngredient::setDefaultMaterial(std::shared_ptr<ChMaterialSurface> mat) {
+void MixtureIngredient::setDefaultMaterial(std::shared_ptr<ChContactMaterial> mat) {
     assert(mat->GetContactMethod() == m_generator->m_system->GetContactMethod());
 
     if (mat->GetContactMethod() == ChContactMethod::NSC) {
-        m_defMaterialNSC = std::static_pointer_cast<ChMaterialSurfaceNSC>(mat);
+        m_defMaterialNSC = std::static_pointer_cast<ChContactMaterialNSC>(mat);
     } else {
-        m_defMaterialSMC = std::static_pointer_cast<ChMaterialSurfaceSMC>(mat);
+        m_defMaterialSMC = std::static_pointer_cast<ChContactMaterialSMC>(mat);
     }
 
     freeMaterialDist();
@@ -165,7 +165,7 @@ void MixtureIngredient::freeMaterialDist() {
 }
 
 // Modify the specified NSC material surface based on attributes of this ingredient.
-void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceNSC> mat) {
+void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChContactMaterialNSC> mat) {
     // Copy properties from the default material.
     *mat = *m_defMaterialNSC;
 
@@ -178,7 +178,7 @@ void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceN
 }
 
 // Modify the specified SMC material surface based on attributes of this ingredient.
-void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceSMC> mat) {
+void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChContactMaterialSMC> mat) {
     // Copy properties from the default material.
     *mat = *m_defMaterialSMC;
 
@@ -474,16 +474,16 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
 
         // Create a contact material consistent with the associated system and modify it based on attributes of the
         // current ingredient.
-        std::shared_ptr<ChMaterialSurface> mat;
+        std::shared_ptr<ChContactMaterial> mat;
         switch (m_system->GetContactMethod()) {
             case ChContactMethod::NSC: {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
                 m_mixture[index]->setMaterialProperties(matNSC);
                 mat = matNSC;
                 break;
             }
             case ChContactMethod::SMC: {
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
                 m_mixture[index]->setMaterialProperties(matSMC);
                 mat = matSMC;
                 break;

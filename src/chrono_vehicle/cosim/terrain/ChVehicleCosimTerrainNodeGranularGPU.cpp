@@ -124,7 +124,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetFromSpecfile(const std::string& sp
     m_radius_g = d["Granular material"]["Radius"].GetDouble();
     m_rho_g = d["Granular material"]["Density"].GetDouble();
 
-    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     double coh_pressure = d["Material properties"]["Cohesion pressure"].GetDouble();
     double coh_force = CH_C_PI * m_radius_g * m_radius_g * coh_pressure;
 
@@ -188,7 +188,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetSamplingMethod(utils::SamplingType
     m_in_layers = in_layers;
 }
 
-void ChVehicleCosimTerrainNodeGranularGPU::SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceSMC>& mat) {
+void ChVehicleCosimTerrainNodeGranularGPU::SetMaterialSurface(const std::shared_ptr<ChContactMaterialSMC>& mat) {
     m_material_terrain = mat;
 }
 
@@ -404,8 +404,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     outf << "Terrain patch dimensions" << endl;
     outf << "   X = " << m_dimX << "  Y = " << m_dimY << endl;
     outf << "Terrain material properties" << endl;
-    auto mat = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_terrain);
-    outf << "   Coefficient of friction    = " << mat->GetKfriction() << endl;
+    auto mat = std::static_pointer_cast<ChContactMaterialSMC>(m_material_terrain);
+    outf << "   Coefficient of friction    = " << mat->GetSlidingFriction() << endl;
     outf << "   Coefficient of restitution = " << mat->GetRestitution() << endl;
     outf << "   Young modulus              = " << mat->GetYoungModulus() << endl;
     outf << "   Poisson ratio              = " << mat->GetPoissonRatio() << endl;
@@ -568,7 +568,7 @@ double ChVehicleCosimTerrainNodeGranularGPU::CalculatePackingDensity(double& dep
 
 // Set composite material properties for internal contacts (assume same material for spheres and walls)
 void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesInternal() {
-    auto material_terrain = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_terrain);
+    auto material_terrain = std::static_pointer_cast<ChContactMaterialSMC>(m_material_terrain);
 
     m_systemGPU->SetKn_SPH2SPH(material_terrain->GetKn());
     m_systemGPU->SetKn_SPH2WALL(material_terrain->GetKn());
@@ -582,8 +582,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesInternal() {
     m_systemGPU->SetGt_SPH2SPH(material_terrain->GetGt());
     m_systemGPU->SetGt_SPH2WALL(material_terrain->GetGt());
 
-    m_systemGPU->SetStaticFrictionCoeff_SPH2SPH(material_terrain->GetSfriction());
-    m_systemGPU->SetStaticFrictionCoeff_SPH2WALL(material_terrain->GetSfriction());
+    m_systemGPU->SetStaticFrictionCoeff_SPH2SPH(material_terrain->GetStaticFriction());
+    m_systemGPU->SetStaticFrictionCoeff_SPH2WALL(material_terrain->GetStaticFriction());
 
     //// TODO: adhesion/cohesion
     //// TODO: why are cohesion and adhesion defined as ratios to sphere weight?!?
@@ -598,15 +598,15 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesExternal(unsigned int
     //// For now, use the first one only
     auto mat_props = m_geometry[i_shape].m_materials[0];
 
-    auto material_terrain = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_terrain);
-    auto material = std::static_pointer_cast<ChMaterialSurfaceSMC>(mat_props.CreateMaterial(m_method));
+    auto material_terrain = std::static_pointer_cast<ChContactMaterialSMC>(m_material_terrain);
+    auto material = std::static_pointer_cast<ChContactMaterialSMC>(mat_props.CreateMaterial(m_method));
 
     const auto& strategy = m_system->GetMaterialCompositionStrategy();
     auto Kn = strategy.CombineStiffnessCoefficient(material_terrain->GetKn(), material->GetKn());
     auto Kt = strategy.CombineStiffnessCoefficient(material_terrain->GetKt(), material->GetKt());
     auto Gn = strategy.CombineDampingCoefficient(material_terrain->GetGn(), material->GetGn());
     auto Gt = strategy.CombineDampingCoefficient(material_terrain->GetGt(), material->GetGt());
-    auto mu = strategy.CombineFriction(m_material_terrain->GetSfriction(), material->GetSfriction());
+    auto mu = strategy.CombineFriction(m_material_terrain->GetStaticFriction(), material->GetStaticFriction());
 
     m_systemGPU->SetKn_SPH2MESH(Kn);
     m_systemGPU->SetGn_SPH2MESH(Gn);

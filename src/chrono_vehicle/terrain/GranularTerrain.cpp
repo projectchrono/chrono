@@ -505,7 +505,7 @@ float GranularTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
     if (m_friction_fun)
         return (*m_friction_fun)(loc);
 
-    return m_material->GetSfriction();
+    return m_material->GetStaticFriction();
 }
 
 }  // end namespace vehicle

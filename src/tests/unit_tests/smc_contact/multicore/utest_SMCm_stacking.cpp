@@ -40,11 +40,11 @@ class StackingTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
         float adDMT = 0.0f;        // Magnitude of the adhesion in the DMT adhesion model
         float adSPerko = 0.0f;     // Magnitude of the adhesion in the SPerko adhesion model
 
-        auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+        auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
         mat->SetYoungModulus(y_modulus);
         mat->SetPoissonRatio(p_ratio);
-        mat->SetSfriction(s_frict);
-        mat->SetKfriction(k_frict);
+        mat->SetStaticFriction(s_frict);
+        mat->SetSlidingFriction(k_frict);
         mat->SetRollingFriction(roll_frict);
         mat->SetSpinningFriction(spin_frict);
         mat->SetRestitution(cor_in);

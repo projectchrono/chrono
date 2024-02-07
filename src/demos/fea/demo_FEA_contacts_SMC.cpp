@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     // It is a SMC (penalty) material that we will assign to
     // all surfaces that might generate contacts.
 
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     mysurfmaterial->SetYoungModulus(6e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);

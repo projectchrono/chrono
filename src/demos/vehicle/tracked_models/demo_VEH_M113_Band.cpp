@@ -528,7 +528,7 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->AddVisualShape(vis_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     // Contact
-    auto obst_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto obst_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     obst_mat->SetFriction(0.9f);
     obst_mat->SetRestitution(0.01f);
     obst_mat->SetYoungModulus(2e7f);

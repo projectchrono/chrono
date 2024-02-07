@@ -112,7 +112,7 @@ void ChTrackShoeBandBushing::UpdateInertiaProperties() {
 
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment,
-                                           std::shared_ptr<ChMaterialSurface> web_mat) {
+                                           std::shared_ptr<ChContactMaterial> web_mat) {
     auto shape =
         chrono_types::make_shared<ChCollisionShapeBox>(web_mat, m_seg_length, GetBeltWidth(), GetWebThickness());
     segment->AddCollisionShape(shape);

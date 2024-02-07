@@ -220,8 +220,8 @@ void SetContactProperties(robosimian::RoboSimian* robot) {
     robot->GetWheelContactMaterial()->SetFriction(friction);
     robot->GetWheelContactMaterial()->SetRestitution(cr);
 
-    std::static_pointer_cast<ChMaterialSurfaceSMC>(robot->GetSledContactMaterial())->SetYoungModulus(Y);
-    std::static_pointer_cast<ChMaterialSurfaceSMC>(robot->GetWheelContactMaterial())->SetYoungModulus(Y);
+    std::static_pointer_cast<ChContactMaterialSMC>(robot->GetSledContactMaterial())->SetYoungModulus(Y);
+    std::static_pointer_cast<ChContactMaterialSMC>(robot->GetWheelContactMaterial())->SetYoungModulus(Y);
 }
 
 // =============================================================================

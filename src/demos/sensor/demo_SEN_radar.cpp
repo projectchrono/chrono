@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
-    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto material = chrono_types::make_shared<ChContactMaterialNSC>();
     // Create the system
     // -----------------
     ChSystemNSC sys;

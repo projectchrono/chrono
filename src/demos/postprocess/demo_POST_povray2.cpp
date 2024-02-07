@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     particles->SetMass(0.01);
     particles->SetInertiaXX(ChVector<>((2.0 / 5) * (0.005 * 0.005) * 0.01));
 
-    auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto particle_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto particle_ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, 0.005);
     particles->AddCollisionShape(particle_ct_shape);
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetBodyFixed(true);
 
-    auto floor_ct_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_ct_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto floor_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_ct_mat, 0.2, 0.04, 0.2);
     floor->AddCollisionShape(floor_ct_shape);
     floor->SetCollide(true);

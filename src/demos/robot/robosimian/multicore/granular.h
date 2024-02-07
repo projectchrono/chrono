@@ -35,8 +35,8 @@ class GroundGranular {
   protected:
     virtual void Initialize(double x_min, double z_max, double step_size) = 0;
 
-    std::shared_ptr<chrono::ChMaterialSurface> m_material_c;
-    std::shared_ptr<chrono::ChMaterialSurface> m_material_g;
+    std::shared_ptr<chrono::ChContactMaterial> m_material_c;
+    std::shared_ptr<chrono::ChContactMaterial> m_material_g;
 
     chrono::ChSystemMulticore* m_sys;  // associated system
 

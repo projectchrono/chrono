@@ -27,7 +27,7 @@ namespace chrono {
 class ChApi ChCollisionShapePoint : public ChCollisionShape {
   public:
     ChCollisionShapePoint();
-    ChCollisionShapePoint(std::shared_ptr<ChMaterialSurface> material, const ChVector<>& point, double radius);
+    ChCollisionShapePoint(std::shared_ptr<ChContactMaterial> material, const ChVector<>& point, double radius);
 
     ~ChCollisionShapePoint() {}
 

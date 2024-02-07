@@ -14,7 +14,7 @@
 //
 //   Demo code about
 //     - collisions and contacts
-//     - sharing a ChMaterialSurfaceNSC property between bodies
+//     - sharing a ChContactMaterialNSC property between bodies
 //
 // =============================================================================
 
@@ -40,7 +40,7 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 // Create a bunch of rigid bodies that represent bricks in a large wall.
 void create_wall_bodies(ChSystemNSC& sys) {
     // Create a material that will be shared among all collision shapes
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
     mat->SetCompliance(0.0);
     mat->SetComplianceT(0.0);
@@ -90,7 +90,7 @@ void create_wall_bodies(ChSystemNSC& sys) {
 // Create a bunch of ChronoENGINE rigid bodies that represent bricks in a Jenga tower
 void create_jengatower_bodies(ChSystemNSC& sys) {
     // Create a material that will be shared among all collision shapes
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
     mat->SetCompliance(0.0);
     mat->SetComplianceT(0.0);

@@ -125,7 +125,7 @@ void ChVehicleCosimTerrainNodeRigid::SetFromSpecfile(const std::string& specfile
 
     switch (GetSystem()->GetContactMethod()) {
         case ChContactMethod::SMC: {
-            auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto material = chrono_types::make_shared<ChContactMaterialSMC>();
             material->SetFriction(d["Material properties"]["Coefficient of friction"].GetDouble());
             material->SetRestitution(d["Material properties"]["Coefficient of restitution"].GetDouble());
             material->SetYoungModulus(d["Material properties"]["Young modulus"].GetDouble());
@@ -138,7 +138,7 @@ void ChVehicleCosimTerrainNodeRigid::SetFromSpecfile(const std::string& specfile
             break;
         }
         case ChContactMethod::NSC: {
-            auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto material = chrono_types::make_shared<ChContactMaterialNSC>();
             material->SetFriction(d["Material properties"]["Coefficient of friction"].GetDouble());
             material->SetRestitution(d["Material properties"]["Coefficient of restitution"].GetDouble());
             m_material_terrain = material;
@@ -183,7 +183,7 @@ void ChVehicleCosimTerrainNodeRigid::SetContactForceModel(ChSystemSMC::ContactFo
     static_cast<ChSystemSMC*>(m_system)->SetContactForceModel(model);
 }
 
-void ChVehicleCosimTerrainNodeRigid::SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat) {
+void ChVehicleCosimTerrainNodeRigid::SetMaterialSurface(const std::shared_ptr<ChContactMaterial>& mat) {
     assert(mat->GetContactMethod() == m_system->GetContactMethod());
     m_material_terrain = mat;
 }
@@ -279,8 +279,8 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     outf << "Terrain material properties" << endl;
     switch (m_method) {
         case ChContactMethod::SMC: {
-            auto mat = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_terrain);
-            outf << "   Coefficient of friction    = " << mat->GetKfriction() << endl;
+            auto mat = std::static_pointer_cast<ChContactMaterialSMC>(m_material_terrain);
+            outf << "   Coefficient of friction    = " << mat->GetSlidingFriction() << endl;
             outf << "   Coefficient of restitution = " << mat->GetRestitution() << endl;
             outf << "   Young modulus              = " << mat->GetYoungModulus() << endl;
             outf << "   Poisson ratio              = " << mat->GetPoissonRatio() << endl;
@@ -292,8 +292,8 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
             break;
         }
         case ChContactMethod::NSC: {
-            auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(m_material_terrain);
-            outf << "   Coefficient of friction    = " << mat->GetKfriction() << endl;
+            auto mat = std::static_pointer_cast<ChContactMaterialNSC>(m_material_terrain);
+            outf << "   Coefficient of friction    = " << mat->GetSlidingFriction() << endl;
             outf << "   Coefficient of restitution = " << mat->GetRestitution() << endl;
             outf << "   Cohesion force             = " << mat->GetCohesion() << endl;
             break;

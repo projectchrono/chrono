@@ -176,7 +176,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     Type m_type;  ///< terrain type
 
     ChContactMethod m_method;                               ///< contact method (SMC or NSC)
-    std::shared_ptr<ChMaterialSurface> m_material_terrain;  ///< material properties for terrain bodies
+    std::shared_ptr<ChContactMaterial> m_material_terrain;  ///< material properties for terrain bodies
 
     double m_init_height;  ///< terrain initial height
 

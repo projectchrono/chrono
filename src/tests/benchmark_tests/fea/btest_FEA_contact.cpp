@@ -64,9 +64,9 @@ class FEAcontactTest : public utils::ChBenchmarkTest {
     FEAcontactTest(SolverType solver_type);
 
   private:
-    void CreateFloor(std::shared_ptr<ChMaterialSurfaceSMC> cmat);
-    void CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat);
-    void CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat);
+    void CreateFloor(std::shared_ptr<ChContactMaterialSMC> cmat);
+    void CreateBeams(std::shared_ptr<ChContactMaterialSMC> cmat);
+    void CreateCables(std::shared_ptr<ChContactMaterialSMC> cmat);
 
     ChSystemSMC* m_system;
 };
@@ -143,7 +143,7 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
     ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
     ChCollisionModel::SetDefaultSuggestedMargin(0.006);
 
-    auto cmat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto cmat = chrono_types::make_shared<ChContactMaterialSMC>();
     cmat->SetYoungModulus(6e4);
     cmat->SetFriction(0.3f);
     cmat->SetRestitution(0.2f);
@@ -154,14 +154,14 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
     CreateCables(cmat);
 }
 
-void FEAcontactTest::CreateFloor(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
+void FEAcontactTest::CreateFloor(std::shared_ptr<ChContactMaterialSMC> cmat) {
     auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true, true, cmat);
     mfloor->SetBodyFixed(true);
     mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     m_system->Add(mfloor);
 }
 
-void FEAcontactTest::CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
+void FEAcontactTest::CreateBeams(std::shared_ptr<ChContactMaterialSMC> cmat) {
     auto mesh = chrono_types::make_shared<ChMesh>();
     m_system->Add(mesh);
 
@@ -194,7 +194,7 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
     mesh->AddVisualShapeFEA(vis_speed);
 }
 
-void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
+void FEAcontactTest::CreateCables(std::shared_ptr<ChContactMaterialSMC> cmat) {
     auto mesh = chrono_types::make_shared<ChMesh>();
     m_system->Add(mesh);
 

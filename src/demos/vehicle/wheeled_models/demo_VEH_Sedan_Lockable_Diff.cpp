@@ -76,13 +76,13 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(sedan.GetSystem());
 
-    auto patch1_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch1_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     patch1_mat->SetFriction(0.1f);
     patch1_mat->SetRestitution(0.01f);
     patch1_mat->SetYoungModulus(2e7f);
     patch1_mat->SetPoissonRatio(0.3f);
 
-    auto patch2_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch2_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     patch2_mat->SetFriction(0.9f);
     patch2_mat->SetRestitution(0.01f);
     patch2_mat->SetYoungModulus(2e7f);

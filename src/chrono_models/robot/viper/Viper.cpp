@@ -57,7 +57,7 @@ const double Viper::m_max_steer_angle = CH_C_PI / 6;
 // =============================================================================
 
 // Default contact material for rover parts
-std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contact_method) {
+std::shared_ptr<ChContactMaterial> DefaultContactMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
     float cr = 0.0f;   // coefficient of restitution
     float Y = 2e7f;    // Young's modulus
@@ -69,13 +69,13 @@ std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contac
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
             matNSC->SetFriction(mu);
             matNSC->SetRestitution(cr);
             return matNSC;
         }
         case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
             matSMC->SetFriction(mu);
             matSMC->SetRestitution(cr);
             matSMC->SetYoungModulus(Y);
@@ -87,7 +87,7 @@ std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contac
             return matSMC;
         }
         default:
-            return std::shared_ptr<ChMaterialSurface>();
+            return std::shared_ptr<ChContactMaterial>();
     }
 }
 
@@ -202,7 +202,7 @@ std::shared_ptr<ChLinkTSDA> AddSuspensionSpring(std::shared_ptr<ChBodyAuxRef> bo
 // Base class for all Viper Part
 ViperPart::ViperPart(const std::string& name,
                      const ChFrame<>& rel_pos,
-                     std::shared_ptr<ChMaterialSurface> mat,
+                     std::shared_ptr<ChContactMaterial> mat,
                      bool collide)
     : m_name(name), m_pos(rel_pos), m_mat(mat), m_collide(collide), m_visualize(true) {}
 
@@ -271,7 +271,7 @@ void ViperPart::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
 // =============================================================================
 
 // Rover Chassis
-ViperChassis::ViperChassis(const std::string& name, std::shared_ptr<ChMaterialSurface> mat)
+ViperChassis::ViperChassis(const std::string& name, std::shared_ptr<ChContactMaterial> mat)
     : ViperPart(name, ChFrame<>(VNULL, QUNIT), mat, false) {
     m_mesh_name = "viper_chassis";
     m_color = ChColor(1.0f, 1.0f, 1.0f);
@@ -289,7 +289,7 @@ void ViperChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
 // Viper Wheel
 ViperWheel::ViperWheel(const std::string& name,
                        const ChFrame<>& rel_pos,
-                       std::shared_ptr<ChMaterialSurface> mat,
+                       std::shared_ptr<ChContactMaterial> mat,
                        ViperWheelType wheel_type)
     : ViperPart(name, rel_pos, mat, true) {
     switch (wheel_type) {
@@ -313,7 +313,7 @@ ViperWheel::ViperWheel(const std::string& name,
 // Viper Upper Suspension Arm
 ViperUpperArm::ViperUpperArm(const std::string& name,
                              const ChFrame<>& rel_pos,
-                             std::shared_ptr<ChMaterialSurface> mat,
+                             std::shared_ptr<ChContactMaterial> mat,
                              const int& side)
     : ViperPart(name, rel_pos, mat, false) {
     if (side == 0) {
@@ -331,7 +331,7 @@ ViperUpperArm::ViperUpperArm(const std::string& name,
 // Viper Lower Suspension Arm
 ViperLowerArm::ViperLowerArm(const std::string& name,
                              const ChFrame<>& rel_pos,
-                             std::shared_ptr<ChMaterialSurface> mat,
+                             std::shared_ptr<ChContactMaterial> mat,
                              const int& side)
     : ViperPart(name, rel_pos, mat, false) {
     if (side == 0) {
@@ -349,7 +349,7 @@ ViperLowerArm::ViperLowerArm(const std::string& name,
 // Viper Upright
 ViperUpright::ViperUpright(const std::string& name,
                            const ChFrame<>& rel_pos,
-                           std::shared_ptr<ChMaterialSurface> mat,
+                           std::shared_ptr<ChContactMaterial> mat,
                            const int& side)
     : ViperPart(name, rel_pos, mat, false) {
     if (side == 0) {
@@ -590,7 +590,7 @@ void Viper::SetDriver(std::shared_ptr<ViperDriver> driver) {
     m_driver->viper = this;
 }
 
-void Viper::SetWheelContactMaterial(std::shared_ptr<ChMaterialSurface> mat) {
+void Viper::SetWheelContactMaterial(std::shared_ptr<ChContactMaterial> mat) {
     for (auto& wheel : m_wheels)
         wheel->m_mat = mat;
 }

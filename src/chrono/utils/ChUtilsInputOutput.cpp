@@ -102,13 +102,13 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
             // Write shape material information
             if (ctype == 0) {
-                auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(shape->GetMaterial());
+                auto mat = std::static_pointer_cast<ChContactMaterialNSC>(shape->GetMaterial());
                 csv << mat->static_friction << mat->sliding_friction << mat->rolling_friction << mat->spinning_friction;
                 csv << mat->restitution << mat->cohesion << mat->dampingf;
                 csv << mat->compliance << mat->complianceT << mat->complianceRoll << mat->complianceSpin;
                 csv << tab;
             } else {
-                auto mat = std::static_pointer_cast<ChMaterialSurfaceSMC>(shape->GetMaterial());
+                auto mat = std::static_pointer_cast<ChContactMaterialSMC>(shape->GetMaterial());
                 csv << mat->young_modulus << mat->poisson_ratio;
                 csv << mat->static_friction << mat->sliding_friction;
                 csv << mat->restitution << mat->constant_adhesion << mat->adhesionMultDMT;
@@ -276,16 +276,16 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
             iss >> spos.x() >> spos.y() >> spos.z() >> srot.e0() >> srot.e1() >> srot.e2() >> srot.e3();
 
             // Get material information and create the material
-            std::shared_ptr<ChMaterialSurface> mat;
+            std::shared_ptr<ChContactMaterial> mat;
             if (ctype == 0) {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
                 iss >> matNSC->static_friction >> matNSC->sliding_friction >> matNSC->rolling_friction >>
                     matNSC->spinning_friction;
                 iss >> matNSC->restitution >> matNSC->cohesion >> matNSC->dampingf;
                 iss >> matNSC->compliance >> matNSC->complianceT >> matNSC->complianceRoll >> matNSC->complianceSpin;
                 mat = matNSC;
             } else {
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
                 iss >> matSMC->young_modulus >> matSMC->poisson_ratio;
                 iss >> matSMC->static_friction >> matSMC->sliding_friction;
                 iss >> matSMC->restitution >> matSMC->constant_adhesion >> matSMC->adhesionMultDMT;

@@ -67,7 +67,7 @@ double PoiseuilleAnalytical(double Z, double L, double time, ChSystemFsi& sysFSI
 // Create the wall boundary and the BCE particles
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
 
     // Set common material Properties
     mysurfmaterial->SetYoungModulus(6e4);

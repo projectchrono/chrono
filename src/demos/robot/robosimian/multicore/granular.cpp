@@ -66,7 +66,7 @@ void GroundGranular::Initialize(double x_min, double z_max, double step_size) {
 
     switch (m_sys->GetContactMethod()) {
         case ChContactMethod::SMC: {
-            auto mat_c = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto mat_c = chrono_types::make_shared<ChContactMaterialSMC>();
             mat_c->SetFriction(0.0f);
             mat_c->SetRestitution(0.0f);
             mat_c->SetYoungModulus(8e5f);
@@ -78,7 +78,7 @@ void GroundGranular::Initialize(double x_min, double z_max, double step_size) {
             mat_c->SetGt(4.0e1f);
             m_material_c = mat_c;
 
-            auto mat_g = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto mat_g = chrono_types::make_shared<ChContactMaterialSMC>();
             mat_g->SetFriction(static_cast<float>(m_friction));
             mat_g->SetRestitution(0.0f);
             mat_g->SetYoungModulus(8e5f);
@@ -93,13 +93,13 @@ void GroundGranular::Initialize(double x_min, double z_max, double step_size) {
             break;
         }
         case ChContactMethod::NSC: {
-            auto mat_c = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto mat_c = chrono_types::make_shared<ChContactMaterialNSC>();
             mat_c->SetFriction(0.0f);
             mat_c->SetRestitution(0.0f);
             mat_c->SetCohesion(0.0f);
             m_material_c = mat_c;
 
-            auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto mat_g = chrono_types::make_shared<ChContactMaterialNSC>();
             mat_g->SetFriction(static_cast<float>(m_friction));
             mat_g->SetRestitution(0.0f);
             mat_g->SetCohesion(static_cast<float>(coh_force * step_size));

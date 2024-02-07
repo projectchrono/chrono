@@ -174,7 +174,7 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
     /// Optionally (length > 0), create a flat lane of given length positioned before the uneven portion.
     /// The specified radius (default 0) is used as a "mesh thickness" to improve robustness of the collision detection.
     /// Note that this function must be called before Initialize().
-    void EnableCollisionMesh(std::shared_ptr<ChMaterialSurface> material,
+    void EnableCollisionMesh(std::shared_ptr<ChContactMaterial> material,
                              double length = 0,
                              double sweep_sphere_radius = 0);
 
@@ -241,7 +241,7 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
     ChVectorDynamic<> m_phase_left;
     ChVectorDynamic<> m_phase_right;
 
-    std::shared_ptr<ChMaterialSurface> m_material;
+    std::shared_ptr<ChContactMaterial> m_material;
     bool m_collision_mesh;
     double m_start_length;
     double m_sweep_sphere_radius;

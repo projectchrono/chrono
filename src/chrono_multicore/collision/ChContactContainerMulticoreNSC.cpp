@@ -44,8 +44,8 @@ void ChContactContainerMulticoreNSC::EndAddContact() {
 }
 
 void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo,
-                                                std::shared_ptr<ChMaterialSurface> mat1,
-                                                std::shared_ptr<ChMaterialSurface> mat2) {
+                                                std::shared_ptr<ChContactMaterial> mat1,
+                                                std::shared_ptr<ChContactMaterial> mat2) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -85,8 +85,8 @@ void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo,
 
         // Composite material for added contact
         ChMaterialCompositeNSC cmat(data_manager->composition_strategy.get(),
-                                    std::static_pointer_cast<ChMaterialSurfaceNSC>(mat1),
-                                    std::static_pointer_cast<ChMaterialSurfaceNSC>(mat2));
+                                    std::static_pointer_cast<ChContactMaterialNSC>(mat1),
+                                    std::static_pointer_cast<ChContactMaterialNSC>(mat2));
 
         // Load composite material properties in global data structure
         data_manager->host_data.fric_rigid_rigid.push_back(
@@ -146,8 +146,8 @@ void ChContactContainerMulticoreNSC::AddContact(int index, int b1, int s1, int b
     auto shape2 = modelB->m_shapes[s2_index].get();
 
     // Contact materials of the two colliding shapes
-    auto mat1 = std::static_pointer_cast<ChMaterialSurfaceNSC>(shape1->GetMaterial());
-    auto mat2 = std::static_pointer_cast<ChMaterialSurfaceNSC>(shape2->GetMaterial());
+    auto mat1 = std::static_pointer_cast<ChContactMaterialNSC>(shape1->GetMaterial());
+    auto mat2 = std::static_pointer_cast<ChContactMaterialNSC>(shape2->GetMaterial());
 
     // Composite material
     ChMaterialCompositeNSC cmat(data_manager->composition_strategy.get(), mat1, mat2);

@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     RigidTerrain terrain(uaz.GetSystem());
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     patch_mat->SetFriction(0.8f);
     patch_mat->SetRestitution(0.01f);
     auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 300, 300);

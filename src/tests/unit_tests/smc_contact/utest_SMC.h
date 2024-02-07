@@ -44,7 +44,7 @@ std::string ForceModel_name(ChSystemSMC::ContactForceModel f) {
 
 std::shared_ptr<ChBody> AddSphere(int id,
                                   ChSystem* sys,
-                                  std::shared_ptr<ChMaterialSurfaceSMC> mat,
+                                  std::shared_ptr<ChContactMaterialSMC> mat,
                                   double radius,
                                   double mass,
                                   ChVector<> pos,
@@ -75,7 +75,7 @@ std::shared_ptr<ChBody> AddSphere(int id,
 
 std::shared_ptr<ChBody> AddWall(int id,
                                 ChSystem* sys,
-                                std::shared_ptr<ChMaterialSurfaceSMC> mat,
+                                std::shared_ptr<ChContactMaterialSMC> mat,
                                 ChVector<> size,
                                 double mass,
                                 ChVector<> pos,

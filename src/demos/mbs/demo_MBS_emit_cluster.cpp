@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector<>(0, 14, -20));
 
     // Create a rigid body
-    auto sphere_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto sphere_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     sphere_mat->SetFriction(0.2f);
 
     auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(2.1,          // radius size

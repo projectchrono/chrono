@@ -255,7 +255,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.AddBody(ground);
 
     // Bottom collision plate
-    auto cmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     cmaterial->SetYoungModulus(6e4);
     cmaterial->SetFriction(0.3f);
     cmaterial->SetRestitution(0.2f);

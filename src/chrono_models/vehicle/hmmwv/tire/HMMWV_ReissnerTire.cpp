@@ -263,7 +263,7 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> HMMWV_ReissnerTire::GetConnecte
 }
 
 void HMMWV_ReissnerTire::CreateContactMaterial() {
-    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     m_contact_mat->SetFriction(m_friction);
     m_contact_mat->SetRestitution(m_restitution);
     m_contact_mat->SetYoungModulus(m_Young);

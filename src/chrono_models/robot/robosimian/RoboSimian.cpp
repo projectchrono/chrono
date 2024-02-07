@@ -350,7 +350,7 @@ class ContactMaterial : public ChContactContainer::AddContactCallback {
     }
 
     virtual void OnAddContact(const ChCollisionInfo& contactinfo,
-                              ChMaterialComposite* const material) override {
+                              ChContactMaterialComposite* const material) override {
         //// TODO: currently, only NSC multicore systems support user override of composite materials.
         auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
 
@@ -442,7 +442,7 @@ RoboSimian::~RoboSimian() {
     delete m_material_override;
 }
 
-std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contact_method) {
+std::shared_ptr<ChContactMaterial> DefaultContactMaterial(ChContactMethod contact_method) {
     float mu = 0.8f;   // coefficient of friction
     float cr = 0.0f;   // coefficient of restitution
     float Y = 2e7f;    // Young's modulus
@@ -454,13 +454,13 @@ std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contac
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
             matNSC->SetFriction(mu);
             matNSC->SetRestitution(cr);
             return matNSC;
         }
         case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
             matSMC->SetFriction(mu);
             matSMC->SetRestitution(cr);
             matSMC->SetYoungModulus(Y);
@@ -472,7 +472,7 @@ std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contac
             return matSMC;
         }
         default:
-            return std::shared_ptr<ChMaterialSurface>();
+            return std::shared_ptr<ChContactMaterial>();
     }
 }
 
@@ -859,7 +859,7 @@ void RS_DriverCallback::OnPhaseChange(RS_Driver::Phase old_phase, RS_Driver::Pha
 
 // =============================================================================
 
-RS_Part::RS_Part(const std::string& name, std::shared_ptr<ChMaterialSurface> mat, ChSystem* system)
+RS_Part::RS_Part(const std::string& name, std::shared_ptr<ChContactMaterial> mat, ChSystem* system)
     : m_name(name), m_mat(mat) {
     m_body = chrono_types::make_shared<ChBodyAuxRef>();
     m_body->SetNameString(name + "_body");
@@ -963,7 +963,7 @@ void RS_Part::AddCollisionShapes() {
 
 // =============================================================================
 
-RS_Chassis::RS_Chassis(const std::string& name, bool fixed, std::shared_ptr<ChMaterialSurface> mat, ChSystem* system)
+RS_Chassis::RS_Chassis(const std::string& name, bool fixed, std::shared_ptr<ChContactMaterial> mat, ChSystem* system)
     : RS_Part(name, mat, system), m_collide(false) {
     double mass = 46.658335;
     ChVector<> com(0.040288, -0.001937, -0.073574);
@@ -1036,7 +1036,7 @@ void RS_Chassis::Translate(const ChVector<>& shift) {
 
 // =============================================================================
 
-RS_Sled::RS_Sled(const std::string& name, std::shared_ptr<ChMaterialSurface> mat, ChSystem* system)
+RS_Sled::RS_Sled(const std::string& name, std::shared_ptr<ChContactMaterial> mat, ChSystem* system)
     : RS_Part(name, mat, system), m_collide(true) {
     double mass = 2.768775;
     ChVector<> com(0.000000, 0.000000, 0.146762);
@@ -1091,7 +1091,7 @@ void RS_Sled::Translate(const ChVector<>& shift) {
 
 // =============================================================================
 
-RS_WheelDD::RS_WheelDD(const std::string& name, int id, std::shared_ptr<ChMaterialSurface> mat, ChSystem* system)
+RS_WheelDD::RS_WheelDD(const std::string& name, int id, std::shared_ptr<ChContactMaterial> mat, ChSystem* system)
     : RS_Part(name, mat, system) {
     double mass = 3.492500;
     ChVector<> com(0, 0, 0);
@@ -1138,8 +1138,8 @@ void RS_WheelDD::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
 RS_Limb::RS_Limb(const std::string& name,
                  LimbID id,
                  const LinkData data[],
-                 std::shared_ptr<ChMaterialSurface> wheel_mat,
-                 std::shared_ptr<ChMaterialSurface> link_mat,
+                 std::shared_ptr<ChContactMaterial> wheel_mat,
+                 std::shared_ptr<ChContactMaterial> link_mat,
                  ChSystem* system)
     : m_name(name), m_collide_links(false), m_collide_wheel(true) {
     for (int i = 0; i < num_links; i++) {

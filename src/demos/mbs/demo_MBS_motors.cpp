@@ -46,7 +46,7 @@ ChCollisionSystem::Type collision_type = ChCollisionSystem::Type::BULLET;
 // just to simplify the creation of multiple linear motors in this demo.
 void CreateSliderGuide(std::shared_ptr<ChBody>& guide,
                        std::shared_ptr<ChBody>& slider,
-                       std::shared_ptr<ChMaterialSurface> material,
+                       std::shared_ptr<ChContactMaterial> material,
                        ChSystem& sys,
                        const ChVector<> mpos) {
     guide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material);
@@ -71,7 +71,7 @@ void CreateSliderGuide(std::shared_ptr<ChBody>& guide,
 
 void CreateStatorRotor(std::shared_ptr<ChBody>& stator,
                        std::shared_ptr<ChBody>& rotor,
-                       std::shared_ptr<ChMaterialSurface> material,
+                       std::shared_ptr<ChContactMaterial> material,
                        ChSystem& sys,
                        const ChVector<>& mpos) {
     stator =
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(collision_type);
 
     // Contact material shared among all objects
-    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto material = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Create a floor that is fixed (that is used also to represent the absolute reference)
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, material);

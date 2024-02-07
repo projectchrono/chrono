@@ -19,7 +19,7 @@
 #include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChParticleCloud.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
 #include "chrono/collision/ChCollisionSystem.h"
 
 namespace chrono {

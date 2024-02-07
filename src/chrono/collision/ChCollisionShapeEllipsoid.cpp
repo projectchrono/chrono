@@ -22,7 +22,7 @@ CH_UPCASTING(ChCollisionShapeEllipsoid, ChCollisionShape)
 
 ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(): ChCollisionShape(Type::ELLIPSOID) {}
 
-ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material,
                                                      double axis_x,
                                                      double axis_y,
                                                      double axis_z)
@@ -30,13 +30,13 @@ ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChMaterialS
     gellipsoid.rad = ChVector<>(axis_x / 2, axis_y / 2, axis_z / 2);
 }
 
-ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material,
                                                      const ChVector<>& axes)
     : ChCollisionShape(Type::ELLIPSOID, material) {
     gellipsoid.rad = axes / 2;
 }
 
-ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material,
                                                      const geometry::ChEllipsoid& ellipsoid)
     : ChCollisionShape(Type::ELLIPSOID, material), gellipsoid(ellipsoid) {}
 

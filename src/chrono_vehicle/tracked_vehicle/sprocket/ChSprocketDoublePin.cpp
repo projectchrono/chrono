@@ -82,13 +82,13 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
     // Test collision between a connector body and the sprocket's gear profiles.
     void CheckConnectorSprocket(std::shared_ptr<ChBody> connector,                 // connector body
                                 const ChFrame<>& shape_frame,                      // frame of connector collision shape
-                                std::shared_ptr<ChMaterialSurface> mat_connector,  // connector contact material
+                                std::shared_ptr<ChContactMaterial> mat_connector,  // connector contact material
                                 const ChVector<>& locS_abs                         // center of sprocket (global frame)
     );
 
     // Test collision between a circle and the gear profile (in the plane of the gear).
     void CheckCircleProfile(std::shared_ptr<ChBody> connector,                 // connector body
-                            std::shared_ptr<ChMaterialSurface> mat_connector,  // connector contact material
+                            std::shared_ptr<ChContactMaterial> mat_connector,  // connector contact material
                             const ChVector<>& loc,                             // center of circular connector end
                             const ChVector<>& p1L,
                             const ChVector<>& p2L,
@@ -100,7 +100,7 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
                             const ChVector<>& p4R);
 
     void CheckCircleArc(std::shared_ptr<ChBody> connector,                 // connector body
-                        std::shared_ptr<ChMaterialSurface> mat_connector,  // connector contact material
+                        std::shared_ptr<ChContactMaterial> mat_connector,  // connector contact material
                         const ChVector<>& cc,                              // circle center
                         double cr,                                         // circle radius
                         const ChVector<> ac,                               // arc center
@@ -110,7 +110,7 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
     );
 
     void CheckCircleSegment(std::shared_ptr<ChBody> connector,                 // connector body
-                            std::shared_ptr<ChMaterialSurface> mat_connector,  // connector contact material
+                            std::shared_ptr<ChContactMaterial> mat_connector,  // connector contact material
                             const ChVector<>& cc,                              // circle center
                             double cr,                                         // circle radius
                             const ChVector<>& p1,                              // segment end point 1
@@ -152,7 +152,7 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
 
     double m_R_sum;  // test quantity for broadphase check
 
-    std::shared_ptr<ChMaterialSurface> m_material;  // material for sprocket-pin contact (detracking)
+    std::shared_ptr<ChContactMaterial> m_material;  // material for sprocket-pin contact (detracking)
 };
 
 // Add contacts between the sprocket and track shoes.
@@ -205,7 +205,7 @@ void SprocketDoublePinContactCB::OnCustomCollision(ChSystem* system) {
 // Perform collision test between the specified connector body and the associated sprocket.
 void SprocketDoublePinContactCB::CheckConnectorSprocket(std::shared_ptr<ChBody> connector,
                                                         const ChFrame<>& shape_frame,
-                                                        std::shared_ptr<ChMaterialSurface> mat_connector,
+                                                        std::shared_ptr<ChContactMaterial> mat_connector,
                                                         const ChVector<>& locS_abs) {
     // (1) Express the center of the connector shape in the sprocket frame
     ChVector<> loc = m_sprocket->GetGearBody()->TransformPointParentToLocal(shape_frame.GetPos());
@@ -272,7 +272,7 @@ void SprocketDoublePinContactCB::CheckConnectorSprocket(std::shared_ptr<ChBody> 
 // Working in the (x-z) plane of the gear, perform a 2D collision test between a circle
 // of radius m_shoe_R centered at the specified location and the gear profile.
 void SprocketDoublePinContactCB::CheckCircleProfile(std::shared_ptr<ChBody> connector,
-                                                    std::shared_ptr<ChMaterialSurface> mat_connector,
+                                                    std::shared_ptr<ChContactMaterial> mat_connector,
                                                     const ChVector<>& loc,
                                                     const ChVector<>& p1L,
                                                     const ChVector<>& p2L,
@@ -302,7 +302,7 @@ void SprocketDoublePinContactCB::CheckCircleProfile(std::shared_ptr<ChBody> conn
 // centered at 'cc' (on the connector body) and an arc on the circle of radius 'ar' centered
 // at 'ac', with the arc endpoints 'p1' and 'p2' (on the gear body).
 void SprocketDoublePinContactCB::CheckCircleArc(std::shared_ptr<ChBody> connector,                 // connector body
-                                                std::shared_ptr<ChMaterialSurface> mat_connector,  // conector material
+                                                std::shared_ptr<ChContactMaterial> mat_connector,  // conector material
                                                 const ChVector<>& cc,                              // circle center
                                                 double cr,                                         // circle radius
                                                 const ChVector<> ac,                               // arc center
@@ -357,7 +357,7 @@ void SprocketDoublePinContactCB::CheckCircleArc(std::shared_ptr<ChBody> connecto
 // (on the gear body).
 void SprocketDoublePinContactCB::CheckCircleSegment(
     std::shared_ptr<ChBody> connector,                 // connector body
-    std::shared_ptr<ChMaterialSurface> mat_connector,  // conector material
+    std::shared_ptr<ChContactMaterial> mat_connector,  // conector material
     const ChVector<>& cc,                              // circle center
     double cr,                                         // circle radius
     const ChVector<>& p1,                              // segment end point 1

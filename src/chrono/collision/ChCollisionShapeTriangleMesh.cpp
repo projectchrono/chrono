@@ -22,7 +22,7 @@ CH_UPCASTING(ChCollisionShapeTriangleMesh, ChCollisionShape)
 
 ChCollisionShapeTriangleMesh::ChCollisionShapeTriangleMesh() : ChCollisionShape(Type::TRIANGLEMESH), trimesh(nullptr){};
 
-ChCollisionShapeTriangleMesh::ChCollisionShapeTriangleMesh(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeTriangleMesh::ChCollisionShapeTriangleMesh(std::shared_ptr<ChContactMaterial> material,
                                                            std::shared_ptr<geometry::ChTriangleMesh> mesh,
                                                            bool is_static,
                                                            bool is_convex,

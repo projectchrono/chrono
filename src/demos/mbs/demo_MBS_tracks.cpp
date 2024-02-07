@@ -117,7 +117,7 @@ class MySimpleTank {
 
         // --- Contact and visualization materials for wheels ---
 
-        auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto wheel_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         wheel_mat->SetFriction(1.0);
 
         auto wheel_mat_vis = chrono_types::make_shared<ChVisualMaterial>();
@@ -308,7 +308,7 @@ class MySimpleTank {
             coll_model->SetSafeMargin(0.004f);  // inward safe margin
             coll_model->SetEnvelope(0.010f);    // distance of the outward "collision envelope"
             auto coll_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(
-                chrono_types::make_shared<ChMaterialSurfaceNSC>(), trimesh, false, false, 0.005);
+                chrono_types::make_shared<ChContactMaterialNSC>(), trimesh, false, false, 0.005);
             coll_model->AddShape(coll_shape, ChFrame<>(mesh_displacement, QUNIT));
             firstBodyShoe->AddCollisionModel(coll_model);
             firstBodyShoe->SetCollide(true);
@@ -531,7 +531,7 @@ int main(int argc, char* argv[]) {
     // of their center of mass (COG) etc.
 
     // ..the world
-    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     ground_mat->SetFriction(1.0);
 
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(60, 2, 60, 1000, true, true, ground_mat);
@@ -541,7 +541,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(my_ground);
 
     // ..some obstacles on the ground:
-    auto obst_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto obst_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     for (int i = 0; i < 50; i++) {
         auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(

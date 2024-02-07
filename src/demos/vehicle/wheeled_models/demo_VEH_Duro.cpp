@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
 
     RigidTerrain terrain(duro.GetSystem());
 
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
 

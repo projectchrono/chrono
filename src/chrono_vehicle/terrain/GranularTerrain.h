@@ -29,8 +29,8 @@
 #define GRANULAR_TERRAIN_H
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -55,10 +55,10 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     ~GranularTerrain();
 
     /// Set contact material (must be consistent with the containing system).
-    void SetContactMaterial(std::shared_ptr<ChMaterialSurface> material) { m_material = material; }
+    void SetContactMaterial(std::shared_ptr<ChContactMaterial> material) { m_material = material; }
 
     /// Get the current contact material.
-    std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
+    std::shared_ptr<ChContactMaterial> GetContactMaterial() const { return m_material; }
 
     /// Set outward collision envelope.
     /// This value is used for the internal custom collision detection for imposing
@@ -186,7 +186,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     bool m_vis_enabled;                ///< boundary visualization enabled?
     std::shared_ptr<ChBody> m_ground;  ///< ground body
 
-    std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material properties
+    std::shared_ptr<ChContactMaterial> m_material;  ///< contact material properties
 
     std::shared_ptr<ChSystem::CustomCollisionCallback> m_collision_callback;  ///< custom collision callback
 

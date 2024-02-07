@@ -80,7 +80,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.).
-    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) override;
+    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) override;
 
     virtual void PrintStepStats();
     unsigned int GetNumBodies();

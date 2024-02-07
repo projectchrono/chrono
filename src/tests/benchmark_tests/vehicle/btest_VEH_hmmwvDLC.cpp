@@ -86,7 +86,7 @@ HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_t
 
     // Create the terrain
     m_terrain = new RigidTerrain(m_hmmwv->GetSystem());
-    auto patch_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch_material = chrono_types::make_shared<ChContactMaterialSMC>();
     patch_material->SetFriction(0.9f);
     patch_material->SetRestitution(0.01f);
     patch_material->SetYoungModulus(2e7f);

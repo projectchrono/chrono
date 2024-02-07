@@ -32,7 +32,7 @@ namespace chrono {
 class ChApi ChCollisionShapeBarrel : public ChCollisionShape {
   public:
     ChCollisionShapeBarrel();
-    ChCollisionShapeBarrel(std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+    ChCollisionShapeBarrel(std::shared_ptr<ChContactMaterial> material,  ///< surface contact material
                            double Y_low,                                 ///< bottom level
                            double Y_high,                                ///< top level
                            double axis_vert,                             ///< ellipse axis in vertical direction

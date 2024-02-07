@@ -63,7 +63,7 @@ class ChApiCASCADE ChCascadeBodyEasy : public ChBodyAuxRef {
                       double density,                                    ///< density
                       std::shared_ptr<ChCascadeTriangulate> vis_params,  ///< tesselation parameters
                       bool collide = false,  ///< if true, add a collision shape that uses the triangulation of shape
-                      std::shared_ptr<ChMaterialSurface> mat = nullptr  ///< surface contact material
+                      std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material
     );
 
     /// Creates a body plus adds a visualization shape and, optionally, a collision shape.
@@ -73,7 +73,7 @@ class ChApiCASCADE ChCascadeBodyEasy : public ChBodyAuxRef {
                       double density,         ///< density
                       bool visualize = true,  ///< if true, uses a triangulated shape for visualization
                       bool collide = false,   ///< if true, add a collision shape that uses the triangulation of shape
-                      std::shared_ptr<ChMaterialSurface> mat = nullptr  ///< surface contact material
+                      std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material
     );
 
   private:
@@ -81,7 +81,7 @@ class ChApiCASCADE ChCascadeBodyEasy : public ChBodyAuxRef {
               double density,                                    ///< density
               std::shared_ptr<ChCascadeTriangulate> vis_params,  ///< tesselation parameters
               bool collide = false,  ///< if true, add a collision shape that uses the triangulation of shape
-              std::shared_ptr<ChMaterialSurface> mat = nullptr  ///< surface contact material
+              std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material
     );
 
   public:
@@ -117,7 +117,7 @@ class ChApiCASCADE ChCascadeBodyEasyProfile : public ChBodyAuxRef {
         double density,                                                      ///< density
         std::shared_ptr<ChCascadeTriangulate> vis_params,                    ///< tesselation parameters
         bool collide = false,  ///< if true, add a 2D collision shape that uses the outer profile of the face
-        std::shared_ptr<ChMaterialSurface> mat = nullptr  ///< surface contact material if colliding
+        std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material if colliding
     );
 
     /// If multiple profiles on different Z dephts are needed, after the ChCascadeBodyEasyProfile constructor is
@@ -132,7 +132,7 @@ class ChApiCASCADE ChCascadeBodyEasyProfile : public ChBodyAuxRef {
         double density,                                                      ///< density
         std::shared_ptr<ChCascadeTriangulate> vis_params,                    ///< tesselation parameters
         bool collide = false,  ///< if true, add a 2D collision shape that uses the outer profile of the face
-        std::shared_ptr<ChMaterialSurface> mat = nullptr  ///< surface contact material if colliding
+        std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material if colliding
     );
 
     void ClearProfiles();
@@ -166,7 +166,7 @@ class ChApiCASCADE ChCascadeBodyEasyProfile : public ChBodyAuxRef {
         double density;
         bool collide;
         std::shared_ptr<ChCascadeTriangulate> visualization;
-        std::shared_ptr<ChMaterialSurface> material;
+        std::shared_ptr<ChContactMaterial> material;
     };
 
     std::vector<ChCascadeExtrusionFace> faces;

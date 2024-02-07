@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     // CREATE THE SYSTEM OBJECTS
 
     // Create the floor:
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto floor_body = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     floor_body->SetPos(ChVector<>(0, -5, 0));

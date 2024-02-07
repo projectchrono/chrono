@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     auto manchor = std::dynamic_pointer_cast<ChBody>(myitemC);
 
     // Create a contact material with zero friction which will be shared by all parts
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0);
 
     if (mescape_wheel && mtruss && mbalance && manchor) {

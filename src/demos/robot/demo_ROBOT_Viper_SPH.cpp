@@ -85,7 +85,7 @@ ViperWheelType wheel_type = ViperWheelType::RealWheel;
 // Use below mesh file if the wheel type is real VIPER wheel
 std::string wheel_obj = "robot/viper/obj/viper_simplewheel.obj";
 
-std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
+std::shared_ptr<ChContactMaterial> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
     float cr = 0.2f;   // coefficient of restitution
     float Y = 2e7f;    // Young's modulus
@@ -97,13 +97,13 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
             matNSC->SetFriction(mu);
             matNSC->SetRestitution(cr);
             return matNSC;
         }
         case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
             matSMC->SetFriction(mu);
             matSMC->SetRestitution(cr);
             matSMC->SetYoungModulus(Y);
@@ -115,7 +115,7 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
             return matSMC;
         }
         default:
-            return std::shared_ptr<ChMaterialSurface>();
+            return std::shared_ptr<ChContactMaterial>();
     }
 }
 

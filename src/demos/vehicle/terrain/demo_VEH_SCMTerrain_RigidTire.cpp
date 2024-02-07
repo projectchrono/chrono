@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     wheel->SetInertiaXX(ChVector<>(20, 20, 20));
     wheel->SetPos(tire_center + ChVector<>(0, 0.3, 0));
 
-    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     switch (tire_type) {
         case TireType::LUGGED: {
             auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(

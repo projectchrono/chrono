@@ -104,7 +104,7 @@ void RayCaster::Update() {
 //   to the collision system (i.e., before adding the body to the system)
 
 void CreateSpheres(ChSystemSMC& sys) {
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
 
     auto s1 = chrono_types::make_shared<ChBodyEasySphere>(2.0, 1, mat);
     s1->SetPos(ChVector<>(0, 0, 0));
@@ -122,7 +122,7 @@ void CreateSpheres(ChSystemSMC& sys) {
 }
 
 void CreateBoxes(ChSystemSMC& sys) {
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
 
     auto b1 = chrono_types::make_shared<ChBodyEasyBox>(3.0, 2.0, 1.0, 1, mat);
     b1->SetPos(ChVector<>(0, 0, 0));
@@ -141,7 +141,7 @@ void CreateBoxes(ChSystemSMC& sys) {
 }
 
 void CreateCylinders(ChSystemSMC& sys) {
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
 
     auto c1 = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 1.0, 2.0, 1, mat);
     c1->SetPos(ChVector<>(0, 0, 0));
@@ -162,7 +162,7 @@ void CreateCylinders(ChSystemSMC& sys) {
 
 void CreateShapes(ChSystemSMC& sys) {
     // Create multiple bodies and collision shapes
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
 
     double scale = 2.0;
     utils::PDSampler<> sampler(2 * scale);
@@ -196,7 +196,7 @@ void CreateShapes(ChSystemSMC& sys) {
 }
 
 void CreateMeshes(ChSystemSMC& sys) {
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
 
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/sphere.obj"));
     trimesh->Transform(ChVector<>(0), ChMatrix33<>(2));
@@ -215,7 +215,7 @@ void CreateMeshes(ChSystemSMC& sys) {
 // Create a set of boxes for testing broadphase ray intersection.
 // Should be used with a (4x3x1) grid.
 void CreateTestSet(ChSystemSMC& sys) {
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
 
     /*
     std::vector<ChVector<>> loc = {

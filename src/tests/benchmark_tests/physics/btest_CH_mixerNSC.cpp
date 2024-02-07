@@ -51,7 +51,7 @@ template <int N>
 MixerTestNSC<N>::MixerTestNSC() : m_system(new ChSystemNSC()), m_step(0.02) {
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     for (int bi = 0; bi < N; bi++) {
         auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(1.0, 1000, true, true, mat);

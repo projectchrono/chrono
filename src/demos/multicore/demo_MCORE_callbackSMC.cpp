@@ -78,7 +78,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
 // -----------------------------------------------------------------------------
 class ContactMaterial : public ChContactContainer::AddContactCallback {
   public:
-    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
+    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
         // Downcast to appropriate composite material type
         auto mat = static_cast<ChMaterialCompositeSMC* const>(material);
 
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     // Create a contact material, shared among all bodies
-    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     material->SetFriction(friction);
 
     // Add bodies

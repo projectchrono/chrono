@@ -37,7 +37,7 @@ using namespace chrono;
 
 void CreateSliderGuide(std::shared_ptr<ChBody>& mguide,
                        std::shared_ptr<ChBody>& mslider,
-                       std::shared_ptr<ChMaterialSurface> material,
+                       std::shared_ptr<ChContactMaterial> material,
                        ChSystem& msystem,
                        const ChVector<> mpos) {
     mguide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material);
@@ -56,7 +56,7 @@ void CreateSliderGuide(std::shared_ptr<ChBody>& mguide,
 
 void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
                        std::shared_ptr<ChBody>& mrotor,
-                       std::shared_ptr<ChMaterialSurface> material,
+                       std::shared_ptr<ChContactMaterial> material,
                        ChSystem& msystem,
                        const ChVector<> mpos) {
     mstator = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 0.1, 1000, material);
@@ -72,7 +72,7 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
 
 // -----------------------------------------------------------------------------
 
-void ExampleA1(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleA1(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // EXAMPLE A.1
     //
     // - class:   ChLinkMotorRotationSpeed
@@ -118,7 +118,7 @@ void ExampleA1(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     // rotmotor1->SetAvoidAngleDrift(false);
 }
 
-void ExampleA2(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleA2(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // EXAMPLE A.2
     //
     // - class:   ChLinkMotorRotationAngle
@@ -160,7 +160,7 @@ void ExampleA2(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     rotmotor2->SetAngleFunction(msineangle);
 }
 
-void ExampleA3(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleA3(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // EXAMPLE A.3
     //
     // - class:   ChLinkMotorRotationTorque
@@ -197,7 +197,7 @@ void ExampleA3(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     rotmotor3->SetTorqueFunction(mtorquetime);
 }
 
-void ExampleA4(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleA4(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // EXAMPLE A.4
     //
     // As before, use a ChLinkMotorRotationTorque, but this time compute
@@ -261,7 +261,7 @@ void ExampleA4(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
 
 // -----------------------------------------------------------------------------
 
-void ExampleB1(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleB1(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // EXAMPLE B.1
     //
     // - class:   ChLinkMotorLinearPosition
@@ -300,7 +300,7 @@ void ExampleB1(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     motor1->SetMotionFunction(msine);
 }
 
-void ExampleB2(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleB2(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // EXAMPLE B.2
     //
     // - class:   ChLinkMotorLinearSpeed
@@ -352,7 +352,7 @@ void ExampleB2(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     // motor2->SetAvoidPositionDrift(false);
 }
 
-void ExampleB3(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleB3(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // EXAMPLE B.3
     //
     // - class:   ChLinkMotorLinearForce
@@ -409,7 +409,7 @@ void ExampleB3(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
     // motor3->SetForceFunction(mF2); // uncomment to test this
 }
 
-void ExampleB4(ChSystem& sys, std::shared_ptr<ChMaterialSurface> material) {
+void ExampleB4(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // EXAMPLE B.4
     //
     // As before, use a ChLinkMotorLinearForce, but this time compute
@@ -496,7 +496,7 @@ int main(int argc, char* argv[]) {
     chrono::ChContactMethod method = chrono::ChContactMethod::NSC;
     double step_size = 1e-3;
     ChSystemMulticore* sys = nullptr;
-    std::shared_ptr<ChMaterialSurface> material;
+    std::shared_ptr<ChContactMaterial> material;
 
     switch (method) {
         case chrono::ChContactMethod::NSC: {
@@ -504,7 +504,7 @@ int main(int argc, char* argv[]) {
             sysNSC->ChangeSolverType(SolverType::BB);
             sysNSC->GetSettings()->collision.collision_envelope = 0.005;
             sys = sysNSC;
-            auto materialNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto materialNSC = chrono_types::make_shared<ChContactMaterialNSC>();
             material = materialNSC;
             step_size = 1e-3;
             break;
@@ -514,7 +514,7 @@ int main(int argc, char* argv[]) {
             sysSMC->GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
             sysSMC->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::OneStep;
             sys = sysSMC;
-            auto materialSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto materialSMC = chrono_types::make_shared<ChContactMaterialSMC>();
             materialSMC->SetYoungModulus(1e7f);
             materialSMC->SetRestitution(0.1f);
             material = materialSMC;

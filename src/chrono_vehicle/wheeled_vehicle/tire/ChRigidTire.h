@@ -22,8 +22,8 @@
 #include <vector>
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 
@@ -69,7 +69,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     /// Get the tire contact material.
     /// Note that this is not set until after tire initialization.
-    std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
+    std::shared_ptr<ChContactMaterial> GetContactMaterial() const { return m_material; }
 
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -90,7 +90,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// Create the contact material consistent with the specified contact method.
     virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
 
-    std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material;
+    std::shared_ptr<ChContactMaterial> m_material;  ///< contact material;
 
     virtual void InitializeInertiaProperties() override final;
     virtual void UpdateInertiaProperties() override final;

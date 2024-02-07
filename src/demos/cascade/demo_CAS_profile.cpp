@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     ChCollisionModel::SetDefaultSuggestedMargin(0.1);
 
     // Contact material (shared among all collision shapes)
-    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto material = chrono_types::make_shared<ChContactMaterialNSC>();
     material->SetFriction(0.05f);
 
     // Create the truss:

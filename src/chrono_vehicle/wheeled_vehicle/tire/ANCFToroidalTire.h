@@ -46,7 +46,7 @@ class CH_VEHICLE_API ANCFToroidalTire : public ChANCFTire {
     void SetDivCircumference(int div_circumference) { m_div_circumference = div_circumference; }
     void SetDivWidth(int div_width) { m_div_width = div_width; }
 
-    void SetContactMaterial(std::shared_ptr<ChMaterialSurfaceSMC> mat) { m_mat = mat; }
+    void SetContactMaterial(std::shared_ptr<ChContactMaterialSMC> mat) { m_mat = mat; }
 
     void SetDefaultPressure(double pressure) { m_default_pressure = pressure; }
     void SetAlpha(double alpha) { m_alpha = alpha; }
@@ -65,7 +65,7 @@ class CH_VEHICLE_API ANCFToroidalTire : public ChANCFTire {
     double m_default_pressure;
     double m_alpha;
 
-    std::shared_ptr<ChMaterialSurfaceSMC> m_mat;
+    std::shared_ptr<ChContactMaterialSMC> m_mat;
 };
 
 }  // end namespace vehicle

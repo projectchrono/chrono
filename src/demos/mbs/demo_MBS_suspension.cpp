@@ -120,9 +120,9 @@ class MySimpleCar {
         wheel_vis_mat->SetKdTexture(GetChronoDataFile("textures/bluewhite.png"));
 
         // Contact materials for the various components
-        auto chassis_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto chassis_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
-        auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto wheel_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         wheel_mat->SetFriction(1.0f);
 
         // --- The car body ---
@@ -604,11 +604,11 @@ int main(int argc, char* argv[]) {
     // their center of mass (COG) etc.
 
     // ..contact materials
-    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    ground_mat->SetSfriction(1.0);
-    ground_mat->SetKfriction(1.0);
+    auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
+    ground_mat->SetStaticFriction(1.0);
+    ground_mat->SetSlidingFriction(1.0);
 
-    auto obstacle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto obstacle_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // ..ground body
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(60, 2, 60, 1.0, true, true, ground_mat);
@@ -640,7 +640,7 @@ int main(int argc, char* argv[]) {
 
     class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
-        virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
+        virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
             auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
 

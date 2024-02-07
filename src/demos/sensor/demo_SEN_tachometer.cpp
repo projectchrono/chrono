@@ -34,7 +34,7 @@ using namespace chrono::sensor;
 
 int main(int argc, char* argv[]){
 
-    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto material = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Create the system
     ChSystemNSC mphysicalsystem;

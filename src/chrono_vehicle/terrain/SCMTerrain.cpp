@@ -27,8 +27,8 @@
     #include <omp.h>
 #endif
 
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeBox.h"

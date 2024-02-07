@@ -47,7 +47,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.3);
 
     // contact material shared by all falling objects
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.3f);
 
     // Create falling bodies
@@ -63,7 +63,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
 
     // Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type:
 
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20,   // x,y,z size
                                                               1000,        // density
@@ -111,7 +111,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
     sys.Add(wallBody4);
 
     // Add the rotating mixer
-    auto mixer_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mixer_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mixer_mat->SetFriction(0.4f);
 
     auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1,    // x,y,z size
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
 
     class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
-        virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
+        virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
             auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
 

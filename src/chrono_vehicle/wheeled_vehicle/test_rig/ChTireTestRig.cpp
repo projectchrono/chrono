@@ -463,7 +463,7 @@ void ChTireTestRig::CreateTerrainGranular() {
     double coh_force = (CH_C_PI * m_params_granular.radius * m_params_granular.radius) * m_params_granular.cohesion;
     switch (m_system->GetContactMethod()) {
         case ChContactMethod::SMC: {
-            auto mat_g = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto mat_g = chrono_types::make_shared<ChContactMaterialSMC>();
             mat_g->SetFriction(static_cast<float>(m_params_granular.friction));
             mat_g->SetRestitution(0.0f);
             mat_g->SetYoungModulus(8e5f);
@@ -478,7 +478,7 @@ void ChTireTestRig::CreateTerrainGranular() {
         }
         case ChContactMethod::NSC: {
             double step_size = 1e-3;  ///< estimate for integration step size
-            auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto mat_g = chrono_types::make_shared<ChContactMaterialNSC>();
             mat_g->SetFriction(static_cast<float>(m_params_granular.friction));
             mat_g->SetRestitution(0.0f);
             mat_g->SetCohesion(static_cast<float>(coh_force * step_size));

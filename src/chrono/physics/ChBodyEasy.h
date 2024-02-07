@@ -39,14 +39,14 @@ class ChApi ChBodyEasySphere : public ChBody {
                      double density,                                        ///< density of the body
                      bool visualize = true,                                 ///< create visualization asset
                      bool collide = false,                                  ///< enable collision
-                     std::shared_ptr<ChMaterialSurface> material = nullptr  ///< surface contact material
+                     std::shared_ptr<ChContactMaterial> material = nullptr  ///< surface contact material
     );
 
     /// Create a rigid body with a sphere visualization and collision shape.
     /// The sphere is created at the center of mass. Mass and inertia are set automatically depending on density.
     ChBodyEasySphere(double radius,                               ///< radius of the sphere
                      double density,                              ///< density of the body
-                     std::shared_ptr<ChMaterialSurface> material  ///< surface contact material
+                     std::shared_ptr<ChContactMaterial> material  ///< surface contact material
     );
 
     /// Deserialization for non-default constructor classes.
@@ -60,7 +60,7 @@ class ChApi ChBodyEasySphere : public ChBody {
                    double density,
                    bool visualize,
                    bool collide,
-                   std::shared_ptr<ChMaterialSurface> material);
+                   std::shared_ptr<ChContactMaterial> material);
 
     ChBodyEasySphere() {}
 };
@@ -76,14 +76,14 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
                         double density,                                        ///< density of the body
                         bool visualize = true,                                 ///< create visualization asset
                         bool collide = false,                                  ///< enable collision
-                        std::shared_ptr<ChMaterialSurface> material = nullptr  ///< surface contact material
+                        std::shared_ptr<ChContactMaterial> material = nullptr  ///< surface contact material
     );
 
     /// Create a rigid body with an ellipsoid visualization and collision shape.
     /// The ellipsoid is created at the center of mass. Mass and inertia are set automatically depending on density.
     ChBodyEasyEllipsoid(ChVector<> axes,                             ///< ellipsoid axis lengths
                         double density,                              ///< density of the body
-                        std::shared_ptr<ChMaterialSurface> material  ///< surface contact material
+                        std::shared_ptr<ChContactMaterial> material  ///< surface contact material
     );
 
     /// Deserialization for non-default constructor classes.
@@ -97,7 +97,7 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
                    double density,
                    bool visualize,
                    bool collide,
-                   std::shared_ptr<ChMaterialSurface> material);
+                   std::shared_ptr<ChContactMaterial> material);
 
     ChBodyEasyEllipsoid() {}
 };
@@ -116,7 +116,7 @@ class ChApi ChBodyEasyCylinder : public ChBody {
                        double density,                                        ///< density of the body
                        bool visualize = true,                                 ///< create visualization asset
                        bool collide = false,                                  ///< enable collision
-                       std::shared_ptr<ChMaterialSurface> material = nullptr  ///< surface contact material
+                       std::shared_ptr<ChContactMaterial> material = nullptr  ///< surface contact material
     );
 
     /// Create a rigid body with a cylinder visualization and collision shape.
@@ -126,7 +126,7 @@ class ChApi ChBodyEasyCylinder : public ChBody {
                        double radius,                               ///< radius of the cylinder
                        double height,                               ///< height of the cylinder
                        double density,                              ///< density of the body
-                       std::shared_ptr<ChMaterialSurface> material  ///< surface contact material
+                       std::shared_ptr<ChContactMaterial> material  ///< surface contact material
     );
 
     /// Deserialization for non-default constructor classes.
@@ -142,7 +142,7 @@ class ChApi ChBodyEasyCylinder : public ChBody {
                    double density,
                    bool visualize,
                    bool collide,
-                   std::shared_ptr<ChMaterialSurface> material);
+                   std::shared_ptr<ChContactMaterial> material);
 
     ChBodyEasyCylinder() {}
 };
@@ -160,7 +160,7 @@ class ChApi ChBodyEasyBox : public ChBody {
                   double density,                                        ///< density of the body
                   bool visualize = true,                                 ///< create visualization asset
                   bool collide = false,                                  ///< enable collision
-                  std::shared_ptr<ChMaterialSurface> material = nullptr  ///< surface contact material
+                  std::shared_ptr<ChContactMaterial> material = nullptr  ///< surface contact material
     );
 
     /// Create a rigid body with a box visualization and collision shape.
@@ -169,7 +169,7 @@ class ChApi ChBodyEasyBox : public ChBody {
                   double Ysize,                                ///< size along the Y dimension
                   double Zsize,                                ///< size along the Z dimension
                   double density,                              ///< density of the body
-                  std::shared_ptr<ChMaterialSurface> material  ///< surface contact material
+                  std::shared_ptr<ChContactMaterial> material  ///< surface contact material
     );
 
     /// Deserialization for non-default constructor classes.
@@ -185,7 +185,7 @@ class ChApi ChBodyEasyBox : public ChBody {
                    double density,
                    bool visualize,
                    bool collide,
-                   std::shared_ptr<ChMaterialSurface> material);
+                   std::shared_ptr<ChContactMaterial> material);
 
     ChBodyEasyBox() {}
 };
@@ -203,7 +203,7 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
                          double density,                                        ///< density of the body
                          bool visualize = true,                                 ///< create visualization asset
                          bool collide = false,                                  ///< enable collision
-                         std::shared_ptr<ChMaterialSurface> material = nullptr  ///< surface contact material
+                         std::shared_ptr<ChContactMaterial> material = nullptr  ///< surface contact material
     );
 
     /// Create a rigid body with a convex hull visualization and collision shape.
@@ -212,7 +212,7 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
     /// with the center of mass.
     ChBodyEasyConvexHull(std::vector<ChVector<>>& points,             ///< points of the convex hull
                          double density,                              ///< density of the body
-                         std::shared_ptr<ChMaterialSurface> material  ///< surface contact material
+                         std::shared_ptr<ChContactMaterial> material  ///< surface contact material
     );
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
@@ -228,7 +228,7 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
                    double density,
                    bool visualize,
                    bool collide,
-                   std::shared_ptr<ChMaterialSurface> material);
+                   std::shared_ptr<ChContactMaterial> material);
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;
 
@@ -247,7 +247,7 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
                                double density,                                        ///< density of the body
                                bool visualize = true,                                 ///< create visualization asset
                                bool collide = false,                                  ///< enable collision
-                               std::shared_ptr<ChMaterialSurface> material = nullptr  ///< surface contact material
+                               std::shared_ptr<ChContactMaterial> material = nullptr  ///< surface contact material
     );
 
     /// Create a ChBodyAuxRef with a convex hull visualization and collision shape.
@@ -255,7 +255,7 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
     /// automatically depending on density. The center of mass is set at the barycenter.
     ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& points,             ///< convex hull points
                                double density,                              ///< density of the body
-                               std::shared_ptr<ChMaterialSurface> material  ///< surface contact material
+                               std::shared_ptr<ChContactMaterial> material  ///< surface contact material
     );
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
@@ -271,7 +271,7 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
                    double density,
                    bool visualize,
                    bool collide,
-                   std::shared_ptr<ChMaterialSurface> material);
+                   std::shared_ptr<ChContactMaterial> material);
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;
 
@@ -291,7 +291,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
                    bool compute_mass = true,     ///< automatic evaluation of inertia properties
                    bool visualize = true,        ///< create visualization asset
                    bool collide = false,         ///< enable collision
-                   std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
+                   std::shared_ptr<ChContactMaterial> material = nullptr,  ///< surface contact material
                    double sphere_swept = 0.001  ///< thickness (collision detection robustness)
     );
 
@@ -303,7 +303,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
                    bool compute_mass = true,  ///< automatic evaluation of inertia properties
                    bool visualize = true,     ///< create visualization asset
                    bool collide = false,      ///< enable collision
-                   std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
+                   std::shared_ptr<ChContactMaterial> material = nullptr,  ///< surface contact material
                    double sphere_swept = 0.001  ///< thickness (collision detection robustness)
     );
 
@@ -312,7 +312,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
     /// Mass and inertia are set automatically depending on density.
     ChBodyEasyMesh(const std::string& filename,                  ///< name of the Wavefront OBJ file
                    double density,                               ///< density of the body
-                   std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+                   std::shared_ptr<ChContactMaterial> material,  ///< surface contact material
                    double sphere_swept                           ///< thickness (collision detection robustness)
     );
 
@@ -321,7 +321,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
     /// on density.
     ChBodyEasyMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,  ///< triangular mesh
                    double density,                                           ///< density of the body
-                   std::shared_ptr<ChMaterialSurface> material,              ///< surface contact material
+                   std::shared_ptr<ChContactMaterial> material,              ///< surface contact material
                    double sphere_swept  ///< thickness (collision detection robustness)
     );
 
@@ -338,7 +338,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
                    bool compute_mass,
                    bool visualize,
                    bool collide,
-                   std::shared_ptr<ChMaterialSurface> material,
+                   std::shared_ptr<ChContactMaterial> material,
                    double sphere_swept);
 
     ChBodyEasyMesh() {}
@@ -360,7 +360,7 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
                                double density,                                        ///< density of the body
                                bool visualize = true,                                 ///< create visualization asset
                                bool collide = false,                                  ///< enable collision
-                               std::shared_ptr<ChMaterialSurface> material = nullptr  ///< surface contact material
+                               std::shared_ptr<ChContactMaterial> material = nullptr  ///< surface contact material
     );
 
     /// Create a ChBody with a sphere cluster mesh visualization and collision shapes.
@@ -369,7 +369,7 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
     ChBodyEasyClusterOfSpheres(std::vector<ChVector<>>& positions,          ///< position of the spheres
                                std::vector<double>& radii,                  ///< sphere radius
                                double density,                              ///< density of the body
-                               std::shared_ptr<ChMaterialSurface> material  ///< surface contact material
+                               std::shared_ptr<ChContactMaterial> material  ///< surface contact material
     );
 
     /// Deserialization for non-default constructor classes.
@@ -384,7 +384,7 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
                    double density,
                    bool visualize,
                    bool collide,
-                   std::shared_ptr<ChMaterialSurface> material);
+                   std::shared_ptr<ChContactMaterial> material);
 
     ChBodyEasyClusterOfSpheres() {}
 };

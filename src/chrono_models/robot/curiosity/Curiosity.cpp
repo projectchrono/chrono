@@ -77,7 +77,7 @@ static const ChVector<> tr_rel_pos_t = ChVector<>(-0.142, 0.0, 1.172);
 // =============================================================================
 
 // Default contact material for rover parts
-std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contact_method) {
+std::shared_ptr<ChContactMaterial> DefaultContactMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
     float cr = 0.0f;   // coefficient of restitution
     float Y = 2e7f;    // Young's modulus
@@ -89,13 +89,13 @@ std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contac
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
             matNSC->SetFriction(mu);
             matNSC->SetRestitution(cr);
             return matNSC;
         }
         case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
             matSMC->SetFriction(mu);
             matSMC->SetRestitution(cr);
             matSMC->SetYoungModulus(Y);
@@ -107,7 +107,7 @@ std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contac
             return matSMC;
         }
         default:
-            return std::shared_ptr<ChMaterialSurface>();
+            return std::shared_ptr<ChContactMaterial>();
     }
 }
 
@@ -188,7 +188,7 @@ std::shared_ptr<ChLinkMotorRotationTorque> AddMotorTorque(std::shared_ptr<ChBody
 // Base class for all Curiosity Part
 CuriosityPart::CuriosityPart(const std::string& name,
                              const ChFrame<>& rel_pos,
-                             std::shared_ptr<ChMaterialSurface> mat,
+                             std::shared_ptr<ChContactMaterial> mat,
                              bool collide)
     : m_name(name), m_pos(rel_pos), m_mat(mat), m_collide(collide), m_visualize(true) {}
 
@@ -261,7 +261,7 @@ void CuriosityPart::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
 // Rover Chassis
 CuriosityChassis::CuriosityChassis(const std::string& name,
                                    CuriosityChassisType chassis_type,
-                                   std::shared_ptr<ChMaterialSurface> mat)
+                                   std::shared_ptr<ChContactMaterial> mat)
     : CuriosityPart(name, ChFrame<>(VNULL, QUNIT), mat, false), m_chassis_type(chassis_type) {
     switch (m_chassis_type) {
         case CuriosityChassisType::FullRover:
@@ -290,7 +290,7 @@ void CuriosityChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
 // Curiosity Wheel
 CuriosityWheel::CuriosityWheel(const std::string& name,
                                const ChFrame<>& rel_pos,
-                               std::shared_ptr<ChMaterialSurface> mat,
+                               std::shared_ptr<ChContactMaterial> mat,
                                CuriosityWheelType wheel_type)
     : CuriosityPart(name, rel_pos, mat, true) {
     switch (wheel_type) {
@@ -323,7 +323,7 @@ CuriosityWheel::CuriosityWheel(const std::string& name,
 // Curiosity suspension rocker
 CuriosityRocker::CuriosityRocker(const std::string& name,
                                  const ChFrame<>& rel_pos,
-                                 std::shared_ptr<ChMaterialSurface> mat,
+                                 std::shared_ptr<ChContactMaterial> mat,
                                  int side)
     : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = (side == 0) ? "curiosity_F_L_arm" : "curiosity_F_R_arm";
@@ -336,7 +336,7 @@ CuriosityRocker::CuriosityRocker(const std::string& name,
 // Curiosity suspension bogie
 CuriosityBogie::CuriosityBogie(const std::string& name,
                                const ChFrame<>& rel_pos,
-                               std::shared_ptr<ChMaterialSurface> mat,
+                               std::shared_ptr<ChContactMaterial> mat,
                                int side)
     : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = (side == 0) ? "curiosity_B_L_arm" : "curiosity_B_R_arm";
@@ -349,7 +349,7 @@ CuriosityBogie::CuriosityBogie(const std::string& name,
 // Curiosity steering rod
 CuriosityUpright::CuriosityUpright(const std::string& name,
                                    const ChFrame<>& rel_pos,
-                                   std::shared_ptr<ChMaterialSurface> mat)
+                                   std::shared_ptr<ChContactMaterial> mat)
     : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = "curiosity_steer";
     m_color = ChColor(0.4f, 0.4f, 0.7f);
@@ -362,7 +362,7 @@ CuriosityUpright::CuriosityUpright(const std::string& name,
 // Curiosity differential bar
 CuriosityDifferentialBar::CuriosityDifferentialBar(const std::string& name,
                                                    const ChFrame<>& rel_pos,
-                                                   std::shared_ptr<ChMaterialSurface> mat)
+                                                   std::shared_ptr<ChContactMaterial> mat)
     : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = "curiosity_balancer";
     m_color = ChColor(0.4f, 0.4f, 0.7f);
@@ -373,7 +373,7 @@ CuriosityDifferentialBar::CuriosityDifferentialBar(const std::string& name,
 // Curiosity differential links
 CuriosityDifferentialLink::CuriosityDifferentialLink(const std::string& name,
                                                      const ChFrame<>& rel_pos,
-                                                     std::shared_ptr<ChMaterialSurface> mat,
+                                                     std::shared_ptr<ChContactMaterial> mat,
                                                      int side)
     : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = (side == 0) ? "curiosity_bar_L" : "curiosity_bar_R";
@@ -574,7 +574,7 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
     m_initialized = true;
 }
 
-void Curiosity::SetWheelContactMaterial(std::shared_ptr<ChMaterialSurface> mat) {
+void Curiosity::SetWheelContactMaterial(std::shared_ptr<ChContactMaterial> mat) {
     for (auto& wheel : m_wheels)
         wheel->m_mat = mat;
 }

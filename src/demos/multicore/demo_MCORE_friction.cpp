@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
 
     // Set rolling and friction coefficients for the container.
     // By default, the composite material will use the minimum value for an interacting collision pair.
-    auto bin_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto bin_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     bin_mat->SetFriction(0.6f);
     bin_mat->SetRollingFriction(1);
     bin_mat->SetSpinningFriction(1);
@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
     double initial_linspeed = initial_angspeed * radius;
 
     for (int bi = 0; bi < 10; bi++) {
-        auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
         mat->SetFriction(0.4f);
         mat->SetRollingFriction(((float)bi / 10) * 0.05f);
 
@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
 
     // Create some spheres that spin in place, with increasing spinning friction values
     for (int bi = 0; bi < 10; bi++) {
-        auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
         mat->SetFriction(0.4f);
         mat->SetSpinningFriction(((float)bi / 10) * 0.02f);
 

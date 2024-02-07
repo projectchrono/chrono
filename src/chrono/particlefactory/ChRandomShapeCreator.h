@@ -28,7 +28,7 @@
 #include "chrono/geometry/ChBox.h"
 #include "chrono/geometry/ChCylinder.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
 
 namespace chrono {
 namespace particlefactory {
@@ -104,7 +104,7 @@ class ChRandomShapeCreatorSpheres : public ChRandomShapeCreator {
         diameter = chrono_types::make_shared<ChConstantDistribution>(0.02);
         density = chrono_types::make_shared<ChConstantDistribution>(1000);
 
-        material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        material = chrono_types::make_shared<ChContactMaterialNSC>();
     }
 
     /// Function that creates a random ChBody particle each
@@ -127,7 +127,7 @@ class ChRandomShapeCreatorSpheres : public ChRandomShapeCreator {
     std::shared_ptr<ChDistribution> diameter;
     std::shared_ptr<ChDistribution> density;
 
-    std::shared_ptr<ChMaterialSurfaceNSC> material;
+    std::shared_ptr<ChContactMaterialNSC> material;
 };
 
 /// Class for generating boxes with variable sizes
@@ -142,7 +142,7 @@ class ChRandomShapeCreatorBoxes : public ChRandomShapeCreator {
         sizeratioZ = chrono_types::make_shared<ChConstantDistribution>(1.0);
         density = chrono_types::make_shared<ChConstantDistribution>(1000);
 
-        material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        material = chrono_types::make_shared<ChContactMaterialNSC>();
     }
 
     /// Function that creates a random ChBody particle each
@@ -173,7 +173,7 @@ class ChRandomShapeCreatorBoxes : public ChRandomShapeCreator {
     std::shared_ptr<ChDistribution> sizeratioZ;
     std::shared_ptr<ChDistribution> density;
 
-    std::shared_ptr<ChMaterialSurfaceNSC> material;
+    std::shared_ptr<ChContactMaterialNSC> material;
 };
 
 /// Class for generating cylinders with variable diameter
@@ -187,7 +187,7 @@ class ChRandomShapeCreatorCylinders : public ChRandomShapeCreator {
         length_factor = chrono_types::make_shared<ChConstantDistribution>(2.0);
         density = chrono_types::make_shared<ChConstantDistribution>(1000);
 
-        material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        material = chrono_types::make_shared<ChContactMaterialNSC>();
     }
 
     /// Function that creates a random ChBody particle each
@@ -215,7 +215,7 @@ class ChRandomShapeCreatorCylinders : public ChRandomShapeCreator {
     std::shared_ptr<ChDistribution> length_factor;
     std::shared_ptr<ChDistribution> density;
 
-    std::shared_ptr<ChMaterialSurfaceNSC> material;
+    std::shared_ptr<ChContactMaterialNSC> material;
 };
 
 /// Class for generating convex hulls with variable chordal size
@@ -231,7 +231,7 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
         sizeratioZ = chrono_types::make_shared<ChConstantDistribution>(1.0);
         density = chrono_types::make_shared<ChConstantDistribution>(1000);
 
-        material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        material = chrono_types::make_shared<ChContactMaterialNSC>();
     }
 
     /// Function that creates a random ChBody particle each
@@ -289,7 +289,7 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
     std::shared_ptr<ChDistribution> sizeratioZ;
     std::shared_ptr<ChDistribution> density;
 
-    std::shared_ptr<ChMaterialSurfaceNSC> material;
+    std::shared_ptr<ChContactMaterialNSC> material;
 };
 
 /// Class for generating worm-like particles, optionally helically twisted.
@@ -309,7 +309,7 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
         lengthratio = chrono_types::make_shared<ChConstantDistribution>(3.0);
         density = chrono_types::make_shared<ChConstantDistribution>(1000);
 
-        material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        material = chrono_types::make_shared<ChContactMaterialNSC>();
     }
 
     /// Function that creates a random ChBody particle each
@@ -384,7 +384,7 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
     std::shared_ptr<ChDistribution> lengthratio;
     std::shared_ptr<ChDistribution> density;
 
-    std::shared_ptr<ChMaterialSurfaceNSC> material;
+    std::shared_ptr<ChContactMaterialNSC> material;
 };
 
 /// Class for generating spheres from different families,

@@ -235,7 +235,7 @@ void ObsModTerrain::GenerateMesh() {
     m_ground->AddVisualShape(vmesh);
 }
 
-void ObsModTerrain::EnableCollisionMesh(std::shared_ptr<ChMaterialSurface> material,
+void ObsModTerrain::EnableCollisionMesh(std::shared_ptr<ChContactMaterial> material,
                                         double length,
                                         double sweep_sphere_radius) {
     m_material = material;

@@ -56,7 +56,7 @@ double time_step = 1e-3;
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
+std::shared_ptr<ChContactMaterial> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
     float cr = 0.2f;   // coefficient of restitution
     float Y = 2e7f;    // Young's modulus
@@ -68,13 +68,13 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
             matNSC->SetFriction(mu);
             matNSC->SetRestitution(cr);
             return matNSC;
         }
         case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
             matSMC->SetFriction(mu);
             matSMC->SetRestitution(cr);
             matSMC->SetYoungModulus(Y);
@@ -86,7 +86,7 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
             return matSMC;
         }
         default:
-            return std::shared_ptr<ChMaterialSurface>();
+            return std::shared_ptr<ChContactMaterial>();
     }
 }
 
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
     // Create the ground.
-    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(30, 30, 1, 1000, true, true, ground_mat);
     ground->SetPos(ChVector<>(0, 0, -0.5));
     ground->SetBodyFixed(true);

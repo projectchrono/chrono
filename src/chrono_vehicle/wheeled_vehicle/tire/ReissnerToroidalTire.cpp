@@ -35,7 +35,7 @@ ReissnerToroidalTire::ReissnerToroidalTire(const std::string& name)
       m_default_pressure(320.0e3),
       m_alpha(0.015) {
     // default contact material
-    m_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_mat = chrono_types::make_shared<ChContactMaterialSMC>();
 }
 
 void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {

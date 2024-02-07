@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     sys.SetSolverMaxIterations(20);
 
     // Create a contact material shared by all collision shapes
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Creeate a container fixed to ground (invisible).
     auto container = chrono_types::make_shared<ChBody>();

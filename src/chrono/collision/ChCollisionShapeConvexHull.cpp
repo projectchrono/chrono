@@ -26,14 +26,14 @@ CH_UPCASTING(ChCollisionShapeConvexHull, ChCollisionShape)
 
 ChCollisionShapeConvexHull::ChCollisionShapeConvexHull() : ChCollisionShape(Type::CONVEXHULL) {}
 
-ChCollisionShapeConvexHull::ChCollisionShapeConvexHull(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeConvexHull::ChCollisionShapeConvexHull(std::shared_ptr<ChContactMaterial> material,
                                                        const std::vector<ChVector<>>& points)
     : ChCollisionShape(Type::CONVEXHULL, material) {
     this->points = points;
 }
 
 std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> ChCollisionShapeConvexHull::Read(
-    std::shared_ptr<ChMaterialSurface> material,
+    std::shared_ptr<ChContactMaterial> material,
     const std::string& filename) {
     // Open input file stream
     std::ifstream ifile;

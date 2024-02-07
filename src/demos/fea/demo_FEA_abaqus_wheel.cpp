@@ -52,13 +52,13 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the surface material
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     mysurfmaterial->SetYoungModulus(10e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
     mysurfmaterial->SetAdhesion(0);
 
-    auto mysurfmaterial2 = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial2 = chrono_types::make_shared<ChContactMaterialSMC>();
     mysurfmaterial->SetYoungModulus(30e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);

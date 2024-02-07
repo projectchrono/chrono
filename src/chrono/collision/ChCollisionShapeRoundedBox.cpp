@@ -22,7 +22,7 @@ CH_UPCASTING(ChCollisionShapeRoundedBox, ChCollisionShape)
 
 ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox() : ChCollisionShape(Type::ROUNDEDBOX) {}
 
-ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material,
                                                        double length_x,
                                                        double length_y,
                                                        double length_z,
@@ -32,7 +32,7 @@ ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChMateria
     gbox.SetSphereRadius(sradius);
 }
 
-ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material,
                                                        const ChVector<>& lengths,
                                                        double sradius)
     : ChCollisionShape(Type::ROUNDEDBOX, material) {
@@ -40,7 +40,7 @@ ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChMateria
     gbox.SetSphereRadius(sradius);
 }
 
-ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material,
                                                        const geometry::ChRoundedBox& box)
     : ChCollisionShape(Type::ROUNDEDBOX, material), gbox(box) {}
 

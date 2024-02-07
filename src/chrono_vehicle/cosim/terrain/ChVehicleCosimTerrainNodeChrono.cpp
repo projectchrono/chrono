@@ -134,10 +134,10 @@ ChVehicleCosimTerrainNodeChrono::ChVehicleCosimTerrainNodeChrono(Type type,
     // Default terrain contact material
     switch (m_method) {
         case ChContactMethod::SMC:
-            m_material_terrain = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            m_material_terrain = chrono_types::make_shared<ChContactMaterialSMC>();
             break;
         case ChContactMethod::NSC:
-            m_material_terrain = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            m_material_terrain = chrono_types::make_shared<ChContactMaterialNSC>();
             break;
     }
 }

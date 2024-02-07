@@ -123,7 +123,7 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
     // Tire geometry and contact material
     auto cmat = m_tire_def->GetContactMaterial();
     m_geometry.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(VNULL, trimesh, 0.0, 0));
-    m_geometry.m_materials.push_back(ChContactMaterialData(cmat->GetKfriction(), cmat->GetRestitution(),
+    m_geometry.m_materials.push_back(ChContactMaterialData(cmat->GetSlidingFriction(), cmat->GetRestitution(),
                                                            cmat->GetYoungModulus(), cmat->GetPoissonRatio(),
                                                            cmat->GetKn(), cmat->GetGn(), cmat->GetKt(), cmat->GetGt()));
 

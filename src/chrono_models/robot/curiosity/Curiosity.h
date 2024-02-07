@@ -65,7 +65,7 @@ class CH_MODELS_API CuriosityPart {
   public:
     CuriosityPart(const std::string& name,                 ///< part name
                   const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                  std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                  std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                   bool collide                             ///< enable collision?
     );
     virtual ~CuriosityPart() {}
@@ -121,7 +121,7 @@ class CH_MODELS_API CuriosityPart {
 
     std::string m_name;                        ///< subsystem name
     std::shared_ptr<ChBodyAuxRef> m_body;      ///< rigid body
-    std::shared_ptr<ChMaterialSurface> m_mat;  ///< contact material
+    std::shared_ptr<ChContactMaterial> m_mat;  ///< contact material
 
     std::string m_mesh_name;  ///< visualization mesh name
     ChFrame<> m_mesh_xform;   ///< mesh transform (translate, rotate, scale)
@@ -143,7 +143,7 @@ class CH_MODELS_API CuriosityChassis : public CuriosityPart {
   public:
     CuriosityChassis(const std::string& name,                ///< part name
                      CuriosityChassisType chassis_type,      ///< chassis type
-                     std::shared_ptr<ChMaterialSurface> mat  ///< contact material
+                     std::shared_ptr<ChContactMaterial> mat  ///< contact material
     );
     ~CuriosityChassis() {}
 
@@ -159,7 +159,7 @@ class CH_MODELS_API CuriosityWheel : public CuriosityPart {
   public:
     CuriosityWheel(const std::string& name,                 ///< part name
                    const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                   std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                   std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                    CuriosityWheelType wheel_type            ///< wheel type
     );
     ~CuriosityWheel() {}
@@ -172,7 +172,7 @@ class CH_MODELS_API CuriosityRocker : public CuriosityPart {
   public:
     CuriosityRocker(const std::string& name,                 ///< part name
                     const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                    std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                    std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                     int side                                 ///< rover side (0: L, 1: R)
     );
     ~CuriosityRocker() {}
@@ -183,7 +183,7 @@ class CH_MODELS_API CuriosityBogie : public CuriosityPart {
   public:
     CuriosityBogie(const std::string& name,                 ///< part name
                    const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                   std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                   std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                    int side                                 ///< rover side (0: L, 1: R)
     );
     ~CuriosityBogie() {}
@@ -194,7 +194,7 @@ class CH_MODELS_API CuriosityUpright : public CuriosityPart {
   public:
     CuriosityUpright(const std::string& name,                ///< part name
                      const ChFrame<>& rel_pos,               ///< position relative to chassis frame
-                     std::shared_ptr<ChMaterialSurface> mat  ///< contact material
+                     std::shared_ptr<ChContactMaterial> mat  ///< contact material
     );
     ~CuriosityUpright() {}
 };
@@ -204,7 +204,7 @@ class CH_MODELS_API CuriosityDifferentialBar : public CuriosityPart {
   public:
     CuriosityDifferentialBar(const std::string& name,                ///< part name
                              const ChFrame<>& rel_pos,               ///< position relative to chassis frame
-                             std::shared_ptr<ChMaterialSurface> mat  ///< contact material
+                             std::shared_ptr<ChContactMaterial> mat  ///< contact material
     );
     ~CuriosityDifferentialBar() {}
 };
@@ -214,7 +214,7 @@ class CH_MODELS_API CuriosityDifferentialLink : public CuriosityPart {
   public:
     CuriosityDifferentialLink(const std::string& name,                 ///< part name
                               const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                              std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                              std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                               int side                                 ///< rover side (0: L, 1: R)
     );
     ~CuriosityDifferentialLink() {}
@@ -241,7 +241,7 @@ class CH_MODELS_API Curiosity {
     void SetDriver(std::shared_ptr<CuriosityDriver> driver);
 
     /// Set wheel contact material.
-    void SetWheelContactMaterial(std::shared_ptr<ChMaterialSurface> mat);
+    void SetWheelContactMaterial(std::shared_ptr<ChContactMaterial> mat);
 
     /// Fix the chassis to ground.
     /// This function can only be invoked after the call to Initialize().
@@ -367,8 +367,8 @@ class CH_MODELS_API Curiosity {
 
     std::shared_ptr<CuriosityDriver> m_driver;  ///< rover driver system
 
-    std::shared_ptr<ChMaterialSurface> m_default_material;  ///< common contact material for all non-wheel parts
-    std::shared_ptr<ChMaterialSurface> m_wheel_material;    ///< wheel contact material (shared across limbs)
+    std::shared_ptr<ChContactMaterial> m_default_material;  ///< common contact material for all non-wheel parts
+    std::shared_ptr<ChContactMaterial> m_wheel_material;    ///< wheel contact material (shared across limbs)
 
     friend class CuriosityDCMotorControl;
 };

@@ -88,7 +88,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
 // -----------------------------------------------------------------------------
 class ContactMaterial : public ChContactContainer::AddContactCallback {
   public:
-    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
+    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
         // Downcast to appropriate composite material type
         auto mat = static_cast<ChMaterialCompositeSMC* const>(material);
 
@@ -101,7 +101,7 @@ class ContactMaterial : public ChContactContainer::AddContactCallback {
 // -----------------------------------------------------------------------------
 // Class for overriding composite material laws
 // -----------------------------------------------------------------------------
-class CompsiteMaterial : public ChMaterialCompositionStrategy {
+class CompsiteMaterial : public ChContactMaterialCompositionStrategy {
   public:
     virtual float CombineFriction(float a1, float a2) const { return 0.5 * (a1 + a2); }
 };
@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
     // Create a contact material, shared among all bodies
     // --------------------------------------------------
 
-    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     material->SetFriction(friction);
 
     // ----------
@@ -302,7 +302,7 @@ int main(int argc, char* argv[]) {
     sys.SetContactForceTorqueAlgorithm(std::move(cforce));
 
     // User-defined composite coefficent of friction
-    auto cmat = chrono_types::make_unique<ChMaterialCompositionStrategy>();
+    auto cmat = chrono_types::make_unique<ChContactMaterialCompositionStrategy>();
     sys.SetMaterialCompositionStrategy(std::move(cmat));
 
     // OVerride material properties at each new contact

@@ -147,7 +147,7 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     double m_center_m_arc_start;  ///< starting angle of the (-x) arc, in tread body x-z plane
     double m_center_m_arc_end;    ///< ending angle of the (-x) arc, in tread body x-z plane
 
-    std::shared_ptr<ChMaterialSurface> m_tooth_material;  ///< contact material for teeth (sprocket interaction)
+    std::shared_ptr<ChContactMaterial> m_tooth_material;  ///< contact material for teeth (sprocket interaction)
 
     friend class ChSprocketBand;
     friend class SprocketBandContactCB;

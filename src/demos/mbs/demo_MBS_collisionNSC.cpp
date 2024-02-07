@@ -45,10 +45,10 @@ ChCollisionSystem::Type collision_type = ChCollisionSystem::Type::BULLET;
 
 void AddFallingItems(ChSystemNSC& sys) {
     // Shared contact materials for falling objects
-    auto sph_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto sph_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     sph_mat->SetFriction(0.2f);
-    auto box_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    auto cyl_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto box_mat = chrono_types::make_shared<ChContactMaterialNSC>();
+    auto cyl_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Create falling rigid bodies (spheres and boxes etc.)
     for (int bi = 0; bi < 29; bi++) {
@@ -81,7 +81,7 @@ void AddFallingItems(ChSystemNSC& sys) {
 
 std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
     // Contact and visualization materials for container
-    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto ground_mat_vis = chrono_types::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
     ground_mat_vis->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
 
@@ -117,7 +117,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
     sys.Add(wallBody4);
 
     // Add the rotating mixer
-    auto mixer_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mixer_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mixer_mat->SetFriction(0.4f);
 
     auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1,   // x,y,z size

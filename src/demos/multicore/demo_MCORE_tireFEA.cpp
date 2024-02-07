@@ -20,7 +20,7 @@ using namespace chrono::collision;
 real time_step = 0.0005;
 
 void AddContainer(ChSystemMulticoreNSC* sys) {
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
 
     ChVector<> hdim(2, 2, 2);
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
 
     ////AddContainer(&my_system);
 
-    auto cmaterial = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto cmaterial = chrono_types::make_shared<ChContactMaterialNSC>();
     cmaterial->SetFriction(0.4f);
     auto box = utils::CreateBoxContainer(&my_system, 0, cmaterial, ChVector<>(2, 2, 2), 0.1, ChVector<>(0, 0, -1),
                                          QUNIT, true, false, true, true);

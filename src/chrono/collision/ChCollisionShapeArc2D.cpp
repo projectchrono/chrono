@@ -22,7 +22,7 @@ CH_UPCASTING(ChCollisionShapeArc2D, ChCollisionShape)
 
 ChCollisionShapeArc2D::ChCollisionShapeArc2D() : ChCollisionShape(Type::ARC2D) {}
 
-ChCollisionShapeArc2D::ChCollisionShapeArc2D(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeArc2D::ChCollisionShapeArc2D(std::shared_ptr<ChContactMaterial> material,
                                              const geometry::ChLineArc& arc,
                                              double radius)
     : ChCollisionShape(Type::ARC2D, material), garc(arc) {

@@ -122,7 +122,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
     // Create a Chrono physical system
 
     // Contact material shared among all bodies
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Shared visualization material
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -187,7 +187,7 @@ void assemble_pendulum_visual(ChSystemNSC& system) {
     floor->SetIdentifier(100);
     system.Add(floor);
 
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
     mat->SetCompliance(0.0);
     mat->SetComplianceT(0.0);

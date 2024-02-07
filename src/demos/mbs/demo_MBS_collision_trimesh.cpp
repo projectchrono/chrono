@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 
     // - Create a floor
 
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(5, 2, 5, 1000, true, true, floor_mat);
     floor->SetPos(ChVector<>(0, -1, 0));
     floor->SetBodyFixed(true);
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
     // - Create a falling item with triangle mesh shape
 
     // Shared contact material for all meshes
-    auto mesh_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mesh_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Note: one can create easily a colliding shape using the following
     // piece of code:
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Shared contact material for falling objects
-    auto obj_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto obj_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     obj_mat->SetFriction(0.2f);
 
     // Create a falling rigid bodies

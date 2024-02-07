@@ -38,7 +38,7 @@ bool addGravity = false;
 double time_step = 0.001;
 // Forward declaration
 bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
-                     std::shared_ptr<ChMaterialSurfaceSMC> mysurfmaterial,
+                     std::shared_ptr<ChContactMaterialSMC> mysurfmaterial,
                      double sphere_swept_thickness,
                      double scaleFactor,
                      double elementThickness,
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     double nu = 0.3;    ///< Poisson ratio
     auto my_material = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
     // You can also change the contact surface properties for further investigation.
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     mysurfmaterial->SetKn(1e0);
     mysurfmaterial->SetKt(0);
     mysurfmaterial->SetGn(1e0);
@@ -187,7 +187,7 @@ class MyContactContainer : public ChContactContainerSMC {
 ////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
 bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
-                     std::shared_ptr<ChMaterialSurfaceSMC> mysurfmaterial,
+                     std::shared_ptr<ChContactMaterialSMC> mysurfmaterial,
                      double sphere_swept_thickness,
                      double scaleFactor,
                      double elementThickness,

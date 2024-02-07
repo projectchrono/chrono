@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     GranularTerrain terrain(sys);
-    auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(terrain.GetContactMaterial());
+    auto mat = std::static_pointer_cast<ChContactMaterialNSC>(terrain.GetContactMaterial());
     mat->SetFriction((float)mu_g);
     mat->SetCohesion((float)coh_g);
     terrain.SetContactMaterial(mat);
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     trimesh_shape->SetMesh(trimesh);
     body->AddVisualShape(trimesh_shape);
 
-    auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto body_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(body_mat, trimesh, false, false, 0.01);
     body->AddCollisionShape(ct_shape);

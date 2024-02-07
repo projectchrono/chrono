@@ -34,7 +34,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
     ChLinkLockLock* internal_link;                    ///< link between this body and conveyor plate
     ChBody* conveyor_truss;                           ///< used for the conveyor truss
     ChBody* conveyor_plate;                           ///< used for the conveyor plate
-    std::shared_ptr<ChMaterialSurface> conveyor_mat;  ///< surface contact material for the conveyor plate
+    std::shared_ptr<ChContactMaterial> conveyor_mat;  ///< surface contact material for the conveyor plate
 
   public:
     /// Build a conveyor belt, with motion along x axis
@@ -73,11 +73,11 @@ class ChApi ChConveyor : public ChPhysicsItem {
     void SetRot(const ChQuaternion<>& mrot) { GetTruss()->SetRot(mrot); }
     void SetPos(const ChVector<>& mpos) { GetTruss()->SetPos(mpos); }
 
-    /// Set the material surface properties by passing a ChMaterialSurfaceNSC or ChMaterialSurfaceSMC object.
-    void SetMaterialSurface(std::shared_ptr<ChMaterialSurface> mat) { conveyor_mat = mat; }
+    /// Set the material surface properties by passing a ChContactMaterialNSC or ChContactMaterialSMC object.
+    void SetMaterialSurface(std::shared_ptr<ChContactMaterial> mat) { conveyor_mat = mat; }
 
     /// Access the material surface properties of the conveyor belt (shortcut)
-    std::shared_ptr<ChMaterialSurface> GetMaterialSurface() const { return conveyor_mat; }
+    std::shared_ptr<ChContactMaterial> GetMaterialSurface() const { return conveyor_mat; }
 
     //
     // STATE FUNCTIONS

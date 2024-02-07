@@ -143,17 +143,17 @@ int main(int argc, char* argv[]) {
     object->SetCollide(true);
     object->SetBodyFixed(false);
 
-    std::shared_ptr<ChMaterialSurface> object_mat;
+    std::shared_ptr<ChContactMaterial> object_mat;
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
             matNSC->SetFriction(object_friction);
             matNSC->SetRestitution(object_restitution);
             object_mat = matNSC;
             break;
         }
         case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
             matSMC->SetFriction(object_friction);
             matSMC->SetRestitution(object_restitution);
             matSMC->SetYoungModulus(object_young_modulus);
@@ -189,17 +189,17 @@ int main(int argc, char* argv[]) {
     ground->SetCollide(true);
     ground->SetBodyFixed(true);
 
-    std::shared_ptr<ChMaterialSurface> ground_mat;
+    std::shared_ptr<ChContactMaterial> ground_mat;
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
             matNSC->SetFriction(ground_friction);
             matNSC->SetRestitution(ground_restitution);
             ground_mat = matNSC;
             break;
         }
         case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
             matSMC->SetFriction(ground_friction);
             matSMC->SetRestitution(ground_restitution);
             matSMC->SetYoungModulus(ground_young_modulus);

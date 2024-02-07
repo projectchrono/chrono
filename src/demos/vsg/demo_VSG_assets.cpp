@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     floor->SetBodyFixed(true);
 
     // Contact material
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Define a collision shape
     auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
         particle_vis->SetColor(ChColor(0.7f, 0.3f, 0.3f));
         particles->AddVisualShape(particle_vis);
 
-        auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto particle_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         particle_mat->SetFriction(0.9f);
 
         auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, particle_radius);
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
         particle_vis->SetColor(ChColor(0.3f, 0.7f, 0.3f));
         particles->AddVisualShape(particle_vis);
 
-        auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto particle_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
         auto particle_shape = chrono_types::make_shared<ChCollisionShapeBox>(particle_mat, size_x, size_y, size_z);
         particles->AddCollisionShape(particle_shape);
@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
     points.push_back(ChVector<>(0.0, 0.0, 0.3) + displ);
     points.push_back(ChVector<>(0.8, 0.0, 0.3) + displ);
     auto hull = chrono_types::make_shared<ChBodyEasyConvexHullAuxRef>(
-        points, 1000, true, true, chrono_types::make_shared<ChMaterialSurfaceNSC>());
+        points, 1000, true, true, chrono_types::make_shared<ChContactMaterialNSC>());
     ////hull->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(2,0.3,0)));
     ////hull->SetPos(ChVector<>(2,0.3,0));
     hull->Move(ChVector<>(2, 0.3, 0));

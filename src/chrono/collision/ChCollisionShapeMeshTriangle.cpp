@@ -23,7 +23,7 @@ CH_UPCASTING(ChCollisionShapeMeshTriangle, ChCollisionShape)
 ChCollisionShapeMeshTriangle::ChCollisionShapeMeshTriangle() : ChCollisionShape(Type::MESHTRIANGLE) {}
 
 ChCollisionShapeMeshTriangle::ChCollisionShapeMeshTriangle(
-    std::shared_ptr<ChMaterialSurface> material,  // contact material
+    std::shared_ptr<ChContactMaterial> material,  // contact material
     ChVector<>* V1,                               // vertex1 coords
     ChVector<>* V2,                               // vertex2 coords
     ChVector<>* V3,                               // vertex3 coords

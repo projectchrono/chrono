@@ -565,7 +565,7 @@ void ChContactTriangleXYZROT::ComputeUVfromP(const ChVector<> P, double& u, doub
 // -----------------------------------------------------------------------------
 // ChContactSurfaceMesh
 
-ChContactSurfaceMesh::ChContactSurfaceMesh(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh)
+ChContactSurfaceMesh::ChContactSurfaceMesh(std::shared_ptr<ChContactMaterial> material, ChMesh* mesh)
     : ChContactSurface(material, mesh) {}
 
 void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyz> node1,

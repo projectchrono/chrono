@@ -30,7 +30,7 @@ namespace turtlebot {
 
 // =============================================================================
 // Create default contact material for the robot
-std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contact_method) {
+std::shared_ptr<ChContactMaterial> DefaultContactMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
     float cr = 0.0f;   // coefficient of restitution
     float Y = 2e7f;    // Young's modulus
@@ -42,13 +42,13 @@ std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contac
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
             matNSC->SetFriction(mu);
             matNSC->SetRestitution(cr);
             return matNSC;
         }
         case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
             matSMC->SetFriction(mu);
             matSMC->SetRestitution(cr);
             matSMC->SetYoungModulus(Y);
@@ -60,7 +60,7 @@ std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contac
             return matSMC;
         }
         default:
-            return std::shared_ptr<ChMaterialSurface>();
+            return std::shared_ptr<ChContactMaterial>();
     }
 }
 
@@ -139,7 +139,7 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBody> body_
 // ===============================================================================
 Turtlebot_Part::Turtlebot_Part(const std::string& name,
                                bool fixed,
-                               std::shared_ptr<ChMaterialSurface> mat,
+                               std::shared_ptr<ChContactMaterial> mat,
                                ChSystem* system,
                                const ChVector<>& body_pos,
                                const ChQuaternion<>& body_rot,
@@ -188,7 +188,7 @@ void Turtlebot_Part::AddCollisionShapes() {
 // Robot Chassis
 Turtlebot_Chassis::Turtlebot_Chassis(const std::string& name,
                                      bool fixed,
-                                     std::shared_ptr<ChMaterialSurface> mat,
+                                     std::shared_ptr<ChContactMaterial> mat,
                                      ChSystem* system,
                                      const ChVector<>& body_pos,
                                      const ChQuaternion<>& body_rot,
@@ -244,7 +244,7 @@ void Turtlebot_Chassis::Translate(const ChVector<>& shift) {
 // ==========================================================
 Turtlebot_ActiveWheel::Turtlebot_ActiveWheel(const std::string& name,
                                              bool fixed,
-                                             std::shared_ptr<ChMaterialSurface> mat,
+                                             std::shared_ptr<ChContactMaterial> mat,
                                              ChSystem* system,
                                              const ChVector<>& body_pos,
                                              const ChQuaternion<>& body_rot,
@@ -306,7 +306,7 @@ void Turtlebot_ActiveWheel::Translate(const ChVector<>& shift) {
 // ==========================================================
 Turtlebot_PassiveWheel::Turtlebot_PassiveWheel(const std::string& name,
                                                bool fixed,
-                                               std::shared_ptr<ChMaterialSurface> mat,
+                                               std::shared_ptr<ChContactMaterial> mat,
                                                ChSystem* system,
                                                const ChVector<>& body_pos,
                                                const ChQuaternion<>& body_rot,
@@ -368,7 +368,7 @@ void Turtlebot_PassiveWheel::Translate(const ChVector<>& shift) {
 // ==========================================================
 Turtlebot_Rod_Short::Turtlebot_Rod_Short(const std::string& name,
                                          bool fixed,
-                                         std::shared_ptr<ChMaterialSurface> mat,
+                                         std::shared_ptr<ChContactMaterial> mat,
                                          ChSystem* system,
                                          const ChVector<>& body_pos,
                                          const ChQuaternion<>& body_rot,
@@ -432,7 +432,7 @@ void Turtlebot_Rod_Short::Translate(const ChVector<>& shift) {
 // ==========================================================
 Turtlebot_BottomPlate::Turtlebot_BottomPlate(const std::string& name,
                                              bool fixed,
-                                             std::shared_ptr<ChMaterialSurface> mat,
+                                             std::shared_ptr<ChContactMaterial> mat,
                                              ChSystem* system,
                                              const ChVector<>& body_pos,
                                              const ChQuaternion<>& body_rot,
@@ -495,7 +495,7 @@ void Turtlebot_BottomPlate::Translate(const ChVector<>& shift) {
 // ==========================================================
 Turtlebot_MiddlePlate::Turtlebot_MiddlePlate(const std::string& name,
                                              bool fixed,
-                                             std::shared_ptr<ChMaterialSurface> mat,
+                                             std::shared_ptr<ChContactMaterial> mat,
                                              ChSystem* system,
                                              const ChVector<>& body_pos,
                                              const ChQuaternion<>& body_rot,
@@ -558,7 +558,7 @@ void Turtlebot_MiddlePlate::Translate(const ChVector<>& shift) {
 // ==========================================================
 Turtlebot_TopPlate::Turtlebot_TopPlate(const std::string& name,
                                        bool fixed,
-                                       std::shared_ptr<ChMaterialSurface> mat,
+                                       std::shared_ptr<ChContactMaterial> mat,
                                        ChSystem* system,
                                        const ChVector<>& body_pos,
                                        const ChQuaternion<>& body_rot,
@@ -623,7 +623,7 @@ void Turtlebot_TopPlate::Translate(const ChVector<>& shift) {
 // ==========================================================
 Turtlebot_Rod_Long::Turtlebot_Rod_Long(const std::string& name,
                                        bool fixed,
-                                       std::shared_ptr<ChMaterialSurface> mat,
+                                       std::shared_ptr<ChContactMaterial> mat,
                                        ChSystem* system,
                                        const ChVector<>& body_pos,
                                        const ChQuaternion<>& body_rot,
@@ -690,7 +690,7 @@ void Turtlebot_Rod_Long::Translate(const ChVector<>& shift) {
 TurtleBot::TurtleBot(ChSystem* system,
                      const ChVector<>& robot_pos,
                      const ChQuaternion<>& robot_rot,
-                     std::shared_ptr<ChMaterialSurface> wheel_mat)
+                     std::shared_ptr<ChContactMaterial> wheel_mat)
     : m_system(system), m_robot_pos(robot_pos), m_robot_rot(robot_rot), m_wheel_material(wheel_mat) {
     // Set default collision model envelope commensurate with model dimensions.
     // Note that an SMC system automatically sets envelope to 0.

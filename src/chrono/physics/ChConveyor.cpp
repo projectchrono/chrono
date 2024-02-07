@@ -31,7 +31,7 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
     conveyor_truss = new ChBody;
     conveyor_plate = new ChBody;
 
-    conveyor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    conveyor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(conveyor_mat, xlength, ythick, zwidth);
     conveyor_plate->AddCollisionShape(cshape);

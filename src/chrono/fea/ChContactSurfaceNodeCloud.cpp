@@ -105,7 +105,7 @@ ChContactNodeXYZROTsphere::ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* node, ChCo
 // -----------------------------------------------------------------------------
 //  ChContactSurfaceNodeCloud
 
-ChContactSurfaceNodeCloud::ChContactSurfaceNodeCloud(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh)
+ChContactSurfaceNodeCloud::ChContactSurfaceNodeCloud(std::shared_ptr<ChContactMaterial> material, ChMesh* mesh)
     : ChContactSurface(material, mesh) {}
 
 void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> node, const double point_radius) {

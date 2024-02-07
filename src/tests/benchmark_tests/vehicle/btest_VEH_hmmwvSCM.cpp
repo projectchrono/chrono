@@ -161,7 +161,7 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
 
     // Create falling objects
     if (OBJECTS) {
-        auto sph_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+        auto sph_mat = chrono_types::make_shared<ChContactMaterialSMC>();
         sph_mat->SetFriction(0.2f);
         for (int i = 0; i < 20; i++) {
             auto sphere = chrono_types::make_shared<ChBodyEasySphere>(0.5,       // radius size

@@ -51,7 +51,7 @@ double kernel_radius = .016 * 2;
 void AddBody(ChSystemMulticoreNSC* sys) {
     int binId = -200;
 
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
 
     auto bin = chrono_types::make_shared<ChBody>();

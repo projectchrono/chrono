@@ -30,7 +30,7 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChContactTuple.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/timestepper/ChState.h"
 

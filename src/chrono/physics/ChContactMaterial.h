@@ -11,6 +11,12 @@
 // =============================================================================
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
+// Classes:
+//   ChContactMaterialData
+//   ChContactMaterial
+//   ChContactMaterialComposite
+//   ChContactMaterialCompositionStrategy
+// =============================================================================
 
 #ifndef CH_MATERIAL_SURFACE_H
 #define CH_MATERIAL_SURFACE_H
@@ -29,61 +35,78 @@ enum class ChContactMethod {
 };
 
 /// Base class for specifying material properties for contact force generation.
-class ChApi ChMaterialSurface {
+class ChApi ChContactMaterial {
   public:
-    virtual ~ChMaterialSurface() {}
+    virtual ~ChContactMaterial() {}
 
     /// "Virtual" copy constructor.
-    virtual ChMaterialSurface* Clone() const = 0;
+    virtual ChContactMaterial* Clone() const = 0;
 
     virtual ChContactMethod GetContactMethod() const = 0;
 
-    /// Static sliding friction coefficient.
+    /// Set the static friction coefficient.
     /// Usually in 0..1 range, rarely above. Default 0.6.
-    void SetSfriction(float val) { static_friction = val; }
-    float GetSfriction() const { return static_friction; }
+    void SetStaticFriction(float val) { static_friction = val; }
 
-    /// Kinetic sliding friction coefficient.
-    void SetKfriction(float val) { sliding_friction = val; }
-    float GetKfriction() const { return sliding_friction; }
+    /// Get the static friction coefficient.
+    float GetStaticFriction() const { return static_friction; }
 
-    /// Set both static friction and kinetic friction at once, with same value.
+    /// Set the sliding (kinetic) friction coefficient.
+    void SetSlidingFriction(float val) { sliding_friction = val; }
+
+    /// Get the sliding friction coefficient.
+    float GetSlidingFriction() const { return sliding_friction; }
+
+    /// Set both static friction and sliding friction at once, with same value.
     void SetFriction(float val);
 
-    /// Rolling friction coefficient. Usually around 1E-3. Default 0.
+    /// Set the rolling friction coefficient (default: 0).
+    /// Usually around 1E-3.
     void SetRollingFriction(float val) { rolling_friction = val; }
+
+    /// Get the rolling friction coefficient.
     float GetRollingFriction() const { return rolling_friction; }
 
-    /// Spinning friction coefficient. Usually around 1E-3. Default 0.
+    /// Set the spinning friction coefficient (default: 0).
+    /// Usually around 1E-3.
     void SetSpinningFriction(float val) { spinning_friction = val; }
+
+    /// Get the roliung friction coefficient.
     float GetSpinningFriction() const { return spinning_friction; }
 
-    /// Normal coefficient of restitution. In the range [0,1]. Default 0.
+    /// Set the ormal coefficient of restitution (default: 0).
+    /// In the range [0,1].
     void SetRestitution(float val) { restitution = val; }
+
+    /// Get the coefficient of restitution. 
     float GetRestitution() const { return restitution; }
 
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive);
 
     /// Construct and return a contact material of the specified type with default properties.
-    static std::shared_ptr<ChMaterialSurface> DefaultMaterial(ChContactMethod contact_method);
+    static std::shared_ptr<ChContactMaterial> DefaultMaterial(ChContactMethod contact_method);
 
     // Properties common to both NSC and SMC materials
-    float static_friction;    ///< Static coefficient of friction
-    float sliding_friction;   ///< Kinetic coefficient of friction
-    float rolling_friction;   ///< Rolling coefficient of friction
-    float spinning_friction;  ///< Spinning coefficient of friction
-    float restitution;        ///< Coefficient of restitution
+    float static_friction;    ///< static coefficient of friction
+    float sliding_friction;   ///< sliding coefficient of friction
+    float rolling_friction;   ///< rolling coefficient of friction
+    float spinning_friction;  ///< spinning coefficient of friction
+    float restitution;        ///< coefficient of restitution
 
   protected:
-    ChMaterialSurface();
-    ChMaterialSurface(const ChMaterialSurface& other);
+    ChContactMaterial();
+    ChContactMaterial(const ChContactMaterial& other);
 };
 
-CH_CLASS_VERSION(ChMaterialSurface, 0)
+CH_CLASS_VERSION(ChContactMaterial, 0)
 
 /// Material information for a collision shape.
-/// Provides mechanism for creating a contact material of type to a particular contact formulation (SMC or NSC).
+/// Provides mechanism for creating a contact material of appropriate type for a particular contact formulation
+/// (SMC or NSC).
 class ChApi ChContactMaterialData {
   public:
     float mu;  ///< coefficient of friction
@@ -102,7 +125,7 @@ class ChApi ChContactMaterialData {
     ChContactMaterialData(float mu, float cr, float Y, float nu, float kn, float gn, float kt, float gt);
 
     /// Construct a contact material, consistent with the specified method, using the current data.
-    std::shared_ptr<ChMaterialSurface> CreateMaterial(ChContactMethod contact_method) const;
+    std::shared_ptr<ChContactMaterial> CreateMaterial(ChContactMethod contact_method) const;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive);
@@ -114,9 +137,9 @@ class ChApi ChContactMaterialData {
 CH_CLASS_VERSION(ChContactMaterialData, 0)
 
 /// Base class for composite material for a contact pair.
-class ChApi ChMaterialComposite {
+class ChApi ChContactMaterialComposite {
   public:
-    virtual ~ChMaterialComposite() {}
+    virtual ~ChContactMaterialComposite() {}
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive);
@@ -125,16 +148,15 @@ class ChApi ChMaterialComposite {
     virtual void ArchiveIn(ChArchiveIn& marchive);
 };
 
-CH_CLASS_VERSION(ChMaterialComposite, 0)
-
+CH_CLASS_VERSION(ChContactMaterialComposite, 0)
 
 /// Base class for material composition strategy.
 /// Implements the default combination laws for coefficients of friction, cohesion, compliance, etc.
 /// Derived classes can override one or more of these combination laws.
 /// Enabling the use of a customized composition strategy is system type-dependent.
-class ChApi ChMaterialCompositionStrategy {
+class ChApi ChContactMaterialCompositionStrategy {
   public:
-    virtual ~ChMaterialCompositionStrategy() {}
+    virtual ~ChContactMaterialCompositionStrategy() {}
 
     virtual float CombineFriction(float a1, float a2) const { return std::min<float>(a1, a2); }
     virtual float CombineCohesion(float a1, float a2) const { return std::min<float>(a1, a2); }
@@ -153,9 +175,9 @@ class ChApi ChMaterialCompositionStrategy {
     virtual void ArchiveIn(ChArchiveIn& marchive);
 };
 
-CH_CLASS_VERSION(ChMaterialCompositionStrategy, 0)
+CH_CLASS_VERSION(ChContactMaterialCompositionStrategy, 0)
 
-typedef std::shared_ptr<ChMaterialSurface> ChMaterialSurfaceSharedPtr;
+typedef std::shared_ptr<ChContactMaterial> ChContactMaterialSharedPtr;
 
 }  // end namespace chrono
 

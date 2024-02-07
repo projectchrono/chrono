@@ -52,7 +52,7 @@ real diameter = 0.016;
 // -----------------------------------------------------------------------------
 void AddContainer(ChSystemMulticoreNSC* sys) {
     // Create a common material
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
 
     utils::CreateBoxContainer(sys, 0, mat,                      //

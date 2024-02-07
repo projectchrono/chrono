@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
     system.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     material->SetYoungModulus(young_modulus);
     material->SetRestitution(restitution);
     material->SetFriction(friction);
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
 
     // Create node cloud for contact with box
     double m_contact_node_radius = 0.0015;
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
 
     mysurfmaterial->SetKn(kn);
     mysurfmaterial->SetKt(kt);

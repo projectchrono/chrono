@@ -123,7 +123,7 @@ void WriteWheelVTK(const std::string& filename,
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Common contact material
-    auto cmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     cmaterial->SetYoungModulus(1e8);
     cmaterial->SetFriction(0.9f);
     cmaterial->SetRestitution(0.4f);

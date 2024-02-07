@@ -101,7 +101,7 @@ class MySimpleForklift {
         chassis->SetInertiaXX(ChVector<>(100, 100, 100));
 
         // collision properties:
-        auto chassis_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto chassis_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
         auto cshape1 = chrono_types::make_shared<ChCollisionShapeBox>(chassis_mat, 1.227, 1.621, 1.864);
         auto cshape2 = chrono_types::make_shared<ChCollisionShapeBox>(chassis_mat, 0.187, 0.773, 1.201);
@@ -117,7 +117,7 @@ class MySimpleForklift {
         chassis->AddVisualShape(chassis_mesh, ChFrame<>(-COG_truss, QUNIT));
 
         // contact material shared among all wheels
-        auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto wheel_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
         // visualization shape, shared among all wheels
         auto wheel_mesh = chrono_types::make_shared<ChVisualShapeModelFile>();
@@ -213,7 +213,7 @@ class MySimpleForklift {
         sys->AddLink(link_engineArm);
 
         // ..the fork
-        auto fork_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto fork_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
         fork = chrono_types::make_shared<ChBody>();
         sys->Add(fork);
@@ -246,7 +246,7 @@ class MySimpleForklift {
         sys->AddLink(link_actuatorFork);
 
         // ..a pallet
-        auto pallet_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto pallet_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
         // Create a body with a mesh visualization and collision shape.
         // In order to automatically infer mass and inertia properties, the mesh must be closed and watertight!
@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Contact material for ground
-    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     ground_mat->SetFriction(1.0f);
 
     // ..the world

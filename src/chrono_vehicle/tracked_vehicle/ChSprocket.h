@@ -84,7 +84,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     void SetCollide(bool val) { m_gear->SetCollide(val); }
 
     /// Get the sprocket contact material.
-    std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
+    std::shared_ptr<ChContactMaterial> GetContactMaterial() const { return m_material; }
 
     /// Disable lateral contact for preventing detracking (default: enabled).
     void DisableLateralContact() { m_lateral_contact = false; }
@@ -167,7 +167,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     std::shared_ptr<ChShaft> m_axle;                  ///< gear shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< gear-shaft connector
     std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< sprocket revolute joint
-    std::shared_ptr<ChMaterialSurface> m_material;    ///< contact material;
+    std::shared_ptr<ChContactMaterial> m_material;    ///< contact material;
 
     std::shared_ptr<ChSystem::CustomCollisionCallback> m_callback;  ///< cached collision callback
 

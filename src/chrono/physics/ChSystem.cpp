@@ -67,7 +67,7 @@ ChSystem::ChSystem()
       solvecount(0),
       write_matrix(false),
       ncontacts(0),
-      composition_strategy(new ChMaterialCompositionStrategy),
+      composition_strategy(new ChContactMaterialCompositionStrategy),
       collision_system(nullptr),
       visual_system(nullptr),
       nthreads_chrono(ChOMP::GetNumProcs()),
@@ -419,7 +419,7 @@ void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container
     contact_container->SetSystem(this);
 }
 
-void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) {
+void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) {
     composition_strategy = std::move(strategy);
 }
 

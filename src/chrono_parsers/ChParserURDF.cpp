@@ -304,7 +304,7 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
 
     // Create the contact material for all collision shapes associated with this body
     auto link_name = body->GetNameString();
-    std::shared_ptr<ChMaterialSurface> contact_material;
+    std::shared_ptr<ChContactMaterial> contact_material;
     if (m_mat_data.find(link_name) != m_mat_data.end())
         contact_material = m_mat_data.find(link_name)->second.CreateMaterial(m_sys->GetContactMethod());
     else

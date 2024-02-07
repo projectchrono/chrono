@@ -38,7 +38,7 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 
 void CreateContainer(ChSystemMulticore* system) {
-    auto mat_walls = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat_walls = chrono_types::make_shared<ChContactMaterialNSC>();
     mat_walls->SetFriction(0.3f);
 
     auto container = chrono_types::make_shared<ChBody>();
@@ -57,7 +57,7 @@ void CreateContainer(ChSystemMulticore* system) {
 
 void CreateGranularMaterial(ChSystemMulticore* sys) {
     // Common material
-    auto ballMat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ballMat = chrono_types::make_shared<ChContactMaterialNSC>();
     ballMat->SetFriction(1.0);
 
     // Create the falling balls

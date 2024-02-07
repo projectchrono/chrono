@@ -22,7 +22,7 @@ CH_UPCASTING(ChCollisionShapeCylindricalShell, ChCollisionShape)
 
 ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell() : ChCollisionShape(Type::CYLSHELL) {}
 
-ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell(std::shared_ptr<ChContactMaterial> material,
                                                                    double radius,
                                                                    double height)
     : ChCollisionShape(Type::CYLSHELL, material) {
@@ -30,7 +30,7 @@ ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell(std::shared_p
     gcylinder.h = height;
 }
 
-ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell(std::shared_ptr<ChContactMaterial> material,
                                                                    const geometry::ChCylinder& cyl)
     : ChCollisionShape(Type::CYLINDER, material), gcylinder(cyl) {}
 

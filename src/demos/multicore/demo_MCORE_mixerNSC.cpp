@@ -53,7 +53,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
     int mixerId = -201;
 
     // Create a common material
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
@@ -104,9 +104,9 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemMulticore* sys) {
     // Shared contact materials
-    auto ball_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ball_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     ball_mat->SetFriction(0.4f);
-    auto cyl_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto cyl_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Create the falling objects
     for (int ix = -2; ix < 3; ix++) {

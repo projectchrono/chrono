@@ -37,7 +37,7 @@ ChCollisionSystem::Type collision_type = ChCollisionSystem::Type::BULLET;
 
 void AddFallingItems(ChSystemSMC& sys) {
     // Shared contact material for falling objects
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
 
     for (int ix = -2; ix < 3; ix++) {
         for (int iz = -2; iz < 3; iz++) {
@@ -85,7 +85,7 @@ void AddFallingItems(ChSystemSMC& sys) {
 }
 
 void AddContainerWall(std::shared_ptr<ChBody> body,
-                      std::shared_ptr<ChMaterialSurface> mat,
+                      std::shared_ptr<ChContactMaterial> mat,
                       std::shared_ptr<ChVisualMaterial> vis_mat,
                       const ChVector<>& size,
                       const ChVector<>& pos,
@@ -110,7 +110,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     fixedBody->SetCollide(true);
 
     // Contact material for container
-    auto fixed_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto fixed_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     auto fixed_mat_vis = chrono_types::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
     fixed_mat_vis->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
 
@@ -131,7 +131,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     rotatingBody->SetCollide(true);
 
     // Contact material for mixer body
-    auto rot_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto rot_mat = chrono_types::make_shared<ChContactMaterialSMC>();
 
     ChVector<> size(10, 5.5, 1.0);
 

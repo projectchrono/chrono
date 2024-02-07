@@ -28,7 +28,7 @@ namespace chrono {
 class ChApi ChCollisionShapeSegment2D : public ChCollisionShape {
   public:
     ChCollisionShapeSegment2D();
-    ChCollisionShapeSegment2D(std::shared_ptr<ChMaterialSurface> material,
+    ChCollisionShapeSegment2D(std::shared_ptr<ChContactMaterial> material,
                               const geometry::ChLineSegment& segment,
                               double radius);
 

@@ -60,7 +60,7 @@ void AddContainer(ChSystemMulticoreSMC* sys) {
     int binId = -200;
 
     // Create a common material
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
     mat->SetYoungModulus(Y);
     mat->SetFriction(mu);
     mat->SetRestitution(cr);
@@ -87,7 +87,7 @@ void AddContainer(ChSystemMulticoreSMC* sys) {
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemMulticore* sys) {
     // Common material
-    auto ballMat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto ballMat = chrono_types::make_shared<ChContactMaterialSMC>();
     ballMat->SetYoungModulus(Y);
     ballMat->SetFriction(mu);
     ballMat->SetRestitution(cr);

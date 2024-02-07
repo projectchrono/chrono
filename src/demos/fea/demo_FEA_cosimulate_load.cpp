@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     // CREATE A FINITE ELEMENT MESH
 
     // Create the surface material
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     mysurfmaterial->SetYoungModulus(10e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);

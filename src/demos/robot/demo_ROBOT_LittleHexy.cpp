@@ -104,11 +104,11 @@ int main(int argc, char* argv[]) {
 
     Little_Hexy myhexy(sys, VNULL);
     myhexy.AddVisualizationAssets();
-    auto mymat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mymat = chrono_types::make_shared<ChContactMaterialNSC>();
     myhexy.AddCollisionShapes(mymat);
 
     // Create the ground for the collision
-    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     ground_mat->SetFriction(0.5);
 
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(200, 200, 1,  // size

@@ -47,7 +47,7 @@ class ChCollisionShape_Type_enum_mapper : public ChCollisionShape {
 
 ChCollisionShape::ChCollisionShape(Type type) : m_type(type), m_material(nullptr) {}
 
-ChCollisionShape::ChCollisionShape(Type type, std::shared_ptr<ChMaterialSurface> material)
+ChCollisionShape::ChCollisionShape(Type type, std::shared_ptr<ChContactMaterial> material)
     : m_type(type), m_material(material) {}
 
 void ChCollisionShape::ArchiveOut(ChArchiveOut& marchive) {

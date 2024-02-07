@@ -31,7 +31,7 @@ namespace chrono {
 class ChApi ChCollisionShapeConvexHull : public ChCollisionShape {
   public:
     ChCollisionShapeConvexHull();
-    ChCollisionShapeConvexHull(std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+    ChCollisionShapeConvexHull(std::shared_ptr<ChContactMaterial> material,  ///< surface contact material
                                const std::vector<ChVector<>>& points         ///< list of hull points
     );
 
@@ -48,7 +48,7 @@ class ChApi ChCollisionShapeConvexHull : public ChCollisionShape {
 
     /// Create convex hull collsion shapes from the specified data file.
     /// All shapes are assigned the same contact material.
-    static std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> Read(std::shared_ptr<ChMaterialSurface> material,
+    static std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> Read(std::shared_ptr<ChContactMaterial> material,
                                                                          const std::string& filename);
 
   private:

@@ -69,7 +69,7 @@ class CH_MODELS_API Turtlebot_Part {
   public:
     Turtlebot_Part(const std::string& name,
                    bool fixed,
-                   std::shared_ptr<ChMaterialSurface> mat,
+                   std::shared_ptr<ChContactMaterial> mat,
                    ChSystem* system,
                    const ChVector<>& body_pos,
                    const ChQuaternion<>& body_rot,
@@ -107,7 +107,7 @@ class CH_MODELS_API Turtlebot_Part {
 
     std::string m_name;                        ///< subsystem name
     std::shared_ptr<ChBodyAuxRef> m_body;      ///< rigid body
-    std::shared_ptr<ChMaterialSurface> m_mat;  ///< contact material (shared among all shapes)
+    std::shared_ptr<ChContactMaterial> m_mat;  ///< contact material (shared among all shapes)
 
     std::string m_mesh_name;                  ///< visualization mesh name
     ChVector<> m_offset;                      ///< offset for visualization mesh
@@ -128,7 +128,7 @@ class CH_MODELS_API Turtlebot_Chassis : public Turtlebot_Part {
   public:
     Turtlebot_Chassis(const std::string& name,
                       bool fixed,
-                      std::shared_ptr<ChMaterialSurface> mat,
+                      std::shared_ptr<ChContactMaterial> mat,
                       ChSystem* system,
                       const ChVector<>& body_pos,
                       const ChQuaternion<>& body_rot,
@@ -152,7 +152,7 @@ class CH_MODELS_API Turtlebot_ActiveWheel : public Turtlebot_Part {
   public:
     Turtlebot_ActiveWheel(const std::string& name,
                           bool fixed,
-                          std::shared_ptr<ChMaterialSurface> mat,
+                          std::shared_ptr<ChContactMaterial> mat,
                           ChSystem* system,
                           const ChVector<>& body_pos,
                           const ChQuaternion<>& body_rot,
@@ -177,7 +177,7 @@ class CH_MODELS_API Turtlebot_PassiveWheel : public Turtlebot_Part {
   public:
     Turtlebot_PassiveWheel(const std::string& name,
                            bool fixed,
-                           std::shared_ptr<ChMaterialSurface> mat,
+                           std::shared_ptr<ChContactMaterial> mat,
                            ChSystem* system,
                            const ChVector<>& body_pos,
                            const ChQuaternion<>& body_rot,
@@ -202,7 +202,7 @@ class CH_MODELS_API Turtlebot_Rod_Short : public Turtlebot_Part {
   public:
     Turtlebot_Rod_Short(const std::string& name,
                         bool fixed,
-                        std::shared_ptr<ChMaterialSurface> mat,
+                        std::shared_ptr<ChContactMaterial> mat,
                         ChSystem* system,
                         const ChVector<>& body_pos,
                         const ChQuaternion<>& body_rot,
@@ -227,7 +227,7 @@ class CH_MODELS_API Turtlebot_BottomPlate : public Turtlebot_Part {
   public:
     Turtlebot_BottomPlate(const std::string& name,
                           bool fixed,
-                          std::shared_ptr<ChMaterialSurface> mat,
+                          std::shared_ptr<ChContactMaterial> mat,
                           ChSystem* system,
                           const ChVector<>& body_pos,
                           const ChQuaternion<>& body_rot,
@@ -252,7 +252,7 @@ class CH_MODELS_API Turtlebot_MiddlePlate : public Turtlebot_Part {
   public:
     Turtlebot_MiddlePlate(const std::string& name,
                           bool fixed,
-                          std::shared_ptr<ChMaterialSurface> mat,
+                          std::shared_ptr<ChContactMaterial> mat,
                           ChSystem* system,
                           const ChVector<>& body_pos,
                           const ChQuaternion<>& body_rot,
@@ -277,7 +277,7 @@ class CH_MODELS_API Turtlebot_TopPlate : public Turtlebot_Part {
   public:
     Turtlebot_TopPlate(const std::string& name,
                        bool fixed,
-                       std::shared_ptr<ChMaterialSurface> mat,
+                       std::shared_ptr<ChContactMaterial> mat,
                        ChSystem* system,
                        const ChVector<>& body_pos,
                        const ChQuaternion<>& body_rot,
@@ -302,7 +302,7 @@ class CH_MODELS_API Turtlebot_Rod_Long : public Turtlebot_Part {
   public:
     Turtlebot_Rod_Long(const std::string& name,
                        bool fixed,
-                       std::shared_ptr<ChMaterialSurface> mat,
+                       std::shared_ptr<ChContactMaterial> mat,
                        ChSystem* system,
                        const ChVector<>& body_pos,
                        const ChQuaternion<>& body_rot,
@@ -330,7 +330,7 @@ class CH_MODELS_API TurtleBot {
     TurtleBot(ChSystem* system,
               const ChVector<>& robot_pos,
               const ChQuaternion<>& robot_rot,
-              std::shared_ptr<ChMaterialSurface> wheel_mat = nullptr);
+              std::shared_ptr<ChContactMaterial> wheel_mat = nullptr);
     ~TurtleBot();
 
     /// Initialize the turtlebot robot using current parameters.
@@ -373,8 +373,8 @@ class CH_MODELS_API TurtleBot {
     std::vector<std::shared_ptr<ChFunction_Const>> m_motors_func;  ///< constant motor angular speed func
 
     // model parts material
-    std::shared_ptr<ChMaterialSurface> m_chassis_material;  ///< chassis contact material
-    std::shared_ptr<ChMaterialSurface> m_wheel_material;    ///< wheel contact material (shared across limbs)
+    std::shared_ptr<ChContactMaterial> m_chassis_material;  ///< chassis contact material
+    std::shared_ptr<ChContactMaterial> m_wheel_material;    ///< wheel contact material (shared across limbs)
 };
 
 }  // namespace turtlebot

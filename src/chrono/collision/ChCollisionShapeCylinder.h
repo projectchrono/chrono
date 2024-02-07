@@ -28,8 +28,8 @@ namespace chrono {
 class ChApi ChCollisionShapeCylinder : public ChCollisionShape {
   public:
     ChCollisionShapeCylinder();
-    ChCollisionShapeCylinder(std::shared_ptr<ChMaterialSurface> material, double radius, double height);
-    ChCollisionShapeCylinder(std::shared_ptr<ChMaterialSurface> material, const geometry::ChCylinder& cyl);
+    ChCollisionShapeCylinder(std::shared_ptr<ChContactMaterial> material, double radius, double height);
+    ChCollisionShapeCylinder(std::shared_ptr<ChContactMaterial> material, const geometry::ChCylinder& cyl);
 
     ~ChCollisionShapeCylinder() {}
 

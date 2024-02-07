@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
     Little_Hexy myhexy(sys, ChVector<>(0, distance, 0));
     myhexy.AddVisualizationAssets();
-    auto mymat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mymat = chrono_types::make_shared<ChContactMaterialNSC>();
     myhexy.AddCollisionShapes(mymat);
 
     // Add vehicle as an agent and initialize SynChronoManager

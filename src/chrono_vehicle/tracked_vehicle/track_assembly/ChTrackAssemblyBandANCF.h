@@ -94,7 +94,7 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
 
     ChTrackShoeBandANCFList m_shoes;                        ///< track shoes
     std::shared_ptr<fea::ChMesh> m_track_mesh;              ///< web mesh
-    std::shared_ptr<ChMaterialSurface> m_contact_material;  ///< contact material for the web mesh
+    std::shared_ptr<ChContactMaterial> m_contact_material;  ///< contact material for the web mesh
     ContactSurfaceType m_contact_type;                      ///< type of contact surface model (node cloud or mesh)
 
   private:

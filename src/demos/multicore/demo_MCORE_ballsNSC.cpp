@@ -55,7 +55,7 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
     int binId = -200;
 
     // Create a common material
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
 
     // Create the containing bin (4 x 4 x 1)
@@ -80,7 +80,7 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemMulticore* sys) {
     // Common material
-    auto ballMat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ballMat = chrono_types::make_shared<ChContactMaterialNSC>();
     ballMat->SetFriction(0.4f);
 
     // Create the falling balls

@@ -22,7 +22,7 @@ CH_UPCASTING(ChCollisionShapeBarrel, ChCollisionShape)
 
 ChCollisionShapeBarrel::ChCollisionShapeBarrel() : ChCollisionShape(Type::BARREL) {}
 
-ChCollisionShapeBarrel::ChCollisionShapeBarrel(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeBarrel::ChCollisionShapeBarrel(std::shared_ptr<ChContactMaterial> material,
                                                double Y_low,
                                                double Y_high,
                                                double axis_vert,

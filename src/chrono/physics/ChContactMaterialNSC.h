@@ -15,7 +15,7 @@
 #ifndef CH_MATERIALSURFACE_NSC_H
 #define CH_MATERIALSURFACE_NSC_H
 
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 
 namespace chrono {
 
@@ -29,14 +29,14 @@ namespace chrono {
 ///   Spinning resistant torque is Ts <= (normal force) * (spinning friction parameter) \n
 ///   The spinning friction parameter is usually a very low value.  Measuring unit: m. \n
 ///   A non-zero value will make the simulation 2x slower!
-class ChApi ChMaterialSurfaceNSC : public ChMaterialSurface {
+class ChApi ChContactMaterialNSC : public ChContactMaterial {
   public:
-    ChMaterialSurfaceNSC();
-    ChMaterialSurfaceNSC(const ChMaterialSurfaceNSC& other);
-    ~ChMaterialSurfaceNSC() {}
+    ChContactMaterialNSC();
+    ChContactMaterialNSC(const ChContactMaterialNSC& other);
+    ~ChContactMaterialNSC() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChMaterialSurfaceNSC* Clone() const override { return new ChMaterialSurfaceNSC(*this); }
+    virtual ChContactMaterialNSC* Clone() const override { return new ChContactMaterialNSC(*this); }
 
     virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::NSC; }
 
@@ -86,10 +86,10 @@ class ChApi ChMaterialSurfaceNSC : public ChMaterialSurface {
     float complianceSpin;
 };
 
-CH_CLASS_VERSION(ChMaterialSurfaceNSC, 0)
+CH_CLASS_VERSION(ChContactMaterialNSC, 0)
 
 /// Composite NSC material data for a contact pair.
-class ChApi ChMaterialCompositeNSC : public ChMaterialComposite {
+class ChApi ChMaterialCompositeNSC : public ChContactMaterialComposite {
   public:
     float static_friction;
     float sliding_friction;
@@ -105,9 +105,9 @@ class ChApi ChMaterialCompositeNSC : public ChMaterialComposite {
 
     ChMaterialCompositeNSC();
 
-    ChMaterialCompositeNSC(ChMaterialCompositionStrategy* strategy,
-                           std::shared_ptr<ChMaterialSurfaceNSC> mat1,
-                           std::shared_ptr<ChMaterialSurfaceNSC> mat2);
+    ChMaterialCompositeNSC(ChContactMaterialCompositionStrategy* strategy,
+                           std::shared_ptr<ChContactMaterialNSC> mat1,
+                           std::shared_ptr<ChContactMaterialNSC> mat2);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -117,7 +117,6 @@ class ChApi ChMaterialCompositeNSC : public ChMaterialComposite {
 };
 
 CH_CLASS_VERSION(ChMaterialCompositeNSC, 0)
-
 
 }  // end namespace chrono
 

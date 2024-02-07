@@ -37,7 +37,7 @@ class CH_MODELS_API Little_Hexy : public Copter<6> {
 
     /// Add collision shapes.
     /// The collision shape is a box + cylinder.
-    void AddCollisionShapes(std::shared_ptr<ChMaterialSurface> material);
+    void AddCollisionShapes(std::shared_ptr<ChContactMaterial> material);
 
     /// Pitch down by the specified angle.
     void Pitch_Down(double delta);

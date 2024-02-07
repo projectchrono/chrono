@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
 
     // Create a material (will be used by both objects)
-    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     material->SetRestitution(0.1f);
     material->SetFriction(0.4f);
     material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model

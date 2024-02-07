@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // Contact material shared among all bodies
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Shared visualization material
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();

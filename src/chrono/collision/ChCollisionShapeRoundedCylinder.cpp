@@ -22,7 +22,7 @@ CH_UPCASTING(ChCollisionShapeRoundedCylinder, ChCollisionShape)
 
 ChCollisionShapeRoundedCylinder::ChCollisionShapeRoundedCylinder() : ChCollisionShape(Type::ROUNDEDCYL) {}
 
-ChCollisionShapeRoundedCylinder::ChCollisionShapeRoundedCylinder(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeRoundedCylinder::ChCollisionShapeRoundedCylinder(std::shared_ptr<ChContactMaterial> material,
                                                                  double radius,
                                                                  double height,
                                                                  double sradius)
@@ -32,7 +32,7 @@ ChCollisionShapeRoundedCylinder::ChCollisionShapeRoundedCylinder(std::shared_ptr
     gcylinder.sr = sradius;
 }
 
-ChCollisionShapeRoundedCylinder::ChCollisionShapeRoundedCylinder(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeRoundedCylinder::ChCollisionShapeRoundedCylinder(std::shared_ptr<ChContactMaterial> material,
                                                                  const geometry::ChRoundedCylinder& cyl)
     : ChCollisionShape(Type::ROUNDEDCYL, material), gcylinder(cyl) {}
 

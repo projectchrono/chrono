@@ -43,7 +43,7 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 // because they will be considered 'wrapped' in a convex hull anyway.
 void create_column(ChSystemNSC& sys,
                    ChCoordsys<> base_pos,
-                   std::shared_ptr<ChMaterialSurface> material,
+                   std::shared_ptr<ChContactMaterial> material,
                    int col_nedges = 10,
                    double col_radius_hi = 0.45,
                    double col_radius_lo = 0.5,
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 
     // Create the table that is subject to earthquake
 
-    auto table_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto table_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto tableBody = chrono_types::make_shared<ChBodyEasyBox>(15, 1, 15, 3000, true, true, table_mat);
     tableBody->SetPos(ChVector<>(0, -0.5, 0));
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
     // Create few column chunks
 
     // Contact material shared among all column chunks
-    auto column_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto column_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Create three columns from 5 chunks each
     double spacing = 1.6;

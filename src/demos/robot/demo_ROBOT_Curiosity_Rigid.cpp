@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
 
 void CreateTerrain(ChSystem& sys) {
     // Create the ground and obstacles
-    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(30, 30, 1, 1000, true, true, ground_mat);
     ground->SetPos(ChVector<>(0, 0, -0.5));
     ground->SetBodyFixed(true);

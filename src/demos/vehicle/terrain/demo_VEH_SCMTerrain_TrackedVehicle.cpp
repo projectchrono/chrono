@@ -408,7 +408,7 @@ void AddMovingObstacles(ChSystem* system) {
     ChVector<> init_ang_vel(0, 30, 0);
 
     // Create a material
-    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     material->SetRestitution(0.1f);
     material->SetFriction(0.4f);
 

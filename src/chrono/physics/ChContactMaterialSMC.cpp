@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
@@ -23,10 +23,10 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChMaterialSurfaceSMC)
+CH_FACTORY_REGISTER(ChContactMaterialSMC)
 
-ChMaterialSurfaceSMC::ChMaterialSurfaceSMC()
-    : ChMaterialSurface(),
+ChContactMaterialSMC::ChContactMaterialSMC()
+    : ChContactMaterial(),
       young_modulus(2e5),
       poisson_ratio(0.3f),
       constant_adhesion(0),
@@ -37,7 +37,7 @@ ChMaterialSurfaceSMC::ChMaterialSurfaceSMC()
       gn(40),
       gt(20) {}
 
-ChMaterialSurfaceSMC::ChMaterialSurfaceSMC(const ChMaterialSurfaceSMC& other) : ChMaterialSurface(other) {
+ChContactMaterialSMC::ChContactMaterialSMC(const ChContactMaterialSMC& other) : ChContactMaterial(other) {
     young_modulus = other.young_modulus;
     poisson_ratio = other.poisson_ratio;
     constant_adhesion = other.constant_adhesion;
@@ -49,12 +49,12 @@ ChMaterialSurfaceSMC::ChMaterialSurfaceSMC(const ChMaterialSurfaceSMC& other) : 
     gt = other.gt;
 }
 
-void ChMaterialSurfaceSMC::ArchiveOut(ChArchiveOut& marchive) {
+void ChContactMaterialSMC::ArchiveOut(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChMaterialSurfaceSMC>();
+    marchive.VersionWrite<ChContactMaterialSMC>();
 
     // serialize parent class
-    ChMaterialSurface::ArchiveOut(marchive);
+    ChContactMaterial::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(young_modulus);
@@ -68,12 +68,12 @@ void ChMaterialSurfaceSMC::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(gt);
 }
 
-void ChMaterialSurfaceSMC::ArchiveIn(ChArchiveIn& marchive) {
+void ChContactMaterialSMC::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChMaterialSurfaceSMC>();
+    /*int version =*/marchive.VersionRead<ChContactMaterialSMC>();
 
     // deserialize parent class
-    ChMaterialSurface::ArchiveIn(marchive);
+    ChContactMaterial::ArchiveIn(marchive);
 
     // stream in all member data:
     marchive >> CHNVP(young_modulus);
@@ -104,9 +104,9 @@ ChMaterialCompositeSMC::ChMaterialCompositeSMC()
       gn(0),
       gt(0) {}
 
-ChMaterialCompositeSMC::ChMaterialCompositeSMC(ChMaterialCompositionStrategy* strategy,
-                                               std::shared_ptr<ChMaterialSurfaceSMC> mat1,
-                                               std::shared_ptr<ChMaterialSurfaceSMC> mat2) {
+ChMaterialCompositeSMC::ChMaterialCompositeSMC(ChContactMaterialCompositionStrategy* strategy,
+                                               std::shared_ptr<ChContactMaterialSMC> mat1,
+                                               std::shared_ptr<ChContactMaterialSMC> mat2) {
     float inv_E = (1 - mat1->poisson_ratio * mat1->poisson_ratio) / mat1->young_modulus +
                   (1 - mat2->poisson_ratio * mat2->poisson_ratio) / mat2->young_modulus;
     float inv_G = 2 * (2 - mat1->poisson_ratio) * (1 + mat1->poisson_ratio) / mat1->young_modulus +

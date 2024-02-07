@@ -106,7 +106,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// The patch is constructed such that the center of its top surface (the "driving" surface) is in the x-y plane of
     /// the specified coordinate system. If tiled = true, multiple side-by-side boxes are used.
     std::shared_ptr<Patch> AddPatch(
-        std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
+        std::shared_ptr<ChContactMaterial> material,  ///< [in] contact material
         const ChCoordsys<>& position,                 ///< [in] patch location and orientation
         double length,                                ///< [in] patch length
         double width,                                 ///< [in] patch width
@@ -119,7 +119,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Add a terrain patch represented by a triangular mesh.
     /// The mesh is specified through a Wavefront file and is used for both contact and visualization.
     std::shared_ptr<Patch> AddPatch(
-        std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
+        std::shared_ptr<ChContactMaterial> material,  ///< [in] contact material
         const ChCoordsys<>& position,                 ///< [in] patch location and orientation
         const std::string& mesh_file,                 ///< [in] filename of the input mesh (OBJ)
         bool connected_mesh = true,                   ///< [in] use connected contact mesh?
@@ -131,7 +131,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// If the image has an explicit gray channel, that value is used as an encoding of height. Otherwise, RGB values
     /// are converted to YUV and luminance (Y) is used as height encoding.
     std::shared_ptr<Patch> AddPatch(
-        std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
+        std::shared_ptr<ChContactMaterial> material,  ///< [in] contact material
         const ChCoordsys<>& position,                 ///< [in] patch location and orientation
         const std::string& heightmap_file,            ///< [in] filename for the height map (BMP)
         double length,                                ///< [in] patch length
@@ -237,7 +237,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     void AddPatch(std::shared_ptr<Patch> patch,
                   const ChCoordsys<>& position,
-                  std::shared_ptr<ChMaterialSurface> material);
+                  std::shared_ptr<ChContactMaterial> material);
     void LoadPatch(const rapidjson::Value& a);
 
     int m_collision_family;

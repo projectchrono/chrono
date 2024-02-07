@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(m113.GetSystem());
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     patch_mat->SetYoungModulus(2e7f);

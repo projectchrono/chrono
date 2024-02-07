@@ -129,7 +129,7 @@ class SprocketSinglePinContactCB : public ChSystem::CustomCollisionCallback {
     double m_R_diff;     // test quantity for narrowphase check
     double m_Rhat_diff;  // test quantity for narrowphase check
 
-    std::shared_ptr<ChMaterialSurface> m_material;  // material for sprocket-pin contact (detracking)
+    std::shared_ptr<ChContactMaterial> m_material;  // material for sprocket-pin contact (detracking)
 };
 
 void SprocketSinglePinContactCB::OnCustomCollision(ChSystem* system) {

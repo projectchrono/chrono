@@ -22,7 +22,7 @@ CH_UPCASTING(ChCollisionShapeSegment2D, ChCollisionShape)
 
 ChCollisionShapeSegment2D::ChCollisionShapeSegment2D() : ChCollisionShape(Type::SEGMENT2D) {}
 
-ChCollisionShapeSegment2D::ChCollisionShapeSegment2D(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeSegment2D::ChCollisionShapeSegment2D(std::shared_ptr<ChContactMaterial> material,
                                                      const geometry::ChLineSegment& segment,
                                                      double radius)
     : ChCollisionShape(Type::SEGMENT2D, material), gsegment(segment) {

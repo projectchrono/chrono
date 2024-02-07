@@ -142,7 +142,7 @@ int out_fps = 60;
 
 double CreateParticles(ChSystem* sys) {
     // Create a material
-    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat_g = chrono_types::make_shared<ChContactMaterialNSC>();
     mat_g->SetFriction(mu_g);
 
     // Create a particle generator and a mixture entirely made out of spheres
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
     // -------------------
 
     // Contact material
-    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat_g = chrono_types::make_shared<ChContactMaterialNSC>();
     mat_g->SetFriction(mu_g);
 
     // Ground body

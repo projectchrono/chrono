@@ -24,8 +24,8 @@
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -153,7 +153,7 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
 // -----------------------------------------------------------------------------
 void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
                             const ChCoordsys<>& position,
-                            std::shared_ptr<ChMaterialSurface> material) {
+                            std::shared_ptr<ChContactMaterial> material) {
     m_num_patches++;
 
     // Create the rigid body for this patch (fixed)
@@ -167,14 +167,14 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
     m_system->AddBody(patch->m_body);
 
     // Cache coefficient of friction
-    patch->m_friction = material->GetSfriction();
+    patch->m_friction = material->GetStaticFriction();
 
     m_patches.push_back(patch);
 }
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMaterialSurface> material,
+std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChContactMaterial> material,
                                                             const ChCoordsys<>& position,
                                                             double length,
                                                             double width,
@@ -221,7 +221,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMaterialSurface> material,
+std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChContactMaterial> material,
                                                             const ChCoordsys<>& position,
                                                             const std::string& mesh_file,
                                                             bool connected_mesh,
@@ -264,7 +264,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMaterialSurface> material,
+std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChContactMaterial> material,
                                                             const ChCoordsys<>& position,
                                                             const std::string& heightmap_file,
                                                             double length,
@@ -435,7 +435,7 @@ void RigidTerrain::Patch::SetTexture(const std::string& filename, float scale_x,
 // -----------------------------------------------------------------------------
 class RTContactCallback : public ChContactContainer::AddContactCallback {
   public:
-    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
+    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
         //// TODO: also accomodate terrain contact with FEA meshes.
 
         // Loop over all patch bodies and check if this contact involves one of them.

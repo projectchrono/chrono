@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
         0.45, 0.45   //
     };
     double rock_density = 8000;
-    std::shared_ptr<ChMaterialSurface> rock_mat = ChMaterialSurface::DefaultMaterial(sys.GetContactMethod());
+    std::shared_ptr<ChContactMaterial> rock_mat = ChContactMaterial::DefaultMaterial(sys.GetContactMethod());
 
     for (int i = 0; i < 6; i++) {
         auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(rock_meshfile[i]), false, true);

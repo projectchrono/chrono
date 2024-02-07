@@ -15,20 +15,19 @@
 #ifndef CH_MATERIALSURFACE_SMC_H
 #define CH_MATERIALSURFACE_SMC_H
 
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 
 namespace chrono {
 
 /// Material data for a collision surface for use with smooth (penalty) contact method.
-class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
-
+class ChApi ChContactMaterialSMC : public ChContactMaterial {
   public:
-    ChMaterialSurfaceSMC();
-    ChMaterialSurfaceSMC(const ChMaterialSurfaceSMC& other);
-    ~ChMaterialSurfaceSMC() {}
+    ChContactMaterialSMC();
+    ChContactMaterialSMC(const ChContactMaterialSMC& other);
+    ~ChContactMaterialSMC() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChMaterialSurfaceSMC* Clone() const override { return new ChMaterialSurfaceSMC(*this); }
+    virtual ChContactMaterialSMC* Clone() const override { return new ChContactMaterialSMC(*this); }
 
     virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::SMC; }
 
@@ -56,12 +55,12 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     void SetAdhesionMultDMT(float val) { adhesionMultDMT = val; }
     float GetAdhesionMultDMT() const { return adhesionMultDMT; }
 
-	/// Coefficient for Perko adhesion model.
+    /// Coefficient for Perko adhesion model.
     /// <pre>
     /// In this model (see Perko et al., 2001),
     ///    adhesion = adhesionSPerko * R
     /// The coefficient adhesionSPerko is function of the Hamaker constant A and a measure of cleanliness S.
-    /// For lunar regolith, 
+    /// For lunar regolith,
     ///    adhesionSPerko = 3.6e-2 * S^2
     /// </pre>
     void SetAdhesionSPerko(float val) { adhesionSPerko = val; }
@@ -96,10 +95,10 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     float gt;  ///< user-specified tangential damping coefficient
 };
 
-CH_CLASS_VERSION(ChMaterialSurfaceSMC, 0)
+CH_CLASS_VERSION(ChContactMaterialSMC, 0)
 
 /// Composite SMC material data for a contact pair.
-class ChApi ChMaterialCompositeSMC : public ChMaterialComposite {
+class ChApi ChMaterialCompositeSMC : public ChContactMaterialComposite {
   public:
     float E_eff;                ///< Effective elasticity modulus
     float G_eff;                ///< Effective shear modulus
@@ -118,9 +117,9 @@ class ChApi ChMaterialCompositeSMC : public ChMaterialComposite {
 
     ChMaterialCompositeSMC();
 
-    ChMaterialCompositeSMC(ChMaterialCompositionStrategy* strategy,
-                           std::shared_ptr<ChMaterialSurfaceSMC> mat1,
-                           std::shared_ptr<ChMaterialSurfaceSMC> mat2);
+    ChMaterialCompositeSMC(ChContactMaterialCompositionStrategy* strategy,
+                           std::shared_ptr<ChContactMaterialSMC> mat1,
+                           std::shared_ptr<ChContactMaterialSMC> mat2);
 };
 
 }  // end namespace chrono

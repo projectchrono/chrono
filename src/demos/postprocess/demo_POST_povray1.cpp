@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     floor->SetBodyFixed(true);
 
     // Define a collision shape
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
     floor->AddCollisionShape(floor_shape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
     auto particles = chrono_types::make_shared<ChParticleCloud>();
 
     // Note: coll. shape, if needed, must be specified before creating particles
-    auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto particle_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, 0.05);
     particles->AddCollisionShape(particle_shape);
     particles->SetCollide(true);

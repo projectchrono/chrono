@@ -27,13 +27,13 @@ namespace chrono {
 class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
   public:
     ChCollisionShapeRoundedBox();
-    ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material,
+    ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material,
                                double length_x,
                                double length_y,
                                double length_z,
                                double sradius);
-    ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material, const ChVector<>& lengths, double sradius);
-    ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material, const geometry::ChRoundedBox& box);
+    ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material, const ChVector<>& lengths, double sradius);
+    ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material, const geometry::ChRoundedBox& box);
 
     ~ChCollisionShapeRoundedBox() {}
 

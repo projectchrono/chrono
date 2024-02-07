@@ -27,9 +27,9 @@ namespace chrono {
 class ChApi ChCollisionShapeEllipsoid : public ChCollisionShape {
   public:
     ChCollisionShapeEllipsoid();
-    ChCollisionShapeEllipsoid(std::shared_ptr<ChMaterialSurface> material, double axis_x, double axis_y, double axis_z);
-    ChCollisionShapeEllipsoid(std::shared_ptr<ChMaterialSurface> material, const ChVector<>& axes);
-    ChCollisionShapeEllipsoid(std::shared_ptr<ChMaterialSurface> material, const geometry::ChEllipsoid& ellipsoid);
+    ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, double axis_x, double axis_y, double axis_z);
+    ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, const ChVector<>& axes);
+    ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, const geometry::ChEllipsoid& ellipsoid);
 
     ~ChCollisionShapeEllipsoid() {}
 

@@ -30,7 +30,7 @@ class ChApi ChCollisionShapeTriangleMesh : public ChCollisionShape {
   public:
     ChCollisionShapeTriangleMesh();
     ChCollisionShapeTriangleMesh(                        //
-        std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
+        std::shared_ptr<ChContactMaterial> material,     ///< surface contact material
         std::shared_ptr<geometry::ChTriangleMesh> mesh,  ///< mesh geometry
         bool is_static,                                  ///< true if the model doesn't move. May improve performance.
         bool is_convex,                                  ///< if true, a convex hull is used. May improve robustness.

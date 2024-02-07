@@ -65,7 +65,7 @@ class ChFluidContainer;
 class ChMPMContainer;
 class ChConstraintRigidRigid;
 class ChConstraintBilateral;
-class ChMaterialCompositionStrategy;
+class ChContactMaterialCompositionStrategy;
 
 #if BLAZE_MAJOR_VERSION == 2
 typedef blaze::SparseSubmatrix<CompressedMatrix<real>> SubMatrixType;
@@ -366,7 +366,7 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     measures_container measures;
 
     /// Material composition strategy.
-    std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;
+    std::unique_ptr<ChContactMaterialCompositionStrategy> composition_strategy;
 
     /// User-provided callback for overriding composite material properties.
     std::shared_ptr<ChContactContainer::AddContactCallback> add_contact_callback;

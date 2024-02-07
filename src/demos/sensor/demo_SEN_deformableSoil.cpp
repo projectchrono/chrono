@@ -162,7 +162,7 @@ class MyDriver : public ChDriver {
 
 // =============================================================================
 
-void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<ChMaterialSurfaceSMC> wheel_material) {
+void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<ChContactMaterialSMC> wheel_material) {
     std::string lugged_file("hmmwv/lugged_wheel_section.obj");
     geometry::ChTriangleMeshConnected lugged_mesh;
     ChConvexDecompositionHACDv2 lugged_convex;
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------------------
     // Set tire contact material, contact model, and visualization
     // -----------------------------------------------------------
-    auto wheel_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto wheel_material = chrono_types::make_shared<ChContactMaterialSMC>();
     wheel_material->SetFriction(mu_t);
     wheel_material->SetYoungModulus(Y_t);
     wheel_material->SetRestitution(cr_t);

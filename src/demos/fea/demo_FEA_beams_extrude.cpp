@@ -49,7 +49,7 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector<> gear_center,
                                         double lobe_outer_rad,
                                         double lobe_thickness,
                                         ChSystem& sys,
-                                        std::shared_ptr<ChMaterialSurface> mysurfmaterial) {
+                                        std::shared_ptr<ChContactMaterial> mysurfmaterial) {
     auto mgear = chrono_types::make_shared<ChBody>();
     mgear->SetPos(gear_center);
     sys.Add(mgear);
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     /*
     // option A: Hertz contact force model
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     mysurfmaterial->SetYoungModulus(20e3);  // to adjust heuristically..
     mysurfmaterial->SetRestitution(0.1f);
     mysurfmaterial->SetFriction(0.2f);
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     // Option B: Hooke force model
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
     sys.UseMaterialProperties(false);
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     mysurfmaterial->SetKn(350);  // contact normal stiffness
     mysurfmaterial->SetKt(350);  // contact tangential stiffness
     mysurfmaterial->SetGn(25);   // contact normal damping

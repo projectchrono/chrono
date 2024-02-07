@@ -168,7 +168,7 @@ void ChCollisionModel::AddShapes(std::shared_ptr<ChCollisionModel> model, const 
     }
 }
 
-void ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
+void ChCollisionModel::AddCylinder(std::shared_ptr<ChContactMaterial> material,
                                    double radius,
                                    const ChVector<>& p1,
                                    const ChVector<>& p2) {
@@ -180,7 +180,7 @@ void ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
     AddShape(cylinder_shape, frame);
 }
 
-void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> mat) {
+void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChContactMaterial> mat) {
     assert(m_shape_instances.size() == 0 ||
            m_shape_instances[0].first->m_material->GetContactMethod() == mat->GetContactMethod());
     for (auto& shape : m_shape_instances)

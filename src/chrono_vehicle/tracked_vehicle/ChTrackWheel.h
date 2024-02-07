@@ -99,7 +99,7 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
 
     std::shared_ptr<ChBody> m_wheel;                 ///< track wheel body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< wheel revolute joint
-    std::shared_ptr<ChMaterialSurface> m_material;   ///< contact material;
+    std::shared_ptr<ChContactMaterial> m_material;   ///< contact material;
     ChTrackAssembly* m_track;                        ///< containing track assembly
 
     friend class ChTrackAssembly;

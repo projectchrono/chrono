@@ -689,7 +689,7 @@ ChExtruderBeamEuler::~ChExtruderBeamEuler() {
     mysystem->Remove(ground);
 }
 
-void ChExtruderBeamEuler::SetContact(std::shared_ptr<ChMaterialSurfaceSMC> mcontact_material, double mcontact_radius) {
+void ChExtruderBeamEuler::SetContact(std::shared_ptr<ChContactMaterialSMC> mcontact_material, double mcontact_radius) {
     this->contact_material = mcontact_material;
     this->contact_radius = mcontact_radius;
     this->contactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(this->contact_material);
@@ -798,7 +798,7 @@ ChExtruderBeamIGA::~ChExtruderBeamIGA() {
     mysystem->Remove(ground);
 }
 
-void ChExtruderBeamIGA::SetContact(std::shared_ptr<ChMaterialSurfaceSMC> mcontact_material, double mcontact_radius) {
+void ChExtruderBeamIGA::SetContact(std::shared_ptr<ChContactMaterialSMC> mcontact_material, double mcontact_radius) {
     this->contact_material = mcontact_material;
     this->contact_radius = mcontact_radius;
     this->contactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(this->contact_material);

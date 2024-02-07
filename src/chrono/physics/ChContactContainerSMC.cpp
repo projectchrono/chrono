@@ -191,8 +191,8 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact 
 }
 
 void ChContactContainerSMC::AddContact(const ChCollisionInfo& cinfo,
-                                       std::shared_ptr<ChMaterialSurface> mat1,
-                                       std::shared_ptr<ChMaterialSurface> mat2) {
+                                       std::shared_ptr<ChContactMaterial> mat1,
+                                       std::shared_ptr<ChContactMaterial> mat2) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -214,8 +214,8 @@ void ChContactContainerSMC::AddContact(const ChCollisionInfo& cinfo,
 
     // Create the composite material
     ChMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
-                                std::static_pointer_cast<ChMaterialSurfaceSMC>(mat1),
-                                std::static_pointer_cast<ChMaterialSurfaceSMC>(mat2));
+                                std::static_pointer_cast<ChContactMaterialSMC>(mat1),
+                                std::static_pointer_cast<ChContactMaterialSMC>(mat2));
 
     InsertContact(cinfo, cmat);
 }
@@ -243,8 +243,8 @@ void ChContactContainerSMC::AddContact(const ChCollisionInfo& cinfo) {
 
     // Create the composite material
     ChMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
-                                std::static_pointer_cast<ChMaterialSurfaceSMC>(cinfo.shapeA->GetMaterial()),
-                                std::static_pointer_cast<ChMaterialSurfaceSMC>(cinfo.shapeB->GetMaterial()));
+                                std::static_pointer_cast<ChContactMaterialSMC>(cinfo.shapeA->GetMaterial()),
+                                std::static_pointer_cast<ChContactMaterialSMC>(cinfo.shapeB->GetMaterial()));
 
     // Check for a user-provided callback to modify the material
     if (GetAddContactCallback()) {

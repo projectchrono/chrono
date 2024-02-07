@@ -222,7 +222,7 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
     double m_lateral_backlash;  // backlash relative to shoe guiding pin
     ChVector<> m_shoe_pin;      // single-pin shoe, center of guiding pin
 
-    std::shared_ptr<ChMaterialSurface> m_material;  // material for sprocket-pin contact (detracking)
+    std::shared_ptr<ChContactMaterial> m_material;  // material for sprocket-pin contact (detracking)
 
     bool m_update_tread;  // flag to update the remaining cached contact properties on the first contact callback
 

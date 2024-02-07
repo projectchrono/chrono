@@ -35,7 +35,7 @@ namespace utils {
 // -----------------------------------------------------------------------------
 
 void AddSphereGeometry(ChBody* body,
-                       ChMaterialSurfaceSharedPtr material,
+                       ChContactMaterialSharedPtr material,
                        double radius,
                        const ChVector<>& pos,
                        const ChQuaternion<>& rot,
@@ -54,7 +54,7 @@ void AddSphereGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddEllipsoidGeometry(ChBody* body,
-                          ChMaterialSurfaceSharedPtr material,
+                          ChContactMaterialSharedPtr material,
                           const ChVector<>& axes,
                           const ChVector<>& pos,
                           const ChQuaternion<>& rot,
@@ -73,7 +73,7 @@ void AddEllipsoidGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddBoxGeometry(ChBody* body,
-                    ChMaterialSurfaceSharedPtr material,
+                    ChContactMaterialSharedPtr material,
                     const ChVector<>& size,
                     const ChVector<>& pos,
                     const ChQuaternion<>& rot,
@@ -92,7 +92,7 @@ void AddBoxGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddBiSphereGeometry(ChBody* body,
-                         ChMaterialSurfaceSharedPtr material,
+                         ChContactMaterialSharedPtr material,
                          double radius,
                          double cDist,
                          const ChVector<>& pos,
@@ -115,7 +115,7 @@ void AddBiSphereGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddCapsuleGeometry(ChBody* body,
-                        ChMaterialSurfaceSharedPtr material,
+                        ChContactMaterialSharedPtr material,
                         double radius,
                         double height,
                         const ChVector<>& pos,
@@ -135,7 +135,7 @@ void AddCapsuleGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddCylinderGeometry(ChBody* body,
-                         ChMaterialSurfaceSharedPtr material,
+                         ChContactMaterialSharedPtr material,
                          double radius,
                          double height,
                          const ChVector<>& pos,
@@ -153,7 +153,7 @@ void AddCylinderGeometry(ChBody* body,
 }
 
 void AddCylinderGeometry(ChBody* body,
-                         ChMaterialSurfaceSharedPtr material,
+                         ChContactMaterialSharedPtr material,
                          double radius,
                          const ChVector<>& p1,
                          const ChVector<>& p2,
@@ -176,7 +176,7 @@ void AddCylinderGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddConeGeometry(ChBody* body,
-                     ChMaterialSurfaceSharedPtr material,
+                     ChContactMaterialSharedPtr material,
                      double radius,
                      double height,
                      const ChVector<>& pos,
@@ -196,7 +196,7 @@ void AddConeGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 bool AddTriangleMeshGeometry(ChBody* body,
-                             ChMaterialSurfaceSharedPtr material,
+                             ChContactMaterialSharedPtr material,
                              const std::string& obj_filename,
                              const std::string& name,
                              const ChVector<>& pos,
@@ -227,7 +227,7 @@ bool AddTriangleMeshGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 bool AddTriangleMeshConvexDecomposition(ChBody* body,
-                                        ChMaterialSurfaceSharedPtr material,
+                                        ChContactMaterialSharedPtr material,
                                         const std::string& obj_filename,
                                         const std::string& name,
                                         const ChVector<>& pos,
@@ -295,7 +295,7 @@ bool AddTriangleMeshConvexDecomposition(ChBody* body,
 // -----------------------------------------------------------------------------
 
 bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
-                                          ChMaterialSurfaceSharedPtr material,
+                                          ChContactMaterialSharedPtr material,
                                           const std::string& obj_filename,
                                           const std::string& name,
                                           const ChVector<>& pos,
@@ -365,7 +365,7 @@ bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
 // -----------------------------------------------------------------------------
 
 bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
-                                             ChMaterialSurfaceSharedPtr material,
+                                             ChContactMaterialSharedPtr material,
                                              const std::string& obj_filename,
                                              const std::string& name,
                                              const ChVector<>& pos,
@@ -455,7 +455,7 @@ bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
 // -----------------------------------------------------------------------------
 
 void AddTriangleGeometry(ChBody* body,
-                         ChMaterialSurfaceSharedPtr material,
+                         ChContactMaterialSharedPtr material,
                          const ChVector<>& vertA,
                          const ChVector<>& vertB,
                          const ChVector<>& vertC,
@@ -490,7 +490,7 @@ void AddTriangleGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddRoundedBoxGeometry(ChBody* body,
-                           ChMaterialSurfaceSharedPtr material,
+                           ChContactMaterialSharedPtr material,
                            const ChVector<>& size,
                            double srad,
                            const ChVector<>& pos,
@@ -510,7 +510,7 @@ void AddRoundedBoxGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddRoundedCylinderGeometry(ChBody* body,
-                                ChMaterialSurfaceSharedPtr material,
+                                ChContactMaterialSharedPtr material,
                                 double radius,
                                 double height,
                                 double srad,
@@ -531,7 +531,7 @@ void AddRoundedCylinderGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddTorusGeometry(ChBody* body,
-                      ChMaterialSurfaceSharedPtr material,
+                      ChContactMaterialSharedPtr material,
                       double radius,
                       double thickness,
                       int segments,
@@ -555,7 +555,7 @@ void AddTorusGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddBoxContainer(std::shared_ptr<ChBody> body,
-                     ChMaterialSurfaceSharedPtr material,
+                     ChContactMaterialSharedPtr material,
                      const ChFrame<>& frame,
                      const ChVector<>& size,
                      double thickness,
@@ -620,7 +620,7 @@ void AddBoxContainer(std::shared_ptr<ChBody> body,
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
                                            int id,
-                                           ChMaterialSurfaceSharedPtr mat,
+                                           ChContactMaterialSharedPtr mat,
                                            const ChVector<>& size,
                                            double thickness,
                                            const ChVector<>& pos,
@@ -679,7 +679,7 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                                             int id,
-                                                            ChMaterialSurfaceSharedPtr mat,
+                                                            ChContactMaterialSharedPtr mat,
                                                             double radius,
                                                             double height,
                                                             double thickness,
@@ -818,7 +818,7 @@ bool LoadConvexHulls(const std::string& file_name,
 // -----------------------------------------------------------------------------
 
 void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
-                             ChMaterialSurfaceSharedPtr material,
+                             ChContactMaterialSharedPtr material,
                              std::shared_ptr<ChTriangleMeshConnected> convex_mesh,
                              ChConvexDecompositionHACDv2& convex_shape,
                              const ChVector<>& pos,
@@ -863,7 +863,7 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
 // -----------------------------------------------------------------------------
 
 void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
-                             ChMaterialSurfaceSharedPtr material,
+                             ChContactMaterialSharedPtr material,
                              std::shared_ptr<ChTriangleMeshConnected> convex_mesh,
                              std::vector<std::vector<ChVector<double>>>& convex_hulls,
                              const ChVector<>& pos,

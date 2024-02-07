@@ -804,17 +804,17 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         }
 
         // Create a contact material that will be shared by all shapes for this body
-        std::shared_ptr<ChMaterialSurface> mat;
+        std::shared_ptr<ChContactMaterial> mat;
         switch (system.GetContactMethod()) {
             case ChContactMethod::NSC: {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
                 matNSC->SetFriction(m_friction);
                 matNSC->SetRestitution(m_restitution);
                 mat = matNSC;
                 break;
             }
             case ChContactMethod::SMC: {
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
                 matSMC->SetFriction(m_friction);
                 matSMC->SetRestitution(m_restitution);
                 matSMC->SetYoungModulus(m_young_modulus);

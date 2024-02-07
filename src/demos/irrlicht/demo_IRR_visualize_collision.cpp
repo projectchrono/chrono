@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
     sys.SetCollisionSystemType(csys_type);
 
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(10, 3, 10, 100, mat);
     ground->SetBodyFixed(true);

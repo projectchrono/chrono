@@ -82,7 +82,7 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     float mu = 0.4f;
     float cr = 0.4f;
     // Create a common material
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
     mat->SetYoungModulus(Y);
     mat->SetFriction(mu);
     mat->SetRestitution(cr);

@@ -19,7 +19,7 @@
 
 #include "chrono/core/ChFrameMoving.h"
 #include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 
 #include <TDocStd_Document.hxx>
 

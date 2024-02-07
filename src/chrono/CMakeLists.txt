@@ -174,9 +174,9 @@ set(ChronoEngine_physics_contact_SOURCES
     physics/ChContactContainerNSC.cpp
     physics/ChContactContainerSMC.cpp
     physics/ChContactable.cpp
-    physics/ChMaterialSurface.cpp
-    physics/ChMaterialSurfaceSMC.cpp
-    physics/ChMaterialSurfaceNSC.cpp
+    physics/ChContactMaterial.cpp
+    physics/ChContactMaterialSMC.cpp
+    physics/ChContactMaterialNSC.cpp
 )
 
 set(ChronoEngine_physics_contact_HEADERS
@@ -188,9 +188,9 @@ set(ChronoEngine_physics_contact_HEADERS
     physics/ChContactSMC.h
     physics/ChContactNSC.h
     physics/ChContactNSCrolling.h
-    physics/ChMaterialSurface.h
-    physics/ChMaterialSurfaceNSC.h
-    physics/ChMaterialSurfaceSMC.h
+    physics/ChContactMaterial.h
+    physics/ChContactMaterialNSC.h
+    physics/ChContactMaterialSMC.h
 )
 
 source_group(physics\\contact FILES

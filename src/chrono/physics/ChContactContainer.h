@@ -26,7 +26,7 @@
 #include "chrono/collision/ChCollisionInfo.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChContactable.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 
 namespace chrono {
 
@@ -52,8 +52,8 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     /// A compositecontact material is created from the two given materials.
     /// In this case, the collision info object may have null pointers to collision shapes.
     virtual void AddContact(const ChCollisionInfo& cinfo,
-                            std::shared_ptr<ChMaterialSurface> mat1,
-                            std::shared_ptr<ChMaterialSurface> mat2) = 0;
+                            std::shared_ptr<ChContactMaterial> mat1,
+                            std::shared_ptr<ChContactMaterial> mat2) = 0;
 
     /// Add a contact between two collision shapes, storing it into this container.
     /// The collision info object is assumed to contain valid pointers to the two colliding shapes.
@@ -76,7 +76,7 @@ class ChApi ChContactContainer : public ChPhysicsItem {
         /// composite material should be downcast to the appropriate type.
         virtual void OnAddContact(
             const ChCollisionInfo& contactinfo,  ///< information about the collision pair
-            ChMaterialComposite* const material             ///< composite material can be modified
+            ChContactMaterialComposite* const material             ///< composite material can be modified
             ) = 0;
     };
 

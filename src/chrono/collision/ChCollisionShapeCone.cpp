@@ -22,13 +22,13 @@ CH_UPCASTING(ChCollisionShapeCone, ChCollisionShape)
 
 ChCollisionShapeCone::ChCollisionShapeCone(): ChCollisionShape(Type::CONE) {}
 
-ChCollisionShapeCone::ChCollisionShapeCone(std::shared_ptr<ChMaterialSurface> material, double radius, double height)
+ChCollisionShapeCone::ChCollisionShapeCone(std::shared_ptr<ChContactMaterial> material, double radius, double height)
     : ChCollisionShape(Type::CONE, material) {
     gcone.r = radius;
     gcone.h = height;
 }
 
-ChCollisionShapeCone::ChCollisionShapeCone(std::shared_ptr<ChMaterialSurface> material, const geometry::ChCone& cone)
+ChCollisionShapeCone::ChCollisionShapeCone(std::shared_ptr<ChContactMaterial> material, const geometry::ChCone& cone)
     : ChCollisionShape(Type::CONE, material), gcone(cone) {}
 
 void ChCollisionShapeCone::ArchiveOut(ChArchiveOut& marchive) {

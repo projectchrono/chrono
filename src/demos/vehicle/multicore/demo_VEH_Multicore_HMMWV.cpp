@@ -231,7 +231,7 @@ void HMMWV_Driver::ExportPathPovray(const std::string& outdir) {
 
 // Custom material composition law.
 // Use the maximum coefficient of friction.
-class CustomCompositionStrategy : public ChMaterialCompositionStrategy {
+class CustomCompositionStrategy : public ChContactMaterialCompositionStrategy {
   public:
     virtual float CombineFriction(float a1, float a2) const override { return std::max<float>(a1, a2); }
 };
@@ -342,7 +342,7 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     GranularTerrain terrain(sys);
-    auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(terrain.GetContactMaterial());
+    auto mat = std::static_pointer_cast<ChContactMaterialNSC>(terrain.GetContactMaterial());
     mat->SetFriction((float)mu_g);
     mat->SetCohesion((float)coh_g);
     terrain.SetContactMaterial(mat);

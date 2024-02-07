@@ -132,7 +132,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.Set_G_acc(sysFSI.Get_G_acc());
 
     // Set common material Properties
-    auto cmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     cmaterial->SetYoungModulus(1e8);
     cmaterial->SetFriction(0.2f);
     cmaterial->SetRestitution(0.05f);

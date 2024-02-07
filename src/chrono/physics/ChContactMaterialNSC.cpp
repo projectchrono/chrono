@@ -15,21 +15,21 @@
 #include <algorithm>
 
 #include "chrono/core/ChClassFactory.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
 
 namespace chrono {
 
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChMaterialSurfaceNSC)
+CH_FACTORY_REGISTER(ChContactMaterialNSC)
 CH_FACTORY_REGISTER(ChMaterialCompositeNSC)
 
-CH_UPCASTING(ChMaterialSurfaceNSC, ChMaterialSurface)
-CH_UPCASTING(ChMaterialCompositeNSC, ChMaterialComposite)
+CH_UPCASTING(ChContactMaterialNSC, ChContactMaterial)
+CH_UPCASTING(ChMaterialCompositeNSC, ChContactMaterialComposite)
 
-ChMaterialSurfaceNSC::ChMaterialSurfaceNSC()
-    : ChMaterialSurface(),
+ChContactMaterialNSC::ChContactMaterialNSC()
+    : ChContactMaterial(),
       cohesion(0),
       dampingf(0),
       compliance(0),
@@ -37,7 +37,7 @@ ChMaterialSurfaceNSC::ChMaterialSurfaceNSC()
       complianceRoll(0),
       complianceSpin(0) {}
 
-ChMaterialSurfaceNSC::ChMaterialSurfaceNSC(const ChMaterialSurfaceNSC& other) : ChMaterialSurface(other) {
+ChContactMaterialNSC::ChContactMaterialNSC(const ChContactMaterialNSC& other) : ChContactMaterial(other) {
     cohesion = other.cohesion;
     dampingf = other.dampingf;
     compliance = other.compliance;
@@ -46,12 +46,12 @@ ChMaterialSurfaceNSC::ChMaterialSurfaceNSC(const ChMaterialSurfaceNSC& other) : 
     complianceSpin = other.complianceSpin;
 }
 
-void ChMaterialSurfaceNSC::ArchiveOut(ChArchiveOut& marchive) {
+void ChContactMaterialNSC::ArchiveOut(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChMaterialSurfaceNSC>();
+    marchive.VersionWrite<ChContactMaterialNSC>();
 
     // serialize parent class
-    ChMaterialSurface::ArchiveOut(marchive);
+    ChContactMaterial::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(cohesion);
@@ -62,12 +62,12 @@ void ChMaterialSurfaceNSC::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(complianceSpin);
 }
 
-void ChMaterialSurfaceNSC::ArchiveIn(ChArchiveIn& marchive) {
+void ChContactMaterialNSC::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChMaterialSurfaceNSC>();
+    /*int version =*/marchive.VersionRead<ChContactMaterialNSC>();
 
     // deserialize parent class
-    ChMaterialSurface::ArchiveIn(marchive);
+    ChContactMaterial::ArchiveIn(marchive);
 
     // stream in all member data:
     marchive >> CHNVP(cohesion);
@@ -93,9 +93,9 @@ ChMaterialCompositeNSC::ChMaterialCompositeNSC()
       complianceRoll(0),
       complianceSpin(0) {}
 
-ChMaterialCompositeNSC::ChMaterialCompositeNSC(ChMaterialCompositionStrategy* strategy,
-                                               std::shared_ptr<ChMaterialSurfaceNSC> mat1,
-                                               std::shared_ptr<ChMaterialSurfaceNSC> mat2) {
+ChMaterialCompositeNSC::ChMaterialCompositeNSC(ChContactMaterialCompositionStrategy* strategy,
+                                               std::shared_ptr<ChContactMaterialNSC> mat1,
+                                               std::shared_ptr<ChContactMaterialNSC> mat2) {
     static_friction = strategy->CombineFriction(mat1->static_friction, mat2->static_friction);
     sliding_friction = strategy->CombineFriction(mat1->sliding_friction, mat2->sliding_friction);
     restitution = strategy->CombineRestitution(mat1->restitution, mat2->restitution);
@@ -106,17 +106,16 @@ ChMaterialCompositeNSC::ChMaterialCompositeNSC(ChMaterialCompositionStrategy* st
 
     rolling_friction = strategy->CombineFriction(mat1->rolling_friction, mat2->rolling_friction);
     spinning_friction = strategy->CombineFriction(mat1->spinning_friction, mat2->spinning_friction);
-    complianceRoll = strategy->CombineCompliance(mat1->complianceRoll , mat2->complianceRoll);
-    complianceSpin = strategy->CombineCompliance(mat1->complianceSpin , mat2->complianceSpin);
+    complianceRoll = strategy->CombineCompliance(mat1->complianceRoll, mat2->complianceRoll);
+    complianceSpin = strategy->CombineCompliance(mat1->complianceSpin, mat2->complianceSpin);
 }
-
 
 void ChMaterialCompositeNSC::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChMaterialCompositeNSC>();
 
     // serialize parent class
-    ChMaterialComposite::ArchiveOut(marchive);
+    ChContactMaterialComposite::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(static_friction);
@@ -126,7 +125,7 @@ void ChMaterialCompositeNSC::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(restitution);
     marchive << CHNVP(cohesion);
     marchive << CHNVP(dampingf);
-    marchive << CHNVP(compliance);  
+    marchive << CHNVP(compliance);
     marchive << CHNVP(complianceT);
     marchive << CHNVP(complianceRoll);
     marchive << CHNVP(complianceSpin);
@@ -134,10 +133,10 @@ void ChMaterialCompositeNSC::ArchiveOut(ChArchiveOut& marchive) {
 
 void ChMaterialCompositeNSC::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChMaterialCompositeNSC>();
+    /*int version =*/marchive.VersionRead<ChMaterialCompositeNSC>();
 
     // deserialize parent class
-    ChMaterialComposite::ArchiveIn(marchive);
+    ChContactMaterialComposite::ArchiveIn(marchive);
 
     // stream in all member data:
     marchive >> CHNVP(static_friction);

@@ -518,7 +518,7 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
     }
 }
 
-void RandomSurfaceTerrain::EnableCollisionMesh(std::shared_ptr<ChMaterialSurface> material,
+void RandomSurfaceTerrain::EnableCollisionMesh(std::shared_ptr<ChContactMaterial> material,
                                                double length,
                                                double sweep_sphere_radius) {
     m_material = material;

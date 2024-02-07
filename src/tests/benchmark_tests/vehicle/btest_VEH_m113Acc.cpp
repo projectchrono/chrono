@@ -93,7 +93,7 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
 
     // Create the terrain
     m_terrain = new RigidTerrain(m_m113->GetSystem());
-    auto patch_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch_material = chrono_types::make_shared<ChContactMaterialSMC>();
     patch_material->SetFriction(0.9f);
     patch_material->SetRestitution(0.01f);
     patch_material->SetYoungModulus(2e7f);

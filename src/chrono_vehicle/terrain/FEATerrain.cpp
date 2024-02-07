@@ -19,8 +19,8 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 
 #include "chrono/fea/ChElementHexaANCF_3813_9.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"

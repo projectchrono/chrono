@@ -45,7 +45,7 @@ class ContactForceTest : public ::testing::TestWithParam<ChContactMethod> {
 
 ContactForceTest::ContactForceTest() {
     auto method = GetParam();
-    std::shared_ptr<ChMaterialSurface> material;
+    std::shared_ptr<ChContactMaterial> material;
 
     switch (method) {
         case ChContactMethod::SMC: {
@@ -73,7 +73,7 @@ ContactForceTest::ContactForceTest() {
             float kt = 0;
             float gt = 0;
 
-            auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
             mat->SetYoungModulus(young_modulus);
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
@@ -94,7 +94,7 @@ ContactForceTest::ContactForceTest() {
             float friction = 0.4f;
             float restitution = 0;
 
-            auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
             material = mat;

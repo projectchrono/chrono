@@ -40,7 +40,7 @@ using namespace chrono::geometry;
 // tests if the velocity inforatim
 TEST(ChRadarSensor, check_velocity) {
 //    // -----------------
-//    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+//    auto material = chrono_types::make_shared<ChContactMaterialNSC>();
 //    // Create the system
 //    // -----------------
 //    ChSystemNSC sys;

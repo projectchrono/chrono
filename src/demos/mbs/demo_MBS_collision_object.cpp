@@ -181,11 +181,11 @@ int main(int argc, char* argv[]) {
     object->SetCollide(true);
     object->SetBodyFixed(false);
 
-    auto object_mat = ChMaterialSurface::DefaultMaterial(contact_method);
+    auto object_mat = ChContactMaterial::DefaultMaterial(contact_method);
     object_mat->SetFriction(object_friction);
     object_mat->SetRestitution(object_restitution);
     if (contact_method == ChContactMethod::SMC) {
-        auto matSMC = std::static_pointer_cast<ChMaterialSurfaceSMC>(object_mat);
+        auto matSMC = std::static_pointer_cast<ChContactMaterialSMC>(object_mat);
         matSMC->SetYoungModulus(object_young_modulus);
         matSMC->SetPoissonRatio(object_poisson_ratio);
         matSMC->SetKn(object_kn);
@@ -262,11 +262,11 @@ int main(int argc, char* argv[]) {
     ground->SetCollide(true);
     ground->SetBodyFixed(true);
 
-    auto ground_mat = ChMaterialSurface::DefaultMaterial(contact_method);
+    auto ground_mat = ChContactMaterial::DefaultMaterial(contact_method);
     ground_mat->SetFriction(ground_friction);
     ground_mat->SetRestitution(ground_restitution);
     if (contact_method == ChContactMethod::SMC) {
-        auto matSMC = std::static_pointer_cast<ChMaterialSurfaceSMC>(ground_mat);
+        auto matSMC = std::static_pointer_cast<ChContactMaterialSMC>(ground_mat);
         matSMC->SetYoungModulus(ground_young_modulus);
         matSMC->SetPoissonRatio(ground_poisson_ratio);
         matSMC->SetKn(ground_kn);

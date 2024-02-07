@@ -69,7 +69,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     /// The type of material must be consistent with the contact method (SMC or NSC)
     /// specified at construction. These parameters characterize the material for the container and
     /// (if applicable) the granular material.  Object contact material is received from the rig node.
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat);
+    void SetMaterialSurface(const std::shared_ptr<ChContactMaterial>& mat);
 
     /// Specify whether contact coefficients are based on material properties (default: true).
     /// Note that this setting is only relevant when using the SMC method.
