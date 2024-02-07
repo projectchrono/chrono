@@ -52,8 +52,8 @@
 #include "chrono_cascade/ChCascadeBodyEasy.h"
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChCascadeTriangulate.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 #include "Eigen/src/Core/util/Memory.h"
 
 using namespace chrono;
@@ -164,7 +164,7 @@ using namespace chrono::cascade;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyAuxRef.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChMaterialSurface.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
 
 %ignore chrono::cascade::ChCascadeTriangulate::clone;
 %ignore chrono::cascade::ChCascadeTriangulateTolerances::clone;
@@ -175,8 +175,8 @@ using namespace chrono::cascade;
 %include "../../../chrono_cascade/ChVisualShapeCascade.h"
 %include "../../../chrono_cascade/ChCascadeBodyEasy.h"
 %include "../../../chrono_cascade/ChCascadeDoc.h"
-%include "../../../chrono/physics/ChMaterialSurfaceNSC.h"
-%include "../../../chrono/physics/ChMaterialSurfaceSMC.h"
+%include "../../../chrono/physics/ChContactMaterialNSC.h"
+%include "../../../chrono/physics/ChContactMaterialSMC.h"
 
 
 //

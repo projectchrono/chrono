@@ -23,10 +23,10 @@ print ("Example: demonstration of collisions and contacts")
 
 def AddFallingItems(sys):
     # Shared contact materials for falling objects
-    sph_mat = chrono.ChMaterialSurfaceNSC()
+    sph_mat = chrono.ChContactMaterialNSC()
     sph_mat.SetFriction(0.2)
-    box_mat = chrono.ChMaterialSurfaceNSC()
-    cyl_mat = chrono.ChMaterialSurfaceNSC()
+    box_mat = chrono.ChContactMaterialNSC()
+    cyl_mat = chrono.ChContactMaterialNSC()
 
     # Create falling rigid bodies (spheres and boxes etc.)
     for bi in range(29):
@@ -60,7 +60,7 @@ def AddFallingItems(sys):
 
 def AddContainer(sys):
     # Contact material for container
-    ground_mat = chrono.ChMaterialSurfaceNSC()
+    ground_mat = chrono.ChContactMaterialNSC()
 
     # Visualization material for container
     ground_vis_mat = chrono.ChVisualMaterial()
@@ -97,7 +97,7 @@ def AddContainer(sys):
     sys.Add(wallBody4)
 
     # Add the rotating mixer
-    mixer_mat = chrono.ChMaterialSurfaceNSC()
+    mixer_mat = chrono.ChContactMaterialNSC()
     mixer_mat.SetFriction(0.4)
 
     rotatingBody = chrono.ChBodyEasyBox(10, 5, 1,  # x,y,z size

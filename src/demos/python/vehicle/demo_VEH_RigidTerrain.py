@@ -51,21 +51,21 @@ def main():
     # Create the terrain with multiple patches
     terrain = veh.RigidTerrain(hmmwv.GetSystem())
 
-    patch1_mat = chrono.ChMaterialSurfaceNSC()
+    patch1_mat = chrono.ChContactMaterialNSC()
     patch1_mat.SetFriction(0.9)
     patch1_mat.SetRestitution(0.01)
     patch1 = terrain.AddPatch(patch1_mat, chrono.ChCoordsysD(chrono.ChVectorD(-16, 0, 0), chrono.QUNIT), 32, 20)
     patch1.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
     patch1.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 20, 20)
 
-    patch2_mat = chrono.ChMaterialSurfaceNSC()
+    patch2_mat = chrono.ChContactMaterialNSC()
     patch2_mat.SetFriction(0.9)
     patch2_mat.SetRestitution(0.01)
     patch2 = terrain.AddPatch(patch2_mat, chrono.ChCoordsysD(chrono.ChVectorD(16, 0, 0.15), chrono.QUNIT), 32, 30);
     patch2.SetColor(chrono.ChColor(1.0, 0.5, 0.5))
     patch2.SetTexture(veh.GetDataFile("terrain/textures/concrete.jpg"), 20, 20)
 
-    patch3_mat = chrono.ChMaterialSurfaceNSC()
+    patch3_mat = chrono.ChContactMaterialNSC()
     patch3_mat.SetFriction(0.9)
     patch3_mat.SetRestitution(0.01)
     patch3 = terrain.AddPatch(patch3_mat, chrono.ChCoordsysD(chrono.ChVectorD(0, -42, 0), chrono.QUNIT),
@@ -73,7 +73,7 @@ def main():
     patch3.SetColor(chrono.ChColor(0.5, 0.5, 0.8))
     patch3.SetTexture(veh.GetDataFile("terrain/textures/dirt.jpg"), 6.0, 6.0)
 
-    patch4_mat = chrono.ChMaterialSurfaceNSC()
+    patch4_mat = chrono.ChContactMaterialNSC()
     patch4_mat.SetFriction(0.9)
     patch4_mat.SetRestitution(0.01)
     patch4 = terrain.AddPatch(patch4_mat, chrono.ChCoordsysD(chrono.ChVectorD(0, 42, 0), chrono.QUNIT),

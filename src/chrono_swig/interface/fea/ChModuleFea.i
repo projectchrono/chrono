@@ -353,7 +353,7 @@ using namespace chrono::fea;
 %feature("director") chrono::ChFunction;
 %import(module = "pychrono.core")  "../../../chrono/motion_functions/ChFunction.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChMaterialSurface.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChPhysicsItem.h"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChIndexedNodes.h"
 %feature("director") chrono::ChLoadable;

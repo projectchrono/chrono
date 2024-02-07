@@ -78,7 +78,7 @@ sys = chrono.ChSystemNSC()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Contact material shared among all objects
-material = chrono.ChMaterialSurfaceNSC()
+material = chrono.ChContactMaterialNSC()
 
 # Create a floor that is fixed (that is used also to represent the absolute reference)
 floorBody = chrono.ChBodyEasyBox(20, 2, 20, 3000, True, True, material)

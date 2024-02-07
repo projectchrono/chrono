@@ -29,7 +29,7 @@ print("Copyright (c) 2017 projectchrono.org")
 sys = chrono.ChSystemNSC()
 
 # Contact material shared among all bodies
-mat = chrono.ChMaterialSurfaceNSC()
+mat = chrono.ChContactMaterialNSC()
 
 # Create all rigid bodies.
 

@@ -42,7 +42,7 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001);
 #
 
 # Create a contact material (with default properties, shared by all collision shapes)
-contact_material = chrono.ChMaterialSurfaceNSC()
+contact_material = chrono.ChContactMaterialNSC()
 
 # Create a floor
 mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000,True,True, contact_material)

@@ -33,7 +33,7 @@ chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.001);
 chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001);
 
 # A collision material, will be used by two colliding shapes
-material = chrono.ChMaterialSurfaceNSC()
+material = chrono.ChContactMaterialNSC()
 material.SetFriction(0.5)
 
 # create a 3dCAD shape using the OCC OpenCascade API (a torus cut by a cylinder)

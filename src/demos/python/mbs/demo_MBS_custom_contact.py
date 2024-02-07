@@ -102,13 +102,13 @@ obstacle = MyObstacle(obst_radius, obst_center)
 # Create the sys and the various contact materials
 if use_NSC:
     sys = chrono.ChSystemNSC()
-    g_mat = chrono.ChMaterialSurfaceNSC()
+    g_mat = chrono.ChContactMaterialNSC()
     g_mat.SetRestitution(0.9)
     g_mat.SetFriction(0.4)
-    b_mat = chrono.ChMaterialSurfaceNSC()
+    b_mat = chrono.ChContactMaterialNSC()
     b_mat.SetRestitution(0.9)
     b_mat.SetFriction(0.5)
-    o_mat = chrono.ChMaterialSurfaceNSC()
+    o_mat = chrono.ChContactMaterialNSC()
     o_mat.SetRestitution(0.9)
     o_mat.SetFriction(0.4)
 
@@ -122,13 +122,13 @@ if use_NSC:
 else: # use SMC contact method
     sys = chrono.ChSystemSMC()
 
-    g_mat = chrono.ChMaterialSurfaceSMC()
+    g_mat = chrono.ChContactMaterialSMC()
     g_mat.SetRestitution(0.9)
     g_mat.SetFriction(0.4)
-    b_mat = chrono.ChMaterialSurfaceSMC()
+    b_mat = chrono.ChContactMaterialSMC()
     b_mat.SetRestitution(0.9)
     b_mat.SetFriction(0.5)
-    o_mat = chrono.ChMaterialSurfaceSMC()
+    o_mat = chrono.ChContactMaterialSMC()
     o_mat.SetRestitution(0.9)
     o_mat.SetFriction(0.4)
 

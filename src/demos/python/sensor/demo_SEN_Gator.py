@@ -126,7 +126,7 @@ gator.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 # ------------------
 
 terrain = veh.RigidTerrain(gator.GetSystem())
-patch_mat = chrono.ChMaterialSurfaceNSC()
+patch_mat = chrono.ChContactMaterialNSC()
 patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
 patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 600, 600)

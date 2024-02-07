@@ -34,7 +34,7 @@ chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.0025)
 chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.0025)
 
 # Create ground body
-ground_mat = chrono.ChMaterialSurfaceNSC()
+ground_mat = chrono.ChContactMaterialNSC()
 ground = chrono.ChBodyEasyBox(20, 20, 1, 1000, True, True, ground_mat)
 ground.SetPos(chrono.ChVectorD(0, 0, -0.5))
 ground.SetBodyFixed(True)

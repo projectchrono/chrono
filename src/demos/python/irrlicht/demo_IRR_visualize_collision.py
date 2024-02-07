@@ -49,7 +49,7 @@ print( "Copyright (c) 2022 projectchrono.org")
 sys = chrono.ChSystemNSC()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
-mat = chrono.ChMaterialSurfaceNSC()
+mat = chrono.ChContactMaterialNSC()
 
 ground = chrono.ChBodyEasyBox(10, 3, 10, 100, True, True, mat)
 ground.SetBodyFixed(True);

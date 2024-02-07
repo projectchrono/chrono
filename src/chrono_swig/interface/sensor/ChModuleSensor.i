@@ -49,7 +49,7 @@
 #define SWIG_FILE_WITH_INIT
 #include <memory>
 #include "chrono/solver/ChSolver.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 #include "chrono/solver/ChSolver.h"
 #include "chrono/solver/ChIterativeSolver.h"
 

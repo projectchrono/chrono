@@ -107,12 +107,12 @@ class RayCaster:
 
 def CreateTerrain(sys, length, width, height, offset) :
 
-    ground_mat = chrono.ChMaterialSurface.DefaultMaterial(sys.GetContactMethod())
+    ground_mat = chrono.ChContactMaterial.DefaultMaterial(sys.GetContactMethod())
     ground_mat.SetFriction(0.8)
     ground_mat.SetRestitution(0)
 
     if sys.GetContactMethod() == chrono.ChContactMethod_SMC:
-        matSMC = chrono.CastToChMaterialSurfaceSMC(ground_mat)
+        matSMC = chrono.CastToChContactMaterialSMC(ground_mat)
         matSMC.SetYoungModulus(1e7)
 
     ground = chrono.ChBody()
@@ -145,9 +145,9 @@ def SetContactProperties(robot):
     robot.GetWheelContactMaterial().SetRestitution(cr)
 
     if robot.GetSystem().GetContactMethod() == chrono.ChContactMethod_SMC:
-        sled_matSMC = chrono.CastToChMaterialSurfaceSMC(robot.GetSledContactMaterial())
+        sled_matSMC = chrono.CastToChContactMaterialSMC(robot.GetSledContactMaterial())
         sled_matSMC.SetYoungModulus(Y)
-        wheel_matSMC = chrono.CastToChMaterialSurfaceSMC(robot.GetWheelContactMaterial())
+        wheel_matSMC = chrono.CastToChContactMaterialSMC(robot.GetWheelContactMaterial())
         wheel_matSMC.SetYoungModulus(Y)    
     
 # =============================================================================

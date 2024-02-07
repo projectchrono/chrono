@@ -46,13 +46,13 @@ fixed_L = True
 
 friction= math.tan(phi)
 print(friction)
-brick_material = chrono.ChMaterialSurfaceNSC()
+brick_material = chrono.ChContactMaterialNSC()
 brick_material.SetFriction(friction)
 brick_material.SetDampingF(0.00000)
 brick_material.SetCompliance (1e-9)
 brick_material.SetComplianceT(1e-9)
 
-L_material = chrono.ChMaterialSurfaceNSC()
+L_material = chrono.ChContactMaterialNSC()
 L_material.SetFriction(0)
 
 

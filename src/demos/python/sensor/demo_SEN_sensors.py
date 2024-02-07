@@ -34,7 +34,7 @@ def main():
     # ----------------------------------------
     # add a floor, box and sphere to the scene
     # ----------------------------------------
-    phys_mat = chrono.ChMaterialSurfaceNSC()
+    phys_mat = chrono.ChContactMaterialNSC()
     phys_mat.SetFriction(0.5)
     phys_mat.SetDampingF(0.00000)
     phys_mat.SetCompliance (1e-9)

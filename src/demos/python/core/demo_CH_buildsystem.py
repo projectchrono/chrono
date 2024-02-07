@@ -21,7 +21,7 @@ import pychrono as chrono
 my_system = chrono.ChSystemNSC()
 
 # Create a contact material, shared by all collision shapes
-material = chrono.ChMaterialSurfaceNSC()
+material = chrono.ChContactMaterialNSC()
 material.SetFriction(0.3)
 material.SetCompliance(0)
 

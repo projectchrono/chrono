@@ -42,7 +42,7 @@ sphere_swept_thickness = 0.002
 # It is a SMC (penalty) material that we will assign to
 # all surfaces that might generate contacts.
 
-mysurfmaterial = chrono.ChMaterialSurfaceSMC()
+mysurfmaterial = chrono.ChContactMaterialSMC()
 mysurfmaterial.SetYoungModulus(6e4)
 mysurfmaterial.SetFriction(0.3)
 mysurfmaterial.SetRestitution(0.2)

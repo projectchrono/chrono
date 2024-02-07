@@ -32,7 +32,7 @@ class Model(object):
       self.ant_sys.SetSolverMaxIterations(70)
       
 
-      self.ant_material = chrono.ChMaterialSurfaceNSC()
+      self.ant_material = chrono.ChContactMaterialNSC()
       self.ant_material.SetFriction(0.5)
       self.ant_material.SetDampingF(0.2)
       self.ant_material.SetCompliance (0.0005)

@@ -60,7 +60,7 @@ class ContactMaterial(chrono.AddContactCallback):
                               contactinfo,
                               material):
         # Downcast to appropriate composite material type
-        mat = chrono.CastToChMaterialCompositeNSC(material)
+        mat = chrono.CastToChContactMaterialCompositeNSC(material)
 
         # Set different friction for left/right halfs
         if (contactinfo.vpA.z > 0) :
@@ -97,7 +97,7 @@ sys.SetSolverForceTolerance(0)
 # Create a contact material, shared among all bodies
 # --------------------------------------------------
 
-material = chrono.ChMaterialSurfaceNSC()
+material = chrono.ChContactMaterialNSC()
 material.SetFriction(friction)
 
 # ----------

@@ -189,9 +189,9 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChContactable_3vars<3,3,3>)
 %shared_ptr(chrono::ChContactable_3vars<6,6,6>)
 %shared_ptr(chrono::ChIndexedNodes)
-%shared_ptr(chrono::ChMaterialSurfaceNSC)
-%shared_ptr(chrono::ChMaterialSurfaceSMC)
-%shared_ptr(chrono::ChMaterialSurface)
+%shared_ptr(chrono::ChContactMaterialNSC)
+%shared_ptr(chrono::ChContactMaterialSMC)
+%shared_ptr(chrono::ChContactMaterial)
 %shared_ptr(chrono::ChNodeBase)
 %shared_ptr(chrono::ChNodeXYZ)
 %shared_ptr(chrono::ChMarker)
@@ -340,7 +340,7 @@ using namespace chrono::fea;
 
 
 //collision classes
-%include "ChMaterialSurface.i"
+%include "ChContactMaterial.i"
 %include "ChCollisionShape.i"
 %include "ChCollisionModel.i"
 %include "../../../chrono/collision/ChCollisionShape.h"

@@ -100,11 +100,11 @@ truck.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 # Create the terrain
 terrain = veh.RigidTerrain(truck.GetSystem())
 if (contact_method == chrono.ChContactMethod_NSC):
-    patch_mat = chrono.ChMaterialSurfaceNSC()
+    patch_mat = chrono.ChContactMaterialNSC()
     patch_mat.SetFriction(0.9)
     patch_mat.SetRestitution(0.01)
 elif (contact_method == chrono.ChContactMethod_SMC):
-    patch_mat = chrono.ChMaterialSurfaceSMC()
+    patch_mat = chrono.ChContactMaterialSMC()
     patch_mat.SetFriction(0.9)
     patch_mat.SetRestitution(0.01)
     patch_mat.SetYoungModulus(2e7)

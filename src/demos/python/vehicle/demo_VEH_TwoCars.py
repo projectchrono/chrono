@@ -34,7 +34,7 @@ def main():
 
     # Create the terrain
     terrain = veh.RigidTerrain(sys)
-    patch_mat = chrono.ChMaterialSurfaceNSC()
+    patch_mat = chrono.ChContactMaterialNSC()
     patch_mat.SetFriction(0.9)
     patch_mat.SetRestitution(0.01)
     patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 200, 100)

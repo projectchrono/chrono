@@ -90,7 +90,7 @@ car.SetTireVisualizationType(tire_vis_type)
 car.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Create the terrain
-patch_mat = chrono.ChMaterialSurfaceNSC()
+patch_mat = chrono.ChContactMaterialNSC()
 patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
 terrain = veh.RigidTerrain(car.GetSystem())

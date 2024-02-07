@@ -104,7 +104,7 @@ vis_shape.SetColor(chrono.ChColor(0.3, 0.3, 0.3))
 body.AddVisualShape(vis_shape)
 
 # Set collision shape
-material = chrono.ChMaterialSurfaceSMC()
+material = chrono.ChContactMaterialSMC()
 
 body_ct_shape = chrono.ChCollisionShapeTriangleMesh(material, # contact material
                                                     mesh,     # the mesh 

@@ -27,7 +27,7 @@ class Model(object):
 
 
     # Create a contact material (surface property)to share between all objects.
-      self.rod_material = chrono.ChMaterialSurfaceNSC()
+      self.rod_material = chrono.ChContactMaterialNSC()
       self.rod_material.SetFriction(0.5)
       self.rod_material.SetDampingF(0.2)
       self.rod_material.SetCompliance (0.0000001)

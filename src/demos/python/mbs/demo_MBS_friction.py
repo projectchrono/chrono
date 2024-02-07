@@ -43,7 +43,7 @@ vis_mat_floor.SetKdTexture(chrono.GetChronoDataFile('textures/blue.png'))
 
 # Create some spheres that roll horizontally, with increasing rolling friction values
 for bi in range(10):
-    mat = chrono.ChMaterialSurfaceNSC()
+    mat = chrono.ChContactMaterialNSC()
     mat.SetFriction(0.4)
     mat.SetRollingFriction((float(bi) / 10.) * 0.05)
 
@@ -68,7 +68,7 @@ for bi in range(10):
 
 # Create some spheres that spin on place, for a 'drilling friction' case, with increasing spinning friction values
 for bi in range(10):
-    mat = chrono.ChMaterialSurfaceNSC()
+    mat = chrono.ChContactMaterialNSC()
     mat.SetFriction(0.4)
     mat.SetSpinningFriction((float(bi) / 10) * 0.02)
 
@@ -101,7 +101,7 @@ bin.SetCollide(True)
 
 # Set rolling and spinning friction coefficients for the container.
 # By default, the composite material will use the minimum value for an interacting collision pair.
-bin_mat = chrono.ChMaterialSurfaceNSC()
+bin_mat = chrono.ChContactMaterialNSC()
 bin_mat.SetRollingFriction(1)
 bin_mat.SetSpinningFriction(1)
 

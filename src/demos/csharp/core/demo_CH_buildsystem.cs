@@ -72,7 +72,7 @@ namespace ChronoDemo
             ChFunction_Const my_speed_function = new ChFunction_Const(3.14);  // speed w=3.145 rad/sec
             my_link_AB.SetSpeedFunction(my_speed_function);
 
-            ChMaterialSurfaceNSC mat = new ChMaterialSurfaceNSC();
+            ChContactMaterialNSC mat = new ChContactMaterialNSC();
             mat.SetFriction(0.5F);
             mat.SetRestitution(0.5F);
 

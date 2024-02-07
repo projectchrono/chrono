@@ -40,7 +40,7 @@ floor.SetBodyFixed(True)
 
 
 # Contact material
-floor_mat = chrono.ChMaterialSurfaceNSC()
+floor_mat = chrono.ChContactMaterialNSC()
 
 
 # Define a collision shape
@@ -183,7 +183,7 @@ particles = chrono.ChParticleCloud()
 
 # Note: coll. shape, if needed, must be specified before creating particles.
 # This will be shared among all particles in the ChParticleCloud.
-particle_mat = chrono.ChMaterialSurfaceNSC()
+particle_mat = chrono.ChContactMaterialNSC()
 
 particles_ct_shape = chrono.ChCollisionShapeSphere(particle_mat, 0.05)
 particles.AddCollisionShape(particles_ct_shape)
@@ -215,7 +215,7 @@ v5 = chrono.ChVectorD(0.0, 0.0, 0.3) + displ
 v6 = chrono.ChVectorD(0.8, 0.0, 0.3) + displ
 mpoints = chrono.vector_ChVectorD([v1 , v2, v3, v4, v5, v6])
 
-hull = chrono.ChBodyEasyConvexHullAuxRef(mpoints, 1000, True, True, chrono.ChMaterialSurfaceNSC())
+hull = chrono.ChBodyEasyConvexHullAuxRef(mpoints, 1000, True, True, chrono.ChContactMaterialNSC())
  
 hull.Move(chrono.ChVectorD(2, 0.3, 0))
 sys.Add(hull)

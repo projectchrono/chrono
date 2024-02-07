@@ -50,7 +50,7 @@ inertia = 2/5*(pow(0.005,2))*0.01;
 body_particles.SetInertiaXX(chrono.ChVectorD(inertia,inertia,inertia));
 
 # Collision shape (shared by all particle clones) Must be defined BEFORE adding particles
-particle_material = chrono.ChMaterialSurfaceNSC()
+particle_material = chrono.ChContactMaterialNSC()
 
 body_particles_ct_shape = chrono.ChCollisionShapeSphere(particle_material, 0.005)
 body_particles.AddCollisionShape(body_particles_ct_shape)
@@ -78,7 +78,7 @@ body_floor = chrono.ChBody()
 body_floor.SetBodyFixed(True)
 
 # Collision shape
-floor_material = chrono.ChMaterialSurfaceNSC()
+floor_material = chrono.ChContactMaterialNSC()
 
 body_floor_ct_shape = chrono.ChCollisionShapeBox(floor_material, 0.1, 0.02, 0.1)
 body_floor.AddCollisionShape(body_floor_ct_shape)

@@ -214,7 +214,7 @@ using namespace chrono::copter;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkLock.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkTSDA.i"
 %import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChMaterialSurface.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
 %import(module = "pychrono.core") "../chrono/fea/ChContinuumMaterial.h"
 %import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"
 

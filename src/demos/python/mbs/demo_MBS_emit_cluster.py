@@ -58,7 +58,7 @@ coll = sys.GetCollisionSystem()
 #
 
 # Example: create a ChBody rigid body.
-sphere_mat = chrono.ChMaterialSurfaceNSC()
+sphere_mat = chrono.ChContactMaterialNSC()
 sphere_mat.SetFriction(0.2)
 
 msphereBody = chrono.ChBodyEasySphere(2.1,          # radius size
