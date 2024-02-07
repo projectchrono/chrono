@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     // ...impose rotation speed between the first gear and the fixed truss
     auto link_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     link_motor->Initialize(mbody_gearA, mbody_truss, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
-    link_motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(6));
+    link_motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(6));
     sys.AddLink(link_motor);
 
     // ...the second gear
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     //    Also, note that the initial position of the constraint has no importance (simply use CSYSNORM),
     //    but we must set where the two axes are placed in the local coordinates of the two wheels, so
     //    we use Set_local_shaft1() and pass some local ChFrame. Note that, since the Z axis of that frame
-    //    will be considered the axis of the wheel, we must rotate the frame 90° with Q_from_AngAxis(), because
+    //    will be considered the axis of the wheel, we must rotate the frame 90ï¿½ with Q_from_AngAxis(), because
     //    we created the wheel with ChBodyEasyCylinder() which created a cylinder with Y as axis.
     auto link_gearAB = chrono_types::make_shared<ChLinkGear>();
     link_gearAB->Initialize(mbody_gearA, mbody_gearB, CSYSNORM);
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     mbody_gearD->GetVisualShape(0)->SetMaterial(0, vis_mat);
 
     // ... it is fixed to the truss using a revolute joint with horizontal axis (must rotate
-    //     default ChLink creation coordys 90° on the Y vertical, since the revolute axis is the Z axis).
+    //     default ChLink creation coordys 90ï¿½ on the Y vertical, since the revolute axis is the Z axis).
     auto link_revoluteD = chrono_types::make_shared<ChLinkLockRevolute>();
     link_revoluteD->Initialize(mbody_gearD, mbody_truss,
                                ChCoordsys<>(ChVector<>(-10, 0, -9), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     mbody_pulleyE->GetVisualShape(0)->SetMaterial(0, vis_mat);
 
     // ... it is fixed to the truss using a revolute joint with horizontal axis (must rotate
-    //     default ChLink creation coordys 90° on the Y vertical, since the revolute axis is the Z axis).
+    //     default ChLink creation coordys 90ï¿½ on the Y vertical, since the revolute axis is the Z axis).
     auto link_revoluteE = chrono_types::make_shared<ChLinkLockRevolute>();
     link_revoluteE->Initialize(mbody_pulleyE, mbody_truss,
                                ChCoordsys<>(ChVector<>(-10, -11, -9), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));

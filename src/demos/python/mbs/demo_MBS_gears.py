@@ -73,7 +73,7 @@ mbody_gearA.AddVisualShape(mshaft_shape, chrono.ChFrameD(chrono.ChVectorD(0, 3.5
 link_motor = chrono.ChLinkMotorRotationSpeed()
 link_motor.Initialize(mbody_gearA, mbody_truss, 
                         chrono.ChFrameD(chrono.ChVectorD(0, 0, 0), chrono.QUNIT))
-link_motor.SetSpeedFunction(chrono.ChFunction_Const(6))
+link_motor.SetSpeedFunction(chrono.ChFunctionConst(6))
 sys.AddLink(link_motor)
 
 

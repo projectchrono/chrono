@@ -32,11 +32,11 @@ ChLinkLimit::ChLinkLimit()
       m_minElastic(0),
       m_maxElastic(0) {
     // Default: no modulation
-    m_Kmax_modul = chrono_types::make_shared<ChFunction_Const>(1);
-    m_Kmin_modul = chrono_types::make_shared<ChFunction_Const>(1);
-    m_Rmax_modul = chrono_types::make_shared<ChFunction_Const>(1);
-    m_Rmin_modul = chrono_types::make_shared<ChFunction_Const>(1);
-    m_polarMax_funct = chrono_types::make_shared<ChFunction_Const>(1);
+    m_Kmax_modul = chrono_types::make_shared<ChFunctionConst>(1);
+    m_Kmin_modul = chrono_types::make_shared<ChFunctionConst>(1);
+    m_Rmax_modul = chrono_types::make_shared<ChFunctionConst>(1);
+    m_Rmin_modul = chrono_types::make_shared<ChFunctionConst>(1);
+    m_polarMax_funct = chrono_types::make_shared<ChFunctionConst>(1);
 
     constr_upper.SetMode(CONSTRAINT_UNILATERAL);
     constr_lower.SetMode(CONSTRAINT_UNILATERAL);

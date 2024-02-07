@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     // The motor that rotates the rim:
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
-    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, CH_C_PI / 4.0));
     motor->Initialize(mrim, mtruss, ChFrame<>(tire_center, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
     sys.Add(motor);
 

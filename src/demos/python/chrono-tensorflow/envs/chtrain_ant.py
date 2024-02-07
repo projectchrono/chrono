@@ -219,8 +219,8 @@ class Model(object):
        self.ac = ac.reshape((-1,))
        for i in range(len(self.leg_motor)): 
 
-              action_a = chrono.ChFunction_Const(self.gain*float(self.ac[i])) 
-              action_b = chrono.ChFunction_Const(self.gain*float(self.ac[i+4])) 
+              action_a = chrono.ChFunctionConst(self.gain*float(self.ac[i])) 
+              action_b = chrono.ChFunctionConst(self.gain*float(self.ac[i+4])) 
               self.leg_motor[i].SetTorqueFunction(action_a)
               self.ankle_motor[i].SetTorqueFunction(action_b)
 

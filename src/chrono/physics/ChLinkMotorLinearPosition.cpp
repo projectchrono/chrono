@@ -21,7 +21,7 @@ CH_FACTORY_REGISTER(ChLinkMotorLinearPosition)
 
 ChLinkMotorLinearPosition::ChLinkMotorLinearPosition() {
     // default motion function: ramp with initial value y(0) = 0 and slope dy/dt = 1
-    m_func = chrono_types::make_shared<ChFunction_Ramp>(0.0, 1.0);
+    m_func = chrono_types::make_shared<ChFunctionRamp>(0.0, 1.0);
 
     pos_offset = 0;
 }

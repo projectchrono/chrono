@@ -75,7 +75,7 @@ void assemble_fourbar(ChSystemNSC& system) {
     auto linkO = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     linkO->SetName("linkO");
     linkO->Initialize(crank, floor, ChFrame<>());
-    linkO->SetMotorFunction(chrono_types::make_shared<ChFunction_Poly345>(3.14, 1));
+    linkO->SetMotorFunction(chrono_types::make_shared<ChFunctionPoly345>(3.14, 1));
     system.Add(linkO);
 
     auto linkA = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
@@ -151,7 +151,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
     // ...impose rotation speed between the first gear and the fixed truss
     auto link_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     link_motor->Initialize(mbody_gearA, mbody_truss, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
-    link_motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(6));
+    link_motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(6));
     sys.AddLink(link_motor);
 
     // ...the second gear

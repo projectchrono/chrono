@@ -69,7 +69,7 @@ my_vect5 = my_vect1 >> my_frame
 
 
 # Use the ChFunction classes
-my_funct = chrono.ChFunction_Sine(0,0.5,3)
+my_funct = chrono.ChFunctionSine(0,0.5,3)
 print ('function f(0.2)=', my_funct.Get_y(0.2) )
 
 

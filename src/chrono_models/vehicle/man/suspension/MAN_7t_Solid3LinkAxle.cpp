@@ -74,7 +74,7 @@ class MAN_7t_SpringForceRear : public ChLinkTSDA::ForceFunctor {
     double m_max_length;
     double m_scale;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionRecorder m_bump;
 };
 
 MAN_7t_SpringForceRear::MAN_7t_SpringForceRear(double spring_constant1,

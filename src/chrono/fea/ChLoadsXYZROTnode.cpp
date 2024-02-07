@@ -67,7 +67,7 @@ void ChLoadXYZROTnode::Update(double time) {
 ChLoadXYZROTnodeForceAbsolute::ChLoadXYZROTnodeForceAbsolute(std::shared_ptr<ChNodeFEAxyzrot> body,
                                                              const ChVector<>& force)
     : ChLoadXYZROTnode(body), m_force_base(force), m_scale(1) {
-    m_modulation = chrono_types::make_shared<ChFunction_Const>(1.0);
+    m_modulation = chrono_types::make_shared<ChFunctionConst>(1.0);
 }
 
 /// Compute the force on the node, in absolute coordsystem,

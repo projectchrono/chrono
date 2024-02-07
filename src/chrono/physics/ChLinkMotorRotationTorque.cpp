@@ -23,7 +23,7 @@ ChLinkMotorRotationTorque::ChLinkMotorRotationTorque() {
     this->c_rz = false;
     SetupLinkMask();
 
-    m_func = chrono_types::make_shared<ChFunction_Const>(0.0);
+    m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 }
 
 ChLinkMotorRotationTorque::ChLinkMotorRotationTorque(const ChLinkMotorRotationTorque& other)

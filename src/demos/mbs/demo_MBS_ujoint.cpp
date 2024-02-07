@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     // The joint is located at the origin of the first shaft.
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->Initialize(ground, shaft_1, ChFrame<>(ChVector<>(0, 0, -hl), ChQuaternion<>(1, 0, 0, 0)));
-    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, 1));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, 1));
     sys.AddLink(motor);
 
     // Connect the second shaft to ground through a cylindrical joint

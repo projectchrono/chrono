@@ -100,7 +100,7 @@ void ChRackPinion::Synchronize(double time, const DriverInputs& driver_inputs) {
     double angle = driver_inputs.m_steering * GetMaxAngle();
     double displ = angle * GetPinionRadius();
 
-    if (auto fun = std::dynamic_pointer_cast<ChFunction_Const>(m_actuator->GetActuatorFunction()))
+    if (auto fun = std::dynamic_pointer_cast<ChFunctionConst>(m_actuator->GetActuatorFunction()))
         fun->Set_yconst(displ);
 }
 

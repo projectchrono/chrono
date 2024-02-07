@@ -278,7 +278,7 @@ int main(int argc, char* argv[]) {
         vehModel.append("#RT");
     }
     utils::ChRunningAverage RTF_filter(50);
-    ChFunction_Recorder mfunTireOmega, mfunWheelOmega;
+    ChFunctionRecorder mfunTireOmega, mfunWheelOmega;
 
     while (vis->Run()) {
         double time = u401.GetSystem()->GetChTime();
@@ -351,7 +351,7 @@ int main(int argc, char* argv[]) {
     mplot1.SetTitle(vehModel);
     mplot1.SetLabelX("Time (s)");
     mplot1.SetLabelY("Tire Omega (rad/s)");
-    mplot1.Plot(mfunTireOmega, "from ChFunction_Recorder", " with lines lt -1 lc rgb'#00AAEE' ");
+    mplot1.Plot(mfunTireOmega, "from ChFunctionRecorder", " with lines lt -1 lc rgb'#00AAEE' ");
 
     std::cout << "Maximum Kingpin Angle = " << maxKingpinAngle << " deg" << std::endl;
     return 0;

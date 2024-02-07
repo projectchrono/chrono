@@ -36,7 +36,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-#include "chrono/motion_functions/ChFunction_Setpoint.h"
+#include "chrono/motion_functions/ChFunctionSetpoint.h"
 
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
@@ -539,7 +539,7 @@ void Viper::Initialize(const ChFrame<>& pos) {
         AddUniversalJoint(m_upper_arms[i]->GetBody(), m_uprights[i]->GetBody(), m_chassis, sr_rel_pos_upper[i], QUNIT);
 
         // Add lifting motors at the connecting points between upper_arm & chassis and lower_arm & chassis
-        m_lift_motor_funcs[i] = chrono_types::make_shared<ChFunction_Const>(0.0);
+        m_lift_motor_funcs[i] = chrono_types::make_shared<ChFunctionConst>(0.0);
         m_lift_motors[i] = AddMotorAngle(m_chassis->GetBody(), m_lower_arms[i]->GetBody(), m_chassis,
                                          cr_rel_pos_lower[i], z2x * lm_rot[i]);
         m_lift_motors[i]->SetMotorFunction(m_lift_motor_funcs[i]);
@@ -555,7 +555,7 @@ void Viper::Initialize(const ChFrame<>& pos) {
 
         switch (m_driver->GetDriveMotorType()) {
             case ViperDriver::DriveMotorType::SPEED:
-                m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Setpoint>();
+                m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunctionSetpoint>();
                 m_drive_motors[i] = AddMotorSpeed(steer_rod, m_wheels[i]->GetBody(), m_chassis, wheel_rel_pos[i], z2y);
                 m_drive_motors[i]->SetMotorFunction(m_drive_motor_funcs[i]);
                 break;
@@ -564,7 +564,7 @@ void Viper::Initialize(const ChFrame<>& pos) {
                 break;
         }
 
-        m_steer_motor_funcs[i] = chrono_types::make_shared<ChFunction_Const>(0.0);
+        m_steer_motor_funcs[i] = chrono_types::make_shared<ChFunctionConst>(0.0);
         m_steer_motors[i] = AddMotorAngle(steer_rod, m_uprights[i]->GetBody(), m_chassis, wheel_rel_pos[i], sm_rot[i]);
         m_steer_motors[i]->SetMotorFunction(m_steer_motor_funcs[i]);
 

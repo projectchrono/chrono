@@ -32,7 +32,7 @@ ChLineCam::ChLineCam() {
     center = VNULL;
     e = 0;
     s = Rb;
-    law = chrono_types::make_shared<ChFunction_Const>(0);  // default law = no follower motion
+    law = chrono_types::make_shared<ChFunctionConst>(0);  // default law = no follower motion
     negative = false;
     internal = false;
 }

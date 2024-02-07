@@ -221,7 +221,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     m_shaft_motor = chrono_types::make_shared<ChShaftsMotorAngle>();
     m_shaft_motor->SetNameString(m_name + "_motor");
     m_shaft_motor->Initialize(m_shaft_C, m_shaft_C1);
-    auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
+    auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
     m_shaft_motor->SetAngleFunction(motor_fun);
     sys->Add(m_shaft_motor);
 
@@ -254,7 +254,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
 // -----------------------------------------------------------------------------
 void ChPitmanArmShafts::Synchronize(double time, const DriverInputs& driver_inputs) {
-    auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_shaft_motor->GetAngleFunction());
+    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_shaft_motor->GetAngleFunction());
     fun->SetSetpoint(getMaxAngle() * driver_inputs.m_steering, time);
 }
 
@@ -342,7 +342,7 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
                                             std::vector<double>& shaft_velocities,
                                             std::vector<double>& constraint_violations,
                                             ChVector<>& arm_angular_vel) const {
-    auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_shaft_motor->GetAngleFunction());
+    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_shaft_motor->GetAngleFunction());
     motor_input = fun->Get_y(time);
     motor_input_der = fun->Get_y_dx(time);
 

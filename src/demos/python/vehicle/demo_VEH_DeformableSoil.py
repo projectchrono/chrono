@@ -117,7 +117,7 @@ body.SetCollide(True)
 # Create motor
 motor = chrono.ChLinkMotorRotationAngle()
 motor.SetSpindleConstraint(chrono.ChLinkMotorRotation.SpindleConstraint_OLDHAM)
-motor.SetAngleFunction(chrono.ChFunction_Ramp(0, math.pi / 4))
+motor.SetAngleFunction(chrono.ChFunctionRamp(0, math.pi / 4))
 motor.Initialize(body, ground, chrono.ChFrameD(tire_center, chrono.Q_from_AngY(math.pi/2)))
 sys.Add(motor)
 

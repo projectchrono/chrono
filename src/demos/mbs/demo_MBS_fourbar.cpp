@@ -65,7 +65,7 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newspeed = 10 * (double)pos / 100.0;
                         // set the speed into motor object
-                        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(mmotor->GetSpeedFunction()))
+                        if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(mmotor->GetSpeedFunction()))
                             mfun->Set_yconst(newspeed);
                         // show speed as formatted text in interface screen
                         char message[50];
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     auto my_link_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
     sys.AddLink(my_link_AB);
-    auto my_speed_function = chrono_types::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
+    auto my_speed_function = chrono_types::make_shared<ChFunctionConst>(CH_C_PI);  // speed w=3.145 rad/sec
     my_link_AB->SetSpeedFunction(my_speed_function);
 
     // .. a revolute joint between flywheel and rod

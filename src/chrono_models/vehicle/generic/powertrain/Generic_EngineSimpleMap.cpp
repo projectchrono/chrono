@@ -27,7 +27,7 @@ double Generic_EngineSimpleMap::GetMaxEngineSpeed() {
     return 2700 * rpm2rads;
 }
 
-void Generic_EngineSimpleMap::SetEngineTorqueMaps(chrono::ChFunction_Recorder& map0, chrono::ChFunction_Recorder& mapF) {
+void Generic_EngineSimpleMap::SetEngineTorqueMaps(chrono::ChFunctionRecorder& map0, chrono::ChFunctionRecorder& mapF) {
     map0.AddPoint(-10.472, 0.000);
     map0.AddPoint(83.776, -20.0);
     map0.AddPoint(104.720, -20.0);

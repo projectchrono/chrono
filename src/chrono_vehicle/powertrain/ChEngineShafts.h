@@ -61,10 +61,10 @@ class CH_VEHICLE_API ChEngineShafts : public ChEngine {
     virtual double GetMotorshaftInertia() const = 0;
 
     /// Engine speed-torque map.
-    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
+    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunctionRecorder>& map) = 0;
 
     /// Engine speed-torque braking effect because of losses.
-    virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
+    virtual void SetEngineLossesMap(std::shared_ptr<ChFunctionRecorder>& map) = 0;
 
   private:
     /// Initialize this engine system.

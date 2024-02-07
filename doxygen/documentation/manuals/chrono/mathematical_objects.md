@@ -124,7 +124,7 @@ See @ref chrono::ChFunction for API details and a list of subclasses.
 ### Example 1
 
 ~~~{.cpp}
-	ChFunction_Ramp f_ramp;
+	ChFunctionRamp f_ramp;
 
 	f_ramp.Set_ang(0.1);	// set angular coefficient;
 	f_ramp.Set_y0(0.4);		// set y value for x=0;
@@ -134,7 +134,7 @@ See @ref chrono::ChFunction for API details and a list of subclasses.
 	// Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
 	double ydx	= f_ramp.Get_y_dx(10);
 
-	std::cout << "   ChFunction_Ramp at x=0: y=" << y << "  dy/dx=" << ydx << std::endl;
+	std::cout << "   ChFunctionRamp at x=0: y=" << y << "  dy/dx=" << ydx << std::endl;
 ~~~
 
 
@@ -143,7 +143,7 @@ See @ref chrono::ChFunction for API details and a list of subclasses.
 Save values of a sine ChFunction  into a file.
 
 ~~~{.cpp}
-	ChFunction_Sine f_sine;
+	ChFunctionSine f_sine;
 
 	f_sine.Set_amp(2);		// set amplitude;
 	f_sine.Set_freq(1.5);	// set frequency;
@@ -181,14 +181,14 @@ you can override the base Get_ydx() and Get_ydxdx() too, for higher precision.
 ~~~{.cpp}
 // First, define a custom class inherited from ChFunction
 
-class ChFunction_MyTest : public ChFunction
+class ChFunctionMyTest : public ChFunction
 {
 public:
-	ChFunction* new_Duplicate() {return new ChFunction_MyTest;} 
+	ChFunction* new_Duplicate() {return new ChFunctionMyTest;} 
 	double Get_y(double x) {return cos(x);} // just for test: simple cosine
 };
 
-ChFunction_MyTest f_test;
+ChFunctionMyTest f_test;
 
 std::ofstream file_f_test ("f_test_out.dat");
 

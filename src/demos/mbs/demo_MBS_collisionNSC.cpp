@@ -132,7 +132,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
 
     auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    auto mfun = chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 4.0);  // speed 45 deg/s
+    auto mfun = chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 4.0);  // speed 45 deg/s
     my_motor->SetSpeedFunction(mfun);
     sys.AddLink(my_motor);
 

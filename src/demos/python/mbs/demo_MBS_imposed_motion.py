@@ -56,12 +56,12 @@ mmoved_1.SetPos(chrono.ChVectorD(-0.5, 0, 0))
 # Create a position function p(t) from three x,y,z distinct ChFunction objects,
 # in this case two sine functions on y and z, whereas x remains constant 0 by default.
 f_xyz = chrono.ChFunctionPosition_XYZfunctions()
-f_xyz.SetFunctionY(chrono.ChFunction_Sine(0, 0.5, 0.5))
-f_xyz.SetFunctionZ(chrono.ChFunction_Sine(0, 0.5, 0.5))
+f_xyz.SetFunctionY(chrono.ChFunctionSine(0, 0.5, 0.5))
+f_xyz.SetFunctionZ(chrono.ChFunctionSine(0, 0.5, 0.5))
 
 # Create a rotation function q(t) from a angle(time) rotation with fixed axis:
 f_rot_axis = chrono.ChFunctionRotation_axis()
-f_rot_axis.SetFunctionAngle(chrono.ChFunction_Sine(0, 0.15, chrono.CH_C_PI))
+f_rot_axis.SetFunctionAngle(chrono.ChFunctionSine(0, 0.15, chrono.CH_C_PI))
 f_rot_axis.SetAxis(chrono.ChVectorD(1, 1, 1).GetNormalized())
 
 # Create the constraint to impose motion and rotation.
@@ -103,7 +103,7 @@ mspline.SetClosed(True)
 
 f_line = chrono.ChFunctionPosition_line()
 f_line.SetLine(mspline)
-f_line.SetSpaceFunction(chrono.ChFunction_Ramp(0, 0.2))
+f_line.SetSpaceFunction(chrono.ChFunctionRamp(0, 0.2))
 
 # Create a spline rotation interpolation
 q1 = chrono.ChQuaternionD(1, 0, 0, 0)
@@ -115,7 +115,7 @@ q6 = chrono.ChQuaternionD(0, 1, 0, 0)
 spinerots = chrono.vector_ChQuaternionD([q1, q2, q3, q4, q5, q6])
 f_rotspline = chrono.ChFunctionRotation_spline(1, [q1, q2, q3, q4, q5, q6])
 f_rotspline.SetClosed(True)
-f_rotspline.SetSpaceFunction(chrono.ChFunction_Ramp(0, 0.2))
+f_rotspline.SetSpaceFunction(chrono.ChFunctionRamp(0, 0.2))
 
 impose_2 = chrono.ChLinkMotionImposed()
 sys.Add(impose_2)
@@ -172,8 +172,8 @@ mmoved_4.SetPos(chrono.ChVectorD(2.5, 0, 0))
 
 f_abc_angles = chrono.ChFunctionRotation_ABCfunctions()
 f_abc_angles.SetAngleset(chrono.AngleSet_RXYZ)
-f_abc_angles.SetFunctionAngleA(chrono.ChFunction_Sine(0, 2, 0.3))
-f_abc_angles.SetFunctionAngleB(chrono.ChFunction_Ramp(0, 0.2))
+f_abc_angles.SetFunctionAngleA(chrono.ChFunctionSine(0, 2, 0.3))
+f_abc_angles.SetFunctionAngleB(chrono.ChFunctionRamp(0, 0.2))
 
 impose_4 = chrono.ChLinkMotionImposed()
 sys.Add(impose_4)
@@ -203,7 +203,7 @@ q6 = chrono.ChQuaternionD(0, 1, 0, 0)
 
 f_squad = chrono.ChFunctionRotation_SQUAD([q1, q2, q3, q4, q5, q6])
 f_squad.SetClosed(True)
-f_squad.SetSpaceFunction(chrono.ChFunction_Ramp(0, 0.2))
+f_squad.SetSpaceFunction(chrono.ChFunctionRamp(0, 0.2))
 
 # Create the constraint to impose motion and rotation
 impose_5 = chrono.ChLinkMotionImposed()

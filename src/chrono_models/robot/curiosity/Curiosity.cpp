@@ -22,7 +22,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-#include "chrono/motion_functions/ChFunction_Setpoint.h"
+#include "chrono/motion_functions/ChFunctionSetpoint.h"
 
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
@@ -480,7 +480,7 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
     for (int i = 0; i < 2; i++) {
         switch (m_driver->GetDriveMotorType()) {
             case CuriosityDriver::DriveMotorType::SPEED:
-                m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Setpoint>();
+                m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunctionSetpoint>();
                 m_drive_motors[i] = AddMotorSpeed(m_rocker_uprights[i]->GetBody(), m_wheels[i]->GetBody(), m_chassis,
                                                   wheel_pos[i], z2y);
                 m_drive_motors[i]->SetMotorFunction(m_drive_motor_funcs[i]);
@@ -495,7 +495,7 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
     for (int i = 2; i < 4; i++) {
         switch (m_driver->GetDriveMotorType()) {
             case CuriosityDriver::DriveMotorType::SPEED:
-                m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Setpoint>();
+                m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunctionSetpoint>();
                 m_drive_motors[i] =
                     AddMotorSpeed(m_bogies[i - 2]->GetBody(), m_wheels[i]->GetBody(), m_chassis, wheel_pos[i], z2y);
                 m_drive_motors[i]->SetMotorFunction(m_drive_motor_funcs[i]);
@@ -510,7 +510,7 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
     for (int i = 4; i < 6; i++) {
         switch (m_driver->GetDriveMotorType()) {
             case CuriosityDriver::DriveMotorType::SPEED:
-                m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Setpoint>();
+                m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunctionSetpoint>();
                 m_drive_motors[i] = AddMotorSpeed(m_bogie_uprights[i - 4]->GetBody(), m_wheels[i]->GetBody(), m_chassis,
                                                   wheel_pos[i], z2y);
                 m_drive_motors[i]->SetMotorFunction(m_drive_motor_funcs[i]);
@@ -537,7 +537,7 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
     // Add steering motors
     ChVector<> rocker_motor_loc[] = {sr_rel_pos_lf, sr_rel_pos_rf};
     for (int i = 0; i < 2; i++) {
-        m_rocker_motor_funcs[i] = chrono_types::make_shared<ChFunction_Const>(0.0);
+        m_rocker_motor_funcs[i] = chrono_types::make_shared<ChFunctionConst>(0.0);
         m_rocker_motors[i] = AddMotorAngle(m_rocker_uprights[i]->GetBody(), m_rockers[i]->GetBody(), m_chassis,
                                            rocker_motor_loc[i], Q_from_AngX(CH_C_PI));
         m_rocker_motors[i]->SetMotorFunction(m_rocker_motor_funcs[i]);
@@ -545,7 +545,7 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
 
     ChVector<> bogie_motor_loc[] = {sr_rel_pos_lb, sr_rel_pos_rb};
     for (int i = 0; i < 2; i++) {
-        m_bogie_motor_funcs[i] = chrono_types::make_shared<ChFunction_Const>(0.0);
+        m_bogie_motor_funcs[i] = chrono_types::make_shared<ChFunctionConst>(0.0);
         m_bogie_motors[i] =
             AddMotorAngle(m_bogie_uprights[i]->GetBody(), m_bogies[i]->GetBody(), m_chassis, bogie_motor_loc[i], QUNIT);
         m_bogie_motors[i]->SetMotorFunction(m_bogie_motor_funcs[i]);

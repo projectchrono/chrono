@@ -22,7 +22,7 @@ CH_FACTORY_REGISTER(ChShaftsMotorTorque)
 
 ChShaftsMotorTorque::ChShaftsMotorTorque()  {
 
-   this->f_torque = chrono_types::make_shared<ChFunction_Const>(0.0);
+   this->f_torque = chrono_types::make_shared<ChFunctionConst>(0.0);
 }
 
 ChShaftsMotorTorque::ChShaftsMotorTorque(const ChShaftsMotorTorque& other) : ChShaftsMotorBase(other) {

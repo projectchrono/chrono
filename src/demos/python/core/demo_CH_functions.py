@@ -39,7 +39,7 @@ except OSError as exc:
 # Ramp function
 # -------------
 
-f_ramp = chrono.ChFunction_Ramp()
+f_ramp = chrono.ChFunctionRamp()
 f_ramp.Set_ang(0.1)  # angular coefficient
 f_ramp.Set_y0(0.1)   # y value at x = 0
 
@@ -51,7 +51,7 @@ print(' Ramp function   f(10) = ', y, ', 1st derivative df/dx(10) = ', yd)
 # Sine function
 # -------------
 
-f_sine = chrono.ChFunction_Sine()
+f_sine = chrono.ChFunctionSine()
 f_sine.Set_amp(2)     # amplitude
 f_sine.Set_freq(1.5)  # frequency
 
@@ -84,17 +84,17 @@ test_file.close()
 # Function sequence
 # -----------------
 
-f_seq = chrono.ChFunction_Sequence()
+f_seq = chrono.ChFunctionSequence()
 
-f_const_acc1 = chrono.ChFunction_ConstAcc()
+f_const_acc1 = chrono.ChFunctionConstAcc()
 f_const_acc1.Set_end(0.5)  # ramp length
 f_const_acc1.Set_h(0.3)    # ramp height
 f_seq.InsertFunct(f_const_acc1, 0.5, 1, False, False, False, 0)
 
-f_const = chrono.ChFunction_Const()
+f_const = chrono.ChFunctionConst()
 f_seq.InsertFunct(f_const, 0.4, 1, True, False, False, -1)
 
-f_const_acc2 = chrono.ChFunction_ConstAcc()
+f_const_acc2 = chrono.ChFunctionConstAcc()
 f_const_acc2.Set_end(0.6)  # ramp length
 f_const_acc2.Set_av(0.3)   # acceleration ends after 30% length
 f_const_acc2.Set_aw(0.7)   # deceleration starts after 70% length
@@ -116,19 +116,19 @@ seq_file.close()
 # Repeating sequence
 # ------------------
 
-f_part1 = chrono.ChFunction_Ramp()
+f_part1 = chrono.ChFunctionRamp()
 f_part1.Set_ang(0.50)
-f_part2 = chrono.ChFunction_Const()
+f_part2 = chrono.ChFunctionConst()
 f_part2.Set_yconst(1.0)
-f_part3 = chrono.ChFunction_Ramp()
+f_part3 = chrono.ChFunctionRamp()
 f_part3.Set_ang(-0.50)
 
-f_seq = chrono.ChFunction_Sequence()
+f_seq = chrono.ChFunctionSequence()
 f_seq.InsertFunct(f_part1, 1.0, 1, True)
 f_seq.InsertFunct(f_part2, 1.0, 1., True)
 f_seq.InsertFunct(f_part3, 1.0, 1., True)
 
-f_rep_seq = chrono.ChFunction_Repeat(f_seq)
+f_rep_seq = chrono.ChFunctionRepeat(f_seq)
 f_rep_seq.Set_window_length(3.0)
 f_rep_seq.Set_window_start(0.0)
 f_rep_seq.Set_window_phase(3.0)

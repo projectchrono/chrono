@@ -68,7 +68,7 @@ class CH_VEHICLE_API Pac89Tire : public ChPac89Tire {
     ChVector<> m_inertia;
     bool m_has_mesh;
     bool m_has_vert_table;
-    ChFunction_Recorder m_vert_map;
+    ChFunctionRecorder m_vert_map;
 
     double m_visualization_width;
     std::string m_meshFile_left;

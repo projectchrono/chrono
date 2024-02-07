@@ -84,7 +84,7 @@ class U401_FPPSpringForceFront : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionRecorder m_bump;
 };
 
 U401_FPPSpringForceFront::U401_FPPSpringForceFront(double spring_constant, double min_length, double max_length)

@@ -44,7 +44,7 @@ void Generic_AutomaticTransmissionShafts::SetGearRatios(std::vector<double>& fwd
 }
 
 void Generic_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(
-    std::shared_ptr<ChFunction_Recorder>& map) {
+    std::shared_ptr<ChFunctionRecorder>& map) {
     map->AddPoint(0.0, 15);
     map->AddPoint(0.25, 15);
     map->AddPoint(0.50, 15);
@@ -67,7 +67,7 @@ void Generic_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(
     */
 }
 
-void Generic_AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void Generic_AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunctionRecorder>& map) {
     map->AddPoint(0.0, 2.00);
     map->AddPoint(0.25, 1.80);
     map->AddPoint(0.50, 1.50);

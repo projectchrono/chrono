@@ -26,7 +26,7 @@ ChShaftsMotorSpeed::ChShaftsMotorSpeed() : motor_torque(0) {
     this->variable.GetMass()(0,0) = 1.0;
     this->variable.GetInvMass()(0,0) = 1.0;
 
-    this->f_speed = chrono_types::make_shared<ChFunction_Const>(1.0);
+    this->f_speed = chrono_types::make_shared<ChFunctionConst>(1.0);
 
     this->rot_offset = 0;
 

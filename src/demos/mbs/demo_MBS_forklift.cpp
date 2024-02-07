@@ -172,7 +172,7 @@ class MySimpleForklift {
 
         // .. create the vertical steering link between the spindle structure and the truss
         link_steer_engineB = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-        link_steer_engineB->SetAngleFunction(chrono_types::make_shared<ChFunction_Const>(0));
+        link_steer_engineB->SetAngleFunction(chrono_types::make_shared<ChFunctionConst>(0));
         link_steer_engineB->Initialize(spindleB, chassis, ChFrame<>(COG_wheelB, chrono::Q_from_AngX(CH_C_PI / 2)));
         sys->AddLink(link_steer_engineB);
 
@@ -191,7 +191,7 @@ class MySimpleForklift {
 
         // .. create the motor between the back wheel and the steering spindle structure
         link_engineB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-        link_engineB->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0));
+        link_engineB->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0));
         link_engineB->Initialize(wheelB, spindleB, ChFrame<>(COG_wheelB, chrono::Q_from_AngY(CH_C_PI / 2)));
         sys->AddLink(link_engineB);
 
@@ -208,7 +208,7 @@ class MySimpleForklift {
 
         // .. create the revolute joint between the arm and the truss
         link_engineArm = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-        link_engineArm->SetAngleFunction(chrono_types::make_shared<ChFunction_Const>(0));
+        link_engineArm->SetAngleFunction(chrono_types::make_shared<ChFunctionConst>(0));
         link_engineArm->Initialize(arm, chassis, ChFrame<>(POS_pivotarm, chrono::Q_from_AngY(CH_C_PI / 2)));
         sys->AddLink(link_engineArm);
 
@@ -313,43 +313,43 @@ class MyEventReceiver : public IEventReceiver {
         if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) {
             switch (event.KeyInput.Key) {
                 case irr::KEY_KEY_Q:
-                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(
+                    if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(
                             forklift->link_steer_engineB->GetAngleFunction()))
                         mfun->Set_yconst(+0.3 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_W:
-                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(
+                    if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(
                             forklift->link_steer_engineB->GetAngleFunction()))
                         mfun->Set_yconst(-0.3 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_A:
                     if (auto mfun =
-                            std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineB->GetSpeedFunction()))
+                            std::dynamic_pointer_cast<ChFunctionConst>(forklift->link_engineB->GetSpeedFunction()))
                         mfun->Set_yconst(0.5 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_Z:
                     if (auto mfun =
-                            std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineB->GetSpeedFunction()))
+                            std::dynamic_pointer_cast<ChFunctionConst>(forklift->link_engineB->GetSpeedFunction()))
                         mfun->Set_yconst(-0.5 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_S:
                     if (auto mfun =
-                            std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_actuatorFork->GetActuatorFunction()))
+                            std::dynamic_pointer_cast<ChFunctionConst>(forklift->link_actuatorFork->GetActuatorFunction()))
                         mfun->Set_yconst(0.05 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_X:
                     if (auto mfun =
-                            std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_actuatorFork->GetActuatorFunction()))
+                            std::dynamic_pointer_cast<ChFunctionConst>(forklift->link_actuatorFork->GetActuatorFunction()))
                         mfun->Set_yconst(-0.05 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_D:
                     if (auto mfun =
-                            std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineArm->GetAngleFunction()))
+                            std::dynamic_pointer_cast<ChFunctionConst>(forklift->link_engineArm->GetAngleFunction()))
                         mfun->Set_yconst(0.005 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_C:
                     if (auto mfun =
-                            std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineArm->GetAngleFunction()))
+                            std::dynamic_pointer_cast<ChFunctionConst>(forklift->link_engineArm->GetAngleFunction()))
                         mfun->Set_yconst(-0.005 + mfun->Get_yconst());
                     return true;
                 default:

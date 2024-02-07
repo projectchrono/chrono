@@ -223,25 +223,25 @@ int main() {
     // -----------------
 
     // Scenario: driven wheel
-    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10.0));
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10.0));
     ////rig.Initialize();
 
     // Scenario: pulled wheel
-    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(1.0));
+    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(1.0));
     ////rig.Initialize();
 
     // Scenario: imobilized wheel
-    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.0));
-    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.0));
+    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
     ////rig.Initialize();
 
     // Scenario: prescribe all motion functions
     //   longitudinal speed: 0.2 m/s
     //   angular speed: 10 RPM
     //   slip angle: sinusoidal +- 5 deg with 5 s period
-    rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
-    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10 * CH_C_RPM_TO_RPS));
-    rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.2, 5 * CH_C_DEG_TO_RAD));
+    rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.2));
+    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_C_RPM_TO_RPS));
+    rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(0, 0.2, 5 * CH_C_DEG_TO_RAD));
 
     // Scenario: specified longitudinal slip (overrrides other definitons of motion functions)
     ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
@@ -330,9 +330,9 @@ int main() {
 #endif
 
     // Perform the simulation
-    ChFunction_Recorder long_slip;
-    ChFunction_Recorder slip_angle;
-    ChFunction_Recorder camber_angle;
+    ChFunctionRecorder long_slip;
+    ChFunctionRecorder slip_angle;
+    ChFunctionRecorder camber_angle;
 
     double time_offset = 0.5;
 

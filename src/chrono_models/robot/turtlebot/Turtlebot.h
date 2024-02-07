@@ -370,7 +370,7 @@ class CH_MODELS_API TurtleBot {
 
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_motors;  ///< vector to store motors
 
-    std::vector<std::shared_ptr<ChFunction_Const>> m_motors_func;  ///< constant motor angular speed func
+    std::vector<std::shared_ptr<ChFunctionConst>> m_motors_func;  ///< constant motor angular speed func
 
     // model parts material
     std::shared_ptr<ChContactMaterial> m_chassis_material;  ///< chassis contact material

@@ -149,12 +149,12 @@ int main(int argc, char* argv[]) {
     int num_motors = 32;
     std::ifstream ifs(GetChronoDataFile("robot/robosimian/actuation/motor_names.txt"));
     std::vector<std::shared_ptr<ChLinkMotor>> motors(num_motors);
-    std::vector<std::shared_ptr<ChFunction_Setpoint>> motor_functions(num_motors);
+    std::vector<std::shared_ptr<ChFunctionSetpoint>> motor_functions(num_motors);
     for (int i = 0; i < num_motors; i++) {
         std::string name;
         ifs >> name;
         motors[i] = robot.GetChMotor(name);
-        motor_functions[i] = chrono_types::make_shared<ChFunction_Setpoint>();
+        motor_functions[i] = chrono_types::make_shared<ChFunctionSetpoint>();
         motors[i]->SetMotorFunction(motor_functions[i]);
     }
 

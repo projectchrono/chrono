@@ -26,7 +26,7 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/motion_functions/ChFunction_Recorder.h"
+#include "chrono/motion_functions/ChFunctionRecorder.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -182,7 +182,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
         const ChVector<>& disc_normal,       ///< [in] disc normal, expressed in the global frame
         double disc_radius,                  ///< [in] disc radius
         double width,                        ///< [in] tire width
-        const ChFunction_Recorder& areaDep,  ///< [in] lookup table to calculate depth from intersection area
+        const ChFunctionRecorder& areaDep,  ///< [in] lookup table to calculate depth from intersection area
         ChCoordsys<>& contact,               ///< [out] contact coordinate system (relative to the global frame)
         double& depth,                       ///< [out] penetration depth (positive if contact occurred)
         float& mu                            ///< [out] coefficient of friction at contact
@@ -190,7 +190,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
     /// Utility function to construct a loopkup table for penetration depth as function of intersection area,
     /// for a given tire radius.  The return map can be used in DiscTerrainCollisionEnvelope.
-    static void ConstructAreaDepthTable(double disc_radius, ChFunction_Recorder& areaDep);
+    static void ConstructAreaDepthTable(double disc_radius, ChFunctionRecorder& areaDep);
 
     /// Perform disc-terrain collision detection.
     /// This utility function checks for contact between a disc of specified radius with given position and orientation
@@ -236,7 +236,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
         const ChVector<>& disc_normal,       ///< [in] disc normal, expressed in the global frame
         double disc_radius,                  ///< [in] disc radius
         double width,                        ///< [in] tire width
-        const ChFunction_Recorder& areaDep,  ///< [in] lookup table to calculate depth from intersection area
+        const ChFunctionRecorder& areaDep,  ///< [in] lookup table to calculate depth from intersection area
         ChCoordsys<>& contact,               ///< [out] contact coordinate system (relative to the global frame)
         double& depth,                       ///< [out] penetration depth (positive if contact occurred)
         float& mu                            ///< [out] coefficient of friction at contact

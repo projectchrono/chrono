@@ -71,7 +71,7 @@ my_motor = chrono.ChLinkMotorRotationSpeed()
 my_motor.Initialize(mcrank,   # the first connected body
                     mfloor,   # the second connected body
                     chrono.ChFrameD(crank_center)) # where to create the motor in abs.space
-my_angularspeed = chrono.ChFunction_Const(chrono.CH_C_PI) # ang.speed: 180°/s
+my_angularspeed = chrono.ChFunctionConst(chrono.CH_C_PI) # ang.speed: 180°/s
 my_motor.SetMotorFunction(my_angularspeed)
 sys.Add(my_motor)
 

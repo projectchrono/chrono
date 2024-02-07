@@ -50,7 +50,7 @@ class CH_MODELS_API Generic_FialaTire : public ChFialaTire {
     virtual void RemoveVisualizationAssets() override final;
 
   private:
-    ChFunction_Recorder m_vert_map;
+    ChFunctionRecorder m_vert_map;
     double m_max_depth;
     double m_max_val;
     double m_slope;

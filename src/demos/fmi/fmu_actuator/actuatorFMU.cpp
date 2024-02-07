@@ -60,7 +60,7 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     sys.Set_G_acc(Gacc);
 
     // Create the actuation object
-    m_actuation = chrono_types::make_shared<ChFunction_Setpoint>();
+    m_actuation = chrono_types::make_shared<ChFunctionSetpoint>();
 
     // Construct the hydraulic actuator
     m_actuator = chrono_types::make_shared<ChHydraulicActuator2>();

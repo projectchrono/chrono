@@ -79,7 +79,7 @@ class UAZBUS_SpringForceFront : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionRecorder m_bump;
 };
 
 UAZBUS_SpringForceFront::UAZBUS_SpringForceFront(double spring_constant, double min_length, double max_length) :

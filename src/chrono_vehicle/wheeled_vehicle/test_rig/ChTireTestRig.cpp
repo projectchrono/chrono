@@ -50,7 +50,7 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
       m_tire_step(1e-3),
       m_tire_vis(VisualizationType::PRIMITIVES) {
     // Default motion function for slip angle control
-    m_sa_fun = chrono_types::make_shared<ChFunction_Const>(0);
+    m_sa_fun = chrono_types::make_shared<ChFunctionConst>(0);
     // Default tire-terrain collision method
     m_tire->SetCollisionType(ChTire::CollisionType::SINGLE_POINT);
 }

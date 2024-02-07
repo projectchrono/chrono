@@ -674,13 +674,13 @@ ChExtruderBeamEuler::ChExtruderBeamEuler(
         actuator = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         mysystem->Add(actuator);
         actuator->Initialize(nodeA, ground, false, ChFrame<>(outlet), ChFrame<>(outlet));
-        actuator->SetMotionFunction(chrono_types::make_shared<ChFunction_Ramp>(0,this->speed));
+        actuator->SetMotionFunction(chrono_types::make_shared<ChFunctionRamp>(0,this->speed));
         actuator->SetMotionOffset( this->h);
     */
     actuator = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
     mysystem->Add(actuator);
     actuator->Initialize(nodeA, ground, false, ChFrame<>(outlet), ChFrame<>(outlet));
-    actuator->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(this->speed));
+    actuator->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(this->speed));
     actuator->SetMotionOffset(this->h);
 }
 
@@ -721,11 +721,11 @@ void ChExtruderBeamEuler::Update() {
         beam_nodes.push_back(node0);
 
         actuator->Initialize(node0, ground, false, ChFrame<>(C0), ChFrame<>(C0));
-        actuator->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(this->speed));
+        actuator->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(this->speed));
         actuator->SetMotionOffset(actuator->GetMotionOffset() - this->h);
         /*
         actuator->Initialize(node0, ground, false, ChFrame<>(C0), ChFrame<>(C0));
-        actuator->SetMotionFunction(chrono_types::make_shared<ChFunction_Ramp>(0,this->speed));
+        actuator->SetMotionFunction(chrono_types::make_shared<ChFunctionRamp>(0,this->speed));
         actuator->SetMotionOffset(actuator->GetMotionOffset() - this->h);
         */
         auto element = chrono_types::make_shared<ChElementBeamEuler>();
@@ -789,7 +789,7 @@ ChExtruderBeamIGA::ChExtruderBeamIGA(ChSystem* msystem,              // system t
     actuator = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
     mysystem->Add(actuator);
     actuator->Initialize(nodeA, ground, false, ChFrame<>(outlet), ChFrame<>(outlet));
-    actuator->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(this->speed));
+    actuator->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(this->speed));
     actuator->SetMotionOffset(this->h);
 }
 
@@ -838,7 +838,7 @@ bool ChExtruderBeamIGA::Update() {
     beam_knots.push_back(beam_knots.back() - 1.0);
 
     actuator->Initialize(node0, ground, false, ChFrame<>(C0), ChFrame<>(C0));
-    actuator->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(this->speed));
+    actuator->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(this->speed));
     actuator->SetMotionOffset(actuator->GetMotionOffset() - this->h);
 
     int p = this->beam_order;

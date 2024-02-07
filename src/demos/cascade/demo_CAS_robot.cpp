@@ -327,38 +327,38 @@ int main(int argc, char* argv[]) {
     // Set motions for Z and Y coordinates of the 'my_link_teacher' marker,
     // so that the hand will follow it. To do so, we create four segments of
     // motion for Z coordinate and four for Y coordinate, we join them with
-    // ChFunction_Sequence and we repeat sequence by ChFunction_Repeat
+    // ChFunctionSequence and we repeat sequence by ChFunctionRepeat
 
-    std::shared_ptr<ChFunction_ConstAcc> motlaw_z1(new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunctionConstAcc> motlaw_z1(new ChFunctionConstAcc);
     motlaw_z1->Set_h(-0.7);
     motlaw_z1->Set_end(1);
-    std::shared_ptr<ChFunction_Const> motlaw_z2(new ChFunction_Const);
-    std::shared_ptr<ChFunction_ConstAcc> motlaw_z3(new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunctionConst> motlaw_z2(new ChFunctionConst);
+    std::shared_ptr<ChFunctionConstAcc> motlaw_z3(new ChFunctionConstAcc);
     motlaw_z3->Set_h(0.7);
     motlaw_z3->Set_end(1);
-    std::shared_ptr<ChFunction_Const> motlaw_z4(new ChFunction_Const);
-    std::shared_ptr<ChFunction_Sequence> motlaw_z_seq(new ChFunction_Sequence);
+    std::shared_ptr<ChFunctionConst> motlaw_z4(new ChFunctionConst);
+    std::shared_ptr<ChFunctionSequence> motlaw_z_seq(new ChFunctionSequence);
     motlaw_z_seq->InsertFunct(motlaw_z1, 1, 1, true);
     motlaw_z_seq->InsertFunct(motlaw_z2, 1, 1, true);  // true = force c0 continuity, traslating fx
     motlaw_z_seq->InsertFunct(motlaw_z3, 1, 1, true);
     motlaw_z_seq->InsertFunct(motlaw_z4, 1, 1, true);
-    auto motlaw_z = chrono_types::make_shared<ChFunction_Repeat>(motlaw_z_seq);
+    auto motlaw_z = chrono_types::make_shared<ChFunctionRepeat>(motlaw_z_seq);
     motlaw_z->Set_window_length(4);
 
-    std::shared_ptr<ChFunction_Const> motlaw_y1(new ChFunction_Const);
-    std::shared_ptr<ChFunction_ConstAcc> motlaw_y2(new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunctionConst> motlaw_y1(new ChFunctionConst);
+    std::shared_ptr<ChFunctionConstAcc> motlaw_y2(new ChFunctionConstAcc);
     motlaw_y2->Set_h(-0.6);
     motlaw_y2->Set_end(1);
-    std::shared_ptr<ChFunction_Const> motlaw_y3(new ChFunction_Const);
-    std::shared_ptr<ChFunction_ConstAcc> motlaw_y4(new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunctionConst> motlaw_y3(new ChFunctionConst);
+    std::shared_ptr<ChFunctionConstAcc> motlaw_y4(new ChFunctionConstAcc);
     motlaw_y4->Set_h(0.6);
     motlaw_y4->Set_end(1);
-    std::shared_ptr<ChFunction_Sequence> motlaw_y_seq(new ChFunction_Sequence);
+    std::shared_ptr<ChFunctionSequence> motlaw_y_seq(new ChFunctionSequence);
     motlaw_y_seq->InsertFunct(motlaw_y1, 1, 1, true);
     motlaw_y_seq->InsertFunct(motlaw_y2, 1, 1, true);  // true = force c0 continuity, traslating fx
     motlaw_y_seq->InsertFunct(motlaw_y3, 1, 1, true);
     motlaw_y_seq->InsertFunct(motlaw_y4, 1, 1, true);
-    auto motlaw_y = chrono_types::make_shared<ChFunction_Repeat>(motlaw_y_seq);
+    auto motlaw_y = chrono_types::make_shared<ChFunctionRepeat>(motlaw_y_seq);
     motlaw_y->Set_window_length(4);
 
     my_marker_move->SetMotion_Z(motlaw_z);

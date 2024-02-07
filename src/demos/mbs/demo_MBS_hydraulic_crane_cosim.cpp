@@ -192,7 +192,7 @@ class Crane {
 class Actuator {
     public:
       Actuator(ChSystem& sys, double s0, double F0) : m_sys(sys) {
-        m_actuation = chrono_types::make_shared<ChFunction_Setpoint>();
+        m_actuation = chrono_types::make_shared<ChFunctionSetpoint>();
 
         // Construct the hydraulic actuator
         m_actuator = chrono_types::make_shared<ChHydraulicActuator2>();
@@ -247,7 +247,7 @@ class Actuator {
     private:
       ChSystem& m_sys;
       std::shared_ptr<ChHydraulicActuator2> m_actuator;
-      std::shared_ptr<ChFunction_Setpoint> m_actuation;
+      std::shared_ptr<ChFunctionSetpoint> m_actuation;
       utils::CSV_writer m_csv;
 };
 
@@ -278,13 +278,13 @@ int main(int argc, char* argv[]) {
     Actuator actuator(sysHYD, s0, F0);
 
     // Hydraulic actuation
-    auto f_segment = chrono_types::make_shared<ChFunction_Sequence>();
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(0), 0.5);         // 0.0
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(0, 0.4), 1.5);     // 0.0 -> 0.6
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(0.6), 5.0);       // 0.6
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(0.6, -0.8), 2.0);  // 0.6 -> -1.0
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(-1.0, 1.0), 1.0);  // -1.0 -> 0.0
-    auto actuation = chrono_types::make_shared<ChFunction_Repeat>(f_segment, 0, 10, 10);
+    auto f_segment = chrono_types::make_shared<ChFunctionSequence>();
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionConst>(0), 0.5);         // 0.0
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(0, 0.4), 1.5);     // 0.0 -> 0.6
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionConst>(0.6), 5.0);       // 0.6
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(0.6, -0.8), 2.0);  // 0.6 -> -1.0
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(-1.0, 1.0), 1.0);  // -1.0 -> 0.0
+    auto actuation = chrono_types::make_shared<ChFunctionRepeat>(f_segment, 0, 10, 10);
 
     // Create the run-time visualization system
 #ifndef CHRONO_IRRLICHT

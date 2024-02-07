@@ -192,7 +192,7 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChNodeXYZ) 
 %shared_ptr(chrono::ChVisualShapeTriangleMesh)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
-%shared_ptr(chrono::ChFunction_Recorder)
+%shared_ptr(chrono::ChFunctionRecorder)
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 %shared_ptr(chrono::ChContactable)

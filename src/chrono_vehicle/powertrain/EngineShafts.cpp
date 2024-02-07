@@ -51,11 +51,11 @@ void EngineShafts::Create(const rapidjson::Document& d) {
     m_engine_losses.Read(d["Losses Map"]);
 }
 
-void EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionRecorder>& map) {
     m_engine_torque.Set(*map, CH_C_RPM_TO_RPS, 1.0);
 }
 
-void EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunctionRecorder>& map) {
     m_engine_losses.Set(*map, CH_C_RPM_TO_RPS, 1.0);
 }
 

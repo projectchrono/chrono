@@ -40,9 +40,9 @@ static const std::string ref_dir = "testing/joints/rotspring_force/";
 
 // Functor class for a custom rotaional spring constant modifier (function of
 // position only)
-class ChFunction_CustomSpring : public ChFunction {
+class ChFunctionCustomSpring : public ChFunction {
   public:
-    virtual ChFunction_CustomSpring* Clone() const override { return new ChFunction_CustomSpring; }
+    virtual ChFunctionCustomSpring* Clone() const override { return new ChFunctionCustomSpring; }
 
     virtual double Get_y(double x) const override {
         double spring_coef = 50;
@@ -192,7 +192,7 @@ bool TestRotSpring(const ChVector<>& jointLoc,      // absolute location of join
     // Add a rotational spring damper to the revolute joint
 
     auto force = chrono_types::make_unique<ChLinkForce>();
-    auto customSpring = chrono_types::make_shared<ChFunction_CustomSpring>();
+    auto customSpring = chrono_types::make_shared<ChFunctionCustomSpring>();
 
     revoluteJoint->GetForce_Rz().SetActive(true);
     revoluteJoint->GetForce_Rz().SetK(200);

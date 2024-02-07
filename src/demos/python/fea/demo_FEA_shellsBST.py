@@ -53,8 +53,8 @@ nodePlotA = fea.ChNodeFEAxyz()
 nodePlotB = fea.ChNodeFEAxyz()
 nodesLoad = [] # std::vector<std::shared_ptr<ChNodeFEAxyz>> 
 
-ref_X = chrono.ChFunction_Recorder()
-ref_Y = chrono.ChFunction_Recorder()
+ref_X = chrono.ChFunctionRecorder()
+ref_Y = chrono.ChFunctionRecorder()
 
 load_force = chrono.ChVectorD()
 
@@ -320,8 +320,8 @@ timestep = 0.005
 sys.Setup()
 sys.Update()
 
-rec_X = chrono.ChFunction_Recorder()
-rec_Y = chrono.ChFunction_Recorder()
+rec_X = chrono.ChFunctionRecorder()
+rec_Y = chrono.ChFunctionRecorder()
 
 mtime = 0
 

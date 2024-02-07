@@ -224,7 +224,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.AddLink(prismatic1);
 
     double velocity = wheel_AngVel * wheel_radius * (1.0 - wheel_slip);
-    auto actuator_fun = chrono_types::make_shared<ChFunction_Ramp>(0.0, velocity);
+    auto actuator_fun = chrono_types::make_shared<ChFunctionRamp>(0.0, velocity);
 
     actuator->Initialize(ground, chassis, false, ChCoordsys<>(chassis->GetPos(), QUNIT),
                          ChCoordsys<>(chassis->GetPos() + ChVector<>(1, 0, 0), QUNIT));
@@ -243,7 +243,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     motor->SetName("engine_wheel_axle");
     motor->Initialize(wheel, axle, ChFrame<>(wheel->GetPos(), 
         chrono::Q_from_AngAxis(-CH_C_PI / 2.0, ChVector<>(1, 0, 0))));
-    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, wheel_AngVel));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, wheel_AngVel));
     sysMBS.AddLink(motor);
 }
 

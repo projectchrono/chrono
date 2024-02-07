@@ -531,40 +531,40 @@ This is a very simple way of performing the IK (Inverse Kinematics) of a robot, 
 	my_system.AddLink(my_link_teacher);
 ~~~
 
-Set motions for Z and Y coordinates of the 'my_link_teacher' marker, so that the hand will follow it. To do so, we create four segments of motion for Z coordinate and four for Y coordinate, we join them with ChFunction_Sequence and we repeat sequence by ChFunction_Repeat
+Set motions for Z and Y coordinates of the 'my_link_teacher' marker, so that the hand will follow it. To do so, we create four segments of motion for Z coordinate and four for Y coordinate, we join them with ChFunctionSequence and we repeat sequence by ChFunctionRepeat
 
 ~~~{.cpp}
-    ChFunction_ConstAcc* motlaw_z1 = new ChFunction_ConstAcc();
+    ChFunctionConstAcc* motlaw_z1 = new ChFunctionConstAcc();
 	motlaw_z1->Set_h(-0.7);
 	motlaw_z1->Set_end(1);
-	ChFunction_Const*	 motlaw_z2 = new ChFunction_Const();
-	ChFunction_ConstAcc* motlaw_z3 = new ChFunction_ConstAcc();
+	ChFunctionConst*	 motlaw_z2 = new ChFunctionConst();
+	ChFunctionConstAcc* motlaw_z3 = new ChFunctionConstAcc();
 	motlaw_z3->Set_h( 0.7);
 	motlaw_z3->Set_end(1);
-	ChFunction_Const*	 motlaw_z4 = new ChFunction_Const();
-	ChFunction_Sequence* motlaw_z_seq = new ChFunction_Sequence();
+	ChFunctionConst*	 motlaw_z4 = new ChFunctionConst();
+	ChFunctionSequence* motlaw_z_seq = new ChFunctionSequence();
 	motlaw_z_seq->InsertFunct(motlaw_z1, 1,  1, true); 
 	motlaw_z_seq->InsertFunct(motlaw_z2, 1,  1, true);  // true = force c0 continuity, traslating fx
 	motlaw_z_seq->InsertFunct(motlaw_z3, 1,  1, true);
 	motlaw_z_seq->InsertFunct(motlaw_z4, 1,  1, true);
-	ChFunction_Repeat* motlaw_z = new ChFunction_Repeat();
+	ChFunctionRepeat* motlaw_z = new ChFunctionRepeat();
 	motlaw_z->Set_fa(motlaw_z_seq);
 	motlaw_z->Set_window_length(4);
 
-	ChFunction_Const*	 motlaw_y1 = new ChFunction_Const();
-	ChFunction_ConstAcc* motlaw_y2 = new ChFunction_ConstAcc();
+	ChFunctionConst*	 motlaw_y1 = new ChFunctionConst();
+	ChFunctionConstAcc* motlaw_y2 = new ChFunctionConstAcc();
 	motlaw_y2->Set_h(-0.6);
 	motlaw_y2->Set_end(1);
-	ChFunction_Const*	 motlaw_y3 = new ChFunction_Const();
-	ChFunction_ConstAcc* motlaw_y4 = new ChFunction_ConstAcc();
+	ChFunctionConst*	 motlaw_y3 = new ChFunctionConst();
+	ChFunctionConstAcc* motlaw_y4 = new ChFunctionConstAcc();
 	motlaw_y4->Set_h(0.6);
 	motlaw_y4->Set_end(1);
-	ChFunction_Sequence* motlaw_y_seq = new ChFunction_Sequence();
+	ChFunctionSequence* motlaw_y_seq = new ChFunctionSequence();
 	motlaw_y_seq->InsertFunct(motlaw_y1, 1,  1, true);
 	motlaw_y_seq->InsertFunct(motlaw_y2, 1,  1, true);  // true = force c0 continuity, traslating fx
 	motlaw_y_seq->InsertFunct(motlaw_y3, 1,  1, true);
 	motlaw_y_seq->InsertFunct(motlaw_y4, 1,  1, true);
-	ChFunction_Repeat* motlaw_y = new ChFunction_Repeat();
+	ChFunctionRepeat* motlaw_y = new ChFunctionRepeat();
 	motlaw_y->Set_fa(motlaw_y_seq);
 	motlaw_y->Set_window_length(4);
 

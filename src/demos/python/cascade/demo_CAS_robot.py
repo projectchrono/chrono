@@ -198,7 +198,7 @@ sys.Add(trajectory)
 # Optionally, set a function that gets the curvilinear
 # abscyssa s of the line, as a function of time s(t). 
 # By default it was simply  s=t.
-spacefx = chrono.ChFunction_Ramp(0, 0.5)
+spacefx = chrono.ChFunctionRamp(0, 0.5)
 trajectory.Set_space_fx(spacefx)
 
 # Just to constraint the hand rotation:

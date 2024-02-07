@@ -24,7 +24,7 @@ import pychrono.irrlicht as chronoirr
 import os
 
 # Create a motor between the truss and the crank:
-class ChFunction_myf (chrono.ChFunction):
+class ChFunctionMyFun (chrono.ChFunction):
     def __init__(self):
          chrono.ChFunction.__init__(self)
     def Get_y(self,x):
@@ -72,7 +72,7 @@ body_crank.AddVisualShape(boxcrank)
 
 motor = chrono.ChLinkMotorRotationAngle()
 motor.Initialize(body_truss, body_crank, chrono.ChFrameD(vG))
-myfun = ChFunction_myf()
+myfun = ChFunctionMyFun()
 motor.SetAngleFunction(myfun)
 sys.Add(motor)
 

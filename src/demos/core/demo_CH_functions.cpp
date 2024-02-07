@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "==== Test 1...\n\n";
 
-    ChFunction_Ramp f_ramp;
+    ChFunctionRamp f_ramp;
 
     f_ramp.Set_ang(0.1);  // set angular coefficient;
     f_ramp.Set_y0(0.4);   // set y value for x=0;
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     // Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
     double ydx_ramp = f_ramp.Get_y_dx(10);
 
-    std::cout << "   ChFunction_Ramp at x=0: y=" << y_ramp << "  dy/dx=" << ydx_ramp << "\n\n";
+    std::cout << "   ChFunctionRamp at x=0: y=" << y_ramp << "  dy/dx=" << ydx_ramp << "\n\n";
 
     //
     // EXAMPLE 2: save values of a sine ChFunction  into a file
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "==== Test 2...\n\n";
 
-    ChFunction_Sine f_sine;
+    ChFunctionSine f_sine;
 
     f_sine.Set_amp(2);     // set amplitude;
     f_sine.Set_freq(1.5);  // set frequency;
@@ -90,14 +90,14 @@ int main(int argc, char* argv[]) {
     // if you know the analytical expression of derivatives, you can override
     // the base Get_ydx() and Get_ydxdx() too, for higher precision.]
 
-    class ChFunction_MyTest : public ChFunction {
+    class ChFunctionMyTest : public ChFunction {
       public:
-        virtual ChFunction_MyTest* Clone() const override { return new ChFunction_MyTest(); }
+        virtual ChFunctionMyTest* Clone() const override { return new ChFunctionMyTest(); }
 
         virtual double Get_y(double x) const override { return cos(x); }  // just for test: simple cosine
     };
 
-    ChFunction_MyTest f_test;
+    ChFunctionMyTest f_test;
 
     std::ofstream file_f_test(out_dir + "/f_test_out.dat");
 
@@ -112,22 +112,22 @@ int main(int argc, char* argv[]) {
     }
 
     //
-    // EXAMPLE 4: mount some functions in a sequence using ChFunction_Sequence
+    // EXAMPLE 4: mount some functions in a sequence using ChFunctionSequence
     //
 
     std::cout << "==== Test 4...\n\n";
 
-    ChFunction_Sequence f_sequence;
+    ChFunctionSequence f_sequence;
 
-    auto f_constacc1 = chrono_types::make_shared<ChFunction_ConstAcc>();
+    auto f_constacc1 = chrono_types::make_shared<ChFunctionConstAcc>();
     f_constacc1->Set_end(0.5);  // length of ramp
     f_constacc1->Set_h(0.3);    // height of ramp
     f_sequence.InsertFunct(f_constacc1, 0.5, 1, false, false, false, 0);
 
-    auto f_const = chrono_types::make_shared<ChFunction_Const>();
+    auto f_const = chrono_types::make_shared<ChFunctionConst>();
     f_sequence.InsertFunct(f_const, 0.4, 1, true, false, false, -1);
 
-    auto f_constacc2 = chrono_types::make_shared<ChFunction_ConstAcc>();
+    auto f_constacc2 = chrono_types::make_shared<ChFunctionConstAcc>();
     f_constacc2->Set_end(0.6);  // length of ramp
     f_constacc2->Set_av(0.3);   // acceleration ends after 30% length
     f_constacc2->Set_aw(0.7);   // deceleration starts after 70% length
@@ -154,19 +154,19 @@ int main(int argc, char* argv[]) {
 
     std::cout << "==== Test 5...\n\n";
 
-    auto f_part1 = chrono_types::make_shared<ChFunction_Ramp>();
+    auto f_part1 = chrono_types::make_shared<ChFunctionRamp>();
     f_part1->Set_ang(.50);
-    auto f_part2 = chrono_types::make_shared<ChFunction_Const>();
+    auto f_part2 = chrono_types::make_shared<ChFunctionConst>();
     f_part2->Set_yconst(1.0);
-    auto f_part3 = chrono_types::make_shared<ChFunction_Ramp>();
+    auto f_part3 = chrono_types::make_shared<ChFunctionRamp>();
     f_part3->Set_ang(-.50);
 
-    auto f_seq = chrono_types::make_shared<ChFunction_Sequence>();
+    auto f_seq = chrono_types::make_shared<ChFunctionSequence>();
     f_seq->InsertFunct(f_part1, 1.0, 1, true);
     f_seq->InsertFunct(f_part2, 1.0, 1., true);
     f_seq->InsertFunct(f_part3, 1.0, 1., true);
 
-    auto f_rep_seq = chrono_types::make_shared<ChFunction_Repeat>(f_seq);
+    auto f_rep_seq = chrono_types::make_shared<ChFunctionRepeat>(f_seq);
     f_rep_seq->Set_window_length(3.0);
     f_rep_seq->Set_window_start(0.0);
     f_rep_seq->Set_window_phase(3.0);

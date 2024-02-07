@@ -81,7 +81,7 @@ class MAN_5t_SpringForceFront : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionRecorder m_bump;
 };
 
 MAN_5t_SpringForceFront::MAN_5t_SpringForceFront(double spring_constant1,

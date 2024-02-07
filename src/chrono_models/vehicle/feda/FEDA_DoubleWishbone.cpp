@@ -195,8 +195,8 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
     double m_hf0;          // value to ease the calculation [m]
     double m_airSpringF0;  // gas force at design position [N]
 
-    ChFunction_Recorder m_bump;
-    ChFunction_Recorder m_rebound;
+    ChFunctionRecorder m_bump;
+    ChFunctionRecorder m_rebound;
 };
 
 // -----------------------------------------------------------------------------
@@ -305,8 +305,8 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
 
   private:
     bool m_use_damper_tables;
-    ChFunction_Recorder m_hf_damper_table;
-    ChFunction_Recorder m_lf_damper_table;
+    ChFunctionRecorder m_hf_damper_table;
+    ChFunctionRecorder m_lf_damper_table;
     // these functions shouldn't better not be used, only for testing
     // there are to few data available to make a meaningful
     // curve fit

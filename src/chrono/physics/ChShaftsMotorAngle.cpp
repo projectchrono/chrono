@@ -22,7 +22,7 @@ CH_FACTORY_REGISTER(ChShaftsMotorAngle)
 
 ChShaftsMotorAngle::ChShaftsMotorAngle() : rot_offset(0), violation(0), motor_torque(0) {
     // default motion function : a ramp
-    this->f_rot = chrono_types::make_shared<ChFunction_Ramp>(
+    this->f_rot = chrono_types::make_shared<ChFunctionRamp>(
         0.0,   // default y(0)
         1.0    // default dy/dx , i.e.   1 [rad/s]
         );

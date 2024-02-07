@@ -74,8 +74,8 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChNodeFEAxyz> nodePlotB;
     std::vector<std::shared_ptr<ChNodeFEAxyz>> nodesLoad;
 
-    ChFunction_Recorder ref_X;
-    ChFunction_Recorder ref_Y;
+    ChFunctionRecorder ref_X;
+    ChFunctionRecorder ref_Y;
 
     ChVector<> load_force;
 
@@ -370,8 +370,8 @@ int main(int argc, char* argv[]) {
     sys.Setup();
     sys.Update();
 
-    ChFunction_Recorder rec_X;
-    ChFunction_Recorder rec_Y;
+    ChFunctionRecorder rec_X;
+    ChFunctionRecorder rec_Y;
 
     while (vsys->Run()) {
         vsys->BeginScene();
@@ -394,7 +394,7 @@ int main(int argc, char* argv[]) {
     //   ChTimestepperRungeKuttaExpl    timestep = 0.0005   (the famous 4th order Runge Kutta, of course slower)
     //
     // You will see that the explicit integrator does not introduce numerical damping unlike implicit integrators,
-    // so the motion will be more oscillatory and undamped, thus amplificating the risk of divergence (if you add ù
+    // so the motion will be more oscillatory and undamped, thus amplificating the risk of divergence (if you add ï¿½
     // structural damping, this might help with stability, by the way)
     //
     // In explicit integrators, you can optionally enable mass lumping via  SetDiagonalLumpingON() , just remember:

@@ -224,7 +224,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
             ChFrame<>(my_body_D->GetPos(), Q_from_AngAxis(CH_C_PI_2, VECT_Y))  // motor frame, in abs. coords
         );
         auto mwspeed =
-            chrono_types::make_shared<ChFunction_Const>(CH_C_2PI);  // constant angular speed, in [rad/s], 2PI/s =360°/s
+            chrono_types::make_shared<ChFunctionConst>(CH_C_2PI);  // constant angular speed, in [rad/s], 2PI/s =360ï¿½/s
         rotmotor1->SetSpeedFunction(mwspeed);
         assembly0->Add(rotmotor1);
     }

@@ -32,7 +32,7 @@
 #include "chrono/physics/ChShaftsGear.h"
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/motion_functions/ChFunction_Sine.h"
+#include "chrono/motion_functions/ChFunctionSine.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
 
     // Create a ChFunction to be used for the ChLinkMotorRotationSpeed
     auto mwspeed =
-        chrono_types::make_shared<ChFunction_Const>(CH_C_PI_2);  // constant angular speed, in [rad/s], 1PI/s =180°/s
+        chrono_types::make_shared<ChFunctionConst>(CH_C_PI_2);  // constant angular speed, in [rad/s], 1PI/s =180°/s
     // Let the motor use this motion function:
     rotmotor1->SetSpeedFunction(mwspeed);
 
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
     sys.Add(rotmotor2);
 
     // Create a ChFunction to be used for the ChLinkMotorRotationAngle
-    auto msineangle = chrono_types::make_shared<ChFunction_Sine>(0,       // phase [rad]
+    auto msineangle = chrono_types::make_shared<ChFunctionSine>(0,       // phase [rad]
                                                                  0.05,    // frequency [Hz]
                                                                  CH_C_PI  // amplitude [rad]
     );
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
     sys.Add(rotmotor3);
 
     // The torque(time) function:
-    auto mtorquetime = chrono_types::make_shared<ChFunction_Sine>(0,   // phase [rad]
+    auto mtorquetime = chrono_types::make_shared<ChFunctionSine>(0,   // phase [rad]
                                                                   2,   // frequency [Hz]
                                                                   160  // amplitude [Nm]
     );
@@ -361,7 +361,7 @@ int main(int argc, char* argv[]) {
     );
     sys.Add(my_drive);
     // Create a speed(time) function, and use it in my_drive:
-    auto my_driveangle = chrono_types::make_shared<ChFunction_Const>(25 * CH_C_2PI);  // 25 [rps] = 1500 [rpm]
+    auto my_driveangle = chrono_types::make_shared<ChFunctionConst>(25 * CH_C_2PI);  // 25 [rps] = 1500 [rpm]
     my_drive->SetSpeedFunction(my_driveangle);
 
     // Create the REDUCER. We should not use the simple ChShaftsGear because
@@ -418,7 +418,7 @@ int main(int argc, char* argv[]) {
     sys.Add(motor1);
 
     // Create a ChFunction to be used for the ChLinkMotorLinearPosition
-    auto msine = chrono_types::make_shared<ChFunction_Sine>(0,    // phase
+    auto msine = chrono_types::make_shared<ChFunctionSine>(0,    // phase
                                                             0.5,  // frequency
                                                             1.6   // amplitude
     );
@@ -460,7 +460,7 @@ int main(int argc, char* argv[]) {
     sys.Add(motor2);
 
     // Create a ChFunction to be used for the ChLinkMotorLinearSpeed
-    auto msp = chrono_types::make_shared<ChFunction_Sine>(CH_C_PI_2,            // phase
+    auto msp = chrono_types::make_shared<ChFunctionSine>(CH_C_PI_2,            // phase
                                                           0.5,                  // frequency
                                                           1.6 * 0.5 * CH_C_2PI  // amplitude
     );
@@ -516,7 +516,7 @@ int main(int argc, char* argv[]) {
     sys.Add(motor3);
 
     // Create a ChFunction to be used for F(t) in ChLinkMotorLinearForce.
-    auto mF = chrono_types::make_shared<ChFunction_Const>(200);
+    auto mF = chrono_types::make_shared<ChFunctionConst>(200);
     // Let the motor use this motion function:
     motor3->SetForceFunction(mF);
 
@@ -524,7 +524,7 @@ int main(int argc, char* argv[]) {
     // M is the mass of the slider, A is the max acceleration of the previous examples,
     // so finally the motion should be quite the same - but without feedback, if hits a disturb, it goes crazy:
     auto mF2 =
-        chrono_types::make_shared<ChFunction_Sine>(0,                                                 // phase
+        chrono_types::make_shared<ChFunctionSine>(0,                                                 // phase
                                                    0.5,                                               // frequency
                                                    slider3->GetMass() * 1.6 * pow(0.5 * CH_C_2PI, 2)  // amplitude
         );
@@ -554,12 +554,12 @@ int main(int argc, char* argv[]) {
     // Create a ChFunction that computes F by a user-defined algorithm, as a callback.
     // One quick option would be to inherit from the ChFunction base class, and implement the Get_y()
     // function by putting the code you wish, as explained in demo_CH_functions.cpp. However this has some
-    // limitations. A more powerful approach is to inherit from ChFunction_SetpointCallback, that automatically
+    // limitations. A more powerful approach is to inherit from ChFunctionSetpointCallback, that automatically
     // computes the derivatives, if needed, by BDF etc. Therefore:
-    // 1. You must inherit from the ChFunction_SetpointCallback base class, and implement the SetpointCallback()
+    // 1. You must inherit from the ChFunctionSetpointCallback base class, and implement the SetpointCallback()
     //    function by putting the code you wish. For example something like the follow:
 
-    class MyForceClass : public ChFunction_SetpointCallback {
+    class MyForceClass : public ChFunctionSetpointCallback {
       public:
         // Here some specific data to be used in Get_y(),
         // add whatever you need, ex:
@@ -696,19 +696,19 @@ int main(int argc, char* argv[]) {
     sys.Add(my_driveli);
 
     // Create a angle(time) function. It could be something as simple as
-    //   auto my_functangle = chrono_types::make_shared<ChFunction_Ramp>(0,  180);
+    //   auto my_functangle = chrono_types::make_shared<ChFunctionRamp>(0,  180);
     // but here we'll rather do a back-forth motion, made with a repetition of a sequence of 4 basic functions:
 
-    auto my_functsequence = chrono_types::make_shared<ChFunction_Sequence>();
-    auto my_funcsigma1 = chrono_types::make_shared<ChFunction_Sigma>(180, 0, 0.5);  // diplacement, t_start, t_end
-    auto my_funcpause1 = chrono_types::make_shared<ChFunction_Const>(0);
-    auto my_funcsigma2 = chrono_types::make_shared<ChFunction_Sigma>(-180, 0, 0.3);  // diplacement, t_start, t_end
-    auto my_funcpause2 = chrono_types::make_shared<ChFunction_Const>(0);
+    auto my_functsequence = chrono_types::make_shared<ChFunctionSequence>();
+    auto my_funcsigma1 = chrono_types::make_shared<ChFunctionSigma>(180, 0, 0.5);  // diplacement, t_start, t_end
+    auto my_funcpause1 = chrono_types::make_shared<ChFunctionConst>(0);
+    auto my_funcsigma2 = chrono_types::make_shared<ChFunctionSigma>(-180, 0, 0.3);  // diplacement, t_start, t_end
+    auto my_funcpause2 = chrono_types::make_shared<ChFunctionConst>(0);
     my_functsequence->InsertFunct(my_funcsigma1, 0.5, 1.0, true);  // fx, duration, weight, enforce C0 continuity
     my_functsequence->InsertFunct(my_funcpause1, 0.2, 1.0, true);  // fx, duration, weight, enforce C0 continuity
     my_functsequence->InsertFunct(my_funcsigma2, 0.3, 1.0, true);  // fx, duration, weight, enforce C0 continuity
     my_functsequence->InsertFunct(my_funcpause2, 0.2, 1.0, true);  // fx, duration, weight, enforce C0 continuity
-    auto my_functangle = chrono_types::make_shared<ChFunction_Repeat>(my_functsequence);
+    auto my_functangle = chrono_types::make_shared<ChFunctionRepeat>(my_functsequence);
     my_functangle->Set_window_length(0.5 + 0.2 + 0.3 + 0.2);
     my_driveli->SetAngleFunction(my_functangle);
 
@@ -748,14 +748,14 @@ int main(int argc, char* argv[]) {
     // we put a line in the while{...} simulation loop that continuously changes the
     // position by setting a value from some computation.
     //  Well: here one might be tempted to do  motor6->SetMotionFunction(myconst); where
-    // myconst is a ChFunction_Const object where you would continuously change the value
+    // myconst is a ChFunctionConst object where you would continuously change the value
     // of the constant by doing  myconst->Set_yconst() in the while{...} loop; this would
     // work somehow but it would miss the derivative of the function, something that is used
-    // in the guts of ChLinkMotorLinearPosition. To overcome this, we'll use a  ChFunction_Setpoint
+    // in the guts of ChLinkMotorLinearPosition. To overcome this, we'll use a  ChFunctionSetpoint
     // function, that is able to guess the derivative of the changing setpoint by doing numerical
     // differentiation each time you call  myfunction->SetSetpoint().
     //  Note: A more elegant solution would be to inherit our custom motion function
-    // from  ChFunction_SetpointCallback  as explained in EXAMPLE B.4, and then setting
+    // from  ChFunctionSetpointCallback  as explained in EXAMPLE B.4, and then setting
     // motor6->SetMotionFunction(mycallback); this would avoid polluting the while{...} loop;
     // but sometimes is faster to do the quick & dirty approach of this example.
 
@@ -777,7 +777,7 @@ int main(int argc, char* argv[]) {
     // Create a ChFunction to be used for the ChLinkMotorLinearPosition;
     // Note! look later in the while{...} simulation loop, we'll continuously
     // update its value using  motor6setpoint->SetSetpoint();
-    auto motor6setpoint = chrono_types::make_shared<ChFunction_Setpoint>();
+    auto motor6setpoint = chrono_types::make_shared<ChFunctionSetpoint>();
     // Let the motor use this motion function:
     motor6->SetMotionFunction(motor6setpoint);
 

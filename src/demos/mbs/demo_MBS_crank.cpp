@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
     my_link_AB->SetName("RotationalMotor");
     sys.AddLink(my_link_AB);
-    auto my_speed_function = chrono_types::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
+    auto my_speed_function = chrono_types::make_shared<ChFunctionConst>(CH_C_PI);  // speed w=3.145 rad/sec
     my_link_AB->SetSpeedFunction(my_speed_function);
 
     // 4- Create the Irrlicht visualization system

@@ -116,7 +116,7 @@ motor = chrono.ChLinkMotorRotationAngle()
 motor.Initialize(ground,
                  shaft_1,
                  chrono.ChFrameD(chrono.ChVectorD(0, 0, -hl), chrono.ChQuaternionD(1, 0, 0, 0)))
-motor.SetAngleFunction(chrono.ChFunction_Ramp(0, 1))
+motor.SetAngleFunction(chrono.ChFunctionRamp(0, 1))
 sys.AddLink(motor)
 
 # Connect the second shaft to ground through a cylindrical joint

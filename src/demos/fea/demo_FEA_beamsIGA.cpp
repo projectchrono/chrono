@@ -356,16 +356,16 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     auto mplasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
     // The isotropic hardening curve. The value at zero absyssa is the initial yeld.
-    mplasticity->n_yeld_x = chrono_types::make_shared<ChFunction_Const>(3000);
-    // mplasticity->n_yeld_x = chrono_types::make_shared<ChFunction_Ramp>(3000, 1e3);
+    mplasticity->n_yeld_x = chrono_types::make_shared<ChFunctionConst>(3000);
+    // mplasticity->n_yeld_x = chrono_types::make_shared<ChFunctionRamp>(3000, 1e3);
     // The optional kinematic hardening curve:
-    mplasticity->n_beta_x = chrono_types::make_shared<ChFunction_Ramp>(0, 1e3);
+    mplasticity->n_beta_x = chrono_types::make_shared<ChFunctionRamp>(0, 1e3);
 
     // for bending (on y and z): some kinematic hardening
-    mplasticity->n_yeld_My = chrono_types::make_shared<ChFunction_Const>(0.3);
-    mplasticity->n_beta_My = chrono_types::make_shared<ChFunction_Ramp>(0, 0.001e2);
-    mplasticity->n_yeld_Mz = chrono_types::make_shared<ChFunction_Const>(0.3);
-    mplasticity->n_beta_Mz = chrono_types::make_shared<ChFunction_Ramp>(0, 0.001e2);
+    mplasticity->n_yeld_My = chrono_types::make_shared<ChFunctionConst>(0.3);
+    mplasticity->n_beta_My = chrono_types::make_shared<ChFunctionRamp>(0, 0.001e2);
+    mplasticity->n_yeld_Mz = chrono_types::make_shared<ChFunctionConst>(0.3);
+    mplasticity->n_beta_Mz = chrono_types::make_shared<ChFunctionRamp>(0, 0.001e2);
 
     auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(minertia, melasticity, mplasticity);
 
@@ -393,14 +393,14 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
         builder.GetLastBeamNodes().back(), truss,
         ChFrame<>(builder.GetLastBeamNodes().back()->GetPos(), chrono::Q_from_AngAxis(0 * CH_C_PI_2, VECT_Z)));
     motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::SPHERICAL);
-    auto rampup = chrono_types::make_shared<ChFunction_Ramp>(0, 0.1);
-    auto rampdo = chrono_types::make_shared<ChFunction_Ramp>(0, -0.1);
-    auto motfun = chrono_types::make_shared<ChFunction_Sequence>();
+    auto rampup = chrono_types::make_shared<ChFunctionRamp>(0, 0.1);
+    auto rampdo = chrono_types::make_shared<ChFunctionRamp>(0, -0.1);
+    auto motfun = chrono_types::make_shared<ChFunctionSequence>();
     motfun->InsertFunct(rampdo, 1, 0, true);
     motfun->InsertFunct(rampup, 1, 0, true);
-    auto motrepeat = chrono_types::make_shared<ChFunction_Repeat>(motfun);
+    auto motrepeat = chrono_types::make_shared<ChFunctionRepeat>(motfun);
     motrepeat->Set_window_length(2);
-    auto motfuntot = chrono_types::make_shared<ChFunction_Sequence>();
+    auto motfuntot = chrono_types::make_shared<ChFunctionSequence>();
     motfuntot->InsertFunct(rampup, 0.5, 0, true);
     motfuntot->InsertFunct(motrepeat, 10, 0, true);
     motor->SetMotionFunction(motfuntot);
@@ -519,7 +519,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
                                                                        0.24, 0.05, 7800);    // R, h, density
     mbodyflywheel->SetCoord(ChCoordsys<>(
         node_mid->GetPos() + ChVector<>(0, 0.05, 0),  // flywheel initial center (plus Y offset)
-        Q_from_AngAxis(CH_C_PI_2, VECT_Z))  // flywheel initial alignment (rotate 90° so cylinder axis is on X)
+        Q_from_AngAxis(CH_C_PI_2, VECT_Z))  // flywheel initial alignment (rotate 90ï¿½ so cylinder axis is on X)
     );
     sys.Add(mbodyflywheel);
 
@@ -550,9 +550,9 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     sys.Add(rotmotor1);
 
     // use a custom function for setting the speed of the motor
-    class ChFunction_myf : public ChFunction {
+    class ChFunctionMyFun : public ChFunction {
       public:
-        virtual ChFunction_myf* Clone() const override { return new ChFunction_myf(); }
+        virtual ChFunctionMyFun* Clone() const override { return new ChFunctionMyFun(); }
 
         virtual double Get_y(double x) const override {
             double A1 = 0.8;
@@ -572,7 +572,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
         }
     };
 
-    auto f_ramp = chrono_types::make_shared<ChFunction_myf>();
+    auto f_ramp = chrono_types::make_shared<ChFunctionMyFun>();
     rotmotor1->SetMotorFunction(f_ramp);
 
     // Attach a visualization of the FEM mesh.

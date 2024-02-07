@@ -419,7 +419,7 @@ int main(int argc, char* argv[]) {
         my_torqueconverter->Initialize(my_shaftA, my_shaftB, my_shaftC);
         sys.Add(my_torqueconverter);
 
-        auto mK = chrono_types::make_shared<ChFunction_Recorder>();
+        auto mK = chrono_types::make_shared<ChFunctionRecorder>();
         mK->AddPoint(0.0, 15);
         mK->AddPoint(0.25, 15);
         mK->AddPoint(0.50, 15);
@@ -428,7 +428,7 @@ int main(int argc, char* argv[]) {
         mK->AddPoint(1.00, 35);
         my_torqueconverter->SetCurveCapacityFactor(mK);
 
-        auto mT = chrono_types::make_shared<ChFunction_Recorder>();
+        auto mT = chrono_types::make_shared<ChFunctionRecorder>();
         mT->AddPoint(0.0, 2.00);
         mT->AddPoint(0.25, 1.80);
         mT->AddPoint(0.50, 1.50);
@@ -471,7 +471,7 @@ int main(int argc, char* argv[]) {
         my_motor->Initialize(my_shaftA, my_shaftD);
         sys.Add(my_motor);
 
-        auto mTw = chrono_types::make_shared<ChFunction_Recorder>();
+        auto mTw = chrono_types::make_shared<ChFunctionRecorder>();
         mTw->AddPoint(-5, 30);  //   [rad/s],  [Nm]
         mTw->AddPoint(0, 30);
         mTw->AddPoint(200, 60);
@@ -562,7 +562,7 @@ int main(int argc, char* argv[]) {
         my_motor->Initialize(my_shaftA, my_shaftB);
         sys.Add(my_motor);
         auto my_sinefunction =
-            chrono_types::make_shared<ChFunction_Sine>(0, 1.2, 0.001 + 0.5 * CH_C_2PI / 20);  // phase freq ampl
+            chrono_types::make_shared<ChFunctionSine>(0, 1.2, 0.001 + 0.5 * CH_C_2PI / 20);  // phase freq ampl
         my_motor->SetAngleFunction(my_sinefunction);
 
         // Make the freewheel:

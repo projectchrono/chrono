@@ -137,7 +137,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     // Create a ramp function to impose constant speed.  This function returns
     //   y(t) = 0 + t * speed
     //   y'(t) = speed
-    auto actuator_fun = chrono_types::make_shared<ChFunction_Ramp>(0.0, speed);
+    auto actuator_fun = chrono_types::make_shared<ChFunctionRamp>(0.0, speed);
 
     // Create the linear actuator, connecting the plate to the ground.
     // Here, we set the plate as the master body (second one in the initialization

@@ -157,7 +157,7 @@ class Model(object):
        
        action=float(ac[0])
        self.steps += 1
-       self.ac = chrono.ChFunction_Const(action)
+       self.ac = chrono.ChFunctionConst(action)
        self.actuator.SetForceFunction(self.ac)
        self.omega = self.pin_joint.GetRelWvel().Length()  
        

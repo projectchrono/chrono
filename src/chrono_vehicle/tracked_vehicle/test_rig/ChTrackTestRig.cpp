@@ -194,7 +194,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
 
         auto linact = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact->SetNameString("post_actuator");
-        linact->SetMotionFunction(chrono_types::make_shared<ChFunction_Setpoint>());
+        linact->SetMotionFunction(chrono_types::make_shared<ChFunctionSetpoint>());
         linact->Initialize(m_chassis->GetBody(), post, ChFrame<>(ChVector<>(post_pos), Q_from_AngY(CH_C_PI_2)));
         m_system->AddLink(linact);
 
@@ -322,7 +322,7 @@ void ChTrackTestRig::Advance(double step) {
 
     // Update post displacements
     for (int i = 0; i < m_post.size(); i++) {
-        auto func = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[i]->GetMotionFunction());
+        auto func = std::static_pointer_cast<ChFunctionSetpoint>(m_post_linact[i]->GetMotionFunction());
         func->SetSetpointAndDerivatives(displ[i], displ_speed[i], 0.0);
     }
 

@@ -28,7 +28,7 @@ const double mrole_EngineShafts::m_motorshaft_inertia = 2.1;
 
 mrole_EngineShafts::mrole_EngineShafts(const std::string& name) : ChEngineShafts(name, ChVector<>(1, 0, 0)) {}
 
-void mrole_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void mrole_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionRecorder>& map) {
     double rpm_to_radsec = CH_C_2PI / 60.;
 
     map->AddPoint(-100 * rpm_to_radsec, 600);
@@ -52,7 +52,7 @@ void mrole_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>
     map->AddPoint(2450 * rpm_to_radsec, -1000.0);  // fading out of engine torque
 }
 
-void mrole_EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void mrole_EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunctionRecorder>& map) {
     double rpm_to_radsec = CH_C_2PI / 60.;
 
     map->AddPoint(-50 * rpm_to_radsec, 30);  // it should never work in negative direction, anyway..

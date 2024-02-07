@@ -119,7 +119,7 @@ rotmotor1.Initialize(builder.GetLastBeamNodes().front(),                # body A
 sys.Add(rotmotor1)
 	
 # use a custom function for setting the speed of the motor
-class ChFunction_myf (chrono.ChFunction):
+class ChFunctionMyFun (chrono.ChFunction):
     def __init__(self):
          chrono.ChFunction.__init__(self)
     def Get_y(self,x):
@@ -138,8 +138,8 @@ class ChFunction_myf (chrono.ChFunction):
         else:
             return A2 * w
 
-f_ramp = ChFunction_myf()
-#f_ramp = chrono.ChFunction_Sine(0,0.2,40)
+f_ramp = ChFunctionMyFun()
+#f_ramp = chrono.ChFunctionSine(0,0.2,40)
 rotmotor1.SetMotorFunction(f_ramp)
 
 # Attach a visualization of the FEM mesh.

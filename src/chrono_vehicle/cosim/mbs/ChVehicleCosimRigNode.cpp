@@ -94,7 +94,7 @@ void ChVehicleCosimRigNode::InitializeMBS(const ChVector2<>& terrain_size, doubl
 
     // Create revolute motor to impose angular speed on the spindle
     m_rev_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    m_rev_motor->SetMotorFunction(chrono_types::make_shared<ChFunction_Const>(0));
+    m_rev_motor->SetMotorFunction(chrono_types::make_shared<ChFunctionConst>(0));
     m_rev_motor->SetName("motor");
     m_rev_motor->Initialize(m_chassis, m_spindle, ChFrame<>(origin, Q_from_AngZ(m_toe_angle) * Q_from_AngX(CH_C_PI_2)));
     m_system->AddLink(m_rev_motor);

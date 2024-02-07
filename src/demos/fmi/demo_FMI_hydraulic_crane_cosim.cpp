@@ -167,13 +167,13 @@ int main(int argc, char* argv[]) {
     actuator_fmu.ExitInitializationMode();
 
     // Hydraulic actuation
-    auto f_segment = chrono_types::make_shared<ChFunction_Sequence>();
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(0), 0.5);         // 0.0
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(0, 0.4), 1.5);     // 0.0 -> 0.6
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(0.6), 5.0);       // 0.6
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(0.6, -0.8), 2.0);  // 0.6 -> -1.0
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(-1.0, 1.0), 1.0);  // -1.0 -> 0.0
-    auto actuation = chrono_types::make_shared<ChFunction_Repeat>(f_segment, 0, 10, 10);
+    auto f_segment = chrono_types::make_shared<ChFunctionSequence>();
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionConst>(0), 0.5);         // 0.0
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(0, 0.4), 1.5);     // 0.0 -> 0.6
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionConst>(0.6), 5.0);       // 0.6
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(0.6, -0.8), 2.0);  // 0.6 -> -1.0
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(-1.0, 1.0), 1.0);  // -1.0 -> 0.0
+    auto actuation = chrono_types::make_shared<ChFunctionRepeat>(f_segment, 0, 10, 10);
 
     // Initialize combined output
     utils::CSV_writer csv;

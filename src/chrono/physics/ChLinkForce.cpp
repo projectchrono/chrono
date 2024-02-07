@@ -18,9 +18,9 @@ namespace chrono {
 
 ChLinkForce::ChLinkForce() : m_active(false), m_F(0), m_K(0), m_R(0) {
     // Default: no modulation
-    m_F_modul = chrono_types::make_shared<ChFunction_Const>(1);
-    m_K_modul = chrono_types::make_shared<ChFunction_Const>(1);
-    m_R_modul = chrono_types::make_shared<ChFunction_Const>(1);
+    m_F_modul = chrono_types::make_shared<ChFunctionConst>(1);
+    m_K_modul = chrono_types::make_shared<ChFunctionConst>(1);
+    m_R_modul = chrono_types::make_shared<ChFunctionConst>(1);
 }
 
 ChLinkForce::ChLinkForce(const ChLinkForce& other) {

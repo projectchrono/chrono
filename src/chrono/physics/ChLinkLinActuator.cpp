@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkLinActuator)
 
 ChLinkLinActuator::ChLinkLinActuator() : offset(0.1) {
-    dist_funct = chrono_types::make_shared<ChFunction_Const>(0);
+    dist_funct = chrono_types::make_shared<ChFunctionConst>(0);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     mask.SetLockMask(true, false, false, false, false, false, false);

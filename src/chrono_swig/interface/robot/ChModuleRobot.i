@@ -132,7 +132,7 @@ using namespace chrono::copter;
 %shared_ptr(chrono::ChNodeXYZ) 
 %shared_ptr(chrono::ChVisualShapeTriangleMesh)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
-%shared_ptr(chrono::ChFunction_Recorder)
+%shared_ptr(chrono::ChFunctionRecorder)
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 
@@ -213,7 +213,7 @@ using namespace chrono::copter;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkBase.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkLock.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkTSDA.i"
-%import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
+%import(module = "pychrono.core") "../chrono/motion_functions/ChFunctionBase.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
 %import(module = "pychrono.core") "../chrono/fea/ChContinuumMaterial.h"
 %import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"

@@ -19,8 +19,8 @@
 #include <cmath>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/motion_functions/ChFunction_Recorder.h"
-#include "chrono/motion_functions/ChFunction_Sine.h"
+#include "chrono/motion_functions/ChFunctionRecorder.h"
+#include "chrono/motion_functions/ChFunctionSine.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
 
@@ -137,8 +137,8 @@ int main(int argc, char* argv[]) {
             mx(i) = x;
             my(i) = y;
         }
-        // ..or create demo data in a ChFunction_Recorder
-        ChFunction_Recorder mfun;
+        // ..or create demo data in a ChFunctionRecorder
+        ChFunctionRecorder mfun;
         for (int i = 0; i < 100; ++i) {
             double x = ((double)i / 100.0) * 12;
             double y = cos(x) * exp(-x * 0.4);
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
         ChGnuPlot mplot(out_dir + "/tmp_gnuplot_4.gpl");
         mplot.SetGrid();
         mplot.Plot(mx, my, "from x,y ChVectorDynamic", " every 5 pt 1 ps 0.5");
-        mplot.Plot(mfun, "from ChFunction_Recorder", " with lines lt -1 lc rgb'#00AAEE' ");
+        mplot.Plot(mfun, "from ChFunctionRecorder", " with lines lt -1 lc rgb'#00AAEE' ");
         mplot.Plot(matr, 2, 6, "from ChMatrix", " with lines lt 5");
     }
 

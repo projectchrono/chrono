@@ -58,14 +58,14 @@ class RotMotors : public ::testing::TestWithParam<Options> {
 
         switch (opts.mot_type) {
             case MotorType::ANGLE: {
-                auto motor_fun = chrono_types::make_shared<ChFunction_Ramp>(0.0, opts.speed);
+                auto motor_fun = chrono_types::make_shared<ChFunctionRamp>(0.0, opts.speed);
                 auto motorA = chrono_types::make_shared<ChLinkMotorRotationAngle>();
                 motorA->SetAngleFunction(motor_fun);
                 motor = motorA;
                 break;
             }
             case MotorType::SPEED: {
-                auto motor_fun = chrono_types::make_shared<ChFunction_Const>(opts.speed);
+                auto motor_fun = chrono_types::make_shared<ChFunctionConst>(opts.speed);
                 auto motorS = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
                 motorS->SetSpeedFunction(motor_fun);
                 motor = motorS;

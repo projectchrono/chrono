@@ -26,14 +26,14 @@
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
-#include "chrono/motion_functions/ChFunctionPosition_line.h"
-#include "chrono/motion_functions/ChFunctionPosition_XYZfunctions.h"
-#include "chrono/motion_functions/ChFunctionPosition_setpoint.h"
-#include "chrono/motion_functions/ChFunctionRotation_spline.h"
-#include "chrono/motion_functions/ChFunctionRotation_ABCfunctions.h"
-#include "chrono/motion_functions/ChFunctionRotation_setpoint.h"
-#include "chrono/motion_functions/ChFunctionRotation_axis.h"
-#include "chrono/motion_functions/ChFunctionRotation_SQUAD.h"
+#include "chrono/motion_functions/ChFunctionPositionLine.h"
+#include "chrono/motion_functions/ChFunctionPositionXYZFunctions.h"
+#include "chrono/motion_functions/ChFunctionPositionSetpoint.h"
+#include "chrono/motion_functions/ChFunctionRotationBSpline.h"
+#include "chrono/motion_functions/ChFunctionRotationABCFunctions.h"
+#include "chrono/motion_functions/ChFunctionRotationSetpoint.h"
+#include "chrono/motion_functions/ChFunctionRotationAxis.h"
+#include "chrono/motion_functions/ChFunctionRotationSQUAD.h"
 
 #include "chrono/physics/ChLinkMotionImposed.h"
 
@@ -73,14 +73,14 @@ int main(int argc, char* argv[]) {
 
     // Create a position function p(t) from three x,y,z distinct ChFunction objects,
     // in this case two sine functions on y and z, whereas x remains constant 0 by default.
-    auto f_xyz = chrono_types::make_shared<ChFunctionPosition_XYZfunctions>();
-    f_xyz->SetFunctionY(chrono_types::make_shared<ChFunction_Sine>(0, 0.5, 0.5));
-    f_xyz->SetFunctionZ(chrono_types::make_shared<ChFunction_Sine>(0, 0.5, 0.5));  // phase freq ampl
+    auto f_xyz = chrono_types::make_shared<ChFunctionPositionXYZFunctions>();
+    f_xyz->SetFunctionY(chrono_types::make_shared<ChFunctionSine>(0, 0.5, 0.5));
+    f_xyz->SetFunctionZ(chrono_types::make_shared<ChFunctionSine>(0, 0.5, 0.5));  // phase freq ampl
 
     // Create a rotation function q(t) from a angle(time) rotation with fixed axis:
-    auto f_rot_axis = chrono_types::make_shared<ChFunctionRotation_axis>();
+    auto f_rot_axis = chrono_types::make_shared<ChFunctionRotationAxis>();
     f_rot_axis->SetFunctionAngle(
-        chrono_types::make_shared<ChFunction_Sine>(0, 0.15, chrono::CH_C_PI));  // phase freq ampl
+        chrono_types::make_shared<ChFunctionSine>(0, 0.15, chrono::CH_C_PI));  // phase freq ampl
     f_rot_axis->SetAxis(ChVector<>(1, 1, 1).GetNormalized());
 
     // Create the constraint to impose motion and rotation.
@@ -126,17 +126,17 @@ int main(int argc, char* argv[]) {
 
     // Create a line motion that uses the 3D ChLineBspline above (but in SetLine() you
     // might use also other ChLine objects such as a ChLinePath, a ChLineArc, etc.)
-    auto f_line = chrono_types::make_shared<ChFunctionPosition_line>();
+    auto f_line = chrono_types::make_shared<ChFunctionPositionLine>();
     f_line->SetLine(mspline);
     // Note that all ChLine will be evaluated in a s=0..1 range, this means that at s=0
     // one gets the start of the line, at s=1 one gets the end. For slower motion, one
     // can use SetSpaceFunction(), here ramping a linear abscissa motion but at 1/5 of the default speed
     // i.e.a linear map s=0.2*t between absyssa s and time t
-    f_line->SetSpaceFunction(chrono_types::make_shared<ChFunction_Ramp>(0, 0.2));
+    f_line->SetSpaceFunction(chrono_types::make_shared<ChFunctionRamp>(0, 0.2));
 
     // Create a spline rotation interpolation based on quaternion splines.
     // Note that if order=1, the quaternion spline boils down to a simple SLERP interpolation
-    auto f_rotspline = chrono_types::make_shared<ChFunctionRotation_spline>(
+    auto f_rotspline = chrono_types::make_shared<ChFunctionRotationBSpline>(
         1,                          // spline order
         std::vector<ChQuaternion<>>{// std::vector with ChQuaternion<> rot.controlpoints
                                     {1, 0, 0, 0},
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     // This will make the rotation spline evaluation periodic, otherwise by default it extrapolates if beyond s=1
     f_rotspline->SetClosed(true);
     // Make the rotation spline evaluation 1/5 slower using a linear map s=0.2*t between absyssa s and time t
-    f_rotspline->SetSpaceFunction(chrono_types::make_shared<ChFunction_Ramp>(0, 0.2));
+    f_rotspline->SetSpaceFunction(chrono_types::make_shared<ChFunctionRamp>(0, 0.2));
 
     // Create the constraint to impose motion and rotation:
     auto impose_2 = chrono_types::make_shared<ChLinkMotionImposed>();
@@ -182,11 +182,11 @@ int main(int argc, char* argv[]) {
     sys.Add(mmoved_3);
     mmoved_3->SetPos(ChVector<>(1.5, 0, 0));
 
-    // Create the position function: use ChFunctionPosition_setpoint as a proxy to an external continuous setpoint
-    auto f_pos_setpoint = chrono_types::make_shared<ChFunctionPosition_setpoint>();
+    // Create the position function: use ChFunctionPositionSetpoint as a proxy to an external continuous setpoint
+    auto f_pos_setpoint = chrono_types::make_shared<ChFunctionPositionSetpoint>();
 
-    // Create the rotation function: use ChFunctionPosition_setpoint as a proxy to an external continuous setpoint
-    auto f_rot_setpoint = chrono_types::make_shared<ChFunctionRotation_setpoint>();
+    // Create the rotation function: use ChFunctionPositionSetpoint as a proxy to an external continuous setpoint
+    auto f_rot_setpoint = chrono_types::make_shared<ChFunctionRotationSetpoint>();
 
     // Create the constraint to impose motion and rotation:
     auto impose_3 = chrono_types::make_shared<ChLinkMotionImposed>();
@@ -212,10 +212,10 @@ int main(int argc, char* argv[]) {
     mmoved_4->SetPos(ChVector<>(2.5, 0, 0));
 
     // Create the rotation function: use 3 distinct A,B,C functions of time to set Eulero or Cardano or Rxyz angles:
-    auto f_abc_angles = chrono_types::make_shared<ChFunctionRotation_ABCfunctions>();
+    auto f_abc_angles = chrono_types::make_shared<ChFunctionRotationABCFunctions>();
     f_abc_angles->SetAngleset(AngleSet::RXYZ);
-    f_abc_angles->SetFunctionAngleA(chrono_types::make_shared<ChFunction_Sine>(0, 2, 0.3));  // phase freq ampl
-    f_abc_angles->SetFunctionAngleB(chrono_types::make_shared<ChFunction_Ramp>(0, 0.2));     // a0, da/dt
+    f_abc_angles->SetFunctionAngleA(chrono_types::make_shared<ChFunctionSine>(0, 2, 0.3));  // phase freq ampl
+    f_abc_angles->SetFunctionAngleB(chrono_types::make_shared<ChFunctionRamp>(0, 0.2));     // a0, da/dt
 
     // Create the constraint to impose motion and rotation:
     auto impose_4 = chrono_types::make_shared<ChLinkMotionImposed>();
@@ -239,9 +239,9 @@ int main(int argc, char* argv[]) {
     mmoved_5->SetPos(ChVector<>(1, 1, 0));
 
     // Create a spline rotation interpolation based on SQUAD smooth quaternion interpolation.
-    // Note that, differently from ChFunctionRotation_spline, the SQUAD interpolation passes exactly through the control
+    // Note that, differently from ChFunctionRotationBSpline, the SQUAD interpolation passes exactly through the control
     // points.
-    auto f_squad = chrono_types::make_shared<ChFunctionRotation_SQUAD>(std::vector<ChQuaternion<>>{
+    auto f_squad = chrono_types::make_shared<ChFunctionRotationSQUAD>(std::vector<ChQuaternion<>>{
         // std::vector with ChQuaternion<> rot.controlpoints
         {1, 0, 0, 0},
         {0, 0, 1, 0},
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
         Q_from_AngZ(-1.2),
         {0, 1, 0, 0}});
     f_squad->SetClosed(true);
-    f_squad->SetSpaceFunction(chrono_types::make_shared<ChFunction_Ramp>(0, 0.2));
+    f_squad->SetSpaceFunction(chrono_types::make_shared<ChFunctionRamp>(0, 0.2));
 
     // Create the constraint to impose motion and rotation:
     auto impose_5 = chrono_types::make_shared<ChLinkMotionImposed>();

@@ -87,12 +87,12 @@ void ChAutomaticTransmissionShafts::Initialize(std::shared_ptr<ChChassis> chassi
     sys->Add(m_torqueconverter);
 
     // To complete the setup of the torque converter, a capacity factor curve is needed:
-    auto mK = chrono_types::make_shared<ChFunction_Recorder>();
+    auto mK = chrono_types::make_shared<ChFunctionRecorder>();
     SetTorqueConverterCapacityFactorMap(mK);
     m_torqueconverter->SetCurveCapacityFactor(mK);
 
     // To complete the setup of the torque converter, a torque ratio curve is needed:
-    auto mT = chrono_types::make_shared<ChFunction_Recorder>();
+    auto mT = chrono_types::make_shared<ChFunctionRecorder>();
     SetTorqeConverterTorqueRatioMap(mT);
     m_torqueconverter->SetCurveTorqueRatio(mT);
 

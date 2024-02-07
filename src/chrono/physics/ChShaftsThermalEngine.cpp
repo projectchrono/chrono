@@ -23,7 +23,7 @@ CH_FACTORY_REGISTER(ChShaftsThermalEngine)
 
 ChShaftsThermalEngine::ChShaftsThermalEngine() : throttle(1), error_backward(false) {
     // default torque curve= constant zero. User will provide better fx.
-    Tw = chrono_types::make_shared<ChFunction_Const>(0);
+    Tw = chrono_types::make_shared<ChFunctionConst>(0);
 }
 
 ChShaftsThermalEngine::ChShaftsThermalEngine(const ChShaftsThermalEngine& other) : ChShaftsTorqueBase(other) {

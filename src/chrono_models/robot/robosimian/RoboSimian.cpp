@@ -22,7 +22,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-#include "chrono/motion_functions/ChFunction_Setpoint.h"
+#include "chrono/motion_functions/ChFunctionSetpoint.h"
 
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
@@ -1238,7 +1238,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
         // Actuated joints (except the wheel motor joint)
         if (joints[i].name.compare("joint8") != 0) {
-            auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
+            auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
             auto joint = chrono_types::make_shared<ChLinkMotorRotationAngle>();
             joint->SetNameString(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, ChFrame<>(calcJointFrame(X_GC, joints[i].axis)));
@@ -1251,7 +1251,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
         // Wheel motor joint
         if (wheel_mode == ActuationMode::SPEED) {
-            auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
+            auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
             auto joint = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
             joint->SetNameString(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, ChFrame<>(calcJointFrame(X_GC, joints[i].axis)));
@@ -1261,7 +1261,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
             m_motors.insert(std::make_pair(joints[i].name, joint));
             m_wheel_motor = joint;
         } else {
-            auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
+            auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
             auto joint = chrono_types::make_shared<ChLinkMotorRotationAngle>();
             joint->SetNameString(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, ChFrame<>(calcJointFrame(X_GC, joints[i].axis)));
@@ -1294,7 +1294,7 @@ void RS_Limb::Activate(const std::string& motor_name, double time, double val) {
     }
 
     // Note: currently hard-coded for angle motor
-    auto fun = std::static_pointer_cast<ChFunction_Setpoint>(itr->second->GetMotorFunction());
+    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(itr->second->GetMotorFunction());
     fun->SetSetpoint(-val, time);
 }
 
@@ -1332,7 +1332,7 @@ static std::string motor_names[] = {"joint1", "joint2", "joint3", "joint4", "joi
 
 void RS_Limb::Activate(double time, const std::array<double, 8>& vals) {
     for (int i = 0; i < 8; i++) {
-        auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_motors[motor_names[i]]->GetMotorFunction());
+        auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_motors[motor_names[i]]->GetMotorFunction());
         fun->SetSetpoint(-vals[i], time);
     }
 }
@@ -1369,8 +1369,8 @@ std::array<double, 8> RS_Limb::GetMotorTorques() {
 
 void RS_Limb::GetMotorActuations(std::array<double, 8>& angles, std::array<double, 8>& speeds) {
     for (int i = 0; i < 8; i++) {
-        auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_motors[motor_names[i]]->GetMotorFunction());
-        // Note: the time passed as argument here does not matter for a Chfunction_Setpoint
+        auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_motors[motor_names[i]]->GetMotorFunction());
+        // Note: the time passed as argument here does not matter for a ChfunctionSetpoint
         angles[i] = fun->Get_y(0);
         speeds[i] = fun->Get_y_dx(0);
     }

@@ -124,7 +124,7 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBody> body_
                                                    ChSystem* system,
                                                    const ChVector<>& rel_joint_pos,
                                                    const ChQuaternion<>& rel_joint_rot,
-                                                   std::shared_ptr<ChFunction_Const> speed_func) {
+                                                   std::shared_ptr<ChFunctionConst> speed_func) {
     const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
@@ -995,8 +995,8 @@ void TurtleBot::Initialize() {
     double rod_u_5_z = 0.20615;
 
     // add motors and revolute joints on the active and passive wheels
-    auto const_speed_function_l = chrono_types::make_shared<ChFunction_Const>(-CH_C_PI);
-    auto const_speed_function_r = chrono_types::make_shared<ChFunction_Const>(-CH_C_PI);
+    auto const_speed_function_l = chrono_types::make_shared<ChFunctionConst>(-CH_C_PI);
+    auto const_speed_function_r = chrono_types::make_shared<ChFunctionConst>(-CH_C_PI);
     m_motors_func.push_back(const_speed_function_l);
     m_motors_func.push_back(const_speed_function_r);
 

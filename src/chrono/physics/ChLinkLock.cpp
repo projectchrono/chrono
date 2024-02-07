@@ -2046,12 +2046,12 @@ ChLinkLockLock::ChLinkLockLock()
     type = LinkType::LOCK;
     BuildLink(true, true, true, false, true, true, true);
 
-    motion_X = chrono_types::make_shared<ChFunction_Const>(0);  // default: no motion
-    motion_Y = chrono_types::make_shared<ChFunction_Const>(0);
-    motion_Z = chrono_types::make_shared<ChFunction_Const>(0);
-    motion_ang = chrono_types::make_shared<ChFunction_Const>(0);
-    motion_ang2 = chrono_types::make_shared<ChFunction_Const>(0);
-    motion_ang3 = chrono_types::make_shared<ChFunction_Const>(0);
+    motion_X = chrono_types::make_shared<ChFunctionConst>(0);  // default: no motion
+    motion_Y = chrono_types::make_shared<ChFunctionConst>(0);
+    motion_Z = chrono_types::make_shared<ChFunctionConst>(0);
+    motion_ang = chrono_types::make_shared<ChFunctionConst>(0);
+    motion_ang2 = chrono_types::make_shared<ChFunctionConst>(0);
+    motion_ang3 = chrono_types::make_shared<ChFunctionConst>(0);
 }
 
 ChLinkLockLock::ChLinkLockLock(const ChLinkLockLock& other) : ChLinkLock(other) {

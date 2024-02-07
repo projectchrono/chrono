@@ -69,7 +69,7 @@ namespace ChronoDemo
             my_link_AB.Initialize(my_body_A, my_body_B, new ChFrameD());
             my_link_AB.SetName("RotationalMotor");
             sys.AddLink(my_link_AB);
-            ChFunction_Const my_speed_function = new ChFunction_Const(3.14);  // speed w=3.145 rad/sec
+            ChFunctionConst my_speed_function = new ChFunctionConst(3.14);  // speed w=3.145 rad/sec
             my_link_AB.SetSpeedFunction(my_speed_function);
 
             ChContactMaterialNSC mat = new ChContactMaterialNSC();

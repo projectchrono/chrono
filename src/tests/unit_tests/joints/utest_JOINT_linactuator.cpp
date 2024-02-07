@@ -171,7 +171,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     //   y(t) = 0 + t * desiredSpeed
     //   y'(t) = desiredSpeed
 
-    auto actuator_fun = chrono_types::make_shared<ChFunction_Ramp>(0.0, desiredSpeed);
+    auto actuator_fun = chrono_types::make_shared<ChFunctionRamp>(0.0, desiredSpeed);
 
     // Create the linear actuator, connecting the plate to the ground.
     // Here, we set the plate as the master body (second one in the initialization

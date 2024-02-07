@@ -35,7 +35,7 @@ double MAN_5t_EngineSimpleMap::GetMaxEngineSpeed() {
     return 2300 * rpm2rads;
 }
 
-void MAN_5t_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void MAN_5t_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionRecorder& map0, ChFunctionRecorder& mapF) {
     map0.AddPoint(-100 * rpm2rads, 0.000 * lbft2nm);
     map0.AddPoint(0 * rpm2rads, 0.0 * lbft2nm);
     map0.AddPoint(100 * rpm2rads, 0.0 * lbft2nm);

@@ -28,7 +28,7 @@ const double FMTV_EngineShafts::m_motorshaft_inertia = 1.1;
 
 FMTV_EngineShafts::FMTV_EngineShafts(const std::string& name) : ChEngineShafts(name, ChVector<>(1, 0, 0)) {}
 
-void FMTV_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void FMTV_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionRecorder>& map) {
     double rpm_to_radsec = CH_C_2PI / 60.;
 
     map->AddPoint(-100.0 * rpm_to_radsec, 200.00);
@@ -46,7 +46,7 @@ void FMTV_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>&
     map->AddPoint(2700 * rpm_to_radsec, -400);
 }
 
-void FMTV_EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void FMTV_EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunctionRecorder>& map) {
     double rpm_to_radsec = CH_C_2PI / 60.;
 
     map->AddPoint(-50 * rpm_to_radsec, 30);  // it should never work in negative direction, anyway..

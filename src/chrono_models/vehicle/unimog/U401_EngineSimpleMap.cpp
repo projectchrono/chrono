@@ -33,7 +33,7 @@ double U401_EngineSimpleMap::GetMaxEngineSpeed() {
     return 3200 * rpm2rads;
 }
 
-void U401_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void U401_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionRecorder& map0, ChFunctionRecorder& mapF) {
     map0.AddPoint(rpm2rads * -10000.0, 0.0);
     map0.AddPoint(rpm2rads * 1000.0, 0.0);
     map0.AddPoint(rpm2rads * 1.5002376354371584e+03, -3.0);

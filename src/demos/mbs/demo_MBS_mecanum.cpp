@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
 
     auto link_shaftA = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     link_shaftA->Initialize(spindle_A, platform, (f1 >> f2_wA));
-    link_shaftA->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0));
+    link_shaftA->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0));
     sys.AddLink(link_shaftA);
 
     auto spindle_B = create_mecanum_wheel(sys,
@@ -243,7 +243,7 @@ int main(int argc, char* argv[]) {
 
     auto link_shaftB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     link_shaftB->Initialize(spindle_B, platform, (f1 >> f2_wB));
-    link_shaftB->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0));
+    link_shaftB->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0));
     sys.AddLink(link_shaftB);
 
     auto spindle_C = create_mecanum_wheel(sys,
@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
 
     auto link_shaftC = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     link_shaftC->Initialize(spindle_C, platform, (f1 >> f2_wC));
-    link_shaftC->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0));
+    link_shaftC->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0));
     sys.AddLink(link_shaftC);
 
     // Create the ground for the collision
@@ -331,11 +331,11 @@ int main(int argc, char* argv[]) {
             (STATIC_rot_speed * platform_radius) +
             ((abs_roll_wC.GetA().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
 
-        if (auto fun = std::dynamic_pointer_cast<ChFunction_Const>(link_shaftA->GetSpeedFunction()))
+        if (auto fun = std::dynamic_pointer_cast<ChFunctionConst>(link_shaftA->GetSpeedFunction()))
             fun->Set_yconst(wheel_A_rotspeed);
-        if (auto fun = std::dynamic_pointer_cast<ChFunction_Const>(link_shaftB->GetSpeedFunction()))
+        if (auto fun = std::dynamic_pointer_cast<ChFunctionConst>(link_shaftB->GetSpeedFunction()))
             fun->Set_yconst(wheel_B_rotspeed);
-        if (auto fun = std::dynamic_pointer_cast<ChFunction_Const>(link_shaftC->GetSpeedFunction()))
+        if (auto fun = std::dynamic_pointer_cast<ChFunctionConst>(link_shaftC->GetSpeedFunction()))
             fun->Set_yconst(wheel_C_rotspeed);
 
         realtime_timer.Spin(timestep);

@@ -52,7 +52,7 @@ class CH_MODELS_API G500_TMeasyTireFront : public ChTMeasyTire {
     static const double m_mass;
     static const ChVector<> m_inertia;
 
-    ChFunction_Recorder m_stiffnessMap;
+    ChFunctionRecorder m_stiffnessMap;
 
     static const std::string m_meshFile;
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
@@ -79,7 +79,7 @@ class CH_MODELS_API G500_TMeasyTireRear : public ChTMeasyTire {
     static const double m_mass;
     static const ChVector<> m_inertia;
 
-    ChFunction_Recorder m_stiffnessMap;
+    ChFunctionRecorder m_stiffnessMap;
 
     static const std::string m_meshFile;
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;

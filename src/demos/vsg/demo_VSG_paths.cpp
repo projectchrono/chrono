@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
 
     // Optionally, set a function that gets the curvilinear
     // abscyssa s of the line, as a function of time s(t). By default it was simply  s=t.
-    auto mspacefx = chrono_types::make_shared<ChFunction_Ramp>(0, 0.5);
+    auto mspacefx = chrono_types::make_shared<ChFunctionRamp>(0, 0.5);
     trajectory->Set_space_fx(mspacefx);
 
     sys.Add(trajectory);
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     // Create a motor that spins the wheel
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     motor->Initialize(wheel, floor, ChFrame<>(ChVector<>(-3, 2, 0)));
-    motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 4.0));
+    motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 4.0));
     sys.AddLink(motor);
 
     // Create a ChLinePath geometry, and insert sub-paths:

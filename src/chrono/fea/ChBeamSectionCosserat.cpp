@@ -549,18 +549,18 @@ void ChPlasticityCosserat::CreatePlasticityData(
 
 ChPlasticityCosseratLumped::ChPlasticityCosseratLumped() {
     // Default: linear isotropic constant hardening
-    n_yeld_x = chrono_types::make_shared<ChFunction_Const>(1000);
-    n_beta_x = chrono_types::make_shared<ChFunction_Const>(0);
-    n_yeld_y = chrono_types::make_shared<ChFunction_Const>(1000);
-    n_beta_y = chrono_types::make_shared<ChFunction_Const>(0);
-    n_yeld_z = chrono_types::make_shared<ChFunction_Const>(1000);
-    n_beta_z = chrono_types::make_shared<ChFunction_Const>(0);
-    n_yeld_Mx = chrono_types::make_shared<ChFunction_Const>(1000);
-    n_beta_Mx = chrono_types::make_shared<ChFunction_Const>(0);
-    n_yeld_My = chrono_types::make_shared<ChFunction_Const>(1000);
-    n_beta_My = chrono_types::make_shared<ChFunction_Const>(0);
-    n_yeld_Mz = chrono_types::make_shared<ChFunction_Const>(1000);
-    n_beta_Mz = chrono_types::make_shared<ChFunction_Const>(0);
+    n_yeld_x = chrono_types::make_shared<ChFunctionConst>(1000);
+    n_beta_x = chrono_types::make_shared<ChFunctionConst>(0);
+    n_yeld_y = chrono_types::make_shared<ChFunctionConst>(1000);
+    n_beta_y = chrono_types::make_shared<ChFunctionConst>(0);
+    n_yeld_z = chrono_types::make_shared<ChFunctionConst>(1000);
+    n_beta_z = chrono_types::make_shared<ChFunctionConst>(0);
+    n_yeld_Mx = chrono_types::make_shared<ChFunctionConst>(1000);
+    n_beta_Mx = chrono_types::make_shared<ChFunctionConst>(0);
+    n_yeld_My = chrono_types::make_shared<ChFunctionConst>(1000);
+    n_beta_My = chrono_types::make_shared<ChFunctionConst>(0);
+    n_yeld_Mz = chrono_types::make_shared<ChFunctionConst>(1000);
+    n_beta_Mz = chrono_types::make_shared<ChFunctionConst>(0);
 }
 
 bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stress_n,

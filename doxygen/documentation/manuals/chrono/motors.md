@@ -86,7 +86,7 @@ mphysicalSystem.Add(rotmotor);
 
 // Create a ChFunction to be used for the motor: for example a constant 
 // angular speed, in [rad/s], ex. 1 PI/s =180°/s
-auto mwspeed = chrono_types::make_shared<ChFunction_Const>(CH_C_PI); 
+auto mwspeed = chrono_types::make_shared<ChFunctionConst>(CH_C_PI); 
 
 // Let the motor use our motion function:
 rotmotor->SetSpeedFunction(mwspeed);
@@ -136,7 +136,7 @@ rotmotor2->Initialize(rotor2,                // body A (slave)
 mphysicalSystem.Add(rotmotor2);
 
 // Create a ChFunction to be used for the ChLinkMotorRotationAngle
-auto msineangle = chrono_types::make_shared<ChFunction_Sine>(
+auto msineangle = chrono_types::make_shared<ChFunctionSine>(
                                         0,      // phase [rad]
                                         0.05,   // frequency [Hz]
                                         CH_C_PI // amplitude [rad]
@@ -189,7 +189,7 @@ rotmotor->Initialize( rotor,                // body A (slave)
 mphysicalSystem.Add(rotmotor);
 
 // Create a ChFunction to be used for the motor: 
-auto mwspeed = chrono_types::make_shared<ChFunction_Const>(CH_C_PI); 
+auto mwspeed = chrono_types::make_shared<ChFunctionConst>(CH_C_PI); 
 
 // Let the motor use our motion function:
 rotmotor->SetSpeedFunction(mwspeed);
@@ -231,11 +231,11 @@ So you may need to implement some time-varying torque. This lead us to two inter
   simulate a PID controller, or a man-in-the-loop system, or other controllers; this can be achieved 
   at least in two ways:
   
-  - provide a custom custom function inherited from chrono::ChFunction_SetpointCallback, where you
+  - provide a custom custom function inherited from chrono::ChFunctionSetpointCallback, where you
     implement the SetpointCallback() method (containing code that computes torque T, automatically
     called at each timestep); 
     
-  - or just use a concrete chrono::ChFunction_Setpoint function, in this case you just have to 
+  - or just use a concrete chrono::ChFunctionSetpoint function, in this case you just have to 
     manually call myfunction->SetSetpoint(...) in your simulation loop
 
 
@@ -394,7 +394,7 @@ my_drive->Initialize(
         );
 mphysicalSystem.Add(my_drive);
 // Create a speed(time) function, and use it in my_drive:
-auto my_driveangle = chrono_types::make_shared<ChFunction_Const>(25*CH_C_2PI);  // 25 [rps] = 1500 [rpm]
+auto my_driveangle = chrono_types::make_shared<ChFunctionConst>(25*CH_C_2PI);  // 25 [rps] = 1500 [rpm]
 my_drive->SetSpeedFunction(my_driveangle); 
 
 
@@ -502,7 +502,7 @@ motor1->Initialize(slider1,              // body A (slave)
 mphysicalSystem.Add(motor1);
 
 // Create a ChFunction to be used for the ChLinkMotorLinearPosition
-auto msine = chrono_types::make_shared<ChFunction_Sine>(
+auto msine = chrono_types::make_shared<ChFunctionSine>(
                                      0,     // phase
                                      0.5,   // frequency
                                      1.6    // amplitude
@@ -549,7 +549,7 @@ motor2->Initialize(slider2,              // body A (slave)
 mphysicalSystem.Add(motor2);
 
 // Create an harmonic ChFunction to be used for the ChLinkMotorLinearSpeed
-auto msp = chrono_types::make_shared<ChFunction_Sine>(CH_C_PI_2,  // phase
+auto msp = chrono_types::make_shared<ChFunctionSine>(CH_C_PI_2,  // phase
                                              0.5,        // frequency
                                              0.8         // amplitude
                                              );
@@ -610,15 +610,15 @@ uses of this motor:
   simulate a PID controller, or a man-in-the-loop system, or other controllers; this can be achieved 
   at least in two ways:
   
-  - provide a custom custom function inherited from chrono::ChFunction_SetpointCallback, where you
+  - provide a custom custom function inherited from chrono::ChFunctionSetpointCallback, where you
     implement the SetpointCallback() method (containing code that computes torque T, automatically
     called at each timestep); 
     
-  - or just use a concrete chrono::ChFunction_Setpoint function, in this case you just have to 
+  - or just use a concrete chrono::ChFunctionSetpoint function, in this case you just have to 
     manually call myfunction->SetSetpoint(...) in your simulation loop
 
     
-An example is represented here, that is a PID controller implemented using the approach of a ChFunction_SetpointCallback:
+An example is represented here, that is a PID controller implemented using the approach of a ChFunctionSetpointCallback:
 
 ~~~{.cpp}
 // Create the linear motor
@@ -634,12 +634,12 @@ mphysicalSystem.Add(motor4);
 // Create a ChFunction that computes F by a user-defined algorithm, as a callback.
 // One quick option would be to inherit from the ChFunction base class, and implement the Get_y() 
 // function by putting the code you wish, as explained in demo_CH_functions.cpp. However this has some
-// limitations. A more powerful approach is to inherit from ChFunction_SetpointCallback, that automatically
+// limitations. A more powerful approach is to inherit from ChFunctionSetpointCallback, that automatically
 // computes the derivatives, if needed, by BDF etc. Therefore:
-// 1. You must inherit from the ChFunction_SetpointCallback base class, and implement the SetpointCallback() 
+// 1. You must inherit from the ChFunctionSetpointCallback base class, and implement the SetpointCallback() 
 //    function by putting the code you wish. For example something like the follow:
 
-class MyForceClass : public ChFunction_SetpointCallback {
+class MyForceClass : public ChFunctionSetpointCallback {
   public:
     // Here some specific data to be used in Get_y(), 
     // add whatever you need, ex:
@@ -754,7 +754,7 @@ In the following example we will create a hidden 1D driveline made with a 1D mot
 
 ![](http://www.projectchrono.org/assets/manual/pic_ChLinkMotorLinearDriveline.png)
 
-In this example, also, we'll use a motion profile that consists in a cubic ascending ramp, a pause, a descending ramp, a pause, and then repeated forever; to this end we'll use chrono::ChFunction_Sequence and chrono::ChFunction_Repeat
+In this example, also, we'll use a motion profile that consists in a cubic ascending ramp, a pause, a descending ramp, a pause, and then repeated forever; to this end we'll use chrono::ChFunctionSequence and chrono::ChFunctionRepeat
 
 ~~~{.cpp}
 // Create the motor
@@ -814,19 +814,19 @@ my_driveli->Initialize(
 mphysicalSystem.Add(my_driveli);
 
 // Create a angle(time) function. It could be something as simple as
-//   auto my_functangle = chrono_types::make_shared<ChFunction_Ramp>(0,  180);  
+//   auto my_functangle = chrono_types::make_shared<ChFunctionRamp>(0,  180);  
 // but here we'll rather do a back-forth motion, made with a repetition of a sequence of 4 basic functions:
 
-auto my_functsequence = chrono_types::make_shared<ChFunction_Sequence>();
-auto my_funcsigma1 = chrono_types::make_shared<ChFunction_Sigma>( 180, 0 , 0.5); // diplacement, t_start, t_end 
-auto my_funcpause1 = chrono_types::make_shared<ChFunction_Const>(0);  
-auto my_funcsigma2 = chrono_types::make_shared<ChFunction_Sigma>(-180, 0 , 0.3); // diplacement, t_start, t_end 
-auto my_funcpause2 = chrono_types::make_shared<ChFunction_Const>(0);  
+auto my_functsequence = chrono_types::make_shared<ChFunctionSequence>();
+auto my_funcsigma1 = chrono_types::make_shared<ChFunctionSigma>( 180, 0 , 0.5); // diplacement, t_start, t_end 
+auto my_funcpause1 = chrono_types::make_shared<ChFunctionConst>(0);  
+auto my_funcsigma2 = chrono_types::make_shared<ChFunctionSigma>(-180, 0 , 0.3); // diplacement, t_start, t_end 
+auto my_funcpause2 = chrono_types::make_shared<ChFunctionConst>(0);  
 my_functsequence->InsertFunct(my_funcsigma1, 0.5, 1.0, true); // fx, duration, weight, enforce C0 continuity
 my_functsequence->InsertFunct(my_funcpause1, 0.2, 1.0, true); // fx, duration, weight, enforce C0 continuity
 my_functsequence->InsertFunct(my_funcsigma2, 0.3, 1.0, true); // fx, duration, weight, enforce C0 continuity
 my_functsequence->InsertFunct(my_funcpause2, 0.2, 1.0, true); // fx, duration, weight, enforce C0 continuity
-auto my_functangle = chrono_types::make_shared<ChFunction_Repeat>();
+auto my_functangle = chrono_types::make_shared<ChFunctionRepeat>();
 my_functangle->Set_fa(my_functsequence);
 my_functangle->Set_window_length(0.5+0.2+0.3+0.2);
 my_driveli->SetAngleFunction(my_functangle); 
@@ -969,11 +969,11 @@ So you may need to implement some time-varying torque. This lead us to two inter
   simulate a PID controller, or a man-in-the-loop system, or other controllers; this can be achieved 
   at least in two ways:
   
-  - provide a custom custom function inherited from chrono::ChFunction_SetpointCallback, where you
+  - provide a custom custom function inherited from chrono::ChFunctionSetpointCallback, where you
     implement the SetpointCallback() method (containing code that computes torque T, automatically
     called at each timestep); 
     
-  - or just use a concrete chrono::ChFunction_Setpoint function, in this case you just have to 
+  - or just use a concrete chrono::ChFunctionSetpoint function, in this case you just have to 
     manually call myfunction->SetSetpoint(...) in your simulation loop
 
 
@@ -1003,15 +1003,15 @@ There are many ways to do this, but here we list the suggested approaches:
      - **chrono::ChLinkMotorLinearPosition**, if you deal with a linear actuator
      - whatever constraint that interfaces with a 1D driveline (chrono::ChLinkMotorRotationDriveline or 
        chrono::ChLinkMotorLinearDriveline), then add a **chrono::ChShaftsMotorAngle** in the driveline.
-  2. You might be tempted to use a ChFunction_Const for the angle/position, and then 
+  2. You might be tempted to use a ChFunctionConst for the angle/position, and then 
      continuously change its value using myfunct->Set_yconst() during the simulation loop: this
      would work only roughly, because these constraint-based motors require also the derivative in 
      order to work smoothly. So the proper ways to control the angle/position of the motor, with
      automatic computation of derivative of the setpoint, is one of the following:
-     - provide a custom custom function inherited from chrono::ChFunction_SetpointCallback, where you
+     - provide a custom custom function inherited from chrono::ChFunctionSetpointCallback, where you
        implement the SetpointCallback() method (containing code that computes angle/position, automatically
        called at each timestep); 
-     - or just use a concrete chrono::ChFunction_Setpoint function, in this case you just have to 
+     - or just use a concrete chrono::ChFunctionSetpoint function, in this case you just have to 
        manually call myfunction->SetSetpoint(...) in your simulation loop, specifying the angle/position.
        
 - **Load-based approach**
@@ -1022,10 +1022,10 @@ There are many ways to do this, but here we list the suggested approaches:
      - whatever constraint that interfaces with a 1D driveline (chrono::ChLinkMotorRotationDriveline or 
        chrono::ChLinkMotorLinearDriveline), then add a **chrono::ChShaftsMotorTorque** in the driveline.
   2. Use SetMotorForce() or SetMotorTorque() methods and pass one of the following:
-     - provide a custom custom function inherited from chrono::ChFunction_SetpointCallback, where you
+     - provide a custom custom function inherited from chrono::ChFunctionSetpointCallback, where you
        implement the SetpointCallback() method (containing code that computes torque/force, automatically
        called at each timestep); 
-     - or just use a concrete chrono::ChFunction_Setpoint function, in this case you just have to 
+     - or just use a concrete chrono::ChFunctionSetpoint function, in this case you just have to 
        manually call myfunction->SetSetpoint(...) in your simulation loop, specifying the torque/force.
   
 The constraint-based approach is suggested if you need a very efficient and idealized actuator model, and you do not care about the control model: the motor reacts instantly to your input, regardless if in real life the control system would be able to reach the set-point or not (assumption of infinitely reactive, infinitely stiff control). Ex: videogames, real-time simulators, etc. 

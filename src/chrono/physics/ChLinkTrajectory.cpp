@@ -27,7 +27,7 @@ ChLinkTrajectory::ChLinkTrajectory() : modulo_s(false) {
     type = LinkType::TRAJECTORY;
 
     // default s(t) function. User will provide better fx.
-    space_fx = chrono_types::make_shared<ChFunction_Ramp>(0, 1.);
+    space_fx = chrono_types::make_shared<ChFunctionRamp>(0, 1.);
 
     // default trajectory is a segment
     trajectory_line = chrono_types::make_shared<ChLineSegment>();

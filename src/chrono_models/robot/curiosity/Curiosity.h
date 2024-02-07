@@ -319,13 +319,13 @@ class CH_MODELS_API Curiosity {
     double GetWheelMass() const;
 
     /// Get drive motor function.
-    std::shared_ptr<ChFunction_Setpoint> GetDriveMotorFunc(CuriosityWheelID id) const {
+    std::shared_ptr<ChFunctionSetpoint> GetDriveMotorFunc(CuriosityWheelID id) const {
         return m_drive_motor_funcs[id];
     }
     /// Get rocker steer motor function (side: 0 for left and 1 for right).
-    std::shared_ptr<ChFunction_Const> GetRockerSteerMotorFunc(int side) const { return m_rocker_motor_funcs[side]; }
+    std::shared_ptr<ChFunctionConst> GetRockerSteerMotorFunc(int side) const { return m_rocker_motor_funcs[side]; }
     /// Get bogie steer motor function (side: 0 for left and 1 for right).
-    std::shared_ptr<ChFunction_Const> GetBogieSteerMotorFunc(int side) const { return m_bogie_motor_funcs[side]; }
+    std::shared_ptr<ChFunctionConst> GetBogieSteerMotorFunc(int side) const { return m_bogie_motor_funcs[side]; }
 
     /// Get drive motor.
     std::shared_ptr<ChLinkMotorRotation> GetDriveMotor(CuriosityWheelID id) const { return m_drive_motors[id]; }
@@ -357,11 +357,11 @@ class CH_MODELS_API Curiosity {
 
     std::array<std::shared_ptr<ChLinkMotorRotation>, 2> m_rocker_motors;    ///< rocker steering motors
     std::array<std::shared_ptr<ChLinkMotorRotation>, 2> m_bogie_motors;     ///< bogie steering motors
-    std::array<std::shared_ptr<ChFunction_Const>, 2> m_rocker_motor_funcs;  ///< rocker steering motor functions
-    std::array<std::shared_ptr<ChFunction_Const>, 2> m_bogie_motor_funcs;   ///< bogie steering motor functions
+    std::array<std::shared_ptr<ChFunctionConst>, 2> m_rocker_motor_funcs;  ///< rocker steering motor functions
+    std::array<std::shared_ptr<ChFunctionConst>, 2> m_bogie_motor_funcs;   ///< bogie steering motor functions
 
     std::array<std::shared_ptr<ChLinkMotorRotation>, 6> m_drive_motors;       ///< drive motors
-    std::array<std::shared_ptr<ChFunction_Setpoint>, 6> m_drive_motor_funcs;  ///< drive motor functions
+    std::array<std::shared_ptr<ChFunctionSetpoint>, 6> m_drive_motor_funcs;  ///< drive motor functions
 
     std::array<std::shared_ptr<ChShaft>, 6> m_drive_shafts;  ///< power shafts for torque-controlled drive mode
 

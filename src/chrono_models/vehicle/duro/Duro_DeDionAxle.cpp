@@ -75,7 +75,7 @@ class Duro_PPSpringForceRear : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionRecorder m_bump;
 };
 
 Duro_PPSpringForceRear::Duro_PPSpringForceRear(double spring_constant, double min_length, double max_length)

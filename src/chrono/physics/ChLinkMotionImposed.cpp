@@ -13,8 +13,8 @@
 // =============================================================================
 
 #include "chrono/physics/ChLinkMotionImposed.h"
-#include "chrono/motion_functions/ChFunctionRotation_ABCfunctions.h"
-#include "chrono/motion_functions/ChFunctionPosition_XYZfunctions.h"
+#include "chrono/motion_functions/ChFunctionRotationABCFunctions.h"
+#include "chrono/motion_functions/ChFunctionPositionXYZFunctions.h"
 
 namespace chrono {
 
@@ -23,8 +23,8 @@ CH_FACTORY_REGISTER(ChLinkMotionImposed)
 
 ChLinkMotionImposed::ChLinkMotionImposed() : ChLinkMateGeneric(true, true, true, true, true, true) {
     // default motion and rotation: no rotation no translation
-	position_function = chrono_types::make_shared<ChFunctionPosition_XYZfunctions>();
-	rotation_function = chrono_types::make_shared<ChFunctionRotation_ABCfunctions>();
+	position_function = chrono_types::make_shared<ChFunctionPositionXYZFunctions>();
+	rotation_function = chrono_types::make_shared<ChFunctionRotationABCFunctions>();
 }
 
 ChLinkMotionImposed::ChLinkMotionImposed(const ChLinkMotionImposed& other) : ChLinkMateGeneric(other) {

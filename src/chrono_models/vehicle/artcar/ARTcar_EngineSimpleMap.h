@@ -44,9 +44,9 @@ class CH_MODELS_API ARTcar_EngineSimpleMap : public ChEngineSimpleMap {
 
     /// Set the engine speed-torque maps.
     /// A concrete class must add the speed-torque points to the provided maps,
-    /// using the ChFunction_Recorder::AddPoint() function.
-    void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< [out] engine map at zero throttle
-                             ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
+    /// using the ChFunctionRecorder::AddPoint() function.
+    void SetEngineTorqueMaps(ChFunctionRecorder& map0,  ///< [out] engine map at zero throttle
+                             ChFunctionRecorder& mapF   ///< [out] engine map at full throttle
                              ) override;
 
   private:

@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
     // .. a motor between crank and truss
     auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_motor->Initialize(mcrank, mfloor, ChFrame<>(crank_center));
-    my_motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 8.0));
+    my_motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 8.0));
     sys.AddLink(my_motor);
 
     // Create the Irrlicht visualization system

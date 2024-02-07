@@ -266,7 +266,7 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
 
         auto load = chrono_types::make_shared<ChLoadBodyForce>(body, max_force * direction, !force_global, point, !point_global);
         if (!m_activate_actuators)
-            load->SetModulationFunction(chrono_types::make_shared<ChFunction_Const>(0));
+            load->SetModulationFunction(chrono_types::make_shared<ChFunctionConst>(0));
         container->Add(load);
 
         m_report.forces.insert(std::make_pair(name, Report::ForceInfo{std::string("PointActuator"), load}));
@@ -285,7 +285,7 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         // passed in its constructor.
         auto load = chrono_types::make_shared<ChLoadBodyBodyTorque>(bodyB, bodyA, max_force * axis, !torque_is_global);
         if (!m_activate_actuators)
-            load->SetModulationFunction(chrono_types::make_shared<ChFunction_Const>(0));
+            load->SetModulationFunction(chrono_types::make_shared<ChFunctionConst>(0));
         container->Add(load);
 
         m_report.forces.insert(std::make_pair(name, Report::ForceInfo{std::string("TorqueActuator"), load}));

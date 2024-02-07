@@ -125,7 +125,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
     // .. a motor between mixer and truss
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 2.0));
+    motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 2.0));
     sys.AddLink(motor);
 }
 

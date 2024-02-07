@@ -112,14 +112,14 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
     m_revolute = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(chassisBody, m_link, ChFrame<>(points[ARM_C], rot.Get_A_quaternion()));
-    auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
+    auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
     m_revolute->SetAngleFunction(motor_fun);
     sys->AddLink(m_revolute);
 }
 
 // -----------------------------------------------------------------------------
 void ChRotaryArm::Synchronize(double time, const DriverInputs& driver_inputs) {
-    auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_revolute->GetAngleFunction());
+    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_revolute->GetAngleFunction());
     fun->SetSetpoint(getMaxAngle() * driver_inputs.m_steering, time);
 }
 

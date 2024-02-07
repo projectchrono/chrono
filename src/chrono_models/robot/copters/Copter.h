@@ -171,7 +171,7 @@ class Copter {
     std::vector<std::shared_ptr<ChForce>> thrusts;      ///< Thrust Forces
     std::vector<std::shared_ptr<ChForce>> backtorques;  ///< Propeller Resistance torques
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> motors;  ///< Propeller Motors
-    std::vector<std::shared_ptr<ChFunction_Const>> speeds;          ///< Propeller Motors Speed Functions
+    std::vector<std::shared_ptr<ChFunctionConst>> speeds;          ///< Propeller Motors Speed Functions
     double Cd = 0;                                                  ///< Drag coefficient
     std::shared_ptr<ChForce> lin_drag;                              ///< Linear drag
     double Surf = 0;                                                ///< Drag Surface
@@ -223,7 +223,7 @@ Copter<nop>::Copter(ChSystem& sys,
         } else {
             propmot->Initialize(prop, chassis, ChFrame<>(ppos[p], motor_rot));
         }
-        auto speed = chrono_types::make_shared<ChFunction_Const>(0);
+        auto speed = chrono_types::make_shared<ChFunctionConst>(0);
         propmot->SetSpeedFunction(speed);
         sys.AddLink(propmot);
 

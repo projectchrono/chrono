@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
     std::cout << "CRG road file: " << crg_road_file << std::endl;
 
     
-    ChFunction_Recorder powRec;
+    ChFunctionRecorder powRec;
     
     std::string datafile = out_dir + "/test_gnuplot_data.dat";
     std::ofstream mdatafile(datafile.c_str());

@@ -85,7 +85,7 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
 
     ContactData m_data;             ///< tire-terrain collision information
     TerrainForce m_tireforce;       ///< tire forces (in tire contact frame)
-    ChFunction_Recorder m_areaDep;  ///< lookup table for estimation of penetration depth from intersection area
+    ChFunctionRecorder m_areaDep;  ///< lookup table for estimation of penetration depth from intersection area
 
     std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
 

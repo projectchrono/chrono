@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
         for (unsigned int ie = 0; ie < emitters.size(); ie++) {
             double tstart = ((double)ie / (double)num_emitters) * 1;
             double tend = tstart + 0.3;
-            ChFunction_Sigma mfuns(3000, tstart, tend);
+            ChFunctionSigma mfuns(3000, tstart, tend);
             emitters[ie].ParticlesPerSecond() = mfuns.Get_y(sys.GetChTime());
             emitters[ie].EmitParticles(sys, timestep);
             // std::cout << ie << "  " << tstart << " " << mfuns.Get_y(application.GetSystem()->GetChTime()) << " " <<

@@ -58,7 +58,7 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double U;   // valve position
 
     std::shared_ptr<chrono::ChHydraulicActuator2> m_actuator;
-    std::shared_ptr<chrono::ChFunction_Setpoint> m_actuation;
+    std::shared_ptr<chrono::ChFunctionSetpoint> m_actuation;
 };
 
 // Create an instance of this FMU

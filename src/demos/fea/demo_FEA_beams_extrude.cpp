@@ -110,9 +110,9 @@ int main(int argc, char* argv[]) {
     mdamping->SetDampingCoefficientsRk((1e-4) * ChVector<>(1, 1, 1));  //***??? -/+
 
     auto mplasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
-    mplasticity->n_yeld_Mx = chrono_types::make_shared<ChFunction_Ramp>(1, 0.01);
-    mplasticity->n_yeld_My = chrono_types::make_shared<ChFunction_Ramp>(0.2, 0.001);
-    mplasticity->n_yeld_Mz = chrono_types::make_shared<ChFunction_Ramp>(0.2, 0.001);
+    mplasticity->n_yeld_Mx = chrono_types::make_shared<ChFunctionRamp>(1, 0.01);
+    mplasticity->n_yeld_My = chrono_types::make_shared<ChFunctionRamp>(0.2, 0.001);
+    mplasticity->n_yeld_Mz = chrono_types::make_shared<ChFunctionRamp>(0.2, 0.001);
 
     auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(minertia, melasticity, mplasticity, mdamping);
 
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     mgear_motorLOW->Initialize(gearLOW, mground, ChFrame<>(gear_centerLOW));
     sys.Add(mgear_motorLOW);
 
-    auto mgear_speedLOW = chrono_types::make_shared<ChFunction_Const>(-0.18);  // [rad/s]
+    auto mgear_speedLOW = chrono_types::make_shared<ChFunctionConst>(-0.18);  // [rad/s]
     mgear_motorLOW->SetSpeedFunction(mgear_speedLOW);
 
     auto gearHI = CreateLobedGear(gear_centerHI, lobe_copies, lobe_width, lobe_primitive_rad, lobe_inner_rad,
@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
     mgear_motorHI->Initialize(gearHI, mground, ChFrame<>(gear_centerHI));
     sys.Add(mgear_motorHI);
 
-    auto mgear_speedHI = chrono_types::make_shared<ChFunction_Const>(0.18);  // [rad/s]
+    auto mgear_speedHI = chrono_types::make_shared<ChFunctionConst>(0.18);  // [rad/s]
     mgear_motorHI->SetSpeedFunction(mgear_speedHI);
 
     // Create the Irrlicht visualization system

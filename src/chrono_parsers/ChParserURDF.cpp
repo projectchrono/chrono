@@ -493,7 +493,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
     if (m_actuated_joints.find(joint->name) != m_actuated_joints.end()) {
         // Create a motor (with a default zero constant motor function)
         auto actuation_type = m_actuated_joints.find(joint->name)->second;
-        auto actuation_fun = chrono_types::make_shared<ChFunction_Const>(0);
+        auto actuation_fun = chrono_types::make_shared<ChFunctionConst>(0);
 
         if (joint_type == urdf::Joint::REVOLUTE || joint_type == urdf::Joint::CONTINUOUS) {
             std::shared_ptr<ChLinkMotorRotation> revolute;

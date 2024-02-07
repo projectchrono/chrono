@@ -104,9 +104,9 @@ int main(int argc, char* argv[]) {
     body_crank->AddVisualShape(mboxcrank, ChFrame<>());
 
     // Create a motor between the truss and the crank:
-    class ChFunction_myf : public ChFunction {
+    class ChFunctionMyFun : public ChFunction {
       public:
-        virtual ChFunction_myf* Clone() const override { return new ChFunction_myf(); }
+        virtual ChFunctionMyFun* Clone() const override { return new ChFunctionMyFun(); }
 
         virtual double Get_y(double x) const override {
             if (x > 0.4)
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->Initialize(body_truss, body_crank, ChFrame<>(vG));
-    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_myf>());
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionMyFun>());
     sys.Add(motor);
 
     // Create a FEM mesh, that is a container for groups

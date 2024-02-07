@@ -51,7 +51,7 @@ class CH_MODELS_API Generic_TMsimpleTire : public ChTMsimpleTire {
     static const double m_mass;
     static const ChVector<> m_inertia;
 
-    ChFunction_Recorder m_stiffnessMap;
+    ChFunctionRecorder m_stiffnessMap;
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;

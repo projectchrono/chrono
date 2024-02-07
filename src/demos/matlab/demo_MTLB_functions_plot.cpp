@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 
         std::cout << "==== Test 1...\n\n";
 
-        ChFunction_Ramp f_ramp;
+        ChFunctionRamp f_ramp;
 
         f_ramp.Set_ang(0.1);  // set angular coefficient;
         f_ramp.Set_y0(0.4);   // set y value for x=0;
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
         // Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
         double ydx = f_ramp.Get_y_dx(10);
 
-        std::cout << "   ChFunction_Ramp at x=0: y=" << y << "  dy/dx=" << ydx << "\n\n";
+        std::cout << "   ChFunctionRamp at x=0: y=" << y << "  dy/dx=" << ydx << "\n\n";
 
         //
         // EXAMPLE 2: plot a sine ChFunction
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 
         std::cout << "==== Test 2...\n\n";
 
-        ChFunction_Sine f_sine;
+        ChFunctionSine f_sine;
 
         f_sine.Set_amp(2);     // set amplitude;
         f_sine.Set_freq(0.9);  // set frequency;

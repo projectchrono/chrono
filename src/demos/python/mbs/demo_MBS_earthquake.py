@@ -147,14 +147,14 @@ link_shaker.Initialize(body_table, body_floor, chrono.CSYSNORM)
 sys.Add(link_shaker)
 
 # ..create the function for imposed x horizontal motion, etc.
-mfunY = chrono.ChFunction_Sine(0,1.5,0.001)  # phase, frequency, amplitude
+mfunY = chrono.ChFunctionSine(0,1.5,0.001)  # phase, frequency, amplitude
 link_shaker.SetMotion_Y(mfunY)
 
 # ..create the function for imposed y vertical motion, etc.
-mfunZ = chrono.ChFunction_Sine(0,1.5,0.12)  # phase, frequency, amplitude
+mfunZ = chrono.ChFunctionSine(0,1.5,0.12)  # phase, frequency, amplitude
 link_shaker.SetMotion_Z(mfunZ)
 
-# Note that you could use other types of ChFunction_ objects, or create
+# Note that you could use other types of ChFunction objects, or create
 # your custom function by class inheritance (see demo_python.py), or also
 # set a function for table rotation , etc.
 

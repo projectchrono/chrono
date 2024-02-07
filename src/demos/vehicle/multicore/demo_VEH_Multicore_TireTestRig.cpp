@@ -108,19 +108,19 @@ int main() {
     // -----------------
 
     // Scenario: driven wheel
-    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10.0));
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10.0));
 
     // Scenario: pulled wheel
-    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(1.0));
+    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(1.0));
 
     // Scenario: imobilized wheel (same scenario could be obtained using ChTireTestRig::Mode::DROP in Initialize())
-    rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.0));
-    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.0));
+    rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
+    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
 
     // Scenario: prescribe all motion functions
-    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
-    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10.0));
-    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.6, 0.2));
+    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.2));
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10.0));
+    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(0, 0.6, 0.2));
 
     // Scenario: specified longitudinal slip
     ////rig.SetConstantLongitudinalSlip(0.2, 0.1);

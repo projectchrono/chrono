@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
-    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, CH_C_PI / 4.0));
     motor->Initialize(wheel, mtruss, ChFrame<>(tire_center, Q_from_AngY(CH_C_PI_2)));
     sys.Add(motor);
 

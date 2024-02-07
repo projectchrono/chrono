@@ -74,8 +74,8 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChNodeFEAxyzrot> nodePlotB;
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodesLoad;
 
-    ChFunction_Recorder ref_X;
-    ChFunction_Recorder ref_Y;
+    ChFunctionRecorder ref_X;
+    ChFunctionRecorder ref_Y;
 
     ChVector<> load_torque;
     ChVector<> load_force;
@@ -463,8 +463,8 @@ int main(int argc, char* argv[]) {
     sys.Setup();
     sys.Update();
 
-    ChFunction_Recorder rec_X;
-    ChFunction_Recorder rec_Y;
+    ChFunctionRecorder rec_X;
+    ChFunctionRecorder rec_Y;
 
     double mtime = 0;
 

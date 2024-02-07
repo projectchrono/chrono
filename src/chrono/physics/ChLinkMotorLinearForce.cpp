@@ -22,7 +22,7 @@ CH_FACTORY_REGISTER(ChLinkMotorLinearForce)
 ChLinkMotorLinearForce::ChLinkMotorLinearForce() {
     this->c_x = false;
     SetupLinkMask();
-    m_func = chrono_types::make_shared<ChFunction_Const>(0.0);
+    m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 }
 
 ChLinkMotorLinearForce::ChLinkMotorLinearForce(const ChLinkMotorLinearForce& other) : ChLinkMotorLinear(other) {}

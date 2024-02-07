@@ -34,10 +34,10 @@ ChMarker::ChMarker()
       last_rel_coord(CSYSNORM),
       last_rel_coord_dt(CSYSNULL),
       last_time(0) {
-    motion_X = chrono_types::make_shared<ChFunction_Const>(0);  // default: no motion
-    motion_Y = chrono_types::make_shared<ChFunction_Const>(0); 
-    motion_Z = chrono_types::make_shared<ChFunction_Const>(0); 
-    motion_ang = chrono_types::make_shared<ChFunction_Const>(0); 
+    motion_X = chrono_types::make_shared<ChFunctionConst>(0);  // default: no motion
+    motion_Y = chrono_types::make_shared<ChFunctionConst>(0); 
+    motion_Z = chrono_types::make_shared<ChFunctionConst>(0); 
+    motion_ang = chrono_types::make_shared<ChFunctionConst>(0); 
 
     UpdateState();
 }
@@ -50,10 +50,10 @@ ChMarker::ChMarker(const std::string& name,
     SetNameString(name);
     Body = body;
 
-    motion_X = chrono_types::make_shared<ChFunction_Const>(0);  // default: no motion
-    motion_Y = chrono_types::make_shared<ChFunction_Const>(0); 
-    motion_Z = chrono_types::make_shared<ChFunction_Const>(0); 
-    motion_ang = chrono_types::make_shared<ChFunction_Const>(0); 
+    motion_X = chrono_types::make_shared<ChFunctionConst>(0);  // default: no motion
+    motion_Y = chrono_types::make_shared<ChFunctionConst>(0); 
+    motion_Z = chrono_types::make_shared<ChFunctionConst>(0); 
+    motion_ang = chrono_types::make_shared<ChFunctionConst>(0); 
     motion_axis = VECT_Z;
 
     rest_coord = CSYSNORM;

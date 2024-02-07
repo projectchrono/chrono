@@ -74,7 +74,7 @@ mtrajectory.Initialize(mpendulum, # body1 that follows the trajectory
 # Optionally, set a function that gets the curvilinear
 # abscyssa s of the line, as a function of time s(t). 
 # By default it was simply  s=t.
-mspacefx = chrono.ChFunction_Ramp(0, 0.5)
+mspacefx = chrono.ChFunctionRamp(0, 0.5)
 mtrajectory.Set_space_fx(mspacefx)
 
 sys.Add(mtrajectory)
@@ -92,7 +92,7 @@ sys.Add(mwheel)
 # Create a motor that spins the wheel
 my_motor = chrono.ChLinkMotorRotationSpeed()
 my_motor.Initialize(mwheel, mfloor, chrono.ChFrameD(chrono.ChVectorD(-3, 2, 0)))
-my_angularspeed = chrono.ChFunction_Const(chrono.CH_C_PI / 4.0)
+my_angularspeed = chrono.ChFunctionConst(chrono.CH_C_PI / 4.0)
 my_motor.SetMotorFunction(my_angularspeed)
 sys.Add(my_motor)
 

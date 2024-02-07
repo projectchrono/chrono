@@ -120,7 +120,7 @@ rotmotor1.Initialize(rotor1,                # body A (slave)
 sys.Add(rotmotor1)
 
 # Create a ChFunction to be used for the ChLinkMotorRotationSpeed
-mwspeed = chrono.ChFunction_Const(chrono.CH_C_PI_2)  # constant angular speed, in [rad/s], 1PI/s =180°/s
+mwspeed = chrono.ChFunctionConst(chrono.CH_C_PI_2)  # constant angular speed, in [rad/s], 1PI/s =180°/s
 # Let the motor use this motion function:
 rotmotor1.SetSpeedFunction(mwspeed)
 
@@ -163,7 +163,7 @@ rotmotor2.Initialize(rotor2,                # body A (slave)
 sys.Add(rotmotor2)
 
 # Create a ChFunction to be used for the ChLinkMotorRotationAngle
-msineangle = chrono.ChFunction_Sine(0,       # phase [rad]
+msineangle = chrono.ChFunctionSine(0,       # phase [rad]
                                     0.05,    # frequency [Hz]
                                     chrono.CH_C_PI)  # amplitude [rad]
 
@@ -195,7 +195,7 @@ rotmotor3.Initialize(rotor3,                # body A (slave)
 sys.Add(rotmotor3)
 
 # The torque(time) function:
-mtorquetime = chrono.ChFunction_Sine(0,   # phase [rad]
+mtorquetime = chrono.ChFunctionSine(0,   # phase [rad]
                                      2,   # frequency [Hz]
                                      160)  # amplitude [Nm]
 
@@ -328,7 +328,7 @@ my_drive.Initialize(my_shaftA,                   # A , the rotor of the drive
 
 sys.Add(my_drive)
 # Create a speed(time) function, and use it in my_drive:
-my_driveangle = chrono.ChFunction_Const(25 * chrono.CH_C_2PI)  # 25 [rps] = 1500 [rpm]
+my_driveangle = chrono.ChFunctionConst(25 * chrono.CH_C_2PI)  # 25 [rps] = 1500 [rpm]
 my_drive.SetSpeedFunction(my_driveangle)
 
 # Create the REDUCER. We should not use the simple ChShaftsGear because
@@ -376,7 +376,7 @@ motor1.Initialize(slider1,               # body A (slave)
 sys.Add(motor1)
 
 # Create a ChFunction to be used for the ChLinkMotorLinearPosition
-msine = chrono.ChFunction_Sine(0,    # phase
+msine = chrono.ChFunctionSine(0,    # phase
                                0.5,  # frequency
                                1.6)   # amplitude
 
@@ -416,7 +416,7 @@ motor2.Initialize(slider2,               # body A (slave)
 sys.Add(motor2)
 
 # Create a ChFunction to be used for the ChLinkMotorLinearSpeed
-msp = chrono.ChFunction_Sine(chrono.CH_C_PI_2,            # phase
+msp = chrono.ChFunctionSine(chrono.CH_C_PI_2,            # phase
                              0.5,                  # frequency
                              1.6 * 0.5 * chrono.CH_C_2PI)  # amplitude
 
@@ -470,14 +470,14 @@ motor3.Initialize(slider3,               # body A (slave)
 sys.Add(motor3)
 
 # Create a ChFunction to be used for F(t) in ChLinkMotorLinearForce.
-mF = chrono.ChFunction_Const(200)
+mF = chrono.ChFunctionConst(200)
 # Let the motor use this motion function:
 motor3.SetForceFunction(mF)
 
 # Alternative: just for fun, use a sine harmonic whose max force is F=M*A, where
 # M is the mass of the slider, A is the max acceleration of the previous examples,
 # so finally the motion should be quite the same - but without feedback, if hits a disturb, it goes crazy:
-mF2 =chrono.ChFunction_Sine(0,                                                        # phase
+mF2 =chrono.ChFunctionSine(0,                                                        # phase
                             0.5,                                                      # frequency
                             slider3.GetMass() * 1.6 * pow(0.5 * chrono.CH_C_2PI, 2) ) # amplitude
 
@@ -505,16 +505,16 @@ sys.Add(motor4)
 # Create a ChFunction that computes F by a user-defined algorithm, as a callback.
 # One quick option would be to inherit from the ChFunction base class, and implement the Get_y()
 # function by putting the code you wish, as explained in demo_CH_functions.cpp. However this has some
-# limitations. A more powerful approach is to inherit from ChFunction_SetpointCallback, that automatically
+# limitations. A more powerful approach is to inherit from ChFunctionSetpointCallback, that automatically
 # computes the derivatives, if needed, by BDF etc. Therefore:
-# 1. You must inherit from the ChFunction_SetpointCallback base class, and implement the SetpointCallback()
+# 1. You must inherit from the ChFunctionSetpointCallback base class, and implement the SetpointCallback()
 #    function by putting the code you wish. For example something like the follow:
 
-class MyForceClass (chrono.ChFunction_SetpointCallback) :
+class MyForceClass (chrono.ChFunctionSetpointCallback) :
       def __init__(self, amp, freq, prop, der, ltime, lerr, f, motor) :
         """ THIS IS CRUCIAL FOR CORRECT INITIALIZATION: Initialize all the three in down-up order """
-        chrono.ChFunction_Setpoint.__init__(self) 
-        chrono.ChFunction_SetpointCallback.__init__(self) 
+        chrono.ChFunctionSetpoint.__init__(self) 
+        chrono.ChFunctionSetpointCallback.__init__(self) 
         
         # Here some specific data to be used in Get_y(),
         # add whatever you need, ex:
@@ -547,7 +547,7 @@ class MyForceClass (chrono.ChFunction_SetpointCallback) :
             
             return self.F
      # def SetSetpoint(self,y,x):
-     #       chrono.ChFunction_Setpoint.SetSetpoint(self,y,x)
+     #       chrono.ChFunctionSetpoint.SetSetpoint(self,y,x)
         
 #      def Update(self, x):
 #            y = self.SetpointCallback(x)
@@ -646,19 +646,19 @@ my_driveli.Initialize(my_shaftB,                   # B    , the rotor of the dri
 sys.Add(my_driveli)
 
 # Create a angle(time) function. It could be something as simple as
-#   my_functangle = chrono.ChFunction_Ramp>(0,  180)
+#   my_functangle = chrono.ChFunctionRamp>(0,  180)
 # but here we'll rather do a back-forth motion, made with a repetition of a sequence of 4 basic functions:
 
-my_functsequence = chrono.ChFunction_Sequence()
-my_funcsigma1 = chrono.ChFunction_Sigma(180, 0, 0.5)  # diplacement, t_start, t_end
-my_funcpause1 = chrono.ChFunction_Const(0)
-my_funcsigma2 = chrono.ChFunction_Sigma(-180, 0, 0.3)  # diplacement, t_start, t_end
-my_funcpause2 = chrono.ChFunction_Const(0)
+my_functsequence = chrono.ChFunctionSequence()
+my_funcsigma1 = chrono.ChFunctionSigma(180, 0, 0.5)  # diplacement, t_start, t_end
+my_funcpause1 = chrono.ChFunctionConst(0)
+my_funcsigma2 = chrono.ChFunctionSigma(-180, 0, 0.3)  # diplacement, t_start, t_end
+my_funcpause2 = chrono.ChFunctionConst(0)
 my_functsequence.InsertFunct(my_funcsigma1, 0.5, 1.0, True)  # fx, duration, weight, enforce C0 continuity
 my_functsequence.InsertFunct(my_funcpause1, 0.2, 1.0, True)  # fx, duration, weight, enforce C0 continuity
 my_functsequence.InsertFunct(my_funcsigma2, 0.3, 1.0, True)  # fx, duration, weight, enforce C0 continuity
 my_functsequence.InsertFunct(my_funcpause2, 0.2, 1.0, True)  # fx, duration, weight, enforce C0 continuity
-my_functangle = chrono.ChFunction_Repeat(my_functsequence)
+my_functangle = chrono.ChFunctionRepeat(my_functsequence)
 my_functangle.Set_window_length(0.5 + 0.2 + 0.3 + 0.2)
 my_driveli.SetAngleFunction(my_functangle)
 
@@ -691,14 +691,14 @@ sys.Add(my_rackpinion)
 # we put a line in the while{...} simulation loop that continuously changes the
 # position by setting a value from some computation.
 #  Well: here one might be tempted to do  motor6.SetMotionFunction(myconst) where
-# myconst is a ChFunction_Const object where you would continuously change the value
+# myconst is a ChFunctionConst object where you would continuously change the value
 # of the constant by doing  myconst.Set_yconst() in the while{...} loop this would
 # work somehow but it would miss the derivative of the function, something that is used
-# in the guts of ChLinkMotorLinearPosition. To overcome this, we'll use a  ChFunction_Setpoint
+# in the guts of ChLinkMotorLinearPosition. To overcome this, we'll use a  ChFunctionSetpoint
 # function, that is able to guess the derivative of the changing setpoby doing numerical
 # differentiation each time you call  myfunction.SetSetpoint().
 #  Note: A more elegant solution would be to inherit our custom motion function
-# from  ChFunction_SetpointCallback  as explained in EXAMPLE B.4, and then setting
+# from  ChFunctionSetpointCallback  as explained in EXAMPLE B.4, and then setting
 # motor6.SetMotionFunction(mycallback) this would avoid polluting the while{...} loop
 # but sometimes is faster to do the quick & dirty approach of this example.
 
@@ -718,7 +718,7 @@ sys.Add(motor6)
 # Create a ChFunction to be used for the ChLinkMotorLinearPosition
 # Note! look later in the while{...} simulation loop, we'll continuously
 # update its value using  motor6setpoint.SetSetpoint()
-motor6setpoint= chrono.ChFunction_Setpoint()
+motor6setpoint= chrono.ChFunctionSetpoint()
 # Let the motor use this motion function:
 motor6.SetMotionFunction(motor6setpoint)
 

@@ -23,7 +23,7 @@
 #include <valarray>
 #include <vector>
 
-#include <chrono/motion_functions/ChFunction_Recorder.h>
+#include <chrono/motion_functions/ChFunctionRecorder.h>
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMathematics.h"
 #include "chrono/core/ChVector.h"
@@ -566,9 +566,9 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
     ChButterworth_Lowpass m_legacy_lpz;
 
     // buffers for raw but antialiased input data
-    ChFunction_Recorder m_raw_inp_x;
-    ChFunction_Recorder m_raw_inp_y;
-    ChFunction_Recorder m_raw_inp_z;
+    ChFunctionRecorder m_raw_inp_x;
+    ChFunctionRecorder m_raw_inp_y;
+    ChFunctionRecorder m_raw_inp_z;
 
     // buffers for resampled input data
     std::vector<double> m_inp_x;

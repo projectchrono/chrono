@@ -21,9 +21,9 @@
 
 #include "chrono/core/ChMatrix.h"
 #include "chrono/assets/ChColor.h"
-#include "chrono/motion_functions/ChFunction_Base.h"
-#include "chrono/motion_functions/ChFunction_Recorder.h"
-#include "chrono/motion_functions/ChFunction_Oscilloscope.h"
+#include "chrono/motion_functions/ChFunctionBase.h"
+#include "chrono/motion_functions/ChFunctionRecorder.h"
+#include "chrono/motion_functions/ChFunctionOscilloscope.h"
 
 #include "chrono_postprocess/ChApiPostProcess.h"
 
@@ -143,8 +143,8 @@ class ChGnuPlot {
         Plot(x, y, title, customsettings);
     }
 
-    /// Plot 2D (x,y) data from a ChFunction_recorder
-    void Plot(ChFunction_Recorder& recorder,
+    /// Plot 2D (x,y) data from a ChFunctionRecorder
+    void Plot(ChFunctionRecorder& recorder,
               const std::string& title = "",
               const std::string& customsettings = " with lines ") {
         ChVectorDynamic<> x(recorder.GetPoints().size());
@@ -180,8 +180,8 @@ class ChGnuPlot {
         Plot(x, y, title, customsettings);
     }
 
-    /// Plot 2D (x,y) data from a ChFunction_Oscilloscope.
-    void Plot(ChFunction_Oscilloscope& recorder,
+    /// Plot 2D (x,y) data from a ChFunctionOscilloscope.
+    void Plot(ChFunctionOscilloscope& recorder,
               const std::string& title = "",
               const std::string& customsettings = " with lines ") {
         ChVectorDynamic<> x(recorder.GetPointList().size());
@@ -203,7 +203,7 @@ class ChGnuPlot {
     }
 
     /// Plot 2D (x,y) data from a generic ChFunction.
-    /// Note that if the ChFunction is of type ChFunction_Oscilloscope or ChFunction_Recorder, there
+    /// Note that if the ChFunction is of type ChFunctionOscilloscope or ChFunctionRecorder, there
     /// are specific Plot() functions that can leverage their point-like nature in a better way.
     void Plot(ChFunction& funct,
               double xmin,

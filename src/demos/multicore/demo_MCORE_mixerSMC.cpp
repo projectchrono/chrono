@@ -94,7 +94,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
     // Create a motor between the two bodies, constrained to rotate at 90 deg/s
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->Initialize(mixer, bin, ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 2));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, CH_C_PI / 2));
     sys->AddLink(motor);
 
     return mixer;

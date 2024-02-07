@@ -105,7 +105,7 @@ void ExampleA1(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
 
     // Create a ChFunction to be used for the ChLinkMotorRotationSpeed
     auto mwspeed =
-        chrono_types::make_shared<ChFunction_Const>(CH_C_PI_2);  // constant angular speed, in [rad/s], 1PI/s =180°/s
+        chrono_types::make_shared<ChFunctionConst>(CH_C_PI_2);  // constant angular speed, in [rad/s], 1PI/s =180ï¿½/s
     // Let the motor use this motion function:
     rotmotor1->SetSpeedFunction(mwspeed);
 
@@ -152,7 +152,7 @@ void ExampleA2(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     sys.Add(rotmotor2);
 
     // Create a ChFunction to be used for the ChLinkMotorRotationAngle
-    auto msineangle = chrono_types::make_shared<ChFunction_Sine>(0,       // phase [rad]
+    auto msineangle = chrono_types::make_shared<ChFunctionSine>(0,       // phase [rad]
                                                                  0.05,    // frequency [Hz]
                                                                  CH_C_PI  // amplitude [rad]
     );
@@ -188,7 +188,7 @@ void ExampleA3(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     sys.Add(rotmotor3);
 
     // The torque(time) function:
-    auto mtorquetime = chrono_types::make_shared<ChFunction_Sine>(0,   // phase [rad]
+    auto mtorquetime = chrono_types::make_shared<ChFunctionSine>(0,   // phase [rad]
                                                                   2,   // frequency [Hz]
                                                                   160  // amplitude [Nm]
     );
@@ -292,7 +292,7 @@ void ExampleB1(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     sys.Add(motor1);
 
     // Create a ChFunction to be used for the ChLinkMotorLinearPosition
-    auto msine = chrono_types::make_shared<ChFunction_Sine>(0,    // phase
+    auto msine = chrono_types::make_shared<ChFunctionSine>(0,    // phase
                                                             0.5,  // frequency
                                                             1.4   // amplitude
     );
@@ -336,7 +336,7 @@ void ExampleB2(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     sys.Add(motor2);
 
     // Create a ChFunction to be used for the ChLinkMotorLinearSpeed
-    auto msp = chrono_types::make_shared<ChFunction_Sine>(CH_C_PI_2,            // phase
+    auto msp = chrono_types::make_shared<ChFunctionSine>(CH_C_PI_2,            // phase
                                                           0.5,                  // frequency
                                                           1.6 * 0.5 * CH_C_2PI  // amplitude
     );
@@ -394,7 +394,7 @@ void ExampleB3(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     sys.Add(motor3);
 
     // Create a ChFunction to be used for F(t) in ChLinkMotorLinearForce.
-    auto mF = chrono_types::make_shared<ChFunction_Const>(200);
+    auto mF = chrono_types::make_shared<ChFunctionConst>(200);
     // Let the motor use this motion function:
     motor3->SetForceFunction(mF);
 
@@ -402,7 +402,7 @@ void ExampleB3(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // M is the mass of the slider, A is the max acceleration of the previous examples,
     // so finally the motion should be quite the same - but without feedback, if hits a disturb, it goes crazy:
     auto mF2 =
-        chrono_types::make_shared<ChFunction_Sine>(0,                                                 // phase
+        chrono_types::make_shared<ChFunctionSine>(0,                                                 // phase
                                                    0.5,                                               // frequency
                                                    slider3->GetMass() * 1.6 * pow(0.5 * CH_C_2PI, 2)  // amplitude
         );
@@ -434,12 +434,12 @@ void ExampleB4(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // Create a ChFunction that computes F by a user-defined algorithm, as a callback.
     // One quick option would be to inherit from the ChFunction base class, and implement the Get_y()
     // function by putting the code you wish, as explained in demo_CH_functions.cpp. However this has some
-    // limitations. A more powerful approach is to inherit from ChFunction_SetpointCallback, that automatically
+    // limitations. A more powerful approach is to inherit from ChFunctionSetpointCallback, that automatically
     // computes the derivatives, if needed, by BDF etc. Therefore:
-    // 1. You must inherit from the ChFunction_SetpointCallback base class, and implement the SetpointCallback()
+    // 1. You must inherit from the ChFunctionSetpointCallback base class, and implement the SetpointCallback()
     //    function by putting the code you wish. For example something like the follow:
 
-    class MyForceClass : public ChFunction_SetpointCallback {
+    class MyForceClass : public ChFunctionSetpointCallback {
       public:
         // Here some specific data to be used in Get_y(),
         // add whatever you need, ex:

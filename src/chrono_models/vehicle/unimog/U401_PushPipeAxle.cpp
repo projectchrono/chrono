@@ -75,7 +75,7 @@ class U401_PPSpringForceRear : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionRecorder m_bump;
 };
 
 U401_PPSpringForceRear::U401_PPSpringForceRear(double spring_constant, double min_length, double max_length)

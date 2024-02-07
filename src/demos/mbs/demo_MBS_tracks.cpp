@@ -216,7 +216,7 @@ class MySimpleTank {
         // .. create the motor joint between the wheel and the truss (simplified motor model: just impose speed..)
         link_motorRB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         link_motorRB->SetSpeedFunction(
-            chrono_types::make_shared<ChFunction_Const>());  // actually, default function type
+            chrono_types::make_shared<ChFunctionConst>());  // actually, default function type
         link_motorRB->Initialize(wheelRB, truss, ChFrame<>(ChVector<>(mx, my + radiustrack, 0), QUNIT));
         sys.AddLink(link_motorRB);
 
@@ -248,7 +248,7 @@ class MySimpleTank {
         // .. create the motor joint between the wheel and the truss (simplified motor model: just impose speed..)
         link_motorLB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         link_motorLB->SetSpeedFunction(
-            chrono_types::make_shared<ChFunction_Const>());  // actually, default function type
+            chrono_types::make_shared<ChFunctionConst>());  // actually, default function type
         link_motorLB->Initialize(wheelLB, truss, ChFrame<>(ChVector<>(mx, my + radiustrack, rlwidth), QUNIT));
         sys.AddLink(link_motorLB);
 
@@ -485,7 +485,7 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newthrottle = ((double)(pos)-50) / 50.0;
                         this->mtank->throttleR = newthrottle;
-                        auto mfun = std::static_pointer_cast<ChFunction_Const>(mtank->link_motorRB->GetSpeedFunction());
+                        auto mfun = std::static_pointer_cast<ChFunctionConst>(mtank->link_motorRB->GetSpeedFunction());
                         mfun->Set_yconst(newthrottle * 6);
                         return true;
                     }
@@ -493,7 +493,7 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newthrottle = ((double)(pos)-50) / 50.0;
                         this->mtank->throttleL = newthrottle;
-                        auto mfun = std::static_pointer_cast<ChFunction_Const>(mtank->link_motorLB->GetSpeedFunction());
+                        auto mfun = std::static_pointer_cast<ChFunctionConst>(mtank->link_motorLB->GetSpeedFunction());
                         mfun->Set_yconst(newthrottle * 6);
                         return true;
                     }

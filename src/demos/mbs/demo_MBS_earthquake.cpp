@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/motion_functions/ChFunction_Sine.h"
+#include "chrono/motion_functions/ChFunctionSine.h"
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono/assets/ChVisualSystem.h"
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     auto linkEarthquake = chrono_types::make_shared<ChLinkLockLock>();
     linkEarthquake->Initialize(tableBody, floorBody, ChCoordsys<>(ChVector<>(0, 0, 0)));
 
-    auto mmotion_x = chrono_types::make_shared<ChFunction_Sine>(0, 0.6, 0.2);  // phase freq ampl
+    auto mmotion_x = chrono_types::make_shared<ChFunctionSine>(0, 0.6, 0.2);  // phase freq ampl
     linkEarthquake->SetMotion_X(mmotion_x);
 
     sys.Add(linkEarthquake);

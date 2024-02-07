@@ -98,13 +98,13 @@ int main(int argc, char* argv[]) {
         // functions!!!
         auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         my_motor->Initialize(my_body_hub, my_body_A, ChFrame<>(ChVector<>(0, 0, 1)));
-        auto my_speed = chrono_types::make_shared<ChFunction_Const>(rad_s);  // rad/s
+        auto my_speed = chrono_types::make_shared<ChFunctionConst>(rad_s);  // rad/s
         my_motor->SetSpeedFunction(my_speed);
         sys.Add(my_motor);
     } else {
         auto my_motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
         my_motor->Initialize(my_body_hub, my_body_A, ChFrame<>(ChVector<>(0, 0, 1)));
-        auto my_angle = chrono_types::make_shared<ChFunction_Ramp>(0, rad_s);  // alpha_0, dalpha/dt (in rad/s)
+        auto my_angle = chrono_types::make_shared<ChFunctionRamp>(0, rad_s);  // alpha_0, dalpha/dt (in rad/s)
         my_motor->SetAngleFunction(my_angle);
         sys.Add(my_motor);
     }
@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
     auto my_root = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     my_root->Initialize(nodes.front(), my_body_hub,
                         ChFrame<>(ChVector<>(0, 0.5, 1), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    auto my_angle = chrono_types::make_shared<ChFunction_Const>(0);  // rad
+    auto my_angle = chrono_types::make_shared<ChFunctionConst>(0);  // rad
     my_root->SetMotorFunction(my_angle);
     sys.Add(my_root);
 
@@ -437,7 +437,7 @@ int main(int argc, char* argv[]) {
         /*
         // for simplified testing of the tilting control of the blade, with sudden jump:
         if (sys.GetChTime() > 2){
-            if (auto myfunct = std::dynamic_pointer_cast<ChFunction_Const>(my_root->GetMotorFunction()))
+            if (auto myfunct = std::dynamic_pointer_cast<ChFunctionConst>(my_root->GetMotorFunction()))
                 myfunct->Set_yconst(0.4);
         }
         */

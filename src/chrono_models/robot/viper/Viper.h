@@ -292,10 +292,10 @@ class CH_MODELS_API Viper {
 
     /// Get drive motor function.
     /// This will return an empty pointer if the associated driver uses torque control.
-    std::shared_ptr<ChFunction_Setpoint> GetDriveMotorFunc(ViperWheelID id) const { return m_drive_motor_funcs[id]; }
+    std::shared_ptr<ChFunctionSetpoint> GetDriveMotorFunc(ViperWheelID id) const { return m_drive_motor_funcs[id]; }
 
     /// Get steer motor function.
-    std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(ViperWheelID id) const { return m_steer_motor_funcs[id]; }
+    std::shared_ptr<ChFunctionConst> GetSteerMotorFunc(ViperWheelID id) const { return m_steer_motor_funcs[id]; }
 
     /// Get drive motor.
     /// This will return an empty pointer if the associated driver uses torque control.
@@ -327,9 +327,9 @@ class CH_MODELS_API Viper {
     std::array<std::shared_ptr<ChLinkMotorRotation>, 4> m_steer_motors;  ///< steering motors
     std::array<std::shared_ptr<ChLinkMotorRotation>, 4> m_lift_motors;   ///< lifting motors
 
-    std::array<std::shared_ptr<ChFunction_Setpoint>, 4> m_drive_motor_funcs;  ///< drive motor functions
-    std::array<std::shared_ptr<ChFunction_Const>, 4> m_steer_motor_funcs;     ///< steering motor functions
-    std::array<std::shared_ptr<ChFunction_Const>, 4> m_lift_motor_funcs;      ///< lifting motor functions
+    std::array<std::shared_ptr<ChFunctionSetpoint>, 4> m_drive_motor_funcs;  ///< drive motor functions
+    std::array<std::shared_ptr<ChFunctionConst>, 4> m_steer_motor_funcs;     ///< steering motor functions
+    std::array<std::shared_ptr<ChFunctionConst>, 4> m_lift_motor_funcs;      ///< lifting motor functions
 
     std::array<std::shared_ptr<ChLinkTSDA>, 4> m_springs;    ///< suspension springs
     std::array<std::shared_ptr<ChShaft>, 4> m_drive_shafts;  ///< wheel drive-shafts

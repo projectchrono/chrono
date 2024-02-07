@@ -705,8 +705,8 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         post_R->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
 
         // Create and initialize actuators
-        auto func_L = chrono_types::make_shared<ChFunction_Setpoint>();
-        auto func_R = chrono_types::make_shared<ChFunction_Setpoint>();
+        auto func_L = chrono_types::make_shared<ChFunctionSetpoint>();
+        auto func_R = chrono_types::make_shared<ChFunctionSetpoint>();
 
         auto linact_L = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_L->SetNameString("L_post_linActuator");
@@ -768,8 +768,8 @@ void ChSuspensionTestRigPlatform::UpdateActuators(std::vector<double> displ_left
                                                   std::vector<double> displ_right,
                                                   std::vector<double> displ_speed_right) {
     for (int ia = 0; ia < m_naxles; ia++) {
-        auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_L[ia]->GetMotionFunction());
-        auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_R[ia]->GetMotionFunction());
+        auto func_L = std::static_pointer_cast<ChFunctionSetpoint>(m_linact_L[ia]->GetMotionFunction());
+        auto func_R = std::static_pointer_cast<ChFunctionSetpoint>(m_linact_R[ia]->GetMotionFunction());
 
         // Flip signs (because of motor definition) so that positive input represents upward motion
         func_L->SetSetpointAndDerivatives(-displ_left[ia], -displ_speed_left[ia], 0.0);
@@ -830,8 +830,8 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
         // These connect the spindle centers with ground points directly below the spindles at the initial
         // configuration. To enforce this, the order of connected bodies is important (motor master frame must be
         // aligned with chassis frame).
-        auto func_L = chrono_types::make_shared<ChFunction_Setpoint>();
-        auto func_R = chrono_types::make_shared<ChFunction_Setpoint>();
+        auto func_L = chrono_types::make_shared<ChFunctionSetpoint>();
+        auto func_R = chrono_types::make_shared<ChFunctionSetpoint>();
 
         const auto& pos_spindleL = suspension->GetSpindle(LEFT)->GetPos();
         const auto& pos_spindleR = suspension->GetSpindle(RIGHT)->GetPos();
@@ -897,8 +897,8 @@ void ChSuspensionTestRigPushrod::UpdateActuators(std::vector<double> displ_left,
                                                  std::vector<double> displ_right,
                                                  std::vector<double> displ_speed_right) {
     for (int ia = 0; ia < m_naxles; ia++) {
-        auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_L[ia]->GetMotionFunction());
-        auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_R[ia]->GetMotionFunction());
+        auto func_L = std::static_pointer_cast<ChFunctionSetpoint>(m_linact_L[ia]->GetMotionFunction());
+        auto func_R = std::static_pointer_cast<ChFunctionSetpoint>(m_linact_R[ia]->GetMotionFunction());
 
         // Flip signs (because of motor definition) so that positive input represents upward motion
         func_L->SetSetpointAndDerivatives(-displ_left[ia], -displ_speed_left[ia], 0.0);

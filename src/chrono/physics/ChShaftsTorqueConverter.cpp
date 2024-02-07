@@ -29,8 +29,8 @@ ChShaftsTorqueConverter::ChShaftsTorqueConverter()
       torque_out(0),
       state_warning_reverseflow(false),
       state_warning_wrongimpellerdirection(false) {
-    K = chrono_types::make_shared<ChFunction_Const>(0.9);
-    T = chrono_types::make_shared<ChFunction_Const>(0.9);
+    K = chrono_types::make_shared<ChFunctionConst>(0.9);
+    T = chrono_types::make_shared<ChFunctionConst>(0.9);
 }
 
 ChShaftsTorqueConverter::ChShaftsTorqueConverter(const ChShaftsTorqueConverter& other) : ChPhysicsItem(other) {

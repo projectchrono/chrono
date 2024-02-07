@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     double last_speed = -1;
 
     // Record vehicle speed
-    ChFunction_Recorder speed_recorder, dist_recorder;
+    ChFunctionRecorder speed_recorder, dist_recorder;
 
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
