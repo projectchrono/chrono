@@ -22,7 +22,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #ifdef CHRONO_COLLISION
-    #include "chrono/collision/ChCollisionSystemChrono.h"
+    #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -35,7 +35,6 @@
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
@@ -126,7 +125,7 @@ int main(int argc, char* argv[]) {
     sys.SetNumThreads(nthreads, nthreads, 1);
     if (chrono_collsys) {
 #ifdef CHRONO_COLLISION
-        auto collsys = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
+        auto collsys = chrono_types::make_shared<ChCollisionSystemMulticore>();
         collsys->SetBroadphaseGridResolution(ChVector<int>(2, 2, 1));
         sys.SetCollisionSystem(collsys);
 #endif
@@ -142,7 +141,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetChassisFixed(false);
     hmmwv.SetInitPosition(ChCoordsys<>(init_loc, init_rot));
     hmmwv.SetEngineType(EngineModelType::SHAFTS);
-    hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
+    hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     hmmwv.SetTireType(TireModelType::RIGID);
     hmmwv.SetTireStepSize(step_size);
@@ -165,7 +164,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------------------
     // Set tire contact material, contact model, and visualization
     // -----------------------------------------------------------
-    auto wheel_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto wheel_material = chrono_types::make_shared<ChContactMaterialSMC>();
     wheel_material->SetFriction(0.8f);
     wheel_material->SetYoungModulus(1.0e6f);
     wheel_material->SetRestitution(0.1f);
