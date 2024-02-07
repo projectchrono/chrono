@@ -5,11 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-  - [Refactored ChArchive](#changed-refactored-charchive)
-  - [Removed ChLog](#removed-removed-chlog)
-  - [Removed ChStream](#removed-removed-chstream)
-  - [Removed ChList](#removed-removed-chlist)
-  - [Removed ChException](#removed-removed-chexception)
+  - [Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
   - [Updated Chrono::VSG module](#changed-updated-chronovsg-module)
   - [New motion functions and filters](#added-new-motion-functions-and-filters)
   - [Updated ChBlender exporter to Blender4.0](#changed-updated-chblender-exporter-to-blender40)
@@ -103,40 +99,81 @@ Change Log
 
 ## Unreleased (development branch)
 
-## [Changed] Refactored ChArchive
-`ChArchive` classes have been refactored to adapt to the direct use of STL streams and have been renamed to differentiate between:
-- proper serialization/deserialization classes, that kept the same name:
-  + `ChArchiveJSON[In/Out]`
-  + `ChArchiveXML[In/Out]`
-  + `ChArchiveBinary[In/Out]`
-- auxiliary classes that, while still leveraging the `ChArchive` features, allowed only to export, but not to load back objects;
-  this have been renamed to reflect the fact that are _not_ archives in the strict sense;
-  + `ChArchiveAsciiDump` --> `ChOutputASCII`
-  + `ChArchiveExplorer` --> `ChObjectExplorer`
+### [Changed] Refactoring of class and function names
 
-The behaviour is untouched, except for the removal of `ChStream`.
+For consistency and uniformity, many class and functions were renamed and some classes obsoleted.
+Note that this represents a major public API change and we expect most user code will need to be updated to reflect these changes.
 
-## [Removed] Removed ChLog 
-`ChLog` classes used to offer a way to simplify the logging of various messages either to console or to file, also providing different levels of verbosity. However, due to the obsolescence of the methods, combined to the fact that the usage of the verbosity level were none, the class and its inherited has been removed.
+**Header files**
 
-## [Removed] Removed ChStream
-`ChStream` classes used to offer helper/auxiliary methods to operate on streams, while internally hiding (not inheriting from) STL objects. The entire code has been now refactored to operate on STL streams directly, in order to simplify the API and to allow the user a more familiar interaction with streams in Chrono.
+| File                          | Action                             |
+| :---------------------------- | :--------------------------------- |
+| ChException.h                 | remove                             |
+| ChLists.h                     | remove                             |
+| ChLog.h                       | remove                             |
+| ChMaterialSurface.h           | rename: ChContactMaterial.h        |
+| ChMaterialSurfaceNSC.h        | rename: ChContactMaterialNSC.h     |
+| ChMaterialSurfaceSMC.h        | rename: ChContactMaterialSMC.h     |
+| ChSolvmin.h                   | remove                             |
+| ChStream.h                    | remove                             |
+ 
+**Classes and functions**
 
-Few changes are particuarly relevant:
-- the `operator<<` associated to `ChStreamOutAscii` has been removed: this means that it is not possible to stream custom classes through this operator;
-  this option has been replaced by appropriate overloads of STL streams (clearly limited to data members publicly accessible) or by the direct usage of `ChOutputASCII`
-- `ChStream[In/Out]Binary` features to operate on streams through the `read|write` methods have been incorporated into the only other class that was using it `ChArchiveBinary`: users that have to deal with binary streams should take care of their own implementation now;
+| Class                             | Function            | Action                                           |
+| :-------------------------------- | :------------------ | :----------------------------------------------- |
+| -                                 | GetLog              | remove                                           |
+| -                                 | SetLog              | remove                                           |
+| -                                 | SetLogDefault       | remove                                           |
+| ChArchiveAsciiDump                |                     | renamed: ChOutputASCII                           |
+| ChArchiveExplorer                 |                     | renamed: ChObjectExplorer                        |
+| ChBinaryArchive                   |                     | remove                                           |
+| ChException                       |                     | remove                                           |
+| ChList                            |                     | remove                                           |
+| ChLog                             |                     | remove                                           |
+| ChLogConsole                      |                     | remove                                           |
+| ChMaterialSurface                 |                     | renamed: ChContactMaterial                       |
+|                                   | SetSfriction        | renamed: SetStaticFriction                       |
+|                                   | GetSfriction        | renamed: GetStaticFriction                       |
+|                                   | SetKfriction        | renamed: SetSlidingFriction                      |
+|                                   | GetKfriction        | renamed: GetSlidingFriction                      |
+| ChMaterialComposite               |                     | renamed: ChContactMaterialComposite              |
+| ChMaterialCompositeNSC            |                     | renamed: ChContactMaterialCompositeNSC           |
+| ChMaterialCompositeSMC            |                     | renamed: ChContactMaterialCompositeSMC           |
+| ChMaterialCompositionStrategy     |                     | renamed: ChContactMaterialCompositionStrategy    |
+| ChStream                          |                     | remove                                           |
+| ChStreamFile                      |                     | remove                                           |
+| ChStreamIn                        |                     | remove                                           |
+| ChStreamInAscii                   |                     | remove                                           |
+| ChStreamInAsciiFile               |                     | remove                                           |
+| ChStreamInBinary                  |                     | remove                                           |
+| ChStreamInBinaryFile              |                     | remove                                           |
+| ChStreamOut                       |                     | remove                                           |
+| ChStreamOutAscii                  |                     | remove                                           |
+| ChStreamOutAsciiFile              |                     | remove                                           |
+| ChStreamOutBinary                 |                     | remove                                           |
+| ChStreamOutBinaryFile             |                     | remove                                           |
 
-## [Removed] Removed ChList
-This old implementation has been removed since it was unused.
-
-## [Removed] Removed ChException
-`ChException` classes used to offer a wrap to STL exceptions while adding some limited features. Since they were inheriting from `stl::exception` their replacement with standrard STL objects should be straightforward. It is advisable to take the chance to revisit the code so to use more dedicated version of `std::exceptions` (e.g. `std::runtime_error`, `std::invalid_argument`, etc)
 
 
-## [Changed] Updated Chrono::VSG module
+**Notes**
 
-The Chrono::VSG module was updated to use newer version of the VSG libraries.
++ `ChStream` classes were simple wrappers arounf C++ ouptut streams. The entire code has been now refactored to operate on STL streams directly, in order to simplify the API and to allow the user a more familiar interaction with streams in Chrono.
+  - the `operator<<` associated to `ChStreamOutAscii` has been removed: this means that it is not possible to stream custom classes through this operator;
+  this option has been replaced by appropriate overloads of STL streams (clearly limited to data members publicly accessible) or by the direct usage of `ChOutputASCII`.
+  - `ChStream[In/Out]Binary` features to operate on streams through the `read|write` methods have been incorporated into the one class that was using it `ChArchiveBinary`. 
+
++ `ChArchive` classes have been refactored to adapt to the direct use of STL streams and have been renamed for consistency and clarity.
+  - proper serialization/deserialization classes kept the same name:
+    + `ChArchiveJSON[In/Out]`
+    + `ChArchiveXML[In/Out]`
+    + `ChArchiveBinary[In/Out]`
+  - auxiliary classes which, while still leveraging the `ChArchive` features, allow only export but not loading back objects were renamed:
+    + `ChArchiveAsciiDump` --> `ChOutputASCII`
+    + `ChArchiveExplorer` --> `ChObjectExplorer`
+
+### [Changed] Updated Chrono::VSG module
+
+The Chrono::VSG m,odule was updated to use newer version of the VSG libraries.
 - Adds shadow support (enabled in several demos).
 - Includes an optional argument to the `ChVisualSystemVSG` constructor to specify the tesselation resolution for round primitive shapes. This is provided as a number of divisions of a full circle, with a default value of 24, corresponding to a 15 degree angular increment. 
 - No other changes to the public API.
