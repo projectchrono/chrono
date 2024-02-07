@@ -550,7 +550,7 @@ class ChValueSpecific : public ChValue {
 
     virtual void CallArchiveOutConstructor(ChArchiveOut& marchive) { this->_archive_out_constructor(marchive); }
 
-    virtual void CallOut(ChArchiveOut& marchive) { marchive.out(CHNVP(*this->_ptr_to_val, this->_name.c_str())); }
+    virtual void CallOut(ChArchiveOut& marchive);
 
   private:
     virtual void thrower() const { throw static_cast<TClass*>(_ptr_to_val); }
@@ -1362,6 +1362,10 @@ class ChApi ChArchiveIn : public ChArchive {
   protected:
     virtual int in_version(const std::type_index mtypeid);
 };
+
+template <class TClass>
+void ChValueSpecific<TClass>::CallOut(ChArchiveOut& marchive) { marchive.out(CHNVP(*this->_ptr_to_val, this->_name.c_str())); }
+
 
 /// @} chrono_serialization
 
