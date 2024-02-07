@@ -642,7 +642,7 @@ int main(int argc, char* argv[]) {
       public:
         virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
-            auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
+            auto mat = static_cast<ChContactMaterialCompositeNSC* const>(material);
 
             if (contactinfo.vpA.x() > 0)
                 mat->static_friction = 0.7f;  // On the right of the plane, less friction...

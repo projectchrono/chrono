@@ -23,10 +23,10 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChContactMaterialNSC)
-CH_FACTORY_REGISTER(ChMaterialCompositeNSC)
+CH_FACTORY_REGISTER(ChContactMaterialCompositeNSC)
 
 CH_UPCASTING(ChContactMaterialNSC, ChContactMaterial)
-CH_UPCASTING(ChMaterialCompositeNSC, ChContactMaterialComposite)
+CH_UPCASTING(ChContactMaterialCompositeNSC, ChContactMaterialComposite)
 
 ChContactMaterialNSC::ChContactMaterialNSC()
     : ChContactMaterial(),
@@ -80,7 +80,7 @@ void ChContactMaterialNSC::ArchiveIn(ChArchiveIn& marchive) {
 
 // -----------------------------------------------------------------------------
 
-ChMaterialCompositeNSC::ChMaterialCompositeNSC()
+ChContactMaterialCompositeNSC::ChContactMaterialCompositeNSC()
     : static_friction(0),
       sliding_friction(0),
       rolling_friction(0),
@@ -93,9 +93,9 @@ ChMaterialCompositeNSC::ChMaterialCompositeNSC()
       complianceRoll(0),
       complianceSpin(0) {}
 
-ChMaterialCompositeNSC::ChMaterialCompositeNSC(ChContactMaterialCompositionStrategy* strategy,
-                                               std::shared_ptr<ChContactMaterialNSC> mat1,
-                                               std::shared_ptr<ChContactMaterialNSC> mat2) {
+ChContactMaterialCompositeNSC::ChContactMaterialCompositeNSC(ChContactMaterialCompositionStrategy* strategy,
+                                                             std::shared_ptr<ChContactMaterialNSC> mat1,
+                                                             std::shared_ptr<ChContactMaterialNSC> mat2) {
     static_friction = strategy->CombineFriction(mat1->static_friction, mat2->static_friction);
     sliding_friction = strategy->CombineFriction(mat1->sliding_friction, mat2->sliding_friction);
     restitution = strategy->CombineRestitution(mat1->restitution, mat2->restitution);
@@ -110,9 +110,9 @@ ChMaterialCompositeNSC::ChMaterialCompositeNSC(ChContactMaterialCompositionStrat
     complianceSpin = strategy->CombineCompliance(mat1->complianceSpin, mat2->complianceSpin);
 }
 
-void ChMaterialCompositeNSC::ArchiveOut(ChArchiveOut& marchive) {
+void ChContactMaterialCompositeNSC::ArchiveOut(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChMaterialCompositeNSC>();
+    marchive.VersionWrite<ChContactMaterialCompositeNSC>();
 
     // serialize parent class
     ChContactMaterialComposite::ArchiveOut(marchive);
@@ -131,9 +131,9 @@ void ChMaterialCompositeNSC::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(complianceSpin);
 }
 
-void ChMaterialCompositeNSC::ArchiveIn(ChArchiveIn& marchive) {
+void ChContactMaterialCompositeNSC::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/marchive.VersionRead<ChMaterialCompositeNSC>();
+    /*int version =*/marchive.VersionRead<ChContactMaterialCompositeNSC>();
 
     // deserialize parent class
     ChContactMaterialComposite::ArchiveIn(marchive);

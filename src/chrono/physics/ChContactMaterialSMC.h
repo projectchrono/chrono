@@ -98,7 +98,7 @@ class ChApi ChContactMaterialSMC : public ChContactMaterial {
 CH_CLASS_VERSION(ChContactMaterialSMC, 0)
 
 /// Composite SMC material data for a contact pair.
-class ChApi ChMaterialCompositeSMC : public ChContactMaterialComposite {
+class ChApi ChContactMaterialCompositeSMC : public ChContactMaterialComposite {
   public:
     float E_eff;                ///< Effective elasticity modulus
     float G_eff;                ///< Effective shear modulus
@@ -115,11 +115,11 @@ class ChApi ChMaterialCompositeSMC : public ChContactMaterialComposite {
     float gn;  ///< normal viscous damping coefficient
     float gt;  ///< tangential viscuous damping coefficient
 
-    ChMaterialCompositeSMC();
+    ChContactMaterialCompositeSMC();
 
-    ChMaterialCompositeSMC(ChContactMaterialCompositionStrategy* strategy,
-                           std::shared_ptr<ChContactMaterialSMC> mat1,
-                           std::shared_ptr<ChContactMaterialSMC> mat2);
+    ChContactMaterialCompositeSMC(ChContactMaterialCompositionStrategy* strategy,
+                                  std::shared_ptr<ChContactMaterialSMC> mat1,
+                                  std::shared_ptr<ChContactMaterialSMC> mat2);
 };
 
 }  // end namespace chrono

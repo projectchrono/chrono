@@ -76,7 +76,7 @@ void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo,
         cd_data->bids_rigid_rigid.push_back(vec2(b1, b2));
 
         // Composite material for added contact
-        ChMaterialCompositeSMC cmat(data_manager->composition_strategy.get(),
+        ChContactMaterialCompositeSMC cmat(data_manager->composition_strategy.get(),
                                     std::static_pointer_cast<ChContactMaterialSMC>(mat1),
                                     std::static_pointer_cast<ChContactMaterialSMC>(mat2));
 
@@ -143,7 +143,7 @@ void ChContactContainerMulticoreSMC::AddContact(int index, int b1, int s1, int b
     auto mat2 = std::static_pointer_cast<ChContactMaterialSMC>(shape2->GetMaterial());
 
     // Composite material
-    ChMaterialCompositeSMC cmat(data_manager->composition_strategy.get(), mat1, mat2);
+    ChContactMaterialCompositeSMC cmat(data_manager->composition_strategy.get(), mat1, mat2);
 
     // Allow user to override composite material
     if (data_manager->add_contact_callback) {

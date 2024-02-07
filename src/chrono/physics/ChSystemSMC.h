@@ -124,7 +124,7 @@ class ChApi ChSystemSMC : public ChSystem {
             const ChVector<>& p2,               ///< most penetrated point on obj2 (expressed in global frame)
             const ChVector<>& vel1,             ///< velocity of contact point on obj1 (expressed in global frame)
             const ChVector<>& vel2,             ///< velocity of contact point on obj2 (expressed in global frame)
-            const ChMaterialCompositeSMC& mat,  ///< composite material for contact pair
+            const ChContactMaterialCompositeSMC& mat,  ///< composite material for contact pair
             double delta,                       ///< overlap in normal direction
             double eff_radius,                  ///< effective radius of curvature at contact
             double mass1,                       ///< mass of obj1

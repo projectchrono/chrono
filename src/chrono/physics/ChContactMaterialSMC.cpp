@@ -89,7 +89,7 @@ void ChContactMaterialSMC::ArchiveIn(ChArchiveIn& marchive) {
 
 // -----------------------------------------------------------------------------
 
-ChMaterialCompositeSMC::ChMaterialCompositeSMC()
+ChContactMaterialCompositeSMC::ChContactMaterialCompositeSMC()
     : E_eff(0),
       G_eff(0),
       mu_eff(0),
@@ -104,9 +104,9 @@ ChMaterialCompositeSMC::ChMaterialCompositeSMC()
       gn(0),
       gt(0) {}
 
-ChMaterialCompositeSMC::ChMaterialCompositeSMC(ChContactMaterialCompositionStrategy* strategy,
-                                               std::shared_ptr<ChContactMaterialSMC> mat1,
-                                               std::shared_ptr<ChContactMaterialSMC> mat2) {
+ChContactMaterialCompositeSMC::ChContactMaterialCompositeSMC(ChContactMaterialCompositionStrategy* strategy,
+                                                             std::shared_ptr<ChContactMaterialSMC> mat1,
+                                                             std::shared_ptr<ChContactMaterialSMC> mat2) {
     float inv_E = (1 - mat1->poisson_ratio * mat1->poisson_ratio) / mat1->young_modulus +
                   (1 - mat2->poisson_ratio * mat2->poisson_ratio) / mat2->young_modulus;
     float inv_G = 2 * (2 - mat1->poisson_ratio) * (1 + mat1->poisson_ratio) / mat1->young_modulus +

@@ -90,7 +90,7 @@ class ContactMaterial : public ChContactContainer::AddContactCallback {
   public:
     virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
         // Downcast to appropriate composite material type
-        auto mat = static_cast<ChMaterialCompositeSMC* const>(material);
+        auto mat = static_cast<ChContactMaterialCompositeSMC* const>(material);
 
         // Set different friction for left/right halfs
         float friction = (contactinfo.vpA.z() > 0) ? 0.3f : 0.8f;
@@ -119,7 +119,7 @@ class ContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
         const ChVector<>& p2,               ///< most penetrated point on obj2 (expressed in global frame)
         const ChVector<>& vel1,             ///< velocity of contact point on obj1 (expressed in global frame)
         const ChVector<>& vel2,             ///< velocity of contact point on obj2 (expressed in global frame)
-        const ChMaterialCompositeSMC& mat,  ///< composite material for contact pair
+        const ChContactMaterialCompositeSMC& mat,  ///< composite material for contact pair
         double delta,                       ///< overlap in normal direction
         double eff_radius,                  ///< effective radius of curvature at contact
         double mass1,                       ///< mass of obj1

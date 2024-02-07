@@ -353,7 +353,7 @@ int main(int argc, char* argv[]) {
 
             // Create a fictitious SMC composite contact material
             // (do not use the shape materials, so that this can work with both an SMC and NSC system)
-            ChMaterialCompositeSMC mat;
+            ChContactMaterialCompositeSMC mat;
             mat.E_eff = 2e7f;
             mat.cr_eff = 0.2f;
 

@@ -476,13 +476,13 @@ class RTContactCallback : public ChContactContainer::AddContactCallback {
         auto friction = strategy.CombineFriction(friction_terrain, friction_other);
         switch (sys->GetContactMethod()) {
             case ChContactMethod::NSC: {
-                auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
+                auto mat = static_cast<ChContactMaterialCompositeNSC* const>(material);
                 mat->static_friction = friction;
                 mat->sliding_friction = friction;
                 break;
             }
             case ChContactMethod::SMC: {
-                auto mat = static_cast<ChMaterialCompositeSMC* const>(material);
+                auto mat = static_cast<ChContactMaterialCompositeSMC* const>(material);
                 mat->mu_eff = friction;
                 break;
             }

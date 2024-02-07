@@ -352,7 +352,7 @@ class ContactMaterial : public ChContactContainer::AddContactCallback {
     virtual void OnAddContact(const ChCollisionInfo& contactinfo,
                               ChContactMaterialComposite* const material) override {
         //// TODO: currently, only NSC multicore systems support user override of composite materials.
-        auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
+        auto mat = static_cast<ChContactMaterialCompositeNSC* const>(material);
 
         // Contactables in current collision pair
         auto contactableA = contactinfo.modelA->GetContactable();

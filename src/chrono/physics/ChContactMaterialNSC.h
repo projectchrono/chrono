@@ -89,7 +89,7 @@ class ChApi ChContactMaterialNSC : public ChContactMaterial {
 CH_CLASS_VERSION(ChContactMaterialNSC, 0)
 
 /// Composite NSC material data for a contact pair.
-class ChApi ChMaterialCompositeNSC : public ChContactMaterialComposite {
+class ChApi ChContactMaterialCompositeNSC : public ChContactMaterialComposite {
   public:
     float static_friction;
     float sliding_friction;
@@ -103,11 +103,11 @@ class ChApi ChMaterialCompositeNSC : public ChContactMaterialComposite {
     float complianceRoll;
     float complianceSpin;
 
-    ChMaterialCompositeNSC();
+    ChContactMaterialCompositeNSC();
 
-    ChMaterialCompositeNSC(ChContactMaterialCompositionStrategy* strategy,
-                           std::shared_ptr<ChContactMaterialNSC> mat1,
-                           std::shared_ptr<ChContactMaterialNSC> mat2);
+    ChContactMaterialCompositeNSC(ChContactMaterialCompositionStrategy* strategy,
+                                  std::shared_ptr<ChContactMaterialNSC> mat1,
+                                  std::shared_ptr<ChContactMaterialNSC> mat2);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -116,7 +116,7 @@ class ChApi ChMaterialCompositeNSC : public ChContactMaterialComposite {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChMaterialCompositeNSC, 0)
+CH_CLASS_VERSION(ChContactMaterialCompositeNSC, 0)
 
 }  // end namespace chrono
 

@@ -152,7 +152,7 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    void InsertContact(const ChCollisionInfo& cinfo, const ChMaterialCompositeSMC& cmat);
+    void InsertContact(const ChCollisionInfo& cinfo, const ChContactMaterialCompositeSMC& cmat);
 };
 
 CH_CLASS_VERSION(ChContactContainerSMC, 0)

@@ -60,7 +60,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                  Ta* mobjA,                                ///< collidable object A
                  Tb* mobjB,                                ///< collidable object B
                  const ChCollisionInfo& cinfo,  ///< data for the collision pair
-                 const ChMaterialCompositeNSC&  mat        ///< composite material
+                 const ChContactMaterialCompositeNSC&  mat        ///< composite material
                  )
         : ChContactTuple<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo) {
         Nx.SetTangentialConstraintU(&Tu);
@@ -75,7 +75,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
     virtual void Reset(Ta* mobjA,                                ///< collidable object A
                        Tb* mobjB,                                ///< collidable object B
                        const ChCollisionInfo& cinfo,  ///< data for the collision pair
-                       const ChMaterialCompositeNSC& mat         ///< composite material
+                       const ChContactMaterialCompositeNSC& mat         ///< composite material
     ) {
         // Reset geometric information
         this->Reset_cinfo(mobjA, mobjB, cinfo);

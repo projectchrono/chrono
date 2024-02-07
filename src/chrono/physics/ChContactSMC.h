@@ -49,7 +49,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
         const ChVector<>& p2,               ///< most penetrated point on obj2 (expressed in global frame)
         const ChVector<>& vel1,             ///< velocity of contact point on obj1 (expressed in global frame)
         const ChVector<>& vel2,             ///< velocity of contact point on obj2 (expressed in global frame)
-        const ChMaterialCompositeSMC& mat,  ///< composite material for contact pair
+        const ChContactMaterialCompositeSMC& mat,  ///< composite material for contact pair
         double delta,                       ///< overlap in normal direction
         double eff_radius,                  ///< effective radius of curvature at contact
         double mass1,                       ///< mass of obj1
@@ -249,7 +249,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                  Ta* mobjA,                                ///< collidable object A
                  Tb* mobjB,                                ///< collidable object B
                  const ChCollisionInfo& cinfo,  ///< data for the collision pair
-                 const ChMaterialCompositeSMC& mat         ///< composite material
+                 const ChContactMaterialCompositeSMC& mat         ///< composite material
                  )
         : ChContactTuple<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo), m_Jac(NULL) {
         Reset(mobjA, mobjB, cinfo, mat);
@@ -281,7 +281,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     void Reset(Ta* mobjA,                                ///< collidable object A
                Tb* mobjB,                                ///< collidable object B
                const ChCollisionInfo& cinfo,  ///< data for the collision pair
-               const ChMaterialCompositeSMC& mat         ///< composite material
+               const ChContactMaterialCompositeSMC& mat         ///< composite material
     ) {
         // Reset geometric information
         this->Reset_cinfo(mobjA, mobjB, cinfo);
@@ -312,7 +312,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         const ChVector<>& normal_dir,      ///< normal contact direction (expressed in global frame)
         const ChVector<>& vel1,            ///< velocity of contact point on objA (expressed in global frame)
         const ChVector<>& vel2,            ///< velocity of contact point on objB (expressed in global frame)
-        const ChMaterialCompositeSMC& mat  ///< composite material for contact pair
+        const ChContactMaterialCompositeSMC& mat  ///< composite material for contact pair
     ) {
         // Set contact force to zero if no penetration.
         if (delta <= 0) {
@@ -339,7 +339,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                     const ChStateDelta& stateA_w,       ///< state velocities for objA
                     const ChState& stateB_x,            ///< state positions for objB
                     const ChStateDelta& stateB_w,       ///< state velocities for objB
-                    const ChMaterialCompositeSMC& mat,  ///< composite material for contact pair
+                    const ChContactMaterialCompositeSMC& mat,  ///< composite material for contact pair
                     ChVectorDynamic<>& Q                ///< output generalized forces
     ) {
         // Express contact points in local frames.
@@ -417,7 +417,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     }
 
     /// Calculate Jacobian of generalized contact forces.
-    void CalculateJacobians(const ChMaterialCompositeSMC& mat) {
+    void CalculateJacobians(const ChContactMaterialCompositeSMC& mat) {
         // Compute a finite-difference approximations to the Jacobians of the contact forces and
         // load dQ/dx into m_Jac->m_K and dQ/dw into m_Jac->m_R.
         // Note that we only calculate these Jacobians whenever the contact force itself is calculated,

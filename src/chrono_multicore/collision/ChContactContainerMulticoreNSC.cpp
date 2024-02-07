@@ -84,7 +84,7 @@ void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo,
         }
 
         // Composite material for added contact
-        ChMaterialCompositeNSC cmat(data_manager->composition_strategy.get(),
+        ChContactMaterialCompositeNSC cmat(data_manager->composition_strategy.get(),
                                     std::static_pointer_cast<ChContactMaterialNSC>(mat1),
                                     std::static_pointer_cast<ChContactMaterialNSC>(mat2));
 
@@ -150,7 +150,7 @@ void ChContactContainerMulticoreNSC::AddContact(int index, int b1, int s1, int b
     auto mat2 = std::static_pointer_cast<ChContactMaterialNSC>(shape2->GetMaterial());
 
     // Composite material
-    ChMaterialCompositeNSC cmat(data_manager->composition_strategy.get(), mat1, mat2);
+    ChContactMaterialCompositeNSC cmat(data_manager->composition_strategy.get(), mat1, mat2);
 
     // Allow user to override composite material
     if (data_manager->add_contact_callback) {

@@ -175,7 +175,7 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact 
                            Ta* objA,                                 // collidable object A
                            Tb* objB,                                 // collidable object B
                            const ChCollisionInfo& cinfo,  // collision information
-                           const ChMaterialCompositeSMC& cmat        // composite material
+                           const ChContactMaterialCompositeSMC& cmat        // composite material
 ) {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts
@@ -213,7 +213,7 @@ void ChContactContainerSMC::AddContact(const ChCollisionInfo& cinfo,
     }
 
     // Create the composite material
-    ChMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
+    ChContactMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
                                 std::static_pointer_cast<ChContactMaterialSMC>(mat1),
                                 std::static_pointer_cast<ChContactMaterialSMC>(mat2));
 
@@ -242,7 +242,7 @@ void ChContactContainerSMC::AddContact(const ChCollisionInfo& cinfo) {
     }
 
     // Create the composite material
-    ChMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
+    ChContactMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
                                 std::static_pointer_cast<ChContactMaterialSMC>(cinfo.shapeA->GetMaterial()),
                                 std::static_pointer_cast<ChContactMaterialSMC>(cinfo.shapeB->GetMaterial()));
 
@@ -254,7 +254,7 @@ void ChContactContainerSMC::AddContact(const ChCollisionInfo& cinfo) {
     InsertContact(cinfo, cmat);
 }
 
-void ChContactContainerSMC::InsertContact(const ChCollisionInfo& cinfo, const ChMaterialCompositeSMC& cmat) {
+void ChContactContainerSMC::InsertContact(const ChCollisionInfo& cinfo, const ChContactMaterialCompositeSMC& cmat) {
     auto contactableA = cinfo.modelA->GetContactable();
     auto contactableB = cinfo.modelB->GetContactable();
 

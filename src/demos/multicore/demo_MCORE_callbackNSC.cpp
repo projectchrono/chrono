@@ -80,7 +80,7 @@ class ContactMaterial : public ChContactContainer::AddContactCallback {
   public:
     virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
         // Downcast to appropriate composite material type
-        auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
+        auto mat = static_cast<ChContactMaterialCompositeNSC* const>(material);
 
         // Set different friction for left/right halfs
         float friction = (contactinfo.vpA.z() > 0) ? 0.8f : 0.3f;

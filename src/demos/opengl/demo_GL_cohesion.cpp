@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
       public:
         virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
-            auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
+            auto mat = static_cast<ChContactMaterialCompositeNSC* const>(material);
 
             // Set friction according to user setting:
             mat->static_friction = GLOBAL_friction;

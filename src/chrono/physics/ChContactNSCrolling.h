@@ -56,7 +56,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
                         Ta* mobjA,                                ///< collidable object A
                         Tb* mobjB,                                ///< collidable object B
                         const ChCollisionInfo& cinfo,  ///< data for the collision pair
-                        const ChMaterialCompositeNSC& mat         ///< composite material
+                        const ChContactMaterialCompositeNSC& mat         ///< composite material
                         )
         : ChContactNSC<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo, mat) {
         Rx.SetRollingConstraintU(&this->Ru);
@@ -72,7 +72,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
     virtual void Reset(Ta* mobjA,                                ///< collidable object A
                        Tb* mobjB,                                ///< collidable object B
                        const ChCollisionInfo& cinfo,  ///< data for the collision pair
-                       const ChMaterialCompositeNSC& mat         ///< composite material
+                       const ChContactMaterialCompositeNSC& mat         ///< composite material
                        ) override {
         // Invoke base class method to reset normal and sliding constraints
         ChContactNSC<Ta, Tb>::Reset(mobjA, mobjB, cinfo, mat);
