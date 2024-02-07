@@ -13,6 +13,8 @@
 #ifndef CHARCHIVEBINARY_H
 #define CHARCHIVEBINARY_H
 
+#include <cstring>
+
 #include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
@@ -35,7 +37,10 @@ class ChArchiveOutBinary : public ChArchiveOut {
     virtual void out(ChNameValue<unsigned int> bVal) { binaryWrite(bVal.value()); }
     virtual void out(ChNameValue<unsigned long> bVal) { binaryWrite(bVal.value()); }
     virtual void out(ChNameValue<unsigned long long> bVal) { binaryWrite(bVal.value()); }
-    virtual void out(ChNameValue<ChEnumMapperBase> bVal) { int int_val = bVal.value().GetValueAsInt(); binaryWrite(int_val); }
+    virtual void out(ChNameValue<ChEnumMapperBase> bVal) {
+        int int_val = bVal.value().GetValueAsInt();
+        binaryWrite(int_val);
+    }
 
     virtual void out(ChNameValue<const char*> bVal) { binaryWrite(bVal.value()); }
 
@@ -47,15 +52,13 @@ class ChArchiveOutBinary : public ChArchiveOut {
 
     // for custom c++ objects:
     virtual void out(ChValue& bVal, bool tracked, size_t obj_ID) {
-        if (tracked)
-        {
+        if (tracked) {
             ////TODO: DARIOM here the original code uses const char* instead of std::string as in any other place
             binaryWrite("typ");
             binaryWrite(bVal.GetClassRegisteredName());
 
             binaryWrite(std::string("oID"));
             binaryWrite(obj_ID);
-
         }
         bVal.CallArchiveOut(*this);
     }
@@ -69,20 +72,20 @@ class ChArchiveOutBinary : public ChArchiveOut {
 
         if (!already_inserted) {
             // new object, we have to full serialize it
-            binaryWrite(std::string("oID"));    // serialize 'this was already saved' info as "oID" string
-            binaryWrite(obj_ID); // serialize obj_ID in pointers vector as ID
+            binaryWrite(std::string("oID"));  // serialize 'this was already saved' info as "oID" string
+            binaryWrite(obj_ID);              // serialize obj_ID in pointers vector as ID
             bVal.CallArchiveOutConstructor(*this);
             bVal.CallArchiveOut(*this);
         } else {
             if (obj_ID || bVal.IsNull()) {
                 // Object already in list. Only store obj_ID as ID
-                binaryWrite(std::string("rID"));     // serialize 'this was already saved' info as "rID" string
-                binaryWrite(obj_ID);  // serialize obj_ID in pointers vector as ID
+                binaryWrite(std::string("rID"));  // serialize 'this was already saved' info as "rID" string
+                binaryWrite(obj_ID);              // serialize obj_ID in pointers vector as ID
             }
             if (ext_ID) {
                 // Object is external. Only store ref_ID as ID
-                binaryWrite(std::string("eID"));     // serialize info as "eID" string
-                binaryWrite(ext_ID);  // serialize ext_ID in pointers vector as ID
+                binaryWrite(std::string("eID"));  // serialize info as "eID" string
+                binaryWrite(ext_ID);              // serialize ext_ID in pointers vector as ID
             }
         }
     }
@@ -92,7 +95,9 @@ class ChArchiveOutBinary : public ChArchiveOut {
 
     ////TODO: shall I specify that T is a reference or should I let the compiler optimize it?
     template <class T>
-    std::ostream& binaryWrite(T val) { return ostream->write(reinterpret_cast<char*>(&val), sizeof(T)); }
+    std::ostream& binaryWrite(T val) {
+        return ostream->write(reinterpret_cast<char*>(&val), sizeof(T));
+    }
 
     template <>
     std::ostream& binaryWrite<std::string>(std::string val) {
@@ -118,7 +123,6 @@ class ChArchiveOutBinary : public ChArchiveOut {
         binaryWrite(str_len);
         return ostream->write(val, str_len);
     }
-
 };
 
 ///
@@ -142,15 +146,39 @@ class ChArchiveInBinary : public ChArchiveIn {
     }
 
     ////Can they merged in just one instance?
-    virtual bool in(ChNameValue<int> bVal) override { binaryRead(bVal.value()); return true; }
-    virtual bool in(ChNameValue<double> bVal) override { binaryRead(bVal.value()); return true; }
-    virtual bool in(ChNameValue<float> bVal) override { binaryRead(bVal.value()); return true; }
-    virtual bool in(ChNameValue<char> bVal) override { binaryRead(bVal.value()); return true; }
-    virtual bool in(ChNameValue<unsigned int> bVal) override { binaryRead(bVal.value()); return true; }
-    virtual bool in(ChNameValue<unsigned long> bVal) override { binaryRead(bVal.value()); return true; }
-    virtual bool in(ChNameValue<unsigned long long> bVal) override { binaryRead(bVal.value()); return true; }
-    
-    virtual bool in(ChNameValue<std::string> bVal) override { binaryRead(bVal.value()); return true; }
+    virtual bool in(ChNameValue<int> bVal) override {
+        binaryRead(bVal.value());
+        return true;
+    }
+    virtual bool in(ChNameValue<double> bVal) override {
+        binaryRead(bVal.value());
+        return true;
+    }
+    virtual bool in(ChNameValue<float> bVal) override {
+        binaryRead(bVal.value());
+        return true;
+    }
+    virtual bool in(ChNameValue<char> bVal) override {
+        binaryRead(bVal.value());
+        return true;
+    }
+    virtual bool in(ChNameValue<unsigned int> bVal) override {
+        binaryRead(bVal.value());
+        return true;
+    }
+    virtual bool in(ChNameValue<unsigned long> bVal) override {
+        binaryRead(bVal.value());
+        return true;
+    }
+    virtual bool in(ChNameValue<unsigned long long> bVal) override {
+        binaryRead(bVal.value());
+        return true;
+    }
+
+    virtual bool in(ChNameValue<std::string> bVal) override {
+        binaryRead(bVal.value());
+        return true;
+    }
     virtual bool in(ChNameValue<ChEnumMapperBase> bVal) override {
         int foo;
         binaryRead(foo);
@@ -159,7 +187,10 @@ class ChArchiveInBinary : public ChArchiveIn {
     }
 
     // for wrapping arrays and lists
-    virtual bool in_array_pre(const std::string& name, size_t& size) override { binaryRead(size); return true; }
+    virtual bool in_array_pre(const std::string& name, size_t& size) override {
+        binaryRead(size);
+        return true;
+    }
     virtual void in_array_between(const std::string& name) override {}
     virtual void in_array_end(const std::string& name) override {}
 
@@ -215,7 +246,8 @@ class ChArchiveInBinary : public ChArchiveIn {
             binaryRead(ext_ID);
 
             if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end())
-                throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the external reference ID " + std::to_string((int)ext_ID) + " cannot be rebuilt."));
+                throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the external reference ID " +
+                                         std::to_string((int)ext_ID) + " cannot be rebuilt."));
 
             bVal.value().SetRawPtr(
                 ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
@@ -250,7 +282,9 @@ class ChArchiveInBinary : public ChArchiveIn {
     std::istream* istream;
 
     template <class T>
-    std::istream& binaryRead(T& val) { return istream->read(reinterpret_cast<char*>(&val), sizeof(T)); }
+    std::istream& binaryRead(T& val) {
+        return istream->read(reinterpret_cast<char*>(&val), sizeof(T));
+    }
 
     template <>
     std::istream& binaryRead<std::string>(std::string& val) {
@@ -270,7 +304,7 @@ class ChArchiveInBinary : public ChArchiveIn {
         }
 
         return *istream;
-        //std::remove(val.begin(), val.end(), '\0');
+        // std::remove(val.begin(), val.end(), '\0');
     }
 
     template <>

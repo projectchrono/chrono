@@ -14,6 +14,7 @@
 #define CHARCHIVEASCIIDUMP_H
 
 #include "chrono/serialization/ChArchive.h"
+#include <cstring>
 
 namespace chrono {
 
@@ -189,7 +190,6 @@ class ChArchiveAsciiDump : public ChArchiveOut {
     std::ostream* ostream;
     bool suppress_names;
 };
-
 
 }  // end namespace chrono
 
