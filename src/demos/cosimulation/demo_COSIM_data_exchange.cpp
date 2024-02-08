@@ -18,7 +18,8 @@
 // This example needs test_cosimulation.mdl to be load and run in Simulink.
 //
 // =============================================================================
-
+
+
 
 #include "chrono_cosimulation/ChCosimulation.h"
 

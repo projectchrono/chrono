@@ -69,13 +69,20 @@ bool ChCosimulation::SendData(double mtime, ChVectorConstRef out_data) {
     if (!myClient)
         throw std::runtime_error("ERROR: Attempted 'SendData' with no connected client.");
 
-    std::vector<char> mbuffer(out_data.size() + 1);// now zero length
+    std::vector<char> mbuffer;
+    mbuffer.resize((out_data.size() + 1)*sizeof(double));
     // Serialize data (little endian)...
     // time:
-    mbuffer[0] = mtime;
+    for (size_t ds = 0; ds < sizeof(double); ++ds) {
+        mbuffer[ds] = (reinterpret_cast<char*>(&mtime))[ds];
+    }
+
     // variables:
-    for (int i = 0; i < out_data.size(); i++)
-        mbuffer[i + 1] = out_data(i);
+    for (int i = 0; i < out_data.size(); i++) {
+        for (size_t ds = 0; ds < sizeof(double); ++ds) {
+            mbuffer[(i + 1) * sizeof(double) + ds] = reinterpret_cast<char*>(const_cast<double*>(&out_data.data()[i]))[ds];
+        }
+    }
 
     // -----> SEND!!!
     this->myClient->SendBuffer(mbuffer);
@@ -92,18 +99,23 @@ bool ChCosimulation::ReceiveData(double& mtime, ChVectorRef in_data) {
     // Receive from the client
     int nbytes = sizeof(double) * (this->in_n + 1);
     std::vector<char> rbuffer;
-    rbuffer.resize(nbytes); // reserve to number of expected bytes
+    rbuffer.resize(nbytes);
 
     // -----> RECEIVE!!!
     /*int numBytes =*/this->myClient->ReceiveBuffer(rbuffer, nbytes);
 
     // Deserialize data (little endian)...
+    // retrieve time
+    for (size_t ds = 0; ds < sizeof(double); ++ds) {
+        reinterpret_cast<char*>(&mtime)[ds] = rbuffer[ds];
+    }
 
-    // time:
-    mtime = rbuffer[0];
-    // variables:
-    for (int i = 0; i < in_data.size(); i++)
-         in_data(i) = rbuffer[i + 1];
+    // retrieve variables:
+    for (size_t i = 0; i < in_data.size(); ++i) {
+        for (size_t ds = 0; ds < sizeof(double); ++ds) {
+            reinterpret_cast<char*>(&(in_data.data()[i]))[ds] = rbuffer[(i + 1) * sizeof(double) + ds];
+        }
+    }
 
     return true;
 }
