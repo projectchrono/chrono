@@ -19,6 +19,8 @@
 //
 // =============================================================================
 
+#include "chrono/utils/ChUtils.h"
+
 #include "chrono_vehicle/driver/ChAIDriver.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 

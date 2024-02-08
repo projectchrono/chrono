@@ -385,7 +385,7 @@ bool ChModalAssembly::ComputeModesExternalData(ChSparseMatrix& full_M, ChSparseM
     this->IntStateGather(0, modes_assembly_x0, 0, modes_assembly_v0, fooT);
 
     // cannot use more modes than n. of tot coords, if so, clamp
-    //int nmodes_clamped = ChMin(nmodes, this->ncoords_w);
+    //int nmodes_clamped = std::min(nmodes, this->ncoords_w);
 
     this->Setup();
 

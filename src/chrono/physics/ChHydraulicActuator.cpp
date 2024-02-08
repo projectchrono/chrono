@@ -12,6 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 
+#include "chrono/utils/ChUtils.h"
 #include "chrono/physics/ChHydraulicActuator.h"
 
 namespace chrono {

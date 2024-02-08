@@ -167,6 +167,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFunctionSequence)
 %shared_ptr(chrono::ChFunctionSigma)
 %shared_ptr(chrono::ChFunctionSine)
+%shared_ptr(chrono::ChFunctionSineStep)
 %shared_ptr(chrono::ChFunctionSetpoint)
 %shared_ptr(chrono::ChFunctionSetpointCallback)
 

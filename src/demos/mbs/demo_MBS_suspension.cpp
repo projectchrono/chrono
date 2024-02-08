@@ -29,6 +29,7 @@
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/core/ChMathematics.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 

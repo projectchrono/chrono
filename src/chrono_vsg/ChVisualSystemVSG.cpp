@@ -20,6 +20,8 @@
 #include <sstream>
 #include <iomanip>
 
+#include "chrono/utils/ChUtils.h"
+
 #include "chrono_vsg/ChVisualSystemVSG.h"
 #include "chrono_vsg/utils/ChConversionsVSG.h"
 #include "chrono_vsg/utils/ChUtilsVSG.h"

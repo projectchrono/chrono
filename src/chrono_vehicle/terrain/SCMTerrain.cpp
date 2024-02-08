@@ -33,6 +33,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/utils/ChConvexHull.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
@@ -157,7 +158,7 @@ void SCMTerrain::SetSoilParameters(
     m_loader->m_Mohr_cohesion = Mohr_cohesion;
     m_loader->m_Mohr_mu = std::tan(Mohr_friction * CH_C_DEG_TO_RAD);
     m_loader->m_Janosi_shear = Janosi_shear;
-    m_loader->m_elastic_K = ChMax(elastic_K, Bekker_Kphi);
+    m_loader->m_elastic_K = std::max(elastic_K, Bekker_Kphi);
     m_loader->m_damping_R = damping_R;
 }
 
@@ -566,10 +567,10 @@ void SCMLoader::Initialize(const geometry::ChTriangleMeshConnected& trimesh, dou
         const auto& v1 = vertices[f[0]] - center;
         const auto& v2 = vertices[f[1]] - center;
         const auto& v3 = vertices[f[2]] - center;
-        auto x_min = ChMin(ChMin(v1.x(), v2.x()), v3.x());
-        auto x_max = ChMax(ChMax(v1.x(), v2.x()), v3.x());
-        auto y_min = ChMin(ChMin(v1.y(), v2.y()), v3.y());
-        auto y_max = ChMax(ChMax(v1.y(), v2.y()), v3.y());
+        auto x_min = std::min(std::min(v1.x(), v2.x()), v3.x());
+        auto x_max = std::max(std::max(v1.x(), v2.x()), v3.x());
+        auto y_min = std::min(std::min(v1.y(), v2.y()), v3.y());
+        auto y_max = std::max(std::max(v1.y(), v2.y()), v3.y());
         int i_min = static_cast<int>(std::floor(x_min / m_delta));
         int j_min = static_cast<int>(std::floor(y_min / m_delta));
         int i_max = static_cast<int>(std::ceil(x_max / m_delta));

@@ -21,7 +21,7 @@
 
 #include <cstdio>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/utils/ChSpeedController.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"

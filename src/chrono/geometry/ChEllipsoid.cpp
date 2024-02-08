@@ -62,7 +62,7 @@ ChAABB ChEllipsoid::GetBoundingBox() const {
 }
 
 double ChEllipsoid::GetBoundingSphereRadius(const ChVector<>& axes) {
-    return 0.5 * ChMax(axes.x(), ChMax(axes.y(), axes.z()));
+    return 0.5 * std::max(axes.x(), std::max(axes.y(), axes.z()));
 }
 
 double ChEllipsoid::GetBoundingSphereRadius() const {

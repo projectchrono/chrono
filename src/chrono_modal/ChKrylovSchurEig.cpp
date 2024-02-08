@@ -14,7 +14,6 @@
 
 
 #include "chrono_modal/ChKrylovSchurEig.h"
-#include "chrono/core/ChMathematics.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/solver/ChDirectSolverLScomplex.h"
 

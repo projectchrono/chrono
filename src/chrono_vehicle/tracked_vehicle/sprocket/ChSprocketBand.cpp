@@ -21,6 +21,7 @@
 
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketBand.h"

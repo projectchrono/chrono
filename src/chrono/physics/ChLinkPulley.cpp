@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChLinkPulley.h"
 
 namespace chrono {
@@ -118,14 +120,10 @@ void ChLinkPulley::UpdateTime(double mytime) {
 
     // compute actual rotation of the two wheels (relative to truss).
     Vector md1 = abs_shaft1.GetA().transpose() * dcc_w;
-    md1.z() = 0;
-    md1 = Vnorm(md1);
     Vector md2 = abs_shaft2.GetA().transpose() * dcc_w;
-    md2.z() = 0;
-    md2 = Vnorm(md2);
 
-    double periodic_a1 = ChAtan2(md1.x(), md1.y());
-    double periodic_a2 = ChAtan2(md2.x(), md2.y());
+    double periodic_a1 = std::atan2(md1.y(), md1.x());
+    double periodic_a2 = std::atan2(md2.y(), md2.x());
     double old_a1 = a1;
     double old_a2 = a2;
     double turns_a1 = floor(old_a1 / CH_C_2PI);

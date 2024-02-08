@@ -35,8 +35,10 @@
 
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChVehicle.h"
+
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChUtils.h"
 
 namespace chrono {
 namespace vehicle {

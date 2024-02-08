@@ -22,6 +22,7 @@
 #include "chrono/geometry/ChLineNurbs.h"
 #include "chrono/geometry/ChSurfaceNurbs.h"
 #include "chrono/assets/ChVisualShapeSurface.h"
+#include "chrono/core/ChMathematics.h"
 
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"

@@ -11,10 +11,7 @@
 // =============================================================================
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
-
-#include "chrono/core/ChMathematics.h"
-
-#include "chrono/solver/ChSolverPMINRES.h"
+#include "chrono/solver/ChSolverPMINRES.h"
 
 namespace chrono {
 
@@ -208,7 +205,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
 
         // Terminate iteration when the projected r is small, if (norm(r,2) <= max(rel_tol_b,abs_tol))
         r_proj_resid = mr.norm();
-        if (r_proj_resid < ChMax(rel_tol_b, abs_tol)) {
+        if (r_proj_resid < std::max(rel_tol_b, abs_tol)) {
             if (verbose)
                 std::cout << "Iter=" << iter << " P(r)-converged!  |P(r)|=" << r_proj_resid << std::endl;
             break;
@@ -243,7 +240,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
             beta = 0;
         }
 
-        // beta = ChMax(0.0, beta); //***NOT NEEDED!!! (may be negative in not positive def.matrices!)
+        // beta = std::max(0.0, beta); //***NOT NEEDED!!! (may be negative in not positive def.matrices!)
 
         // p = z + beta * p;
         mp = mz + beta * mp;
@@ -428,7 +425,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
 
         // Terminate iteration when the projected r is small, if (norm(r,2) <= max(rel_tol_d,abs_tol))
         r_proj_resid = mr.norm();
-        if (r_proj_resid < ChMax(rel_tol_d, abs_tol)) {
+        if (r_proj_resid < std::max(rel_tol_d, abs_tol)) {
             if (verbose)
                 std::cout << "P(r)-converged! iter=" << iter << " |P(r)|=" << r_proj_resid << std::endl;
             break;

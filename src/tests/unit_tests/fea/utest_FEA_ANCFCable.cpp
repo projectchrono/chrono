@@ -27,12 +27,12 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/utils/ChConstants.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 #include "chrono/fea/ChElementCableANCF.h"
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
         double AbsVal = std::abs(hnodeancf3->GetPos().y() - FileInputMat(it, 4));
         double AbsVal2 = std::abs(hnodeancf5->GetPos().z() - FileInputMat(it, 6));
 
-        if (ChMax(AbsVal, AbsVal2) > precision) {
+        if (std::max(AbsVal, AbsVal2) > precision) {
             std::cout << "Unit test check failed \n";
             std::cout << "  y position: " << hnodeancf3->GetPos().y() << "  (reference: " << FileInputMat(it, 4)
                       << "  diff: " << AbsVal << ")\n";

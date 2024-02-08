@@ -22,6 +22,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/core/ChMathematics.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 

@@ -29,7 +29,7 @@
 
 #include <cstdio>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/utils/ChSteeringController.h"
@@ -715,7 +715,7 @@ double ChPathSteeringControllerStanley::Advance(const ChFrameMoving<>& ref_frame
     double err = ChSignum(temp) * err_vec.Length();
     double w = 1.0;
     if (m_deadZone > 0.0)
-        w = ChSineStep(std::abs(err), m_deadZone, 0.0, 2.0 * m_deadZone, 1.0);
+        w = ChFunctionSineStep::Eval(std::abs(err), m_deadZone, 0.0, 2.0 * m_deadZone, 1.0);
     err *= w;
     double err_dot = -u * sin(atan(m_Kp * err / ChClamp(u, m_umin, u)));
     // Calculate the heading error

@@ -19,6 +19,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/collision/bullet/LinearMath/cbtVector3.h"
 #include "chrono/collision/bullet/LinearMath/cbtMinMax.h"

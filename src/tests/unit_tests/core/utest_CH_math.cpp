@@ -18,7 +18,7 @@
 
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChQuadrature.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChConstants.h"
 
 #include "gtest/gtest.h"
 

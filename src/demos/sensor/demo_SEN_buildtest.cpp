@@ -29,6 +29,8 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/core/ChMathematics.h"
+
 #include "chrono_thirdparty/filesystem/path.h"
 
 #include "chrono_sensor/sensors/ChCameraSensor.h"

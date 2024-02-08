@@ -23,7 +23,6 @@
 #include <cmath>
 #include <limits>
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/serialization/ChArchive.h"
 
 namespace chrono {

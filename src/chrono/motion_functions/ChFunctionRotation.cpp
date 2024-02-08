@@ -24,25 +24,25 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChFunctionRotation) // NO! this is an abstract class, rather use for children concrete classes.
 
+  static const double FD_PERTURBATION = 1e-7;
 
-ChVector<> ChFunctionRotation::Get_w_loc(double s) const { 
-		ChQuaternion<> q0 = Get_q(s);
-		ChQuaternion<> q1 = Get_q(s + BDF_STEP_LOW);
-		if (q0.Dot(q1) < 0)
-			q1 = -q1; // because q1 and -q1 are the same rotation, but for finite difference we must use the closest to q0
-		ChQuaternion<> qdt = (q1 - q0) / BDF_STEP_LOW;
-		ChGlMatrix34<> Gl(q0);
-        return Gl * qdt;
+ChVector<> ChFunctionRotation::Get_w_loc(double s) const {
+    ChQuaternion<> q0 = Get_q(s);
+    ChQuaternion<> q1 = Get_q(s + FD_PERTURBATION);
+    if (q0.Dot(q1) < 0)
+        q1 = -q1;  // because q1 and -q1 are the same rotation, but for finite difference we must use the closest to q0
+    ChQuaternion<> qdt = (q1 - q0) / FD_PERTURBATION;
+    ChGlMatrix34<> Gl(q0);
+    return Gl * qdt;
 }
 
-
 ChVector<> ChFunctionRotation::Get_a_loc(double s) const {
-		ChQuaternion<> q0 = Get_q(s - BDF_STEP_LOW);
-		ChQuaternion<> q1 = Get_q(s);
-		ChQuaternion<> q2 = Get_q(s + BDF_STEP_LOW);
-		ChQuaternion<> qdtdt = (q0 - q1*2.0 + q2) / (BDF_STEP_LOW*BDF_STEP_LOW);
-		ChGlMatrix34<> Gl(q1);
-        return Gl * qdtdt;
+    ChQuaternion<> q0 = Get_q(s - FD_PERTURBATION);
+    ChQuaternion<> q1 = Get_q(s);
+    ChQuaternion<> q2 = Get_q(s + FD_PERTURBATION);
+    ChQuaternion<> qdtdt = (q0 - q1 * 2.0 + q2) / (FD_PERTURBATION * FD_PERTURBATION);
+    ChGlMatrix34<> Gl(q1);
+    return Gl * qdtdt;
 }
 
 void ChFunctionRotation::ArchiveOut(ChArchiveOut& marchive) {
@@ -52,9 +52,7 @@ void ChFunctionRotation::ArchiveOut(ChArchiveOut& marchive) {
 
 void ChFunctionRotation::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionRotation>();
+    /*int version =*/marchive.VersionRead<ChFunctionRotation>();
 }
-
-
 
 }  // end namespace chrono

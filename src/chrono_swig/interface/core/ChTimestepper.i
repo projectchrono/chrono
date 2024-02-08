@@ -54,16 +54,12 @@
 #include <cmath>
 #include <cstdlib>
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChState.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
-#include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
-#include "chrono/timestepper/ChState.h"
-#include "chrono/timestepper/ChIntegrable.h"
 
 using namespace chrono;
 %}

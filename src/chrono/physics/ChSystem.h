@@ -24,7 +24,7 @@
 #include <list>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/utils/ChOpenMP.h"

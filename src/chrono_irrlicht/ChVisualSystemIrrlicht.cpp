@@ -19,7 +19,7 @@
 #include <locale>
 
 #include "chrono/utils/ChProfiler.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualShapeSurface.h"

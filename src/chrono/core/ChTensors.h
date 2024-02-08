@@ -22,7 +22,7 @@
 #include <cmath>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 
 namespace chrono {
 
@@ -130,7 +130,7 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
 
     /// Compute the J2 invariant of the deviatoric part.
     Real GetInvariant_J2() const {
-        return ChMax(0.0, std::pow(GetInvariant_I1(), 2) / 3.0 - GetInvariant_I2());
+        return std::max(0.0, std::pow(GetInvariant_I1(), 2) / 3.0 - GetInvariant_I2());
     }
 
     /// Compute the J3 invariant of the deviatoric part.

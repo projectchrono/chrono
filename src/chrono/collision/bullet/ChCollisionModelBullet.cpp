@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <array>
+#include <algorithm>
 
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
@@ -118,14 +119,14 @@ void ChCollisionModelBullet::Populate() {
                 cbtVector3 spos(0, 0, 0);
                 auto bt_shape = chrono_types::make_shared<cbtMultiSphereShape>(&spos, &rad, 1);
                 bt_shape->setLocalScaling(bt_axes);
-                bt_shape->setMargin((cbtScalar)ChMin(full_margin, 0.9 * ChMin(ChMin(haxes.x(), haxes.y()), haxes.z())));
+                bt_shape->setMargin((cbtScalar)std::min((double)full_margin, 0.9 * std::min(std::min(haxes.x(), haxes.y()), haxes.z())));
                 injectShape(shape, bt_shape, frame);
                 break;
             }
             case ChCollisionShape::Type::BOX: {
                 auto shape_box = std::static_pointer_cast<ChCollisionShapeBox>(shape);
                 auto len = shape_box->GetLengths();
-                model->SetSafeMargin(ChMin(safe_margin, 0.1 * ChMin(ChMin(len.x(), len.y()), len.z())));
+                model->SetSafeMargin(std::min((double)safe_margin, 0.1 * std::min(std::min(len.x(), len.y()), len.z())));
                 auto bt_shape = chrono_types::make_shared<cbtBoxShape>(cbtVector3CH(len / 2 + envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
                 injectShape(shape, bt_shape, frame);
@@ -135,7 +136,7 @@ void ChCollisionModelBullet::Populate() {
                 auto shape_cylinder = std::static_pointer_cast<ChCollisionShapeCylinder>(shape);
                 auto height = shape_cylinder->GetHeight();
                 auto radius = shape_cylinder->GetRadius();
-                model->SetSafeMargin(ChMin(safe_margin, 0.2 * ChMin(radius, height / 2)));
+                model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height / 2)));
                 ChVector<> size(radius, radius, height / 2);
                 auto bt_shape = chrono_types::make_shared<cbtCylinderShapeZ>(cbtVector3CH(size + envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
@@ -146,7 +147,7 @@ void ChCollisionModelBullet::Populate() {
                 auto shape_capsule = std::static_pointer_cast<ChCollisionShapeCapsule>(shape);
                 auto height = shape_capsule->GetHeight();
                 auto radius = shape_capsule->GetRadius();
-                model->SetSafeMargin(ChMin(safe_margin, 0.2 * ChMin(radius, height / 2)));
+                model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height / 2)));
                 auto bt_shape = chrono_types::make_shared<cbtCapsuleShapeZ>((cbtScalar)(radius + envelope),
                                                                             (cbtScalar)(height + 2 * envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
@@ -157,7 +158,7 @@ void ChCollisionModelBullet::Populate() {
                 auto shape_cylshell = std::static_pointer_cast<ChCollisionShapeCylindricalShell>(shape);
                 auto height = shape_cylshell->GetHeight();
                 auto radius = shape_cylshell->GetRadius();
-                model->SetSafeMargin(ChMin(safe_margin, 0.2 * ChMin(radius, height)));
+                model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height)));
                 auto bt_shape = chrono_types::make_shared<cbtCylindricalShellShape>((cbtScalar)(radius + envelope),
                                                                                     (cbtScalar)(height / 2 + envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
@@ -171,8 +172,8 @@ void ChCollisionModelBullet::Populate() {
                 auto axis_vert = shape_barrel->axis_vert;
                 auto axis_hor = shape_barrel->axis_hor;
                 auto R_offset = shape_barrel->R_offset;
-                model->SetSafeMargin(
-                    ChMin(safe_margin, 0.15 * ChMin(ChMin(axis_vert / 2, axis_hor / 2), Y_high - Y_low)));
+                model->SetSafeMargin(std::min((double)safe_margin,
+                                              0.15 * std::min(std::min(axis_vert / 2, axis_hor / 2), Y_high - Y_low)));
                 auto sY_low = (cbtScalar)(Y_low - envelope);
                 auto sY_high = (cbtScalar)(Y_high + envelope);
                 auto sR_vert = (cbtScalar)(axis_vert / 2 + envelope);
@@ -362,10 +363,10 @@ void ChCollisionModelBullet::injectConvexHull(std::shared_ptr<ChCollisionShapeCo
         aabb.max = Vmax(aabb.max, points[i]);
     }
     auto aabb_size = aabb.Size();
-    double approx_chord = ChMin(ChMin(aabb_size.x(), aabb_size.y()), aabb_size.z());
+    double approx_chord = std::min(std::min(aabb_size.x(), aabb_size.y()), aabb_size.z());
 
     // override the inward margin if larger than 0.2 chord:
-    model->SetSafeMargin((cbtScalar)ChMin(safe_margin, approx_chord * 0.2));
+    model->SetSafeMargin((cbtScalar)std::min((double)safe_margin, approx_chord * 0.2));
 
     // shrink the convex hull by GetSafeMargin()
     bt_utils::ChConvexHullLibraryWrapper lh;

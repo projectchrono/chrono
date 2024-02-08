@@ -24,7 +24,6 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChMathematics.h"
 
 #include "chrono/collision/ChCollisionModel.h"
 

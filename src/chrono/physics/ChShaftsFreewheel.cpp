@@ -66,9 +66,9 @@ void ChShaftsFreewheel::Update(double mytime, bool update_assets) {
 
     double relrot =  this->shaft1->GetPos() - this->shaft2->GetPos();
     if (this->free_forward)
-        alpha_max = ChMax(relrot, alpha_max);
+        alpha_max = std::max(relrot, alpha_max);
     else
-        alpha_max = ChMin(relrot, alpha_max);
+        alpha_max = std::min(relrot, alpha_max);
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
@@ -112,9 +112,9 @@ void ChShaftsFreewheel::IntLoadConstraint_C(const unsigned int off_L,  // offset
 
     if (do_clamp) {
         if (this->free_forward)
-            cnstr_violation = ChMax(cnstr_violation, -recovery_clamp); 
+            cnstr_violation = std::max(cnstr_violation, -recovery_clamp); 
         else
-            cnstr_violation = ChMin(cnstr_violation,  recovery_clamp);
+            cnstr_violation = std::min(cnstr_violation,  recovery_clamp);
     }
 
     Qc(off_L) += cnstr_violation;

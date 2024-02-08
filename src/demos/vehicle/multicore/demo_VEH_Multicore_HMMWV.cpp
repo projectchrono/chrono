@@ -29,9 +29,10 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/assets/ChVisualShapeLine.h"
-#include "chrono/core/ChMathematics.h"
+
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChDriver.h"

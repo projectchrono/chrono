@@ -22,6 +22,7 @@
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono/fea/ChElementBeamIGA.h"
 #include "chrono/fea/ChBuilderBeam.h"

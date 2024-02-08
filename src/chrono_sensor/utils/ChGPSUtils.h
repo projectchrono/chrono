@@ -21,7 +21,6 @@
 #define CHGPSUTILS_H
 
 #include "chrono/core/ChVector.h"
-#include "chrono/core/ChMathematics.h"
 #include "chrono_sensor/ChApiSensor.h"
 
 namespace chrono {

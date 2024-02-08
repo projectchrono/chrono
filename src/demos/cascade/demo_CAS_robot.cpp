@@ -18,6 +18,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/core/ChMathematics.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_cascade/ChCascadeBodyEasy.h"

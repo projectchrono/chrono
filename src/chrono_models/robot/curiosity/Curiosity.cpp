@@ -21,6 +21,7 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono/motion_functions/ChFunctionSetpoint.h"
 

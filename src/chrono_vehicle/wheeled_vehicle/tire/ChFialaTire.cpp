@@ -29,6 +29,7 @@
 #include <cmath>
 
 #include "chrono/core/ChGlobal.h"
+#include "chrono/motion_functions/ChFunctionSineStep.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
@@ -180,7 +181,7 @@ void ChFialaTire::Advance(double step) {
 
     CombinedCoulombForces(Fx0, Fy0, m_data.normal_force, m_mu / m_mu_0);
 
-    double frblend = ChSineStep(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
+    double frblend = ChFunctionSineStep::Eval(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
 
     FialaPatchForces(Fx, Fy, Mz, m_states.kappa, m_states.alpha, m_data.normal_force);
 
@@ -188,7 +189,7 @@ void ChFialaTire::Advance(double step) {
     Fy = (1.0 - frblend) * Fy0 + frblend * Fy;
 
     // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
-    double myStartUp = ChSineStep(m_states.abs_vx, vx_min, 0.0, vx_max, 1.0);
+    double myStartUp = ChFunctionSineStep::Eval(m_states.abs_vx, vx_min, 0.0, vx_max, 1.0);
     // Rolling Resistance
     My = -myStartUp * m_rolling_resistance * m_data.normal_force * ChSignum(m_states.omega);
 
@@ -210,7 +211,7 @@ void ChFialaTire::Advance(double step) {
     }
 
     // Smooth starting transients
-    double tr_fact = ChSineStep(m_time, 0, 0, m_time_trans, 1.0);
+    double tr_fact = ChFunctionSineStep::Eval(m_time, 0, 0, m_time_trans, 1.0);
     m_states.Fx_l *= tr_fact;
     m_states.Fy_l *= tr_fact;
 

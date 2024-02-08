@@ -13,7 +13,7 @@
 #ifndef CH_VISUAL_SHAPE_H
 #define CH_VISUAL_SHAPE_H
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/core/ChFrame.h"
 
 #include "chrono/assets/ChColor.h"

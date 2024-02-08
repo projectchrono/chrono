@@ -171,9 +171,9 @@ void ChLinkDistance::IntLoadConstraint_C(const unsigned int off_L,  ///< offset 
 
     if (do_clamp)
         if (mode == Mode::BILATERAL)
-            Qc(off_L) += ChMin(ChMax(c * C[0], -recovery_clamp), recovery_clamp);
+            Qc(off_L) += std::min(std::max(c * C[0], -recovery_clamp), recovery_clamp);
         else
-            Qc(off_L) += ChMax(c * C[0], -recovery_clamp);
+            Qc(off_L) += std::max(c * C[0], -recovery_clamp);
     else
         Qc(off_L) += c * C[0];
 }
@@ -220,7 +220,7 @@ void ChLinkDistance::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
         return;
 
     if (do_clamp)
-        Cx.Set_b_i(Cx.Get_b_i() + ChMin(ChMax(factor * C[0], -recovery_clamp), recovery_clamp));
+        Cx.Set_b_i(Cx.Get_b_i() + std::min(std::max(factor * C[0], -recovery_clamp), recovery_clamp));
     else
         Cx.Set_b_i(Cx.Get_b_i() + factor * C[0]);
 }

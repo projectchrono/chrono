@@ -12,8 +12,6 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChMathematics.h"
-
 #include "chrono/solver/ChSolverBB.h"
 
 namespace chrono {
@@ -204,7 +202,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
             f_hist.push_back(mf_p);
 
             double max_compare = 10e29;
-            for (int h = 1; h <= ChMin(iter, this->n_armijo); h++) {
+            for (int h = 1; h <= std::min(iter, this->n_armijo); h++) {
                 double compare = f_hist[iter - h] + gamma * lambda * dTg;
                 if (compare > max_compare)
                     max_compare = compare;
@@ -215,7 +213,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
                 if (iter > 0)
                     mf = f_hist[iter - 1];
                 double lambdanew = -lambda * lambda * dTg / (2 * (mf_p - mf - lambda * dTg));
-                lambda = ChMax(sigma_min * lambda, ChMin(sigma_max * lambda, lambdanew));
+                lambda = std::max(sigma_min * lambda, std::min(sigma_max * lambda, lambdanew));
                 if (verbose)
                     std::cout << " Repeat Armijo, new lambda=" << lambda << std::endl;
             } else {
@@ -243,7 +241,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
                 alpha = neg_BB1_fallback;
             } else {
                 double alph = sDs / sy;  // (s,Ds)/(s,y)   BB1
-                alpha = ChMin(a_max, ChMax(a_min, alph));
+                alpha = std::min(a_max, std::max(a_min, alph));
             }
         }
 
@@ -263,7 +261,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
             else
             {
                 double alph = ss / sDy;  // (s,s)/(s,Di*y)   BB1 (modified version)
-                alpha = ChMin (a_max, ChMax(a_min, alph));
+                alpha = std::min (a_max, std::max(a_min, alph));
             }
         }
         */
@@ -279,7 +277,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
                 alpha = neg_BB2_fallback;
             } else {
                 double alph = sy / yDy;  // (s,y)/(y,Di*y)   BB2
-                alpha = ChMin(a_max, ChMax(a_min, alph));
+                alpha = std::min(a_max, std::max(a_min, alph));
             }
         }
 

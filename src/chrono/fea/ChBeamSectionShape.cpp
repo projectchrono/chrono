@@ -12,6 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include "chrono/utils/ChConstants.h"
 #include "chrono/fea/ChBeamSectionShape.h"
 
 namespace chrono {

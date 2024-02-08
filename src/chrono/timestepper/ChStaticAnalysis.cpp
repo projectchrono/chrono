@@ -137,7 +137,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
         integrable->LoadResidual_F(R, 1.0);
         integrable->LoadConstraint_C(Qc, 1.0);
 
-        double cfactor = ChMin(1.0, (i + 2.0) / (m_incremental_steps + 1.0));
+        double cfactor = std::min(1.0, (i + 2.0) / (m_incremental_steps + 1.0));
         R *= cfactor;
         Qc *= cfactor;
 
@@ -300,7 +300,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
         integrable->StateScatter(X, V, T, true);  // state -> system
 
         // total load scaling factor
-        double cfactor = ChMin(1.0, (i + 2.0) / (m_incremental_steps + 1.0));
+        double cfactor = std::min(1.0, (i + 2.0) / (m_incremental_steps + 1.0));
 
         // Update nonzero speeds and accelerations, if any, calling
         // the iteration callback, if any:
@@ -492,7 +492,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
             // integrable->LoadConstraint_C(Qc, 1.0);  // C  (sign flipped later in StateSolveCorrection)
             integrable->LoadConstraint_Ct(Qc, 1.0);  // Ct  (sign flipped later in StateSolveCorrection)
 
-            double cfactor = ChMin(1.0, (i + 2.0) / (m_incremental_steps + 1.0));
+            double cfactor = std::min(1.0, (i + 2.0) / (m_incremental_steps + 1.0));
             R *= cfactor;
             Qc *= cfactor;
 
@@ -873,7 +873,7 @@ void ChStaticNonLinearRigidMotion::StaticAnalysis() {
         // Do not consider the rheonomic excitation because it constrains the DOFs in fact.
         // integrable->LoadConstraint_Ct(Qc, 1.0);
 
-        double cfactor = ChMin(1.0, (i + 2.0) / (m_incremental_steps + 1.0));
+        double cfactor = std::min(1.0, (i + 2.0) / (m_incremental_steps + 1.0));
         R *= cfactor;
         Qc *= cfactor;
 

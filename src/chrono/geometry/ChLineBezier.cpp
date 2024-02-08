@@ -18,7 +18,7 @@
 
 #include <cmath>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono/geometry/ChLineBezier.h"
 
 namespace chrono {

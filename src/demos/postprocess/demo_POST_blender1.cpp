@@ -32,6 +32,7 @@
 #include "chrono/geometry/ChLineArc.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/core/ChMathematics.h"
 
 #include "chrono_postprocess/ChBlender.h"
 

@@ -16,8 +16,10 @@
 
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix33.h"
+#include "chrono/utils/ChUtils.h"
 
 namespace chrono {
+
 const ChQuaternion<double> QNULL(0., 0., 0., 0.);
 const ChQuaternion<double> QUNIT(1., 0., 0., 0.);
 
@@ -31,6 +33,8 @@ const ChQuaternion<double> Q_ROTATE_Z_TO_X(CH_C_SQRT_1_2,				0,  CH_C_SQRT_1_2,	
 const ChQuaternion<double> Q_FLIP_AROUND_X(0., 1., 0., 0.);
 const ChQuaternion<double> Q_FLIP_AROUND_Y(0., 0., 1., 0.);
 const ChQuaternion<double> Q_FLIP_AROUND_Z(0., 0., 0., 1.);
+
+static const double FD_STEP = 1e-4;
 
 // -----------------------------------------------------------------------------
 // QUATERNION OPERATIONS
@@ -143,7 +147,7 @@ ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const 
     } else {
         // fr_vect & to_vect are not co-linear case
         axis.Normalize();
-        halfang = 0.5 * ChAtan2(cosangle, sinangle);
+        halfang = 0.5 * std::atan2(sinangle, cosangle);
         sinhalf = sin(halfang);
 
         quat.e0() = cos(halfang);
@@ -426,9 +430,9 @@ ChQuaternion<double> AngleDT_to_QuatDT(AngleSet angset,
     ChVector<double> ang1, ang2;
 
     ang1 = Quat_to_Angle(angset, q);
-    ang2 = Vadd(ang1, Vmul(mangles, BDF_STEP_HIGH));
+    ang2 = Vadd(ang1, Vmul(mangles, FD_STEP));
     q2 = Angle_to_Quat(angset, ang2);
-    res = Qscale(Qsub(q2, q), 1 / BDF_STEP_HIGH);
+    res = Qscale(Qsub(q2, q), 1 / FD_STEP);
 
     return res;
 }
@@ -441,11 +445,11 @@ ChQuaternion<double> AngleDTDT_to_QuatDTDT(AngleSet angset,
     ChVector<double> ang0, angA, angB;
 
     ang0 = Quat_to_Angle(angset, q);
-    angA = Vsub(ang0, Vmul(mangles, BDF_STEP_HIGH));
-    angB = Vadd(ang0, Vmul(mangles, BDF_STEP_HIGH));
+    angA = Vsub(ang0, Vmul(mangles, FD_STEP));
+    angB = Vadd(ang0, Vmul(mangles, FD_STEP));
     qa = Angle_to_Quat(angset, angA);
     qb = Angle_to_Quat(angset, angB);
-    res = Qscale(Qadd(Qadd(qa, qb), Qscale(q, -2)), 1 / BDF_STEP_HIGH);
+    res = Qscale(Qadd(Qadd(qa, qb), Qscale(q, -2)), 1 / FD_STEP);
 
     return res;
 }

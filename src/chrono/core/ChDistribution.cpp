@@ -14,6 +14,7 @@
 
 #include "chrono/core/ChDistribution.h"
 #include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
 

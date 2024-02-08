@@ -19,7 +19,7 @@
 #include <limits>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 
 namespace chrono {
 

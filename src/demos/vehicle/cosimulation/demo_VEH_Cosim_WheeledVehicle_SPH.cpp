@@ -27,6 +27,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"

@@ -32,6 +32,7 @@
 #include <cmath>
 
 #include "chrono/core/ChGlobal.h"
+#include "chrono/motion_functions/ChFunctionSineStep.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
 
@@ -145,7 +146,7 @@ void ChPac89Tire::Advance(double step) {
 
     double mu_scale = m_mu / m_mu0;
 
-    double frblend = ChSineStep(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
+    double frblend = ChFunctionSineStep::Eval(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
 
     // Calculate the new force and moment values (normal force and moment have already been accounted for in
     // Synchronize()).
@@ -240,7 +241,7 @@ void ChPac89Tire::Advance(double step) {
         const double vx_min = 0.125;
         const double vx_max = 0.5;
         // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
-        double myStartUp = ChSineStep(std::abs(m_states.vx), vx_min, 0.0, vx_max, 1.0);
+        double myStartUp = ChFunctionSineStep::Eval(std::abs(m_states.vx), vx_min, 0.0, vx_max, 1.0);
         My = myStartUp * m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
     }
 

@@ -17,9 +17,9 @@
 
 #include "chrono_modal/ChEigenvalueSolver.h"
 #include "chrono_modal/ChKrylovSchurEig.h"
-#include "chrono/core/ChMathematics.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/solver/ChDirectSolverLScomplex.h"
+#include "chrono/utils/ChConstants.h"
 
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
@@ -461,7 +461,7 @@ bool ChQuadraticEigenvalueSolverNullspaceDirect::Solve(
         nmodes = M.rows() - Cq.rows();
 
     // cannot use more modes than n. of dofs, if so, clamp
-    nmodes = ChMin(nmodes, M.rows() - Cq.rows());
+    nmodes = std::min(nmodes, (int)(M.rows() - Cq.rows()));
 
     V.setZero(M.rows(), nmodes);
     eig.setZero(nmodes);

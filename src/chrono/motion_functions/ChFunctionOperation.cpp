@@ -51,10 +51,10 @@ double ChFunctionOperation::Get_y(double x) const {
             res = pow(fa->Get_y(x), fb->Get_y(x));
             break;
         case ChOP_MAX:
-            res = ChMax(fa->Get_y(x), fb->Get_y(x));
+            res = std::max(fa->Get_y(x), fb->Get_y(x));
             break;
         case ChOP_MIN:
-            res = ChMin(fa->Get_y(x), fb->Get_y(x));
+            res = std::min(fa->Get_y(x), fb->Get_y(x));
             break;
         case ChOP_MODULO:
             res = fmod(fa->Get_y(x), fb->Get_y(x));
@@ -90,8 +90,8 @@ void ChFunctionOperation::Estimate_x_range(double& xmin, double& xmax) const {
     double amin, amax, bmin, bmax;
     fa->Estimate_x_range(amin, amax);
     fb->Estimate_x_range(bmin, bmax);
-    xmin = ChMin(amin, bmin);
-    xmax = ChMax(amax, bmax);
+    xmin = std::min(amin, bmin);
+    xmax = std::max(amax, bmax);
 }
 
 void ChFunctionOperation::ArchiveOut(ChArchiveOut& marchive) {

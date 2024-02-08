@@ -19,6 +19,7 @@
 #ifndef CH_FORCEELEMENT_TIRE_H
 #define CH_FORCEELEMENT_TIRE_H
 
+#include "chrono/utils/ChUtils.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 namespace chrono {

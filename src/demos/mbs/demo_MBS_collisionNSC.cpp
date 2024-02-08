@@ -23,6 +23,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/core/ChMathematics.h"
 
 #ifdef CHRONO_COLLISION
     #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"

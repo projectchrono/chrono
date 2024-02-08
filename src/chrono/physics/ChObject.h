@@ -22,7 +22,7 @@
 #include <memory>
 #include <string>
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 
 #include <vector>
 

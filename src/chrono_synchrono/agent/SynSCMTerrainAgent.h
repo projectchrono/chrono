@@ -145,7 +145,7 @@ struct SCMParameters {
         m_Mohr_cohesion = Mohr_cohesion;
         m_Mohr_friction = Mohr_friction;
         m_Janosi_shear = Janosi_shear;
-        m_elastic_K = ChMax(elastic_K, Bekker_Kphi);
+        m_elastic_K = std::max(elastic_K, Bekker_Kphi);
         m_damping_R = damping_R;
     }
 

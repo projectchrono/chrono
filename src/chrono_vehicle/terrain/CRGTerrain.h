@@ -40,6 +40,7 @@
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono/core/ChBezierCurve.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"

@@ -21,10 +21,10 @@
 
 #include <algorithm>
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 

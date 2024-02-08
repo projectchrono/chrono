@@ -54,7 +54,6 @@ set(ChronoEngine_core_HEADERS
     core/ChCoordsys.h
     core/ChFrame.h
     core/ChFrameMoving.h
-    core/ChMath.h
     core/ChMathematics.h
     core/ChMatrix.h
     core/ChMatrixEigenExtensions.h
@@ -77,7 +76,6 @@ set(ChronoEngine_core_HEADERS
     core/ChCubicSpline.h
     core/ChBitmaskEnums.h
     core/ChGlobal.h
-    core/ChFx.h
     core/ChTypes.h
     core/ChTensors.h
     )
@@ -1083,6 +1081,7 @@ set(ChronoEngine_motion_functions_SOURCES
     motion_functions/ChFunctionSequence.cpp
     motion_functions/ChFunctionSigma.cpp
     motion_functions/ChFunctionSine.cpp
+    motion_functions/ChFunctionSineStep.cpp
     motion_functions/ChFunctionSetpoint.cpp
     motion_functions/ChFunctionPosition.cpp
     motion_functions/ChFunctionPositionXYZFunctions.cpp
@@ -1120,6 +1119,7 @@ set(ChronoEngine_motion_functions_HEADERS
     motion_functions/ChFunctionSequence.h
     motion_functions/ChFunctionSigma.h
     motion_functions/ChFunctionSine.h
+    motion_functions/ChFunctionSineStep.h
     motion_functions/ChFunctionSetpoint.h
     motion_functions/ChFunctionPosition.h
     motion_functions/ChFunctionPositionXYZFunctions.h
@@ -1268,6 +1268,8 @@ set(ChronoEngine_utils_SOURCES
     )
 
 set(ChronoEngine_utils_HEADERS
+    utils/ChConstants.h
+    utils/ChUtils.h
     utils/ChOpenMP.h
     utils/ChUtilsGeometry.h
     utils/ChUtilsCreators.h

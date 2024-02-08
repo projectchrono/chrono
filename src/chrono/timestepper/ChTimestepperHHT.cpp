@@ -86,7 +86,7 @@ void ChTimestepperHHT::Advance(const double dt) {
         h = dt;
         num_successful_steps = 0;
     } else if (num_successful_steps >= req_successful_steps) {
-        double new_h = ChMin(h * step_increase_factor, dt);
+        double new_h = std::min(h * step_increase_factor, dt);
         if (new_h > h + h_min) {
             h = new_h;
             num_successful_steps = 0;
@@ -94,7 +94,7 @@ void ChTimestepperHHT::Advance(const double dt) {
                 std::cout << " +++HHT increase stepsize to " << h << std::endl;
         }
     } else {
-        h = ChMin(h, dt);
+        h = std::min(h, dt);
     }
 
     // Monitor flags controlling whther or not the Newton matrix must be updated.

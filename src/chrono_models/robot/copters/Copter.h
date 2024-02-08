@@ -20,6 +20,7 @@
 #include "chrono/physics/ChForce.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_models/ChApiModels.h"
 

@@ -23,6 +23,8 @@
 //
 // =============================================================================
 
+#include "chrono/utils/ChUtils.h"
+
 #include "chrono_models/vehicle/feda/FEDA_DoubleWishbone.h"
 
 namespace chrono {

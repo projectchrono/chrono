@@ -21,6 +21,7 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/core/ChMathematics.h"
 
 #include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChMesh.h"

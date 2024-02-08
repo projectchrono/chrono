@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
+#include "chrono/core/ChMathematics.h"
 #include "chrono/utils/ChBenchmark.h"
 
 #include "chrono/physics/ChSystemNSC.h"

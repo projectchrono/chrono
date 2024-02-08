@@ -251,7 +251,7 @@ void ChLinkMotorRotationDriveline::IntLoadConstraint_C(const unsigned int off_L,
     double cnstr_violation = c * cnstr_rot_error;
 
     if (do_clamp)
-        cnstr_violation = ChMin(ChMax(cnstr_violation, -recovery_clamp), recovery_clamp);
+        cnstr_violation = std::min(std::max(cnstr_violation, -recovery_clamp), recovery_clamp);
 
     // lump violation in the 1st shaft-3D-1D constraints:
     Qc(off_L + nc + 0) += cnstr_violation;

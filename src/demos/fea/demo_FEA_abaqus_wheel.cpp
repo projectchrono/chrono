@@ -23,6 +23,8 @@
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChLoadContainer.h"
 
+#include "chrono/core/ChMathematics.h"
+
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"

@@ -221,8 +221,8 @@ void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEA
             val = fabs(val);
             w = 1 - u - v;
             if (!is_into)
-                // val += ChMax(ChMax(0.0,u-1.0),-ChMin(0.0,u)) + ChMax(ChMax(0.0,v-1.0),-ChMin(0.0,v));
-                val += ChMax(0.0, -u) + ChMax(0.0, -v) + ChMax(0.0, -w);
+                // val += std::max(std::max(0.0,u-1.0),-std::min(0.0,u)) + std::max(std::max(0.0,v-1.0),-std::min(0.0,v));
+                val += std::max(0.0, -u) + std::max(0.0, -v) + std::max(0.0, -w);
             if (val < best_fit_val) {
                 best_fit_val = val;
                 best_fit_n1 = mshell->GetNodeA();
@@ -236,8 +236,8 @@ void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEA
             val = fabs(val);
             w = 1 - u - v;
             if (!is_into)
-                // val += ChMax(ChMax(0.0,u-1.0),-ChMin(0.0,u)) + ChMax(ChMax(0.0,v-1.0),-ChMin(0.0,v));
-                val += ChMax(0.0, -u) + ChMax(0.0, -v) + ChMax(0.0, -w);
+                // val += std::max(std::max(0.0,u-1.0),-std::min(0.0,u)) + std::max(std::max(0.0,v-1.0),-std::min(0.0,v));
+                val += std::max(0.0, -u) + std::max(0.0, -v) + std::max(0.0, -w);
             if (val < best_fit_val) {
                 best_fit_val = val;
                 best_fit_n1 = mshell->GetNodeC();

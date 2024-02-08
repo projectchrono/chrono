@@ -15,7 +15,7 @@
 #ifndef CHGAUSSPOINT
 #define CHGAUSSPOINT
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/core/ChTensors.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 

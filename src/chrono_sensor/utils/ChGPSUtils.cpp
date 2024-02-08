@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include "chrono/utils/ChConstants.h"
+
 #include "chrono_sensor/utils/ChGPSUtils.h"
 
 namespace chrono {

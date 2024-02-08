@@ -39,6 +39,8 @@
 #include <cmath>
 
 #include "chrono/core/ChGlobal.h"
+#include "chrono/motion_functions/ChFunctionSineStep.h"
+
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 
@@ -1791,7 +1793,7 @@ void ChPac02Tire::Advance(double step) {
     double kappa = m_states.kappa;
     double alpha = m_states.alpha;
     double gamma = m_states.gamma;
-    double frblend = ChSineStep(std::abs(m_data.vel.x()), m_frblend_begin, 0.0, m_frblend_end, 1.0);
+    double frblend = ChFunctionSineStep::Eval(std::abs(m_data.vel.x()), m_frblend_begin, 0.0, m_frblend_end, 1.0);
 
     switch (m_use_mode) {
         case 0:

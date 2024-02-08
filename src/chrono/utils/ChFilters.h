@@ -23,9 +23,9 @@
 #include <valarray>
 #include <vector>
 
-#include <chrono/motion_functions/ChFunctionRecorder.h>
+#include "chrono/motion_functions/ChFunctionRecorder.h"
+#include "chrono/motion_functions/ChFunctionSineStep.h"
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMathematics.h"
 #include "chrono/core/ChVector.h"
 
 namespace chrono {
@@ -464,6 +464,8 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     double m_logging_time;
     double m_step;
 
+    std::unique_ptr<ChFunctionSineStep> m_sinestep;
+
     // raw input data series
     std::vector<double> m_data_speed;
 
@@ -547,6 +549,8 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
     const double m_step = 1.0 / 160.0;
 
     double m_logging_time;
+
+    std::unique_ptr<ChFunctionSineStep> m_sinestep;
 
     // results
     double m_dkx;

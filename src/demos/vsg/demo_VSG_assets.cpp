@@ -20,6 +20,7 @@
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/core/ChMathematics.h"
 #include "chrono/geometry/ChLineNurbs.h"
 #include "chrono/geometry/ChSurfaceNurbs.h"
 #include "chrono/assets/ChVisualShapeBox.h"

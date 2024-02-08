@@ -369,21 +369,21 @@ void ChIrrGUI::AddUserEventReceiver(irr::IEventReceiver* receiver) {
 }
 
 void ChIrrGUI::SetSymbolscale(double val) {
-    symbolscale = ChMax(10e-12, val);
+    symbolscale = std::max(10e-12, val);
     char message[50];
     snprintf(message, sizeof(message), "%g", symbolscale);
     g_symbolscale->setText(irr::core::stringw(message).c_str());
 }
 
 void ChIrrGUI::SetModalAmplitude(double val) {
-    modal_amplitude = ChMax(0.0, val);
+    modal_amplitude = std::max(0.0, val);
     char message[50];
     snprintf(message, sizeof(message), "%g", modal_amplitude);
     g_modal_amplitude->setText(irr::core::stringw(message).c_str());
 }
 
 void ChIrrGUI::SetModalSpeed(double val) {
-    modal_speed = ChMax(0.0, val);
+    modal_speed = std::max(0.0, val);
     char message[50];
     snprintf(message, sizeof(message), "%g", modal_speed);
     g_modal_speed->setText(irr::core::stringw(message).c_str());

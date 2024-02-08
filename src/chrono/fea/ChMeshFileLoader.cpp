@@ -22,7 +22,7 @@
 #include <string>
 #include <cctype>
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChSystem.h"
 
 #include <array>

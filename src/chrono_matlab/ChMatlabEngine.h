@@ -16,7 +16,7 @@
 #define CHMATLABENGINE_H
 
 #include "chrono_matlab/ChApiMatlab.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 
 // Following namespace trick is a fix for VS2010+ and Matlab: avoid error with typedef in matrix.h
 namespace matlabengine {

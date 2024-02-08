@@ -15,8 +15,10 @@
 //
 // =============================================================================
 
-#include "chrono_sensor/optix/scene/ChScene.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/utils/ChUtils.h"
+
+#include "chrono_sensor/optix/scene/ChScene.h"
 
 namespace chrono {
 namespace sensor {

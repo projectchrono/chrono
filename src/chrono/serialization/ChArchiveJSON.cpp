@@ -255,7 +255,7 @@ ChArchiveInJSON::ChArchiveInJSON(std::ifstream& stream_in) : m_istream(stream_in
 
     document.Parse<0>(stringbuffer);
     if (document.HasParseError()) {
-        std::string errstrA((const char*)(&stringbuffer[ChMax((int)document.GetErrorOffset() - 10, 0)]));
+        std::string errstrA((const char*)(&stringbuffer[std::max((int)document.GetErrorOffset() - 10, 0)]));
         errstrA.resize(10);
         std::string errstrB((const char*)(&stringbuffer[document.GetErrorOffset()]));
         errstrB.resize(20);

@@ -23,7 +23,7 @@
 #include <list>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/core/ChQuaternion.h"
 
 namespace chrono {

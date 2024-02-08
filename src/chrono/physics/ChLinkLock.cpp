@@ -1032,9 +1032,9 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
         if (mask.Constr_N(i).IsActive()) {
             if (do_clamp) {
                 if (mask.Constr_N(i).IsUnilateral())
-                    Qc(off_L + cnt) += ChMax(c * C(cnt), -recovery_clamp);
+                    Qc(off_L + cnt) += std::max(c * C(cnt), -recovery_clamp);
                 else
-                    Qc(off_L + cnt) += ChMin(ChMax(c * C(cnt), -recovery_clamp), recovery_clamp);
+                    Qc(off_L + cnt) += std::min(std::max(c * C(cnt), -recovery_clamp), recovery_clamp);
             } else
                 Qc(off_L + cnt) += c * C(cnt);
             cnt++;
@@ -1048,61 +1048,61 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (-limit_X->GetMin() + relM.pos.x()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (-limit_X->GetMin() + relM.pos.x()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_X->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (limit_X->GetMax() - relM.pos.x()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (limit_X->GetMax() - relM.pos.x()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (-limit_Y->GetMin() + relM.pos.y()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (-limit_Y->GetMin() + relM.pos.y()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Y->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (limit_Y->GetMax() - relM.pos.y()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (limit_Y->GetMax() - relM.pos.y()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (-limit_Z->GetMin() + relM.pos.z()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (-limit_Z->GetMin() + relM.pos.z()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Z->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (limit_Z->GetMax() - relM.pos.z()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (limit_Z->GetMax() - relM.pos.z()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (-sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (-sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (-sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (-sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (-sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (-sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp);
             ++local_offset;
         }
     }
@@ -1422,10 +1422,10 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
         if (mask.Constr_N(i).IsActive()) {
             if (do_clamp) {
                 if (mask.Constr_N(i).IsUnilateral())
-                    mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + ChMax(factor * C(cnt), -recovery_clamp));
+                    mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + std::max(factor * C(cnt), -recovery_clamp));
                 else
                     mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() +
-                                             ChMin(ChMax(factor * C(cnt), -recovery_clamp), recovery_clamp));
+                                             std::min(std::max(factor * C(cnt), -recovery_clamp), recovery_clamp));
             } else
                 mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + factor * C(cnt));
 
@@ -1440,7 +1440,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
                                               factor * (-limit_X->GetMin() + relM.pos.x()));
             } else {
                 limit_X->constr_lower.Set_b_i(limit_X->constr_lower.Get_b_i() +
-                                              ChMax(factor * (-limit_X->GetMin() + relM.pos.x()), -recovery_clamp));
+                                              std::max(factor * (-limit_X->GetMin() + relM.pos.x()), -recovery_clamp));
             }
         }
         if (limit_X->constr_upper.IsActive()) {
@@ -1449,7 +1449,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
                                               factor * (limit_X->GetMax() - relM.pos.x()));
             } else {
                 limit_X->constr_upper.Set_b_i(limit_X->constr_upper.Get_b_i() +
-                                              ChMax(factor * (limit_X->GetMax() - relM.pos.x()), -recovery_clamp));
+                                              std::max(factor * (limit_X->GetMax() - relM.pos.x()), -recovery_clamp));
             }
         }
     }
@@ -1460,7 +1460,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
                                               factor * (-limit_Y->GetMin() + relM.pos.y()));
             } else {
                 limit_Y->constr_lower.Set_b_i(limit_Y->constr_lower.Get_b_i() +
-                                              ChMax(factor * (-limit_Y->GetMin() + relM.pos.y()), -recovery_clamp));
+                                              std::max(factor * (-limit_Y->GetMin() + relM.pos.y()), -recovery_clamp));
             }
         }
         if (limit_Y->constr_upper.IsActive()) {
@@ -1469,7 +1469,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
                                               factor * (limit_Y->GetMax() - relM.pos.y()));
             } else {
                 limit_Y->constr_upper.Set_b_i(limit_Y->constr_upper.Get_b_i() +
-                                              ChMax(factor * (limit_Y->GetMax() - relM.pos.y()), -recovery_clamp));
+                                              std::max(factor * (limit_Y->GetMax() - relM.pos.y()), -recovery_clamp));
             }
         }
     }
@@ -1480,7 +1480,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
                                               factor * (-limit_Z->GetMin() + relM.pos.z()));
             } else {
                 limit_Z->constr_lower.Set_b_i(limit_Z->constr_lower.Get_b_i() +
-                                              ChMax(factor * (-limit_Z->GetMin() + relM.pos.z()), -recovery_clamp));
+                                              std::max(factor * (-limit_Z->GetMin() + relM.pos.z()), -recovery_clamp));
             }
         }
         if (limit_Z->constr_upper.IsActive()) {
@@ -1489,7 +1489,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
                                               factor * (limit_Z->GetMax() - relM.pos.z()));
             } else {
                 limit_Z->constr_upper.Set_b_i(limit_Z->constr_upper.Get_b_i() +
-                                              ChMax(factor * (limit_Z->GetMax() - relM.pos.z()), -recovery_clamp));
+                                              std::max(factor * (limit_Z->GetMax() - relM.pos.z()), -recovery_clamp));
             }
         }
     }
@@ -1501,7 +1501,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
             } else {
                 limit_Rx->constr_lower.Set_b_i(
                     limit_Rx->constr_lower.Get_b_i() +
-                    ChMax(factor * (-sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp));
+                    std::max(factor * (-sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp));
             }
         }
         if (limit_Rx->constr_upper.IsActive()) {
@@ -1511,7 +1511,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
             } else {
                 limit_Rx->constr_upper.Set_b_i(
                     limit_Rx->constr_upper.Get_b_i() +
-                    ChMax(factor * (sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp));
+                    std::max(factor * (sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp));
             }
         }
     }
@@ -1523,7 +1523,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
             } else {
                 limit_Ry->constr_lower.Set_b_i(
                     limit_Ry->constr_lower.Get_b_i() +
-                    ChMax(factor * (-sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp));
+                    std::max(factor * (-sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp));
             }
         }
         if (limit_Ry->constr_upper.IsActive()) {
@@ -1533,7 +1533,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
             } else {
                 limit_Ry->constr_upper.Set_b_i(
                     limit_Ry->constr_upper.Get_b_i() +
-                    ChMax(factor * (sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp));
+                    std::max(factor * (sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp));
             }
         }
     }
@@ -1545,7 +1545,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
             } else {
                 limit_Rz->constr_lower.Set_b_i(
                     limit_Rz->constr_lower.Get_b_i() +
-                    ChMax(factor * (-sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp));
+                    std::max(factor * (-sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp));
             }
         }
         if (limit_Rz->constr_upper.IsActive()) {
@@ -1555,7 +1555,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
             } else {
                 limit_Rz->constr_upper.Set_b_i(
                     limit_Rz->constr_upper.Get_b_i() +
-                    ChMax(factor * (sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp));
+                    std::max(factor * (sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp));
             }
         }
     }

@@ -20,9 +20,10 @@
 #include <memory>
 #include <random>
 #include <queue>
+
 #include "chrono_sensor/filters/ChFilter.h"
 #include "chrono/core/ChVector.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
 namespace sensor {

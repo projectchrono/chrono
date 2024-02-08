@@ -809,7 +809,7 @@ int main(int argc, char* argv[]) {
         // Example B.6 requires the setpoint to be changed in the simulation loop:
         // for example use a clamped sinusoid, just for fun:
         double t = sys.GetChTime();
-        double Sp = ChMin(ChMax(2.6 * sin(t * 1.8), -1.4), 1.4);
+        double Sp = std::min(std::max(2.6 * sin(t * 1.8), -1.4), 1.4);
         motor6setpoint->SetSetpoint(Sp, t);
 
         sys.DoStepDynamics(timestep);

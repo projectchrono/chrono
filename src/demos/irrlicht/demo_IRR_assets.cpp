@@ -23,6 +23,7 @@
 #include "chrono/geometry/ChSurfaceNurbs.h"
 #include "chrono/assets/ChVisualShapeSurface.h"
 #include "chrono/assets/ChVisualShapeCone.h"
+#include "chrono/core/ChMathematics.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 

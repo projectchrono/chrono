@@ -19,6 +19,8 @@
 
 #include <cmath>
 
+#include "chrono/utils/ChUtils.h"
+
 #include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"

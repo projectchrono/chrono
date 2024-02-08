@@ -103,7 +103,7 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
     ChParticleEventFlowInRectangle(double mXsize = 1, double mYsize = 1) {
         Xsize = mXsize;
         Ysize = mYsize;
-        margin = 0.1 * ChMin(Xsize, Ysize);
+        margin = 0.1 * std::min(Xsize, Ysize);
     }
 
     /// This function triggers the a particle event according to the fact

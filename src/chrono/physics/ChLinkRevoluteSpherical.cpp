@@ -273,10 +273,10 @@ void ChLinkRevoluteSpherical::IntLoadConstraint_C(const unsigned int off_L,  ///
         return;
 
     double cnstr_dist_violation =
-        do_clamp ? ChMin(ChMax(c * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp) : c * (m_cur_dist - m_dist);
+        do_clamp ? std::min(std::max(c * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp) : c * (m_cur_dist - m_dist);
 
     double cnstr_dot_violation =
-        do_clamp ? ChMin(ChMax(c * m_cur_dot, -recovery_clamp), recovery_clamp) : c * m_cur_dot;
+        do_clamp ? std::min(std::max(c * m_cur_dot, -recovery_clamp), recovery_clamp) : c * m_cur_dot;
 
     Qc(off_L + 0) += cnstr_dist_violation;
     Qc(off_L + 1) += cnstr_dot_violation;
@@ -330,11 +330,11 @@ void ChLinkRevoluteSpherical::ConstraintsBiLoad_C(double factor, double recovery
         return;
 
     double cnstr_dist_violation = do_clamp
-                                      ? ChMin(ChMax(factor * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
+                                      ? std::min(std::max(factor * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
                                       : factor * (m_cur_dist - m_dist);
 
     double cnstr_dot_violation =
-        do_clamp ? ChMin(ChMax(factor * m_cur_dot, -recovery_clamp), recovery_clamp) : factor * m_cur_dot;
+        do_clamp ? std::min(std::max(factor * m_cur_dot, -recovery_clamp), recovery_clamp) : factor * m_cur_dot;
 
     m_cnstr_dist.Set_b_i(m_cnstr_dist.Get_b_i() + cnstr_dist_violation);
     m_cnstr_dot.Set_b_i(m_cnstr_dot.Get_b_i() + cnstr_dot_violation);

@@ -31,6 +31,7 @@
 
 #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 

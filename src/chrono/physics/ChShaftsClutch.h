@@ -106,7 +106,7 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
     /// a fixed shaft and a free shaft). The modulation must range from
     /// 0 (switched off) to 1 (max torque). Default is 1, when clutch is created.
     /// You can update this during integration loop to simulate the pedal pushing by the driver.
-    void SetModulation(double mm) { modulation = ChMax(ChMin(mm, 1.0), 0.0); }
+    void SetModulation(double mm) { modulation = std::max(std::min(mm, 1.0), 0.0); }
     /// Get the the user modulation.
     double GetModulation() const { return modulation; }
 

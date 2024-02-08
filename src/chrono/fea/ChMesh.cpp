@@ -19,7 +19,7 @@
 #include <sstream>
 #include <string>
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChObject.h"
 #include "chrono/physics/ChSystem.h"

@@ -310,11 +310,11 @@ void ChLinkRevolute::IntLoadConstraint_C(const unsigned int off_L,  ///< offset 
     double cnstr_vw_violation = c * m_C(4);
 
     if (do_clamp) {
-        cnstr_x_violation = ChMin(ChMax(cnstr_x_violation, -recovery_clamp), recovery_clamp);
-        cnstr_y_violation = ChMin(ChMax(cnstr_y_violation, -recovery_clamp), recovery_clamp);
-        cnstr_z_violation = ChMin(ChMax(cnstr_z_violation, -recovery_clamp), recovery_clamp);
-        cnstr_uw_violation = ChMin(ChMax(cnstr_uw_violation, -recovery_clamp), recovery_clamp);
-        cnstr_vw_violation = ChMin(ChMax(cnstr_vw_violation, -recovery_clamp), recovery_clamp);
+        cnstr_x_violation = std::min(std::max(cnstr_x_violation, -recovery_clamp), recovery_clamp);
+        cnstr_y_violation = std::min(std::max(cnstr_y_violation, -recovery_clamp), recovery_clamp);
+        cnstr_z_violation = std::min(std::max(cnstr_z_violation, -recovery_clamp), recovery_clamp);
+        cnstr_uw_violation = std::min(std::max(cnstr_uw_violation, -recovery_clamp), recovery_clamp);
+        cnstr_vw_violation = std::min(std::max(cnstr_vw_violation, -recovery_clamp), recovery_clamp);
     }
     Qc(off_L + 0) += cnstr_x_violation;
     Qc(off_L + 1) += cnstr_y_violation;
@@ -392,11 +392,11 @@ void ChLinkRevolute::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     double cnstr_vw_violation = factor * m_C(4);
 
     if (do_clamp) {
-        cnstr_x_violation = ChMin(ChMax(cnstr_x_violation, -recovery_clamp), recovery_clamp);
-        cnstr_y_violation = ChMin(ChMax(cnstr_y_violation, -recovery_clamp), recovery_clamp);
-        cnstr_z_violation = ChMin(ChMax(cnstr_z_violation, -recovery_clamp), recovery_clamp);
-        cnstr_uw_violation = ChMin(ChMax(cnstr_uw_violation, -recovery_clamp), recovery_clamp);
-        cnstr_vw_violation = ChMin(ChMax(cnstr_vw_violation, -recovery_clamp), recovery_clamp);
+        cnstr_x_violation = std::min(std::max(cnstr_x_violation, -recovery_clamp), recovery_clamp);
+        cnstr_y_violation = std::min(std::max(cnstr_y_violation, -recovery_clamp), recovery_clamp);
+        cnstr_z_violation = std::min(std::max(cnstr_z_violation, -recovery_clamp), recovery_clamp);
+        cnstr_uw_violation = std::min(std::max(cnstr_uw_violation, -recovery_clamp), recovery_clamp);
+        cnstr_vw_violation = std::min(std::max(cnstr_vw_violation, -recovery_clamp), recovery_clamp);
     }
 
     m_cnstr_x.Set_b_i(m_cnstr_x.Get_b_i() + cnstr_x_violation);

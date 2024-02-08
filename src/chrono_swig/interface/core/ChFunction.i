@@ -21,6 +21,7 @@
 #include "chrono/motion_functions/ChFunctionSequence.h"
 #include "chrono/motion_functions/ChFunctionSigma.h"
 #include "chrono/motion_functions/ChFunctionSine.h"
+#include "chrono/motion_functions/ChFunctionSineStep.h"
 #include "chrono/motion_functions/ChFunctionSetpoint.h"
 
 #include "chrono/motion_functions/ChFunctionRotation.h"
@@ -83,6 +84,8 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionSigma, 0 |  0 );
 		else if ( typeid(*out)==typeid(chrono::ChFunctionSine) )
 			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionSine, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionSineStep) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionSineStep, 0 |  0 );
 		else
 			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction, 0 |  0 );
    } 
@@ -116,6 +119,7 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %shared_ptr(chrono::ChFunctionSequence)
 %shared_ptr(chrono::ChFunctionSigma)
 %shared_ptr(chrono::ChFunctionSine)
+%shared_ptr(chrono::ChFunctionSineStep)
 %shared_ptr(chrono::ChFunctionSetpoint)
 %shared_ptr(chrono::ChFunctionSetpointCallback)
 
@@ -167,6 +171,7 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %include "../../../chrono/motion_functions/ChFunctionSequence.h"
 %include "../../../chrono/motion_functions/ChFunctionSigma.h"
 %include "../../../chrono/motion_functions/ChFunctionSine.h"
+%include "../../../chrono/motion_functions/ChFunctionSineStep.h"
 %include "../../../chrono/motion_functions/ChFunctionSetpoint.h"
 
 %include "../../../chrono/motion_functions/ChFunctionRotation.h"
@@ -209,4 +214,5 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionSequence)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionSigma)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionSine)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionSineStep)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionSetpoint)

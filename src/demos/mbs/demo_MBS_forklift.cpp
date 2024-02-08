@@ -25,6 +25,7 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/core/ChMathematics.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 

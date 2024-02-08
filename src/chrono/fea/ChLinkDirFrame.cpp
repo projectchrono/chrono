@@ -140,8 +140,8 @@ void ChLinkDirFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in
     ChVector<> cres = c * (Arw.transpose() * m_node->GetD());
 
     if (do_clamp) {
-        cres.y() = ChMin(ChMax(cres.y(), -recovery_clamp), recovery_clamp);
-        cres.z() = ChMin(ChMax(cres.z(), -recovery_clamp), recovery_clamp);
+        cres.y() = std::min(std::max(cres.y(), -recovery_clamp), recovery_clamp);
+        cres.z() = std::min(std::max(cres.z(), -recovery_clamp), recovery_clamp);
     }
 
     Qc(off_L + 0) += cres.y();

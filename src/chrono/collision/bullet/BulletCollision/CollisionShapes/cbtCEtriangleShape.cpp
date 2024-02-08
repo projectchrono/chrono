@@ -98,7 +98,7 @@ void cbtCEtriangleShape::calculateLocalInertia(cbtScalar mass, cbtVector3& inert
     ident.setIdentity();
 
     cbtVector3 halfExtents;
-    double radius = ChMax((*p2 - *p1).Length(), (*p3 - *p1).Length());
+    double radius = std::max((*p2 - *p1).Length(), (*p3 - *p1).Length());
     halfExtents.setValue((cbtScalar)(radius), (cbtScalar)(radius), (cbtScalar)(radius));
 
     cbtScalar margin = CONVEX_DISTANCE_MARGIN;
@@ -130,13 +130,13 @@ void cbtCEtriangleShape::getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbt
     cbtVector3 vsphereswept((cbtScalar)this->sphereswept_rad, (cbtScalar)this->sphereswept_rad,
                             (cbtScalar)this->sphereswept_rad);
 
-    aabbMin = cbtVector3((cbtScalar)ChMin(ChMin(p1_w.x(), p2_w.x()), p3_w.x()),
-                         (cbtScalar)ChMin(ChMin(p1_w.y(), p2_w.y()), p3_w.y()),
-                         (cbtScalar)ChMin(ChMin(p1_w.z(), p2_w.z()), p3_w.z())) -
+    aabbMin = cbtVector3((cbtScalar)std::min(std::min(p1_w.x(), p2_w.x()), p3_w.x()),
+                         (cbtScalar)std::min(std::min(p1_w.y(), p2_w.y()), p3_w.y()),
+                         (cbtScalar)std::min(std::min(p1_w.z(), p2_w.z()), p3_w.z())) -
               venvelope - vsphereswept;
 
-    aabbMax = cbtVector3((cbtScalar)ChMax(ChMax(p1_w.x(), p2_w.x()), p3_w.x()),
-                         (cbtScalar)ChMax(ChMax(p1_w.y(), p2_w.y()), p3_w.y()),
-                         (cbtScalar)ChMax(ChMax(p1_w.z(), p2_w.z()), p3_w.z())) +
+    aabbMax = cbtVector3((cbtScalar)std::max(std::max(p1_w.x(), p2_w.x()), p3_w.x()),
+                         (cbtScalar)std::max(std::max(p1_w.y(), p2_w.y()), p3_w.y()),
+                         (cbtScalar)std::max(std::max(p1_w.z(), p2_w.z()), p3_w.z())) +
               venvelope + vsphereswept;
 }

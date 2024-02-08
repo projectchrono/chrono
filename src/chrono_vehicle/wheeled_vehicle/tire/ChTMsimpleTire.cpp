@@ -31,6 +31,7 @@
 #include <iomanip>
 
 #include "chrono/core/ChGlobal.h"
+#include "chrono/motion_functions/ChFunctionSineStep.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMsimpleTire.h"
 
@@ -175,7 +176,7 @@ void ChTMsimpleTire::Advance(double step) {
 
     CombinedCoulombForces(Fx0, Fy0, Fz, m_states.muscale);
 
-    double frblend = ChSineStep(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
+    double frblend = ChFunctionSineStep::Eval(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
 
     TMcombinedForces(Fx, Fy, m_states.sx, m_states.sy, Fz, m_states.muscale);
     Fx = (1.0 - frblend) * Fx0 + frblend * Fx;
@@ -194,7 +195,7 @@ void ChTMsimpleTire::Advance(double step) {
 
     double startup = 1;
     if (m_use_startup_transition) {
-        startup = ChSineStep(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);
+        startup = ChFunctionSineStep::Eval(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);
     }
 
     // Compile the force and moment vectors so that they can be

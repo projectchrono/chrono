@@ -281,10 +281,10 @@ void ChLinkUniversal::IntLoadConstraint_C(const unsigned int off_L,  ///< offset
     double cnstr_dot_violation = c * m_C(3);
 
     if (do_clamp) {
-        cnstr_x_violation = ChMin(ChMax(cnstr_x_violation, -recovery_clamp), recovery_clamp);
-        cnstr_y_violation = ChMin(ChMax(cnstr_y_violation, -recovery_clamp), recovery_clamp);
-        cnstr_z_violation = ChMin(ChMax(cnstr_z_violation, -recovery_clamp), recovery_clamp);
-        cnstr_dot_violation = ChMin(ChMax(cnstr_dot_violation, -recovery_clamp), recovery_clamp);
+        cnstr_x_violation = std::min(std::max(cnstr_x_violation, -recovery_clamp), recovery_clamp);
+        cnstr_y_violation = std::min(std::max(cnstr_y_violation, -recovery_clamp), recovery_clamp);
+        cnstr_z_violation = std::min(std::max(cnstr_z_violation, -recovery_clamp), recovery_clamp);
+        cnstr_dot_violation = std::min(std::max(cnstr_dot_violation, -recovery_clamp), recovery_clamp);
     }
     Qc(off_L + 0) += cnstr_x_violation;
     Qc(off_L + 1) += cnstr_y_violation;
@@ -355,10 +355,10 @@ void ChLinkUniversal::ConstraintsBiLoad_C(double factor, double recovery_clamp, 
     double cnstr_dot_violation = factor * m_C(3);
 
     if (do_clamp) {
-        cnstr_x_violation = ChMin(ChMax(cnstr_x_violation, -recovery_clamp), recovery_clamp);
-        cnstr_y_violation = ChMin(ChMax(cnstr_y_violation, -recovery_clamp), recovery_clamp);
-        cnstr_z_violation = ChMin(ChMax(cnstr_z_violation, -recovery_clamp), recovery_clamp);
-        cnstr_dot_violation = ChMin(ChMax(cnstr_dot_violation, -recovery_clamp), recovery_clamp);
+        cnstr_x_violation = std::min(std::max(cnstr_x_violation, -recovery_clamp), recovery_clamp);
+        cnstr_y_violation = std::min(std::max(cnstr_y_violation, -recovery_clamp), recovery_clamp);
+        cnstr_z_violation = std::min(std::max(cnstr_z_violation, -recovery_clamp), recovery_clamp);
+        cnstr_dot_violation = std::min(std::max(cnstr_dot_violation, -recovery_clamp), recovery_clamp);
     }
 
     m_cnstr_x.Set_b_i(m_cnstr_x.Get_b_i() + cnstr_x_violation);

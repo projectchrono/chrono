@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define MARKER_BDF_STEP 0.0001
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChMarker)
 CH_UPCASTING(ChMarker, ChObj)

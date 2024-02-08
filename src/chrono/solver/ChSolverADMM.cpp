@@ -12,7 +12,6 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/core/ChSparsityPatternLearner.h"
 
 #include "chrono/solver/ChSolverADMM.h"
@@ -153,7 +152,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
             
         /*
         std::cout << "Y warmastarted:" << std::endl;
-        for (int k = 0; k < ChMin(y.rows(), 10); ++k)
+        for (int k = 0; k < std::min(y.rows(), 10); ++k)
             std::cout << "  " << y(k) << std::endl;
         */
         
@@ -385,7 +384,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
             }
 
             if (this->stepadjust_type == AdmmStepType::BALANCED_FAST) {
-                double r_prim_scaled = r_prim_pre / (ChMax(z.lpNorm<Eigen::Infinity>(), l.lpNorm<Eigen::Infinity>()) + 1e-10); // maybe norm(l, inf) very similar to norm(z, inf)
+                double r_prim_scaled = r_prim_pre / (std::max(z.lpNorm<Eigen::Infinity>(), l.lpNorm<Eigen::Infinity>()) + 1e-10); // maybe norm(l, inf) very similar to norm(z, inf)
                 double r_dual_scaled = r_dual_pre / (y.lpNorm<Eigen::Infinity>() + 1e-10);  //  as in "ADMM Penalty Parameter Selection by Residual Balancing", Brendt Wohlberg
                 rhofactor = sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
             }
@@ -453,7 +452,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
     /*
     std::cout << "Y resulting:" << std::endl;
-        for (int k = 0; k < ChMin(y.rows(), 10); ++k)
+        for (int k = 0; k < std::min(y.rows(), 10); ++k)
             std::cout << "  " << y(k) << std::endl;
     */
 
@@ -561,7 +560,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
             
         /*
         std::cout << "Y warmastarted:" << std::endl;
-        for (int k = 0; k < ChMin(y.rows(), 10); ++k)
+        for (int k = 0; k < std::min(y.rows(), 10); ++k)
             std::cout << "  " << y(k) << std::endl;
         */
         
@@ -809,7 +808,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
             }
 
             if (this->stepadjust_type == AdmmStepType::BALANCED_FAST) {
-                double r_prim_scaled = r_prim_pre / (ChMax(z.lpNorm<Eigen::Infinity>(), l.lpNorm<Eigen::Infinity>()) + 1e-10); // maybe norm(l, inf) very similar to norm(z, inf)
+                double r_prim_scaled = r_prim_pre / (std::max(z.lpNorm<Eigen::Infinity>(), l.lpNorm<Eigen::Infinity>()) + 1e-10); // maybe norm(l, inf) very similar to norm(z, inf)
                 double r_dual_scaled = r_dual_pre / (y.lpNorm<Eigen::Infinity>() + 1e-10);  //  as in "ADMM Penalty Parameter Selection by Residual Balancing", Brendt Wohlberg
                 rhofactor = sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
             }
@@ -877,7 +876,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
     /*
     std::cout << "Y resulting:" << std::endl;
-        for (int k = 0; k < ChMin(y.rows(), 10); ++k)
+        for (int k = 0; k < std::min(y.rows(), 10); ++k)
             std::cout << "  " << y(k) << std::endl;
     */
 

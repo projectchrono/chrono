@@ -43,12 +43,12 @@ ChTriangle& ChTriangle::operator=(const ChTriangle& source) {
 
 ChAABB ChTriangle::GetBoundingBox(const ChVector<>& P1, const ChVector<>& P2, const ChVector<>& P3) {
     ChAABB bbox;
-    bbox.min.x() = ChMin(ChMin(P1.x(), P2.x()), P3.x());
-    bbox.min.y() = ChMin(ChMin(P1.y(), P2.y()), P3.y());
-    bbox.min.z() = ChMin(ChMin(P1.z(), P2.z()), P3.z());
-    bbox.max.x() = ChMax(ChMax(P1.x(), P2.x()), P3.x());
-    bbox.max.y() = ChMax(ChMax(P1.y(), P2.y()), P3.y());
-    bbox.max.z() = ChMax(ChMax(P1.z(), P2.z()), P3.z());
+    bbox.min.x() = std::min(std::min(P1.x(), P2.x()), P3.x());
+    bbox.min.y() = std::min(std::min(P1.y(), P2.y()), P3.y());
+    bbox.min.z() = std::min(std::min(P1.z(), P2.z()), P3.z());
+    bbox.max.x() = std::max(std::max(P1.x(), P2.x()), P3.x());
+    bbox.max.y() = std::max(std::max(P1.y(), P2.y()), P3.y());
+    bbox.max.z() = std::max(std::max(P1.z(), P2.z()), P3.z());
 
     return bbox;
 }

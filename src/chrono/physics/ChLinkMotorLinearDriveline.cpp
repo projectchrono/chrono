@@ -283,21 +283,21 @@ void ChLinkMotorLinearDriveline::IntLoadConstraint_C(const unsigned int off_L,
     double cnstr_pos_error1 =  this->GetMotorPos() - (this->innershaft1lin->GetPos());// - this->innershaft2lin->GetPos());
     double cnstr_violation1 = c * cnstr_pos_error1;
     if (do_clamp)
-        cnstr_violation1 = ChMin(ChMax(cnstr_violation1, -recovery_clamp), recovery_clamp);
+        cnstr_violation1 = std::min(std::max(cnstr_violation1, -recovery_clamp), recovery_clamp);
     Qc(off_L + nc + 0) += cnstr_violation1;
 
     // Always drive inner linear shaft 2 to zero
     // (hack! this is not exact if also the guide, part 2, moves fast?)
     double cnstr_violation2 = c * -this->innershaft2lin->GetPos();
     if (do_clamp)
-        cnstr_violation2 = ChMin(ChMax(cnstr_violation2, -recovery_clamp), recovery_clamp);
+        cnstr_violation2 = std::min(std::max(cnstr_violation2, -recovery_clamp), recovery_clamp);
     Qc(off_L + nc + 1) += cnstr_violation2;
 
     // Always drive inner rotational shaft 2 to zero
     // (hack! this is not exact if also the guide, part 2, rotates fast?)
     double cnstr_violation2r = c * -innershaft2rot->GetPos();
     if (do_clamp)
-        cnstr_violation2r = ChMin(ChMax(cnstr_violation2r, -recovery_clamp), recovery_clamp);
+        cnstr_violation2r = std::min(std::max(cnstr_violation2r, -recovery_clamp), recovery_clamp);
     Qc(off_L + nc + 2) += cnstr_violation2r;
 
 }

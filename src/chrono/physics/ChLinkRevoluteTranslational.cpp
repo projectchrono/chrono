@@ -376,13 +376,13 @@ void ChLinkRevoluteTranslational::IntLoadConstraint_C(const unsigned int off_L,
         return;
 
     double cnstr_par1_violation =
-        do_clamp ? ChMin(ChMax(c * m_cur_par1, -recovery_clamp), recovery_clamp) : c * m_cur_par1;
+        do_clamp ? std::min(std::max(c * m_cur_par1, -recovery_clamp), recovery_clamp) : c * m_cur_par1;
     double cnstr_par2_violation =
-        do_clamp ? ChMin(ChMax(c * m_cur_par2, -recovery_clamp), recovery_clamp) : c * m_cur_par2;
+        do_clamp ? std::min(std::max(c * m_cur_par2, -recovery_clamp), recovery_clamp) : c * m_cur_par2;
     double cnstr_dot_violation =
-        do_clamp ? ChMin(ChMax(c * m_cur_dot, -recovery_clamp), recovery_clamp) : c * m_cur_dot;
+        do_clamp ? std::min(std::max(c * m_cur_dot, -recovery_clamp), recovery_clamp) : c * m_cur_dot;
     double cnstr_dist_violation =
-        do_clamp ? ChMin(ChMax(c * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp) : c * (m_cur_dist - m_dist);
+        do_clamp ? std::min(std::max(c * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp) : c * (m_cur_dist - m_dist);
 
     Qc(off_L + 0) += cnstr_par1_violation;
     Qc(off_L + 1) += cnstr_par2_violation;
@@ -448,13 +448,13 @@ void ChLinkRevoluteTranslational::ConstraintsBiLoad_C(double factor, double reco
         return;
 
     double cnstr_par1_violation =
-        do_clamp ? ChMin(ChMax(factor * m_cur_par1, -recovery_clamp), recovery_clamp) : factor * m_cur_par1;
+        do_clamp ? std::min(std::max(factor * m_cur_par1, -recovery_clamp), recovery_clamp) : factor * m_cur_par1;
     double cnstr_par2_violation =
-        do_clamp ? ChMin(ChMax(factor * m_cur_par2, -recovery_clamp), recovery_clamp) : factor * m_cur_par2;
+        do_clamp ? std::min(std::max(factor * m_cur_par2, -recovery_clamp), recovery_clamp) : factor * m_cur_par2;
     double cnstr_dot_violation =
-        do_clamp ? ChMin(ChMax(factor * m_cur_dot, -recovery_clamp), recovery_clamp) : factor * m_cur_dot;
+        do_clamp ? std::min(std::max(factor * m_cur_dot, -recovery_clamp), recovery_clamp) : factor * m_cur_dot;
     double cnstr_dist_violation = do_clamp
-                                      ? ChMin(ChMax(factor * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
+                                      ? std::min(std::max(factor * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
                                       : factor * (m_cur_dist - m_dist);
 
     m_cnstr_par1.Set_b_i(m_cnstr_par1.Get_b_i() + cnstr_par1_violation);

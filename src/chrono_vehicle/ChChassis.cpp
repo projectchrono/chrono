@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/ChChassis.h"

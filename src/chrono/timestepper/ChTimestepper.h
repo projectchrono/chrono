@@ -17,7 +17,7 @@
 
 #include <cstdlib>
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChState.h"

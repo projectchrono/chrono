@@ -65,7 +65,7 @@ void ChVehicleCosimRigNode::InitializeMBS(const ChVector2<>& terrain_size, doubl
     ChVector<> origin = m_init_loc + ChVector<>(0, 0, terrain_height);
 
     // Distribute total mass equally between chassis and spindle.
-    m_total_mass = ChMax(m_total_mass, 2.0);
+    m_total_mass = std::max(m_total_mass, 2.0);
     double body_mass = m_total_mass / 2;
 
     // Construct the mechanical system

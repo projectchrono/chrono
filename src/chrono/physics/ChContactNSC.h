@@ -215,7 +215,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 // speed, but also the reaction, so it might allow longer 'sinking' not related to the real compliance.
 				// I.e. If clamping kicks in (when using large timesteps and low compliance), it acts as a numerical damping.
 				if (do_clamp) {
-					qc = ChMax(qc, -recovery_clamp);
+					qc = std::max(qc, -recovery_clamp);
 				}
 
                 Qc(off_L) += qc;
@@ -223,9 +223,9 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
             } else {
                 if (do_clamp)
                     if (this->Nx.GetCohesion())
-                        Qc(off_L) += ChMin(0.0, ChMax(c * this->norm_dist, -recovery_clamp));
+                        Qc(off_L) += std::min(0.0, std::max(c * this->norm_dist, -recovery_clamp));
                     else
-                        Qc(off_L) += ChMax(c * this->norm_dist, -recovery_clamp);
+                        Qc(off_L) += std::max(c * this->norm_dist, -recovery_clamp);
                 else
                     Qc(off_L) += c * this->norm_dist;
             }
@@ -312,7 +312,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
 
 				// If clamping kicks in(when using large timesteps and low compliance), it acts as a numerical damping.
 				if (do_clamp)
-					qc = ChMax(qc, -recovery_clamp);
+					qc = std::max(qc, -recovery_clamp);
 
                 Nx.Set_b_i(Nx.Get_b_i() + qc); 
 
@@ -320,9 +320,9 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 // std::cout << "rigid " << (int)this << "  recov_clamp=" << recovery_clamp << std::endl;
                 if (do_clamp)
                     if (this->Nx.GetCohesion())
-                        Nx.Set_b_i(Nx.Get_b_i() + ChMin(0.0, ChMax(factor * this->norm_dist, -recovery_clamp)));
+                        Nx.Set_b_i(Nx.Get_b_i() + std::min(0.0, std::max(factor * this->norm_dist, -recovery_clamp)));
                     else
-                        Nx.Set_b_i(Nx.Get_b_i() + ChMax(factor * this->norm_dist, -recovery_clamp));
+                        Nx.Set_b_i(Nx.Get_b_i() + std::max(factor * this->norm_dist, -recovery_clamp));
                 else
                     Nx.Set_b_i(Nx.Get_b_i() + factor * this->norm_dist);
             }

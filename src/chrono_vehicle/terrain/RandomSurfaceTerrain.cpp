@@ -25,16 +25,21 @@
 #include <random>
 #include <cmath>
 
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/motion_functions/ChFunctionSineStep.h"
 
-#include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
-#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/geometry/ChLineSegment.h"
 
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualShapeLine.h"
+
+#include "chrono/utils/ChUtils.h"
+
+#include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
+#include "chrono_vehicle/ChWorldFrame.h"
+
 
 namespace chrono {
 namespace vehicle {
@@ -403,7 +408,8 @@ double RandomSurfaceTerrain::CalculateAmplitudeLeft(double x) {
     for (int i = 0; i < m_ck.size(); i++) {
         A += m_ck[i] * cos(m_wfft[i] * x + m_phase_left[i]);
     }
-    double fade = ChSineStep(x, 0, 0, 10.0, 1.0) * ChSineStep(x, m_xmax - 10.0, 1.0, m_xmax, 0.0);
+    double fade =
+        ChFunctionSineStep::Eval(x, 0, 0, 10.0, 1.0) * ChFunctionSineStep::Eval(x, m_xmax - 10.0, 1.0, m_xmax, 0.0);
     return 2.0 * A * fade;
 }
 
@@ -412,7 +418,7 @@ double RandomSurfaceTerrain::CalculateAmplitudeRight(double x) {
     for (int i = 0; i < m_ck.size(); i++) {
         A += m_ck[i] * cos(m_wfft[i] * x + m_phase_right[i]);
     }
-    double fade = ChSineStep(x, 0, 0, 10.0, 1.0) * ChSineStep(x, m_xmax - 10.0, 1.0, m_xmax, 0.0);
+    double fade = ChFunctionSineStep::Eval(x, 0, 0, 10.0, 1.0) * ChFunctionSineStep::Eval(x, m_xmax - 10.0, 1.0, m_xmax, 0.0);
     return 2.0 * A * fade;
 }
 

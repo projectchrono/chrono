@@ -17,8 +17,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChMathematics.h"
-
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIrrlicht.h"
 
 namespace chrono {

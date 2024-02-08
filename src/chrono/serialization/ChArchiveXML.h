@@ -16,7 +16,6 @@
 #define CHARCHIVEXML_H
 
 #include "chrono/serialization/ChArchive.h"
-#include "chrono/core/ChMathematics.h"
 #include <iostream>
 #include <fstream>
 #include <stack>

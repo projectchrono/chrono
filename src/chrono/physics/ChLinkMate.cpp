@@ -504,9 +504,9 @@ void ChLinkMateGeneric::IntLoadConstraint_C(const unsigned int off_L,
         if (mask.Constr_N(i).IsActive()) {
             if (do_clamp) {
                 if (mask.Constr_N(i).IsUnilateral())
-                    Qc(off_L + cnt) += ChMax(c * C(cnt), -recovery_clamp);
+                    Qc(off_L + cnt) += std::max(c * C(cnt), -recovery_clamp);
                 else
-                    Qc(off_L + cnt) += ChMin(ChMax(c * C(cnt), -recovery_clamp), recovery_clamp);
+                    Qc(off_L + cnt) += std::min(std::max(c * C(cnt), -recovery_clamp), recovery_clamp);
             } else
                 Qc(off_L + cnt) += c * C(cnt);
             cnt++;
@@ -589,10 +589,10 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
             if (do_clamp) {
                 if (mask.Constr_N(i).IsUnilateral())
                     mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() +
-                                              ChMax(factor * C(cnt), -recovery_clamp));
+                                              std::max(factor * C(cnt), -recovery_clamp));
                 else
                     mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() +
-                                              ChMin(ChMax(factor * C(cnt), -recovery_clamp), recovery_clamp));
+                                              std::min(std::max(factor * C(cnt), -recovery_clamp), recovery_clamp));
             } else
                 mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + factor * C(cnt));
 

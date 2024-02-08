@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChConstants.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 

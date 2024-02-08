@@ -42,8 +42,9 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChShaftsBody.h"
-
 #include "chrono/physics/ChInertiaUtils.h"
+
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_models/robot/viper/Viper.h"
 

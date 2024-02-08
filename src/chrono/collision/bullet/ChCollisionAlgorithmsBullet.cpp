@@ -12,11 +12,11 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/collision/bullet/ChCollisionAlgorithmsBullet.h"
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
 #include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSphereShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.h"
@@ -1085,7 +1085,7 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     // these intervals are used to reject distances, where the distance here is assumed for the naked triangles, i.e. WITHOUT the shpereswept_r inflating!
     double max_allowed_dist = triModelA->GetEnvelope() + triModelB->GetEnvelope() + triA->sphereswept_r() + triB->sphereswept_r();
     double min_allowed_dist = triA->sphereswept_r() + triB->sphereswept_r() - (triModelA->GetSafeMargin() + triModelB->GetSafeMargin());
-    double max_edge_dist_earlyout = ChMax(max_allowed_dist, std::fabs(min_allowed_dist));
+    double max_edge_dist_earlyout = std::max(max_allowed_dist, std::fabs(min_allowed_dist));
 
     // Offsets for knowing where the contact points are respect to the points on the naked triangles
     //  - add the sphereswept_r values because one might want to work on the "inflated" triangles for robustness

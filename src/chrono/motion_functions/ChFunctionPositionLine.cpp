@@ -21,6 +21,8 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunctionPositionLine)
 
+static const double FD_STEP = 1e-4;
+
 ChFunctionPositionLine::ChFunctionPositionLine() {
     // default trajectory is a segment
     this->trajectory_line = chrono_types::make_shared<geometry::ChLineSegment>();
@@ -55,7 +57,7 @@ ChVector<> ChFunctionPositionLine::Get_p_ds(double s) const {
 ChVector<> ChFunctionPositionLine::Get_p_dsds(double s) const {
     // note: same as not implementing the function and let the fallback default BDF numerical differentiation do similar
     // computation... to remove?
-    double tstep = BDF_STEP_HIGH;
+    double tstep = FD_STEP;
     double tr_time = s;
     double tr_timeB = s + tstep;
     double tr_timeA = s - tstep;

@@ -15,8 +15,8 @@
 //
 // =============================================================================
 
+#include "chrono/utils/ChUtils.h"
 #include "chrono_sensor/optix/ChOptixGeometry.h"
-
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
 
 #include <cuda.h>

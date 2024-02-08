@@ -12,9 +12,12 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <math.h>
+
 #include "chrono/fea/ChBeamSectionCosserat.h"
 #include "chrono/core/ChMatrixMBD.h"
-#include <math.h>
+
+#include "chrono/utils/ChUtils.h"
 
 namespace chrono {
 namespace fea {
@@ -64,8 +67,8 @@ void ChElasticityCosseratSimple::SetAsRectangularSection(double width_y, double 
     this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
 
     // use Roark's formulas for torsion of rectangular sect:
-    double t = ChMin(width_y, width_z);
-    double b = ChMax(width_y, width_z);
+    double t = std::min(width_y, width_z);
+    double b = std::max(width_y, width_z);
     this->J = b * pow(t, 3) * ((1.0 / 3.0) - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * pow((t / b), 4)));
 
     // set Ks using Timoshenko-Gere formula for solid rect.shapes

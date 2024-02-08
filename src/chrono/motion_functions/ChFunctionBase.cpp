@@ -24,8 +24,22 @@
 
 namespace chrono {
 
+static const double FD_PERTURBATION = 1e-7;
+
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChFunction) // NO! this is an abstract class, rather use for children concrete classes.
+
+double ChFunction::Get_y_dx(double x) const {
+    return (Get_y(x + FD_PERTURBATION) - Get_y(x)) / FD_PERTURBATION;
+}
+
+double ChFunction::Get_y_dxdx(double x) const {
+    return (Get_y_dx(x + FD_PERTURBATION) - Get_y_dx(x)) / FD_PERTURBATION;
+}
+
+double ChFunction::Get_y_dxdxdx(double x) const {
+    return ((Get_y_dxdx(x + FD_PERTURBATION) - Get_y_dxdx(x)) / FD_PERTURBATION);
+}
 
 double ChFunction::Get_y_dN(double x, int derivate) const {
     switch (derivate) {
@@ -40,6 +54,11 @@ double ChFunction::Get_y_dN(double x, int derivate) const {
         default:
             return Get_y(x);
     }
+}
+
+void ChFunction::Estimate_x_range(double& xmin, double& xmax) const {
+    xmin = 0.0;
+    xmax = 1.2;
 }
 
 void ChFunction::Estimate_y_range(double xmin, double xmax, double& ymin, double& ymax, int derivate) const {

@@ -1,8 +1,11 @@
 %{
 
 /* Includes the header in the wrapper code */
+#include "chrono/utils/ChConstants.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono/core/ChMathematics.h"
 #include "chrono/core/ChDistribution.h"
+
 using namespace chrono;
 
 %}
@@ -17,5 +20,7 @@ using namespace chrono;
 %shared_ptr(chrono::ChZhangDistribution)
 
 /* Parse the header file to generate wrappers */
+%include "../../../chrono/utils/ChConstants.h"    
+%include "../../../chrono/utils/ChUtils.h"    
 %include "../../../chrono/core/ChMathematics.h"    
 %include "../../../chrono/core/ChDistribution.h"    

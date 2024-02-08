@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "chrono/core/ChCoordsys.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono/physics/ChContactMaterial.h"
 #include "chrono/physics/ChSystem.h"
 

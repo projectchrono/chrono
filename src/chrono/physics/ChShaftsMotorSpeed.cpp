@@ -168,7 +168,7 @@ void ChShaftsMotorSpeed::IntLoadConstraint_C(const unsigned int off_L,  // offse
     double res = c * C;
 
     if (do_clamp) {
-        res = ChMin(ChMax(res, -recovery_clamp), recovery_clamp);
+        res = std::min(std::max(res, -recovery_clamp), recovery_clamp);
     }
     Qc(off_L) += res;
 }
@@ -258,7 +258,7 @@ void ChShaftsMotorSpeed::ConstraintsBiLoad_C(double factor, double recovery_clam
     double res = factor * C;
 
     if (do_clamp) {
-        res = ChMin(ChMax(res, -recovery_clamp), recovery_clamp);
+        res = std::min(std::max(res, -recovery_clamp), recovery_clamp);
     }
 
     constraint.Set_b_i(constraint.Get_b_i() + res);

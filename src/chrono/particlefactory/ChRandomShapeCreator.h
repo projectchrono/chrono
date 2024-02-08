@@ -318,7 +318,7 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
         double mtwistU = twistU->GetRandom();
         double mtwistV = twistV->GetRandom();
         double mdiameter = diameter->GetRandom();
-        double mlengthratio = ChMax(1.0, lengthratio->GetRandom());
+        double mlengthratio = std::max(1.0, lengthratio->GetRandom());
         double mlength = mdiameter * mlengthratio;
         double mlengthsweep = mlength - mdiameter;
         double targetinterval = mdiameter * spacing_factor;

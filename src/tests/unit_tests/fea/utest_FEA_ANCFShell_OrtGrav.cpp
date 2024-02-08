@@ -30,10 +30,10 @@
 // and numerical integration implementations.
 // =============================================================================
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/utils/ChConstants.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 

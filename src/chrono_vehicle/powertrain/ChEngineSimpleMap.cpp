@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/powertrain/ChEngineSimpleMap.h"
 

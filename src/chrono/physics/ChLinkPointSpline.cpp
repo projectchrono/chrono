@@ -20,6 +20,8 @@ namespace chrono {
 
 using namespace geometry;
 
+static const double FD_STEP = 1e-4;
+
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkPointSpline)
 
@@ -65,7 +67,7 @@ void ChLinkPointSpline::UpdateTime(double time) {
             param.x() = 0;
         vdir = trajectory_line->GetTangent(param.x());
 
-        param.x() = mu + BDF_STEP_HIGH;
+        param.x() = mu + FD_STEP;
         if (param.x() > 1)
             param.x() = 1;
         auto ptang2 = trajectory_line->Evaluate(param.x());

@@ -17,6 +17,7 @@
 #include <cstdlib>
 
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/core/ChMathematics.h"
 #include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/physics/ChSystemNSC.h"
 

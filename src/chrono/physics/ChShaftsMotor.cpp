@@ -130,7 +130,7 @@ void ChShaftsMotor::IntLoadConstraint_C(const unsigned int off_L,  // offset in 
             res = c * (GetMotorRot() - motor_set_rot);
 
         if (do_clamp) {
-            res = ChMin(ChMax(res, -recovery_clamp), recovery_clamp);
+            res = std::min(std::max(res, -recovery_clamp), recovery_clamp);
         }
 
         Qc(off_L) += res;

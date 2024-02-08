@@ -18,8 +18,9 @@
 
 #include <algorithm>
 
-#include "chrono/utils/ChFilters.h"
 #include "chrono/core/ChMatrix.h"
+#include "chrono/utils/ChUtils.h"
+#include "chrono/utils/ChFilters.h"
 
 namespace chrono {
 namespace utils {
@@ -48,7 +49,7 @@ ChMovingAverage::ChMovingAverage(const std::valarray<double>& data, int n) {
     m_out.resize(np);
 
     // Start and end of data
-    int lim = ChMin(n, np);
+    int lim = std::min(n, np);
     for (int i = 0; i < lim; i++) {
         m_out[i] = data[i];
         for (int j = 1; j <= i; j++)
@@ -835,6 +836,9 @@ void ChISO2631_Vibration_SeatCushionLogger::Config(double step) {
     m_step = step;
     m_logging_time = 0.0;
 
+    m_sinestep =
+        chrono_types::make_unique<ChFunctionSineStep>(ChVector2<>(m_tstart1, 0.0), ChVector2<>(m_tstart2, 1.0));
+
     // prepare all filters for 1st usage
     m_filter_wd_x.Config(step);
     m_filter_wd_y.Config(step);
@@ -855,7 +859,7 @@ void ChISO2631_Vibration_SeatCushionLogger::Config(double step) {
 
 void ChISO2631_Vibration_SeatCushionLogger::AddData(double speed, double acc_x, double acc_y, double acc_z) {
     const double meter_to_ft = 3.280839895;
-    double startFactor = ChSineStep(m_logging_time, m_tstart1, 0.0, m_tstart2, 1.0);
+    double startFactor = m_sinestep->Get_y(m_logging_time);
 
     m_data_speed.push_back(speed);
 
@@ -1129,7 +1133,7 @@ ChISO2631_Shock_SeatCushionLogger::ChISO2631_Shock_SeatCushionLogger(double step
 }
 
 void ChISO2631_Shock_SeatCushionLogger::AddData(double ax, double ay, double az) {
-    double startFactor = ChSineStep(m_logging_time, m_tstart1, 0.0, m_tstart2, 1.0);
+    double startFactor = m_sinestep->Get_y(m_logging_time);
 
     // speed of a vehicle changes very much during obstacle crossing, we take the first value as significant
     // instead of an average value
@@ -1148,6 +1152,9 @@ void ChISO2631_Shock_SeatCushionLogger::Config(double step) {
     m_lpz.Config(4, m_step_inp, 75.0);
 
     m_legacy_lpz.Config(4, m_step_inp, 30.0);
+
+    m_sinestep =
+        chrono_types::make_unique<ChFunctionSineStep>(ChVector2<>(m_tstart1, 0.0), ChVector2<>(m_tstart2, 1.0));
 
     Reset();
 }

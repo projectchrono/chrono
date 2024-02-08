@@ -100,9 +100,9 @@ void ChLinkPointPoint::IntLoadConstraint_C(const unsigned int off_L,  // offset 
     ChVector<> cres = res * c;
 
     if (do_clamp) {
-        cres.x() = ChMin(ChMax(cres.x(), -recovery_clamp), recovery_clamp);
-        cres.y() = ChMin(ChMax(cres.y(), -recovery_clamp), recovery_clamp);
-        cres.z() = ChMin(ChMax(cres.z(), -recovery_clamp), recovery_clamp);
+        cres.x() = std::min(std::max(cres.x(), -recovery_clamp), recovery_clamp);
+        cres.y() = std::min(std::max(cres.y(), -recovery_clamp), recovery_clamp);
+        cres.z() = std::min(std::max(cres.z(), -recovery_clamp), recovery_clamp);
     }
     Qc(off_L + 0) += cres.x();
     Qc(off_L + 1) += cres.y();

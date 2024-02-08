@@ -37,6 +37,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCone.h"

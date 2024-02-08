@@ -18,7 +18,7 @@
 #include <cfloat>
 #include <cmath>
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/motion_functions/ChFunction.h"
 
 namespace chrono {

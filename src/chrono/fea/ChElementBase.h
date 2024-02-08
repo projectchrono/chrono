@@ -16,7 +16,7 @@
 #define CHELEMENTBASE_H
 
 #include "chrono/physics/ChLoadable.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/fea/ChNodeFEAbase.h"

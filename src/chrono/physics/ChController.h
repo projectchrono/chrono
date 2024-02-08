@@ -17,7 +17,7 @@
 
 #include <cmath>
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChObject.h"
 
 namespace chrono {

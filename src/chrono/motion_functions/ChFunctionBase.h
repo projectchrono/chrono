@@ -23,7 +23,7 @@
 #include <list>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 
 namespace chrono {
 
@@ -65,6 +65,7 @@ class ChApi ChFunction {
         FUNCT_SEQUENCE,
         FUNCT_SIGMA,
         FUNCT_SINE,
+        FUNCT_SINE_STEP,
         FUNCT_LAMBDA,
         FUNCT_CYCLOIDAL,
         FUNCT_BSPLINE,
@@ -93,37 +94,30 @@ class ChApi ChFunction {
     /// because this base method already provide a general-purpose numerical differentiation
     /// to get dy/dx only from the Get_y() function. (however, if the analytical derivative
     /// is known, it may be better to implement a custom method).
-    virtual double Get_y_dx(double x) const { return ((Get_y(x + BDF_STEP_LOW) - Get_y(x)) / BDF_STEP_LOW); }
+    virtual double Get_y_dx(double x) const;
 
     /// Return the ddy/dxdx double derivative of the function, at position x.
     /// Note that inherited classes may also avoid overriding this method,
     /// because this base method already provide a general-purpose numerical differentiation
     /// to get ddy/dxdx only from the Get_y() function. (however, if the analytical derivative
     /// is known, it may be better to implement a custom method).
-    virtual double Get_y_dxdx(double x) const { return ((Get_y_dx(x + BDF_STEP_LOW) - Get_y_dx(x)) / BDF_STEP_LOW); };
+    virtual double Get_y_dxdx(double x) const;
 
     /// Return the dddy/dxdxdx triple derivative of the function, at position x.
     /// Note that inherited classes may also avoid overriding this method,
     /// because this base method already provide a general-purpose numerical differentiation
     /// to get dddy/dxdxdx only from the Get_y() function. (however, if the analytical derivative
     /// is known, it may be better to implement a custom method).
-    virtual double Get_y_dxdxdx(double x) const {
-        return ((Get_y_dxdx(x + BDF_STEP_LOW) - Get_y_dxdx(x)) / BDF_STEP_LOW);
-    };
+    virtual double Get_y_dxdxdx(double x) const;
 
     /// Return the weight of the function (useful for
     /// applications where you need to mix different weighted ChFunctions)
-    virtual double Get_weight(double x) const { return 1.0; };
+    virtual double Get_weight(double x) const { return 1.0; }
 
     /// Return an estimate of the range of the function argument.
-    /// (Can be used for automatic zooming in a GUI)
-    virtual void Estimate_x_range(double& xmin, double& xmax) const {
-        xmin = 0.0;
-        xmax = 1.2;
-    }
+    virtual void Estimate_x_range(double& xmin, double& xmax) const;
 
     /// Return an estimate of the range of the function value.
-    /// (Can be used for automatic zooming in a GUI)
     virtual void Estimate_y_range(double xmin, double xmax, double& ymin, double& ymax, int derivate) const;
 
     /// Return the function derivative of specified order at the given point.

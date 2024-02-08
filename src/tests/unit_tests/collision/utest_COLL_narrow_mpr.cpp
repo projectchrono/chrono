@@ -20,7 +20,7 @@
 #include "chrono/collision/multicore/ChCollisionUtils.h"
 
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChConstants.h"
 
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBoxShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCollisionMargin.h"

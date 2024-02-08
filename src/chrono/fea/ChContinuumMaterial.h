@@ -16,7 +16,7 @@
 #define CHCONTINUUMMATERIAL_H
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/core/ChTensors.h"
 
 namespace chrono {
