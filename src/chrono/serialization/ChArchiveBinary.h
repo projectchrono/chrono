@@ -19,10 +19,32 @@
 
 namespace chrono {
 
-///
-/// This is a class for serializing to binary archives
-///
+/// Templated function for swapping bytes of objects of type 'T', for arbitrary T type.
+/// This is used for cross-platform compatibility when sharing objects between big-endian and little-endian memory
+/// models, depending on the microprocessor type.
+template <class T>
+inline void StreamSwapBytes(T* ptData) {
+    char* acBytes = (char*)ptData;
+    size_t iSize = sizeof(T);
+    size_t iSizeM1 = iSize - 1;
+    size_t iHSize = iSize / 2;
+    for (size_t i0 = 0, i1 = iSizeM1; i0 < iHSize; i0++, i1--) {
+        char cSave = acBytes[i0];
+        acBytes[i0] = acBytes[i1];
+        acBytes[i1] = cSave;
+    }
+}
 
+/// Serialization to binary stream.
+/// 
+/// Typical usage:
+/// \code{.cpp}
+/// std::ofstream fileo("/file.dat", std::ios::binary);
+/// ChArchiveOutBinary archiveout(fileo);
+/// archiveout << CHNVP(myobj);
+/// \endcode
+/// Remember to set stream mode to `std::ios::binary`.
+/// Data will always be written with little-endianness even in big-endian machines.
 class ChApi ChArchiveOutBinary : public ChArchiveOut {
   public:
     ChArchiveOutBinary(std::ostream& stream_out);
@@ -54,7 +76,6 @@ class ChApi ChArchiveOutBinary : public ChArchiveOut {
   protected:
     std::ostream& m_ostream;
 
-    ////TODO: shall I specify that T is a reference or should I let the compiler optimize it?
     template <typename T>
     std::ostream& write(T val) {
         return m_ostream.write(reinterpret_cast<char*>(&val), sizeof(T));
@@ -70,10 +91,17 @@ std::ostream& ChArchiveOutBinary::write(bool val);
 template <>
 std::ostream& ChArchiveOutBinary::write(const char* val);
 
-///
-/// This is a class for serializing from binary archives
-///
-
+/// Deserialization from binary stream.
+/// 
+/// Typical usage:
+/// \code{.cpp}
+/// std::ifstream filei("/file.dat", std::ios::binary);
+/// ChArchiveInBinary archivein(filei);
+/// archivein >> CHNVP(myobj);
+/// \endcode
+/// Remember to set stream mode to `std::ios::binary`.
+/// Data is expected to always be printed with little-endianness even in big-endian machines.
+/// The class will convert to big-endian if necessary.
 class ChApi ChArchiveInBinary : public ChArchiveIn {
   public:
     ChArchiveInBinary(std::istream& stream_in);
@@ -107,10 +135,16 @@ class ChApi ChArchiveInBinary : public ChArchiveIn {
 
   protected:
     std::istream& m_istream;
+    bool m_big_endian_machine;
 
     template <typename T>
     std::istream& read(T& val) {
-        return m_istream.read(reinterpret_cast<char*>(&val), sizeof(T));
+        m_istream.read(reinterpret_cast<char*>(&val), sizeof(T));
+        if (m_big_endian_machine){
+            StreamSwapBytes<T>(&val);
+        }
+
+        return m_istream;
     }
 };
 

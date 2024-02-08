@@ -386,7 +386,7 @@ TEST(ChArchiveXML, Fourbar) {
 }
 
 TEST(ChArchiveBinary, Fourbar) {
-    create_test(assemble_pendulum, ArchiveType::BINARY);
+    create_test(assemble_fourbar, ArchiveType::BINARY);
 }
 
 TEST(ChArchiveJSON, Solver) {

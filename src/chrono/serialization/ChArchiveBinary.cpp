@@ -63,11 +63,10 @@ void ChArchiveOutBinary::out_array_end(ChValue& bVal, size_t size) {}
 
 void ChArchiveOutBinary::out(ChValue& bVal, bool tracked, size_t obj_ID) {
     if (tracked) {
-        ////TODO: DARIOM here the original code uses const char* instead of std::string as in any other place
         write("typ");
         write(bVal.GetClassRegisteredName());
 
-        write(std::string("oID"));
+        write("oID");
         write(obj_ID);
     }
     bVal.CallArchiveOut(*this);
@@ -76,51 +75,49 @@ void ChArchiveOutBinary::out(ChValue& bVal, bool tracked, size_t obj_ID) {
 void ChArchiveOutBinary::out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID) {
     std::string classname = bVal.GetClassRegisteredName();
     if (classname.length() > 0) {
-        write(std::string("typ"));
+        write("typ");
         write(classname);
     }
 
     if (!already_inserted) {
         // new object, we have to full serialize it
-        write(std::string("oID"));  // serialize 'this was already saved' info as "oID" string
-        write(obj_ID);              // serialize obj_ID in pointers vector as ID
+        write("oID");   // serialize 'this was already saved' info as "oID" string
+        write(obj_ID);  // serialize obj_ID in pointers vector as ID
         bVal.CallArchiveOutConstructor(*this);
         bVal.CallArchiveOut(*this);
     } else {
         if (obj_ID || bVal.IsNull()) {
             // Object already in list. Only store obj_ID as ID
-            write(std::string("rID"));  // serialize 'this was already saved' info as "rID" string
-            write(obj_ID);              // serialize obj_ID in pointers vector as ID
+            write("rID");   // serialize 'this was already saved' info as "rID" string
+            write(obj_ID);  // serialize obj_ID in pointers vector as ID
         }
         if (ext_ID) {
             // Object is external. Only store ref_ID as ID
-            write(std::string("eID"));  // serialize info as "eID" string
-            write(ext_ID);              // serialize ext_ID in pointers vector as ID
+            write("eID");   // serialize info as "eID" string
+            write(ext_ID);  // serialize ext_ID in pointers vector as ID
         }
     }
 }
 
 template <>
 std::ostream& ChArchiveOutBinary::write(std::string val) {
-    ////TODO: int might not have the same sizeof in every architecture
-    ////TODO: behaviour differ from char* because of the length!!!
-    //// should be 'return write(val.c_str());'
-
-    int str_len = (int)strlen(val.c_str());
-    write(str_len);
-    return m_ostream.write(val.c_str(), str_len);
+    // both std::string and char* variables will have the same footprint in the binary file
+    // i.e. [length, not considering null-terminator][sequence of chars, without null termination]
+    // In this way a char* can load a sequence originally written by an std::string and the other way around
+    return write(val.c_str());
 }
 
 template <>
 std::ostream& ChArchiveOutBinary::write(bool val) {
-    ////TODO: could be return m_ostream.write(val ? "1" : "0", 1);
+    // expanded to the size of a char for consistency
     char bool_val = static_cast<char>(val);
     return m_ostream.write(&bool_val, 1);
 }
 
 template <>
 std::ostream& ChArchiveOutBinary::write(const char* val) {
-    int str_len = (int)strlen(val) + 1;
+    // the null termination won't be written on file, nor counted as length
+    size_t str_len = strlen(val);
     write(str_len);
     return m_ostream.write(val, str_len);
 }
@@ -128,6 +125,14 @@ std::ostream& ChArchiveOutBinary::write(const char* val) {
 // for wrapping arrays and lists
 ChArchiveInBinary::ChArchiveInBinary(std::istream& stream_in) : m_istream(stream_in) {
     can_tolerate_missing_tokens = false;
+
+    union {
+        int word;
+        unsigned char byte;
+    } endian_test;
+
+    endian_test.word = 1;
+    m_big_endian_machine = (endian_test.byte != 1 ? true : false);
 }
 
 ChArchiveInBinary::~ChArchiveInBinary() {}
@@ -279,23 +284,11 @@ bool ChArchiveInBinary::in(ChNameValue<std::string> bVal) {
 
 template <>
 std::istream& ChArchiveInBinary::read(std::string& val) {
-    ////TODO: DARIOM int might not have the same sizeof in every architecture
-
     val = "";
-    int str_len = 0;
+    size_t str_len = 0;
     read(str_len);
-    val.reserve(str_len);
-
-    ////TODO: DARIOM awkward way to skip \0 at the end of the string while still parsing the stream
-    char buf[2];
-    buf[1] = '\0';
-    for (int i = 0; i < str_len; i++) {
-        m_istream.read(buf, 1);
-        val.append(buf);
-    }
-
-    return m_istream;
-    // std::remove(val.begin(), val.end(), '\0');
+    val.resize(str_len);
+    return m_istream.read(val.data(), str_len);
 }
 
 template <>
