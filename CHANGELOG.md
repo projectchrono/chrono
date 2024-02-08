@@ -116,6 +116,38 @@ Note that this represents a major public API change and we expect most user code
 | ChMaterialSurfaceSMC.h        | rename: ChContactMaterialSMC.h     |
 | ChSolvmin.h                   | remove                             |
 | ChStream.h                    | remove                             |
+| ChFunction_Const.h            | rename: ChFunctionConst.h          |
+| ChFunction_BSpline.h          | rename: ChFunctionBSpline.h        |
+| ChFunction_ConstAcc.h         | rename: ChFunctionConstAcc.h       |
+| ChFunction_DoubleS.h          | rename: ChFunctionConstJerk.h      |
+| ChFunction_Cycloidal.h        | rename: ChFunctionCycloidal.h      |
+| ChFunction_Derive.h           | rename: ChFunctionDerive.h         |
+| ChFunction_Fillet3.h          | rename: ChFunctionFillet3.h        |
+| ChFunction_Integrate.h        | rename: ChFunctionIntegrate.h      |
+| ChFunction_Mirror.h           | rename: ChFunctionMirror.h         |
+| ChFunction_Mocap.h            | rename: ChFunctionMocap.h          |
+| ChFunction_Noise.h            | rename: ChFunctionNoise.h          |
+| ChFunction_Operation.h        | rename: ChFunctionOperation.h      |
+| ChFunction_Oscilloscope.h     | rename: ChFunctionOscilloscope.h   |
+| ChFunction_Poly345.h          | rename: ChFunctionPoly345.h        |
+| ChFunction_Poly.h             | rename: ChFunctionPoly.h           |
+| ChFunction_Ramp.h             | rename: ChFunctionRamp.h           |
+| ChFunction_Recorder.h         | rename: ChFunctionRecorder.h       |
+| ChFunction_Repeat.h           | rename: ChFunctionRepeat.h         |
+| ChFunction_Sequence.h         | rename: ChFunctionSequence.h       |
+| ChFunction_Sigma.h            | rename: ChFunctionSigma.h          |
+| ChFunction_Sine.h             | rename: ChFunctionSine.h           |
+| ChFunction_Setpoint.h         | rename: ChFunctionSetpoint.h       |
+| ChFunctionPosition_line.h           | rename: ChFunctionPositionLine.h          |
+| ChFunctionPosition_setpoint.h       | rename: ChFunctionPositionSetpoint.h      |
+| ChFunctionPosition_XYZfunctions.h   | rename: ChFunctionPositionXYZFunctions.h  |
+| ChFunctionRotation_ABCfunctions.h   | rename: ChFunctionRotationABCFunctions.h  |
+| ChFunctionRotation_axis.h           | rename: ChFunctionRotationAxis.h          |
+| ChFunctionRotation_setpoint.h       | rename: ChFunctionRotationSetpoint.h      |
+| ChFunctionRotation_spline.h         | rename: ChFunctionRotationBSpline.h       |
+| ChFunctionRotation_SQUAD.h          | rename: ChFunctionRotationSQUAD.h         |
+
+
  
 **Classes and functions**
 
@@ -152,6 +184,36 @@ Note that this represents a major public API change and we expect most user code
 | ChStreamOutAsciiFile              |                     | remove                                           |
 | ChStreamOutBinary                 |                     | remove                                           |
 | ChStreamOutBinaryFile             |                     | remove                                           |
+| ChFunction_Const                |                     | rename: ChFunctionConst          |
+| ChFunction_BSpline              |                     | rename: ChFunctionBSpline        |
+| ChFunction_ConstAcc             |                     | rename: ChFunctionConstAcc       |
+| ChFunction_DoubleS              |                     | rename: ChFunctionConstJerk      |
+| ChFunction_Cycloidal            |                     | rename: ChFunctionCycloidal      |
+| ChFunction_Derive               |                     | rename: ChFunctionDerive         |
+| ChFunction_Fillet3              |                     | rename: ChFunctionFillet3        |
+| ChFunction_Integrate            |                     | rename: ChFunctionIntegrate      |
+| ChFunction_Mirror               |                     | rename: ChFunctionMirror         |
+| ChFunction_Mocap                |                     | rename: ChFunctionMocap          |
+| ChFunction_Noise                |                     | rename: ChFunctionNoise          |
+| ChFunction_Operation            |                     | rename: ChFunctionOperation      |
+| ChFunction_Oscilloscope         |                     | rename: ChFunctionOscilloscope   |
+| ChFunction_Poly345              |                     | rename: ChFunctionPoly345        |
+| ChFunction_Poly                 |                     | rename: ChFunctionPoly           |
+| ChFunction_Ramp                 |                     | rename: ChFunctionRamp           |
+| ChFunction_Recorder             |                     | rename: ChFunctionRecorder       |
+| ChFunction_Repeat               |                     | rename: ChFunctionRepeat         |
+| ChFunction_Sequence             |                     | rename: ChFunctionSequence       |
+| ChFunction_Sigma                |                     | rename: ChFunctionSigma          |
+| ChFunction_Sine                 |                     | rename: ChFunctionSine           |
+| ChFunction_Setpoint             |                     | rename: ChFunctionSetpoint       |
+| ChFunctionPosition_line         |                     | rename: ChFunctionPositionLine          |
+| ChFunctionPosition_setpoint     |                     | rename: ChFunctionPositionSetpoint      |
+| ChFunctionPosition_XYZfunctions |                     | rename: ChFunctionPositionXYZFunctions  |
+| ChFunctionRotation_ABCfunctions |                     | rename: ChFunctionRotationABCFunctions  |
+| ChFunctionRotation_axis         |                     | rename: ChFunctionRotationAxis          |
+| ChFunctionRotation_setpoint     |                     | rename: ChFunctionRotationSetpoint      |
+| ChFunctionRotation_spline       |                     | rename: ChFunctionRotationBSpline       |
+| ChFunctionRotation_SQUAD        |                     | rename: ChFunctionRotationSQUAD         |
 
 
 
