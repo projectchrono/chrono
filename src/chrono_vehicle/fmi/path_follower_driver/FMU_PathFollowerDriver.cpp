@@ -23,6 +23,7 @@
 
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono/utils/ChUtils.h"
 
 // #define FMI2_FUNCTION_PREFIX MyModel_
 #include "FMU_PathFollowerDriver.h"

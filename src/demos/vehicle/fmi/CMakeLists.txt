@@ -39,3 +39,6 @@ foreach(PROGRAM ${DEMOS})
 
   ###add_dependencies(${PROGRAM} ${CHRONO_VEHICLE_FMU})
 endforeach()
+
+add_dependencies(demo_VEH_FMI_WheeledVehicle_a FMU_WheeledVehicle FMU_PathFollowerDriver)
+add_dependencies(demo_VEH_FMI_WheeledVehicle_b FMU_WheeledVehicle FMU_PathFollowerDriver FMU_ForceElementTire)
