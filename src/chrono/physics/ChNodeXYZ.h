@@ -26,7 +26,7 @@ namespace chrono {
 class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
   public:
     ChNodeXYZ();
-    ChNodeXYZ(const ChVector<>& initial_pos);
+    ChNodeXYZ(const ChVector3d& initial_pos);
     ChNodeXYZ(const ChNodeXYZ& other);
     virtual ~ChNodeXYZ() {}
 
@@ -38,19 +38,19 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     virtual ChVariablesNode& Variables() = 0;
 
     // Position of the node - in absolute csys.
-    const ChVector<>& GetPos() const { return pos; }
+    const ChVector3d& GetPos() const { return pos; }
     // Position of the node - in absolute csys.
-    void SetPos(const ChVector<>& mpos) { pos = mpos; }
+    void SetPos(const ChVector3d& mpos) { pos = mpos; }
 
     // Velocity of the node - in absolute csys.
-    const ChVector<>& GetPos_dt() const { return pos_dt; }
+    const ChVector3d& GetPos_dt() const { return pos_dt; }
     // Velocity of the node - in absolute csys.
-    void SetPos_dt(const ChVector<>& mposdt) { pos_dt = mposdt; }
+    void SetPos_dt(const ChVector3d& mposdt) { pos_dt = mposdt; }
 
     // Acceleration of the node - in absolute csys.
-    const ChVector<>& GetPos_dtdt() const { return pos_dtdt; }
+    const ChVector3d& GetPos_dtdt() const { return pos_dtdt; }
     // Acceleration of the node - in absolute csys.
-    void SetPos_dtdt(const ChVector<>& mposdtdt) { pos_dtdt = mposdtdt; }
+    void SetPos_dtdt(const ChVector3d& mposdtdt) { pos_dtdt = mposdtdt; }
 
     // Get mass of the node. To be implemented in children classes
     virtual double GetMass() const = 0;
@@ -123,9 +123,9 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
     // DATA
-    ChVector<> pos;
-    ChVector<> pos_dt;
-    ChVector<> pos_dtdt;
+    ChVector3d pos;
+    ChVector3d pos_dt;
+    ChVector3d pos_dtdt;
 };
 
 CH_CLASS_VERSION(ChNodeXYZ, 0)

@@ -63,8 +63,8 @@ int ChLinkPointFrameGeneric::Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///
 
 int ChLinkPointFrameGeneric::Initialize(std::shared_ptr<ChNodeFEAxyz> node,
                                         std::shared_ptr<ChBodyFrame> body,
-                                        ChVector<>* pos) {
-    ChVector<> pos_abs = pos ? *pos : node->GetPos();
+                                        ChVector3d* pos) {
+    ChVector3d pos_abs = pos ? *pos : node->GetPos();
 
     return this->Initialize(node, body, ChCoordsys<>(pos_abs));
 }
@@ -85,7 +85,7 @@ void ChLinkPointFrameGeneric::Update(double mytime, bool update_assets) {
 
 ChVectorDynamic<> ChLinkPointFrameGeneric::GetConstraintViolation() const {
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
-    ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector3d res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
     ChVectorN<double, 3> C;
     C(0) = res.x();
     C(1) = res.y();
@@ -161,8 +161,8 @@ void ChLinkPointFrameGeneric::IntLoadConstraint_C(const unsigned int off_L,  // 
 
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
-    ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
-    ChVector<> cres = res * c;
+    ChVector3d res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector3d cres = res * c;
 
     if (do_clamp) {
         cres.x() = std::min(std::max(cres.x(), -recovery_clamp), recovery_clamp);
@@ -265,7 +265,7 @@ void ChLinkPointFrameGeneric::ConstraintsBiLoad_C(double factor, double recovery
 
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
-    ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector3d res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
 
     if (c_x && this->constraint1.IsActive()) {
         constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
@@ -353,7 +353,7 @@ ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords() {
 
 int ChLinkPointFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> node,
                                  std::shared_ptr<ChBodyFrame> body,
-                                 const ChVector<>* pos) {
+                                 const ChVector3d* pos) {
     assert(node && body);
 
     m_body = body;
@@ -363,7 +363,7 @@ int ChLinkPointFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> node,
     constraint2.SetVariables(&(node->Variables()), &(body->Variables()));
     constraint3.SetVariables(&(node->Variables()), &(body->Variables()));
 
-    ChVector<> pos_abs = pos ? *pos : node->GetPos();
+    ChVector3d pos_abs = pos ? *pos : node->GetPos();
     SetAttachPositionInAbsoluteCoords(pos_abs);
 
     return true;
@@ -379,7 +379,7 @@ void ChLinkPointFrame::Update(double mytime, bool update_assets) {
 
 ChVectorDynamic<> ChLinkPointFrame::GetConstraintViolation() const {
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
-    ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector3d res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
     ChVectorN<double, 3> C;
     C(0) = res.x();
     C(1) = res.y();
@@ -425,8 +425,8 @@ void ChLinkPointFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset 
 
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
-    ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
-    ChVector<> cres = res * c;
+    ChVector3d res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector3d cres = res * c;
 
     if (do_clamp) {
         cres.x() = std::min(std::max(cres.x(), -recovery_clamp), recovery_clamp);
@@ -494,7 +494,7 @@ void ChLinkPointFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp,
 
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
-    ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector3d res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());

@@ -138,7 +138,7 @@ void ChElementShellBST::SetupInitial(ChSystem* system) {
         0.5 * Vlength(Vcross(m_nodes[1]->GetX0() - m_nodes[0]->GetX0(), m_nodes[2]->GetX0() - m_nodes[0]->GetX0()));
 
     // Compute cM and cI coefficients
-    ChVector<> Li[3];
+    ChVector3d Li[3];
     Li[0] = m_nodes[2]->GetX0() - m_nodes[1]->GetX0();
     Li[1] = m_nodes[0]->GetX0() - m_nodes[2]->GetX0();
     Li[2] = m_nodes[1]->GetX0() - m_nodes[0]->GetX0();
@@ -148,7 +148,7 @@ void ChElementShellBST::SetupInitial(ChSystem* system) {
         this->cM[i][1] = Vdot(Li[1], Li[i].GetNormalized());
         this->cM[i][2] = Vdot(Li[2], Li[i].GetNormalized());
     }
-    ChVector<> LIi[3];
+    ChVector3d LIi[3];
     for (int i = 0; i < 3; ++i) {
         if (m_nodes[i + 3] != nullptr) {
             LIi[0] = m_nodes[(i + 1) % 3]->GetX0() - m_nodes[(i + 2) % 3]->GetX0();
@@ -168,10 +168,10 @@ void ChElementShellBST::SetupInitial(ChSystem* system) {
     this->l0[2] = Li[2].Length();
 
     // Compute orthogonal system at triangle in carthesian basis
-    ChVector<> t0_1 = m_nodes[1]->GetX0() - m_nodes[0]->GetX0();
-    ChVector<> t0_2 = m_nodes[2]->GetX0() - m_nodes[0]->GetX0();
+    ChVector3d t0_1 = m_nodes[1]->GetX0() - m_nodes[0]->GetX0();
+    ChVector3d t0_2 = m_nodes[2]->GetX0() - m_nodes[0]->GetX0();
     // Compute normal - and orthogonalize others
-    ChVector<> t0_3 = Vcross(t0_1, t0_2).GetNormalized();  // The normal
+    ChVector3d t0_3 = Vcross(t0_1, t0_2).GetNormalized();  // The normal
     t0_2 = (Vcross(t0_3, t0_1)).GetNormalized();
     t0_1.Normalize();
 
@@ -183,8 +183,8 @@ void ChElementShellBST::SetupInitial(ChSystem* system) {
     ShapeVector Nv;
     this->ShapeFunctionsDerivativeV(Nv, 1. / 3., 1. / 3.);
 
-    ChVector<> P0_u = Nu(0, 0) * m_nodes[0]->GetX0() + Nu(0, 1) * m_nodes[1]->GetX0() + Nu(0, 2) * m_nodes[2]->GetX0();
-    ChVector<> P0_v = Nv(0, 0) * m_nodes[0]->GetX0() + Nv(0, 1) * m_nodes[1]->GetX0() + Nv(0, 2) * m_nodes[2]->GetX0();
+    ChVector3d P0_u = Nu(0, 0) * m_nodes[0]->GetX0() + Nu(0, 1) * m_nodes[1]->GetX0() + Nu(0, 2) * m_nodes[2]->GetX0();
+    ChVector3d P0_v = Nv(0, 0) * m_nodes[0]->GetX0() + Nv(0, 1) * m_nodes[1]->GetX0() + Nv(0, 2) * m_nodes[2]->GetX0();
 
     ChMatrixNM<double, 2, 2> Jxu;
     Jxu(0, 0) = Vdot(P0_u, t0_1);
@@ -211,11 +211,11 @@ void ChElementShellBST::SetupInitial(ChSystem* system) {
     for (int i = 0; i < 3; ++i) {
         if (m_nodes[i + 3] != nullptr) {
             // normal of ith neighbouring triangle, opposed to ith triangle vertex:
-            ChVector<> t0i_3 = Vcross(m_nodes[i + 3]->GetX0() - m_nodes[(i + 1) % 3]->GetX0(),
+            ChVector3d t0i_3 = Vcross(m_nodes[i + 3]->GetX0() - m_nodes[(i + 1) % 3]->GetX0(),
                                       m_nodes[(i + 2) % 3]->GetX0() - m_nodes[(i + 1) % 3]->GetX0())
                                    .GetNormalized();
             // boundary normal to shared edge:
-            ChVector<> n_i =
+            ChVector3d n_i =
                 Vcross(m_nodes[(i + 1) % 3]->GetX0() - m_nodes[(i + 2) % 3]->GetX0(), t0_3).GetNormalized();
             // edge angle
             double mcos_fi = Vdot(t0_3, t0i_3);
@@ -403,7 +403,7 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
     Fi.setZero();
 
     // only for readability .. make rest of the function easier to read
-    std::array<ChVector<>, 6> np;
+    std::array<ChVector3d, 6> np;
     int istride = 0;
     for (int i = 0; i < 6; ++i) {
         if (m_nodes[i] != nullptr) {
@@ -414,10 +414,10 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
     }
 
     // Compute orthogonal system at triangle in carthesian basis
-    ChVector<> t_1 = np[1] - np[0];
-    ChVector<> t_2 = np[2] - np[0];
+    ChVector3d t_1 = np[1] - np[0];
+    ChVector3d t_2 = np[2] - np[0];
     // Compute normal
-    ChVector<> t_3 = Vcross(t_1, t_2).GetNormalized();  // The normal
+    ChVector3d t_3 = Vcross(t_1, t_2).GetNormalized();  // The normal
     // no need to do t_1.Normalize() and to orthogonalize t_2 respect to t_1 because not needed later
 
     ShapeVector Nx;
@@ -426,8 +426,8 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
     this->ShapeFunctionsDerivativeY(Ny, this->Jux, 1. / 3., 1. / 3.);
 
     // Compute strain
-    ChVector<> P_1 = Nx(0) * np[0] + Nx(1) * np[1] + Nx(2) * np[2];
-    ChVector<> P_2 = Ny(0) * np[0] + Ny(1) * np[1] + Ny(2) * np[2];
+    ChVector3d P_1 = Nx(0) * np[0] + Nx(1) * np[1] + Nx(2) * np[2];
+    ChVector3d P_2 = Ny(0) * np[0] + Ny(1) * np[1] + Ny(2) * np[2];
 
     this->e[0] = 0.5 * (Vdot(P_1, P_1) - 1.0);
     this->e[1] = 0.5 * (Vdot(P_2, P_2) - 1.0);
@@ -436,24 +436,24 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
     // Compute curvature k
     // Use the BST method in "kinked and branched shells"
     this->k = VNULL;
-    ChVector<> ti_3[3];
+    ChVector3d ti_3[3];
     for (int i = 0; i < 3; ++i) {
         if (m_nodes[i + 3] != nullptr) {
             // normal of ith neighbouring triangle, opposed to ith triangle vertex:
             ti_3[i] = Vcross(np[i + 3] - np[(i + 1) % 3], np[(i + 2) % 3] - np[(i + 1) % 3]).GetNormalized();
             // boundary normal to shared edge:
-            ChVector<> n_i = Vcross(np[(i + 1) % 3] - np[(i + 2) % 3], t_3).GetNormalized();
+            ChVector3d n_i = Vcross(np[(i + 1) % 3] - np[(i + 2) % 3], t_3).GetNormalized();
             // edge angle
             double mcos_fi = Vdot(t_3, ti_3[i]);
             double msin_fi = Vdot(n_i, ti_3[i]);
-            ChVector<> Dphi;
+            ChVector3d Dphi;
             phi[i] = atan2(msin_fi, mcos_fi);
             Dphi[i] = phi[i] - this->phi0[i];
             // curvature
             double lambda = 1.0;
             // m_r[i] = 1.0 / 2.0; // to check - to improve in case of coarse mesh, make proportional to triangle
             // height: r=R_i/(R_i+R_m), R_ = 1/h_
-            ChVector<> LLi(
+            ChVector3d LLi(
                 Nx(i) * Nx(i), Ny(i) * Ny(i),
                 -2.0 * Nx(i) * Ny(i));  // TODO: constant LLi[i] if 1 gauss point, linear triangle, move to precomputed?
             this->k += ((lambda * this->rI[i] * Dphi[i]) / this->l0[i]) * LLi;
@@ -466,7 +466,7 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 
     // Compute stretching and bending strains
     // Loop on layers:
-    ChVector<> l_n, l_m;
+    ChVector3d l_n, l_m;
     this->n = VNULL;
     this->m = VNULL;
     for (size_t il = 0; il < this->m_layers.size(); ++il) {
@@ -480,8 +480,8 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
         ////***TO DO*** this require (still not computed) time derivative of this->e and this->k from state_w.
         /*
         if (m_layers[il].GetMaterial()->GetDamping()) {
-            ChVector<> n_sp;
-            ChVector<> m_sp;
+            ChVector3d n_sp;
+            ChVector3d m_sp;
             m_layers[il].GetMaterial()->GetDamping()->ComputeStress(
                     n_sp,
                     m_sp,
@@ -511,7 +511,7 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 
     for (int it = 0; it < 3; ++it) {
         if (m_nodes[it + 3] != nullptr) {
-            ChVector<> LLi(
+            ChVector3d LLi(
                 Nx(it) * Nx(it), Ny(it) * Ny(it),
                 -2.0 * Nx(it) *
                     Ny(it));  // TODO: constant LLi[i] if 1 gauss point, linear triangle, move to precomputed?
@@ -587,26 +587,26 @@ void ChElementShellBST::ShapeFunctionsDerivativeY(ShapeVector& Ny,
 
 void ChElementShellBST::EvaluateSectionDisplacement(const double u,
                                                     const double v,
-                                                    ChVector<>& u_displ,
-                                                    ChVector<>& u_rotaz) {
+                                                    ChVector3d& u_displ,
+                                                    ChVector3d& u_rotaz) {
     // this is not a corotational element, so just do:
     EvaluateSectionPoint(u, v, u_displ);
     u_rotaz = VNULL;  // no angles.. (or maybe return here the slope derivatives?)
 }
 
-void ChElementShellBST::EvaluateSectionFrame(const double u, const double v, ChVector<>& point, ChQuaternion<>& rot) {
+void ChElementShellBST::EvaluateSectionFrame(const double u, const double v, ChVector3d& point, ChQuaternion<>& rot) {
     // this is not a corotational element, so just do:
     EvaluateSectionPoint(u, v, point);
     rot = QUNIT;  // or maybe use gram-schmidt to get csys of section from slopes?
 }
 
-void ChElementShellBST::EvaluateSectionPoint(const double u, const double v, ChVector<>& point) {
+void ChElementShellBST::EvaluateSectionPoint(const double u, const double v, ChVector3d& point) {
     ShapeVector N;
     this->ShapeFunctions(N, u, v);
 
-    const ChVector<>& pA = m_nodes[0]->GetPos();
-    const ChVector<>& pB = m_nodes[1]->GetPos();
-    const ChVector<>& pC = m_nodes[2]->GetPos();
+    const ChVector3d& pA = m_nodes[0]->GetPos();
+    const ChVector3d& pB = m_nodes[1]->GetPos();
+    const ChVector3d& pC = m_nodes[2]->GetPos();
 
     point = N(0) * pA + N(1) * pB + N(2) * pC;
 }
@@ -639,7 +639,7 @@ void ChElementShellBST::LoadableStateIncrement(const unsigned int off_x,
     }
 }
 
-void ChElementShellBST::EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) {
+void ChElementShellBST::EvaluateSectionVelNorm(double U, double V, ChVector3d& Result) {
     ShapeVector N;
     ShapeFunctions(N, U, V);
     for (unsigned int ii = 0; ii < 3; ii++) {
@@ -725,12 +725,12 @@ double ChElementShellBST::GetDensity() {
 }
 
 // Calculate normal to the surface at (U,V) coordinates.
-ChVector<> ChElementShellBST::ComputeNormal(const double U, const double V) {
-    const ChVector<>& pA = m_nodes[0]->GetPos();
-    const ChVector<>& pB = m_nodes[1]->GetPos();
-    const ChVector<>& pC = m_nodes[2]->GetPos();
+ChVector3d ChElementShellBST::ComputeNormal(const double U, const double V) {
+    const ChVector3d& pA = m_nodes[0]->GetPos();
+    const ChVector3d& pB = m_nodes[1]->GetPos();
+    const ChVector3d& pC = m_nodes[2]->GetPos();
 
-    ChVector<> mnorm = Vcross(pB - pA, pC - pA);
+    ChVector3d mnorm = Vcross(pB - pA, pC - pA);
     return mnorm.GetNormalized();
 }
 

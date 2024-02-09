@@ -30,7 +30,7 @@ namespace fea {
 /// electric potential V)
 class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
   public:
-    ChNodeFEAxyzP(ChVector<> initial_pos = VNULL);
+    ChNodeFEAxyzP(ChVector3d initial_pos = VNULL);
     ChNodeFEAxyzP(const ChNodeFEAxyzP& other);
     ~ChNodeFEAxyzP() {}
 
@@ -51,9 +51,9 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     virtual bool IsFixed() const override;
 
     /// Position of the node - in absolute csys.
-    const ChVector<>& GetPos() const { return pos; }
+    const ChVector3d& GetPos() const { return pos; }
     /// Position of the node - in absolute csys.
-    void SetPos(const ChVector<>& mpos) { pos = mpos; }
+    void SetPos(const ChVector3d& mpos) { pos = mpos; }
 
     /// Set the scalar field at node.
     void SetP(double mp) { P = mp; }
@@ -130,7 +130,7 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     double P;                      ///< field
     double P_dt;                   ///< field derivative, if needed
     double F;                      ///< applied term
-    ChVector<> pos;
+    ChVector3d pos;
 };
 
 /// @} fea_nodes

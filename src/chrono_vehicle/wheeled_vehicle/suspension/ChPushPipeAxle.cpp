@@ -63,7 +63,7 @@ ChPushPipeAxle::~ChPushPipeAxle() {
 void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
                                 std::shared_ptr<ChSubchassis> subchassis,
                                 std::shared_ptr<ChSteering> steering,
-                                const ChVector<>& location,
+                                const ChVector3d& location,
                                 double left_ang_vel,
                                 double right_ang_vel) {
     ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
@@ -72,9 +72,9 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_rel_loc = location;
 
     // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w;
     ChMatrix33<> rot;
 
     // Express the suspension reference frame in the absolute coordinate system.
@@ -82,23 +82,23 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform the location of the axle body COM to absolute frame.
-    ChVector<> axleCOM_local = getAxleTubeCOM();
-    ChVector<> axleCOM = suspension_to_abs.TransformLocalToParent(axleCOM_local);
+    ChVector3d axleCOM_local = getAxleTubeCOM();
+    ChVector3d axleCOM = suspension_to_abs.TransformLocalToParent(axleCOM_local);
 
     // Calculate end points on the axle body, expressed in the absolute frame
     // (for visualization)
     // this is a portal axle, there is a vertical offset of the outer axle points
-    ChVector<> outer_local(getLocation(SPINDLE) + ChVector<>(0, 0, getPortalOffset()));
+    ChVector3d outer_local(getLocation(SPINDLE) + ChVector3d(0, 0, getPortalOffset()));
     m_axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
     outer_local.y() = -outer_local.y();
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     m_pushPipeOuterC = suspension_to_abs.TransformPointLocalToParent(getLocation(AXLE_C));
-    ChVector<> hlp = getLocation(SPINDLE) + ChVector<>(0, 0, getPortalOffset());
-    ChVector<> hlp2 = hlp;
+    ChVector3d hlp = getLocation(SPINDLE) + ChVector3d(0, 0, getPortalOffset());
+    ChVector3d hlp2 = hlp;
     hlp2.y() = -hlp.y();
     hlp = 0.5 * (hlp + hlp2);
-    m_pushPipeOuterA = suspension_to_abs.TransformPointLocalToParent(hlp + ChVector<>(0, getLocation(AXLE_C).y(), 0));
+    m_pushPipeOuterA = suspension_to_abs.TransformPointLocalToParent(hlp + ChVector3d(0, getLocation(AXLE_C).y(), 0));
 
     m_panhardOuterA = suspension_to_abs.TransformPointLocalToParent(getLocation(PANHARD_A));
     m_panhardOuterC = suspension_to_abs.TransformPointLocalToParent(getLocation(PANHARD_C));
@@ -114,13 +114,13 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_axleTubeGuideLong = chrono_types::make_shared<ChLinkLockSpherical>();
     m_axleTubeGuideLong->SetNameString(m_name + "_sphereAxleTube");
-    ChVector<> spPos = suspension_to_abs.TransformPointLocalToParent(getLocation(AXLE_C));
+    ChVector3d spPos = suspension_to_abs.TransformPointLocalToParent(getLocation(AXLE_C));
     m_axleTubeGuideLong->Initialize(m_axleTube, chassis->GetBody(), ChCoordsys<>(spPos, QUNIT));
     chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuideLong);
 
     // Create and initialize the panhard rod body
-    ChVector<> panCom_local = 0.5 * (getLocation(PANHARD_A) + getLocation(PANHARD_C));
-    ChVector<> panCom = suspension_to_abs.TransformLocalToParent(panCom_local);
+    ChVector3d panCom_local = 0.5 * (getLocation(PANHARD_A) + getLocation(PANHARD_C));
+    ChVector3d panCom = suspension_to_abs.TransformLocalToParent(panCom_local);
     m_panhardRod = chrono_types::make_shared<ChBody>();
     m_panhardRod->SetNameString(m_name + "_panhardRod");
     m_panhardRod->SetPos(panCom);
@@ -130,14 +130,14 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     chassis->GetBody()->GetSystem()->AddBody(m_panhardRod);
 
     // fix panhard rod body to the axleTube
-    ChVector<> panAxl = suspension_to_abs.TransformLocalToParent(getLocation(PANHARD_A));
+    ChVector3d panAxl = suspension_to_abs.TransformLocalToParent(getLocation(PANHARD_A));
     m_panhardRod2Axle = chrono_types::make_shared<ChLinkLockSpherical>();
     m_panhardRod2Axle->SetNameString(m_name + "_panhardRod2Axle");
     m_panhardRod2Axle->Initialize(m_panhardRod, m_axleTube, ChCoordsys<>(panAxl, QUNIT));
     chassis->GetBody()->GetSystem()->AddLink(m_panhardRod2Axle);
 
     // fix panhard rod body to the chassis body
-    ChVector<> panCh = suspension_to_abs.TransformLocalToParent(getLocation(PANHARD_C));
+    ChVector3d panCh = suspension_to_abs.TransformLocalToParent(getLocation(PANHARD_C));
     m_panhardRod2Chassis = chrono_types::make_shared<ChLinkLockSpherical>();
     m_panhardRod2Chassis->SetNameString(m_name + "_panhardRod2Chassis");
     m_panhardRod2Chassis->Initialize(m_panhardRod, chassis->GetBody(), ChCoordsys<>(panCh, QUNIT));
@@ -147,7 +147,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_pointsL.resize(NUM_POINTS);
     m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
+        ChVector3d rel_pos = getLocation(static_cast<PointId>(i));
         m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
         rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
@@ -163,14 +163,14 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 void ChPushPipeAxle::InitializeSide(VehicleSide side,
                                     std::shared_ptr<ChBodyAuxRef> chassis,
                                     std::shared_ptr<ChBody> scbeam,
-                                    const std::vector<ChVector<>>& points,
+                                    const std::vector<ChVector3d>& points,
                                     double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w;
     ChMatrix33<> rot;
 
     // Chassis orientation (expressed in absolute frame)
@@ -186,7 +186,7 @@ void ChPushPipeAxle::InitializeSide(VehicleSide side,
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
-    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
+    m_spindle[side]->SetWvel_loc(ChVector3d(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
     chassis->GetSystem()->AddBody(m_spindle[side]);
@@ -224,7 +224,7 @@ void ChPushPipeAxle::InitializeSide(VehicleSide side,
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
-    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
+    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
@@ -273,11 +273,11 @@ std::vector<ChSuspension::ForceTSDA> ChPushPipeAxle::ReportSuspensionForce(Vehic
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChPushPipeAxle::LogHardpointLocations(const ChVector<>& ref, bool inches) {
+void ChPushPipeAxle::LogHardpointLocations(const ChVector3d& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
+        ChVector3d pos = ref + unit * getLocation(static_cast<PointId>(i));
 
         std::cout << "   " << m_pointNames[i] << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
@@ -335,13 +335,13 @@ void ChPushPipeAxle::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPushPipeAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                          const ChVector<> pt_1,
-                                          const ChVector<> pt_2,
+                                          const ChVector3d pt_1,
+                                          const ChVector3d pt_2,
                                           double radius,
                                           const ChColor& color) {
     // Express hardpoint locations in body frame.
-    ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
-    ChVector<> p_2 = body->TransformPointParentToLocal(pt_2);
+    ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
+    ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
 
     auto cyl = ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
     cyl->SetColor(color);

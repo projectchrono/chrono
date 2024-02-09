@@ -47,8 +47,8 @@ void TrackDrivelineBDS::Create(const rapidjson::Document& d) {
 
     // The direction of the motor block is along the X axis, while the directions of
     // the axles is along the Y axis (relative to the chassis coordinate frame).
-    SetMotorBlockDirection(ChVector<>(1, 0, 0));
-    SetAxleDirection(ChVector<>(0, 1, 0));
+    SetMotorBlockDirection(ChVector3d(1, 0, 0));
+    SetAxleDirection(ChVector3d(0, 1, 0));
 
     m_driveshaft_inertia = d["Driveshaft Inertia"].GetDouble();
     m_differentialbox_inertia = d["Differential Box Inertia"].GetDouble();

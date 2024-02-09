@@ -23,7 +23,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChVisualShapeTriangleMesh)
 
 ChVisualShapeTriangleMesh::ChVisualShapeTriangleMesh()
-    : name(""), scale(ChVector<>(1)), wireframe(false), backface_cull(false), fixed_connectivity(false) {
+    : name(""), scale(ChVector3d(1)), wireframe(false), backface_cull(false), fixed_connectivity(false) {
     trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
 };
 

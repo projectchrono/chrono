@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 namespace fea {
@@ -50,11 +50,11 @@ class ChApi ChBeamSectionShape {
 
     /// Compute the points (in the reference of the section), for the i-th line in the section.
     /// Note: mpoints must already have the proper size.
-    virtual void GetPoints(const int i_line, std::vector<ChVector<>>& mpoints) const = 0;
+    virtual void GetPoints(const int i_line, std::vector<ChVector3d>& mpoints) const = 0;
 
     /// Compute the normals (in the reference of the section) at each point, for the i-th line in the section.
     /// Note: mnormals must already have the proper size.
-    virtual void GetNormals(const int i_line, std::vector<ChVector<>>& mnormals) const = 0;
+    virtual void GetNormals(const int i_line, std::vector<ChVector3d>& mnormals) const = 0;
 
     /// Returns the axis-aligned bounding box (assuming axes of local reference of the section)
     /// This functions has many uses, ex.for drawing, optimizations, collisions.
@@ -84,11 +84,11 @@ class ChApi ChBeamSectionShapeCircular : public ChBeamSectionShape {
 
     /// Compute the points (in the reference of the section).
     /// Note: mpoints must already have the proper size.
-    virtual void GetPoints(const int i_line, std::vector<ChVector<>>& mpoints) const override { mpoints = points; };
+    virtual void GetPoints(const int i_line, std::vector<ChVector3d>& mpoints) const override { mpoints = points; };
 
     /// Compute the normals (in the reference of the section) at each point.
     /// Note: mnormals must already have the proper size.
-    virtual void GetNormals(const int i_line, std::vector<ChVector<>>& mnormals) const override { mnormals = normals; }
+    virtual void GetNormals(const int i_line, std::vector<ChVector3d>& mnormals) const override { mnormals = normals; }
 
     //
     // Functions for drawing, optimizations, collisions
@@ -104,8 +104,8 @@ class ChApi ChBeamSectionShapeCircular : public ChBeamSectionShape {
 
     int resolution;
     double radius;
-    std::vector<ChVector<>> points;
-    std::vector<ChVector<>> normals;
+    std::vector<ChVector3d> points;
+    std::vector<ChVector3d> normals;
 };
 
 /// A ready-to-use class for drawing properties of rectangular beams.
@@ -129,13 +129,13 @@ class ChApi ChBeamSectionShapeRectangular : public ChBeamSectionShape {
 
     /// Compute the points (in the reference of the section).
     /// Note: mpoints must already have the proper size.
-    virtual void GetPoints(const int i_line, std::vector<ChVector<>>& mpoints) const override {
+    virtual void GetPoints(const int i_line, std::vector<ChVector3d>& mpoints) const override {
         mpoints = ml_points[i_line];
     };
 
     /// Compute the normals (in the reference of the section) at each point.
     /// Note: mnormals must already have the proper size.
-    virtual void GetNormals(const int i_line, std::vector<ChVector<>>& mnormals) const override {
+    virtual void GetNormals(const int i_line, std::vector<ChVector3d>& mnormals) const override {
         mnormals = ml_normals[i_line];
     }
 
@@ -148,8 +148,8 @@ class ChApi ChBeamSectionShapeRectangular : public ChBeamSectionShape {
 
     double y_thick;
     double z_thick;
-    std::vector<std::vector<ChVector<>>> ml_points;
-    std::vector<std::vector<ChVector<>>> ml_normals;
+    std::vector<std::vector<ChVector3d>> ml_points;
+    std::vector<std::vector<ChVector3d>> ml_normals;
 };
 
 /// A class for drawing properties of beams whose section is a set of M polylines, each with N points.
@@ -159,7 +159,7 @@ class ChApi ChBeamSectionShapeRectangular : public ChBeamSectionShape {
 
 class ChApi ChBeamSectionShapePolyline : public ChBeamSectionShape {
   public:
-    ChBeamSectionShapePolyline(const std::vector<std::vector<ChVector<>>>& polyline_points) {
+    ChBeamSectionShapePolyline(const std::vector<std::vector<ChVector3d>>& polyline_points) {
         this->ml_points = polyline_points;
         this->UpdateProfile();
     }
@@ -174,13 +174,13 @@ class ChApi ChBeamSectionShapePolyline : public ChBeamSectionShape {
 
     /// Compute the points (in the reference of the section).
     /// Note: mpoints must already have the proper size.
-    virtual void GetPoints(const int i_line, std::vector<ChVector<>>& mpoints) const override {
+    virtual void GetPoints(const int i_line, std::vector<ChVector3d>& mpoints) const override {
         mpoints = ml_points[i_line];
     };
 
     /// Compute the normals (in the reference of the section) at each point.
     /// Note: mnormals must already have the proper size.
-    virtual void GetNormals(const int i_line, std::vector<ChVector<>>& mnormals) const override {
+    virtual void GetNormals(const int i_line, std::vector<ChVector3d>& mnormals) const override {
         mnormals = ml_normals[i_line];
     }
 
@@ -188,8 +188,8 @@ class ChApi ChBeamSectionShapePolyline : public ChBeamSectionShape {
     // internal: update internal precomputed vertex arrays, computing normals by smoothing segments
     void UpdateProfile();
 
-    std::vector<std::vector<ChVector<>>> ml_points;
-    std::vector<std::vector<ChVector<>>> ml_normals;
+    std::vector<std::vector<ChVector3d>> ml_points;
+    std::vector<std::vector<ChVector3d>> ml_normals;
 };
 
 /// @} fea_utils

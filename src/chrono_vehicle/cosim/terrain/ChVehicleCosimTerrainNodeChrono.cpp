@@ -100,8 +100,8 @@ ChVehicleCosimTerrainNodeChrono::Type ChVehicleCosimTerrainNodeChrono::GetTypeFr
     return GetTypeFromString(d["Type"].GetString());
 }
 
-ChVector2<> ChVehicleCosimTerrainNodeChrono::GetSizeFromSpecfile(const std::string& specfile) {
-    ChVector2<> size;
+ChVector2d ChVehicleCosimTerrainNodeChrono::GetSizeFromSpecfile(const std::string& specfile) {
+    ChVector2d size;
 
     Document d;
     if (!ReadSpecfile(specfile, d)) {

@@ -37,7 +37,7 @@ ChCoordsys<> ChLinkDirFrame::GetLinkAbsoluteCoords() {
     return CSYSNORM;
 }
 
-void ChLinkDirFrame::SetDirectionInBodyCoords(const ChVector<>& dir_loc) {
+void ChLinkDirFrame::SetDirectionInBodyCoords(const ChVector3d& dir_loc) {
     assert(m_body);
     ChMatrix33<> rot;
     rot.Set_A_Xdir(dir_loc);
@@ -45,15 +45,15 @@ void ChLinkDirFrame::SetDirectionInBodyCoords(const ChVector<>& dir_loc) {
     m_csys.pos = VNULL;
 }
 
-void ChLinkDirFrame::SetDirectionInAbsoluteCoords(const ChVector<>& dir_abs) {
+void ChLinkDirFrame::SetDirectionInAbsoluteCoords(const ChVector3d& dir_abs) {
     assert(m_body);
-    ChVector<> dir_loc = m_body->TransformDirectionParentToLocal(dir_abs);
+    ChVector3d dir_loc = m_body->TransformDirectionParentToLocal(dir_abs);
     SetDirectionInBodyCoords(dir_loc);
 }
 
 int ChLinkDirFrame::Initialize(std::shared_ptr<ChNodeFEAxyzD> node,
                                std::shared_ptr<ChBodyFrame> body,
-                               ChVector<>* dir) {
+                               ChVector3d* dir) {
     assert(node && body);
 
     m_body = body;
@@ -62,7 +62,7 @@ int ChLinkDirFrame::Initialize(std::shared_ptr<ChNodeFEAxyzD> node,
     constraint1.SetVariables(&(node->Variables_D()), &(body->Variables()));
     constraint2.SetVariables(&(node->Variables_D()), &(body->Variables()));
 
-    ChVector<> dir_abs = dir ? *dir : node->GetD();
+    ChVector3d dir_abs = dir ? *dir : node->GetD();
     SetDirectionInAbsoluteCoords(dir_abs);
 
     return true;
@@ -77,20 +77,20 @@ void ChLinkDirFrame::Update(double mytime, bool update_assets) {
 
 ChVectorDynamic<> ChLinkDirFrame::GetConstraintViolation() const {
     ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
-    ChVector<> res = Arw.transpose() * m_node->GetD();
+    ChVector3d res = Arw.transpose() * m_node->GetD();
     ChVectorN<double, 2> C;
     C(0) = res.y();
     C(1) = res.z();
     return C;
 }
 
-ChVector<> ChLinkDirFrame::GetReactionOnBody() const {
+ChVector3d ChLinkDirFrame::GetReactionOnBody() const {
     // Rotation matrices
     ChMatrix33<> A(m_body->coord.rot);
     ChMatrix33<> C(m_csys.rot);
 
     // (A^T*d)  and  ~(A^T*d)
-    ChVector<> z = A.transpose() * m_node->GetD();
+    ChVector3d z = A.transpose() * m_node->GetD();
     ChStarMatrix33<> ztilde(z);
 
     // Constraint Jacobians  PhiQ = C^T * ~(A^T*d)
@@ -98,7 +98,7 @@ ChVector<> ChLinkDirFrame::GetReactionOnBody() const {
 
     // Reaction torque  T = C^T * PhiQ^T * lambda
     // Note that lambda = [0, l1, l2]
-    ChVector<> trq = C.transpose() * (PhiQ.transpose() * m_react);
+    ChVector3d trq = C.transpose() * (PhiQ.transpose() * m_react);
 
     return trq;
 }
@@ -137,7 +137,7 @@ void ChLinkDirFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in
         return;
 
     ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
-    ChVector<> cres = c * (Arw.transpose() * m_node->GetD());
+    ChVector3d cres = c * (Arw.transpose() * m_node->GetD());
 
     if (do_clamp) {
         cres.y() = std::min(std::max(cres.y(), -recovery_clamp), recovery_clamp);
@@ -195,7 +195,7 @@ void ChLinkDirFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     //	return;
 
     ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
-    ChVector<> res = Arw.transpose() * m_node->GetD();
+    ChVector3d res = Arw.transpose() * m_node->GetD();
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.y());
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.z());
@@ -214,7 +214,7 @@ void ChLinkDirFrame::ConstraintsLoadJacobians() {
     ChMatrix33<> Aro(m_csys.rot);
     ChMatrix33<> Arw(m_csys.rot >> m_body->coord.rot);
 
-    ChVector<> Zo = Aow.transpose() * m_node->GetD();
+    ChVector3d Zo = Aow.transpose() * m_node->GetD();
 
     ChStarMatrix33<> ztilde(Zo);
 

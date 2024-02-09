@@ -71,14 +71,14 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     ChFrame<>& GetX0ref() { return X0; }
 
     /// Set the 3d applied force, in absolute reference
-    void SetForce(ChVector<> mf) { Force = mf; }
+    void SetForce(ChVector3d mf) { Force = mf; }
     /// Get the 3d applied force, in absolute reference
-    const ChVector<>& GetForce() const { return Force; }
+    const ChVector3d& GetForce() const { return Force; }
 
     /// Set the 3d applied torque, in node reference
-    void SetTorque(ChVector<> mf) { Torque = mf; }
+    void SetTorque(ChVector3d mf) { Torque = mf; }
     /// Get the 3d applied torque, in node reference
-    const ChVector<>& GetTorque() const { return Torque; }
+    const ChVector3d& GetTorque() const { return Torque; }
 
     /// Access the frame of the node - in absolute csys,
     /// with infos on actual position, speed, acceleration, etc.
@@ -206,8 +206,8 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
   private:
     ChVariablesBodyOwnMass variables;  ///< 3D node variables, with x,y,z displ. and 3D rot.
     ChFrame<> X0;                      ///< reference frame
-    ChVector<> Force;                  ///< applied force
-    ChVector<> Torque;                 ///< applied torque
+    ChVector3d Force;                  ///< applied force
+    ChVector3d Torque;                 ///< applied torque
 };
 
 /// @} fea_nodes

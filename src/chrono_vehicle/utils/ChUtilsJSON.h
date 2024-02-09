@@ -23,7 +23,7 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 #include "chrono/motion_functions/ChFunctionRecorder.h"
 
@@ -57,16 +57,16 @@ CH_VEHICLE_API void ReadFileJSON(const std::string& filename, rapidjson::Documen
 
 // -----------------------------------------------------------------------------
 
-/// Load and return a ChVector from the specified JSON array
-CH_VEHICLE_API ChVector<> ReadVectorJSON(const rapidjson::Value& a);
+/// Load and return a ChVector3d from the specified JSON array.
+CH_VEHICLE_API ChVector3d ReadVectorJSON(const rapidjson::Value& a);
 
-///  Load and return a ChQuaternion from the specified JSON array
+///  Load and return a ChQuaternion from the specified JSON array.
 CH_VEHICLE_API ChQuaternion<> ReadQuaternionJSON(const rapidjson::Value& a);
 
 /// Load and return a coordinate system from the specific JSON value.
 CH_VEHICLE_API ChCoordsys<> ReadCoordinateSystemJSON(const rapidjson::Value& a);
 
-///  Load and return a ChColor from the specified JSON array
+///  Load and return a ChColor from the specified JSON array.
 CH_VEHICLE_API ChColor ReadColorJSON(const rapidjson::Value& a);
 
 // -----------------------------------------------------------------------------

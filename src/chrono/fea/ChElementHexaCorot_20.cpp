@@ -138,7 +138,7 @@ void ChElementHexaCorot_20::GetStateBlock(ChVectorDynamic<>& mD) {
         mD.segment(i * 3, 3) = (A.transpose() * this->nodes[i]->GetPos() - nodes[i]->GetX0()).eigen();
 }
 
-void ChElementHexaCorot_20::ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynamic<>& J1, ChVector<> coord) {
+void ChElementHexaCorot_20::ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynamic<>& J1, ChVector3d coord) {
     ChMatrixDynamic<> J2(20, 3);
 
     J1(0, 0) = -(1 - coord.y()) * (1 - coord.z()) * (-1 - 2 * coord.x() - coord.y() - coord.z()) / 8;
@@ -277,7 +277,7 @@ void ChElementHexaCorot_20::ComputeMatrB(ChMatrixDynamic<>& MatrB,
                                          double& JacobianDet) {
     ChMatrixDynamic<> Jacobian(3, 3);
     ChMatrixDynamic<> J1(3, 20);
-    ComputeJacobian(Jacobian, J1, ChVector<>(zeta1, zeta2, zeta3));
+    ComputeJacobian(Jacobian, J1, ChVector3d(zeta1, zeta2, zeta3));
 
     // !!! store the Jacobian Determinant: needed for the integration
     JacobianDet = Jacobian.determinant();
@@ -507,17 +507,17 @@ void ChElementHexaCorot_20::Update() {
 }
 
 void ChElementHexaCorot_20::UpdateRotation() {
-    ChVector<> avgX1;
+    ChVector3d avgX1;
     avgX1 = nodes[0]->GetX0() + nodes[1]->GetX0() + nodes[2]->GetX0() + nodes[3]->GetX0();
-    ChVector<> avgX2;
+    ChVector3d avgX2;
     avgX2 = nodes[4]->GetX0() + nodes[5]->GetX0() + nodes[6]->GetX0() + nodes[7]->GetX0();
-    ChVector<> Xdir = avgX2 - avgX1;
+    ChVector3d Xdir = avgX2 - avgX1;
 
-    ChVector<> avgY1;
+    ChVector3d avgY1;
     avgY1 = nodes[0]->GetX0() + nodes[1]->GetX0() + nodes[4]->GetX0() + nodes[5]->GetX0();
-    ChVector<> avgY2;
+    ChVector3d avgY2;
     avgY2 = nodes[2]->GetX0() + nodes[3]->GetX0() + nodes[6]->GetX0() + nodes[7]->GetX0();
-    ChVector<> Ydir = avgY2 - avgY1;
+    ChVector3d Ydir = avgY2 - avgY1;
     ChMatrix33<> rotX0;
     rotX0.Set_A_Xdir(Xdir.GetNormalized(), Ydir.GetNormalized());
 

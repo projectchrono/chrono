@@ -46,7 +46,7 @@ class CH_VEHICLE_API ChSteering : public ChPart {
     /// respect to and expressed in the reference frame of the chassis) and with specified orientation (with respect to
     /// the chassis reference frame).
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
-                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
     );
 

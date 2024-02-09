@@ -18,7 +18,7 @@
 #include <memory>
 
 #include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChDistribution.h"
 #include "chrono/geometry/ChSurface.h"
@@ -38,7 +38,7 @@ class ChRandomParticlePosition {
     /// Function that creates a random position each
     /// time it is called.
     /// Note: it must be implemented by children classes!
-    virtual ChVector<> RandomPosition() { return VNULL; }
+    virtual ChVector3d RandomPosition() { return VNULL; }
 };
 
 /// Class for generator of random particle positions
@@ -54,8 +54,8 @@ class ChRandomParticlePositionRectangleOutlet : public ChRandomParticlePosition 
 
     /// Function that creates a random position each
     /// time it is called.
-    virtual ChVector<> RandomPosition() override {
-        ChVector<> localp = ChVector<>(ChRandom() * width - 0.5 * width, ChRandom() * height - 0.5 * height, 0);
+    virtual ChVector3d RandomPosition() override {
+        ChVector3d localp = ChVector3d(ChRandom() * width - 0.5 * width, ChRandom() * height - 0.5 * height, 0);
         return outlet.TransformLocalToParent(localp);
     }
     /// Access the coordinate system of the rectangular outlet.
@@ -80,13 +80,13 @@ class ChRandomParticlePositionRectangleOutlet : public ChRandomParticlePosition 
 class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
   public:
     ChRandomParticlePositionOnGeometry() {
-        m_geometry = chrono_types::make_shared<geometry::ChBox>(ChVector<>(0.1, 0.1, 0.1));
+        m_geometry = chrono_types::make_shared<geometry::ChBox>(ChVector3d(0.1, 0.1, 0.1));
     }
 
     /// Function that creates a random position each
     /// time it is called.
-    virtual ChVector<> RandomPosition() override {
-        ChVector<> pos = m_frame.GetPos();
+    virtual ChVector3d RandomPosition() override {
+        ChVector3d pos = m_frame.GetPos();
 
         if (auto mline = std::dynamic_pointer_cast<geometry::ChLine>(m_geometry)) {
             pos = mline->Evaluate(ChRandom());

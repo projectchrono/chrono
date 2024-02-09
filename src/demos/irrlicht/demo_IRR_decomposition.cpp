@@ -401,9 +401,9 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 1.5, -2));
-    vis->AddLight(ChVector<>(30, 100, 30), 200, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(30, -80, -30), 130, ChColor(0.7f, 0.8f, 0.8f));
+    vis->AddCamera(ChVector3d(0, 1.5, -2));
+    vis->AddLight(ChVector3d(30, 100, 30), 200, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(30, -80, -30), 130, ChColor(0.7f, 0.8f, 0.8f));
 
     // Create a custom event receiver for a GUI
     MyEventReceiver receiver(vis.get());

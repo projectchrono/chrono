@@ -18,7 +18,7 @@
 #include <memory>
 
 #include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChDistribution.h"
 
@@ -37,7 +37,7 @@ class ChRandomParticleVelocity {
     /// time it is called.
     /// This base behavior simply uses zero velocity by default.
     /// Children classes implement more advanced velocity randomizations.
-    virtual ChVector<> RandomVelocity() { return VNULL; }
+    virtual ChVector3d RandomVelocity() { return VNULL; }
 };
 
 /// Generator of random particle velocities with constant direction.
@@ -52,10 +52,10 @@ class ChRandomParticleVelocityConstantDirection : public ChRandomParticleVelocit
 
     /// Function that creates a random velocity each
     /// time it is called.
-    virtual ChVector<> RandomVelocity() override { return direction * modulus->GetRandom(); }
+    virtual ChVector3d RandomVelocity() override { return direction * modulus->GetRandom(); }
 
     /// Set the direction for all the randomized velocities
-    void SetDirection(ChVector<> mdir) { direction = mdir.GetNormalized(); }
+    void SetDirection(ChVector3d mdir) { direction = mdir.GetNormalized(); }
 
     /// Set the statistical distribution for the modulus of velocities
     void SetModulusDistribution(std::shared_ptr<ChDistribution> mdistr) { modulus = mdistr; }
@@ -65,7 +65,7 @@ class ChRandomParticleVelocityConstantDirection : public ChRandomParticleVelocit
     }
 
   private:
-    ChVector<> direction;
+    ChVector3d direction;
     std::shared_ptr<ChDistribution> modulus;
 };
 
@@ -80,8 +80,8 @@ class ChRandomParticleVelocityAnyDirection : public ChRandomParticleVelocity {
 
     /// Function that creates a random velocity each
     /// time it is called.
-    virtual ChVector<> RandomVelocity() override {
-        ChVector<> random_direction(ChRandom() - 0.5, ChRandom() - 0.5, ChRandom() - 0.5);
+    virtual ChVector3d RandomVelocity() override {
+        ChVector3d random_direction(ChRandom() - 0.5, ChRandom() - 0.5, ChRandom() - 0.5);
         random_direction.Normalize();
 
         return random_direction * modulus->GetRandom();

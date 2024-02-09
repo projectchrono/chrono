@@ -70,7 +70,7 @@ TireModelType tire_type = TireModelType::PAC02;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 0.6);
+ChVector3d initLoc(0, 0, 0.6);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -94,7 +94,7 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 double output_step_size = 1.0 / 1;  // once a second
 
 // Point on chassis tracked by the camera (Irrlicht only)
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Simulation length (Povray only)
 double tend = 20.0;
@@ -206,8 +206,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("Generic Vehicle Demo");
             vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->SetChaseCamera(trackPoint, 8.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2<int>(1200, 900));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);

@@ -121,13 +121,13 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     std::cout << "TEST: " << testName << std::endl;
 
     // Unit vector along translation axis, expressed in global frame
-    ChVector<> axis = rot.GetZaxis();
+    ChVector3d axis = rot.GetZaxis();
 
     // Settings
     //---------
 
     double mass = 1.0;              // mass of plate
-    ChVector<> inertiaXX(1, 1, 1);  // mass moments of inertia of plate (centroidal frame)
+    ChVector3d inertiaXX(1, 1, 1);  // mass moments of inertia of plate (centroidal frame)
     double g = 9.80665;
 
     double timeRecord = 5;  // Stop recording to the file after this much simulated time
@@ -136,7 +136,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     // ----------------------------
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
@@ -153,7 +153,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
 
     auto plate = chrono_types::make_shared<ChBody>();
     sys.AddBody(plate);
-    plate->SetPos(ChVector<>(0, 0, 0));
+    plate->SetPos(ChVector3d(0, 0, 0));
     plate->SetRot(rot);
     plate->SetPos_dt(desiredSpeed * axis);
     plate->SetMass(mass);
@@ -164,7 +164,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     // call) so that the link coordinate system is expressed in the ground frame.
 
     auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic->Initialize(plate, ground, ChCoordsys<>(ChVector<>(0, 0, 0), rot));
+    prismatic->Initialize(plate, ground, ChCoordsys<>(ChVector3d(0, 0, 0), rot));
     sys.AddLink(prismatic);
 
     // Create a ramp function to impose constant speed.  This function returns
@@ -179,8 +179,8 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     // frame.
 
     auto actuator = chrono_types::make_shared<ChLinkLinActuator>();
-    ChVector<> pt1 = ChVector<>(0, 0, 0);
-    ChVector<> pt2 = axis;
+    ChVector3d pt1 = ChVector3d(0, 0, 0);
+    ChVector3d pt2 = axis;
     actuator->Initialize(ground, plate, false, ChCoordsys<>(pt1, rot), ChCoordsys<>(pt2, rot));
     actuator->SetDistanceOffset(1);
     actuator->SetActuatorFunction(actuator_fun);
@@ -272,8 +272,8 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
         // Ensure that the final data point is recorded.
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
-            const ChVector<>& position = plate->GetPos();
-            const ChVector<>& velocity = plate->GetPos_dt();
+            const ChVector3d& position = plate->GetPos();
+            const ChVector3d& velocity = plate->GetPos_dt();
             out_pos << simTime << position << std::endl;
             out_vel << simTime << velocity << std::endl;
             out_acc << simTime << plate->GetPos_dtdt() << std::endl;
@@ -288,12 +288,12 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
             // These are expressed in the link coordinate system. We convert them to
             // the coordinate system of Body2 (in our case this is the ground).
             ChCoordsys<> linkCoordsysP = prismatic->GetLinkRelativeCoords();
-            ChVector<> reactForceP = prismatic->Get_react_force();
-            ChVector<> reactForceGlobalP = linkCoordsysP.TransformDirectionLocalToParent(reactForceP);
+            ChVector3d reactForceP = prismatic->Get_react_force();
+            ChVector3d reactForceGlobalP = linkCoordsysP.TransformDirectionLocalToParent(reactForceP);
             out_rfrcP << simTime << reactForceGlobalP << std::endl;
 
-            ChVector<> reactTorqueP = prismatic->Get_react_torque();
-            ChVector<> reactTorqueGlobalP = linkCoordsysP.TransformDirectionLocalToParent(reactTorqueP);
+            ChVector3d reactTorqueP = prismatic->Get_react_torque();
+            ChVector3d reactTorqueGlobalP = linkCoordsysP.TransformDirectionLocalToParent(reactTorqueP);
             out_rtrqP << simTime << reactTorqueGlobalP << std::endl;
 
             // Reaction force and Torque in linear actuator.
@@ -303,14 +303,14 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
             // plate in order to maintain the prescribed constant velocity.  These are
             // then converted to the global frame for comparison to ADAMS
             ChCoordsys<> linkCoordsysA = actuator->GetLinkRelativeCoords();
-            ChVector<> reactForceA = actuator->Get_react_force();
+            ChVector3d reactForceA = actuator->Get_react_force();
             reactForceA = linkCoordsysA.TransformDirectionLocalToParent(reactForceA);
-            ChVector<> reactForceGlobalA = plate->TransformDirectionLocalToParent(reactForceA);
+            ChVector3d reactForceGlobalA = plate->TransformDirectionLocalToParent(reactForceA);
             out_rfrcA << simTime << reactForceGlobalA << std::endl;
 
-            ChVector<> reactTorqueA = actuator->Get_react_torque();
+            ChVector3d reactTorqueA = actuator->Get_react_torque();
             reactTorqueA = linkCoordsysA.TransformDirectionLocalToParent(reactTorqueA);
-            ChVector<> reactTorqueGlobalA = plate->TransformDirectionLocalToParent(reactTorqueA);
+            ChVector3d reactTorqueGlobalA = plate->TransformDirectionLocalToParent(reactTorqueA);
             out_rtrqA << simTime << reactTorqueGlobalA << std::endl;
 
             // Constraint violations in prismatic joint

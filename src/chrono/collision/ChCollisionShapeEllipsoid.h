@@ -28,7 +28,7 @@ class ChApi ChCollisionShapeEllipsoid : public ChCollisionShape {
   public:
     ChCollisionShapeEllipsoid();
     ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, double axis_x, double axis_y, double axis_z);
-    ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, const ChVector<>& axes);
+    ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, const ChVector3d& axes);
     ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, const geometry::ChEllipsoid& ellipsoid);
 
     ~ChCollisionShapeEllipsoid() {}
@@ -37,10 +37,10 @@ class ChApi ChCollisionShapeEllipsoid : public ChCollisionShape {
     geometry::ChEllipsoid& GetGeometry() { return gellipsoid; }
 
     /// Get the ellipsoid semiaxes.
-    const ChVector<>& GetSemiaxes() const { return gellipsoid.GetSemiaxes(); }
+    const ChVector3d& GetSemiaxes() const { return gellipsoid.GetSemiaxes(); }
 
     /// Get the ellipsoid axes.
-    ChVector<> GetAxes() const { return gellipsoid.GetAxes(); }
+    ChVector3d GetAxes() const { return gellipsoid.GetAxes(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

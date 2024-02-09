@@ -53,7 +53,7 @@ using namespace chrono::vehicle::hmmwv;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.0);
+ChVector3d initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
 // ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
@@ -78,7 +78,7 @@ double terrainLength = 200.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, .75);
+ChVector3d trackPoint(0.0, 0.0, .75);
 
 // Simulation step sizes
 double step_size = 3e-3;
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     auto patch =
-        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(0, 0, terrainHeight), QUNIT), terrainLength, terrainWidth);
+        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, terrainHeight), QUNIT), terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
@@ -184,8 +184,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("HMMWV-9 Demo");
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             vis_vsg->SetChaseCamera(trackPoint, 6.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);

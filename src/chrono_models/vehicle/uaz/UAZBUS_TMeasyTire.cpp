@@ -31,11 +31,11 @@ namespace uaz {
 // -----------------------------------------------------------------------------
 
 const double UAZBUS_TMeasyTireFront::m_mass = 37.6;
-const ChVector<> UAZBUS_TMeasyTireFront::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d UAZBUS_TMeasyTireFront::m_inertia(3.84, 6.69, 3.84);
 const std::string UAZBUS_TMeasyTireFront::m_meshFile = "uaz/uaz_tire.obj";
 
 const double UAZBUS_TMeasyTireRear::m_mass = 37.6;
-const ChVector<> UAZBUS_TMeasyTireRear::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d UAZBUS_TMeasyTireRear::m_inertia(3.84, 6.69, 3.84);
 const std::string UAZBUS_TMeasyTireRear::m_meshFile = "uaz/uaz_tire.obj";
 
 // -----------------------------------------------------------------------------

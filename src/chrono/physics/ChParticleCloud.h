@@ -76,18 +76,18 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
 
     /// Express the local point in absolute frame, for the given state position.
-    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override;
+    virtual ChVector3d GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) override;
 
     /// Get the absolute speed of a local point attached to the contactable.
     /// The given point is assumed to be expressed in the local frame of this object.
     /// This function must use the provided states.
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& loc_point,
                                             const ChState& state_x,
                                             const ChStateDelta& state_w) override;
 
     /// Get the absolute speed of point abs_point if attached to the surface.
     /// Easy in this case because there are no rotations..
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override;
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override;
 
     /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the
@@ -96,9 +96,9 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 
     /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F,
-                                            const ChVector<>& T,
-                                            const ChVector<>& abs_point,
+    virtual void ContactForceLoadResidual_F(const ChVector3d& F,
+                                            const ChVector3d& T,
+                                            const ChVector3d& abs_point,
                                             ChVectorDynamic<>& R) override;
 
     /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
@@ -106,16 +106,16 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactComputeQ(const ChVector<>& F,
-                                   const ChVector<>& T,
-                                   const ChVector<>& point,
+    virtual void ContactComputeQ(const ChVector3d& F,
+                                   const ChVector3d& T,
+                                   const ChVector3d& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
                                    int offset) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+    virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
                                                ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
                                                ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
@@ -125,7 +125,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
     /// (used only for rolling friction NSC contacts)
     virtual void ComputeJacobianForRollingContactPart(
-        const ChVector<>& abs_point,
+        const ChVector3d& abs_point,
         ChMatrix33<>& contact_plane,
         ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
         ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
@@ -145,8 +145,8 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     // DATA
     ChParticleCloud* container;
     ChVariablesBodySharedMass variables;
-    ChVector<> UserForce;
-    ChVector<> UserTorque;
+    ChVector3d UserForce;
+    ChVector3d UserTorque;
 };
 
 /// Class for clusters of 'clone' particles, that is many rigid objects with the same shape and mass.
@@ -189,10 +189,10 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     std::vector<ChAparticle*> GetParticles() const { return particles; }
 
     /// Get particle position.
-    const ChVector<>& GetParticlePos(unsigned int n) const { return particles[n]->GetPos(); }
+    const ChVector3d& GetParticlePos(unsigned int n) const { return particles[n]->GetPos(); }
 
     /// Get particle linear velocity.
-    const ChVector<>& GetParticleVel(unsigned int n) const { return particles[n]->GetPos_dt(); }
+    const ChVector3d& GetParticleVel(unsigned int n) const { return particles[n]->GetPos_dt(); }
 
     /// Access the N-th particle.
     ChParticleBase& GetParticle(unsigned int n) override {
@@ -320,15 +320,15 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Set the inertia tensor of each particle
     void SetInertia(const ChMatrix33<>& newXInertia);
     /// Set the diagonal part of the inertia tensor of each particle
-    void SetInertiaXX(const ChVector<>& iner);
+    void SetInertiaXX(const ChVector3d& iner);
     /// Get the diagonal part of the inertia tensor of each particle
-    ChVector<> GetInertiaXX() const;
+    ChVector3d GetInertiaXX() const;
     /// Set the extra-diagonal part of the inertia tensor of each particle
     /// (xy, yz, zx values, the rest is symmetric)
-    void SetInertiaXY(const ChVector<>& iner);
+    void SetInertiaXY(const ChVector3d& iner);
     /// Get the extra-diagonal part of the inertia tensor of each particle
     /// (xy, yz, zx values, the rest is symmetric)
-    ChVector<> GetInertiaXY() const;
+    ChVector3d GetInertiaXY() const;
 
     /// Trick. Set the maximum linear speed (beyond this limit it will
     /// be clamped). This is useful in virtual reality and real-time
@@ -397,9 +397,9 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
 /// Predefined particle cloud dynamic coloring based on particle height.
 class ChApi HeightColorCallback : public ChParticleCloud::ColorCallback {
   public:
-    HeightColorCallback(double hmin, double hmax, const ChVector<>& up = ChVector<>(0, 0, 1))
+    HeightColorCallback(double hmin, double hmax, const ChVector3d& up = ChVector3d(0, 0, 1))
         : m_monochrome(false), m_hmin(hmin), m_hmax(hmax), m_up(up) {}
-    HeightColorCallback(const ChColor& base_color, double hmin, double hmax, const ChVector<>& up = ChVector<>(0, 0, 1))
+    HeightColorCallback(const ChColor& base_color, double hmin, double hmax, const ChVector3d& up = ChVector3d(0, 0, 1))
         : m_monochrome(true), m_base_color(base_color), m_hmin(hmin), m_hmax(hmax), m_up(up) {}
 
     virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override {
@@ -416,7 +416,7 @@ class ChApi HeightColorCallback : public ChParticleCloud::ColorCallback {
     ChColor m_base_color;
     double m_hmin;
     double m_hmax;
-    ChVector<> m_up;
+    ChVector3d m_up;
 };
 
 class ChApi VelocityColorCallback : public ChParticleCloud::ColorCallback {
@@ -439,7 +439,7 @@ class ChApi VelocityColorCallback : public ChParticleCloud::ColorCallback {
     ChColor m_base_color;
     double m_vmin;
     double m_vmax;
-    ChVector<> m_up;
+    ChVector3d m_up;
 };
 
 CH_CLASS_VERSION(ChParticleCloud, 0)

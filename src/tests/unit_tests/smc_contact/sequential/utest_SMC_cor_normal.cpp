@@ -56,15 +56,15 @@ class CorNormalTest : public ::testing::TestWithParam<std::tuple<ChSystemSMC::Co
         // Create a multicore SMC system and set the system parameters
         sys = new ChSystemSMC();
         time_step = 3.0E-5;
-        SetSimParameters(sys, ChVector<>(0, 0, 0), fmodel);
+        SetSimParameters(sys, ChVector3d(0, 0, 0), fmodel);
 
         sys->SetNumThreads(2);
 
         // Add the sphere to the system
         double srad = 0.5;
         double smass = 1.0;
-        ChVector<> spos(0, srad * 1.25, 0);
-        ChVector<> init_v(0, -1, 0);
+        ChVector3d spos(0, srad * 1.25, 0);
+        ChVector3d init_v(0, -1, 0);
 
         body1 = AddSphere(0, sys, mat, srad, smass, spos, init_v);
         body2 = AddSphere(1, sys, mat, srad, smass, spos * -1, init_v * -1);

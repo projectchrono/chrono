@@ -73,9 +73,9 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Add BCE particles attached on the walls into FSI system
     sysFSI.AddBoxContainerBCE(ground,                                         //
-                              ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector<>(bxDim, byDim, bzDim),                //
-                              ChVector<int>(2, 0, 2));
+                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector3d(bxDim, byDim, bzDim),                //
+                              ChVector3i(2, 0, 2));
 }
 
 // =============================================================================
@@ -111,13 +111,13 @@ int main(int argc, char* argv[]) {
 
     // Set up the periodic boundary condition (only in Y direction)
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> cMin = ChVector<>(-bxDim / 2 - 10.0 * initSpace0, -byDim / 2 - 1.0 * initSpace0 / 2.0, -2.0 * bzDim);
-    ChVector<> cMax = ChVector<>(bxDim / 2 + 10.0 * initSpace0, byDim / 2 + 1.0 * initSpace0 / 2.0, 2.0 * bzDim);
+    ChVector3d cMin = ChVector3d(-bxDim / 2 - 10.0 * initSpace0, -byDim / 2 - 1.0 * initSpace0 / 2.0, -2.0 * bzDim);
+    ChVector3d cMax = ChVector3d(bxDim / 2 + 10.0 * initSpace0, byDim / 2 + 1.0 * initSpace0 / 2.0, 2.0 * bzDim);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Create Fluid region and discretize with SPH particles
-    ChVector<> boxCenter(-bxDim / 2 + fxDim / 2, 0.0, fzDim / 2);
-    ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
+    ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0.0, fzDim / 2);
+    ChVector3d boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
 
     // Use a chrono sampler to create a bucket of points
     chrono::utils::GridSampler<> sampler(initSpace0);
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
     ChFsiVisualizationGL fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI dam break");
-        fsi_vis.AddCamera(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
+        fsi_vis.AddCamera(ChVector3d(0, -3 * byDim, bzDim), ChVector3d(0, 0, 0));
         fsi_vis.SetCameraMoveScale(1.0f);
         fsi_vis.EnableBoundaryMarkers(true);
         fsi_vis.Initialize();

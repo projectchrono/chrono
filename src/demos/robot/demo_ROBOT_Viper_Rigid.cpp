@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Chrono system with gravity in the negative Z direction
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
 
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     // Create the ground.
     auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(30, 30, 1, 1000, true, true, ground_mat);
-    ground->SetPos(ChVector<>(0, 0, -0.5));
+    ground->SetPos(ChVector3d(0, 0, -0.5));
     ground->SetBodyFixed(true);
     ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 60, 45);
     sys.Add(ground);
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     ////viper.SetChassisVisualization(false);
     ////viper.SetSuspensionVisualization(false);
 
-    viper.Initialize(ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT));
+    viper.Initialize(ChFrame<>(ChVector3d(0, 0, 0.5), QUNIT));
 
     std::cout << "Viper total mass: " << viper.GetRoverMass() << std::endl;
     std::cout << "  chassis:        " << viper.GetChassis()->GetBody()->GetMass() << std::endl;
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector<>(3, 3, 1));
+            vis_irr->AddCamera(ChVector3d(3, 3, 1));
             vis_irr->AddTypicalLights();
             vis_irr->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
             vis_irr->EnableShadows();
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
-            vis_vsg->AddCamera(ChVector<>(3, 3, 1));
+            vis_vsg->AddCamera(ChVector3d(3, 3, 1));
             vis_vsg->SetWindowTitle("Viper Rover on Rigid Terrain");
             vis_vsg->Initialize();
 

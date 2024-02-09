@@ -33,7 +33,7 @@ namespace unimog {
 const double U401_FialaTire::m_normalDamping = 7500;
 
 const double U401_FialaTire::m_mass = 28.0;
-const ChVector<> U401_FialaTire::m_inertia(2.5205, 4.8683, 2.5205);
+const ChVector3d U401_FialaTire::m_inertia(2.5205, 4.8683, 2.5205);
 
 const std::string U401_FialaTire::m_meshFile_left = "unimog/U401_Tire.obj";
 const std::string U401_FialaTire::m_meshFile_right = "unimog/U401_Tire.obj";

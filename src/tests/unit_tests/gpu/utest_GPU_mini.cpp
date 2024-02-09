@@ -58,15 +58,15 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     gpu_sys.SetCohesionRatio(cohesion_ratio);
     gpu_sys.SetAdhesionRatio_SPH2WALL(adhesion_ratio_s2w);
 
-    gpu_sys.SetGravitationalAcceleration(ChVector<float>(0.f, 0.f, grav_acceleration));
+    gpu_sys.SetGravitationalAcceleration(ChVector3f(0.f, 0.f, grav_acceleration));
     gpu_sys.SetParticleOutputMode(write_mode);
 
     // Fill the bottom half with material
     chrono::utils::HCPSampler<float> sampler(2.1f * sphereRadius);  // Add epsilon
-    ChVector<float> center(0.f, 0.f, -0.25f * box_size_Z);
-    ChVector<float> hdims(box_size_X / 2.f - sphereRadius, box_size_X / 2.f - sphereRadius,
+    ChVector3f center(0.f, 0.f, -0.25f * box_size_Z);
+    ChVector3f hdims(box_size_X / 2.f - sphereRadius, box_size_X / 2.f - sphereRadius,
                           box_size_Z / 4.f - sphereRadius);
-    std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
+    std::vector<ChVector3f> body_points = sampler.SampleBox(center, hdims);
 
     gpu_sys.SetParticles(body_points);
 
@@ -76,8 +76,8 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     gpu_sys.SetVerbosity(verbose);
 
     // upward facing plane just above the bottom to capture forces
-    ChVector<float> plane_normal(0, 0, 1);
-    ChVector<float> plane_center(0, 0, -box_size_Z / 2 + 2 * sphereRadius);
+    ChVector3f plane_normal(0, 0, 1);
+    ChVector3f plane_center(0, 0, -box_size_Z / 2 + 2 * sphereRadius);
 
     size_t plane_bc_id = gpu_sys.CreateBCPlane(plane_center, plane_normal, true);
 
@@ -103,7 +103,7 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
 
     constexpr float F_CGS_TO_SI = 1e-5f;
 
-    ChVector<float> reaction_force;
+    ChVector3f reaction_force;
     if (!gpu_sys.GetBCReactionForces(plane_bc_id, reaction_force)) {
         printf("ERROR! Get contact forces for plane failed\n");
         return false;

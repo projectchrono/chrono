@@ -38,7 +38,7 @@ class CH_VEHICLE_API AntirollBarRSD : public ChAntirollBarRSD {
     ~AntirollBarRSD() {}
 
     virtual double getArmMass() const override { return m_arm_mass; }
-    virtual ChVector<> getArmInertia() override { return m_arm_inertia; }
+    virtual ChVector3d getArmInertia() override { return m_arm_inertia; }
 
     virtual double getArmLength() const override { return m_arm_length; }
     virtual double getArmWidth() const override { return m_arm_width; }
@@ -52,7 +52,7 @@ class CH_VEHICLE_API AntirollBarRSD : public ChAntirollBarRSD {
     virtual void Create(const rapidjson::Document& d) override;
 
     double m_arm_mass;
-    ChVector<> m_arm_inertia;
+    ChVector3d m_arm_inertia;
 
     double m_arm_length;
     double m_arm_width;

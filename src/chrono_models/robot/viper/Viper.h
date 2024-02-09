@@ -87,7 +87,7 @@ class CH_MODELS_API ViperPart {
 
     /// Return the position of the Viper part.
     /// This is the absolute location of the part reference frame.
-    const ChVector<>& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
+    const ChVector3d& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
 
     /// Return the rotation of the Viper part.
     /// This is the orientation wrt the global frame of the part reference frame.
@@ -95,19 +95,19 @@ class CH_MODELS_API ViperPart {
 
     /// Return the linear velocity of the Viper part.
     /// This is the absolute linear velocity of the part reference frame.
-    const ChVector<>& GetLinVel() const { return m_body->GetFrame_REF_to_abs().GetPos_dt(); }
+    const ChVector3d& GetLinVel() const { return m_body->GetFrame_REF_to_abs().GetPos_dt(); }
 
     /// Return the angular velocity of the Viper part.
     /// This is the absolute angular velocity of the part reference frame.
-    const ChVector<> GetAngVel() const { return m_body->GetFrame_REF_to_abs().GetWvel_par(); }
+    const ChVector3d GetAngVel() const { return m_body->GetFrame_REF_to_abs().GetWvel_par(); }
 
     /// Return the linear acceleration of the Viper part.
     /// This is the absolute linear acceleration of the part reference frame.
-    const ChVector<>& GetLinAcc() const { return m_body->GetFrame_REF_to_abs().GetPos_dtdt(); }
+    const ChVector3d& GetLinAcc() const { return m_body->GetFrame_REF_to_abs().GetPos_dtdt(); }
 
     /// Return the angular acceleratino of the Viper part.
     /// This is the absolute angular acceleratin of the part reference frame.
-    const ChVector<> GetAngAcc() const { return m_body->GetFrame_REF_to_abs().GetWacc_par(); }
+    const ChVector3d GetAngAcc() const { return m_body->GetFrame_REF_to_abs().GetWacc_par(); }
 
   protected:
     /// Utility function for calculating mass properties using the part's collision mesh.
@@ -126,7 +126,7 @@ class CH_MODELS_API ViperPart {
 
     ChFrame<> m_pos;       ///< relative position wrt the chassis
     double m_mass;         ///< mass
-    ChVector<> m_inertia;  ///< principal moments of inertia
+    ChVector3d m_inertia;  ///< principal moments of inertia
     ChFrame<> m_cog;       ///< COG frame (relative to body frame)
 
     bool m_visualize;  ///< part visualization flag
@@ -252,37 +252,37 @@ class CH_MODELS_API Viper {
     std::shared_ptr<ChShaft> GetDriveshaft(ViperWheelID id) const { return m_drive_shafts[id]; }
 
     /// Get chassis position.
-    ChVector<> GetChassisPos() const { return m_chassis->GetPos(); }
+    ChVector3d GetChassisPos() const { return m_chassis->GetPos(); }
 
     /// Get chassis orientation.
     ChQuaternion<> GetChassisRot() const { return m_chassis->GetRot(); }
 
     /// Get chassis linear velocity.
-    ChVector<> GetChassisVel() const { return m_chassis->GetLinVel(); }
+    ChVector3d GetChassisVel() const { return m_chassis->GetLinVel(); }
 
     /// Get chassis linear acceleration.
-    ChVector<> GetChassisAcc() const { return m_chassis->GetLinAcc(); }
+    ChVector3d GetChassisAcc() const { return m_chassis->GetLinAcc(); }
 
     /// Get wheel speed.
-    ChVector<> GetWheelLinVel(ViperWheelID id) const { return m_wheels[id]->GetLinVel(); }
+    ChVector3d GetWheelLinVel(ViperWheelID id) const { return m_wheels[id]->GetLinVel(); }
 
     /// Get wheel angular velocity.
-    ChVector<> GetWheelAngVel(ViperWheelID id) const { return m_wheels[id]->GetAngVel(); }
+    ChVector3d GetWheelAngVel(ViperWheelID id) const { return m_wheels[id]->GetAngVel(); }
 
     /// Get wheel contact force.
-    ChVector<> GetWheelContactForce(ViperWheelID id) const;
+    ChVector3d GetWheelContactForce(ViperWheelID id) const;
 
     /// Get wheel contact torque.
-    ChVector<> GetWheelContactTorque(ViperWheelID id) const;
+    ChVector3d GetWheelContactTorque(ViperWheelID id) const;
 
     /// Get wheel total applied force.
-    ChVector<> GetWheelAppliedForce(ViperWheelID id) const;
+    ChVector3d GetWheelAppliedForce(ViperWheelID id) const;
 
     /// Get wheel tractive torque - if DC control set to off
     double GetWheelTracTorque(ViperWheelID id) const;
 
     /// Get wheel total applied torque.
-    ChVector<> GetWheelAppliedTorque(ViperWheelID id) const;
+    ChVector3d GetWheelAppliedTorque(ViperWheelID id) const;
 
     /// Get total rover mass.
     double GetRoverMass() const;

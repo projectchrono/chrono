@@ -108,7 +108,7 @@ class SYN_API SynSCMTerrainAgent : public SynAgent {
     /// prime number to reduce bucket collisions
     struct CoordHash {
       public:
-        std::size_t operator()(const ChVector2<int>& p) const { return p.x() * 31 + p.y(); }
+        std::size_t operator()(const ChVector2i& p) const { return p.x() * 31 + p.y(); }
     };
 
     // ------------------------------------------------------------------------
@@ -116,7 +116,7 @@ class SYN_API SynSCMTerrainAgent : public SynAgent {
     std::shared_ptr<vehicle::SCMTerrain> m_terrain;  ///< Underlying terrain we manage
 
     std::shared_ptr<SynSCMMessage> m_message;                                ///< The message passed between nodes
-    std::unordered_map<ChVector2<int>, double, CoordHash> m_modified_nodes;  ///< Where we store changes to our terrain
+    std::unordered_map<ChVector2i, double, CoordHash> m_modified_nodes;  ///< Where we store changes to our terrain
 };
 
 /// Groups SCM parameters into a struct, defines some useful defaults

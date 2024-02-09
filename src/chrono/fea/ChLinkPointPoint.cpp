@@ -52,7 +52,7 @@ void ChLinkPointPoint::Update(double mytime, bool update_assets) {
 }
 
 ChVectorDynamic<> ChLinkPointPoint::GetConstraintViolation() const {
-    ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos();
+    ChVector3d res = mnodeA->GetPos() - mnodeB->GetPos();
     ChVectorN<double, 3> C;
     C(0) = res.x();
     C(1) = res.y();
@@ -96,8 +96,8 @@ void ChLinkPointPoint::IntLoadConstraint_C(const unsigned int off_L,  // offset 
     if (!IsActive())
         return;
 
-    ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos();
-    ChVector<> cres = res * c;
+    ChVector3d res = mnodeA->GetPos() - mnodeB->GetPos();
+    ChVector3d cres = res * c;
 
     if (do_clamp) {
         cres.x() = std::min(std::max(cres.x(), -recovery_clamp), recovery_clamp);
@@ -157,7 +157,7 @@ void ChLinkPointPoint::ConstraintsBiReset() {
 }
 
 void ChLinkPointPoint::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos();
+    ChVector3d res = mnodeA->GetPos() - mnodeB->GetPos();
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());

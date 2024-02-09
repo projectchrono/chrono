@@ -27,7 +27,7 @@ CH_UPCASTING(ChCollisionShapeConvexHull, ChCollisionShape)
 ChCollisionShapeConvexHull::ChCollisionShapeConvexHull() : ChCollisionShape(Type::CONVEXHULL) {}
 
 ChCollisionShapeConvexHull::ChCollisionShapeConvexHull(std::shared_ptr<ChContactMaterial> material,
-                                                       const std::vector<ChVector<>>& points)
+                                                       const std::vector<ChVector3d>& points)
     : ChCollisionShape(Type::CONVEXHULL, material) {
     this->points = points;
 }
@@ -46,7 +46,7 @@ std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> ChCollisionShapeConvexH
     }
 
     std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> hulls;
-    std::vector<ChVector<double>> points;
+    std::vector<ChVector3d> points;
 
     while (std::getline(ifile, line)) {
         if (line.size() == 0 || line[0] == '#')
@@ -59,7 +59,7 @@ std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> ChCollisionShapeConvexH
         }
 
         std::istringstream iss(line);
-        ChVector<> p;
+        ChVector3d p;
         iss >> p.x() >> p.y() >> p.z();
         points.push_back(p);
     }

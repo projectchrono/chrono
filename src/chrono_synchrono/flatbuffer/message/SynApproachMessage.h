@@ -32,9 +32,9 @@ namespace synchrono {
 /// @brief Lane that is grouped into an approach with other ApproachLanes
 struct ApproachLane {
     double width;                           ///< define the width of the lane. Control points to the side is width/2.
-    std::vector<ChVector<>> controlPoints;  ///< The points define the center of the lane.
+    std::vector<ChVector3d> controlPoints;  ///< The points define the center of the lane.
 
-    ApproachLane(double width, std::vector<ChVector<>> controlPoints) : width(width), controlPoints(controlPoints) {}
+    ApproachLane(double width, std::vector<ChVector3d> controlPoints) : width(width), controlPoints(controlPoints) {}
     ApproachLane(const SynFlatBuffers::Approach::Lane* lane);
 };
 

@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     double time_end = 10;     // Final simulation time (s)
 
     // Terrain parameters
-    ChVector<> center(0, 0, 0);   // Center of initial patch
+    ChVector3d center(0, 0, 0);   // Center of initial patch
     double hdimX = 1.5;           // Length of patch
     double hdimY = 0.75;          // Width of patch
     unsigned int num_layers = 6;  // Requested number of layers
@@ -78,8 +78,8 @@ int main(int argc, char* argv[]) {
     // ----------------------------------
 
     // Prepare rotated acceleration vector
-    ChVector<> gravity(0, 0, -9.81);
-    ChVector<> gravityR = ChMatrix33<>(slope_g, ChVector<>(0, 1, 0)) * gravity;
+    ChVector3d gravity(0, 0, -9.81);
+    ChVector3d gravityR = ChMatrix33<>(slope_g, ChVector3d(0, 1, 0)) * gravity;
 
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
@@ -126,9 +126,9 @@ int main(int argc, char* argv[]) {
     terrain.EnableVisualization(true);
     terrain.EnableVerbose(true);
 
-    terrain.Initialize(center, 2 * hdimX, 2 * hdimY, num_layers, r_g, rho_g, ChVector<>(0, 0, -2));
+    terrain.Initialize(center, 2 * hdimX, 2 * hdimY, num_layers, r_g, rho_g, ChVector3d(0, 0, -2));
     uint actual_num_particles = terrain.GetNumParticles();
-    double terrain_height = terrain.GetHeight(ChVector<>(0, 0, 0));
+    double terrain_height = terrain.GetHeight(ChVector3d(0, 0, 0));
 
     std::cout << "Number of particles: " << actual_num_particles << std::endl;
     std::cout << "Terrain height:      " << terrain_height << std::endl;
@@ -137,18 +137,18 @@ int main(int argc, char* argv[]) {
     // Create the body
     // ---------------
 
-    ChVector<> pos(terrain.GetPatchRear(), (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2,
+    ChVector3d pos(terrain.GetPatchRear(), (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2,
                    terrain_height + 2 * body_rad);
     auto body = chrono_types::make_shared<ChBody>();
     body->SetMass(1);
-    body->SetInertiaXX(ChVector<>(1, 1, 1));
-    body->SetPos_dt(ChVector<>(body_speed, 0, 0));
+    body->SetInertiaXX(ChVector3d(1, 1, 1));
+    body->SetPos_dt(ChVector3d(body_speed, 0, 0));
     body->SetPos(pos);
     sys->AddBody(body);
 
     auto body_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
-    utils::AddSphereGeometry(body.get(), body_mat, body_rad, ChVector<>(0, 0, 0));
+    utils::AddSphereGeometry(body.get(), body_mat, body_rad, ChVector3d(0, 0, 0));
 
     auto joint = chrono_types::make_shared<ChLinkLockPrismatic>();
     joint->Initialize(terrain.GetGroundBody(), body, ChCoordsys<>(pos, Q_from_AngY(CH_C_PI_2)));
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
 
     // Enable moving patch, based on body location
     if (moving_patch)
-        terrain.EnableMovingPatch(body, buffer_dist, shift_dist, ChVector<>(0, 0, -2));
+        terrain.EnableMovingPatch(body, buffer_dist, shift_dist, ChVector3d(0, 0, -2));
 
     // -----------------
     // Initialize OpenGL
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.AddCamera(center - ChVector<>(0, 3, 0), center);
+    vis.AddCamera(center - ChVector3d(0, 3, 0), center);
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // ---------------
@@ -202,14 +202,14 @@ int main(int argc, char* argv[]) {
             switch (cam_type) {
                 case FRONT: {
                     double body_x = body->GetPos().x();
-                    ChVector<> cam_loc(body_x + buffer_dist, -4, 0);
-                    ChVector<> cam_point(body_x + buffer_dist, 0, 0);
+                    ChVector3d cam_loc(body_x + buffer_dist, -4, 0);
+                    ChVector3d cam_point(body_x + buffer_dist, 0, 0);
                     vis.UpdateCamera(cam_loc, cam_point);
                     break;
                 }
                 case TRACK: {
-                    ChVector<> cam_point = body->GetPos();
-                    ChVector<> cam_loc = cam_point + ChVector<>(-3 * body_rad, -1, 0.6);
+                    ChVector3d cam_point = body->GetPos();
+                    ChVector3d cam_loc = cam_point + ChVector3d(-3 * body_rad, -1, 0.6);
                     vis.UpdateCamera(cam_loc, cam_point);
                     break;
                 }

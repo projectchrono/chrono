@@ -41,7 +41,7 @@ Kraz::Kraz()
       m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_tire_step_size(-1),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}) {}
 
 Kraz::Kraz(ChSystem* system)
@@ -55,7 +55,7 @@ Kraz::Kraz(ChSystem* system)
       m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_tire_step_size(-1),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}) {}
 
 Kraz::~Kraz() {

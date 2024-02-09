@@ -40,10 +40,10 @@ class CH_VEHICLE_API GenericWheeledSuspension : public ChGenericWheeledSuspensio
     virtual double getToeAngle() const override { return m_toeAngle; }
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
-    virtual ChVector<> getSpindlePos() const override { return m_spindlePosition; }
+    virtual ChVector3d getSpindlePos() const override { return m_spindlePosition; }
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -63,10 +63,10 @@ class CH_VEHICLE_API GenericWheeledSuspension : public ChGenericWheeledSuspensio
     double m_toeAngle;
 
     double m_spindleMass;
-    ChVector<> m_spindlePosition;
+    ChVector3d m_spindlePosition;
     double m_spindleRadius;
     double m_spindleWidth;
-    ChVector<> m_spindleInertia;
+    ChVector3d m_spindleInertia;
 
     BodyIdentifier m_spindleAttachmentBody;
     BodyIdentifier m_antirollBody;

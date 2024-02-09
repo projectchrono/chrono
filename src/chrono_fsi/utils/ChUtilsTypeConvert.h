@@ -12,14 +12,14 @@
 // Author: Arman Pazouki, Radu Serban
 // =============================================================================
 //
-// Utility class for Conversions between Real and ChVector & ChQuaternion.
+// Utility class for conversions between Real and ChVector3 & ChQuaternion.
 // =============================================================================
 
 #ifndef CH_FSI_UTILS_TYPECONVERT_H
 #define CH_FSI_UTILS_TYPECONVERT_H
 
 #include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/math/custom_math.h"
@@ -31,23 +31,23 @@ namespace utils {
 /// @addtogroup fsi_utils
 /// @{
 
-/// Convert a Real3 data structure to a ChVector data structure.
-CH_FSI_API ChVector<> ToChVector(const Real3& p3);
+/// Convert a Real3 data structure to a ChVector3d data structure.
+CH_FSI_API ChVector3d ToChVector(const Real3& p3);
 
-/// Convert a Real2 data structure to a ChVector data structure.
-CH_FSI_API ChVector<> ToChVector(const Real2& p2);
+/// Convert a Real2 data structure to a ChVector3d data structure.
+CH_FSI_API ChVector3d ToChVector(const Real2& p2);
 
-/// Convert the first 3 arguments of a Real4 data structure to a ChVector data structure.
-CH_FSI_API ChVector<> ToChVector(const Real4& p4);
+/// Convert the first 3 arguments of a Real4 data structure to a ChVector3d data structure.
+CH_FSI_API ChVector3d ToChVector(const Real4& p4);
 
 /// Convert a Real4 data structure to a ChQuaternion data structure.
 CH_FSI_API ChQuaternion<> ToChQuaternion(const Real4& q4);
 
-/// Convert a ChVector data structure to a Real3 data structure.
-CH_FSI_API Real3 ToReal3(const ChVector<>& v3);
+/// Convert a ChVector3d data structure to a Real3 data structure.
+CH_FSI_API Real3 ToReal3(const ChVector3d& v3);
 
-/// Convert a ChVector and a scalar to a Real4 data structure.
-CH_FSI_API Real4 ToReal4(const ChVector<>& v3, Real m);
+/// Convert a ChVector3d and a scalar to a Real4 data structure.
+CH_FSI_API Real4 ToReal4(const ChVector3d& v3, Real m);
 
 /// Convert a ChQuaternion data structure to a Real4 data structure.
 CH_FSI_API Real4 ToReal4(const ChQuaternion<>& q4);

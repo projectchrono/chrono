@@ -52,8 +52,8 @@ void test_1() {
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 1, 0));
 
     // Default mass for FEM nodes is zero, so set point-like
     // masses because the ChElementSpring FEM element that we
@@ -62,10 +62,10 @@ void test_1() {
     mnodeB->SetMass(100.0);
 
     // For example, set an applied force to a node:
-    mnodeB->SetForce(ChVector<>(0, 5, 0));
+    mnodeB->SetForce(ChVector3d(0, 5, 0));
 
     // For example, set an initial displacement to a node:
-    mnodeB->SetPos(mnodeB->GetX0() + ChVector<>(0, 0.1, 0));
+    mnodeB->SetPos(mnodeB->GetX0() + ChVector3d(0, 0.1, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnodeA);
@@ -131,18 +131,18 @@ void test_2() {
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 1, 0));
 
     // Set no point-like masses because mass is already in bar element:
     mnodeA->SetMass(0.0);
     mnodeB->SetMass(0.0);
 
     // For example, set an applied force to a node:
-    mnodeB->SetForce(ChVector<>(0, 5, 0));
+    mnodeB->SetForce(ChVector3d(0, 5, 0));
 
     // For example, set an initial displacement to a node:
-    mnodeB->SetPos(mnodeB->GetX0() + ChVector<>(0, 0.1, 0));
+    mnodeB->SetPos(mnodeB->GetX0() + ChVector3d(0, 0.1, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnodeA);
@@ -216,8 +216,8 @@ void test_2b() {
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 1, 0));
 
     // Default mass for FEM nodes is zero, so set point-like
     // masses because the ChElementSpring FEM element that we
@@ -226,10 +226,10 @@ void test_2b() {
     mnodeB->SetMass(0.1);
 
     // For example, set an applied force to a node:
-    mnodeB->SetForce(ChVector<>(0, 5, 0));
+    mnodeB->SetForce(ChVector3d(0, 5, 0));
 
     // For example, set an initial displacement to a node:
-    mnodeB->SetPos(mnodeB->GetX0() + ChVector<>(0, 0.1, 0));
+    mnodeB->SetPos(mnodeB->GetX0() + ChVector3d(0, 0.1, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnodeA);
@@ -305,10 +305,10 @@ void test_3() {
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 1));
-    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
-    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(1, 0, 0));
+    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 1));
+    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 1, 0));
+    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(1, 0, 0));
 
     // For example, set a point-like mass at a node:
     mnode1->SetMass(200);
@@ -316,7 +316,7 @@ void test_3() {
     mnode3->SetMass(200);
     mnode4->SetMass(200);
     // For example, set an initial displacement to a node:
-    mnode3->SetPos(mnode3->GetX0() + ChVector<>(0, 0.01, 0));
+    mnode3->SetPos(mnode3->GetX0() + ChVector3d(0, 0.01, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnode1);
@@ -392,9 +392,9 @@ void test_4() {
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
-    auto mnodeC = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 2, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 1, 0));
+    auto mnodeC = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 2, 0));
 
     // Set no point-like masses because mass is already in bar element:
     mnodeA->SetMass(0.0);
@@ -402,12 +402,12 @@ void test_4() {
     mnodeC->SetMass(0.0);
 
     // For example, set an applied force to a node:
-    mnodeB->SetForce(ChVector<>(0, 5, 0));
+    mnodeB->SetForce(ChVector3d(0, 5, 0));
     // For example, set an applied force to a node:
-    mnodeC->SetForce(ChVector<>(0, 2, 0));
+    mnodeC->SetForce(ChVector3d(0, 2, 0));
 
     // For example, set an initial displacement to a node:
-    mnodeC->SetPos(mnodeC->GetX0() + ChVector<>(0, 0.1, 0));
+    mnodeC->SetPos(mnodeC->GetX0() + ChVector3d(0, 0.1, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnodeA);

@@ -41,7 +41,7 @@ class CH_VEHICLE_API ChAntirollBar : public ChPart {
     /// with the chassis reference frame.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,        ///< [in] handle to the chassis body
                             std::shared_ptr<ChSuspension> suspension,  ///< [in] associated suspension subsystem
-                            const ChVector<>& location                 ///< [in] location relative to the chassis frame
+                            const ChVector3d& location                 ///< [in] location relative to the chassis frame
     );
 
     /// Log current constraint violations.
@@ -51,7 +51,7 @@ class CH_VEHICLE_API ChAntirollBar : public ChPart {
     /// Construct an anti-roll bar subsystem with given name.
     ChAntirollBar(const std::string& name);
 
-    ChVector<> m_rel_loc;  ///< relative location of antiroll bar subsystem on chassis
+    ChVector3d m_rel_loc;  ///< relative location of antiroll bar subsystem on chassis
 };
 
 /// Vector of handles to antirollbar subsystems.

@@ -109,8 +109,8 @@ void Marder_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     // Initialize the left and right track assemblies.
     double track_offset = 1.36;
-    m_tracks[0]->Initialize(m_chassis, ChVector<>(0, track_offset, 0), m_create_track);
-    m_tracks[1]->Initialize(m_chassis, ChVector<>(0, -track_offset, 0), m_create_track);
+    m_tracks[0]->Initialize(m_chassis, ChVector3d(0, track_offset, 0), m_create_track);
+    m_tracks[1]->Initialize(m_chassis, ChVector3d(0, -track_offset, 0), m_create_track);
 
     // Initialize the driveline subsystem
     m_driveline->Initialize(m_chassis, m_tracks[0], m_tracks[1]);

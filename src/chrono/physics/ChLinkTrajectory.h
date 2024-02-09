@@ -65,7 +65,7 @@ class ChApi ChLinkTrajectory : public ChLinkLockLock {
     /// Marker2 will stay in origin of body2. Trajectory is considered relative to body2.
     void Initialize(std::shared_ptr<ChBody> mbody1,  ///< first  body to join (the one that follows the trajectory)
                     std::shared_ptr<ChBody> mbody2,  ///< second body to join (the one that contains the trajectory)
-                    const ChVector<>& mpos1,         ///< position of the 'following point' on body1, relative to coordinate of body1.
+                    const ChVector3d& mpos1,         ///< position of the 'following point' on body1, relative to coordinate of body1.
                     std::shared_ptr<geometry::ChLine> mline  ///< the line on mbody2 to be followed by point mpos1 of mbody1
                     );
 

@@ -214,22 +214,22 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     ChMatrixNM<double, 2, 2> Jux;  ///< jacobian [d{u,v}/d{x,y}], as inverse of [d{x,y}/d{u,v}]
 
     double area;    ///< initial element triangle area
-    ChVector<> l0;  ///< initial lengths
+    ChVector3d l0;  ///< initial lengths
 
-    ChVector<> cM[3];  ///< cM coefficients
-    ChVector<> cI[3];  ///< cI coefficients
-    ChVector<> rI;     ///< rI coefficients = RIi/(RMi/RIi) = (1/hIi)/((1/hMi)(1/hIi))
-    ChVector<> phi0;   ///< initial edge bendings
-    ChVector<> phi;    ///< actual edge bendings (last computed)
+    ChVector3d cM[3];  ///< cM coefficients
+    ChVector3d cI[3];  ///< cI coefficients
+    ChVector3d rI;     ///< rI coefficients = RIi/(RMi/RIi) = (1/hIi)/((1/hMi)(1/hIi))
+    ChVector3d phi0;   ///< initial edge bendings
+    ChVector3d phi;    ///< actual edge bendings (last computed)
 
-    ChVector<> k0;  ///< initial curvature (not needed?)
-    ChVector<> e0;  ///< initial strain
+    ChVector3d k0;  ///< initial curvature (not needed?)
+    ChVector3d e0;  ///< initial strain
 
-    ChVector<> k;  ///< actual curvature (last computed)
-    ChVector<> e;  ///< actual strain (last computed)
+    ChVector3d k;  ///< actual curvature (last computed)
+    ChVector3d e;  ///< actual strain (last computed)
 
-    ChVector<> n;  ///< actual stress, membrane (last computed)
-    ChVector<> m;  ///< actual stress, bending (last computed)
+    ChVector3d n;  ///< actual stress, membrane (last computed)
+    ChVector3d m;  ///< actual stress, bending (last computed)
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -275,19 +275,19 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
 
     virtual void EvaluateSectionDisplacement(const double u,
                                              const double v,
-                                             ChVector<>& u_displ,
-                                             ChVector<>& u_rotaz) override;
+                                             ChVector3d& u_displ,
+                                             ChVector3d& u_rotaz) override;
 
     virtual void EvaluateSectionFrame(const double u,
                                       const double v,
-                                      ChVector<>& point,
+                                      ChVector3d& point,
                                       ChQuaternion<>& rot) override;
 
     virtual void EvaluateSectionPoint(const double u,
                                       const double v,
-                                      ChVector<>& point) override;
+                                      ChVector3d& point) override;
 
-	virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) override;
+	virtual void EvaluateSectionVelNorm(double U, double V, ChVector3d& Result) override;
 
 	virtual bool IsTriangleShell() override { return true; }
 
@@ -376,7 +376,7 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
 
     /// Gets the normal to the surface at the parametric coordinate U,V.
     /// Each coordinate ranging in -1..+1.
-    virtual ChVector<> ComputeNormal(const double U, const double V) override;
+    virtual ChVector3d ComputeNormal(const double U, const double V) override;
 
 	virtual bool IsTriangleIntegrationNeeded() override { return true; }
 

@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     system.SetTangentialDisplacementModel(tdispl_model);
     system.SetStiffContact(stiff_contact);
 
-    system.Set_G_acc(ChVector<>(0, 0, gravity));
+    system.Set_G_acc(ChVector3d(0, 0, gravity));
 
     system.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
@@ -141,10 +141,10 @@ int main(int argc, char* argv[]) {
         double loc_x = (i % (numDiv_x + 1)) * dx;
         double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
         double loc_z = (i) / ((numDiv_x + 1) * (numDiv_y + 1)) * dz;
-        std::cout << "  " << i << "|  " << ChVector<>(loc_x, loc_y, loc_z) << std::endl;
+        std::cout << "  " << i << "|  " << ChVector3d(loc_x, loc_y, loc_z) << std::endl;
 
         // Create the node
-        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(0, 0, 1));
+        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(loc_x, loc_y, loc_z), ChVector3d(0, 0, 1));
         node->SetMass(0);
 
         // Add node to mesh
@@ -203,8 +203,8 @@ int main(int argc, char* argv[]) {
 
     // Create container box
     auto ground = utils::CreateBoxContainer(&system, binId, material,                                    //
-                                            ChVector<>(bin_width, bin_length, 200 * dy), bin_thickness,  //
-                                            ChVector<>(0, 0, -1.5 * m_contact_node_radius), QUNIT);      //
+                                            ChVector3d(bin_width, bin_length, 200 * dy), bin_thickness,  //
+                                            ChVector3d(0, 0, -1.5 * m_contact_node_radius), QUNIT);      //
 
     // -------------------
     // Setup linear solver
@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
         system.DoStepDynamics(time_step);
 
         system.GetContactContainer()->ComputeContactForces();
-        ChVector<> contact_force = ground->GetContactForce();
+        ChVector3d contact_force = ground->GetContactForce();
         std::cout << "t = " << system.GetChTime() << " num contacts = " << system.GetContactContainer()->GetNcontacts()
                  << "  force =  " << contact_force.z() << "\n";
         std::cout << "Vertical Displacement of a Node: " << nodeRef->GetPos().z() << "\n";

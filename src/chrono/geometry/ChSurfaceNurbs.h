@@ -27,7 +27,7 @@ namespace geometry {
 /// Geometric object representing a NURBS surface.
 class ChApi ChSurfaceNurbs : public ChSurface {
   public:
-    ChMatrixDynamic<ChVector<> > points;
+    ChMatrixDynamic<ChVector3d > points;
     ChMatrixDynamic<> weights;
     ChVectorDynamic<> knots_u;
     ChVectorDynamic<> knots_v;
@@ -43,7 +43,7 @@ class ChApi ChSurfaceNurbs : public ChSurface {
     /// If the weights are not provided, a constant weight vector is made.
     ChSurfaceNurbs(int morder_u,  ///< order pu: 1= linear, 2=quadratic, etc.
                    int morder_v,  ///< order pv: 1= linear, 2=quadratic, etc.
-                   ChMatrixDynamic<ChVector<>>& mpoints,  ///< control points, size nuxnv. Required: nu at least pu+1, same for v
+                   ChMatrixDynamic<ChVector3d>& mpoints,  ///< control points, size nuxnv. Required: nu at least pu+1, same for v
                    ChVectorDynamic<>* mknots_u = 0,  ///< knots, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
                    ChVectorDynamic<>* mknots_v = 0,  ///< knots, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
                    ChMatrixDynamic<>* weights = 0  ///< weights, size nuxnv. If not provided, all weights as 1.
@@ -59,7 +59,7 @@ class ChApi ChSurfaceNurbs : public ChSurface {
 
     /// Return a point on the surface, given parametric coordinates U,V.
     /// Parameters U and V always work in 0..1 range.  As such, to use u' in knot range, use ComputeUfromKnotU().
-    virtual ChVector<> Evaluate(double parU, double parV) const override;
+    virtual ChVector3d Evaluate(double parU, double parV) const override;
 
     // NURBS specific functions
 
@@ -90,7 +90,7 @@ class ChApi ChSurfaceNurbs : public ChSurface {
     }
 
     /// Access the points
-    ChMatrixDynamic<ChVector<> >& Points() { return points; }
+    ChMatrixDynamic<ChVector3d >& Points() { return points; }
 
     /// Access the weights
     ChMatrixDynamic<>& Weights() { return weights; }
@@ -112,7 +112,7 @@ class ChApi ChSurfaceNurbs : public ChSurface {
     /// If the weights are not provided, a constant weight vector is made.
     virtual void SetupData(int morder_u,  ///< order pu: 1= linear, 2=quadratic, etc.
                            int morder_v,  ///< order pv: 1= linear, 2=quadratic, etc.
-                           ChMatrixDynamic<ChVector<> >&
+                           ChMatrixDynamic<ChVector3d >&
                                mpoints,  ///< control points, size nuxnv. Required: at least nu >= pu+1, same for v
                            ChVectorDynamic<>* mknots_u =
                                0,  ///< knots u, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.

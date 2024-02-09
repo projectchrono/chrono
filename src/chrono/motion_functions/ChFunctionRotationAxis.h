@@ -48,11 +48,11 @@ class ChApi ChFunctionRotationAxis : public ChFunctionRotation {
 	}
 
 	/// Set the fixed axis of rotation. It must be unit length. Default Z vector.
-	void SetAxis(const ChVector<>& mv) {
+	void SetAxis(const ChVector3d& mv) {
 		this->axis = mv;
 	}
 	/// Get the fixed axis of rotation. 
-	ChVector<> GetAxis() {
+	ChVector3d GetAxis() {
 		return this->axis;
 	}
 
@@ -62,10 +62,10 @@ class ChApi ChFunctionRotationAxis : public ChFunctionRotation {
 	virtual ChQuaternion<> Get_q(double s) const override;
 
     /// Return the derivative of the rotation function, at s, expressed as angular velocity w in local frame.
-	virtual ChVector<> Get_w_loc(double s) const override;
+	virtual ChVector3d Get_w_loc(double s) const override;
 
     /// Return the derivative of the rotation function, at s, expressed as angular acceleration in local frame.
-	virtual ChVector<> Get_a_loc(double s) const override;
+	virtual ChVector3d Get_a_loc(double s) const override;
 
 
     /// Method to allow serialization of transient data to archives
@@ -76,7 +76,7 @@ class ChApi ChFunctionRotationAxis : public ChFunctionRotation {
 
 private:
 	std::shared_ptr<ChFunction> fangle;
-	ChVector<> axis;
+	ChVector3d axis;
 };
 
 /// @} chrono_functions

@@ -62,14 +62,14 @@ class ChApi ChFunctionRotation {
     /// because this base method already provide a general-purpose numerical differentiation
     /// to get w only from the Get_p() function. (however, if the analytical derivative
     /// is known, it may better to implement a custom method).
-    virtual ChVector<> Get_w_loc(double s) const;
+    virtual ChVector3d Get_w_loc(double s) const;
 
     /// Return the derivative of the rotation function, at s, expressed as angular acceleration in local frame.
     /// Note that inherited classes may also avoid overriding this method,
     /// because this base method already provide a general-purpose numerical differentiation
     /// to get angular acceleration only from the Get_q() function. (however, if the analytical derivative
     /// is known, it may be better to implement a custom method).
-    virtual ChVector<> Get_a_loc(double s) const;
+    virtual ChVector3d Get_a_loc(double s) const;
 
     /// Return an estimate of the domain of the function argument.
     /// (ex. can be used for automatic zooming in a GUI, or for computing the bounding box)

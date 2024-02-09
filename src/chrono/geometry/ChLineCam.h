@@ -63,7 +63,7 @@ class ChApi ChLineCam : public ChLine {
     bool negative;  ///< negative cam: for desmodromic stuff, (cam is also Y or X mirrored, depend.on type )
     bool internal;  ///< follower roller is inside the cam
 
-    ChVector<> center;  ///< center of cam in space (def.alignment on xy plane)
+    ChVector3d center;  ///< center of cam in space (def.alignment on xy plane)
 
   public:
     ChLineCam();
@@ -100,8 +100,8 @@ class ChApi ChLineCam : public ChLine {
     eChCamType Get_type() const { return type; }
 
     /// position of center of cam in 3d space.
-    void Set_center(ChVector<> mc) { center = mc; }
-    ChVector<> Get_center() const { return center; }
+    void Set_center(ChVector3d mc) { center = mc; }
+    ChVector3d Get_center() const { return center; }
 
     /// If true, creates a negative cam.
     void Set_Negative(bool val) { negative = val; }
@@ -128,10 +128,10 @@ class ChApi ChLineCam : public ChLine {
     /// Evaluate at once all important properties of cam, function of rotation 'par'
     /// (par in range 0..1, with 1 corresponding to 360 degrees):
     /// Also returns the pressure angle g and curvature radius q.
-    ChVector<> EvaluateCamPoint(double par, double& g, double& q) const;
+    ChVector3d EvaluateCamPoint(double par, double& g, double& q) const;
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(double U) const override;
+    virtual ChVector3d Evaluate(double U) const override;
 
     /// Weight evaluation.
     /// Given that the shape is defined by a Ch_function, the

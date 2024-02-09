@@ -59,7 +59,7 @@ void GroundGranular::Initialize(double x_min, double z_max, double step_size) {
     double bottom = z_max - m_num_layers * (2 * m_radius1);
 
     // Center of bottom boundary
-    m_center = ChVector<>(x_min + m_length / 2, 0, bottom);
+    m_center = ChVector3d(x_min + m_length / 2, 0, bottom);
 
     // Create contact materials
     double coh_force = (CH_C_PI * m_radius * m_radius) * m_cohesion;
@@ -148,9 +148,9 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
 
     // Create container walls
     utils::AddBoxContainer(m_ground, m_material_c,                   //
-                           ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
-                           ChVector<>(m_length, m_width, 1), 0.1,    //
-                           ChVector<int>(2, 2, -1));
+                           ChFrame<>(ChVector3d(0, 0, 0.5), QUNIT),  //
+                           ChVector3d(m_length, m_width, 1), 0.1,    //
+                           ChVector3i(2, 2, -1));
 
     // Create particles (all spheres)
     utils::PDSampler<double> sampler(2 * m_radius1);
@@ -164,8 +164,8 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
     gen.setBodyIdentifier(m_start_id + 1);
 
     // Create particles in layers separated by an inflated particle diameter, starting at the bottom boundary
-    ChVector<> hdims(m_length / 2 - m_radius1, m_width / 2 - m_radius1, 0);
-    ChVector<> center = m_center;
+    ChVector3d hdims(m_length / 2 - m_radius1, m_width / 2 - m_radius1, 0);
+    ChVector3d center = m_center;
     center.z() += 3 * m_radius1;
 
     for (unsigned int il = 0; il < m_num_layers; il++) {

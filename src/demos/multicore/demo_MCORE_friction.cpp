@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     // Create the multicore sys and set associated collision detection system
     ChSystemMulticoreNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys.Set_G_acc(ChVector<>(0, -9.81, 0));
+    sys.Set_G_acc(ChVector3d(0, -9.81, 0));
 
     // Set number of threads
     sys.SetNumThreads(1);
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
     // Create the container body
     auto container = chrono_types::make_shared<ChBody>();
     sys.Add(container);
-    container->SetPos(ChVector<>(0, 0, 0));
+    container->SetPos(ChVector3d(0, 0, 0));
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
     container->SetCollide(true);
@@ -83,11 +83,11 @@ int main(int argc, char** argv) {
     bin_mat->SetRollingFriction(1);
     bin_mat->SetSpinningFriction(1);
 
-    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20, 1, 20), ChVector<>(0, -1, 0));
-    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(1, 2, 20.99), ChVector<>(-10, 0, 0));
-    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(1, 2, 20.99), ChVector<>(10, 0, 0));
-    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20.99, 2, 1), ChVector<>(0, 0, -10));
-    utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20.99, 2, 1), ChVector<>(0, 0, 10));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector3d(20, 1, 20), ChVector3d(0, -1, 0));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector3d(1, 2, 20.99), ChVector3d(-10, 0, 0));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector3d(1, 2, 20.99), ChVector3d(10, 0, 0));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector3d(20.99, 2, 1), ChVector3d(0, 0, -10));
+    utils::AddBoxGeometry(container.get(), bin_mat, ChVector3d(20.99, 2, 1), ChVector3d(0, 0, 10));
 
     // Create some spheres that roll horizontally, with increasing rolling friction values
     double density = 1000;
@@ -104,12 +104,12 @@ int main(int argc, char** argv) {
         auto ball = chrono_types::make_shared<ChBody>();
         ball->SetIdentifier(bi);
         ball->SetMass(mass);
-        ball->SetInertiaXX(ChVector<>(inertia));
+        ball->SetInertiaXX(ChVector3d(inertia));
 
         // Initial position and velocity
-        ball->SetPos(ChVector<>(-7, radius - 0.5, -5 + bi * radius * 2.5));
-        ball->SetPos_dt(ChVector<>(initial_linspeed, 0, 0));
-        ball->SetWvel_par(ChVector<>(0, 0, -initial_angspeed));
+        ball->SetPos(ChVector3d(-7, radius - 0.5, -5 + bi * radius * 2.5));
+        ball->SetPos_dt(ChVector3d(initial_linspeed, 0, 0));
+        ball->SetWvel_par(ChVector3d(0, 0, -initial_angspeed));
 
         // Contact geometry
         ball->SetCollide(true);
@@ -128,12 +128,12 @@ int main(int argc, char** argv) {
         auto ball = chrono_types::make_shared<ChBody>();
         ball->SetIdentifier(bi);
         ball->SetMass(mass);
-        ball->SetInertiaXX(ChVector<>(inertia));
+        ball->SetInertiaXX(ChVector3d(inertia));
 
         // Initial position and velocity
-        ball->SetPos(ChVector<>(-8, 1 + radius - 0.5, -5 + bi * radius * 2.5));
-        ball->SetPos_dt(ChVector<>(0, 0, 0));
-        ball->SetWvel_par(ChVector<>(0, 20, 0));
+        ball->SetPos(ChVector3d(-8, 1 + radius - 0.5, -5 + bi * radius * 2.5));
+        ball->SetPos_dt(ChVector3d(0, 0, 0));
+        ball->SetWvel_par(ChVector3d(0, 20, 0));
 
         // Contact geometry
         ball->SetCollide(true);
@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(10, 10, 20), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(10, 10, 20), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     // Simulate sys

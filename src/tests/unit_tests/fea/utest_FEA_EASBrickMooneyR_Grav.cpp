@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     // Create the physical system
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     int i = 0;
     while (i < TotalNumNodes) {
         auto node =
-            chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+            chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         my_mesh->AddNode(node);
         if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1) {

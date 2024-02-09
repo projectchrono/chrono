@@ -32,7 +32,7 @@ class ChMesh;
 /// This is the typical node that can be used for tetrahedrons, etc.
 class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVariableTupleCarrier_1vars<3> {
   public:
-    ChNodeFEAxyz(ChVector<> initial_pos = VNULL);
+    ChNodeFEAxyz(ChVector3d initial_pos = VNULL);
     ChNodeFEAxyz(const ChNodeFEAxyz& other);
     virtual ~ChNodeFEAxyz() {}
 
@@ -59,14 +59,14 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     virtual void SetMass(double m) override { variables.SetNodeMass(m); }
 
     /// Set the initial (reference) position
-    virtual void SetX0(ChVector<> x) { X0 = x; }
+    virtual void SetX0(ChVector3d x) { X0 = x; }
     /// Get the initial (reference) position
-    virtual ChVector<> GetX0() { return X0; }
+    virtual ChVector3d GetX0() { return X0; }
 
     /// Set the 3d applied force, in absolute reference
-    virtual void SetForce(ChVector<> f) { Force = f; }
+    virtual void SetForce(ChVector3d f) { Force = f; }
     /// Get the 3d applied force, in absolute reference
-    virtual ChVector<> GetForce() { return Force; }
+    virtual ChVector3d GetForce() { return Force; }
 
     /// Get the number of degrees of freedom
     virtual int GetNdofX() const override { return 3; }
@@ -129,8 +129,8 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
 
   protected:
     ChVariablesNode variables;  ///< 3D node variables, with x,y,z
-    ChVector<> X0;              ///< reference position
-    ChVector<> Force;           ///< applied force
+    ChVector3d X0;              ///< reference position
+    ChVector3d Force;           ///< applied force
 };
 
 /// @} fea_nodes

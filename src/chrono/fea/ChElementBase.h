@@ -87,7 +87,7 @@ class ChApi ChElementBase {
 
     /// Compute the gravitational forces.
     /// Set values in the provided Fi vector (of size equal to the number of dof of element).
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fi, const ChVector<>& G_acc) = 0;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fi, const ChVector3d& G_acc) = 0;
 
     /// Update, called at least at each time step.
     /// If the element has to keep updated some auxiliary data, such as the rotation matrices for corotational approach,
@@ -120,7 +120,7 @@ class ChApi ChElementBase {
     /// contains G_acc values in the proper stride (ex. tetahedrons have 4x copies of G_acc in g).
     /// Note that elements can provide fast implementations that do not need to build any internal M matrix,
     /// and not even the g vector, for instance if using lumped masses.
-    virtual void EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector<>& G_acc, const double c) = 0;
+    virtual void EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector3d& G_acc, const double c) = 0;
 
     // Functions for interfacing to the solver
 

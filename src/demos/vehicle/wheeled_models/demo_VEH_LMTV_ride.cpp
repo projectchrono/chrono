@@ -48,7 +48,7 @@ using namespace chrono::vehicle::fmtv;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(-2, 0, 1.0);
+ChVector3d initLoc(-2, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
@@ -65,9 +65,9 @@ RandomSurfaceTerrain::VisualisationType visType = RandomSurfaceTerrain::Visualis
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
-ChVector<> vehCOM(-1.933, 0.014, 0.495);
+ChVector3d vehCOM(-1.933, 0.014, 0.495);
 
 // Simulation step sizes
 double step_size = 1e-3;
@@ -255,8 +255,8 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddLogo();
     vis->GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
-    vis->AddLight(ChVector<>(-50, -30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(+10, +30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(-50, -30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(+10, +30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
     vis->AttachVehicle(&lmtv.GetVehicle());
 
     // Visualization of controller points (sentinel & target)

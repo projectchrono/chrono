@@ -168,18 +168,18 @@ class ChApi ChCollisionSystem {
     /// Recover results from RayHit() raycasting.
     struct ChRayhitResult {
         bool hit;                    ///< if true, there was an hit
-        ChVector<> abs_hitPoint;     ///< hit point in absolute space coordinates
-        ChVector<> abs_hitNormal;    ///< normal to surface in absolute space coordinates
+        ChVector3d abs_hitPoint;     ///< hit point in absolute space coordinates
+        ChVector3d abs_hitNormal;    ///< normal to surface in absolute space coordinates
         double dist_factor;          ///< from 0 .. 1 means the distance of hit point along the segment
         ChCollisionModel* hitModel;  ///< pointer to intersected model
     };
 
     /// Perform a ray-hit test with the collision models.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const = 0;
+    virtual bool RayHit(const ChVector3d& from, const ChVector3d& to, ChRayhitResult& result) const = 0;
 
     /// Perform a ray-hit test with the specified collision model.
-    virtual bool RayHit(const ChVector<>& from,
-                        const ChVector<>& to,
+    virtual bool RayHit(const ChVector3d& from,
+                        const ChVector3d& to,
                         ChCollisionModel* model,
                         ChRayhitResult& result) const = 0;
 
@@ -189,7 +189,7 @@ class ChApi ChCollisionSystem {
         virtual ~VisualizationCallback() {}
 
         /// Method for rendering a line of specified color between the two given points.
-        virtual void DrawLine(const ChVector<>& from, const ChVector<>& to, const ChColor& color) = 0;
+        virtual void DrawLine(const ChVector3d& from, const ChVector3d& to, const ChColor& color) = 0;
 
         /// Set scaling factor for normal vectors (default 1.0).
         virtual double GetNormalScale() const { return 1.0; }

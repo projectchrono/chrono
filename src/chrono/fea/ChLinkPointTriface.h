@@ -51,7 +51,7 @@ class ChApi ChTriangleOfXYZnodes : public ChVariableTupleCarrier_3vars<3, 3, 3> 
 
 class ChApi ChLinkPointTriface : public ChLinkBase {
   private:
-    ChVector<> react;
+    ChVector3d react;
 
     // used as an interface to the solver.
     ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint1;
@@ -79,7 +79,7 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     virtual int GetDOC_c() override { return 3; }
 
     /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector<> Get_react_force() override { return GetReactionOnNode(); }
+    virtual ChVector3d Get_react_force() override { return GetReactionOnNode(); }
 
     //
     // STATE FUNCTIONS
@@ -166,7 +166,7 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     }
 
     /// Get the reaction force considered as applied to node A, in abs coords.
-    ChVector<> GetReactionOnNode() const { return -react; }
+    ChVector3d GetReactionOnNode() const { return -react; }
 
     //
     // UPDATE FUNCTIONS
@@ -209,7 +209,7 @@ class ChApi ChTriangleOfXYZROTnodes : public ChVariableTupleCarrier_3vars<6, 6, 
 /// The node can be offset respect to the face.
 class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
   private:
-    ChVector<> react;
+    ChVector3d react;
 
     // used as an interface to the solver.
     ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint1;
@@ -237,7 +237,7 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     virtual int GetDOC_c() override { return 3; }
 
     /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector<> Get_react_force() override { return GetReactionOnNode(); }
+    virtual ChVector3d Get_react_force() override { return GetReactionOnNode(); }
 
     //
     // STATE FUNCTIONS
@@ -324,7 +324,7 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     }
 
     /// Get the reaction force considered as applied to node A, in abs coords.
-    ChVector<> GetReactionOnNode() const { return -react; }
+    ChVector3d GetReactionOnNode() const { return -react; }
 
     //
     // UPDATE FUNCTIONS

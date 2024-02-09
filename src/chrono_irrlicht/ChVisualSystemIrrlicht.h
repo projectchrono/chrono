@@ -53,7 +53,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     ChVisualSystemIrrlicht();
 
     /// Auto-initialized run-time visualization system, with default settings.
-    ChVisualSystemIrrlicht(ChSystem* sys, const ChVector<>& camera_pos = ChVector<>(2, 2, 2), const ChVector<>& camera_targ = ChVector<>(0, 0, 0));
+    ChVisualSystemIrrlicht(ChSystem* sys, const ChVector3d& camera_pos = ChVector3d(2, 2, 2), const ChVector3d& camera_targ = ChVector3d(0, 0, 0));
 
     virtual ~ChVisualSystemIrrlicht();
 
@@ -116,7 +116,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// rmb+lmb+mouse, the position can be changed also with keyboard up/down/left/right arrows, the height can be
     /// changed with keyboard 'PgUp' and 'PgDn' keys. Optional parameters are position and target.
     /// Has no effect, unles called after Initialize().
-    virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) override;
+    virtual int AddCamera(const ChVector3d& pos, ChVector3d targ = VNULL) override;
 
     /// Add a grid with specified parameters in the x-y plane of the given frame.
     virtual void AddGrid(double x_step,                           ///< grid cell size in X direction
@@ -130,16 +130,16 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void UpdateGrid(int id, const ChCoordsys<>& csys);
 
     /// Set the location of the specified camera.
-    virtual void SetCameraPosition(int id, const ChVector<>& pos) override;
+    virtual void SetCameraPosition(int id, const ChVector3d& pos) override;
 
     /// Set the target (look-at) point of the specified camera.
-    virtual void SetCameraTarget(int id, const ChVector<>& target) override;
+    virtual void SetCameraTarget(int id, const ChVector3d& target) override;
 
     /// Set the location of the current (active) camera.
-    virtual void SetCameraPosition(const ChVector<>& pos) override;
+    virtual void SetCameraPosition(const ChVector3d& pos) override;
 
     /// Set the target (look-at) point of the current (active) camera.
-    virtual void SetCameraTarget(const ChVector<>& target) override;
+    virtual void SetCameraTarget(const ChVector3d& target) override;
 
     /// Add a sky box in a 3D scene.
     /// Note: it is assumed that the specified "texture_dir" directory contains the following three texture images:
@@ -161,7 +161,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Add a point light to the scene.
     /// Has no effect, unles called after Initialize().
-    irr::scene::ILightSceneNode* AddLight(const ChVector<>& pos,
+    irr::scene::ILightSceneNode* AddLight(const ChVector3d& pos,
                                           double radius,
                                           ChColor color = ChColor(0.7f, 0.7f, 0.7f));
 
@@ -169,8 +169,8 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Note that the quality of the shadow strictly depends on how close 'near_value' and 'far_value' are to the
     /// bounding box of the scene. Use AddShadow() to enable shadows for an object or for the entire scene.
     /// Has no effect, unless called after Initialize().
-    irr::scene::ILightSceneNode* AddLightWithShadow(const ChVector<>& pos,
-                                                    const ChVector<>& aim,
+    irr::scene::ILightSceneNode* AddLightWithShadow(const ChVector3d& pos,
+                                                    const ChVector3d& aim,
                                                     double radius,
                                                     double near_value,
                                                     double far_value,

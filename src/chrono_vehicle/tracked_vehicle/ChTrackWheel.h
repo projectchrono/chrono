@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     virtual double GetMass() const = 0;
 
     /// Return the moments of inertia of the track wheel body.
-    virtual const ChVector<>& GetInertia() = 0;
+    virtual const ChVector3d& GetInertia() = 0;
 
     /// Get the radius of the track wheel.
     virtual double GetRadius() const = 0;
@@ -76,7 +76,7 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     /// implementation and specify contact geometry for the track wheel.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
                             std::shared_ptr<ChBody> carrier,     ///< [in] carrier body
-                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             ChTrackAssembly* track               ///< [in] containing track assembly
     );
 

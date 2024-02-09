@@ -103,7 +103,7 @@ double horizontal_offset = 2.5;
 double horizontal_pos = hdimX - horizontal_offset;
 
 // Initial vehicle position, orientation, and forward velocity
-ChVector<> initLoc(-horizontal_pos, 0, 0.6);
+ChVector3d initLoc(-horizontal_pos, 0, 0.6);
 ChQuaternion<> initRot(1, 0, 0, 0);
 double initSpeed = 0;
 
@@ -296,8 +296,8 @@ int main(int argc, char* argv[]) {
     // -------------
 
     // Prepare rotated acceleration vector
-    ChVector<> gravity(0, 0, -9.81);
-    ChVector<> gravityR = ChMatrix33<>(slope_g, ChVector<>(0, 1, 0)) * gravity;
+    ChVector3d gravity(0, 0, -9.81);
+    ChVector3d gravityR = ChMatrix33<>(slope_g, ChVector3d(0, 1, 0)) * gravity;
 
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
@@ -356,7 +356,7 @@ int main(int argc, char* argv[]) {
     terrain.EnableVisualization(true);
     terrain.EnableVerbose(true);
 
-    terrain.Initialize(ChVector<>(0, 0, 0), 2 * hdimX, 2 * hdimY, num_layers, r_g, rho_g);
+    terrain.Initialize(ChVector3d(0, 0, 0), 2 * hdimX, 2 * hdimY, num_layers, r_g, rho_g);
     uint actual_num_particles = terrain.GetNumParticles();
 
     std::cout << "Number of particles: " << actual_num_particles << std::endl;
@@ -386,7 +386,7 @@ int main(int argc, char* argv[]) {
         vis.SetWindowSize(1280, 720);
         vis.SetRenderMode(opengl::WIREFRAME);
         vis.Initialize();
-        vis.AddCamera(ChVector<>(-horizontal_pos, -5, 0), ChVector<>(-horizontal_pos, 0, 0));
+        vis.AddCamera(ChVector3d(-horizontal_pos, -5, 0), ChVector3d(-horizontal_pos, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);
     }
 #endif
@@ -445,7 +445,7 @@ int main(int argc, char* argv[]) {
         if (!hmmwv && time > time_create_vehicle) {
             cout << time << "    Create vehicle" << endl;
 
-            double max_height = terrain.GetHeight(ChVector<>(0, 0, 0));
+            double max_height = terrain.GetHeight(ChVector3d(0, 0, 0));
             hmmwv = CreateVehicle(sys, max_height);
             driver = CreateDriver(hmmwv);
 
@@ -479,9 +479,9 @@ int main(int argc, char* argv[]) {
 
             // Save output
             if (output && sim_frame == next_out_frame) {
-                ChVector<> pv = hmmwv->GetRefFrame().GetPos();
-                ChVector<> vv = hmmwv->GetRefFrame().GetPos_dt();
-                ChVector<> av = hmmwv->GetRefFrame().GetPos_dtdt();
+                ChVector3d pv = hmmwv->GetRefFrame().GetPos();
+                ChVector3d vv = hmmwv->GetRefFrame().GetPos_dt();
+                ChVector3d av = hmmwv->GetRefFrame().GetPos_dtdt();
 
                 ofile << sys->GetChTime() << del;
                 ofile << driver_inputs.m_throttle << del << driver_inputs.m_steering << del;
@@ -545,7 +545,7 @@ HMMWV_Full* CreateVehicle(ChSystem* sys, double vertical_offset) {
 
     hmmwv->SetContactMethod(ChContactMethod::NSC);
     hmmwv->SetChassisFixed(false);
-    hmmwv->SetInitPosition(ChCoordsys<>(initLoc + ChVector<>(0, 0, vertical_offset), initRot));
+    hmmwv->SetInitPosition(ChCoordsys<>(initLoc + ChVector3d(0, 0, vertical_offset), initRot));
     hmmwv->SetInitFwdVel(initSpeed);
     hmmwv->SetEngineType(EngineModelType::SIMPLE_MAP);
     hmmwv->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
@@ -567,17 +567,17 @@ HMMWV_Driver* CreateDriver(HMMWV_Full* hmmwv) {
     // Create the straigh-line path
     double height = initLoc.z();
 
-    std::vector<ChVector<>> points;
-    std::vector<ChVector<>> inCV;
-    std::vector<ChVector<>> outCV;
+    std::vector<ChVector3d> points;
+    std::vector<ChVector3d> inCV;
+    std::vector<ChVector3d> outCV;
 
-    points.push_back(ChVector<>(-10 * hdimX, 0, height));
-    inCV.push_back(ChVector<>(-10 * hdimX, 0, height));
-    outCV.push_back(ChVector<>(-9 * hdimX, 0, height));
+    points.push_back(ChVector3d(-10 * hdimX, 0, height));
+    inCV.push_back(ChVector3d(-10 * hdimX, 0, height));
+    outCV.push_back(ChVector3d(-9 * hdimX, 0, height));
 
-    points.push_back(ChVector<>(10 * hdimX, 0, height));
-    inCV.push_back(ChVector<>(9 * hdimX, 0, height));
-    outCV.push_back(ChVector<>(10 * hdimX, 0, height));
+    points.push_back(ChVector3d(10 * hdimX, 0, height));
+    inCV.push_back(ChVector3d(9 * hdimX, 0, height));
+    outCV.push_back(ChVector3d(10 * hdimX, 0, height));
 
     auto path = chrono_types::make_shared<ChBezierCurve>(points, inCV, outCV);
 

@@ -27,10 +27,10 @@ ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> mate
                                          double length_y,
                                          double length_z)
     : ChCollisionShape(Type::BOX, material) {
-    gbox.SetLengths(ChVector<>(length_x, length_y, length_z));
+    gbox.SetLengths(ChVector3d(length_x, length_y, length_z));
 }
 
-ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const ChVector<>& lengths)
+ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const ChVector3d& lengths)
     : ChCollisionShape(Type::BOX, material) {
     gbox.SetLengths(lengths);
 }

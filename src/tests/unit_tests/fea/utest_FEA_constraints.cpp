@@ -68,11 +68,11 @@ Model::Model() {
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
                       msection_cable2,       // ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
                       1,                     // number of ChElementBeamANCF_3333 to create
-                      ChVector<>(0, 0, 0),   // point A (beginning of beam)
-                      ChVector<>(0.1, 0, 0)  // point B (end of beam)
+                      ChVector3d(0, 0, 0),   // point A (beginning of beam)
+                      ChVector3d(0.1, 0, 0)  // point B (end of beam)
     );
 
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, -0.2, 0));
+    builder.GetLastBeamNodes().back()->SetForce(ChVector3d(0, -0.2, 0));
 
     auto constraint_hinge = chrono_types::make_shared<ChLinkPointFrame>();
     constraint_hinge->Initialize(builder.GetLastBeamNodes().front(), mtruss);
@@ -80,7 +80,7 @@ Model::Model() {
 
     // make a box and connect it
     m_box1 = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
-    m_box1->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector<>(0.1, 0, 0));
+    m_box1->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector3d(0.1, 0, 0));
     m_system->Add(m_box1);
 
     auto constraint_pos = chrono_types::make_shared<ChLinkPointFrame>();
@@ -89,15 +89,15 @@ Model::Model() {
 
     auto constraint_dir = chrono_types::make_shared<ChLinkDirFrame>();
     constraint_dir->Initialize(builder.GetLastBeamNodes().back(), m_box1);
-    constraint_dir->SetDirectionInAbsoluteCoords(ChVector<>(1, 0, 0));
+    constraint_dir->SetDirectionInAbsoluteCoords(ChVector3d(1, 0, 0));
     m_system->Add(constraint_dir);
 
     // make another beam
     builder.BuildBeam(my_mesh,          // mesh where to put the created nodes and elements
                       msection_cable2,  // ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
                       7,                // number of ChElementBeamANCF_3333 to create
-                      ChVector<>(m_box1->GetPos().x() + 0.1, 0, 0),           // point A (beginning of beam)
-                      ChVector<>(m_box1->GetPos().x() + 0.1 + 0.1 * 6, 0, 0)  // point B (end of beam)
+                      ChVector3d(m_box1->GetPos().x() + 0.1, 0, 0),           // point A (beginning of beam)
+                      ChVector3d(m_box1->GetPos().x() + 0.1 + 0.1 * 6, 0, 0)  // point B (end of beam)
     );
 
     auto constraint_pos2 = chrono_types::make_shared<ChLinkPointFrame>();
@@ -106,12 +106,12 @@ Model::Model() {
 
     auto constraint_dir2 = chrono_types::make_shared<ChLinkDirFrame>();
     constraint_dir2->Initialize(builder.GetLastBeamNodes().front(), m_box1);
-    constraint_dir2->SetDirectionInAbsoluteCoords(ChVector<>(1, 0, 0));
+    constraint_dir2->SetDirectionInAbsoluteCoords(ChVector3d(1, 0, 0));
     m_system->Add(constraint_dir2);
 
     // make a box and connect it
     m_box2 = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
-    m_box2->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector<>(0.1, 0, 0));
+    m_box2->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector3d(0.1, 0, 0));
     m_system->Add(m_box2);
 
     auto constraint_pos3 = chrono_types::make_shared<ChLinkPointFrame>();
@@ -120,7 +120,7 @@ Model::Model() {
 
     auto constraint_dir3 = chrono_types::make_shared<ChLinkDirFrame>();
     constraint_dir3->Initialize(builder.GetLastBeamNodes().back(), m_box2);
-    constraint_dir3->SetDirectionInAbsoluteCoords(ChVector<>(1, 0, 0));
+    constraint_dir3->SetDirectionInAbsoluteCoords(ChVector3d(1, 0, 0));
     m_system->Add(constraint_dir3);
 
     m_system->Add(my_mesh);
@@ -136,7 +136,7 @@ Model::Model() {
     }
 }
 
-static void CompareVectors(const ChVector<>& v1, const ChVector<>& v2, double tol) {
+static void CompareVectors(const ChVector3d& v1, const ChVector3d& v2, double tol) {
     ASSERT_NEAR(v1.x(), v2.x(), tol);
     ASSERT_NEAR(v1.y(), v2.y(), tol);
     ASSERT_NEAR(v1.z(), v2.z(), tol);

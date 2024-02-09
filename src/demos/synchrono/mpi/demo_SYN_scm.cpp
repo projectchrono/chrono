@@ -112,21 +112,21 @@ int main(int argc, char* argv[]) {
     // Vehicle Initialization
     // ----------------------
     // Calculate initial position and paths for each vehicle
-    ChVector<> offset(-size_x / 2 + 5, 0, 0);
+    ChVector3d offset(-size_x / 2 + 5, 0, 0);
 
-    ChVector<> initLoc;
+    ChVector3d initLoc;
     ChQuaternion<> initRot;
-    std::vector<ChVector<>> curve_pts;
+    std::vector<ChVector3d> curve_pts;
     if (node_id % 2 == 0) {
         // Start even vehicles in a row on the south side, driving north
-        initLoc = offset + ChVector<>(0, 2.0 * (node_id + 1), 0.5);
+        initLoc = offset + ChVector3d(0, 2.0 * (node_id + 1), 0.5);
         initRot = Q_from_AngZ(0);
-        curve_pts = {initLoc, initLoc + ChVector<>(100, 0, 0)};
+        curve_pts = {initLoc, initLoc + ChVector3d(100, 0, 0)};
     } else {
         // Start odd vehicles staggered going up the west edge, driving east
-        initLoc = offset + ChVector<>(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
+        initLoc = offset + ChVector3d(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
         initRot = Q_from_AngZ(CH_C_PI / 2);
-        curve_pts = {initLoc, initLoc + ChVector<>(0, 100, 0)};
+        curve_pts = {initLoc, initLoc + ChVector3d(0, 100, 0)};
     }
 
     // Create the HMMWV
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
 
     // The physics do not change when you add a moving patch, you just make it much easier for the SCM
     // implementation to do its job by restricting where it has to look for contacts
-    terrain->AddMovingPatch(hmmwv.GetVehicle().GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
+    terrain->AddMovingPatch(hmmwv.GetVehicle().GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
 
     if (flat_patch) {
         terrain->Initialize(size_x, size_y, 1 / dpu);
@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
     if (cli.HasValueInVector<int>("irr", node_id)) {
         app = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
         app->SetWindowTitle("SynChrono SCM Demo");
-        app->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 16.0, 0.5);
+        app->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 16.0, 0.5);
         app->Initialize();
         app->AddTypicalLights();
         app->AttachVehicle(&hmmwv.GetVehicle());
@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
         hmmwv.GetSystem()->AddBody(origin);
 
         // Happens to be a reasonable-looking height
-        ChVector<> camera_loc(cam_x, cam_y, 25);
+        ChVector3d camera_loc(cam_x, cam_y, 25);
 
         // Rotations to get a nice angle
         ChQuaternion<> rotation = QUNIT;

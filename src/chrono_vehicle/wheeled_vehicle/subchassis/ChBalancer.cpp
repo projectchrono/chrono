@@ -38,7 +38,7 @@ ChBalancer::~ChBalancer() {
 
 // -----------------------------------------------------------------------------
 
-void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location) {
+void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location) {
     ChSubchassis::Initialize(chassis, location);
 
     m_parent = chassis;
@@ -52,14 +52,14 @@ void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>
     m_pointsL.resize(NUM_POINTS);
     m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = GetLocation(static_cast<PointId>(i));
+        ChVector3d rel_pos = GetLocation(static_cast<PointId>(i));
         m_pointsL[i] = to_abs.TransformLocalToParent(rel_pos);
         rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = to_abs.TransformLocalToParent(rel_pos);
     }
 
     // Transform pin directions to absolute frame
-    ChVector<> rel_dir = GetDirection();
+    ChVector3d rel_dir = GetDirection();
     m_dirL = to_abs.TransformDirectionLocalToParent(rel_dir);
     rel_dir.y() = -rel_dir.y();
     m_dirR = to_abs.TransformDirectionLocalToParent(rel_dir);
@@ -70,8 +70,8 @@ void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>
 
 void ChBalancer::InitializeSide(VehicleSide side,
                                 std::shared_ptr<ChChassis> chassis,
-                                const std::vector<ChVector<>>& points,
-                                const ChVector<>& dir) {
+                                const std::vector<ChVector3d>& points,
+                                const ChVector3d& dir) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Chassis orientation (expressed in absolute frame)
@@ -79,9 +79,9 @@ void ChBalancer::InitializeSide(VehicleSide side,
     ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
 
     // Orientation of revolute joint
-    ChVector<> w = dir.GetNormalized();
-    ChVector<> u = VECT_X;
-    ChVector<> v = Vcross(w, u);
+    ChVector3d w = dir.GetNormalized();
+    ChVector3d u = VECT_X;
+    ChVector3d v = Vcross(w, u);
     v.Normalize();
     u = Vcross(v, w);
     ChMatrix33<> rot(u, v, w);
@@ -144,9 +144,9 @@ void ChBalancer::AddVisualizationAssets(VisualizationType vis) {
 
         // Orientation of revolute joint
         auto dir = GetDirection();
-        ChVector<> w = dir.GetNormalized();
-        ChVector<> u = VECT_X;
-        ChVector<> v = Vcross(w, u);
+        ChVector3d w = dir.GetNormalized();
+        ChVector3d u = VECT_X;
+        ChVector3d v = Vcross(w, u);
         v.Normalize();
         u = Vcross(v, w);
         ChMatrix33<> rot(u, v, w);
@@ -162,9 +162,9 @@ void ChBalancer::AddVisualizationAssets(VisualizationType vis) {
         // Orientation of revolute joint
         auto dir = GetDirection();
         dir.y() = -dir.y();
-        ChVector<> w = dir.GetNormalized();
-        ChVector<> u = VECT_X;
-        ChVector<> v = Vcross(w, u);
+        ChVector3d w = dir.GetNormalized();
+        ChVector3d u = VECT_X;
+        ChVector3d v = Vcross(w, u);
         v.Normalize();
         u = Vcross(v, w);
         ChMatrix33<> rot(u, v, w);

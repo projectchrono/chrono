@@ -41,7 +41,7 @@ ChTrackWheel::~ChTrackWheel() {
 // -----------------------------------------------------------------------------
 void ChTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
                               std::shared_ptr<ChBody> carrier,
-                              const ChVector<>& location,
+                              const ChVector3d& location,
                               ChTrackAssembly* track) {
     m_track = track;
 

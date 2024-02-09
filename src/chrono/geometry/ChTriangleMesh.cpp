@@ -19,7 +19,7 @@
 namespace chrono {
 namespace geometry {
 
-void ChTriangleMesh::Transform(const ChVector<> displ, const ChQuaternion<> mquat) {
+void ChTriangleMesh::Transform(const ChVector3d displ, const ChQuaternion<> mquat) {
     this->Transform(displ, ChMatrix33<>(mquat));
 }
 

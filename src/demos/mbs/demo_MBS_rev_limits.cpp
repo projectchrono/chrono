@@ -58,10 +58,10 @@ int main(int argc, char* argv[]) {
     pend->SetBodyFixed(false);
     pend->SetCollide(false);
     pend->SetMass(1);
-    pend->SetInertiaXX(ChVector<>(0.2, 1, 1));
+    pend->SetInertiaXX(ChVector3d(0.2, 1, 1));
 
     // Initial position of the pendulum (horizontal, pointing towards positive X).
-    pend->SetPos(ChVector<>(1.5, 0, 0));
+    pend->SetPos(ChVector3d(1.5, 0, 0));
 
     // Attach visualization assets.
     auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2.92);
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     rev->GetLimit_Rz().SetMax(max_angle);
 
     // Initialize the joint specifying a coordinate sys (expressed in the absolute frame).
-    rev->Initialize(ground, pend, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    rev->Initialize(ground, pend, ChCoordsys<>(ChVector3d(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
 
     // Create the Irrlicht application
     // -------------------------------
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(-2, 1.5, 5));
+    vis->AddCamera(ChVector3d(-2, 1.5, 5));
     vis->AddTypicalLights();
     vis->EnableLinkFrameDrawing(true);
 
@@ -107,9 +107,9 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        ChVector<> p0(0, 0, 0);
-        ChVector<> p1(std::cos(min_angle), -std::sin(min_angle), 0);
-        ChVector<> p2(std::cos(max_angle), -std::sin(max_angle), 0);
+        ChVector3d p0(0, 0, 0);
+        ChVector3d p1(std::cos(min_angle), -std::sin(min_angle), 0);
+        ChVector3d p2(std::cos(max_angle), -std::sin(max_angle), 0);
         tools::drawSegment(vis.get(), p0, p0 + 4.0 * p1, ChColor(1, 0.5f, 0), true);
         tools::drawSegment(vis.get(), p0, p0 + 4.0 * p2, ChColor(1, 0.5f, 0), true);
         vis->EndScene();

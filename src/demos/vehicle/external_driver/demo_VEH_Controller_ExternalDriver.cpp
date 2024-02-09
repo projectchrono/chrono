@@ -87,7 +87,7 @@ VisualizationType wheel_vis_type = VisualizationType::MESH;
 VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 0.5);
+ChVector3d initLoc(0, 0, 0.5);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Rigid terrain dimensions
@@ -96,7 +96,7 @@ double terrainLength = 300.0;  // size in X direction
 double terrainWidth = 300.0;   // size in Y direction
 
 // Point on chassis tracked by the chase camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Simulation step size
 double step_size = 2e-3;
@@ -460,7 +460,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Driver location in vehicle local frame
-    ChVector<> driver_pos = hmmwv.GetChassis()->GetLocalDriverCoordsys().pos;
+    ChVector3d driver_pos = hmmwv.GetChassis()->GetLocalDriverCoordsys().pos;
 
     // Number of simulation steps between miscellaneous events
     double render_step_size = 1 / fps;
@@ -481,8 +481,8 @@ int main(int argc, char* argv[]) {
 #endif
         // Extract system state
         time = hmmwv.GetSystem()->GetChTime();
-        ChVector<> acc_CG = hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
-        ChVector<> acc_driver = hmmwv.GetVehicle().GetPointAcceleration(driver_pos);
+        ChVector3d acc_CG = hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
+        ChVector3d acc_driver = hmmwv.GetVehicle().GetPointAcceleration(driver_pos);
         double fwd_acc_CG = fwd_acc_GC_filter.Add(acc_CG.x());
         double lat_acc_CG = lat_acc_GC_filter.Add(acc_CG.y());
         double fwd_acc_driver = fwd_acc_driver_filter.Add(acc_driver.x());

@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     auto mmoved_1 =
         chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
     sys.Add(mmoved_1);
-    mmoved_1->SetPos(ChVector<>(-0.5, 0, 0));
+    mmoved_1->SetPos(ChVector3d(-0.5, 0, 0));
 
     // Create a position function p(t) from three x,y,z distinct ChFunction objects,
     // in this case two sine functions on y and z, whereas x remains constant 0 by default.
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
     auto f_rot_axis = chrono_types::make_shared<ChFunctionRotationAxis>();
     f_rot_axis->SetFunctionAngle(
         chrono_types::make_shared<ChFunctionSine>(0, 0.15, chrono::CH_C_PI));  // phase freq ampl
-    f_rot_axis->SetAxis(ChVector<>(1, 1, 1).GetNormalized());
+    f_rot_axis->SetAxis(ChVector3d(1, 1, 1).GetNormalized());
 
     // Create the constraint to impose motion and rotation.
     // Note that the constraint acts by imposing the motion and rotation between
@@ -109,13 +109,13 @@ int main(int argc, char* argv[]) {
     auto mmoved_2 =
         chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
     sys.Add(mmoved_2);
-    mmoved_2->SetPos(ChVector<>(0.5, 0, 0));
+    mmoved_2->SetPos(ChVector3d(0.5, 0, 0));
 
     // Create a spline geometry:
     auto mspline = chrono_types::make_shared<ChLineBspline>(
         3,  // spline order
-        std::vector<ChVector<>>{
-            // std::vector with ChVector<> controlpoints
+        std::vector<ChVector3d>{
+            // std::vector with ChVector3d controlpoints
             {0, 0, 0},  // btw.better start from zero displacement if creating frame1&2 in same pos at Initialize()
             {.3, 0, 0},
             {.5, .2, 0},
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     auto mmoved_3 =
         chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
     sys.Add(mmoved_3);
-    mmoved_3->SetPos(ChVector<>(1.5, 0, 0));
+    mmoved_3->SetPos(ChVector3d(1.5, 0, 0));
 
     // Create the position function: use ChFunctionPositionSetpoint as a proxy to an external continuous setpoint
     auto f_pos_setpoint = chrono_types::make_shared<ChFunctionPositionSetpoint>();
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
     auto mmoved_4 =
         chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
     sys.Add(mmoved_4);
-    mmoved_4->SetPos(ChVector<>(2.5, 0, 0));
+    mmoved_4->SetPos(ChVector3d(2.5, 0, 0));
 
     // Create the rotation function: use 3 distinct A,B,C functions of time to set Eulero or Cardano or Rxyz angles:
     auto f_abc_angles = chrono_types::make_shared<ChFunctionRotationABCFunctions>();
@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
     auto mmoved_5 =
         chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
     sys.Add(mmoved_5);
-    mmoved_5->SetPos(ChVector<>(1, 1, 0));
+    mmoved_5->SetPos(ChVector3d(1, 1, 0));
 
     // Create a spline rotation interpolation based on SQUAD smooth quaternion interpolation.
     // Note that, differently from ChFunctionRotationBSpline, the SQUAD interpolation passes exactly through the control
@@ -266,7 +266,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 2, -3));
+    vis->AddCamera(ChVector3d(0, 2, -3));
     vis->AddTypicalLights();
 
     // Simulation loop
@@ -282,7 +282,7 @@ int main(int argc, char* argv[]) {
         double t = sys.GetChTime();
 
         if (sys.GetStepcount() % 10 == 0) {
-            f_pos_setpoint->SetSetpoint(0.2 * ChVector<>(cos(t * 12), sin(t * 12), 0), t);
+            f_pos_setpoint->SetSetpoint(0.2 * ChVector3d(cos(t * 12), sin(t * 12), 0), t);
             // f_rot_setpoint->SetSetpoint(Q_from_AngAxis(t*0.5, VECT_Z), t );
             // std::cout << "set p = " << f_setpoint->Get_p(t).y() << " at t=" << t  << std::endl;
         }

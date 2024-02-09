@@ -49,10 +49,10 @@ class ChApi ChLinkBushing : public ChLinkLock {
                     const ChMatrixNM<double, 6, 6>& R);
 
     /// Return the current bushing force vector.
-    ChVector<> GetForce() const;
+    ChVector3d GetForce() const;
 
     /// Return the current bushing torque vector (if rotational compliance).
-    ChVector<> GetTorque() const;
+    ChVector3d GetTorque() const;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

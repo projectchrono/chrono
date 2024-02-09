@@ -31,11 +31,11 @@ namespace generic {
 // Static variables
 
 const double Generic_Chassis::m_body_mass = 2086.52;
-const ChVector<> Generic_Chassis::m_body_inertiaXX(1078.52, 2955.66, 3570.20);
-const ChVector<> Generic_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector<> Generic_Chassis::m_body_COM_loc(0.056, 0, 0.213);
-const ChVector<> Generic_Chassis::m_connector_rear_loc(-2.5, 0, -0.25);
-const ChCoordsys<> Generic_Chassis::m_driverCsys(ChVector<>(0.87, 0.7, 1.05), ChQuaternion<>(1, 0, 0, 0));
+const ChVector3d Generic_Chassis::m_body_inertiaXX(1078.52, 2955.66, 3570.20);
+const ChVector3d Generic_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector3d Generic_Chassis::m_body_COM_loc(0.056, 0, 0.213);
+const ChVector3d Generic_Chassis::m_connector_rear_loc(-2.5, 0, -0.25);
+const ChCoordsys<> Generic_Chassis::m_driverCsys(ChVector3d(0.87, 0.7, 1.05), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 
@@ -61,8 +61,8 @@ Generic_Chassis::Generic_Chassis(const std::string& name, bool fixed, CollisionT
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChVehicleGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(2.0, 1.0, 0.2));
-    ChVehicleGeometry::BoxShape box2(ChVector<>(0.0, 0.0, 0.3), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.0, 0.5, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector3d(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(2.0, 1.0, 0.2));
+    ChVehicleGeometry::BoxShape box2(ChVector3d(0.0, 0.0, 0.3), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.0, 0.5, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);

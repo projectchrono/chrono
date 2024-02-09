@@ -82,8 +82,8 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     /// Get the current state of the collision mesh.
     /// Mesh vertex positions and velocities are returned in the absolute frame.
-    void GetMeshVertexStates(std::vector<ChVector<>>& pos,  ///< mesh vertex positions (expressed in absolute frame)
-                             std::vector<ChVector<>>& vel   ///< mesh vertex velocities (expressed in absolute frame)
+    void GetMeshVertexStates(std::vector<ChVector3d>& pos,  ///< mesh vertex positions (expressed in absolute frame)
+                             std::vector<ChVector3d>& vel   ///< mesh vertex velocities (expressed in absolute frame)
     ) const;
 
   protected:
@@ -96,7 +96,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     virtual void UpdateInertiaProperties() override final;
 
     virtual double GetAddedMass() const override final;
-    virtual ChVector<> GetAddedInertia() const override final;
+    virtual ChVector3d GetAddedInertia() const override final;
 
     /// Get the tire force and moment.
     /// A ChRigidTire always returns zero force and moment since tire

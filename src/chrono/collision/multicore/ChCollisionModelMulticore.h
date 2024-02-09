@@ -50,8 +50,8 @@ class ChApi ChCollisionModelMulticore : public ChCollisionModelImpl {
 
     std::vector<real3> local_convex_data;
 
-    ChVector<> aabb_min;
-    ChVector<> aabb_max;
+    ChVector3d aabb_min;
+    ChVector3d aabb_max;
 
   protected:
     struct ctCollisionShape {

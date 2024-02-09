@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetCollisionSystemType(collision_system_type);
     hmmwv.SetContactMethod(contact_method);
     hmmwv.SetChassisCollisionType(chassis_coll_type);
-    hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(0, 0, 0.5), QUNIT));
+    hmmwv.SetInitPosition(ChCoordsys<>(ChVector3d(0, 0, 0.5), QUNIT));
     hmmwv.SetEngineType(EngineModelType::SHAFTS);
     hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     hmmwv.SetDriveType(DrivelineTypeWV::AWD);
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 20, 20);
 
     auto slope = Q_from_AngY(-15 * CH_C_DEG_TO_RAD);
-    auto ramp = terrain.AddPatch(terrain_mat, ChCoordsys<>(ChVector<>(20, 3, 0), slope), 20, 6);
+    auto ramp = terrain.AddPatch(terrain_mat, ChCoordsys<>(ChVector3d(20, 3, 0), slope), 20, 6);
     ramp->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 2, 2);
 
     terrain.Initialize();
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("Rollover Demo");
-            vis_irr->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
+            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional(70, 20);
             vis_irr->AddSkyBox();
@@ -153,10 +153,10 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Rollover Demo");
-            vis_vsg->SetWindowSize(ChVector2<int>(1200, 800));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
-            vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 8.0, 0.3);
+            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 2.0), 8.0, 0.3);
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
@@ -208,7 +208,7 @@ void AddObstacle(ChSystem* sys) {
     if (obstacle_coll_type == CollisionType::NONE)
         return;
 
-    auto pos = ChVector<>(8, 0, 1);
+    auto pos = ChVector3d(8, 0, 1);
     double radius = 1;
     double length = 2;
 
@@ -235,7 +235,7 @@ void AddObstacle(ChSystem* sys) {
 
     auto mesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cylinderZ.obj"),
                                                                            false, true);
-    mesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(ChVector<>(radius, radius, length)));
+    mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(ChVector3d(radius, radius, length)));
 
     if (obstacle_coll_type == CollisionType::MESH) {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, mesh, false, false, 0.005);

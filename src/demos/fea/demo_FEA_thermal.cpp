@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
 
     for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
-            mnode->SetPos(mnode->GetPos() * ChVector<>(3, 1, 3));
+            mnode->SetPos(mnode->GetPos() * ChVector3d(3, 1, 3));
         }
     }
 
@@ -146,9 +146,9 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddLight(ChVector<>(+20, 20, +20), 90, ChColor(0.5, 0.5, 0.5));
-    vis->AddLight(ChVector<>(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
-    vis->AddCamera(ChVector<>(0, 0.7, -1), ChVector<>(0, 0.4, 0));
+    vis->AddLight(ChVector3d(+20, 20, +20), 90, ChColor(0.5, 0.5, 0.5));
+    vis->AddLight(ChVector3d(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
+    vis->AddCamera(ChVector3d(0, 0.7, -1), ChVector3d(0, 0.4, 0));
     vis->AttachSystem(&sys);
 
     // SIMULATION LOOP

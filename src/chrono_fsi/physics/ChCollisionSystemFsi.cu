@@ -28,9 +28,9 @@ namespace fsi {
 // 2. From x, y, z position, determine which bin it is in.
 // 3. Calculate hash from bin index.
 // 4. Store hash and particle index associated with it.
-__global__ void calcHashD(uint* gridMarkerHashD,   // gridMarkerHash Store particle hash here
-                          uint* gridMarkerIndexD,  // gridMarkerIndex Store particle index here
-                          Real4* posRad,           // posRad Vector containing the positions of all particles (SPH and BCE)
+__global__ void calcHashD(uint* gridMarkerHashD,   // store particle hash here
+                          uint* gridMarkerIndexD,  // store particle index here
+                          Real4* posRad,           // vector containing the positions of all particles (SPH and BCE)
                           volatile bool* isErrorD) {
     // Calculate the index of where the particle is stored in posRad.
     uint index = blockIdx.x * blockDim.x + threadIdx.x;

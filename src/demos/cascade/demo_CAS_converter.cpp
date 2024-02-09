@@ -488,7 +488,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 1.5, -2));
+    vis->AddCamera(ChVector3d(0, 1.5, -2));
     vis->AddTypicalLights();
 
     // Initial settings

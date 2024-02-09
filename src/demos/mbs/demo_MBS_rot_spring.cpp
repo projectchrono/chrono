@@ -54,15 +54,15 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     // ChQuaternion<> rev_rot = QUNIT;
     ChQuaternion<> rev_rot = Q_from_AngX(CH_C_PI / 6.0);
     // ChQuaternion<> rev_rot = Q_from_AngX(CH_C_PI / 2.0);
 
-    ChVector<> rev_dir = rev_rot.GetZaxis();
+    ChVector3d rev_dir = rev_rot.GetZaxis();
 
-    ChVector<> rev_pos(+1, 0, 0);
+    ChVector3d rev_pos(+1, 0, 0);
 
     // Create ground body
     auto ground = chrono_types::make_shared<ChBody>();
@@ -77,12 +77,12 @@ int main(int argc, char* argv[]) {
     ground->AddVisualShape(cyl_rev, seg.GetFrame());
 
     // Offset from joint to body COM
-    ChVector<> offset(1.5, 0, 0);
+    ChVector3d offset(1.5, 0, 0);
 
     // Consistent initial velocities
     double omega = 5.0;
-    ChVector<> ang_vel = omega * rev_dir;
-    ChVector<> lin_vel = Vcross(ang_vel, offset);
+    ChVector3d ang_vel = omega * rev_dir;
+    ChVector3d lin_vel = Vcross(ang_vel, offset);
 
     // Create pendulum body
     auto body = chrono_types::make_shared<ChBody>();
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     body->SetBodyFixed(false);
     body->SetCollide(false);
     body->SetMass(1);
-    body->SetInertiaXX(ChVector<>(1, 1, 1));
+    body->SetInertiaXX(ChVector3d(1, 1, 1));
 
     // Attach visualization assets
     auto sph = chrono_types::make_shared<ChVisualShapeSphere>(0.3);
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, 1.5);
     cyl->SetColor(ChColor(0.7f, 0.8f, 0.8f));
-    body->AddVisualShape(cyl, ChFrame<>(ChVector<>(-0.75, 0, 0), Q_from_AngY(CH_C_PI_2)));
+    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(-0.75, 0, 0), Q_from_AngY(CH_C_PI_2)));
 
     // Create revolute joint between body and ground
     auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(3, 1, 3));
+    vis->AddCamera(ChVector3d(3, 1, 3));
     vis->AddTypicalLights();
     vis->EnableBodyFrameDrawing(true);
     vis->EnableLinkFrameDrawing(true);

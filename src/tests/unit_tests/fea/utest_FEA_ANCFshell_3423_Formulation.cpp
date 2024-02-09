@@ -98,7 +98,7 @@ bool AxialDisplacementCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector<>(0, 0, 0));
+    system->Set_G_acc(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -135,13 +135,13 @@ bool AxialDisplacementCheck(int msglvl) {
     double dx = length / (num_elements);
 
     // Setup shell position vector gradient to initially align with the global z direction
-    ChVector<> dir1(0, 0, 1);
+    ChVector3d dir1(0, 0, 1);
 
     // Create the first nodes and fix them completely to ground (Cantilever constraint)
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, -width / 2.0, 0.0), dir1);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, -width / 2.0, 0.0), dir1);
     nodeA->SetFixed(true);
     mesh->AddNode(nodeA);
-    auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, width / 2.0, 0.0), dir1);
+    auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, width / 2.0, 0.0), dir1);
     nodeD->SetFixed(true);
     mesh->AddNode(nodeD);
 
@@ -149,9 +149,9 @@ bool AxialDisplacementCheck(int msglvl) {
     std::shared_ptr<ChNodeFEAxyzD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(dx * i, -width / 2.0, 0), dir1);
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(dx * i, -width / 2.0, 0), dir1);
         mesh->AddNode(nodeB);
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(dx * i, width / 2.0, 0), dir1);
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(dx * i, width / 2.0, 0), dir1);
         mesh->AddNode(nodeC);
 
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
@@ -215,14 +215,14 @@ bool AxialDisplacementCheck(int msglvl) {
     system->DoStaticLinear();
 
     // Calculate the axial displacement of the end of the ANCF shell mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateSectionFrame(1, 0, point, rot);
 
     // For Analytical Formula, see a mechanics of materials textbook (delta = (P*L)/(A*E))
     double Displacement_Theory = (TIP_FORCE * length) / (width * height * E);
     double Displacement_Model = point.x() - length;
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.Q_to_Euler123();
 
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100;
 
@@ -265,7 +265,7 @@ bool CantileverTipLoadCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector<>(0, 0, 0));
+    system->Set_G_acc(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -302,13 +302,13 @@ bool CantileverTipLoadCheck(int msglvl) {
     double dx = length / (num_elements);
 
     // Setup shell position vector gradient to initially align with the global z direction
-    ChVector<> dir1(0, 0, 1);
+    ChVector3d dir1(0, 0, 1);
 
     // Create the first nodes and fix them completely to ground (Cantilever constraint)
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, -width / 2.0, 0.0), dir1);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, -width / 2.0, 0.0), dir1);
     nodeA->SetFixed(true);
     mesh->AddNode(nodeA);
-    auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, width / 2.0, 0.0), dir1);
+    auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, width / 2.0, 0.0), dir1);
     nodeD->SetFixed(true);
     mesh->AddNode(nodeD);
 
@@ -316,9 +316,9 @@ bool CantileverTipLoadCheck(int msglvl) {
     std::shared_ptr<ChNodeFEAxyzD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(dx * i, -width / 2.0, 0), dir1);
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(dx * i, -width / 2.0, 0), dir1);
         mesh->AddNode(nodeB);
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(dx * i, width / 2.0, 0), dir1);
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(dx * i, width / 2.0, 0), dir1);
         mesh->AddNode(nodeC);
 
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
@@ -382,7 +382,7 @@ bool CantileverTipLoadCheck(int msglvl) {
     system->DoStaticLinear();
 
     // Calculate the displacement of the end of the ANCF beam mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateSectionFrame(1, 0, point, rot);
 
@@ -390,7 +390,7 @@ bool CantileverTipLoadCheck(int msglvl) {
     double I = 1.0 / 12.0 * width * std::pow(height, 3);
     double Displacement_Theory = (TIP_FORCE * std::pow(length, 3)) / (3.0 * E * I);
     double Displacement_Model = point.z();
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.Q_to_Euler123();
 
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100.0;
 
@@ -438,7 +438,7 @@ bool CantileverGravityCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     double g = -9.80665;
-    system->Set_G_acc(ChVector<>(0, 0, g));
+    system->Set_G_acc(ChVector3d(0, 0, g));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -475,13 +475,13 @@ bool CantileverGravityCheck(int msglvl) {
     double dx = length / (num_elements);
 
     // Setup shell position vector gradient to initially align with the global z direction
-    ChVector<> dir1(0, 0, 1);
+    ChVector3d dir1(0, 0, 1);
 
     // Create the first nodes and fix them completely to ground (Cantilever constraint)
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, -width / 2.0, 0.0), dir1);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, -width / 2.0, 0.0), dir1);
     nodeA->SetFixed(true);
     mesh->AddNode(nodeA);
-    auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, width / 2.0, 0.0), dir1);
+    auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, width / 2.0, 0.0), dir1);
     nodeD->SetFixed(true);
     mesh->AddNode(nodeD);
 
@@ -489,9 +489,9 @@ bool CantileverGravityCheck(int msglvl) {
     std::shared_ptr<ChNodeFEAxyzD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(dx * i, -width / 2.0, 0), dir1);
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(dx * i, -width / 2.0, 0), dir1);
         mesh->AddNode(nodeB);
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(dx * i, width / 2.0, 0), dir1);
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(dx * i, width / 2.0, 0), dir1);
         mesh->AddNode(nodeC);
 
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
@@ -512,7 +512,7 @@ bool CantileverGravityCheck(int msglvl) {
     system->DoStaticLinear();
 
     // Calculate the displacement of the end of the ANCF beam mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateSectionFrame(1, 0, point, rot);
 
@@ -520,7 +520,7 @@ bool CantileverGravityCheck(int msglvl) {
     double I = 1.0 / 12.0 * width * std::pow(height, 3);
     double Displacement_Theory = (rho * width * height * g * std::pow(length, 4)) / (8.0 * E * I);
     double Displacement_Model = point.z();
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.Q_to_Euler123();
 
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100.0;
 
@@ -569,7 +569,7 @@ bool AxialTwistCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector<>(0, 0, 0));
+    system->Set_G_acc(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -607,13 +607,13 @@ bool AxialTwistCheck(int msglvl) {
     double dx = length / (num_elements);
 
     // Setup shell position vector gradient to initially align with the global z direction
-    ChVector<> dir1(0, 0, 1);
+    ChVector3d dir1(0, 0, 1);
 
     // Create the first nodes and fix them completely to ground (Cantilever constraint)
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, -width / 2.0, 0.0), dir1);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, -width / 2.0, 0.0), dir1);
     nodeA->SetFixed(true);
     mesh->AddNode(nodeA);
-    auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, width / 2.0, 0.0), dir1);
+    auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, width / 2.0, 0.0), dir1);
     nodeD->SetFixed(true);
     mesh->AddNode(nodeD);
 
@@ -621,9 +621,9 @@ bool AxialTwistCheck(int msglvl) {
     std::shared_ptr<ChNodeFEAxyzD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(dx * i, -width / 2.0, 0), dir1);
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(dx * i, -width / 2.0, 0), dir1);
         mesh->AddNode(nodeB);
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(dx * i, width / 2.0, 0), dir1);
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(dx * i, width / 2.0, 0), dir1);
         mesh->AddNode(nodeC);
 
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
@@ -687,10 +687,10 @@ bool AxialTwistCheck(int msglvl) {
     system->DoStaticLinear();
 
     // Calculate the twist angle of the end of the ANCF beam mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateSectionFrame(1, 0, point, rot);
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.Q_to_Euler123();
 
     // For Analytical Formula, see: https://en.wikipedia.org/wiki/Torsion_constant
     double J = 0.281 * width * std::pow(height, 3);
@@ -740,7 +740,7 @@ bool MLCantileverCheck1A(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 to match the reference solution
-    system->Set_G_acc(ChVector<>(0, 0, -9810));
+    system->Set_G_acc(ChVector3d(0, 0, -9810));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -765,9 +765,9 @@ bool MLCantileverCheck1A(int msglvl) {
     double layer_thickness = 0.25;  // mm
 
     double rho = 7.8e-9;                  // kg/mm^3
-    ChVector<> E(177e3, 10.8e3, 10.8e3);  // MPa
-    ChVector<> nu(0, 0, 0);
-    ChVector<> G(7.6e3, 7.6e3, 8.504e3);  // MPa
+    ChVector3d E(177e3, 10.8e3, 10.8e3);  // MPa
+    ChVector3d nu(0, 0, 0);
+    ChVector3d G(7.6e3, 7.6e3, 8.504e3);  // MPa
 
     auto material = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
@@ -780,7 +780,7 @@ bool MLCantileverCheck1A(int msglvl) {
     double dy = width / (num_elements_y);
 
     // Setup shell position vector gradient to initially align with the global z direction
-    ChVector<> dir1(0, 0, 1);
+    ChVector3d dir1(0, 0, 1);
 
     auto elementlast = chrono_types::make_shared<ChElementShellANCF_3423>();
     std::shared_ptr<ChNodeFEAxyzD> nodeEndPoint;
@@ -788,7 +788,7 @@ bool MLCantileverCheck1A(int msglvl) {
     // Create and add the nodes
     for (auto i = 0; i <= num_elements_x; i++) {
         for (auto j = 0; j <= num_elements_y; j++) {
-            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(dx * i, dy * j, 0.0), dir1);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(dx * i, dy * j, 0.0), dir1);
             mesh->AddNode(node);
 
             // Fix only the nodes along x=0
@@ -829,14 +829,14 @@ bool MLCantileverCheck1A(int msglvl) {
     system->DoStaticNonlinear(50);
 
     // Calculate the displacement of the corner of the ANCF shell mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateSectionFrame(1, 1, point, rot);
 
     // Expect Value From Liu et al. ABAQUS Model
     double Displacement_Expected = -40.3;
     double Displacement_Model = point.z();
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.Q_to_Euler123();
 
     double Percent_Error = (Displacement_Model - Displacement_Expected) / Displacement_Expected * 100.0;
 
@@ -882,7 +882,7 @@ bool MLCantileverCheck1B(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 to match the reference solution
-    system->Set_G_acc(ChVector<>(0, 0, -9810));
+    system->Set_G_acc(ChVector3d(0, 0, -9810));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -907,9 +907,9 @@ bool MLCantileverCheck1B(int msglvl) {
     double layer_thickness = 0.25;  // mm
 
     double rho = 7.8e-9;                  // kg/mm^3
-    ChVector<> E(177e3, 10.8e3, 10.8e3);  // MPa
-    ChVector<> nu(0, 0, 0);
-    ChVector<> G(7.6e3, 7.6e3, 8.504e3);  // MPa
+    ChVector3d E(177e3, 10.8e3, 10.8e3);  // MPa
+    ChVector3d nu(0, 0, 0);
+    ChVector3d G(7.6e3, 7.6e3, 8.504e3);  // MPa
 
     auto material = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
@@ -922,7 +922,7 @@ bool MLCantileverCheck1B(int msglvl) {
     double dy = width / (num_elements_y);
 
     // Setup shell position vector gradient to initially align with the global z direction
-    ChVector<> dir1(0, 0, 1);
+    ChVector3d dir1(0, 0, 1);
 
     auto elementlast = chrono_types::make_shared<ChElementShellANCF_3423>();
     std::shared_ptr<ChNodeFEAxyzD> nodeEndPoint;
@@ -930,7 +930,7 @@ bool MLCantileverCheck1B(int msglvl) {
     // Create and add the nodes
     for (auto i = 0; i <= num_elements_x; i++) {
         for (auto j = 0; j <= num_elements_y; j++) {
-            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(dx * i, dy * j, 0.0), dir1);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(dx * i, dy * j, 0.0), dir1);
             mesh->AddNode(node);
 
             // Fix only the nodes along y=0
@@ -974,14 +974,14 @@ bool MLCantileverCheck1B(int msglvl) {
     system->DoStaticNonlinear(50);
 
     // Calculate the displacement of the corner of the ANCF shell mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateSectionFrame(1, 1, point, rot);
 
     // Expect Value From Liu et al. ABAQUS Model
     double Displacement_Expected = -357.5;
     double Displacement_Model = point.z();
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.Q_to_Euler123();
 
     double Percent_Error = (Displacement_Model - Displacement_Expected) / Displacement_Expected * 100.0;
 
@@ -1027,7 +1027,7 @@ bool MLCantileverCheck2A(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 to match the reference solution
-    system->Set_G_acc(ChVector<>(0, 0, -9810));
+    system->Set_G_acc(ChVector3d(0, 0, -9810));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1052,9 +1052,9 @@ bool MLCantileverCheck2A(int msglvl) {
     double layer_thickness = 0.25;  // mm
 
     double rho = 7.8e-9;                  // kg/mm^3
-    ChVector<> E(177e3, 10.8e3, 10.8e3);  // MPa
-    ChVector<> nu(0, 0, 0);
-    ChVector<> G(7.6e3, 7.6e3, 8.504e3);  // MPa
+    ChVector3d E(177e3, 10.8e3, 10.8e3);  // MPa
+    ChVector3d nu(0, 0, 0);
+    ChVector3d G(7.6e3, 7.6e3, 8.504e3);  // MPa
 
     auto material = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
@@ -1067,7 +1067,7 @@ bool MLCantileverCheck2A(int msglvl) {
     double dy = width / (num_elements_y);
 
     // Setup shell position vector gradient to initially align with the global z direction
-    ChVector<> dir1(0, 0, 1);
+    ChVector3d dir1(0, 0, 1);
 
     auto elementlast = chrono_types::make_shared<ChElementShellANCF_3423>();
     std::shared_ptr<ChNodeFEAxyzD> nodeEndPoint;
@@ -1075,7 +1075,7 @@ bool MLCantileverCheck2A(int msglvl) {
     // Create and add the nodes
     for (auto i = 0; i <= num_elements_x; i++) {
         for (auto j = 0; j <= num_elements_y; j++) {
-            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(dx * i, dy * j, 0.0), dir1);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(dx * i, dy * j, 0.0), dir1);
             mesh->AddNode(node);
 
             // Fix only the nodes along x=0
@@ -1119,14 +1119,14 @@ bool MLCantileverCheck2A(int msglvl) {
     system->DoStaticNonlinear(50);
 
     // Calculate the displacement of the end of the ANCF beam mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateSectionFrame(1, 1, point, rot);
 
     // Expect Value From Liu et al. ABAQUS Model
     double Displacement_Expected = -45.6;
     double Displacement_Model = point.z();
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.Q_to_Euler123();
 
     double Percent_Error = (Displacement_Model - Displacement_Expected) / Displacement_Expected * 100.0;
 
@@ -1172,7 +1172,7 @@ bool MLCantileverCheck2B(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 to match the reference solution
-    system->Set_G_acc(ChVector<>(0, 0, -9810));
+    system->Set_G_acc(ChVector3d(0, 0, -9810));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1197,9 +1197,9 @@ bool MLCantileverCheck2B(int msglvl) {
     double layer_thickness = 0.25;  // mm
 
     double rho = 7.8e-9;                  // kg/mm^3
-    ChVector<> E(177e3, 10.8e3, 10.8e3);  // MPa
-    ChVector<> nu(0, 0, 0);
-    ChVector<> G(7.6e3, 7.6e3, 8.504e3);  // MPa
+    ChVector3d E(177e3, 10.8e3, 10.8e3);  // MPa
+    ChVector3d nu(0, 0, 0);
+    ChVector3d G(7.6e3, 7.6e3, 8.504e3);  // MPa
 
     auto material = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
@@ -1212,7 +1212,7 @@ bool MLCantileverCheck2B(int msglvl) {
     double dy = width / (num_elements_y);
 
     // Setup shell position vector gradient to initially align with the global z direction
-    ChVector<> dir1(0, 0, 1);
+    ChVector3d dir1(0, 0, 1);
 
     auto elementlast = chrono_types::make_shared<ChElementShellANCF_3423>();
     std::shared_ptr<ChNodeFEAxyzD> nodeEndPoint;
@@ -1220,7 +1220,7 @@ bool MLCantileverCheck2B(int msglvl) {
     // Create and add the nodes
     for (auto i = 0; i <= num_elements_x; i++) {
         for (auto j = 0; j <= num_elements_y; j++) {
-            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(dx * i, dy * j, 0.0), dir1);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(dx * i, dy * j, 0.0), dir1);
             mesh->AddNode(node);
 
             // Fix only the nodes along y=0
@@ -1261,14 +1261,14 @@ bool MLCantileverCheck2B(int msglvl) {
     system->DoStaticNonlinear(50);
 
     // Calculate the displacement of the end of the ANCF beam mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateSectionFrame(1, 1, point, rot);
 
     // Expect Value From Liu et al. ABAQUS Model
     double Displacement_Expected = -198.0;
     double Displacement_Model = point.z();
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.Q_to_Euler123();
 
     double Percent_Error = (Displacement_Model - Displacement_Expected) / Displacement_Expected * 100.0;
 

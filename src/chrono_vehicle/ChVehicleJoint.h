@@ -80,7 +80,7 @@ class CH_VEHICLE_API ChVehicleJoint {
 
     /// Get the current absolute position of the joint. This is the current absolute location of the underling marker on
     /// the 2nd connected body.
-    ChVector<> GetPos() const;
+    ChVector3d GetPos() const;
 
     /// Get the current constraint violation. This will return an empty vector for a bushing element.
     ChVectorDynamic<> GetConstraintViolation() const;
@@ -89,7 +89,7 @@ class CH_VEHICLE_API ChVehicleJoint {
     /// If this is a kinematic joint, the returned force represent the constraint force.
     /// For a bushing this is the force applied by the bushing element.
     /// The returned force is assumed applied to the second body (body2) and expressed in the body2 frame.
-    ChVector<> GetForce() const;
+    ChVector3d GetForce() const;
 
     /// Return true if wrapping a kinematic joint and false if wrapping a bushing.
     bool IsKinematic() const;

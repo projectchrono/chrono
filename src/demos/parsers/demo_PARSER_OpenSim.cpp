@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 0, 2));
+    vis->AddCamera(ChVector3d(0, 0, 2));
     vis->AddTypicalLights();
 
     // Simulation loop

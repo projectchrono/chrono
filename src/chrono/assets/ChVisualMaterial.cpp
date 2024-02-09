@@ -80,7 +80,7 @@ void ChVisualMaterial::SetTextureScale(float scale_x, float scale_y) {
     ao_texture.SetScale(scale_x, scale_y);
 }
 
-const ChVector2<float>& ChVisualMaterial::GetTextureScale() const {
+const ChVector2f& ChVisualMaterial::GetTextureScale() const {
     return kd_texture.GetScale();
 }
 

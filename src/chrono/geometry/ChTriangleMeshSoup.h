@@ -45,7 +45,7 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     ////virtual ChTriangle& Triangle(int index) { return m_triangles[index]; }
 
     /// Add a triangle to this triangle mesh, by specifying the three coordinates
-    virtual void addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) override;
+    virtual void addTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) override;
 
     /// Add a triangle to this triangle mesh, by specifying a ChTriangle
     virtual void addTriangle(const ChTriangle& atriangle) override { m_triangles.push_back(atriangle); }
@@ -63,7 +63,7 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     virtual void Clear() override { this->m_triangles.clear(); }
 
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
-    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale) override;
+    virtual void Transform(const ChVector3d displ, const ChMatrix33<> rotscale) override;
 
     /// Get the class type as an enum.
     virtual Type GetClassType() const override { return Type::TRIANGLEMESH_SOUP; }

@@ -96,7 +96,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     VehicleSide GetSide() const { return m_side; }
 
     /// Get wheel position (expressed in absolute frame).
-    ChVector<> GetPos() const;
+    ChVector3d GetPos() const;
 
     /// Get the current state for this wheel.
     /// This includes the location, orientation, linear and angular velocities,
@@ -123,7 +123,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     virtual void UpdateInertiaProperties() override;
 
     virtual double GetWheelMass() const = 0;
-    virtual const ChVector<>& GetWheelInertia() const = 0;
+    virtual const ChVector3d& GetWheelInertia() const = 0;
 
     std::shared_ptr<ChBody> m_spindle;             ///< associated suspension spindle body
     std::shared_ptr<ChTire> m_tire;                ///< attached tire subsystem

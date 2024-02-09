@@ -25,20 +25,20 @@ namespace chrono {
 
 static const double FD_PERTURBATION = 1e-7;
 
-ChVector<> ChFunctionPosition::Get_p_ds(double s) const {
+ChVector3d ChFunctionPosition::Get_p_ds(double s) const {
     return ((Get_p(s + FD_PERTURBATION) - Get_p(s)) / FD_PERTURBATION);
 }
-ChVector<> ChFunctionPosition::Get_p_dsds(double s) const {
+ChVector3d ChFunctionPosition::Get_p_dsds(double s) const {
     return ((Get_p_ds(s + FD_PERTURBATION) - Get_p_ds(s)) / FD_PERTURBATION);
 };
 
-void ChFunctionPosition::Estimate_boundingbox(ChVector<>& pmin, ChVector<>& pmax) const {
+void ChFunctionPosition::Estimate_boundingbox(ChVector3d& pmin, ChVector3d& pmax) const {
     pmin.x() = pmin.y() = pmin.z() = 1e20;
     pmax.x() = pmax.y() = pmax.z() = -1e20;
     double smin, smax;
 	this->Estimate_s_domain(smin, smax);
     for (double ms = smin; ms < smax; ms += (smax - smin) / 100.0) {
-		ChVector<> mp = this->Get_p(ms);
+		ChVector3d mp = this->Get_p(ms);
         if (mp.x() < pmin.x())
             pmin.x() = mp.x();
 		if (mp.y() < pmin.y())

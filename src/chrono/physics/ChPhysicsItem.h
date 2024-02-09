@@ -129,7 +129,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// function returns the center of the AABB.
     /// It could be overridden by child classes, anyway it must
     /// always get a point that must be inside AABB.
-    virtual void GetCenter(ChVector<>& mcenter);
+    virtual void GetCenter(ChVector3d& mcenter);
 
     // UPDATING  - child classes may implement these functions
 

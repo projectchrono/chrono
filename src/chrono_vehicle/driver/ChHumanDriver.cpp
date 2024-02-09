@@ -231,7 +231,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_speed_min = u;
     }
 
-    double acc = m_acc_filter.Filter(m_vehicle.GetPointAcceleration(ChVector<>(0, 0, 0)).y());
+    double acc = m_acc_filter.Filter(m_vehicle.GetPointAcceleration(ChVector3d(0, 0, 0)).y());
     if (acc > m_left_acc) {
         m_left_acc = acc;
     }
@@ -240,12 +240,12 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     }
 
     // Calculate unit vector pointing to the yaw center
-    ChVector<> n_g = chassis_rot.GetYaxis();  // vehicle left direction (ISO frame)
+    ChVector3d n_g = chassis_rot.GetYaxis();  // vehicle left direction (ISO frame)
     ChWorldFrame::Project(n_g);               // projected onto horizontal plane (world frame)
     n_g.Normalize();                          // normalized
 
     // Calculate unit vector in the vehicle forward direction
-    ChVector<> t_g = chassis_rot.GetXaxis();  // vehicle forward direction (ISO frame)
+    ChVector3d t_g = chassis_rot.GetXaxis();  // vehicle forward direction (ISO frame)
     ChWorldFrame::Project(t_g);               // projected onto horizontal plane (world frame)
     t_g.Normalize();                          // normalized
 
@@ -262,7 +262,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_sentinel = chassis_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward()) + R * (n_g - RM * n_g);
     }
 
-    ChVector<> Pt = m_sentinel - m_S_l[m_idx_curr];
+    ChVector3d Pt = m_sentinel - m_S_l[m_idx_curr];
     double rt = m_R_l[m_idx_curr].Length();
 
     double t = std::abs(Pt.Dot(m_R_lu[m_idx_curr]));
@@ -293,7 +293,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     m_i_curr = m_idx_curr;
     m_j_curr = m_idx_curr;
 
-    ChVector<> n_lu = m_R_lu[m_idx_curr] % ChWorldFrame::Vertical();  // cross product
+    ChVector3d n_lu = m_R_lu[m_idx_curr] % ChWorldFrame::Vertical();  // cross product
 
     double err = Pt.Dot(n_lu);
 
@@ -310,12 +310,12 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     double d_long = 0;
     bool i_restrict = false;
     bool j_restrict = false;
-    ChVector<> Li_G;
-    ChVector<> Lip_G;
-    ChVector<> Rj_G;
-    ChVector<> Rjp_G;
-    ChVector<> r_rv = t_g + tan(ny) * n_g;
-    ChVector<> r_lv = t_g - tan(ny) * n_g;
+    ChVector3d Li_G;
+    ChVector3d Lip_G;
+    ChVector3d Rj_G;
+    ChVector3d Rjp_G;
+    ChVector3d r_rv = t_g + tan(ny) * n_g;
+    ChVector3d r_lv = t_g - tan(ny) * n_g;
     while (!i_restrict && !j_restrict) {
         size_t i_next = GetNextI();
         size_t j_next = GetNextJ();

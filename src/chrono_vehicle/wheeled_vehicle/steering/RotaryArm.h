@@ -41,11 +41,11 @@ class CH_VEHICLE_API RotaryArm : public ChRotaryArm {
 
     virtual double getPitmanArmRadius() const override { return m_pitmanArmRadius; }
 
-    virtual const ChVector<>& getPitmanArmInertiaMoments() const override { return m_pitmanArmInertiaMoments; }
-    virtual const ChVector<>& getPitmanArmInertiaProducts() const override { return m_pitmanArmInertiaProducts; }
+    virtual const ChVector3d& getPitmanArmInertiaMoments() const override { return m_pitmanArmInertiaMoments; }
+    virtual const ChVector3d& getPitmanArmInertiaProducts() const override { return m_pitmanArmInertiaProducts; }
 
-    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
-    virtual const ChVector<> getDirection(DirectionId which) override { return m_dirs[which]; }
+    virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d getDirection(DirectionId which) override { return m_dirs[which]; }
 
     virtual double getMaxAngle() const override { return m_maxAngle; }
 
@@ -58,11 +58,11 @@ class CH_VEHICLE_API RotaryArm : public ChRotaryArm {
 
     double m_maxAngle;
 
-    ChVector<> m_pitmanArmInertiaMoments;
-    ChVector<> m_pitmanArmInertiaProducts;
+    ChVector3d m_pitmanArmInertiaMoments;
+    ChVector3d m_pitmanArmInertiaProducts;
 
-    ChVector<> m_points[NUM_POINTS];
-    ChVector<> m_dirs[NUM_DIRS];
+    ChVector3d m_points[NUM_POINTS];
+    ChVector3d m_dirs[NUM_DIRS];
 };
 
 /// @} vehicle_wheeled_steering

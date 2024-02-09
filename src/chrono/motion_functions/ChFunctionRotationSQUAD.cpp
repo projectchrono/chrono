@@ -91,13 +91,13 @@ ChQuaternion<> QUADRANGLE(const ChQuaternion<>& q0, const ChQuaternion<>& q1, co
 
 	ChQuaternion<> sq1 = qInv * q2;
         
-	ChVector<> cart0 = sq1.Q_to_Rotv(); 
+	ChVector3d cart0 = sq1.Q_to_Rotv(); 
  
 	ChQuaternion<> sq0 = qInv * q0;
 
-	ChVector<> cart1 = sq0.Q_to_Rotv();
+	ChVector3d cart1 = sq0.Q_to_Rotv();
 
-	ChVector<> cart_aux = (cart0 + cart1) * -0.25;
+	ChVector3d cart_aux = (cart0 + cart1) * -0.25;
 
 	ChQuaternion<> q_aux; q_aux.Q_from_Rotv(cart_aux);
 

@@ -75,9 +75,9 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
             m_materials[i] = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
         } else if (type.compare("Orthotropic") == 0) {
             double rho = d["Materials"][i]["Density"].GetDouble();
-            ChVector<> E = ReadVectorJSON(d["Materials"][i]["E"]);
-            ChVector<> nu = ReadVectorJSON(d["Materials"][i]["nu"]);
-            ChVector<> G = ReadVectorJSON(d["Materials"][i]["G"]);
+            ChVector3d E = ReadVectorJSON(d["Materials"][i]["E"]);
+            ChVector3d nu = ReadVectorJSON(d["Materials"][i]["nu"]);
+            ChVector3d G = ReadVectorJSON(d["Materials"][i]["G"]);
             m_materials[i] = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
         }
     }

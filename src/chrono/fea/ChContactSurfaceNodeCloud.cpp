@@ -30,14 +30,14 @@ ChContactNodeXYZ::ChContactNodeXYZ(ChNodeFEAxyz* node, ChContactSurface* contact
     m_container = contact_surface;
 }
 
-void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
-                                                  const ChVector<>& T,
-                                                  const ChVector<>& abs_point,
+void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector3d& F,
+                                                  const ChVector3d& T,
+                                                  const ChVector3d& abs_point,
                                                   ChVectorDynamic<>& R) {
     R.segment(m_node->NodeGetOffsetW(), 3) += F.eigen();
 }
 
-void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                      ChMatrix33<>& contact_plane,
                                                      type_constraint_tuple& jacobian_tuple_N,
                                                      type_constraint_tuple& jacobian_tuple_U,
@@ -70,14 +70,14 @@ ChContactNodeXYZROT::ChContactNodeXYZROT(ChNodeFEAxyzrot* node, ChContactSurface
     m_container = contact_surface;
 }
 
-void ChContactNodeXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
-                                                     const ChVector<>& T,
-                                                     const ChVector<>& abs_point,
+void ChContactNodeXYZROT::ContactForceLoadResidual_F(const ChVector3d& F,
+                                                     const ChVector3d& T,
+                                                     const ChVector3d& abs_point,
                                                      ChVectorDynamic<>& R) {
     R.segment(m_node->NodeGetOffsetW(), 3) += F.eigen();
 }
 
-void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                         ChMatrix33<>& contact_plane,
                                                         type_constraint_tuple& jacobian_tuple_N,
                                                         type_constraint_tuple& jacobian_tuple_U,

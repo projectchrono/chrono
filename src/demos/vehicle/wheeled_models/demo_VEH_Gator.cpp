@@ -50,7 +50,7 @@ using namespace chrono::vehicle::gator;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 0.5);
+ChVector3d initLoc(0, 0, 0.5);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
         case RigidTerrain::PatchType::BOX:
             patch = terrain.AddPatch(patch_mat, CSYSNORM, 100.0, 100.0);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-            patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(10, 0, 0), Q_from_AngY(-10 * CH_C_DEG_TO_RAD)),
+            patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(10, 0, 0), Q_from_AngY(-10 * CH_C_DEG_TO_RAD)),
                                      5, 10);
             patch->SetColor(ChColor(0.6f, 0.5f, 0.2f));
             break;
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("Gator Demo");
-            vis_irr->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
+            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional(70, 20);
             vis_irr->AddSkyBox();
@@ -200,9 +200,9 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Gator Demo");
             vis_vsg->AttachVehicle(&gator.GetVehicle());
-            vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);

@@ -87,7 +87,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
 
     /// Get the global location of the specified track shoe.
     /// The returned location is that of the shoe body in the track shoe subsystem.
-    const ChVector<>& GetTrackShoePos(size_t id) const { return GetTrackShoe(id)->m_shoe->GetPos(); }
+    const ChVector3d& GetTrackShoePos(size_t id) const { return GetTrackShoe(id)->m_shoe->GetPos(); }
 
     /// Get the orientation of the specified track shoe.
     /// The track shoe body orientation is returned as a quaternion representing a
@@ -98,16 +98,16 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Get the linear velocity of the specified track shoe.
     /// Return the linear velocity of the shoe body center, expressed in the global
     /// reference frame.
-    const ChVector<>& GetTrackShoeLinVel(size_t id) const { return GetTrackShoe(id)->m_shoe->GetPos_dt(); }
+    const ChVector3d& GetTrackShoeLinVel(size_t id) const { return GetTrackShoe(id)->m_shoe->GetPos_dt(); }
 
     /// Get the angular velocity of the specified track shoe.
     /// Return the angular velocity of the shoe body frame, expressed in the global
     /// reference frame.
-    ChVector<> GetTrackShoeAngVel(size_t id) const { return GetTrackShoe(id)->m_shoe->GetWvel_par(); }
+    ChVector3d GetTrackShoeAngVel(size_t id) const { return GetTrackShoe(id)->m_shoe->GetWvel_par(); }
 
     /// Get track tension at the specified track shoe.
     /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
-    ChVector<> GetTrackShoeTension(size_t id) const { return GetTrackShoe(id)->GetTension(); }
+    ChVector3d GetTrackShoeTension(size_t id) const { return GetTrackShoe(id)->GetTension(); }
 
     /// Get the complete state for the specified track shoe.
     /// This includes the location, orientation, linear and angular velocities,
@@ -122,26 +122,26 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
 
     /// Get the relative location of the sprocket subsystem.
     /// The track assembly reference frame is ISO, with origin at the sprocket center.
-    virtual const ChVector<> GetSprocketLocation() const = 0;
+    virtual const ChVector3d GetSprocketLocation() const = 0;
 
     /// Get the relative location of the idler subsystem.
     /// The track assembly reference frame is ISO, with origin at the sprocket center.
-    virtual const ChVector<> GetIdlerLocation() const = 0;
+    virtual const ChVector3d GetIdlerLocation() const = 0;
 
     /// Get the relative location of the specified suspension subsystem.
     /// The track assembly reference frame is ISO, with origin at the sprocket center.
-    virtual const ChVector<> GetRoadWhelAssemblyLocation(int which) const = 0;
+    virtual const ChVector3d GetRoadWhelAssemblyLocation(int which) const = 0;
 
     /// Get the relative location of the specified roller subsystem.
     /// The track assembly reference frame is ISO, with origin at the sprocket center.
-    virtual const ChVector<> GetRollerLocation(int which) const { return ChVector<>(0, 0, 0); }
+    virtual const ChVector3d GetRollerLocation(int which) const { return ChVector3d(0, 0, 0); }
 
     /// Initialize this track assembly subsystem.
     /// The subsystem is initialized by attaching it to the specified chassis at the specified location (with respect to
     /// and expressed in the reference frame of the chassis). It is assumed that the track assembly reference frame is
     /// always aligned with the chassis reference frame.
     void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis subsystem
-                    const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                    const ChVector3d& location,          ///< [in] location relative to the chassis frame
                     bool create_shoes = true             ///< [in] control creation of the actual track
     );
 
@@ -220,7 +220,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     virtual void Output(ChVehicleOutput& database) const override;
 
     VehicleSide m_side;                     ///< assembly on left/right vehicle side
-    ChVector<> m_rel_loc;                   ///< assembly location relative to chassis
+    ChVector3d m_rel_loc;                   ///< assembly location relative to chassis
     std::shared_ptr<ChIdler> m_idler;       ///< idler (and tensioner) subsystem
     std::shared_ptr<ChTrackBrake> m_brake;  ///< sprocket brake
     ChTrackSuspensionList m_suspensions;    ///< road-wheel assemblies

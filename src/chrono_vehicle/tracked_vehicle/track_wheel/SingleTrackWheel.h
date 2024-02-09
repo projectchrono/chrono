@@ -41,7 +41,7 @@ class CH_VEHICLE_API SingleTrackWheel : public ChSingleTrackWheel {
     virtual double GetWidth() const override { return m_wheel_width; }
 
     virtual double GetMass() const override { return m_wheel_mass; }
-    virtual const ChVector<>& GetInertia() override { return m_wheel_inertia; }
+    virtual const ChVector3d& GetInertia() override { return m_wheel_inertia; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;
@@ -52,7 +52,7 @@ class CH_VEHICLE_API SingleTrackWheel : public ChSingleTrackWheel {
     double m_wheel_width;
 
     double m_wheel_mass;
-    ChVector<> m_wheel_inertia;
+    ChVector3d m_wheel_inertia;
 
     bool m_has_mesh;
     std::string m_meshFile;

@@ -166,7 +166,7 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     /// Compute gravity forces, grouped in the Fg vector, one node after the other
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     //
     // Beam-specific functions
@@ -176,23 +176,23 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// and the rotation RxRyRz of section plane, at abscyssa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Results are not corotated.
-    virtual void EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) override;
+    virtual void EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) override;
 
     /// Gets the absolute xyz position of a point on the beam line,
     /// and the absolute rotation of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Results are corotated (expressed in world reference)
-    virtual void EvaluateSectionFrame(const double eta, ChVector<>& point, ChQuaternion<>& rot) override;
+    virtual void EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) override;
 
     /// Gets the force (traction x, shear y, shear z) and the
     /// torque (torsion on x, bending on y, on bending on z) at a section along
     /// the beam line, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Results are not corotated, and are expressed in the reference system of beam.
-    virtual void EvaluateSectionForceTorque(const double eta, ChVector<>& Fforce, ChVector<>& Mtorque) override;
+    virtual void EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) override;
 
     /* To be completed: Created to be consistent with base class implementation*/
-    virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV) override {}
+    virtual void EvaluateSectionStrain(const double eta, ChVector3d& StrainV) override {}
 
     //
     // Functions for interfacing to the solver

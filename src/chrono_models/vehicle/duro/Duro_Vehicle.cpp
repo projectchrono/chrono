@@ -106,38 +106,38 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
 
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
-    ChVector<> offset = ChVector<>(0, 0, 0);
-    ChQuaternion<> rotation = Q_from_AngAxis(0, ChVector<>(0, 1, 0));
+    ChVector3d offset = ChVector3d(0, 0, 0);
+    ChQuaternion<> rotation = Q_from_AngAxis(0, ChVector3d(0, 1, 0));
     m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0, 0, 0), ChVector<>(0), 0.0, m_omega[0],
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector3d(0, 0, 0), ChVector3d(0), 0.0, m_omega[0],
                            m_omega[1]);
-    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-3.88, 0, 0), ChVector<>(0), 0.0, m_omega[2],
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-3.88, 0, 0), ChVector3d(0), 0.0, m_omega[2],
                            m_omega[3]);
 
     // special roll stabilizer mechanism *********************************************************
     auto frontsusp = std::static_pointer_cast<ChToeBarDeDionAxle>(m_axles[0]->m_suspension);
     auto rearsusp = std::static_pointer_cast<ChDeDionAxle>(m_axles[1]->m_suspension);
 
-    ChVector<> p1L = frontsusp->GetConnectorLocation(LEFT);  // lower front rod
-    ChVector<> p2L = p1L + ChVector<>(0, 0, 0.2);            // upper front rod
-    ChVector<> p5L = rearsusp->GetConnectorLocation(LEFT);   // lower rear rod
-    ChVector<> p4L = p5L + ChVector<>(0, 0, 0.2);            // upper rear rod
-    ChVector<> p3L = (p2L + p4L) / 2;                        // beam pivot point
+    ChVector3d p1L = frontsusp->GetConnectorLocation(LEFT);  // lower front rod
+    ChVector3d p2L = p1L + ChVector3d(0, 0, 0.2);            // upper front rod
+    ChVector3d p5L = rearsusp->GetConnectorLocation(LEFT);   // lower rear rod
+    ChVector3d p4L = p5L + ChVector3d(0, 0, 0.2);            // upper rear rod
+    ChVector3d p3L = (p2L + p4L) / 2;                        // beam pivot point
 
-    ChVector<> p1R = frontsusp->GetConnectorLocation(RIGHT);  // lower front rod
-    ChVector<> p2R = p1R + ChVector<>(0, 0, 0.2);             // upper front rod
-    ChVector<> p5R = rearsusp->GetConnectorLocation(RIGHT);   // lower rear rod
-    ChVector<> p4R = p5R + ChVector<>(0, 0, 0.2);             // upper rear rod
-    ChVector<> p3R = (p2R + p4R) / 2;                         // beam pivot point
+    ChVector3d p1R = frontsusp->GetConnectorLocation(RIGHT);  // lower front rod
+    ChVector3d p2R = p1R + ChVector3d(0, 0, 0.2);             // upper front rod
+    ChVector3d p5R = rearsusp->GetConnectorLocation(RIGHT);   // lower rear rod
+    ChVector3d p4R = p5R + ChVector3d(0, 0, 0.2);             // upper rear rod
+    ChVector3d p3R = (p2R + p4R) / 2;                         // beam pivot point
 
     std::shared_ptr<ChBody> rockerArmL = chrono_types::make_shared<ChBody>();
     rockerArmL->SetNameString("rockerL");
     rockerArmL->SetPos(p3L);
     rockerArmL->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     rockerArmL->SetMass(25);
-    rockerArmL->SetInertiaXX(ChVector<>(0.05, 0.1, 0.1));
+    rockerArmL->SetInertiaXX(ChVector3d(0.05, 0.1, 0.1));
     m_chassis->GetBody()->GetSystem()->AddBody(rockerArmL);
 
     ChCoordsys<> rocker_csysL(
@@ -148,7 +148,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     m_chassis->GetSystem()->AddLink(rockerPivL);
 
     AddVisualizationLink(rockerArmL, p2L, p4L, 0.03, ChColor(0.8f, 0.2f, 0.2f));
-    AddVisualizationLink(rockerArmL, p3L + ChVector<>(0, 0.05, 0), p3L - ChVector<>(0, 0.05, 0), 0.02,
+    AddVisualizationLink(rockerArmL, p3L + ChVector3d(0, 0.05, 0), p3L - ChVector3d(0, 0.05, 0), 0.02,
                          ChColor(0.8f, 0.2f, 0.2f));
 
     std::shared_ptr<ChBody> rockerArmR = chrono_types::make_shared<ChBody>();
@@ -156,7 +156,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     rockerArmR->SetPos(p3R);
     rockerArmR->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     rockerArmR->SetMass(25);
-    rockerArmR->SetInertiaXX(ChVector<>(0.05, 0.1, 0.1));
+    rockerArmR->SetInertiaXX(ChVector3d(0.05, 0.1, 0.1));
     m_chassis->GetBody()->GetSystem()->AddBody(rockerArmR);
 
     ChCoordsys<> rocker_csysR(
@@ -167,7 +167,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     m_chassis->GetSystem()->AddLink(rockerPivR);
 
     AddVisualizationLink(rockerArmR, p2R, p4R, 0.03, ChColor(0.8f, 0.2f, 0.2f));
-    AddVisualizationLink(rockerArmR, p3R + ChVector<>(0, 0.05, 0), p3R - ChVector<>(0, 0.05, 0), 0.02,
+    AddVisualizationLink(rockerArmR, p3R + ChVector3d(0, 0.05, 0), p3R - ChVector3d(0, 0.05, 0), 0.02,
                          ChColor(0.8f, 0.2f, 0.2f));
 
     std::shared_ptr<ChBody> frontRodL = chrono_types::make_shared<ChBody>();
@@ -175,7 +175,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     frontRodL->SetPos((p1L + p2L) / 2);
     frontRodL->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     frontRodL->SetMass(10);
-    frontRodL->SetInertiaXX(ChVector<>(0.04, 0.04, 0.01));
+    frontRodL->SetInertiaXX(ChVector3d(0.04, 0.04, 0.01));
     m_chassis->GetBody()->GetSystem()->AddBody(frontRodL);
 
     AddVisualizationLink(frontRodL, p1L, p2L, 0.03, ChColor(0.8f, 0.8f, 0.2f));
@@ -195,7 +195,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     frontRodR->SetPos((p1R + p2R) / 2);
     frontRodR->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     frontRodR->SetMass(10);
-    frontRodR->SetInertiaXX(ChVector<>(0.04, 0.04, 0.01));
+    frontRodR->SetInertiaXX(ChVector3d(0.04, 0.04, 0.01));
     m_chassis->GetBody()->GetSystem()->AddBody(frontRodR);
 
     AddVisualizationLink(frontRodR, p1R, p2R, 0.03, ChColor(0.8f, 0.8f, 0.2f));
@@ -215,7 +215,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     rearRodL->SetPos((p4L + p5L) / 2);
     rearRodL->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     rearRodL->SetMass(10);
-    rearRodL->SetInertiaXX(ChVector<>(0.04, 0.04, 0.01));
+    rearRodL->SetInertiaXX(ChVector3d(0.04, 0.04, 0.01));
     m_chassis->GetBody()->GetSystem()->AddBody(rearRodL);
 
     AddVisualizationLink(rearRodL, p4L, p5L, 0.03, ChColor(0.8f, 0.8f, 0.2f));
@@ -225,7 +225,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     rearRodR->SetPos((p4R + p5R) / 2);
     rearRodR->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     rearRodR->SetMass(10);
-    rearRodR->SetInertiaXX(ChVector<>(0.04, 0.04, 0.01));
+    rearRodR->SetInertiaXX(ChVector3d(0.04, 0.04, 0.01));
     m_chassis->GetBody()->GetSystem()->AddBody(rearRodR);
 
     AddVisualizationLink(rearRodR, p4R, p5R, 0.03, ChColor(0.8f, 0.8f, 0.2f));
@@ -296,10 +296,10 @@ double Duro_Vehicle::GetShockVelocity(int axle, VehicleSide side) const {
 void Duro_Vehicle::LogHardpointLocations() {
     std::cout << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
     std::static_pointer_cast<ChToeBarDeDionAxle>(m_axles[0]->m_suspension)
-        ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+        ->LogHardpointLocations(ChVector3d(0, 0, 0), false);
 
     std::cout << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChDeDionAxle>(m_axles[1]->m_suspension)->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+    std::static_pointer_cast<ChDeDionAxle>(m_axles[1]->m_suspension)->LogHardpointLocations(ChVector3d(0, 0, 0), false);
 
     std::cout << "\n\n";
 }
@@ -340,13 +340,13 @@ void Duro_Vehicle::DebugLog(int what) {
 
 // -----------------------------------------------------------------------------
 void Duro_Vehicle::AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                        const ChVector<> pt_1,
-                                        const ChVector<> pt_2,
+                                        const ChVector3d pt_1,
+                                        const ChVector3d pt_2,
                                         double radius,
                                         const ChColor& color) {
     // Express hardpoint locations in body frame.
-    ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
-    ChVector<> p_2 = body->TransformPointParentToLocal(pt_2);
+    ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
+    ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
 
     auto cyl = ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
     cyl->SetColor(color);

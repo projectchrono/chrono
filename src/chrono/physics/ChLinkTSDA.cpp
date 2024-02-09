@@ -75,8 +75,8 @@ void ChLinkTSDA::RegisterODE(ODE* functor) {
 void ChLinkTSDA::Initialize(std::shared_ptr<ChBody> body1,
                             std::shared_ptr<ChBody> body2,
                             bool pos_are_relative,
-                            ChVector<> loc1,
-                            ChVector<> loc2) {
+                            ChVector3d loc1,
+                            ChVector3d loc2) {
     Body1 = (ChBodyFrame*)body1.get();
     Body2 = (ChBodyFrame*)body2.get();
 
@@ -132,10 +132,10 @@ void ChLinkTSDA::ComputeQ(double time,                  // current time
     m_aloc1 = bframe1.TransformPointLocalToParent(m_loc1);
     m_aloc2 = bframe2.TransformPointLocalToParent(m_loc2);
 
-    ChVector<> avel1 = bframe1.PointSpeedLocalToParent(m_loc1);
-    ChVector<> avel2 = bframe2.PointSpeedLocalToParent(m_loc2);
+    ChVector3d avel1 = bframe1.PointSpeedLocalToParent(m_loc1);
+    ChVector3d avel2 = bframe2.PointSpeedLocalToParent(m_loc2);
 
-    ChVector<> dir = (m_aloc1 - m_aloc2).GetNormalized();
+    ChVector3d dir = (m_aloc1 - m_aloc2).GetNormalized();
     m_length = (m_aloc1 - m_aloc2).Length();
     m_length_dt = Vdot(dir, avel1 - avel2);
 
@@ -145,7 +145,7 @@ void ChLinkTSDA::ComputeQ(double time,                  // current time
     } else {
         m_force = m_f - m_k * (m_length - m_rest_length) - m_r * m_length_dt;
     }
-    ChVector<> Cforce = m_force * dir;
+    ChVector3d Cforce = m_force * dir;
 
     // Load forcing terms acting on body1 (applied force is Cforce).
     auto atorque1 = Vcross(m_aloc1 - bframe1.coord.pos, Cforce);        // applied torque (absolute frame)

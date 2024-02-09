@@ -12,13 +12,13 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 
-const ChVector<double> VNULL(0., 0., 0.);
-const ChVector<double> VECT_X(1., 0., 0.);
-const ChVector<double> VECT_Y(0., 1., 0.);
-const ChVector<double> VECT_Z(0., 0., 1.);
+const ChVector3d VNULL(0., 0., 0.);
+const ChVector3d VECT_X(1., 0., 0.);
+const ChVector3d VECT_Y(0., 1., 0.);
+const ChVector3d VECT_Z(0., 0., 1.);
 
 }  // end namespace chrono

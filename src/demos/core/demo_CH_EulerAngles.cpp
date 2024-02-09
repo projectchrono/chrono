@@ -28,7 +28,7 @@ void test_Euler123() {
     std::cout << "Test Euler sequence 1-2-3" << std::endl;
 
     ChQuaternion<> q;
-    ChVector<> eu;
+    ChVector3d eu;
 
     double alpha1 = 10;
     double beta1 = 11;

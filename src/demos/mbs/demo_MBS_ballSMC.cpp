@@ -46,9 +46,9 @@ int main(int argc, char* argv[]) {
     int ballId = 100;
     double radius = 1;
     double mass = 1000;
-    ChVector<> pos(0, 2, 0);
+    ChVector3d pos(0, 2, 0);
     ChQuaternion<> rot(1, 0, 0, 0);
-    ChVector<> init_vel(0, 0, 0);
+    ChVector3d init_vel(0, 0, 0);
 
     // Parameters for the containing bin
     int binId = 200;
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     ChSystemSMC sys;
 
-    sys.Set_G_acc(ChVector<>(0, gravity, 0));
+    sys.Set_G_acc(ChVector3d(0, gravity, 0));
     sys.SetCollisionSystemType(coll_type);
 
     // The following two lines are optional, since they are the default options. They are added for future reference,
@@ -82,11 +82,11 @@ int main(int argc, char* argv[]) {
 
     ball->SetIdentifier(ballId);
     ball->SetMass(mass);
-    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
+    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
     ball->SetPos(pos);
     ball->SetRot(rot);
     ball->SetPos_dt(init_vel);
-    // ball->SetWvel_par(ChVector<>(0,0,3));
+    // ball->SetWvel_par(ChVector3d(0,0,3));
     ball->SetBodyFixed(false);
 
     auto sphere_coll = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
 
     bin->SetIdentifier(binId);
     bin->SetMass(1);
-    bin->SetPos(ChVector<>(0, 0, 0));
+    bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetBodyFixed(true);
 
@@ -141,9 +141,9 @@ int main(int argc, char* argv[]) {
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
             vis_irr->AddTypicalLights();
-            vis_irr->AddCamera(ChVector<>(0, 3, -6));
+            vis_irr->AddCamera(ChVector3d(0, 3, -6));
             vis_irr->AttachSystem(&sys);
-            vis_irr->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector<>(0, 0.11, 0), Q_from_AngX(CH_C_PI_2)),
+            vis_irr->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.11, 0), Q_from_AngX(CH_C_PI_2)),
                              ChColor(0.1f, 0.1f, 0.1f));
 
             vis = vis_irr;
@@ -156,9 +156,9 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowTitle("SMC demonstration");
-            vis_vsg->AddCamera(ChVector<>(0, 3, -6));
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->AddCamera(ChVector3d(0, 3, -6));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
             vis_vsg->SetWireFrameMode(false);
-            vis_vsg->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector<>(0, 0.11, 0), Q_from_AngX(CH_C_PI_2)),
+            vis_vsg->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.11, 0), Q_from_AngX(CH_C_PI_2)),
                              ChColor(0.1f, 0.1f, 0.1f));
             vis_vsg->Initialize();
 

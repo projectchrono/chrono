@@ -37,25 +37,25 @@ namespace marder {
 static const double supp_z_offset = 0.02;
 
 const double Marder_TrackAssemblySinglePin::m_right_x_offset = 0.1;
-const ChVector<> Marder_TrackAssemblySinglePin::m_sprocket_loc(0, 0, 0);
-const ChVector<> Marder_TrackAssemblySinglePin::m_idler_loc(-5.4, 0, -0.0647);
-const ChVector<> Marder_TrackAssemblySinglePin::m_susp_locs_L[6] = {
-    ChVector<>(-0.8458, 0, -0.3759), ChVector<>(-1.6258, 0, -0.3759), ChVector<>(-2.4058, 0, -0.3759),
-    ChVector<>(-3.1858, 0, -0.3759), ChVector<>(-3.9658, 0, -0.3759), ChVector<>(-4.7458, 0, -0.3759)};
-const ChVector<> Marder_TrackAssemblySinglePin::m_susp_locs_R[6] = {
-    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 0.8458, 0, -0.3759),
-    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 1.6258, 0, -0.3759),
-    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 2.4058, 0, -0.3759),
-    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 3.1858, 0, -0.3759),
-    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 3.9658, 0, -0.3759),
-    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 4.7458, 0, -0.3759)};
-const ChVector<> Marder_TrackAssemblySinglePin::m_supp_locs_L[3] = {ChVector<>(-1.2358, 0, 0.1561 + supp_z_offset),
-                                                                    ChVector<>(-2.7958, 0, 0.1561 + supp_z_offset),
-                                                                    ChVector<>(-4.3106, 0, 0.1561 + supp_z_offset)};
-const ChVector<> Marder_TrackAssemblySinglePin::m_supp_locs_R[3] = {
-    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 1.2358, 0, 0.1561 + supp_z_offset),
-    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 2.7958, 0, 0.1561 + supp_z_offset),
-    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 4.3106, 0, 0.1561 + supp_z_offset)};
+const ChVector3d Marder_TrackAssemblySinglePin::m_sprocket_loc(0, 0, 0);
+const ChVector3d Marder_TrackAssemblySinglePin::m_idler_loc(-5.4, 0, -0.0647);
+const ChVector3d Marder_TrackAssemblySinglePin::m_susp_locs_L[6] = {
+    ChVector3d(-0.8458, 0, -0.3759), ChVector3d(-1.6258, 0, -0.3759), ChVector3d(-2.4058, 0, -0.3759),
+    ChVector3d(-3.1858, 0, -0.3759), ChVector3d(-3.9658, 0, -0.3759), ChVector3d(-4.7458, 0, -0.3759)};
+const ChVector3d Marder_TrackAssemblySinglePin::m_susp_locs_R[6] = {
+    ChVector3d(Marder_TrackAssemblySinglePin::m_right_x_offset - 0.8458, 0, -0.3759),
+    ChVector3d(Marder_TrackAssemblySinglePin::m_right_x_offset - 1.6258, 0, -0.3759),
+    ChVector3d(Marder_TrackAssemblySinglePin::m_right_x_offset - 2.4058, 0, -0.3759),
+    ChVector3d(Marder_TrackAssemblySinglePin::m_right_x_offset - 3.1858, 0, -0.3759),
+    ChVector3d(Marder_TrackAssemblySinglePin::m_right_x_offset - 3.9658, 0, -0.3759),
+    ChVector3d(Marder_TrackAssemblySinglePin::m_right_x_offset - 4.7458, 0, -0.3759)};
+const ChVector3d Marder_TrackAssemblySinglePin::m_supp_locs_L[3] = {ChVector3d(-1.2358, 0, 0.1561 + supp_z_offset),
+                                                                    ChVector3d(-2.7958, 0, 0.1561 + supp_z_offset),
+                                                                    ChVector3d(-4.3106, 0, 0.1561 + supp_z_offset)};
+const ChVector3d Marder_TrackAssemblySinglePin::m_supp_locs_R[3] = {
+    ChVector3d(Marder_TrackAssemblySinglePin::m_right_x_offset - 1.2358, 0, 0.1561 + supp_z_offset),
+    ChVector3d(Marder_TrackAssemblySinglePin::m_right_x_offset - 2.7958, 0, 0.1561 + supp_z_offset),
+    ChVector3d(Marder_TrackAssemblySinglePin::m_right_x_offset - 4.3106, 0, 0.1561 + supp_z_offset)};
 
 // -----------------------------------------------------------------------------
 // Constructor for the M113 track assembly using single-pin track shoes.
@@ -108,19 +108,19 @@ Marder_TrackAssemblySinglePin::Marder_TrackAssemblySinglePin(VehicleSide side, B
 }
 
 // -----------------------------------------------------------------------------
-const ChVector<> Marder_TrackAssemblySinglePin::GetSprocketLocation() const {
+const ChVector3d Marder_TrackAssemblySinglePin::GetSprocketLocation() const {
     return m_sprocket_loc;
 }
 
-const ChVector<> Marder_TrackAssemblySinglePin::GetIdlerLocation() const {
+const ChVector3d Marder_TrackAssemblySinglePin::GetIdlerLocation() const {
     return m_idler_loc;
 }
 
-const ChVector<> Marder_TrackAssemblySinglePin::GetRoadWhelAssemblyLocation(int which) const {
+const ChVector3d Marder_TrackAssemblySinglePin::GetRoadWhelAssemblyLocation(int which) const {
     return (m_side == LEFT) ? m_susp_locs_L[which] : m_susp_locs_R[which];
 }
 
-const ChVector<> Marder_TrackAssemblySinglePin::GetRollerLocation(int which) const {
+const ChVector3d Marder_TrackAssemblySinglePin::GetRollerLocation(int which) const {
     return (m_side == LEFT) ? m_supp_locs_L[which] : m_supp_locs_R[which];
 }
 

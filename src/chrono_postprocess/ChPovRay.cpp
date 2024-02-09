@@ -45,13 +45,13 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system) {
     out_script_filename = "render_frames.pov";
     out_data_filename = "state";
     framenumber = 0;
-    camera_location = ChVector<>(0, 1.5, -2);
-    camera_aim = ChVector<>(0, 0, 0);
-    camera_up = ChVector<>(0, 1, 0);
+    camera_location = ChVector3d(0, 1.5, -2);
+    camera_aim = ChVector3d(0, 0, 0);
+    camera_up = ChVector3d(0, 1, 0);
     camera_angle = 30;
     camera_orthographic = false;
     camera_found_in_assets = false;
-    def_light_location = ChVector<>(2, 3, -1);
+    def_light_location = ChVector3d(2, 3, -1);
     def_light_color = ChColor(1, 1, 1);
     def_light_cast_shadows = true;
     background = ChColor(1, 1, 1);
@@ -149,14 +149,14 @@ std::string replaceAll(std::string result, const std::string& replaceWhat, const
     return result;
 }
 
-void ChPovRay::SetCamera(ChVector<> location, ChVector<> aim, double angle, bool ortho) {
+void ChPovRay::SetCamera(ChVector3d location, ChVector3d aim, double angle, bool ortho) {
     camera_location = location;
     camera_aim = aim;
     camera_angle = angle;
     camera_orthographic = ortho;
 }
 
-void ChPovRay::SetLight(ChVector<> location, ChColor color, bool cast_shadow) {
+void ChPovRay::SetLight(ChVector3d location, ChColor color, bool cast_shadow) {
     def_light_location = location;
     def_light_color = color;
     def_light_cast_shadows = cast_shadow;
@@ -293,7 +293,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
               << " *0.5)/180)*3.14) " << std::endl;
         mfile << " up y * image_height/image_width * " << (camera_location - camera_aim).Length() << " * tan ((("
               << camera_angle << "*0.5)/180)*3.14) " << std::endl;
-        ChVector<> mdir = (camera_aim - camera_location) * 0.00001;
+        ChVector3d mdir = (camera_aim - camera_location) * 0.00001;
         mfile << " direction <" << mdir.x() << "," << mdir.y() << "," << mdir.z() << "> " << std::endl;
     } else {
         mfile << " right -x*image_width/image_height " << std::endl;
@@ -894,21 +894,21 @@ void ChPovRay::ExportData(const std::string& filename) {
             class _reporter_class : public ChContactContainer::ReportContactCallback {
               public:
                 virtual bool OnReportContact(
-                    const ChVector<>& pA,             // contact pA
-                    const ChVector<>& pB,             // contact pB
+                    const ChVector3d& pA,             // contact pA
+                    const ChVector3d& pB,             // contact pB
                     const ChMatrix33<>& plane_coord,  // contact plane coordsystem (A column 'X' is contact normal)
                     const double& distance,           // contact distance
                     const double& eff_radius,         // effective radius of curvature at contact
-                    const ChVector<>& react_forces,   // react.forces (in coordsystem 'plane_coord')
-                    const ChVector<>& react_torques,  // react.torques (if rolling friction)
+                    const ChVector3d& react_forces,   // react.forces (in coordsystem 'plane_coord')
+                    const ChVector3d& react_torques,  // react.torques (if rolling friction)
                     ChContactable* contactobjA,       // model A (note: could be nullptr)
                     ChContactable* contactobjB        // model B (note: could be nullptr)
                     ) override {
                     if (fabs(react_forces.x()) > 1e-8 || fabs(react_forces.y()) > 1e-8 ||
                         fabs(react_forces.z()) > 1e-8) {
                         ChMatrix33<> localmatr(plane_coord);
-                        ChVector<> n1 = localmatr.Get_A_Xaxis();
-                        ChVector<> absreac = localmatr * react_forces;
+                        ChVector3d n1 = localmatr.Get_A_Xaxis();
+                        ChVector3d absreac = localmatr * react_forces;
                         (*mfile) << pA.x() << ", ";
                         (*mfile) << pA.y() << ", ";
                         (*mfile) << pA.z() << ", ";
@@ -941,7 +941,7 @@ void ChPovRay::ExportData(const std::string& filename) {
                          << " *0.5)/180)*3.14) " << std::endl;
                 pov_file << " up y * image_height/image_width * " << (camera_location - camera_aim).Length()
                          << " * tan (((" << camera_angle << "*0.5)/180)*3.14) " << std::endl;
-                ChVector<> mdir = (camera_aim - camera_location) * 0.00001;
+                ChVector3d mdir = (camera_aim - camera_location) * 0.00001;
                 pov_file << " direction <" << mdir.x() << "," << mdir.y() << "," << mdir.z() << "> " << std::endl;
             } else {
                 pov_file << " right -x*image_width/image_height " << std::endl;

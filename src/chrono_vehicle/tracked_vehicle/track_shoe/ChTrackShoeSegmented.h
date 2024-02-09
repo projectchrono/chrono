@@ -44,7 +44,7 @@ class CH_VEHICLE_API ChTrackShoeSegmented : public ChTrackShoe {
 
     /// Initialize this track shoe subsystem.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 

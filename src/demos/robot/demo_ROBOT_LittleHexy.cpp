@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
 
     // Create a ChronoENGINE physical system
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
 
     Little_Hexy myhexy(sys, VNULL);
     myhexy.AddVisualizationAssets();
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
                                                            true,         // visualize
                                                            true,         // collide
                                                            ground_mat);  // contact material
-    ground->SetPos(ChVector<>(0, 0, -3));
+    ground->SetPos(ChVector3d(0, 0, -3));
     ground->SetBodyFixed(true);
     ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 100, 100);
     sys.Add(ground);
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(5, 5, 2));
+    vis->AddCamera(ChVector3d(5, 5, 2));
     vis->AddTypicalLights();
 
     // create text with info
@@ -159,8 +159,8 @@ int main(int argc, char* argv[]) {
     myhexy.ControlAbsolute(control);
 
     while (vis->Run()) {
-        ChVector<float> pos = myhexy.GetChassis()->GetPos();
-        vis->UpdateCamera(pos + ChVector<>(1,-1,1), pos);
+        ChVector3f pos = myhexy.GetChassis()->GetPos();
+        vis->UpdateCamera(pos + ChVector3d(1,-1,1), pos);
 
         vis->BeginScene();
         vis->Render();

@@ -27,7 +27,7 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
@@ -90,12 +90,12 @@ int main(int argc, char* argv[]) {
     msection_cable->SetDensity(rho);
 
     // Create the nodes
-    auto hnodeancf1 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, 0.0), ChVector<>(1, 0, 0));
-    auto hnodeancf2 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length / 4, 0, 0), ChVector<>(1, 0, 0));
-    auto hnodeancf3 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length / 2, 0, 0), ChVector<>(1, 0, 0));
+    auto hnodeancf1 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, 0.0), ChVector3d(1, 0, 0));
+    auto hnodeancf2 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(beam_length / 4, 0, 0), ChVector3d(1, 0, 0));
+    auto hnodeancf3 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(beam_length / 2, 0, 0), ChVector3d(1, 0, 0));
     auto hnodeancf4 =
-        chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(3.0 * beam_length / 4, 0, 0), ChVector<>(1, 0, 0));
-    auto hnodeancf5 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length, 0, 0), ChVector<>(1, 0, 0));
+        chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(3.0 * beam_length / 4, 0, 0), ChVector3d(1, 0, 0));
+    auto hnodeancf5 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(beam_length, 0, 0), ChVector3d(1, 0, 0));
 
     my_mesh->AddNode(hnodeancf1);
     my_mesh->AddNode(hnodeancf2);
@@ -142,11 +142,11 @@ int main(int argc, char* argv[]) {
     sys.Add(my_mesh);
 
     // Set Angular velocity initial condition
-    hnodeancf1->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 0.0));
-    hnodeancf2->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 1.0));
-    hnodeancf3->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 2.0));
-    hnodeancf4->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 3.0));
-    hnodeancf5->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 4.0));
+    hnodeancf1->SetPos_dt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 0.0));
+    hnodeancf2->SetPos_dt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 1.0));
+    hnodeancf3->SetPos_dt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 2.0));
+    hnodeancf4->SetPos_dt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 3.0));
+    hnodeancf5->SetPos_dt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 4.0));
 
     // Change solver settings
     auto solver = chrono_types::make_shared<ChSolverMINRES>();

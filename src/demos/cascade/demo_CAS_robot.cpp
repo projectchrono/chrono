@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<> rotation2;
     rotation2.Q_from_AngAxis(CH_C_PI, VECT_Y);            // 2: rotate 180� on vertical Y axis
     ChQuaternion<> tot_rotation = rotation2 % rotation1;  // rotate on 1 then on 2, using quaternion product
-    ChFrameMoving<> root_frame(ChVector<>(0, 0, 0), tot_rotation);
+    ChFrameMoving<> root_frame(ChVector3d(0, 0, 0), tot_rotation);
 
     if (load_ok) {
         TopoDS_Shape shape_base;
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
 
             // also create a collision shape attached to the hand:
             auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.08, 0.08, 1000, true, true, mysurfmaterial);
-            mcube->SetCoord(ChCoordsys<>(ChVector<>(0.1, 0, 0)) >> body_hand->GetCoord());
+            mcube->SetCoord(ChCoordsys<>(ChVector3d(0.1, 0, 0)) >> body_hand->GetCoord());
             sys.Add(mcube);
             auto mcubelink = chrono_types::make_shared<ChLinkLockLock>();
             mcubelink->Initialize(mcube, body_hand, mcube->GetCoord());
@@ -369,7 +369,7 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<ChBodyEasyBox> mfloor(new ChBodyEasyBox(8, 1, 8, 1000, true, true, mysurfmaterial));
     mfloor->SetBodyFixed(true);
-    mfloor->SetPos(ChVector<>(0, -0.5, 0));
+    mfloor->SetPos(ChVector3d(0, -0.5, 0));
     mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
     sys.Add(mfloor);
 
@@ -380,7 +380,7 @@ int main(int argc, char* argv[]) {
             for (int ib = 0; ib < 6; ++ib) {
                 std::shared_ptr<ChBodyEasyBox> cube(
                     new ChBodyEasyBox(0.4, brick_h, 0.4, 1000, true, true, mysurfmaterial));
-                cube->SetPos(ChVector<>(-1.4, (0.5 * brick_h) + ib * brick_h, -0.4 - 0.5 * ix));
+                cube->SetPos(ChVector3d(-1.4, (0.5 * brick_h) + ib * brick_h, -0.4 - 0.5 * ix));
                 cube->SetRot(Q_from_AngAxis(ib * 0.1, VECT_Y));
                 cube->GetVisualShape(0)->SetColor(ChColor(0.5f + float(0.5 * ChRandom()),  //
                                                           0.5f + float(0.5 * ChRandom()),  //
@@ -402,7 +402,7 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector<>(0.2, 1.6, 3.5), ChVector<>(0, 1, 0));
+            vis_irr->AddCamera(ChVector3d(0.2, 1.6, 3.5), ChVector3d(0, 1, 0));
             vis_irr->AddTypicalLights();
 
             vis = vis_irr;
@@ -416,7 +416,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowSize(1000, 800);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetWindowTitle("Load a robot model from STEP file");
-            vis_vsg->AddCamera(ChVector<>(2.2, 1.6, 2.5), ChVector<>(0, 1, 0));
+            vis_vsg->AddCamera(ChVector3d(2.2, 1.6, 2.5), ChVector3d(0, 1, 0));
             vis_vsg->Initialize();
 
             vis = vis_vsg;

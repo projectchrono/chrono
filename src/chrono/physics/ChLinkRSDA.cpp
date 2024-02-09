@@ -209,7 +209,7 @@ void ChLinkRSDA::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R,
         return;
 
     // Applied torque in absolute frame
-    ChVector<> torque = m_torque * m_axis;
+    ChVector3d torque = m_torque * m_axis;
 
     // Load torques in 'R' vector accumulator (torques in local coords)
     if (Body1->Variables().IsActive()) {
@@ -225,7 +225,7 @@ void ChLinkRSDA::ConstraintsFbLoadForces(double factor) {
         return;
 
     // Applied torque in absolute frame
-    ChVector<> torque = m_torque * m_axis;
+    ChVector3d torque = m_torque * m_axis;
 
     // Load torques in 'fb' vector accumulator of body variables (torques in local coords)
     Body1->Variables().Get_fb().segment(3, 3) -= factor * Body1->TransformDirectionParentToLocal(torque).eigen();

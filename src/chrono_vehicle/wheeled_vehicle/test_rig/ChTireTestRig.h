@@ -134,7 +134,7 @@ class CH_VEHICLE_API ChTireTestRig {
     /// These values are meaningful only when using granular terrain and Chrono::Multicore.
     void GetSuggestedCollisionSettings(
         double& collision_envelope,    ///< suggested envelope based on particle radius
-        ChVector<int>& collision_bins  ///< suggested number of bins for broad-pahse collision detection
+        ChVector3i& collision_bins  ///< suggested number of bins for broad-pahse collision detection
     ) const;
 
     /// Advance system state by the specified time step.
@@ -147,7 +147,7 @@ class CH_VEHICLE_API ChTireTestRig {
     std::shared_ptr<ChTerrain> GetTerrain() const { return m_terrain; }
 
     /// Get current carrier body position.
-    const ChVector<>& GetPos() const { return m_carrier_body->GetPos(); }
+    const ChVector3d& GetPos() const { return m_carrier_body->GetPos(); }
 
     /// Get the current tire forces
     TerrainForce ReportTireForce() const;

@@ -38,7 +38,7 @@ set(ChronoEngine_core_SOURCES
     core/ChClassFactory.cpp
     core/ChMathematics.cpp
     core/ChQuaternion.cpp
-    core/ChVector.cpp
+    core/ChVector3.cpp
     core/ChCoordsys.cpp
     core/ChQuadrature.cpp
     core/ChBezierCurve.cpp
@@ -66,7 +66,7 @@ set(ChronoEngine_core_HEADERS
     core/ChRealtimeStep.h
     core/ChTimer.h
     core/ChTransform.h
-    core/ChVector.h
+    core/ChVector3.h
     core/ChVector2.h
     core/ChAlignedAllocator.h
     core/ChDistribution.h

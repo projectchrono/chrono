@@ -52,10 +52,10 @@ enum WheelLocation {
 
 /// Structure to communicate a full body state.
 struct BodyState {
-    ChVector<> pos;      ///< global position
+    ChVector3d pos;      ///< global position
     ChQuaternion<> rot;  ///< orientation with respect to global frame
-    ChVector<> lin_vel;  ///< linear velocity, expressed in the global frame
-    ChVector<> ang_vel;  ///< angular velocity, expressed in the global frame
+    ChVector3d lin_vel;  ///< linear velocity, expressed in the global frame
+    ChVector3d ang_vel;  ///< angular velocity, expressed in the global frame
 };
 
 /// Vector of body state structures
@@ -65,10 +65,10 @@ typedef std::vector<BodyState> BodyStates;
 /// In addition to the quantities communicated for a generic body, the wheel
 /// state also includes the wheel angular speed about its axis of rotation.
 struct WheelState {
-    ChVector<> pos;      ///< global position
+    ChVector3d pos;      ///< global position
     ChQuaternion<> rot;  ///< orientation with respect to global frame
-    ChVector<> lin_vel;  ///< linear velocity, expressed in the global frame
-    ChVector<> ang_vel;  ///< angular velocity, expressed in the global frame
+    ChVector3d lin_vel;  ///< linear velocity, expressed in the global frame
+    ChVector3d ang_vel;  ///< angular velocity, expressed in the global frame
     double omega;        ///< wheel angular speed about its rotation axis
 };
 
@@ -78,9 +78,9 @@ typedef std::vector<WheelState> WheelStates;
 /// Structure to communicate a set of generalized terrain contact forces (tire or track shoe).
 struct TerrainForce {
     TerrainForce() : force(VNULL), point(VNULL), moment(VNULL) {}
-    ChVector<> force;   ///< force vector, epxressed in the global frame
-    ChVector<> point;   ///< global location of the force application point
-    ChVector<> moment;  ///< moment vector, expressed in the global frame
+    ChVector3d force;   ///< force vector, epxressed in the global frame
+    ChVector3d point;   ///< global location of the force application point
+    ChVector3d moment;  ///< moment vector, expressed in the global frame
 };
 
 /// Vector of terrain conatct force structures.

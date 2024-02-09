@@ -61,14 +61,14 @@ class ChApi ChElementGeneric : public ChElementBase {
     /// This default implementation is VERY INEFFICIENT.
     /// This fallback implementation uses a temp ChLoaderGravity that applies the load to elements
     /// only if they are inherited by ChLoadableUVW so it can use GetDensity() and Gauss quadrature.
-    virtual void EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector<>& G_acc, const double c) override;
+    virtual void EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector3d& G_acc, const double c) override;
 
     // FEM functions
 
     /// Compute the gravitational forces.
     /// This default implementation (POTENTIALLY INEFFICIENT) uses a temporary ChLoaderGravity that applies the load to
     /// elements only if they are inherited by ChLoadableUVW so it can use GetDensity() and Gauss quadrature.
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     /// Calculate the mass matrix, expressed in global reference.
     /// This default implementation (POTENTIALLY VERY INEFFICIENT) should be overriden by derived classes a more

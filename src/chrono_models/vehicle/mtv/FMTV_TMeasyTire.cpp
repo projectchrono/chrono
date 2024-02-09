@@ -33,7 +33,7 @@ namespace fmtv {
 const std::string FMTV_TMeasyTire::m_meshFile = "mtv/meshes/MTV_tire.obj";
 
 const double FMTV_TMeasyTire::m_mass = 110.0;
-const ChVector<> FMTV_TMeasyTire::m_inertia(16.9, 29.5, 16.9);
+const ChVector3d FMTV_TMeasyTire::m_inertia(16.9, 29.5, 16.9);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

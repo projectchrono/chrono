@@ -165,7 +165,7 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     /// Get ChMesh mass properties
     void ComputeMassProperties(double& mass,          ///< ChMesh object mass
-                               ChVector<>& com,       ///< ChMesh center of gravity
+                               ChVector3d& com,       ///< ChMesh center of gravity
                                ChMatrix33<>& inertia  ///< ChMesh inertia tensor
                                );
 

@@ -35,7 +35,7 @@ ChLineArc::ChLineArc(const ChLineArc& source) : ChLine(source) {
     counterclockwise = source.counterclockwise;
 }
 
-ChVector<> ChLineArc::Evaluate(double parU) const {
+ChVector3d ChLineArc::Evaluate(double parU) const {
     double ang1 = this->angle1;
     double ang2 = this->angle2;
     if (this->counterclockwise) {
@@ -46,7 +46,7 @@ ChVector<> ChLineArc::Evaluate(double parU) const {
             ang2 -= CH_C_2PI;
     }
     double mangle = ang1 * (1 - parU) + ang2 * (parU);
-    ChVector<> localP(radius * cos(mangle), radius * sin(mangle), 0);
+    ChVector3d localP(radius * cos(mangle), radius * sin(mangle), 0);
     return localP >> origin;  // transform to absolute coordinates
 }
 

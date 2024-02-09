@@ -46,7 +46,7 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const override { return m_shoe_mass; }
     /// Return the moments of inertia of the shoe body.
-    virtual const ChVector<>& GetShoeInertia() const override { return m_shoe_inertia; }
+    virtual const ChVector3d& GetShoeInertia() const override { return m_shoe_inertia; }
     /// Return shoe length (distance between pins).
     virtual double GetShoeLength() const override { return m_shoe_length; }
     /// Return shoe width (separation between connectors).
@@ -55,7 +55,7 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Return the mass of a connector body.
     virtual double GetConnectorMass() const override { return m_connector_mass; }
     /// Return the moments of inertia of a connector body.
-    virtual const ChVector<>& GetConnectorInertia() const override { return m_connector_inertia; }
+    virtual const ChVector3d& GetConnectorInertia() const override { return m_connector_inertia; }
     /// Return the length of a connector body.
     virtual double GetConnectorLength() const override { return m_connector_length; }
     /// Return the radius of a connector body.
@@ -64,7 +64,7 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     virtual double GetConnectorWidth() const override { return m_connector_width; }
 
     /// Return the location of the guiding pin center, expressed in the shoe reference frame.
-    virtual ChVector<> GetLateralContactPoint() const override { return m_pin_center; }
+    virtual ChVector3d GetLateralContactPoint() const override { return m_pin_center; }
 
     /// Return contact geometry and material for interaction with terrain.
     virtual ChVehicleGeometry GetGroundContactGeometry() const override { return m_ground_geometry; }
@@ -73,18 +73,18 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     virtual void Create(const rapidjson::Document& d) override;
 
     double m_shoe_mass;
-    ChVector<> m_shoe_inertia;
+    ChVector3d m_shoe_inertia;
     double m_shoe_length;
     double m_shoe_width;
     double m_shoe_height;
 
     double m_connector_mass;
-    ChVector<> m_connector_inertia;
+    ChVector3d m_connector_inertia;
     double m_connector_radius;
     double m_connector_length;
     double m_connector_width;
 
-    ChVector<> m_pin_center;
+    ChVector3d m_pin_center;
 
     ChVehicleGeometry m_ground_geometry;
 };

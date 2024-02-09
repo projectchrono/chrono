@@ -186,7 +186,7 @@ ChronoModel::ChronoModel() {
     // Create the Chrono physical system
     // ---------------------------------
     m_system = chrono_types::make_shared<ChSystemNSC>();
-    m_system->Set_G_acc(ChVector<>(0, -g, 0));
+    m_system->Set_G_acc(ChVector3d(0, -g, 0));
 
     // Create the ground body
     // ----------------------
@@ -201,8 +201,8 @@ ChronoModel::ChronoModel() {
     m_system->AddBody(m_pend1);
     m_pend1->SetIdentifier(1);
     m_pend1->SetMass(m1);
-    m_pend1->SetInertiaXX(ChVector<>(1, 1, J1));
-    m_pend1->SetPos(ChVector<>(l1 / 2, 0, 0));
+    m_pend1->SetInertiaXX(ChVector3d(1, 1, J1));
+    m_pend1->SetPos(ChVector3d(l1 / 2, 0, 0));
 
     // Create the second pendulum body
     // -------------------------------
@@ -210,21 +210,21 @@ ChronoModel::ChronoModel() {
     m_system->AddBody(m_pend2);
     m_pend2->SetIdentifier(2);
     m_pend2->SetMass(m2);
-    m_pend2->SetInertiaXX(ChVector<>(1, 1, J2));
-    m_pend2->SetPos(ChVector<>(l1 + l2 / 2, 0, 0));
+    m_pend2->SetInertiaXX(ChVector3d(1, 1, J2));
+    m_pend2->SetPos(ChVector3d(l1 + l2 / 2, 0, 0));
 }
 
 ChronoModelL::ChronoModelL() {
     // Revolute joint ground-pendulum
     // ------------------------------
     m_revolute1 = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute1->Initialize(m_ground, m_pend1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+    m_revolute1->Initialize(m_ground, m_pend1, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
     m_system->AddLink(m_revolute1);
 
     // Revolute joint pendulum-pendulum
     // --------------------------------
     m_revolute2 = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute2->Initialize(m_pend1, m_pend2, ChCoordsys<>(ChVector<>(l1, 0, 0), QUNIT));
+    m_revolute2->Initialize(m_pend1, m_pend2, ChCoordsys<>(ChVector3d(l1, 0, 0), QUNIT));
     m_system->AddLink(m_revolute2);
 }
 
@@ -232,13 +232,13 @@ ChronoModelM::ChronoModelM() {
     // Revolute joint ground-pendulum
     // ------------------------------
     m_revolute1 = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
-    m_revolute1->Initialize(m_ground, m_pend1, ChFrame<>(ChVector<>(0, 0, 0)));
+    m_revolute1->Initialize(m_ground, m_pend1, ChFrame<>(ChVector3d(0, 0, 0)));
     m_system->AddLink(m_revolute1);
 
     // Revolute joint pendulum-pendulum
     // --------------------------------
     m_revolute2 = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
-    m_revolute2->Initialize(m_pend1, m_pend2, ChFrame<>(ChVector<>(l1, 0, 0), QUNIT));
+    m_revolute2->Initialize(m_pend1, m_pend2, ChFrame<>(ChVector3d(l1, 0, 0), QUNIT));
     m_system->AddLink(m_revolute2);
 }
 

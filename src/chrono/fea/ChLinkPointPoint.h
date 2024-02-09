@@ -33,7 +33,7 @@ namespace fea {
 /// as finite elements.
 class ChApi ChLinkPointPoint : public ChLinkBase {
   private:
-    ChVector<> react;
+    ChVector3d react;
 
     // used as an interface to the solver.
     ChConstraintTwoGeneric constraint1;
@@ -58,7 +58,7 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     virtual int GetDOC_c() override { return 3; }
 
     /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector<> Get_react_force() override { return GetReactionOnNode(); }
+    virtual ChVector3d Get_react_force() override { return GetReactionOnNode(); }
 
     // Get constraint violations
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
@@ -119,7 +119,7 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeB() const { return this->mnodeB; }
 
     /// Get the reaction force considered as applied to ChShaft.
-    ChVector<> GetReactionOnNode() const { return -react; }
+    ChVector3d GetReactionOnNode() const { return -react; }
 
     //
     // UPDATE FUNCTIONS

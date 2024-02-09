@@ -39,8 +39,8 @@ static const std::string ref_dir = "testing/joints/transpring_force/";
 // =============================================================================
 // Prototypes of local functions
 //
-bool TestTranSpring(const ChVector<>& jointLocGnd,
-                    const ChVector<>& jointLocPend,
+bool TestTranSpring(const ChVector3d& jointLocGnd,
+                    const ChVector3d& jointLocPend,
                     const ChCoordsys<>& PendCSYS,
                     const double spring_coef,
                     const double damping_coef,
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     // Case 1 - Pendulum dropped from the origin with a spring connected between the CG and ground.
 
     test_name = "TranSpring_Case01";
-    TestTranSpring(ChVector<>(0, 0, 0), ChVector<>(0, 0, 0), ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT), 10, 0.5,
+    TestTranSpring(ChVector3d(0, 0, 0), ChVector3d(0, 0, 0), ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT), 10, 0.5,
                    sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(test_name, "Vel", 3e-4);
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     // Case 2 - Pendulum CG at Y = 2 with the spring connected between the CG and ground.
 
     test_name = "TranSpring_Case02";
-    TestTranSpring(ChVector<>(0, 0, 0), ChVector<>(0, 2, 0), ChCoordsys<>(ChVector<>(0, 2, 0), QUNIT), 100, 5, sim_step,
+    TestTranSpring(ChVector3d(0, 0, 0), ChVector3d(0, 2, 0), ChCoordsys<>(ChVector3d(0, 2, 0), QUNIT), 100, 5, sim_step,
                    out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(test_name, "Vel", 3e-4);
@@ -110,8 +110,8 @@ int main(int argc, char* argv[]) {
 // Worker function for performing the simulation with specified parameters.
 //
 bool TestTranSpring(
-    const ChVector<>& jointLocGnd,   // absolute location of the distance constrain ground attachment point
-    const ChVector<>& jointLocPend,  // absolute location of the distance constrain pendulum attachment point
+    const ChVector3d& jointLocGnd,   // absolute location of the distance constrain ground attachment point
+    const ChVector3d& jointLocPend,  // absolute location of the distance constrain pendulum attachment point
     const ChCoordsys<>& PendCSYS,    // Coordinate system for the pendulum
     const double spring_coef,        // Linear Spring stiffness
     const double damping_coef,       // Damping Coefficent
@@ -128,7 +128,7 @@ bool TestTranSpring(
     // (MKS is used in this example)
 
     double mass = 1.0;                     // mass of pendulum
-    ChVector<> inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
+    ChVector3d inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;
 
     double timeRecord = 5;  // simulation length
@@ -140,7 +140,7 @@ bool TestTranSpring(
     // handled by this ChSystem object.
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
@@ -242,7 +242,7 @@ bool TestTranSpring(
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();
-    ChVector<> angVelLoc = pendulum->GetWvel_loc();
+    ChVector3d angVelLoc = pendulum->GetWvel_loc();
     double transKE = 0.5 * mass * pendulum->GetPos_dt().Length2();
     double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
     double deltaPE = mass * g * (pendulum->GetPos().z() - PendCSYS.pos.z());
@@ -256,8 +256,8 @@ bool TestTranSpring(
         // Ensure that the final data point is recorded.
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
-            const ChVector<>& position = pendulum->GetPos();
-            const ChVector<>& velocity = pendulum->GetPos_dt();
+            const ChVector3d& position = pendulum->GetPos();
+            const ChVector3d& velocity = pendulum->GetPos_dt();
             out_pos << simTime << position << std::endl;
             out_vel << simTime << velocity << std::endl;
             out_acc << simTime << pendulum->GetPos_dtdt() << std::endl;
@@ -272,15 +272,15 @@ bool TestTranSpring(
             // Force is given as a scalar and is then transformed into a vector in global coordiantes
             // Torques are expressed in the link coordinate system. We convert them to
             // the coordinate system of Body2 (in our case this is the ground).
-            ChVector<> springVector = spring->GetPoint2Abs() - spring->GetPoint1Abs();
+            ChVector3d springVector = spring->GetPoint2Abs() - spring->GetPoint1Abs();
             springVector.Normalize();
             double springForce = spring->GetForce();
-            ChVector<> springForceGlobal = springForce * springVector;
+            ChVector3d springForceGlobal = springForce * springVector;
             out_rfrc << simTime << springForceGlobal << std::endl;
 
             ChCoordsys<> linkCoordsys = spring->GetLinkRelativeCoords();
-            ChVector<> reactTorque = spring->Get_react_torque();
-            ChVector<> reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
+            ChVector3d reactTorque = spring->Get_react_torque();
+            ChVector3d reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
             out_rtrq << simTime << reactTorqueGlobal << std::endl;
 
             // Conservation of Energy

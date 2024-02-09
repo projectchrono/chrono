@@ -41,7 +41,7 @@ Duro::Duro()
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initFwdVel(0),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
@@ -59,7 +59,7 @@ Duro::Duro(ChSystem* system)
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initFwdVel(0),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}

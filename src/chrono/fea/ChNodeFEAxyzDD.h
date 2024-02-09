@@ -29,26 +29,26 @@ namespace fea {
 /// two different directions or else a gradient and a curvature.
 class ChApi ChNodeFEAxyzDD : public ChNodeFEAxyzD {
   public:
-    ChNodeFEAxyzDD(ChVector<> initial_pos = VNULL, ChVector<> initial_dir = VECT_X, ChVector<> initial_curv = VNULL);
+    ChNodeFEAxyzDD(ChVector3d initial_pos = VNULL, ChVector3d initial_dir = VECT_X, ChVector3d initial_curv = VNULL);
     ChNodeFEAxyzDD(const ChNodeFEAxyzDD& other);
     ~ChNodeFEAxyzDD();
 
     ChNodeFEAxyzDD& operator=(const ChNodeFEAxyzDD& other);
 
     /// Set the 2nd derivative vector.
-    void SetDD(const ChVector<>& d) { DD = d; }
+    void SetDD(const ChVector3d& d) { DD = d; }
     /// Get the 2nd derivative vector.
-    const ChVector<>& GetDD() const { return DD; }
+    const ChVector3d& GetDD() const { return DD; }
 
     /// Set the speed of the 2nd derivative vector.
-    void SetDD_dt(const ChVector<>& dt) { DD_dt = dt; }
+    void SetDD_dt(const ChVector3d& dt) { DD_dt = dt; }
     /// Get the speed of the 2nd derivative vector.
-    const ChVector<>& GetDD_dt() const { return DD_dt; }
+    const ChVector3d& GetDD_dt() const { return DD_dt; }
 
     /// Set the acceleration of the 2nd derivative vector.
-    void SetDD_dtdt(const ChVector<>& dtt) { DD_dtdt = dtt; }
+    void SetDD_dtdt(const ChVector3d& dtt) { DD_dtdt = dtt; }
     /// Get the  acceleration of the 2nd derivative vector.
-    const ChVector<>& GetDD_dtdt() const { return DD_dtdt; }
+    const ChVector3d& GetDD_dtdt() const { return DD_dtdt; }
 
     ChVariables& Variables_DD() { return *variables_DD; }
 
@@ -187,9 +187,9 @@ class ChApi ChNodeFEAxyzDD : public ChNodeFEAxyzD {
 
   private:
     ChVariablesGenericDiagonalMass* variables_DD;  ///< 2nd derivative vector
-    ChVector<> DD;
-    ChVector<> DD_dt;
-    ChVector<> DD_dtdt;
+    ChVector3d DD;
+    ChVector3d DD_dt;
+    ChVector3d DD_dtdt;
 };
 
 /// @} fea_nodes

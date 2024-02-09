@@ -29,7 +29,7 @@
 
 #include "chrono/core/ChGlobal.h"
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/solver/ChConstraintTuple.h"
@@ -250,9 +250,9 @@ void my_serialization_example(ChArchiveOut& marchive) {
     m_stlvector.push_back(2.3);
     m_stlvector.push_back(45.3);
     m_stlvector.push_back(66.44);
-    std::list<ChVector<> > m_stllist;
-    m_stllist.push_back(ChVector<>(1, 2, 3));
-    m_stllist.push_back(ChVector<>(3, 4, 5));
+    std::list<ChVector3d > m_stllist;
+    m_stllist.push_back(ChVector3d(1, 2, 3));
+    m_stllist.push_back(ChVector3d(3, 4, 5));
     std::pair<int, double> m_stlpair(120, 0.99);
     std::unordered_map<int, double> m_stlunorderedmap;
     m_stlunorderedmap[12] = 11.2;
@@ -262,7 +262,7 @@ void my_serialization_example(ChArchiveOut& marchive) {
     m_matr_dyn.fillRandom(0, 10);
     ChMatrixNM<double, 2, 3> m_matr_NM;
     m_matr_NM.fillRandom(-1, +1);
-    ChVector<> m_vect(0.5, 0.6, 0.7);
+    ChVector3d m_vect(0.5, 0.6, 0.7);
     ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);
 
     marchive << CHNVP(m_double, "custom_double");  // store data n.1
@@ -291,12 +291,12 @@ void my_serialization_example(ChArchiveOut& marchive) {
     // the serialization of pointers takes care of redundancy.
     // In order to use this feature, the classes must implement
     // ArchiveIn and ArchiveOut functions.
-    ChVector<>* a_vect = new ChVector<>(1, 2, 3);
+    ChVector3d* a_vect = new ChVector3d(1, 2, 3);
     marchive << CHNVP(a_vect);
     delete a_vect;
 
     // Null pointers can be serialized. They will be deserialized as null.
-    ChVector<>* a_null_ptr = 0;
+    ChVector3d* a_null_ptr = 0;
     marchive << CHNVP(a_null_ptr);
 
     // Also store c++ objects referenced by pointer, using the
@@ -336,9 +336,9 @@ void my_serialization_example(ChArchiveOut& marchive) {
     marchive << CHNVP(mcustomconstr);
 
     // Serialize an object where some pointers are un-linked as external, marking them with unique IDs
-    std::vector<ChVector<>*> vect_of_pointers;
-    ChVector<>* mvp1 = new ChVector<>(1, 2, 3);
-    ChVector<>* mvp2 = new ChVector<>(7, 8, 7);
+    std::vector<ChVector3d*> vect_of_pointers;
+    ChVector3d* mvp1 = new ChVector3d(1, 2, 3);
+    ChVector3d* mvp2 = new ChVector3d(7, 8, 7);
     vect_of_pointers.push_back(mvp1);
     vect_of_pointers.push_back(mvp2);
     // define that some object should not be serialized, but rather marked with ID for later rebinding
@@ -357,16 +357,16 @@ void my_deserialization_example(ChArchiveIn& marchive) {
     char m_text[12];  // better use std::string
     std::string m_string;
     std::vector<double> m_stlvector;
-    std::list<ChVector<> > m_stllist;
+    std::list<ChVector3d > m_stllist;
     std::pair<int, double> m_stlpair;
     std::unordered_map<int, double> m_stlunorderedmap;
     ChMatrixDynamic<> m_matr_dyn;
     ChMatrixNM<double, 2, 3> m_matr_NM;
-    ChVector<> m_vect;
+    ChVector3d m_vect;
     ChQuaternion<> m_quat;
     myEmployeeBoss m_boss;
-    ChVector<>* a_vect;
-    ChVector<>* a_null_ptr;
+    ChVector3d* a_vect;
+    ChVector3d* a_null_ptr;
 
     marchive >> CHNVP(m_double, "custom_double");  // deserialize data n.1
     marchive >> CHNVP(m_int);                      // deserialize data n.2
@@ -426,9 +426,9 @@ void my_deserialization_example(ChArchiveIn& marchive) {
     marchive >> CHNVP(mcustomconstr);
 
     // Deserialize an object where some pointers are re-linked from external pre-existing objects,
-    // marking them with unique IDs. Assume a ChVector is already here.
-    std::vector<ChVector<>*> vect_of_pointers;
-    ChVector<>* mvp1 = new ChVector<>(5, 6, 7);
+    // marking them with unique IDs. Assume a ChVector3 is already here.
+    std::vector<ChVector3d*> vect_of_pointers;
+    ChVector3d* mvp1 = new ChVector3d(5, 6, 7);
     marchive.RebindExternalPointer(mvp1, 1001);  // use unique identifier > 0
     marchive >> CHNVP(vect_of_pointers);
 
@@ -506,11 +506,11 @@ void my_system_serialization_example(ChArchiveOut& marchive) {
     // ..create a flywheel
     auto my_body_B = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_B);
-    my_body_B->SetPos(ChVector<>(0, 0, 0));
+    my_body_B->SetPos(ChVector3d(0, 0, 0));
 
     // ..create a constraint, i.e. a motor between flywheel and truss:
     auto my_link_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
+    my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector3d(0, 0, 0)));
     sys.AddLink(my_link_AB);
     auto my_speed_function = chrono_types::make_shared<ChFunctionConst>(CH_C_PI);  // speed w=3.145 rad/sec
     my_link_AB->SetSpeedFunction(my_speed_function);

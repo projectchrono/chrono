@@ -43,10 +43,10 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
     /*
     //***TEST***
-        ChVector<> mFi, mTi;
-        ChVector<> mWvel = (1, 2, 3);
-        ChVector<> mWacc =  (0.3, -0.2, 0.4);
-        ChVector<> mXacc =  (0.5, 0.6, -0.9); // ok
+        ChVector3d mFi, mTi;
+        ChVector3d mWvel = (1, 2, 3);
+        ChVector3d mWacc =  (0.3, -0.2, 0.4);
+        ChVector3d mXacc =  (0.5, 0.6, -0.9); // ok
         ChMatrixNM<double,6,6> mMi, mKi, mRi;
         ChMatrixNM<double,6,6> mKi_num, mRi_num;
         auto minertia1 = chrono_types::make_shared<ChInertiaCosseratAdvanced>(270.0, 0.1, 0.2, 5, 8, 0.5);
@@ -77,11 +77,11 @@ int main(int argc, char* argv[]) {
     double L = 1;
     double H = 0.25;
     double K = 0.05;
-    ChVector<> vA(0, 0, 0);
-    ChVector<> vC(L, 0, 0);
-    ChVector<> vB(L, -H, 0);
-    ChVector<> vG(L - K, -H, 0);
-    ChVector<> vd(0, 0, 0.0001);
+    ChVector3d vA(0, 0, 0);
+    ChVector3d vC(L, 0, 0);
+    ChVector3d vB(L, -H, 0);
+    ChVector3d vG(L - K, -H, 0);
+    ChVector3d vd(0, 0, 0.0001);
 
     // Create a truss:
     auto body_truss = chrono_types::make_shared<ChBody>();
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 
     // Attach a 'box' shape asset for visualization.
     auto mboxtruss = chrono_types::make_shared<ChVisualShapeBox>(0.02, 0.2, 0.1);
-    body_truss->AddVisualShape(mboxtruss, ChFrame<>(ChVector<>(-0.01, 0, 0)));
+    body_truss->AddVisualShape(mboxtruss, ChFrame<>(ChVector3d(-0.01, 0, 0)));
 
     // Create body for crank
     auto body_crank = chrono_types::make_shared<ChBody>();
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
                       3,                     // the number of ChElementBeamEuler to create
                       vC + vd,               // the 'A' point in space (beginning of beam)
                       vB + vd,               // the 'B' point in space (end of beam)
-                      ChVector<>(1, 0, 0));  // the 'Y' up direction of the section for the beam
+                      ChVector3d(1, 0, 0));  // the 'Y' up direction of the section for the beam
     auto node_top = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().front());
     auto node_down = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().back());
 
@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
                       3,                     // the number of ChElementBeamEuler to create
                       vG + vd,               // the 'A' point in space (beginning of beam)
                       vB + vd,               // the 'B' point in space (end of beam)
-                      ChVector<>(0, 1, 0));  // the 'Y' up direction of the section for the beam
+                      ChVector3d(0, 1, 0));  // the 'Y' up direction of the section for the beam
 
     auto node_crankG = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().front());
     auto node_crankB = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().back());
@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    vis->AddCamera(ChVector3d(0.0, 0.6, -1.0));
     vis->AttachSystem(&sys);
 
     // SIMULATION LOOP

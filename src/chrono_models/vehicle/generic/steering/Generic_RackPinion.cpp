@@ -23,7 +23,7 @@ namespace vehicle {
 namespace generic {
 
 const double Generic_RackPinion::m_steeringLinkMass = 9.072;
-const ChVector<> Generic_RackPinion::m_steeringLinkInertia(1, 1, 1);
+const ChVector3d Generic_RackPinion::m_steeringLinkInertia(1, 1, 1);
 const double Generic_RackPinion::m_steeringLinkCOM = 0;
 const double Generic_RackPinion::m_steeringLinkLength = 0.896;
 const double Generic_RackPinion::m_steeringLinkRadius = 0.03;

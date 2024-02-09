@@ -47,13 +47,13 @@ enum class ArchiveType { BINARY, JSON, XML };
 using namespace chrono;
 
 void assemble_fourbar(ChSystemNSC& system) {
-    system.Set_G_acc(ChVector<>(0, -9.81, 0));
+    system.Set_G_acc(ChVector3d(0, -9.81, 0));
 
     // Joint coords
-    ChFrame<> frameO(ChVector<>(0, 0, 0), QUNIT);
-    ChFrame<> frameA(ChVector<>(1, 1, 0), QUNIT);
-    ChFrame<> frameB(ChVector<>(3, 1, 0), QUNIT);
-    ChFrame<> frameC(ChVector<>(3, 0, 0), QUNIT);
+    ChFrame<> frameO(ChVector3d(0, 0, 0), QUNIT);
+    ChFrame<> frameA(ChVector3d(1, 1, 0), QUNIT);
+    ChFrame<> frameB(ChVector3d(3, 1, 0), QUNIT);
+    ChFrame<> frameC(ChVector3d(3, 0, 0), QUNIT);
 
     // Bodies
     auto floor = chrono_types::make_shared<ChBody>();
@@ -96,7 +96,7 @@ void assemble_fourbar(ChSystemNSC& system) {
 }
 
 void assemble_pendulum(ChSystemNSC& system) {
-    system.Set_G_acc(ChVector<>(0.0, -9.81, 0.0));
+    system.Set_G_acc(ChVector3d(0.0, -9.81, 0.0));
 
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetBodyFixed(true);
@@ -105,7 +105,7 @@ void assemble_pendulum(ChSystemNSC& system) {
     system.Add(floor);
 
     auto moving_body = chrono_types::make_shared<ChBody>();
-    moving_body->SetPos(ChVector<>(1.0, -1.0, 1.0));
+    moving_body->SetPos(ChVector3d(1.0, -1.0, 1.0));
     moving_body->SetName("moving_body");
     moving_body->SetIdentifier(101);
     system.Add(moving_body);
@@ -118,7 +118,7 @@ void assemble_pendulum(ChSystemNSC& system) {
 }
 
 void assemble_gear_and_pulleys(ChSystemNSC& sys) {
-    sys.Set_G_acc(ChVector<>(0, -10, 0));
+    sys.Set_G_acc(ChVector3d(0, -10, 0));
     // Create a Chrono physical system
 
     // Contact material shared among all bodies
@@ -137,20 +137,20 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
     auto mbody_truss = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, false, mat);
     sys.Add(mbody_truss);
     mbody_truss->SetBodyFixed(true);
-    mbody_truss->SetPos(ChVector<>(0, 0, 3));
+    mbody_truss->SetPos(ChVector3d(0, 0, 3));
 
     // ...the first gear
     auto mbody_gearA =
         chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radA, 0.5, 1000, true, false, mat);
     // auto mbody_gearA = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, false, mat);
     sys.Add(mbody_gearA);
-    mbody_gearA->SetPos(ChVector<>(0, 0, -1));
+    mbody_gearA->SetPos(ChVector3d(0, 0, -1));
     mbody_gearA->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
     mbody_gearA->GetVisualShape(0)->SetMaterial(0, vis_mat);
 
     // ...impose rotation speed between the first gear and the fixed truss
     auto link_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    link_motor->Initialize(mbody_gearA, mbody_truss, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
+    link_motor->Initialize(mbody_gearA, mbody_truss, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
     link_motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(6));
     sys.AddLink(link_motor);
 
@@ -159,14 +159,14 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
     auto mbody_gearB =
         chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radB, 0.4, 1000, true, false, mat);
     sys.Add(mbody_gearB);
-    mbody_gearB->SetPos(ChVector<>(interaxis12, 0, -1));
+    mbody_gearB->SetPos(ChVector3d(interaxis12, 0, -1));
     mbody_gearB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
     mbody_gearB->GetVisualShape(0)->SetMaterial(0, vis_mat);
 
     // ... the second gear is fixed to the rotating bar
     auto link_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    link_revolute->Initialize(mbody_gearB, mbody_truss, ChCoordsys<>(ChVector<>(interaxis12, 0, 0), QUNIT));  // TEMP
-    // link_revolute->Initialize(mbody_gearB, mbody_train, ChCoordsys<>(ChVector<>(interaxis12, 0, 0), QUNIT));
+    link_revolute->Initialize(mbody_gearB, mbody_truss, ChCoordsys<>(ChVector3d(interaxis12, 0, 0), QUNIT));  // TEMP
+    // link_revolute->Initialize(mbody_gearB, mbody_train, ChCoordsys<>(ChVector3d(interaxis12, 0, 0), QUNIT));
     sys.AddLink(link_revolute);
 
     auto link_gearAB = chrono_types::make_shared<ChLinkGear>();
@@ -179,7 +179,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
 }
 
 void assemble_pendulum_visual(ChSystemNSC& system) {
-    system.Set_G_acc(ChVector<>(0.0, -9.81, 0.0));
+    system.Set_G_acc(ChVector3d(0.0, -9.81, 0.0));
 
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetBodyFixed(true);
@@ -199,7 +199,7 @@ void assemble_pendulum_visual(ChSystemNSC& system) {
                                                                 false,       // collision?
                                                                 mat);        // contact material
     // auto moving_body = chrono_types::make_shared<ChBody>();
-    moving_body->SetPos(ChVector<>(1.0, -1.0, 1.0));
+    moving_body->SetPos(ChVector3d(1.0, -1.0, 1.0));
     moving_body->SetName("moving_body");
     moving_body->SetIdentifier(101);
     system.Add(moving_body);
@@ -316,7 +316,7 @@ TEST(ChArchiveJSON, Pendulum) {
 
     {
         ChSystemNSC system;
-        system.Set_G_acc(ChVector<>(0.0, -9.81, 0.0));
+        system.Set_G_acc(ChVector3d(0.0, -9.81, 0.0));
 
         auto floor = chrono_types::make_shared<ChBody>();
         floor->SetBodyFixed(true);
@@ -325,7 +325,7 @@ TEST(ChArchiveJSON, Pendulum) {
         system.Add(floor);
 
         auto moving_body = chrono_types::make_shared<ChBody>();
-        moving_body->SetPos(ChVector<>(1.0, -1.0, 1.0));
+        moving_body->SetPos(ChVector3d(1.0, -1.0, 1.0));
         moving_body->SetName("moving_body");
         moving_body->SetIdentifier(101);
         system.Add(moving_body);
@@ -436,7 +436,7 @@ TEST(ChArchiveJSON, nullpointers) {
         std::ofstream mfileo(outputfile + ".json");
         ChArchiveOutJSON marchiveout(mfileo);
 
-        ChVector<>* chvector_nullptr = nullptr;
+        ChVector3d* chvector_nullptr = nullptr;
         marchiveout << CHNVP(chvector_nullptr);
 
         ChSolver* chsolver_nullptr = nullptr;
@@ -446,7 +446,7 @@ TEST(ChArchiveJSON, nullpointers) {
     std::ifstream mfilei(outputfile + ".json");
     ChArchiveInJSON marchivein(mfilei);
 
-    ChVector<>* chvector_nullptr;
+    ChVector3d* chvector_nullptr;
     ChSolver* chsolver_nullptr;
 
     marchivein >> CHNVP(chvector_nullptr);

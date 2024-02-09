@@ -62,7 +62,7 @@ TEST(SensorInterface, sensors) {
 //    radar->SetLag(0.f);
 //    manager->AddSensor(radar);
     auto noise = chrono_types::make_shared<ChNoiseNone>();
-    auto gps = chrono_types::make_shared<ChGPSSensor>(box, 100, chrono::ChFrame<double>(), ChVector<>(0, 0, 0), noise);
+    auto gps = chrono_types::make_shared<ChGPSSensor>(box, 100, chrono::ChFrame<double>(), ChVector3d(0, 0, 0), noise);
     gps->SetLag(0.f);
     manager->AddSensor(gps);
     auto acc = chrono_types::make_shared<ChAccelerometerSensor>(box, 100, chrono::ChFrame<double>(), noise);
@@ -72,7 +72,7 @@ TEST(SensorInterface, sensors) {
     gyro->SetLag(0.f);
     manager->AddSensor(gyro);
     auto mag = chrono_types::make_shared<ChMagnetometerSensor>(box, 100, chrono::ChFrame<double>(), noise,
-                                                               ChVector<>(0, 0, 0));
+                                                               ChVector3d(0, 0, 0));
     mag->SetLag(0.f);
     manager->AddSensor(mag);
 
@@ -112,7 +112,7 @@ TEST(SensorInterface, shapes) {
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
 
-    auto lidar = chrono_types::make_shared<ChLidarSensor>(box, 10, chrono::ChFrame<double>(ChVector<>(0, 0, 0), QUNIT),
+    auto lidar = chrono_types::make_shared<ChLidarSensor>(box, 10, chrono::ChFrame<double>(ChVector3d(0, 0, 0), QUNIT),
                                                           1, 1, 0, 0, 0, 100);
     lidar->SetLag(0.f);
     lidar->SetCollectionWindow(0.f);
@@ -186,12 +186,12 @@ TEST(SensorInterface, shapes) {
 TEST(SensorInterface, mesh_channels) {
     // triangle data
 
-    std::vector<ChVector<double>> vertices = {{2.f, 0.f, 0.5f}, {2.f, 0.5f, -0.5f}, {2.f, -0.5f, -0.5f}};
-    std::vector<ChVector<double>> normals = {{-1.f, 0.f, 0.f}};
-    std::vector<ChVector2<double>> uvs = {{0.5f, 1.f}, {0.f, 0.f}, {1.f, 0.f}};
-    std::vector<ChVector<int>> vert_ids = {{0, 1, 2}};
-    std::vector<ChVector<int>> norm_ids = {{0, 0, 0}};
-    std::vector<ChVector<int>> uv_ids = {{0, 1, 2}};
+    std::vector<ChVector3d> vertices = {{2.f, 0.f, 0.5f}, {2.f, 0.5f, -0.5f}, {2.f, -0.5f, -0.5f}};
+    std::vector<ChVector3d> normals = {{-1.f, 0.f, 0.f}};
+    std::vector<ChVector2d> uvs = {{0.5f, 1.f}, {0.f, 0.f}, {1.f, 0.f}};
+    std::vector<ChVector3i> vert_ids = {{0, 1, 2}};
+    std::vector<ChVector3i> norm_ids = {{0, 0, 0}};
+    std::vector<ChVector3i> uv_ids = {{0, 1, 2}};
     std::vector<int> mat_ids = {0};
 
     ChSystemNSC sys;
@@ -215,7 +215,7 @@ TEST(SensorInterface, mesh_channels) {
     sys.Add(tri_body);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
-    auto lidar = chrono_types::make_shared<ChLidarSensor>(box, 10, chrono::ChFrame<double>(ChVector<>(0, 0, 0), QUNIT),
+    auto lidar = chrono_types::make_shared<ChLidarSensor>(box, 10, chrono::ChFrame<double>(ChVector3d(0, 0, 0), QUNIT),
                                                           1, 1, 0, 0, 0, 100);
     lidar->SetLag(0.f);
     lidar->SetCollectionWindow(0.f);

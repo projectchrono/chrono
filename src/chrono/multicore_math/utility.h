@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChVector2.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix33.h"
@@ -71,11 +71,11 @@ class real3_int {
 
 // -----------------------------------------------------------------------------
 
-static ChVector<real> ToChVector(const real3& v) {
-    return ChVector<real>(v.x, v.y, v.z);
+static ChVector3<real> ToChVector(const real3& v) {
+    return ChVector3<real>(v.x, v.y, v.z);
 }
 
-static real3 FromChVector(const ChVector<real>& v) {
+static real3 FromChVector(const ChVector3<real>& v) {
     return real3(v.x(), v.y(), v.z());
 }
 

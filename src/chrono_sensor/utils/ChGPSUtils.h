@@ -20,7 +20,7 @@
 #ifndef CHGPSUTILS_H
 #define CHGPSUTILS_H
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono_sensor/ChApiSensor.h"
 
 namespace chrono {
@@ -30,14 +30,14 @@ namespace sensor {
 #define EARTH_RADIUS 6371000.0
 
 /// Utility function for calculating Cartesian coordinates from GPS coordinates given the simulation's reference point
-/// @param coords The Cartisian coordinates to be modified. This ChVector is modified and used as output
+/// @param coords The Cartisian coordinates to be modified. This vector is modified and used as output
 /// @param ref The simulation's reference location
-CH_SENSOR_API void Cartesian2GPS(ChVector<double>& coords, ChVector<double>& ref);
+CH_SENSOR_API void Cartesian2GPS(ChVector3d& coords, ChVector3d& ref);
 
 /// Utility function for calculating GPS coordinates from Cartesian coordinates given the simulation's reference point
-/// @param coords The GPS coordinates to be modified. This ChVector is modified and used as output
+/// @param coords The GPS coordinates to be modified. This vector is modified and used as output
 /// @param ref The simulation's reference location
-CH_SENSOR_API void GPS2Cartesian(ChVector<double>& coords, ChVector<double>& ref);
+CH_SENSOR_API void GPS2Cartesian(ChVector3d& coords, ChVector3d& ref);
 
 }  // namespace sensor
 }  // namespace chrono

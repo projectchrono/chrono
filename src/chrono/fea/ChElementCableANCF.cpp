@@ -101,10 +101,10 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         // of the function for calculating the internal forces.  With this, the calculation
         // of the Jacobian with finite differences is thread safe (otherwise, there would
         // be race conditions when adjacent elements attempt to perturb a common node).
-        ChVector<> pos[2] = {m_nodes[0]->GetPos(), m_nodes[1]->GetPos()};
-        ChVector<> D[2] = {m_nodes[0]->GetD(), m_nodes[1]->GetD()};
-        ChVector<> pos_dt[2] = {m_nodes[0]->GetPos_dt(), m_nodes[1]->GetPos_dt()};
-        ChVector<> D_dt[2] = {m_nodes[0]->GetD_dt(), m_nodes[1]->GetD_dt()};
+        ChVector3d pos[2] = {m_nodes[0]->GetPos(), m_nodes[1]->GetPos()};
+        ChVector3d D[2] = {m_nodes[0]->GetD(), m_nodes[1]->GetD()};
+        ChVector3d pos_dt[2] = {m_nodes[0]->GetPos_dt(), m_nodes[1]->GetPos_dt()};
+        ChVector3d D_dt[2] = {m_nodes[0]->GetD_dt(), m_nodes[1]->GetD_dt()};
 
         // Add part of the Jacobian stemming from elastic forces
         for (int inode = 0; inode < 2; ++inode) {
@@ -181,10 +181,10 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         double E = m_section->E;
         double I = m_section->I;
 
-        ChVector<> pA = m_nodes[0]->GetPos();
-        ChVector<> dA = m_nodes[0]->GetD();
-        ChVector<> pB = m_nodes[1]->GetPos();
-        ChVector<> dB = m_nodes[1]->GetD();
+        ChVector3d pA = m_nodes[0]->GetPos();
+        ChVector3d dA = m_nodes[0]->GetD();
+        ChVector3d pB = m_nodes[1]->GetPos();
+        ChVector3d dB = m_nodes[1]->GetD();
 
         // this matrix will be used in both CableANCF_StiffnessAxial and CableANCF_StiffnessCurv integrators
         ChMatrixNM<double, 4, 3> d;
@@ -287,9 +287,9 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
                     Sdd(2, 3 * i + 2) = Ndd(i);
                 }
 
-                ChVector<> vr_x((*d).transpose() * Nd.transpose());
-                ChVector<> vr_xx((*d).transpose() * Ndd.transpose());
-                ChVector<> vf1 = Vcross(vr_x, vr_xx);
+                ChVector3d vr_x((*d).transpose() * Nd.transpose());
+                ChVector3d vr_xx((*d).transpose() * Ndd.transpose());
+                ChVector3d vf1 = Vcross(vr_x, vr_xx);
                 double f = vf1.Length();
                 double g1 = vr_x.Length();
                 double g = pow(g1, 3);
@@ -298,9 +298,9 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
 
                 // do:  fe1=cross(Sd,r_xxrep)+cross(r_xrep,Sdd);
                 for (int col = 0; col < 12; ++col) {
-                    ChVector<> Sd_i = Sd.col(col);
+                    ChVector3d Sd_i = Sd.col(col);
                     fe1.col(col) = Vcross(Sd_i, vr_xx).eigen();
-                    ChVector<> Sdd_i = Sdd.col(col);
+                    ChVector3d Sdd_i = Sdd.col(col);
                     fe1.col(col) = Vcross(vr_x, Sdd_i).eigen();
                 }
                 ChVectorN<double, 3> f1 = vf1.eigen();
@@ -443,14 +443,14 @@ void ChElementCableANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 // Worker function for computing the internal forces.
 // This function takes the nodal coordinates as arguments and is therefore thread-safe.
 // (Typically invoked by ComputeInternalForces. Used explicitly in the FD Jacobian approximation).
-void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
-                                                    const ChVector<>& dA,
-                                                    const ChVector<>& pB,
-                                                    const ChVector<>& dB,
-                                                    const ChVector<>& pA_dt,
-                                                    const ChVector<>& dA_dt,
-                                                    const ChVector<>& pB_dt,
-                                                    const ChVector<>& dB_dt,
+void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector3d& pA,
+                                                    const ChVector3d& dA,
+                                                    const ChVector3d& pB,
+                                                    const ChVector3d& dB,
+                                                    const ChVector3d& pA_dt,
+                                                    const ChVector3d& dA_dt,
+                                                    const ChVector3d& pB_dt,
+                                                    const ChVector3d& dB_dt,
                                                     ChVectorDynamic<>& Fi) {
     assert(Fi.size() == GetNdofs());
     assert(m_section);
@@ -583,9 +583,9 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
                 Sdd(2, 3 * i + 2) = Ndd(i);
             }
 
-            ChVector<> vr_x((*d).transpose() * Nd.transpose());
-            ChVector<> vr_xx((*d).transpose() * Ndd.transpose());
-            ChVector<> vf1 = Vcross(vr_x, vr_xx);
+            ChVector3d vr_x((*d).transpose() * Nd.transpose());
+            ChVector3d vr_xx((*d).transpose() * Ndd.transpose());
+            ChVector3d vf1 = Vcross(vr_x, vr_xx);
             double f = vf1.Length();
             double g1 = vr_x.Length();
             double g = pow(g1, 3);
@@ -595,9 +595,9 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
 
             // do:  fe1=cross(Sd,r_xxrep)+cross(r_xrep,Sdd);
             for (int col = 0; col < 12; ++col) {
-                ChVector<> Sd_i = Sd.col(col);
+                ChVector3d Sd_i = Sd.col(col);
                 fe1.col(col) = Vcross(Sd_i, vr_xx).eigen();
-                ChVector<> Sdd_i = Sdd.col(col);
+                ChVector3d Sdd_i = Sdd.col(col);
                 fe1.col(col) += Vcross(vr_x, Sdd_i).eigen();
             }
             ChVectorN<double, 3> f1 = vf1.eigen();
@@ -637,7 +637,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
 }
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
-void ChElementCableANCF::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementCableANCF::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     assert(Fg.size() == GetNdofs());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
@@ -650,7 +650,7 @@ void ChElementCableANCF::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVec
     GravForceCompact = m_GravForceScale * G_acc.eigen().transpose();
 }
 
-void ChElementCableANCF::EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) {
+void ChElementCableANCF::EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) {
     ShapeVector N;
     double xi = (eta + 1.0) * 0.5;
     ShapeFunctions(N, xi);  // because ShapeFunctions() works in 0..1 range
@@ -659,18 +659,18 @@ void ChElementCableANCF::EvaluateSectionDisplacement(const double eta, ChVector<
     u_rotaz = VNULL;  //(not needed in ANCF? )
 }
 
-void ChElementCableANCF::EvaluateSectionFrame(const double eta, ChVector<>& point, ChQuaternion<>& rot) {
-    ChVector<> u_displ;
-    ChVector<> u_rotaz;
+void ChElementCableANCF::EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) {
+    ChVector3d u_displ;
+    ChVector3d u_rotaz;
 
     double xi = (eta + 1.0) * 0.5;  // because ShapeFunctions() works in 0..1 range
     ShapeVector N;
     ShapeFunctions(N, xi);
 
-    ChVector<> pA = m_nodes[0]->GetPos();
-    ChVector<> dA = m_nodes[0]->GetD();
-    ChVector<> pB = m_nodes[1]->GetPos();
-    ChVector<> dB = m_nodes[1]->GetD();
+    ChVector3d pA = m_nodes[0]->GetPos();
+    ChVector3d dA = m_nodes[0]->GetD();
+    ChVector3d pB = m_nodes[1]->GetPos();
+    ChVector3d dB = m_nodes[1]->GetD();
 
     point.x() = N(0) * pA.x() + N(1) * dA.x() + N(2) * pB.x() + N(3) * dB.x();
     point.y() = N(0) * pA.y() + N(1) * dA.y() + N(2) * pB.y() + N(3) * dB.y();
@@ -678,7 +678,7 @@ void ChElementCableANCF::EvaluateSectionFrame(const double eta, ChVector<>& poin
 
     ShapeFunctionsDerivatives(N, xi);
 
-    ChVector<> Dx;
+    ChVector3d Dx;
 
     Dx.x() = N(0) * pA.x() + N(1) * dA.x() + N(2) * pB.x() + N(3) * dB.x();
     Dx.y() = N(0) * pA.y() + N(1) * dA.y() + N(2) * pB.y() + N(3) * dB.y();
@@ -695,7 +695,7 @@ void ChElementCableANCF::EvaluateSectionFrame(const double eta, ChVector<>& poin
     rot = msect.Get_A_quaternion();
 }
 
-void ChElementCableANCF::EvaluateSectionForceTorque(const double eta, ChVector<>& Fforce, ChVector<>& Mtorque) {
+void ChElementCableANCF::EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) {
     assert(m_section);
 
     ShapeVector N;
@@ -707,7 +707,7 @@ void ChElementCableANCF::EvaluateSectionForceTorque(const double eta, ChVector<>
     /* To be completed*/
 }
 
-void ChElementCableANCF::EvaluateSectionStrain(const double eta, ChVector<>& StrainV) {
+void ChElementCableANCF::EvaluateSectionStrain(const double eta, ChVector3d& StrainV) {
     assert(m_section);
 
     ShapeVector N;
@@ -739,9 +739,9 @@ void ChElementCableANCF::EvaluateSectionStrain(const double eta, ChVector<>& Str
         Sdd(2, 3 * i + 2) = Ndd(i);
     }
 
-    ChVector<> vr_x(Sd * mD);
-    ChVector<> vr_xx(Sdd * mD);
-    ChVector<> vf1 = Vcross(vr_x, vr_xx);
+    ChVector3d vr_x(Sd * mD);
+    ChVector3d vr_xx(Sdd * mD);
+    ChVector3d vf1 = Vcross(vr_x, vr_xx);
     double f = vf1.Length();
     double g1 = vr_x.Length();
     double g = pow(g1, 3);

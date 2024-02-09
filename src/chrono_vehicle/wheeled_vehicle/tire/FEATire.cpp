@@ -93,14 +93,14 @@ void FEATire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     ////    Currently, we assume that the INP file contains a tire with rotation axis along X
     ChMeshFileLoader::FromAbaqusFile(m_mesh, GetDataFile(m_input_file).c_str(), m_material, m_node_sets,
                                      wheel_frame.GetPos(),
-                                     wheel_frame.GetA() * ChMatrix33<>(CH_C_PI_2, ChVector<>(0, 0, 1)));
+                                     wheel_frame.GetA() * ChMatrix33<>(CH_C_PI_2, ChVector3d(0, 0, 1)));
 
     for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(i));
         // Node position (expressed in wheel frame)
-        ChVector<> loc = wheel_frame.TransformPointParentToLocal(node->GetPos());
+        ChVector3d loc = wheel_frame.TransformPointParentToLocal(node->GetPos());
         // Node velocity (expressed in absolute frame)
-        ChVector<> vel = wheel_frame.PointSpeedLocalToParent(loc);
+        ChVector3d vel = wheel_frame.PointSpeedLocalToParent(loc);
         node->SetPos_dt(vel);
     }
 }

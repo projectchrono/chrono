@@ -27,7 +27,7 @@ class ChApi ChTriangleMesh : public ChGeometry {
     virtual ~ChTriangleMesh() {}
 
     /// Add a triangle to this triangle mesh, by specifying the three coordinates
-    virtual void addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) = 0;
+    virtual void addTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) = 0;
 
     /// Add a triangle to this triangle mesh, by specifying a ChTriangle
     virtual void addTriangle(const ChTriangle& atriangle) = 0;
@@ -42,10 +42,10 @@ class ChApi ChTriangleMesh : public ChGeometry {
     virtual void Clear() = 0;
 
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
-    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale) = 0;
+    virtual void Transform(const ChVector3d displ, const ChMatrix33<> rotscale) = 0;
 
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
-    virtual void Transform(const ChVector<> displ, const ChQuaternion<> mquat = ChQuaternion<>(1, 0, 0, 0));
+    virtual void Transform(const ChVector3d displ, const ChQuaternion<> mquat = ChQuaternion<>(1, 0, 0, 0));
 
     /// Get the class type as an enum.
     virtual Type GetClassType() const override { return Type::TRIANGLEMESH; }
@@ -54,7 +54,7 @@ class ChApi ChTriangleMesh : public ChGeometry {
     virtual ChAABB GetBoundingBox() const override;
 
     //// TODO
-    //// virtual ChVector<> Baricenter() const override;
+    //// virtual ChVector3d Baricenter() const override;
 
     /// This is a surface
     virtual int GetManifoldDimension() const override { return 2; }

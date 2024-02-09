@@ -139,13 +139,13 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
         /// Callback used to report contact points already added to the container.
         /// If it returns false, the contact scanning will be stopped.
         virtual bool OnReportContact(
-            const ChVector<>& pA,             ///< contact pA
-            const ChVector<>& pB,             ///< contact pB
+            const ChVector3d& pA,             ///< contact pA
+            const ChVector3d& pB,             ///< contact pB
             const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
             const double& distance,           ///< contact distance
             const double& eff_radius,         ///< effective radius of curvature at contact
-            const ChVector<>& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector<>& react_torques,  ///< react.torques, if rolling friction (if already computed).
+            const ChVector3d& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
+            const ChVector3d& react_torques,  ///< react.torques, if rolling friction (if already computed).
             ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)
             ChContactable* contactobjB,  ///< model B (note: some containers may not support it and could be nullptr)
             const int offset  ///< offset of the first constraint (the normal component) in the vector of lagrangian multipliers, if already book-keeped
@@ -173,10 +173,10 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     virtual void ComputeContactForces() override;
 
     /// Return the resultant contact force acting on the specified contactable object.
-    virtual ChVector<> GetContactableForce(ChContactable* contactable) override;
+    virtual ChVector3d GetContactableForce(ChContactable* contactable) override;
 
     /// Return the resultant contact torque acting on the specified contactable object.
-    virtual ChVector<> GetContactableTorque(ChContactable* contactable) override;
+    virtual ChVector3d GetContactableTorque(ChContactable* contactable) override;
 
     //
     // STATE FUNCTIONS

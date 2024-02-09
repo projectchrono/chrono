@@ -31,7 +31,7 @@ class ChParticleRemoverBox : public ChParticleProcessor {
     }
 
     /// Set the dimensions and position of the trigger box.
-    void SetBox(const ChVector<>& lengths, const ChFrame<>& frame) {
+    void SetBox(const ChVector3d& lengths, const ChFrame<>& frame) {
         auto trigbox = std::dynamic_pointer_cast<ChParticleEventTriggerBox>(trigger);
         if (!trigbox)
             throw std::invalid_argument("ChParticleRemoverBox had trigger replaced to non-box type");

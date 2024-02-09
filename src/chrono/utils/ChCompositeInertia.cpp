@@ -23,7 +23,7 @@ CompositeInertia::CompositeInertia() : m_mass(0) {
 
 // Utility function for calculating an inertia shift matrix from a given vector.
 // This matrix is used when applying the parallel axis theorem.
-ChMatrix33<> CompositeInertia::InertiaShiftMatrix(const ChVector<>& v) {
+ChMatrix33<> CompositeInertia::InertiaShiftMatrix(const ChVector3d& v) {
     ChMatrix33<> shift;
     shift(0, 0) = v.y() * v.y() + v.z() * v.z();
     shift(1, 1) = v.x() * v.x() + v.z() * v.z();
@@ -50,7 +50,7 @@ void CompositeInertia::AddComponent(
     const ChMatrix33<>& inertia,  // sub-component inertia tensor w.r.t. its centroidal frame
     bool is_void                  // indicate if sub-component represents a material void
     ) {
-    const ChVector<>& com = frame.GetPos();
+    const ChVector3d& com = frame.GetPos();
     const ChMatrix33<>& A = frame.GetA();
 
     double sign = is_void ? -1 : +1;

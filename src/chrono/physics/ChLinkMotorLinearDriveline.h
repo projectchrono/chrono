@@ -52,7 +52,7 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
     std::shared_ptr<ChShaftsBodyTranslation> innerconstraint1lin;  
     std::shared_ptr<ChShaftsBodyTranslation> innerconstraint2lin; 
     std::shared_ptr<ChShaftsBody> innerconstraint2rot; 
-    ChVector<> shaft2_rotation_dir; 
+    ChVector3d shaft2_rotation_dir; 
 
   public:
     ChLinkMotorLinearDriveline();
@@ -85,11 +85,11 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
 
     /// Set the direction of the inner rotation axis for body2, expressed in link coordinates 
     /// Default is VECT_X, same dir of guide, i.e. useful when anchoring drives with screw transmission.
-    void SetInnerShaft2RotDirection(ChVector<> md) { shaft2_rotation_dir = md; }
+    void SetInnerShaft2RotDirection(ChVector3d md) { shaft2_rotation_dir = md; }
 
     /// Get the direction of the inner rotation axis for body2, expressed in link coordinates 
     /// Default is VECT_X, same dir of guide, i.e. useful when anchoring drives with screw transmission.
-    ChVector<> GetInnerShaft2RotDirection() const { return shaft2_rotation_dir; }
+    ChVector3d GetInnerShaft2RotDirection() const { return shaft2_rotation_dir; }
 
 
     /// Get the force between body 1 and inner shaft 1 
@@ -128,10 +128,10 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            ChVector<> mpt1,                      ///< origin of slave frame 1 (rel. or abs.)
-                            ChVector<> mpt2,                      ///< origin of master frame 2 (rel. or abs.)
-                            ChVector<> mnorm1,                    ///< X axis of slave plane 1 (rel. or abs.)
-                            ChVector<> mnorm2                     ///< X axis of master plane 2 (rel. or abs.)
+                            ChVector3d mpt1,                      ///< origin of slave frame 1 (rel. or abs.)
+                            ChVector3d mpt2,                      ///< origin of master frame 2 (rel. or abs.)
+                            ChVector3d mnorm1,                    ///< X axis of slave plane 1 (rel. or abs.)
+                            ChVector3d mnorm2                     ///< X axis of master plane 2 (rel. or abs.)
                             ) override;
 
     /// Compute offsets of sub-objects, offsetting all the contained sub objects (the inner shafts)

@@ -77,7 +77,7 @@ class ANCFBeamTest {
 
     void SimulateVis();
 
-    ChVector<> GetBeamEndPointPos() { return m_nodeEndPoint->GetPos(); }
+    ChVector3d GetBeamEndPointPos() { return m_nodeEndPoint->GetPos(); }
 
     void RunTimingTest(ChMatrixNM<double, 4, 19>& timing_stats, const std::string& test_name);
 
@@ -94,7 +94,7 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     m_NumElements = num_elements;
     m_NumThreads = NumThreads;
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector<>(0, 0, -9.80665));
+    m_system->Set_G_acc(ChVector3d(0, 0, -9.80665));
     m_system->SetNumThreads(NumThreads, 1, NumThreads);
 
     // Set solver parameters
@@ -226,9 +226,9 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     double dx = length / (num_nodes - 1);
 
     // Setup beam cross section gradients to initially align with the global y and z directions
-    ChVector<> dir1(1, 0, 0);
-    ChVector<> dir2(0, 1, 0);
-    ChVector<> dir3(0, 0, 1);
+    ChVector3d dir1(1, 0, 0);
+    ChVector3d dir2(0, 1, 0);
+    ChVector3d dir3(0, 0, 1);
 
     // Create a grounded body to connect the 3D pendulum to
     auto grounded = chrono_types::make_shared<ChBody>();
@@ -236,15 +236,15 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     m_system->Add(grounded);
 
     // Create the first node and fix only its position to ground (Spherical Joint constraint)
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, 0, 0.0), dir1, dir2, dir3);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0, 0.0), dir1, dir2, dir3);
     mesh->AddNode(nodeA);
     auto pos_constraint = chrono_types::make_shared<ChLinkPointFrame>();
     pos_constraint->Initialize(nodeA, grounded);  // body to be connected to
     m_system->Add(pos_constraint);
 
     for (int i = 1; i <= num_elements; i++) {
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, 0, 0), dir1, dir2, dir3);
-        nodeB->SetPos_dt(ChVector<>(0, omega_z * (dx * (2 * i)), 0));
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, 0, 0), dir1, dir2, dir3);
+        nodeB->SetPos_dt(ChVector3d(0, omega_z * (dx * (2 * i)), 0));
         mesh->AddNode(nodeB);
 
         auto element = chrono_types::make_shared<ChElementBeamANCF_3243>();
@@ -277,16 +277,16 @@ void ANCFBeamTest::SimulateVis() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.4, 0.4, 0.4), ChVector<>(0, 0, 0));
+    vis->AddCamera(ChVector3d(-0.4, 0.4, 0.4), ChVector3d(0, 0, 0));
 
     while (vis->Run()) {
         std::cout << "Time(s): " << this->m_system->GetChTime() << "  Tip Pos(m): " << this->GetBeamEndPointPos()
                   << std::endl;
         vis->BeginScene();
         vis->Render();
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(1, 0, 0), ChColor(1, 0, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 1, 0), ChColor(0, 1, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 0, 1), ChColor(0, 0, 1));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(1, 0, 0), ChColor(1, 0, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 1, 0), ChColor(0, 1, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 0, 1), ChColor(0, 0, 1));
         ExecuteStep();
         vis->EndScene();
     }

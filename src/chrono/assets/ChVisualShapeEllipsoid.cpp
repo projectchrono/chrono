@@ -22,11 +22,11 @@ ChVisualShapeEllipsoid::ChVisualShapeEllipsoid() {
 }
 
 ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(double axis_x, double axis_y, double axis_z) {
-    gellipsoid.rad = ChVector<>(axis_x / 2, axis_y / 2, axis_z / 2);
+    gellipsoid.rad = ChVector3d(axis_x / 2, axis_y / 2, axis_z / 2);
     SetMutable(false);
 }
 
-ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const ChVector<>& axes) {
+ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const ChVector3d& axes) {
     gellipsoid.rad = axes / 2;
     SetMutable(false);
 }

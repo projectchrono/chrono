@@ -66,12 +66,12 @@ class ChApi ChConveyor : public ChPhysicsItem {
     bool GetBodyFixed() { return GetTruss()->GetBodyFixed(); }
 
     ChCoordsys<>& GetCoord() { return GetTruss()->GetCoord(); }
-    ChVector<>& GetPos() { return GetTruss()->GetPos(); }
+    ChVector3d& GetPos() { return GetTruss()->GetPos(); }
     ChQuaternion<>& GetRot() { return GetTruss()->GetRot(); }
     void SetCoord(const ChCoordsys<>& mcoord) { return GetTruss()->SetCoord(mcoord); }
-    void SetCoord(const ChVector<>& mv, const ChQuaternion<>& mq) { GetTruss()->SetCoord(mv, mq); }
+    void SetCoord(const ChVector3d& mv, const ChQuaternion<>& mq) { GetTruss()->SetCoord(mv, mq); }
     void SetRot(const ChQuaternion<>& mrot) { GetTruss()->SetRot(mrot); }
-    void SetPos(const ChVector<>& mpos) { GetTruss()->SetPos(mpos); }
+    void SetPos(const ChVector3d& mpos) { GetTruss()->SetPos(mpos); }
 
     /// Set the material surface properties by passing a ChContactMaterialNSC or ChContactMaterialSMC object.
     void SetMaterialSurface(std::shared_ptr<ChContactMaterial> mat) { conveyor_mat = mat; }

@@ -19,7 +19,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunctionSineStep)
 
-ChFunctionSineStep::ChFunctionSineStep(const ChVector2<>& p1, const ChVector2<>& p2) : m_p1(p1), m_p2(p2) {
+ChFunctionSineStep::ChFunctionSineStep(const ChVector2d& p1, const ChVector2d& p2) : m_p1(p1), m_p2(p2) {
     assert(m_p1.x() != m_p2.x());
     m_dp = p2 - p1;
 }
@@ -30,13 +30,13 @@ ChFunctionSineStep::ChFunctionSineStep(const ChFunctionSineStep& other) {
     m_dp = other.m_dp;
 }
 
-void ChFunctionSineStep::SetP1(const ChVector2<>& p1) {
+void ChFunctionSineStep::SetP1(const ChVector2d& p1) {
     m_p1 = p1;
     assert(m_p1.x() != m_p2.x());
     m_dp = m_p2 - m_p1;
 }
 
-void ChFunctionSineStep::SetP2(const ChVector2<>& p2) {
+void ChFunctionSineStep::SetP2(const ChVector2d& p2) {
     m_p2 = p2;
     assert(m_p1.x() != m_p2.x());
     m_dp = m_p2 - m_p1;

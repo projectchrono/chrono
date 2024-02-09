@@ -49,13 +49,13 @@ ChBlender::ChBlender(ChSystem* system) : ChPostProcessBase(system) {
     out_data_filename = "state";
     framenumber = 0;
     camera_add_default = false;
-    camera_location = ChVector<>(0, 1.5, -2);
-    camera_aim = ChVector<>(0, 0, 0);
-    camera_up = ChVector<>(0, 1, 0);
+    camera_location = ChVector3d(0, 1.5, -2);
+    camera_aim = ChVector3d(0, 0, 0);
+    camera_up = ChVector3d(0, 1, 0);
     camera_angle = 30;
     camera_orthographic = false;
     camera_found_in_assets = false;
-    def_light_location = ChVector<>(2, 3, -1);
+    def_light_location = ChVector3d(2, 3, -1);
     def_light_color = ChColor(1, 1, 1);
     def_light_cast_shadows = true;
     background = ChColor(1, 1, 1);
@@ -163,7 +163,7 @@ std::string bl_replaceAll(std::string result, const std::string& replaceWhat, co
     return result;
 }
 
-void ChBlender::SetCamera(ChVector<> location, ChVector<> aim, double angle, bool ortho) {
+void ChBlender::SetCamera(ChVector3d location, ChVector3d aim, double angle, bool ortho) {
     camera_add_default = true;
     camera_location = location;
     camera_aim = aim;
@@ -171,7 +171,7 @@ void ChBlender::SetCamera(ChVector<> location, ChVector<> aim, double angle, boo
     camera_orthographic = ortho;
 }
 
-void ChBlender::SetLight(ChVector<> location, ChColor color, bool cast_shadow) {
+void ChBlender::SetLight(ChVector3d location, ChColor color, bool cast_shadow) {
     def_light_location = location;
     def_light_color = color;
     def_light_cast_shadows = cast_shadow;
@@ -338,9 +338,9 @@ void ChBlender::ExportScript(const std::string& filename) {
             }
             assets_file << "chrono_cameras.objects.link(new_object)\n"
                         << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
-            ChVector<> cdirzm = camera_aim - camera_location;
-            ChVector<> cdirx = Vcross(cdirzm, VECT_Y);
-            ChVector<> cdiry = Vcross(cdirx, cdirzm);
+            ChVector3d cdirzm = camera_aim - camera_location;
+            ChVector3d cdirx = Vcross(cdirzm, VECT_Y);
+            ChVector3d cdiry = Vcross(cdirx, cdirzm);
             ChMatrix33<> cmrot;
             cmrot.Set_A_axis(cdirx.GetNormalized(), cdiry.GetNormalized(), -cdirzm.GetNormalized());
             ChFrame<> cframeloc(camera_location, cmrot);
@@ -608,7 +608,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
                            << mprop_scalar->name.c_str() << "')" << std::endl;
                 }
-                if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
+                if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector3d>*>(mprop)) {
                     *mfile << "vectors = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_vectors->data.size(); iv++) {
                         *mfile << "(" << mprop_vectors->data[iv].x() << "," << mprop_vectors->data[iv].y() << ","
@@ -643,7 +643,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
                            << mprop_scalar->name.c_str() << "')" << std::endl;
                 }
-                if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
+                if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector3d>*>(mprop)) {
                     *mfile << "vectors = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_vectors->data.size(); iv++) {
                         *mfile << "(" << mprop_vectors->data[iv].x() << "," << mprop_vectors->data[iv].y() << ","
@@ -787,7 +787,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                            << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str()
                            << "', per_instance=True)" << std::endl;
                 }
-                if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
+                if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector3d>*>(mprop)) {
                     *mfile << "data_" << mprop_vectors->name.c_str() << " = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_vectors->data.size(); iv++) {
                         *mfile << "(" << mprop_vectors->data[iv].x() << "," << mprop_vectors->data[iv].y() << ","
@@ -1033,7 +1033,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
             // Process only "known" shapes (i.e., shapes that were included in the assets file)
             if ((m_blender_shapes.find((size_t)shape.get()) != m_blender_shapes.end()) ||
                 (m_blender_frame_shapes.find((size_t)shape.get()) != m_blender_frame_shapes.end())) {
-                ChVector<> aux_scale(0, 0, 0);
+                ChVector3d aux_scale(0, 0, 0);
 
                 std::string shapename("shape_" + unique_bl_id((size_t)shape.get()));
                 const auto& shape_frame = shape_instance.second;
@@ -1041,15 +1041,15 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
                 // corner cases for performance reason (in case of multipe sphere asset with different radii, one
                 // blender mesh asset is used anyway, then use scale here)
                 if (auto mshpere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape))
-                    aux_scale = ChVector<>(mshpere->GetRadius());
+                    aux_scale = ChVector3d(mshpere->GetRadius());
                 else if (auto mellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape))
                     aux_scale = mellipsoid->GetSemiaxes();
                 else if (auto mbox = std::dynamic_pointer_cast<ChVisualShapeBox>(shape))
                     aux_scale = mbox->GetLengths();
                 else if (auto mcone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape))
-                    aux_scale = ChVector<>(mcone->GetRadius(), mcone->GetRadius(), mcone->GetHeight());
+                    aux_scale = ChVector3d(mcone->GetRadius(), mcone->GetRadius(), mcone->GetHeight());
                 else if (auto mcyl = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
-                    aux_scale = ChVector<>(mcyl->GetRadius(), mcyl->GetRadius(), mcyl->GetHeight());
+                    aux_scale = ChVector3d(mcyl->GetRadius(), mcyl->GetRadius(), mcyl->GetHeight());
                 }
 
                 state_file << " [";
@@ -1101,9 +1101,9 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
         for (const auto& camera_instance : item->GetCameras()) {
             std::string cameraname("camera_" + unique_bl_id((size_t)camera_instance.get()));
             auto& cpos = camera_instance->GetPosition();
-            ChVector<> cdirzm = camera_instance->GetAimPoint() - camera_instance->GetPosition();
-            ChVector<> cdirx = Vcross(cdirzm, camera_instance->GetUpVector());
-            ChVector<> cdiry = Vcross(cdirx, cdirzm);
+            ChVector3d cdirzm = camera_instance->GetAimPoint() - camera_instance->GetPosition();
+            ChVector3d cdirx = Vcross(cdirzm, camera_instance->GetUpVector());
+            ChVector3d cdiry = Vcross(cdirx, cdirzm);
             ChMatrix33<> cmrot;
             cmrot.Set_A_axis(cdirx.GetNormalized(), cdiry.GetNormalized(), -cdirzm.GetNormalized());
             ChFrame<> cframeloc(cpos, cmrot);
@@ -1227,13 +1227,13 @@ void ChBlender::ExportData(const std::string& filename) {
             class _reporter_class : public ChContactContainer::ReportContactCallback {
               public:
                 virtual bool OnReportContact(
-                    const ChVector<>& pA,             // contact pA
-                    const ChVector<>& pB,             // contact pB
+                    const ChVector3d& pA,             // contact pA
+                    const ChVector3d& pB,             // contact pB
                     const ChMatrix33<>& plane_coord,  // contact plane coordsystem (A column 'X' is contact normal)
                     const double& distance,           // contact distance
                     const double& eff_radius,         // effective radius of curvature at contact
-                    const ChVector<>& react_forces,   // react.forces (in coordsystem 'plane_coord')
-                    const ChVector<>& react_torques,  // react.torques (if rolling friction)
+                    const ChVector3d& react_forces,   // react.forces (in coordsystem 'plane_coord')
+                    const ChVector3d& react_torques,  // react.torques (if rolling friction)
                     ChContactable* contactobjA,       // model A (note: could be nullptr)
                     ChContactable* contactobjB        // model B (note: could be nullptr)
                     ) override {
@@ -1241,8 +1241,8 @@ void ChBlender::ExportData(const std::string& filename) {
                         fabs(react_forces.z()) > 1e-8) {
                         // ChMatrix33<> localmatr(plane_coord);
                         ChQuaternion<> q = plane_coord.Get_A_quaternion();
-                        // ChVector<> n1 = localmatr.Get_A_Xaxis();
-                        // ChVector<> absreac = localmatr * react_forces;
+                        // ChVector3d n1 = localmatr.Get_A_Xaxis();
+                        // ChVector3d absreac = localmatr * react_forces;
                         (*mfile) << "\t\t[";
                         (*mfile) << pA.x() << ", ";
                         (*mfile) << pA.y() << ", ";

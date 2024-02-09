@@ -59,23 +59,23 @@ class SpinningGravityTest : public ::testing::TestWithParam<ChSystemSMC::Contact
         // Create a multicore SMC system and set the system parameters
         sys = new ChSystemSMC();
         time_step = 3.0E-5;
-        SetSimParameters(sys, ChVector<>(0, -9.81, 0), fmodel);
+        SetSimParameters(sys, ChVector3d(0, -9.81, 0), fmodel);
 
         sys->SetNumThreads(2);
 
         // Add the wall to the system
         int id = -1;
         double wmass = 10.0;
-        ChVector<> wsize(4, 1, 4);
-        ChVector<> wpos(0, -wsize.y() / 2, 0);
+        ChVector3d wsize(4, 1, 4);
+        ChVector3d wpos(0, -wsize.y() / 2, 0);
 
-        auto wall = AddWall(id, sys, mat, wsize, wmass, wpos, ChVector<>(0, 0, 0), true);
+        auto wall = AddWall(id, sys, mat, wsize, wmass, wpos, ChVector3d(0, 0, 0), true);
 
         // Add the sphere to the system
         double srad = 0.5;
         double smass = 1.0;
-        ChVector<> spos(0, srad + 1e-2, 0);
-        ChVector<> init_v(0, 0, 0);
+        ChVector3d spos(0, srad + 1e-2, 0);
+        ChVector3d init_v(0, 0, 0);
 
         body = AddSphere(++id, sys, mat, srad, smass, spos, init_v);
 
@@ -100,7 +100,7 @@ class SpinningGravityTest : public ::testing::TestWithParam<ChSystemSMC::Contact
 
 TEST_P(SpinningGravityTest, rolling) {
     // Give the sphere a push in the horizontal direction
-    ChVector<> init_w(0, 1, 0);
+    ChVector3d init_w(0, 1, 0);
     body->SetWvel_par(init_w);
 
     double t_start = sys->GetChTime();

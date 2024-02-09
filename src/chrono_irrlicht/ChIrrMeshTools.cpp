@@ -700,7 +700,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 // for collision detection in Chrono::Engine.
 // -----------------------------------------------------------------------------
 void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, IMesh* pMesh) {
-    chrono::ChVector<> vertices[3];
+    chrono::ChVector3d vertices[3];
     u32 i, j, k, index, numVertices;
     u16* mb_indices;
 
@@ -720,7 +720,7 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
                     if (index > numVertices)
                         throw std::runtime_error(
                             "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh.");
-                    vertices[k] = chrono::ChVector<>(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
+                    vertices[k] = chrono::ChVector3d(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
                                                      mb_vertices[index].Pos.Z);
                 }
                 chTrimesh->addTriangle(vertices[0], vertices[1], vertices[2]);
@@ -736,7 +736,7 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
                     if (index > numVertices)
                         throw std::runtime_error(
                             "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh.");
-                    vertices[k] = chrono::ChVector<>(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
+                    vertices[k] = chrono::ChVector3d(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
                                                      mb_vertices[index].Pos.Z);
                 }
                 chTrimesh->addTriangle(vertices[0], vertices[1], vertices[2]);
@@ -762,8 +762,8 @@ void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::geometry::ChTriangleMesh
     buffer->Indices.set_used(chTrimesh->getNumTriangles() * 3);
 
     for (int i = 0; i < chTrimesh->getNumTriangles(); i++) {
-        chrono::ChVector<> normal = chTrimesh->getTriangle(i).GetNormal();
-        chrono::ChVector<> pos;
+        chrono::ChVector3d normal = chTrimesh->getTriangle(i).GetNormal();
+        chrono::ChVector3d pos;
         pos = chTrimesh->getTriangle(i).p1;
         buffer->Vertices[i * 3 + 0] = irr::video::S3DVertex((f32)pos.x(), (f32)pos.y(), (f32)pos.z(), (f32)normal.x(),
                                                             (f32)normal.y(), (f32)normal.z(), clr, 0, 0);

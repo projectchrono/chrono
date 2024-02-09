@@ -70,7 +70,7 @@ void AddRevoluteJoint(std::shared_ptr<ChBodyAuxRef> body_1,
                       std::shared_ptr<ChBodyAuxRef> body_2,
                       std::shared_ptr<ChBodyAuxRef> chassis,
                       ChSystem* system,
-                      const ChVector<>& rel_joint_pos,
+                      const ChVector3d& rel_joint_pos,
                       const ChQuaternion<>& rel_joint_rot) {
     const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
@@ -87,7 +87,7 @@ void AddRevoluteJoint(std::shared_ptr<ChBodyEasyBox> body_1,
                       std::shared_ptr<ChBodyAuxRef> body_2,
                       std::shared_ptr<ChBodyAuxRef> chassis,
                       ChSystem* system,
-                      const ChVector<>& rel_joint_pos,
+                      const ChVector3d& rel_joint_pos,
                       const ChQuaternion<>& rel_joint_rot) {
     const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
@@ -104,7 +104,7 @@ void AddLockJoint(std::shared_ptr<ChBodyAuxRef> body_1,
                   std::shared_ptr<ChBodyAuxRef> body_2,
                   std::shared_ptr<ChBodyAuxRef> chassis,
                   ChSystem* system,
-                  const ChVector<>& rel_joint_pos,
+                  const ChVector3d& rel_joint_pos,
                   const ChQuaternion<>& rel_joint_rot) {
     const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
@@ -122,7 +122,7 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBody> body_
                                                    std::shared_ptr<ChBodyAuxRef> body_2,
                                                    std::shared_ptr<ChBodyAuxRef> chassis,
                                                    ChSystem* system,
-                                                   const ChVector<>& rel_joint_pos,
+                                                   const ChVector3d& rel_joint_pos,
                                                    const ChQuaternion<>& rel_joint_rot,
                                                    std::shared_ptr<ChFunctionConst> speed_func) {
     const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
@@ -141,7 +141,7 @@ Turtlebot_Part::Turtlebot_Part(const std::string& name,
                                bool fixed,
                                std::shared_ptr<ChContactMaterial> mat,
                                ChSystem* system,
-                               const ChVector<>& body_pos,
+                               const ChVector3d& body_pos,
                                const ChQuaternion<>& body_rot,
                                std::shared_ptr<ChBodyAuxRef> chassis_body,
                                bool collide) {
@@ -190,12 +190,12 @@ Turtlebot_Chassis::Turtlebot_Chassis(const std::string& name,
                                      bool fixed,
                                      std::shared_ptr<ChContactMaterial> mat,
                                      ChSystem* system,
-                                     const ChVector<>& body_pos,
+                                     const ChVector3d& body_pos,
                                      const ChQuaternion<>& body_rot,
                                      bool collide)
     : Turtlebot_Part(name, fixed, mat, system, body_pos, body_rot, NULL, collide) {
     m_mesh_name = "chassis";
-    m_offset = ChVector<>(0, 0, 0);
+    m_offset = ChVector3d(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
     m_density = 100;
 }
@@ -203,15 +203,15 @@ Turtlebot_Chassis::Turtlebot_Chassis(const std::string& name,
 void Turtlebot_Chassis::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+    trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
     double mmass;
-    ChVector<> mcog;
+    ChVector3d mcog;
     ChMatrix33<> minertia;
     trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
+    ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
     m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
@@ -237,7 +237,7 @@ void Turtlebot_Chassis::SetCollide(bool state) {
     m_body->SetCollide(state);
 }
 
-void Turtlebot_Chassis::Translate(const ChVector<>& shift) {
+void Turtlebot_Chassis::Translate(const ChVector3d& shift) {
     m_body->SetPos(m_body->GetPos() + shift);
 }
 
@@ -246,13 +246,13 @@ Turtlebot_ActiveWheel::Turtlebot_ActiveWheel(const std::string& name,
                                              bool fixed,
                                              std::shared_ptr<ChContactMaterial> mat,
                                              ChSystem* system,
-                                             const ChVector<>& body_pos,
+                                             const ChVector3d& body_pos,
                                              const ChQuaternion<>& body_rot,
                                              std::shared_ptr<ChBodyAuxRef> chassis,
                                              bool collide)
     : Turtlebot_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
     m_mesh_name = "active_wheel";
-    m_offset = ChVector<>(0, 0, 0);
+    m_offset = ChVector3d(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
     m_density = 200;
 }
@@ -260,15 +260,15 @@ Turtlebot_ActiveWheel::Turtlebot_ActiveWheel(const std::string& name,
 void Turtlebot_ActiveWheel::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+    trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
     double mmass;
-    ChVector<> mcog;
+    ChVector3d mcog;
     ChMatrix33<> minertia;
     trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
+    ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
     m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
@@ -299,7 +299,7 @@ void Turtlebot_ActiveWheel::SetCollide(bool state) {
     m_body->SetCollide(state);
 }
 
-void Turtlebot_ActiveWheel::Translate(const ChVector<>& shift) {
+void Turtlebot_ActiveWheel::Translate(const ChVector3d& shift) {
     m_body->SetPos(m_body->GetPos() + shift);
 }
 
@@ -308,13 +308,13 @@ Turtlebot_PassiveWheel::Turtlebot_PassiveWheel(const std::string& name,
                                                bool fixed,
                                                std::shared_ptr<ChContactMaterial> mat,
                                                ChSystem* system,
-                                               const ChVector<>& body_pos,
+                                               const ChVector3d& body_pos,
                                                const ChQuaternion<>& body_rot,
                                                std::shared_ptr<ChBodyAuxRef> chassis,
                                                bool collide)
     : Turtlebot_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
     m_mesh_name = "passive_wheel";
-    m_offset = ChVector<>(0, 0, 0);
+    m_offset = ChVector3d(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
     m_density = 200;
 }
@@ -322,15 +322,15 @@ Turtlebot_PassiveWheel::Turtlebot_PassiveWheel(const std::string& name,
 void Turtlebot_PassiveWheel::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+    trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
     double mmass;
-    ChVector<> mcog;
+    ChVector3d mcog;
     ChMatrix33<> minertia;
     trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
+    ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
     m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
@@ -361,7 +361,7 @@ void Turtlebot_PassiveWheel::SetCollide(bool state) {
     m_body->SetCollide(state);
 }
 
-void Turtlebot_PassiveWheel::Translate(const ChVector<>& shift) {
+void Turtlebot_PassiveWheel::Translate(const ChVector3d& shift) {
     m_body->SetPos(m_body->GetPos() + shift);
 }
 
@@ -370,13 +370,13 @@ Turtlebot_Rod_Short::Turtlebot_Rod_Short(const std::string& name,
                                          bool fixed,
                                          std::shared_ptr<ChContactMaterial> mat,
                                          ChSystem* system,
-                                         const ChVector<>& body_pos,
+                                         const ChVector3d& body_pos,
                                          const ChQuaternion<>& body_rot,
                                          std::shared_ptr<ChBodyAuxRef> chassis,
                                          bool collide)
     : Turtlebot_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
     m_mesh_name = "support_rod_short";
-    m_offset = ChVector<>(0, 0, 0);
+    m_offset = ChVector3d(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
     m_density = 100;
 }
@@ -384,15 +384,15 @@ Turtlebot_Rod_Short::Turtlebot_Rod_Short(const std::string& name,
 void Turtlebot_Rod_Short::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+    trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
     double mmass;
-    ChVector<> mcog;
+    ChVector3d mcog;
     ChMatrix33<> minertia;
     trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
+    ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
     m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
@@ -425,7 +425,7 @@ void Turtlebot_Rod_Short::SetCollide(bool state) {
     m_body->SetCollide(state);
 }
 
-void Turtlebot_Rod_Short::Translate(const ChVector<>& shift) {
+void Turtlebot_Rod_Short::Translate(const ChVector3d& shift) {
     m_body->SetPos(m_body->GetPos() + shift);
 }
 
@@ -434,13 +434,13 @@ Turtlebot_BottomPlate::Turtlebot_BottomPlate(const std::string& name,
                                              bool fixed,
                                              std::shared_ptr<ChContactMaterial> mat,
                                              ChSystem* system,
-                                             const ChVector<>& body_pos,
+                                             const ChVector3d& body_pos,
                                              const ChQuaternion<>& body_rot,
                                              std::shared_ptr<ChBodyAuxRef> chassis,
                                              bool collide)
     : Turtlebot_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
     m_mesh_name = "plate_1";
-    m_offset = ChVector<>(0, 0, 0);
+    m_offset = ChVector3d(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
     m_density = 20;
 }
@@ -448,15 +448,15 @@ Turtlebot_BottomPlate::Turtlebot_BottomPlate(const std::string& name,
 void Turtlebot_BottomPlate::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+    trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
     double mmass;
-    ChVector<> mcog;
+    ChVector3d mcog;
     ChMatrix33<> minertia;
     trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
+    ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
     m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
@@ -488,7 +488,7 @@ void Turtlebot_BottomPlate::SetCollide(bool state) {
     m_body->SetCollide(state);
 }
 
-void Turtlebot_BottomPlate::Translate(const ChVector<>& shift) {
+void Turtlebot_BottomPlate::Translate(const ChVector3d& shift) {
     m_body->SetPos(m_body->GetPos() + shift);
 }
 
@@ -497,13 +497,13 @@ Turtlebot_MiddlePlate::Turtlebot_MiddlePlate(const std::string& name,
                                              bool fixed,
                                              std::shared_ptr<ChContactMaterial> mat,
                                              ChSystem* system,
-                                             const ChVector<>& body_pos,
+                                             const ChVector3d& body_pos,
                                              const ChQuaternion<>& body_rot,
                                              std::shared_ptr<ChBodyAuxRef> chassis,
                                              bool collide)
     : Turtlebot_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
     m_mesh_name = "plate_2";
-    m_offset = ChVector<>(0, 0, 0);
+    m_offset = ChVector3d(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
     m_density = 20;
 }
@@ -511,15 +511,15 @@ Turtlebot_MiddlePlate::Turtlebot_MiddlePlate(const std::string& name,
 void Turtlebot_MiddlePlate::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+    trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
     double mmass;
-    ChVector<> mcog;
+    ChVector3d mcog;
     ChMatrix33<> minertia;
     trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
+    ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
     m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
@@ -551,7 +551,7 @@ void Turtlebot_MiddlePlate::SetCollide(bool state) {
     m_body->SetCollide(state);
 }
 
-void Turtlebot_MiddlePlate::Translate(const ChVector<>& shift) {
+void Turtlebot_MiddlePlate::Translate(const ChVector3d& shift) {
     m_body->SetPos(m_body->GetPos() + shift);
 }
 
@@ -560,13 +560,13 @@ Turtlebot_TopPlate::Turtlebot_TopPlate(const std::string& name,
                                        bool fixed,
                                        std::shared_ptr<ChContactMaterial> mat,
                                        ChSystem* system,
-                                       const ChVector<>& body_pos,
+                                       const ChVector3d& body_pos,
                                        const ChQuaternion<>& body_rot,
                                        std::shared_ptr<ChBodyAuxRef> chassis,
                                        bool collide)
     : Turtlebot_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
     m_mesh_name = "plate_3";
-    m_offset = ChVector<>(0, 0, 0);
+    m_offset = ChVector3d(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
     m_density = 20;
 }
@@ -574,15 +574,15 @@ Turtlebot_TopPlate::Turtlebot_TopPlate(const std::string& name,
 void Turtlebot_TopPlate::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+    trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
     double mmass;
-    ChVector<> mcog;
+    ChVector3d mcog;
     ChMatrix33<> minertia;
     trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
+    ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
     m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
@@ -616,7 +616,7 @@ void Turtlebot_TopPlate::SetCollide(bool state) {
     m_body->SetCollide(state);
 }
 
-void Turtlebot_TopPlate::Translate(const ChVector<>& shift) {
+void Turtlebot_TopPlate::Translate(const ChVector3d& shift) {
     m_body->SetPos(m_body->GetPos() + shift);
 }
 
@@ -625,13 +625,13 @@ Turtlebot_Rod_Long::Turtlebot_Rod_Long(const std::string& name,
                                        bool fixed,
                                        std::shared_ptr<ChContactMaterial> mat,
                                        ChSystem* system,
-                                       const ChVector<>& body_pos,
+                                       const ChVector3d& body_pos,
                                        const ChQuaternion<>& body_rot,
                                        std::shared_ptr<ChBodyAuxRef> chassis,
                                        bool collide)
     : Turtlebot_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
     m_mesh_name = "support_rod_long";
-    m_offset = ChVector<>(0, 0, 0);
+    m_offset = ChVector3d(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
     m_density = 100;
 }
@@ -639,15 +639,15 @@ Turtlebot_Rod_Long::Turtlebot_Rod_Long(const std::string& name,
 void Turtlebot_Rod_Long::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+    trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
     double mmass;
-    ChVector<> mcog;
+    ChVector3d mcog;
     ChMatrix33<> minertia;
     trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
+    ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
     m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
@@ -681,14 +681,14 @@ void Turtlebot_Rod_Long::SetCollide(bool state) {
     m_body->SetCollide(state);
 }
 
-void Turtlebot_Rod_Long::Translate(const ChVector<>& shift) {
+void Turtlebot_Rod_Long::Translate(const ChVector3d& shift) {
     m_body->SetPos(m_body->GetPos() + shift);
 }
 
 // ==========================================================
 // Turtlebot Class for the complete robot model
 TurtleBot::TurtleBot(ChSystem* system,
-                     const ChVector<>& robot_pos,
+                     const ChVector3d& robot_pos,
                      const ChQuaternion<>& robot_rot,
                      std::shared_ptr<ChContactMaterial> wheel_mat)
     : m_system(system), m_robot_pos(robot_pos), m_robot_rot(robot_rot), m_wheel_material(wheel_mat) {
@@ -720,10 +720,10 @@ void TurtleBot::Create() {
     double dwy = 0.11505;
     double dwz = 0.03735;
     m_drive_wheels.push_back(chrono_types::make_shared<Turtlebot_ActiveWheel>(
-        "LDWheel", false, m_wheel_material, m_system, ChVector<>(dwx, +dwy, dwz), ChQuaternion<>(1, 0, 0, 0),
+        "LDWheel", false, m_wheel_material, m_system, ChVector3d(dwx, +dwy, dwz), ChQuaternion<>(1, 0, 0, 0),
         m_chassis->GetBody(), true));
     m_drive_wheels.push_back(chrono_types::make_shared<Turtlebot_ActiveWheel>(
-        "RDWheel", false, m_wheel_material, m_system, ChVector<>(dwx, -dwy, dwz), ChQuaternion<>(1, 0, 0, 0),
+        "RDWheel", false, m_wheel_material, m_system, ChVector3d(dwx, -dwy, dwz), ChQuaternion<>(1, 0, 0, 0),
         m_chassis->GetBody(), true));
 
     // passive driven wheels' positions relative to the chassis
@@ -732,10 +732,10 @@ void TurtleBot::Create() {
     double pwz = 0.02015;
 
     m_passive_wheels.push_back(chrono_types::make_shared<Turtlebot_PassiveWheel>(
-        "FPWheel", false, m_wheel_material, m_system, ChVector<>(pwx, pwy, pwz), ChQuaternion<>(1, 0, 0, 0),
+        "FPWheel", false, m_wheel_material, m_system, ChVector3d(pwx, pwy, pwz), ChQuaternion<>(1, 0, 0, 0),
         m_chassis->GetBody(), true));
     m_passive_wheels.push_back(chrono_types::make_shared<Turtlebot_PassiveWheel>(
-        "RPWheel", false, m_wheel_material, m_system, ChVector<>(-pwx, pwy, pwz), ChQuaternion<>(1, 0, 0, 0),
+        "RPWheel", false, m_wheel_material, m_system, ChVector3d(-pwx, pwy, pwz), ChQuaternion<>(1, 0, 0, 0),
         m_chassis->GetBody(), true));
 
     // create the first level supporting rod
@@ -764,22 +764,22 @@ void TurtleBot::Create() {
     double rod_s_5_z = 0.09615;
 
     m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-        "0-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_0_x, rod_s_0_y, rod_s_0_z),
+        "0-bottom-rod", false, m_wheel_material, m_system, ChVector3d(rod_s_0_x, rod_s_0_y, rod_s_0_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-        "1-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_1_x, rod_s_1_y, rod_s_1_z),
+        "1-bottom-rod", false, m_wheel_material, m_system, ChVector3d(rod_s_1_x, rod_s_1_y, rod_s_1_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-        "2-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_2_x, rod_s_2_y, rod_s_2_z),
+        "2-bottom-rod", false, m_wheel_material, m_system, ChVector3d(rod_s_2_x, rod_s_2_y, rod_s_2_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-        "3-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_3_x, rod_s_3_y, rod_s_3_z),
+        "3-bottom-rod", false, m_wheel_material, m_system, ChVector3d(rod_s_3_x, rod_s_3_y, rod_s_3_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-        "4-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_4_x, rod_s_4_y, rod_s_4_z),
+        "4-bottom-rod", false, m_wheel_material, m_system, ChVector3d(rod_s_4_x, rod_s_4_y, rod_s_4_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_1st_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-        "5-bottom-rod", false, m_wheel_material, m_system, ChVector<>(rod_s_5_x, rod_s_5_y, rod_s_5_z),
+        "5-bottom-rod", false, m_wheel_material, m_system, ChVector3d(rod_s_5_x, rod_s_5_y, rod_s_5_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
 
     // add the bottom plate
@@ -788,7 +788,7 @@ void TurtleBot::Create() {
     double bt_plate_z = 0.14615;
 
     m_bottom_plate = chrono_types::make_shared<Turtlebot_BottomPlate>(
-        "bottom_plate", false, m_wheel_material, m_system, ChVector<>(bt_plate_x, bt_plate_y, bt_plate_z),
+        "bottom_plate", false, m_wheel_material, m_system, ChVector3d(bt_plate_x, bt_plate_y, bt_plate_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true);
 
     // create the second level support rod
@@ -817,22 +817,22 @@ void TurtleBot::Create() {
     double rod_m_5_z = 0.15015;
 
     m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-        "0-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_0_x, rod_m_0_y, rod_m_0_z),
+        "0-middle-rod", false, m_wheel_material, m_system, ChVector3d(rod_m_0_x, rod_m_0_y, rod_m_0_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-        "1-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_1_x, rod_m_1_y, rod_m_1_z),
+        "1-middle-rod", false, m_wheel_material, m_system, ChVector3d(rod_m_1_x, rod_m_1_y, rod_m_1_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-        "2-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_2_x, rod_m_2_y, rod_m_2_z),
+        "2-middle-rod", false, m_wheel_material, m_system, ChVector3d(rod_m_2_x, rod_m_2_y, rod_m_2_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-        "3-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_3_x, rod_m_3_y, rod_m_3_z),
+        "3-middle-rod", false, m_wheel_material, m_system, ChVector3d(rod_m_3_x, rod_m_3_y, rod_m_3_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-        "4-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_4_x, rod_m_4_y, rod_m_4_z),
+        "4-middle-rod", false, m_wheel_material, m_system, ChVector3d(rod_m_4_x, rod_m_4_y, rod_m_4_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_2nd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Short>(
-        "5-middle-rod", false, m_wheel_material, m_system, ChVector<>(rod_m_5_x, rod_m_5_y, rod_m_5_z),
+        "5-middle-rod", false, m_wheel_material, m_system, ChVector3d(rod_m_5_x, rod_m_5_y, rod_m_5_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
 
     // add the middle plate
@@ -840,7 +840,7 @@ void TurtleBot::Create() {
     double mi_plate_y = 0;
     double mi_plate_z = 0.20015;
     m_middle_plate = chrono_types::make_shared<Turtlebot_MiddlePlate>(
-        "middle_plate", false, m_wheel_material, m_system, ChVector<>(mi_plate_x, mi_plate_y, mi_plate_z),
+        "middle_plate", false, m_wheel_material, m_system, ChVector3d(mi_plate_x, mi_plate_y, mi_plate_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true);
 
     // create the third level support rod
@@ -869,22 +869,22 @@ void TurtleBot::Create() {
     double rod_u_5_z = 0.20615;
 
     m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
-        "0-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_0_x, rod_u_0_y, rod_u_0_z),
+        "0-top-rod", false, m_wheel_material, m_system, ChVector3d(rod_u_0_x, rod_u_0_y, rod_u_0_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
-        "1-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_1_x, rod_u_1_y, rod_u_1_z),
+        "1-top-rod", false, m_wheel_material, m_system, ChVector3d(rod_u_1_x, rod_u_1_y, rod_u_1_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
-        "2-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_2_x, rod_u_2_y, rod_u_2_z),
+        "2-top-rod", false, m_wheel_material, m_system, ChVector3d(rod_u_2_x, rod_u_2_y, rod_u_2_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
-        "3-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_3_x, rod_u_3_y, rod_u_3_z),
+        "3-top-rod", false, m_wheel_material, m_system, ChVector3d(rod_u_3_x, rod_u_3_y, rod_u_3_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
-        "4-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_4_x, rod_u_4_y, rod_u_4_z),
+        "4-top-rod", false, m_wheel_material, m_system, ChVector3d(rod_u_4_x, rod_u_4_y, rod_u_4_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
     m_3rd_level_rods.push_back(chrono_types::make_shared<Turtlebot_Rod_Long>(
-        "5-top-rod", false, m_wheel_material, m_system, ChVector<>(rod_u_5_x, rod_u_5_y, rod_u_5_z),
+        "5-top-rod", false, m_wheel_material, m_system, ChVector3d(rod_u_5_x, rod_u_5_y, rod_u_5_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true));
 
     // add the top plate
@@ -892,7 +892,7 @@ void TurtleBot::Create() {
     double top_plate_y = 0;
     double top_plate_z = 0.40615;
     m_top_plate = chrono_types::make_shared<Turtlebot_TopPlate>("top_plate", false, m_wheel_material, m_system,
-                                                                ChVector<>(top_plate_x, top_plate_y, top_plate_z),
+                                                                ChVector3d(top_plate_x, top_plate_y, top_plate_z),
                                                                 ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true);
 }
 
@@ -1004,14 +1004,14 @@ void TurtleBot::Initialize() {
     ChQuaternion<> z2x = Q_from_AngY(-CH_C_PI_2);
 
     m_motors.push_back(AddMotor(m_drive_wheels[0]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
-                                ChVector<>(dwx, dwy, dwz), z2y, const_speed_function_l));
+                                ChVector3d(dwx, dwy, dwz), z2y, const_speed_function_l));
     AddRevoluteJoint(m_passive_wheels[0]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
-                     ChVector<>(pwx, pwy, pwz), z2x);
+                     ChVector3d(pwx, pwy, pwz), z2x);
 
     m_motors.push_back(AddMotor(m_drive_wheels[1]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
-                                ChVector<>(dwx, -dwy, dwz), z2y, const_speed_function_r));
+                                ChVector3d(dwx, -dwy, dwz), z2y, const_speed_function_r));
     AddRevoluteJoint(m_passive_wheels[1]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
-                     ChVector<>(-pwx, pwy, pwz), z2x);
+                     ChVector3d(-pwx, pwy, pwz), z2x);
 
     // add fixity on all rods and plates
     // There are six constraints needed:
@@ -1022,29 +1022,29 @@ void TurtleBot::Initialize() {
     // middle plate -> top rods
     // top rods -> top plate
 
-    ChVector<> bottom_rod_rel_pos[] = {ChVector<>(rod_s_0_x, rod_s_0_y, rod_s_0_z),  //
-                                       ChVector<>(rod_s_1_x, rod_s_1_y, rod_s_1_z),  //
-                                       ChVector<>(rod_s_2_x, rod_s_2_y, rod_s_2_z),  //
-                                       ChVector<>(rod_s_3_x, rod_s_3_y, rod_s_3_z),  //
-                                       ChVector<>(rod_s_4_x, rod_s_4_y, rod_s_4_z),  //
-                                       ChVector<>(rod_s_5_x, rod_s_5_y, rod_s_5_z)};
-    ChVector<> middle_rod_rel_pos[] = {ChVector<>(rod_m_0_x, rod_m_0_y, rod_m_0_z),  //
-                                       ChVector<>(rod_m_1_x, rod_m_1_y, rod_m_1_z),  //
-                                       ChVector<>(rod_m_2_x, rod_m_2_y, rod_m_2_z),  //
-                                       ChVector<>(rod_m_3_x, rod_m_3_y, rod_m_3_z),  //
-                                       ChVector<>(rod_m_4_x, rod_m_4_y, rod_m_4_z),  //
-                                       ChVector<>(rod_m_5_x, rod_m_5_y, rod_m_5_z)};
-    ChVector<> top_rod_rel_pos[] = {ChVector<>(rod_u_0_x, rod_u_0_y, rod_u_0_z),  //
-                                    ChVector<>(rod_u_1_x, rod_u_1_y, rod_u_1_z),  //
-                                    ChVector<>(rod_u_2_x, rod_u_2_y, rod_u_2_z),  //
-                                    ChVector<>(rod_u_3_x, rod_u_3_y, rod_u_3_z),  //
-                                    ChVector<>(rod_u_4_x, rod_u_4_y, rod_u_4_z),  //
-                                    ChVector<>(rod_u_5_x, rod_u_5_y, rod_u_5_z)};
+    ChVector3d bottom_rod_rel_pos[] = {ChVector3d(rod_s_0_x, rod_s_0_y, rod_s_0_z),  //
+                                       ChVector3d(rod_s_1_x, rod_s_1_y, rod_s_1_z),  //
+                                       ChVector3d(rod_s_2_x, rod_s_2_y, rod_s_2_z),  //
+                                       ChVector3d(rod_s_3_x, rod_s_3_y, rod_s_3_z),  //
+                                       ChVector3d(rod_s_4_x, rod_s_4_y, rod_s_4_z),  //
+                                       ChVector3d(rod_s_5_x, rod_s_5_y, rod_s_5_z)};
+    ChVector3d middle_rod_rel_pos[] = {ChVector3d(rod_m_0_x, rod_m_0_y, rod_m_0_z),  //
+                                       ChVector3d(rod_m_1_x, rod_m_1_y, rod_m_1_z),  //
+                                       ChVector3d(rod_m_2_x, rod_m_2_y, rod_m_2_z),  //
+                                       ChVector3d(rod_m_3_x, rod_m_3_y, rod_m_3_z),  //
+                                       ChVector3d(rod_m_4_x, rod_m_4_y, rod_m_4_z),  //
+                                       ChVector3d(rod_m_5_x, rod_m_5_y, rod_m_5_z)};
+    ChVector3d top_rod_rel_pos[] = {ChVector3d(rod_u_0_x, rod_u_0_y, rod_u_0_z),  //
+                                    ChVector3d(rod_u_1_x, rod_u_1_y, rod_u_1_z),  //
+                                    ChVector3d(rod_u_2_x, rod_u_2_y, rod_u_2_z),  //
+                                    ChVector3d(rod_u_3_x, rod_u_3_y, rod_u_3_z),  //
+                                    ChVector3d(rod_u_4_x, rod_u_4_y, rod_u_4_z),  //
+                                    ChVector3d(rod_u_5_x, rod_u_5_y, rod_u_5_z)};
 
     for (int i = 0; i < 6; i++) {
-        ChVector<> bottom_plate_rel_pos = bottom_rod_rel_pos[i] + ChVector<>(0, 0, 0.05);
-        ChVector<> middle_plate_rel_pos = middle_rod_rel_pos[i] + ChVector<>(0, 0, 0.05);
-        ChVector<> top_plate_rel_pos = top_rod_rel_pos[i] + ChVector<>(0, 0, 0.2);
+        ChVector3d bottom_plate_rel_pos = bottom_rod_rel_pos[i] + ChVector3d(0, 0, 0.05);
+        ChVector3d middle_plate_rel_pos = middle_rod_rel_pos[i] + ChVector3d(0, 0, 0.05);
+        ChVector3d top_plate_rel_pos = top_rod_rel_pos[i] + ChVector3d(0, 0, 0.2);
 
         AddLockJoint(m_1st_level_rods[i]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
                      bottom_rod_rel_pos[i], ChQuaternion<>(1, 0, 0, 0));
@@ -1065,11 +1065,11 @@ void TurtleBot::SetMotorSpeed(double rad_speed, WheelID id) {
     m_motors_func[id]->Set_yconst(rad_speed);
 }
 
-ChVector<> TurtleBot::GetActiveWheelSpeed(WheelID id) {
+ChVector3d TurtleBot::GetActiveWheelSpeed(WheelID id) {
     return m_drive_wheels[id]->GetBody()->GetPos_dt();
 }
 
-ChVector<> TurtleBot::GetActiveWheelAngVel(WheelID id) {
+ChVector3d TurtleBot::GetActiveWheelAngVel(WheelID id) {
     return m_drive_wheels[id]->GetBody()->GetWvel_par();
 }
 

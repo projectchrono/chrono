@@ -49,15 +49,15 @@ void test_1() {
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
     // While creating them, also set X0 undeformed positions.
-    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 1, 0));
 
     // For example, you can attach local 'point masses' (FE node masses are zero by default)
     mnodeA->SetMass(0.01);
     mnodeB->SetMass(0.01);
 
     // For example, set an applied force to a node:
-    mnodeB->SetForce(ChVector<>(0, 5, 0));
+    mnodeB->SetForce(ChVector3d(0, 5, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnodeA);
@@ -135,13 +135,13 @@ void test_2() {
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
     // While creating them, also set X0 undeformed positions.
-    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 1));
-    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
-    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(1, 0, 0));
+    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 1));
+    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 1, 0));
+    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(1, 0, 0));
 
     // For example, set an applied force to a node:
-    mnode3->SetForce(ChVector<>(0, 10000, 0));
+    mnode3->SetForce(ChVector3d(0, 10000, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnode1);
@@ -236,10 +236,10 @@ void test_3() {
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
     // While creating them, also set X0 undeformed positions.
-    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0.001, 0, 0));
-    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0.001, 0));
-    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0.001));
+    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0.001, 0, 0));
+    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0.001, 0));
+    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0.001));
     auto mnode5 =
         chrono_types::make_shared<ChNodeFEAxyz>((mnode1->pos + mnode2->pos) * 0.5);  //  nodes at mid length of edges
     auto mnode6 = chrono_types::make_shared<ChNodeFEAxyz>((mnode2->pos + mnode3->pos) * 0.5);
@@ -249,7 +249,7 @@ void test_3() {
     auto mnode10 = chrono_types::make_shared<ChNodeFEAxyz>((mnode3->pos + mnode4->pos) * 0.5);
 
     // For example, set an applied force to a node:
-    mnode3->SetForce(ChVector<>(0, -1000, 0));
+    mnode3->SetForce(ChVector3d(0, -1000, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnode1);
@@ -350,20 +350,20 @@ void test_4() {
     double sx = 0.01;
     double sy = 0.10;
     double sz = 0.01;
-    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, sz));
-    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, 0, sz));
-    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, 0, 0));
-    auto mnode5 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, sy, 0));
-    auto mnode6 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, sy, sz));
-    auto mnode7 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, sy, sz));
-    auto mnode8 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, sy, 0));
+    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, sz));
+    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, 0, sz));
+    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, 0, 0));
+    auto mnode5 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, sy, 0));
+    auto mnode6 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, sy, sz));
+    auto mnode7 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, sy, sz));
+    auto mnode8 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, sy, 0));
 
     // For example, set applied forces to nodes:
-    mnode5->SetForce(ChVector<>(0, -1000, 0));
-    mnode6->SetForce(ChVector<>(0, -1000, 0));
-    mnode7->SetForce(ChVector<>(0, -1000, 0));
-    mnode8->SetForce(ChVector<>(0, -1000, 0));
+    mnode5->SetForce(ChVector3d(0, -1000, 0));
+    mnode6->SetForce(ChVector3d(0, -1000, 0));
+    mnode7->SetForce(ChVector3d(0, -1000, 0));
+    mnode8->SetForce(ChVector3d(0, -1000, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnode1);
@@ -470,14 +470,14 @@ void test_5() {
     double sx = 0.01;
     double sy = 0.1;
     double sz = 0.01;
-    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, sz));
-    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, 0, sz));
-    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, 0, 0));
-    auto mnode5 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, sy, 0));
-    auto mnode6 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, sy, sz));
-    auto mnode7 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, sy, sz));
-    auto mnode8 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, sy, 0));
+    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, sz));
+    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, 0, sz));
+    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, 0, 0));
+    auto mnode5 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, sy, 0));
+    auto mnode6 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, sy, sz));
+    auto mnode7 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, sy, sz));
+    auto mnode8 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, sy, 0));
     auto mnode9 = chrono_types::make_shared<ChNodeFEAxyz>((mnode1->pos + mnode2->pos) * 0.5);  // in between front face
     auto mnode10 = chrono_types::make_shared<ChNodeFEAxyz>((mnode2->pos + mnode3->pos) * 0.5);
     auto mnode11 = chrono_types::make_shared<ChNodeFEAxyz>((mnode3->pos + mnode4->pos) * 0.5);
@@ -492,14 +492,14 @@ void test_5() {
     auto mnode20 = chrono_types::make_shared<ChNodeFEAxyz>((mnode1->pos + mnode5->pos) * 0.5);
 
     // For example, set applied forces to nodes:
-    mnode5->SetForce(ChVector<>(0, -500, 0));
-    mnode6->SetForce(ChVector<>(0, -500, 0));
-    mnode7->SetForce(ChVector<>(0, -500, 0));
-    mnode8->SetForce(ChVector<>(0, -500, 0));
-    mnode13->SetForce(ChVector<>(0, -500, 0));
-    mnode14->SetForce(ChVector<>(0, -500, 0));
-    mnode15->SetForce(ChVector<>(0, -500, 0));
-    mnode16->SetForce(ChVector<>(0, -500, 0));
+    mnode5->SetForce(ChVector3d(0, -500, 0));
+    mnode6->SetForce(ChVector3d(0, -500, 0));
+    mnode7->SetForce(ChVector3d(0, -500, 0));
+    mnode8->SetForce(ChVector3d(0, -500, 0));
+    mnode13->SetForce(ChVector3d(0, -500, 0));
+    mnode14->SetForce(ChVector3d(0, -500, 0));
+    mnode15->SetForce(ChVector3d(0, -500, 0));
+    mnode16->SetForce(ChVector3d(0, -500, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnode1);

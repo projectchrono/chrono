@@ -20,7 +20,7 @@
 #include <climits>
 
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/physics/ChGpuBoundaryConditions.h"

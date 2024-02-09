@@ -49,7 +49,7 @@ class ChApi ChLineBezier : public ChLine {
     virtual ChAABB GetBoundingBox() const override;
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(double U) const override;
+    virtual ChVector3d Evaluate(double U) const override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

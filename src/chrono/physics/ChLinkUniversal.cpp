@@ -174,8 +174,8 @@ void ChLinkUniversal::Update(double time, bool update_assets) {
     }
 
     // Calculate violation of the dot constraint
-    ChVector<> u1 = frame1_abs.GetA().Get_A_Xaxis();
-    ChVector<> v2 = frame2_abs.GetA().Get_A_Yaxis();
+    ChVector3d u1 = frame1_abs.GetA().Get_A_Xaxis();
+    ChVector3d v2 = frame2_abs.GetA().Get_A_Yaxis();
 
     m_C(3) = Vdot(u1, v2);
 
@@ -184,8 +184,8 @@ void ChLinkUniversal::Update(double time, bool update_assets) {
     {
         ChMatrix33<> mat1 = Body1->GetA() * m_u1_tilde;
         ChMatrix33<> mat2 = Body2->GetA() * m_v2_tilde;
-        ChVector<> Phi_pi1 = mat1.transpose() * v2;
-        ChVector<> Phi_pi2 = mat2.transpose() * u1;
+        ChVector3d Phi_pi1 = mat1.transpose() * v2;
+        ChVector3d Phi_pi2 = mat2.transpose() * u1;
 
         m_cnstr_dot.Get_Cq_a()(0) = 0;
         m_cnstr_dot.Get_Cq_a()(1) = 0;
@@ -228,7 +228,7 @@ void ChLinkUniversal::IntStateScatterReactions(const unsigned int off_L, const C
 
     // Extract the Lagrange multipliers for the 3 spherical constraints and for
     // the dot constraint.
-    ChVector<> lam_sph(m_multipliers[0], m_multipliers[1], m_multipliers[2]);
+    ChVector3d lam_sph(m_multipliers[0], m_multipliers[1], m_multipliers[2]);
     double lam_dot = m_multipliers[3];
 
     // Calculate the reaction force and torque acting on the 2nd body at the joint
@@ -242,13 +242,13 @@ void ChLinkUniversal::IntStateScatterReactions(const unsigned int off_L, const C
     //     = -C^T * [A_2 * tilde(v2')]^T * u1 * lam_dot
 
     // Reaction force
-    ChVector<> F2 = Body2->GetA().transpose() * lam_sph;
+    ChVector3d F2 = Body2->GetA().transpose() * lam_sph;
     react_force = m_frame2.GetA().transpose() * F2;
 
     // Reaction torque
-    ChVector<> u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
+    ChVector3d u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
     ChMatrix33<> mat2 = Body2->GetA() * m_v2_tilde;
-    ChVector<> T2 = mat2.transpose() * (lam_dot * u1);
+    ChVector3d T2 = mat2.transpose() * (lam_dot * u1);
     react_torque = m_frame2.GetA().transpose() * (-T2);
 }
 
@@ -374,7 +374,7 @@ void ChLinkUniversal::ConstraintsLoadJacobians() {
 void ChLinkUniversal::ConstraintsFetch_react(double factor) {
     // Extract the Lagrange multipliers for the 3 spherical constraints and for
     // the dot constraint.
-    ChVector<> lam_sph(m_cnstr_x.Get_l_i(), m_cnstr_y.Get_l_i(), m_cnstr_z.Get_l_i());
+    ChVector3d lam_sph(m_cnstr_x.Get_l_i(), m_cnstr_y.Get_l_i(), m_cnstr_z.Get_l_i());
     double lam_dot = m_cnstr_dot.Get_l_i();
 
     // Note that the Lagrange multipliers must be multiplied by 'factor' to
@@ -393,13 +393,13 @@ void ChLinkUniversal::ConstraintsFetch_react(double factor) {
     //     = -C^T * [A_2 * tilde(v2')]^T * u1 * lam_dot
 
     // Reaction force
-    ChVector<> F2 = Body2->GetA().transpose() * lam_sph;
+    ChVector3d F2 = Body2->GetA().transpose() * lam_sph;
     react_force = m_frame2.GetA().transpose() * F2;
 
     // Reaction torque
-    ChVector<> u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
+    ChVector3d u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
     ChMatrix33<> mat2 = Body2->GetA() * m_v2_tilde;
-    ChVector<> T2 = mat2.transpose() * (lam_dot * u1);
+    ChVector3d T2 = mat2.transpose() * (lam_dot * u1);
     react_torque = m_frame2.GetA().transpose() * (-T2);
 }
 

@@ -48,19 +48,19 @@ void CreateSliderGuide(std::shared_ptr<ChBody>& guide,
                        std::shared_ptr<ChBody>& slider,
                        std::shared_ptr<ChContactMaterial> material,
                        ChSystem& sys,
-                       const ChVector<> mpos) {
+                       const ChVector3d mpos) {
     guide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material);
     guide->SetPos(mpos);
     guide->SetBodyFixed(true);
     sys.Add(guide);
 
     slider = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.2, 0.5, 1000, material);
-    slider->SetPos(mpos + ChVector<>(0, 0.3, 0));
+    slider->SetPos(mpos + ChVector3d(0, 0.3, 0));
     slider->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.0f));
     sys.Add(slider);
 
     auto obstacle = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.4, 0.4, 8000, material);
-    obstacle->SetPos(mpos + ChVector<>(1.5, 0.4, 0));
+    obstacle->SetPos(mpos + ChVector3d(1.5, 0.4, 0));
     obstacle->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.2f, 0.2f));
     sys.Add(obstacle);
 }
@@ -73,7 +73,7 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& stator,
                        std::shared_ptr<ChBody>& rotor,
                        std::shared_ptr<ChContactMaterial> material,
                        ChSystem& sys,
-                       const ChVector<>& mpos) {
+                       const ChVector3d& mpos) {
     stator =
         chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 0.1, 1000, material);
     stator->SetPos(mpos);
@@ -82,7 +82,7 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& stator,
     sys.Add(stator);
 
     rotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material);
-    rotor->SetPos(mpos + ChVector<>(0.5, 0, -0.15));
+    rotor->SetPos(mpos + ChVector3d(0.5, 0, -0.15));
     rotor->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.0f));
     sys.Add(rotor);
 }
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 
     // Create a floor that is fixed (that is used also to represent the absolute reference)
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, material);
-    floorBody->SetPos(ChVector<>(0, -2, 0));
+    floorBody->SetPos(ChVector3d(0, -2, 0));
     floorBody->SetBodyFixed(true);
     floorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
     sys.Add(floorBody);
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     // rotating body hits some hard contact, the solver might give unpredictable
     // oscillatory or diverging results because of the contradiction.
 
-    ChVector<> positionA1(-3, 2, -3);
+    ChVector3d positionA1(-3, 2, -3);
     std::shared_ptr<ChBody> stator1;
     std::shared_ptr<ChBody> rotor1;
     CreateStatorRotor(stator1, rotor1, material, sys, positionA1);
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
     // rotating body hits some hard contact, the solver might give unpredictable
     // oscillatory or diverging results because of the contradiction.
 
-    ChVector<> positionA2(-3, 2, -2);
+    ChVector3d positionA2(-3, 2, -2);
     std::shared_ptr<ChBody> stator2;
     std::shared_ptr<ChBody> rotor2;
     CreateStatorRotor(stator2, rotor2, material, sys, positionA2);
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
     // must implement a PID controller that continuously adjusts the value of the
     // torque during the simulation).
 
-    ChVector<> positionA3(-3, 2, -1);
+    ChVector3d positionA3(-3, 2, -1);
     std::shared_ptr<ChBody> stator3;
     std::shared_ptr<ChBody> rotor3;
     CreateStatorRotor(stator3, rotor3, material, sys, positionA3);
@@ -233,7 +233,7 @@ int main(int argc, char* argv[]) {
     // torque by a custom function. In this example we implement a
     // basic torque(speed) model of a three-phase induction electric motor..
 
-    ChVector<> positionA4(-3, 2, 0);
+    ChVector3d positionA4(-3, 2, 0);
     std::shared_ptr<ChBody> stator4;
     std::shared_ptr<ChBody> rotor4;
     CreateStatorRotor(stator4, rotor4, material, sys, positionA4);
@@ -308,7 +308,7 @@ int main(int argc, char* argv[]) {
     // if any) and ending at inner shaft 1 (consider it to be the output, i.e. the
     // slow-rotation spindle).
 
-    ChVector<> positionA5(-3, 2, 1);
+    ChVector3d positionA5(-3, 2, 1);
     std::shared_ptr<ChBody> stator5;
     std::shared_ptr<ChBody> rotor5;
     CreateStatorRotor(stator5, rotor5, material, sys, positionA5);
@@ -402,7 +402,7 @@ int main(int argc, char* argv[]) {
     // sliding body hits some hard contact, the solver might give unpredictable
     // oscillatory or diverging results because of the contradiction.
 
-    ChVector<> positionB1(0, 0, -3);
+    ChVector3d positionB1(0, 0, -3);
     std::shared_ptr<ChBody> guide1;
     std::shared_ptr<ChBody> slider1;
     CreateSliderGuide(guide1, slider1, material, sys, positionB1);
@@ -444,7 +444,7 @@ int main(int argc, char* argv[]) {
     // accumulation (position drift). Optionally, such constraint on
     // position level can be disabled if you are not interested in pos.drift.
 
-    ChVector<> positionB2(0, 0, -2);
+    ChVector3d positionB2(0, 0, -2);
     std::shared_ptr<ChBody> guide2;
     std::shared_ptr<ChBody> slider2;
     CreateSliderGuide(guide2, slider2, material, sys, positionB2);
@@ -497,13 +497,13 @@ int main(int argc, char* argv[]) {
     // some hard contact, it just stops and keeps pushing, and no troubles
     // with the solver happen.
 
-    ChVector<> positionB3(0, 0, -1);
+    ChVector3d positionB3(0, 0, -1);
     std::shared_ptr<ChBody> guide3;
     std::shared_ptr<ChBody> slider3;
     CreateSliderGuide(guide3, slider3, material, sys, positionB3);
 
     // just for fun: modify the initial speed of slider to match other examples
-    slider3->SetPos_dt(ChVector<>(1.6 * 0.5 * CH_C_2PI));
+    slider3->SetPos_dt(ChVector3d(1.6 * 0.5 * CH_C_2PI));
 
     // Create the linear motor
     auto motor3 = chrono_types::make_shared<ChLinkMotorLinearForce>();
@@ -536,7 +536,7 @@ int main(int argc, char* argv[]) {
     // F by a user-defined procedure (as a callback). For example, here we write a very
     // basic PID control algorithm that adjusts F trying to chase a sinusoidal position.
 
-    ChVector<> positionB4(0, 0, 0);
+    ChVector3d positionB4(0, 0, 0);
     std::shared_ptr<ChBody> guide4;
     std::shared_ptr<ChBody> slider4;
     CreateSliderGuide(guide4, slider4, material, sys, positionB4);
@@ -633,7 +633,7 @@ int main(int argc, char* argv[]) {
     // drive+screw; you will anchor the drive to part 2 using this rotational shaft; so
     // reaction torques arising because of inner flywheel accelerations can be transmitted to this shaft.
 
-    ChVector<> positionB5(0, 0, 1);
+    ChVector3d positionB5(0, 0, 1);
     std::shared_ptr<ChBody> guide5;
     std::shared_ptr<ChBody> slider5;
     CreateSliderGuide(guide5, slider5, material, sys, positionB5);
@@ -759,7 +759,7 @@ int main(int argc, char* argv[]) {
     // motor6->SetMotionFunction(mycallback); this would avoid polluting the while{...} loop;
     // but sometimes is faster to do the quick & dirty approach of this example.
 
-    ChVector<> positionB6(0, 0, 2);
+    ChVector3d positionB6(0, 0, 2);
     std::shared_ptr<ChBody> guide6;
     std::shared_ptr<ChBody> slider6;
     CreateSliderGuide(guide6, slider6, material, sys, positionB6);
@@ -789,9 +789,9 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(1, 3, -7));
+    vis->AddCamera(ChVector3d(1, 3, -7));
     vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector<>(20.0, 35.0, -25.0), ChVector<>(0, 0, 0), 55, 20, 55, 35, 512,
+    vis->AddLightWithShadow(ChVector3d(20.0, 35.0, -25.0), ChVector3d(0, 0, 0), 55, 20, 55, 35, 512,
                             ChColor(0.6f, 0.8f, 1.0f));
     vis->EnableShadows();
 

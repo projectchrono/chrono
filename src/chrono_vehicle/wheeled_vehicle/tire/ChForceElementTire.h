@@ -38,7 +38,7 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
         ContactData() : in_contact(false), normal_force(0), depth(0) {}
         bool in_contact;      ///< true if tire in contact with terrain
         ChCoordsys<> frame;   ///< contact frame (x: long, y: lat, z: normal)
-        ChVector<> vel;       ///< relative velocity expressed in contact frame
+        ChVector3d vel;       ///< relative velocity expressed in contact frame
         double normal_force;  ///< magnitude of normal contact force
         double depth;         ///< penetration depth
     };
@@ -95,7 +95,7 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     virtual void UpdateInertiaProperties() override final;
 
     virtual double GetAddedMass() const override final;
-    virtual ChVector<> GetAddedInertia() const override final;
+    virtual ChVector3d GetAddedInertia() const override final;
 };
 
 /// @} vehicle_wheeled_tire

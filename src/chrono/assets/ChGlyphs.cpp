@@ -32,7 +32,7 @@ ChGlyphs::ChGlyphs() {
     glyph_basis_constant = QUNIT;
     glyph_eigenvalues_type = eCh_GlyphEigenvalues::CONSTANT;
     glyph_eigenvalues_prop = "";
-    glyph_eigenvalue_constant = ChVector<>(1,1,1);
+    glyph_eigenvalue_constant = ChVector3d(1,1,1);
     glyph_color_type = eCh_GlyphColor::CONSTANT;
     glyph_color_prop = "";
     glyph_color_constant = ChColor(1,0,0);
@@ -88,7 +88,7 @@ void ChGlyphs::Reserve(unsigned int n_glyphs) {
 }
 
 // Fast method to set a glyph for GLYPH_POINT draw mode:
-void ChGlyphs::SetGlyphPoint(unsigned int id, ChVector<> mpoint, ChColor mcolor) {
+void ChGlyphs::SetGlyphPoint(unsigned int id, ChVector3d mpoint, ChColor mcolor) {
     if (this->draw_mode != GLYPH_POINT)
         SetDrawMode(GLYPH_POINT);
 
@@ -112,7 +112,7 @@ void ChGlyphs::SetGlyphPoint(unsigned int id, ChVector<> mpoint, ChColor mcolor)
 }
 
 // Fast method to set a glyph for GLYPH_VECTOR draw mode:
-void ChGlyphs::SetGlyphVector(unsigned int id, ChVector<> mpoint, ChVector<> mvector, ChColor mcolor) {
+void ChGlyphs::SetGlyphVector(unsigned int id, ChVector3d mpoint, ChVector3d mvector, ChColor mcolor) {
     if (this->draw_mode != GLYPH_VECTOR)
         SetDrawMode(GLYPH_VECTOR);
 
@@ -143,7 +143,7 @@ void ChGlyphs::SetGlyphVector(unsigned int id, ChVector<> mpoint, ChVector<> mve
 }
 
 // Fast method to set a glyph for GLYPH_VECTOR draw mode, local basis
-void ChGlyphs::SetGlyphVectorLocal(unsigned int id, ChVector<> mpoint, ChVector<> mvector, ChQuaternion<> mrot, ChColor mcolor) {
+void ChGlyphs::SetGlyphVectorLocal(unsigned int id, ChVector3d mpoint, ChVector3d mvector, ChQuaternion<> mrot, ChColor mcolor) {
     if (this->draw_mode != GLYPH_VECTOR)
         SetDrawMode(GLYPH_VECTOR);
 
@@ -206,7 +206,7 @@ void ChGlyphs::SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord) {
 
 // Fast method to set a glyph for GLYPH_TENSOR draw mode.
 // If the id is more than the reserved amount of glyphs (see Reserve() ) the csys are inflated.
-void ChGlyphs::SetGlyphTensor(unsigned int id, ChVector<> mpoint, ChQuaternion<> mbasis, ChVector<> meigenvalues) {
+void ChGlyphs::SetGlyphTensor(unsigned int id, ChVector3d mpoint, ChQuaternion<> mbasis, ChVector3d meigenvalues) {
     if (this->draw_mode != GLYPH_TENSOR) {
         SetDrawMode(GLYPH_TENSOR);
         glyph_eigenvalues_type = ChGlyphs::eCh_GlyphEigenvalues::PROPERTY;

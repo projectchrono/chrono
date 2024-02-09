@@ -74,7 +74,7 @@ float cr_t = 0.1f;
 float mu_t = 0.8f;
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(-5, -2, 0.6);
+ChVector3d initLoc(-5, -2, 0.6);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // -----------------------------------------------------------------------------
@@ -108,7 +108,7 @@ double step_size = 3e-3;
 double render_step_size = 1.0 / 100;
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Output directories
 const std::string out_dir = GetChronoOutputPath() + "HMMWV_DEF_SOIL";
@@ -174,7 +174,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     for (int iseg = 0; iseg < 15; iseg++) {
         ChQuaternion<> rot = Q_from_AngAxis(iseg * 24 * CH_C_DEG_TO_RAD, VECT_Y);
         for (int ihull = 0; ihull < num_hulls; ihull++) {
-            std::vector<ChVector<> > convexhull;
+            std::vector<ChVector3d > convexhull;
             lugged_convex.GetConvexHullResult(ihull, convexhull);
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(wheel_material, convexhull);
             wheel_body->AddCollisionShape(ct_shape, ChFrame<>(VNULL, rot));
@@ -279,12 +279,12 @@ int main(int argc, char* argv[]) {
     ////                                10);  // number of concentric vertex selections subject to erosion
 
     // Optionally, enable moving patch feature (single patch around vehicle chassis)
-    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
+    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
 
     // Optionally, enable moving patch feature (multiple patches around each wheel)
     ////for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
-    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
-    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
+    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
+    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
     ////}
 
     ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);

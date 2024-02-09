@@ -60,7 +60,7 @@ class CH_VEHICLE_API ToeBarPushPipeAxle : public ChToeBarPushPipeAxle {
     virtual double getDraglinkRadius() const override { return m_draglinkRadius; }
 
     /// Return the center of mass of the axle tube.
-    virtual const ChVector<> getAxleTubeCOM() const override { return m_axleTubeCOM; }
+    virtual const ChVector3d getAxleTubeCOM() const override { return m_axleTubeCOM; }
     /// Return the radius of the spindle body (visualization only).
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
 
@@ -83,20 +83,20 @@ class CH_VEHICLE_API ToeBarPushPipeAxle : public ChToeBarPushPipeAxle {
     virtual double getPortalOffset() const override { return m_portalOffset; }
 
     /// Return the moments of inertia of the axle tube body.
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
     /// Return the moments of inertia of the spindle body.
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
     /// Return the moments of inertia of the knuckle body.
-    virtual const ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
+    virtual const ChVector3d& getKnuckleInertia() const override { return m_knuckleInertia; }
     /// Return the moments of inertia of the tierod body.
-    virtual const ChVector<>& getTierodInertia() const override { return m_tierodInertia; }
+    virtual const ChVector3d& getTierodInertia() const override { return m_tierodInertia; }
     /// Return the moments of inertia of the draglink body.
-    virtual const ChVector<>& getDraglinkInertia() const override { return m_draglinkInertia; }
+    virtual const ChVector3d& getDraglinkInertia() const override { return m_draglinkInertia; }
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const override { return m_axleInertia; }
     /// Return the moments of inertia of the panhard rod body.
-    virtual const ChVector<>& getPanhardRodInertia() const override { return m_panhardRodInertia; }
+    virtual const ChVector3d& getPanhardRodInertia() const override { return m_panhardRodInertia; }
 
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const override { return m_springRestLength; }
@@ -111,14 +111,14 @@ class CH_VEHICLE_API ToeBarPushPipeAxle : public ChToeBarPushPipeAxle {
     virtual bool isLeftKnuckleActuated() override { return m_use_left_knuckle; }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
-    ChVector<> m_points[NUM_POINTS];
+    ChVector3d m_points[NUM_POINTS];
 
     ////double m_damperDegressivityCompression;
     ////double m_damperDegressivityExpansion;
@@ -147,13 +147,13 @@ class CH_VEHICLE_API ToeBarPushPipeAxle : public ChToeBarPushPipeAxle {
     double m_shockRestLength;
     double m_axleInertia;
 
-    ChVector<> m_spindleInertia;
-    ChVector<> m_axleTubeInertia;
-    ChVector<> m_panhardRodInertia;
-    ChVector<> m_axleTubeCOM;
-    ChVector<> m_knuckleInertia;
-    ChVector<> m_tierodInertia;
-    ChVector<> m_draglinkInertia;
+    ChVector3d m_spindleInertia;
+    ChVector3d m_axleTubeInertia;
+    ChVector3d m_panhardRodInertia;
+    ChVector3d m_axleTubeCOM;
+    ChVector3d m_knuckleInertia;
+    ChVector3d m_tierodInertia;
+    ChVector3d m_draglinkInertia;
 
     bool m_use_left_knuckle;
 };

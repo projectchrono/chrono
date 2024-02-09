@@ -23,9 +23,9 @@ CH_FACTORY_REGISTER(ChLinkRevoluteSpherical)
 // Constructor and destructor
 // -----------------------------------------------------------------------------
 ChLinkRevoluteSpherical::ChLinkRevoluteSpherical()
-    : m_pos1(ChVector<>(0, 0, 0)),
-      m_pos2(ChVector<>(0, 0, 0)),
-      m_dir1(ChVector<>(0, 0, 1)),
+    : m_pos1(ChVector3d(0, 0, 0)),
+      m_pos2(ChVector3d(0, 0, 0)),
+      m_dir1(ChVector3d(0, 0, 1)),
       m_dist(0),
       m_cur_dist(0),
       m_cur_dot(0) {
@@ -65,8 +65,8 @@ void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBody> body1,
     m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
 
-    ChVector<> x_Axis = csys.rot.GetXaxis();
-    ChVector<> z_axis = csys.rot.GetZaxis();
+    ChVector3d x_Axis = csys.rot.GetXaxis();
+    ChVector3d z_axis = csys.rot.GetZaxis();
 
     m_pos1 = Body1->TransformPointParentToLocal(csys.pos);
     m_dir1 = Body1->TransformDirectionParentToLocal(z_axis);
@@ -80,9 +80,9 @@ void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBody> body1,
 void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBody> body1,
                                          std::shared_ptr<ChBody> body2,
                                          bool local,
-                                         const ChVector<>& pos1,
-                                         const ChVector<>& dir1,
-                                         const ChVector<>& pos2,
+                                         const ChVector3d& pos1,
+                                         const ChVector3d& dir1,
+                                         const ChVector3d& pos2,
                                          bool auto_distance,
                                          double distance) {
     Body1 = body1.get();
@@ -91,9 +91,9 @@ void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBody> body1,
     m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
 
-    ChVector<> pos1_abs;
-    ChVector<> pos2_abs;
-    ChVector<> dir1_abs;
+    ChVector3d pos1_abs;
+    ChVector3d pos2_abs;
+    ChVector3d dir1_abs;
 
     if (local) {
         m_pos1 = pos1;
@@ -111,7 +111,7 @@ void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBody> body1,
         m_dir1 = Body1->TransformDirectionParentToLocal(dir1_abs);
     }
 
-    ChVector<> d12_abs = pos2_abs - pos1_abs;
+    ChVector3d d12_abs = pos2_abs - pos1_abs;
 
     m_cur_dist = d12_abs.Length();
     m_dist = auto_distance ? m_cur_dist : distance;
@@ -123,11 +123,11 @@ void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBody> body1,
 // Form and return the joint reference frame.
 // -----------------------------------------------------------------------------
 ChCoordsys<> ChLinkRevoluteSpherical::GetLinkRelativeCoords() {
-    ChVector<> pos1 = Body2->TransformPointParentToLocal(Body1->TransformPointLocalToParent(m_pos1));
+    ChVector3d pos1 = Body2->TransformPointParentToLocal(Body1->TransformPointLocalToParent(m_pos1));
 
-    ChVector<> u = (m_pos2 - pos1).GetNormalized();
-    ChVector<> w = Body2->TransformDirectionParentToLocal(Body1->TransformDirectionLocalToParent(m_dir1));
-    ChVector<> v = Vcross(w, u);
+    ChVector3d u = (m_pos2 - pos1).GetNormalized();
+    ChVector3d w = Body2->TransformDirectionParentToLocal(Body1->TransformDirectionLocalToParent(m_dir1));
+    ChVector3d v = Vcross(w, u);
     ChMatrix33<> A(u, v, w);
 
     return ChCoordsys<>(pos1, A.Get_A_quaternion());
@@ -141,10 +141,10 @@ void ChLinkRevoluteSpherical::Update(double time, bool update_assets) {
     ChLink::Update(time, update_assets);
 
     // Express the body locations and direction in absolute frame
-    ChVector<> pos1_abs = Body1->TransformPointLocalToParent(m_pos1);
-    ChVector<> pos2_abs = Body2->TransformPointLocalToParent(m_pos2);
-    ChVector<> dir1_abs = Body1->TransformDirectionLocalToParent(m_dir1);
-    ChVector<> d12_abs = pos2_abs - pos1_abs;
+    ChVector3d pos1_abs = Body1->TransformPointLocalToParent(m_pos1);
+    ChVector3d pos2_abs = Body2->TransformPointLocalToParent(m_pos2);
+    ChVector3d dir1_abs = Body1->TransformDirectionLocalToParent(m_dir1);
+    ChVector3d d12_abs = pos2_abs - pos1_abs;
 
     // Update current distance and dot product
     m_cur_dist = d12_abs.Length();
@@ -152,12 +152,12 @@ void ChLinkRevoluteSpherical::Update(double time, bool update_assets) {
 
     // Calculate a unit vector in the direction d12, expressed in absolute frame
     // Then express it in the two body frames
-    ChVector<> u12_abs = d12_abs / m_cur_dist;
-    ChVector<> u12_loc1 = Body1->TransformDirectionParentToLocal(u12_abs);
-    ChVector<> u12_loc2 = Body2->TransformDirectionParentToLocal(u12_abs);
+    ChVector3d u12_abs = d12_abs / m_cur_dist;
+    ChVector3d u12_loc1 = Body1->TransformDirectionParentToLocal(u12_abs);
+    ChVector3d u12_loc2 = Body2->TransformDirectionParentToLocal(u12_abs);
 
     // Express the direction vector in the frame of body 2
-    ChVector<> dir1_loc2 = Body2->TransformDirectionParentToLocal(dir1_abs);
+    ChVector3d dir1_loc2 = Body2->TransformDirectionParentToLocal(dir1_abs);
 
     // Cache violation of the distance constraint
     m_C(0) = m_cur_dist - m_dist;
@@ -165,8 +165,8 @@ void ChLinkRevoluteSpherical::Update(double time, bool update_assets) {
     // Compute Jacobian of the distance constraint
     //    ||pos2_abs - pos1_abs|| - dist = 0
     {
-        ChVector<> Phi_r1 = -u12_abs;
-        ChVector<> Phi_pi1 = Vcross(u12_loc1, m_pos1);
+        ChVector3d Phi_r1 = -u12_abs;
+        ChVector3d Phi_pi1 = Vcross(u12_loc1, m_pos1);
 
         m_cnstr_dist.Get_Cq_a()(0) = Phi_r1.x();
         m_cnstr_dist.Get_Cq_a()(1) = Phi_r1.y();
@@ -176,8 +176,8 @@ void ChLinkRevoluteSpherical::Update(double time, bool update_assets) {
         m_cnstr_dist.Get_Cq_a()(4) = Phi_pi1.y();
         m_cnstr_dist.Get_Cq_a()(5) = Phi_pi1.z();
 
-        ChVector<> Phi_r2 = u12_abs;
-        ChVector<> Phi_pi2 = -Vcross(u12_loc2, m_pos2);
+        ChVector3d Phi_r2 = u12_abs;
+        ChVector3d Phi_pi2 = -Vcross(u12_loc2, m_pos2);
 
         m_cnstr_dist.Get_Cq_b()(0) = Phi_r2.x();
         m_cnstr_dist.Get_Cq_b()(1) = Phi_r2.y();
@@ -194,8 +194,8 @@ void ChLinkRevoluteSpherical::Update(double time, bool update_assets) {
     // Compute Jacobian of the dot constraint
     //    dot(dir1_abs, pos2_abs - pos1_abs) = 0
     {
-        ChVector<> Phi_r1 = -dir1_abs;
-        ChVector<> Phi_pi1 = Vcross(m_dir1, m_pos1) - Vcross(u12_loc1, m_pos1);
+        ChVector3d Phi_r1 = -dir1_abs;
+        ChVector3d Phi_pi1 = Vcross(m_dir1, m_pos1) - Vcross(u12_loc1, m_pos1);
 
         m_cnstr_dot.Get_Cq_a()(0) = Phi_r1.x();
         m_cnstr_dot.Get_Cq_a()(1) = Phi_r1.y();
@@ -205,8 +205,8 @@ void ChLinkRevoluteSpherical::Update(double time, bool update_assets) {
         m_cnstr_dot.Get_Cq_a()(4) = Phi_pi1.y();
         m_cnstr_dot.Get_Cq_a()(5) = Phi_pi1.z();
 
-        ChVector<> Phi_r2 = dir1_abs;
-        ChVector<> Phi_pi2 = -Vcross(dir1_loc2, m_pos2);
+        ChVector3d Phi_r2 = dir1_abs;
+        ChVector3d Phi_pi2 = -Vcross(dir1_loc2, m_pos2);
 
         m_cnstr_dot.Get_Cq_b()(0) = Phi_r2.x();
         m_cnstr_dot.Get_Cq_b()(1) = Phi_r2.y();
@@ -374,7 +374,7 @@ void ChLinkRevoluteSpherical::ConstraintsFetch_react(double factor) {
 //  of the standard output for this joint style
 // -----------------------------------------------------------------------------
 
-ChVector<> ChLinkRevoluteSpherical::Get_react_force_body1() {
+ChVector3d ChLinkRevoluteSpherical::Get_react_force_body1() {
     // Calculate the reaction forces on Body 1 in the joint frame
     // (Note: origin of the joint frame is at the center of the revolute joint
     //  which is defined on body 1, the x-axis is along the vector from the
@@ -385,7 +385,7 @@ ChVector<> ChLinkRevoluteSpherical::Get_react_force_body1() {
     return -react_force;
 }
 
-ChVector<> ChLinkRevoluteSpherical::Get_react_torque_body1() {
+ChVector3d ChLinkRevoluteSpherical::Get_react_torque_body1() {
     // Calculate the reaction forces on Body 1 in the joint frame
     // (Note: origin of the joint frame is at the center of the revolute joint
     //  which is defined on body 1, the x-axis is along the vector from the
@@ -396,7 +396,7 @@ ChVector<> ChLinkRevoluteSpherical::Get_react_torque_body1() {
     return -react_torque;
 }
 
-ChVector<> ChLinkRevoluteSpherical::Get_react_force_body2() {
+ChVector3d ChLinkRevoluteSpherical::Get_react_force_body2() {
     // Calculate the reaction torques on Body 2 in the joint frame at the spherical joint
     // (Note: the joint frame x-axis is along the vector from the
     //  point on body 1 to the point on body 2.  The z axis is along the revolute
@@ -405,7 +405,7 @@ ChVector<> ChLinkRevoluteSpherical::Get_react_force_body2() {
     return react_force;
 }
 
-ChVector<> ChLinkRevoluteSpherical::Get_react_torque_body2() {
+ChVector3d ChLinkRevoluteSpherical::Get_react_torque_body2() {
     // Calculate the reaction torques on Body 2 in the joint frame at the spherical joint
     // (Note: the joint frame x-axis is along the vector from the
     //  point on body 1 to the point on body 2.  The z axis is along the revolute

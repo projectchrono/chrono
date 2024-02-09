@@ -137,9 +137,9 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddLight(ChVector<>(20, 20, 20), 90, ChColor(0.5f, 0.5f, 0.5f));
-    vis->AddLight(ChVector<>(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
-    vis->AddCamera(ChVector<>(0., 0.2, -0.3));
+    vis->AddLight(ChVector3d(20, 20, 20), 90, ChColor(0.5f, 0.5f, 0.5f));
+    vis->AddLight(ChVector3d(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
+    vis->AddCamera(ChVector3d(0., 0.2, -0.3));
 
     // SIMULATION LOOP
 

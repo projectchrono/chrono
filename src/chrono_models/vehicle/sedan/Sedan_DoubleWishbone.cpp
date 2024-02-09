@@ -47,13 +47,13 @@ const double Sedan_DoubleWishbone::m_uprightRadius = 0.025;
 const double Sedan_DoubleWishbone::m_UCARadius = 0.02;
 const double Sedan_DoubleWishbone::m_LCARadius = 0.03;
 
-const ChVector<> Sedan_DoubleWishbone::m_spindleInertia(0.000478, 0.000496, 0.000478);
-const ChVector<> Sedan_DoubleWishbone::m_uprightInertiaMoments(0.0138, 0.0146, 0.00283);
-const ChVector<> Sedan_DoubleWishbone::m_uprightInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> Sedan_DoubleWishbone::m_UCAInertiaMoments(0.00591, 0.00190, 0.00769);
-const ChVector<> Sedan_DoubleWishbone::m_UCAInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> Sedan_DoubleWishbone::m_LCAInertiaMoments(0.0151, 0.0207, 0.0355);
-const ChVector<> Sedan_DoubleWishbone::m_LCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d Sedan_DoubleWishbone::m_spindleInertia(0.000478, 0.000496, 0.000478);
+const ChVector3d Sedan_DoubleWishbone::m_uprightInertiaMoments(0.0138, 0.0146, 0.00283);
+const ChVector3d Sedan_DoubleWishbone::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d Sedan_DoubleWishbone::m_UCAInertiaMoments(0.00591, 0.00190, 0.00769);
+const ChVector3d Sedan_DoubleWishbone::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d Sedan_DoubleWishbone::m_LCAInertiaMoments(0.0151, 0.0207, 0.0355);
+const ChVector3d Sedan_DoubleWishbone::m_LCAInertiaProducts(0.0, 0.0, 0.0);
 
 const double Sedan_DoubleWishbone::m_axleInertia = 0.4;
 
@@ -127,42 +127,42 @@ Sedan_DoubleWishbone::~Sedan_DoubleWishbone() {}
 // function are for the left half of the suspension only.
 // -----------------------------------------------------------------------------
 
-const ChVector<> Sedan_DoubleWishbone::getLocation(PointId which) {
+const ChVector3d Sedan_DoubleWishbone::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return ChVector<>(-0.4584+0.4584, 0.7979, -0.1199);  // location of spindle center of mass
+            return ChVector3d(-0.4584+0.4584, 0.7979, -0.1199);  // location of spindle center of mass
         case UPRIGHT:
-            return ChVector<>(-0.4808+0.4584, 0.7470, -0.1118);  // location of upright center of mass
+            return ChVector3d(-0.4808+0.4584, 0.7470, -0.1118);  // location of upright center of mass
         case UCA_F:
-            return ChVector<>(-0.5584+0.4584, 0.4700, 0.1050);  // UCA front connection point to chassis
+            return ChVector3d(-0.5584+0.4584, 0.4700, 0.1050);  // UCA front connection point to chassis
         case UCA_B:
-            return ChVector<>(-0.7084+0.4584, 0.5100, 0.1100);  // UCA rear (back) connection point to chassis
+            return ChVector3d(-0.7084+0.4584, 0.5100, 0.1100);  // UCA rear (back) connection point to chassis
         case UCA_U:
-            return ChVector<>(-0.4984+0.4584, 0.6950, 0.1050);  // UCA connection point to upright
+            return ChVector3d(-0.4984+0.4584, 0.6950, 0.1050);  // UCA connection point to upright
         case UCA_CM:
-            return ChVector<>(-0.5667+0.4584, 0.5972, 0.1063);  // location of UCA center of mass
+            return ChVector3d(-0.5667+0.4584, 0.5972, 0.1063);  // location of UCA center of mass
         case LCA_F:
-            return ChVector<>(-0.2584+0.4584, 0.4200, -0.2700);  // LCA front connection point to chassis
+            return ChVector3d(-0.2584+0.4584, 0.4200, -0.2700);  // LCA front connection point to chassis
         case LCA_B:
-            return ChVector<>(-0.6584+0.4584, 0.4700, -0.2650);  // LCA rear (back) connection point to chassis
+            return ChVector3d(-0.6584+0.4584, 0.4700, -0.2650);  // LCA rear (back) connection point to chassis
         case LCA_U:
-            return ChVector<>(-0.4584+0.4584, 0.7700, -0.3200);  // LCA connection point to upright
+            return ChVector3d(-0.4584+0.4584, 0.7700, -0.3200);  // LCA connection point to upright
         case LCA_CM:
-            return ChVector<>(-0.4536+0.4584, 0.6112, -0.2932);  // location of LCA center of mass
+            return ChVector3d(-0.4536+0.4584, 0.6112, -0.2932);  // location of LCA center of mass
         case SHOCK_C:
-            return ChVector<>(-0.4984+0.4584, 0.5200, 0.2300);  // shock connection to chassis
+            return ChVector3d(-0.4984+0.4584, 0.5200, 0.2300);  // shock connection to chassis
         case SHOCK_A:
-            return ChVector<>(-0.4584+0.4584, 0.6200, -0.2700);  // shock connection point to LCA
+            return ChVector3d(-0.4584+0.4584, 0.6200, -0.2700);  // shock connection point to LCA
         case SPRING_C:
-            return ChVector<>(-0.4984+0.4584, 0.5200, 0.2300);  // spring connection point to chassis
+            return ChVector3d(-0.4984+0.4584, 0.5200, 0.2300);  // spring connection point to chassis
         case SPRING_A:
-            return ChVector<>(-0.4584+0.4584, 0.6200, -0.2700);  // spring connection point to LCA
+            return ChVector3d(-0.4584+0.4584, 0.6200, -0.2700);  // spring connection point to LCA
         case TIEROD_C:
-            return ChVector<>(-0.6584+0.4584, 0.4200, -0.1200);  // tierod connection point to chassis
+            return ChVector3d(-0.6584+0.4584, 0.4200, -0.1200);  // tierod connection point to chassis
         case TIEROD_U:
-            return ChVector<>(-0.6084+0.4584, 0.7700, -0.1200);  // tierod connection point to upright
+            return ChVector3d(-0.6084+0.4584, 0.7700, -0.1200);  // tierod connection point to upright
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

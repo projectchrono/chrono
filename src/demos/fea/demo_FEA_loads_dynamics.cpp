@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
     sys.Add(mesh);
 
     // Create some nodes (with default mass 0)
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
-    auto nodeB = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(2, 0, 0)));
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(0, 0, 0)));
+    auto nodeB = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(2, 0, 0)));
     nodeA->SetMass(0.0);
     nodeB->SetMass(0.0);
     mesh->AddNode(nodeA);
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
 
     auto mwrench = chrono_types::make_shared<ChLoadBeamWrench>(elementA);
     mwrench->loader.SetApplication(1.0);  // in -1..+1 range, -1: end A, 0: mid, +1: end B
-    mwrench->loader.SetForce(ChVector<>(0, 200, 0));
+    mwrench->loader.SetForce(ChVector3d(0, 200, 0));
     loadcontainer->Add(mwrench);  // do not forget to add the load to the load container.
 #endif
 
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     std::cout << "   Distributed load along beam element.\n";
 
     auto mwrenchdis = chrono_types::make_shared<ChLoadBeamWrenchDistributed>(elementA);
-    mwrenchdis->loader.SetForcePerUnit(ChVector<>(0, 400.0, 0));  // load per unit length
+    mwrenchdis->loader.SetForcePerUnit(ChVector3d(0, 400.0, 0));  // load per unit length
     loadcontainer->Add(mwrenchdis);
 #endif
 
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
             ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
         ) {
             double Fy_max = 1000;
-            F.segment(0, 3) = ChVector<>(0, ((1 + U) / 2) * Fy_max, 0).eigen();  // load, force part
+            F.segment(0, 3) = ChVector3d(0, ((1 + U) / 2) * Fy_max, 0).eigen();  // load, force part
             F.segment(3, 3).setZero();                                           // load, torque part
         }
 
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "   Custom load with stiff force, acting on a single node (VER 1).\n";
 
-    auto nodeC = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
+    auto nodeC = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(2, 10, 3));
     mesh->AddNode(nodeC);
 
     class MyLoaderPointStiff : public ChLoaderUVWatomic {
@@ -223,8 +223,8 @@ int main(int argc, char* argv[]) {
             ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
             ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
         ) {
-            ChVector<> node_pos;
-            ChVector<> node_vel;
+            ChVector3d node_pos;
+            ChVector3d node_vel;
             if (state_x) {
                 node_pos = state_x->segment(0, 3);
                 node_vel = state_w->segment(0, 3);
@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "   Custom load with stiff force, acting on a single node (VER 2).\n";
 
-    auto nodeD = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
+    auto nodeD = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(2, 10, 3));
     mesh->AddNode(nodeD);
 
     class MyLoadCustom : public ChLoadCustom {
@@ -287,8 +287,8 @@ int main(int argc, char* argv[]) {
         virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                               ChStateDelta* state_w  ///< state speed to evaluate Q
                               ) override {
-            ChVector<> node_pos;
-            ChVector<> node_vel;
+            ChVector3d node_pos;
+            ChVector3d node_vel;
             if (state_x && state_w) {
                 node_pos = state_x->segment(0, 3);
                 node_vel = state_w->segment(0, 3);
@@ -348,9 +348,9 @@ int main(int argc, char* argv[]) {
 
     ////std::cout << "   Custom load with stiff force, acting on multiple nodes.\n";
 
-    auto nodeE = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
+    auto nodeE = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(2, 10, 3));
     mesh->AddNode(nodeE);
-    auto nodeF = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 11, 3));
+    auto nodeF = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(2, 11, 3));
     mesh->AddNode(nodeF);
 
     class MyLoadCustomMultiple : public ChLoadCustomMultiple {
@@ -370,10 +370,10 @@ int main(int argc, char* argv[]) {
         virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                               ChStateDelta* state_w  ///< state speed to evaluate Q
                               ) override {
-            ChVector<> Enode_pos;
-            ChVector<> Enode_vel;
-            ChVector<> Fnode_pos;
-            ChVector<> Fnode_vel;
+            ChVector3d Enode_pos;
+            ChVector3d Enode_vel;
+            ChVector3d Fnode_pos;
+            ChVector3d Fnode_vel;
             if (state_x && state_w) {
                 Enode_pos = state_x->segment(0, 3);
                 Enode_vel = state_w->segment(0, 3);
@@ -395,13 +395,13 @@ int main(int argc, char* argv[]) {
             double Dy1 = 0.2;
             double E_x_offset = 2;
             double E_y_offset = 10;
-            ChVector<> spring1(-Kx1 * (Enode_pos.x() - E_x_offset) - Dx1 * Enode_vel.x(),
+            ChVector3d spring1(-Kx1 * (Enode_pos.x() - E_x_offset) - Dx1 * Enode_vel.x(),
                                -Ky1 * (Enode_pos.y() - E_y_offset) - Dy1 * Enode_vel.y(), 0);
             // ... from node F to node E,
             double Ky2 = 10;
             double Dy2 = 0.2;
             double EF_dist = 0.75;
-            ChVector<> spring2(
+            ChVector3d spring2(
                 0, -Ky2 * (Fnode_pos.y() - Enode_pos.y() - EF_dist) - Dy2 * (Enode_vel.y() - Fnode_vel.y()), 0);
             double Fforcey = 2;
 
@@ -456,7 +456,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.5, 0.0, -3.0), ChVector<>(0.5, 0.0, 0.0));
+    vis->AddCamera(ChVector3d(0.5, 0.0, -3.0), ChVector3d(0.5, 0.0, 0.0));
     vis->AttachSystem(&sys);
 
     // -----------------------------------------------------------------

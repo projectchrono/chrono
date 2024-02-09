@@ -10,46 +10,38 @@
 //
 // =============================================================================
 
-#ifndef CHCOORDSYS_H
-#define CHCOORDSYS_H
+#ifndef CH_COORDSYS_H
+#define CH_COORDSYS_H
 
 #include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 
-///
-/// COORDSYS:
-///
-///  This class contains both translational variable
-/// (the origin of the axis) and the rotational variable
-/// (that is the unitary quaternion which represent the
-/// special-orthogonal transformation matrix).
-///   Basic features for point-coordinate transformations
-/// are provided. However, for more advanced features, the
-/// heavier classes ChFrame() or ChFrameMoving() may suit better.
-///  The coordsys object comes either with the template "ChCoordsys<type>" mode,
-/// either in the 'shortcut' flavor, that is "Coordsys", which assumes
-/// the type of the four scalars is double precision, so it is faster to type.
-///
+/// Class that represents a translation and rotation.
+/// A ChCoordsys contains both translational variable (the origin of the axis) and the rotational variable (that is the
+/// unitary quaternion which represent the special-orthogonal transformation matrix).
+/// Basic features for point-coordinate transformations are provided. However, for more advanced features, the heavier
+/// classes ChFrame() or ChFrameMoving() may suit better.
+/// The coordsys object comes either with the template "ChCoordsys<type>" mode, either in the 'shortcut' flavor, that is
+/// "Coordsys", which assumes the type of the four scalars is double precision, so it is faster to type.
 /// Further info at the @ref coordinate_transformations manual page.
-
 template <class Real = double>
 class ChCoordsys {
   public:
-    ChVector<Real> pos;
+    ChVector3<Real> pos;
     ChQuaternion<Real> rot;
 
   public:
     // Default constructor (identity frame)
-    ChCoordsys() : pos(ChVector<Real>(0, 0, 0)), rot(ChQuaternion<Real>(1, 0, 0, 0)){};
+    ChCoordsys() : pos(ChVector3<Real>(0, 0, 0)), rot(ChQuaternion<Real>(1, 0, 0, 0)){};
 
     // Construct from position and rotation (as quaternion)
-    explicit ChCoordsys(const ChVector<Real>& mv, const ChQuaternion<Real>& mq = ChQuaternion<Real>(1, 0, 0, 0))
+    explicit ChCoordsys(const ChVector3<Real>& mv, const ChQuaternion<Real>& mq = ChQuaternion<Real>(1, 0, 0, 0))
         : pos(mv), rot(mq){};
 
     // Construct from position mv and rotation of angle alpha around unit vector mu
-    explicit ChCoordsys(const ChVector<Real>& mv, const Real alpha, const ChVector<Real>& mu) : pos(mv) {
+    explicit ChCoordsys(const ChVector3<Real>& mv, const Real alpha, const ChVector3<Real>& mu) : pos(mv) {
         rot.Q_from_AngAxis(alpha, mu);
     };
 
@@ -122,7 +114,7 @@ class ChCoordsys {
     /// but in the opposite order...)
     ///  new_v = old_v >> frame3to2 >> frame2to1 >> frame1to0;
     /// This operation is not commutative.
-    // friend ChVector<Real> operator >> (const ChVector<Real>& V, const ChCoordsys<Real>& mcsys)
+    // friend ChVector3<Real> operator >> (const ChVector3<Real>& V, const ChCoordsys<Real>& mcsys)
     //	{
     //		return mcsys.TransformLocalToParent(V);
     //	}
@@ -151,7 +143,7 @@ class ChCoordsys {
     ///  NOTE: since c++ operator execution is from left to right, in
     /// case of multiple transformations like w=A*B*C*v, the >> operator
     /// performs faster, like  w=v>>C>>B>>A;
-    // ChVector<Real> operator * (const ChVector<Real>& V) const
+    // ChVector3<Real> operator * (const ChVector3<Real>& V) const
     //	{
     //			return this->TransformLocalToParent(V);
     //	}
@@ -159,7 +151,7 @@ class ChCoordsys {
     /// The '/' is like the '*' operator (see), but uses the inverse
     /// transformation for A, in A/b. (with A ChFrame, b ChVector)
     /// That is: c=A*b ; b=A/c;
-    ChVector<Real> operator/(const ChVector<Real>& V) const { return TransformParentToLocal(V); }
+    ChVector3<Real> operator/(const ChVector3<Real>& V) const { return TransformParentToLocal(V); }
 
     /// Performs pre-multiplication of this frame by another
     /// frame, for example: A>>=T means  A'=T*A ; or A'=A >> T
@@ -178,7 +170,7 @@ class ChCoordsys {
     // Mixed type operators:
 
     /// Performs pre-multiplication of this frame by a vector D, to 'move' by a displacement D:
-    ChCoordsys<Real>& operator>>=(const ChVector<Real>& D) {
+    ChCoordsys<Real>& operator>>=(const ChVector3<Real>& D) {
         this->pos += D;
         return *this;
     }
@@ -210,7 +202,7 @@ class ChCoordsys {
 
     /// Sets to no translation and no rotation
     void SetIdentity() {
-        pos = ChVector<Real>(0, 0, 0);
+        pos = ChVector3<Real>(0, 0, 0);
         rot = ChQuaternion<Real>(1, 0, 0, 0);
     }
 
@@ -238,27 +230,27 @@ class ChCoordsys {
     /// system to the parent coordinate system. Relative position of local respect
     /// to parent is given by this coordys, i.e. 'origin' translation and 'alignment' quaternion.
     /// \return The point in parent coordinate, as parent=origin +q*[0,(local)]*q'
-    ChVector<Real> TransformLocalToParent(const ChVector<Real>& local) const { return pos + rot.Rotate(local); }
+    ChVector3<Real> TransformLocalToParent(const ChVector3<Real>& local) const { return pos + rot.Rotate(local); }
 
-    ChVector<Real> TransformPointLocalToParent(const ChVector<Real>& local) const { return pos + rot.Rotate(local); }
+    ChVector3<Real> TransformPointLocalToParent(const ChVector3<Real>& local) const { return pos + rot.Rotate(local); }
 
     /// This function transforms a point from the parent coordinate
     /// system to a local coordinate system, whose relative position
     /// is given by this coodsys, i.e. 'origin' translation and 'alignment' quaternion.
     /// \return The point in local coordinate, as local=q'*[0,(parent-origin)]*q
-    ChVector<Real> TransformParentToLocal(const ChVector<Real>& parent) const { return rot.RotateBack(parent - pos); }
+    ChVector3<Real> TransformParentToLocal(const ChVector3<Real>& parent) const { return rot.RotateBack(parent - pos); }
 
-    ChVector<Real> TransformPointParentToLocal(const ChVector<Real>& parent) const {
+    ChVector3<Real> TransformPointParentToLocal(const ChVector3<Real>& parent) const {
         return rot.RotateBack(parent - pos);
     }
 
     /// This function transforms a direction from 'this' local coordinate system
     /// to the parent coordinate system.
-    ChVector<Real> TransformDirectionLocalToParent(const ChVector<Real>& local) const { return rot.Rotate(local); }
+    ChVector3<Real> TransformDirectionLocalToParent(const ChVector3<Real>& local) const { return rot.Rotate(local); }
 
     /// This function transforms a direction from the parent coordinate system to
     /// 'this' local coordinate system.
-    ChVector<Real> TransformDirectionParentToLocal(const ChVector<Real>& parent) const {
+    ChVector3<Real> TransformDirectionParentToLocal(const ChVector3<Real>& parent) const {
         return rot.RotateBack(parent);
     }
 
@@ -290,7 +282,7 @@ class ChCoordsys {
     /// Method to allow de-serialization of transient data from archives.
     void ArchiveIn(ChArchiveIn& marchive) {
         // suggested: use versioning
-        /*int version =*/ marchive.VersionRead<ChCoordsys<double>>();
+        /*int version =*/marchive.VersionRead<ChCoordsys<double>>();
         // stream in all member data
         marchive >> CHNVP(pos);
         marchive >> CHNVP(rot);
@@ -322,7 +314,7 @@ inline std::ostream& operator<<(std::ostream& out, const ChCoordsys<Real>& cs) {
 /// Returns a ChVector.
 /// The effect is like applying the transformation frame_A to vector_B and get vector_C.
 template <class Real>
-ChVector<Real> operator*(const ChCoordsys<Real>& Fa, const ChVector<Real>& Fb) {
+ChVector3<Real> operator*(const ChCoordsys<Real>& Fa, const ChVector3<Real>& Fb) {
     return Fa.TransformPointLocalToParent(Fb);
 }
 
@@ -333,7 +325,7 @@ ChVector<Real> operator*(const ChCoordsys<Real>& Fa, const ChVector<Real>& Fb) {
 /// Returns a ChCoordsys.
 /// The effect is like applying the translation vector_A to frame_B and get frame_C.
 template <class Real>
-ChCoordsys<Real> operator*(const ChVector<Real>& Fa, const ChCoordsys<Real>& Fb) {
+ChCoordsys<Real> operator*(const ChVector3<Real>& Fa, const ChCoordsys<Real>& Fb) {
     ChCoordsys<Real> res(Fb);
     res.pos += Fa;
     return res;
@@ -346,7 +338,7 @@ ChCoordsys<Real> operator*(const ChVector<Real>& Fa, const ChCoordsys<Real>& Fb)
 /// Returns a ChVector.
 /// The effect is like applying the transformation frame_B to frame_A and get frame_C.
 template <class Real>
-ChVector<Real> operator>>(const ChVector<Real>& Fa, const ChCoordsys<Real>& Fb) {
+ChVector3<Real> operator>>(const ChVector3<Real>& Fa, const ChCoordsys<Real>& Fb) {
     return Fb.TransformPointLocalToParent(Fa);
 }
 
@@ -357,7 +349,7 @@ ChVector<Real> operator>>(const ChVector<Real>& Fa, const ChCoordsys<Real>& Fb) 
 /// Returns a ChCoordsys.
 /// The effect is like applying the translation vector_B to frame_A and get frame_C.
 template <class Real>
-ChCoordsys<Real> operator>>(const ChCoordsys<Real>& Fa, const ChVector<Real>& Fb) {
+ChCoordsys<Real> operator>>(const ChCoordsys<Real>& Fa, const ChVector3<Real>& Fb) {
     ChCoordsys<Real> res(Fa);
     res.pos += Fb;
     return res;

@@ -64,8 +64,8 @@ void SynWheeledVehicleAgent::InitializeZombie(ChSystem* system) {
 
         //// RADU - pass this transform to AddVisualShape
         ChQuaternion<> rot = (i % 2 == 0) ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
-        wheel_trimesh->GetMesh()->Transform(ChVector<>(), ChMatrix33<>(rot));
-        tire_trimesh->GetMesh()->Transform(ChVector<>(), ChMatrix33<>(rot));
+        wheel_trimesh->GetMesh()->Transform(ChVector3d(), ChMatrix33<>(rot));
+        tire_trimesh->GetMesh()->Transform(ChVector3d(), ChMatrix33<>(rot));
 
         auto wheel = chrono_types::make_shared<ChBodyAuxRef>();
         wheel->AddVisualShape(wheel_trimesh);

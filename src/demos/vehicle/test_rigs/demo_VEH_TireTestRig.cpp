@@ -284,7 +284,7 @@ int main() {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector<>(1.0, 2.5, 1.0));
+            vis_irr->AddCamera(ChVector3d(1.0, 2.5, 1.0));
             vis_irr->AddLightDirectional();
 
             vis_irr->GetActiveCamera()->setFOV(irr::core::PI / 4.5f);
@@ -301,7 +301,7 @@ int main() {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
             vis_vsg->SetWindowSize(1200, 600);
             vis_vsg->SetWindowTitle("Tire Test Rig");
-            vis_vsg->AddCamera(ChVector<>(1.0, 2.5, 1.0));
+            vis_vsg->AddCamera(ChVector3d(1.0, 2.5, 1.0));
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -324,7 +324,7 @@ int main() {
         blender_exporter.SetBlenderUp_is_ChronoZ();
         blender_exporter.SetBasePath(blender_dir);
         blender_exporter.AddAll();
-        blender_exporter.SetCamera(ChVector<>(3, 3, 1), ChVector<>(0, 0, 0), 50);
+        blender_exporter.SetCamera(ChVector3d(3, 3, 1), ChVector3d(0, 0, 0), 50);
         blender_exporter.ExportScript();
     }
 #endif
@@ -346,7 +346,7 @@ int main() {
         }
 
         auto& loc = rig.GetPos();
-        vis->UpdateCamera(loc + ChVector<>(1.0, 2.5, 0.5), loc + ChVector<>(0, 0.25, -0.25));
+        vis->UpdateCamera(loc + ChVector3d(1.0, 2.5, 0.5), loc + ChVector3d(0, 0.25, -0.25));
 
         vis->BeginScene();
         vis->Render();

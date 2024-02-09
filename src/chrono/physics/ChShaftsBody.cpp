@@ -32,7 +32,7 @@ ChShaftsBody::ChShaftsBody(const ChShaftsBody& other) : ChPhysicsItem(other) {
 bool ChShaftsBody::Initialize(std::shared_ptr<ChShaft> mshaft,
                               std::shared_ptr<ChBodyFrame>
                                   mbody,
-                              const ChVector<>& mdir) {
+                              const ChVector3d& mdir) {
     ChShaft* mm1 = mshaft.get();
     ChBodyFrame* mm2 = mbody.get();
     assert(mm1 && mm2);
@@ -139,8 +139,8 @@ void ChShaftsBody::ConstraintsBiLoad_Ct(double factor) {
 
 void ChShaftsBody::ConstraintsLoadJacobians() {
     // compute jacobians
-    // ChVector<> jacw = body->TransformDirectionParentToLocal(shaft_dir);
-    ChVector<> jacw = shaft_dir;
+    // ChVector3d jacw = body->TransformDirectionParentToLocal(shaft_dir);
+    ChVector3d jacw = shaft_dir;
 
     constraint.Get_Cq_a()(0) = -1;
 
@@ -207,8 +207,8 @@ ChShaftsBodyTranslation::ChShaftsBodyTranslation(const ChShaftsBodyTranslation& 
 
 bool ChShaftsBodyTranslation::Initialize(std::shared_ptr<ChShaft> mshaft,
                               std::shared_ptr<ChBodyFrame> mbody,
-                              const ChVector<>& mdir,
-                              const ChVector<>& mpos) {
+                              const ChVector3d& mdir,
+                              const ChVector3d& mpos) {
     ChShaft* mm1 = mshaft.get();
     ChBodyFrame* mm2 = mbody.get();
     assert(mm1 && mm2);
@@ -316,8 +316,8 @@ void ChShaftsBodyTranslation::ConstraintsBiLoad_Ct(double factor) {
 
 void ChShaftsBodyTranslation::ConstraintsLoadJacobians() {
     // compute jacobians
-    ChVector<> jacx = body->TransformDirectionLocalToParent(shaft_dir);
-    ChVector<> jacw = Vcross(shaft_pos, shaft_dir);
+    ChVector3d jacx = body->TransformDirectionLocalToParent(shaft_dir);
+    ChVector3d jacw = Vcross(shaft_pos, shaft_dir);
 
     constraint.Get_Cq_a()(0) = -1.0;
 

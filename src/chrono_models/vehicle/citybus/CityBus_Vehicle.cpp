@@ -111,15 +111,15 @@ void CityBus_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
 
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
-    ChVector<> offset = ChVector<>(0, 0, 0.545);  // 0.4 0 0.4
+    ChVector3d offset = ChVector3d(0, 0, 0.545);  // 0.4 0 0.4
     ChQuaternion<> rotation = ChQuaternion<>(1, 0, 0, 0);
     m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0, 0, .545), ChVector<>(0), 0.0, m_omega[0],
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector3d(0, 0, .545), ChVector3d(0), 0.0, m_omega[0],
                            m_omega[1]);
     const double twin_tire_dist = 0.33528;  // Michelin for 305/85 R22.5
-    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-7.184, 0, .545), ChVector<>(0), twin_tire_dist,
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-7.184, 0, .545), ChVector3d(0), twin_tire_dist,
                            m_omega[2], m_omega[3]);
 
     // Initialize the driveline subsystem (RWD)
@@ -166,10 +166,10 @@ double CityBus_Vehicle::GetShockVelocity(int axle, VehicleSide side) const {
 // -----------------------------------------------------------------------------
 void CityBus_Vehicle::LogHardpointLocations() {
     std::cout << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChSolidAxle>(m_axles[0]->m_suspension)->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+    std::static_pointer_cast<ChSolidAxle>(m_axles[0]->m_suspension)->LogHardpointLocations(ChVector3d(0, 0, 0), false);
 
     std::cout << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChSolidAxle>(m_axles[1]->m_suspension)->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+    std::static_pointer_cast<ChSolidAxle>(m_axles[1]->m_suspension)->LogHardpointLocations(ChVector3d(0, 0, 0), false);
 
     std::cout << "\n\n";
 }

@@ -59,7 +59,7 @@ ChCollisionModelBullet::~ChCollisionModelBullet() {
 // Utility class to convert a Chrono ChVector into a Bullet vector3.
 class cbtVector3CH : public cbtVector3 {
   public:
-    cbtVector3CH(const chrono::ChVector<>& p) { setValue((cbtScalar)p.x(), (cbtScalar)p.y(), (cbtScalar)p.z()); }
+    cbtVector3CH(const chrono::ChVector3d& p) { setValue((cbtScalar)p.x(), (cbtScalar)p.y(), (cbtScalar)p.z()); }
 };
 
 // Utility class to convert a Chrono frame into a Bullet transform.
@@ -81,7 +81,7 @@ class ChCoordsysBT : public ChCoordsys<double> {
     ChCoordsysBT(const cbtTransform& transform) {
         const cbtVector3& p = transform.getOrigin();
         cbtQuaternion q = transform.getRotation();
-        pos = ChVector<>((double)p.x(), (double)p.y(), (double)p.z());
+        pos = ChVector3d((double)p.x(), (double)p.y(), (double)p.z());
         rot = ChQuaternion<>((double)q.w(), (double)q.x(), (double)q.y(), (double)q.z());
     }
 };
@@ -137,7 +137,7 @@ void ChCollisionModelBullet::Populate() {
                 auto height = shape_cylinder->GetHeight();
                 auto radius = shape_cylinder->GetRadius();
                 model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height / 2)));
-                ChVector<> size(radius, radius, height / 2);
+                ChVector3d size(radius, radius, height / 2);
                 auto bt_shape = chrono_types::make_shared<cbtCylinderShapeZ>(cbtVector3CH(size + envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
                 injectShape(shape, bt_shape, frame);
@@ -286,8 +286,8 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
         if (auto segment = std::dynamic_pointer_cast<geometry::ChLineSegment>(path.GetSubLineN(i))) {
             if (segment->pA.z() != segment->pB.z())
                 throw std::runtime_error("Error! injectPath2D: sub segment of ChLinePath not parallel to XY plane!");
-            ChVector<> pA(segment->pA.x(), segment->pA.y(), 0);
-            ChVector<> pB(segment->pB.x(), segment->pB.y(), 0);
+            ChVector3d pA(segment->pA.x(), segment->pA.y(), 0);
+            ChVector3d pB(segment->pB.x(), segment->pB.y(), 0);
             auto shape_seg = chrono_types::make_shared<ChCollisionShapeSegment2D>(material, *segment, thickness);
             auto bt_shape =
                 chrono_types::make_shared<cbt2DsegmentShape>(cbtVector3CH(pA), cbtVector3CH(pB), (cbtScalar)thickness);
@@ -605,7 +605,7 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
 
         model->SetSafeMargin(0);
         for (unsigned int j = 0; j < decomposition->GetHullCount(); j++) {
-            std::vector<ChVector<double>> ptlist;
+            std::vector<ChVector3d> ptlist;
             decomposition->GetConvexHullResult(j, ptlist);
             if (ptlist.size() > 0) {
                 auto shape_hull =
@@ -653,8 +653,8 @@ geometry::ChAABB ChCollisionModelBullet::GetBoundingBox() const {
         cbtVector3 btmin;
         cbtVector3 btmax;
         bt_collision_object->getCollisionShape()->getAabb(bt_collision_object->getWorldTransform(), btmin, btmax);
-        return geometry::ChAABB(ChVector<>((double)btmin.x(), (double)btmin.y(), (double)btmin.z()),
-                                ChVector<>((double)btmax.x(), (double)btmax.y(), (double)btmax.z()));
+        return geometry::ChAABB(ChVector3d((double)btmin.x(), (double)btmin.y(), (double)btmin.z()),
+                                ChVector3d((double)btmax.x(), (double)btmax.y(), (double)btmax.z()));
     }
 
     return geometry::ChAABB();

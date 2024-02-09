@@ -68,9 +68,9 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     }
 
     /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector<> Get_react_force() { return VNULL; }
+    virtual ChVector3d Get_react_force() { return VNULL; }
     /// To get reaction torque,  expressed in link coordinate system:
-    virtual ChVector<> Get_react_torque() { return VNULL; }
+    virtual ChVector3d Get_react_torque() { return VNULL; }
     // (Note, functions above might fit better in a specialized subclass, but here for easier GUI interface)
 
     /// Get the current constraint violations.

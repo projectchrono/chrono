@@ -63,7 +63,7 @@ void ChTrackAssembly::GetTrackShoeStates(BodyStates& states) const {
 // -----------------------------------------------------------------------------
 // Initialize this track assembly subsystem.
 // -----------------------------------------------------------------------------
-void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location, bool create_shoes) {
+void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location, bool create_shoes) {
     m_parent = chassis;
     m_rel_loc = location;
 
@@ -137,7 +137,7 @@ void ChTrackAssembly::InitializeInertiaProperties() {
 void ChTrackAssembly::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
-    ChVector<> com(0);
+    ChVector3d com(0);
     ChMatrix33<> inertia(0);
 
     GetSprocket()->AddInertiaProperties(com, inertia);

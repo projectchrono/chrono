@@ -62,7 +62,7 @@ ChSemiTrailingArm::~ChSemiTrailingArm() {
 void ChSemiTrailingArm::Initialize(std::shared_ptr<ChChassis> chassis,
                                    std::shared_ptr<ChSubchassis> subchassis,
                                    std::shared_ptr<ChSteering> steering,
-                                   const ChVector<>& location,
+                                   const ChVector3d& location,
                                    double left_ang_vel,
                                    double right_ang_vel) {
     ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
@@ -78,7 +78,7 @@ void ChSemiTrailingArm::Initialize(std::shared_ptr<ChChassis> chassis,
     m_pointsL.resize(NUM_POINTS);
     m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
+        ChVector3d rel_pos = getLocation(static_cast<PointId>(i));
         m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
         rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
@@ -91,7 +91,7 @@ void ChSemiTrailingArm::Initialize(std::shared_ptr<ChChassis> chassis,
 
 void ChSemiTrailingArm::InitializeSide(VehicleSide side,
                                        std::shared_ptr<ChChassis> chassis,
-                                       const std::vector<ChVector<>>& points,
+                                       const std::vector<ChVector3d>& points,
                                        double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
@@ -108,15 +108,15 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
-    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
+    m_spindle[side]->SetWvel_loc(ChVector3d(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w;
     ChMatrix33<> rot;
 
     // Create and initialize trailing arm body.
@@ -185,7 +185,7 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
-    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
+    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
@@ -236,11 +236,11 @@ std::vector<ChSuspension::ForceTSDA> ChSemiTrailingArm::ReportSuspensionForce(Ve
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSemiTrailingArm::LogHardpointLocations(const ChVector<>& ref, bool inches) {
+void ChSemiTrailingArm::LogHardpointLocations(const ChVector3d& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
+        ChVector3d pos = ref + unit * getLocation(static_cast<PointId>(i));
 
         std::cout << "   " << m_pointNames[i] << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
@@ -306,18 +306,18 @@ void ChSemiTrailingArm::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSemiTrailingArm::AddVisualizationArm(std::shared_ptr<ChBody> arm,
-                                            const ChVector<> pt_AC_O,
-                                            const ChVector<> pt_AC_I,
-                                            const ChVector<> pt_AS,
-                                            const ChVector<> pt_S,
+                                            const ChVector3d pt_AC_O,
+                                            const ChVector3d pt_AC_I,
+                                            const ChVector3d pt_AS,
+                                            const ChVector3d pt_S,
                                             double radius) {
     static const double threshold2 = 1e-6;
 
     // Express hardpoint locations in body frame.
-    ChVector<> p_AC_O = arm->TransformPointParentToLocal(pt_AC_O);
-    ChVector<> p_AC_I = arm->TransformPointParentToLocal(pt_AC_I);
-    ChVector<> p_AS = arm->TransformPointParentToLocal(pt_AS);
-    ChVector<> p_S = arm->TransformPointParentToLocal(pt_S);
+    ChVector3d p_AC_O = arm->TransformPointParentToLocal(pt_AC_O);
+    ChVector3d p_AC_I = arm->TransformPointParentToLocal(pt_AC_I);
+    ChVector3d p_AS = arm->TransformPointParentToLocal(pt_AS);
+    ChVector3d p_S = arm->TransformPointParentToLocal(pt_S);
 
     ChVehicleGeometry::AddVisualizationCylinder(arm, p_AC_O, p_AS, radius);
     ChVehicleGeometry::AddVisualizationCylinder(arm, p_AC_I, p_AS, radius);

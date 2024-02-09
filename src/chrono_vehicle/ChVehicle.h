@@ -109,7 +109,7 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Get the vehicle global location.
     /// This is the global location of the main chassis reference frame origin.
-    const ChVector<>& GetPos() const { return m_chassis->GetPos(); }
+    const ChVector3d& GetPos() const { return m_chassis->GetPos(); }
 
     /// Get the vehicle orientation.
     /// This is the main chassis orientation, returned as a quaternion representing a rotation with respect to the
@@ -139,20 +139,20 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the global position of the specified point.
     /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned location is expressed in the global reference frame.
-    ChVector<> GetPointLocation(const ChVector<>& locpos) const { return m_chassis->GetPointLocation(locpos); }
+    ChVector3d GetPointLocation(const ChVector3d& locpos) const { return m_chassis->GetPointLocation(locpos); }
 
     /// Get the global velocity of the specified point.
     /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned velocity is expressed in the global reference frame.
-    ChVector<> GetPointVelocity(const ChVector<>& locpos) const { return m_chassis->GetPointVelocity(locpos); }
+    ChVector3d GetPointVelocity(const ChVector3d& locpos) const { return m_chassis->GetPointVelocity(locpos); }
 
     /// Get the acceleration at the specified point.
     /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned acceleration is expressed in the chassis reference frame.
-    ChVector<> GetPointAcceleration(const ChVector<>& locpos) const { return m_chassis->GetPointAcceleration(locpos); }
+    ChVector3d GetPointAcceleration(const ChVector3d& locpos) const { return m_chassis->GetPointAcceleration(locpos); }
 
     /// Get the global location of the driver.
-    ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
+    ChVector3d GetDriverPos() const { return m_chassis->GetDriverPos(); }
 
     /// Enable/disable soft real-time (default: false).
     /// If enabled, a spinning timer is used to maintain simulation time in sync with real time (if simulation is

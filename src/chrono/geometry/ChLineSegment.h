@@ -26,7 +26,7 @@ namespace geometry {
 /// Geometric object representing a segment in 3D space with two end points.
 class ChApi ChLineSegment : public ChLine {
   public:
-    ChLineSegment(const ChVector<> A = VNULL, const ChVector<> B = VNULL) : pA(A), pB(B) {}
+    ChLineSegment(const ChVector3d A = VNULL, const ChVector3d B = VNULL) : pA(A), pB(B) {}
     ChLineSegment(const ChLineSegment& source);
     ~ChLineSegment() {}
 
@@ -39,7 +39,7 @@ class ChApi ChLineSegment : public ChLine {
     virtual int Get_complexity() const override { return 2; }
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(double U) const override;
+    virtual ChVector3d Evaluate(double U) const override;
 
     /// Return curve length.
     virtual double Length(int sampling) const override { return (pA - pB).Length(); }
@@ -57,8 +57,8 @@ class ChApi ChLineSegment : public ChLine {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
-    ChVector<> pA;  ///< first segment endpoint
-    ChVector<> pB;  ///< second segment endpoint
+    ChVector3d pA;  ///< first segment endpoint
+    ChVector3d pB;  ///< second segment endpoint
 };
 
 }  // end namespace geometry

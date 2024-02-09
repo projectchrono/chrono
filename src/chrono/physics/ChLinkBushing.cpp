@@ -78,8 +78,8 @@ void ChLinkBushing::Initialize(std::shared_ptr<ChBody> body1,
     }
 }
 
-ChVector<> ChLinkBushing::GetForce() const {
-    ChVector<> force(0.0);
+ChVector3d ChLinkBushing::GetForce() const {
+    ChVector3d force(0.0);
 
     if (force_X && force_X->IsActive())
         force.x() = force_X->GetForce(relM.pos.x(), relM_dt.pos.x(), ChTime);
@@ -93,8 +93,8 @@ ChVector<> ChLinkBushing::GetForce() const {
     return force;
 }
 
-ChVector<> ChLinkBushing::GetTorque() const {
-    ChVector<> torque(0.0);
+ChVector3d ChLinkBushing::GetTorque() const {
+    ChVector3d torque(0.0);
 
     if (force_Rx && force_Rx->IsActive())
         torque.x() = force_Rx->GetForce(relRotaxis.x(), relWvel.x(), ChTime);

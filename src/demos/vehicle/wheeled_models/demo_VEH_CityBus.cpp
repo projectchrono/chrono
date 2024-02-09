@@ -74,7 +74,7 @@ double terrainLength = 200.0;  // size in X direction
 double terrainWidth = 200.0;   // size in Y direction
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     my_bus.SetContactMethod(contact_method);
     my_bus.SetChassisCollisionType(chassis_collision_type);
     my_bus.SetChassisFixed(false);
-    my_bus.SetInitPosition(ChCoordsys<>(ChVector<>(0, 0, 0.5), QUNIT));
+    my_bus.SetInitPosition(ChCoordsys<>(ChVector3d(0, 0, 0.5), QUNIT));
     my_bus.SetTireType(tire_model);
     my_bus.SetTireStepSize(tire_step_size);
     my_bus.Initialize();

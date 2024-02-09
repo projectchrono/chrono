@@ -41,7 +41,7 @@ using namespace chrono::vehicle::sedan;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.0);
+ChVector3d initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 enum DriverMode { DEFAULT, RECORD, PLAYBACK };
@@ -70,7 +70,7 @@ double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;

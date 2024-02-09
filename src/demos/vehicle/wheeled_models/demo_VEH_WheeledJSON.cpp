@@ -314,7 +314,7 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 ////std::string rigidterrain_file("terrain/RigidSlope20.json");
 
 // Initial vehicle position and orientation (adjust for selected terrain)
-ChVector<> initLoc(0, 0, 0.5);
+ChVector3d initLoc(0, 0, 0.5);
 double initYaw = 20 * CH_C_DEG_TO_RAD;
 
 // Simulation step size
@@ -424,7 +424,7 @@ int main(int argc, char* argv[]) {
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle(title);
-            vis_irr->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model->CameraDistance(), 0.5);
+            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), vehicle_model->CameraDistance(), 0.5);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
@@ -450,9 +450,9 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle(title);
             vis_vsg->AttachVehicle(&vehicle);
-            vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model->CameraDistance(), 0.5);
-            vis_vsg->SetWindowSize(ChVector2<int>(1200, 800));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), vehicle_model->CameraDistance(), 0.5);
+            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);

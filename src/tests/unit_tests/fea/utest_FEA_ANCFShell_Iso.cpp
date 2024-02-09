@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
 
         // Create the node
         auto node =
-            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(loc_x, loc_y, loc_z), ChVector3d(dir_x, dir_y, dir_z));
 
         node->SetMass(0);
 
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
     utils::CSV_writer csv(" ");
     std::ifstream file2("UT_ANCFShellIso.txt");
 
-    ChVector<> mforce(0, 0, -50);
+    ChVector3d mforce(0, 0, -50);
 
     // ---------------
     // Simulation loop

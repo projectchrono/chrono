@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     // pov_exporter.SetPictureFilebase("picture");
 
     // --Optional: modify default light
-    pov_exporter.SetLight(ChVector<>(-3, 4, 2), ChColor(0.15f, 0.15f, 0.12f), false);
+    pov_exporter.SetLight(ChVector3d(-3, 4, 2), ChColor(0.15f, 0.15f, 0.12f), false);
 
     // --Optional: add further POV commands, for example in this case:
     //     create an area light for soft shadows
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
-    floor->AddCollisionShape(floor_shape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
+    floor->AddCollisionShape(floor_shape, ChFrame<>(ChVector3d(0, -1, 0), QUNIT));
     floor->SetCollide(true);
 
     // Add body to system
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     // ==Asset== attach a 'box' shape.
     auto boxfloor = chrono_types::make_shared<ChVisualShapeBox>(20, 1, 20);
     boxfloor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
-    floor->AddVisualShape(boxfloor, ChFrame<>(ChVector<>(0, -1, 0)));
+    floor->AddVisualShape(boxfloor, ChFrame<>(ChVector3d(0, -1, 0)));
 
     /// [Example 1]
     /* End example */
@@ -131,32 +131,32 @@ int main(int argc, char* argv[]) {
 
     // ==Asset== Attach a 'sphere' shape
     auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(0.5);
-    body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0)));
+    body->AddVisualShape(sphere, ChFrame<>(ChVector3d(-1, 0, 0)));
 
     // ==Asset== Attach also a 'box' shape
     auto mbox = chrono_types::make_shared<ChVisualShapeBox>(0.4, 1.0, 0.2);
-    body->AddVisualShape(mbox, ChFrame<>(ChVector<>(1, 0, 0)));
+    body->AddVisualShape(mbox, ChFrame<>(ChVector3d(1, 0, 0)));
 
     // ==Asset== Attach also a 'cylinder' shape
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.7);
-    body->AddVisualShape(cyl, ChFrame<>(ChVector<>(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
+    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
-                         ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
+                         ChFrame<>(ChVector3d(2, -0.2, 0), QUNIT));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
-                         ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
+                         ChFrame<>(ChVector3d(2, +0.5, 0), QUNIT));
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file:
     auto objmesh = chrono_types::make_shared<ChVisualShapeModelFile>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     objmesh->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(0, 0, 2)));
 
     // ==Asset== Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
         auto smallbox = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.2, 0.02);
         smallbox->SetColor(ChColor(j * 0.05f, 1 - j * 0.05f, 0.0f));
         ChMatrix33<> rot(Q_from_AngY(j * 21 * CH_C_DEG_TO_RAD));
-        ChVector<> pos = rot * ChVector<>(0.4, 0, 0) + ChVector<>(0, j * 0.02, 0);
+        ChVector3d pos = rot * ChVector3d(0.4, 0, 0) + ChVector3d(0, j * 0.02, 0);
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
 
@@ -164,8 +164,8 @@ int main(int argc, char* argv[]) {
     // Note that a camera can also be attached to a moving object.
     auto camera = chrono_types::make_shared<ChCamera>();
     camera->SetAngle(50);
-    camera->SetPosition(ChVector<>(-3, 4, -5));
-    camera->SetAimPoint(ChVector<>(0, 1, 0));
+    camera->SetPosition(ChVector3d(-3, 4, -5));
+    camera->SetAimPoint(ChVector3d(0, 1, 0));
     body->AddCamera(camera);
 
     /// [Example 2]
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
 
     // Create the random particles
     for (int np = 0; np < 100; ++np)
-        particles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1, ChRandom() - 0.5)));
+        particles->AddParticle(ChCoordsys<>(ChVector3d(ChRandom() - 2, 1, ChRandom() - 0.5)));
 
     // Do not forget to add the particle cluster to the system:
     sys.Add(particles);

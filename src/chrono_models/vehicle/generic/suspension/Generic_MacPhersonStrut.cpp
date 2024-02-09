@@ -43,10 +43,10 @@ const double Generic_MacPhersonStrut::m_uprightRadius = 0.025;
 const double Generic_MacPhersonStrut::m_strutRadius = 0.02;
 const double Generic_MacPhersonStrut::m_LCARadius = 0.02;
 
-const ChVector<> Generic_MacPhersonStrut::m_spindleInertia(0.000478, 0.000479, 0.000496);
-const ChVector<> Generic_MacPhersonStrut::m_uprightInertia(0.0138, 0.0146, 0.00283);
-const ChVector<> Generic_MacPhersonStrut::m_strutInertia(0.01, 0.01, 0.005);
-const ChVector<> Generic_MacPhersonStrut::m_LCAInertia(0.0269, 0.06058, 0.03377);
+const ChVector3d Generic_MacPhersonStrut::m_spindleInertia(0.000478, 0.000479, 0.000496);
+const ChVector3d Generic_MacPhersonStrut::m_uprightInertia(0.0138, 0.0146, 0.00283);
+const ChVector3d Generic_MacPhersonStrut::m_strutInertia(0.01, 0.01, 0.005);
+const ChVector3d Generic_MacPhersonStrut::m_LCAInertia(0.0269, 0.06058, 0.03377);
 
 const double Generic_MacPhersonStrut::m_axleInertia = 0.4;
 
@@ -76,34 +76,34 @@ Generic_MacPhersonStrut::~Generic_MacPhersonStrut() {}
 // function are for the left half of the suspension only.
 // -----------------------------------------------------------------------------
 
-const ChVector<> Generic_MacPhersonStrut::getLocation(PointId which) {
+const ChVector3d Generic_MacPhersonStrut::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return ChVector<>(-0.04000403, 1.09999965, -0.02602507);  // location of spindle center of mass
+            return ChVector3d(-0.04000403, 1.09999965, -0.02602507);  // location of spindle center of mass
         case UPRIGHT:
-            return ChVector<>(-0.04000015, 0.90999965, -0.0260268);  // location of upright center of mass
+            return ChVector3d(-0.04000015, 0.90999965, -0.0260268);  // location of upright center of mass
         case LCA_F:
-            return ChVector<>(0.220, 0.520, -0.156);  // LCA front connection point to chassis
+            return ChVector3d(0.220, 0.520, -0.156);  // LCA front connection point to chassis
         case LCA_B:
-            return ChVector<>(-0.300, 0.507, -0.137);  // LCA rear (back) connection point to chassis
+            return ChVector3d(-0.300, 0.507, -0.137);  // LCA rear (back) connection point to chassis
         case LCA_U:
-            return ChVector<>(-0.02165371, 0.94057703, -0.17402826);  // LCA connection point to upright
+            return ChVector3d(-0.02165371, 0.94057703, -0.17402826);  // LCA connection point to upright
         case LCA_CM:
-            return ChVector<>(-0.031, 0.646, -0.156);  // location of LCA center of mass
+            return ChVector3d(-0.031, 0.646, -0.156);  // location of LCA center of mass
         case SHOCK_C:
-            return ChVector<>(-0.115, 0.785, 0.579);  // shock connection to chassis
+            return ChVector3d(-0.115, 0.785, 0.579);  // shock connection to chassis
         case SHOCK_U:
-            return ChVector<>(-0.07402507, 0.8532915, 0.2484536);  // shock connection point to LCA
+            return ChVector3d(-0.07402507, 0.8532915, 0.2484536);  // shock connection point to LCA
         case SPRING_C:
-            return ChVector<>(-0.115, 0.785, 0.579);  // spring connection point to chassis
+            return ChVector3d(-0.115, 0.785, 0.579);  // spring connection point to chassis
         case SPRING_U:
-            return ChVector<>(-0.07402507, 0.8532915, 0.2484536);  // spring connection point to LCA
+            return ChVector3d(-0.07402507, 0.8532915, 0.2484536);  // spring connection point to LCA
         case TIEROD_C:
-            return ChVector<>(-0.300, 0.520, -0.059);  // tierod connection point to chassis
+            return ChVector3d(-0.300, 0.520, -0.059);  // tierod connection point to chassis
         case TIEROD_U:
-            return ChVector<>(-0.2373756, 0.89495045, -0.01605418);  // tierod connection point to upright
+            return ChVector3d(-0.2373756, 0.89495045, -0.01605418);  // tierod connection point to upright
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

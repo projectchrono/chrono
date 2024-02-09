@@ -24,15 +24,15 @@ namespace vehicle {
 
 FlatTerrain::FlatTerrain(double height, float friction) : m_height(height), m_friction(friction) {}
 
-double FlatTerrain::GetHeight(const ChVector<>& loc) const {
+double FlatTerrain::GetHeight(const ChVector3d& loc) const {
     return m_height;
 }
 
-ChVector<> FlatTerrain::GetNormal(const ChVector<>& loc) const {
+ChVector3d FlatTerrain::GetNormal(const ChVector3d& loc) const {
     return ChWorldFrame::Vertical();
 }
 
-float FlatTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+float FlatTerrain::GetCoefficientFriction(const ChVector3d& loc) const {
     return m_friction_fun ? (*m_friction_fun)(loc) : m_friction;
 }
 

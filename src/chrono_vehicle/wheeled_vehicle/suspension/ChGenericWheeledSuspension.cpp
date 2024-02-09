@@ -86,22 +86,22 @@ ChVehicleGeometry TransformVehicleGeometry(const ChVehicleGeometry& geom, int si
         for (auto& c : g.m_vis_cylinders) {
             c.m_pos.y() *= -1;
             auto rot = c.m_rot;
-            ChVector<> u = rot.GetXaxis();
-            ChVector<> w = rot.GetZaxis();
+            ChVector3d u = rot.GetXaxis();
+            ChVector3d w = rot.GetZaxis();
             u.y() *= -1;
             w.y() *= -1;
-            ChVector<> v = Vcross(w, u);
+            ChVector3d v = Vcross(w, u);
             ChMatrix33<> R(u, v, w);
             c.m_rot = R.Get_A_quaternion();
         }
         for (auto& b : g.m_vis_boxes) {
             b.m_pos.y() *= -1;
             auto rot = b.m_rot;
-            ChVector<> u = rot.GetXaxis();
-            ChVector<> w = rot.GetZaxis();
+            ChVector3d u = rot.GetXaxis();
+            ChVector3d w = rot.GetZaxis();
             u.y() *= -1;
             w.y() *= -1;
-            ChVector<> v = Vcross(w, u);
+            ChVector3d v = Vcross(w, u);
             ChMatrix33<> R(u, v, w);
             b.m_rot = R.Get_A_quaternion();
         }
@@ -127,11 +127,11 @@ ChTSDAGeometry TransformTSDAGeometry(const ChTSDAGeometry& geom, int side) {
 
 void ChGenericWheeledSuspension::DefineBody(const std::string& name,
                                             bool mirrored,
-                                            const ChVector<>& pos,
+                                            const ChVector3d& pos,
                                             const ChQuaternion<>& rot,
                                             double mass,
-                                            const ChVector<>& inertia_moments,
-                                            const ChVector<>& inertia_products,
+                                            const ChVector3d& inertia_moments,
+                                            const ChVector3d& inertia_products,
                                             std::shared_ptr<ChVehicleGeometry> geometry) {
     Body b;
     b.body = nullptr;
@@ -160,7 +160,7 @@ void ChGenericWheeledSuspension::DefineJoint(const std::string& name,
                                              ChVehicleJoint::Type type,
                                              BodyIdentifier body1,
                                              BodyIdentifier body2,
-                                             const ChVector<>& pos,
+                                             const ChVector3d& pos,
                                              const ChQuaternion<>& rot,
                                              std::shared_ptr<ChVehicleBushingData> bdata) {
     Joint j;
@@ -184,8 +184,8 @@ void ChGenericWheeledSuspension::DefineDistanceConstraint(const std::string& nam
                                                           bool mirrored,
                                                           BodyIdentifier body1,
                                                           BodyIdentifier body2,
-                                                          const ChVector<>& point1,
-                                                          const ChVector<>& point2) {
+                                                          const ChVector3d& point1,
+                                                          const ChVector3d& point2) {
     DistanceConstraint d;
     d.dist = nullptr;
     d.body1 = body1;
@@ -205,8 +205,8 @@ void ChGenericWheeledSuspension::DefineTSDA(const std::string& name,
                                             bool mirrored,
                                             BodyIdentifier body1,
                                             BodyIdentifier body2,
-                                            const ChVector<>& point1,
-                                            const ChVector<>& point2,
+                                            const ChVector3d& point1,
+                                            const ChVector3d& point2,
                                             double rest_length,
                                             std::shared_ptr<ChLinkTSDA::ForceFunctor> force,
                                             std::shared_ptr<ChTSDAGeometry> geometry) {
@@ -237,8 +237,8 @@ void ChGenericWheeledSuspension::DefineRSDA(const std::string& name,
                                             bool mirrored,
                                             BodyIdentifier body1,
                                             BodyIdentifier body2,
-                                            const ChVector<>& pos,
-                                            const ChVector<>& axis,
+                                            const ChVector3d& pos,
+                                            const ChVector3d& axis,
                                             double rest_angle,
                                             std::shared_ptr<ChLinkRSDA::TorqueFunctor> torque) {
     RSDA r;
@@ -254,7 +254,7 @@ void ChGenericWheeledSuspension::DefineRSDA(const std::string& name,
         m_rsdas.insert({{name, -1}, r});
     } else {
         m_rsdas.insert({{name, 0}, r});
-        r.axis *= ChVector<>(-1, 0, -1);
+        r.axis *= ChVector3d(-1, 0, -1);
         m_rsdas.insert({{name, 1}, r});
     }
 }
@@ -268,15 +268,15 @@ std::string ChGenericWheeledSuspension::Name(const PartKey& id) const {
     return m_name + "_" + id.name + (id.side == VehicleSide::LEFT ? "_L" : "_R");
 }
 
-ChVector<> ChGenericWheeledSuspension::TransformPosition(const ChVector<>& pos_loc, int side) const {
-    ChVector<> pos = pos_loc;
+ChVector3d ChGenericWheeledSuspension::TransformPosition(const ChVector3d& pos_loc, int side) const {
+    ChVector3d pos = pos_loc;
     if (side == VehicleSide::RIGHT)
         pos.y() = -pos.y();
     return m_X_SA.TransformPointLocalToParent(pos);
 }
 
-ChVector<> ChGenericWheeledSuspension::TransformDirection(const ChVector<>& dir_loc, int side) const {
-    ChVector<> dir = dir_loc;
+ChVector3d ChGenericWheeledSuspension::TransformDirection(const ChVector3d& dir_loc, int side) const {
+    ChVector3d dir = dir_loc;
     if (side == VehicleSide::RIGHT)
         dir.y() = -dir.y();
     return m_X_SA.TransformDirectionLocalToParent(dir);
@@ -285,11 +285,11 @@ ChVector<> ChGenericWheeledSuspension::TransformDirection(const ChVector<>& dir_
 ChQuaternion<> ChGenericWheeledSuspension::TransformRotation(const ChQuaternion<>& rot_local, int side) const {
     ChQuaternion<> rot = rot_local.GetNormalized();
     if (side == VehicleSide::RIGHT) {
-        ChVector<> u = rot.GetXaxis();
-        ChVector<> w = rot.GetZaxis();
+        ChVector3d u = rot.GetXaxis();
+        ChVector3d w = rot.GetZaxis();
         u.y() *= -1;
         w.y() *= -1;
-        ChVector<> v = Vcross(w, u);
+        ChVector3d v = Vcross(w, u);
         ChMatrix33<> R(u, v, w);
         rot = R.Get_A_quaternion();
     }
@@ -323,7 +323,7 @@ std::shared_ptr<ChBody> ChGenericWheeledSuspension::FindBody(BodyIdentifier body
 void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
                                             std::shared_ptr<ChSubchassis> subchassis,
                                             std::shared_ptr<ChSteering> steering,
-                                            const ChVector<>& location,
+                                            const ChVector3d& location,
                                             double left_ang_vel,
                                             double right_ang_vel) {
     ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
@@ -341,7 +341,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Initialize all bodies in the suspension subsystem
     for (auto& item : m_bodies) {
-        ChVector<> pos = TransformPosition(item.second.pos, item.first.side);
+        ChVector3d pos = TransformPosition(item.second.pos, item.first.side);
         ChQuaternion<> rot = TransformRotation(item.second.rot, item.first.side);
         item.second.body = chrono_types::make_shared<ChBody>();
         item.second.body->SetMass(item.second.mass);
@@ -377,7 +377,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
             body2 = FindBody(item.second.body2, item.first.side);
 
         // Create joint
-        ChVector<> pos = TransformPosition(item.second.pos, item.first.side);
+        ChVector3d pos = TransformPosition(item.second.pos, item.first.side);
         ChQuaternion<> rot = TransformRotation(item.second.rot, item.first.side);
         item.second.joint = chrono_types::make_shared<ChVehicleJoint>(item.second.type,        //
                                                                       Name(item.first),        //
@@ -412,8 +412,8 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
             body2 = FindBody(item.second.body2, item.first.side);
 
         // Create distance constraint
-        ChVector<> point1 = TransformPosition(item.second.point1, item.first.side);
-        ChVector<> point2 = TransformPosition(item.second.point2, item.first.side);
+        ChVector3d point1 = TransformPosition(item.second.point1, item.first.side);
+        ChVector3d point2 = TransformPosition(item.second.point2, item.first.side);
         item.second.dist = chrono_types::make_shared<ChLinkDistance>();
         item.second.dist->SetNameString(Name(item.first));
         item.second.dist->Initialize(body1, body2, false, point1, point2);
@@ -433,7 +433,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         m_spindle[side]->SetNameString(Name({"spindle", side}));
         m_spindle[side]->SetPos(spindlePos);
         m_spindle[side]->SetRot(spindleRot);
-        m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
+        m_spindle[side]->SetWvel_loc(ChVector3d(0, ang_vel, 0));
         m_spindle[side]->SetMass(getSpindleMass());
         m_spindle[side]->SetInertiaXX(getSpindleInertia());
         chassis->GetSystem()->AddBody(m_spindle[side]);
@@ -462,7 +462,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         // Axle connection to spindle
         m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
         m_axle_to_spindle[side]->SetNameString(Name({"axle_to_spindle", side}));
-        m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
+        m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
         chassis->GetSystem()->Add(m_axle_to_spindle[side]);
     }
 
@@ -490,8 +490,8 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
             body2 = FindBody(item.second.body2, item.first.side);
 
         // Create TSDA
-        ChVector<> point1 = TransformPosition(item.second.point1, item.first.side);
-        ChVector<> point2 = TransformPosition(item.second.point2, item.first.side);
+        ChVector3d point1 = TransformPosition(item.second.point1, item.first.side);
+        ChVector3d point2 = TransformPosition(item.second.point2, item.first.side);
         item.second.tsda = chrono_types::make_shared<ChLinkTSDA>();
         item.second.tsda->SetNameString(Name(item.first));
         item.second.tsda->Initialize(body1, body2, false, point1, point2);
@@ -524,8 +524,8 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
             body2 = FindBody(item.second.body2, item.first.side);
 
         // Create RSDA
-        ChVector<> pos = TransformPosition(item.second.pos, item.first.side);
-        ChVector<> axis = TransformDirection(item.second.axis, item.first.side);
+        ChVector3d pos = TransformPosition(item.second.pos, item.first.side);
+        ChVector3d axis = TransformDirection(item.second.axis, item.first.side);
         ChMatrix33<> rot;
         rot.Set_A_Xdir(axis);
         ChQuaternion<> quat = rot.Get_A_quaternion() * Q_from_AngY(CH_C_PI_2);

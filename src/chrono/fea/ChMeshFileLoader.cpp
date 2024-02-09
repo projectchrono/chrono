@@ -40,7 +40,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                                       const char* filename_node,
                                       const char* filename_ele,
                                       std::shared_ptr<ChContinuumMaterial> my_material,
-                                      ChVector<> pos_transform,
+                                      ChVector3d pos_transform,
                                       ChMatrix33<> rot_transform) {
     int totnodes = 0;
     int nodes_offset = mesh->GetNnodes();
@@ -105,7 +105,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                     throw std::invalid_argument("ERROR in TetGen .node file: in parsing x,y,z coordinates of node: \n" +
                                                 line + "\n");
 
-                ChVector<> node_position(x, y, z);
+                ChVector3d node_position(x, y, z);
                 node_position = rot_transform * node_position;  // rotate/scale, if needed
                 node_position = pos_transform + node_position;  // move, if needed
 
@@ -207,7 +207,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                                       const char* filename,
                                       std::shared_ptr<ChContinuumMaterial> my_material,
                                       std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>>& node_sets,
-                                      ChVector<> pos_transform,
+                                      ChVector3d pos_transform,
                                       ChMatrix33<> rot_transform,
                                       bool discard_unused_nodes) {
     std::map<unsigned int, std::pair<std::shared_ptr<ChNodeFEAbase>, bool>> parsed_nodes;
@@ -332,7 +332,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
 
             // TODO: is it worth to keep a so specific routine inside this function?
             // especially considering that is affecting only some types of elements...
-            ChVector<> node_position(x, y, z);
+            ChVector3d node_position(x, y, z);
             node_position = rot_transform * node_position;  // rotate/scale, if needed
             node_position = pos_transform + node_position;  // move, if needed
 
@@ -344,7 +344,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 if (!discard_unused_nodes)
                     mesh->AddNode(mnode);
             } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
-                auto mnode = chrono_types::make_shared<ChNodeFEAxyzP>(ChVector<>(x, y, z));
+                auto mnode = chrono_types::make_shared<ChNodeFEAxyzP>(ChVector3d(x, y, z));
                 mnode->SetIndex(idnode);
                 parsed_nodes[idnode] = std::make_pair(mnode, false);
                 if (!discard_unused_nodes)
@@ -479,7 +479,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
                                             std::shared_ptr<ChMaterialShellANCF> my_material,
                                             std::vector<double>& node_ave_area,
                                             std::vector<int>& Boundary_nodes,
-                                            ChVector<> pos_transform,
+                                            ChVector3d pos_transform,
                                             ChMatrix33<> rot_transform,
                                             double scaleFactor,
                                             bool printNodes,
@@ -492,10 +492,10 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     ChMatrixDynamic<double> nodesXYZ(1, 4);
     ChMatrixDynamic<int> NumBEdges(1, 3);  // To store boundary nodes
     ChMatrixNM<double, 1, 6> BoundingBox;  // (xmin xmax ymin ymax zmin zmax) bounding box of the mesh
-    std::vector<ChVector<>> Normals;       // To store the normal vectors
+    std::vector<ChVector3d> Normals;       // To store the normal vectors
     std::vector<int> num_Normals;
-    ChVector<double> pos1, pos2, pos3, pos4;                  // Position of nodes in each element
-    ChVector<double> vec1, vec2, vec3;                        // intermediate vectors for calculation of normals
+    ChVector3d pos1, pos2, pos3, pos4;                  // Position of nodes in each element
+    ChVector3d vec1, vec2, vec3;                        // intermediate vectors for calculation of normals
     std::vector<std::shared_ptr<ChNodeFEAxyzD>> nodesVector;  // To store intermediate nodes
     std::vector<std::vector<int>> elementsVector;             // nodes of each element
     std::vector<std::vector<double>> elementsdxdy;            // dx, dy of elements
@@ -545,10 +545,10 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
                 dir_y = 1.0;
                 dir_z = 1.0;
 
-                ChVector<> node_position(loc_x, loc_y, loc_z);
+                ChVector3d node_position(loc_x, loc_y, loc_z);
                 node_position = rot_transform * node_position;  // rotate/scale, if needed
                 node_position = pos_transform + node_position;  // move, if needed
-                auto node = chrono_types::make_shared<ChNodeFEAxyzD>(node_position, ChVector<>(dir_x, dir_y, dir_z));
+                auto node = chrono_types::make_shared<ChNodeFEAxyzD>(node_position, ChVector3d(dir_x, dir_y, dir_z));
                 nodesVector.push_back(node);
 
                 if (loc_x < BoundingBox(0, 0) || added_nodes == 0)
@@ -674,7 +674,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     std::cout << "-----------------------------------------------------------\n" << std::endl;
     //
     for (int inode = 0; inode < TotalNumNodes; inode++) {
-        ChVector<> node_normal = (Normals[inode] / num_Normals[inode]);
+        ChVector3d node_normal = (Normals[inode] / num_Normals[inode]);
         // Very useful information to store: 1/4 of area of neighbouring elements contribute to each node's average area
         node_ave_area[nodes_offset + inode] = Normals[inode].Length() / 4;
 
@@ -682,7 +682,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
             Boundary_nodes.push_back(nodes_offset + inode);
         node_normal.Normalize();
 
-        ChVector<> node_position = nodesVector[inode]->GetPos();
+        ChVector3d node_position = nodesVector[inode]->GetPos();
         auto node = chrono_types::make_shared<ChNodeFEAxyzD>(node_position, node_normal);
         node->SetMass(0);
         // Add node to mesh
@@ -718,7 +718,7 @@ void ChMeshFileLoader::BSTShellFromObjFile(
     const char* filename,                                   // .obj mesh complete filename
     std::shared_ptr<ChMaterialShellKirchhoff> my_material,  // material to be given to the shell elements
     double my_thickness,                                    // thickness to be given to shell elements
-    ChVector<> pos_transform,                               // optional displacement of imported mesh
+    ChVector3d pos_transform,                               // optional displacement of imported mesh
     ChMatrix33<> rot_transform                              // optional rotation/scaling of imported mesh
 ) {
     auto mmesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(std::string(filename), false, false);
@@ -729,7 +729,7 @@ void ChMeshFileLoader::BSTShellFromObjFile(
 
     std::vector<std::shared_ptr<ChNodeFEAxyz>> shapenodes;
     for (size_t i = 0; i < mmesh->m_vertices.size(); i++) {
-        ChVector<double> pos = mmesh->m_vertices[i];
+        ChVector3d pos = mmesh->m_vertices[i];
         pos = rot_transform * pos;
         pos += pos_transform;
         auto mnode = chrono_types::make_shared<ChNodeFEAxyz>();

@@ -118,9 +118,9 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     double m_DP_yield;
     double m_DPCapBeta;  ///  DP_Cap parameter
     /// Set element dimensions (x, y, z directions).
-    void SetDimensions(const ChVector<>& dims) { m_dimensions = dims; }
+    void SetDimensions(const ChVector3d& dims) { m_dimensions = dims; }
     /// Get the element dimensions (x, y, z directions).
-    const ChVector<>& GetDimensions() const { return m_dimensions; }
+    const ChVector3d& GetDimensions() const { return m_dimensions; }
 
     /// Set the continuum material for this element.
     void SetMaterial(std::shared_ptr<ChContinuumElastic> material) { m_material = material; }
@@ -247,7 +247,7 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
 
     std::shared_ptr<ChContinuumElastic> m_material;  ///< elastic material
 
-    ChVector<> m_dimensions;                      ///< element dimensions (x, y, z components)
+    ChVector3d m_dimensions;                      ///< element dimensions (x, y, z components)
     ChMatrixNM<double, 33, 33> m_MassMatrix;      ///< mass matrix
     ChMatrixNM<double, 33, 33> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
     double m_GaussScaling;
@@ -303,7 +303,7 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     /// Compute the generalized force vector due to gravity using the efficient element specific method
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     // -----------------------------------
     // Functions for internal computations

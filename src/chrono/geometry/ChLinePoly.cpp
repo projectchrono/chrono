@@ -37,14 +37,14 @@ int ChLinePoly::Get_degree() const {
     return degree;
 }
 
-ChVector<> ChLinePoly::Get_point(size_t mnum) const {
+ChVector3d ChLinePoly::Get_point(size_t mnum) const {
     if (mnum >= Get_numpoints())
         return VNULL;
 
     return points[mnum];
 }
 
-bool ChLinePoly::Set_point(int mnum, ChVector<> mpoint) {
+bool ChLinePoly::Set_point(int mnum, ChVector3d mpoint) {
     if (mnum >= Get_numpoints())
         return false;
 
@@ -57,7 +57,7 @@ bool ChLinePoly::Set_point(int mnum, ChVector<> mpoint) {
 // Curve evaluation.
 //
 
-ChVector<> ChLinePoly::Evaluate(double parU) const {
+ChVector3d ChLinePoly::Evaluate(double parU) const {
     double par = parU;
 
     if (par < 0)

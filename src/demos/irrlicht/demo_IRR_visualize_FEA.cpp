@@ -63,10 +63,10 @@ int main(int argc, char* argv[]) {
 
     // Apply a force to a node
     auto nodelast = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(mesh->GetNnodes() - 1));
-    nodelast->SetForce(ChVector<>(50, 0, 50));
+    nodelast->SetForce(ChVector3d(50, 0, 50));
 
     // Add some HEXAHEDRONS (isoparametric bricks)
-    ChVector<> hexpos(0, 0, 0);
+    ChVector3d hexpos(0, 0, 0);
     double sx = 0.1;
     double sz = 0.1;
     for (int e = 0; e < 6; ++e) {
@@ -82,10 +82,10 @@ int main(int argc, char* argv[]) {
 
         for (int ilayer = 0; ilayer < 6; ++ilayer) {
             double hy = ilayer * sz;
-            auto hnode1 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(0, hy, 0));
-            auto hnode2 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(0, hy, sz));
-            auto hnode3 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(sx, hy, sz));
-            auto hnode4 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(sx, hy, 0));
+            auto hnode1 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector3d(0, hy, 0));
+            auto hnode2 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector3d(0, hy, sz));
+            auto hnode3 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector3d(sx, hy, sz));
+            auto hnode4 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector3d(sx, hy, 0));
             mesh->AddNode(hnode1);
             mesh->AddNode(hnode2);
             mesh->AddNode(hnode3);
@@ -107,10 +107,10 @@ int main(int argc, char* argv[]) {
         }
 
         // For example, set an initial displacement to a node:
-        hnode4_lower->SetPos(hnode4_lower->GetX0() + hexrot * ChVector<>(0.1, 0.1, 0));
+        hnode4_lower->SetPos(hnode4_lower->GetX0() + hexrot * ChVector3d(0.1, 0.1, 0));
 
         // Apply a force to a node
-        hnode4_lower->SetForce(hexrot * ChVector<>(500, 0, 0));
+        hnode4_lower->SetForce(hexrot * ChVector3d(500, 0, 0));
     }
 
     // Add the mesh to the system
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
     vis.AddLogo();
     vis.AddSkyBox();
     vis.AddTypicalLights();
-    vis.AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    vis.AddCamera(ChVector3d(0.0, 0.6, -1.0));
     vis.AttachSystem(&sys);
 
     // Solver settings

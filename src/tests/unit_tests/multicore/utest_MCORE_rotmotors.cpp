@@ -45,7 +45,7 @@ class RotMotors : public ::testing::TestWithParam<Options> {
         opts = GetParam();
 
         system = new ChSystemMulticoreNSC();
-        system->Set_G_acc(ChVector<>(0, 0, -9.81));
+        system->Set_G_acc(ChVector3d(0, 0, -9.81));
         system->GetSettings()->solver.tolerance = 1e-5;
         system->ChangeSolverType(SolverType::BB);
 
@@ -72,7 +72,7 @@ class RotMotors : public ::testing::TestWithParam<Options> {
                 break;
             }
         }
-        motor->Initialize(ground, body, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
+        motor->Initialize(ground, body, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
         system->AddLink(motor);
     }
 

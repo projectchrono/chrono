@@ -53,7 +53,7 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param asset_frame the Chrono frame that specifies how the asset is attached to the body
     /// @param scale the scale of the box
     /// @param mat_id the material id associated with the box
-    void AddBox(std::shared_ptr<ChBody> body, ChFrame<double> asset_frame, ChVector<double> scale, unsigned int mat_id);
+    void AddBox(std::shared_ptr<ChBody> body, ChFrame<double> asset_frame, ChVector3d scale, unsigned int mat_id);
 
     /// Add a sphere geometry to the optix scene
     /// @param body the Chrono Body that drives the sphere
@@ -62,7 +62,7 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param mat_id the material id associated with the sphere
     void AddSphere(std::shared_ptr<ChBody> body,
                    ChFrame<double> asset_frame,
-                   ChVector<double> scale,
+                   ChVector3d scale,
                    unsigned int mat_id);
 
     /// Add a cylinder geometry to the optix scene
@@ -72,7 +72,7 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param mat_id the material id associated with the cylinder
     void AddCylinder(std::shared_ptr<ChBody> body,
                      ChFrame<double> asset_frame,
-                     ChVector<double> scale,
+                     ChVector3d scale,
                      unsigned int mat_id);
 
     /// Add a rigid mesh to the optix scene
@@ -88,7 +88,7 @@ class CH_SENSOR_API ChOptixGeometry {
                               std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
                               std::shared_ptr<ChBody> body,
                               ChFrame<double> asset_frame,
-                              ChVector<double> scale,
+                              ChVector3d scale,
                               unsigned int mat_id);
 
     /// Add a deformable mesh to the optix scene
@@ -104,7 +104,7 @@ class CH_SENSOR_API ChOptixGeometry {
                            std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
                            std::shared_ptr<ChBody> body,
                            ChFrame<double> asset_frame,
-                           ChVector<double> scale,
+                           ChVector3d scale,
                            unsigned int mat_id);
 
     /// Create the root node and acceleration structure of the scene
@@ -127,7 +127,7 @@ class CH_SENSOR_API ChOptixGeometry {
     void Cleanup();
 
     /// Origin offset function for moving the origin to reduce large translations
-    void SetOriginOffset(ChVector<float> origin_offset) { m_origin_offset = origin_offset; }
+    void SetOriginOffset(ChVector3f origin_offset) { m_origin_offset = origin_offset; }
 
   private:
     /// Function to add an object to the scene given the handle
@@ -139,7 +139,7 @@ class CH_SENSOR_API ChOptixGeometry {
     void AddGenericObject(unsigned int mat_id,
                           std::shared_ptr<ChBody> body,
                           ChFrame<double> asset_frame,
-                          ChVector<double> scale,
+                          ChVector3d scale,
                           OptixTraversableHandle gas_handle);
 
     /// Function to build a geometry acceleration structure for a triangle mesh
@@ -161,9 +161,9 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param[in] a the rotation matrix
     /// @param[in] b the translation vector
     /// @param[out] t a pointer to where the inverse transform matrix should be placed
-    static void GetT3x4FromSRT(const ChVector<double>& s,
+    static void GetT3x4FromSRT(const ChVector3d& s,
                                const ChMatrix33<double>& a,
-                               const ChVector<double>& b,
+                               const ChVector3d& b,
                                float* t);
 
     /// Function to convert scale, rotation, translation to top 3 rows of inverse transform matrix
@@ -171,9 +171,9 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param[in] a the rotation matrix
     /// @param[in] b the translation vector
     /// @param[out] t a pointer to where the inverse transform matrix should be placed
-    static void GetInvT3x4FromSRT(const ChVector<double>& s,
+    static void GetInvT3x4FromSRT(const ChVector3d& s,
                                   const ChMatrix33<double>& a,
-                                  const ChVector<double>& b,
+                                  const ChVector3d& b,
                                   float* t);
 
     OptixDeviceContext m_context;  ///< handle to the device context -> we do not own, so will not clean up
@@ -210,8 +210,8 @@ class CH_SENSOR_API ChOptixGeometry {
     std::vector<ChFrame<double>> m_obj_body_frames_start;  ///< frame at time=start used for the geometry
     std::vector<ChFrame<double>> m_obj_body_frames_end;    ///< frame at time=end used for the geometry
     std::vector<ChFrame<double>> m_obj_asset_frames;       ///< constant frame used for the geometry
-    std::vector<ChVector<double>> m_obj_scales;  ///< asset frame scales since ChFrame makes the Amatrix orthonormal
-    ChVector<float> m_origin_offset;             ///< origin offset for the scene
+    std::vector<ChVector3d> m_obj_scales;  ///< asset frame scales since ChFrame makes the Amatrix orthonormal
+    ChVector3f m_origin_offset;             ///< origin offset for the scene
 
     std::vector<std::tuple<float, float, std::vector<ChFrame<double>>>>
         m_obj_body_frames_start_tmps;  ///< need to potentially hold multiple starts and will move it to

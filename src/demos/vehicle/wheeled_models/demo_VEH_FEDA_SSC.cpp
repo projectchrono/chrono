@@ -56,7 +56,7 @@ using namespace chrono::vehicle::feda;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.6);
+ChVector3d initLoc(0, 0, 1.6);
 ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
 // ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
@@ -104,7 +104,7 @@ double terrainLength = 200.0;  // size in X direction
 double terrainWidth = 200.0;   // size in Y direction
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
@@ -323,7 +323,7 @@ int main(int argc, char* argv[]) {
 
     // Create the straight path and the driver system
     auto path = CirclePath(initLoc, turn_radius, run_in_length, turn_direction_left, circle_repeats);
-    // auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(terrainLength / 2, 0, 0.5), 1);
+    // auto path = StraightLinePath(ChVector3d(-terrainLength / 2, 0, 0.5), ChVector3d(terrainLength / 2, 0, 0.5), 1);
     ChPathFollowerDriver driver(feda.GetVehicle(), path, "my_path", initial_speed);
     driver.GetSteeringController().SetLookAheadDistance(6.0);
     driver.GetSteeringController().SetGains(0.05, 0.005, 0.0);
@@ -356,8 +356,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("FEDA Steady State Cornering Demo");
             vis_vsg->AttachVehicle(&feda.GetVehicle());
             vis_vsg->SetChaseCamera(trackPoint, 7.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
@@ -391,14 +391,14 @@ int main(int argc, char* argv[]) {
     feda.GetVehicle().EnableRealtime(true);
 
     double real_speed = feda.GetVehicle().GetChassis()->GetSpeed();
-    double real_accy1 = feda.GetVehicle().GetPointAcceleration(ChVector<>(0, 0, 0)).y();
+    double real_accy1 = feda.GetVehicle().GetPointAcceleration(ChVector3d(0, 0, 0)).y();
     double real_accy2 = pow(real_speed, 2) / turn_radius;
 
     driver.SetDesiredSpeed(initial_speed);  // hold speed until steady state reached on the turn circle
     while (vis->Run()) {
         double time = feda.GetSystem()->GetChTime();
         real_speed = feda.GetVehicle().GetSpeed();
-        real_accy1 = feda.GetVehicle().GetPointAcceleration(ChVector<>(0, 0, 0)).y();
+        real_accy1 = feda.GetVehicle().GetPointAcceleration(ChVector3d(0, 0, 0)).y();
         real_accy2 = pow(real_speed, 2) / turn_radius_ref;
         double real_throttle = driver.GetThrottle();
 

@@ -26,7 +26,7 @@ class ChApi ChVisualShapeEllipsoid : public ChVisualShape {
   public:
     ChVisualShapeEllipsoid();
     ChVisualShapeEllipsoid(double axis_x, double axis_y, double axis_z);
-    ChVisualShapeEllipsoid(const ChVector<>& axes);
+    ChVisualShapeEllipsoid(const ChVector3d& axes);
     ChVisualShapeEllipsoid(const geometry::ChEllipsoid& ellipsoid);
 
     ~ChVisualShapeEllipsoid(){};
@@ -35,10 +35,10 @@ class ChApi ChVisualShapeEllipsoid : public ChVisualShape {
     geometry::ChEllipsoid& GetGeometry() { return gellipsoid; }
 
     /// Get the ellipsoid semiaxes.
-    const ChVector<>& GetSemiaxes() const { return gellipsoid.GetSemiaxes(); }
+    const ChVector3d& GetSemiaxes() const { return gellipsoid.GetSemiaxes(); }
 
     /// Get the ellipsoid axes.
-    ChVector<> GetAxes() const { return gellipsoid.GetAxes(); }
+    ChVector3d GetAxes() const { return gellipsoid.GetAxes(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

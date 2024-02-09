@@ -38,7 +38,7 @@ class CH_MODELS_API UAZBUS_ToeBarLeafspringAxle : public ChToeBarLeafspringAxle 
 
   
   protected:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     virtual double getCamberAngle() const override { return 0; }
     virtual double getToeAngle() const override { return 0; }
@@ -56,13 +56,13 @@ class CH_MODELS_API UAZBUS_ToeBarLeafspringAxle : public ChToeBarLeafspringAxle 
     virtual double getTierodRadius() const override { return m_tierodRadius; }
     virtual double getDraglinkRadius() const override { return m_draglinkRadius; }
     
-    virtual const ChVector<> getAxleTubeCOM() const override { return ChVector<>(0,0,0); }
+    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0,0,0); }
 
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
-    virtual const ChVector<>& getTierodInertia() const override { return m_tierodInertia; }
-    virtual const ChVector<>& getDraglinkInertia() const override { return m_draglinkInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getKnuckleInertia() const override { return m_knuckleInertia; }
+    virtual const ChVector3d& getTierodInertia() const override { return m_tierodInertia; }
+    virtual const ChVector3d& getDraglinkInertia() const override { return m_draglinkInertia; }
 
     virtual double getAxleInertia() const override { return m_axleShaftInertia; }
     
@@ -91,11 +91,11 @@ class CH_MODELS_API UAZBUS_ToeBarLeafspringAxle : public ChToeBarLeafspringAxle 
     static const double m_tierodRadius;
     static const double m_draglinkRadius;
 
-    static const ChVector<> m_axleTubeInertia;
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_knuckleInertia;
-    static const ChVector<> m_tierodInertia;
-    static const ChVector<> m_draglinkInertia;
+    static const ChVector3d m_axleTubeInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_knuckleInertia;
+    static const ChVector3d m_tierodInertia;
+    static const ChVector3d m_draglinkInertia;
     
     static const double m_springCoefficient;
     static const double m_springRestLength;

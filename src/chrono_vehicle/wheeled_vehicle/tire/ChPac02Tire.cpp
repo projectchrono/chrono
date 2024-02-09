@@ -59,9 +59,9 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
       m_vcoulomb(1.0),
       m_frblend_begin(1.0),
       m_frblend_end(3.0) {
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.point = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+    m_tireforce.force = ChVector3d(0, 0, 0);
+    m_tireforce.point = ChVector3d(0, 0, 0);
+    m_tireforce.moment = ChVector3d(0, 0, 0);
 }
 
 double ChPac02Tire::GetNormalStiffnessForce(double depth) const {
@@ -83,7 +83,7 @@ double ChPac02Tire::GetNormalDampingForce(double depth, double velocity) const {
 }
 
 void ChPac02Tire::CombinedCoulombForces(double& fx, double& fy, double fz) {
-    ChVector2<> F;
+    ChVector2d F;
     /*
      The Dahl Friction Model elastic tread blocks representated by a single bristle. At tire stand still it acts
      like a spring which enables holding of a vehicle on a slope without creeping (hopefully). Damping terms
@@ -1682,7 +1682,7 @@ void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_states.vsx = 0;
     m_states.vsy = 0;
     m_states.omega = 0;
-    m_states.disc_normal = ChVector<>(0, 0, 0);
+    m_states.disc_normal = ChVector3d(0, 0, 0);
 }
 
 void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
@@ -1690,7 +1690,7 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
 
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
-    ChVector<> disc_normal = A.Get_A_Yaxis();
+    ChVector3d disc_normal = A.Get_A_Yaxis();
 
     // Assuming the tire is a disc, check contact with terrain
     float mu_road;
@@ -1709,7 +1709,7 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
 
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
-        ChVector<> vel = wheel_state.lin_vel;
+        ChVector3d vel = wheel_state.lin_vel;
         m_data.vel = m_data.frame.TransformDirectionParentToLocal(vel);
 
         // Generate normal contact force (recall, all forces are reduced to the wheel
@@ -1766,14 +1766,14 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
         m_states.dpi = 1;
         m_states.brx = 0;
         m_states.bry = 0;
-        m_states.disc_normal = ChVector<>(0, 0, 0);
+        m_states.disc_normal = ChVector3d(0, 0, 0);
     }
 }
 
 void ChPac02Tire::Advance(double step) {
     // Set tire forces to zero.
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+    m_tireforce.force = ChVector3d(0, 0, 0);
+    m_tireforce.moment = ChVector3d(0, 0, 0);
 
     // Return now if no contact.
     if (!m_data.in_contact)
@@ -1825,8 +1825,8 @@ void ChPac02Tire::Advance(double step) {
     // Compile the force and moment vectors so that they can be
     // transformed into the global coordinate system.
     // Convert from SAE to ISO Coordinates at the contact patch.
-    m_tireforce.force = ChVector<>(Fx, -Fy, m_data.normal_force);
-    m_tireforce.moment = ChVector<>(Mx, -My, -Mz);
+    m_tireforce.force = ChVector3d(Fx, -Fy, m_data.normal_force);
+    m_tireforce.moment = ChVector3d(Mx, -My, -Mz);
 }
 
 double ChPac02Tire::GetLongitudinalGripSaturation() {

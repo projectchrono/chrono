@@ -38,10 +38,10 @@ class ChApi ChLinkPulley : public ChLinkLockLock {
 
     double shaft_dist;  ///< distance between shafts
 
-    ChVector<> belt_up1;   ///< upper segment of belt - end on body1.
-    ChVector<> belt_up2;   ///< upper segment of belt - end on body2.
-    ChVector<> belt_low1;  ///< lower segment of belt - end on body1.
-    ChVector<> belt_low2;  ///< lower segment of belt - end on body2.
+    ChVector3d belt_up1;   ///< upper segment of belt - end on body1.
+    ChVector3d belt_up2;   ///< upper segment of belt - end on body2.
+    ChVector3d belt_low1;  ///< lower segment of belt - end on body1.
+    ChVector3d belt_low2;  ///< lower segment of belt - end on body2.
 
     ChFrame<double> local_shaft1;  ///< shaft1 pos & dir (as Z axis), relative to body1
     ChFrame<double> local_shaft2;  ///< shaft2 pos & dir (as Z axis), relative to body2
@@ -113,27 +113,27 @@ class ChApi ChLinkPulley : public ChLinkLockLock {
     void Set_local_shaft2(ChFrame<double> mf) { local_shaft2 = mf; }
 
     /// Get shaft direction, for 1st pulley, in absolute reference
-    ChVector<> Get_shaft_dir1();
+    ChVector3d Get_shaft_dir1();
     /// Get shaft direction, for 2nd pulley, in absolute reference
-    ChVector<> Get_shaft_dir2();
+    ChVector3d Get_shaft_dir2();
 
     /// Get shaft position, for 1st pulley, in absolute reference
-    ChVector<> Get_shaft_pos1();
+    ChVector3d Get_shaft_pos1();
     /// Get shaft position, for 2nd pulley, in absolute reference
-    ChVector<> Get_shaft_pos2();
+    ChVector3d Get_shaft_pos2();
 
     /// Get the endpoint of belt, on pulley of body1, for the 'upper' segment,
     /// in absolute coordinates.
-    ChVector<> Get_belt_up1() const { return belt_up1; }
+    ChVector3d Get_belt_up1() const { return belt_up1; }
     /// Get the endpoint of belt, on pulley of body2, for the 'upper' segment,
     /// in absolute coordinates.
-    ChVector<> Get_belt_up2() const { return belt_up2; }
+    ChVector3d Get_belt_up2() const { return belt_up2; }
     /// Get the endpoint of belt, on pulley of body1, for the 'lower' segment,
     /// in absolute coordinates.
-    ChVector<> Get_belt_low1() const { return belt_low1; }
+    ChVector3d Get_belt_low1() const { return belt_low1; }
     /// Get the endpoint of belt, on pulley of body1, for the 'lower' segment,
     /// in absolute coordinates.
-    ChVector<> Get_belt_low2() const { return belt_low2; }
+    ChVector3d Get_belt_low2() const { return belt_low2; }
 
     /// Return distance between the two axes.
     double GetShaftsDistance() const { return shaft_dist; }

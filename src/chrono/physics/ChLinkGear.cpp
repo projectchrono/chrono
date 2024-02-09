@@ -57,7 +57,7 @@ ChLinkGear::ChLinkGear(const ChLinkGear& other) : ChLinkLock(other) {
     local_shaft2 = other.local_shaft2;
 }
 
-ChVector<> ChLinkGear::Get_shaft_dir1() const {
+ChVector3d ChLinkGear::Get_shaft_dir1() const {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
@@ -66,7 +66,7 @@ ChVector<> ChLinkGear::Get_shaft_dir1() const {
         return VECT_Z;
 }
 
-ChVector<> ChLinkGear::Get_shaft_dir2() const {
+ChVector3d ChLinkGear::Get_shaft_dir2() const {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
@@ -75,7 +75,7 @@ ChVector<> ChLinkGear::Get_shaft_dir2() const {
         return VECT_Z;
 }
 
-ChVector<> ChLinkGear::Get_shaft_pos1() const {
+ChVector3d ChLinkGear::Get_shaft_pos1() const {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
@@ -84,7 +84,7 @@ ChVector<> ChLinkGear::Get_shaft_pos1() const {
         return VNULL;
 }
 
-ChVector<> ChLinkGear::Get_shaft_pos2() const {
+ChVector3d ChLinkGear::Get_shaft_pos2() const {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
@@ -99,14 +99,14 @@ void ChLinkGear::UpdateTime(double mytime) {
 
     // Move markers 1 and 2 to align them as gear teeth
 
-    ChVector<> mx;
-    ChVector<> my;
-    ChVector<> mz;
-    ChVector<> mr;
-    ChVector<> mmark1;
-    ChVector<> mmark2;
-    ChVector<> lastX;
-    ChVector<> vrota;
+    ChVector3d mx;
+    ChVector3d my;
+    ChVector3d mz;
+    ChVector3d mr;
+    ChVector3d mmark1;
+    ChVector3d mmark2;
+    ChVector3d lastX;
+    ChVector3d vrota;
     Coordsys newmarkpos;
 
     ChFrame<double> abs_shaft1;
@@ -115,15 +115,15 @@ void ChLinkGear::UpdateTime(double mytime) {
     ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, abs_shaft1);
     ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, abs_shaft2);
 
-    ChVector<> vbdist = Vsub(Get_shaft_pos1(), Get_shaft_pos2());
-    ////ChVector<> Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(), vbdist))));
-    ////ChVector<> Trad2 = Vnorm(Vcross(Vnorm(Vcross(Get_shaft_dir2(), vbdist)), Get_shaft_dir2()));
+    ChVector3d vbdist = Vsub(Get_shaft_pos1(), Get_shaft_pos2());
+    ////ChVector3d Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(), vbdist))));
+    ////ChVector3d Trad2 = Vnorm(Vcross(Vnorm(Vcross(Get_shaft_dir2(), vbdist)), Get_shaft_dir2()));
 
     double dist = Vlength(vbdist);
 
     // compute actual rotation of the two wheels (relative to truss).
-    ChVector<> md1 = abs_shaft1.GetA().transpose() * (-vbdist);
-    ChVector<> md2 = abs_shaft2.GetA().transpose() * (-vbdist);
+    ChVector3d md1 = abs_shaft1.GetA().transpose() * (-vbdist);
+    ChVector3d md2 = abs_shaft2.GetA().transpose() * (-vbdist);
 
     double periodic_a1 = std::atan2(md1.y(), md1.x());
     double periodic_a2 = std::atan2(md2.y(), md2.x());
@@ -154,7 +154,7 @@ void ChLinkGear::UpdateTime(double mytime) {
     mx = Vnorm(Vcross(my, mz));
     mr = Vnorm(Vcross(mz, mx));
     mz = Vnorm(Vcross(mx, my));
-    ChVector<> mz2, mx2, mr2, my2;
+    ChVector3d mz2, mx2, mr2, my2;
     my2 = my;
     mz2 = Get_shaft_dir2();
     mx2 = Vnorm(Vcross(my2, mz2));
@@ -243,7 +243,7 @@ void ChLinkGear::UpdateTime(double mytime) {
     }
     // Move Shaft 1 along its direction if not aligned to wheel
     double offset = Vdot(Get_shaft_dir1(), (contact_pt - Get_shaft_pos1()));
-    ChVector<> moff = Get_shaft_dir1() * offset;
+    ChVector3d moff = Get_shaft_dir1() * offset;
     if (fabs(offset) > 0.0001)
         local_shaft1.SetPos(local_shaft1.GetPos() + Body1->TransformDirectionParentToLocal(moff));
 

@@ -40,7 +40,7 @@ ChRotaryArm::~ChRotaryArm() {
 
 // -----------------------------------------------------------------------------
 void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
-                             const ChVector<>& location,
+                             const ChVector3d& location,
                              const ChQuaternion<>& rotation) {
     ChSteering::Initialize(chassis, location, rotation);
 
@@ -59,23 +59,23 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
     steering_to_abs.ConcatenatePreTransformation(chassisBody->GetFrame_REF_to_abs());
 
     // Transform all points and directions to absolute frame.
-    std::vector<ChVector<>> points(NUM_POINTS);
-    std::vector<ChVector<>> dirs(NUM_DIRS);
+    std::vector<ChVector3d> points(NUM_POINTS);
+    std::vector<ChVector3d> dirs(NUM_DIRS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
+        ChVector3d rel_pos = getLocation(static_cast<PointId>(i));
         points[i] = steering_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
     for (int i = 0; i < NUM_DIRS; i++) {
-        ChVector<> rel_dir = getDirection(static_cast<DirectionId>(i));
+        ChVector3d rel_dir = getDirection(static_cast<DirectionId>(i));
         dirs[i] = steering_to_abs.TransformDirectionLocalToParent(rel_dir);
     }
 
     // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w;
     ChMatrix33<> rot;
 
     // Create and initialize the Pitman arm body

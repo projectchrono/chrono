@@ -41,8 +41,8 @@ bool ChShaftsGearboxAngled::Initialize(
     std::shared_ptr<ChShaft> mshaft1,    // first (input) shaft to join
     std::shared_ptr<ChShaft> mshaft2,    // second  (output) shaft to join
     std::shared_ptr<ChBodyFrame> mbody,  // 3D body to use as truss (also carrier, if rotates as in planetary gearboxes)
-    ChVector<>& mdir1,  // the direction of the first shaft on 3D body defining the gearbox truss
-    ChVector<>& mdir2   // the direction of the first shaft on 3D body defining the gearbox truss
+    ChVector3d& mdir1,  // the direction of the first shaft on 3D body defining the gearbox truss
+    ChVector3d& mdir2   // the direction of the first shaft on 3D body defining the gearbox truss
     ) {
     ChShaft* mm1 = mshaft1.get();
     ChShaft* mm2 = mshaft2.get();
@@ -159,8 +159,8 @@ void ChShaftsGearboxAngled::ConstraintsLoadJacobians() {
     constraint.Get_Cq_a()(0) = t0;
     constraint.Get_Cq_b()(0) = -1.0;
 
-    // ChVector<> jacw = body->TransformDirectionParentToLocal(t0*shaft_dir1 - shaft_dir2);
-    ChVector<> jacw = (t0 * shaft_dir1 - shaft_dir2);
+    // ChVector3d jacw = body->TransformDirectionParentToLocal(t0*shaft_dir1 - shaft_dir2);
+    ChVector3d jacw = (t0 * shaft_dir1 - shaft_dir2);
 
     constraint.Get_Cq_c()(0) = 0;
     constraint.Get_Cq_c()(1) = 0;

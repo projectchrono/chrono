@@ -63,7 +63,7 @@ double ChLinkClearance::Get_axis_phase() {
     if (!this->GetMarker2())
         return 0;
     double mangle;
-    Vector maxis;
+    ChVector3d maxis;
     Q_to_AngAxis(this->GetMarker2()->GetCoord().rot, mangle, maxis);
     if (maxis.z() < 0.0) {
         maxis = Vmul(maxis, -1.0);
@@ -74,20 +74,20 @@ double ChLinkClearance::Get_axis_phase() {
 double ChLinkClearance::Get_rotation_angle() {
     return (this->GetRelAngle());
 }
-Vector ChLinkClearance::Get_contact_P_abs() {
+ChVector3d ChLinkClearance::Get_contact_P_abs() {
     if (!this->GetMarker2())
         return VNULL;
     return Vadd(this->GetMarker2()->GetAbsCoord().pos,
                 Vmul(this->Get_contact_N_abs(), -(this->clearance + this->diameter / 2)));
 }
-Vector ChLinkClearance::Get_contact_N_abs() {
+ChVector3d ChLinkClearance::Get_contact_N_abs() {
     if (!this->GetMarker2())
         return VECT_X;
-    Vector mNrel = VECT_X;
+    ChVector3d mNrel = VECT_X;
     mNrel = Vmul(mNrel, -1);
     return (this->GetMarker2()->Dir_Ref2World(mNrel));
 }
-Vector ChLinkClearance::Get_contact_F_abs() {
+ChVector3d ChLinkClearance::Get_contact_F_abs() {
     return (this->contact_F_abs);
 }
 double ChLinkClearance::Get_contact_F_n() {
@@ -111,19 +111,20 @@ void ChLinkClearance::UpdateForces(double mytime) {
     // needed...
     // LinkLock::UpdateForces(mytime);
 
-    Vector m_friction_F_abs = VNULL;
+    ChVector3d m_friction_F_abs = VNULL;
     double m_norm_force = -this->react_force.x();
 
     // Just add Coulomb kinematic friction...
 
     if (mask.Constr_X().IsActive()) {
-        Vector temp = Get_contact_P_abs();
-        Vector pb1 = ((ChFrame<double>*)Body1)->TransformParentToLocal(temp);
-        Vector pb2 = ((ChFrame<double>*)Body2)->TransformParentToLocal(temp);
-        Vector m_V1_abs = Body1->PointSpeedLocalToParent(pb1);
-        Vector m_V2_abs = Body2->PointSpeedLocalToParent(pb2);
-        this->contact_V_abs = Vsub(m_V1_abs, m_V2_abs);
-        Vector m_tang_V_abs = Vsub(contact_V_abs, Vmul(Get_contact_N_abs(), Vdot(contact_V_abs, Get_contact_N_abs())));
+        ChVector3d temp = Get_contact_P_abs();
+        ChVector3d pb1 = ((ChFrame<double>*)Body1)->TransformParentToLocal(temp);
+        ChVector3d pb2 = ((ChFrame<double>*)Body2)->TransformParentToLocal(temp);
+        ChVector3d m_V1_abs = Body1->PointSpeedLocalToParent(pb1);
+        ChVector3d m_V2_abs = Body2->PointSpeedLocalToParent(pb2);
+        contact_V_abs = Vsub(m_V1_abs, m_V2_abs);
+        ChVector3d m_tang_V_abs =
+            Vsub(contact_V_abs, Vmul(Get_contact_N_abs(), Vdot(contact_V_abs, Get_contact_N_abs())));
 
         // absolute friction force, as applied in contact point
         m_friction_F_abs = Vmul(Vnorm(m_tang_V_abs), Get_c_friction() * (-m_norm_force));
@@ -148,11 +149,11 @@ void ChLinkClearance::UpdateTime(double mytime) {
     ChMatrix33<> ma;
     ma.Set_A_quaternion(marker2->GetAbsCoord().rot);
 
-    Vector absdist = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
+    ChVector3d absdist = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
 
-    Vector mz = ma.Get_A_Zaxis();
-    Vector my = Vnorm(Vcross(ma.Get_A_Zaxis(), absdist));
-    Vector mx = Vnorm(Vcross(my, ma.Get_A_Zaxis()));
+    ChVector3d mz = ma.Get_A_Zaxis();
+    ChVector3d my = Vnorm(Vcross(ma.Get_A_Zaxis(), absdist));
+    ChVector3d mx = Vnorm(Vcross(my, ma.Get_A_Zaxis()));
 
     ma.Set_A_axis(mx, my, mz);
 
@@ -172,7 +173,7 @@ void ChLinkClearance::UpdateTime(double mytime) {
 
     // add also the centripetal acceleration if distance vector's rotating,
     // as centripetal acc. of point sliding on a sphere surface.
-    Vector tang_speed = GetRelM_dt().pos;
+    ChVector3d tang_speed = GetRelM_dt().pos;
     tang_speed.x() = 0;  // only z-y coords in relative tang speed vector
     double Rcurvature = Vlength(absdist);
     deltaC_dtdt.pos.x() = -pow(Vlength(tang_speed), 2) / Rcurvature;  // An =  -(Vt^2 / r)
@@ -201,7 +202,7 @@ void ChLinkClearance::ArchiveOut(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkClearance::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkClearance>();
+    /*int version =*/marchive.VersionRead<ChLinkClearance>();
 
     // deserialize parent class
     ChLinkLockLock::ArchiveIn(marchive);

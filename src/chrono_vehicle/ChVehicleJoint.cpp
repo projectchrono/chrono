@@ -44,7 +44,7 @@ bool ChVehicleJoint::IsKinematic() const {
     return m_joint.index() == 0;
 }
 
-ChVector<> ChVehicleJoint::GetPos() const {
+ChVector3d ChVehicleJoint::GetPos() const {
     if (m_joint.index() == 0) {
         return mpark::get<Link>(m_joint)->GetLinkAbsoluteCoords().pos;
     } else {
@@ -60,7 +60,7 @@ ChVectorDynamic<> ChVehicleJoint::GetConstraintViolation() const {
     }
 }
 
-ChVector<> ChVehicleJoint::GetForce() const {
+ChVector3d ChVehicleJoint::GetForce() const {
     if (m_joint.index() == 0) {
         return mpark::get<Link>(m_joint)->Get_react_force();
     } else {

@@ -100,11 +100,11 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     ChFrame<>& GetFrame2() { return frame2; }
 
     /// Get the translational Lagrange multipliers, expressed in the master frame F2
-    ChVector<> GetLagrangeMultiplier_f() { return gamma_f; }
+    ChVector3d GetLagrangeMultiplier_f() { return gamma_f; }
 
     /// Get the rotational Lagrange multipliers, expressed in a ghost frame determined by the
     /// projection matrix (this->P) for rho_F1(F2)
-    ChVector<> GetLagrangeMultiplier_m() { return gamma_m; }
+    ChVector3d GetLagrangeMultiplier_m() { return gamma_m; }
 
     bool IsConstrainedX() const { return c_x; }
     bool IsConstrainedY() const { return c_y; }
@@ -140,10 +140,10 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            ChVector<> mpt1,                      ///< origin of slave frame 1 (rel. or abs.)
-                            ChVector<> mpt2,                      ///< origin of master frame 2 (rel. or abs.)
-                            ChVector<> mnorm1,                    ///< X axis of slave plane 1 (rel. or abs.)
-                            ChVector<> mnorm2                     ///< X axis of master plane 2 (rel. or abs.)
+                            ChVector3d mpt1,                      ///< origin of slave frame 1 (rel. or abs.)
+                            ChVector3d mpt2,                      ///< origin of master frame 2 (rel. or abs.)
+                            ChVector3d mnorm1,                    ///< X axis of slave plane 1 (rel. or abs.)
+                            ChVector3d mnorm2                     ///< X axis of master plane 2 (rel. or abs.)
     );
 
     //
@@ -259,8 +259,8 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     // The projection matrix from Lagrange multiplier to reaction torque
     ChMatrix33<> P;
 
-    ChVector<> gamma_f;  ///< store the translational Lagrange multipliers
-    ChVector<> gamma_m;  ///< store the rotational Lagrange multipliers
+    ChVector3d gamma_f;  ///< store the translational Lagrange multipliers
+    ChVector3d gamma_m;  ///< store the rotational Lagrange multipliers
 
     std::unique_ptr<ChKblockGeneric> Kmatr = nullptr;  ///< the tangent stiffness matrix of constraint
 };
@@ -300,10 +300,10 @@ class ChApi ChLinkMatePlane : public ChLinkMateGeneric {
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            ChVector<> mpt1,                      ///< point on slave plane 1 (rel. or abs.)
-                            ChVector<> mpt2,                      ///< point on master plane 2 (rel. or abs.)
-                            ChVector<> mnorm1,                    ///< normal of slave plane 1 (rel. or abs.)
-                            ChVector<> mnorm2                     ///< normal of master plane 2 (rel. or abs.)
+                            ChVector3d mpt1,                      ///< point on slave plane 1 (rel. or abs.)
+                            ChVector3d mpt2,                      ///< point on master plane 2 (rel. or abs.)
+                            ChVector3d mnorm1,                    ///< normal of slave plane 1 (rel. or abs.)
+                            ChVector3d mnorm2                     ///< normal of master plane 2 (rel. or abs.)
                             ) override;
 
     /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
@@ -345,10 +345,10 @@ class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            ChVector<> mpt1,                      ///< point on slave axis 1 (rel. or abs.)
-                            ChVector<> mpt2,                      ///< point on master axis 2 (rel. or abs.)
-                            ChVector<> mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
-                            ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
+                            ChVector3d mpt1,                      ///< point on slave axis 1 (rel. or abs.)
+                            ChVector3d mpt2,                      ///< point on master axis 2 (rel. or abs.)
+                            ChVector3d mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
+                            ChVector3d mdir2                      ///< direction of master axis 2 (rel. or abs.)
                             ) override;
 
     /// Method to allow serialization of transient data to archives.
@@ -389,10 +389,10 @@ class ChApi ChLinkMateRevolute : public ChLinkMateGeneric {
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
         std::shared_ptr<ChBodyFrame> mbody2,                      ///< second body to link
         bool pos_are_relative,                                    ///< true: following pos. are relative to bodies
-        ChVector<> mpt1,                                          ///< point on slave axis 1 (rel. or abs.)
-        ChVector<> mpt2,                                          ///< point on master axis 2 (rel. or abs.)
-        ChVector<> mdir1,                                         ///< direction of slave axis 1 (rel. or abs.)
-        ChVector<> mdir2                                          ///< direction of master axis 2 (rel. or abs.)
+        ChVector3d mpt1,                                          ///< point on slave axis 1 (rel. or abs.)
+        ChVector3d mpt2,                                          ///< point on master axis 2 (rel. or abs.)
+        ChVector3d mdir1,                                         ///< direction of slave axis 1 (rel. or abs.)
+        ChVector3d mdir2                                          ///< direction of master axis 2 (rel. or abs.)
     ) override;
 
     /// Get relative angle of slave frame with respect to master frame.
@@ -442,10 +442,10 @@ class ChApi ChLinkMatePrismatic : public ChLinkMateGeneric {
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            ChVector<> mpt1,                      ///< point on slave axis 1 (rel. or abs.)
-                            ChVector<> mpt2,                      ///< point on master axis 2 (rel. or abs.)
-                            ChVector<> mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
-                            ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
+                            ChVector3d mpt1,                      ///< point on slave axis 1 (rel. or abs.)
+                            ChVector3d mpt2,                      ///< point on master axis 2 (rel. or abs.)
+                            ChVector3d mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
+                            ChVector3d mdir2                      ///< direction of master axis 2 (rel. or abs.)
                             ) override;
 
     /// Get relative position of slave frame with respect to master frame.
@@ -487,8 +487,8 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
     void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                     std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                     bool pos_are_relative,                ///< true: following pos. are relative to bodies.
-                    ChVector<> mpt1,                      ///< point slave 1 (rel. or abs.)
-                    ChVector<> mpt2                       ///< point master 2 (rel. or abs.)
+                    ChVector3d mpt1,                      ///< point slave 1 (rel. or abs.)
+                    ChVector3d mpt2                       ///< point master 2 (rel. or abs.)
     );
 };
 
@@ -522,9 +522,9 @@ class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
     void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                     std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                     bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                    ChVector<> mpt1,                      ///< point slave 1 (rel. or abs.)
-                    ChVector<> mpt2,                      ///< point master 2 (rel. or abs.)
-                    ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
+                    ChVector3d mpt1,                      ///< point slave 1 (rel. or abs.)
+                    ChVector3d mpt2,                      ///< point master 2 (rel. or abs.)
+                    ChVector3d mdir2                      ///< direction of master axis 2 (rel. or abs.)
     );
 
     /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
@@ -567,10 +567,10 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            ChVector<> mpt1,                      ///< point on slave axis 1 (rel. or abs.)
-                            ChVector<> mpt2,                      ///< point on master axis 2 (rel. or abs.)
-                            ChVector<> mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
-                            ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
+                            ChVector3d mpt1,                      ///< point on slave axis 1 (rel. or abs.)
+                            ChVector3d mpt2,                      ///< point on master axis 2 (rel. or abs.)
+                            ChVector3d mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
+                            ChVector3d mdir2                      ///< direction of master axis 2 (rel. or abs.)
                             ) override;
 
     /// Method to allow serialization of transient data to archives.
@@ -591,8 +591,8 @@ CH_CLASS_VERSION(ChLinkMateParallel, 0)
 
 class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
   protected:
-    ChVector<> reldir1;
-    ChVector<> reldir2;
+    ChVector3d reldir1;
+    ChVector3d reldir2;
 
   public:
     ChLinkMateOrthogonal()
@@ -608,10 +608,10 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            ChVector<> mpt1,                      ///< point on slave axis 1 (rel. or abs.)
-                            ChVector<> mpt2,                      ///< point on master axis 2 (rel. or abs.)
-                            ChVector<> mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
-                            ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
+                            ChVector3d mpt1,                      ///< point on slave axis 1 (rel. or abs.)
+                            ChVector3d mpt2,                      ///< point on master axis 2 (rel. or abs.)
+                            ChVector3d mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
+                            ChVector3d mdir2                      ///< direction of master axis 2 (rel. or abs.)
                             ) override;
 
     /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation

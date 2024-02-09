@@ -59,8 +59,8 @@ class ChApi ChCollisionModel {
     /// Convenience function to add a cylinder collision shape specified through a radius and end points.
     void AddCylinder(std::shared_ptr<ChContactMaterial> material,  ///< surface contact material
                      double radius,                                ///< radius
-                     const ChVector<>& p1,                         ///< first end point
-                     const ChVector<>& p2                          ///< second end point
+                     const ChVector3d& p1,                         ///< first end point
+                     const ChVector3d& p2                          ///< second end point
     );
 
     /// Add copies of the collision shapes in the provided model to this collision model.

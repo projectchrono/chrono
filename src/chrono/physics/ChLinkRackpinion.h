@@ -34,7 +34,7 @@ class ChApi ChLinkRackpinion : public ChLinkMateGeneric {
 
     double a1;  ///< auxiliary
 
-    ChVector<> contact_pt;
+    ChVector3d contact_pt;
 
     ChFrame<double> local_pinion;  ///< pinion shaft pos & dir (frame Z axis), relative to body1
     ChFrame<double> local_rack;    ///< rack direction (frame X axis), relative to body2
@@ -104,14 +104,14 @@ class ChApi ChLinkRackpinion : public ChLinkMateGeneric {
     ChFrame<double> GetRackFrame() const { return local_rack; }
 
     /// Get pinion shaft direction in absolute reference
-    ChVector<> GetAbsPinionDir();
+    ChVector3d GetAbsPinionDir();
     /// Get pinion position in absolute reference
-    ChVector<> GetAbsPinionPos();
+    ChVector3d GetAbsPinionPos();
 
     /// Get rack direction in absolute reference
-    ChVector<> GetAbsRackDir();
+    ChVector3d GetAbsRackDir();
     /// Get rack position in absolute reference
-    ChVector<> GetAbsRackPos();
+    ChVector3d GetAbsRackPos();
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

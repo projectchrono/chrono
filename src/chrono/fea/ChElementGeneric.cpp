@@ -84,7 +84,7 @@ void ChElementGeneric::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& er
 }
 
 
-void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector<>& G_acc, const double c) {
+void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector3d& G_acc, const double c) {
     ChVectorDynamic<> Fg(GetNdofs());
     ComputeGravityForces(Fg, G_acc);
     Fg *= c;
@@ -106,7 +106,7 @@ void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const 
 
 // A default fall-back implementation of the ComputeGravityForces that will work for all elements inherited from
 // ChLoadableUVW and with nonzero GetDensity().
-void ChElementGeneric::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementGeneric::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     Fg.setZero();
 
     // A null deleter: this is a hack to wrap "this" raw ptr, because the ChLoaderGravity needs it as a shared pointer

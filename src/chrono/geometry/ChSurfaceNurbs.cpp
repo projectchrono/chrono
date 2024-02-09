@@ -21,18 +21,18 @@ namespace geometry {
 CH_FACTORY_REGISTER(ChSurfaceNurbs)
 
 ChSurfaceNurbs::ChSurfaceNurbs() {
-    ChMatrixDynamic<ChVector<>> mpoints(2, 2);
-    mpoints(0, 0) = ChVector<>(-1, -1, 0);
-    mpoints(1, 0) = ChVector<>(1, -1, 0);
-    mpoints(0, 1) = ChVector<>(-1, 1, 0);
-    mpoints(1, 1) = ChVector<>(1, 1, 0);
+    ChMatrixDynamic<ChVector3d> mpoints(2, 2);
+    mpoints(0, 0) = ChVector3d(-1, -1, 0);
+    mpoints(1, 0) = ChVector3d(1, -1, 0);
+    mpoints(0, 1) = ChVector3d(-1, 1, 0);
+    mpoints(1, 1) = ChVector3d(1, 1, 0);
     this->SetupData(1, 1, mpoints);
 }
 
 ChSurfaceNurbs::ChSurfaceNurbs(
     int morder_u,                          // order pu: 1= linear, 2=quadratic, etc.
     int morder_v,                          // order pv: 1= linear, 2=quadratic, etc.
-    ChMatrixDynamic<ChVector<>>& mpoints,  // control points, size nuxnv. Required: at least nu >= pu+1, same for v
+    ChMatrixDynamic<ChVector3d>& mpoints,  // control points, size nuxnv. Required: at least nu >= pu+1, same for v
     ChVectorDynamic<>* mknots_u,  // knots, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
     ChVectorDynamic<>* mknots_v,  // knots, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
     ChMatrixDynamic<>* weights    // weights, size nuxnv. If not provided, all weights as 1.
@@ -49,7 +49,7 @@ ChSurfaceNurbs::ChSurfaceNurbs(const ChSurfaceNurbs& source) : ChSurface(source)
     this->weights = source.weights;
 }
 
-ChVector<> ChSurfaceNurbs::Evaluate(double parU, double parV) const {
+ChVector3d ChSurfaceNurbs::Evaluate(double parU, double parV) const {
     double u = ComputeKnotUfromU(parU);
     double v = ComputeKnotVfromV(parV);
 
@@ -59,7 +59,7 @@ ChVector<> ChSurfaceNurbs::Evaluate(double parU, double parV) const {
     int spanU = ChBasisToolsBspline::FindSpan(p_u, u, knots_u);
     int spanV = ChBasisToolsBspline::FindSpan(p_v, v, knots_v);
 
-    ChVector<> pos = VNULL;
+    ChVector3d pos = VNULL;
     int uind = spanU - p_u;
     int vind = spanV - p_v;
     for (int iu = 0; iu <= this->p_u; iu++) {
@@ -74,7 +74,7 @@ ChVector<> ChSurfaceNurbs::Evaluate(double parU, double parV) const {
 void ChSurfaceNurbs::SetupData(
     int morder_u,                          // order pu: 1= linear, 2=quadratic, etc.
     int morder_v,                          // order pv: 1= linear, 2=quadratic, etc.
-    ChMatrixDynamic<ChVector<>>& mpoints,  // control points, size nuxnv. Required: at least nu >= pu+1, same for v
+    ChMatrixDynamic<ChVector3d>& mpoints,  // control points, size nuxnv. Required: at least nu >= pu+1, same for v
     ChVectorDynamic<>* mknots_u,  // knots u, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
     ChVectorDynamic<>* mknots_v,  // knots v, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
     ChMatrixDynamic<>* weights    // weights, size nuxnv. If not provided, all weights as 1.

@@ -213,7 +213,7 @@ void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEA
         if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(m_mesh->GetElement(ie))) {
             double val, u, v, w;
             bool is_into;
-            ChVector<> p_projected;
+            ChVector3d p_projected;
 
             val = utils::PointTriangleDistance(
                 m_node->pos, mshell->GetNodeA()->GetCoord().pos, mshell->GetNodeB()->GetCoord().pos,
@@ -266,7 +266,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
     // and are then transformed to the global frame.
     for (int i = 0; i < m_div_circumference; i++) {
         double phi = (CH_C_2PI * i) / m_div_circumference;
-        ChVector<> nrm(-std::sin(phi), 0, std::cos(phi));
+        ChVector3d nrm(-std::sin(phi), 0, std::cos(phi));
 
         for (int j = 0; j <= m_div_width; j++) {
             double t_prf = double(j) / m_div_width;
@@ -280,17 +280,17 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
             double y = y_prf;
             double z = (m_rim_radius + x_prf) * std::sin(phi);
             // Node position in global frame (actual coordinate values)
-            ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            ChVector3d loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
 
             // Node direction
-            ChVector<> tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
-            ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
+            ChVector3d tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
+            ChVector3d nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
             ChMatrix33<> mrot;
             mrot.Set_A_Xdir(tan_prf, nrm_prf);
             auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));
 
             // Node velocity
-            ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+            ChVector3d vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
             node->SetPos_dt(vel);
             node->SetMass(0);
             m_mesh->AddNode(node);
@@ -391,8 +391,8 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                     y = y_prf;
                     z = (m_rim_radius + x_prf) * std::sin(alpha);
                     // Node position in global frame (actual coordinate values)
-                    ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
-                    ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+                    ChVector3d loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
+                    ChVector3d vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
                     auto node1 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
                     node1->SetPos_dt(vel);
                     m_mesh->AddNode(node1);
@@ -408,8 +408,8 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                     y = y_prf;
                     z = (m_rim_radius + x_prf) * std::sin(alpha);
                     // Node position in global frame (actual coordinate values)
-                    loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
-                    vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+                    loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
+                    vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
                     auto node2 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
                     node2->SetPos_dt(vel);
                     m_mesh->AddNode(node2);
@@ -425,8 +425,8 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                     y = y_prf;
                     z = (m_rim_radius + x_prf + m_lugs_hb[il][is]) * std::sin(alpha);
                     // Node position in global frame (actual coordinate values)
-                    loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
-                    vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+                    loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
+                    vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
                     auto node3 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
                     node3->SetPos_dt(vel);
                     m_mesh->AddNode(node3);
@@ -440,8 +440,8 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                     y = y_prf;
                     z = (m_rim_radius + x_prf + m_lugs_ha[il][is]) * std::sin(alpha);
                     // Node position in global frame (actual coordinate values)
-                    loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
-                    vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+                    loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
+                    vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
                     auto node4 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
                     node4->SetPos_dt(vel);
                     m_mesh->AddNode(node4);

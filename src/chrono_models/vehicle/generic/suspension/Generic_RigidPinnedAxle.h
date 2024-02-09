@@ -43,10 +43,10 @@ class CH_MODELS_API Generic_RigidPinnedAxle : public ChRigidPinnedAxle {
 
     ~Generic_RigidPinnedAxle() {}
 
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
-    virtual const ChVector<> getAxleTubeCOM() const override { return m_axleTubeCOM; }
-    virtual const ChVector<> getAxlePinLocation() const override { return m_axlePinLoc; }
+    virtual const ChVector3d getAxleTubeCOM() const override { return m_axleTubeCOM; }
+    virtual const ChVector3d getAxlePinLocation() const override { return m_axlePinLoc; }
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getAxleTubeMass() const override { return m_axleTubeMass; }
@@ -55,8 +55,8 @@ class CH_MODELS_API Generic_RigidPinnedAxle : public ChRigidPinnedAxle {
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
     virtual double getAxleTubeRadius() const override { return m_axleTubeRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -68,11 +68,11 @@ class CH_MODELS_API Generic_RigidPinnedAxle : public ChRigidPinnedAxle {
     static const double m_spindleWidth;
     static const double m_axleTubeRadius;
 
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_axleTubeInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_axleTubeInertia;
 
-    static const ChVector<> m_axleTubeCOM;
-    static const ChVector<> m_axlePinLoc;
+    static const ChVector3d m_axleTubeCOM;
+    static const ChVector3d m_axlePinLoc;
 
     static const double m_axleInertia;
 };

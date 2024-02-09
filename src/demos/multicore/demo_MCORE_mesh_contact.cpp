@@ -75,9 +75,9 @@ int main(int argc, char* argv[]) {
     // Parameters for the falling object
     // ---------------------------------
 
-    ChVector<> pos(0.2, 0.55, 0.2);
-    ChVector<> init_vel(0, 0, 0);
-    ChVector<> init_omg(0, 0, 0);
+    ChVector3d pos(0.2, 0.55, 0.2);
+    ChVector3d init_vel(0, 0, 0);
+    ChVector3d init_omg(0, 0, 0);
 
     // ---------------------------------
     // Parameters for the containing bin
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sys->Set_G_acc(ChVector<>(0, -gravity, 0));
+    sys->Set_G_acc(ChVector3d(0, -gravity, 0));
 
     // Set associated collision detection system
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     sys->AddBody(object);
 
     object->SetMass(200);
-    object->SetInertiaXX(40.0 * ChVector<>(1, 1, 0.2));
+    object->SetInertiaXX(40.0 * ChVector3d(1, 1, 0.2));
     object->SetPos(pos);
     object->SetRot(z2y);
     object->SetPos_dt(init_vel);
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     sys->AddBody(ground);
 
     ground->SetMass(1);
-    ground->SetPos(ChVector<>(0, 0, 0));
+    ground->SetPos(ChVector3d(0, 0, 0));
     ground->SetRot(z2y);
     ground->SetCollide(true);
     ground->SetBodyFixed(true);
@@ -214,10 +214,10 @@ int main(int argc, char* argv[]) {
     }
 
     auto ground_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, width, length, thickness);
-    ground->AddCollisionShape(ground_ct_shape, ChFrame<>(ChVector<>(0, 0, -thickness / 2), QUNIT));
+    ground->AddCollisionShape(ground_ct_shape, ChFrame<>(ChVector3d(0, 0, -thickness / 2), QUNIT));
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(width, length, thickness);
-    ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -thickness / 2)));
+    ground->AddVisualShape(box, ChFrame<>(ChVector3d(0, 0, -thickness / 2)));
 
     // Create the visualization window
     opengl::ChVisualSystemOpenGL vis;
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(2, 1, 2), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(2, 1, 2), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     // Simulation loop

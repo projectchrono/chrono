@@ -49,7 +49,7 @@
 #include <vector>
 
 #include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/solver/ChSolver.h"
 
 #include "chrono/physics/ChSystem.h"
@@ -293,7 +293,7 @@ using namespace chrono::copter;
 %extend chrono::turtlebot::TurtleBot{
 		public:
 			TurtleBot(chrono::ChSystem* system,
-               const chrono::ChVector<double>& robot_pos,
+               const chrono::ChVector3d& robot_pos,
                const chrono::ChQuaternion<double>& robot_rot){
 			   
 			   auto selfpoint = std::make_shared<chrono::turtlebot::TurtleBot>(system, robot_pos, robot_rot, nullptr);

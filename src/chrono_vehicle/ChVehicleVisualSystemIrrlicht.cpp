@@ -130,8 +130,8 @@ void ChVehicleVisualSystemIrrlicht::AttachVehicle(ChVehicle* vehicle) {
 
     // Add the Irrlicht camera (controlled through the chase-cam) if already initialized
     if (GetDevice()) {
-        ChVector<> cam_pos = m_camera->GetCameraPos();
-        ChVector<> cam_target = m_camera->GetTargetPos();
+        ChVector3d cam_pos = m_camera->GetCameraPos();
+        ChVector3d cam_target = m_camera->GetTargetPos();
         AddCamera(cam_pos, cam_target);
     }
 }
@@ -148,8 +148,8 @@ void ChVehicleVisualSystemIrrlicht::Initialize() {
 
     // Add the Irrlicht camera (controlled through the chase-cam) if already attach to a vehicle
     if (m_vehicle) {
-        ChVector<> cam_pos = m_camera->GetCameraPos();
-        ChVector<> cam_target = m_camera->GetTargetPos();
+        ChVector3d cam_pos = m_camera->GetCameraPos();
+        ChVector3d cam_target = m_camera->GetTargetPos();
         AddCamera(cam_pos, cam_target);
     }
 }
@@ -196,8 +196,8 @@ void ChVehicleVisualSystemIrrlicht::Advance(double step) {
     }
 
     // Update the Irrlicht camera
-    ChVector<> cam_pos = m_camera->GetCameraPos();
-    ChVector<> cam_target = m_camera->GetTargetPos();
+    ChVector3d cam_pos = m_camera->GetCameraPos();
+    ChVector3d cam_target = m_camera->GetTargetPos();
 
     GetActiveCamera()->setPosition(core::vector3dfCH(cam_pos));
     GetActiveCamera()->setTarget(core::vector3dfCH(cam_target));

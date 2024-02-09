@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
 
     // Attach a 'box' shape asset for visualization.
     auto mboxtruss = chrono_types::make_shared<ChVisualShapeBox>(0.02, 0.5, 0.5);
-    my_body_A->AddVisualShape(mboxtruss, ChFrame<>(ChVector<>(-0.01, -0.2, -0.25)));
+    my_body_A->AddVisualShape(mboxtruss, ChFrame<>(ChVector3d(-0.01, -0.2, -0.25)));
 
     // Create a FEM mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -99,19 +99,19 @@ int main(int argc, char* argv[]) {
                 my_mesh,   // the mesh where to put the created nodes and elements
                 msection,  // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                 10,        // the number of ChElementBeamEuler to create
-                ChVector<>(0, nload * y_spacing, i * z_spacing),       // the 'A' point in space (beginning of beam)
-                ChVector<>(beam_L, nload * y_spacing, i * z_spacing),  // the 'B' point in space (end of beam)
-                ChVector<>(0, 1, 0)
-                // ChVector<>(0, cos(rot_rad), sin(rot_rad))
+                ChVector3d(0, nload * y_spacing, i * z_spacing),       // the 'A' point in space (beginning of beam)
+                ChVector3d(beam_L, nload * y_spacing, i * z_spacing),  // the 'B' point in space (end of beam)
+                ChVector3d(0, 1, 0)
+                // ChVector3d(0, cos(rot_rad), sin(rot_rad))
                 );  // the 'Y' up direction of the section for the beam
 
             // After having used BuildBeam(), you can retrieve the nodes used for the beam,
             // For example say you want to fix the A end and apply a force to the B end:
             builder.GetLastBeamNodes().front()->SetFixed(true);
 
-            // builder.GetLastBeamNodes().back()->SetForce(ChVector<> (0, load,0));
+            // builder.GetLastBeamNodes().back()->SetForce(ChVector3d (0, load,0));
             builder.GetLastBeamNodes().back()->SetForce(
-                ChVector<>(0, loads(nload) * cos(rot_rad), loads(nload) * sin(rot_rad)));
+                ChVector3d(0, loads(nload) * cos(rot_rad), loads(nload) * sin(rot_rad)));
 
             endnodes[nload].push_back(builder.GetLastBeamNodes().back());
 
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    vis->AddCamera(ChVector3d(0.0, 0.6, -1.0));
     vis->AttachSystem(&sys);
 
     // Use a solver that can handle stiffness matrices:
@@ -210,13 +210,13 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->Render();
 
-        tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector<>(0.25, -0.20, 0), 0, VECT_Y),
+        tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.25, -0.20, 0), 0, VECT_Y),
                         ChColor(0.3f, 0.3f, 0.3f), true);
 
-        tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector<>(0.25, -0.45, -0.25), CH_C_PI_2, VECT_X),
+        tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.25, -0.45, -0.25), CH_C_PI_2, VECT_X),
                         ChColor(0.3f, 0.3f, 0.3f), true);
 
-        tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector<>(0.001, -0.20, -0.25), CH_C_PI_2, VECT_Y),
+        tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.001, -0.20, -0.25), CH_C_PI_2, VECT_Y),
                         ChColor(0.3f, 0.3f, 0.3f), true);
 
         sys.DoStepDynamics(0.001);

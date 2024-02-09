@@ -97,8 +97,8 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(
             gp_Dir pn;
             p = mNodes(j).Transformed(theLocation.Transformation());
 
-            chrono::ChVector<> pos(p.X(), p.Y(), p.Z());
-            chrono::ChVector<> nor(mNormals((j - 1) * 3 + 1), mNormals((j - 1) * 3 + 2), mNormals((j - 1) * 3 + 3));
+            chrono::ChVector3d pos(p.X(), p.Y(), p.Z());
+            chrono::ChVector3d nor(mNormals((j - 1) * 3 + 1), mNormals((j - 1) * 3 + 2), mNormals((j - 1) * 3 + 3));
             if (F.Orientation() == TopAbs_REVERSED)
                 nor *= -1;
 
@@ -119,8 +119,8 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(
             int ib = v_offset + (n[1]) - 1;
             int ic = v_offset + (n[2]) - 1;
 
-            chmesh.m_face_v_indices.push_back(ChVector<int>(ia, ib, ic));
-            chmesh.m_face_n_indices.push_back(ChVector<int>(ia, ib, ic));
+            chmesh.m_face_v_indices.push_back(ChVector3i(ia, ib, ic));
+            chmesh.m_face_n_indices.push_back(ChVector3i(ia, ib, ic));
 
             itri++;
         }
@@ -169,17 +169,17 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(ChTriangleMesh& chmesh,
             V.SetX(p.X());
             V.SetY(p.Y());
             V.SetZ(p.Z());
-            ChVector<> cv1(V.X(), V.Y(), V.Z());
+            ChVector3d cv1(V.X(), V.Y(), V.Z());
             p = mNodes(ib + 1).Transformed(theLocation.Transformation());
             V.SetX(p.X());
             V.SetY(p.Y());
             V.SetZ(p.Z());
-            ChVector<> cv2(V.X(), V.Y(), V.Z());
+            ChVector3d cv2(V.X(), V.Y(), V.Z());
             p = mNodes(ic + 1).Transformed(theLocation.Transformation());
             V.SetX(p.X());
             V.SetY(p.Y());
             V.SetZ(p.Z());
-            ChVector<> cv3(V.X(), V.Y(), V.Z());
+            ChVector3d cv3(V.X(), V.Y(), V.Z());
             chmesh.addTriangle(cv1, cv2, cv3);
 
             itri++;
@@ -244,8 +244,8 @@ void ChCascadeMeshTools::fillObjFileFromCascade(std::ofstream& objfile,
             for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
                 gp_Dir pn;
                 gp_Pnt p = mNodes(j).Transformed(theLocation.Transformation());
-                chrono::ChVector<> pos(p.X(), p.Y(), p.Z());
-                chrono::ChVector<> nor(mNormals((j - 1) * 3 + 1), mNormals((j - 1) * 3 + 2), mNormals((j - 1) * 3 + 3));
+                chrono::ChVector3d pos(p.X(), p.Y(), p.Z());
+                chrono::ChVector3d nor(mNormals((j - 1) * 3 + 1), mNormals((j - 1) * 3 + 2), mNormals((j - 1) * 3 + 3));
                 if (F.Orientation() == TopAbs_REVERSED)
                     nor *= -1;
 

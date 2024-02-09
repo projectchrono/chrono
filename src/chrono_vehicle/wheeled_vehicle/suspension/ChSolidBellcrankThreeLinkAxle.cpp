@@ -82,7 +82,7 @@ ChSolidBellcrankThreeLinkAxle::~ChSolidBellcrankThreeLinkAxle() {
 void ChSolidBellcrankThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
                                                std::shared_ptr<ChSubchassis> subchassis,
                                                std::shared_ptr<ChSteering> steering,
-                                               const ChVector<>& location,
+                                               const ChVector3d& location,
                                                double left_ang_vel,
                                                double right_ang_vel) {
     ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
@@ -91,9 +91,9 @@ void ChSolidBellcrankThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassi
     m_rel_loc = location;
 
     // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w;
     ChMatrix33<> rot;
 
     // Express the suspension reference frame in the absolute coordinate system.
@@ -101,12 +101,12 @@ void ChSolidBellcrankThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassi
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform the location of the axle body COM to absolute frame.
-    ChVector<> axleCOM_local = getAxleTubeCOM();
-    ChVector<> axleCOM = suspension_to_abs.TransformLocalToParent(axleCOM_local);
+    ChVector3d axleCOM_local = getAxleTubeCOM();
+    ChVector3d axleCOM = suspension_to_abs.TransformLocalToParent(axleCOM_local);
 
     // Calculate end points on the axle body, expressed in the absolute frame
     // (for visualization)
-    ChVector<> outer_local((getLocation(KNUCKLE_U) + getLocation(KNUCKLE_L)) / 2);
+    ChVector3d outer_local((getLocation(KNUCKLE_U) + getLocation(KNUCKLE_L)) / 2);
     m_axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
     outer_local.y() = -outer_local.y();
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
@@ -124,7 +124,7 @@ void ChSolidBellcrankThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassi
     m_pointsL.resize(NUM_POINTS);
     m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
+        ChVector3d rel_pos = getLocation(static_cast<PointId>(i));
         m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
         rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
@@ -136,9 +136,9 @@ void ChSolidBellcrankThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassi
     m_tierodOuterR = m_pointsR[KNUCKLE_T];
 
     // Fix the triangle body to the axle tube body
-    ChVector<> pt_tri_axle = (m_pointsL[TRIANGLE_A] + m_pointsR[TRIANGLE_A]) / 2.0;
-    ChVector<> pt_tri_chassis = (m_pointsL[TRIANGLE_C] + m_pointsR[TRIANGLE_C]) / 2.0;
-    ChVector<> pt_tri_cog = (pt_tri_axle + pt_tri_chassis) / 2.0;
+    ChVector3d pt_tri_axle = (m_pointsL[TRIANGLE_A] + m_pointsR[TRIANGLE_A]) / 2.0;
+    ChVector3d pt_tri_chassis = (m_pointsL[TRIANGLE_C] + m_pointsR[TRIANGLE_C]) / 2.0;
+    ChVector3d pt_tri_cog = (pt_tri_axle + pt_tri_chassis) / 2.0;
     m_triangle_left_point = m_pointsL[TRIANGLE_C];
     m_triangle_right_point = m_pointsR[TRIANGLE_C];
     m_triangle_sph_point = pt_tri_axle;
@@ -180,14 +180,14 @@ void ChSolidBellcrankThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassi
 void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
                                                    std::shared_ptr<ChBodyAuxRef> chassis,
                                                    std::shared_ptr<ChBody> tierod_body,
-                                                   const std::vector<ChVector<>>& points,
+                                                   const std::vector<ChVector3d>& points,
                                                    double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w;
     ChMatrix33<> rot;
 
     // Chassis orientation (expressed in absolute frame)
@@ -212,7 +212,7 @@ void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
-    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
+    m_spindle[side]->SetWvel_loc(ChVector3d(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
     chassis->GetSystem()->AddBody(m_spindle[side]);
@@ -265,7 +265,7 @@ void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
-    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
+    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 
     if (side == LEFT) {
@@ -304,7 +304,7 @@ void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
         // Create and initialize the draglink body (one side only).
         // Determine the rotation matrix of the draglink based on the plane of the hard points
         // (z-axis along the length of the draglink)
-        v = Vcross(points[DRAGLINK_S] - points[BELLCRANK_D], ChVector<>(0, 0, 1));
+        v = Vcross(points[DRAGLINK_S] - points[BELLCRANK_D], ChVector3d(0, 0, 1));
         v.Normalize();
         w = points[DRAGLINK_S] - points[BELLCRANK_D];
         w.Normalize();
@@ -336,7 +336,7 @@ void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_linkBodyToAxleTube[side]);
 
     // Create and initialize the spherical joint between chassis and link body.
-    v = Vcross(points[LINK_C] - points[LINK_A], ChVector<>(0, 1, 0));
+    v = Vcross(points[LINK_C] - points[LINK_A], ChVector3d(0, 1, 0));
     v.Normalize();
     w = points[LINK_C] - points[LINK_A];
     w.Normalize();
@@ -436,11 +436,11 @@ std::vector<ChSuspension::ForceTSDA> ChSolidBellcrankThreeLinkAxle::ReportSuspen
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSolidBellcrankThreeLinkAxle::LogHardpointLocations(const ChVector<>& ref, bool inches) {
+void ChSolidBellcrankThreeLinkAxle::LogHardpointLocations(const ChVector3d& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
+        ChVector3d pos = ref + unit * getLocation(static_cast<PointId>(i));
 
         std::cout << "   " << m_pointNames[i] << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
@@ -482,8 +482,8 @@ void ChSolidBellcrankThreeLinkAxle::AddVisualizationAssets(VisualizationType vis
     AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_S], m_pointsL[BELLCRANK_D], 0.02, ChColor(0.3f, 0.3f, 0.3f));
 
     // visualize the bellcrank base
-    AddVisualizationLink(m_bellcrank, m_pointsL[BELLCRANK_A] - ChVector<>(0, 0, 0.1),
-                         m_pointsL[BELLCRANK_A] + ChVector<>(0, 0, 0.1), 0.05, ChColor(0.7f, 0.3f, 0.7f));
+    AddVisualizationLink(m_bellcrank, m_pointsL[BELLCRANK_A] - ChVector3d(0, 0, 0.1),
+                         m_pointsL[BELLCRANK_A] + ChVector3d(0, 0, 0.1), 0.05, ChColor(0.7f, 0.3f, 0.7f));
     // visualize the bellcrank drag arm
     AddVisualizationLink(m_bellcrank, m_pointsL[BELLCRANK_A], m_pointsL[BELLCRANK_D], 0.02, ChColor(0.7f, 0.3f, 0.7f));
     // visualize the bellcrank tierod arms
@@ -528,13 +528,13 @@ void ChSolidBellcrankThreeLinkAxle::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSolidBellcrankThreeLinkAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                                         const ChVector<> pt_1,
-                                                         const ChVector<> pt_2,
+                                                         const ChVector3d pt_1,
+                                                         const ChVector3d pt_2,
                                                          double radius,
                                                          const ChColor& color) {
     // Express hardpoint locations in body frame.
-    ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
-    ChVector<> p_2 = body->TransformPointParentToLocal(pt_2);
+    ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
+    ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
 
     ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
 }

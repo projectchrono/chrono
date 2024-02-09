@@ -61,7 +61,7 @@ double step_size = 1e-3;
 double tire_step_size = 1e-3;
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 0.6);
+ChVector3d initLoc(0, 0, 0.6);
 
 // =============================================================================
 
@@ -96,14 +96,14 @@ int main(int argc, char* argv[]) {
     patch_mat->SetPoissonRatio(0.3f);
     for (size_t i = 0; i < 3; i++) {
         auto patch =
-            terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(terrainLength * i, 0, 0), QUNIT), terrainLength, 5);
+            terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(terrainLength * i, 0, 0), QUNIT), terrainLength, 5);
         patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
         patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
     }
     terrain.Initialize();
 
     // Create the straight path and the driver system
-    auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(10 * terrainLength / 2, 0, 0.5), 1);
+    auto path = StraightLinePath(ChVector3d(-terrainLength / 2, 0, 0.5), ChVector3d(10 * terrainLength / 2, 0, 0.5), 1);
     ChPathFollowerDriver driver(truck.GetTractor(), path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("Semi-trailer truck :: Follows Straight Line");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
     vis->AddLightDirectional();
     vis->AddSkyBox();

@@ -32,8 +32,8 @@ CH_SENSOR_API ChAccelerometerSensor::ChAccelerometerSensor(std::shared_ptr<chron
 }
 
 CH_SENSOR_API void ChAccelerometerSensor::PushKeyFrame() {
-    ChVector<double> tran_acc_no_offset = m_parent->PointAccelerationLocalToParent(m_offsetPose.GetPos());
-    ChVector<double> tran_acc_offset = -m_parent->GetSystem()->Get_G_acc();
+    ChVector3d tran_acc_no_offset = m_parent->PointAccelerationLocalToParent(m_offsetPose.GetPos());
+    ChVector3d tran_acc_offset = -m_parent->GetSystem()->Get_G_acc();
     tran_acc_offset = m_parent->GetRot().Rotate(tran_acc_offset);
     m_keyframes.push_back(tran_acc_no_offset + tran_acc_offset);
 }
@@ -60,7 +60,7 @@ CH_SENSOR_API ChMagnetometerSensor::ChMagnetometerSensor(std::shared_ptr<chrono:
                                                          float updateRate,
                                                          chrono::ChFrame<double> offsetPose,
                                                          std::shared_ptr<ChNoiseModel> noise_model,
-                                                         ChVector<double> gps_reference)
+                                                         ChVector3d gps_reference)
     : ChDynamicSensor(parent, updateRate, offsetPose) {
     m_filters.push_front(chrono_types::make_shared<ChFilterMagnetometerUpdate>(noise_model, gps_reference));
 }

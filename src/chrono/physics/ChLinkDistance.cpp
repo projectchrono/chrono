@@ -47,8 +47,8 @@ ChLinkDistance::ChLinkDistance(const ChLinkDistance& other) : ChLink(other) {
 int ChLinkDistance::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                std::shared_ptr<ChBodyFrame> mbody2,
                                bool pos_are_relative,
-                               ChVector<> mpos1,
-                               ChVector<> mpos2,
+                               ChVector3d mpos1,
+                               ChVector3d mpos2,
                                bool auto_distance,
                                double mdistance,
                                Mode mode) {
@@ -66,7 +66,7 @@ int ChLinkDistance::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
         pos2 = Body2->TransformPointParentToLocal(mpos2);
     }
 
-    ChVector<> delta_pos = Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2);
+    ChVector3d delta_pos = Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2);
     curr_dist = delta_pos.Length();
 
     if (auto_distance) {
@@ -88,10 +88,10 @@ void ChLinkDistance::SetMode(Mode mode) {
 }
 
 ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords() {
-    ChVector<> dir_F1_F2_W =
+    ChVector3d dir_F1_F2_W =
         (Vnorm(Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2)));
-    ChVector<> dir_F1_F2_B1 = Body2->TransformDirectionParentToLocal(dir_F1_F2_W);
-    ChVector<> Vx, Vy, Vz;
+    ChVector3d dir_F1_F2_B1 = Body2->TransformDirectionParentToLocal(dir_F1_F2_W);
+    ChVector3d Vx, Vy, Vz;
     XdirToDxDyDz(dir_F1_F2_B1, VECT_Y, Vx, Vy, Vz);
     ChMatrix33<> rel_matrix(Vx, Vy, Vz);
 
@@ -104,17 +104,17 @@ void ChLinkDistance::Update(double mytime, bool update_assets) {
     ChLink::Update(mytime, update_assets);
 
     // compute jacobians
-    ChVector<> delta_pos = Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2);
+    ChVector3d delta_pos = Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2);
     curr_dist = delta_pos.Length();
-    ChVector<> dir_F1_F2_W = Vnorm(delta_pos);
-    ChVector<> dir_F1_F2_B2 = Body2->TransformDirectionParentToLocal(dir_F1_F2_W);
-    ChVector<> dir_F1_F2_B1 = Body1->TransformDirectionParentToLocal(dir_F1_F2_W);
+    ChVector3d dir_F1_F2_W = Vnorm(delta_pos);
+    ChVector3d dir_F1_F2_B2 = Body2->TransformDirectionParentToLocal(dir_F1_F2_W);
+    ChVector3d dir_F1_F2_B1 = Body1->TransformDirectionParentToLocal(dir_F1_F2_W);
 
-    ChVector<> Cq_B1_pos = dir_F1_F2_W;
-    ChVector<> Cq_B2_pos = -dir_F1_F2_W;
+    ChVector3d Cq_B1_pos = dir_F1_F2_W;
+    ChVector3d Cq_B2_pos = -dir_F1_F2_W;
 
-    ChVector<> Cq_B1_rot = -Vcross(dir_F1_F2_B1, pos1);
-    ChVector<> Cq_B2_rot = Vcross(dir_F1_F2_B2, pos2);
+    ChVector3d Cq_B1_rot = -Vcross(dir_F1_F2_B1, pos1);
+    ChVector3d Cq_B2_rot = Vcross(dir_F1_F2_B2, pos2);
 
     Cx.Get_Cq_a()(0) = mode_sign * Cq_B1_pos.x();
     Cx.Get_Cq_a()(1) = mode_sign * Cq_B1_pos.y();

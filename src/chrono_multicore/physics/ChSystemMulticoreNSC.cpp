@@ -124,8 +124,8 @@ real3 ChSystemMulticoreNSC::GetBodyContactTorque(uint body_id) const {
                  data_manager->host_data.Fc[body_id * 6 + 5]);
 }
 
-static inline chrono::ChVector<real> ToChVector(const real3& a) {
-    return chrono::ChVector<real>(a.x, a.y, a.z);
+static inline chrono::ChVector3<real> ToChVector(const real3& a) {
+    return chrono::ChVector3<real>(a.x, a.y, a.z);
 }
 
 void ChSystemMulticoreNSC::SolveSystem() {

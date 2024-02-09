@@ -76,7 +76,7 @@ class ANCFHexaTest {
 
     void SimulateVis();
 
-    ChVector<> GetCornerPointPos() { return m_nodeCornerPoint->GetPos(); }
+    ChVector3d GetCornerPointPos() { return m_nodeCornerPoint->GetPos(); }
 
     void RunTimingTest(ChMatrixNM<double, 4, 19>& timing_stats, const std::string& test_name);
 
@@ -93,7 +93,7 @@ ANCFHexaTest::ANCFHexaTest(int num_elements, SolverType solver_type, int NumThre
     m_NumElements = 2 * num_elements * num_elements;
     m_NumThreads = NumThreads;
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector<>(0, 0, -9.80665));
+    m_system->Set_G_acc(ChVector3d(0, 0, -9.80665));
     m_system->SetNumThreads(NumThreads, 1, NumThreads);
 
     // Set solver parameters
@@ -224,9 +224,9 @@ ANCFHexaTest::ANCFHexaTest(int num_elements, SolverType solver_type, int NumThre
     double dy = width / (num_elements);
 
     // Setup position vector gradients to initially align with the global x, y, and z directions
-    ChVector<> dir1(1, 0, 0);
-    ChVector<> dir2(0, 1, 0);
-    ChVector<> dir3(0, 0, 1);
+    ChVector3d dir1(1, 0, 0);
+    ChVector3d dir2(0, 1, 0);
+    ChVector3d dir3(0, 0, 1);
 
     // Create a grounded body to connect the 3D pendulum to
     auto grounded = chrono_types::make_shared<ChBody>();
@@ -236,7 +236,7 @@ ANCFHexaTest::ANCFHexaTest(int num_elements, SolverType solver_type, int NumThre
     // Create and add the nodes
     for (auto i = 0; i <= 2 * num_elements; i++) {
         for (auto j = 0; j <= num_elements; j++) {
-            auto node = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, dy * j, 0.0), dir1, dir2, dir3);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, dy * j, 0.0), dir1, dir2, dir3);
             mesh->AddNode(node);
 
             // Fix only the first node's position to ground (Spherical Joint constraint)
@@ -247,7 +247,7 @@ ANCFHexaTest::ANCFHexaTest(int num_elements, SolverType solver_type, int NumThre
             }
 
             auto nodetop =
-                chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, dy * j, thickness), dir1, dir2, dir3);
+                chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, dy * j, thickness), dir1, dir2, dir3);
             mesh->AddNode(nodetop);
         }
     }
@@ -301,16 +301,16 @@ void ANCFHexaTest::SimulateVis() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.4, 0.4, 0.4), ChVector<>(0, 0, 0));
+    vis->AddCamera(ChVector3d(-0.4, 0.4, 0.4), ChVector3d(0, 0, 0));
 
     while (vis->Run()) {
         std::cout << "Time(s): " << this->m_system->GetChTime() << "  Corner Pos(m): " << this->GetCornerPointPos()
                   << std::endl;
         vis->BeginScene();
         vis->Render();
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(1, 0, 0), ChColor(1, 0, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 1, 0), ChColor(0, 1, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 0, 1), ChColor(0, 0, 1));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(1, 0, 0), ChColor(1, 0, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 1, 0), ChColor(0, 1, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 0, 1), ChColor(0, 0, 1));
         ExecuteStep();
         vis->EndScene();
     }

@@ -175,7 +175,7 @@ class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
         : m_driver(driver), m_debugMode(0), m_linecolor(255, 255, 0, 0) {}
     ~DebugDrawer() {}
 
-    virtual void DrawLine(const ChVector<>& from, const ChVector<>& to, const ChColor& color) override {
+    virtual void DrawLine(const ChVector3d& from, const ChVector3d& to, const ChColor& color) override {
         m_driver->draw3DLine(irr::core::vector3dfCH(from), irr::core::vector3dfCH(to), m_linecolor);
     }
 

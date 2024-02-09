@@ -48,9 +48,9 @@ void CreateContainer(ChSystemMulticore* system) {
 
     // Attach geometry of the containing bin
     utils::AddBoxContainer(container, mat_walls,                   //
-                           ChFrame<>(ChVector<>(0, 0, 1), QUNIT),  //
-                           ChVector<>(2, 2, 2), 0.1,               //
-                           ChVector<int>(2, 2, -1));
+                           ChFrame<>(ChVector3d(0, 0, 1), QUNIT),  //
+                           ChVector3d(2, 2, 2), 0.1,               //
+                           ChVector3i(2, 2, -1));
 
     system->AddBody(container);
 }
@@ -63,14 +63,14 @@ void CreateGranularMaterial(ChSystemMulticore* sys) {
     // Create the falling balls
     double mass = 1;
     double radius = 0.15;
-    ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
+    ChVector3d inertia = (2.0 / 5.0) * mass * radius * radius * ChVector3d(1, 1, 1);
     srand(1);
 
     for (int ix = -2; ix < 3; ix++) {
         for (int iy = -2; iy < 3; iy++) {
             for (int iz = -2; iz < 3; iz++) {
-                ChVector<> rnd(rand() % 1000 / 100000.0, rand() % 1000 / 100000.0, rand() % 1000 / 100000.0);
-                ChVector<> pos(0.4 * ix, 0.4 * iy, 0.4 * iz + 1);
+                ChVector3d rnd(rand() % 1000 / 100000.0, rand() % 1000 / 100000.0, rand() % 1000 / 100000.0);
+                ChVector3d pos(0.4 * ix, 0.4 * iy, 0.4 * iz + 1);
 
                 auto ball = chrono_types::make_shared<ChBody>();
 
@@ -97,7 +97,7 @@ void SetupSystem(ChSystemMulticoreNSC* msystem) {
     float contact_recovery_speed = 10e30f;
     double tolerance = 1e-2;
 
-    msystem->Set_G_acc(ChVector<>(0, 0, -9.81));
+    msystem->Set_G_acc(ChVector3d(0, 0, -9.81));
 
     msystem->GetSettings()->solver.tolerance = tolerance;
     msystem->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
@@ -120,8 +120,8 @@ void SetupSystem(ChSystemMulticoreNSC* msystem) {
 // Sync the positions and velocities of the rigid bodies
 void Sync(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B) {
     for (int i = 0; i < msystem_A->Get_bodylist().size(); i++) {
-        ChVector<> pos = msystem_B->Get_bodylist().at(i)->GetPos();
-        ChVector<> pos_dt = msystem_B->Get_bodylist().at(i)->GetPos_dt();
+        ChVector3d pos = msystem_B->Get_bodylist().at(i)->GetPos();
+        ChVector3d pos_dt = msystem_B->Get_bodylist().at(i)->GetPos_dt();
         msystem_A->Get_bodylist().at(i)->SetPos(pos);
         msystem_A->Get_bodylist().at(i)->SetPos_dt(pos_dt);
     }
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
         vis.SetWindowSize(1280, 720);
         vis.SetRenderMode(opengl::WIREFRAME);
         vis.Initialize();
-        vis.AddCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0));
+        vis.AddCamera(ChVector3d(6, -6, 1), ChVector3d(0, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);
 
         while (time < time_end) {

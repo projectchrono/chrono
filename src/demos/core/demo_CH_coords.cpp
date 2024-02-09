@@ -38,16 +38,16 @@ int main(int argc, char* argv[]) {
     // from/to local coordinates in 3D, in ascending complexity and capabilities.
     //
 
-    ChVector<> mvect2;  // resulting (transformed) vectors will go here
-    ChVector<> mvect3;
+    ChVector3d mvect2;  // resulting (transformed) vectors will go here
+    ChVector3d mvect3;
 
     // Define a  POINT  to be transformed, expressed in
     // local frame coordinate.
-    ChVector<> mvect1(2, 3, 4);
+    ChVector3d mvect1(2, 3, 4);
 
     // Define a vector representing the TRANSLATION of the frame
     // respect to absolute (world) coordinates.
-    ChVector<> vtraslA(5, 6, 7);
+    ChVector3d vtraslA(5, 6, 7);
 
     // Define a quaternion representing the ROTATION of the frame
     // respect to absolute (world) coordinates. Must be normalized.
@@ -114,17 +114,17 @@ int main(int argc, char* argv[]) {
     // sequence.
     //
 
-    ChVector<> v10(5, 6, 7);
+    ChVector3d v10(5, 6, 7);
     ChQuaternion<> q10(1, 3, 4, 5);
     q10.Normalize();
     ChMatrix33<> m10(q10);
 
-    ChVector<> v21(4, 1, 3);
+    ChVector3d v21(4, 1, 3);
     ChQuaternion<> q21(3, 2, 1, 5);
     q21.Normalize();
     ChMatrix33<> m21(q21);
 
-    ChVector<> v32(1, 5, 1);
+    ChVector3d v32(1, 5, 1);
     ChQuaternion<> q32(4, 1, 3, 1);
     q32.Normalize();
     ChMatrix33<> m32(q32);
@@ -256,7 +256,7 @@ int main(int argc, char* argv[]) {
     mframeA1 >>= f10;
 
     // Transform mframeA1 by translating by a vector:
-    mframeA1 >>= ChVector<>(1, 2, 3);
+    mframeA1 >>= ChVector3d(1, 2, 3);
 
     // Transform mframeA1 by rotating it 30 degrees on axis Y, using a quaternion:
     mframeA1 >>= Q_from_AngAxis(30 * CH_C_DEG_TO_RAD, VECT_Y);
@@ -274,22 +274,22 @@ int main(int argc, char* argv[]) {
     ChGwMatrix34<> Gw(qrotA);
 
     ChFrameMoving<> testa(vtraslA, qrotA);
-    testa.SetPos_dt(ChVector<>(0.5, 0.6, 0.7));
-    testa.SetWvel_loc(ChVector<>(1.1, 2.1, 5.1));
-    testa.SetPos_dtdt(ChVector<>(7, 8, 9));
-    testa.SetWacc_loc(ChVector<>(4.3, 5.3, 2.3));
+    testa.SetPos_dt(ChVector3d(0.5, 0.6, 0.7));
+    testa.SetWvel_loc(ChVector3d(1.1, 2.1, 5.1));
+    testa.SetPos_dtdt(ChVector3d(7, 8, 9));
+    testa.SetWacc_loc(ChVector3d(4.3, 5.3, 2.3));
     std::cout << testa << "a moving frame";
 
-    ChVector<> locpos(0.1, 3.1, 1.1);
-    ChVector<> locspeed(3.2, 9.2, 7.2);
-    ChVector<> locacc(5.3, 3.3, 2.3);
+    ChVector3d locpos(0.1, 3.1, 1.1);
+    ChVector3d locspeed(3.2, 9.2, 7.2);
+    ChVector3d locacc(5.3, 3.3, 2.3);
 
     ChFrameMoving<> testPl(locpos, QUNIT);
     testPl.SetPos_dt(locspeed);
     testPl.SetRot_dt(qrotA);
-    testPl.SetWvel_loc(ChVector<>(0.4, 0.5, 0.6));
+    testPl.SetWvel_loc(ChVector3d(0.4, 0.5, 0.6));
     testPl.SetPos_dtdt(locacc);
-    testPl.SetWacc_loc(ChVector<>(0.43, 0.53, 0.63));
+    testPl.SetWacc_loc(ChVector3d(0.43, 0.53, 0.63));
     ChFrameMoving<> testPw;
     ChFrameMoving<> testX;
     testa.TransformLocalToParent(testPl, testPw);
@@ -299,7 +299,7 @@ int main(int argc, char* argv[]) {
     std::cout << bres << " trasf loc->abs" << std::endl;
 
     ChQuaternion<> pollo(3, 5, 6, 7);
-    ChVector<> pallo(2, 4, 6);
+    ChVector3d pallo(2, 4, 6);
 
     ChTimer timer;
 
@@ -384,7 +384,7 @@ int main(int argc, char* argv[]) {
        std::cout << "Test ChFrame::SetRot_dtdt() " <<  timer() << std::endl;
 
 
-   ChVector<> mv(1, 2, 3);
+   ChVector3d mv(1, 2, 3);
        timer.start();
        for (i= 0; i<1000000; i++)
        {
@@ -404,7 +404,7 @@ int main(int argc, char* argv[]) {
        timer.start();
        for (i= 0; i<1000000; i++)
        {
-           Vector p= testa.GetWvel_loc();
+           ChVector3d p= testa.GetWvel_loc();
        }
        timer.stop();
        std::cout << "Test ChFrame::GetWvel_loc() " <<  timer() << std::endl;
@@ -412,7 +412,7 @@ int main(int argc, char* argv[]) {
        timer.start();
        for (i= 0; i<1000000; i++)
        {
-           ChVector<> p= testa.GetWacc_loc();
+           ChVector3d p= testa.GetWacc_loc();
        }
        timer.stop();
        std::cout << "Test ChFrame::GetWacc_loc() " <<  timer() << std::endl;

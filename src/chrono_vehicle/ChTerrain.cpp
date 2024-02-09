@@ -24,19 +24,19 @@ namespace vehicle {
 
 ChTerrain::ChTerrain() {}
 
-double ChTerrain::GetHeight(const ChVector<>& loc) const {
+double ChTerrain::GetHeight(const ChVector3d& loc) const {
     return 0;
 }
 
-ChVector<> ChTerrain::GetNormal(const ChVector<>& loc) const {
+ChVector3d ChTerrain::GetNormal(const ChVector3d& loc) const {
     return ChWorldFrame::Vertical();
 }
 
-float ChTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+float ChTerrain::GetCoefficientFriction(const ChVector3d& loc) const {
     return 0.8f;
 }
 
-void ChTerrain::GetProperties(const ChVector<>& loc, double& height, ChVector<>& normal, float& friction) const {
+void ChTerrain::GetProperties(const ChVector3d& loc, double& height, ChVector3d& normal, float& friction) const {
     height = GetHeight(loc);
     normal = GetNormal(loc);
     friction = GetCoefficientFriction(loc);

@@ -90,7 +90,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
     ChVehicleCosimTrackedMBSNode();
 
     /// Initialize the underlying MBS
-    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
+    virtual void InitializeMBS(const ChVector2d& terrain_size,  ///< terrain length x width
                                double terrain_height             ///< initial terrain height
                                ) = 0;
 

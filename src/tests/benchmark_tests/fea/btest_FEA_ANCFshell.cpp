@@ -100,7 +100,7 @@ class ANCFshell_PARDISOPROJECT : public ANCFshell<N> {
 template <int N>
 ANCFshell<N>::ANCFshell(SolverType solver_type) {
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector<>(0, -9.8, 0));
+    m_system->Set_G_acc(ChVector3d(0, -9.8, 0));
     m_system->SetNumThreads(4);
 
     // Set solver parameters
@@ -187,9 +187,9 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
     double thickness = 0.01;
 
     double rho = 500;
-    ChVector<> E(2.1e7, 2.1e7, 2.1e7);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    ChVector<> G(8.0769231e6, 8.0769231e6, 8.0769231e6);
+    ChVector3d E(2.1e7, 2.1e7, 2.1e7);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    ChVector3d G(8.0769231e6, 8.0769231e6, 8.0769231e6);
     auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
     // Create mesh nodes and elements
@@ -209,18 +209,18 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
     mesh->AddVisualShapeFEA(vis_node);
 
     double dx = length / N;
-    ChVector<> dir(0, 1, 0);
+    ChVector3d dir(0, 1, 0);
 
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, -width / 2), dir);
-    auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, +width / 2), dir);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, -width / 2), dir);
+    auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, +width / 2), dir);
     nodeA->SetFixed(true);
     nodeB->SetFixed(true);
     mesh->AddNode(nodeA);
     mesh->AddNode(nodeB);
 
     for (int i = 1; i < N; i++) {
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(i * dx, 0, -width / 2), dir);
-        auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(i * dx, 0, +width / 2), dir);
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(i * dx, 0, -width / 2), dir);
+        auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(i * dx, 0, +width / 2), dir);
         mesh->AddNode(nodeC);
         mesh->AddNode(nodeD);
 
@@ -248,15 +248,15 @@ void ANCFshell<N>::SimulateVis() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.2, 0.2, 0.2), ChVector<>(0, 0, 0));
+    vis->AddCamera(ChVector3d(-0.2, 0.2, 0.2), ChVector3d(0, 0, 0));
 
 
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(1, 0, 0), ChColor(1, 0, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 1, 0), ChColor(0, 1, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 0, 1), ChColor(0, 0, 1));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(1, 0, 0), ChColor(1, 0, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 1, 0), ChColor(0, 1, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 0, 1), ChColor(0, 0, 1));
         ExecuteStep();
         vis->EndScene();
     }

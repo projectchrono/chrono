@@ -41,7 +41,7 @@ class CH_MODELS_API G500_TMeasyTireFront : public ChTMeasyTire {
 
     virtual void SetTMeasyParams() override;
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -50,7 +50,7 @@ class CH_MODELS_API G500_TMeasyTireFront : public ChTMeasyTire {
 
   private:
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
 
     ChFunctionRecorder m_stiffnessMap;
 
@@ -68,7 +68,7 @@ class CH_MODELS_API G500_TMeasyTireRear : public ChTMeasyTire {
 
     virtual void SetTMeasyParams() override;
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -77,7 +77,7 @@ class CH_MODELS_API G500_TMeasyTireRear : public ChTMeasyTire {
 
   private:
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
 
     ChFunctionRecorder m_stiffnessMap;
 

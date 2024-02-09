@@ -35,8 +35,8 @@ class ChApi ChLink : public ChLinkBase {
   protected:
     ChBodyFrame* Body1;       ///< first connected body
     ChBodyFrame* Body2;       ///< second connected body
-    ChVector<> react_force;   ///< store the xyz reactions, expressed in local coordinate system of link;
-    ChVector<> react_torque;  ///< store the torque reactions, expressed in local coordinate system of link;
+    ChVector3d react_force;   ///< store the xyz reactions, expressed in local coordinate system of link;
+    ChVector3d react_torque;  ///< store the torque reactions, expressed in local coordinate system of link;
 
   public:
     ChLink() : Body1(NULL), Body2(NULL), react_force(VNULL), react_torque(VNULL) {}
@@ -67,9 +67,9 @@ class ChApi ChLink : public ChLinkBase {
     virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return GetLinkRelativeCoords() >> Body2->GetCoord(); }
 
     /// Get reaction force, expressed in link coordinate system.
-    virtual ChVector<> Get_react_force() override { return react_force; }
+    virtual ChVector3d Get_react_force() override { return react_force; }
     /// Get reaction torque,  expressed in link coordinate system.
-    virtual ChVector<> Get_react_torque() override { return react_torque; }
+    virtual ChVector3d Get_react_torque() override { return react_torque; }
 
     /// If some constraint is redundant, return to normal state  //***OBSOLETE***
     virtual int RestoreRedundant() { return 0; }

@@ -24,12 +24,12 @@ ChVisualShapeRoundedBox::ChVisualShapeRoundedBox() {
 }
 
 ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(double length_x, double length_y, double length_z, double radius) {
-    gbox.SetLengths(ChVector<>(length_x, length_y, length_z));
+    gbox.SetLengths(ChVector3d(length_x, length_y, length_z));
     gbox.SetSphereRadius(radius);
     SetMutable(false);
 }
 
-ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(const ChVector<>& lengths, double radius) {
+ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(const ChVector3d& lengths, double radius) {
     gbox.SetLengths(lengths);
     gbox.SetSphereRadius(radius);
     SetMutable(false);

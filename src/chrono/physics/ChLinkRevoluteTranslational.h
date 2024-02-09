@@ -40,17 +40,17 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     virtual int GetDOC_c() override { return 4; }
 
     /// Get the point on Body1 (revolute side), expressed in Body1 coordinate system.
-    const ChVector<>& GetPoint1Rel() const { return m_p1; }
+    const ChVector3d& GetPoint1Rel() const { return m_p1; }
     /// Get the direction of the revolute joint, expressed in Body1 coordinate system.
-    const ChVector<>& GetDirZ1Rel() const { return m_z1; }
+    const ChVector3d& GetDirZ1Rel() const { return m_z1; }
     /// Get the point on Body2 (spherical side), expressed in Body2 coordinate system.
-    const ChVector<>& GetPoint2Rel() const { return m_p2; }
+    const ChVector3d& GetPoint2Rel() const { return m_p2; }
     /// Get the first direction of the translational joint, expressed in Body2 coordinate system.
     /// The translational axis is orthogonal to the direction.
-    const ChVector<>& GetDirX2Rel() const { return m_x2; }
+    const ChVector3d& GetDirX2Rel() const { return m_x2; }
     /// Get the second direction of the translational joint, expressed in Body2 coordinate system.
     /// The translational axis is orthogonal to the direction.
-    const ChVector<>& GetDirY2Rel() const { return m_y2; }
+    const ChVector3d& GetDirY2Rel() const { return m_y2; }
 
     /// Get the imposed distance (length of massless connector).
     double GetImposedDistance() const { return m_dist; }
@@ -58,17 +58,17 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     double GetCurrentDistance() const { return m_cur_dist; }
 
     /// Get the point on Body1 (revolute side), expressed in absolute coordinate system.
-    ChVector<> GetPoint1Abs() const { return Body1->TransformPointLocalToParent(m_p1); }
+    ChVector3d GetPoint1Abs() const { return Body1->TransformPointLocalToParent(m_p1); }
     /// Get the direction of the revolute joint, expressed in absolute coordinate system.
-    ChVector<> GetDirZ1Abs() const { return Body1->TransformDirectionLocalToParent(m_z1); }
+    ChVector3d GetDirZ1Abs() const { return Body1->TransformDirectionLocalToParent(m_z1); }
     /// Get the point on Body2 (translational side), expressed in absolute coordinate system.
-    ChVector<> GetPoint2Abs() const { return Body2->TransformPointLocalToParent(m_p2); }
+    ChVector3d GetPoint2Abs() const { return Body2->TransformPointLocalToParent(m_p2); }
     /// Get the first direction of the translational joint, expressed in absolute coordinate system.
     /// The translational axis is orthogonal to the direction.
-    ChVector<> GetDirX2Abs() const { return Body2->TransformDirectionLocalToParent(m_x2); }
+    ChVector3d GetDirX2Abs() const { return Body2->TransformDirectionLocalToParent(m_x2); }
     /// Get the second direction of the translational joint, expressed in absolute coordinate system.
     /// The translational axis is orthogonal to the direction.
-    ChVector<> GetDirY2Abs() const { return Body2->TransformDirectionLocalToParent(m_y2); }
+    ChVector3d GetDirY2Abs() const { return Body2->TransformDirectionLocalToParent(m_y2); }
 
     /// Get the link coordinate system, expressed relative to Body2 (translational side).
     /// This represents the 'main' reference of the link: reaction forces
@@ -101,11 +101,11 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first frame (revolute side)
                     std::shared_ptr<ChBody> body2,  ///< second frame (spherical side)
                     bool local,                     ///< true if data given in body local frames
-                    const ChVector<>& p1,           ///< point on first frame (revolute side)
-                    const ChVector<>& dirZ1,        ///< direction of revolute on first frame
-                    const ChVector<>& p2,           ///< point on second frame (translational side)
-                    const ChVector<>& dirX2,        ///< first direction of translational joint
-                    const ChVector<>& dirY2,        ///< second direction of translational joint
+                    const ChVector3d& p1,           ///< point on first frame (revolute side)
+                    const ChVector3d& dirZ1,        ///< direction of revolute on first frame
+                    const ChVector3d& p2,           ///< point on second frame (translational side)
+                    const ChVector3d& dirX2,        ///< first direction of translational joint
+                    const ChVector3d& dirY2,        ///< second direction of translational joint
                     bool auto_distance = true,      ///< true if imposed distance equal to distance between axes
                     double distance = 0             ///< imposed distance (used only if auto_distance = false)
     );
@@ -158,10 +158,10 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     // EXTRA REACTION FORCE & TORQUE FUNCTIONS
     //
 
-    ChVector<> Get_react_force_body1();
-    ChVector<> Get_react_torque_body1();
-    ChVector<> Get_react_force_body2();
-    ChVector<> Get_react_torque_body2();
+    ChVector3d Get_react_force_body1();
+    ChVector3d Get_react_torque_body1();
+    ChVector3d Get_react_force_body2();
+    ChVector3d Get_react_torque_body2();
 
     //
     // SERIALIZATION
@@ -174,11 +174,11 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    ChVector<> m_p1;  ///< point on first frame (in local frame)
-    ChVector<> m_p2;  ///< point on second frame (in local frame)
-    ChVector<> m_z1;  ///< direction of revolute on first frame (in local frame)
-    ChVector<> m_x2;  ///< first direction of translational on second frame (in local frame)
-    ChVector<> m_y2;  ///< first direction of translational on second frame (in local frame)
+    ChVector3d m_p1;  ///< point on first frame (in local frame)
+    ChVector3d m_p2;  ///< point on second frame (in local frame)
+    ChVector3d m_z1;  ///< direction of revolute on first frame (in local frame)
+    ChVector3d m_x2;  ///< first direction of translational on second frame (in local frame)
+    ChVector3d m_y2;  ///< first direction of translational on second frame (in local frame)
     double m_dist;    ///< imposed distance between rotational and translation axes
 
     double m_cur_par1;  ///< actual value of par1 constraint

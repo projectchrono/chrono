@@ -49,7 +49,7 @@ ChFunctionRotationABCFunctions::~ChFunctionRotationABCFunctions() {
 ChQuaternion<> ChFunctionRotationABCFunctions::Get_q(double s) const {
 	
 	return Angle_to_Quat(this->angleset, 
-						  ChVector<>(
+						  ChVector3d(
 							this->angleA->Get_y(s),
 							this->angleB->Get_y(s),
 							this->angleC->Get_y(s)

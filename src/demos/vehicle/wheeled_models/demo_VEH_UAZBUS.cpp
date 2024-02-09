@@ -55,7 +55,7 @@ using namespace chrono::vehicle::uaz;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 0.4);
+ChVector3d initLoc(0, 0, 0.4);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
@@ -69,7 +69,7 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 TireModelType tire_model = TireModelType::PAC02;
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Simulation step sizes
 double step_size = 3e-3;
@@ -202,8 +202,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("Gator Demo");
             vis_vsg->AttachVehicle(&uaz.GetVehicle());
             vis_vsg->SetChaseCamera(trackPoint, 6.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);

@@ -55,7 +55,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     virtual double GetTireMass() const override final;
 
     /// Return the tire moments of inertia (in the tire centroidal frame).
-    virtual ChVector<> GetTireInertia() const override final;
+    virtual ChVector3d GetTireInertia() const override final;
 
     /// Set the type of contact surface.
     void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
@@ -170,7 +170,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     // The mass properties of a deformable tire are implicitly included through the FEA mesh.
     // No mass and inertia are added to the associated spindle body.
     virtual double GetAddedMass() const override final { return 0; }
-    virtual ChVector<> GetAddedInertia() const override final { return ChVector<>(0, 0, 0); }
+    virtual ChVector3d GetAddedInertia() const override final { return ChVector3d(0, 0, 0); }
 
      /// Return the tire mass.
     virtual void InitializeInertiaProperties() override final;

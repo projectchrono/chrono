@@ -17,7 +17,7 @@
 namespace chrono {
 namespace fea {
 
-ChNodeFEAxyzP::ChNodeFEAxyzP(ChVector<> initial_pos) : pos(initial_pos), P(0), P_dt(0), F(0) {
+ChNodeFEAxyzP::ChNodeFEAxyzP(ChVector3d initial_pos) : pos(initial_pos), P(0), P_dt(0), F(0) {
     variables.GetMass()(0) = 0;
 }
 

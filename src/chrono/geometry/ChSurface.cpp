@@ -31,7 +31,7 @@ ChSurface::ChSurface(const ChSurface& source) {
     wireframe = source.wireframe;
 }
 
-ChVector<> ChSurface::GetNormal(double parU, double parV) const {
+ChVector3d ChSurface::GetNormal(double parU, double parV) const {
     double bdf = 10e-9;
     double uA = 0, uB = 0;
     double vA = 0, vB = 0;

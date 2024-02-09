@@ -26,7 +26,7 @@ namespace geometry {
 class ChApi ChBox : public ChVolume {
   public:
     ChBox() {}
-    ChBox(const ChVector<>& lengths);
+    ChBox(const ChVector3d& lengths);
     ChBox(double length_x, double length_y, double length_z);
     ChBox(const ChBox& source);
 
@@ -49,19 +49,19 @@ class ChApi ChBox : public ChVolume {
     virtual double GetBoundingSphereRadius() const override;
 
     /// Compute the baricenter of the box.
-    virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
+    virtual ChVector3d Baricenter() const override { return ChVector3d(0); }
 
     /// Evaluate position in box volume.
-    virtual ChVector<> Evaluate(double parU, double parV, double parW) const override;
+    virtual ChVector3d Evaluate(double parU, double parV, double parW) const override;
 
     /// Get the box half-lengths.
-    const ChVector<>& GetHalflengths() const { return hlen; }
+    const ChVector3d& GetHalflengths() const { return hlen; }
 
     /// Get the x, y, and z lengths of this box.
-    ChVector<> GetLengths() const { return 2.0 * hlen; }
+    ChVector3d GetLengths() const { return 2.0 * hlen; }
 
     /// Set the x, y, and z lengths of this box.
-    void SetLengths(const ChVector<>& lengths) { hlen = 0.5 * lengths; }
+    void SetLengths(const ChVector3d& lengths) { hlen = 0.5 * lengths; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -70,18 +70,18 @@ class ChApi ChBox : public ChVolume {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
     /// Return the volume of this type of solid with given dimensions.
-    static double GetVolume(const ChVector<>& lengths);
+    static double GetVolume(const ChVector3d& lengths);
 
     /// Return the gyration matrix of this type of solid with given dimensions.
-    static ChMatrix33<> GetGyration(const ChVector<>& lengths);
+    static ChMatrix33<> GetGyration(const ChVector3d& lengths);
 
     /// Return the bounding box of this type of solid with given dimensions.
-    static ChAABB GetBoundingBox(const ChVector<>& lengths);
+    static ChAABB GetBoundingBox(const ChVector3d& lengths);
 
     /// Return the radius of a bounding sphere.
-    static double GetBoundingSphereRadius(const ChVector<>& lengths);
+    static double GetBoundingSphereRadius(const ChVector3d& lengths);
 
-    ChVector<> hlen;  ///< box halflengths
+    ChVector3d hlen;  ///< box halflengths
 };
 
 }  // end namespace geometry

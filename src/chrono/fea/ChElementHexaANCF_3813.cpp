@@ -69,14 +69,14 @@ void ChElementHexaANCF_3813::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
     Kmatr.SetVariables(mvars);
     // EAS
     // Initial position
-    ChVector<> pA = m_nodes[0]->GetPos();
-    ChVector<> pB = m_nodes[1]->GetPos();
-    ChVector<> pC = m_nodes[2]->GetPos();
-    ChVector<> pD = m_nodes[3]->GetPos();
-    ChVector<> pE = m_nodes[4]->GetPos();
-    ChVector<> pF = m_nodes[5]->GetPos();
-    ChVector<> pG = m_nodes[6]->GetPos();
-    ChVector<> pH = m_nodes[7]->GetPos();
+    ChVector3d pA = m_nodes[0]->GetPos();
+    ChVector3d pB = m_nodes[1]->GetPos();
+    ChVector3d pC = m_nodes[2]->GetPos();
+    ChVector3d pD = m_nodes[3]->GetPos();
+    ChVector3d pE = m_nodes[4]->GetPos();
+    ChVector3d pF = m_nodes[5]->GetPos();
+    ChVector3d pG = m_nodes[6]->GetPos();
+    ChVector3d pH = m_nodes[7]->GetPos();
     m_d0(0, 0) = pA[0];
     m_d0(0, 1) = pA[1];
     m_d0(0, 2) = pA[2];
@@ -267,10 +267,10 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
 
     // Transformation : Orthogonal transformation (A and J)
 
-    ChVector<double> G1;
-    ChVector<double> G2;
-    ChVector<double> G3;
-    ChVector<double> G1xG2;
+    ChVector3d G1;
+    ChVector3d G2;
+    ChVector3d G3;
+    ChVector3d G1xG2;
     G1[0] = rd0(0, 0);
     G2[0] = rd0(0, 1);
     G3[0] = rd0(0, 2);
@@ -283,21 +283,21 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
     G1xG2.Cross(G1, G2);
 
     // Tangent Frame
-    ChVector<> A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
-    ChVector<> A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
-    ChVector<> A2 = A3.Cross(A1);
+    ChVector3d A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
+    ChVector3d A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
+    ChVector3d A2 = A3.Cross(A1);
 
     // Direction for orthotropic material
     double theta = 0.0;
-    ChVector<> AA1 = A1 * cos(theta) + A2 * sin(theta);
-    ChVector<> AA2 = -A1 * sin(theta) + A2 * cos(theta);
-    ChVector<> AA3 = A3;
+    ChVector3d AA1 = A1 * cos(theta) + A2 * sin(theta);
+    ChVector3d AA2 = -A1 * sin(theta) + A2 * cos(theta);
+    ChVector3d AA3 = A3;
 
     // Beta
     ChMatrixNM<double, 3, 3> j0 = rd0.inverse();
-    ChVector<double> j01;
-    ChVector<double> j02;
-    ChVector<double> j03;
+    ChVector3d j01;
+    ChVector3d j02;
+    ChVector3d j03;
     j01[0] = j0(0, 0);
     j02[0] = j0(1, 0);
     j03[0] = j0(2, 0);
@@ -802,10 +802,10 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
     //////////////////////////////////////////////////////////////
     //// Transformation : Orthogonal transformation (A and J) ////
     //////////////////////////////////////////////////////////////
-    ChVector<double> G1;
-    ChVector<double> G2;
-    ChVector<double> G3;
-    ChVector<double> G1xG2;
+    ChVector3d G1;
+    ChVector3d G2;
+    ChVector3d G3;
+    ChVector3d G1xG2;
     G1[0] = rd0(0, 0);
     G2[0] = rd0(0, 1);
     G3[0] = rd0(0, 2);
@@ -818,21 +818,21 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
     G1xG2.Cross(G1, G2);
 
     ////Tangent Frame
-    ChVector<> A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
-    ChVector<> A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
-    ChVector<> A2 = A3.Cross(A1);
+    ChVector3d A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
+    ChVector3d A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
+    ChVector3d A2 = A3.Cross(A1);
 
     ////Direction for orthotropic material//
     double theta = 0.0;
-    ChVector<> AA1 = A1 * cos(theta) + A2 * sin(theta);
-    ChVector<> AA2 = -A1 * sin(theta) + A2 * cos(theta);
-    ChVector<> AA3 = A3;
+    ChVector3d AA1 = A1 * cos(theta) + A2 * sin(theta);
+    ChVector3d AA2 = -A1 * sin(theta) + A2 * cos(theta);
+    ChVector3d AA3 = A3;
 
     ////Beta
     ChMatrixNM<double, 3, 3> j0 = rd0.inverse();
-    ChVector<double> j01;
-    ChVector<double> j02;
-    ChVector<double> j03;
+    ChVector3d j01;
+    ChVector3d j02;
+    ChVector3d j03;
     j01[0] = j0(0, 0);
     j02[0] = j0(1, 0);
     j03[0] = j0(2, 0);
@@ -1088,14 +1088,14 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
 void ChElementHexaANCF_3813::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     int ie = GetElemNum();
 
-    ChVector<> pA = m_nodes[0]->GetPos();
-    ChVector<> pB = m_nodes[1]->GetPos();
-    ChVector<> pC = m_nodes[2]->GetPos();
-    ChVector<> pD = m_nodes[3]->GetPos();
-    ChVector<> pE = m_nodes[4]->GetPos();
-    ChVector<> pF = m_nodes[5]->GetPos();
-    ChVector<> pG = m_nodes[6]->GetPos();
-    ChVector<> pH = m_nodes[7]->GetPos();
+    ChVector3d pA = m_nodes[0]->GetPos();
+    ChVector3d pB = m_nodes[1]->GetPos();
+    ChVector3d pC = m_nodes[2]->GetPos();
+    ChVector3d pD = m_nodes[3]->GetPos();
+    ChVector3d pE = m_nodes[4]->GetPos();
+    ChVector3d pF = m_nodes[5]->GetPos();
+    ChVector3d pG = m_nodes[6]->GetPos();
+    ChVector3d pH = m_nodes[7]->GetPos();
 
     ChMatrixNM<double, 8, 3> d;
     d(0, 0) = pA.x();
@@ -1610,7 +1610,7 @@ void ChElementHexaANCF_3813::ComputeGravityForceScale() {
 }
 
 // Compute the generalized force vector due to gravity
-void ChElementHexaANCF_3813::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementHexaANCF_3813::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     assert(Fg.size() == 24);
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
@@ -1673,10 +1673,10 @@ void ChElementHexaANCF_3813::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>&
     detJ0C = rd0.determinant();
 
     // Transformation : Orthogonal transformation (A and J) ////
-    ChVector<double> G1;
-    ChVector<double> G2;
-    ChVector<double> G3;
-    ChVector<double> G1xG2;
+    ChVector3d G1;
+    ChVector3d G2;
+    ChVector3d G3;
+    ChVector3d G1xG2;
     G1[0] = rd0(0, 0);
     G2[0] = rd0(0, 1);
     G3[0] = rd0(0, 2);
@@ -1689,19 +1689,19 @@ void ChElementHexaANCF_3813::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>&
     G1xG2.Cross(G1, G2);
 
     // Tangent Frame
-    ChVector<> A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
-    ChVector<> A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
-    ChVector<> A2 = A3.Cross(A1);
+    ChVector3d A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
+    ChVector3d A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
+    ChVector3d A2 = A3.Cross(A1);
     double theta = 0.0;
-    ChVector<> AA1 = A1 * cos(theta) + A2 * sin(theta);
-    ChVector<> AA2 = -A1 * sin(theta) + A2 * cos(theta);
-    ChVector<> AA3 = A3;
+    ChVector3d AA1 = A1 * cos(theta) + A2 * sin(theta);
+    ChVector3d AA2 = -A1 * sin(theta) + A2 * cos(theta);
+    ChVector3d AA3 = A3;
 
     // Beta
     ChMatrixNM<double, 3, 3> j0 = rd0.inverse();
-    ChVector<double> j01;
-    ChVector<double> j02;
-    ChVector<double> j03;
+    ChVector3d j01;
+    ChVector3d j02;
+    ChVector3d j03;
     j01[0] = j0(0, 0);
     j02[0] = j0(1, 0);
     j03[0] = j0(2, 0);

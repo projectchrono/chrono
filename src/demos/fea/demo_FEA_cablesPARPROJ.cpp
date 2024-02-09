@@ -68,13 +68,13 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->AttachSystem(&sys);
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(ChVector2i(800, 600));
     vis->SetWindowTitle("Cables FEM (PardisoProject)");
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    vis->AddCamera(ChVector3d(0.0, 0.6, -1.0));
 
     // Configure PardisoProject solver.
     // For this simple and relatively small problem, use of the sparsity pattern learner may introduce additional

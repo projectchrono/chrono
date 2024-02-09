@@ -48,7 +48,7 @@ ChAntirollBarRSD::~ChAntirollBarRSD() {
 // -----------------------------------------------------------------------------
 void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
                                   std::shared_ptr<ChSuspension> suspension,
-                                  const ChVector<>& location) {
+                                  const ChVector3d& location) {
     ChAntirollBar::Initialize(chassis, suspension, location);
 
     m_parent = chassis;
@@ -71,13 +71,13 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
     double H = getDroplinkHeight();
 
     // Express the local coordinates into the absolute coordinate system
-    ChVector<> P_center = subsystem_to_abs.TransformPointLocalToParent(ChVector<>(0, 0, 0));
-    ChVector<> P_arm_left = subsystem_to_abs.TransformPointLocalToParent(ChVector<>(0, L / 2, 0));
-    ChVector<> P_drop_arm_left = subsystem_to_abs.TransformPointLocalToParent(ChVector<>(W, L, 0));
-    ChVector<> P_drop_susp_left = subsystem_to_abs.TransformPointLocalToParent(ChVector<>(W, L, H));
-    ChVector<> P_arm_right = subsystem_to_abs.TransformPointLocalToParent(ChVector<>(0, -L / 2, 0));
-    ChVector<> P_drop_arm_right = subsystem_to_abs.TransformPointLocalToParent(ChVector<>(W, -L, 0));
-    ChVector<> P_drop_susp_right = subsystem_to_abs.TransformPointLocalToParent(ChVector<>(W, -L, H));
+    ChVector3d P_center = subsystem_to_abs.TransformPointLocalToParent(ChVector3d(0, 0, 0));
+    ChVector3d P_arm_left = subsystem_to_abs.TransformPointLocalToParent(ChVector3d(0, L / 2, 0));
+    ChVector3d P_drop_arm_left = subsystem_to_abs.TransformPointLocalToParent(ChVector3d(W, L, 0));
+    ChVector3d P_drop_susp_left = subsystem_to_abs.TransformPointLocalToParent(ChVector3d(W, L, H));
+    ChVector3d P_arm_right = subsystem_to_abs.TransformPointLocalToParent(ChVector3d(0, -L / 2, 0));
+    ChVector3d P_drop_arm_right = subsystem_to_abs.TransformPointLocalToParent(ChVector3d(W, -L, 0));
+    ChVector3d P_drop_susp_right = subsystem_to_abs.TransformPointLocalToParent(ChVector3d(W, -L, H));
 
     // Create an initialize the arm_left body
     m_arm_left = chrono_types::make_shared<ChBody>();
@@ -86,7 +86,7 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
     m_arm_left->SetRot(subsystem_to_abs.GetRot());
     m_arm_left->SetMass(getArmMass());
     m_arm_left->SetInertiaXX(getArmInertia());
-    AddVisualizationArm(m_arm_left, ChVector<>(0, -L / 2, 0), ChVector<>(0, L / 2, 0), ChVector<>(W, L / 2, 0),
+    AddVisualizationArm(m_arm_left, ChVector3d(0, -L / 2, 0), ChVector3d(0, L / 2, 0), ChVector3d(W, L / 2, 0),
                         getArmRadius(), ChColor(0.7f, 0.2f, 0.2f));
     sys->AddBody(m_arm_left);
 
@@ -97,7 +97,7 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
     m_arm_right->SetRot(subsystem_to_abs.GetRot());
     m_arm_right->SetMass(getArmMass());
     m_arm_right->SetInertiaXX(getArmInertia());
-    AddVisualizationArm(m_arm_right, ChVector<>(0, L / 2, 0), ChVector<>(0, -L / 2, 0), ChVector<>(W, -L / 2, 0),
+    AddVisualizationArm(m_arm_right, ChVector3d(0, L / 2, 0), ChVector3d(0, -L / 2, 0), ChVector3d(W, -L / 2, 0),
                         getArmRadius(), ChColor(0.2f, 0.7f, 0.2f));
     sys->AddBody(m_arm_right);
 
@@ -185,9 +185,9 @@ void ChAntirollBarRSD::LogConstraintViolations() {
 
 // -----------------------------------------------------------------------------
 void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
-                                           const ChVector<>& pt_1,
-                                           const ChVector<>& pt_2,
-                                           const ChVector<>& pt_3,
+                                           const ChVector3d& pt_1,
+                                           const ChVector3d& pt_2,
+                                           const ChVector3d& pt_3,
                                            double radius,
                                            const ChColor& color) {
     ChVehicleGeometry::AddVisualizationCylinder(arm, pt_1, pt_2, radius);
@@ -195,8 +195,8 @@ void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
     ChVehicleGeometry::AddVisualizationCylinder(arm, pt_2, pt_3, radius);
 
     ChVehicleGeometry::AddVisualizationCylinder(arm,                                  //
-                                                pt_1 + ChVector<>(0, 0, 3 * radius),  //
-                                                pt_1 - ChVector<>(0, 0, 3 * radius),  //
+                                                pt_1 + ChVector3d(0, 0, 3 * radius),  //
+                                                pt_1 - ChVector3d(0, 0, 3 * radius),  //
                                                 radius / 2);
 }
 

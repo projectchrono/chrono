@@ -147,7 +147,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
                                                                          true,         // visualization?
                                                                          true,         // collision?
                                                                          sphere_mat);  // contact material
-            rigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
+            rigidBody->SetPos(ChVector3d(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                          -0.5 * znozzlesize + ChRandom() * znozzlesize));
             rigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
 
@@ -170,7 +170,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
                                                          true,      // visualization?
                                                          true,      // collision?
                                                          box_mat);  // contact material
-            rigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
+            rigidBody->SetPos(ChVector3d(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                          -0.5 * znozzlesize + ChRandom() * znozzlesize));
             rigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
 
@@ -189,7 +189,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
                                                                            true,                 // visualization?
                                                                            true,                 // collision?
                                                                            cyl_mat);             // contact material
-            rigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
+            rigidBody->SetPos(ChVector3d(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                          -0.5 * znozzlesize + ChRandom() * znozzlesize));
             rigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));
 
@@ -230,12 +230,12 @@ int main(int argc, char* argv[]) {
 
     auto fence1 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true, fence_mat);
     sys.Add(fence1);
-    fence1->SetPos(ChVector<>(0, 0, -0.325));
+    fence1->SetPos(ChVector3d(0, 0, -0.325));
     fence1->SetBodyFixed(true);
 
     auto fence2 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true, fence_mat);
     sys.Add(fence2);
-    fence2->SetPos(ChVector<>(0, 0, 0.325));
+    fence2->SetPos(ChVector3d(0, 0, 0.325));
     fence2->SetBodyFixed(true);
 
     // Create the conveyor belt (this is a pure Chrono::Engine object,
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
     conveyor->SetBodyFixed(true);
     conveyor->SetMaterialSurface(conveyor_mat);
     conveyor->SetConveyorSpeed(STATIC_speed);
-    conveyor->SetPos(ChVector<>(0, 0, 0));
+    conveyor->SetPos(ChVector3d(0, 0, 0));
 
     sys.Add(conveyor);
 
@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(1.5, 0.4, -1.0), ChVector<>(0.5, 0.0, 0.0));
+    vis->AddCamera(ChVector3d(1.5, 0.4, -1.0), ChVector3d(0.5, 0.0, 0.0));
     vis->AddTypicalLights();
 
     // Add the custom event receiver to the default interface

@@ -77,19 +77,19 @@ class MySimpleForklift {
     // Build and initialize the forklift, creating all bodies corresponding to
     // the various parts and adding them to the physical system - also creating
     // and adding constraints to the system.
-    MySimpleForklift(ChSystem* sys, ChVector<> offset = ChVector<>(0, 0, 0)) {
+    MySimpleForklift(ChSystem* sys, ChVector3d offset = ChVector3d(0, 0, 0)) {
         throttle = 0;  // initially, gas throttle is 0.
         steer = 0;
         lift = 0;
 
-        ChVector<> COG_truss(0, 0.4, 0.5);
-        ChVector<> COG_wheelRF(-0.566, 0.282, 1.608);
-        ChVector<> COG_wheelLF(0.566, 0.282, 1.608);
-        ChVector<> COG_arm(0, 1.300, 1.855);
-        ChVector<> COG_fork(0, 0.362, 2.100);
-        ChVector<> COG_wheelB(0, 0.282, 0.003);
-        ChVector<> POS_pivotarm(0, 0.150, 1.855);
-        ChVector<> POS_prismatic(0, 0.150, 1.855);
+        ChVector3d COG_truss(0, 0.4, 0.5);
+        ChVector3d COG_wheelRF(-0.566, 0.282, 1.608);
+        ChVector3d COG_wheelLF(0.566, 0.282, 1.608);
+        ChVector3d COG_arm(0, 1.300, 1.855);
+        ChVector3d COG_fork(0, 0.362, 2.100);
+        ChVector3d COG_wheelB(0, 0.282, 0.003);
+        ChVector3d POS_pivotarm(0, 0.150, 1.855);
+        ChVector3d POS_prismatic(0, 0.150, 1.855);
         double RAD_back_wheel = 0.28;
         double RAD_front_wheel = 0.28;
 
@@ -99,7 +99,7 @@ class MySimpleForklift {
         sys->Add(chassis);
         chassis->SetPos(COG_truss);
         chassis->SetMass(200);
-        chassis->SetInertiaXX(ChVector<>(100, 100, 100));
+        chassis->SetInertiaXX(ChVector3d(100, 100, 100));
 
         // collision properties:
         auto chassis_mat = chrono_types::make_shared<ChContactMaterialNSC>();
@@ -107,9 +107,9 @@ class MySimpleForklift {
         auto cshape1 = chrono_types::make_shared<ChCollisionShapeBox>(chassis_mat, 1.227, 1.621, 1.864);
         auto cshape2 = chrono_types::make_shared<ChCollisionShapeBox>(chassis_mat, 0.187, 0.773, 1.201);
         auto cshape3 = chrono_types::make_shared<ChCollisionShapeBox>(chassis_mat, 0.187, 0.773, 1.201);
-        chassis->AddCollisionShape(cshape1, ChFrame<>(ChVector<>(-0.003, 1.019, 0.192), QUNIT));
-        chassis->AddCollisionShape(cshape2, ChFrame<>(ChVector<>(0.486, 0.153, -0.047), QUNIT));
-        chassis->AddCollisionShape(cshape3, ChFrame<>(ChVector<>(-0.486, 0.153, -0.047), QUNIT));
+        chassis->AddCollisionShape(cshape1, ChFrame<>(ChVector3d(-0.003, 1.019, 0.192), QUNIT));
+        chassis->AddCollisionShape(cshape2, ChFrame<>(ChVector3d(0.486, 0.153, -0.047), QUNIT));
+        chassis->AddCollisionShape(cshape3, ChFrame<>(ChVector3d(-0.486, 0.153, -0.047), QUNIT));
         chassis->SetCollide(true);
 
         // visualization properties:
@@ -133,7 +133,7 @@ class MySimpleForklift {
         sys->Add(wheelRF);
         wheelRF->SetPos(COG_wheelRF);
         wheelRF->SetMass(20);
-        wheelRF->SetInertiaXX(ChVector<>(2, 2, 2));
+        wheelRF->SetInertiaXX(ChVector3d(2, 2, 2));
         // collision properties:
         wheelRF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI / 2)));
         wheelRF->SetCollide(true);
@@ -151,7 +151,7 @@ class MySimpleForklift {
         wheelLF->SetPos(COG_wheelLF);
         wheelLF->SetRot(chrono::Q_from_AngY(CH_C_PI));  // reuse RF wheel shape, flipped
         wheelLF->SetMass(20);
-        wheelLF->SetInertiaXX(ChVector<>(2, 2, 2));
+        wheelLF->SetInertiaXX(ChVector3d(2, 2, 2));
         // collision properties:
         auto shapeLF = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_mat, RAD_front_wheel, 0.2);
         wheelLF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI / 2)));
@@ -169,7 +169,7 @@ class MySimpleForklift {
         sys->Add(spindleB);
         spindleB->SetPos(COG_wheelB);
         spindleB->SetMass(10);
-        spindleB->SetInertiaXX(ChVector<>(1, 1, 1));
+        spindleB->SetInertiaXX(ChVector3d(1, 1, 1));
 
         // .. create the vertical steering link between the spindle structure and the truss
         link_steer_engineB = chrono_types::make_shared<ChLinkMotorRotationAngle>();
@@ -183,7 +183,7 @@ class MySimpleForklift {
         wheelB->SetPos(COG_wheelB);
         wheelB->SetRot(chrono::Q_from_AngAxis(CH_C_PI, VECT_Y));
         wheelB->SetMass(20);
-        wheelB->SetInertiaXX(ChVector<>(2, 2, 2));
+        wheelB->SetInertiaXX(ChVector3d(2, 2, 2));
         // collision properties:
         wheelB->AddCollisionShape(wshapeB, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI / 2)));
         wheelB->SetCollide(true);
@@ -201,7 +201,7 @@ class MySimpleForklift {
         sys->Add(arm);
         arm->SetPos(COG_arm);
         arm->SetMass(100);
-        arm->SetInertiaXX(ChVector<>(30, 30, 30));
+        arm->SetInertiaXX(ChVector3d(30, 30, 30));
         // visualization properties:
         auto arm_mesh = chrono_types::make_shared<ChVisualShapeModelFile>();
         arm_mesh->SetFilename(GetChronoDataFile("models/forklift/arm.obj"));
@@ -220,14 +220,14 @@ class MySimpleForklift {
         sys->Add(fork);
         fork->SetPos(COG_fork);
         fork->SetMass(60);
-        fork->SetInertiaXX(ChVector<>(15, 15, 15));
+        fork->SetInertiaXX(ChVector3d(15, 15, 15));
         // collision properties:
         auto fshape1 = chrono_types::make_shared<ChCollisionShapeBox>(fork_mat, 0.100, 0.032, 1.033);
         auto fshape2 = chrono_types::make_shared<ChCollisionShapeBox>(fork_mat, 0.100, 0.032, 1.033);
         auto fshape3 = chrono_types::make_shared<ChCollisionShapeBox>(fork_mat, 0.344, 1.134, 0.101);
-        fork->AddCollisionShape(fshape1, ChFrame<>(ChVector<>(-0.352, -0.312, 0.613), QUNIT));
-        fork->AddCollisionShape(fshape2, ChFrame<>(ChVector<>(0.352, -0.312, 0.613), QUNIT));
-        fork->AddCollisionShape(fshape3, ChFrame<>(ChVector<>(0.000, 0.321, -0.009), QUNIT));
+        fork->AddCollisionShape(fshape1, ChFrame<>(ChVector3d(-0.352, -0.312, 0.613), QUNIT));
+        fork->AddCollisionShape(fshape2, ChFrame<>(ChVector3d(0.352, -0.312, 0.613), QUNIT));
+        fork->AddCollisionShape(fshape3, ChFrame<>(ChVector3d(0.000, 0.321, -0.009), QUNIT));
         fork->SetCollide(true);
         // visualization properties:
         auto fork_mesh = chrono_types::make_shared<ChVisualShapeModelFile>();
@@ -242,7 +242,7 @@ class MySimpleForklift {
 
         // .. create the linear actuator that pushes upward the fork
         link_actuatorFork = chrono_types::make_shared<ChLinkLinActuator>();
-        link_actuatorFork->Initialize(fork, arm, false, ChCoordsys<>(POS_prismatic + ChVector<>(0, 0.01, 0), QUNIT),
+        link_actuatorFork->Initialize(fork, arm, false, ChCoordsys<>(POS_prismatic + ChVector3d(0, 0.01, 0), QUNIT),
                                       ChCoordsys<>(POS_prismatic, QUNIT));
         sys->AddLink(link_actuatorFork);
 
@@ -261,7 +261,7 @@ class MySimpleForklift {
             pallet_mat,                                           // contact material
             0.001);                                               // radius of mesh sweeping sphere
         sys->Add(pallet);
-        pallet->SetPos(ChVector<>(0, 0.4, 3));
+        pallet->SetPos(ChVector3d(0, 0.4, 3));
 
         // apply a texture to the pallet:
         pallet->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture.png"));
@@ -382,14 +382,14 @@ int main(int argc, char* argv[]) {
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, ground_mat);
     sys.Add(my_ground);
     my_ground->SetBodyFixed(true);
-    my_ground->SetPos(ChVector<>(0, -1, 0));
+    my_ground->SetPos(ChVector3d(0, -1, 0));
     my_ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
 
     // ..some obstacles on the ground:
     for (int i = 0; i < 6; i++) {
         auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(1, 0.5, 1, 200, true, true, ground_mat);
         sys.Add(my_obstacle);
-        my_obstacle->SetPos(ChVector<>(20 * ChRandom(), 2, 20 * ChRandom()));
+        my_obstacle->SetPos(ChVector3d(20 * ChRandom(), 2, 20 * ChRandom()));
         my_obstacle->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_wood.png"));
     }
 
@@ -405,7 +405,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-6, 3, -6));
+    vis->AddCamera(ChVector3d(-6, 3, -6));
 
     // Create some graphical-user-interface (GUI) items to show on the screen.
     // This requires an event receiver object -see above.

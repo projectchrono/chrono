@@ -624,7 +624,7 @@ void example5(const std::string& out_dir) {
             if (force_state_scatter)
                 this->StateScatter(x, v, T, full_update);
 
-            ChVector<> dirpend(-mpx, -mpy, 0);
+            ChVector3d dirpend(-mpx, -mpy, 0);
             dirpend.Normalize();
             ChVectorDynamic<> b(3);
             b(0) = R(0);
@@ -679,7 +679,7 @@ void example5(const std::string& out_dir) {
                                       const ChVectorDynamic<>& L,  ///< the L vector
                                       const double c               ///< a scaling factor
                                       ) override {
-            ChVector<> dirpend(-mpx, -mpy, 0);
+            ChVector3d dirpend(-mpx, -mpy, 0);
             dirpend.Normalize();
             R(0) += c * dirpend.x() * L(0);
             R(1) += c * dirpend.y() * L(0);
@@ -691,7 +691,7 @@ void example5(const std::string& out_dir) {
                                       const bool do_clamp = false,  ///< enable optional clamping of Qc
                                       const double mclam = 1e30     ///< clamping value
                                       ) override {
-            ChVector<> distpend(-mpx, -mpy, 0);
+            ChVector3d distpend(-mpx, -mpy, 0);
             Qc(0) += c * (-distpend.Length() + mlength);
         };
 
@@ -754,9 +754,9 @@ void example5(const std::string& out_dir) {
 
     my_body_A->SetBodyFixed(true);
     my_body_B->SetMass(2.0);
-    my_body_B->SetInertiaXX(ChVector<>(1e-7, 1e-7, 1e-7));  // to approximate point-like mass as in MyIntegrable
-    my_body_B->SetPos(ChVector<>(0, -5, 0));
-    my_body_B->SetPos_dt(ChVector<>(0.8, 0, 0));
+    my_body_B->SetInertiaXX(ChVector3d(1e-7, 1e-7, 1e-7));  // to approximate point-like mass as in MyIntegrable
+    my_body_B->SetPos(ChVector3d(0, -5, 0));
+    my_body_B->SetPos_dt(ChVector3d(0.8, 0, 0));
 
     auto my_link_AB = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>());

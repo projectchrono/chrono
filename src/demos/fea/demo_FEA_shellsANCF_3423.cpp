@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.8));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.8));
 
     std::cout << "-----------------------------------------------------------\n";
     std::cout << "-----------------------------------------------------------\n";
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
 
         // Create the node
         auto node =
-            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(loc_x, loc_y, loc_z), ChVector3d(dir_x, dir_y, dir_z));
 
         node->SetMass(0);
 
@@ -92,9 +92,9 @@ int main(int argc, char* argv[]) {
     // Create an orthotropic material.
     // All layers for all elements share the same material.
     double rho = 500;
-    ChVector<> E(2.1e7, 2.1e7, 2.1e7);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    ChVector<> G(8.0769231e6, 8.0769231e6, 8.0769231e6);
+    ChVector3d E(2.1e7, 2.1e7, 2.1e7);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    ChVector3d G(8.0769231e6, 8.0769231e6, 8.0769231e6);
     auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
     // Create the elements
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.4, 0.3, 0.1), ChVector<>(0.0, 0.0, -0.1));
+    vis->AddCamera(ChVector3d(0.4, 0.3, 0.1), ChVector3d(0.0, 0.0, -0.1));
     vis->AttachSystem(&sys);
 
     // ----------------------------------

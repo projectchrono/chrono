@@ -64,7 +64,7 @@ void ChElementTetraCorot_4::GetStateBlock(ChVectorDynamic<>& mD) {
 }
 
 double ChElementTetraCorot_4::ComputeVolume() {
-    ChVector<> B1, C1, D1;
+    ChVector3d B1, C1, D1;
     B1.Sub(nodes[1]->pos, nodes[0]->pos);
     C1.Sub(nodes[2]->pos, nodes[0]->pos);
     D1.Sub(nodes[3]->pos, nodes[0]->pos);
@@ -404,7 +404,7 @@ void ChElementTetraCorot_4_P::GetStateBlock(ChVectorDynamic<>& mD) {
 }
 
 double ChElementTetraCorot_4_P::ComputeVolume() {
-    ChVector<> B1, C1, D1;
+    ChVector3d B1, C1, D1;
     B1.Sub(nodes[1]->GetPos(), nodes[0]->GetPos());
     C1.Sub(nodes[2]->GetPos(), nodes[0]->GetPos());
     D1.Sub(nodes[3]->GetPos(), nodes[0]->GetPos());

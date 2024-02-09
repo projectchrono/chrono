@@ -146,11 +146,11 @@ class MyDriver {
 
     const std::string& GetDriverType() { return m_driver_type; }
 
-    ChVector<> GetTargetLocation() {
+    ChVector3d GetTargetLocation() {
             return m_steering_controller->GetTargetLocation();
     }
 
-    ChVector<> GetSentinelLocation() {
+    ChVector3d GetSentinelLocation() {
             return m_steering_controller->GetSentinelLocation();
     }
 
@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     // Initial location and orientation from CRG terrain (create vehicle 0.5 m above road)
-    init_csys.pos += 0.5 * ChWorldFrame::Vertical()+ChVector<>(1,0,0);
+    init_csys.pos += 0.5 * ChWorldFrame::Vertical()+ChVector3d(1,0,0);
 
     double tire_pressure_psi = 35.0;
     
@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->SetWindowTitle("FEDA RMS Test");
     vis->SetWindowSize(1200, 800);
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 10.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 10.0, 0.5);
     vis->AttachVehicle(&my_feda.GetVehicle());
 
     auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
@@ -331,8 +331,8 @@ int main(int argc, char* argv[]) {
     
     while (vis->Run()) {
         double time = my_feda.GetSystem()->GetChTime();
-        ChVector<> xpos = my_feda.GetVehicle().GetPos();
-        ChVector<> sacc = my_feda.GetVehicle().GetPointAcceleration(ChVector<>(-1.0,1.0,0.5));
+        ChVector3d xpos = my_feda.GetVehicle().GetPos();
+        ChVector3d sacc = my_feda.GetVehicle().GetPointAcceleration(ChVector3d(-1.0,1.0,0.5));
         vel = my_feda.GetVehicle().GetSpeed();
         if(xpos.x() > 100.0) {
             cushion.AddData(vel, sacc);

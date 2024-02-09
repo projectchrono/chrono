@@ -28,7 +28,7 @@
 namespace chrono {
 namespace synchrono {
 
-double DistanceToLine(ChVector<> p, ChVector<> l1, ChVector<> l2) {
+double DistanceToLine(ChVector3d p, ChVector3d l1, ChVector3d l2) {
     // https://www.intmath.com/plane-analytic-geometry/perpendicular-distance-point-line.php
     double A = l1.y() - l2.y();
     double B = -(l1.x() - l2.x());
@@ -37,23 +37,23 @@ double DistanceToLine(ChVector<> p, ChVector<> l1, ChVector<> l2) {
     return d;
 }
 
-bool IsInsideBox(ChVector<> pos, ChVector<> front, ChVector<> back, double width) {
+bool IsInsideBox(ChVector3d pos, ChVector3d front, ChVector3d back, double width) {
     double len = (front - back).Length();
     // TODO :: Should be width / 2, but paths are too far away from the actual lanes
 
     return (pos - front).Length() < len && (pos - back).Length() < len && DistanceToLine(pos, front, back) < width;
 }
 
-bool IsInsideQuad(ChVector<> pos, ChVector<> sp1, ChVector<> sp2, ChVector<> cp3, ChVector<> cp4) {
+bool IsInsideQuad(ChVector3d pos, ChVector3d sp1, ChVector3d sp2, ChVector3d cp3, ChVector3d cp4) {
     bool insideTri1;
     bool insideTri2;
 
     double u, v, w;
-    ChVector<> posN = ChVector<>({pos.x(), pos.y(), 0});
-    ChVector<> sp1N = ChVector<>({sp1.x(), sp1.y(), 0});
-    ChVector<> sp2N = ChVector<>({sp2.x(), sp2.y(), 0});
-    ChVector<> cp3N = ChVector<>({cp3.x(), cp3.y(), 0});
-    ChVector<> cp4N = ChVector<>({cp4.x(), cp4.y(), 0});
+    ChVector3d posN = ChVector3d({pos.x(), pos.y(), 0});
+    ChVector3d sp1N = ChVector3d({sp1.x(), sp1.y(), 0});
+    ChVector3d sp2N = ChVector3d({sp2.x(), sp2.y(), 0});
+    ChVector3d cp3N = ChVector3d({cp3.x(), cp3.y(), 0});
+    ChVector3d cp4N = ChVector3d({cp4.x(), cp4.y(), 0});
 
     Barycentric(posN, sp1N, sp2N, cp3N, u, v, w);
     insideTri1 = u > 0 && v > 0 && w > 0;
@@ -64,10 +64,10 @@ bool IsInsideQuad(ChVector<> pos, ChVector<> sp1, ChVector<> sp2, ChVector<> cp3
 }
 
 // https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
-void Barycentric(ChVector<> p, ChVector<> a, ChVector<> b, ChVector<> c, double& u, double& v, double& w) {
-    ChVector<> v0 = b - a;
-    ChVector<> v1 = c - a;
-    ChVector<> v2 = p - a;
+void Barycentric(ChVector3d p, ChVector3d a, ChVector3d b, ChVector3d c, double& u, double& v, double& w) {
+    ChVector3d v0 = b - a;
+    ChVector3d v1 = c - a;
+    ChVector3d v2 = p - a;
     double d00 = v0 ^ v0;
     double d01 = v0 ^ v1;
     double d11 = v1 ^ v1;
@@ -80,7 +80,7 @@ void Barycentric(ChVector<> p, ChVector<> a, ChVector<> b, ChVector<> c, double&
 }
 
 void UpdateLaneInfoFromMAP(std::shared_ptr<SynMessage> synmsg,
-                           ChVector<> veh_pos,
+                           ChVector3d veh_pos,
                            const int& rank,
                            bool& inside_box,
                            int& current_lane,
@@ -109,7 +109,7 @@ void UpdateLaneInfoFromMAP(std::shared_ptr<SynMessage> synmsg,
 }
 
 void UpdateInsideBoxFromMessage(std::shared_ptr<SynMessage> synmsg,
-                                ChVector<> veh_pos,
+                                ChVector3d veh_pos,
                                 int& current_lane,
                                 bool& inside_box,
                                 double& dist) {
@@ -118,7 +118,7 @@ void UpdateInsideBoxFromMessage(std::shared_ptr<SynMessage> synmsg,
 }
 
 void UpdateInsideBoxFromApproachMessage(std::shared_ptr<SynApproachMessage> app_msg,
-                                        ChVector<> veh_pos,
+                                        ChVector3d veh_pos,
                                         int& current_lane,
                                         bool& inside_box,
                                         double& dist) {

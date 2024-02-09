@@ -34,7 +34,7 @@ const std::string FEDA_TMeasyTire::m_meshFile_left = "feda/meshes/feda_tire_fine
 const std::string FEDA_TMeasyTire::m_meshFile_right = "feda/meshes/feda_tire_fine.obj";
 
 const double FEDA_TMeasyTire::m_mass = 56.1;
-const ChVector<> FEDA_TMeasyTire::m_inertia(10.5, 16.8, 10.5);
+const ChVector3d FEDA_TMeasyTire::m_inertia(10.5, 16.8, 10.5);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

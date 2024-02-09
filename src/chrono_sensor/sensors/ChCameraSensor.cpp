@@ -75,12 +75,12 @@ CH_SENSOR_API ChCameraSensor::~ChCameraSensor() {}
 
 
 
-void ChCameraSensor::SetRadialLensParameters(ChVector<float> params) {
+void ChCameraSensor::SetRadialLensParameters(ChVector3f params) {
     m_lens_parameters = CalcInvRadialModel(params);
 }
 
 
-LensParams ChCameraSensor::CalcInvRadialModel(ChVector<float> params){
+LensParams ChCameraSensor::CalcInvRadialModel(ChVector3f params){
     // coefficients directory without algorithm from 
     // Drap, P., & Lefèvre, J. (2016). 
     // An Exact Formula for Calculating Inverse Radial Lens Distortions. 

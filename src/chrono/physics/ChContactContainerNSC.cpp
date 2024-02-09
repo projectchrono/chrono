@@ -381,20 +381,20 @@ void ChContactContainerNSC::ComputeContactForces() {
     SumAllContactForces(contactlist_6_6_rolling, contact_forces);
 }
 
-ChVector<> ChContactContainerNSC::GetContactableForce(ChContactable* contactable) {
+ChVector3d ChContactContainerNSC::GetContactableForce(ChContactable* contactable) {
     std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
     if (Iterator != contact_forces.end()) {
         return Iterator->second.force;
     }
-    return ChVector<>(0);
+    return ChVector3d(0);
 }
 
-ChVector<> ChContactContainerNSC::GetContactableTorque(ChContactable* contactable) {
+ChVector3d ChContactContainerNSC::GetContactableTorque(ChContactable* contactable) {
     std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
     if (Iterator != contact_forces.end()) {
         return Iterator->second.torque;
     }
-    return ChVector<>(0);
+    return ChVector3d(0);
 }
 
 template <class Tcont>

@@ -50,8 +50,8 @@ class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
     const std::string& GetName() const { return name; }
     void SetName(const std::string& mname) { name = mname; }
 
-    const ChVector<>& GetScale() const { return scale; }
-    void SetScale(const ChVector<>& mscale) { scale = mscale; }
+    const ChVector3d& GetScale() const { return scale; }
+    void SetScale(const ChVector3d& mscale) { scale = mscale; }
 
     void SetFixedConnectivity() { fixed_connectivity = true; }
     bool FixedConnectivity() const { return fixed_connectivity; }
@@ -71,7 +71,7 @@ class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
     bool backface_cull;
 
     std::string name;
-    ChVector<> scale;
+    ChVector3d scale;
 
     bool fixed_connectivity;
     std::vector<int> modified_vertices;

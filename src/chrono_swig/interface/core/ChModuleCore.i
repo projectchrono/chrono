@@ -321,7 +321,7 @@ using namespace chrono::fea;
 //%include "ChArchive.i"
 %include "ChMatrix.i"
 %include "ChVector.i"
-#define Vector ChVector<double>
+#define ChVector3d ChVector3d
 %include "ChQuaternion.i"
 %include "ChTensors.i"
 %include "../../../chrono/core/ChBezierCurve.h"
@@ -629,7 +629,7 @@ using namespace chrono::fea;
 
 %extend chrono::ChBezierCurveTracker {
 public:
-  double ClosestPointCurvature(const chrono::ChVector<double>& loc, chrono::ChFrame<>& tnb) {
+  double ClosestPointCurvature(const chrono::ChVector3d& loc, chrono::ChFrame<>& tnb) {
     double curvature;
     int foo = $self->calcClosestPoint(loc, tnb, curvature);
     return curvature;

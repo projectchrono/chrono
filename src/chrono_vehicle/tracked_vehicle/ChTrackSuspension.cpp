@@ -30,7 +30,7 @@ ChTrackSuspension::ChTrackSuspension(const std::string& name, bool has_shock, bo
     : ChPart(name), m_has_shock(has_shock), m_lock_arm(lock_arm), m_track(nullptr) {}
 
 void ChTrackSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
-                                   const ChVector<>& location,
+                                   const ChVector3d& location,
                                    ChTrackAssembly* track) {
     m_parent = chassis;
     m_rel_loc = location;

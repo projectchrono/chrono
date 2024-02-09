@@ -21,7 +21,7 @@ CH_FACTORY_REGISTER(ChCamera)
 
 ChCamera::ChCamera()
     : m_owner(nullptr),
-      position(ChVector<>(0, 1, 1)),
+      position(ChVector3d(0, 1, 1)),
       aimpoint(VNULL),
       upvector(VECT_Y),
       angle(50),

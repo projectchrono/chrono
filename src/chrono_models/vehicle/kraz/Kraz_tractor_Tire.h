@@ -40,7 +40,7 @@ class CH_MODELS_API Kraz_tractor_Tire : public ChTMeasyTire {
 
     virtual void SetTMeasyParams() override;
     virtual double GetTireMass() const override { return m_mass; }
-    virtual chrono::ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual chrono::ChVector3d GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -49,7 +49,7 @@ class CH_MODELS_API Kraz_tractor_Tire : public ChTMeasyTire {
 
   private:
     static const double m_mass;
-    static const chrono::ChVector<> m_inertia;
+    static const chrono::ChVector3d m_inertia;
     ChFunctionRecorder m_stiffnessMap;
 
     static const std::string m_meshFile;

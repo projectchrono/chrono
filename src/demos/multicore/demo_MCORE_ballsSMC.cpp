@@ -69,15 +69,15 @@ void AddContainer(ChSystemMulticoreSMC* sys) {
     auto bin = chrono_types::make_shared<ChBody>();
     bin->SetIdentifier(binId);
     bin->SetMass(1);
-    bin->SetPos(ChVector<>(0, 0, 0));
+    bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(Q_from_AngY(tilt_angle));
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
     utils::AddBoxContainer(bin, mat,                                 //
-                           ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
-                           ChVector<>(4, 4, 1), 0.2,                 //
-                           ChVector<int>(2, 2, -1));
+                           ChFrame<>(ChVector3d(0, 0, 0.5), QUNIT),  //
+                           ChVector3d(4, 4, 1), 0.2,                 //
+                           ChVector3i(2, 2, -1));
 
     sys->AddBody(bin);
 }
@@ -97,11 +97,11 @@ void AddFallingBalls(ChSystemMulticore* sys) {
     int ballId = 0;
     double mass = 1;
     double radius = 0.15;
-    ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
+    ChVector3d inertia = (2.0 / 5.0) * mass * radius * radius * ChVector3d(1, 1, 1);
 
     for (int ix = -count_X; ix <= count_X; ix++) {
         for (int iy = -count_Y; iy <= count_Y; iy++) {
-            ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
+            ChVector3d pos(0.4 * ix, 0.4 * iy, 1);
 
             auto ball = chrono_types::make_shared<ChBody>();
             ball->SetIdentifier(ballId++);
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
     sys.SetNumThreads(8);
 
     // Set gravitational acceleration
-    sys.Set_G_acc(ChVector<>(0, 0, -gravity));
+    sys.Set_G_acc(ChVector3d(0, 0, -gravity));
 
     // Set solver parameters
     sys.GetSettings()->solver.max_iteration_bilateral = max_iteration;
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(0, -6, 0), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     while (true) {

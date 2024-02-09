@@ -54,9 +54,9 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
     this->topods_shape.Location(TopLoc_Location());
 
     // compute mass properties and COG reference
-    chrono::ChVector<> cog;
-    chrono::ChVector<> inertiaXX;
-    chrono::ChVector<> inertiaXY;
+    chrono::ChVector3d cog;
+    chrono::ChVector3d inertiaXX;
+    chrono::ChVector3d inertiaXY;
     double vol;
     double mass;
     chrono::cascade::ChCascadeDoc::GetVolumeProperties(topods_shape, density, cog, inertiaXX, inertiaXY, vol, mass);
@@ -168,9 +168,9 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
 
         prism.Location(TopLoc_Location());  // needed?
 
-        chrono::ChVector<> cog;
-        chrono::ChVector<> inertiaXX;
-        chrono::ChVector<> inertiaXY;
+        chrono::ChVector3d cog;
+        chrono::ChVector3d inertiaXX;
+        chrono::ChVector3d inertiaXY;
         double vol;
         double mass;
         chrono::cascade::ChCascadeDoc::GetVolumeProperties(prism, face.density, cog, inertiaXX, inertiaXY, vol, mass);
@@ -208,9 +208,9 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
     // Set the total mass and total inertia
 
     this->SetMass(inertia_composer.GetMass());
-    ChVector<> m_inertiaXX(inertia_composer.GetInertia()(0, 0), inertia_composer.GetInertia()(1, 1),
+    ChVector3d m_inertiaXX(inertia_composer.GetInertia()(0, 0), inertia_composer.GetInertia()(1, 1),
                            inertia_composer.GetInertia()(2, 2));
-    ChVector<> m_inertiaXY(inertia_composer.GetInertia()(0, 1), inertia_composer.GetInertia()(0, 2),
+    ChVector3d m_inertiaXY(inertia_composer.GetInertia()(0, 1), inertia_composer.GetInertia()(0, 2),
                            inertia_composer.GetInertia()(1, 2));
     this->SetInertiaXX(m_inertiaXX);
     this->SetInertiaXY(m_inertiaXY);
@@ -230,16 +230,16 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
         if (chface.collide) {
             assert(chface.material);
             for (auto mpath : chface.wires) {
-                ChVector<> pathposz = mpath->Evaluate(0.0);  // for offset along Z
+                ChVector3d pathposz = mpath->Evaluate(0.0);  // for offset along Z
                 auto ct_shape =
                     chrono_types::make_shared<ChCollisionShapePath2D>(chface.material, mpath, chface.thickness * 0.99);
-                AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
+                AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
             }
             for (auto mhole : chface.holes) {
-                ChVector<> pathposz = mhole->Evaluate(0.0);  // for offset along Z
+                ChVector3d pathposz = mhole->Evaluate(0.0);  // for offset along Z
                 auto ct_shape =
                     chrono_types::make_shared<ChCollisionShapePath2D>(chface.material, mhole, chface.thickness * 0.99);
-                AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
+                AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
             }
             somefacecollide = true;
         }

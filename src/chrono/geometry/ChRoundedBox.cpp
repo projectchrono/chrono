@@ -23,23 +23,23 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChRoundedBox)
 
-ChRoundedBox::ChRoundedBox(const ChVector<>& lengths, double sphere_radius)
+ChRoundedBox::ChRoundedBox(const ChVector3d& lengths, double sphere_radius)
     : hlen(0.5 * lengths), srad(sphere_radius) {}
 
 ChRoundedBox::ChRoundedBox(double length_x, double length_y, double length_z, double sphere_radius)
-    : hlen(0.5 * ChVector<>(length_z, length_y, length_z)), srad(sphere_radius) {}
+    : hlen(0.5 * ChVector3d(length_z, length_y, length_z)), srad(sphere_radius) {}
 
 ChRoundedBox::ChRoundedBox(const ChRoundedBox& source) {
     hlen = source.hlen;
 }
 
-ChVector<> ChRoundedBox::Evaluate(double parU, double parV, double parW) const {
-    return ChVector<>(hlen.x() * (parU - 0.5), hlen.y() * (parV - 0.5), hlen.z() * (parW - 0.5));
+ChVector3d ChRoundedBox::Evaluate(double parU, double parV, double parW) const {
+    return ChVector3d(hlen.x() * (parU - 0.5), hlen.y() * (parV - 0.5), hlen.z() * (parW - 0.5));
 }
 
 // -----------------------------------------------------------------------------
 
-double ChRoundedBox::GetVolume(const ChVector<>& lengths, double srad) {
+double ChRoundedBox::GetVolume(const ChVector3d& lengths, double srad) {
     return lengths.x() * lengths.y() * lengths.z() +
            0.5 * srad * (lengths.x() * lengths.y() + lengths.y() * lengths.z() + lengths.z() * lengths.x()) +
            (4.0 * CH_C_PI / 3.0) * srad * srad * srad;
@@ -49,7 +49,7 @@ double ChRoundedBox::GetVolume() const {
     return GetVolume(2.0 * hlen, srad);
 }
 
-ChMatrix33<> ChRoundedBox::GetGyration(const ChVector<>& lengths, double srad) {
+ChMatrix33<> ChRoundedBox::GetGyration(const ChVector3d& lengths, double srad) {
     ChMatrix33<> J;
     J.setZero();
     J(0, 0) = (1.0 / 12.0) * (lengths.y() * lengths.y() + lengths.z() * lengths.z());
@@ -63,18 +63,18 @@ ChMatrix33<> ChRoundedBox::GetGyration() const {
     return GetGyration(hlen, srad);
 }
 
-ChAABB ChRoundedBox::GetBoundingBox(const ChVector<>& lengths, double srad) {
+ChAABB ChRoundedBox::GetBoundingBox(const ChVector3d& lengths, double srad) {
     auto hlen = lengths / 2;
 
-    std::vector<ChVector<>> vertices{
-        ChVector<>(+hlen.x(), +hlen.y(), +hlen.z()),  //
-        ChVector<>(-hlen.x(), +hlen.y(), +hlen.z()),  //
-        ChVector<>(-hlen.x(), -hlen.y(), +hlen.z()),  //
-        ChVector<>(+hlen.x(), -hlen.y(), +hlen.z()),  //
-        ChVector<>(+hlen.x(), +hlen.y(), -hlen.z()),  //
-        ChVector<>(-hlen.x(), +hlen.y(), -hlen.z()),  //
-        ChVector<>(-hlen.x(), -hlen.y(), -hlen.z()),  //
-        ChVector<>(+hlen.x(), -hlen.y(), -hlen.z())   //
+    std::vector<ChVector3d> vertices{
+        ChVector3d(+hlen.x(), +hlen.y(), +hlen.z()),  //
+        ChVector3d(-hlen.x(), +hlen.y(), +hlen.z()),  //
+        ChVector3d(-hlen.x(), -hlen.y(), +hlen.z()),  //
+        ChVector3d(+hlen.x(), -hlen.y(), +hlen.z()),  //
+        ChVector3d(+hlen.x(), +hlen.y(), -hlen.z()),  //
+        ChVector3d(-hlen.x(), +hlen.y(), -hlen.z()),  //
+        ChVector3d(-hlen.x(), -hlen.y(), -hlen.z()),  //
+        ChVector3d(+hlen.x(), -hlen.y(), -hlen.z())   //
     };
 
     ChAABB bbox;
@@ -95,7 +95,7 @@ ChAABB ChRoundedBox::GetBoundingBox() const {
     return GetBoundingBox(2.0 * hlen, srad);
 }
 
-double ChRoundedBox::GetBoundingSphereRadius(const ChVector<>& lengths, double srad) {
+double ChRoundedBox::GetBoundingSphereRadius(const ChVector3d& lengths, double srad) {
     return lengths.Length() / 2 + srad;
 }
 
@@ -111,7 +111,7 @@ void ChRoundedBox::ArchiveOut(ChArchiveOut& marchive) {
     // serialize parent class
     ChVolume::ArchiveOut(marchive);
     // serialize all member data:
-    ChVector<> lengths = GetLengths();
+    ChVector3d lengths = GetLengths();
     marchive << CHNVP(lengths);
     marchive << CHNVP(srad);
 }
@@ -122,7 +122,7 @@ void ChRoundedBox::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChVolume::ArchiveIn(marchive);
     // stream in all member data:
-    ChVector<> lengths;
+    ChVector3d lengths;
     marchive >> CHNVP(lengths);
     SetLengths(lengths);
     marchive >> CHNVP(srad);

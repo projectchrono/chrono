@@ -39,9 +39,9 @@ void ChLinkMotorLinearForce::IntLoadResidual_F(const unsigned int off, ChVectorD
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    Vector m_abs_force = aframe2.GetA() * ChVector<>(mF, 0, 0);
-    Vector mbody_force;
-    Vector mbody_torque;
+    ChVector3d m_abs_force = aframe2.GetA() * ChVector3d(mF, 0, 0);
+    ChVector3d mbody_force;
+    ChVector3d mbody_torque;
 
     if (Body2->Variables().IsActive()) {
         Body2->To_abs_forcetorque(m_abs_force,
@@ -70,9 +70,9 @@ void ChLinkMotorLinearForce::ConstraintsFbLoadForces(double factor) {
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    Vector m_abs_force = aframe2.GetA() * ChVector<>(mF, 0, 0);
-    Vector mbody_force;
-    Vector mbody_torque;
+    ChVector3d m_abs_force = aframe2.GetA() * ChVector3d(mF, 0, 0);
+    ChVector3d mbody_force;
+    ChVector3d mbody_torque;
     Body2->To_abs_forcetorque(m_abs_force,
                               aframe1.GetPos(),            // absolute application point is always marker1
                               false,                       // from abs. space

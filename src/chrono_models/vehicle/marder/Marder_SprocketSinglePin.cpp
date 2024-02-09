@@ -36,7 +36,7 @@ namespace marder {
 const int Marder_SprocketSinglePin::m_num_teeth = 12;
 
 const double Marder_SprocketSinglePin::m_gear_mass = 27.68;
-const ChVector<> Marder_SprocketSinglePin::m_gear_inertia(0.646, 0.883, 0.646);
+const ChVector3d Marder_SprocketSinglePin::m_gear_inertia(0.646, 0.883, 0.646);
 const double Marder_SprocketSinglePin::m_axle_inertia = 0.4;
 const double Marder_SprocketSinglePin::m_separation = 0.225;
 

@@ -41,7 +41,7 @@ class CH_VEHICLE_API Wheel : public ChWheel {
     ~Wheel() {}
 
     virtual double GetWheelMass() const override { return m_mass; }
-    virtual const ChVector<>& GetWheelInertia() const override { return m_inertia; }
+    virtual const ChVector3d& GetWheelInertia() const override { return m_inertia; }
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
 
@@ -52,7 +52,7 @@ class CH_VEHICLE_API Wheel : public ChWheel {
     virtual void Create(const rapidjson::Document& d) override;
 
     double m_mass;
-    ChVector<> m_inertia;
+    ChVector3d m_inertia;
 
     double m_radius;
     double m_width;

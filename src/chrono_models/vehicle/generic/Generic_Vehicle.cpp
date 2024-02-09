@@ -224,25 +224,25 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
 
     // Initialize the steering subsystem
     // (specify the steering subsystem's frame relative to the chassis reference frame).
-    ChVector<> offset;
+    ChVector3d offset;
     switch (m_suspension_type_front) {
         case SuspensionTypeWV::DOUBLE_WISHBONE:
-            offset = ChVector<>(1.24498, 0, 0.101322);
+            offset = ChVector3d(1.24498, 0, 0.101322);
             break;
         case SuspensionTypeWV::DOUBLE_WISHBONE_REDUCED:
-            offset = ChVector<>(1.24498, 0, 0.101322);
+            offset = ChVector3d(1.24498, 0, 0.101322);
             break;
         case SuspensionTypeWV::SOLID_AXLE:
-            offset = ChVector<>(2.1, 0, -0.02);
+            offset = ChVector3d(2.1, 0, -0.02);
             break;
         case SuspensionTypeWV::MULTI_LINK:
-            offset = ChVector<>(1.25, 0, 0.01);
+            offset = ChVector3d(1.25, 0, 0.01);
             break;
         case SuspensionTypeWV::HENDRICKSON_PRIMAXX:
-            offset = ChVector<>(1.25, 0, -0.21);
+            offset = ChVector3d(1.25, 0, -0.21);
             break;
         case SuspensionTypeWV::MACPHERSON_STRUT:
-            offset = ChVector<>(1.25, 0, 0.03);
+            offset = ChVector3d(1.25, 0, 0.03);
             break;
         default:
             break;
@@ -250,9 +250,9 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
     m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
     // Initialize the axle subsystems
-    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(1.688965, 0, 0), ChVector<>(1.3, 0, 0.0),
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector3d(1.688965, 0, 0), ChVector3d(1.3, 0, 0.0),
                            0.0);
-    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-1.688965, 0, 0), ChVector<>(1.3, 0, 0.0), 0.0);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-1.688965, 0, 0), ChVector3d(1.3, 0, 0.0), 0.0);
 
     // Initialize the driveline subsystem
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());

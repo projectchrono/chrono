@@ -21,7 +21,7 @@
 #include <memory>
 
 #include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChDistribution.h"
 #include "chrono/geometry/ChSphere.h"
@@ -241,7 +241,7 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
         double msizeratioYZ = sizeratioYZ->GetRandom();
         double msizeratioZ = sizeratioZ->GetRandom();
 
-        std::vector<ChVector<> > points;
+        std::vector<ChVector3d > points;
         points.resize(npoints);
         double hsizex = 0;
         double hsizey = 0;
@@ -326,7 +326,7 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
         double realinterval = mlengthsweep / nintervals;
         unsigned int npoints = (unsigned int)nintervals + 1;
 
-        std::vector<ChVector<> > points;
+        std::vector<ChVector3d > points;
         points.resize(npoints);
         std::vector<double> radii;
         radii.resize(npoints);
@@ -337,7 +337,7 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
             points[ip] = localframe.GetPos();
             // compute displacement to next sphere:
             ChFrame<> displacement;
-            displacement.SetPos(ChVector<>(realinterval, 0, 0));  // shift on x
+            displacement.SetPos(ChVector3d(realinterval, 0, 0));  // shift on x
             ChQuaternion<> mrotU;
             mrotU.Q_from_AngY(realinterval * mtwistU);
             ChQuaternion<> mrotV;

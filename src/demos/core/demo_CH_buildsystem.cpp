@@ -129,8 +129,8 @@ int main(int argc, char* argv[]) {
 
         // Set initial position of the bodies (center of mass)
         my_body_A->SetBodyFixed(true);  // truss does not move!
-        my_body_B->SetPos(ChVector<>(1, 0, 0));
-        my_body_C->SetPos(ChVector<>(4, 0, 0));
+        my_body_B->SetPos(ChVector3d(1, 0, 0));
+        my_body_C->SetPos(ChVector3d(4, 0, 0));
 
         // Create two markers and add them to two bodies:
         // they will be used as references for 'rod-crank'link.
@@ -145,8 +145,8 @@ int main(int argc, char* argv[]) {
 
         // Set absolute position of the two markers,
         // for the initial position of the 'rod-crank' link:
-        my_marker_b->Impose_Abs_Coord(ChCoordsys<>(ChVector<>(2, 0, 0)));
-        my_marker_c->Impose_Abs_Coord(ChCoordsys<>(ChVector<>(2, 0, 0)));
+        my_marker_b->Impose_Abs_Coord(ChCoordsys<>(ChVector3d(2, 0, 0)));
+        my_marker_c->Impose_Abs_Coord(ChCoordsys<>(ChVector3d(2, 0, 0)));
 
         // Now create a mechanical link (a revolute joint)
         // between these two markers, and insert in system:
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
         // i.e. is using two bodies and a position as arguments..
         // For example, to create the rod-truss constraint:
         auto my_link_CA = chrono_types::make_shared<ChLinkLockPointLine>();
-        my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector<>(6, 0, 0)));
+        my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector3d(6, 0, 0)));
         sys.AddLink(my_link_CA);
 
         my_link_CA->GetMarker1()->SetName("rod_poinline");
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
         // Now create a 'motor' link between crank and truss, in 'imposed speed' mode:
         auto my_motor_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         my_motor_AB->SetName("MOTOR truss-crank");
-        my_motor_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
+        my_motor_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector3d(0, 0, 0)));
         my_motor_AB->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_C_PI));
         sys.AddLink(my_motor_AB);
 

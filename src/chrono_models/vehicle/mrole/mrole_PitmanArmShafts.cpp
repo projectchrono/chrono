@@ -40,10 +40,10 @@ const double mrole_PitmanArmShafts::m_steeringCompliance = 2 * CH_C_RAD_TO_DEG;
 //// NOTE: shaft inertia approximated (likely too high)
 const double mrole_PitmanArmShafts::m_columnInertia = 5e-2;
 
-const ChVector<> mrole_PitmanArmShafts::m_steeringLinkInertiaMoments(0.252, 0.00233, 0.254);
-const ChVector<> mrole_PitmanArmShafts::m_steeringLinkInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> mrole_PitmanArmShafts::m_pitmanArmInertiaMoments(0.00638, 0.00756, 0.00150);
-const ChVector<> mrole_PitmanArmShafts::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d mrole_PitmanArmShafts::m_steeringLinkInertiaMoments(0.252, 0.00233, 0.254);
+const ChVector3d mrole_PitmanArmShafts::m_steeringLinkInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d mrole_PitmanArmShafts::m_pitmanArmInertiaMoments(0.00638, 0.00756, 0.00150);
+const ChVector3d mrole_PitmanArmShafts::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -53,41 +53,41 @@ mrole_PitmanArmShafts::mrole_PitmanArmShafts(const std::string& name, bool rigid
 // -----------------------------------------------------------------------------
 // Implementations of the getLocation() and getDirection() virtual methods.
 // -----------------------------------------------------------------------------
-const ChVector<> mrole_PitmanArmShafts::getLocation(PointId which) {
+const ChVector3d mrole_PitmanArmShafts::getLocation(PointId which) {
     switch (which) {
         case STEERINGLINK:
-            return ChVector<>(0.129, 0, 0);
+            return ChVector3d(0.129, 0, 0);
         case PITMANARM:
-            return ChVector<>(0.064, 0.249, 0);
+            return ChVector3d(0.064, 0.249, 0);
         case REV:
-            return ChVector<>(0, 0.249, 0);
+            return ChVector3d(0, 0.249, 0);
         case UNIV:
-            return ChVector<>(0.129, 0.249, 0);
+            return ChVector3d(0.129, 0.249, 0);
         case REVSPH_R:
-            return ChVector<>(0, -0.325, 0);
+            return ChVector3d(0, -0.325, 0);
         case REVSPH_S:
-            return ChVector<>(0.129, -0.325, 0);
+            return ChVector3d(0.129, -0.325, 0);
         case TIEROD_PA:
-            return ChVector<>(0.195, 0.448, 0.035);
+            return ChVector3d(0.195, 0.448, 0.035);
         case TIEROD_IA:
-            return ChVector<>(0.195, -0.448, 0.035);
+            return ChVector3d(0.195, -0.448, 0.035);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 
-const ChVector<> mrole_PitmanArmShafts::getDirection(DirectionId which) {
+const ChVector3d mrole_PitmanArmShafts::getDirection(DirectionId which) {
     switch (which) {
         case REV_AXIS:
-            return ChVector<>(0, 0, 1);
+            return ChVector3d(0, 0, 1);
         case UNIV_AXIS_ARM:
-            return ChVector<>(0, 0, 1);
+            return ChVector3d(0, 0, 1);
         case UNIV_AXIS_LINK:
-            return ChVector<>(1, 0, 0);
+            return ChVector3d(1, 0, 0);
         case REVSPH_AXIS:
-            return ChVector<>(0, 0, 1);
+            return ChVector3d(0, 0, 1);
         default:
-            return ChVector<>(0, 0, 1);
+            return ChVector3d(0, 0, 1);
     }
 }
 

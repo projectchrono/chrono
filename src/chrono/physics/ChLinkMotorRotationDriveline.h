@@ -112,10 +112,10 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            ChVector<> mpt1,                      ///< origin of slave frame 1 (rel. or abs.)
-                            ChVector<> mpt2,                      ///< origin of master frame 2 (rel. or abs.)
-                            ChVector<> mnorm1,                    ///< X axis of slave plane 1 (rel. or abs.)
-                            ChVector<> mnorm2                     ///< X axis of master plane 2 (rel. or abs.)
+                            ChVector3d mpt1,                      ///< origin of slave frame 1 (rel. or abs.)
+                            ChVector3d mpt2,                      ///< origin of master frame 2 (rel. or abs.)
+                            ChVector3d mnorm1,                    ///< X axis of slave plane 1 (rel. or abs.)
+                            ChVector3d mnorm2                     ///< X axis of master plane 2 (rel. or abs.)
                             ) override;
 
     // Compute offsets of sub-objects, offsetting all the contained sub objects (the inner shafts)

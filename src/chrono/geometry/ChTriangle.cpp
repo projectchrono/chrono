@@ -41,7 +41,7 @@ ChTriangle& ChTriangle::operator=(const ChTriangle& source) {
     return *this;
 }
 
-ChAABB ChTriangle::GetBoundingBox(const ChVector<>& P1, const ChVector<>& P2, const ChVector<>& P3) {
+ChAABB ChTriangle::GetBoundingBox(const ChVector3d& P1, const ChVector3d& P2, const ChVector3d& P3) {
     ChAABB bbox;
     bbox.min.x() = std::min(std::min(P1.x(), P2.x()), P3.x());
     bbox.min.y() = std::min(std::min(P1.y(), P2.y()), P3.y());
@@ -57,21 +57,21 @@ ChAABB ChTriangle::GetBoundingBox() const {
     return GetBoundingBox(p1, p2, p3);
 }
 
-ChVector<> ChTriangle::Baricenter() const {
-    ChVector<> mb;
+ChVector3d ChTriangle::Baricenter() const {
+    ChVector3d mb;
     mb.x() = (p1.x() + p2.x() + p3.x()) / 3.;
     mb.y() = (p1.y() + p2.y() + p3.y()) / 3.;
     mb.z() = (p1.z() + p2.z() + p3.z()) / 3.;
     return mb;
 }
 
-bool ChTriangle::Normal(ChVector<>& N) const {
-    ChVector<> u;
+bool ChTriangle::Normal(ChVector3d& N) const {
+    ChVector3d u;
     u = Vsub(p2, p1);
-    ChVector<> v;
+    ChVector3d v;
     v = Vsub(p3, p1);
 
-    ChVector<> n;
+    ChVector3d n;
     n = Vcross(u, v);
 
     double len = Vlength(n);
@@ -84,8 +84,8 @@ bool ChTriangle::Normal(ChVector<>& N) const {
     return true;
 }
 
-ChVector<> ChTriangle::GetNormal() const {
-    ChVector<> mn;
+ChVector3d ChTriangle::GetNormal() const {
+    ChVector3d mn;
     Normal(mn);
     return mn;
 }
@@ -94,16 +94,16 @@ bool ChTriangle::IsDegenerated() const {
     return utils::DegenerateTriangle(p1, p2, p3);
 }
 
-double ChTriangle::PointTriangleDistance(ChVector<> B,           // point to be measured
+double ChTriangle::PointTriangleDistance(ChVector3d B,           // point to be measured
                                          double& mu,             // returns U parametric coord of projection
                                          double& mv,             // returns V parametric coord of projection
                                          bool& is_into,          // returns true if projection falls on the triangle
-                                         ChVector<>& Bprojected  // returns the position of the projected point
+                                         ChVector3d& Bprojected  // returns the position of the projected point
 ) {
     return utils::PointTriangleDistance(B, p1, p2, p3, mu, mv, is_into, Bprojected);
 }
 
-void ChTriangle::SetPoints(const ChVector<>& P1, const ChVector<>& P2, const ChVector<>& P3) {
+void ChTriangle::SetPoints(const ChVector3d& P1, const ChVector3d& P2, const ChVector3d& P3) {
     p1 = P1;
     p2 = P2;
     p3 = P3;

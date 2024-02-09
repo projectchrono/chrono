@@ -133,9 +133,9 @@ TEST(LinearAlgebraTest, vector_rotation) {
     ChQuaternion<> q(1, 2, 3, 4);
     ChMatrix33<> A(q.GetNormalized());
 
-    ChVector<> v1(1, 2, 3);
-    ChVector<> v2 = A * v1;
-    ChVector<> v3 = A.transpose() * v2;
+    ChVector3d v1(1, 2, 3);
+    ChVector3d v2 = A * v1;
+    ChVector3d v3 = A.transpose() * v2;
 
     cout << A << endl;
     cout << v1 << endl;
@@ -206,7 +206,7 @@ TEST(LinearAlgebraTest, pasting) {
 TEST(LinearAlgebraTest, custom_matrices) {
     ChMatrix34<> G = Eigen::Matrix<double, 3, 4>::Ones(3, 4);
     ChQuaternion<> q(1, 2, 3, 4);
-    ChVector<> v = G * q;
+    ChVector3d v = G * q;
     cout << v << endl;
 
     ChMatrix43<> Gt2 = 2 * G.transpose();

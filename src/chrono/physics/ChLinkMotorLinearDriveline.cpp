@@ -66,10 +66,10 @@ void ChLinkMotorLinearDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
 void ChLinkMotorLinearDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                             std::shared_ptr<ChBodyFrame> mbody2,
                                             bool pos_are_relative,
-                                            ChVector<> mpt1,
-                                            ChVector<> mpt2,
-                                            ChVector<> mnorm1,
-                                            ChVector<> mnorm2) {
+                                            ChVector3d mpt1,
+                                            ChVector3d mpt2,
+                                            ChVector3d mnorm1,
+                                            ChVector3d mnorm2) {
     ChLinkMotorLinear::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1, mnorm2);
     innerconstraint1lin->Initialize(innershaft1lin, mbody1, VECT_X, VNULL);
     innerconstraint2lin->Initialize(innershaft2lin, mbody2, VECT_X, VNULL);
@@ -100,14 +100,14 @@ void ChLinkMotorLinearDriveline::Update(double mytime, bool update_assets) {
     ChLinkMotorLinear::Update(mytime, update_assets);
 
     // Update the direction of 1D-3D ChShaftBody constraints:
-    ChVector<> abs_shaftdir = this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(VECT_X);
-    ChVector<> shaftdir_b1 = this->Body1->TransformDirectionParentToLocal(abs_shaftdir);
-    ChVector<> shaftdir_b2 = this->Body2->TransformDirectionParentToLocal(abs_shaftdir);
-    ChVector<> shaftpos_b1 = this->Body1->TransformPointParentToLocal(this->GetLinkAbsoluteCoords().pos);
-    ChVector<> shaftpos_b2 = this->Body2->TransformPointParentToLocal(this->GetLinkAbsoluteCoords().pos);
-    ChVector<> abs_shaft2_rotation_dir =
+    ChVector3d abs_shaftdir = this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(VECT_X);
+    ChVector3d shaftdir_b1 = this->Body1->TransformDirectionParentToLocal(abs_shaftdir);
+    ChVector3d shaftdir_b2 = this->Body2->TransformDirectionParentToLocal(abs_shaftdir);
+    ChVector3d shaftpos_b1 = this->Body1->TransformPointParentToLocal(this->GetLinkAbsoluteCoords().pos);
+    ChVector3d shaftpos_b2 = this->Body2->TransformPointParentToLocal(this->GetLinkAbsoluteCoords().pos);
+    ChVector3d abs_shaft2_rotation_dir =
         this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(this->shaft2_rotation_dir);
-    ChVector<> shaftdir_b2rot = this->Body2->TransformDirectionParentToLocal(abs_shaft2_rotation_dir);
+    ChVector3d shaftdir_b2rot = this->Body2->TransformDirectionParentToLocal(abs_shaft2_rotation_dir);
 
     innerconstraint1lin->SetShaftDirection(shaftdir_b1);
     innerconstraint1lin->SetShaftPos(shaftpos_b1);

@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
 
     while (sys.GetChTime() < end_time) {
         // move the cart
-        cart->SetPos(cart->GetPos() + ChVector<>({speed * step_size, 0, 0}));
+        cart->SetPos(cart->GetPos() + ChVector3d({speed * step_size, 0, 0}));
 
         manager->Update();
         sys.DoStepDynamics(step_size);

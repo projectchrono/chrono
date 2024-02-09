@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, 4, -6), ChVector<>(0, -2, 0));
+    vis->AddCamera(ChVector3d(0, 4, -6), ChVector3d(0, -2, 0));
 
     // Create an exporter to POVray
     ChPovRay pov_exporter = ChPovRay(&sys);
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto floor_body = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
-    floor_body->SetPos(ChVector<>(0, -5, 0));
+    floor_body->SetPos(ChVector3d(0, -5, 0));
     floor_body->SetBodyFixed(true);
     floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
 
@@ -125,14 +125,14 @@ int main(int argc, char* argv[]) {
         double xpos = (ie - 0.5 * num_emitters) * 2.2;
         auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
         emitter_positions->Outlet() = ChCoordsys<>(
-            ChVector<>(xpos, -4, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
+            ChVector3d(xpos, -4, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
         emitter_positions->OutletWidth() = 1.2;
         emitter_positions->OutletHeight() = 1.2;
         emitters[ie].SetParticlePositioner(emitter_positions);
 
         // just for visualizing outlet
         auto boxbody = chrono_types::make_shared<ChBodyEasyBox>(1.2, 0.4, 1.2, 3000, true, false);
-        boxbody->SetPos(ChVector<>(xpos, -4.1, 0));
+        boxbody->SetPos(ChVector3d(xpos, -4.1, 0));
         boxbody->SetBodyFixed(true);
         boxbody->GetVisualShape(0)->SetColor(ChColor(1.0f, 0.5f, 0.1f));
         sys.Add(boxbody);

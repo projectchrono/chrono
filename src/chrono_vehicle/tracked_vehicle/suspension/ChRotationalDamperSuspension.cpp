@@ -42,29 +42,29 @@ ChRotationalDamperSuspension::~ChRotationalDamperSuspension() {
 
 // -----------------------------------------------------------------------------
 void ChRotationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
-                                              const ChVector<>& location,
+                                              const ChVector3d& location,
                                               ChTrackAssembly* track) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> susp_to_abs(location);
     susp_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform all points and directions to absolute frame.
-    std::vector<ChVector<>> points(NUM_POINTS);
+    std::vector<ChVector3d> points(NUM_POINTS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = GetLocation(static_cast<PointId>(i));
+        ChVector3d rel_pos = GetLocation(static_cast<PointId>(i));
         points[i] = susp_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
     // Create the trailing arm body. The reference frame of the arm body has its
     // x-axis aligned with the line between the arm-chassis connection point and
     // the arm-wheel connection point.
-    ChVector<> y_dir = susp_to_abs.GetA().Get_A_Yaxis();
-    ChVector<> u = points[ARM_WHEEL] - points[ARM_CHASSIS];
+    ChVector3d y_dir = susp_to_abs.GetA().Get_A_Yaxis();
+    ChVector3d u = points[ARM_WHEEL] - points[ARM_CHASSIS];
     u.Normalize();
-    ChVector<> w = Vcross(u, y_dir);
+    ChVector3d w = Vcross(u, y_dir);
     w.Normalize();
-    ChVector<> v = Vcross(w, u);
+    ChVector3d v = Vcross(w, u);
     ChMatrix33<> rot;
     rot.Set_A_axis(u, v, w);
 

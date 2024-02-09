@@ -52,14 +52,14 @@ std::shared_ptr<ChCollisionShape> CreateSphereShape(ShapeType type,
         case ShapeType::HULL: {
             auto mesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
                 GetChronoDataFile("models/sphere.obj"), false, true);
-            mesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(radius));
+            mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(radius));
             shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(mat, mesh->getCoordsVertices());
             break;
         }
         case ShapeType::MESH: {
             auto mesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
                 GetChronoDataFile("models/sphere.obj"), false, true);
-            mesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(radius));
+            mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(radius));
             shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, mesh, false, false, 0.005);
             break;
         }
@@ -105,7 +105,7 @@ class SphereSphereTest : public ::testing::TestWithParam<std::tuple<ShapeType, S
 
         // Create a multicore SMC system and set the system parameters
         sys = new ChSystemSMC();
-        SetSimParameters(sys, ChVector<>(0, 0, 0), ChSystemSMC::ContactForceModel::Hertz);
+        SetSimParameters(sys, ChVector3d(0, 0, 0), ChSystemSMC::ContactForceModel::Hertz);
 
         // Add the spheres to the system
         radius = 0.5;
@@ -116,16 +116,16 @@ class SphereSphereTest : public ::testing::TestWithParam<std::tuple<ShapeType, S
 
         body1 = chrono_types::make_shared<ChBody>();
         body1->SetMass(mass);
-        body1->SetPos(ChVector<>(+init_pos, 0, 0));
-        body1->SetPos_dt(ChVector<>(-init_vel, 0, 0));
+        body1->SetPos(ChVector3d(+init_pos, 0, 0));
+        body1->SetPos_dt(ChVector3d(-init_vel, 0, 0));
         body1->SetCollide(true);
         body1->AddCollisionShape(CreateSphereShape(type1, radius, mat));
         sys->AddBody(body1);
 
         body2 = chrono_types::make_shared<ChBody>();
         body2->SetMass(mass);
-        body2->SetPos(ChVector<>(-init_pos, 0, 0));
-        body2->SetPos_dt(ChVector<>(+init_vel, 0, 0));
+        body2->SetPos(ChVector3d(-init_pos, 0, 0));
+        body2->SetPos_dt(ChVector3d(+init_vel, 0, 0));
         body2->SetCollide(true);
         body2->AddCollisionShape(CreateSphereShape(type2, radius, mat));
         sys->AddBody(body2);

@@ -26,7 +26,7 @@
 #include "chrono/motion_functions/ChFunctionRecorder.h"
 #include "chrono/motion_functions/ChFunctionSineStep.h"
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 
@@ -440,7 +440,7 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     ChISO2631_Vibration_SeatCushionLogger(double step);
     void Config(double step);
     void AddData(double speed, double acc_x, double acc_y, double acc_z);
-    void AddData(double speed, ChVector<>& acc_v) { AddData(speed, acc_v.x(), acc_v.y(), acc_v.z()); }
+    void AddData(double speed, ChVector3d& acc_v) { AddData(speed, acc_v.x(), acc_v.y(), acc_v.z()); }
     void Reset();
     double GetExposureTime() const { return m_logging_time; }
     double GetInputRMS_X() const;
@@ -529,7 +529,7 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
     ChISO2631_Shock_SeatCushionLogger(double step);
     void Config(double step);
     void AddData(double acc_x, double acc_y, double acc_z);
-    void AddData(ChVector<>& acc_v) { AddData(acc_v.x(), acc_v.y(), acc_v.z()); }
+    void AddData(ChVector3d& acc_v) { AddData(acc_v.x(), acc_v.y(), acc_v.z()); }
     void Reset();
     // Se = equivalent static spine compressive stress [MPa]
     // Se < 0.5 MPa : low risk of severe health effect

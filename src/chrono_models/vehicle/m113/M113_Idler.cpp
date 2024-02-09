@@ -34,7 +34,7 @@ namespace m113 {
 // Static variables
 // -----------------------------------------------------------------------------
 const double M113_Idler::m_carrier_mass = 10;
-const ChVector<> M113_Idler::m_carrier_inertia(0.04, 0.04, 0.04);
+const ChVector3d M113_Idler::m_carrier_inertia(0.04, 0.04, 0.04);
 const double M113_Idler::m_carrier_radius = 0.02;
 
 const double M113_Idler::m_tensioner_l0 = 0.75;
@@ -72,27 +72,27 @@ M113_Idler::M113_Idler(const std::string& name, VehicleSide side) : ChTranslatio
         m_idler_wheel = chrono_types::make_shared<M113_IdlerWheelRight>();
 }
 
-const ChVector<> M113_Idler::GetLocation(PointId which) {
-    ChVector<> point;
+const ChVector3d M113_Idler::GetLocation(PointId which) {
+    ChVector3d point;
 
     switch (which) {
         case CARRIER_WHEEL:
-            point = ChVector<>(0, 0, 0);
+            point = ChVector3d(0, 0, 0);
             break;
         case CARRIER:
-            point = ChVector<>(0, -0.1, 0);
+            point = ChVector3d(0, -0.1, 0);
             break;
         case CARRIER_CHASSIS:
-            point = ChVector<>(0, -0.2, 0);
+            point = ChVector3d(0, -0.2, 0);
             break;
         case TSDA_CARRIER:
-            point = ChVector<>(0, -0.2, 0);
+            point = ChVector3d(0, -0.2, 0);
             break;
         case TSDA_CHASSIS:
-            point = ChVector<>(0.5, -0.2, 0);
+            point = ChVector3d(0.5, -0.2, 0);
             break;
         default:
-            point = ChVector<>(0, 0, 0);
+            point = ChVector3d(0, 0, 0);
             break;
     }
 

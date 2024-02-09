@@ -50,7 +50,7 @@ class CH_VEHICLE_API Pac89Tire : public ChPac89Tire {
     }
 
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
     virtual double GetVisualizationWidth() const override { return m_visualization_width; }
 
@@ -65,7 +65,7 @@ class CH_VEHICLE_API Pac89Tire : public ChPac89Tire {
     double m_normalStiffness;
     double m_normalDamping;
     double m_mass;
-    ChVector<> m_inertia;
+    ChVector3d m_inertia;
     bool m_has_mesh;
     bool m_has_vert_table;
     ChFunctionRecorder m_vert_map;

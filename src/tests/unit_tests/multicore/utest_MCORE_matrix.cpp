@@ -45,8 +45,8 @@ class Mat33Test : public ::testing::Test {
         a1 = real3(1, 2, 3);
         a2 = real3(6, 7, 8);
 
-        b1 = ChVector<>(1, 2, 3);
-        b2 = ChVector<>(6, 7, 8);
+        b1 = ChVector3d(1, 2, 3);
+        b2 = ChVector3d(6, 7, 8);
     }
 
     real3 n;
@@ -54,7 +54,7 @@ class Mat33Test : public ::testing::Test {
     Mat33 AOne, A1, A2, A3, A4, A4_T, A5;
     ChMatrix33<real> BOne, B1, B2;
     real3 a1, a2;
-    ChVector<> b1, b2;
+    ChVector3d b1, b2;
 };
 
 TEST_F(Mat33Test, constructors) {

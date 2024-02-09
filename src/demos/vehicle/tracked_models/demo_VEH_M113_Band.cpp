@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     // Initialize the vehicle at the specified position
     // ------------------------------------------------
 
-    m113.SetInitPosition(ChCoordsys<>(ChVector<>(0, 0, 0.8), QUNIT));
+    m113.SetInitPosition(ChCoordsys<>(ChVector3d(0, 0, 0.8), QUNIT));
     m113.Initialize();
 
     auto& vehicle = m113.GetVehicle();
@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
     std::static_pointer_cast<ChTrackShoeBand>(vehicle.GetTrackShoe(LEFT, 0))->WriteTreadVisualizationMesh(out_dir);
 
     // Disable gravity in this simulation
-    ////sys->Set_G_acc(ChVector<>(0, 0, 0));
+    ////sys->Set_G_acc(ChVector3d(0, 0, 0));
 
     // --------------------------------------------------
     // Control internal collisions and contact monitoring
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
     // Create a straight-line path follower driver
     // -------------------------------------------
 
-    auto path = chrono::vehicle::StraightLinePath(ChVector<>(0.0, 0, 0.5), ChVector<>(100.0, 0, 0.5), 50);
+    auto path = chrono::vehicle::StraightLinePath(ChVector3d(0.0, 0, 0.5), ChVector3d(100.0, 0, 0.5), 50);
     ChPathFollowerDriver driver(vehicle, path, "my_path", 5.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
@@ -246,8 +246,8 @@ int main(int argc, char* argv[]) {
 
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("M113 Band-track Vehicle Demo");
-    vis->SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
-    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector<>(0, 2, 0));
+    vis->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
+    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
     vis->SetChaseCameraMultipliers(1e-4, 10);
     vis->Initialize();
     vis->AddLightDirectional();
@@ -389,7 +389,7 @@ int main(int argc, char* argv[]) {
 
     while (step_number < sim_steps) {
         double time = vehicle.GetChTime();
-        const ChVector<>& c_pos = vehicle.GetPos();
+        const ChVector3d& c_pos = vehicle.GetPos();
 
         // File output
         if (output) {
@@ -402,18 +402,18 @@ int main(int argc, char* argv[]) {
             const ChFrameMoving<>& c_ref = vehicle.GetChassisBody()->GetFrame_REF_to_abs();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
-                const ChVector<>& i_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetWheelBody()->GetPos();
-                const ChVector<>& s_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos();
-                ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
-                ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+                const ChVector3d& i_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetWheelBody()->GetPos();
+                const ChVector3d& s_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos();
+                ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+                ChVector3d s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
                 cout << "      L idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
                 cout << "      L sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
             }
             {
-                const ChVector<>& i_pos_abs = vehicle.GetTrackAssembly(RIGHT)->GetIdler()->GetWheelBody()->GetPos();
-                const ChVector<>& s_pos_abs = vehicle.GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos();
-                ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
-                ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+                const ChVector3d& i_pos_abs = vehicle.GetTrackAssembly(RIGHT)->GetIdler()->GetWheelBody()->GetPos();
+                const ChVector3d& s_pos_abs = vehicle.GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos();
+                ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+                ChVector3d s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
                 cout << "      R idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
                 cout << "      R sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
             }
@@ -518,7 +518,7 @@ void AddFixedObstacles(ChSystem* system) {
     double length = 6;
 
     auto obstacle = chrono_types::make_shared<ChBody>();
-    obstacle->SetPos(ChVector<>(10, 0, -1.8));
+    obstacle->SetPos(ChVector3d(10, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);
 

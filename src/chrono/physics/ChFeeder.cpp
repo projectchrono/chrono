@@ -77,13 +77,13 @@ void ChFeeder::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Q
             /// Callback used to report contact points already added to the container.
             /// If it returns false, the contact scanning will be stopped.
             virtual bool OnReportContact(
-                const ChVector<>& pA,             ///< contact pA
-                const ChVector<>& pB,             ///< contact pB
+                const ChVector3d& pA,             ///< contact pA
+                const ChVector3d& pB,             ///< contact pB
                 const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
                 const double& distance,           ///< contact distance
                 const double& eff_radius,         ///< effective radius of curvature at contact
-                const ChVector<>& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
-                const ChVector<>& react_torques,  ///< react.torques, if rolling friction (if already computed).
+                const ChVector3d& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
+                const ChVector3d& react_torques,  ///< react.torques, if rolling friction (if already computed).
                 ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)
                 ChContactable* contactobjB,  ///< model B (note: some containers may not support it and could be nullptr)
                 const int offset  ///< offset of the first constraint (the normal component) in the vector of lagrangian multipliers, if already book-keeped
@@ -92,17 +92,17 @@ void ChFeeder::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Q
                 if ((myfeeder->GetFeederObject().get() == contactobjA) || (myfeeder->GetFeederObject().get() == contactobjB)) {
 
                     // position of contact respect to the vibration mode reference, defining the screw motion 
-                    ChVector<> local_rad = myfeeder->reference.TransformParentToLocal(pB);
+                    ChVector3d local_rad = myfeeder->reference.TransformParentToLocal(pB);
                     // speed of the contact point, on the feeder (can be +/-), given the six values of the eigenvector screw motion
-                    ChVector<> local_pseudovel = ChVector<>(myfeeder->v_x, myfeeder->v_y, myfeeder->v_z) +
-                        Vcross(ChVector<>(myfeeder->w_x, myfeeder->w_y, myfeeder->w_z), local_rad);
-                    ChVector<> pseudovel = myfeeder->reference.TransformDirectionLocalToParent(local_pseudovel);
+                    ChVector3d local_pseudovel = ChVector3d(myfeeder->v_x, myfeeder->v_y, myfeeder->v_z) +
+                        Vcross(ChVector3d(myfeeder->w_x, myfeeder->w_y, myfeeder->w_z), local_rad);
+                    ChVector3d pseudovel = myfeeder->reference.TransformDirectionLocalToParent(local_pseudovel);
                     // speed in the reference of the contact
-                    ChVector<> contact_pseudovel = plane_coord.transpose() * pseudovel;
+                    ChVector3d contact_pseudovel = plane_coord.transpose() * pseudovel;
 
                     // The -Ct term to impose in the constraint.
                     // Note on signs: the Ct term should be negative for imposing positive contact-relative velocity, because of sign conventions in chrono.
-                    ChVector<> contact_Ct; 
+                    ChVector3d contact_Ct; 
                     
                     // Heuristic formula: compute the tangential imposed speed, assuming other object is hit/moved only in ascending direction, and 
                     // assuming the speed is constant in all ascending phase (whereas it would be sinusoidal in reality, but

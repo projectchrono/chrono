@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     FEDA feda;
     feda.SetContactMethod(ChContactMethod::SMC);
     feda.SetChassisFixed(false);
-    feda.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.5), ChQuaternion<>(1, 0, 0, 0)));
+    feda.SetInitPosition(ChCoordsys<>(ChVector3d(-terrainLength / 2 + 5, 0, 0.5), ChQuaternion<>(1, 0, 0, 0)));
     feda.SetEngineType(engine_model);
     feda.SetTransmissionType(transmission_model);
     feda.SetTireType(tire_model);
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the straight path and the driver system
-    auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(terrainLength / 2, 0, 0.5), 1);
+    auto path = StraightLinePath(ChVector3d(-terrainLength / 2, 0, 0.5), ChVector3d(terrainLength / 2, 0, 0.5), 1);
     ChPathFollowerDriver driver(feda.GetVehicle(), path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
@@ -135,16 +135,16 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("FEDA acceleration test");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 8.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 8.0, 0.5);
     vis->Initialize();
     vis->AddSkyBox();
     vis->AddLogo();
-    vis->AddLight(ChVector<>(0, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(0, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(-300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(-300, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(+300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(+300, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(0, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(0, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(-300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(-300, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(+300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(+300, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
     vis->AttachVehicle(&feda.GetVehicle());
 
     // Prepare output

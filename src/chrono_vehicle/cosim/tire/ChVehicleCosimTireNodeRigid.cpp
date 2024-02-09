@@ -41,7 +41,7 @@ ChVehicleCosimTireNodeRigid::ChVehicleCosimTireNodeRigid(int index, const std::s
     m_tire_rgd = std::static_pointer_cast<ChRigidTire>(m_tire);  // cache tire as ChRigidTire
 }
 
-void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel, const ChVector<>& init_loc) {
+void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel, const ChVector3d& init_loc) {
     assert(m_tire_rgd->UseContactMesh());
 
     m_spindle->SetPos(init_loc);
@@ -70,9 +70,9 @@ void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel,
         int iv1 = idx_verts[ie].x();
         int iv2 = idx_verts[ie].y();
         int iv3 = idx_verts[ie].z();
-        ChVector<> v1 = verts[iv1];
-        ChVector<> v2 = verts[iv2];
-        ChVector<> v3 = verts[iv3];
+        ChVector3d v1 = verts[iv1];
+        ChVector3d v2 = verts[iv2];
+        ChVector3d v3 = verts[iv3];
         triArea[ie] = 0.5 * Vcross(v2 - v1, v3 - v1).Length();
         m_adjElements[iv1].push_back(ie);
         m_adjElements[iv2].push_back(ie);
@@ -132,8 +132,8 @@ void ChVehicleCosimTireNodeRigid::WriteTireStateInformation(utils::CSV_writer& c
     csv << num_vertices << endl;
 
     // Write mesh vertex positions and velocities
-    std::vector<ChVector<>> pos;
-    std::vector<ChVector<>> vel;
+    std::vector<ChVector3d> pos;
+    std::vector<ChVector3d> vel;
     m_tire_rgd->GetMeshVertexStates(pos, vel);
     for (int in = 0; in < num_vertices; in++)
         csv << pos[in] << endl;
@@ -146,7 +146,7 @@ void ChVehicleCosimTireNodeRigid::WriteTireMeshInformation(utils::CSV_writer& cs
     int num_triangles = m_tire_rgd->GetContactMesh()->getNumTriangles();
     csv << num_triangles << endl;
 
-    const std::vector<ChVector<int>>& triangles = m_tire_rgd->GetContactMesh()->getIndicesVertexes();
+    const std::vector<ChVector3i>& triangles = m_tire_rgd->GetContactMesh()->getIndicesVertexes();
     for (int ie = 0; ie < num_triangles; ie++) {
         csv << triangles[ie] << endl;
     }

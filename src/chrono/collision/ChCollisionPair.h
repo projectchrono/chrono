@@ -39,9 +39,9 @@ class ChCollisionPair {
     /// Constructor for case of contact point correctly estimated
     ChCollisionPair(geometry::ChGeometry* mgeo1,
                     geometry::ChGeometry* mgeo2,
-                    const ChVector<>& mp1,
-                    const ChVector<>& mp2,
-                    const ChVector<float>& mnormal,
+                    const ChVector3d& mp1,
+                    const ChVector3d& mp2,
+                    const ChVector3f& mnormal,
                     float* mreaction_cache = 0)
 
     {
@@ -61,9 +61,9 @@ class ChCollisionPair {
     /// Set all data at once (better: use the custom constructor)
     void Set(geometry::ChGeometry* mgeo1,
              geometry::ChGeometry* mgeo2,
-             const ChVector<>& mp1,
-             const ChVector<>& mp2,
-             const ChVector<float>& mnormal,
+             const ChVector3d& mp1,
+             const ChVector3d& mp2,
+             const ChVector3f& mnormal,
              float* mreaction_cache = 0) {
         geo1 = mgeo1;
         geo2 = mgeo2;
@@ -83,7 +83,7 @@ class ChCollisionPair {
         gtemp = geo1;
         geo1 = geo2;
         geo2 = gtemp;
-        ChVector<> vtemp;
+        ChVector3d vtemp;
         vtemp = p1;
         p1 = p2;
         p2 = vtemp;
@@ -132,10 +132,10 @@ class ChCollisionPair {
     geometry::ChGeometry* geo1;  ///< pointer to 1st geometry which generated this collision pair
     geometry::ChGeometry* geo2;  ///< pointer to 2nd geometry which generated this collision pair
 
-    ChVector<> p1;  ///< max penetration point on geo1, after refining, in abs space
-    ChVector<> p2;  ///< max penetration point on geo2, after refining, in abs space
+    ChVector3d p1;  ///< max penetration point on geo1, after refining, in abs space
+    ChVector3d p2;  ///< max penetration point on geo2, after refining, in abs space
 
-    ChVector<float> normal;  ///< normal, on surface of master reference (geo1)
+    ChVector3f normal;  ///< normal, on surface of master reference (geo1)
     double norm_dist;        ///< penetration distance (negative if going inside) after refining
 
     bool just_intersection;  ///< if true, only reports that two geometries are intersection, but no info is reliable

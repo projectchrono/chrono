@@ -38,8 +38,8 @@ const double UAZBUS_LeafspringAxle::m_axleTubeRadius = 0.0476;
 const double UAZBUS_LeafspringAxle::m_spindleRadius = 0.10;
 const double UAZBUS_LeafspringAxle::m_spindleWidth = 0.06;
 
-const ChVector<> UAZBUS_LeafspringAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
-const ChVector<> UAZBUS_LeafspringAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector3d UAZBUS_LeafspringAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
+const ChVector3d UAZBUS_LeafspringAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
 
 const double UAZBUS_LeafspringAxle::m_springDesignLength = 0.2;
 const double UAZBUS_LeafspringAxle::m_springCoefficient = 102643.885771329;
@@ -180,20 +180,20 @@ UAZBUS_LeafspringAxle::UAZBUS_LeafspringAxle(const std::string& name) : ChLeafsp
 // -----------------------------------------------------------------------------
 UAZBUS_LeafspringAxle::~UAZBUS_LeafspringAxle() {}
 
-const ChVector<> UAZBUS_LeafspringAxle::getLocation(PointId which) {
+const ChVector3d UAZBUS_LeafspringAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.0, 0.5142, m_axleTubeRadius);
+            return ChVector3d(0.0, 0.5142, m_axleTubeRadius);
         case SPRING_C:
-            return ChVector<>(0.0, 0.5142, m_axleTubeRadius+m_springDesignLength);
+            return ChVector3d(0.0, 0.5142, m_axleTubeRadius+m_springDesignLength);
         case SHOCK_A:
-            return ChVector<>(-0.125, 0.441, -0.0507);
+            return ChVector3d(-0.125, 0.441, -0.0507);
         case SHOCK_C:
-            return ChVector<>(-0.3648,  0.4193, 0.4298);
+            return ChVector3d(-0.3648,  0.4193, 0.4298);
         case SPINDLE:
-            return ChVector<>(0.0, 0.7325, 0.0);
+            return ChVector3d(0.0, 0.7325, 0.0);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

@@ -32,14 +32,14 @@ void ChForceElementTire::InitializeInertiaProperties() {
 
 void ChForceElementTire::UpdateInertiaProperties() {
     auto spindle = m_wheel->GetSpindle();
-    m_xform = ChFrame<>(spindle->TransformPointLocalToParent(ChVector<>(0, GetOffset(), 0)), spindle->GetRot());
+    m_xform = ChFrame<>(spindle->TransformPointLocalToParent(ChVector3d(0, GetOffset(), 0)), spindle->GetRot());
 }
 
 double ChForceElementTire::GetAddedMass() const {
     return GetTireMass();
 }
 
-ChVector<> ChForceElementTire::GetAddedInertia() const {
+ChVector3d ChForceElementTire::GetAddedInertia() const {
     return GetTireInertia();
 }
 
@@ -83,8 +83,8 @@ void ChForceElementTire::AddVisualizationAssets(VisualizationType vis) {
 
     m_cyl_shape =
         ChVehicleGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                                        //
-                                                    ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0),  //
-                                                    ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0),  //
+                                                    ChVector3d(0, GetOffset() + GetVisualizationWidth() / 2, 0),  //
+                                                    ChVector3d(0, GetOffset() - GetVisualizationWidth() / 2, 0),  //
                                                     GetRadius());
     m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
 }

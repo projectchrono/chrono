@@ -90,9 +90,9 @@ ChTrackAssemblyBandANCF::~ChTrackAssemblyBandANCF() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackAssemblyBandANCF::SetRubberLayerMaterial(double rho,
-    const ChVector<>& E,
-    const ChVector<>& nu,
-    const ChVector<>& G) {
+    const ChVector3d& E,
+    const ChVector3d& nu,
+    const ChVector3d& G) {
     m_rubber_rho = rho;
     m_rubber_E = E;
     m_rubber_nu = nu;
@@ -100,9 +100,9 @@ void ChTrackAssemblyBandANCF::SetRubberLayerMaterial(double rho,
 }
 
 void ChTrackAssemblyBandANCF::SetSteelLayerMaterial(double rho,
-    const ChVector<>& E,
-    const ChVector<>& nu,
-    const ChVector<>& G) {
+    const ChVector3d& E,
+    const ChVector3d& nu,
+    const ChVector3d& G) {
     m_steel_rho = rho;
     m_steel_E = E;
     m_steel_nu = nu;
@@ -152,7 +152,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     auto steel_mat = chrono_types::make_shared<fea::ChMaterialShellANCF>(m_steel_rho, m_steel_E, m_steel_nu, m_steel_G);
 
     // Calculate assembly points
-    std::vector<ChVector2<>> shoe_points;
+    std::vector<ChVector2d> shoe_points;
     bool ccw = FindAssemblyPoints(chassis, num_shoes, connection_lengths, shoe_points);
 
     // Create and add the mesh container for the track shoe webs to the system
@@ -164,9 +164,9 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     for (int s = 0; s < num_shoes; s++) {
         std::vector<ChCoordsys<>> shoe_components_coordsys;
         for (auto i = 0; i < num_shoe_elements; i++) {
-            ChVector2<> mid = (shoe_points[i + 1 + s * num_shoe_elements] + shoe_points[i + s * num_shoe_elements]) / 2;
-            ChVector2<> dir = shoe_points[i + 1 + s * num_shoe_elements] - shoe_points[i + s * num_shoe_elements];
-            ChVector<> loc(mid.x(), m_sprocket_offset, mid.y());
+            ChVector2d mid = (shoe_points[i + 1 + s * num_shoe_elements] + shoe_points[i + s * num_shoe_elements]) / 2;
+            ChVector2d dir = shoe_points[i + 1 + s * num_shoe_elements] - shoe_points[i + s * num_shoe_elements];
+            ChVector3d loc(mid.x(), m_sprocket_offset, mid.y());
             double ang = std::atan2(dir.y(), dir.x());
             ChQuaternion<> rot = Q_from_AngY(-ang);  // Negative of the angle in 3D
 

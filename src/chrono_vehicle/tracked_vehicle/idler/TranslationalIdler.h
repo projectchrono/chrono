@@ -38,7 +38,7 @@ class CH_VEHICLE_API TranslationalIdler : public ChTranslationalIdler {
     ~TranslationalIdler() {}
 
     virtual double GetCarrierMass() const override { return m_carrier_mass; }
-    virtual const ChVector<>& GetCarrierInertia() override { return m_carrier_inertia; }
+    virtual const ChVector3d& GetCarrierInertia() override { return m_carrier_inertia; }
     virtual double GetCarrierVisRadius() const override { return m_carrier_vis_radius; }
 
     virtual double GetPrismaticPitchAngle() const override { return m_pitch_angle; }
@@ -47,14 +47,14 @@ class CH_VEHICLE_API TranslationalIdler : public ChTranslationalIdler {
     virtual double GetTensionerFreeLength() const override { return m_tensioner_l0; }
 
   private:
-    virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d GetLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
-    ChVector<> m_points[NUM_POINTS];
+    ChVector3d m_points[NUM_POINTS];
 
     double m_carrier_mass;
-    ChVector<> m_carrier_inertia;
+    ChVector3d m_carrier_inertia;
 
     double m_carrier_vis_radius;
 

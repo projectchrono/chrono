@@ -134,9 +134,9 @@ class ChApi ChTetrahedronFace : public ChLoadableUV {
         this->ShapeFunctions(N, U, V);
 
         // determinant of jacobian is also =2*areaoftriangle, also length of cross product of sides
-        ChVector<> p0 = GetNodeN(0)->GetPos();
-        ChVector<> p1 = GetNodeN(1)->GetPos();
-        ChVector<> p2 = GetNodeN(2)->GetPos();
+        ChVector3d p0 = GetNodeN(0)->GetPos();
+        ChVector3d p1 = GetNodeN(1)->GetPos();
+        ChVector3d p2 = GetNodeN(2)->GetPos();
         detJ = (Vcross(p2 - p0, p1 - p0)).Length();
 
         Qi(0) = N(0) * F(0);
@@ -155,10 +155,10 @@ class ChApi ChTetrahedronFace : public ChLoadableUV {
 
     /// Get the normal to the surface at the parametric coordinate u,v.
     /// Normal must be considered pointing outside in case the surface is a boundary to a volume.
-    virtual ChVector<> ComputeNormal(const double U, const double V) override {
-        ChVector<> p0 = GetNodeN(0)->GetPos();
-        ChVector<> p1 = GetNodeN(1)->GetPos();
-        ChVector<> p2 = GetNodeN(2)->GetPos();
+    virtual ChVector3d ComputeNormal(const double U, const double V) override {
+        ChVector3d p0 = GetNodeN(0)->GetPos();
+        ChVector3d p1 = GetNodeN(1)->GetPos();
+        ChVector3d p2 = GetNodeN(2)->GetPos();
         return Vcross(p1 - p0, p2 - p0).GetNormalized();
     }
 

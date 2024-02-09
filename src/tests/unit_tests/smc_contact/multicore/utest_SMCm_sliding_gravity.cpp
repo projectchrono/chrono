@@ -62,23 +62,23 @@ class SlidingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
         sys = new ChSystemMulticoreSMC();
         time_step = 2.0E-5;
         gravity = -9.81;
-        SetSimParameters(sys, ChVector<>(0, gravity, 0), fmodel, ChSystemSMC::TangentialDisplacementModel::OneStep);
+        SetSimParameters(sys, ChVector3d(0, gravity, 0), fmodel, ChSystemSMC::TangentialDisplacementModel::OneStep);
 
         sys->SetNumThreads(2);
 
         // Add the wall to the system
         double wmass = 10.0;
-        ChVector<> wsize(8, 1, 3);
-        ChVector<> wpos(0, -wsize.y() / 2 - 0.5, 0);
-        ChVector<> init_wv(0, 0, 0);
+        ChVector3d wsize(8, 1, 3);
+        ChVector3d wpos(0, -wsize.y() / 2 - 0.5, 0);
+        ChVector3d init_wv(0, 0, 0);
 
         auto wall = AddWall(-1, sys, mat, wsize, wmass, wpos, init_wv, true);
 
         // Add the block to the system
         double bmass = 1.0;
-        ChVector<> bsize(0.5, 0.5, 0.5);
-        ChVector<> bpos(0, bsize.y() / 2 - 0.49, 0);
-        ChVector<> init_bv(0, 0, 0);
+        ChVector3d bsize(0.5, 0.5, 0.5);
+        ChVector3d bpos(0, bsize.y() / 2 - 0.49, 0);
+        ChVector3d init_bv(0, 0, 0);
 
         body = AddWall(0, sys, mat, bsize, bmass, bpos, init_bv, false);
 
@@ -108,7 +108,7 @@ TEST_P(SlidingGravityTest, sliding) {
     double init_pos = body->GetPos().x();
 
     // Give the block a push in the horizontal direction
-    ChVector<> init_bv(5, 0, 0);
+    ChVector3d init_bv(5, 0, 0);
     body->SetPos_dt(init_bv);
 
     double t_start = sys->GetChTime();

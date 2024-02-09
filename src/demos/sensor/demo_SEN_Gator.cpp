@@ -56,7 +56,7 @@ using namespace chrono::sensor;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 0.5);
+ChVector3d initLoc(0, 0, 0.5);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
@@ -167,7 +167,7 @@ float gps_collection_time = 0.f;
 
 // Origin used as the gps reference point
 // Located in Madison, WI
-ChVector<> gps_reference(-89.400, 43.070, 260.0);
+ChVector3d gps_reference(-89.400, 43.070, 260.0);
 
 // ---------------
 
@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
 
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("Gator Demo");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
     vis->Initialize();
     vis->AddTypicalLights();
     vis->AddSkyBox();
@@ -403,19 +403,19 @@ int main(int argc, char* argv[]) {
             // Set the imu noise model to a gaussian model
             acc_noise_model =
                 chrono_types::make_shared<ChNoiseNormalDrift>(100.f,                           // double updateRate,
-                                                              ChVector<double>({0., 0., 0.}),  // double mean,
-                                                              ChVector<double>({0.001, 0.001, 0.001}),  // double stdev,
+                                                              ChVector3d({0., 0., 0.}),  // double mean,
+                                                              ChVector3d({0.001, 0.001, 0.001}),  // double stdev,
                                                               .0001,  // double bias_drift,
                                                               .1);    // double tau_drift,
             gyro_noise_model = chrono_types::make_shared<ChNoiseNormalDrift>(
                 100.f,                                       // float updateRate,
-                ChVector<double>({0., 0., 0.}),              // float mean,
-                ChVector<double>({0.0075, 0.0075, 0.0075}),  // float stdev,
+                ChVector3d({0., 0., 0.}),              // float mean,
+                ChVector3d({0.0075, 0.0075, 0.0075}),  // float stdev,
                 .001,                                        // double bias_drift,
                 .1);                                         // double tau_drift,
             mag_noise_model =
-                chrono_types::make_shared<ChNoiseNormal>(ChVector<double>({0., 0., 0.}),            // float mean,
-                                                         ChVector<double>({0.001, 0.001, 0.001}));  // float stdev,
+                chrono_types::make_shared<ChNoiseNormal>(ChVector3d({0., 0., 0.}),            // float mean,
+                                                         ChVector3d({0.001, 0.001, 0.001}));  // float stdev,
             break;
         case IMU_NONE:
             // Set the imu noise model to none (does not affect the data)
@@ -467,8 +467,8 @@ int main(int argc, char* argv[]) {
     switch (gps_noise_type) {
         case GPSNoiseModel::NORMAL:
             gps_noise_model =
-                chrono_types::make_shared<ChNoiseNormal>(ChVector<float>(1.f, 1.f, 1.f),  // Mean
-                                                         ChVector<float>(2.f, 3.f, 1.f)   // Standard Deviation
+                chrono_types::make_shared<ChNoiseNormal>(ChVector3f(1.f, 1.f, 1.f),  // Mean
+                                                         ChVector3f(2.f, 3.f, 1.f)   // Standard Deviation
                 );
             break;
         case GPSNoiseModel::GPS_NONE:

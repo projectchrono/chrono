@@ -32,7 +32,7 @@ ChSubchassis::~ChSubchassis() {
     }
 }
 
-void ChSubchassis::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location) {
+void ChSubchassis::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location) {
     // Mark as initialized
     m_initialized = true;
 }

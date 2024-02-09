@@ -70,7 +70,7 @@ void ChLinkPulley::Set_r2(double mr) {
     tau = r1 / r2;
 }
 
-Vector ChLinkPulley::Get_shaft_dir1() {
+ChVector3d ChLinkPulley::Get_shaft_dir1() {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
@@ -79,7 +79,7 @@ Vector ChLinkPulley::Get_shaft_dir1() {
         return VECT_Z;
 }
 
-Vector ChLinkPulley::Get_shaft_dir2() {
+ChVector3d ChLinkPulley::Get_shaft_dir2() {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
@@ -88,7 +88,7 @@ Vector ChLinkPulley::Get_shaft_dir2() {
         return VECT_Z;
 }
 
-Vector ChLinkPulley::Get_shaft_pos1() {
+ChVector3d ChLinkPulley::Get_shaft_pos1() {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
@@ -97,7 +97,7 @@ Vector ChLinkPulley::Get_shaft_pos1() {
         return VNULL;
 }
 
-Vector ChLinkPulley::Get_shaft_pos2() {
+ChVector3d ChLinkPulley::Get_shaft_pos2() {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
@@ -116,11 +116,11 @@ void ChLinkPulley::UpdateTime(double mytime) {
     ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, abs_shaft1);
     ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, abs_shaft2);
 
-    ChVector<> dcc_w = Vsub(Get_shaft_pos2(), Get_shaft_pos1());
+    ChVector3d dcc_w = Vsub(Get_shaft_pos2(), Get_shaft_pos1());
 
     // compute actual rotation of the two wheels (relative to truss).
-    Vector md1 = abs_shaft1.GetA().transpose() * dcc_w;
-    Vector md2 = abs_shaft2.GetA().transpose() * dcc_w;
+    ChVector3d md1 = abs_shaft1.GetA().transpose() * dcc_w;
+    ChVector3d md2 = abs_shaft2.GetA().transpose() * dcc_w;
 
     double periodic_a1 = std::atan2(md1.y(), md1.x());
     double periodic_a2 = std::atan2(md2.y(), md2.x());
@@ -163,17 +163,17 @@ void ChLinkPulley::UpdateTime(double mytime) {
 
     // Move markers 1 and 2 to align them as pulley ends
 
-    ChVector<> d21_w = dcc_w - Get_shaft_dir1() * Vdot(Get_shaft_dir1(), dcc_w);
-    ChVector<> D21_w = Vnorm(d21_w);
+    ChVector3d d21_w = dcc_w - Get_shaft_dir1() * Vdot(Get_shaft_dir1(), dcc_w);
+    ChVector3d D21_w = Vnorm(d21_w);
 
     shaft_dist = d21_w.Length();
 
-    ChVector<> U1_w = Vcross(Get_shaft_dir1(), D21_w);
+    ChVector3d U1_w = Vcross(Get_shaft_dir1(), D21_w);
 
     double gamma1 = acos((r1 - r2) / shaft_dist);
 
-    ChVector<> Ru_w = D21_w * cos(gamma1) + U1_w * sin(gamma1);
-    ChVector<> Rl_w = D21_w * cos(gamma1) - U1_w * sin(gamma1);
+    ChVector3d Ru_w = D21_w * cos(gamma1) + U1_w * sin(gamma1);
+    ChVector3d Rl_w = D21_w * cos(gamma1) - U1_w * sin(gamma1);
 
     belt_up1 = Get_shaft_pos1() + Ru_w * r1;
     belt_low1 = Get_shaft_pos1() + Rl_w * r1;
@@ -181,9 +181,9 @@ void ChLinkPulley::UpdateTime(double mytime) {
     belt_low2 = Get_shaft_pos1() + d21_w + Rl_w * r2;
 
     // marker alignment
-    ChVector<> Dxu = Vnorm(belt_up2 - belt_up1);
-    ChVector<> Dyu = Ru_w;
-    ChVector<> Dzu = Vnorm(Vcross(Dxu, Dyu));
+    ChVector3d Dxu = Vnorm(belt_up2 - belt_up1);
+    ChVector3d Dyu = Ru_w;
+    ChVector3d Dzu = Vnorm(Vcross(Dxu, Dyu));
     Dyu = Vnorm(Vcross(Dzu, Dxu));
     ChMatrix33<> maU(Dxu, Dyu, Dzu);
 
@@ -206,7 +206,7 @@ void ChLinkPulley::UpdateTime(double mytime) {
     double hU = Vlength(belt_up2 - belt_up1) + phase_correction_up;
 
     // imposed relative positions/speeds
-    deltaC.pos = ChVector<>(-hU, 0, 0);
+    deltaC.pos = ChVector3d(-hU, 0, 0);
     deltaC_dt.pos = VNULL;
     deltaC_dtdt.pos = VNULL;
 
@@ -237,7 +237,7 @@ void ChLinkPulley::ArchiveOut(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkPulley::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkPulley>();
+    /*int version =*/marchive.VersionRead<ChLinkPulley>();
 
     // deserialize parent class
     ChLinkLockLock::ArchiveIn(marchive);

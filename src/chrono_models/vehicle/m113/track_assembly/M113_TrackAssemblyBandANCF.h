@@ -42,18 +42,18 @@ class CH_MODELS_API M113_TrackAssemblyBandANCF : public ChTrackAssemblyBandANCF 
                                int num_elements_width,
                                bool use_suspension_bushings);
 
-    virtual const ChVector<> GetSprocketLocation() const override;
-    virtual const ChVector<> GetIdlerLocation() const override;
-    virtual const ChVector<> GetRoadWhelAssemblyLocation(int which) const override;
+    virtual const ChVector3d GetSprocketLocation() const override;
+    virtual const ChVector3d GetIdlerLocation() const override;
+    virtual const ChVector3d GetRoadWhelAssemblyLocation(int which) const override;
 
   private:
     /// Create the contact material for the web mesh, consistent with the specified contact method.
     virtual void CreateContactMaterial(ChContactMethod contact_method) override;
 
-    static const ChVector<> m_sprocket_loc;
-    static const ChVector<> m_idler_loc;
-    static const ChVector<> m_susp_locs_L[5];
-    static const ChVector<> m_susp_locs_R[5];
+    static const ChVector3d m_sprocket_loc;
+    static const ChVector3d m_idler_loc;
+    static const ChVector3d m_susp_locs_L[5];
+    static const ChVector3d m_susp_locs_R[5];
 };
 
 /// @} vehicle_models_m113

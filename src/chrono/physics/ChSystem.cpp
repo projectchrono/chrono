@@ -42,7 +42,7 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 
 ChSystem::ChSystem()
-    : G_acc(ChVector<>(0, -9.8, 0)),
+    : G_acc(ChVector3d(0, -9.8, 0)),
       is_initialized(false),
       is_updated(false),
       ncoords(0),
@@ -537,13 +537,13 @@ bool ChSystem::ManageSleepingBodies() {
         // Callback, used to report contact points already added to the container.
         // If returns false, the contact scanning will be stopped.
         virtual bool OnReportContact(
-            const ChVector<>& pA,             // get contact pA
-            const ChVector<>& pB,             // get contact pB
+            const ChVector3d& pA,             // get contact pA
+            const ChVector3d& pB,             // get contact pB
             const ChMatrix33<>& plane_coord,  // get contact plane coordsystem (A column 'X' is contact normal)
             const double& distance,           // get contact distance
             const double& eff_radius,         // effective radius of curvature at contact
-            const ChVector<>& react_forces,   // get react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector<>& react_torques,  // get react.torques, if rolling friction (if already computed).
+            const ChVector3d& react_forces,   // get react.forces (if already computed). In coordsystem 'plane_coord'
+            const ChVector3d& react_torques,  // get react.torques, if rolling friction (if already computed).
             ChContactable* contactobjA,  // get model A (note: some containers may not support it and could be zero!)
             ChContactable* contactobjB   // get model B (note: some containers may not support it and could be zero!)
             ) override {
@@ -1174,9 +1174,9 @@ bool ChSystem::StateSolveCorrection(
     return true;
 }
 
-ChVector<> ChSystem::GetBodyAppliedForce(ChBody* body) {
+ChVector3d ChSystem::GetBodyAppliedForce(ChBody* body) {
     if (!is_initialized)
-        return ChVector<>(0, 0, 0);
+        return ChVector3d(0, 0, 0);
 
     if (!applied_forces_current) {
         applied_forces.setZero(this->GetNcoords_v());
@@ -1186,9 +1186,9 @@ ChVector<> ChSystem::GetBodyAppliedForce(ChBody* body) {
     return applied_forces.segment(body->Variables().GetOffset() + 0, 3);
 }
 
-ChVector<> ChSystem::GetBodyAppliedTorque(ChBody* body) {
+ChVector3d ChSystem::GetBodyAppliedTorque(ChBody* body) {
     if (!is_initialized)
-        return ChVector<>(0, 0, 0);
+        return ChVector3d(0, 0, 0);
 
     if (!applied_forces_current) {
         applied_forces.setZero(this->GetNcoords_v());

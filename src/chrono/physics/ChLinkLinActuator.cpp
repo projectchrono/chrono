@@ -43,24 +43,24 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
 
     ChMatrix33<> ma(marker2->GetAbsCoord().rot);
 
-    Vector absdist = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
+    ChVector3d absdist = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
 
-    Vector mx = Vnorm(absdist);
+    ChVector3d mx = Vnorm(absdist);
 
-    Vector my = ma.Get_A_Yaxis();
+    ChVector3d my = ma.Get_A_Yaxis();
     if (Vequal(mx, my)) {
         if (mx.x() == 1.0)
             my = VECT_Y;
         else
             my = VECT_X;
     }
-    Vector mz = Vnorm(Vcross(mx, my));
+    ChVector3d mz = Vnorm(Vcross(mx, my));
     my = Vnorm(Vcross(mz, mx));
 
     ma.Set_A_axis(mx, my, mz);
 
     Coordsys newmarkpos;
-    ChVector<> oldpos = marker2->GetPos();  // backup to avoid numerical err.accumulation
+    ChVector3d oldpos = marker2->GetPos();  // backup to avoid numerical err.accumulation
     newmarkpos.pos = marker2->GetAbsCoord().pos;
     newmarkpos.rot = ma.Get_A_quaternion();
     marker2->Impose_Abs_Coord(newmarkpos);  // rotate "main" marker2 into tangent position (may add err.accumulation)
@@ -78,7 +78,7 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
 
     // add also the centripetal acceleration if distance vector's rotating,
     // as centripetal acc. of point sliding on a sphere surface.
-    Vector tang_speed = GetRelM_dt().pos;
+    ChVector3d tang_speed = GetRelM_dt().pos;
     tang_speed.x() = 0;                     // only z-y coords in relative tang speed vector
     double len_absdist = Vlength(absdist);  // don't divide by zero
     if (len_absdist > 1E-6)

@@ -16,7 +16,7 @@
 #define CH_COLLISION_SHAPE_BARREL_H
 
 #include "chrono/collision/ChCollisionShape.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 

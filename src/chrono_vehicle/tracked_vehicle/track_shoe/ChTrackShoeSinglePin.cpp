@@ -45,14 +45,14 @@ ChTrackShoeSinglePin::~ChTrackShoeSinglePin() {
 
 // -----------------------------------------------------------------------------
 void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                      const ChVector<>& location,
+                                      const ChVector3d& location,
                                       const ChQuaternion<>& rotation) {
     ChTrackShoeSegmented::Initialize(chassis, location, rotation);
 
     ChSystem* sys = chassis->GetSystem();
 
     // Create the shoe body.
-    ChVector<> loc = chassis->TransformPointLocalToParent(location);
+    ChVector3d loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
     m_shoe = chrono_types::make_shared<ChBody>();
     m_shoe->SetNameString(m_name + "_shoe");
@@ -94,9 +94,9 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
     ChSystem* system = m_shoe->GetSystem();
     double sign = ccw ? +1 : -1;
 
-    ChVector<> p_shoe = ChVector<>(+sign * GetPitch() / 2, 0, 0);  // local point on this shoe
-    ChVector<> p_next = ChVector<>(-sign * GetPitch() / 2, 0, 0);  // local point on next shoe
-    ChVector<> loc = m_shoe->TransformPointLocalToParent(p_shoe);  // connection point (expressed in absolute frame)
+    ChVector3d p_shoe = ChVector3d(+sign * GetPitch() / 2, 0, 0);  // local point on this shoe
+    ChVector3d p_next = ChVector3d(-sign * GetPitch() / 2, 0, 0);  // local point on next shoe
+    ChVector3d loc = m_shoe->TransformPointLocalToParent(p_shoe);  // connection point (expressed in absolute frame)
 
     if (track->GetBushingData() || (m_index != 0 && m_index != 1)) {
         // Create and initialize the revolute joint (rotation axis along Z)
@@ -129,7 +129,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
     }
 }
 
-ChVector<> ChTrackShoeSinglePin::GetTension() const {
+ChVector3d ChTrackShoeSinglePin::GetTension() const {
     return m_joint->GetForce();
 }
 

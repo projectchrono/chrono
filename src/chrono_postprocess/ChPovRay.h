@@ -115,10 +115,10 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     };
 
     /// Set the default camera position and aim point - will write this in the output .pov file.
-    void SetCamera(ChVector<> location, ChVector<> aim, double angle, bool ortho = false);
+    void SetCamera(ChVector3d location, ChVector3d aim, double angle, bool ortho = false);
 
     /// Set the default light position and color - will write this in the output .pov file.
-    void SetLight(ChVector<> location, ChColor color, bool cast_shadow);
+    void SetLight(ChVector3d location, ChColor color, bool cast_shadow);
 
     /// Set the background color - will write this in the output .pov file.
     void SetBackground(ChColor color) { background = color; }
@@ -232,14 +232,14 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
 
     unsigned int framenumber;
 
-    ChVector<> camera_location;
-    ChVector<> camera_aim;
-    ChVector<> camera_up;
+    ChVector3d camera_location;
+    ChVector3d camera_aim;
+    ChVector3d camera_up;
     double camera_angle;
     bool camera_orthographic;
     bool camera_found_in_assets;
 
-    ChVector<> def_light_location;
+    ChVector3d def_light_location;
     ChColor def_light_color;
     bool def_light_cast_shadows;
 

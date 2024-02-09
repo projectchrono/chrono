@@ -21,14 +21,14 @@ namespace geometry {
 CH_FACTORY_REGISTER(ChLineBspline)
 
 ChLineBspline::ChLineBspline() {
-    const std::vector<ChVector<> > mpoints = {ChVector<>(-1, 0, 0), ChVector<>(1, 0, 0)};
+    const std::vector<ChVector3d > mpoints = {ChVector3d(-1, 0, 0), ChVector3d(1, 0, 0)};
 	this->closed = false;
     this->SetupData(1, mpoints);
 }
 
 ChLineBspline::ChLineBspline(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    const std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    const std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
 	this->closed = false;
@@ -42,7 +42,7 @@ ChLineBspline::ChLineBspline(const ChLineBspline& source) : ChLine(source) {
 	this->closed = source.closed;
 }
 
-ChVector<> ChLineBspline::Evaluate(double parU) const {
+ChVector3d ChLineBspline::Evaluate(double parU) const {
 	double mU;
 	if (this->closed)
 		mU = fmod(parU, 1.0);
@@ -56,7 +56,7 @@ ChVector<> ChLineBspline::Evaluate(double parU) const {
     ChVectorDynamic<> N(this->p + 1);
     ChBasisToolsBspline::BasisEvaluate(this->p, spanU, u, this->knots, N);
 
-    ChVector<> pos = VNULL;
+    ChVector3d pos = VNULL;
     int uind = spanU - p;
     for (int i = 0; i <= this->p; i++) {
         pos += points[uind + i] * N(i);
@@ -65,7 +65,7 @@ ChVector<> ChLineBspline::Evaluate(double parU) const {
     return pos;
 }
 
-ChVector<> ChLineBspline::GetTangent(double parU) const {
+ChVector3d ChLineBspline::GetTangent(double parU) const {
     double mU;
 	if (this->closed)
 		mU = fmod(parU, 1.0);
@@ -79,7 +79,7 @@ ChVector<> ChLineBspline::GetTangent(double parU) const {
     ChMatrixDynamic<> NdN(2, p + 1);  // basis on 1st row and their 1st derivatives on 2nd row
     ChBasisToolsBspline::BasisEvaluateDeriv(this->p, spanU, u, this->knots, NdN);
 
-    ChVector<> dir = VNULL;
+    ChVector3d dir = VNULL;
     int uind = spanU - p;
     for (int i = 0; i <= this->p; i++) {
         dir += points[uind + i] * NdN(1, i);
@@ -90,7 +90,7 @@ ChVector<> ChLineBspline::GetTangent(double parU) const {
 
 void ChLineBspline::SetupData(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    const std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    const std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     if (morder < 1)

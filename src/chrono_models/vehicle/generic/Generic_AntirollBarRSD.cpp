@@ -27,7 +27,7 @@ namespace generic {
 // -----------------------------------------------------------------------------
 
 const double Generic_AntirollBarRSD::m_arm_mass = 1.0;
-const ChVector<> Generic_AntirollBarRSD::m_arm_inertia(1.0, 1.0, 1.0);
+const ChVector3d Generic_AntirollBarRSD::m_arm_inertia(1.0, 1.0, 1.0);
 const double Generic_AntirollBarRSD::m_arm_length = 0.7;
 const double Generic_AntirollBarRSD::m_arm_width = 0.25;
 const double Generic_AntirollBarRSD::m_droplink_height = -0.2;

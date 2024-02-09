@@ -16,11 +16,11 @@
 
 namespace chrono {
 
-void ChBodyFrame::To_abs_forcetorque(const ChVector<>& force,
-                                     const ChVector<>& appl_point,
+void ChBodyFrame::To_abs_forcetorque(const ChVector3d& force,
+                                     const ChVector3d& appl_point,
                                      bool local,
-                                     ChVector<>& resultforce,
-                                     ChVector<>& resulttorque) {
+                                     ChVector3d& resultforce,
+                                     ChVector3d& resulttorque) {
     if (local) {
         resultforce = TransformDirectionLocalToParent(force);
         resulttorque = Vcross(TransformDirectionLocalToParent(appl_point), resultforce);

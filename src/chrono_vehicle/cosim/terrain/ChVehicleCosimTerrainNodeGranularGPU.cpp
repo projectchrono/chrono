@@ -81,7 +81,7 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(doubl
 
     // Create systems
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
 
     // Defer construction of the granular system to Construct
     m_systemGPU = nullptr;
@@ -100,7 +100,7 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(const
 
     // Create systems
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
 
     // Defer construction of the granular system to Construct
     m_systemGPU = nullptr;
@@ -238,11 +238,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     float r = m_separation_factor * (float)m_radius_g;
     float delta = 2.0f * r;
     float dimZ = m_init_depth + EXTRA_HEIGHT;
-    auto box = ChVector<float>(m_dimX, m_dimY, dimZ);
+    auto box = ChVector3f(m_dimX, m_dimY, dimZ);
 
     // Create granular system here
     m_systemGPU = new gpu::ChSystemGpuMesh((float)m_radius_g, (float)m_rho_g, box);
-    m_systemGPU->SetGravitationalAcceleration(ChVector<float>(0, 0, (float)m_gacc));
+    m_systemGPU->SetGravitationalAcceleration(ChVector3f(0, 0, (float)m_gacc));
     m_systemGPU->SetTimeIntegrator(m_integrator_type);
     m_systemGPU->SetFrictionMode(m_tangential_model);
     m_systemGPU->SetParticleOutputMode(gpu::CHGPU_OUTPUT_MODE::CSV);
@@ -258,7 +258,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     m_systemGPU->SetFixedStepSize((float)m_step_size);
 
     // Create granular material
-    std::vector<ChVector<float>> pos(m_num_particles);
+    std::vector<ChVector3f> pos(m_num_particles);
 
     if (m_use_checkpoint) {
         // Read particle state from checkpoint file
@@ -276,8 +276,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         iss >> m_num_particles;
 
         pos.resize(m_num_particles);
-        std::vector<ChVector<float>> vel(m_num_particles);
-        std::vector<ChVector<float>> omg(m_num_particles);
+        std::vector<ChVector3f> vel(m_num_particles);
+        std::vector<ChVector3f> omg(m_num_particles);
         for (unsigned int i = 0; i < m_num_particles; i++) {
             std::getline(ifile, line);
             std::istringstream iss1(line);
@@ -307,18 +307,18 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         }
 
         if (m_in_layers) {
-            ChVector<float> hdims(m_dimX / 2 - r, m_dimY / 2 - r, 0);
+            ChVector3f hdims(m_dimX / 2 - r, m_dimY / 2 - r, 0);
             double z = delta;
             while (z < m_init_depth) {
-                auto p = sampler->SampleBox(ChVector<>(0, 0, z - dimZ / 2), hdims);
+                auto p = sampler->SampleBox(ChVector3d(0, 0, z - dimZ / 2), hdims);
                 pos.insert(pos.end(), p.begin(), p.end());
                 if (m_verbose)
                     cout << "   z =  " << z << "\tnum particles = " << pos.size() << endl;
                 z += delta;
             }
         } else {
-            ChVector<> hdims(m_dimX / 2 - r, m_dimY / 2 - r, m_init_depth / 2 - r);
-            auto p = sampler->SampleBox(ChVector<>(0, 0, m_init_depth / 2 - dimZ / 2), hdims);
+            ChVector3d hdims(m_dimX / 2 - r, m_dimY / 2 - r, m_init_depth / 2 - r);
+            auto p = sampler->SampleBox(ChVector3d(0, 0, m_init_depth / 2 - dimZ / 2), hdims);
             pos.insert(pos.end(), p.begin(), p.end());
         }
 
@@ -367,7 +367,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
-        ChVector<> baricenter;
+        ChVector3d baricenter;
         ChMatrix33<> inertia;
         trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
 
@@ -679,11 +679,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnInitialize(unsigned int num_objects
         auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         vsys_vsg->AttachSystem(m_system);
         vsys_vsg->SetWindowTitle("Terrain Node (GranularGPU)");
-        vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
-        vsys_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+        vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
+        vsys_vsg->SetWindowPosition(ChVector2i(100, 100));
         vsys_vsg->SetUseSkyBox(false);
         vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
-        vsys_vsg->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
+        vsys_vsg->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
         vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
@@ -698,7 +698,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnInitialize(unsigned int num_objects
         vsys_gl->SetWindowSize(1280, 720);
         vsys_gl->SetRenderMode(opengl::WIREFRAME);
         vsys_gl->Initialize();
-        vsys_gl->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
+        vsys_gl->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
         vsys_gl->SetCameraProperties(0.05f);
         vsys_gl->SetCameraVertical(CameraVerticalDir::Z);
 
@@ -720,11 +720,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::UpdateRigidProxy(unsigned int i, Body
 
 // Collect resultant contact force and torque on rigid proxy body.
 void ChVehicleCosimTerrainNodeGranularGPU::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
-    ChVector<> force;
-    ChVector<> torque;
+    ChVector3d force;
+    ChVector3d torque;
     m_systemGPU->CollectMeshContactForces(i, force, torque);
 
-    rigid_contact.point = ChVector<>(0, 0, 0);
+    rigid_contact.point = ChVector3d(0, 0, 0);
     rigid_contact.force = force;
     rigid_contact.moment = torque;
 }
@@ -754,7 +754,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnRender() {
 
     if (m_track && !m_proxies.empty()) {
         auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[0]);  // proxy for first object
-        ChVector<> cam_point = proxy->bodies[0]->GetPos();                  // position of first body in proxy set
+        ChVector3d cam_point = proxy->bodies[0]->GetPos();                  // position of first body in proxy set
         m_vsys->UpdateCamera(m_cam_pos, cam_point);
     }
 

@@ -27,7 +27,7 @@ namespace feda {
 // -----------------------------------------------------------------------------
 
 const double FEDA_AntirollBarRSD::m_arm_mass = 15.02;
-const ChVector<> FEDA_AntirollBarRSD::m_arm_inertia(0.494431838, 0.010999093, 0.494431838);
+const ChVector3d FEDA_AntirollBarRSD::m_arm_inertia(0.494431838, 0.010999093, 0.494431838);
 const double FEDA_AntirollBarRSD::m_arm_length = 1.250 / 2.0;
 const double FEDA_AntirollBarRSD::m_arm_width = -0.33;
 const double FEDA_AntirollBarRSD::m_droplink_height = -0.17043;

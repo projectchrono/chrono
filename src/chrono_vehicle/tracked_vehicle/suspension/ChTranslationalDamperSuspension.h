@@ -63,7 +63,7 @@ class CH_VEHICLE_API ChTranslationalDamperSuspension : public ChTrackSuspension 
     /// reference frame is always centered at the location of the road wheel and
     /// aligned with the chassis reference frame.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
-                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             ChTrackAssembly* track               ///< [in] containing track assembly
                             ) override;
 
@@ -96,12 +96,12 @@ class CH_VEHICLE_API ChTranslationalDamperSuspension : public ChTrackSuspension 
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the idler subsystem reference frame.
-    virtual const ChVector<> GetLocation(PointId which) = 0;
+    virtual const ChVector3d GetLocation(PointId which) = 0;
 
     /// Return the mass of the arm body.
     virtual double GetArmMass() const = 0;
     /// Return the moments of inertia of the arm body.
-    virtual const ChVector<>& GetArmInertia() const = 0;
+    virtual const ChVector3d& GetArmInertia() const = 0;
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const = 0;
 
@@ -130,12 +130,12 @@ class CH_VEHICLE_API ChTranslationalDamperSuspension : public ChTrackSuspension 
 
   private:
     // Points for arm visualization
-    ChVector<> m_pO;
-    ChVector<> m_pA;
-    ChVector<> m_pAC;
-    ChVector<> m_pAW;
-    ChVector<> m_pAS;
-    ChVector<> m_dY;
+    ChVector3d m_pO;
+    ChVector3d m_pA;
+    ChVector3d m_pAC;
+    ChVector3d m_pAW;
+    ChVector3d m_pAS;
+    ChVector3d m_dY;
 };
 
 /// @} vehicle_tracked_suspension

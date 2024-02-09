@@ -88,7 +88,7 @@ void DPCapPress() {
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
     // sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -130,7 +130,7 @@ void DPCapPress() {
             double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
             double loc_z = j * dz;
             // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -143,17 +143,17 @@ void DPCapPress() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                             ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector3d(0.0, 0.0, 0.0), ChVector3d(0.0, 0.0, 0.0),
+                                                             ChVector3d(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
 
     // Create an orthotropic material.
     double rho = 2149.0;
-    ChVector<> E(54.1e6, 54.1e6, 54.1e6);         // (1.379e7, 1.379e7, 1.379e7);
-    ChVector<> nu(0.293021, 0.293021, 0.293021);  // (0.3, 0.3, 0.3);
-    // ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
+    ChVector3d E(54.1e6, 54.1e6, 54.1e6);         // (1.379e7, 1.379e7, 1.379e7);
+    ChVector3d nu(0.293021, 0.293021, 0.293021);  // (0.3, 0.3, 0.3);
+    // ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
@@ -241,7 +241,7 @@ void DPCapPress() {
                           std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
 
         // Set element dimensions
-        element->SetDimensions(ChVector<>(dx, dy, dz));
+        element->SetDimensions(ChVector3d(dx, dy, dz));
 
         // Add a single layers with a fiber angle of 0 degrees.
         element->SetMaterial(material);
@@ -329,7 +329,7 @@ void DPCapPress() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    vis->AddCamera(ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
     vis->AttachSystem(&sys);
 
     // Use the MKL Solver
@@ -370,7 +370,7 @@ void DPCapPress() {
             for (int ii = 0; ii < numDiv_x / 2 + 1; ii++) {
                 auto nodeforce = std::dynamic_pointer_cast<ChNodeFEAxyz>(
                     my_mesh->GetNode(offset_top + offset_mid + N_y * inc + numDiv_x / 4 + ii));
-                nodeforce->SetForce(ChVector<>(0.0, 0.0, force));
+                nodeforce->SetForce(ChVector3d(0.0, 0.0, force));
             }
         }
 
@@ -405,7 +405,7 @@ void ShellBrickContact() {
     sys.UseMaterialProperties(false);
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -464,7 +464,7 @@ void ShellBrickContact() {
             double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
             double loc_z = j * dz;
             // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -477,8 +477,8 @@ void ShellBrickContact() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                             ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector3d(0.0, 0.0, 0.0), ChVector3d(0.0, 0.0, 0.0),
+                                                             ChVector3d(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -489,7 +489,7 @@ void ShellBrickContact() {
         double loc_y = (k / (SnumDiv_x + 1)) % (SnumDiv_y + 1) * Sdy + 0.15;
         double loc_z = 0.13;
         auto nodeshell =
-            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(0.0, 0.0, 1.0));
+            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(loc_x, loc_y, loc_z), ChVector3d(0.0, 0.0, 1.0));
         nodeshell->SetMass(0);
         my_shell_mesh->AddNode(nodeshell);
     }
@@ -498,9 +498,9 @@ void ShellBrickContact() {
     auto nodetip1 = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode((numDiv_z + 1) * XYNumNodes - XYNumNodes));
     // Create an orthotropic material.
     double rho = 200.0;
-    ChVector<> E(1.379e7, 1.379e7, 1.379e7);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    // ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
+    ChVector3d E(1.379e7, 1.379e7, 1.379e7);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    // ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
@@ -509,9 +509,9 @@ void ShellBrickContact() {
     // material->Set_G(G.x());
     material->Set_v(nu.x());
     double rhoS = 8000;
-    ChVector<> ES(2.1e10, 2.1e10, 2.1e10);                 // Modulus of elasticity
-    ChVector<> nuS(0.3, 0.3, 0.3);                         // Poisson ratio
-    ChVector<> GS(8.0769231e9, 8.0769231e9, 8.0769231e9);  // Modulus of rigidity
+    ChVector3d ES(2.1e10, 2.1e10, 2.1e10);                 // Modulus of elasticity
+    ChVector3d nuS(0.3, 0.3, 0.3);                         // Poisson ratio
+    ChVector3d GS(8.0769231e9, 8.0769231e9, 8.0769231e9);  // Modulus of rigidity
     auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rhoS, ES, nuS, GS);
     std::shared_ptr<ChContactMaterialSMC> my_surfacematerial(new ChContactMaterialSMC);
     my_surfacematerial->SetKn(3e6f);
@@ -562,7 +562,7 @@ void ShellBrickContact() {
                           std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
 
         // Set element dimensions
-        element->SetDimensions(ChVector<>(dx, dy, dz));
+        element->SetDimensions(ChVector3d(dx, dy, dz));
 
         // Add a single layers with a fiber angle of 0 degrees.
         element->SetMaterial(material);
@@ -624,7 +624,7 @@ void ShellBrickContact() {
     my_shell_mesh->AddContactSurface(my_contactsurface_shell);
     my_contactsurface_shell->AddFacesFromBoundary(0.005);
 
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
     // Turn off gravity for only the shell elements
     my_shell_mesh->SetAutomaticGravity(false);
 
@@ -710,7 +710,7 @@ void ShellBrickContact() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    vis->AddCamera(ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
     vis->AttachSystem(&sys);
 
     // Use the MKL Solver
@@ -743,12 +743,12 @@ void ShellBrickContact() {
         if (sys.GetChTime() < 0.5) {
             for (int ii = 0; ii < 25; ii++) {
                 auto Snode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_shell_mesh->GetNode(ii));
-                Snode->SetForce(ChVector<>(0.0, 0.0, -100.0 * timecount * timestep));
+                Snode->SetForce(ChVector3d(0.0, 0.0, -100.0 * timecount * timestep));
             }
         } else {
             for (int ii = 0; ii < 25; ii++) {
                 auto Snode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_shell_mesh->GetNode(ii));
-                Snode->SetForce(ChVector<>(0.0, 0.0, 10.0 * timecount * timestep));
+                Snode->SetForce(ChVector3d(0.0, 0.0, 10.0 * timecount * timestep));
             }
         }
 
@@ -793,7 +793,7 @@ void SimpleBoxContact() {
     sys.UseMaterialProperties(false);
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -836,7 +836,7 @@ void SimpleBoxContact() {
             double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
             double loc_z = j * dz + brick_gap;
             // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Add node to mesh
@@ -845,8 +845,8 @@ void SimpleBoxContact() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                             ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector3d(0.0, 0.0, 0.0), ChVector3d(0.0, 0.0, 0.0),
+                                                             ChVector3d(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -855,9 +855,9 @@ void SimpleBoxContact() {
     auto nodetip1 = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode((numDiv_z + 1) * XYNumNodes - XYNumNodes));
     // Create an orthotropic material.
     double rho = 8000.0;
-    ChVector<> E(200e9, 200e9, 200e9);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    // ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
+    ChVector3d E(200e9, 200e9, 200e9);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    // ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
@@ -914,7 +914,7 @@ void SimpleBoxContact() {
                           std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
 
         // Set element dimensions
-        element->SetDimensions(ChVector<>(dx, dy, dz));
+        element->SetDimensions(ChVector3d(dx, dy, dz));
 
         // Add a single layers with a fiber angle of 0 degrees.
         element->SetMaterial(material);
@@ -958,11 +958,11 @@ void SimpleBoxContact() {
         chrono_types::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true, true, my_surfacematerial);
     sys.Add(Plate);
     Plate->SetBodyFixed(true);
-    Plate->SetPos(ChVector<>(0.025, 0.025, -0.0015 - plate_h / 2));
+    Plate->SetPos(ChVector3d(0.025, 0.025, -0.0015 - plate_h / 2));
     Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
-    // Plate->SetPos_dt(ChVector<>(0.0, 0.0, -0.1));
+    // Plate->SetPos_dt(ChVector3d(0.0, 0.0, -0.1));
 
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
 
     // -------------------------------------
     // Options for visualization in irrlicht
@@ -1010,7 +1010,7 @@ void SimpleBoxContact() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    vis->AddCamera(ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
     vis->AttachSystem(&sys);
 
     // Use the MKL Solver
@@ -1084,7 +1084,7 @@ void SoilBin() {
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
     // sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -1126,7 +1126,7 @@ void SoilBin() {
             double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
             double loc_z = j * dz;
             // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -1139,8 +1139,8 @@ void SoilBin() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                             ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector3d(0.0, 0.0, 0.0), ChVector3d(0.0, 0.0, 0.0),
+                                                             ChVector3d(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -1150,9 +1150,9 @@ void SoilBin() {
 
     // Create an orthotropic material.
     double rho = 200.0;
-    ChVector<> E(1.379e7, 1.379e7, 1.379e7);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    // ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
+    ChVector3d E(1.379e7, 1.379e7, 1.379e7);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    // ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
@@ -1207,7 +1207,7 @@ void SoilBin() {
                           std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
 
         // Set element dimensions
-        element->SetDimensions(ChVector<>(dx, dy, dz));
+        element->SetDimensions(ChVector3d(dx, dy, dz));
 
         // Add a single layers with a fiber angle of 0 degrees.
         element->SetMaterial(material);
@@ -1252,20 +1252,20 @@ void SoilBin() {
         chrono_types::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true, true, my_surfacematerial);
     sys.Add(Plate);
     Plate->SetBodyFixed(false);
-    Plate->SetPos(ChVector<>(0.2, 0.2, 0.6001 + plate_h / 2));
+    Plate->SetPos(ChVector3d(0.2, 0.2, 0.6001 + plate_h / 2));
     Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
-    Plate->SetPos_dt(ChVector<>(0.0, 0.0, 0.0));
+    Plate->SetPos_dt(ChVector3d(0.0, 0.0, 0.0));
     Plate->SetRot_dt(ChQuaternion<>(0.0, 0.0, 0.0, 0.0));
     Plate->SetMass(1.2265625);
 
     //// Create ground body
     auto Ground = chrono_types::make_shared<ChBody>();
     Ground->SetBodyFixed(true);
-    Ground->SetPos(ChVector<>(0.0, 0.0, -0.02));
+    Ground->SetPos(ChVector3d(0.0, 0.0, -0.02));
     Ground->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
     sys.Add(Ground);
 
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
     my_mesh->SetAutomaticGravity(false);
 
     std::shared_ptr<ChLinkLockPointPlane> constraintLateral;
@@ -1333,7 +1333,7 @@ void SoilBin() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.5, -0.5, 0.75), ChVector<>(0.5, 0.5, 0.5));
+    vis->AddCamera(ChVector3d(-0.5, -0.5, 0.75), ChVector3d(0.5, 0.5, 0.5));
     vis->AttachSystem(&sys);
 
     // Use the MKL Solver
@@ -1370,7 +1370,7 @@ void SoilBin() {
         double time = sys.GetChTime();
         if (time > 1)
             break;
-        plate_load->SetForce(ChVector<>(0, 0, -1500 * sin(time * CH_C_PI)), false);
+        plate_load->SetForce(ChVector3d(0, 0, -1500 * sin(time * CH_C_PI)), false);
         Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
 
         vis->BeginScene();
@@ -1415,7 +1415,7 @@ void SoilBin() {
 void AxialDynamics() {
     FILE* outputfile;
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -1456,7 +1456,7 @@ void AxialDynamics() {
             double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
             double loc_z = j * dz;
             // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -1469,8 +1469,8 @@ void AxialDynamics() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                             ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector3d(0.0, 0.0, 0.0), ChVector3d(0.0, 0.0, 0.0),
+                                                             ChVector3d(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -1481,15 +1481,15 @@ void AxialDynamics() {
     auto nodetip2 = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(2 * XYNumNodes - 1 - numDiv_x - 1));
     auto nodetip3 = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(XYNumNodes - 1));
     auto nodetip4 = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(XYNumNodes - 1 - numDiv_x - 1));
-    nodetip1->SetForce(ChVector<>(0.0, 0.0, 0.0));
-    nodetip2->SetForce(ChVector<>(0.0, 0.0, 0.0));
-    nodetip3->SetForce(ChVector<>(0.0, 0.0, 0.0));
-    nodetip4->SetForce(ChVector<>(0.0, 0.0, 0.0));
+    nodetip1->SetForce(ChVector3d(0.0, 0.0, 0.0));
+    nodetip2->SetForce(ChVector3d(0.0, 0.0, 0.0));
+    nodetip3->SetForce(ChVector3d(0.0, 0.0, 0.0));
+    nodetip4->SetForce(ChVector3d(0.0, 0.0, 0.0));
     // Create an orthotropic material.
     double rho = 7850.0;
-    ChVector<> E(1.0e7, 1.0e7, 1.0e7);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
+    ChVector3d E(1.0e7, 1.0e7, 1.0e7);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
@@ -1534,7 +1534,7 @@ void AxialDynamics() {
                           std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
 
         // Set element dimensions
-        element->SetDimensions(ChVector<>(dx, dy, dz));
+        element->SetDimensions(ChVector3d(dx, dy, dz));
 
         // Add a single layers with a fiber angle of 0 degrees.
         element->SetMaterial(material);
@@ -1566,7 +1566,7 @@ void AxialDynamics() {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, 0.0));
     my_mesh->SetAutomaticGravity(false);
 
     // -------------------------------------
@@ -1635,10 +1635,10 @@ void AxialDynamics() {
         // application.DoStep();
 
         force = 300 * std::sin(sys.GetChTime() * CH_C_PI) / 4;
-        nodetip1->SetForce(ChVector<>(force, 0.0, 0.0));
-        nodetip2->SetForce(ChVector<>(force, 0.0, 0.0));
-        nodetip3->SetForce(ChVector<>(force, 0.0, 0.0));
-        nodetip4->SetForce(ChVector<>(force, 0.0, 0.0));
+        nodetip1->SetForce(ChVector3d(force, 0.0, 0.0));
+        nodetip2->SetForce(ChVector3d(force, 0.0, 0.0));
+        nodetip3->SetForce(ChVector3d(force, 0.0, 0.0));
+        nodetip4->SetForce(ChVector3d(force, 0.0, 0.0));
         sys.DoStepDynamics(timestep);
         // application.EndScene();
         Iter += mystepper->GetNumIterations();
@@ -1664,7 +1664,7 @@ void AxialDynamics() {
 void BendingQuasiStatic() {
     FILE* outputfile;
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
 
     std::cout << "-----------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------" << std::endl;
@@ -1704,7 +1704,7 @@ void BendingQuasiStatic() {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -1717,8 +1717,8 @@ void BendingQuasiStatic() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                             ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector3d(0.0, 0.0, 0.0), ChVector3d(0.0, 0.0, 0.0),
+                                                             ChVector3d(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -1728,9 +1728,9 @@ void BendingQuasiStatic() {
 
     // All layers for all elements share the same material.
     double rho = 500;
-    ChVector<> E(2.1e8, 2.1e8, 2.1e8);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    ChVector<> G(8.0769231e7, 8.0769231e7, 8.0769231e7);
+    ChVector3d E(2.1e8, 2.1e8, 2.1e8);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    ChVector3d G(8.0769231e7, 8.0769231e7, 8.0769231e7);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
@@ -1765,7 +1765,7 @@ void BendingQuasiStatic() {
                           std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
 
         // Set element dimensions
-        element->SetDimensions(ChVector<>(dx, dy, dz));
+        element->SetDimensions(ChVector3d(dx, dy, dz));
 
         // Add a single layers with a fiber angle of 0 degrees.
         element->SetMaterial(material);
@@ -1783,7 +1783,7 @@ void BendingQuasiStatic() {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, 0.0));
 
     // -------------------------------------
     // Options for visualization in irrlicht
@@ -1825,7 +1825,7 @@ void BendingQuasiStatic() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    vis->AddCamera(ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
     vis->AttachSystem(&sys);
 
     // ----------------------------------
@@ -1866,7 +1866,7 @@ void BendingQuasiStatic() {
             force = -50 * sys.GetChTime();
         }
 
-        nodetip->SetForce(ChVector<>(0.0, 0.0, force));
+        nodetip->SetForce(ChVector3d(0.0, 0.0, force));
 
         std::cout << sys.GetChTime() << " " << nodetip->GetPos().x() << " " << nodetip->GetPos().y() << " "
                  << nodetip->GetPos().z() << std::endl;
@@ -1888,7 +1888,7 @@ void BendingQuasiStatic() {
 void SwingingShell() {
     FILE* outputfile;
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);
@@ -1932,7 +1932,7 @@ void SwingingShell() {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(loc_x, loc_y, loc_z));
             node->SetMass(0);
             // Fix all nodes along the axis X=0
             if (i == 0 && j == 0)
@@ -1944,21 +1944,21 @@ void SwingingShell() {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                             ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector3d(0.0, 0.0, 0.0), ChVector3d(0.0, 0.0, 0.0),
+                                                             ChVector3d(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
 
     // Get a handle to the tip node.
     auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(2 * XYNumNodes - 1));
-    nodetip->SetForce(ChVector<>(0.0, 0.0, -0.0));
+    nodetip->SetForce(ChVector3d(0.0, 0.0, -0.0));
 
     // All layers for all elements share the same material.
     double rho = 1000;
-    ChVector<> E(2.1e7, 2.1e7, 2.1e7);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    ChVector<> G(8.0769231e6, 8.0769231e6, 8.0769231e6);
+    ChVector3d E(2.1e7, 2.1e7, 2.1e7);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    ChVector3d G(8.0769231e6, 8.0769231e6, 8.0769231e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
@@ -1993,7 +1993,7 @@ void SwingingShell() {
                           std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
 
         // Set element dimensions
-        element->SetDimensions(ChVector<>(dx, dy, dz));
+        element->SetDimensions(ChVector3d(dx, dy, dz));
 
         // Add a single layers with a fiber angle of 0 degrees.
         element->SetMaterial(material);
@@ -2014,7 +2014,7 @@ void SwingingShell() {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
@@ -2052,7 +2052,7 @@ void SwingingShell() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(2, 1, -1), ChVector<>(0, 0, 0));
+    vis->AddCamera(ChVector3d(2, 1, -1), ChVector3d(0, 0, 0));
     vis->AttachSystem(&sys);
 
     // ----------------------------------

@@ -74,7 +74,7 @@ void ChAparticle::ContactableIncrementState(const ChState& x, const ChStateDelta
     // Increment rotation: rot' = delta*rot  (use quaternion for delta rotation)
     ChQuaternion<> mdeltarot;
     ChQuaternion<> moldrot(x.segment(3, 4));
-    ChVector<> newwel_abs = Amatrix * ChVector<>(dw.segment(3, 3));
+    ChVector3d newwel_abs = Amatrix * ChVector3d(dw.segment(3, 3));
     double mangle = newwel_abs.Length();
     newwel_abs.Normalize();
     mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
@@ -82,50 +82,50 @@ void ChAparticle::ContactableIncrementState(const ChState& x, const ChStateDelta
     x_new.segment(3, 4) = mnewrot.eigen();
 }
 
-ChVector<> ChAparticle::GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) {
+ChVector3d ChAparticle::GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) {
     ChCoordsys<> csys(state_x.segment(0, 7));
     return csys.TransformPointLocalToParent(loc_point);
 }
 
-ChVector<> ChAparticle::GetContactPointSpeed(const ChVector<>& loc_point,
+ChVector3d ChAparticle::GetContactPointSpeed(const ChVector3d& loc_point,
                                              const ChState& state_x,
                                              const ChStateDelta& state_w) {
     ChCoordsys<> csys(state_x.segment(0, 7));
-    ChVector<> abs_vel(state_w.segment(0, 3));
-    ChVector<> loc_omg(state_w.segment(3, 3));
-    ChVector<> abs_omg = csys.TransformDirectionLocalToParent(loc_omg);
+    ChVector3d abs_vel(state_w.segment(0, 3));
+    ChVector3d loc_omg(state_w.segment(3, 3));
+    ChVector3d abs_omg = csys.TransformDirectionLocalToParent(loc_omg);
 
     return abs_vel + Vcross(abs_omg, loc_point);
 }
 
-ChVector<> ChAparticle::GetContactPointSpeed(const ChVector<>& abs_point) {
-    ChVector<> m_p1_loc = this->TransformPointParentToLocal(abs_point);
+ChVector3d ChAparticle::GetContactPointSpeed(const ChVector3d& abs_point) {
+    ChVector3d m_p1_loc = this->TransformPointParentToLocal(abs_point);
     return this->PointSpeedLocalToParent(m_p1_loc);
 }
 
-void ChAparticle::ContactForceLoadResidual_F(const ChVector<>& F,
-                                             const ChVector<>& T,
-                                             const ChVector<>& abs_point,
+void ChAparticle::ContactForceLoadResidual_F(const ChVector3d& F,
+                                             const ChVector3d& T,
+                                             const ChVector3d& abs_point,
                                              ChVectorDynamic<>& R) {
-    ChVector<> m_p1_loc = this->TransformPointParentToLocal(abs_point);
-    ChVector<> force1_loc = this->TransformDirectionParentToLocal(F);
-    ChVector<> torque1_loc = Vcross(m_p1_loc, force1_loc);
+    ChVector3d m_p1_loc = this->TransformPointParentToLocal(abs_point);
+    ChVector3d force1_loc = this->TransformDirectionParentToLocal(F);
+    ChVector3d torque1_loc = Vcross(m_p1_loc, force1_loc);
     if (!T.IsNull())
         torque1_loc += this->TransformDirectionParentToLocal(T);
     R.segment(Variables().GetOffset() + 0, 3) += F.eigen();
     R.segment(Variables().GetOffset() + 3, 3) += torque1_loc.eigen();
 }
 
-void ChAparticle::ContactComputeQ(const ChVector<>& F,
-                                    const ChVector<>& T,
-                                    const ChVector<>& point,
+void ChAparticle::ContactComputeQ(const ChVector3d& F,
+                                    const ChVector3d& T,
+                                    const ChVector3d& point,
                                     const ChState& state_x,
                                     ChVectorDynamic<>& Q,
                                     int offset) {
     ChCoordsys<> csys(state_x.segment(0, 7));
-    ChVector<> point_loc = csys.TransformPointParentToLocal(point);
-    ChVector<> force_loc = csys.TransformDirectionParentToLocal(F);
-    ChVector<> torque_loc = Vcross(point_loc, force_loc);
+    ChVector3d point_loc = csys.TransformPointParentToLocal(point);
+    ChVector3d force_loc = csys.TransformDirectionParentToLocal(F);
+    ChVector3d torque_loc = Vcross(point_loc, force_loc);
     if (!T.IsNull())
         torque_loc += csys.TransformDirectionParentToLocal(T);
     Q.segment(offset + 0, 3) = F.eigen();
@@ -133,13 +133,13 @@ void ChAparticle::ContactComputeQ(const ChVector<>& F,
 }
 
 void ChAparticle::ComputeJacobianForContactPart(
-    const ChVector<>& abs_point,
+    const ChVector3d& abs_point,
     ChMatrix33<>& contact_plane,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
     bool second) {
-    ChVector<> m_p1_loc = this->TransformPointParentToLocal(abs_point);
+    ChVector3d m_p1_loc = this->TransformPointParentToLocal(abs_point);
 
     ChMatrix33<> Jx1 = contact_plane.transpose();
     if (!second)
@@ -160,7 +160,7 @@ void ChAparticle::ComputeJacobianForContactPart(
 }
 
 void ChAparticle::ComputeJacobianForRollingContactPart(
-    const ChVector<>& abs_point,
+    const ChVector3d& abs_point,
     ChMatrix33<>& contact_plane,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
@@ -229,8 +229,8 @@ ChParticleCloud::ChParticleCloud()
       sleep_minwvel(0.04f),
       particle_collision_model(nullptr) {
     SetMass(1.0);
-    SetInertiaXX(ChVector<double>(1.0, 1.0, 1.0));
-    SetInertiaXY(ChVector<double>(0, 0, 0));
+    SetInertiaXX(ChVector3d(1.0, 1.0, 1.0));
+    SetInertiaXY(ChVector3d(0, 0, 0));
 
     particles.clear();
     // ResizeNparticles(num_particles); // caused memory corruption.. why?
@@ -426,14 +426,14 @@ void ChParticleCloud::IntLoadResidual_F(const unsigned int off,  // offset in R 
                                         ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                         const double c           // a scaling factor
 ) {
-    ChVector<> Gforce;
+    ChVector3d Gforce;
     if (GetSystem())
         Gforce = GetSystem()->Get_G_acc() * particle_mass.GetBodyMass();
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         // particle gyroscopic force:
-        ChVector<> Wvel = particles[j]->GetWvel_loc();
-        ChVector<> gyro = Vcross(Wvel, particle_mass.GetBodyInertia() * Wvel);
+        ChVector3d Wvel = particles[j]->GetWvel_loc();
+        ChVector3d gyro = Vcross(Wvel, particle_mass.GetBodyInertia() * Wvel);
 
         // add applied forces and torques (and also the gyroscopic torque and gravity!) to 'fb' vector
         R.segment(off + 6 * j + 0, 3) += c * (particles[j]->UserForce + Gforce).eigen();
@@ -450,7 +450,7 @@ void ChParticleCloud::IntLoadResidual_Mv(const unsigned int off,      // offset 
         R(off + 6 * j + 0) += c * GetMass() * w(off + 6 * j + 0);
         R(off + 6 * j + 1) += c * GetMass() * w(off + 6 * j + 1);
         R(off + 6 * j + 2) += c * GetMass() * w(off + 6 * j + 2);
-        ChVector<> Iw = c * (particle_mass.GetBodyInertia() * ChVector<>(w.segment(off + 6 * j + 3, 3)));
+        ChVector3d Iw = c * (particle_mass.GetBodyInertia() * ChVector3d(w.segment(off + 6 * j + 3, 3)));
         R.segment(off + 6 * j + 3, 3) += Iw.eigen();
     }
 }
@@ -507,14 +507,14 @@ void ChParticleCloud::VariablesFbReset() {
 }
 
 void ChParticleCloud::VariablesFbLoadForces(double factor) {
-    ChVector<> Gforce;
+    ChVector3d Gforce;
     if (GetSystem())
         Gforce = GetSystem()->Get_G_acc() * particle_mass.GetBodyMass();
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         // particle gyroscopic force:
-        ChVector<> Wvel = particles[j]->GetWvel_loc();
-        ChVector<> gyro = Vcross(Wvel, particle_mass.GetBodyInertia() * Wvel);
+        ChVector3d Wvel = particles[j]->GetWvel_loc();
+        ChVector3d gyro = Vcross(Wvel, particle_mass.GetBodyInertia() * Wvel);
 
         // add applied forces and torques (and also the gyroscopic torque and gravity!) to 'fb' vector
         particles[j]->variables.Get_fb().segment(0, 3) += factor * (particles[j]->UserForce + Gforce).eigen();
@@ -563,8 +563,8 @@ void ChParticleCloud::VariablesQbIncrementPosition(double dt_step) {
         // Updates position with incremental action of speed contained in the
         // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
 
-        ChVector<> newspeed(particles[j]->variables.Get_qb().segment(0, 3));
-        ChVector<> newwel(particles[j]->variables.Get_qb().segment(3, 3));
+        ChVector3d newspeed(particles[j]->variables.Get_qb().segment(0, 3));
+        ChVector3d newwel(particles[j]->variables.Get_qb().segment(3, 3));
 
         // ADVANCE POSITION: pos' = pos + dt * vel
         particles[j]->SetPos(particles[j]->GetPos() + newspeed * dt_step);
@@ -572,7 +572,7 @@ void ChParticleCloud::VariablesQbIncrementPosition(double dt_step) {
         // ADVANCE ROTATION: rot' = [dt*wwel]%rot  (use quaternion for delta rotation)
         ChQuaternion<> mdeltarot;
         ChQuaternion<> moldrot = particles[j]->GetRot();
-        ChVector<> newwel_abs = particles[j]->GetA() * newwel;
+        ChVector3d newwel_abs = particles[j]->GetA() * newwel;
         double mangle = newwel_abs.Length() * dt_step;
         newwel_abs.Normalize();
         mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
@@ -610,13 +610,13 @@ void ChParticleCloud::SetInertia(const ChMatrix33<>& newXInertia) {
     particle_mass.SetBodyInertia(newXInertia);
 }
 
-void ChParticleCloud::SetInertiaXX(const ChVector<>& iner) {
+void ChParticleCloud::SetInertiaXX(const ChVector3d& iner) {
     particle_mass.GetBodyInertia()(0, 0) = iner.x();
     particle_mass.GetBodyInertia()(1, 1) = iner.y();
     particle_mass.GetBodyInertia()(2, 2) = iner.z();
     particle_mass.GetBodyInvInertia() = particle_mass.GetBodyInertia().inverse();
 }
-void ChParticleCloud::SetInertiaXY(const ChVector<>& iner) {
+void ChParticleCloud::SetInertiaXY(const ChVector3d& iner) {
     particle_mass.GetBodyInertia()(0, 1) = iner.x();
     particle_mass.GetBodyInertia()(0, 2) = iner.y();
     particle_mass.GetBodyInertia()(1, 2) = iner.z();
@@ -626,16 +626,16 @@ void ChParticleCloud::SetInertiaXY(const ChVector<>& iner) {
     particle_mass.GetBodyInvInertia() = particle_mass.GetBodyInertia().inverse();
 }
 
-ChVector<> ChParticleCloud::GetInertiaXX() const {
-    ChVector<> iner;
+ChVector3d ChParticleCloud::GetInertiaXX() const {
+    ChVector3d iner;
     iner.x() = particle_mass.GetBodyInertia()(0, 0);
     iner.y() = particle_mass.GetBodyInertia()(1, 1);
     iner.z() = particle_mass.GetBodyInertia()(2, 2);
     return iner;
 }
 
-ChVector<> ChParticleCloud::GetInertiaXY() const {
-    ChVector<> iner;
+ChVector3d ChParticleCloud::GetInertiaXY() const {
+    ChVector3d iner;
     iner.x() = particle_mass.GetBodyInertia()(0, 1);
     iner.y() = particle_mass.GetBodyInertia()(0, 2);
     iner.z() = particle_mass.GetBodyInertia()(1, 2);

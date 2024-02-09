@@ -139,7 +139,7 @@ void MultiLink::Create(const rapidjson::Document& d) {
     } else {
         m_tierodMass = 0;
         m_tierodRadius = 0;
-        m_tierodInertia = ChVector<>(0);
+        m_tierodInertia = ChVector3d(0);
         m_use_tierod_bodies = false;
     }
 

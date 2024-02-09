@@ -175,16 +175,16 @@ void ChLinkRevolute::Update(double time, bool update_assets) {
 
     // Calculate violation and Jacobians of the dot constraint (u1,w2)
     //    dot(u1_abs, w2_abs) = 0
-    ChVector<> u1 = frame1_abs.GetA().Get_A_Xaxis();
-    ChVector<> w2 = frame2_abs.GetA().Get_A_Zaxis();
+    ChVector3d u1 = frame1_abs.GetA().Get_A_Xaxis();
+    ChVector3d w2 = frame2_abs.GetA().Get_A_Zaxis();
 
     m_C(3) = Vdot(u1, w2);
 
     {
         ChMatrix33<> mat1 = Body1->GetA() * m_u1_tilde;
         ChMatrix33<> mat2 = Body2->GetA() * m_w2_tilde;
-        ChVector<> Phi_pi1 = mat1.transpose() * w2;
-        ChVector<> Phi_pi2 = mat2.transpose() * u1;
+        ChVector3d Phi_pi1 = mat1.transpose() * w2;
+        ChVector3d Phi_pi2 = mat2.transpose() * u1;
 
         m_cnstr_uw.Get_Cq_a()(0) = 0;
         m_cnstr_uw.Get_Cq_a()(1) = 0;
@@ -203,15 +203,15 @@ void ChLinkRevolute::Update(double time, bool update_assets) {
 
     // Calculate violation and Jacobians of the dot constraint (v1,w2)
     //    dot(v1_abs, w2_abs) = 0
-    ChVector<> v1 = frame1_abs.GetA().Get_A_Yaxis();
+    ChVector3d v1 = frame1_abs.GetA().Get_A_Yaxis();
 
     m_C(4) = Vdot(v1, w2);
 
     {
         ChMatrix33<> mat1 = Body1->GetA() * m_v1_tilde;
         ChMatrix33<> mat2 = Body2->GetA() * m_w2_tilde;
-        ChVector<> Phi_pi1 = mat1.transpose() * w2;
-        ChVector<> Phi_pi2 = mat2.transpose() * v1;
+        ChVector3d Phi_pi1 = mat1.transpose() * w2;
+        ChVector3d Phi_pi2 = mat2.transpose() * v1;
 
         m_cnstr_vw.Get_Cq_a()(0) = 0;
         m_cnstr_vw.Get_Cq_a()(1) = 0;
@@ -253,7 +253,7 @@ void ChLinkRevolute::IntStateScatterReactions(const unsigned int off_L, const Ch
     m_multipliers[4] = L(off_L + 4);
 
     // Also compute 'intuitive' reactions:
-    ChVector<> lam_sph(m_multipliers[0], m_multipliers[1], m_multipliers[2]);
+    ChVector3d lam_sph(m_multipliers[0], m_multipliers[1], m_multipliers[2]);
     double lam_uw = m_multipliers[3];
     double lam_vw = m_multipliers[4];
 
@@ -268,14 +268,14 @@ void ChLinkRevolute::IntStateScatterReactions(const unsigned int off_L, const Ch
     //     = -C^T * [A_2 * tilde(w2')]^T * (u1 * lam_uw + v1 * lam_vw)
 
     // Reaction force
-    ChVector<> F2 = Body2->GetA().transpose() * lam_sph;
+    ChVector3d F2 = Body2->GetA().transpose() * lam_sph;
     react_force = m_frame2.GetA().transpose() * F2;
 
     // Reaction torque
-    ChVector<> u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
-    ChVector<> v1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Yaxis());
+    ChVector3d u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
+    ChVector3d v1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Yaxis());
     ChMatrix33<> mat2 = Body2->GetA() * m_w2_tilde;
-    ChVector<> T2 = mat2.transpose() * (lam_uw * u1 + lam_vw * v1);
+    ChVector3d T2 = mat2.transpose() * (lam_uw * u1 + lam_vw * v1);
     react_torque = -(m_frame2.GetA().transpose() * T2);
 }
 
@@ -413,7 +413,7 @@ void ChLinkRevolute::ConstraintsLoadJacobians() {
 void ChLinkRevolute::ConstraintsFetch_react(double factor) {
     // Extract the Lagrange multipliers for the 3 spherical constraints and for
     // the 2 dot constraint.
-    ChVector<> lam_sph(m_cnstr_x.Get_l_i(), m_cnstr_y.Get_l_i(), m_cnstr_z.Get_l_i());
+    ChVector3d lam_sph(m_cnstr_x.Get_l_i(), m_cnstr_y.Get_l_i(), m_cnstr_z.Get_l_i());
     double lam_uw = m_cnstr_uw.Get_l_i();
     double lam_vw = m_cnstr_vw.Get_l_i();
 
@@ -434,14 +434,14 @@ void ChLinkRevolute::ConstraintsFetch_react(double factor) {
     //     = -C^T * [A_2 * tilde(w2')]^T * (u1 * lam_uw + v1 * lam_vw)
 
     // Reaction force
-    ChVector<> F2 = Body2->GetA().transpose() * lam_sph;
+    ChVector3d F2 = Body2->GetA().transpose() * lam_sph;
     react_force = m_frame2.GetA().transpose() * F2;
 
     // Reaction torque
-    ChVector<> u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
-    ChVector<> v1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Yaxis());
+    ChVector3d u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
+    ChVector3d v1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Yaxis());
     ChMatrix33<> mat2 = Body2->GetA() * m_w2_tilde;
-    ChVector<> T2 = mat2.transpose() * (lam_uw * u1 + lam_vw * v1);
+    ChVector3d T2 = mat2.transpose() * (lam_uw * u1 + lam_vw * v1);
     react_torque = -(m_frame2.GetA().transpose() * T2);
 }
 

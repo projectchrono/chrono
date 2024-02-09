@@ -122,13 +122,13 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     /// This resultant force includes all external applied loads acting on the body (from gravity, loads, springs,
     /// etc). However, this does *not* include any constraint forces. In particular, contact forces are not included if
     /// using the NSC formulation, but are included when using the SMC formulation.
-    virtual ChVector<> GetBodyAppliedForce(ChBody* body) override;
+    virtual ChVector3d GetBodyAppliedForce(ChBody* body) override;
 
     /// Return the resultant applied torque on the specified body.
     /// This resultant torque includes all external applied loads acting on the body (from gravity, loads, springs,
     /// etc). However, this does *not* include any constraint forces. In particular, contact torques are not included if
     /// using the NSC formulation, but are included when using the SMC formulation.
-    virtual ChVector<> GetBodyAppliedTorque(ChBody* body) override;
+    virtual ChVector3d GetBodyAppliedTorque(ChBody* body) override;
 
     /// Get the contact force on the body with specified id.
     /// Note that ComputeContactForces must be called prior to calling this function

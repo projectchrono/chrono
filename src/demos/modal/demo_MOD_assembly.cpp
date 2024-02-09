@@ -124,7 +124,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     mesh_boundary->AddNode(my_node_A_boundary);
 
     // The last node is a boundary node: add it to mesh_boundary
-    auto my_node_B_boundary = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L, 0, 0)));
+    auto my_node_B_boundary = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(beam_L, 0, 0)));
     my_node_B_boundary->SetMass(0);
     my_node_B_boundary->GetInertia().setZero();
     mesh_boundary->AddNode(my_node_B_boundary);
@@ -134,56 +134,56 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
                       section,             // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                       n_elements,          // the number of ChElementBeamEuler to create
                       my_node_A_boundary,  // the 'A' point in space (beginning of beam)
-                      my_node_B_boundary,  // ChVector<>(beam_L, 0, 0), // the 'B' point in space (end of beam)
-                      ChVector<>(0, 1, 0)  // the 'Y' up direction of the section for the beam
+                      my_node_B_boundary,  // ChVector3d(beam_L, 0, 0), // the 'B' point in space (end of beam)
+                      ChVector3d(0, 1, 0)  // the 'Y' up direction of the section for the beam
     );
 
     if (fix_subassembly) {
         // BODY: the base:
         auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
         my_body_A->SetBodyFixed(true);
-        my_body_A->SetPos(ChVector<>(-0.5, 0, 0));
+        my_body_A->SetPos(ChVector3d(-0.5, 0, 0));
         assembly->Add(my_body_A);
 
         // my_node_A_boundary->SetFixed(true); // NO - issues with bookeeping in modal_Hblock ***TO FIX***, for the
         // moment: Constraint the boundary node to truss
         auto my_root = chrono_types::make_shared<ChLinkMateGeneric>();
-        my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector<>(0, 0, 1), QUNIT));
+        my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector3d(0, 0, 1), QUNIT));
         assembly->Add(my_root);
     } else {
         // BODY: the base:
         auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
         my_body_A->SetBodyFixed(true);
-        my_body_A->SetPos(ChVector<>(-0.5, 0, 0));
+        my_body_A->SetPos(ChVector3d(-0.5, 0, 0));
         sys.Add(my_body_A);
 
         // Constraint the boundary node to truss
         auto my_root = chrono_types::make_shared<ChLinkMateGeneric>();
-        my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector<>(0, 0, 1), QUNIT));
+        my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector3d(0, 0, 1), QUNIT));
         sys.Add(my_root);
     }
 
     if (add_internal_body) {
         // BODY: in the middle, as internal
         auto my_body_B = chrono_types::make_shared<ChBodyEasyBox>(1.8, 1.8, 1.8, 200);
-        my_body_B->SetPos(ChVector<>(beam_L * 0.5, 0, 0));
+        my_body_B->SetPos(ChVector3d(beam_L * 0.5, 0, 0));
         assembly->AddInternal(my_body_B);
 
         auto my_mid_constr = chrono_types::make_shared<ChLinkMateGeneric>();
         my_mid_constr->Initialize(builder.GetLastBeamNodes()[n_elements / 2], my_body_B,
-                                  ChFrame<>(ChVector<>(beam_L * 0.5, 0, 0), QUNIT));
+                                  ChFrame<>(ChVector3d(beam_L * 0.5, 0, 0), QUNIT));
         assembly->AddInternal(my_mid_constr);
     }
 
     if (add_boundary_body) {
         // BODY: in the end, as boundary
         auto my_body_C = chrono_types::make_shared<ChBodyEasyBox>(0.8, 0.8, 0.8, 200);
-        my_body_C->SetPos(ChVector<>(beam_L, 0, 0));
+        my_body_C->SetPos(ChVector3d(beam_L, 0, 0));
         assembly->Add(my_body_C);
 
         auto my_end_constr = chrono_types::make_shared<ChLinkMateGeneric>();
         my_end_constr->Initialize(builder.GetLastBeamNodes().back(), my_body_C,
-                                  ChFrame<>(ChVector<>(beam_L, 0, 0), QUNIT));
+                                  ChFrame<>(ChVector3d(beam_L, 0, 0), QUNIT));
         assembly->Add(my_end_constr);
     }
 
@@ -201,12 +201,12 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
 
         // example if putting additional items directly in the ChSystem:
         auto my_body_D = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.4, 0.4, 200);
-        my_body_D->SetPos(ChVector<>(beam_L * 1.1, 0, 0));
+        my_body_D->SetPos(ChVector3d(beam_L * 1.1, 0, 0));
         sys.Add(my_body_D);
 
         auto my_end_constr2 = chrono_types::make_shared<ChLinkMateGeneric>();
         my_end_constr2->Initialize(builder.GetLastBeamNodes().back(), my_body_D,
-                                   ChFrame<>(ChVector<>(beam_L, 0, 0), QUNIT));
+                                   ChFrame<>(ChVector3d(beam_L, 0, 0), QUNIT));
         sys.Add(my_end_constr2);
 
         // example if putting additional items in a second assembly (just a simple rotating blade)
@@ -214,7 +214,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         sys.Add(assembly0);
 
         auto my_body_blade = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.6, 0.2, 150);
-        my_body_blade->SetPos(ChVector<>(beam_L * 1.15, 0.3, 0));
+        my_body_blade->SetPos(ChVector3d(beam_L * 1.15, 0.3, 0));
         assembly0->Add(my_body_blade);
 
         auto rotmotor1 = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -233,7 +233,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // Method A (simple)
         // The simplest way to add a force is to use mynode->SetForce(), or to add some ChBodyLoad.
         // Note: this works only for boundary nodes!
-        my_node_B_boundary->SetForce(ChVector<>(0, -3, 0));  // to trigger some vibration at the free end
+        my_node_B_boundary->SetForce(ChVector3d(0, -3, 0));  // to trigger some vibration at the free end
 
         // Method B (advanced)
         // Add a force also to internal nodes that will be removed after modal reduction.
@@ -372,7 +372,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     while (ID_current_example == current_example && !SWITCH_EXAMPLE && vis.Run()) {
         vis.BeginScene();
         vis.Render();
-        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
+        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_C_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
         vis.EndScene();
 
@@ -457,10 +457,10 @@ int main(int argc, char* argv[]) {
     vis.Initialize();
     vis.AddLogo();
     vis.AddSkyBox();
-    vis.AddCamera(ChVector<>(1, 1.3, 6), ChVector<>(3, 0, 0));
-    vis.AddLightWithShadow(ChVector<>(20, 20, 20), ChVector<>(0, 0, 0), 50, 5, 50, 55);
-    vis.AddLight(ChVector<>(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
-    vis.AddLight(ChVector<>(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis.AddCamera(ChVector3d(1, 1.3, 6), ChVector3d(3, 0, 0));
+    vis.AddLightWithShadow(ChVector3d(20, 20, 20), ChVector3d(0, 0, 0), 50, 5, 50, 55);
+    vis.AddLight(ChVector3d(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis.AddLight(ChVector3d(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
 
     // This is for GUI tweaking of system parameters..
     MyEventReceiver receiver(vis);

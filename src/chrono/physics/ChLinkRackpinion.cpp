@@ -45,7 +45,7 @@ ChLinkRackpinion::ChLinkRackpinion(const ChLinkRackpinion& other) : ChLinkMateGe
     local_rack = other.local_rack;
 }
 
-ChVector<> ChLinkRackpinion::GetAbsPinionDir() {
+ChVector3d ChLinkRackpinion::GetAbsPinionDir() {
     if (this->Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion, absframe);
@@ -54,7 +54,7 @@ ChVector<> ChLinkRackpinion::GetAbsPinionDir() {
         return VECT_Z;
 }
 
-ChVector<> ChLinkRackpinion::GetAbsPinionPos() {
+ChVector3d ChLinkRackpinion::GetAbsPinionPos() {
     if (this->Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion, absframe);
@@ -63,7 +63,7 @@ ChVector<> ChLinkRackpinion::GetAbsPinionPos() {
         return VNULL;
 }
 
-ChVector<> ChLinkRackpinion::GetAbsRackDir() {
+ChVector3d ChLinkRackpinion::GetAbsRackDir() {
     if (this->Body2) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, absframe);
@@ -72,7 +72,7 @@ ChVector<> ChLinkRackpinion::GetAbsRackDir() {
         return VECT_Z;
 }
 
-ChVector<> ChLinkRackpinion::GetAbsRackPos() {
+ChVector3d ChLinkRackpinion::GetAbsRackPos() {
     if (this->Body2) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, absframe);
@@ -91,11 +91,11 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
     ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion, abs_pinion);
     ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, abs_rack);
 
-    ChVector<> abs_distpr = abs_pinion.GetPos() - abs_rack.GetPos();
-    ChVector<> abs_Dpin = abs_pinion.GetA().Get_A_Zaxis();
-    ChVector<> abs_Dx;
-    ChVector<> abs_Dy;
-    ChVector<> abs_Dz;
+    ChVector3d abs_distpr = abs_pinion.GetPos() - abs_rack.GetPos();
+    ChVector3d abs_Dpin = abs_pinion.GetA().Get_A_Zaxis();
+    ChVector3d abs_Dx;
+    ChVector3d abs_Dy;
+    ChVector3d abs_Dz;
     abs_Dpin.DirToDxDyDz(abs_Dz, abs_Dx, abs_Dy,
                          abs_rack.GetA().Get_A_Xaxis());  // with z as pinion shaft and x as suggested rack X dir
 
@@ -106,13 +106,13 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
     std::cout << "abs_Dx " << abs_Dx << std::endl;
     */
 
-    ChVector<> abs_Ro = abs_Dy * Vdot(abs_Dy, abs_distpr);
+    ChVector3d abs_Ro = abs_Dy * Vdot(abs_Dy, abs_distpr);
 
     if (Vdot(abs_Ro, abs_distpr) > 0)
         abs_Ro = -abs_Ro;
 
-    ChVector<> abs_Dr = abs_Ro.GetNormalized();
-    ChVector<> abs_R = abs_Dr * this->GetPinionRadius();
+    ChVector3d abs_Dr = abs_Ro.GetNormalized();
+    ChVector3d abs_R = abs_Dr * this->GetPinionRadius();
     this->contact_pt = abs_pinion.GetPos() + abs_R;
 
     // Absolute frame of link reference
@@ -122,15 +122,15 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
     ChMatrix33<> mrot;
 
     // rotate link frame on its Y because of beta
-    mrot.Set_A_Rxyz(ChVector<>(0, this->beta, 0));
+    mrot.Set_A_Rxyz(ChVector3d(0, this->beta, 0));
     ChFrame<> mrotframe(VNULL, mrot);
     abs_contact.ConcatenatePostTransformation(mrotframe);  // or: abs_contact *= mrotframe;
 
     // rotate link frame on its Z because of alpha
     if (this->react_force.x() < 0)
-        mrot.Set_A_Rxyz(ChVector<>(0, 0, this->alpha));
+        mrot.Set_A_Rxyz(ChVector3d(0, 0, this->alpha));
     else
-        mrot.Set_A_Rxyz(ChVector<>(0, 0, -this->alpha));
+        mrot.Set_A_Rxyz(ChVector3d(0, 0, -this->alpha));
     mrotframe.SetRot(mrot);
     abs_contact.ConcatenatePostTransformation(mrotframe);  // or: abs_contact *= mrotframe;
 

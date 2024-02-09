@@ -109,23 +109,23 @@ enum class LocomotionMode {
 // -----------------------------------------------------------------------------
 
 struct CH_MODELS_API BoxShape {
-    BoxShape(const chrono::ChVector<>& pos, const chrono::ChQuaternion<>& rot, const chrono::ChVector<>& dims)
+    BoxShape(const chrono::ChVector3d& pos, const chrono::ChQuaternion<>& rot, const chrono::ChVector3d& dims)
         : m_pos(pos), m_rot(rot), m_dims(dims) {}
-    chrono::ChVector<> m_pos;
+    chrono::ChVector3d m_pos;
     chrono::ChQuaternion<> m_rot;
-    chrono::ChVector<> m_dims;
+    chrono::ChVector3d m_dims;
 };
 
 struct CH_MODELS_API SphereShape {
-    SphereShape(const chrono::ChVector<>& pos, double radius) : m_pos(pos), m_radius(radius) {}
-    chrono::ChVector<> m_pos;
+    SphereShape(const chrono::ChVector3d& pos, double radius) : m_pos(pos), m_radius(radius) {}
+    chrono::ChVector3d m_pos;
     double m_radius;
 };
 
 struct CH_MODELS_API CylinderShape {
-    CylinderShape(const chrono::ChVector<>& pos, const chrono::ChQuaternion<>& rot, double radius, double length)
+    CylinderShape(const chrono::ChVector3d& pos, const chrono::ChQuaternion<>& rot, double radius, double length)
         : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length) {}
-    chrono::ChVector<> m_pos;
+    chrono::ChVector3d m_pos;
     chrono::ChQuaternion<> m_rot;
     double m_radius;
     double m_length;
@@ -133,9 +133,9 @@ struct CH_MODELS_API CylinderShape {
 
 struct CH_MODELS_API MeshShape {
     enum class Type { CONVEX_HULL, TRIANGLE_SOUP, NODE_CLOUD };
-    MeshShape(const chrono::ChVector<>& pos, const chrono::ChQuaternion<>& rot, const std::string& name, Type type)
+    MeshShape(const chrono::ChVector3d& pos, const chrono::ChQuaternion<>& rot, const std::string& name, Type type)
         : m_pos(pos), m_rot(rot), m_name(name), m_type(type) {}
-    chrono::ChVector<> m_pos;
+    chrono::ChVector3d m_pos;
     chrono::ChQuaternion<> m_rot;
     std::string m_name;
     Type m_type;
@@ -153,7 +153,7 @@ class CH_MODELS_API RS_Part {
     void SetVisualizationType(VisualizationType vis);
 
     std::shared_ptr<chrono::ChBodyAuxRef> GetBody() const { return m_body; }
-    const chrono::ChVector<>& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
+    const chrono::ChVector3d& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
     const chrono::ChQuaternion<>& GetRot() const { return m_body->GetFrame_REF_to_abs().GetRot(); }
 
   protected:
@@ -168,7 +168,7 @@ class CH_MODELS_API RS_Part {
     std::vector<CylinderShape> m_cylinders;        ///< set of collision cylinders
     std::vector<MeshShape> m_meshes;               ///< set of collision meshes
     std::string m_mesh_name;                       ///< visualization mesh name
-    chrono::ChVector<> m_offset;                   ///< offset for visualization mesh
+    chrono::ChVector3d m_offset;                   ///< offset for visualization mesh
     chrono::ChColor m_color;                       ///< visualization asset color
 
     friend class RoboSimian;
@@ -193,7 +193,7 @@ class CH_MODELS_API RS_Chassis : public RS_Part {
 
   private:
     /// Translate the chassis by the specified value.
-    void Translate(const chrono::ChVector<>& shift);
+    void Translate(const chrono::ChVector3d& shift);
 
     bool m_collide;  ///< true if collision enabled
 
@@ -212,8 +212,8 @@ class CH_MODELS_API RS_Sled : public RS_Part {
 
     /// Initialize the sled at the specified position (relative to the chassis).
     void Initialize(std::shared_ptr<chrono::ChBodyAuxRef> chassis,  ///< chassis body
-                    const chrono::ChVector<>& xyz,                  ///< location (relative to chassis)
-                    const chrono::ChVector<>& rpy                   ///< roll-pitch-yaw (relative to chassis)
+                    const chrono::ChVector3d& xyz,                  ///< location (relative to chassis)
+                    const chrono::ChVector3d& rpy                   ///< roll-pitch-yaw (relative to chassis)
     );
 
     /// Enable/disable collision for the sled (default: true).
@@ -221,7 +221,7 @@ class CH_MODELS_API RS_Sled : public RS_Part {
 
   private:
     /// Translate the sled by the specified value.
-    void Translate(const chrono::ChVector<>& shift);
+    void Translate(const chrono::ChVector3d& shift);
 
     bool m_collide;  ///< true if collision enabled
 
@@ -241,8 +241,8 @@ class CH_MODELS_API RS_WheelDD : public RS_Part {
 
     /// Initialize the direct-drive wheel at the specified position (relative to the chassis).
     void Initialize(std::shared_ptr<chrono::ChBodyAuxRef> chassis,  ///< chassis body
-                    const chrono::ChVector<>& xyz,                  ///< location (relative to chassis)
-                    const chrono::ChVector<>& rpy                   ///< roll-pitch-yaw (relative to chassis)
+                    const chrono::ChVector3d& xyz,                  ///< location (relative to chassis)
+                    const chrono::ChVector3d& rpy                   ///< roll-pitch-yaw (relative to chassis)
     );
 };
 
@@ -255,12 +255,12 @@ class CH_MODELS_API RS_WheelDD : public RS_Part {
 class CH_MODELS_API Link {
   public:
     Link(const std::string& mesh_name,             ///< name of associated mesh
-         const chrono::ChVector<>& offset,         ///< mesh offset
+         const chrono::ChVector3d& offset,         ///< mesh offset
          const chrono::ChColor& color,             ///< mesh color
          double mass,                              ///< link mass
-         const chrono::ChVector<>& com,            ///< location of COM
-         const chrono::ChVector<>& inertia_xx,     ///< moments of inertia
-         const chrono::ChVector<>& inertia_xy,     ///< products of inertia
+         const chrono::ChVector3d& com,            ///< location of COM
+         const chrono::ChVector3d& inertia_xx,     ///< moments of inertia
+         const chrono::ChVector3d& inertia_xy,     ///< products of inertia
          const std::vector<CylinderShape>& shapes  ///< list of collision shapes
          )
         : m_mesh_name(mesh_name),
@@ -274,12 +274,12 @@ class CH_MODELS_API Link {
 
   private:
     std::string m_mesh_name;
-    chrono::ChVector<> m_offset;
+    chrono::ChVector3d m_offset;
     chrono::ChColor m_color;
     double m_mass;
-    chrono::ChVector<> m_com;
-    chrono::ChVector<> m_inertia_xx;
-    chrono::ChVector<> m_inertia_xy;
+    chrono::ChVector3d m_com;
+    chrono::ChVector3d m_inertia_xx;
+    chrono::ChVector3d m_inertia_xy;
     std::vector<CylinderShape> m_shapes;
 
     friend class RS_Limb;
@@ -299,9 +299,9 @@ struct CH_MODELS_API JointData {
     std::string linkA;
     std::string linkB;
     bool fixed;
-    chrono::ChVector<> xyz;
-    chrono::ChVector<> rpy;
-    chrono::ChVector<> axis;
+    chrono::ChVector3d xyz;
+    chrono::ChVector3d rpy;
+    chrono::ChVector3d axis;
 };
 
 /// RoboSimian limb.
@@ -319,8 +319,8 @@ class CH_MODELS_API RS_Limb {
 
     /// Initialize the limb at the specified position (relative to the chassis).
     void Initialize(std::shared_ptr<chrono::ChBodyAuxRef> chassis,  ///< chassis body
-                    const chrono::ChVector<>& xyz,                  ///< location (relative to chassis)
-                    const chrono::ChVector<>& rpy,                  ///< roll-pitch-yaw (relative to chassis)
+                    const chrono::ChVector3d& xyz,                  ///< location (relative to chassis)
+                    const chrono::ChVector3d& rpy,                  ///< roll-pitch-yaw (relative to chassis)
                     CollisionFamily::Enum collision_family,         ///< collision family
                     ActuationMode wheel_mode                        ///< motor type for wheel actuation
     );
@@ -341,10 +341,10 @@ class CH_MODELS_API RS_Limb {
     std::shared_ptr<chrono::ChBodyAuxRef> GetWheelBody() const { return m_wheel->GetBody(); }
 
     /// Get location of the wheel body.
-    const chrono::ChVector<>& GetWheelPos() const { return m_wheel->GetPos(); }
+    const chrono::ChVector3d& GetWheelPos() const { return m_wheel->GetPos(); }
 
     /// Get angular velocity of the wheel body (expressed in local coordinates).
-    chrono::ChVector<> GetWheelAngVelocity() const { return m_wheel->GetBody()->GetWvel_loc(); }
+    chrono::ChVector3d GetWheelAngVelocity() const { return m_wheel->GetBody()->GetWvel_loc(); }
 
     /// Get wheel angle.
     double GetWheelAngle() const { return m_wheel_motor->GetMotorRot(); }
@@ -384,7 +384,7 @@ class CH_MODELS_API RS_Limb {
 
   private:
     /// Translate the limb bodies by the specified value.
-    void Translate(const chrono::ChVector<>& shift);
+    void Translate(const chrono::ChVector3d& shift);
 
     std::string m_name;
     std::unordered_map<std::string, std::shared_ptr<RS_Part>> m_links;
@@ -467,7 +467,7 @@ class CH_MODELS_API RoboSimian {
     std::shared_ptr<chrono::ChBodyAuxRef> GetChassisBody() const { return m_chassis->GetBody(); }
 
     /// Get location of the chassis body.
-    const chrono::ChVector<>& GetChassisPos() const { return m_chassis->GetPos(); }
+    const chrono::ChVector3d& GetChassisPos() const { return m_chassis->GetPos(); }
 
     /// Get orientation of the chassis body.
     const chrono::ChQuaternion<>& GetChassisRot() const { return m_chassis->GetRot(); }
@@ -485,10 +485,10 @@ class CH_MODELS_API RoboSimian {
     std::shared_ptr<chrono::ChBodyAuxRef> GetWheelBody(LimbID id) const { return m_limbs[id]->GetWheelBody(); }
 
     /// Get location of the wheel body for the specified limb.
-    const chrono::ChVector<>& GetWheelPos(LimbID id) const { return m_limbs[id]->GetWheelPos(); }
+    const chrono::ChVector3d& GetWheelPos(LimbID id) const { return m_limbs[id]->GetWheelPos(); }
 
     /// Get angular velocity of the wheel body for the specified limb (expressed in local coordinates).
-    chrono::ChVector<> GetWheelAngVelocity(LimbID id) const { return m_limbs[id]->GetWheelAngVelocity(); }
+    chrono::ChVector3d GetWheelAngVelocity(LimbID id) const { return m_limbs[id]->GetWheelAngVelocity(); }
 
     /// Get wheel angle for the specified limb.
     double GetWheelAngle(LimbID id) const { return m_limbs[id]->GetWheelAngle(); }
@@ -531,7 +531,7 @@ class CH_MODELS_API RoboSimian {
     void DoStepDynamics(double step);
 
     /// Translate all robot bodies by the specified value.
-    void Translate(const chrono::ChVector<>& shift);
+    void Translate(const chrono::ChVector3d& shift);
 
     /// Output current data.
     void Output();

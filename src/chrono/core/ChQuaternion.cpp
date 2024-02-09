@@ -100,7 +100,7 @@ ChQuaternion<double> Qcross(const ChQuaternion<double>& qa, const ChQuaternion<d
 // Get the quaternion from an angle of rotation and an axis, defined in _abs_ coords.
 // The axis is supposed to be fixed, i.e. it is constant during rotation.
 // The 'axis' vector must be normalized.
-ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis) {
+ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector3d& axis) {
     ChQuaternion<double> quat;
     double halfang;
     double sinhalf;
@@ -117,12 +117,12 @@ ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis) 
 
 // Get the quaternion from a source vector and a destination vector which specifies
 // the rotation from one to the other.  The vectors do not need to be normalized.
-ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const ChVector<double>& to_vect) {
+ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector3d& fr_vect, const ChVector3d& to_vect) {
     const double ANGLE_TOLERANCE = 1e-6;
     ChQuaternion<double> quat;
     double halfang;
     double sinhalf;
-    ChVector<double> axis;
+    ChVector3d axis;
 
     double lenXlen = fr_vect.Length() * to_vect.Length();
     axis = fr_vect % to_vect;
@@ -168,7 +168,7 @@ ChQuaternion<double> Q_from_AngY(double angleY) {
     return Q_from_AngAxis(angleY, VECT_Y);
 }
 
-ChQuaternion<double> Q_from_NasaAngles(const ChVector<double>& mang) {
+ChQuaternion<double> Q_from_NasaAngles(const ChVector3d& mang) {
     ChQuaternion<double> mq;
     double c1 = cos(mang.z() / 2);
     double s1 = sin(mang.z() / 2);
@@ -185,8 +185,8 @@ ChQuaternion<double> Q_from_NasaAngles(const ChVector<double>& mang) {
     return mq;
 }
 
-ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& q1) {
-    ChVector<double> mnasa;
+ChVector3d Q_to_NasaAngles(const ChQuaternion<double>& q1) {
+    ChVector3d mnasa;
     double sqw = q1.e0() * q1.e0();
     double sqx = q1.e1() * q1.e1();
     double sqy = q1.e2() * q1.e2();
@@ -200,7 +200,7 @@ ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& q1) {
     return mnasa;
 }
 
-ChQuaternion<double> Q_from_Euler123(const ChVector<double>& ang) {
+ChQuaternion<double> Q_from_Euler123(const ChVector3d& ang) {
 	ChQuaternion<double> q;
     double t0 = cos(ang.z() * 0.5);
 	double t1 = sin(ang.z() * 0.5);
@@ -217,8 +217,8 @@ ChQuaternion<double> Q_from_Euler123(const ChVector<double>& ang) {
 	return q;
 }
 
-ChVector<double> Q_to_Euler123(const ChQuaternion<double>& mq) {
-	ChVector<double> euler;
+ChVector3d Q_to_Euler123(const ChQuaternion<double>& mq) {
+	ChVector3d euler;
     double sq0 = mq.e0() * mq.e0();
     double sq1 = mq.e1() * mq.e1();
     double sq2 = mq.e2() * mq.e2();
@@ -233,11 +233,11 @@ ChVector<double> Q_to_Euler123(const ChQuaternion<double>& mq) {
 	return euler;
 }
 
-void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector<double>& axis) {
+void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector3d& axis) {
     if (std::abs(quat.e0()) < 0.99999999) {
         double arg = acos(quat.e0());
         double invsine = 1 / sin(arg);
-        ChVector<double> vtemp;
+        ChVector3d vtemp;
         vtemp.x() = invsine * quat.e1();
         vtemp.y() = invsine * quat.e2();
         vtemp.z() = invsine * quat.e3();
@@ -252,7 +252,7 @@ void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector<doub
 }
 
 // Get the quaternion time derivative from the vector of angular speed, with w specified in _absolute_ coords.
-ChQuaternion<double> Qdt_from_Wabs(const ChVector<double>& w, const ChQuaternion<double>& q) {
+ChQuaternion<double> Qdt_from_Wabs(const ChVector3d& w, const ChQuaternion<double>& q) {
     ChQuaternion<double> qw;
     double half = 0.5;
 
@@ -265,7 +265,7 @@ ChQuaternion<double> Qdt_from_Wabs(const ChVector<double>& w, const ChQuaternion
 }
 
 // Get the quaternion time derivative from the vector of angular speed, with w specified in _local_ coords.
-ChQuaternion<double> Qdt_from_Wrel(const ChVector<double>& w, const ChQuaternion<double>& q) {
+ChQuaternion<double> Qdt_from_Wrel(const ChVector3d& w, const ChQuaternion<double>& q) {
     ChQuaternion<double> qw;
     double half = 0.5;
 
@@ -278,7 +278,7 @@ ChQuaternion<double> Qdt_from_Wrel(const ChVector<double>& w, const ChQuaternion
 }
 
 // Get the quaternion first derivative from the vector of angular acceleration with a specified in _absolute_ coords.
-ChQuaternion<double> Qdtdt_from_Aabs(const ChVector<double>& a,
+ChQuaternion<double> Qdtdt_from_Aabs(const ChVector3d& a,
                                      const ChQuaternion<double>& q,
                                      const ChQuaternion<double>& q_dt) {
     ChQuaternion<double> ret;
@@ -287,7 +287,7 @@ ChQuaternion<double> Qdtdt_from_Aabs(const ChVector<double>& a,
 }
 
 //	Get the quaternion second derivative from the vector of angular acceleration with a specified in _relative_ coords.
-ChQuaternion<double> Qdtdt_from_Arel(const ChVector<double>& a,
+ChQuaternion<double> Qdtdt_from_Arel(const ChVector3d& a,
                                      const ChQuaternion<double>& q,
                                      const ChQuaternion<double>& q_dt) {
     ChQuaternion<double> ret;
@@ -296,8 +296,8 @@ ChQuaternion<double> Qdtdt_from_Arel(const ChVector<double>& a,
 }
 
 // Get the time derivative from a quaternion, a speed of rotation and an axis, defined in _abs_ coords.
-ChQuaternion<double> Qdt_from_AngAxis(const ChQuaternion<double>& quat, double angle_dt, const ChVector<double>& axis) {
-    ChVector<double> W;
+ChQuaternion<double> Qdt_from_AngAxis(const ChQuaternion<double>& quat, double angle_dt, const ChVector3d& axis) {
+    ChVector3d W;
 
     W = Vmul(axis, angle_dt);
 
@@ -306,10 +306,10 @@ ChQuaternion<double> Qdt_from_AngAxis(const ChQuaternion<double>& quat, double a
 
 // Get the second time derivative from a quaternion, an angular acceleration and an axis, defined in _abs_ coords.
 ChQuaternion<double> Qdtdt_from_AngAxis(double angle_dtdt,
-                                        const ChVector<double>& axis,
+                                        const ChVector3d& axis,
                                         const ChQuaternion<double>& q,
                                         const ChQuaternion<double>& q_dt) {
-    ChVector<double> Acc;
+    ChVector3d Acc;
 
     Acc = Vmul(axis, angle_dtdt);
 
@@ -329,7 +329,7 @@ bool Qnotnull(const ChQuaternion<double>& qa) {
 // Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion,
 // find the entire quaternion q = {e0, e1, e2, e3}.
 // Note: singularities are possible.
-ChQuaternion<double> ImmQ_complete(const ChVector<double>& qimm) {
+ChQuaternion<double> ImmQ_complete(const ChVector3d& qimm) {
     ChQuaternion<double> mq;
     mq.e1() = qimm.x();
     mq.e2() = qimm.y();
@@ -341,7 +341,7 @@ ChQuaternion<double> ImmQ_complete(const ChVector<double>& qimm) {
 // Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion time derivative,
 // find the entire quaternion q = {e0, e1, e2, e3}.
 // Note: singularities are possible.
-ChQuaternion<double> ImmQ_dt_complete(const ChQuaternion<double>& mq, const ChVector<double>& qimm_dt) {
+ChQuaternion<double> ImmQ_dt_complete(const ChQuaternion<double>& mq, const ChVector3d& qimm_dt) {
     ChQuaternion<double> mqdt;
     mqdt.e1() = qimm_dt.x();
     mqdt.e2() = qimm_dt.y();
@@ -355,7 +355,7 @@ ChQuaternion<double> ImmQ_dt_complete(const ChQuaternion<double>& mq, const ChVe
 // Note: singularities are possible.
 ChQuaternion<double> ImmQ_dtdt_complete(const ChQuaternion<double>& mq,
                                         const ChQuaternion<double>& mqdt,
-                                        const ChVector<double>& qimm_dtdt) {
+                                        const ChVector3d& qimm_dtdt) {
     ChQuaternion<double> mqdtdt;
     mqdtdt.e1() = qimm_dtdt.x();
     mqdtdt.e2() = qimm_dtdt.y();
@@ -369,7 +369,7 @@ ChQuaternion<double> ImmQ_dtdt_complete(const ChQuaternion<double>& mq,
 // -----------------------------------------------------------------------------
 //  ANGLE CONVERSION UTILITIES
 
-ChQuaternion<double> Angle_to_Quat(AngleSet angset, const ChVector<double>& mangles) {
+ChQuaternion<double> Angle_to_Quat(AngleSet angset, const ChVector3d& mangles) {
     ChQuaternion<double> res;
     ChMatrix33<> Acoord;
 
@@ -396,8 +396,8 @@ ChQuaternion<double> Angle_to_Quat(AngleSet angset, const ChVector<double>& mang
     return res;
 }
 
-ChVector<double> Quat_to_Angle(AngleSet angset, const ChQuaternion<double>& mquat) {
-    ChVector<double> res;
+ChVector3d Quat_to_Angle(AngleSet angset, const ChQuaternion<double>& mquat) {
+    ChVector3d res;
     ChMatrix33<> Acoord(mquat);
 
     switch (angset) {
@@ -423,11 +423,11 @@ ChVector<double> Quat_to_Angle(AngleSet angset, const ChQuaternion<double>& mqua
 }
 
 ChQuaternion<double> AngleDT_to_QuatDT(AngleSet angset,
-                                       const ChVector<double>& mangles,
+                                       const ChVector3d& mangles,
                                        const ChQuaternion<double>& q) {
     ChQuaternion<double> res;
     ChQuaternion<double> q2;
-    ChVector<double> ang1, ang2;
+    ChVector3d ang1, ang2;
 
     ang1 = Quat_to_Angle(angset, q);
     ang2 = Vadd(ang1, Vmul(mangles, FD_STEP));
@@ -438,11 +438,11 @@ ChQuaternion<double> AngleDT_to_QuatDT(AngleSet angset,
 }
 
 ChQuaternion<double> AngleDTDT_to_QuatDTDT(AngleSet angset,
-                                           const ChVector<double>& mangles,
+                                           const ChVector3d& mangles,
                                            const ChQuaternion<double>& q) {
     ChQuaternion<double> res;
     ChQuaternion<double> qa, qb;
-    ChVector<double> ang0, angA, angB;
+    ChVector3d ang0, angA, angB;
 
     ang0 = Quat_to_Angle(angset, q);
     angA = Vsub(ang0, Vmul(mangles, FD_STEP));
@@ -454,8 +454,8 @@ ChQuaternion<double> AngleDTDT_to_QuatDTDT(AngleSet angset,
     return res;
 }
 
-ChVector<double> Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector<double>& mangles) {
-    ChVector<double> res;
+ChVector3d Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector3d& mangles) {
+    ChVector3d res;
     ChMatrix33<> Acoord;
 
     switch (setfrom) {
@@ -502,8 +502,8 @@ ChVector<double> Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector
 
 // Get the X axis of a coordsystem, given the quaternion which
 // represents the alignment of the coordsystem.
-ChVector<double> VaxisXfromQuat(const ChQuaternion<double>& quat) {
-    ChVector<double> res;
+ChVector3d VaxisXfromQuat(const ChQuaternion<double>& quat) {
+    ChVector3d res;
     res.x() = (pow(quat.e0(), 2) + pow(quat.e1(), 2)) * 2 - 1;
     res.y() = ((quat.e1() * quat.e2()) + (quat.e0() * quat.e3())) * 2;
     res.z() = ((quat.e1() * quat.e3()) - (quat.e0() * quat.e2())) * 2;

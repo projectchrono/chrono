@@ -72,7 +72,7 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
   public:
     /// Create a rigid body with optional ellipsoid visualization and/or collision shape.
     /// The ellipsoid is created at the center of mass. Mass and inertia are set automatically depending on density.
-    ChBodyEasyEllipsoid(ChVector<> axes,                                       ///< ellipsoid axis lengths
+    ChBodyEasyEllipsoid(ChVector3d axes,                                       ///< ellipsoid axis lengths
                         double density,                                        ///< density of the body
                         bool visualize = true,                                 ///< create visualization asset
                         bool collide = false,                                  ///< enable collision
@@ -81,7 +81,7 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
 
     /// Create a rigid body with an ellipsoid visualization and collision shape.
     /// The ellipsoid is created at the center of mass. Mass and inertia are set automatically depending on density.
-    ChBodyEasyEllipsoid(ChVector<> axes,                             ///< ellipsoid axis lengths
+    ChBodyEasyEllipsoid(ChVector3d axes,                             ///< ellipsoid axis lengths
                         double density,                              ///< density of the body
                         std::shared_ptr<ChContactMaterial> material  ///< surface contact material
     );
@@ -93,7 +93,7 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
     static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
   private:
-    void SetupBody(ChVector<> axes,
+    void SetupBody(ChVector3d axes,
                    double density,
                    bool visualize,
                    bool collide,
@@ -199,7 +199,7 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
     /// The convex hull is defined with a set of points, expressed in a local frame. Mass and inertia are set
     /// automatically depending on density. The convex hull vertices are translated so that the barycenter coincides
     /// with the center of mass.
-    ChBodyEasyConvexHull(std::vector<ChVector<>>& points,                       ///< points of the convex hull
+    ChBodyEasyConvexHull(std::vector<ChVector3d>& points,                       ///< points of the convex hull
                          double density,                                        ///< density of the body
                          bool visualize = true,                                 ///< create visualization asset
                          bool collide = false,                                  ///< enable collision
@@ -210,7 +210,7 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
     /// The convex hull is defined with a set of points, expressed in a local frame. Mass and inertia are set
     /// automatically depending on density. The convex hull vertices are translated so that the barycenter coincides
     /// with the center of mass.
-    ChBodyEasyConvexHull(std::vector<ChVector<>>& points,             ///< points of the convex hull
+    ChBodyEasyConvexHull(std::vector<ChVector3d>& points,             ///< points of the convex hull
                          double density,                              ///< density of the body
                          std::shared_ptr<ChContactMaterial> material  ///< surface contact material
     );
@@ -224,7 +224,7 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
     static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
   private:
-    void SetupBody(std::vector<ChVector<>>& points,
+    void SetupBody(std::vector<ChVector3d>& points,
                    double density,
                    bool visualize,
                    bool collide,
@@ -243,7 +243,7 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
     /// Create a ChBodyAuxRef with optional convex hull visualization and/or collision shape.
     /// The convex hull is defined with a set of points, expressed in a local frame. Mass and inertia are set
     /// automatically depending on density. The center of mass is set at the barycenter.
-    ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& points,                       ///< convex hull points
+    ChBodyEasyConvexHullAuxRef(std::vector<ChVector3d>& points,                       ///< convex hull points
                                double density,                                        ///< density of the body
                                bool visualize = true,                                 ///< create visualization asset
                                bool collide = false,                                  ///< enable collision
@@ -253,7 +253,7 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
     /// Create a ChBodyAuxRef with a convex hull visualization and collision shape.
     /// The convex hull is defined with a set of points, expressed in a local frame. Mass and inertia are set
     /// automatically depending on density. The center of mass is set at the barycenter.
-    ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& points,             ///< convex hull points
+    ChBodyEasyConvexHullAuxRef(std::vector<ChVector3d>& points,             ///< convex hull points
                                double density,                              ///< density of the body
                                std::shared_ptr<ChContactMaterial> material  ///< surface contact material
     );
@@ -267,7 +267,7 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
     static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
   private:
-    void SetupBody(std::vector<ChVector<>>& points,
+    void SetupBody(std::vector<ChVector3d>& points,
                    double density,
                    bool visualize,
                    bool collide,
@@ -355,7 +355,7 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
     /// Create a rigid body with optional sphere cluster mesh visualization and/or collision shapes.
     /// The cluster of spheres will be displaced so that their center of mass corresponds to the origin of the body.
     /// Mass and inertia are set automatically depending on density.
-    ChBodyEasyClusterOfSpheres(std::vector<ChVector<>>& positions,                    ///< position of the spheres
+    ChBodyEasyClusterOfSpheres(std::vector<ChVector3d>& positions,                    ///< position of the spheres
                                std::vector<double>& radii,                            ///< sphere radius
                                double density,                                        ///< density of the body
                                bool visualize = true,                                 ///< create visualization asset
@@ -366,7 +366,7 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
     /// Create a ChBody with a sphere cluster mesh visualization and collision shapes.
     /// The cluster of spheres will be displaced so that their center of mass corresponds to the origin of the ChBody.
     /// Mass and inertia are set automatically depending on density.
-    ChBodyEasyClusterOfSpheres(std::vector<ChVector<>>& positions,          ///< position of the spheres
+    ChBodyEasyClusterOfSpheres(std::vector<ChVector3d>& positions,          ///< position of the spheres
                                std::vector<double>& radii,                  ///< sphere radius
                                double density,                              ///< density of the body
                                std::shared_ptr<ChContactMaterial> material  ///< surface contact material
@@ -379,7 +379,7 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
     static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
   private:
-    void SetupBody(std::vector<ChVector<>>& positions,
+    void SetupBody(std::vector<ChVector3d>& positions,
                    std::vector<double>& radii,
                    double density,
                    bool visualize,

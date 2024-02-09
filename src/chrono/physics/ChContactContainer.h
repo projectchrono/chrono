@@ -99,13 +99,13 @@ class ChApi ChContactContainer : public ChPhysicsItem {
         /// Callback used to report contact points already added to the container.
         /// If it returns false, the contact scanning will be stopped.
         virtual bool OnReportContact(
-            const ChVector<>& pA,             ///< contact pA
-            const ChVector<>& pB,             ///< contact pB
+            const ChVector3d& pA,             ///< contact pA
+            const ChVector3d& pB,             ///< contact pB
             const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
             const double& distance,           ///< contact distance
             const double& eff_radius,         ///< effective radius of curvature at contact
-            const ChVector<>& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector<>& react_torques,  ///< react.torques, if rolling friction (if already computed).
+            const ChVector3d& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
+            const ChVector3d& react_torques,  ///< react.torques, if rolling friction (if already computed).
             ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)
             ChContactable* contactobjB   ///< model B (note: some containers may not support it and could be nullptr)
             ) = 0;
@@ -119,10 +119,10 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     virtual void ComputeContactForces() {}
 
     /// Return the resultant contact force acting on the specified contactable object.
-    virtual ChVector<> GetContactableForce(ChContactable* contactable) = 0;
+    virtual ChVector3d GetContactableForce(ChContactable* contactable) = 0;
 
     /// Return the resultant contact torque acting on the specified contactable object.
-    virtual ChVector<> GetContactableTorque(ChContactable* contactable) = 0;
+    virtual ChVector3d GetContactableTorque(ChContactable* contactable) = 0;
 
     /// Method for serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive);
@@ -132,8 +132,8 @@ class ChApi ChContactContainer : public ChPhysicsItem {
 
   protected:
     struct ForceTorque {
-        ChVector<> force;
-        ChVector<> torque;
+        ChVector3d force;
+        ChVector3d torque;
     };
 
     std::shared_ptr<AddContactCallback> add_contact_callback;
@@ -151,14 +151,14 @@ class ChApi ChContactContainer : public ChPhysicsItem {
         for (auto contact = contactlist.begin(); contact != contactlist.end(); ++contact) {
             // Extract information for current contact (expressed in global frame)
             ChMatrix33<> A = (*contact)->GetContactPlane();
-            ChVector<> force_loc = (*contact)->GetContactForce();
-            ChVector<> force = A * force_loc;
-            ChVector<> p1 = (*contact)->GetContactP1();
-            ChVector<> p2 = (*contact)->GetContactP2();
+            ChVector3d force_loc = (*contact)->GetContactForce();
+            ChVector3d force = A * force_loc;
+            ChVector3d p1 = (*contact)->GetContactP1();
+            ChVector3d p2 = (*contact)->GetContactP2();
 
             // Calculate contact torque for first object (expressed in global frame).
             // Recall that -force is applied to the first object.
-            ChVector<> torque1(0);
+            ChVector3d torque1(0);
             if (ChBody* body = dynamic_cast<ChBody*>((*contact)->GetObjA())) {
                 torque1 = Vcross(p1 - body->GetPos(), -force);
             }
@@ -176,7 +176,7 @@ class ChApi ChContactContainer : public ChPhysicsItem {
 
             // Calculate contact torque for second object (expressed in global frame).
             // Recall that +force is applied to the second object.
-            ChVector<> torque2(0);
+            ChVector3d torque2(0);
             if (ChBody* body = dynamic_cast<ChBody*>((*contact)->GetObjB())) {
                 torque2 = Vcross(p2 - body->GetPos(), force);
             }

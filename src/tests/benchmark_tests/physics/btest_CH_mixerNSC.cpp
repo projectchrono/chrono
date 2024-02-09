@@ -56,50 +56,50 @@ MixerTestNSC<N>::MixerTestNSC() : m_system(new ChSystemNSC()), m_step(0.02) {
 
     for (int bi = 0; bi < N; bi++) {
         auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(1.0, 1000, true, true, mat);
-        sphereBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        sphereBody->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         m_system->Add(sphereBody);
 
         auto boxBody = chrono_types::make_shared<ChBodyEasyBox>(1.25, 1.25, 1.25, 1000, true, true, mat);
-        boxBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        boxBody->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         m_system->Add(boxBody);
 
         auto cylBody =
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.8, 1.0, 1000, true, true, mat);
-        cylBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        cylBody->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         m_system->Add(cylBody);
     }
 
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, mat);
-    floorBody->SetPos(ChVector<>(0, -5, 0));
+    floorBody->SetPos(ChVector3d(0, -5, 0));
     floorBody->SetBodyFixed(true);
     m_system->Add(floorBody);
 
     auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, mat);
-    wallBody1->SetPos(ChVector<>(-10, 0, 0));
+    wallBody1->SetPos(ChVector3d(-10, 0, 0));
     wallBody1->SetBodyFixed(true);
     m_system->Add(wallBody1);
 
     auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, mat);
-    wallBody2->SetPos(ChVector<>(10, 0, 0));
+    wallBody2->SetPos(ChVector3d(10, 0, 0));
     wallBody2->SetBodyFixed(true);
     m_system->Add(wallBody2);
 
     auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true, mat);
-    wallBody3->SetPos(ChVector<>(0, 0, -10));
+    wallBody3->SetPos(ChVector3d(0, 0, -10));
     wallBody3->SetBodyFixed(true);
     m_system->Add(wallBody3);
 
     auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true, mat);
-    wallBody4->SetPos(ChVector<>(0, 0, 10));
+    wallBody4->SetPos(ChVector3d(0, 0, 10));
     wallBody4->SetBodyFixed(true);
     m_system->Add(wallBody4);
 
     auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1, 4000, true, true, mat);
-    rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
+    rotatingBody->SetPos(ChVector3d(0, -1.6, 0));
     m_system->Add(rotatingBody);
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
+    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
     auto fun = chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 3.0);
     motor->SetSpeedFunction(fun);
     m_system->AddLink(motor);
@@ -117,7 +117,7 @@ void MixerTestNSC<N>::SimulateVis() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, 14, -20), ChVector<>(0, 0, 0));
+    vis->AddCamera(ChVector3d(0, 14, -20), ChVector3d(0, 0, 0));
 
     while (vis->Run()) {
         vis->BeginScene();

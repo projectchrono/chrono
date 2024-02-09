@@ -66,23 +66,23 @@ bool image_output = false;
 
 class RayCaster {
   public:
-    RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2<>& dims, double spacing);
+    RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2d& dims, double spacing);
 
-    const std::vector<ChVector<>>& GetPoints() const { return m_points; }
+    const std::vector<ChVector3d>& GetPoints() const { return m_points; }
 
     void Update();
 
   private:
     ChSystem* m_sys;
     ChFrame<> m_origin;
-    ChVector2<> m_dims;
+    ChVector2d m_dims;
     double m_spacing;
     std::shared_ptr<ChBody> m_body;
     std::shared_ptr<ChGlyphs> m_glyphs;
-    std::vector<ChVector<>> m_points;
+    std::vector<ChVector3d> m_points;
 };
 
-RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2<>& dims, double spacing)
+RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2d& dims, double spacing)
     : m_sys(sys), m_origin(origin), m_dims(dims), m_spacing(spacing) {
     m_body = chrono_types::make_shared<ChBody>();
     m_body->SetBodyFixed(true);
@@ -99,15 +99,15 @@ RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2<>& 
 void RayCaster::Update() {
     m_points.clear();
 
-    ChVector<> dir = m_origin.GetA().Get_A_Zaxis();
+    ChVector3d dir = m_origin.GetA().Get_A_Zaxis();
     int nx = static_cast<int>(std::round(m_dims.x() / m_spacing));
     int ny = static_cast<int>(std::round(m_dims.y() / m_spacing));
     for (int ix = 0; ix < nx; ix++) {
         for (int iy = 0; iy < ny; iy++) {
             double x_local = -0.5 * m_dims.x() + ix * m_spacing;
             double y_local = -0.5 * m_dims.y() + iy * m_spacing;
-            ChVector<> from = m_origin.TransformPointLocalToParent(ChVector<>(x_local, y_local, 0.0));
-            ChVector<> to = from + dir * 100;
+            ChVector3d from = m_origin.TransformPointLocalToParent(ChVector3d(x_local, y_local, 0.0));
+            ChVector3d to = from + dir * 100;
             ChCollisionSystem::ChRayhitResult result;
             m_sys->GetCollisionSystem()->RayHit(from, to, result);
             if (result.hit)
@@ -141,11 +141,11 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem* sys, double length, double width
     ground->SetCollide(true);
 
     auto shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
-    ground->AddCollisionShape(shape, ChFrame<>(ChVector<>(offset, 0, height - 0.1), QUNIT));
+    ground->AddCollisionShape(shape, ChFrame<>(ChVector3d(offset, 0, height - 0.1), QUNIT));
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(length, width, 0.2);
     box->SetTexture(GetChronoDataFile("textures/pinkwhite.png"), 10 * (float)length, 10 * (float)width);
-    ground->AddVisualShape(box, ChFrame<>(ChVector<>(offset, 0, height - 0.1), QUNIT));
+    ground->AddVisualShape(box, ChFrame<>(ChVector3d(offset, 0, height - 0.1), QUNIT));
 
     sys->GetCollisionSystem()->BindItem(ground);
     sys->AddBody(ground);
@@ -196,8 +196,8 @@ int main(int argc, char* argv[]) {
     my_sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     my_sys->SetSolverMaxIterations(200);
     my_sys->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    my_sys->Set_G_acc(ChVector<double>(0, 0, -9.8));
-    ////my_sys->Set_G_acc(ChVector<double>(0, 0, 0));
+    my_sys->Set_G_acc(ChVector3d(0, 0, -9.8));
+    ////my_sys->Set_G_acc(ChVector3d(0, 0, 0));
 
     // -----------------------
     // Create RoboSimian robot
@@ -234,8 +234,8 @@ int main(int argc, char* argv[]) {
 
     // Initialize Robosimian robot
 
-    ////robot.Initialize(ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
-    robot.Initialize(ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI)));
+    ////robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
+    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), Q_from_AngX(CH_C_PI)));
 
     // -----------------------------------
     // Create a driver and attach to robot
@@ -283,8 +283,8 @@ int main(int argc, char* argv[]) {
     // Cast rays into collision models
     // -------------------------------
 
-    ////RayCaster caster(my_sys, ChFrame<>(ChVector<>(2, 0, -1), Q_from_AngY(-CH_C_PI_2)), ChVector2<>(2.5, 2.5), 0.02);
-    RayCaster caster(my_sys, ChFrame<>(ChVector<>(0, -2, -1), Q_from_AngX(-CH_C_PI_2)), ChVector2<>(2.5, 2.5), 0.02);
+    ////RayCaster caster(my_sys, ChFrame<>(ChVector3d(2, 0, -1), Q_from_AngY(-CH_C_PI_2)), ChVector2d(2.5, 2.5), 0.02);
+    RayCaster caster(my_sys, ChFrame<>(ChVector3d(0, -2, -1), Q_from_AngX(-CH_C_PI_2)), ChVector2d(2.5, 2.5), 0.02);
 
     // -------------------------------
     // Create the visualization window
@@ -297,10 +297,10 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(1, -2.75, 0.2), ChVector<>(1, 0, 0));
-    vis->AddLight(ChVector<>(100, +100, 100), 290, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(100, -100, 80), 190, ChColor(0.7f, 0.8f, 0.8f));
-    ////vis->AddLightWithShadow(ChVector<>(10.0, -6.0, 3.0), ChVector<>(0, 0, 0), 3, -10, 10, 40, 512);
+    vis->AddCamera(ChVector3d(1, -2.75, 0.2), ChVector3d(1, 0, 0));
+    vis->AddLight(ChVector3d(100, +100, 100), 290, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(100, -100, 80), 190, ChColor(0.7f, 0.8f, 0.8f));
+    ////vis->AddLightWithShadow(ChVector3d(10.0, -6.0, 3.0), ChVector3d(0, 0, 0), 3, -10, 10, 40, 512);
     ////vis->EnableShadows();
 
     // -----------------------------
@@ -347,8 +347,8 @@ int main(int argc, char* argv[]) {
             double width = 2;
 
             // Create terrain
-            ChVector<> hdim(length / 2, width / 2, 0.1);
-            ChVector<> loc(length / 4, 0, z - 0.1);
+            ChVector3d hdim(length / 2, width / 2, 0.1);
+            ChVector3d loc(length / 4, 0, z - 0.1);
             auto ground = CreateTerrain(my_sys, length, width, z, length / 4);
             vis->BindItem(ground);
             SetContactProperties(&robot);

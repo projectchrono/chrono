@@ -89,16 +89,16 @@ void AddBodies(ChSystemNSC& sys) {
     sys.AddBody(Body_1);
     Body_1->SetBodyFixed(false);
     Body_1->SetMass(1);
-    Body_1->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
-    Body_1->SetPos(ChVector<>(-1, 0, 0));
+    Body_1->SetInertiaXX(ChVector3d(0.1, 0.1, 0.1));
+    Body_1->SetPos(ChVector3d(-1, 0, 0));
 
     // Defining the Body 3
     Body_2 = chrono_types::make_shared<ChBody>();
     sys.AddBody(Body_2);
     Body_2->SetBodyFixed(false);
     Body_2->SetMass(2);
-    Body_2->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
-    Body_2->SetPos(ChVector<>(0.25, 0, 0));
+    Body_2->SetInertiaXX(ChVector3d(0.1, 0.1, 0.1));
+    Body_2->SetPos(ChVector3d(0.25, 0, 0));
 }
 
 // ========================================================================
@@ -133,10 +133,10 @@ void AddMesh(ChSystemNSC& sys) {
         double loc_z = 0;
 
         // Node direction
-        ChVector<> dir(0, 0, 1);
+        ChVector3d dir(0, 0, 1);
 
         // Create the node
-        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), dir);
+        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(loc_x, loc_y, loc_z), dir);
         node->SetMass(0);
 
         // Add node to mesh
@@ -187,12 +187,12 @@ void AddMesh(ChSystemNSC& sys) {
 void AddConstraints(ChSystemNSC& sys) {
     // Weld Body_1 to ground
     joint_weld = chrono_types::make_shared<ChLinkLockLock>();
-    joint_weld->Initialize(ground, Body_1, ChCoordsys<>(ChVector<>(-2.0, 0, 0)));
+    joint_weld->Initialize(ground, Body_1, ChCoordsys<>(ChVector3d(-2.0, 0, 0)));
     sys.AddLink(joint_weld);
 
     // Revolute joint between Body_1 and Body_2
     joint_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    joint_revolute->Initialize(Body_1, Body_2, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI / 2.0)));
+    joint_revolute->Initialize(Body_1, Body_2, ChCoordsys<>(ChVector3d(0, 0, 0), Q_from_AngX(CH_C_PI / 2.0)));
     sys.AddLink(joint_revolute);
 
     // Constraining a node to Body_2
@@ -203,7 +203,7 @@ void AddConstraints(ChSystemNSC& sys) {
     // This contraint means that rz will always be aligned with the node's D vector
     constraint_dir = chrono_types::make_shared<ChLinkDirFrame>();
     constraint_dir->Initialize(Node_1, Body_2);
-    constraint_dir->SetDirectionInAbsoluteCoords(ChVector<double>(0, 0, 1));
+    constraint_dir->SetDirectionInAbsoluteCoords(ChVector3d(0, 0, 1));
     sys.Add(constraint_dir);
 }
 
@@ -213,12 +213,12 @@ bool CheckConstraints() {
     ChVectorN<double, 20> violation;
 
     // Explicitly check distance between Body_2 connection point and connected node
-    auto body_pos = Body_2->TransformPointLocalToParent(ChVector<>(0.25, 0, 0));
+    auto body_pos = Body_2->TransformPointLocalToParent(ChVector3d(0.25, 0, 0));
     auto node_pos = Node_1->GetPos();
     violation.segment(0, 3) = (body_pos - node_pos).eigen();
 
     // Explicitly check orthogonality between Body_2 x-axis and node D vector
-    ChVector<> body_axis = Body_2->TransformDirectionLocalToParent(ChVector<>(0.25, 0, 0));
+    ChVector3d body_axis = Body_2->TransformDirectionLocalToParent(ChVector3d(0.25, 0, 0));
     violation(3) = Vdot(body_axis, Node_1->GetD());
 
     // Check violation in weld joint
@@ -241,7 +241,7 @@ bool CheckConstraints() {
 int main(int argc, char* argv[]) {
     // Create model
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
 
     AddMesh(sys);
     AddBodies(sys);
@@ -271,17 +271,17 @@ int main(int argc, char* argv[]) {
                Body_1->coord.pos.z());
         printf("Body_2 position: %12.4e  %12.4e  %12.4e\n", Body_2->coord.pos.x(), Body_2->coord.pos.y(),
                Body_2->coord.pos.z());
-        ChVector<> tip = Body_2->TransformPointLocalToParent(ChVector<>(0.25, 0, 0));
+        ChVector3d tip = Body_2->TransformPointLocalToParent(ChVector3d(0.25, 0, 0));
         printf("Body_2 tip:      %12.4e  %12.4e  %12.4e\n", tip.x(), tip.y(), tip.z());
 
         printf("Node position:   %12.4e  %12.4e  %12.4e\n", Node_1->GetPos().x(), Node_1->GetPos().y(), Node_1->GetPos().z());
         printf("Direction of node:  %12.4e  %12.4e  %12.4e\n", Node_1->GetD().x(), Node_1->GetD().y(), Node_1->GetD().z());
 
         // Get direction of constraint (in body local frame) and convert to global frame
-        ChVector<> dirB = Body_2->TransformDirectionLocalToParent(constraint_dir->GetDirection());
+        ChVector3d dirB = Body_2->TransformDirectionLocalToParent(constraint_dir->GetDirection());
         printf("Direction on body:  %12.4e  %12.4e  %12.4e\n", dirB.x(), dirB.y(), dirB.z());
         // Direction along the body
-        ChVector<> body_axis = Body_2->TransformDirectionLocalToParent(ChVector<>(0.25, 0, 0));
+        ChVector3d body_axis = Body_2->TransformDirectionLocalToParent(ChVector3d(0.25, 0, 0));
         printf("Body axis dir:      %12.4e  %12.4e  %12.4e\n", body_axis.x(), body_axis.y(), body_axis.z());
         // Body axis should always be perpendicular to node normal
         double dot = Vdot(body_axis, Node_1->GetD());

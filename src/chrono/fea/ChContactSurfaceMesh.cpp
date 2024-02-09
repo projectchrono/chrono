@@ -103,7 +103,7 @@ void ChContactTriangleXYZ::ContactableIncrementState(const ChState& x, const ChS
     m_nodes[2]->NodeIntStateIncrement(6, x_new, x, 6, dw);
 }
 
-ChVector<> ChContactTriangleXYZ::GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) {
+ChVector3d ChContactTriangleXYZ::GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) {
     // Note: because the reference coordinate system for a ChcontactTriangleXYZ is the identity,
     // the given point loc_point is actually expressed in the global frame. In this case, we
     // calculate the output point here by assuming that its barycentric coordinates do not change
@@ -112,14 +112,14 @@ ChVector<> ChContactTriangleXYZ::GetContactPoint(const ChVector<>& loc_point, co
     ComputeUVfromP(loc_point, s2, s3);
     double s1 = 1 - s2 - s3;
 
-    ChVector<> A1(state_x.segment(0, 3));
-    ChVector<> A2(state_x.segment(3, 3));
-    ChVector<> A3(state_x.segment(6, 3));
+    ChVector3d A1(state_x.segment(0, 3));
+    ChVector3d A2(state_x.segment(3, 3));
+    ChVector3d A3(state_x.segment(6, 3));
 
     return s1 * A1 + s2 * A2 + s3 * A3;
 }
 
-ChVector<> ChContactTriangleXYZ::GetContactPointSpeed(const ChVector<>& loc_point,
+ChVector3d ChContactTriangleXYZ::GetContactPointSpeed(const ChVector3d& loc_point,
                                                       const ChState& state_x,
                                                       const ChStateDelta& state_w) {
     // Note: because the reference coordinate system for a ChcontactTriangleXYZ is the identity,
@@ -130,23 +130,23 @@ ChVector<> ChContactTriangleXYZ::GetContactPointSpeed(const ChVector<>& loc_poin
     ComputeUVfromP(loc_point, s2, s3);
     double s1 = 1 - s2 - s3;
 
-    ChVector<> A1_dt(state_w.segment(0, 3));
-    ChVector<> A2_dt(state_w.segment(3, 3));
-    ChVector<> A3_dt(state_w.segment(6, 3));
+    ChVector3d A1_dt(state_w.segment(0, 3));
+    ChVector3d A2_dt(state_w.segment(3, 3));
+    ChVector3d A3_dt(state_w.segment(6, 3));
 
     return s1 * A1_dt + s2 * A2_dt + s3 * A3_dt;
 }
 
-ChVector<> ChContactTriangleXYZ::GetContactPointSpeed(const ChVector<>& abs_point) {
+ChVector3d ChContactTriangleXYZ::GetContactPointSpeed(const ChVector3d& abs_point) {
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
     return (s1 * m_nodes[0]->pos_dt + s2 * m_nodes[1]->pos_dt + s3 * m_nodes[2]->pos_dt);
 }
 
-void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
-                                                      const ChVector<>& T,
-                                                      const ChVector<>& abs_point,
+void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector3d& F,
+                                                      const ChVector3d& T,
+                                                      const ChVector3d& abs_point,
                                                       ChVectorDynamic<>& R) {
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
@@ -157,20 +157,20 @@ void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
     // note: do nothing for torque T
 }
 
-void ChContactTriangleXYZ::ContactComputeQ(const ChVector<>& F,
-                                             const ChVector<>& T,
-                                             const ChVector<>& point,
+void ChContactTriangleXYZ::ContactComputeQ(const ChVector3d& F,
+                                             const ChVector3d& T,
+                                             const ChVector3d& point,
                                              const ChState& state_x,
                                              ChVectorDynamic<>& Q,
                                              int offset) {
     // Calculate barycentric coordinates
-    ChVector<> A1(state_x.segment(0, 3));
-    ChVector<> A2(state_x.segment(3, 3));
-    ChVector<> A3(state_x.segment(6, 3));
+    ChVector3d A1(state_x.segment(0, 3));
+    ChVector3d A2(state_x.segment(3, 3));
+    ChVector3d A3(state_x.segment(6, 3));
 
     double s2, s3;
     bool is_into;
-    ChVector<> p_projected;
+    ChVector3d p_projected;
     /*double dist =*/utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
     Q.segment(offset + 0, 3) = F.eigen() * s1;
@@ -180,7 +180,7 @@ void ChContactTriangleXYZ::ContactComputeQ(const ChVector<>& F,
 
 }
 
-void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                          ChMatrix33<>& contact_plane,
                                                          type_constraint_tuple& jacobian_tuple_N,
                                                          type_constraint_tuple& jacobian_tuple_U,
@@ -189,7 +189,7 @@ void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_p
     // compute the triangular area-parameters s1 s2 s3:
     double s2, s3;
     bool is_into;
-    ChVector<> p_projected;
+    ChVector3d p_projected;
     /*double dist =*/utils::PointTriangleDistance(abs_point, GetNode(0)->pos, GetNode(1)->pos, GetNode(2)->pos, s2, s3,
                                                   is_into, p_projected);
     double s1 = 1 - s2 - s3;
@@ -256,9 +256,9 @@ void ChContactTriangleXYZ::ComputeNF(
     N(2) = V;
 
     // determinant of jacobian is also =2*areaoftriangle, also length of cross product of sides
-    ChVector<> p0 = GetNode(0)->GetPos();
-    ChVector<> p1 = GetNode(1)->GetPos();
-    ChVector<> p2 = GetNode(2)->GetPos();
+    ChVector3d p0 = GetNode(0)->GetPos();
+    ChVector3d p1 = GetNode(1)->GetPos();
+    ChVector3d p2 = GetNode(2)->GetPos();
     detJ = (Vcross(p2 - p0, p1 - p0)).Length();
 
     Qi.segment(0, 3) = N(0) * F.segment(0, 3);
@@ -266,16 +266,16 @@ void ChContactTriangleXYZ::ComputeNF(
     Qi.segment(6, 3) = N(2) * F.segment(0, 3);
 }
 
-ChVector<> ChContactTriangleXYZ::ComputeNormal(const double U, const double V) {
-    ChVector<> p0 = GetNode(0)->GetPos();
-    ChVector<> p1 = GetNode(1)->GetPos();
-    ChVector<> p2 = GetNode(2)->GetPos();
+ChVector3d ChContactTriangleXYZ::ComputeNormal(const double U, const double V) {
+    ChVector3d p0 = GetNode(0)->GetPos();
+    ChVector3d p1 = GetNode(1)->GetPos();
+    ChVector3d p2 = GetNode(2)->GetPos();
     return Vcross(p1 - p0, p2 - p0).GetNormalized();
 }
 
-void ChContactTriangleXYZ::ComputeUVfromP(const ChVector<> P, double& u, double& v) {
+void ChContactTriangleXYZ::ComputeUVfromP(const ChVector3d P, double& u, double& v) {
     bool is_into;
-    ChVector<> p_projected;
+    ChVector3d p_projected;
     /*double dist =*/utils::PointTriangleDistance(P, m_nodes[0]->pos, m_nodes[1]->pos, m_nodes[2]->pos, u, v, is_into,
                                                   p_projected);
 }
@@ -365,7 +365,7 @@ void ChContactTriangleXYZROT::ContactableIncrementState(const ChState& x, const 
     m_nodes[2]->NodeIntStateIncrement(14, x_new, x, 12, dw);
 }
 
-ChVector<> ChContactTriangleXYZROT::GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) {
+ChVector3d ChContactTriangleXYZROT::GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) {
     // Note: because the reference coordinate system for a ChContactTriangleXYZROT is the identity,
     // the given point loc_point is actually expressed in the global frame. In this case, we
     // calculate the output point here by assuming that its barycentric coordinates do not change
@@ -374,14 +374,14 @@ ChVector<> ChContactTriangleXYZROT::GetContactPoint(const ChVector<>& loc_point,
     ComputeUVfromP(loc_point, s2, s3);
     double s1 = 1 - s2 - s3;
 
-    ChVector<> A1(state_x.segment(0, 3));
-    ChVector<> A2(state_x.segment(7, 3));
-    ChVector<> A3(state_x.segment(14, 3));
+    ChVector3d A1(state_x.segment(0, 3));
+    ChVector3d A2(state_x.segment(7, 3));
+    ChVector3d A3(state_x.segment(14, 3));
 
     return s1 * A1 + s2 * A2 + s3 * A3;
 }
 
-ChVector<> ChContactTriangleXYZROT::GetContactPointSpeed(const ChVector<>& loc_point,
+ChVector3d ChContactTriangleXYZROT::GetContactPointSpeed(const ChVector3d& loc_point,
                                                          const ChState& state_x,
                                                          const ChStateDelta& state_w) {
     // Note: because the reference coordinate system for a ChContactTriangleXYZROT is the identity,
@@ -392,23 +392,23 @@ ChVector<> ChContactTriangleXYZROT::GetContactPointSpeed(const ChVector<>& loc_p
     ComputeUVfromP(loc_point, s2, s3);
     double s1 = 1 - s2 - s3;
 
-    ChVector<> A1_dt(state_w.segment(0, 3));
-    ChVector<> A2_dt(state_w.segment(6, 3));
-    ChVector<> A3_dt(state_w.segment(12, 3));
+    ChVector3d A1_dt(state_w.segment(0, 3));
+    ChVector3d A2_dt(state_w.segment(6, 3));
+    ChVector3d A3_dt(state_w.segment(12, 3));
 
     return s1 * A1_dt + s2 * A2_dt + s3 * A3_dt;
 }
 
-ChVector<> ChContactTriangleXYZROT::GetContactPointSpeed(const ChVector<>& abs_point) {
+ChVector3d ChContactTriangleXYZROT::GetContactPointSpeed(const ChVector3d& abs_point) {
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
     return (s1 * m_nodes[0]->GetPos_dt() + s2 * m_nodes[1]->GetPos_dt() + s3 * m_nodes[2]->GetPos_dt());
 }
 
-void ChContactTriangleXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
-                                                         const ChVector<>& T,
-                                                         const ChVector<>& abs_point,
+void ChContactTriangleXYZROT::ContactForceLoadResidual_F(const ChVector3d& F,
+                                                         const ChVector3d& T,
+                                                         const ChVector3d& abs_point,
                                                          ChVectorDynamic<>& R) {
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
@@ -425,20 +425,20 @@ void ChContactTriangleXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
     }
 }
 
-void ChContactTriangleXYZROT::ContactComputeQ(const ChVector<>& F,
-                                                const ChVector<>& T,
-                                                const ChVector<>& point,
+void ChContactTriangleXYZROT::ContactComputeQ(const ChVector3d& F,
+                                                const ChVector3d& T,
+                                                const ChVector3d& point,
                                                 const ChState& state_x,
                                                 ChVectorDynamic<>& Q,
                                                 int offset) {
     // Calculate barycentric coordinates
-    ChVector<> A1(state_x.segment(0, 3));
-    ChVector<> A2(state_x.segment(7, 3));
-    ChVector<> A3(state_x.segment(14, 3));
+    ChVector3d A1(state_x.segment(0, 3));
+    ChVector3d A2(state_x.segment(7, 3));
+    ChVector3d A3(state_x.segment(14, 3));
 
     double s2, s3;
     bool is_into;
-    ChVector<> p_projected;
+    ChVector3d p_projected;
     utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
     Q.segment(offset + 0, 3) = F.eigen() * s1;
@@ -457,7 +457,7 @@ void ChContactTriangleXYZROT::ContactComputeQ(const ChVector<>& F,
     }
 }
 
-void ChContactTriangleXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+void ChContactTriangleXYZROT::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                             ChMatrix33<>& contact_plane,
                                                             type_constraint_tuple& jacobian_tuple_N,
                                                             type_constraint_tuple& jacobian_tuple_U,
@@ -466,7 +466,7 @@ void ChContactTriangleXYZROT::ComputeJacobianForContactPart(const ChVector<>& ab
     // compute the triangular area-parameters s1 s2 s3:
     double s2, s3;
     bool is_into;
-    ChVector<> p_projected;
+    ChVector3d p_projected;
     /*double dist =*/utils::PointTriangleDistance(abs_point, GetNode(0)->coord.pos, GetNode(1)->coord.pos,
                                                   GetNode(2)->coord.pos, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
@@ -533,9 +533,9 @@ void ChContactTriangleXYZROT::ComputeNF(
     N(2) = V;
 
     // determinant of jacobian is also =2*areaoftriangle, also length of cross product of sides
-    ChVector<> p0 = GetNode(0)->GetPos();
-    ChVector<> p1 = GetNode(1)->GetPos();
-    ChVector<> p2 = GetNode(2)->GetPos();
+    ChVector3d p0 = GetNode(0)->GetPos();
+    ChVector3d p1 = GetNode(1)->GetPos();
+    ChVector3d p2 = GetNode(2)->GetPos();
     detJ = (Vcross(p2 - p0, p1 - p0)).Length();
 
     Qi.segment(0, 3) = N(0) * F.segment(0, 3);
@@ -548,16 +548,16 @@ void ChContactTriangleXYZROT::ComputeNF(
     Qi.segment(15, 3) = N(2) * F.segment(3, 3);
 }
 
-ChVector<> ChContactTriangleXYZROT::ComputeNormal(const double U, const double V) {
-    ChVector<> p0 = GetNode(0)->GetPos();
-    ChVector<> p1 = GetNode(1)->GetPos();
-    ChVector<> p2 = GetNode(2)->GetPos();
+ChVector3d ChContactTriangleXYZROT::ComputeNormal(const double U, const double V) {
+    ChVector3d p0 = GetNode(0)->GetPos();
+    ChVector3d p1 = GetNode(1)->GetPos();
+    ChVector3d p2 = GetNode(2)->GetPos();
     return Vcross(p1 - p0, p2 - p0).GetNormalized();
 }
 
-void ChContactTriangleXYZROT::ComputeUVfromP(const ChVector<> P, double& u, double& v) {
+void ChContactTriangleXYZROT::ComputeUVfromP(const ChVector3d P, double& u, double& v) {
     bool is_into;
-    ChVector<> p_projected;
+    ChVector3d p_projected;
     /*double dist =*/utils::PointTriangleDistance(P, m_nodes[0]->GetPos(), m_nodes[1]->GetPos(), m_nodes[2]->GetPos(),
                                                   u, v, is_into, p_projected);
 }
@@ -1342,11 +1342,11 @@ void ChContactSurfaceMesh::RemoveCollisionModelsFromSystem(ChCollisionSystem* co
     }
 }
 
-void ChContactSurfaceMesh::OutputSimpleMesh(std::vector<ChVector<>>& vert_pos,
-                                            std::vector<ChVector<>>& vert_vel,
-                                            std::vector<ChVector<int>>& triangles,
-                                            std::vector<ChVector<bool>>& owns_node,
-                                            std::vector<ChVector<bool>>& owns_edge) const {
+void ChContactSurfaceMesh::OutputSimpleMesh(std::vector<ChVector3d>& vert_pos,
+                                            std::vector<ChVector3d>& vert_vel,
+                                            std::vector<ChVector3i>& triangles,
+                                            std::vector<ChVector3b>& owns_node,
+                                            std::vector<ChVector3b>& owns_edge) const {
     vert_pos.clear();
     vert_vel.clear();
     triangles.clear();

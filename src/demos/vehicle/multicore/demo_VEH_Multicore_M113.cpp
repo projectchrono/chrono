@@ -83,7 +83,7 @@ double r_g = 0.02;
 double rho_g = 2500;
 double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
 double mass_g = rho_g * vol_g;
-ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * ChVector<>(1, 1, 1);
+ChVector3d inertia_g = 0.4 * mass_g * r_g * r_g * ChVector3d(1, 1, 1);
 
 float mu_g = 0.8f;
 
@@ -94,7 +94,7 @@ unsigned int num_particles = 40000;
 // -----------------------------------------------------------------------------
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(-hdimX + 4.5, 0, 0.8);
+ChVector3d initLoc(-hdimX + 4.5, 0, 0.8);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Simple powertrain model
@@ -158,8 +158,8 @@ double CreateParticles(ChSystem* sys) {
     gen.setBodyIdentifier(Id_g);
 
     // Create particles in layers until reaching the desired number of particles
-    ChVector<> hdims(hdimX - r, hdimY - r, 0);
-    ChVector<> center(0, 0, 2 * r);
+    ChVector3d hdims(hdimX - r, hdimY - r, 0);
+    ChVector3d center(0, 0, 2 * r);
 
     while (gen.getTotalNumBodies() < num_particles) {
         gen.CreateObjectsBox(sampler, center, hdims);
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys->Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys->Set_G_acc(ChVector3d(0, 0, -9.81));
 
 
     // ---------------------
@@ -277,33 +277,33 @@ int main(int argc, char* argv[]) {
     // Bottom box
     utils::AddBoxGeometry(ground.get(),                                           //
                           mat_g,                                                  //
-                          ChVector<>(hdimX, hdimY, hthick) * 2,                   //
-                          ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0),  //
+                          ChVector3d(hdimX, hdimY, hthick) * 2,                   //
+                          ChVector3d(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0),  //
                           true);
     if (terrain_type == GRANULAR_TERRAIN) {
         // Front box
         utils::AddBoxGeometry(ground.get(),                                                               //
                               mat_g,                                                                      //
-                              ChVector<>(hthick, hdimY, hdimZ + hthick) * 2,                              //
-                              ChVector<>(hdimX + hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
+                              ChVector3d(hthick, hdimY, hdimZ + hthick) * 2,                              //
+                              ChVector3d(hdimX + hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
                               visible_walls);
         // Rear box
         utils::AddBoxGeometry(ground.get(),                                                                //
                               mat_g,                                                                       //
-                              ChVector<>(hthick, hdimY, hdimZ + hthick) * 2,                               //
-                              ChVector<>(-hdimX - hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
+                              ChVector3d(hthick, hdimY, hdimZ + hthick) * 2,                               //
+                              ChVector3d(-hdimX - hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
                               visible_walls);
         // Left box
         utils::AddBoxGeometry(ground.get(),                                                               //
                               mat_g,                                                                      //
-                              ChVector<>(hdimX, hthick, hdimZ + hthick) * 2,                              //
-                              ChVector<>(0, hdimY + hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
+                              ChVector3d(hdimX, hthick, hdimZ + hthick) * 2,                              //
+                              ChVector3d(0, hdimY + hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
                               visible_walls);
         // Right box
         utils::AddBoxGeometry(ground.get(),                                                                //
                               mat_g,                                                                       //
-                              ChVector<>(hdimX, hthick, hdimZ + hthick) * 2,                               //
-                              ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
+                              ChVector3d(hdimX, hthick, hdimZ + hthick) * 2,                               //
+                              ChVector3d(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
                               visible_walls);
     }
 
@@ -360,7 +360,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(0, -10, 0), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 #endif
 

@@ -188,8 +188,8 @@ geometry::ChAABB ChCollisionSystemBullet::GetBoundingBox() const {
     cbtVector3 aabbMax;
     bt_broadphase->getBroadphaseAabb(aabbMin, aabbMax);
 
-    return geometry::ChAABB(ChVector<>((double)aabbMin.x(), (double)aabbMin.y(), (double)aabbMin.z()),
-                            ChVector<>((double)aabbMax.x(), (double)aabbMax.y(), (double)aabbMax.z()));
+    return geometry::ChAABB(ChVector3d((double)aabbMin.x(), (double)aabbMin.y(), (double)aabbMin.z()),
+                            ChVector3d((double)aabbMax.x(), (double)aabbMax.y(), (double)aabbMax.z()));
 }
 
 void ChCollisionSystemBullet::ResetTimers() {
@@ -318,12 +318,12 @@ void ChCollisionSystemBullet::ReportProximities(ChProximityContainer* mproximity
     mproximitycontainer->EndAddProximities();
 }
 
-bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const {
+bool ChCollisionSystemBullet::RayHit(const ChVector3d& from, const ChVector3d& to, ChRayhitResult& result) const {
     return RayHit(from, to, result, cbtBroadphaseProxy::DefaultFilter, cbtBroadphaseProxy::AllFilter);
 }
 
-bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
-                                     const ChVector<>& to,
+bool ChCollisionSystemBullet::RayHit(const ChVector3d& from,
+                                     const ChVector3d& to,
                                      ChRayhitResult& result,
                                      short int filter_group,
                                      short int filter_mask) const {
@@ -355,15 +355,15 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
     return false;
 }
 
-bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
-                                     const ChVector<>& to,
+bool ChCollisionSystemBullet::RayHit(const ChVector3d& from,
+                                     const ChVector3d& to,
                                      ChCollisionModel* model,
                                      ChRayhitResult& result) const {
     return RayHit(from, to, model, result, cbtBroadphaseProxy::DefaultFilter, cbtBroadphaseProxy::AllFilter);
 }
 
-bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
-                                     const ChVector<>& to,
+bool ChCollisionSystemBullet::RayHit(const ChVector3d& from,
+                                     const ChVector3d& to,
                                      ChCollisionModel* model,
                                      ChRayhitResult& result,
                                      short int filter_group,
@@ -419,7 +419,7 @@ class ChDebugDrawer : public cbtIDebugDraw {
     ~ChDebugDrawer() override {}
 
     void drawLine(const cbtVector3& from, const cbtVector3& to, const cbtVector3& color) override {
-        m_vis->DrawLine(ChVector<>(from.x(), from.y(), from.z()), ChVector<>(to.x(), to.y(), to.z()),
+        m_vis->DrawLine(ChVector3d(from.x(), from.y(), from.z()), ChVector3d(to.x(), to.y(), to.z()),
                         ChColor(color.x(), color.y(), color.z()));
     }
 
@@ -430,7 +430,7 @@ class ChDebugDrawer : public cbtIDebugDraw {
                           const cbtVector3& color) override {
         cbtVector3 from = PointOnB;
         cbtVector3 to = PointOnB + m_vis->GetNormalScale() * normalOnB;
-        m_vis->DrawLine(ChVector<>(from.x(), from.y(), from.z()), ChVector<>(to.x(), to.y(), to.z()),
+        m_vis->DrawLine(ChVector3d(from.x(), from.y(), from.z()), ChVector3d(to.x(), to.y(), to.z()),
                         ChColor(color.x(), color.y(), color.z()));
     }
 

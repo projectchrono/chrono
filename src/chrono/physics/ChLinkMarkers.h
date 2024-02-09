@@ -39,25 +39,25 @@ class ChApi ChLinkMarkers : public ChLink {
     Coordsys relM_dtdt;  ///< relative marker acceleration
 
     double relAngle;        ///< relative angle of rotation
-    ChVector<> relAxis;     ///< relative axis of rotation
-    ChVector<> relRotaxis;  ///< relative rotaion vector =angle*axis
-    ChVector<> relWvel;     ///< relative angular speed
-    ChVector<> relWacc;     ///< relative angular acceleration
+    ChVector3d relAxis;     ///< relative axis of rotation
+    ChVector3d relRotaxis;  ///< relative rotaion vector =angle*axis
+    ChVector3d relWvel;     ///< relative angular speed
+    ChVector3d relWacc;     ///< relative angular acceleration
     double dist;            ///< the distance between the two origins of markers,
     double dist_dt;         ///< the speed between the two  origins of markers
 
-    ChVector<> C_force;     ///< internal force  applied by springs/dampers/actuators
-    ChVector<> C_torque;    ///< internal torque applied by springs/dampers/actuators
+    ChVector3d C_force;     ///< internal force  applied by springs/dampers/actuators
+    ChVector3d C_torque;    ///< internal torque applied by springs/dampers/actuators
 
     // Cached intermediate variables.
     // These are calculated in UpdateRelMarkerCoords and may be reused in UpdateState.
-    ChVector<> PQw;
-    ChVector<> PQw_dt;
-    ChVector<> PQw_dtdt;
+    ChVector3d PQw;
+    ChVector3d PQw_dt;
+    ChVector3d PQw_dtdt;
     ChQuaternion<> q_AD;
     ChQuaternion<> q_BC;
     ChQuaternion<> q_8;
-    ChVector<> q_4;
+    ChVector3d q_4;
 
   public:
     virtual ~ChLinkMarkers() {}
@@ -172,12 +172,12 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Relative rotation angle of marker 1 respect to marker 2 (best with revolute joints..).
     double GetRelAngle() const { return relAngle; }
     /// Relative finite rotation axis of marker 1 respect to marker 2.
-    const ChVector<>& GetRelAxis() const { return relAxis; }
-    const ChVector<>& GetRelRotaxis() const { return relRotaxis; }
+    const ChVector3d& GetRelAxis() const { return relAxis; }
+    const ChVector3d& GetRelRotaxis() const { return relRotaxis; }
     /// Relative angular speed of marker 1 respect to marker 2.
-    const ChVector<>& GetRelWvel() const { return relWvel; }
+    const ChVector3d& GetRelWvel() const { return relWvel; }
     /// Relative angular acceleration of marker 1 respect to marker 2.
-    const ChVector<>& GetRelWacc() const { return relWacc; }
+    const ChVector3d& GetRelWacc() const { return relWacc; }
     /// Relative 'polar' distance of marker 1 respect to marker 2.
     double GetDist() const { return dist; }
     /// Relative speed of marker 1 respect to marker 2, along the polar distance vector.
@@ -186,8 +186,8 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Get the total applied force accumulators (force, momentum) in link coords.
     /// These forces might be affected by additional springs, dampers, etc. but they do not
     /// include the reaction forces.
-    const ChVector<>& GetC_force() const { return C_force; }
-    const ChVector<>& GetC_torque() const { return C_torque; }
+    const ChVector3d& GetC_force() const { return C_force; }
+    const ChVector3d& GetC_torque() const { return C_torque; }
 
     //
     // SERIALIZATION

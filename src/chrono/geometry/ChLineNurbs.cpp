@@ -21,13 +21,13 @@ namespace geometry {
 CH_FACTORY_REGISTER(ChLineNurbs)
 
 ChLineNurbs::ChLineNurbs() {
-    std::vector<ChVector<> > mpoints = {ChVector<>(-1, 0, 0), ChVector<>(1, 0, 0)};
+    std::vector<ChVector3d > mpoints = {ChVector3d(-1, 0, 0), ChVector3d(1, 0, 0)};
     this->SetupData(1, mpoints);
 }
 
 ChLineNurbs::ChLineNurbs(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots,          ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     ChVectorDynamic<>* weights          ///< weights, size w. Required w=n. If not provided, all weights as 1.
 ) {
@@ -41,7 +41,7 @@ ChLineNurbs::ChLineNurbs(const ChLineNurbs& source) : ChLine(source) {
     this->weights = source.weights;
 }
 
-ChVector<> ChLineNurbs::Evaluate(double parU) const {
+ChVector3d ChLineNurbs::Evaluate(double parU) const {
     double u = ComputeKnotUfromU(parU);
 
     ChVectorDynamic<> mR(this->p + 1);
@@ -49,7 +49,7 @@ ChVector<> ChLineNurbs::Evaluate(double parU) const {
 
     int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
 
-    ChVector<> pos = VNULL;
+    ChVector3d pos = VNULL;
     int uind = spanU - p;
     for (int i = 0; i <= this->p; i++) {
         pos += points[uind + i] * mR(i);
@@ -58,7 +58,7 @@ ChVector<> ChLineNurbs::Evaluate(double parU) const {
     return pos;
 }
 
-ChVector<> ChLineNurbs::GetTangent(double parU) const {
+ChVector3d ChLineNurbs::GetTangent(double parU) const {
     double u = ComputeKnotUfromU(parU);
 
     ChVectorDynamic<> mR(this->p + 1);
@@ -67,7 +67,7 @@ ChVector<> ChLineNurbs::GetTangent(double parU) const {
 
     int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
 
-    ChVector<> dir = VNULL;
+    ChVector3d dir = VNULL;
     int uind = spanU - p;
     for (int i = 0; i <= this->p; i++) {
         dir += points[uind + i] * mdR(i);
@@ -78,7 +78,7 @@ ChVector<> ChLineNurbs::GetTangent(double parU) const {
 
 void ChLineNurbs::SetupData(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots,          ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     ChVectorDynamic<>* weights          ///< weights, size w. Required w=n. If not provided, all weights as 1.
 ) {

@@ -31,7 +31,7 @@ namespace feda {
 // -----------------------------------------------------------------------------
 
 const double FEDA_Wheel::m_mass = 18.8;
-const ChVector<> FEDA_Wheel::m_inertia(0.4634, 0.6243, 0.4634);
+const ChVector3d FEDA_Wheel::m_inertia(0.4634, 0.6243, 0.4634);
 
 const double FEDA_Wheel::m_radius = 0.28575;
 const double FEDA_Wheel::m_width = 0.254;

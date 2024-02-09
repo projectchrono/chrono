@@ -36,9 +36,9 @@ class ChApi ChMaterialHexaANCF {
 
     /// Construct a (possibly) orthotropic material.
     ChMaterialHexaANCF(double rho,            ///< material density
-                       const ChVector<>& E,   ///< elasticity moduli (E_x, E_y, E_z)
-                       const ChVector<>& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
-                       const ChVector<>& G    ///< shear moduli (G_xy, G_xz, G_yz)
+                       const ChVector3d& E,   ///< elasticity moduli (E_x, E_y, E_z)
+                       const ChVector3d& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
+                       const ChVector3d& G    ///< shear moduli (G_xy, G_xz, G_yz)
     );
 
     /// Return the material density.
@@ -48,7 +48,7 @@ class ChApi ChMaterialHexaANCF {
 
   private:
     /// Calculate the matrix form of 6x6 stiffness tensor
-    void Calc_D(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G);
+    void Calc_D(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G);
 
     double m_rho;                  ///< density
     ChMatrixNM<double, 6, 6> m_D;  ///< matrix of elastic coefficients

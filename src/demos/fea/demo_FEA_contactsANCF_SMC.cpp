@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     auto material = chrono_types::make_shared<ChMaterialShellANCF>(1000, 1e8, 0.3);
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
-    ChVector<> Center(-0.5, -0.5, 0.5);
+    ChVector3d Center(-0.5, -0.5, 0.5);
     ChMatrix33<> rot_transform(0);
     rot_transform(0, 0) = 1;
     rot_transform(1, 1) = -1;
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     // Switch off mesh class gravity
 
     my_mesh->SetAutomaticGravity(addGravity);
-    sys.Set_G_acc(ChVector<>(0, 0, -9.8));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.8));
 
     // Add the mesh to the system
     sys.Add(my_mesh);
@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
     vsys->AddLogo();
     vsys->AddSkyBox();
     vsys->AddTypicalLights();
-    vsys->AddCamera(ChVector<>(0.25, -0.25, 0.5), ChVector<>(0, -0.5, 0.0));
+    vsys->AddCamera(ChVector3d(0.25, -0.25, 0.5), ChVector3d(0, -0.5, 0.0));
     vsys->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
     vsys->EnableShadows();
 

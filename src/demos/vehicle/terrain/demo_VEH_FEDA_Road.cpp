@@ -191,14 +191,14 @@ class MyDriver {
 
     const std::string& GetDriverType() { return m_driver_type; }
 
-    ChVector<> GetTargetLocation() {
+    ChVector3d GetTargetLocation() {
         if (m_type == DriverModelType::HUMAN)
             return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetTargetLocation();
         else
             return m_steering_controller->GetTargetLocation();
     }
 
-    ChVector<> GetSentinelLocation() {
+    ChVector3d GetSentinelLocation() {
         if (m_type == DriverModelType::HUMAN)
             return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetSentinelLocation();
         else
@@ -356,7 +356,7 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->SetWindowTitle("OpenCRG Steering");
     vis->SetWindowSize(1200, 800);
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->AttachVehicle(&feda.GetVehicle());
 
     auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);

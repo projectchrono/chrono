@@ -52,7 +52,7 @@ void ChManualTransmissionShafts::Initialize(std::shared_ptr<ChChassis> chassis) 
 
     //// TODO: allow longitudinal/transversal transmission block?
     ////       get from engine?
-    ChVector<> dir_transmissionblock(1, 0, 0);
+    ChVector3d dir_transmissionblock(1, 0, 0);
 
     // Create the motor block.
     // ChShaftsThermalEngine connects this motor block to the motorshaft and applies the engine torque between them.

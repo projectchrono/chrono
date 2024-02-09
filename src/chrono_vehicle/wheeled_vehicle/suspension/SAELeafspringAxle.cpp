@@ -168,12 +168,12 @@ void SAELeafspringAxle::Create(const rapidjson::Document& d) {
         m_shackleBushingData = ReadBushingDataJSON(d["Leafspring"]["Leafspring Bushing Data"]);
     }
 
-    ChVector<> ra = getLocation(CLAMP_A) - getLocation(FRONT_HANGER);
-    ChVector<> rb = getLocation(CLAMP_B) - getLocation(SHACKLE);
+    ChVector3d ra = getLocation(CLAMP_A) - getLocation(FRONT_HANGER);
+    ChVector3d rb = getLocation(CLAMP_B) - getLocation(SHACKLE);
 
-    ChVector<> preload(0, 0, vertical_preload / 2.0);
-    ChVector<> Ma = preload.Cross(ra);
-    ChVector<> Mb = preload.Cross(rb);
+    ChVector3d preload(0, 0, vertical_preload / 2.0);
+    ChVector3d Ma = preload.Cross(ra);
+    ChVector3d Mb = preload.Cross(rb);
 
     double KAlat = lateral_stiffness / (1.0 + stiffness_bias);
     double KBlat = stiffness_bias * KAlat;

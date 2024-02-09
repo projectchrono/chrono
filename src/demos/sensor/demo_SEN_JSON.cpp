@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"),
                                                                   false, true);
-    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(2));  // scale to a different size
+    mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(2));  // scale to a different size
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);

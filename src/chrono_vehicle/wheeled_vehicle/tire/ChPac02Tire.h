@@ -398,7 +398,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
         double dpi;              // normalized inflation pressure
         double brx{0};           // bristle deformation x
         double bry{0};           // bristle deformation y
-        ChVector<> disc_normal;  //(temporary for debug)
+        ChVector3d disc_normal;  //(temporary for debug)
     };
 
     TireStates m_states;

@@ -66,7 +66,7 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem& sys, double length, double width
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);
-    ground->SetPos(ChVector<>(offset, 0, height - 0.1));
+    ground->SetPos(ChVector3d(offset, 0, height - 0.1));
     ground->SetCollide(true);
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
@@ -86,14 +86,14 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem& sys, double length, double width
 int main(int argc, char* argv[]) {
     // Create a Chrono system and an associated collision detection system
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.8));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.8));
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create parser instance
     ChParserURDF robot(GetChronoDataFile("robot/robosimian/rs.urdf"));
 
     // Set root body pose
-    robot.SetRootInitPose(ChFrame<>(ChVector<>(0, 0, 1.5), QUNIT));
+    robot.SetRootInitPose(ChFrame<>(ChVector3d(0, 0, 1.5), QUNIT));
 
     // Make all eligible joints as actuated (POSITION type) and
     // overwrite wheel motors with SPEED actuation.
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     // Create the visualization window
     std::shared_ptr<ChVisualSystem> vis;
     auto camera_lookat = torso->GetPos();
-    auto camera_loc = camera_lookat + ChVector<>(3, 3, 0);
+    auto camera_loc = camera_lookat + ChVector3d(3, 3, 0);
 #ifndef CHRONO_IRRLICHT
     if (vis_type == ChVisualSystem::Type::IRRLICHT)
         vis_type = ChVisualSystem::Type::VSG;
@@ -235,8 +235,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
             vis_vsg->SetWindowTitle("RoboSimian URDF demo");
             vis_vsg->AddCamera(camera_loc, camera_lookat);
-            vis_vsg->SetWindowSize(ChVector2<int>(1200, 800));
-            vis_vsg->SetWindowPosition(ChVector2<int>(400, 100));
+            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
+            vis_vsg->SetWindowPosition(ChVector2i(400, 100));
             vis_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
             vis_vsg->SetUseSkyBox(false);
             vis_vsg->SetCameraAngleDeg(40.0);
@@ -284,8 +284,8 @@ int main(int argc, char* argv[]) {
         }
 
         // Update camera location
-        camera_lookat = ChVector<>(torso->GetPos().x(), torso->GetPos().y(), camera_lookat.z());
-        camera_loc = camera_lookat + ChVector<>(3, 3, 0);
+        camera_lookat = ChVector3d(torso->GetPos().x(), torso->GetPos().y(), camera_lookat.z());
+        camera_loc = camera_lookat + ChVector3d(3, 3, 0);
 
         vis->BeginScene();
         vis->UpdateCamera(camera_loc, camera_lookat);

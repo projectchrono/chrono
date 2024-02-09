@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, 14, -20));
+    vis->AddCamera(ChVector3d(0, 14, -20));
 
     // Create a rigid body
     auto sphere_mat = chrono_types::make_shared<ChContactMaterialNSC>();
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
                                                                    true,         // visualization?
                                                                    true,         // collision?
                                                                    sphere_mat);  // contact material
-    sphereBody->SetPos(ChVector<>(1, 1, 0));
+    sphereBody->SetPos(ChVector3d(1, 1, 0));
     sphereBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     sys.Add(sphereBody);
 
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     sys.SetSolverMaxIterations(40);
 
     // Turn off default -9.8 downward gravity
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     // Simulation loop
     double timestep = 0.01;
@@ -190,10 +190,10 @@ int main(int argc, char* argv[]) {
             auto abodyA = sys.Get_bodylist()[i];
             for (unsigned int j = i + 1; j < sys.Get_bodylist().size(); j++) {
                 auto abodyB = sys.Get_bodylist()[j];
-                ChVector<> D_attract = abodyB->GetPos() - abodyA->GetPos();
+                ChVector3d D_attract = abodyB->GetPos() - abodyA->GetPos();
                 double r_attract = D_attract.Length();
                 double f_attract = G_constant * (abodyA->GetMass() * abodyB->GetMass()) / (pow(r_attract, 2));
-                ChVector<> F_attract = (D_attract / r_attract) * f_attract;
+                ChVector3d F_attract = (D_attract / r_attract) * f_attract;
 
                 abodyA->Accumulate_force(F_attract, abodyA->GetPos(), false);
                 abodyB->Accumulate_force(-F_attract, abodyB->GetPos(), false);

@@ -37,7 +37,7 @@ class CH_MODELS_API Generic_AntirollBarRSD : public ChAntirollBarRSD {
     ~Generic_AntirollBarRSD() {}
 
     virtual double getArmMass() const override { return m_arm_mass; }
-    virtual ChVector<> getArmInertia() override { return m_arm_inertia; }
+    virtual ChVector3d getArmInertia() override { return m_arm_inertia; }
 
     virtual double getArmLength() const override { return m_arm_length; }
     virtual double getArmWidth() const override { return m_arm_width; }
@@ -49,7 +49,7 @@ class CH_MODELS_API Generic_AntirollBarRSD : public ChAntirollBarRSD {
 
   private:
     static const double m_arm_mass;
-    static const ChVector<> m_arm_inertia;
+    static const ChVector3d m_arm_inertia;
     static const double m_arm_length;
     static const double m_arm_width;
     static const double m_droplink_height;

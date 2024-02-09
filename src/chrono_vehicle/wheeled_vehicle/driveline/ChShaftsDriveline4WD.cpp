@@ -32,7 +32,7 @@ namespace vehicle {
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChShaftsDriveline4WD::ChShaftsDriveline4WD(const std::string& name)
-    : ChDrivelineWV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
+    : ChDrivelineWV(name), m_dir_motor_block(ChVector3d(1, 0, 0)), m_dir_axle(ChVector3d(0, 1, 0)) {}
 
 ChShaftsDriveline4WD::~ChShaftsDriveline4WD() {
     auto sys = m_central_differential->GetSystem();

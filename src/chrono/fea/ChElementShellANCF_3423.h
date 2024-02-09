@@ -191,7 +191,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
 
     /// Return a struct with 6-component strain and stress vectors evaluated at a
     /// given quadrature point and layer number.
-    ChStrainStress3D EvaluateSectionStrainStress(const ChVector<>& loc, int layer_id);
+    ChStrainStress3D EvaluateSectionStrainStress(const ChVector3d& loc, int layer_id);
     void EvaluateDeflection(double& defVec);
 
   public:
@@ -218,7 +218,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
     virtual void ComputeNodalMass() override;
 
     /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     /// Computes the internal forces.
     /// (E.g. the actual position of nodes is not in relaxed reference position) and set values in the Fi vector.
@@ -232,12 +232,12 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
 
     virtual void EvaluateSectionDisplacement(const double u,
                                              const double v,
-                                             ChVector<>& u_displ,
-                                             ChVector<>& u_rotaz) override;
+                                             ChVector3d& u_displ,
+                                             ChVector3d& u_rotaz) override;
 
-    virtual void EvaluateSectionFrame(const double u, const double v, ChVector<>& point, ChQuaternion<>& rot) override;
+    virtual void EvaluateSectionFrame(const double u, const double v, ChVector3d& point, ChQuaternion<>& rot) override;
 
-    virtual void EvaluateSectionPoint(const double u, const double v, ChVector<>& point) override;
+    virtual void EvaluateSectionPoint(const double u, const double v, ChVector3d& point) override;
 
     // Internal computations
     // ---------------------
@@ -326,7 +326,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
     /// Check if the specified sub-block of DOFs is active.
     virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
-    virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) override;
+    virtual void EvaluateSectionVelNorm(double U, double V, ChVector3d& Result) override;
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -368,7 +368,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
 
     /// Gets the normal to the surface at the parametric coordinate U,V.
     /// Each coordinate ranging in -1..+1.
-    virtual ChVector<> ComputeNormal(const double U, const double V) override;
+    virtual ChVector3d ComputeNormal(const double U, const double V) override;
 
   private:
     /// Initial setup. This is used to precompute matrices that do not change during the simulation, such as the local

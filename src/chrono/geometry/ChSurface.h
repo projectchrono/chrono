@@ -41,12 +41,12 @@ class ChApi ChSurface : public ChGeometry {
     /// Return a point on the surface, given parametric coordinates U,V.
     /// Parameters U and V always work in 0..1 range.
     /// The default implementation always returns the origin of the surface frame.
-    virtual ChVector<> Evaluate(double parU, double parV) const { return VNULL; }
+    virtual ChVector3d Evaluate(double parU, double parV) const { return VNULL; }
 
     /// Return the normal unit vector at the parametric coordinates U,V (in the range [0,1]).
     /// Computed value (normalized) goes into the 'pos' reference.
     /// This default implementation uses finite differences.
-    virtual ChVector<> GetNormal(double parU, double parV) const;
+    virtual ChVector3d GetNormal(double parU, double parV) const;
 
     /// Tell if the surface is closed (periodic) on U
     virtual bool Get_closed_U() const { return false; }

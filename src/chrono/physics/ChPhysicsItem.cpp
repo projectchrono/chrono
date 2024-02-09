@@ -83,7 +83,7 @@ geometry::ChAABB ChPhysicsItem::GetTotalAABB() {
     return geometry::ChAABB();
 }
 
-void ChPhysicsItem::GetCenter(ChVector<>& mcenter) {
+void ChPhysicsItem::GetCenter(ChVector3d& mcenter) {
     auto bbox = GetTotalAABB();
     mcenter = (bbox.min + bbox.max) * 0.5;
 }

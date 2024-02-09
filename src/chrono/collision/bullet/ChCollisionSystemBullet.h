@@ -87,11 +87,11 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     virtual void ReportProximities(ChProximityContainer* mproximitycontainer) override;
 
     /// Perform a ray-hit test with all collision models.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const override;
+    virtual bool RayHit(const ChVector3d& from, const ChVector3d& to, ChRayhitResult& result) const override;
 
     /// Perform a ray-hit test with the specified collision model.
-    virtual bool RayHit(const ChVector<>& from,
-                        const ChVector<>& to,
+    virtual bool RayHit(const ChVector3d& from,
+                        const ChVector3d& to,
                         ChCollisionModel* model,
                         ChRayhitResult& result) const override;
 
@@ -121,16 +121,16 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
   protected:
     /// Perform a ray-hit test with all collision models. This version allows specifying the Bullet
     /// collision filter group and mask (see cbtBroadphaseProxy::CollisionFilterGroups).
-    bool RayHit(const ChVector<>& from,
-                const ChVector<>& to,
+    bool RayHit(const ChVector3d& from,
+                const ChVector3d& to,
                 ChRayhitResult& result,
                 short int filter_group,
                 short int filter_mask) const;
 
     /// Perform a ray-hit test with the specified collision model. This version allows specifying the Bullet
     /// collision filter group and mask (see cbtBroadphaseProxy::CollisionFilterGroups).
-    bool RayHit(const ChVector<>& from,
-                const ChVector<>& to,
+    bool RayHit(const ChVector3d& from,
+                const ChVector3d& to,
                 ChCollisionModel* model,
                 ChRayhitResult& result,
                 short int filter_group,

@@ -84,16 +84,16 @@ class ChApi ChLinkTSDA : public ChLink {
     double GetForce() const { return m_force; }
 
     /// Get the endpoint location on 1st body (expressed in body coordinate system)
-    const ChVector<>& GetPoint1Rel() const { return m_loc1; }
+    const ChVector3d& GetPoint1Rel() const { return m_loc1; }
 
     /// Get the endpoint location on 1st body (expressed in absolute coordinate system)
-    const ChVector<>& GetPoint1Abs() const { return m_aloc1; }
+    const ChVector3d& GetPoint1Abs() const { return m_aloc1; }
 
     /// Get the endpoint location on 2nd body (expressed in body coordinate system)
-    const ChVector<>& GetPoint2Rel() const { return m_loc2; }
+    const ChVector3d& GetPoint2Rel() const { return m_loc2; }
 
     /// Get the endpoint location on 1st body (expressed in absolute coordinate system)
-    const ChVector<>& GetPoint2Abs() const { return m_aloc2; }
+    const ChVector3d& GetPoint2Abs() const { return m_aloc2; }
 
     /// Get the value of the spring coefficient.
     /// Meaningful only if no force functor is provided.
@@ -180,8 +180,8 @@ class ChApi ChLinkTSDA : public ChLink {
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first body to link
                     std::shared_ptr<ChBody> body2,  ///< second body to link
                     bool pos_are_relative,          ///< if true, point locations are relative to bodies
-                    ChVector<> loc1,                ///< point on 1st body (rel. or abs., see flag above)
-                    ChVector<> loc2                 ///< point on 2nd body (rel. or abs., see flag above)
+                    ChVector3d loc1,                ///< point on 1st body (rel. or abs., see flag above)
+                    ChVector3d loc2                 ///< point on 2nd body (rel. or abs., see flag above)
     );
 
     /// Method to allow serialization of transient data to archives.
@@ -276,10 +276,10 @@ class ChApi ChLinkTSDA : public ChLink {
                           const ChStateDelta& state_w  ///< state speed to evaluate jacobians
     );
 
-    ChVector<> m_loc1;        ///< location of end point on body1 (relative to body1)
-    ChVector<> m_loc2;        ///< location of end point on body2 (relative to body1)
-    ChVector<> m_aloc1;       ///< location of end point on body1 (absolute)
-    ChVector<> m_aloc2;       ///< location of end point on body2 (absolute)
+    ChVector3d m_loc1;        ///< location of end point on body1 (relative to body1)
+    ChVector3d m_loc2;        ///< location of end point on body2 (relative to body1)
+    ChVector3d m_aloc1;       ///< location of end point on body1 (absolute)
+    ChVector3d m_aloc2;       ///< location of end point on body2 (absolute)
     bool m_auto_rest_length;  ///< if true, rest length set at initialization
     double m_rest_length;     ///< undeformed length
     double m_length;          ///< current length

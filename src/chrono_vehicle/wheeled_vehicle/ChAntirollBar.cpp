@@ -25,7 +25,7 @@ ChAntirollBar::ChAntirollBar(const std::string& name) : ChPart(name) {}
 
 void ChAntirollBar::Initialize(std::shared_ptr<ChChassis> chassis,
                                std::shared_ptr<ChSuspension> suspension,
-                               const ChVector<>& location) {
+                               const ChVector3d& location) {
     // Mark as initialized
     m_initialized = true;
 }

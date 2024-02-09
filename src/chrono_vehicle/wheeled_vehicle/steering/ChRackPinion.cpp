@@ -46,7 +46,7 @@ ChRackPinion::~ChRackPinion() {
 
 // -----------------------------------------------------------------------------
 void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
-                              const ChVector<>& location,
+                              const ChVector3d& location,
                               const ChQuaternion<>& rotation) {
     ChSteering::Initialize(chassis, location, rotation);
 
@@ -61,7 +61,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
     steering_to_abs.ConcatenatePreTransformation(chassisBody->GetFrame_REF_to_abs());
 
     // Create and initialize the steering link body
-    ChVector<> link_pos = steering_to_abs.TransformPointLocalToParent(ChVector<>(0, GetSteeringLinkCOM(), 0));
+    ChVector3d link_pos = steering_to_abs.TransformPointLocalToParent(ChVector3d(0, GetSteeringLinkCOM(), 0));
     ChQuaternion<> link_rot = steering_to_abs.GetRot().GetNormalized();
 
     m_link = chrono_types::make_shared<ChBody>();
@@ -83,8 +83,8 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
     // we do not reach the singular configuration of the ChLinkLinActuator (when the distance between the two markers
     // becomes zero).
     double offset = 2;
-    ChVector<> pt1 = link_pos;
-    ChVector<> pt2 = link_pos - offset * link_rot.GetYaxis();
+    ChVector3d pt1 = link_pos;
+    ChVector3d pt2 = link_pos - offset * link_rot.GetYaxis();
 
     m_actuator = chrono_types::make_shared<ChLinkLinActuator>();
     m_actuator->SetNameString(m_name + "_actuator");
@@ -123,8 +123,8 @@ void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
     double length = GetSteeringLinkLength();
 
     ChVehicleGeometry::AddVisualizationCylinder(m_link,                         //
-                                                ChVector<>(0, length / 2, 0),   //
-                                                ChVector<>(0, -length / 2, 0),  //
+                                                ChVector3d(0, length / 2, 0),   //
+                                                ChVector3d(0, -length / 2, 0),  //
                                                 GetSteeringLinkRadius());
 }
 

@@ -175,7 +175,7 @@ void test_pendulum() {
     auto my_root = chrono_types::make_shared<ChBody>();
     my_root->SetCoord(VNULL, QUNIT);
     my_root->SetMass(1e6);
-    my_root->SetInertiaXX(ChVector<>(1, 1, 1));
+    my_root->SetInertiaXX(ChVector3d(1, 1, 1));
     my_root->SetNameString("base");
     my_root->SetBodyFixed(true);
     my_root->SetCollide(false);
@@ -185,18 +185,18 @@ void test_pendulum() {
     my_root->AddVisualShape(cyl_rev, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
 
     auto my_mass = chrono_types::make_shared<ChBody>();
-    ChVector<> mass_pos = ChVector<>(length * std::sin(offset_angle), 0, -length * std::cos(offset_angle));
-    ChVector<> Zdir = (my_root->GetPos() - mass_pos).GetNormalized();
-    ChVector<> Ydir = my_root->GetRot().GetYaxis().GetNormalized();
-    ChVector<> Xdir = Ydir.Cross(Zdir).GetNormalized();
-    ChVector<> mX;
-    ChVector<> mY;
-    ChVector<> mZ;
+    ChVector3d mass_pos = ChVector3d(length * std::sin(offset_angle), 0, -length * std::cos(offset_angle));
+    ChVector3d Zdir = (my_root->GetPos() - mass_pos).GetNormalized();
+    ChVector3d Ydir = my_root->GetRot().GetYaxis().GetNormalized();
+    ChVector3d Xdir = Ydir.Cross(Zdir).GetNormalized();
+    ChVector3d mX;
+    ChVector3d mY;
+    ChVector3d mZ;
     Xdir.DirToDxDyDz(mX, mY, mZ, Ydir);
     ChQuaternion<> mass_rot = ChMatrix33<>(mX, mY, mZ).Get_A_quaternion();
     my_mass->SetCoord(mass_pos, mass_rot);
     my_mass->SetMass(tip_mass);
-    my_mass->SetInertiaXX(ChVector<>(0, 0, 0));
+    my_mass->SetInertiaXX(ChVector3d(0, 0, 0));
     my_mass->SetNameString("mass");
     my_mass->SetCollide(false);
     sys.AddBody(my_mass);
@@ -230,7 +230,7 @@ void test_pendulum() {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(3, 1, 3));
+    vis->AddCamera(ChVector3d(3, 1, 3));
     vis->AddTypicalLights();
     vis->EnableBodyFrameDrawing(false);
     vis->EnableLinkFrameDrawing(false);
@@ -395,18 +395,18 @@ void test_anchorchain() {
         double len_tot = (pA->GetPos() - pB->GetPos()).Length();
         double len = len_tot / (double)(mN + 1);
 
-        ChVector<> Xdir = (pB->GetPos() - pA->GetPos()).GetNormalized();
-        ChVector<> Ydir = {0, 1, 0};
-        ChVector<> Zdir = Xdir.Cross(Ydir).GetNormalized();
-        ChVector<> mX;
-        ChVector<> mY;
-        ChVector<> mZ;
+        ChVector3d Xdir = (pB->GetPos() - pA->GetPos()).GetNormalized();
+        ChVector3d Ydir = {0, 1, 0};
+        ChVector3d Zdir = Xdir.Cross(Ydir).GetNormalized();
+        ChVector3d mX;
+        ChVector3d mY;
+        ChVector3d mZ;
         Xdir.DirToDxDyDz(mX, mY, mZ, Ydir);
         ChQuaternion<> knot_rot = ChMatrix33<>(mX, mY, mZ).Get_A_quaternion();
 
         for (int i_body = 0; i_body < mN; i_body++) {
             auto knot = chrono_types::make_shared<ChBody>();
-            ChVector<> deltaP = (pB->GetPos() - pA->GetPos()) / (double)(mN + 1);
+            ChVector3d deltaP = (pB->GetPos() - pA->GetPos()) / (double)(mN + 1);
             knot->SetPos(pA->GetPos() + deltaP * (i_body + 1));
             knot->SetRot(knot_rot);
             knot->SetMass(mass);
@@ -505,14 +505,14 @@ void test_anchorchain() {
         for (int i_link = 0; i_link < sys.Get_linklist().size(); i_link++) {
             reactions(i_link, 0) = sys.Get_linklist().at(i_link)->GetLinkAbsoluteCoords().pos.x();
 
-            ChVector<> f_loc = sys.Get_linklist().at(i_link)->Get_react_force();
-            ChVector<> m_loc = sys.Get_linklist().at(i_link)->Get_react_torque();
+            ChVector3d f_loc = sys.Get_linklist().at(i_link)->Get_react_force();
+            ChVector3d m_loc = sys.Get_linklist().at(i_link)->Get_react_torque();
             ChQuaternion<> q_link = sys.Get_linklist().at(i_link)->GetLinkAbsoluteCoords().rot;
             // Transform the reaction forces and torques of the joints from local frame to the absolute frame.
             // The horizontal reaction forces (along X direction) should be equal among all joints for the catenary
             // curve.
-            ChVector<> f_out = q_link.Rotate(f_loc);
-            ChVector<> m_out = q_link.Rotate(m_loc);
+            ChVector3d f_out = q_link.Rotate(f_loc);
+            ChVector3d m_out = q_link.Rotate(m_loc);
 
             reactions(i_link, 1) = f_out.x();  // it should be a constant value
             reactions(i_link, 2) = f_out.y();
@@ -627,7 +627,7 @@ void test_anchorchain() {
             hht_stepper->SetModifiedNewton(false);
         }
 
-        auto DoDynamicsUnderImpulse = [&](const ChVector<>& vec_f, const std::string& filename) {
+        auto DoDynamicsUnderImpulse = [&](const ChVector3d& vec_f, const std::string& filename) {
             // Add the excitation at the middle point C
             auto push_force =
                 chrono_types::make_shared<ChLoadBodyForce>(knot_list.at(Nrig + 1), vec_f, false, VNULL, true);
@@ -650,7 +650,7 @@ void test_anchorchain() {
             vis->Initialize();
             vis->AddLogo();
             vis->AddSkyBox();
-            vis->AddCamera(anchorC->GetPos() + ChVector<>(1, -10, 5), anchorC->GetPos() + ChVector<>(1, 0, 3));
+            vis->AddCamera(anchorC->GetPos() + ChVector3d(1, -10, 5), anchorC->GetPos() + ChVector3d(1, 0, 3));
             vis->AddTypicalLights();
             vis->EnableBodyFrameDrawing(false);
             vis->EnableLinkFrameDrawing(false);
@@ -704,7 +704,7 @@ void test_anchorchain() {
 
         // excitation in X direction (In-plane horizontal motion is expected)
         std::cout << "\nExcitation in +X direction\n" << std::endl;
-        ChVector<> vec_fx = ChVector<>(mass * gacc * 5, 0, 0);
+        ChVector3d vec_fx = ChVector3d(mass * gacc * 5, 0, 0);
         DoDynamicsUnderImpulse(vec_fx, "vibration_x");
 
         // recover the system to the exactly same equilibrium status
@@ -713,7 +713,7 @@ void test_anchorchain() {
         sys.StateScatterReactions(L0);
         // excitation in Y direction (Out-of-plane motion is expected)
         std::cout << "\nExcitation in +Y direction\n" << std::endl;
-        ChVector<> vec_fy = ChVector<>(0, mass * gacc * 5, 0);
+        ChVector3d vec_fy = ChVector3d(0, mass * gacc * 5, 0);
         DoDynamicsUnderImpulse(vec_fy, "vibration_y");
 
         // recover the system to the exactly same equilibrium status
@@ -722,7 +722,7 @@ void test_anchorchain() {
         sys.StateScatterReactions(L0);
         // excitation in Z direction (In-plane vertical motion is expected)
         std::cout << "\nExcitation in -Z direction\n" << std::endl;
-        ChVector<> vec_fz = ChVector<>(0, 0, -mass * gacc * 5);
+        ChVector3d vec_fz = ChVector3d(0, 0, -mass * gacc * 5);
         DoDynamicsUnderImpulse(vec_fz, "vibration_z");
     }
 }

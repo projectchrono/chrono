@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, 0.6, -1.0));
+    vis->AddCamera(ChVector3d(0, 0.6, -1.0));
     vis->AttachSystem(&sys);
 
     // Set integrator

@@ -47,17 +47,17 @@ ChTranslationalIdler::~ChTranslationalIdler() {
 
 // -----------------------------------------------------------------------------
 void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
-                                      const ChVector<>& location,
+                                      const ChVector3d& location,
                                       ChTrackAssembly* track) {
     // Express the idler reference frame in the absolute coordinate system.
     ChFrame<> idler_to_abs(location);
     idler_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform all points and directions to absolute frame.
-    std::vector<ChVector<> > points(NUM_POINTS);
+    std::vector<ChVector3d > points(NUM_POINTS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = GetLocation(static_cast<PointId>(i));
+        ChVector3d rel_pos = GetLocation(static_cast<PointId>(i));
         points[i] = idler_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
@@ -135,7 +135,7 @@ void ChTranslationalIdler::AddVisualizationAssets(VisualizationType vis) {
     }
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(6 * radius, 2 * radius, 2 * radius);
-    m_carrier->AddVisualShape(box, ChFrame<>(m_pT, ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0))));
+    m_carrier->AddVisualShape(box, ChFrame<>(m_pT, ChMatrix33<>(GetPrismaticPitchAngle(), ChVector3d(0, 1, 0))));
 
     // Visualization of the tensioner spring (with default color)
     m_tensioner->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));

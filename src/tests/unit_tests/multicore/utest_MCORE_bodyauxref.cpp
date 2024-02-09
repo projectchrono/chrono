@@ -66,7 +66,7 @@ TEST(ChronoMulticore, bodyauxref) {
 
     // Create the mechanical sys
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
-    sys->Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys->Set_G_acc(ChVector3d(0, 0, -9.81));
 
     // Set number of threads
     sys->SetNumThreads(1);
@@ -105,17 +105,17 @@ TEST(ChronoMulticore, bodyauxref) {
     pend_1->SetBodyFixed(false);
     pend_1->SetCollide(false);
     pend_1->SetMass(1);
-    pend_1->SetInertiaXX(ChVector<>(0.2, 1, 1));
+    pend_1->SetInertiaXX(ChVector3d(0.2, 1, 1));
 
     // Specify the initial position of the pendulum (horizontal, pointing towards
     // positive X). In this case, we set the absolute position of its center of
     // mass.
-    pend_1->SetPos(ChVector<>(1, 1, 0));
+    pend_1->SetPos(ChVector3d(1, 1, 0));
 
     // Create a revolute joint to connect pendulum to ground. We specify the link
     // coordinate frame in the absolute frame.
     auto rev_1 = chrono_types::make_shared<ChLinkLockRevolute>();
-    rev_1->Initialize(ground, pend_1, ChCoordsys<>(ChVector<>(0, 1, 0), z2y));
+    rev_1->Initialize(ground, pend_1, ChCoordsys<>(ChVector3d(0, 1, 0), z2y));
     sys->AddLink(rev_1);
 
     // Create a pendulum modeled using ChBodyAuxRef
@@ -125,23 +125,23 @@ TEST(ChronoMulticore, bodyauxref) {
     pend_2->SetBodyFixed(false);
     pend_2->SetCollide(false);
     pend_2->SetMass(1);
-    pend_2->SetInertiaXX(ChVector<>(0.2, 1, 1));
+    pend_2->SetInertiaXX(ChVector3d(0.2, 1, 1));
     // NOTE: the inertia tensor must still be expressed in the centroidal frame!
 
     // In this case, we must specify the centroidal frame, relative to the body
     // reference frame.
-    pend_2->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(1, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    pend_2->SetFrame_COG_to_REF(ChFrame<>(ChVector3d(1, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
 
     // Specify the initial position of the pendulum (horizontal, pointing towards
     // positive X).  Here, we want to specify the position of the body reference
     // frame (relative to the absolute frame). Recall that the body reference
     // frame is located at the pin.
-    pend_2->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(0, -1, 0)));
+    pend_2->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(0, -1, 0)));
 
     // Create a revolute joint to connect pendulum to ground. We specify the link
     // coordinate frame in the absolute frame.
     auto rev_2 = chrono_types::make_shared<ChLinkLockRevolute>();
-    rev_2->Initialize(ground, pend_2, ChCoordsys<>(ChVector<>(0, -1, 0), z2y));
+    rev_2->Initialize(ground, pend_2, ChCoordsys<>(ChVector3d(0, -1, 0), z2y));
     sys->AddLink(rev_2);
 
     // Tolerances
@@ -162,7 +162,7 @@ TEST(ChronoMulticore, bodyauxref) {
         vis.SetWindowSize(1280, 720);
         vis.SetRenderMode(opengl::WIREFRAME);
         vis.Initialize();
-        vis.AddCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0));
+        vis.AddCamera(ChVector3d(6, -6, 1), ChVector3d(0, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);
 
         while (vis.Run()) {

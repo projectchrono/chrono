@@ -44,7 +44,7 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
 
     /// Get track tension at this track shoe.
     /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
-    virtual ChVector<> GetTension() const override;
+    virtual ChVector3d GetTension() const override;
 
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
@@ -53,7 +53,7 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
     /// the center of the track shoe subsystem is at the specified location and all
     /// bodies have the specified orientation.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
@@ -109,7 +109,7 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
     std::vector<std::shared_ptr<ChLoadBodyBody>> m_web_bushings;  ///< bushings
     double m_seg_length;                                          ///< length of a web segment
     double m_seg_mass;                                            ///< mass of a web segment
-    ChVector<> m_seg_inertia;                                     ///< moments of inertia of a web segment
+    ChVector3d m_seg_inertia;                                     ///< moments of inertia of a web segment
 
     friend class ChTrackAssemblyBandBushing;
 };

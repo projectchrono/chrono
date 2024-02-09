@@ -42,7 +42,7 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
 
     /// Add a new node to the particle cluster, passing a
     /// vector as initial position.
-    //	virtual void AddNode(ChVector<double> initial_state) =0;
+    //	virtual void AddNode(ChVector3d initial_state) =0;
 
     /// Resize the node cluster. Also clear the state of
     /// previously created particles, if any.

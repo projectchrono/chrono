@@ -19,8 +19,8 @@ namespace fea {
 
 
 void ChElasticityKirchhoff::ComputeStiffnessMatrix(ChMatrixRef mC,
-                                              const ChVector<>& eps,
-                                              const ChVector<>& kur,
+                                              const ChVector3d& eps,
+                                              const ChVector3d& kur,
                                               const double z_inf,
                                               const double z_sup,
                                               const double angle) {
@@ -33,7 +33,7 @@ void ChElasticityKirchhoff::ComputeStiffnessMatrix(ChMatrixRef mC,
     strain_0.segment(0, 3) = eps.eigen();
     strain_0.segment(3, 3) = kur.eigen();
 
-    ChVector<> n, m;
+    ChVector3d n, m;
     this->ComputeStress(n, m, eps, kur, z_inf, z_sup, angle);
 
     ChVectorN<double, 6> stress_0;
@@ -43,8 +43,8 @@ void ChElasticityKirchhoff::ComputeStiffnessMatrix(ChMatrixRef mC,
     double delta = 1e-9;
     for (int i = 0; i < 6; ++i) {
         strain_0(i, 0) += delta;
-        ChVector<> deps(strain_0.segment(0, 3));
-        ChVector<> dkur(strain_0.segment(3, 3));
+        ChVector3d deps(strain_0.segment(0, 3));
+        ChVector3d dkur(strain_0.segment(3, 3));
         this->ComputeStress(n,m, deps, dkur, z_inf, z_sup, angle);
         ChVectorN<double, 6> stress_1;
         stress_1.segment(0,3) = n.eigen();
@@ -65,10 +65,10 @@ ChElasticityKirchhoffIsothropic::ChElasticityKirchhoffIsothropic(    double E,
     m_nu = nu;
 }
 
-void ChElasticityKirchhoffIsothropic::ComputeStress(  ChVector<>& n,
-                                                      ChVector<>& m,
-                                                      const ChVector<>& eps,
-                                                      const ChVector<>& kur,
+void ChElasticityKirchhoffIsothropic::ComputeStress(  ChVector3d& n,
+                                                      ChVector3d& m,
+                                                      const ChVector3d& eps,
+                                                      const ChVector3d& kur,
                                                       const double z_inf,
                                                       const double z_sup,
                                                       const double angle) {
@@ -108,8 +108,8 @@ void ChElasticityKirchhoffIsothropic::ComputeStress(  ChVector<>& n,
 }
 
 void ChElasticityKirchhoffIsothropic::ComputeStiffnessMatrix(ChMatrixRef mC,
-                                                        const ChVector<>& eps,
-                                                        const ChVector<>& kur,
+                                                        const ChVector3d& eps,
+                                                        const ChVector3d& kur,
                                                         const double z_inf,
                                                         const double z_sup,
                                                         const double angle) {
@@ -180,10 +180,10 @@ ChElasticityKirchhoffOrthotropic::ChElasticityKirchhoffOrthotropic(    double m_
     this->G_xy = m_G;
 }
 
-void ChElasticityKirchhoffOrthotropic::ComputeStress  (ChVector<>& n,
-                                                       ChVector<>& m,
-                                                       const ChVector<>& eps,
-                                                       const ChVector<>& kur,
+void ChElasticityKirchhoffOrthotropic::ComputeStress  (ChVector3d& n,
+                                                       ChVector3d& m,
+                                                       const ChVector3d& eps,
+                                                       const ChVector3d& kur,
                                                        const double z_inf,
                                                        const double z_sup,
                                                        const double angle) {
@@ -202,8 +202,8 @@ void ChElasticityKirchhoffOrthotropic::ComputeStress  (ChVector<>& n,
 }
 
 void ChElasticityKirchhoffOrthotropic::ComputeStiffnessMatrix(ChMatrixRef mC,
-                                                         const ChVector<>& eps,
-                                                         const ChVector<>& kur,
+                                                         const ChVector3d& eps,
+                                                         const ChVector3d& kur,
                                                          const double z_inf,
                                                          const double z_sup,
                                                          const double angle) {
@@ -254,10 +254,10 @@ ChElasticityKirchhoffGeneric::ChElasticityKirchhoffGeneric() {
 }
 
 void ChElasticityKirchhoffGeneric::ComputeStress(
-	ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
-	ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
-	const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
-	const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+	ChVector3d& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+	ChVector3d& m,            ///< torques m_11, m_22, m_12 (per unit length)
+	const ChVector3d& eps,    ///< strains   e_11, e_22, e_12
+	const ChVector3d& kur,    ///< curvature k_11, k_22, k_12
 	const double z_inf,       ///< layer lower z value (along thickness coord)
 	const double z_sup,       ///< layer upper z value (along thickness coord)
 	const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -273,8 +273,8 @@ void ChElasticityKirchhoffGeneric::ComputeStress(
 
 void ChElasticityKirchhoffGeneric::ComputeStiffnessMatrix(
 	ChMatrixRef mC,           ///< tangent matrix
-	const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
-	const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+	const ChVector3d& eps,    ///< strains   e_11, e_22, e_12
+	const ChVector3d& kur,    ///< curvature k_11, k_22, k_12
 	const double z_inf,       ///< layer lower z value (along thickness coord)
 	const double z_sup,       ///< layer upper z value (along thickness coord)
 	const double angle        ///< layer angle respect to x (if needed)
@@ -290,15 +290,15 @@ ChPlasticityKirchhoff::ChPlasticityKirchhoff() : section(nullptr), nr_yeld_toler
 
 void ChPlasticityKirchhoff::ComputeStiffnessMatrixElastoplastic(
 							ChMatrixRef K,        ///< 6x6 material elastoplastic stiffness matrix values here
-							const ChVector<>& eps,  ///< strains 
-							const ChVector<>& kur,  ///< curvature 
+							const ChVector3d& eps,  ///< strains 
+							const ChVector3d& kur,  ///< curvature 
 							const ChShellKirchhoffInternalData& data,  ///< updated material internal variables, at this point including {p_strain_e, p_strain_k, p_strain_acc}
 							const double z_inf,       ///< layer lower z value (along thickness coord)
 							const double z_sup,       ///< layer upper z value (along thickness coord)
 							const double angle        ///< layer angle respect to x (if needed) 
 ) {
-    ChVector<> n;
-    ChVector<> m;
+    ChVector3d n;
+    ChVector3d m;
 
     std::vector<std::unique_ptr<ChShellKirchhoffInternalData>> a_plastic_data;
     this->CreatePlasticityData(1, a_plastic_data);
@@ -332,8 +332,8 @@ void ChPlasticityKirchhoff::ComputeStiffnessMatrixElastoplastic(
 		double invdelta = 1.0 / delta;
 		for (int i = 0; i < 6; ++i) {
 			strain_0(i, 0) += delta;
-			ChVector<> deps(strain_0.segment(0, 3));
-			ChVector<> dkur(strain_0.segment(3, 3));
+			ChVector3d deps(strain_0.segment(0, 3));
+			ChVector3d dkur(strain_0.segment(3, 3));
 			this->ComputeStressWithReturnMapping(n, m, *b_plastic_data[0], deps, dkur, data, z_inf, z_sup, angle);
 			ChVectorN<double, 6> stress_1;
 			stress_1.segment(0,3) = n.eigen();
@@ -362,8 +362,8 @@ void ChPlasticityKirchhoff::CreatePlasticityData(
 
 void ChDampingKirchhoff::ComputeDampingMatrix(
     ChMatrixRef R,             // 6x6 material damping matrix values here
-    const ChVector<>& deps,  // time derivative of strains 
-    const ChVector<>& dkur,  // time derivative of curvatures
+    const ChVector3d& deps,  // time derivative of strains 
+    const ChVector3d& dkur,  // time derivative of curvatures
     const double z_inf,        // layer lower z value (along thickness coord)
     const double z_sup,        // layer upper z value (along thickness coord)
     const double angle         // layer angle respect to x (if needed) -not used in this, isotropic+
@@ -377,7 +377,7 @@ void ChDampingKirchhoff::ComputeDampingMatrix(
     dstrain_0.segment(0, 3) = deps.eigen();
     dstrain_0.segment(3, 3) = dkur.eigen();
 
-    ChVector<> n, m;
+    ChVector3d n, m;
     this->ComputeStress(n, m, deps, dkur, z_inf, z_sup, angle);
 
     ChVectorN<double, 6> stress_0;
@@ -388,8 +388,8 @@ void ChDampingKirchhoff::ComputeDampingMatrix(
     double delta = 1e-9;
     for (int i = 0; i < 6; ++i) {
         dstrain_0(i, 0) += delta;
-        ChVector<> ddeps(dstrain_0.segment(0, 3));
-        ChVector<> ddkur(dstrain_0.segment(3, 3));
+        ChVector3d ddeps(dstrain_0.segment(0, 3));
+        ChVector3d ddkur(dstrain_0.segment(3, 3));
         this->ComputeStress(n, m, ddeps, ddkur, z_inf, z_sup, angle);
         ChVectorN<double, 6> stress_1;
         stress_1.segment(0,3) = n.eigen();
@@ -415,10 +415,10 @@ ChDampingKirchhoffRayleigh::ChDampingKirchhoffRayleigh(
 
 
 void ChDampingKirchhoffRayleigh::ComputeStress(
-										ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
-										ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
-										const ChVector<>& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
-										const ChVector<>& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
+										ChVector3d& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+										ChVector3d& m,            ///< torques m_11, m_22, m_12 (per unit length)
+										const ChVector3d& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
+										const ChVector3d& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
 										const double z_inf,       ///< layer lower z value (along thickness coord)
 										const double z_sup,       ///< layer upper z value (along thickness coord)
 										const double angle        ///< layer angle respect to x (if needed)
@@ -438,8 +438,8 @@ void ChDampingKirchhoffRayleigh::ComputeStress(
 }
 
 void ChDampingKirchhoffRayleigh::ComputeDampingMatrix(	ChMatrixRef R,			  ///< 6x6 material damping matrix values here
-										const ChVector<>& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
-										const ChVector<>& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
+										const ChVector3d& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
+										const ChVector3d& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
 										const double z_inf,       ///< layer lower z value (along thickness coord)
 										const double z_sup,       ///< layer upper z value (along thickness coord)
 										const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -475,10 +475,10 @@ ChMaterialShellKirchhoff::ChMaterialShellKirchhoff(std::shared_ptr<ChElasticityK
         this->SetDamping(mdamping);
 }
 
-void ChMaterialShellKirchhoff::ComputeStress(ChVector<>& n,  
-											ChVector<>& m,         
-											const ChVector<>& eps, 
-											const ChVector<>& kur,
+void ChMaterialShellKirchhoff::ComputeStress(ChVector3d& n,  
+											ChVector3d& m,         
+											const ChVector3d& eps, 
+											const ChVector3d& kur,
 											const double z_inf,       
 											const double z_sup,       
 											const double angle,       
@@ -492,8 +492,8 @@ void ChMaterialShellKirchhoff::ComputeStress(ChVector<>& n,
 }
 
 void ChMaterialShellKirchhoff::ComputeStiffnessMatrix(ChMatrixRef K,        
-											const ChVector<>& eps,    
-											const ChVector<>& kur,   
+											const ChVector3d& eps,    
+											const ChVector3d& kur,   
 											const double z_inf,       
 											const double z_sup,       
 											const double angle,        

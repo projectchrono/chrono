@@ -60,7 +60,7 @@ M113::M113()
       m_use_suspension_bushings(false),
       m_use_track_RSDA(false),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_gyration_mode(false),
       m_apply_drag(false) {}
 
@@ -88,7 +88,7 @@ M113::M113(ChSystem* system)
       m_use_suspension_bushings(false),
       m_use_track_RSDA(false),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_gyration_mode(false),
       m_apply_drag(false) {}
 

@@ -120,7 +120,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
 
     /// Initialize the tire by attaching it to the provided ChWheel.
     /// A derived class must load m_geometry (collision shape and contact material).
-    virtual void InitializeTire(std::shared_ptr<ChWheel>, const ChVector<>& init_loc) = 0;
+    virtual void InitializeTire(std::shared_ptr<ChWheel>, const ChVector3d& init_loc) = 0;
 
     /// Apply the spindle state.
     /// The BodyState struct contains the spindle body state as received from the MBS node.

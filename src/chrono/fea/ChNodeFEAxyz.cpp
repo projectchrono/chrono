@@ -17,7 +17,7 @@
 namespace chrono {
 namespace fea {
 
-ChNodeFEAxyz::ChNodeFEAxyz(ChVector<> initial_pos) : ChNodeXYZ(initial_pos), X0(initial_pos), Force(VNULL) {
+ChNodeFEAxyz::ChNodeFEAxyz(ChVector3d initial_pos) : ChNodeXYZ(initial_pos), X0(initial_pos), Force(VNULL) {
     variables.SetNodeMass(0);
 }
 
@@ -159,7 +159,7 @@ void ChNodeFEAxyz::VariablesQbLoadSpeed() {
 }
 
 void ChNodeFEAxyz::VariablesQbSetSpeed(double step) {
-    ChVector<> old_dt = pos_dt;
+    ChVector3d old_dt = pos_dt;
     SetPos_dt(variables.Get_qb().segment(0, 3));
     if (step) {
         SetPos_dtdt((pos_dt - old_dt) / step);
@@ -171,7 +171,7 @@ void ChNodeFEAxyz::VariablesFbIncrementMq() {
 }
 
 void ChNodeFEAxyz::VariablesQbIncrementPosition(double step) {
-    ChVector<> newspeed = variables.Get_qb().segment(0, 3);
+    ChVector3d newspeed = variables.Get_qb().segment(0, 3);
 
     // ADVANCE POSITION: pos' = pos + dt * vel
     SetPos(GetPos() + newspeed * step);

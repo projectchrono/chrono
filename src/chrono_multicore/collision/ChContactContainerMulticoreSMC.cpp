@@ -157,9 +157,9 @@ void ChContactContainerMulticoreSMC::AddContact(int index, int b1, int s1, int b
         cinfo.modelB = blist[b2]->GetCollisionModel().get();
         cinfo.shapeA = shape1;
         cinfo.shapeB = shape2;
-        cinfo.vN = ChVector<>(vN.x, vN.y, vN.z);
-        cinfo.vpA = ChVector<>(vpA.x, vpA.y, vpA.z);
-        cinfo.vpB = ChVector<>(vpB.x, vpB.y, vpB.z);
+        cinfo.vN = ChVector3d(vN.x, vN.y, vN.z);
+        cinfo.vpA = ChVector3d(vpA.x, vpA.y, vpA.z);
+        cinfo.vpB = ChVector3d(vpB.x, vpB.y, vpB.z);
         cinfo.distance = cd_data->dpth_rigid_rigid[index];
         cinfo.eff_radius = cd_data->erad_rigid_rigid[index];
 

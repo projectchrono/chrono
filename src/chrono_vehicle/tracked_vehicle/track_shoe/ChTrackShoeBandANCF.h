@@ -58,14 +58,14 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
 
     /// Get track tension at this track shoe.
     /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
-    virtual ChVector<> GetTension() const override;
+    virtual ChVector3d GetTension() const override;
 
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized at the specified location and orientation
     /// (expressed in the global frame). This version initializes the bodies of a CB rigid-link track shoe such that the
     /// center of the track shoe subsystem is at the specified location and all bodies have the specified orientation.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 

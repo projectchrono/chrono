@@ -45,10 +45,10 @@ int main(int argc, char* argv[]) {
     ground->SetCollide(false);
 
     auto rail1 = chrono_types::make_shared<ChVisualShapeBox>(8, 0.1, 0.1);
-    ground->AddVisualShape(rail1, ChFrame<>(ChVector<>(0, 0, -1), QUNIT));
+    ground->AddVisualShape(rail1, ChFrame<>(ChVector3d(0, 0, -1), QUNIT));
 
     auto rail2 = chrono_types::make_shared<ChVisualShapeBox>(8, 0.1, 0.1);
-    ground->AddVisualShape(rail2, ChFrame<>(ChVector<>(0, 0, +1), QUNIT));
+    ground->AddVisualShape(rail2, ChFrame<>(ChVector3d(0, 0, +1), QUNIT));
 
     // Create the slider bodies
     // ------------------------
@@ -59,8 +59,8 @@ int main(int argc, char* argv[]) {
     slider1->SetBodyFixed(false);
     slider1->SetCollide(false);
     slider1->SetMass(1);
-    slider1->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
-    slider1->SetPos(ChVector<>(-4, 0, -1));
+    slider1->SetInertiaXX(ChVector3d(0.1, 0.1, 0.1));
+    slider1->SetPos(ChVector3d(-4, 0, -1));
 
     auto cyl1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
     cyl1->SetColor(ChColor(0.6f, 0, 0));
@@ -72,8 +72,8 @@ int main(int argc, char* argv[]) {
     slider2->SetBodyFixed(false);
     slider2->SetCollide(false);
     slider2->SetMass(1);
-    slider2->SetInertiaXX(ChVector<>(0.1, 0.1, 01));
-    slider2->SetPos(ChVector<>(-4, 0, +1));
+    slider2->SetInertiaXX(ChVector3d(0.1, 0.1, 01));
+    slider2->SetPos(ChVector3d(-4, 0, +1));
 
     auto cyl2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
     cyl2->SetColor(ChColor(0, 0, 0.6f));
@@ -85,20 +85,20 @@ int main(int argc, char* argv[]) {
     // Add limit (Z min) on this prismatic joint.
     // The limit value relates to the Z component of the relative marker position 2->1
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic1->Initialize(ground, slider1, ChCoordsys<>(ChVector<>(0, 0, -1), Q_from_AngY(CH_C_PI_2)));
+    prismatic1->Initialize(ground, slider1, ChCoordsys<>(ChVector3d(0, 0, -1), Q_from_AngY(CH_C_PI_2)));
     prismatic1->GetLimit_Z().SetActive(true);
     prismatic1->GetLimit_Z().SetMin(-6);
     sys.AddLink(prismatic1);
 
     auto prismatic2 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic2->Initialize(ground, slider2, ChCoordsys<>(ChVector<>(0, 0, +1), Q_from_AngY(CH_C_PI_2)));
+    prismatic2->Initialize(ground, slider2, ChCoordsys<>(ChVector3d(0, 0, +1), Q_from_AngY(CH_C_PI_2)));
     sys.AddLink(prismatic2);
 
     // Add linear springs to the sliders
     // ---------------------------------
 
     auto spring1 = chrono_types::make_shared<ChLinkTSDA>();
-    spring1->Initialize(ground, slider1, true, ChVector<>(0, 0, -1), ChVector<>(0, 0, 0));
+    spring1->Initialize(ground, slider1, true, ChVector3d(0, 0, -1), ChVector3d(0, 0, 0));
     spring1->SetRestLength(0.0);
     spring1->SetSpringCoefficient(10);
     spring1->SetDampingCoefficient(0);
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     spring1->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.1, 80, 15));
 
     auto spring2 = chrono_types::make_shared<ChLinkTSDA>();
-    spring2->Initialize(ground, slider2, true, ChVector<>(0, 0, +1), ChVector<>(0, 0, 0));
+    spring2->Initialize(ground, slider2, true, ChVector3d(0, 0, +1), ChVector3d(0, 0, 0));
     spring2->SetRestLength(0.0);
     spring2->SetSpringCoefficient(10);
     spring2->SetDampingCoefficient(0);
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(-1, 1.5, -6));
+    vis->AddCamera(ChVector3d(-1, 1.5, -6));
     vis->AddTypicalLights();
     vis->EnableLinkFrameDrawing(true);
 
@@ -144,9 +144,9 @@ int main(int argc, char* argv[]) {
 
         vis->BeginScene();
         vis->Render();
-        tools::drawSegment(vis.get(), ChVector<>(+2, 0, 0), ChVector<>(+2, 0, -2), ChColor(1, 0.5f, 0), true);
+        tools::drawSegment(vis.get(), ChVector3d(+2, 0, 0), ChVector3d(+2, 0, -2), ChColor(1, 0.5f, 0), true);
         if (max_lim_enabled) {
-            tools::drawSegment(vis.get(), ChVector<>(-1, 0, 0), ChVector<>(-1, 0, -2), ChColor(1, 0.5f, 0), true);
+            tools::drawSegment(vis.get(), ChVector3d(-1, 0, 0), ChVector3d(-1, 0, -2), ChColor(1, 0.5f, 0), true);
         }
         vis->EndScene();
 

@@ -174,9 +174,9 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChContactMaterialSMC> cmat) {
     double angles[4] = {0.15, 0.3, 0.0, 0.7};
 
     for (int i = 0; i < 4; ++i) {
-        ChCoordsys<> cdown(ChVector<>(0, -0.4, 0));
+        ChCoordsys<> cdown(ChVector3d(0, -0.4, 0));
         ChCoordsys<> crot(VNULL, Q_from_AngAxis(CH_C_2PI * angles[i], VECT_Y) * Q_from_AngAxis(CH_C_PI_2, VECT_X));
-        ChCoordsys<> cydisp(ChVector<>(0.0, 0.1 + i * 0.1, -0.3));
+        ChCoordsys<> cydisp(ChVector3d(0.0, 0.1 + i * 0.1, -0.3));
         ChCoordsys<> ctot = cdown >> crot >> cydisp;
         ChMeshFileLoader::FromTetGenFile(mesh, GetChronoDataFile("fea/beam.node").c_str(),
                                          GetChronoDataFile("fea/beam.ele").c_str(), emat, ctot.pos,
@@ -205,7 +205,7 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChContactMaterialSMC> cmat) {
 
     ChBuilderCableANCF builder;
 
-    builder.BuildBeam(mesh, section, 10, ChVector<>(0, 0.1, -0.5), ChVector<>(0.5, 0.5, -0.5));
+    builder.BuildBeam(mesh, section, 10, ChVector3d(0, 0.1, -0.5), ChVector3d(0.5, 0.5, -0.5));
 
     auto cloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(cmat);
     mesh->AddContactSurface(cloud);
@@ -236,7 +236,7 @@ void FEAcontactTest::SimulateVis() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, 0.6, -1.0), ChVector<>(0, 0, 0));
+    vis->AddCamera(ChVector3d(0, 0.6, -1.0), ChVector3d(0, 0, 0));
 
     while (vis->Run()) {
         vis->BeginScene();

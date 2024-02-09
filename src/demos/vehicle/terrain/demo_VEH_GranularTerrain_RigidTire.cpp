@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     double time_end = 10;     // Final simulation time (s)
 
     // Terrain parameters
-    ChVector<> center(0, 0, 0);   // Center of initial patch
+    ChVector3d center(0, 0, 0);   // Center of initial patch
     double hdimX = 1.5;           // Length of patch
     double hdimY = 0.75;          // Width of patch
     unsigned int num_layers = 8;  // Requested number of layers
@@ -75,8 +75,8 @@ int main(int argc, char* argv[]) {
     // ----------------------------------
 
     // Prepare rotated acceleration vector
-    ChVector<> gravity(0, 0, -9.81);
-    ChVector<> gravityR = ChMatrix33<>(slope_g, ChVector<>(0, 1, 0)) * gravity;
+    ChVector3d gravity(0, 0, -9.81);
+    ChVector3d gravityR = ChMatrix33<>(slope_g, ChVector3d(0, 1, 0)) * gravity;
 
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize(center, 2 * hdimX, 2 * hdimY, num_layers, r_g, rho_g);
     uint actual_num_particles = terrain.GetNumParticles();
-    double terrain_height = terrain.GetHeight(ChVector<>(0, 0, 0));
+    double terrain_height = terrain.GetHeight(ChVector3d(0, 0, 0));
 
     std::cout << "Number of particles: " << actual_num_particles << std::endl;
     std::cout << "Terrain height:      " << terrain_height << std::endl;
@@ -134,11 +134,11 @@ int main(int argc, char* argv[]) {
     // Create the tire
     // ---------------
 
-    ChVector<> tire_center(terrain.GetPatchRear() + tire_rad, (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2,
+    ChVector3d tire_center(terrain.GetPatchRear() + tire_rad, (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2,
                            terrain_height + 1.01 * tire_rad);
     auto body = chrono_types::make_shared<ChBody>();
     body->SetMass(500);
-    body->SetInertiaXX(ChVector<>(20, 20, 20));
+    body->SetInertiaXX(ChVector3d(20, 20, 20));
     body->SetPos(tire_center);
     body->SetRot(Q_from_AngZ(CH_C_PI_2));
     sys->AddBody(body);
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(body_mat, trimesh, false, false, 0.01);
     body->AddCollisionShape(ct_shape);
-    ////utils::AddSphereGeometry(body.get(), body_mat, tire_rad, ChVector<>(0, 0, 0));
+    ////utils::AddSphereGeometry(body.get(), body_mat, tire_rad, ChVector3d(0, 0, 0));
 
     body->SetCollide(true);
 
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.AddCamera(center - ChVector<>(0, 3, 0), center);
+    vis.AddCamera(center - ChVector3d(0, 3, 0), center);
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // ---------------
@@ -213,14 +213,14 @@ int main(int argc, char* argv[]) {
         if (vis.Run()) {
             switch (cam_type) {
                 case FRONT: {
-                    ChVector<> cam_loc(terrain.GetPatchFront(), -3, 0);
-                    ChVector<> cam_point(terrain.GetPatchFront(), 0, 0);
+                    ChVector3d cam_loc(terrain.GetPatchFront(), -3, 0);
+                    ChVector3d cam_point(terrain.GetPatchFront(), 0, 0);
                     vis.UpdateCamera(cam_loc, cam_point);
                     break;
                 }
                 case TRACK: {
-                    ChVector<> cam_point = body->GetPos();
-                    ChVector<> cam_loc = cam_point + ChVector<>(-3 * tire_rad, -1, 0.6);
+                    ChVector3d cam_point = body->GetPos();
+                    ChVector3d cam_loc = cam_point + ChVector3d(-3 * tire_rad, -1, 0.6);
                     vis.UpdateCamera(cam_loc, cam_point);
                     break;
                 }

@@ -112,7 +112,7 @@ void ChMarker::SetMotion_ang(std::shared_ptr<ChFunction> m_funct) {
     motion_ang = m_funct;
 }
 
-void ChMarker::SetMotion_axis(Vector m_axis) {
+void ChMarker::SetMotion_axis(ChVector3d m_axis) {
     motion_axis = m_axis;
 }
 
@@ -145,21 +145,21 @@ void ChMarker::Impose_Abs_Coord(const Coordsys& m_coord) {
     Impose_Rel_Coord(csys);
 }
 
-//// Utilities for coordinate transformations
+// Utilities for coordinate transformations
 
-ChVector<> ChMarker::Point_World2Ref(const ChVector<>& point) const {
+ChVector3d ChMarker::Point_World2Ref(const ChVector3d& point) const {
     return abs_frame / point;
 }
 
-ChVector<> ChMarker::Point_Ref2World(const ChVector<>& point) const {
+ChVector3d ChMarker::Point_Ref2World(const ChVector3d& point) const {
     return *(ChFrame<double>*)&abs_frame * point;
 }
 
-ChVector<> ChMarker::Dir_World2Ref(const ChVector<>& dir) const {
+ChVector3d ChMarker::Dir_World2Ref(const ChVector3d& dir) const {
     return abs_frame.GetA().transpose() * dir;
 }
 
-ChVector<> ChMarker::Dir_Ref2World(const ChVector<>& dir) const {
+ChVector3d ChMarker::Dir_Ref2World(const ChVector3d& dir) const {
     return abs_frame.GetA().transpose() * dir;
 }
 
@@ -208,7 +208,7 @@ void ChMarker::UpdateTime(double mytime) {
 
     if ((ang != 0) || (ang_dt != 0) || (ang_dtdt != 0)) {
         // update q
-        Vector motion_axis_versor = Vnorm(motion_axis);
+        ChVector3d motion_axis_versor = Vnorm(motion_axis);
         qtemp = Q_from_AngAxis(ang, motion_axis_versor);
         csys.rot = Qcross(qtemp, rest_coord.rot);
         // update q_dt

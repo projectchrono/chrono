@@ -15,7 +15,7 @@
 #ifndef CHBEAMSECTION_H
 #define CHBEAMSECTION_H
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/utils/ChConstants.h"
 #include "chrono/fea/ChBeamSectionShape.h"
 

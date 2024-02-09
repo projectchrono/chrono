@@ -58,10 +58,10 @@ void ChLinkMotorRotationDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody
 void ChLinkMotorRotationDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                               std::shared_ptr<ChBodyFrame> mbody2,
                                               bool pos_are_relative,
-                                              ChVector<> mpt1,
-                                              ChVector<> mpt2,
-                                              ChVector<> mnorm1,
-                                              ChVector<> mnorm2) {
+                                              ChVector3d mpt1,
+                                              ChVector3d mpt2,
+                                              ChVector3d mnorm1,
+                                              ChVector3d mnorm2) {
     ChLinkMotorRotation::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1, mnorm2);
     innerconstraint1->Initialize(innershaft1, mbody1, VECT_Z);
     innerconstraint2->Initialize(innershaft2, mbody2, VECT_Z);
@@ -86,9 +86,9 @@ void ChLinkMotorRotationDriveline::Update(double mytime, bool update_assets) {
     ChLinkMotorRotation::Update(mytime, update_assets);
 
     // Update the direction of 1D-3D ChShaftBody constraints:
-    ChVector<> abs_shaftdir = this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(VECT_Z);
-    ChVector<> shaftdir_b1 = this->Body1->TransformDirectionParentToLocal(abs_shaftdir);
-    ChVector<> shaftdir_b2 = this->Body2->TransformDirectionParentToLocal(abs_shaftdir);
+    ChVector3d abs_shaftdir = this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(VECT_Z);
+    ChVector3d shaftdir_b1 = this->Body1->TransformDirectionParentToLocal(abs_shaftdir);
+    ChVector3d shaftdir_b2 = this->Body2->TransformDirectionParentToLocal(abs_shaftdir);
 
     innerconstraint1->SetShaftDirection(shaftdir_b1);
     innerconstraint2->SetShaftDirection(shaftdir_b2);

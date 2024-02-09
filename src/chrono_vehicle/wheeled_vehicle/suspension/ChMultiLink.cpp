@@ -81,7 +81,7 @@ ChMultiLink::~ChMultiLink() {
 void ChMultiLink::Initialize(std::shared_ptr<ChChassis> chassis,
                              std::shared_ptr<ChSubchassis> subchassis,
                              std::shared_ptr<ChSteering> steering,
-                             const ChVector<>& location,
+                             const ChVector3d& location,
                              double left_ang_vel,
                              double right_ang_vel) {
     ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
@@ -101,14 +101,14 @@ void ChMultiLink::Initialize(std::shared_ptr<ChChassis> chassis,
     m_dirsR.resize(NUM_DIRS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
+        ChVector3d rel_pos = getLocation(static_cast<PointId>(i));
         m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
         rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
     for (int i = 0; i < NUM_DIRS; i++) {
-        ChVector<> rel_dir = getDirection(static_cast<DirectionId>(i));
+        ChVector3d rel_dir = getDirection(static_cast<DirectionId>(i));
         m_dirsL[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
         rel_dir.y() = -rel_dir.y();
         m_dirsR[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
@@ -123,8 +123,8 @@ void ChMultiLink::Initialize(std::shared_ptr<ChChassis> chassis,
 void ChMultiLink::InitializeSide(VehicleSide side,
                                  std::shared_ptr<ChChassis> chassis,
                                  std::shared_ptr<ChBody> tierod_body,
-                                 const std::vector<ChVector<>>& points,
-                                 const std::vector<ChVector<>>& dirs,
+                                 const std::vector<ChVector3d>& points,
+                                 const std::vector<ChVector3d>& dirs,
                                  double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
@@ -133,9 +133,9 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
 
     // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w;
     ChMatrix33<> rot;
 
     // Spindle orientation (based on camber and toe angles)
@@ -147,7 +147,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
-    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
+    m_spindle[side]->SetWvel_loc(ChVector3d(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
     chassis->GetSystem()->AddBody(m_spindle[side]);
@@ -340,7 +340,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
-    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
+    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
@@ -413,11 +413,11 @@ std::vector<ChSuspension::ForceTSDA> ChMultiLink::ReportSuspensionForce(VehicleS
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChMultiLink::LogHardpointLocations(const ChVector<>& ref, bool inches) {
+void ChMultiLink::LogHardpointLocations(const ChVector3d& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
+        ChVector3d pos = ref + unit * getLocation(static_cast<PointId>(i));
 
         std::cout << "   " << m_pointNames[i] << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
@@ -583,34 +583,34 @@ void ChMultiLink::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChMultiLink::AddVisualizationUpperArm(std::shared_ptr<ChBody> arm,
-                                           const ChVector<> pt_F,
-                                           const ChVector<> pt_B,
-                                           const ChVector<> pt_U,
+                                           const ChVector3d pt_F,
+                                           const ChVector3d pt_B,
+                                           const ChVector3d pt_U,
                                            double radius) {
     // Express hardpoint locations in body frame.
-    ChVector<> p_F = arm->TransformPointParentToLocal(pt_F);
-    ChVector<> p_B = arm->TransformPointParentToLocal(pt_B);
-    ChVector<> p_U = arm->TransformPointParentToLocal(pt_U);
+    ChVector3d p_F = arm->TransformPointParentToLocal(pt_F);
+    ChVector3d p_B = arm->TransformPointParentToLocal(pt_B);
+    ChVector3d p_U = arm->TransformPointParentToLocal(pt_U);
 
     ChVehicleGeometry::AddVisualizationCylinder(arm, p_F, p_U, radius);
     ChVehicleGeometry::AddVisualizationCylinder(arm, p_B, p_U, radius);
 }
 
 void ChMultiLink::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
-                                          const ChVector<> pt_UA,
-                                          const ChVector<> pt_TR,
-                                          const ChVector<> pt_TL,
-                                          const ChVector<> pt_T,
-                                          const ChVector<> pt_U,
+                                          const ChVector3d pt_UA,
+                                          const ChVector3d pt_TR,
+                                          const ChVector3d pt_TL,
+                                          const ChVector3d pt_T,
+                                          const ChVector3d pt_U,
                                           double radius) {
     static const double threshold2 = 1e-6;
 
     // Express hardpoint locations in body frame.
-    ChVector<> p_UA = upright->TransformPointParentToLocal(pt_UA);
-    ChVector<> p_TR = upright->TransformPointParentToLocal(pt_TR);
-    ChVector<> p_TL = upright->TransformPointParentToLocal(pt_TL);
-    ChVector<> p_T = upright->TransformPointParentToLocal(pt_T);
-    ChVector<> p_U = upright->TransformPointParentToLocal(pt_U);
+    ChVector3d p_UA = upright->TransformPointParentToLocal(pt_UA);
+    ChVector3d p_TR = upright->TransformPointParentToLocal(pt_TR);
+    ChVector3d p_TL = upright->TransformPointParentToLocal(pt_TL);
+    ChVector3d p_T = upright->TransformPointParentToLocal(pt_T);
+    ChVector3d p_U = upright->TransformPointParentToLocal(pt_U);
 
     if (p_UA.Length2() > threshold2) {
         ChVehicleGeometry::AddVisualizationCylinder(upright, p_UA, VNULL, radius);
@@ -634,37 +634,37 @@ void ChMultiLink::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
 }
 
 void ChMultiLink::AddVisualizationLateral(std::shared_ptr<ChBody> rod,
-                                          const ChVector<> pt_C,
-                                          const ChVector<> pt_U,
+                                          const ChVector3d pt_C,
+                                          const ChVector3d pt_U,
                                           double radius) {
     // Express hardpoint locations in body frame.
-    ChVector<> p_C = rod->TransformPointParentToLocal(pt_C);
-    ChVector<> p_U = rod->TransformPointParentToLocal(pt_U);
+    ChVector3d p_C = rod->TransformPointParentToLocal(pt_C);
+    ChVector3d p_U = rod->TransformPointParentToLocal(pt_U);
 
     ChVehicleGeometry::AddVisualizationCylinder(rod, p_C, p_U, radius);
 }
 
 void ChMultiLink::AddVisualizationTrailingLink(std::shared_ptr<ChBody> link,
-                                               const ChVector<> pt_C,
-                                               const ChVector<> pt_S,
-                                               const ChVector<> pt_U,
+                                               const ChVector3d pt_C,
+                                               const ChVector3d pt_S,
+                                               const ChVector3d pt_U,
                                                double radius) {
     // Express hardpoint locations in body frame.
-    ChVector<> p_C = link->TransformPointParentToLocal(pt_C);
-    ChVector<> p_S = link->TransformPointParentToLocal(pt_S);
-    ChVector<> p_U = link->TransformPointParentToLocal(pt_U);
+    ChVector3d p_C = link->TransformPointParentToLocal(pt_C);
+    ChVector3d p_S = link->TransformPointParentToLocal(pt_S);
+    ChVector3d p_U = link->TransformPointParentToLocal(pt_U);
 
     ChVehicleGeometry::AddVisualizationCylinder(link, p_C, p_S, radius);
     ChVehicleGeometry::AddVisualizationCylinder(link, p_S, p_U, radius);
 }
 
 void ChMultiLink::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
-                                         const ChVector<> pt_C,
-                                         const ChVector<> pt_U,
+                                         const ChVector3d pt_C,
+                                         const ChVector3d pt_U,
                                          double radius) {
     // Express hardpoint locations in body frame.
-    ChVector<> p_C = tierod->TransformPointParentToLocal(pt_C);
-    ChVector<> p_U = tierod->TransformPointParentToLocal(pt_U);
+    ChVector3d p_C = tierod->TransformPointParentToLocal(pt_C);
+    ChVector3d p_U = tierod->TransformPointParentToLocal(pt_U);
 
     ChVehicleGeometry::AddVisualizationCylinder(tierod, p_C, p_U, radius);
 }

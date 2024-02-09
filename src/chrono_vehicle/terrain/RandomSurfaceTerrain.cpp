@@ -81,7 +81,7 @@ RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, doub
     // ground body, carries the graphic assets
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
-    m_ground->SetPos(ChVector<>(0, 0, 0));
+    m_ground->SetPos(ChVector3d(0, 0, 0));
     m_ground->SetBodyFixed(true);
     m_ground->SetCollide(false);
     m_ground->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
@@ -112,8 +112,8 @@ void RandomSurfaceTerrain::ApplyAmplitudes() {
             std::exp(-0.356 * (m_waviness - 2.0) + 0.13 * std::pow(m_waviness - 2.0, 2));
 }
 
-double RandomSurfaceTerrain::GetHeight(const ChVector<>& loc) const {
-    ChVector<> loc_ISO = ChWorldFrame::ToISO(loc);
+double RandomSurfaceTerrain::GetHeight(const ChVector3d& loc) const {
+    ChVector3d loc_ISO = ChWorldFrame::ToISO(loc);
     if (loc_ISO.x() < m_xmin || loc_ISO.x() > m_xmax)
         return m_height;
     if (loc_ISO.y() < m_ymin || loc_ISO.y() > m_ymax)
@@ -129,19 +129,19 @@ double RandomSurfaceTerrain::GetHeight(const ChVector<>& loc) const {
     return m_height + m_a0(ix, iy) + m_a1(ix, iy) * loc.x() + m_a2(ix, iy) * loc.y() + m_a3(ix, iy) * loc.x() * loc.y();
 }
 
-ChVector<> RandomSurfaceTerrain::GetNormal(const ChVector<>& loc) const {
-    ChVector<> loc_ISO = ChWorldFrame::ToISO(loc);
+ChVector3d RandomSurfaceTerrain::GetNormal(const ChVector3d& loc) const {
+    ChVector3d loc_ISO = ChWorldFrame::ToISO(loc);
     // to avoid 'jumping' of the normal vector, we take this smoothing approach
     const double delta = 0.05;
     double z0, zfront, zleft;
     z0 = GetHeight(loc);
-    zfront = GetHeight(ChWorldFrame::FromISO(loc_ISO + ChVector<>(delta, 0, 0)));
-    zleft = GetHeight(ChWorldFrame::FromISO(loc_ISO + ChVector<>(0, delta, 0)));
-    ChVector<> p0(loc_ISO.x(), loc_ISO.y(), z0);
-    ChVector<> pfront(loc_ISO.x() + delta, loc_ISO.y(), zfront);
-    ChVector<> pleft(loc_ISO.x(), loc_ISO.y() + delta, zleft);
-    ChVector<> normal_ISO;
-    ChVector<> r1, r2;
+    zfront = GetHeight(ChWorldFrame::FromISO(loc_ISO + ChVector3d(delta, 0, 0)));
+    zleft = GetHeight(ChWorldFrame::FromISO(loc_ISO + ChVector3d(0, delta, 0)));
+    ChVector3d p0(loc_ISO.x(), loc_ISO.y(), z0);
+    ChVector3d pfront(loc_ISO.x() + delta, loc_ISO.y(), zfront);
+    ChVector3d pleft(loc_ISO.x(), loc_ISO.y() + delta, zleft);
+    ChVector3d normal_ISO;
+    ChVector3d r1, r2;
     r1 = pfront - p0;
     r2 = pleft - p0;
     normal_ISO = Vcross(r1, r2);
@@ -149,13 +149,13 @@ ChVector<> RandomSurfaceTerrain::GetNormal(const ChVector<>& loc) const {
         std::cerr << "Fatal: wrong surface normal!" << std::endl;
         throw std::runtime_error("Fatal: wrong surface normal!");
     }
-    ChVector<> normal = ChWorldFrame::FromISO(normal_ISO);
+    ChVector3d normal = ChWorldFrame::FromISO(normal_ISO);
     normal.Normalize();
 
     return normal;
 }
 
-float RandomSurfaceTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+float RandomSurfaceTerrain::GetCoefficientFriction(const ChVector3d& loc) const {
     return m_friction_fun ? (*m_friction_fun)(loc) : m_friction;
 }
 
@@ -432,7 +432,7 @@ double RandomSurfaceTerrain::Coherence(double omega,
 }
 
 void RandomSurfaceTerrain::GenerateCurves() {
-    std::vector<ChVector<>> pl, pr;
+    std::vector<ChVector3d> pl, pr;
     int np = static_cast<int>(m_xmax / m_dx);
 
     int j_left = 1;
@@ -443,8 +443,8 @@ void RandomSurfaceTerrain::GenerateCurves() {
         double x = m_xmin + i * m_dx;
         double zl = m_Q(i, j_left);
         double zr = m_Q(i, j_right);
-        pl.push_back(ChWorldFrame::FromISO(ChVector<>(x, yl, zl)));
-        pr.push_back(ChWorldFrame::FromISO(ChVector<>(x, yr, zr)));
+        pl.push_back(ChWorldFrame::FromISO(ChVector3d(x, yl, zl)));
+        pr.push_back(ChWorldFrame::FromISO(ChVector3d(x, yr, zr)));
     }
     // Create the two road boundary Bezier curves
     m_road_left = chrono_types::make_shared<ChBezierCurve>(pl);
@@ -467,18 +467,18 @@ void RandomSurfaceTerrain::GenerateMesh() {
         for (int j = 0; j < m_y.size(); j++) {
             double y = m_y[j];
             double z = m_Q(i, j);
-            coords.push_back(ChWorldFrame::FromISO(ChVector<>(x, y, z)));
-            normals.push_back(ChWorldFrame::FromISO(GetNormal(ChVector<>(x, y, z))));
+            coords.push_back(ChWorldFrame::FromISO(ChVector3d(x, y, z)));
+            normals.push_back(ChWorldFrame::FromISO(GetNormal(ChVector3d(x, y, z))));
         }
     }
     // Define the faces
     for (int i = 0; i < m_nx - 1; i++) {
         int ysize = static_cast<int>(m_y.size());
         for (int j = 0; j < m_y.size() - 1; j++) {
-            indices.push_back(ChVector<int>(j + 0 + ysize * i, j + ysize + ysize * i, j + 1 + ysize * i));
-            indices.push_back(ChVector<int>(j + 1 + ysize * i, j + ysize + ysize * i, j + 1 + ysize + ysize * i));
-            normidx.push_back(ChVector<int>(j + 0 + ysize * i, j + ysize + ysize * i, j + 1 + ysize * i));
-            normidx.push_back(ChVector<int>(j + 1 + ysize * i, j + ysize + ysize * i, j + 1 + ysize + ysize * i));
+            indices.push_back(ChVector3i(j + 0 + ysize * i, j + ysize + ysize * i, j + 1 + ysize * i));
+            indices.push_back(ChVector3i(j + 1 + ysize * i, j + ysize + ysize * i, j + 1 + ysize + ysize * i));
+            normidx.push_back(ChVector3i(j + 0 + ysize * i, j + ysize + ysize * i, j + 1 + ysize * i));
+            normidx.push_back(ChVector3i(j + 1 + ysize * i, j + ysize + ysize * i, j + 1 + ysize + ysize * i));
         }
     }
 }
@@ -544,7 +544,7 @@ void RandomSurfaceTerrain::SetupCollision() {
 
     if (m_start_length > 0) {
         double thickness = 1;
-        ChVector<> loc(-m_start_length / 2, 0, m_height - thickness / 2);
+        ChVector3d loc(-m_start_length / 2, 0, m_height - thickness / 2);
         auto box_shape = chrono_types::make_shared<ChCollisionShapeBox>(m_material, m_start_length, m_width, thickness);
         m_ground->AddCollisionShape(box_shape, ChFrame<>(loc, QUNIT));
 

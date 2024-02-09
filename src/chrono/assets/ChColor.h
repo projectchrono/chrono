@@ -16,7 +16,7 @@
 #define CHCOLOR_H
 
 #include "chrono/core/ChClassFactory.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
@@ -46,10 +46,10 @@ class ChApi ChColor {
     }
 
     /// Convert to HSV.
-    static ChVector<float> RGB2HSV(const ChColor& rgb);
+    static ChVector3f RGB2HSV(const ChColor& rgb);
 
     /// Set from HSV.
-    static ChColor HSV2RGB(const ChVector<float>& hsv);
+    static ChColor HSV2RGB(const ChVector3f& hsv);
 
     /// Compute a false color from a scalar value. Uses a cold-to-hot colormap.
     /// The 'v' scalar value is mapped in the vmin-vmax range.

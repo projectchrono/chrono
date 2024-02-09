@@ -223,8 +223,8 @@ void ChParserURDF::createChildren(urdf::LinkConstSharedPtr parent, const ChFrame
 
 // -----------------------------------------------------------------------------
 
-ChVector<> ChParserURDF::toChVector(const urdf::Vector3& vec) {
-    return ChVector<>(vec.x, vec.y, vec.z);
+ChVector3d ChParserURDF::toChVector(const urdf::Vector3& vec) {
+    return ChVector3d(vec.x, vec.y, vec.z);
 }
 
 ChQuaternion<> ChParserURDF::toChQuaternion(const urdf::Rotation& rot) {
@@ -431,8 +431,8 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
     // Note that URDF and Chrono use the same convention regarding sign of products of inertia
     const auto& inertial = link->inertial;
     double mass = inertial->mass;
-    auto inertia_moments = ChVector<>(inertial->ixx, inertial->iyy, inertial->izz);
-    auto inertia_products = ChVector<>(inertial->ixy, inertial->ixz, inertial->iyz);
+    auto inertia_moments = ChVector3d(inertial->ixx, inertial->iyy, inertial->izz);
+    auto inertia_products = ChVector3d(inertial->ixy, inertial->ixz, inertial->iyz);
 
     // Create the Chrono body
     auto body = chrono_types::make_shared<ChBodyAuxRef>();
@@ -484,7 +484,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
     // These form a rotation matrix relative to the child frame (in the URDF representation, a body reference frame
     // coincides with the frame of the joint connecting the body to its parent).
     auto joint_axis = toChVector(joint->axis);
-    ChVector<> d1, d2, d3;
+    ChVector3d d1, d2, d3;
     joint_axis.DirToDxDyDz(d1, d2, d3);
 
     // Create motors or passive joints

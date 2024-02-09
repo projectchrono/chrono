@@ -546,7 +546,7 @@ void ChElementShellANCF_3833::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfa
 }
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
-void ChElementShellANCF_3833::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementShellANCF_3833::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     assert(Fg.size() == GetNdofs());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
@@ -565,7 +565,7 @@ void ChElementShellANCF_3833::ComputeGravityForces(ChVectorDynamic<>& Fg, const 
 
 void ChElementShellANCF_3833::EvaluateSectionFrame(const double xi,
                                                    const double eta,
-                                                   ChVector<>& point,
+                                                   ChVector3d& point,
                                                    ChQuaternion<>& rot) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
@@ -582,8 +582,8 @@ void ChElementShellANCF_3833::EvaluateSectionFrame(const double xi,
 
     // Since ANCF does not use rotations, calculate an approximate
     // rotation based off the position vector gradients
-    ChVector<double> MidsurfaceX = e_bar * Sxi_xi_compact * 2 / m_lenX;
-    ChVector<double> MidsurfaceY = e_bar * Sxi_eta_compact * 2 / m_lenY;
+    ChVector3d MidsurfaceX = e_bar * Sxi_xi_compact * 2 / m_lenX;
+    ChVector3d MidsurfaceY = e_bar * Sxi_eta_compact * 2 / m_lenY;
 
     // Since the position vector gradients are not in general orthogonal,
     // set the Dx direction tangent to the shell xi axis and
@@ -595,7 +595,7 @@ void ChElementShellANCF_3833::EvaluateSectionFrame(const double xi,
     rot = msect.Get_A_quaternion();
 }
 
-void ChElementShellANCF_3833::EvaluateSectionPoint(const double xi, const double eta, ChVector<>& point) {
+void ChElementShellANCF_3833::EvaluateSectionPoint(const double xi, const double eta, ChVector3d& point) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
 
@@ -606,7 +606,7 @@ void ChElementShellANCF_3833::EvaluateSectionPoint(const double xi, const double
     point = e_bar * Sxi_compact;
 }
 
-void ChElementShellANCF_3833::EvaluateSectionVelNorm(const double xi, const double eta, ChVector<>& Result) {
+void ChElementShellANCF_3833::EvaluateSectionVelNorm(const double xi, const double eta, ChVector3d& Result) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
 
@@ -866,7 +866,7 @@ double ChElementShellANCF_3833::GetDensity() {
 
 // Calculate normal to the midsurface at coordinates (xi, eta).
 
-ChVector<> ChElementShellANCF_3833::ComputeNormal(const double xi, const double eta) {
+ChVector3d ChElementShellANCF_3833::ComputeNormal(const double xi, const double eta) {
     VectorN Sxi_zeta_compact;
     Calc_Sxi_zeta_compact(Sxi_zeta_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
 
@@ -874,7 +874,7 @@ ChVector<> ChElementShellANCF_3833::ComputeNormal(const double xi, const double 
     CalcCoordMatrix(e_bar);
 
     // Calculate the position vector gradient with respect to zeta at the current point (whose length may not equal 1)
-    ChVector<> r_zeta = e_bar * Sxi_zeta_compact;
+    ChVector3d r_zeta = e_bar * Sxi_zeta_compact;
 
     return r_zeta.GetNormalized();
 }

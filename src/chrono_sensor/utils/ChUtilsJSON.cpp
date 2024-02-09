@@ -62,10 +62,10 @@ void ReadFileJSON(const std::string& filename, Document& d) {
 
 // -----------------------------------------------------------------------------
 
-ChVector<> ReadVectorJSON(const Value& a) {
+ChVector3d ReadVectorJSON(const Value& a) {
     assert(a.IsArray());
     assert(a.Size() == 3);
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
+    return ChVector3d(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
 }
 
 ChQuaternion<> ReadQuaternionJSON(const Value& a) {
@@ -204,7 +204,7 @@ std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename,
     // Create the gps sensor.
     float updateRate = properties["Update Rate"].GetFloat();
     // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
-    ChVector<> gps_reference = ReadVectorJSON(properties["GPS Reference"]);
+    ChVector3d gps_reference = ReadVectorJSON(properties["GPS Reference"]);
     std::shared_ptr<ChNoiseModel> noise_model = CreateNoiseJSON(properties["Noise Model"]);
 
     auto gps = chrono_types::make_shared<ChGPSSensor>(parent, updateRate, offsetPose, gps_reference, noise_model);
@@ -332,7 +332,7 @@ std::shared_ptr<ChMagnetometerSensor> ReadMagnetometerSensorJSON(const std::stri
     float updateRate = properties["Update Rate"].GetFloat();
     // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
     std::shared_ptr<ChNoiseModel> noise_model = CreateNoiseJSON(properties["Noise Model"]);
-    ChVector<> gps_reference = ReadVectorJSON(properties["GPS Reference"]);
+    ChVector3d gps_reference = ReadVectorJSON(properties["GPS Reference"]);
     auto mag =
         chrono_types::make_shared<ChMagnetometerSensor>(parent, updateRate, offsetPose, noise_model, gps_reference);
 
@@ -593,13 +593,13 @@ std::shared_ptr<ChNoiseModel> CreateNoiseJSON(const Value& value) {
     if (type.compare("ChNoiseNone") == 0) {
         model = chrono_types::make_shared<ChNoiseNone>();
     } else if (type.compare("ChNoiseNormal") == 0) {
-        ChVector<float> mean = ReadVectorJSON(value["Mean"]);
-        ChVector<float> stdev = ReadVectorJSON(value["Mean"]);
+        ChVector3f mean = ReadVectorJSON(value["Mean"]);
+        ChVector3f stdev = ReadVectorJSON(value["Mean"]);
         model = chrono_types::make_shared<ChNoiseNormal>(mean, stdev);
     } else if (type.compare("ChNoiseNormalDrift") == 0) {
         float updateRate = value["Update Rate"].GetFloat();
-        ChVector<float> mean = ReadVectorJSON(value["Mean"]);
-        ChVector<float> stdev = ReadVectorJSON(value["Mean"]);
+        ChVector3f mean = ReadVectorJSON(value["Mean"]);
+        ChVector3f stdev = ReadVectorJSON(value["Mean"]);
         float drift_bias = value["Drift Bias"].GetFloat();
         float tau_drift = value["Tau Drift"].GetFloat();
         model = chrono_types::make_shared<ChNoiseNormalDrift>(updateRate, mean, stdev, drift_bias, tau_drift);

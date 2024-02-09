@@ -57,12 +57,12 @@ void AddBody(ChSystemMulticoreNSC* sys) {
     auto bin = chrono_types::make_shared<ChBody>();
     bin->SetIdentifier(binId);
     bin->SetMass(1);
-    bin->SetPos(ChVector<>(0, 0, 0));
+    bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(Q_from_AngAxis(-45, VECT_Y));
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(0.2, 0.2, 0.2), ChVector<>(0, 0, 0));
+    utils::AddBoxGeometry(bin.get(), mat, ChVector3d(0.2, 0.2, 0.2), ChVector3d(0, 0, 0));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
 
@@ -132,7 +132,7 @@ void AddMPMContainer(ChSystemMulticoreNSC* sys) {
 
     utils::HCPSampler<> sampler(dist);
     utils::Generator::PointVector points =
-        sampler.SampleSphere(ChVector<>(0, 0, radius + radius * .5), radius);  // ChVector<>(radius, radius, radius));
+        sampler.SampleSphere(ChVector3d(0, 0, radius + radius * .5), radius);  // ChVector3d(radius, radius, radius));
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
@@ -143,7 +143,7 @@ void AddMPMContainer(ChSystemMulticoreNSC* sys) {
     mpm_container->UpdatePosition(0);
     mpm_container->AddBodies(pos_fluid, vel_fluid);
 
-    points = sampler.SampleBox(ChVector<>(1, 0, 0), ChVector<>(radius, radius, radius));
+    points = sampler.SampleBox(ChVector3d(1, 0, 0), ChVector3d(radius, radius, radius));
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
 
     // Set gravitational acceleration
     double gravity = 9.81;
-    sys.Set_G_acc(ChVector<>(0, 0, -gravity));
+    sys.Set_G_acc(ChVector3d(0, 0, -gravity));
 
     // Set solver parameters
     sys.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, -.4, 0), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(0, -.4, 0), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // Uncomment the following two lines for the OpenGL manager to automatically

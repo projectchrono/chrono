@@ -193,10 +193,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     void WriteParticleInformation(utils::CSV_writer& csv);
 
-    static ChVector<> CalcBarycentricCoords(const ChVector<>& v1,
-                                            const ChVector<>& v2,
-                                            const ChVector<>& v3,
-                                            const ChVector<>& vP);
+    static ChVector3d CalcBarycentricCoords(const ChVector3d& v1,
+                                            const ChVector3d& v2,
+                                            const ChVector3d& v3,
+                                            const ChVector3d& vP);
 };
 
 /// @} vehicle_cosim_chrono

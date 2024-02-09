@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     if (do_mesh_collision_floor) {
         // floor as a triangle mesh surface:
         auto mfloor = chrono_types::make_shared<ChBody>();
-        mfloor->SetPos(ChVector<>(0, -1, 0));
+        mfloor->SetPos(ChVector3d(0, -1, 0));
         mfloor->SetBodyFixed(true);
         sys.Add(mfloor);
 
@@ -101,11 +101,11 @@ int main(int argc, char* argv[]) {
 
     if (false) {
         auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 2700, true, true, mysurfmaterial);
-        mcube->SetPos(ChVector<>(0.6, 0.5, 0.6));
+        mcube->SetPos(ChVector3d(0.6, 0.5, 0.6));
         sys.Add(mcube);
 
         auto msphere = chrono_types::make_shared<ChBodyEasySphere>(0.1, 2700, true, true, mysurfmaterial);
-        msphere->SetPos(ChVector<>(0.8, 0.5, 0.6));
+        msphere->SetPos(ChVector3d(0.8, 0.5, 0.6));
         sys.Add(msphere);
     }
 
@@ -127,11 +127,11 @@ int main(int argc, char* argv[]) {
     if (true) {
         for (int i = 0; i < 3; ++i) {
             ChCoordsys<> cdown1(VNULL, Q_from_AngAxis(CH_C_PI_2, VECT_X));
-            ChCoordsys<> cdown2(ChVector<>(0, -0.4, 0));
+            ChCoordsys<> cdown2(ChVector3d(0, -0.4, 0));
             ChCoordsys<> crot(VNULL, Q_from_AngAxis(5 * CH_C_2PI * ChRandom(), VECT_Y));
             for (int j = -1; j < 2; ++j) {
                 try {
-                    ChCoordsys<> cydisp(ChVector<>(0.3 * j, 0.1 + i * 0.1, 0));
+                    ChCoordsys<> cydisp(ChVector3d(0.3 * j, 0.1 + i * 0.1, 0));
                     ChCoordsys<> ctot = cdown2 >> cdown1 >> cydisp >> crot;
                     ChMatrix33<> mrot(ctot.rot);
                     ChMeshFileLoader::FromTetGenFile(my_mesh, GetChronoDataFile("fea/beam.node").c_str(),
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
 
     if (false) {
         std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
-        ChCoordsys<> cpos(ChVector<>(0, 0.8, 0), Q_from_AngAxis(CH_C_PI_2, VECT_Y));
+        ChCoordsys<> cpos(ChVector3d(0, 0.8, 0), Q_from_AngAxis(CH_C_PI_2, VECT_Y));
         ChMeshFileLoader::FromAbaqusFile(my_mesh,
                                          GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.INP").c_str(),
                                          mmaterial, node_sets, cpos.pos, cpos.rot);
@@ -181,13 +181,13 @@ int main(int argc, char* argv[]) {
 
         ChBuilderCableANCF builder;
 
-        ChCoordsys<> cablepos(ChVector<>(0, icable * 0.11, 0), Q_from_AngAxis(ChRandom() * CH_C_2PI, VECT_Y));
+        ChCoordsys<> cablepos(ChVector3d(0, icable * 0.11, 0), Q_from_AngAxis(ChRandom() * CH_C_2PI, VECT_Y));
 
         builder.BuildBeam(my_mesh_beams,    // the mesh where to put the created nodes and elements
                           msection_cable2,  // the ChBeamSectionCable to use for the ChElementCableANCF elements
                           12,               // the number of ChElementCableANCF to create
-                          cablepos * ChVector<>(0, 0.1, -0.1),      // the 'A' point in space (beginning of beam)
-                          cablepos * ChVector<>(0.5, 0.13, -0.1));  // the 'B' point in space (end of beam)
+                          cablepos * ChVector3d(0, 0.1, -0.1),      // the 'A' point in space (beginning of beam)
+                          cablepos * ChVector3d(0.5, 0.13, -0.1));  // the 'B' point in space (end of beam)
 
         // Create the contact surface(s).
         // In this case it is a ChContactSurfaceNodeCloud, so just pass
@@ -245,8 +245,8 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
-    vis->AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512, ChColor(1, 1, 1));
+    vis->AddCamera(ChVector3d(0.0, 0.6, -1.0));
+    vis->AddLightWithShadow(ChVector3d(1.5, 5.5, -2.5), ChVector3d(0, 0, 0), 3, 2.2, 7.2, 40, 512, ChColor(1, 1, 1));
     vis->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
     vis->EnableShadows();
 

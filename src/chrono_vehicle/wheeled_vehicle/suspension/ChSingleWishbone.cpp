@@ -74,7 +74,7 @@ ChSingleWishbone::~ChSingleWishbone() {
 void ChSingleWishbone::Initialize(std::shared_ptr<ChChassis> chassis,
                                   std::shared_ptr<ChSubchassis> subchassis,
                                   std::shared_ptr<ChSteering> steering,
-                                  const ChVector<>& location,
+                                  const ChVector3d& location,
                                   double left_ang_vel,
                                   double right_ang_vel) {
     ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
@@ -90,7 +90,7 @@ void ChSingleWishbone::Initialize(std::shared_ptr<ChChassis> chassis,
     m_pointsL.resize(NUM_POINTS);
     m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
+        ChVector3d rel_pos = getLocation(static_cast<PointId>(i));
         m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
         rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
@@ -105,19 +105,19 @@ void ChSingleWishbone::Initialize(std::shared_ptr<ChChassis> chassis,
 void ChSingleWishbone::InitializeSide(VehicleSide side,
                                       std::shared_ptr<ChChassis> chassis,
                                       std::shared_ptr<ChBody> tierod_body,
-                                      const std::vector<ChVector<>>& points,
+                                      const std::vector<ChVector3d>& points,
                                       double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
     ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
-    ChVector<> up = chassisRot.GetZaxis();
+    ChVector3d up = chassisRot.GetZaxis();
 
     // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w;
     ChMatrix33<> rot;
 
     // Spindle orientation (based on camber and toe angles)
@@ -129,7 +129,7 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
-    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
+    m_spindle[side]->SetWvel_loc(ChVector3d(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
     chassis->GetSystem()->AddBody(m_spindle[side]);
@@ -238,7 +238,7 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
-    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
+    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
@@ -299,11 +299,11 @@ std::vector<ChSuspension::ForceTSDA> ChSingleWishbone::ReportSuspensionForce(Veh
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSingleWishbone::LogHardpointLocations(const ChVector<>& ref, bool inches) {
+void ChSingleWishbone::LogHardpointLocations(const ChVector3d& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
+        ChVector3d pos = ref + unit * getLocation(static_cast<PointId>(i));
 
         std::cout << "   " << m_pointNames[i] << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
@@ -422,31 +422,31 @@ void ChSingleWishbone::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSingleWishbone::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
-                                                  const ChVector<> pt_C,
-                                                  const ChVector<> pt_U,
+                                                  const ChVector3d pt_C,
+                                                  const ChVector3d pt_U,
                                                   double radius) {
     // Express hardpoint locations in body frame.
-    ChVector<> p_C = arm->TransformPointParentToLocal(pt_C);
-    ChVector<> p_U = arm->TransformPointParentToLocal(pt_U);
+    ChVector3d p_C = arm->TransformPointParentToLocal(pt_C);
+    ChVector3d p_U = arm->TransformPointParentToLocal(pt_U);
 
     ChVehicleGeometry::AddVisualizationCylinder(arm, p_C, p_U, radius);
-    ChVehicleGeometry::AddVisualizationCylinder(arm, p_C + ChVector<>(radius, 0, 0), p_C - ChVector<>(radius, 0, 0),
+    ChVehicleGeometry::AddVisualizationCylinder(arm, p_C + ChVector3d(radius, 0, 0), p_C - ChVector3d(radius, 0, 0),
                                                 radius);
 }
 
 void ChSingleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
-                                               const ChVector<> pt_U,
-                                               const ChVector<> pt_S,
-                                               const ChVector<> pt_A,
-                                               const ChVector<> pt_T,
+                                               const ChVector3d pt_U,
+                                               const ChVector3d pt_S,
+                                               const ChVector3d pt_A,
+                                               const ChVector3d pt_T,
                                                double radius) {
     static const double threshold2 = 1e-6;
 
     // Express hardpoint locations in body frame.
-    ChVector<> p_U = upright->TransformPointParentToLocal(pt_U);  // upright center
-    ChVector<> p_S = upright->TransformPointParentToLocal(pt_S);  // spindle center
-    ChVector<> p_A = upright->TransformPointParentToLocal(pt_A);  // connection to arm
-    ChVector<> p_T = upright->TransformPointParentToLocal(pt_T);  // connection to tierod
+    ChVector3d p_U = upright->TransformPointParentToLocal(pt_U);  // upright center
+    ChVector3d p_S = upright->TransformPointParentToLocal(pt_S);  // spindle center
+    ChVector3d p_A = upright->TransformPointParentToLocal(pt_A);  // connection to arm
+    ChVector3d p_T = upright->TransformPointParentToLocal(pt_T);  // connection to tierod
 
     if ((p_U - p_S).Length2() > threshold2) {
         ChVehicleGeometry::AddVisualizationCylinder(upright, p_U, p_S, radius);
@@ -462,12 +462,12 @@ void ChSingleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
 }
 
 void ChSingleWishbone::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
-                                              const ChVector<> pt_C,
-                                              const ChVector<> pt_U,
+                                              const ChVector3d pt_C,
+                                              const ChVector3d pt_U,
                                               double radius) {
     // Express hardpoint locations in body frame.
-    ChVector<> p_C = tierod->TransformPointParentToLocal(pt_C);
-    ChVector<> p_U = tierod->TransformPointParentToLocal(pt_U);
+    ChVector3d p_C = tierod->TransformPointParentToLocal(pt_C);
+    ChVector3d p_U = tierod->TransformPointParentToLocal(pt_U);
 
     ChVehicleGeometry::AddVisualizationCylinder(tierod, p_C, p_U, radius);
 }

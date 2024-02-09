@@ -366,9 +366,9 @@ bool ChCascadeDoc::GetRootShape(TopoDS_Shape& mshape, const int num) {
 
 bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,   ///< pass the shape here
                                        const double density,         ///< pass the density here
-                                       ChVector<>& center_position,  ///< get the position center, respect to shape pos.
-                                       ChVector<>& inertiaXX,        ///< get the inertia diagonal terms
-                                       ChVector<>& inertiaXY,        ///< get the inertia extradiagonal terms
+                                       ChVector3d& center_position,  ///< get the position center, respect to shape pos.
+                                       ChVector3d& inertiaXX,        ///< get the inertia diagonal terms
+                                       ChVector3d& inertiaXY,        ///< get the inertia extradiagonal terms
                                        double& volume,               ///< get the volume
                                        double& mass                  ///< get the mass
 ) {
@@ -405,7 +405,7 @@ bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,   ///< pass t
 
 void ChCascadeDoc::FromCascadeToChrono(const TopLoc_Location& from_coord, ChFrame<>& to_coord) {
     gp_XYZ mtr = from_coord.Transformation().TranslationPart();
-    to_coord.SetPos(ChVector<>(mtr.X(), mtr.Y(), mtr.Z()));
+    to_coord.SetPos(ChVector3d(mtr.X(), mtr.Y(), mtr.Z()));
 
     gp_Mat mro = from_coord.Transformation().VectorialPart();
     ChMatrix33<> to_mat;
@@ -426,7 +426,7 @@ void ChCascadeDoc::FromCascadeToChrono(const TopLoc_Location& from_coord, ChFram
 }
 
 void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord) {
-    const ChVector<>& mpos = from_coord.GetPos();
+    const ChVector3d& mpos = from_coord.GetPos();
     gp_Vec mtr(mpos.x(), mpos.y(), mpos.z());
 
     const ChMatrix33<>& from_mat = from_coord.GetA();

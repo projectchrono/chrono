@@ -34,7 +34,7 @@ const std::string HMMWV_TMeasyTire::m_meshFile_left = "hmmwv/hmmwv_tire_left.obj
 const std::string HMMWV_TMeasyTire::m_meshFile_right = "hmmwv/hmmwv_tire_right.obj";
 
 const double HMMWV_TMeasyTire::m_mass = 37.6;
-const ChVector<> HMMWV_TMeasyTire::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d HMMWV_TMeasyTire::m_inertia(3.84, 6.69, 3.84);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

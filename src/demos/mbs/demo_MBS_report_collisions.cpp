@@ -48,13 +48,13 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
   private:
     // Keep track of the number of contacts experienced by each body.
     // Maintain a hash map with body as key and current number of contacts as value.
-    virtual bool OnReportContact(const ChVector<>& pA,
-                                 const ChVector<>& pB,
+    virtual bool OnReportContact(const ChVector3d& pA,
+                                 const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
                                  const double& distance,
                                  const double& eff_radius,
-                                 const ChVector<>& cforce,
-                                 const ChVector<>& ctorque,
+                                 const ChVector3d& cforce,
+                                 const ChVector3d& ctorque,
                                  ChContactable* modA,
                                  ChContactable* modB) override {
         auto bodyA = static_cast<ChBody*>(modA);
@@ -99,11 +99,11 @@ int main(int argc, char* argv[]) {
     auto shape3 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 2, 80, 40);
     auto shape4 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 40, 80, 2);
     auto shape5 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 40, 80, 2);
-    container->AddCollisionShape(shape1, ChFrame<>(ChVector<>(0, -10, 0), QUNIT));
-    container->AddCollisionShape(shape2, ChFrame<>(ChVector<>(-11, 0, 0), QUNIT));
-    container->AddCollisionShape(shape3, ChFrame<>(ChVector<>(11, 0, 0), QUNIT));
-    container->AddCollisionShape(shape4, ChFrame<>(ChVector<>(0, 0, -11), QUNIT));
-    container->AddCollisionShape(shape5, ChFrame<>(ChVector<>(0, 0, 11), QUNIT));
+    container->AddCollisionShape(shape1, ChFrame<>(ChVector3d(0, -10, 0), QUNIT));
+    container->AddCollisionShape(shape2, ChFrame<>(ChVector3d(-11, 0, 0), QUNIT));
+    container->AddCollisionShape(shape3, ChFrame<>(ChVector3d(11, 0, 0), QUNIT));
+    container->AddCollisionShape(shape4, ChFrame<>(ChVector3d(0, 0, -11), QUNIT));
+    container->AddCollisionShape(shape5, ChFrame<>(ChVector3d(0, 0, 11), QUNIT));
     sys.AddBody(container);
 
     // Create falling rigid bodies with different shapes and mark one of each type.
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     for (int bi = 0; bi < 20; bi++) {
         auto sphere = chrono_types::make_shared<ChBodyEasySphere>(1.1, 1000, true, true, mat);
         sys.Add(sphere);
-        sphere->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        sphere->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
             sphere->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
             my_sphere = sphere;
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
 
         auto box = chrono_types::make_shared<ChBodyEasyBox>(1.5, 1.5, 1.5, 100, true, true, mat);
         sys.Add(box);
-        box->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        box->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
             box->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
             my_box = box;
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
         auto cylinder =
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.75, 0.5, 100, true, true, mat);
         sys.Add(cylinder);
-        cylinder->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        cylinder->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
             cylinder->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));
             my_cylinder = cylinder;
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 14, -20));
+    vis->AddCamera(ChVector3d(0, 14, -20));
     vis->AddTypicalLights();
 
     // Create the contact manager.

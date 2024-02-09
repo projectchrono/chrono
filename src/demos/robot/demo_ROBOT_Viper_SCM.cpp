@@ -74,7 +74,7 @@ ViperWheelType wheel_type = ViperWheelType::RealWheel;
 // Note that the location is given in the SCM reference frame.
 class MySoilParams : public vehicle::SCMTerrain::SoilParametersCallback {
   public:
-    virtual void Set(const ChVector<>& loc,
+    virtual void Set(const ChVector3d& loc,
                      double& Bekker_Kphi,
                      double& Bekker_Kc,
                      double& Bekker_n,
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     // Create a Chrono physical system and associated collision system
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
 
     // Initialize output
     if (output) {
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     if (use_custom_mat)
         viper.SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
 
-    viper.Initialize(ChFrame<>(ChVector<>(-5, 0, -0.2), QUNIT));
+    viper.Initialize(ChFrame<>(ChVector3d(-5, 0, -0.2), QUNIT));
 
     // Get wheels and bodies to set up SCM patches
     auto Wheel_1 = viper.GetWheel(ViperWheelID::V_LF)->GetBody();
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
     // Note: Irrlicht uses a Y-up frame
-    terrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, -0.5)));
+    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, 0, -0.5)));
 
     // Use a regular grid:
     double length = 14;
@@ -224,10 +224,10 @@ int main(int argc, char* argv[]) {
     // We need to add a moving patch under every wheel
     // Or we can define a large moving patch at the pos of the rover body
     if (enable_moving_patch) {
-        terrain.AddMovingPatch(Wheel_1, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(Wheel_2, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(Wheel_3, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(Wheel_4, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(Wheel_1, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(Wheel_2, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(Wheel_3, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(Wheel_4, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
@@ -257,9 +257,9 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector<>(1.0, 2.0, 1.4), ChVector<>(0, 0, wheel_range));
+            vis_irr->AddCamera(ChVector3d(1.0, 2.0, 1.4), ChVector3d(0, 0, wheel_range));
             vis_irr->AddTypicalLights();
-            vis_irr->AddLightWithShadow(ChVector<>(-5.0, -0.5, 8.0), ChVector<>(-1, 0, 0), 100, 1, 35, 85, 512,
+            vis_irr->AddLightWithShadow(ChVector3d(-5.0, -0.5, 8.0), ChVector3d(-1, 0, 0), 100, 1, 35, 85, 512,
                                     ChColor(0.8f, 0.8f, 0.8f));
             vis_irr->EnableShadows();
 
@@ -274,7 +274,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowSize(800, 600);
             vis_vsg->SetWindowTitle("Viper Rover on SCM");
-            vis_vsg->AddCamera(ChVector<>(1.0, 2.0, 1.4), ChVector<>(0, 0, wheel_range));
+            vis_vsg->AddCamera(ChVector3d(1.0, 2.0, 1.4), ChVector3d(0, 0, wheel_range));
             vis_vsg->Initialize();
 
             vis = vis_vsg;

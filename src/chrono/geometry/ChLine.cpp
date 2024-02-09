@@ -32,7 +32,7 @@ ChLine::ChLine(const ChLine& source) {
     complexityU = source.complexityU;
 }
 
-ChVector<> ChLine::GetTangent(double parU) const {
+ChVector3d ChLine::GetTangent(double parU) const {
     double bdf = 10e-9;
     double uA = 0, uB = 0;
 
@@ -50,7 +50,7 @@ ChVector<> ChLine::GetTangent(double parU) const {
     return (vB - vA) * (1 / bdf);
 }
 
-bool ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approxU, double tol) const {
+bool ChLine::FindNearestLinePoint(ChVector3d& point, double& resU, double approxU, double tol) const {
     double mu;
     int points = 20;
     bool closed = false;
@@ -60,7 +60,7 @@ bool ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approx
     int iters = 0;
     int maxiters = 11;
 
-    ChVector<> vres, vp1, vp2;
+    ChVector3d vres, vp1, vp2;
 
     points = this->Get_complexity();
     closed = this->Get_closed();
@@ -162,17 +162,17 @@ double ChLine::CurveCurveDist(ChLine* compline, int samples) const {
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB = compline->Evaluate(par);
+        ChVector3d ptB = compline->Evaluate(par);
         this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA = this->Evaluate(mpos);
+        ChVector3d ptA = this->Evaluate(mpos);
         mres += Vlength(Vsub(ptA, ptB));
     }
     // ..and viceversa
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB = this->Evaluate(par);
+        ChVector3d ptB = this->Evaluate(par);
         compline->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA = compline->Evaluate(mpos);
+        ChVector3d ptA = compline->Evaluate(mpos);
         mres += Vlength(Vsub(ptA, ptB));
     }
 
@@ -186,9 +186,9 @@ double ChLine::CurveCurveDistMax(ChLine* compline, int samples) const {
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB = compline->Evaluate(par);
+        ChVector3d ptB = compline->Evaluate(par);
         this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA = this->Evaluate(mpos);
+        ChVector3d ptA = this->Evaluate(mpos);
         mdis = Vlength(Vsub(ptA, ptB));
         if (mres < mdis)
             mres = mdis;
@@ -196,9 +196,9 @@ double ChLine::CurveCurveDistMax(ChLine* compline, int samples) const {
     // ..and viceversa
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB = this->Evaluate(par);
+        ChVector3d ptB = this->Evaluate(par);
         compline->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA = compline->Evaluate(mpos);
+        ChVector3d ptA = compline->Evaluate(mpos);
         mdis = Vlength(Vsub(ptA, ptB));
         if (mres < mdis)
             mres = mdis;
@@ -213,9 +213,9 @@ double ChLine::CurveSegmentDist(ChLine* complinesegm, int samples) const {
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB = complinesegm->Evaluate(par);
+        ChVector3d ptB = complinesegm->Evaluate(par);
         this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA = this->Evaluate(mpos);
+        ChVector3d ptA = this->Evaluate(mpos);
         mres += Vlength(Vsub(ptA, ptB));
     }
     return (mres / samples);
@@ -228,9 +228,9 @@ double ChLine::CurveSegmentDistMax(ChLine* complinesegm, int samples) const {
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB = complinesegm->Evaluate(par);
+        ChVector3d ptB = complinesegm->Evaluate(par);
         this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA = this->Evaluate(mpos);
+        ChVector3d ptA = this->Evaluate(mpos);
         mdis = Vlength(Vsub(ptA, ptB));
         if (mres < mdis)
             mres = mdis;
@@ -250,8 +250,8 @@ double ChLine::Length(int sampling) const {
     if (sampling > 1)
         step = step / (double)sampling;
 
-    ChVector<> pA = this->Evaluate(0.0);
-    ChVector<> pB;
+    ChVector3d pA = this->Evaluate(0.0);
+    ChVector3d pB;
     for (par = 0; par <= 1.000000001; par = par + step) {
         pB = this->Evaluate(par);
         mres += Vlength(Vsub(pA, pB));

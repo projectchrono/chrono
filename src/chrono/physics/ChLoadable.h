@@ -14,7 +14,7 @@
 #define CHLOADABLE_H
 
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/solver/ChVariables.h"
 
 namespace chrono {
@@ -131,7 +131,7 @@ class ChApi ChLoadableUV : virtual public ChLoadable {
 
     /// Gets the normal to the surface at the parametric coordinate u,v.
     /// Normal must be considered pointing outside in case the surface is a boundary to a volume.
-    virtual ChVector<> ComputeNormal(const double U, const double V) = 0;
+    virtual ChVector3d ComputeNormal(const double U, const double V) = 0;
 
     /// If true, use quadrature over u,v in [0..1] range as triangle area coords (with z=1-u-v)
     /// otherwise use default quadrature over u,v in [-1..+1] as rectangular isoparametric coords.

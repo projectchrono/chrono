@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     int i = 0;
     while (i < TotalNumNodes) {
         auto node =
-            chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+            chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         // Fix nodes clamped to the ground
         my_mesh->AddNode(node);
@@ -259,9 +259,9 @@ int main(int argc, char* argv[]) {
         while (sys.GetChTime() < sim_time) {
             t_sim = sys.GetChTime();
             if (t_sim < T_F)
-                nodetip->SetForce(ChVector<>(0, 0, -50 / 2 * (1 - cos((t_sim / T_F) * 3.1415926535))));
+                nodetip->SetForce(ChVector3d(0, 0, -50 / 2 * (1 - cos((t_sim / T_F) * 3.1415926535))));
             else {
-                nodetip->SetForce(ChVector<>(0, 0, -50));
+                nodetip->SetForce(ChVector3d(0, 0, -50));
             }
             sys.DoStepDynamics(step_size);
             out << sys.GetChTime() << nodetip->GetPos().z() << nodetip->GetForce().z() << std::endl;
@@ -280,9 +280,9 @@ int main(int argc, char* argv[]) {
         while (sys.GetChTime() < sim_time_UT) {
             t_sim = sys.GetChTime();
             if (t_sim < T_F)
-                nodetip->SetForce(ChVector<>(0, 0, -50 / 2 * (1 - cos((t_sim / T_F) * 3.1415926535))));
+                nodetip->SetForce(ChVector3d(0, 0, -50 / 2 * (1 - cos((t_sim / T_F) * 3.1415926535))));
             else {
-                nodetip->SetForce(ChVector<>(0, 0, -50));
+                nodetip->SetForce(ChVector3d(0, 0, -50));
             }
             sys.DoStepDynamics(step_size);
             AbsVal = std::abs(nodetip->GetPos().z() - FileInputMat(stepNo, 1));

@@ -42,9 +42,9 @@ class ChApi ChMaterialBeamANCF {
 
     /// Construct a (possibly) orthotropic material.
     ChMaterialBeamANCF(double rho,            ///< material density
-                       const ChVector<>& E,   ///< elasticity moduli (E_x, E_y, E_z)
-                       const ChVector<>& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
-                       const ChVector<>& G,   ///< shear moduli (G_xy, G_xz, G_yz)
+                       const ChVector3d& E,   ///< elasticity moduli (E_x, E_y, E_z)
+                       const ChVector3d& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
+                       const ChVector3d& G,   ///< shear moduli (G_xy, G_xz, G_yz)
                        double k1,             ///< Shear correction factor along beam local y axis
                        double k2              ///< Shear correction factor along beam local z axis
     );
@@ -70,14 +70,14 @@ class ChApi ChMaterialBeamANCF {
   private:
     /// Calculate the matrix form of two stiffness tensors used by the ANCF beam for selective reduced integration of
     /// the Poisson effect k1 and k2 are Timoshenko shear correction factors.
-    void Calc_D0_Dv(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G, double k1, double k2);
+    void Calc_D0_Dv(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G, double k1, double k2);
 
     /// Calculate the matrix of elastic coefficients: k1 and k2 are Timoshenko shear correction factors. (For
     /// compatibility with ChElementBeam only)
-    void Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G, double k1, double k2);
+    void Calc_E_eps(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G, double k1, double k2);
 
     /// Calculate the matrix of elastic coefficients. (For compatibility with ChElementBeam only)
-    void Calc_E_eps_Nu(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G);
+    void Calc_E_eps_Nu(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G);
 
     double m_rho;               ///< density
     ChVectorN<double, 6> m_D0;  ///< Diagonal components of the 6x6 elasticity matrix form without the terms

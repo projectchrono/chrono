@@ -65,7 +65,7 @@ void ChLinkMotionImposed::Update(double mytime, bool update_assets) {
         ChMatrix33<> Jr1 = -planeMW.transpose() * Body1->GetA() * ChStarMatrix33<>(frame1.GetPos());
         ChMatrix33<> Jr2 = planeMW.transpose() * Body2->GetA() * ChStarMatrix33<>(frameMb2.GetPos());
 
-        ChVector<> p2p1_base2 = Body2->GetA().transpose() * (frame1W.GetPos() - frameMW.GetPos());
+        ChVector3d p2p1_base2 = Body2->GetA().transpose() * (frame1W.GetPos() - frameMW.GetPos());
         Jr2 += planeMW.transpose() * Body2->GetA() * ChStarMatrix33<>(p2p1_base2);
 
         // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
@@ -148,12 +148,12 @@ void ChLinkMotionImposed::KRMmatricesLoad(double Kfactor, double Rfactor, double
         ChMatrix33<> R_B2_W = Body2->GetA();
         ChMatrix33<> R_F1_W = F1_W.GetA();
         ChMatrix33<> R_F2_W = F2_W.GetA();
-        ChVector<> P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
+        ChVector3d P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
         ChFrame<> F1_wrt_F2;
         F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
 
-        ChVector<> r_F1_B1 = this->frame1.GetPos();
-        ChVector<> r_F2_B2 = this->frameMb2.GetPos();
+        ChVector3d r_F1_B1 = this->frame1.GetPos();
+        ChVector3d r_F2_B2 = this->frameMb2.GetPos();
         ChStarMatrix33<> rtilde_F1_B1(r_F1_B1);
         ChStarMatrix33<> rtilde_F2_B2(r_F2_B2);
 
@@ -177,7 +177,7 @@ void ChLinkMotionImposed::KRMmatricesLoad(double Kfactor, double Rfactor, double
                                ChStarMatrix33<>(P12_B2 + r_F2_B2);
 
         double s_F1_F2 = F1_wrt_F2.GetRot().e0();
-        ChVector<> v_F1_F2 = F1_wrt_F2.GetRot().GetVector();
+        ChVector3d v_F1_F2 = F1_wrt_F2.GetRot().GetVector();
         ChMatrix33<> I33;
         I33.setIdentity();
         ChMatrix33<> G = -0.25 * TensorProduct(gamma_m, v_F1_F2) -
@@ -200,9 +200,9 @@ void ChLinkMotionImposed::KRMmatricesLoad(double Kfactor, double Rfactor, double
 void ChLinkMotionImposed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
     
 	double T = this->GetChTime();
-	ChVector<> mv = -position_function->Get_p_ds(T);
-	ChVector<> mw_loc = -rotation_function->Get_w_loc(T);
-	ChVector<> mv_rot = rotation_function->Get_q(T).RotateBack(mv); // need velocity in local rotated system
+	ChVector3d mv = -position_function->Get_p_ds(T);
+	ChVector3d mw_loc = -rotation_function->Get_w_loc(T);
+	ChVector3d mv_rot = rotation_function->Get_q(T).RotateBack(mv); // need velocity in local rotated system
 
 	int nc = 0;
     if (c_x) {
@@ -244,9 +244,9 @@ void ChLinkMotionImposed::ConstraintsBiLoad_Ct(double factor) {
         return;
 
     double T = this->GetChTime();
-	ChVector<> mv = -position_function->Get_p_ds(T);
-	ChVector<> mw_loc = -rotation_function->Get_w_loc(T);
-	ChVector<> mv_rot = rotation_function->Get_q(T).RotateBack(mv); // need velocity in local rotated system
+	ChVector3d mv = -position_function->Get_p_ds(T);
+	ChVector3d mw_loc = -rotation_function->Get_w_loc(T);
+	ChVector3d mv_rot = rotation_function->Get_q(T).RotateBack(mv); // need velocity in local rotated system
 
     if (mask.Constr_N(0).IsActive()) {
         mask.Constr_N(0).Set_b_i(mask.Constr_N(0).Get_b_i() + factor * mv_rot.x());

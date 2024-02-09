@@ -51,17 +51,17 @@ ChChaseCamera::ChChaseCamera(std::shared_ptr<ChBody> chassis)
       m_horizGain(4.0f),
       m_vertGain(2.0f),
       m_state(Chase) {
-    Initialize(ChVector<>(0, 0, 0), ChCoordsys<>(), 5, 1);
+    Initialize(ChVector3d(0, 0, 0), ChCoordsys<>(), 5, 1);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChChaseCamera::Initialize(const ChVector<>& ptOnChassis,
+void ChChaseCamera::Initialize(const ChVector3d& ptOnChassis,
                                const ChCoordsys<>& driverCoordsys,
                                double chaseDist,
                                double chaseHeight,
-                               const ChVector<>& up,
-                               const ChVector<>& fwd) {
+                               const ChVector3d& up,
+                               const ChVector3d& fwd) {
     m_ptOnChassis = ptOnChassis;
     m_driverCsys = driverCoordsys;
     m_dist = chaseDist;
@@ -72,7 +72,7 @@ void ChChaseCamera::Initialize(const ChVector<>& ptOnChassis,
     m_fwd = fwd;
 
     if (m_chassis) {
-        ChVector<> localOffset(-m_dist, 0, m_height);
+        ChVector3d localOffset(-m_dist, 0, m_height);
         m_loc = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_ptOnChassis + localOffset);
         m_lastLoc = m_loc;
     }
@@ -165,7 +165,7 @@ void ChChaseCamera::Turn(int val) {
 // Set fixed camera position.
 // Note that this also forces the state to 'Track'
 // -----------------------------------------------------------------------------
-void ChChaseCamera::SetCameraPos(const ChVector<>& pos) {
+void ChChaseCamera::SetCameraPos(const ChVector3d& pos) {
     m_loc = pos;
     m_lastLoc = pos;
     m_state = Track;
@@ -181,7 +181,7 @@ void ChChaseCamera::SetCameraAngle(double angle) {
 void ChChaseCamera::SetChassis(std::shared_ptr<ChBody> chassis) {
     m_chassis = chassis;
 
-    ChVector<> localOffset(-m_dist, 0, m_height);
+    ChVector3d localOffset(-m_dist, 0, m_height);
     m_loc = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_ptOnChassis + localOffset);
     m_lastLoc = m_loc;
 }
@@ -193,10 +193,10 @@ void ChChaseCamera::SetChassis(std::shared_ptr<ChBody> chassis) {
 // set the target location to be at the current driver location and move back
 // the camera position.
 // -----------------------------------------------------------------------------
-ChVector<> ChChaseCamera::GetCameraPos() const {
+ChVector3d ChChaseCamera::GetCameraPos() const {
     if (m_state == Inside) {
-        ChVector<> driverPos = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_driverCsys.pos);
-        ChVector<> driverViewDir =
+        ChVector3d driverPos = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_driverCsys.pos);
+        ChVector3d driverViewDir =
             m_chassis->GetFrame_REF_to_abs().TransformDirectionLocalToParent(m_driverCsys.rot.GetXaxis());
         return driverPos - 1.1 * driverViewDir;
     }
@@ -207,7 +207,7 @@ ChVector<> ChChaseCamera::GetCameraPos() const {
     return m_loc;
 }
 
-ChVector<> ChChaseCamera::GetTargetPos() const {
+ChVector3d ChChaseCamera::GetTargetPos() const {
     if (m_state == Inside) {
         return m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_driverCsys.pos);
     }
@@ -244,24 +244,24 @@ void ChChaseCamera::Update(double step) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChVector<> ChChaseCamera::calcDeriv(const ChVector<>& loc) {
+ChVector3d ChChaseCamera::calcDeriv(const ChVector3d& loc) {
     if (m_state == Free) {
-        ChVector<> targetLoc = GetTargetPos();
-        ChVector<> uC2T = targetLoc - m_loc;
+        ChVector3d targetLoc = GetTargetPos();
+        ChVector3d uC2T = targetLoc - m_loc;
         uC2T.Normalize();
-        ChVector<> desCamLoc = m_loc + uC2T * m_mult;
+        ChVector3d desCamLoc = m_loc + uC2T * m_mult;
 
-        ChVector<> gains(m_horizGain, m_horizGain, m_horizGain);  // collect gains in a 3-vector
+        ChVector3d gains(m_horizGain, m_horizGain, m_horizGain);  // collect gains in a 3-vector
         gains += (m_vertGain - m_horizGain) * m_up;               // trick to overwrite the appropriate vertical gain
-        ChVector<> deriv = gains * (desCamLoc - m_loc);           // component-wise vector multiplication!
+        ChVector3d deriv = gains * (desCamLoc - m_loc);           // component-wise vector multiplication!
 
         return deriv;
     }
 
     // Calculate the desired camera location, based on the current state of the chassis.
-    ChVector<> targetLoc = GetTargetPos();
-    ChVector<> uC2T;
-    ChVector<> desCamLoc;
+    ChVector3d targetLoc = GetTargetPos();
+    ChVector3d uC2T;
+    ChVector3d desCamLoc;
 
     if (m_state == Follow)
         uC2T = targetLoc - m_loc;
@@ -278,9 +278,9 @@ ChVector<> ChChaseCamera::calcDeriv(const ChVector<>& loc) {
     desCamLoc += (desCamHeight - (desCamLoc ^ m_up)) * m_up;       // overwrite component in the vertical direction
 
     // Calculate the derivative vector (RHS of filter ODEs).
-    ChVector<> gains(m_horizGain, m_horizGain, m_horizGain);  // collect gains in a 3-vector
+    ChVector3d gains(m_horizGain, m_horizGain, m_horizGain);  // collect gains in a 3-vector
     gains += (m_vertGain - m_horizGain) * m_up;               // trick to overwrite the appropriate vertical gain
-    ChVector<> deriv = gains * (desCamLoc - m_loc);           // component-wise vector multiplication!
+    ChVector3d deriv = gains * (desCamLoc - m_loc);           // component-wise vector multiplication!
 
     return deriv;
 }

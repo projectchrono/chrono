@@ -33,7 +33,7 @@ namespace hmmwv {
 const double HMMWV_FialaTire::m_normalDamping = 75;
 
 const double HMMWV_FialaTire::m_mass = 37.6;
-const ChVector<> HMMWV_FialaTire::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d HMMWV_FialaTire::m_inertia(3.84, 6.69, 3.84);
 
 const std::string HMMWV_FialaTire::m_meshFile_left = "hmmwv/hmmwv_tire_left.obj";
 const std::string HMMWV_FialaTire::m_meshFile_right = "hmmwv/hmmwv_tire_right.obj";

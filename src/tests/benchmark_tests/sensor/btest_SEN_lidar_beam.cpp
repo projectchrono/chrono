@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
                 << data3->Buffer[0].intensity  //
                 << std::endl;
 
-            first_wall->SetPos(first_wall->GetPos() + ChVector<>({0, .001, 0}));
+            first_wall->SetPos(first_wall->GetPos() + ChVector3d({0, .001, 0}));
             // std::cout << "y:" << first_wall->GetPos().y() << std::endl;
             data1->Buffer = NULL;
             data2->Buffer = NULL;

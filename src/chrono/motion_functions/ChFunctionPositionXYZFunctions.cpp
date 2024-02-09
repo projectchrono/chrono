@@ -44,22 +44,22 @@ ChFunctionPositionXYZFunctions::~ChFunctionPositionXYZFunctions() {
 
 
 
-ChVector<> ChFunctionPositionXYZFunctions::Get_p(double s) const {
-	return ChVector<>(
+ChVector3d ChFunctionPositionXYZFunctions::Get_p(double s) const {
+	return ChVector3d(
 		px->Get_y(s), 
 		py->Get_y(s), 
 		pz->Get_y(s));
 }
 
-ChVector<> ChFunctionPositionXYZFunctions::Get_p_ds(double s) const {
-	return ChVector<>(
+ChVector3d ChFunctionPositionXYZFunctions::Get_p_ds(double s) const {
+	return ChVector3d(
 		px->Get_y_dx(s), 
 		py->Get_y_dx(s), 
 		pz->Get_y_dx(s));
 }
 
-ChVector<> ChFunctionPositionXYZFunctions::Get_p_dsds(double s) const {
-	return ChVector<>(
+ChVector3d ChFunctionPositionXYZFunctions::Get_p_dsds(double s) const {
+	return ChVector3d(
 		px->Get_y_dxdx(s), 
 		py->Get_y_dxdx(s), 
 		pz->Get_y_dxdx(s));

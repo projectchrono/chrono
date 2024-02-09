@@ -325,20 +325,20 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     /// The lumped format is used, need to multiple 0.5 * length to obtain the final inertial-damping matrix
     virtual void ComputeInertiaDampingMatrix(
         ChMatrixNM<double, 12, 12>& Ri,  ///< 12x12 sectional inertial-damping matrix values here
-        const ChVector<>& mW_A,          ///< current angular velocity of section of node A, in material frame
-        const ChVector<>& mW_B           ///< current angular velocity of section of node B, in material frame
+        const ChVector3d& mW_A,          ///< current angular velocity of section of node A, in material frame
+        const ChVector3d& mW_B           ///< current angular velocity of section of node B, in material frame
     );
 
     /// Compute the 12x12 local inertial-stiffness matrix.
     /// The lumped format is used, need to multiple 0.5 * length to obtain the final inertial-stiffness matrix
     virtual void ComputeInertiaStiffnessMatrix(
         ChMatrixNM<double, 12, 12>& Ki,  ///< 12x12 sectional inertial-stiffness matrix values here
-        const ChVector<>& mWvel_A,       ///< current angular velocity of section of node A, in material frame
-        const ChVector<>& mWacc_A,       ///< current angular acceleration of section of node A, in material frame
-        const ChVector<>& mXacc_A,       ///< current acceleration of section of node A, in material frame)
-        const ChVector<>& mWvel_B,       ///< current angular velocity of section of node B, in material frame
-        const ChVector<>& mWacc_B,       ///< current angular acceleration of section of node B, in material frame
-        const ChVector<>& mXacc_B        ///< current acceleration of section of node B, in material frame
+        const ChVector3d& mWvel_A,       ///< current angular velocity of section of node A, in material frame
+        const ChVector3d& mWacc_A,       ///< current angular acceleration of section of node A, in material frame
+        const ChVector3d& mXacc_A,       ///< current acceleration of section of node A, in material frame)
+        const ChVector3d& mWvel_B,       ///< current angular velocity of section of node B, in material frame
+        const ChVector3d& mWacc_B,       ///< current angular acceleration of section of node B, in material frame
+        const ChVector3d& mXacc_B        ///< current acceleration of section of node B, in material frame
     );
 
     /// Get the average damping parameters of this tapered cross-section.

@@ -158,7 +158,7 @@ class ChApi ChLinkRSDA : public ChLink {
     ChCoordsys<> m_csys1;  ///< joint frame orientation on body 1
     ChCoordsys<> m_csys2;  ///< joint frame orientation on body 2
 
-    ChVector<> m_axis;  ///< RSDA axis (expressed in absolute frame)
+    ChVector3d m_axis;  ///< RSDA axis (expressed in absolute frame)
 
     double m_k;  ///< spring coefficient (if no torque functor provided)
     double m_r;  ///< damping coefficient (if no torque functor provided)

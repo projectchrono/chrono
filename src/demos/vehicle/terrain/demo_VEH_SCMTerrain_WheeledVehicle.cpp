@@ -104,7 +104,7 @@ double step_size = 3e-3;
 double render_step_size = 1.0 / 100;
 
 // Point on chassis tracked by the camera
-ChVector<> track_point(0.0, 0.0, 1.75);
+ChVector3d track_point(0.0, 0.0, 1.75);
 
 // Output directories
 const std::string out_dir = GetChronoOutputPath() + "HMMWV_DEF_SOIL";
@@ -160,7 +160,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     for (int iseg = 0; iseg < 15; iseg++) {
         ChQuaternion<> rot = Q_from_AngAxis(iseg * 24 * CH_C_DEG_TO_RAD, VECT_Y);
         for (int ihull = 0; ihull < num_hulls; ihull++) {
-            std::vector<ChVector<> > convexhull;
+            std::vector<ChVector3d > convexhull;
             lugged_convex.GetConvexHullResult(ihull, convexhull);
             auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(wheel_material, convexhull);
             wheel_body->AddCollisionShape(shape, ChFrame<>(VNULL, rot));
@@ -189,19 +189,19 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Set initial vehicle location
-    ChVector<> init_loc;
-    ChVector2<> patch_size;
+    ChVector3d init_loc;
+    ChVector2d patch_size;
     switch (patch_type) {
         case PatchType::FLAT:
-            init_loc = ChVector<>(-5.0, -2.0, 0.6);
-            patch_size = ChVector2<>(16.0, 8.0);
+            init_loc = ChVector3d(-5.0, -2.0, 0.6);
+            patch_size = ChVector2d(16.0, 8.0);
             break;
         case PatchType::MESH:
-            init_loc = ChVector<>(-12.0, -12.0, 1.6);
+            init_loc = ChVector3d(-12.0, -12.0, 1.6);
             break;
         case PatchType::HEIGHMAP:
-            init_loc = ChVector<>(-15.0, -15.0, 0.6);
-            patch_size = ChVector2<>(40.0, 40.0);
+            init_loc = ChVector3d(-15.0, -15.0, 0.6);
+            patch_size = ChVector2d(40.0, 40.0);
             break;
     }
 
@@ -279,12 +279,12 @@ int main(int argc, char* argv[]) {
     ////                                10);  // number of concentric vertex selections subject to erosion
 
     // Optionally, enable moving patch feature (single patch around vehicle chassis)
-    terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
+    terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
 
     // Optionally, enable moving patch feature (multiple patches around each wheel)
     ////for (auto& axle : hmmwv.GetVehicle().GetAxles()) {
-    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
-    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
+    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
+    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
     ////}
 
     switch (patch_type) {
@@ -346,8 +346,8 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
-            vis_vsg->SetWindowSize(ChVector2<int>(1000, 800));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->SetWindowSize(ChVector2i(1000, 800));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);

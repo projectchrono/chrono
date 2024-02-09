@@ -59,7 +59,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                                       true,  // visualization?
                                                                       true,  // collision?
                                                                       mat);  // contact material
-        mrigidBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        mrigidBody->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         sys.Add(mrigidBody);
     }
 
@@ -72,7 +72,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,        // visualization?
                                                               true,        // collision?
                                                               floor_mat);  // contact material
-    floorBody->SetPos(ChVector<>(0, -5, 0));
+    floorBody->SetPos(ChVector3d(0, -5, 0));
     floorBody->SetBodyFixed(true);
     sys.Add(floorBody);
 
@@ -81,7 +81,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,          // visualization?
                                                               true,          // collision?
                                                               floor_mat);    // contact material
-    wallBody1->SetPos(ChVector<>(-10, 0, 0));
+    wallBody1->SetPos(ChVector3d(-10, 0, 0));
     wallBody1->SetBodyFixed(true);
     sys.Add(wallBody1);
 
@@ -90,7 +90,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,          // visualization?
                                                               true,          // collision?
                                                               floor_mat);    // contact material
-    wallBody2->SetPos(ChVector<>(10, 0, 0));
+    wallBody2->SetPos(ChVector3d(10, 0, 0));
     wallBody2->SetBodyFixed(true);
     sys.Add(wallBody2);
 
@@ -99,7 +99,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,          // visualization?
                                                               true,          // collision?
                                                               floor_mat);    // contact material
-    wallBody3->SetPos(ChVector<>(0, 0, -10));
+    wallBody3->SetPos(ChVector3d(0, 0, -10));
     wallBody3->SetBodyFixed(true);
     sys.Add(wallBody3);
 
@@ -108,7 +108,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,          // visualization?
                                                               true,          // collision?
                                                               floor_mat);    // contact material
-    wallBody4->SetPos(ChVector<>(0, 0, 10));
+    wallBody4->SetPos(ChVector3d(0, 0, 10));
     wallBody4->SetBodyFixed(true);
     sys.Add(wallBody4);
 
@@ -121,12 +121,12 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                                  true,        // visualization?
                                                                  true,        // collision?
                                                                  mixer_mat);  // contact material
-    rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
+    rotatingBody->SetPos(ChVector3d(0, -1.6, 0));
     sys.Add(rotatingBody);
 
     // .. a motor between mixer and truss
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
+    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
     motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 2.0));
     sys.AddLink(motor);
 }
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, 0, -10), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(0, 0, -10), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     std::function<void()> step_iter = [&]() {

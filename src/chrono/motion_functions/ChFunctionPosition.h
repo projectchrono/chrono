@@ -24,7 +24,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 
@@ -55,21 +55,21 @@ class ChApi ChFunctionPosition {
     // At least Get_p() should be overridden by derived classes.
 
     /// Return the p value of the function, at s, as p=f(s).
-    virtual ChVector<> Get_p(double s) const = 0;
+    virtual ChVector3d Get_p(double s) const = 0;
 
     /// Return the dp/ds derivative of the function, at s.
     /// Note that inherited classes may also avoid overriding this method,
     /// because this base method already provide a general-purpose numerical differentiation
     /// to get dp/dt only from the Get_p() function. (however, if the analytical derivative
     /// is known, it may better to implement a custom method).
-    virtual ChVector<> Get_p_ds(double s) const;
+    virtual ChVector3d Get_p_ds(double s) const;
 
     /// Return the ddp/dsds double derivative of the function, at s.
     /// Note that inherited classes may also avoid overriding this method,
     /// because this base method already provide a general-purpose numerical differentiation
     /// to get ddp/dsds only from the Get_p() function. (however, if the analytical derivative
     /// is known, it may be better to implement a custom method).
-    virtual ChVector<> Get_p_dsds(double s) const;
+    virtual ChVector3d Get_p_dsds(double s) const;
 
     /// Return an estimate of the domain of the function argument.
     /// (ex. can be used for automatic zooming in a GUI, or for computing the bounding box)
@@ -81,7 +81,7 @@ class ChApi ChFunctionPosition {
     /// Return an estimate of the range of the function value. By default it samples the function N times,
     /// but children classes migh implement a more efficient closed form solution.
     /// (ex. can be used for automatic zooming in a GUI)
-    virtual void Estimate_boundingbox(ChVector<>& pmin, ChVector<>& pmax) const;
+    virtual void Estimate_boundingbox(ChVector3d& pmin, ChVector3d& pmax) const;
 
     /// Update could be implemented by children classes, ex. to launch callbacks
     virtual void Update(double t) {}

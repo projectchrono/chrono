@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "chrono/collision/ChCollisionShape.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 
@@ -32,13 +32,13 @@ class ChApi ChCollisionShapeConvexHull : public ChCollisionShape {
   public:
     ChCollisionShapeConvexHull();
     ChCollisionShapeConvexHull(std::shared_ptr<ChContactMaterial> material,  ///< surface contact material
-                               const std::vector<ChVector<>>& points         ///< list of hull points
+                               const std::vector<ChVector3d>& points         ///< list of hull points
     );
 
     ~ChCollisionShapeConvexHull() {}
 
     /// Access the list of vertices of thje convex hull.
-    const std::vector<ChVector<>>& GetPoints() { return points; }
+    const std::vector<ChVector3d>& GetPoints() { return points; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -52,7 +52,7 @@ class ChApi ChCollisionShapeConvexHull : public ChCollisionShape {
                                                                          const std::string& filename);
 
   private:
-    std::vector<ChVector<>> points;
+    std::vector<ChVector3d> points;
 };
 
 /// @} chrono_collision

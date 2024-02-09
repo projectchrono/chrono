@@ -27,7 +27,7 @@ namespace marder {
 const double Marder_EngineShafts::m_motorblock_inertia = 10.5;
 const double Marder_EngineShafts::m_motorshaft_inertia = 2.1;
 
-Marder_EngineShafts::Marder_EngineShafts(const std::string& name) : ChEngineShafts(name, ChVector<>(1, 0, 0)) {}
+Marder_EngineShafts::Marder_EngineShafts(const std::string& name) : ChEngineShafts(name, ChVector3d(1, 0, 0)) {}
 
 void Marder_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionRecorder>& map) {
     double rpm_to_radsec = CH_C_2PI / 60.;

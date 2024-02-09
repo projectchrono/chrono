@@ -77,8 +77,8 @@ int main(int argc, char* argv[]) {
     ChFunctionRecorder ref_X;
     ChFunctionRecorder ref_Y;
 
-    ChVector<> load_torque;
-    ChVector<> load_force;
+    ChVector3d load_torque;
+    ChVector3d load_force;
 
     //
     // BENCHMARK n.1
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
         for (int il = 0; il <= nels_L; ++il) {
             for (int iw = 0; iw <= nels_W; ++iw) {
                 // Make nodes
-                ChVector<> nodepos(rect_L * ((double)il / (double)nels_L), 0, rect_W * ((double)iw / (double)nels_W));
+                ChVector3d nodepos(rect_L * ((double)il / (double)nels_L), 0, rect_W * ((double)iw / (double)nels_W));
                 ChQuaternion<> noderot(QUNIT);
 
                 ChFrame<> nodeframe(nodepos, noderot);
@@ -158,9 +158,9 @@ int main(int argc, char* argv[]) {
         }
 
         // applied load
-        // load_force = ChVector<>(200000,0, 20000);
-        load_force = ChVector<>(0, 4, 0);
-        // load_torque = ChVector<>(0, 0, 50*CH_C_PI/3.0);
+        // load_force = ChVector3d(200000,0, 20000);
+        load_force = ChVector3d(0, 4, 0);
+        // load_torque = ChVector3d(0, 0, 50*CH_C_PI/3.0);
 
         // reference solution for (0, 4, 0) shear to plot
         ref_Y.AddPoint(0.10, 1.309);
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
                 // Make nodes
                 double u = ((double)iu / (double)nels_U);
                 double w = ((double)iw / (double)nels_W);
-                ChVector<> nodepos((plate_Ri + (plate_Ro - plate_Ri) * w) * cos(u * arc), 0,
+                ChVector3d nodepos((plate_Ri + (plate_Ro - plate_Ri) * w) * cos(u * arc), 0,
                                    (plate_Ri + (plate_Ro - plate_Ri) * w) * sin(u * arc));
                 ChQuaternion<> noderot(QUNIT);
                 ChFrame<> nodeframe(nodepos, noderot);
@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
             mstartnode->SetFixed(true);
         }
 
-        load_force = ChVector<>(0, 0.8 * 4, 0);
+        load_force = ChVector3d(0, 0.8 * 4, 0);
         load_torque = VNULL;
 
         // reference solution to plot
@@ -328,7 +328,7 @@ int main(int argc, char* argv[]) {
                 // Make nodes
                 double u = ((double)iu / (double)nels_U);
                 double w = ((double)iw / (double)nels_W);
-                ChVector<> nodepos((plate_R)*cos(w * arc), (plate_R)*sin(w * arc), u * plate_L);
+                ChVector3d nodepos((plate_R)*cos(w * arc), (plate_R)*sin(w * arc), u * plate_L);
                 ChQuaternion<> noderot(QUNIT);
                 ChFrame<> nodeframe(nodepos, noderot);
 
@@ -391,7 +391,7 @@ int main(int argc, char* argv[]) {
             sys.Add(mlink);
         }
 
-        load_force = ChVector<>(0, -2000, 0);
+        load_force = ChVector3d(0, -2000, 0);
         load_torque = VNULL;
 
         // reference solution to plot
@@ -441,7 +441,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.0, 6.0, -15.0));
+    vis->AddCamera(ChVector3d(0.0, 6.0, -15.0));
     vis->AttachSystem(&sys);
 
     // Change solver to PardisoMKL

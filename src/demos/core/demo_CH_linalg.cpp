@@ -19,7 +19,7 @@
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrixMBD.h"
 #include "chrono/core/ChTransform.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 int main(int argc, char* argv[]) {
     ///! [Basic operations with matrices]
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "\n=== 3x3 matrix times vector ===\n" << std::endl;
     {
-        chrono::ChVector<> v(1, 2, 3);
+        chrono::ChVector3d v(1, 2, 3);
         chrono::ChMatrix33<> A;
         A.setRandom();
 
@@ -169,10 +169,10 @@ int main(int argc, char* argv[]) {
         std::cout << B << std::endl;
 
         // Vector transformation, typical product [A] * v
-        chrono::ChVector<> res1 = A * v;
+        chrono::ChVector3d res1 = A * v;
 
         // Inverse vector transformation, [A]' * v
-        chrono::ChVector<> res2 = A.transpose() * v;
+        chrono::ChVector3d res2 = A.transpose() * v;
 
         std::cout << A << std::endl;
         std::cout << res1 << std::endl;
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
     {
         chrono::ChMatrix34<> G = Eigen::Matrix<double, 3, 4>::Ones(3, 4);
         chrono::ChQuaternion<> q(1, 2, 3, 4);
-        chrono::ChVector<> v = G * q;
+        chrono::ChVector3d v = G * q;
         std::cout << v << std::endl;
 
         chrono::ChMatrix43<> Gt = 2 * G.transpose();
@@ -221,8 +221,8 @@ int main(int argc, char* argv[]) {
 
     std::cout << "\n=== Use of ChTransform ===\n" << std::endl;
     {
-        chrono::ChVector<> vl(2, 3, 4);        // local point to transform
-        chrono::ChVector<> t(5, 6, 7);         // translation of coord system
+        chrono::ChVector3d vl(2, 3, 4);        // local point to transform
+        chrono::ChVector3d t(5, 6, 7);         // translation of coord system
         chrono::ChQuaternion<> q(1, 3, 4, 5);  // rotation of coord system (quaternion)
         q.Normalize();                         // as unit quaternion, must be normalized
         chrono::ChMatrix33<> R;                // rotation of coord system (rotation matrix)

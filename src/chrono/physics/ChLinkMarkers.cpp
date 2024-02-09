@@ -219,8 +219,8 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     ChMatrix33<> m2_Rel_A_dtdt;
     marker2->Compute_Adtdt(m2_Rel_A_dtdt);
 
-    ChVector<> vtemp1;
-    ChVector<> vtemp2;
+    ChVector3d vtemp1;
+    ChVector3d vtemp2;
 
     vtemp1 = Body2->GetA_dt().transpose() * PQw;
     vtemp2 = m2_Rel_A_dt.transpose() * vtemp1;
@@ -314,10 +314,10 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>&
     if (!Body1 || !Body2)
         return;
 
-    Vector mbody_force;
-    Vector mbody_torque;
+    ChVector3d mbody_force;
+    ChVector3d mbody_torque;
     if (Vnotnull(C_force)) {
-        Vector m_abs_force = Body2->GetA() * (marker2->GetA() * C_force);
+        ChVector3d m_abs_force = Body2->GetA() * (marker2->GetA() * C_force);
 
         if (Body2->Variables().IsActive()) {
             Body2->To_abs_forcetorque(m_abs_force,
@@ -340,7 +340,7 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>&
         }
     }
     if (Vnotnull(C_torque)) {
-        Vector m_abs_torque = Body2->GetA() * (marker2->GetA() * C_torque);
+        ChVector3d m_abs_torque = Body2->GetA() * (marker2->GetA() * C_torque);
         // load torques in 'fb' vector accumulator of body variables (torques in local coords)
         if (Body1->Variables().IsActive()) {
             R.segment(Body1->Variables().GetOffset() + 3, 3) +=
@@ -360,9 +360,9 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
         return;
 
     if (Vnotnull(C_force)) {
-        Vector mbody_force;
-        Vector mbody_torque;
-        Vector m_abs_force = Body2->GetA() * (marker2->GetA() * C_force);
+        ChVector3d mbody_force;
+        ChVector3d mbody_torque;
+        ChVector3d m_abs_force = Body2->GetA() * (marker2->GetA() * C_force);
 
         Body2->To_abs_forcetorque(m_abs_force,
                                   marker1->GetAbsCoord().pos,  // absolute application point is always marker1
@@ -382,7 +382,7 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
     }
 
     if (Vnotnull(C_torque)) {
-        Vector m_abs_torque = Body2->GetA() * (marker2->GetA() * C_torque);
+        ChVector3d m_abs_torque = Body2->GetA() * (marker2->GetA() * C_torque);
         // load torques in 'fb' vector accumulator of body variables (torques in local coords)
         Body1->Variables().Get_fb().segment(3, 3) +=
             factor * Body1->TransformDirectionParentToLocal(m_abs_torque).eigen();

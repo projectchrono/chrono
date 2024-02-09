@@ -53,7 +53,7 @@ int ChLinkPointTriface::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
     constraint3.Get_tuple_b().SetVariables(mtriangle);
 
     bool is_into;
-    ChVector<> p_projected;
+    ChVector3d p_projected;
     this->d = utils::PointTriangleDistance(mnodeA->pos, mtriangle.mnodeB1->pos, mtriangle.mnodeB2->pos,
                                                       mtriangle.mnodeB3->pos, s2, s3, is_into, p_projected);
 
@@ -112,15 +112,15 @@ void ChLinkPointTriface::IntLoadConstraint_C(const unsigned int off_L,  // offse
     // If an offset d is desired, along normal N, this becomes:
     //  C = A - s1*B1 - s2*B2 - s3*B3 - d*N
 
-    ChVector<> N =
+    ChVector3d N =
         Vcross(mtriangle.mnodeB2->pos - mtriangle.mnodeB1->pos, mtriangle.mnodeB3->pos - mtriangle.mnodeB1->pos);
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
-    ChVector<> res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->pos - s2 * mtriangle.mnodeB2->pos -
+    ChVector3d res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->pos - s2 * mtriangle.mnodeB2->pos -
                      s3 * mtriangle.mnodeB3->pos - N * d;
 
-    ChVector<> cres = res * c;
+    ChVector3d cres = res * c;
 
     if (do_clamp) {
         cres.x() = std::min(std::max(cres.x(), -recovery_clamp), recovery_clamp);
@@ -187,12 +187,12 @@ void ChLinkPointTriface::ConstraintsBiLoad_C(double factor, double recovery_clam
     // If an offset d is desired, along normal N, this becomes:
     //  C = A - s1*B1 - s2*B2 - s3*B3 - d*N
 
-    ChVector<> N =
+    ChVector3d N =
         Vcross(mtriangle.mnodeB2->pos - mtriangle.mnodeB1->pos, mtriangle.mnodeB3->pos - mtriangle.mnodeB1->pos);
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
-    ChVector<> res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->pos - s2 * mtriangle.mnodeB2->pos -
+    ChVector3d res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->pos - s2 * mtriangle.mnodeB2->pos -
                      s3 * mtriangle.mnodeB3->pos - N * d;
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
@@ -398,7 +398,7 @@ int ChLinkPointTrifaceRot::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
     constraint3.Get_tuple_b().SetVariables(mtriangle);
 
     bool is_into;
-    ChVector<> p_projected;
+    ChVector3d p_projected;
     this->d =
         utils::PointTriangleDistance(mnodeA->pos, mtriangle.mnodeB1->coord.pos, mtriangle.mnodeB2->coord.pos,
                                                 mtriangle.mnodeB3->coord.pos, s2, s3, is_into, p_projected);
@@ -458,15 +458,15 @@ void ChLinkPointTrifaceRot::IntLoadConstraint_C(const unsigned int off_L,  // of
     // If an offset d is desired, along normal N, this becomes:
     //  C = A - s1*B1 - s2*B2 - s3*B3 - d*N
 
-    ChVector<> N = Vcross(mtriangle.mnodeB2->coord.pos - mtriangle.mnodeB1->coord.pos,
+    ChVector3d N = Vcross(mtriangle.mnodeB2->coord.pos - mtriangle.mnodeB1->coord.pos,
                           mtriangle.mnodeB3->coord.pos - mtriangle.mnodeB1->coord.pos);
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
-    ChVector<> res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->coord.pos - s2 * mtriangle.mnodeB2->coord.pos -
+    ChVector3d res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->coord.pos - s2 * mtriangle.mnodeB2->coord.pos -
                      s3 * mtriangle.mnodeB3->coord.pos - N * d;
 
-    ChVector<> cres = res * c;
+    ChVector3d cres = res * c;
 
     if (do_clamp) {
         cres.x() = std::min(std::max(cres.x(), -recovery_clamp), recovery_clamp);
@@ -533,12 +533,12 @@ void ChLinkPointTrifaceRot::ConstraintsBiLoad_C(double factor, double recovery_c
     // If an offset d is desired, along normal N, this becomes:
     //  C = A - s1*B1 - s2*B2 - s3*B3 - d*N
 
-    ChVector<> N = Vcross(mtriangle.mnodeB2->coord.pos - mtriangle.mnodeB1->coord.pos,
+    ChVector3d N = Vcross(mtriangle.mnodeB2->coord.pos - mtriangle.mnodeB1->coord.pos,
                           mtriangle.mnodeB3->coord.pos - mtriangle.mnodeB1->coord.pos);
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
-    ChVector<> res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->coord.pos - s2 * mtriangle.mnodeB2->coord.pos -
+    ChVector3d res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->coord.pos - s2 * mtriangle.mnodeB2->coord.pos -
                      s3 * mtriangle.mnodeB3->coord.pos - N * d;
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());

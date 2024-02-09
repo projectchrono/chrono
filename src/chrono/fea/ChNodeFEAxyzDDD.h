@@ -32,29 +32,29 @@ namespace fea {
 /// Other ANCF elements may use these derivative vectors differently.
 class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
   public:
-    ChNodeFEAxyzDDD(ChVector<> initial_pos = VNULL,
-                    ChVector<> initial_dir_u = VECT_X,
-                    ChVector<> initial_dir_v = VECT_Y,
-                    ChVector<> initial_dir_w = VECT_Z);
+    ChNodeFEAxyzDDD(ChVector3d initial_pos = VNULL,
+                    ChVector3d initial_dir_u = VECT_X,
+                    ChVector3d initial_dir_v = VECT_Y,
+                    ChVector3d initial_dir_w = VECT_Z);
     ChNodeFEAxyzDDD(const ChNodeFEAxyzDDD& other);
     ~ChNodeFEAxyzDDD();
 
     ChNodeFEAxyzDDD& operator=(const ChNodeFEAxyzDDD& other);
 
     /// Set the 3rd derivative vector.
-    void SetDDD(const ChVector<>& d) { DDD = d; }
+    void SetDDD(const ChVector3d& d) { DDD = d; }
     /// Get the 3rd derivative vector.
-    const ChVector<>& GetDDD() const { return DDD; }
+    const ChVector3d& GetDDD() const { return DDD; }
 
     /// Set the speed of the 3rd derivative vector.
-    void SetDDD_dt(const ChVector<>& dt) { DDD_dt = dt; }
+    void SetDDD_dt(const ChVector3d& dt) { DDD_dt = dt; }
     /// Get the speed of the 3rd derivative vector.
-    const ChVector<>& GetDDD_dt() const { return DDD_dt; }
+    const ChVector3d& GetDDD_dt() const { return DDD_dt; }
 
     /// Set the acceleration of the 3rd derivative vector.
-    void SetDDD_dtdt(const ChVector<>& dtt) { DDD_dtdt = dtt; }
+    void SetDDD_dtdt(const ChVector3d& dtt) { DDD_dtdt = dtt; }
     /// Get the  acceleration of the 3rd derivative vector.
-    const ChVector<>& GetDDD_dtdt() const { return DDD_dtdt; }
+    const ChVector3d& GetDDD_dtdt() const { return DDD_dtdt; }
 
     ChVariables& Variables_DDD() { return *variables_DDD; }
 
@@ -193,9 +193,9 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
 
   private:
     ChVariablesGenericDiagonalMass* variables_DDD;  ///< 3rd derivative vector
-    ChVector<> DDD;
-    ChVector<> DDD_dt;
-    ChVector<> DDD_dtdt;
+    ChVector3d DDD;
+    ChVector3d DDD_dt;
+    ChVector3d DDD_dtdt;
 };
 
 /// @} fea_nodes

@@ -83,12 +83,12 @@ Model::Model(int sec, int ord) {
     builder.BuildBeam(my_mesh,                  // the mesh to put the elements in
                       msection,                 // section of the beam
                       sec,                      // number of sections (spans)
-                      ChVector<>(0, 0, 0),      // start point
-                      ChVector<>(beamL, 0, 0),  // end point
+                      ChVector3d(0, 0, 0),      // start point
+                      ChVector3d(beamL, 0, 0),  // end point
                       VECT_Y,                   // suggested Y direction of section
                       ord);                   // order (3 = cubic, etc)
     builder.GetLastBeamNodes().front()->SetFixed(true);
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, tip_load , 0));
+    builder.GetLastBeamNodes().back()->SetForce(ChVector3d(0, tip_load , 0));
 
 	tip_node = builder.GetLastBeamNodes().back();
 }

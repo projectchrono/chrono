@@ -31,7 +31,7 @@ void ChGaussIntegrationRule::SetIntOnTriangle(int nPoints, std::vector<ChGaussPo
     }
 
     double weight;
-    ChVector<> coord;
+    ChVector3d coord;
     std::vector<double> c, w;
 
     // Resize the vector containing Gauss Points
@@ -49,7 +49,7 @@ void ChGaussIntegrationRule::SetIntOnTriangle(int nPoints, std::vector<ChGaussPo
 void ChGaussIntegrationRule::SetIntOnSquare(int nPoints, std::vector<ChGaussPoint*>* GpVector) {
     int i, j;
     double weight;
-    ChVector<> coord;
+    ChVector3d coord;
     std::vector<double> c, w;
 
     // Resize the vector containing Gauss Points
@@ -141,7 +141,7 @@ void ChGaussIntegrationRule::SetIntOnSquare(int nPoints, std::vector<ChGaussPoin
 void ChGaussIntegrationRule::SetIntOnCube(int nPoints, std::vector<ChGaussPoint*>* GpVector) {
     int i, j, k;
     double weight;
-    ChVector<> coord;
+    ChVector3d coord;
     std::vector<double> c, w;
 
     // Resize the vector containing Gauss Points

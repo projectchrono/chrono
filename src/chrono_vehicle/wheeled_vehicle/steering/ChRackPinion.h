@@ -58,7 +58,7 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     /// respect to and expressed in the reference frame of the chassis) and with specified orientation (with respect to
     /// the chassis reference frame).
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
-                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
                             ) override;
 
@@ -87,7 +87,7 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     virtual double GetSteeringLinkMass() const = 0;
 
     /// Return the moments of inertia of the steering link.
-    virtual ChVector<> GetSteeringLinkInertia() const = 0;
+    virtual ChVector3d GetSteeringLinkInertia() const = 0;
 
     /// Return the steering link COM offset in Y direction (positive to the left).
     virtual double GetSteeringLinkCOM() const = 0;

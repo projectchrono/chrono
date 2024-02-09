@@ -230,11 +230,11 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
 
         // Read body mass and inertia
         double mass;
-        ChVector<> inertiaXX;
+        ChVector3d inertiaXX;
         iss1 >> mass >> inertiaXX.x() >> inertiaXX.y() >> inertiaXX.z();
 
         // Read body position, orientation, and their time derivatives
-        ChVector<> bpos, bpos_dt;
+        ChVector3d bpos, bpos_dt;
         ChQuaternion<> brot, brot_dt;
         iss1 >> bpos.x() >> bpos.y() >> bpos.z();
         iss1 >> brot.e0() >> brot.e1() >> brot.e2() >> brot.e3();
@@ -271,7 +271,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
             std::istringstream iss(line);
 
             // Get shape relative position and rotation
-            ChVector<> spos;
+            ChVector3d spos;
             ChQuaternion<> srot;
             iss >> spos.x() >> spos.y() >> spos.z() >> srot.e0() >> srot.e1() >> srot.e2() >> srot.e3();
 
@@ -304,12 +304,12 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                     AddSphereGeometry(body.get(), mat, radius, spos, srot);
                 } break;
                 case ChCollisionShape::Type::ELLIPSOID: {
-                    ChVector<> size;
+                    ChVector3d size;
                     iss >> size.x() >> size.y() >> size.z();
                     AddEllipsoidGeometry(body.get(), mat, size * 2, spos, srot);
                 } break;
                 case ChCollisionShape::Type::BOX: {
-                    ChVector<> size;
+                    ChVector3d size;
                     iss >> size.x() >> size.y() >> size.z();
                     AddBoxGeometry(body.get(), mat, size, spos, srot);
                 } break;
@@ -329,7 +329,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                     AddConeGeometry(body.get(), mat, radius, height, spos, srot);
                 } break;
                 case ChCollisionShape::Type::ROUNDEDBOX: {
-                    ChVector<> size;
+                    ChVector3d size;
                     double srad;
                     iss >> size.x() >> size.y() >> size.z() >> srad;
                     AddRoundedBoxGeometry(body.get(), mat, size * 2, srad, spos, srot);
@@ -354,9 +354,9 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
 // Write CSV output file with current camera information
 // -----------------------------------------------------------------------------
 void WriteCamera(const std::string& filename,
-                 const ChVector<>& cam_location,
-                 const ChVector<>& cam_target,
-                 const ChVector<>& camera_upvec,
+                 const ChVector3d& cam_location,
+                 const ChVector3d& cam_target,
+                 const ChVector3d& camera_upvec,
                  const std::string& delim) {
     CSV_writer csv(delim);
     csv << cam_location << std::endl;
@@ -430,7 +430,7 @@ void WriteVisualizationAssets(ChSystem* system,
             if (!selector(*body))
                 continue;
 
-            const ChVector<>& body_pos = body->GetFrame_REF_to_abs().GetPos();
+            const ChVector3d& body_pos = body->GetFrame_REF_to_abs().GetPos();
             const ChQuaternion<>& body_rot = body->GetFrame_REF_to_abs().GetRot();
 
             csv << body->GetIdentifier() << body->IsActive() << body_pos << body_rot << std::endl;
@@ -462,11 +462,11 @@ void WriteVisualizationAssets(ChSystem* system,
                 gss << SPHERE << delim << sphere->GetRadius();
                 a_count++;
             } else if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
-                const Vector& size = ellipsoid->GetSemiaxes();
+                const ChVector3d& size = ellipsoid->GetSemiaxes();
                 gss << ELLIPSOID << delim << size.x() << delim << size.y() << delim << size.z();
                 a_count++;
             } else if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
-                const Vector& hlen = box->GetHalflengths();
+                const ChVector3d& hlen = box->GetHalflengths();
                 gss << BOX << delim << hlen.x() << delim << hlen.y() << delim << hlen.z();
                 a_count++;
             } else if (auto capsule = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
@@ -479,7 +479,7 @@ void WriteVisualizationAssets(ChSystem* system,
                 gss << CONE << delim << cone->GetRadius() << delim << cone->GetHeight();
                 a_count++;
             } else if (auto rbox = std::dynamic_pointer_cast<ChVisualShapeRoundedBox>(shape)) {
-                const Vector& hlen = rbox->GetHalflengths();
+                const ChVector3d& hlen = rbox->GetHalflengths();
                 double srad = rbox->GetSphereRadius();
                 gss << ROUNDEDBOX << delim << hlen.x() << delim << hlen.y() << delim << hlen.z() << delim << srad;
                 a_count++;
@@ -597,7 +597,7 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
                      const std::string& mesh_name,
                      const std::string& out_dir,
                      const ChColor& col,
-                     const ChVector<>& pos,
+                     const ChVector3d& pos,
                      const ChQuaternion<>& rot,
                      bool smoothed) {
     // Transform vertices.
@@ -620,7 +620,7 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
     ofile << "vertex_vectors {" << std::endl;
     ofile << trimesh.m_vertices.size();
     for (unsigned int i = 0; i < trimesh.m_vertices.size(); i++) {
-        ChVector<> v = trimesh.m_vertices[i];
+        ChVector3d v = trimesh.m_vertices[i];
         ofile << ",\n<" << v.x() << ", " << v.z() << ", " << v.y() << ">";
     }
     ofile << "\n}" << std::endl;
@@ -630,7 +630,7 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
         ofile << "normal_vectors {" << std::endl;
         ofile << trimesh.m_normals.size();
         for (unsigned int i = 0; i < trimesh.m_normals.size(); i++) {
-            ChVector<> n = trimesh.m_normals[i];
+            ChVector3d n = trimesh.m_normals[i];
             ofile << ",\n<" << n.x() << ", " << n.z() << ", " << n.y() << ">";
         }
         ofile << "\n}" << std::endl;
@@ -640,7 +640,7 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
     ofile << "face_indices {" << std::endl;
     ofile << trimesh.m_face_v_indices.size();
     for (int i = 0; i < trimesh.m_face_v_indices.size(); i++) {
-        ChVector<int> face = trimesh.m_face_v_indices[i];
+        ChVector3i face = trimesh.m_face_v_indices[i];
         ofile << ",\n<" << face.x() << ", " << face.y() << ", " << face.z() << ">";
     }
     ofile << "\n}" << std::endl;
@@ -665,7 +665,7 @@ bool WriteMeshPovray(const std::string& obj_filename,
                      const std::string& mesh_name,
                      const std::string& out_dir,
                      const ChColor& col,
-                     const ChVector<>& pos,
+                     const ChVector3d& pos,
                      const ChQuaternion<>& rot) {
     // Read trimesh from OBJ file
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, false, false);
@@ -700,7 +700,7 @@ void WriteCurvePovray(const ChBezierCurve& curve,
     ofile << "  sphere_sweep {" << std::endl;
     ofile << "    linear_spline " << nP * nS + 1 << "," << std::endl;
 
-    ChVector<> v = curve.eval(0, 0.0);
+    ChVector3d v = curve.eval(0, 0.0);
     ofile << "        <" << v.x() << ", " << v.z() << ", " << v.x() << "> ," << radius << std::endl;
 
     for (int iS = 0; iS < nS; iS++) {

@@ -17,7 +17,7 @@
 #ifndef CHELEMENTCABLEANCF_H
 #define CHELEMENTCABLEANCF_H
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 #include "chrono/fea/ChBeamSectionCable.h"
 #include "chrono/fea/ChElementANCF.h"
@@ -129,19 +129,19 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     // Beam-specific functions
 
     /// Gets the xyz displacement of a point on the beam line and the rotation RxRyRz of section plane, at abscissa
     /// 'eta'. Note, eta=-1 at node1, eta=+1 at node2. Note that 'displ' is the displ.state of 2 nodes, e.g. get it as
     /// GetStateBlock() Results are not corotated.
-    virtual void EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) override;
+    virtual void EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) override;
 
     /// Gets the absolute xyz position of a point on the beam line and the absolute rotation of section plane, at
     /// abscissa 'eta'. Note, eta=-1 at node1, eta=+1 at node2. Note that 'displ' is the displ.state of 2 nodes,
     /// e.g. get it as GetStateBlock() Results are corotated (expressed in world reference)
-    virtual void EvaluateSectionFrame(const double eta, ChVector<>& point, ChQuaternion<>& rot) override;
+    virtual void EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) override;
 
     /// Gets the force (traction x, shear y, shear z) and the torque (torsion on x, bending on y, on bending on z)
     /// at a section along the beam line, at abscissa 'eta'.
@@ -149,7 +149,7 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     /// Note that 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock().
     /// Results are not corotated, and are expressed in the reference system of beam.
     /// This is not mandatory for the element to work, but it can be useful for plotting, showing results, etc.
-    virtual void EvaluateSectionForceTorque(const double eta, ChVector<>& Fforce, ChVector<>& Mtorque) override;
+    virtual void EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) override;
 
     /// Gets the axial and bending strain of the ANCF element torque (torsion on x, bending on y, on bending on z)
     /// at a section along the beam line, at abscissa 'eta'.
@@ -157,7 +157,7 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     /// Note that 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock().
     /// Results are not corotated, and are expressed in the reference system of beam.
     /// This is not mandatory for the element to work, but it can be useful for plotting, showing results, etc.
-    virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV) override;
+    virtual void EvaluateSectionStrain(const double eta, ChVector3d& StrainV) override;
 
     /// Set structural damping.
     void SetAlphaDamp(double a);
@@ -238,14 +238,14 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     /// Worker function for computing the internal forces.
     /// This function takes the nodal coordinates as arguments and is therefore thread-safe.
     /// (Typically invoked by ComputeInternalForces. Used explicitly in the FD Jacobian approximation).
-    void ComputeInternalForces_Impl(const ChVector<>& pA,
-                                    const ChVector<>& dA,
-                                    const ChVector<>& pB,
-                                    const ChVector<>& dB,
-                                    const ChVector<>& pA_dt,
-                                    const ChVector<>& dA_dt,
-                                    const ChVector<>& pB_dt,
-                                    const ChVector<>& dB_dt,
+    void ComputeInternalForces_Impl(const ChVector3d& pA,
+                                    const ChVector3d& dA,
+                                    const ChVector3d& pB,
+                                    const ChVector3d& dB,
+                                    const ChVector3d& pA_dt,
+                                    const ChVector3d& dA_dt,
+                                    const ChVector3d& pB_dt,
+                                    const ChVector3d& dB_dt,
                                     ChVectorDynamic<>& Fi);
 
     std::vector<std::shared_ptr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes

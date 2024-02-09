@@ -99,9 +99,9 @@ ChVehicleCosimWheeledVehicleNode::~ChVehicleCosimWheeledVehicleNode() {}
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const ChVector2<>& terrain_size, double terrain_height) {
+void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const ChVector2d& terrain_size, double terrain_height) {
     // Initialize vehicle
-    ChCoordsys<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
+    ChCoordsys<> init_pos(m_init_loc + ChVector3d(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
 
     m_vehicle->Initialize(init_pos);
     m_vehicle->GetChassis()->SetFixed(m_chassis_fixed);
@@ -130,9 +130,9 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const ChVector2<>& terrain_
         auto vsys_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
         vsys_vsg->AttachVehicle(m_vehicle.get());
         vsys_vsg->SetWindowTitle("Wheeled Vehicle Node");
-        vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
-        vsys_vsg->SetWindowPosition(ChVector2<int>(100, 300));
-        vsys_vsg->SetChaseCamera(ChVector<>(0, 0, 1.5), 6.0, 0.5);
+        vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
+        vsys_vsg->SetWindowPosition(ChVector2i(100, 300));
+        vsys_vsg->SetChaseCamera(ChVector3d(0, 0, 1.5), 6.0, 0.5);
         vsys_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
         vsys_vsg->SetChaseCameraPosition(m_cam_pos);
         vsys_vsg->SetUseSkyBox(false);
@@ -152,7 +152,7 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const ChVector2<>& terrain_
         vsys_irr->AttachVehicle(m_vehicle.get());
         vsys_irr->SetWindowTitle("Wheeled Vehicle Node");
         vsys_irr->SetWindowSize(1280, 720);
-        vsys_irr->SetChaseCamera(ChVector<>(0, 0, 1.5), 6.0, 0.5);
+        vsys_irr->SetChaseCamera(ChVector3d(0, 0, 1.5), 6.0, 0.5);
         vsys_irr->SetChaseCameraState(utils::ChChaseCamera::Track);
         vsys_irr->SetChaseCameraPosition(m_cam_pos);
         vsys_irr->Initialize();
@@ -165,7 +165,7 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const ChVector2<>& terrain_
     }
 }
 
-void ChVehicleCosimWheeledVehicleNode::ApplyTireInfo(const std::vector<ChVector<>>& tire_info) {
+void ChVehicleCosimWheeledVehicleNode::ApplyTireInfo(const std::vector<ChVector3d>& tire_info) {
     // Create and initialize the dummy tires
     int itire = 0;
     for (auto& axle : m_vehicle->GetAxles()) {
@@ -268,7 +268,7 @@ void ChVehicleCosimWheeledVehicleNode::OnOutputData(int frame) {
     if (m_outf.is_open()) {
         std::string del("  ");
 
-        const ChVector<>& pos = m_vehicle->GetPos();
+        const ChVector3d& pos = m_vehicle->GetPos();
 
         m_outf << m_system->GetChTime() << del;
         // Body states

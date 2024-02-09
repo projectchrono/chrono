@@ -96,7 +96,7 @@ void ChLinkTrajectory::UpdateTime(double time) {
 
 void ChLinkTrajectory::Initialize(std::shared_ptr<ChBody> mbody1,
                                   std::shared_ptr<ChBody> mbody2,
-                                  const ChVector<>& mpos1,
+                                  const ChVector3d& mpos1,
                                   std::shared_ptr<geometry::ChLine> mline) {
     ChLinkMarkers::Initialize(mbody1, mbody2, true, ChCoordsys<>(mpos1), ChCoordsys<>());
     this->Set_trajectory_line(mline);

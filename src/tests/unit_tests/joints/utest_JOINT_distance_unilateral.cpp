@@ -32,11 +32,11 @@ int main() {
     ChSystemNSC system;
 
     double gravity = 10.0; //without sign
-    ChVector<> body_pos0(0.1, 0.9, 0.0);
+    ChVector3d body_pos0(0.1, 0.9, 0.0);
     double max_dist = 1;
 
 
-    system.Set_G_acc(ChVector<>(0, -gravity, 0));
+    system.Set_G_acc(ChVector3d(0, -gravity, 0));
 
 
 
@@ -81,7 +81,7 @@ int main() {
     // a failure in this case can be due to wrong reaction forces or to an artificial clamping in IntLoadConstraint_C
     bool straight_fall = true;
     while (std::abs(unilink->Get_react_force().x()) < 1e-8){
-        ChVector<> body_acc = body->GetPos_dtdt();
+        ChVector3d body_acc = body->GetPos_dtdt();
         if (std::abs(body_acc.x() - 0.0) > 1e-6 || std::abs(body_acc.y() + gravity) > 1e-6 || std::abs(body_acc.z() - 0.0) > 1e-6)
             straight_fall = false;
         system.DoStepDynamics(timestep);

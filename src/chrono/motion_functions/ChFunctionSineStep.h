@@ -26,7 +26,7 @@ namespace chrono {
 /// Sinusoidal ramp between two (x,y) points p1 and p2.
 class ChApi ChFunctionSineStep : public ChFunction {
   public:
-    ChFunctionSineStep(const ChVector2<>& p1, const ChVector2<>& p2);
+    ChFunctionSineStep(const ChVector2d& p1, const ChVector2d& p2);
     ChFunctionSineStep(const ChFunctionSineStep& other);
     ~ChFunctionSineStep() {}
 
@@ -39,8 +39,8 @@ class ChApi ChFunctionSineStep : public ChFunction {
     virtual double Get_y_dx(double x) const override;
     virtual double Get_y_dxdx(double x) const override;
 
-    void SetP1(const ChVector2<>& p1);
-    void SetP2(const ChVector2<>& p2);
+    void SetP1(const ChVector2d& p1);
+    void SetP2(const ChVector2d& p2);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -51,9 +51,9 @@ class ChApi ChFunctionSineStep : public ChFunction {
     static double Eval(double x, double x1, double y1, double x2, double y2);
 
   private:
-    ChVector2<> m_p1;
-    ChVector2<> m_p2;
-    ChVector2<> m_dp;
+    ChVector2d m_p1;
+    ChVector2d m_p2;
+    ChVector2d m_dp;
 };
 
 /// @} chrono_functions

@@ -82,15 +82,15 @@ void ChGeometry::ArchiveIn(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 ChAABB::ChAABB()
-    : min(ChVector<>(+std::numeric_limits<double>::max())), max(ChVector<>(-std::numeric_limits<double>::max())) {}
+    : min(ChVector3d(+std::numeric_limits<double>::max())), max(ChVector3d(-std::numeric_limits<double>::max())) {}
 
-ChAABB::ChAABB(const ChVector<>& aabb_min, const ChVector<>& aabb_max) : min(aabb_min), max(aabb_max) {}
+ChAABB::ChAABB(const ChVector3d& aabb_min, const ChVector3d& aabb_max) : min(aabb_min), max(aabb_max) {}
 
-ChVector<> ChAABB::Center() const {
+ChVector3d ChAABB::Center() const {
     return 0.5 * (max + min);
 }
 
-ChVector<> ChAABB::Size() const {
+ChVector3d ChAABB::Size() const {
     return max - min;
 }
 

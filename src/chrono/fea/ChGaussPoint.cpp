@@ -17,7 +17,7 @@
 namespace chrono {
 namespace fea {
 
-ChGaussPoint::ChGaussPoint(int number, ChVector<>* coord, double weight)
+ChGaussPoint::ChGaussPoint(int number, ChVector3d* coord, double weight)
     : m_number(number), m_local_coordinates(*coord), m_weight(weight), m_coordinates(nullptr) {
     MatrB = new ChMatrixDynamic<>(1, 1);
 }
@@ -26,7 +26,7 @@ ChGaussPoint::~ChGaussPoint() {
     delete m_coordinates;
 }
 
-ChVector<> ChGaussPoint::GetCoordinates() const {
+ChVector3d ChGaussPoint::GetCoordinates() const {
     if (m_coordinates) {
         return *m_coordinates;
     } else {
@@ -34,11 +34,11 @@ ChVector<> ChGaussPoint::GetCoordinates() const {
     }
 }
 
-void ChGaussPoint::SetCoordinates(const ChVector<>& c) {
+void ChGaussPoint::SetCoordinates(const ChVector3d& c) {
     if (m_coordinates) {
         *m_coordinates = c;
     } else {
-        m_coordinates = new ChVector<>(c);
+        m_coordinates = new ChVector3d(c);
     }
 }
 

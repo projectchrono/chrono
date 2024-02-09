@@ -100,7 +100,7 @@ class MyEventReceiver : public IEventReceiver {
 // wheel and the many radial rollers, already lined to the wheel with revolute joints.)
 // The function returns the pointer to the central wheel.
 std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
-                                             ChVector<> shaft_position,
+                                             ChVector3d shaft_position,
                                              ChQuaternion<> shaft_alignment,
                                              double wheel_radius,
                                              double wheel_width,
@@ -139,9 +139,9 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
         sys.Add(roller);
 
         // move it to slanted aligment
-        ChFrameMoving<> f1(ChVector<>(0, 0, -(wheel_radius - roller_midradius)),
-                           Q_from_AngAxis(roller_angle, ChVector<>(0, 0, 1)));
-        ChFrameMoving<> f2(ChVector<>(0, 0, 0), Q_from_AngAxis(pitch, ChVector<>(0, 1, 0)));
+        ChFrameMoving<> f1(ChVector3d(0, 0, -(wheel_radius - roller_midradius)),
+                           Q_from_AngAxis(roller_angle, ChVector3d(0, 0, 1)));
+        ChFrameMoving<> f2(ChVector3d(0, 0, 0), Q_from_AngAxis(pitch, ChVector3d(0, 1, 0)));
         ChFrameMoving<> f3 = f1 >> f2 >> ftot;
         roller->ConcatenatePreTransformation(f3);
 
@@ -171,7 +171,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
 
         // Make the revolute joint between the roller and the central wheel
         // (preconcatenate rotation 90 degrees on X, to set axis of revolute joint)
-        ChFrameMoving<> fr(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI / 2.0, ChVector<>(1, 0, 0)));
+        ChFrameMoving<> fr(ChVector3d(0, 0, 0), Q_from_AngAxis(CH_C_PI / 2.0, ChVector3d(1, 0, 0)));
         ChFrameMoving<> frabs = fr >> f3;
         auto link_roller = chrono_types::make_shared<ChLinkLockRevolute>();
         link_roller->Initialize(roller, centralWheel, frabs.GetCoord());
@@ -205,11 +205,11 @@ int main(int argc, char* argv[]) {
 
     // create the wheels and link them to the platform
 
-    ChFrame<> f0(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI / 2.0, ChVector<>(1, 0, 0)));
-    ChFrame<> f1(ChVector<>(0, 0, platform_radius), QUNIT);
-    ChFrame<> f2_wA(VNULL, Q_from_AngAxis(0 * (CH_C_2PI / 3.0), ChVector<>(0, 1, 0)));
-    ChFrame<> f2_wB(VNULL, Q_from_AngAxis(1 * (CH_C_2PI / 3.0), ChVector<>(0, 1, 0)));
-    ChFrame<> f2_wC(VNULL, Q_from_AngAxis(2 * (CH_C_2PI / 3.0), ChVector<>(0, 1, 0)));
+    ChFrame<> f0(ChVector3d(0, 0, 0), Q_from_AngAxis(CH_C_PI / 2.0, ChVector3d(1, 0, 0)));
+    ChFrame<> f1(ChVector3d(0, 0, platform_radius), QUNIT);
+    ChFrame<> f2_wA(VNULL, Q_from_AngAxis(0 * (CH_C_2PI / 3.0), ChVector3d(0, 1, 0)));
+    ChFrame<> f2_wB(VNULL, Q_from_AngAxis(1 * (CH_C_2PI / 3.0), ChVector3d(0, 1, 0)));
+    ChFrame<> f2_wC(VNULL, Q_from_AngAxis(2 * (CH_C_2PI / 3.0), ChVector3d(0, 1, 0)));
     ChFrame<> ftot_wA = f0 >> f1 >> f2_wA;
     ChFrame<> ftot_wB = f0 >> f1 >> f2_wB;
     ChFrame<> ftot_wC = f0 >> f1 >> f2_wC;
@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
                                                            true,         // visualize
                                                            true,         // collide
                                                            ground_mat);  // contact material
-    ground->SetPos(ChVector<>(0, -5, 0));
+    ground->SetPos(ChVector3d(0, -5, 0));
     ground->SetBodyFixed(true);
     ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 100, 100);
     sys.Add(ground);
@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 14, -20));
+    vis->AddCamera(ChVector3d(0, 14, -20));
     vis->AddTypicalLights();
 
     vis->GetGUIEnvironment()->addStaticText(L"Use keys Q,W, A,Z, E,R to move the robot", rect<s32>(150, 10, 430, 40),
@@ -315,8 +315,8 @@ int main(int argc, char* argv[]) {
 
         // change motor speeds depending on user setpoints from GUI
 
-        ChVector<> imposed_speed(STATIC_x_speed, 0, STATIC_z_speed);
-        ChFrame<> roll_twist(ChVector<>(0, -wheel_radius, 0), Q_from_AngAxis(-roller_angle, ChVector<>(0, 1, 0)));
+        ChVector3d imposed_speed(STATIC_x_speed, 0, STATIC_z_speed);
+        ChFrame<> roll_twist(ChVector3d(0, -wheel_radius, 0), Q_from_AngAxis(-roller_angle, ChVector3d(0, 1, 0)));
 
         ChFrame<> abs_roll_wA = roll_twist >> f2_wA >> ChFrame<>(platform->GetCoord());
         double wheel_A_rotspeed =

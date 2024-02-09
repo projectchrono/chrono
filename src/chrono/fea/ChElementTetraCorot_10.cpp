@@ -95,7 +95,7 @@ void ChElementTetraCorot_10::GetStateBlock(ChVectorDynamic<>& mD) {
 }
 
 double ChElementTetraCorot_10::ComputeVolume() {
-    ChVector<> B1, C1, D1;
+    ChVector3d B1, C1, D1;
     B1.Sub(nodes[1]->pos, nodes[0]->pos);
     C1.Sub(nodes[2]->pos, nodes[0]->pos);
     D1.Sub(nodes[3]->pos, nodes[0]->pos);

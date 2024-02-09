@@ -27,12 +27,12 @@ software.
 
 using namespace chrono;
 
-cbtCEtriangleShape::cbtCEtriangleShape(ChVector<>* mp1,
-                                       ChVector<>* mp2,
-                                       ChVector<>* mp3,
-                                       ChVector<>* me1,
-                                       ChVector<>* me2,
-                                       ChVector<>* me3,
+cbtCEtriangleShape::cbtCEtriangleShape(ChVector3d* mp1,
+                                       ChVector3d* mp2,
+                                       ChVector3d* mp3,
+                                       ChVector3d* me1,
+                                       ChVector3d* me2,
+                                       ChVector3d* me3,
                                        bool mowns_vertex_1,
                                        bool mowns_vertex_2,
                                        bool mowns_vertex_3,

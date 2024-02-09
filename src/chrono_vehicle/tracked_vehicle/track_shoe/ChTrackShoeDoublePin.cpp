@@ -74,17 +74,17 @@ ChTrackShoeDoublePin::~ChTrackShoeDoublePin() {
 
 // -----------------------------------------------------------------------------
 void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                      const ChVector<>& location,
+                                      const ChVector3d& location,
                                       const ChQuaternion<>& rotation) {
     ChTrackShoeSegmented::Initialize(chassis, location, rotation);
 
     ChSystem* sys = chassis->GetSystem();
 
     // Express the track shoe location and orientation in global frame.
-    ChVector<> loc = chassis->TransformPointLocalToParent(location);
+    ChVector3d loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
-    ChVector<> xdir = rot.GetXaxis();
-    ChVector<> ydir = rot.GetYaxis();
+    ChVector3d xdir = rot.GetXaxis();
+    ChVector3d ydir = rot.GetYaxis();
 
     // Create the shoe body
     m_shoe = chrono_types::make_shared<ChBody>();
@@ -119,7 +119,7 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         case DoublePinTrackShoeType::ONE_CONNECTOR: {
             // Set mass and inertia corresponding to two separate connector bodies.
             double mass_connector = 2.0 * GetConnectorMass();
-            ChVector<> inertia_connector = 2.0 * GetConnectorInertia();
+            ChVector3d inertia_connector = 2.0 * GetConnectorInertia();
             inertia_connector.y() += 2.0 * GetConnectorMass() * (0.5 * GetShoeWidth()) * (0.5 * GetShoeWidth());
 
             m_connector_L = chrono_types::make_shared<ChBody>();
@@ -138,10 +138,10 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 }
 
 void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                      const ChVector<>& loc_shoe,
+                                      const ChVector3d& loc_shoe,
                                       const ChQuaternion<>& rot_shoe,
-                                      const ChVector<>& loc_connector_L,
-                                      const ChVector<>& loc_connector_R,
+                                      const ChVector3d& loc_connector_L,
+                                      const ChVector3d& loc_connector_R,
                                       const ChQuaternion<>& rot_connector) {
     // Initialize at origin.
     Initialize(chassis, VNULL, QUNIT);
@@ -237,13 +237,13 @@ void ChTrackShoeDoublePin::AddConnectorVisualization2(std::shared_ptr<ChBody> co
     double c_radius = GetConnectorRadius();
 
     ChVehicleGeometry::AddVisualizationCylinder(connector,                                       //
-                                                ChVector<>(-0.5 * c_length, -0.5 * c_width, 0),  //
-                                                ChVector<>(-0.5 * c_length, +0.5 * c_width, 0),  //
+                                                ChVector3d(-0.5 * c_length, -0.5 * c_width, 0),  //
+                                                ChVector3d(-0.5 * c_length, +0.5 * c_width, 0),  //
                                                 c_radius);
 
     ChVehicleGeometry::AddVisualizationCylinder(connector,                                      //
-                                                ChVector<>(0.5 * c_length, -0.5 * c_width, 0),  //
-                                                ChVector<>(0.5 * c_length, +0.5 * c_width, 0),  //
+                                                ChVector3d(0.5 * c_length, -0.5 * c_width, 0),  //
+                                                ChVector3d(0.5 * c_length, +0.5 * c_width, 0),  //
                                                 c_radius);
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(c_length, c_width, 2 * c_radius);
@@ -266,38 +266,38 @@ void ChTrackShoeDoublePin::AddConnectorVisualization1(std::shared_ptr<ChBody> co
 
     {
         ChVehicleGeometry::AddVisualizationCylinder(connector,                                                //
-                                                    ChVector<>(-0.5 * c_length, +offset - 0.5 * c_width, 0),  //
-                                                    ChVector<>(-0.5 * c_length, +offset + 0.5 * c_width, 0),  //
+                                                    ChVector3d(-0.5 * c_length, +offset - 0.5 * c_width, 0),  //
+                                                    ChVector3d(-0.5 * c_length, +offset + 0.5 * c_width, 0),  //
                                                     c_radius,                                                 //
                                                     mat);
 
         ChVehicleGeometry::AddVisualizationCylinder(connector,                                               //
-                                                    ChVector<>(0.5 * c_length, +offset - 0.5 * c_width, 0),  //
-                                                    ChVector<>(0.5 * c_length, +offset + 0.5 * c_width, 0),  //
+                                                    ChVector3d(0.5 * c_length, +offset - 0.5 * c_width, 0),  //
+                                                    ChVector3d(0.5 * c_length, +offset + 0.5 * c_width, 0),  //
                                                     c_radius,                                                //
                                                     mat);
 
         auto box = chrono_types::make_shared<ChVisualShapeBox>(c_length, c_width, 2 * c_radius);
         box->AddMaterial(mat);
-        connector->AddVisualShape(box, ChFrame<>(ChVector<>(0, +offset, 0)));
+        connector->AddVisualShape(box, ChFrame<>(ChVector3d(0, +offset, 0)));
     }
 
     {
         ChVehicleGeometry::AddVisualizationCylinder(connector,                                                //
-                                                    ChVector<>(-0.5 * c_length, -offset - 0.5 * c_width, 0),  //
-                                                    ChVector<>(-0.5 * c_length, -offset + 0.5 * c_width, 0),  //
+                                                    ChVector3d(-0.5 * c_length, -offset - 0.5 * c_width, 0),  //
+                                                    ChVector3d(-0.5 * c_length, -offset + 0.5 * c_width, 0),  //
                                                     c_radius,                                                 //
                                                     mat);
 
         ChVehicleGeometry::AddVisualizationCylinder(connector,                                               //
-                                                    ChVector<>(0.5 * c_length, -offset - 0.5 * c_width, 0),  //
-                                                    ChVector<>(0.5 * c_length, -offset + 0.5 * c_width, 0),  //
+                                                    ChVector3d(0.5 * c_length, -offset - 0.5 * c_width, 0),  //
+                                                    ChVector3d(0.5 * c_length, -offset + 0.5 * c_width, 0),  //
                                                     c_radius,                                                //
                                                     mat);
 
         auto box = chrono_types::make_shared<ChVisualShapeBox>(c_length, c_width, 2 * c_radius);
         box->AddMaterial(mat);
-        connector->AddVisualShape(box, ChFrame<>(ChVector<>(0, -offset, 0)));
+        connector->AddVisualShape(box, ChFrame<>(ChVector3d(0, -offset, 0)));
     }
 }
 
@@ -343,20 +343,20 @@ void ChTrackShoeDoublePin::Connect2(std::shared_ptr<ChTrackShoe> next,
     ChSystem* system = m_shoe->GetSystem();
     double sign = ccw ? +1 : -1;
 
-    ChVector<> pShoe_L;     // local point on shoe (left)
-    ChVector<> pShoe_R;     // local point on shoe (right)
-    ChVector<> pConnector;  // local point on connector
+    ChVector3d pShoe_L;     // local point on shoe (left)
+    ChVector3d pShoe_R;     // local point on shoe (right)
+    ChVector3d pConnector;  // local point on connector
 
-    ChVector<> loc_L;    // left point (expressed in absolute frame)
-    ChVector<> loc_R;    // right point (expressed in absolute frame)
+    ChVector3d loc_L;    // left point (expressed in absolute frame)
+    ChVector3d loc_R;    // right point (expressed in absolute frame)
     ChQuaternion<> rot;  // orientation (expressed in absolute frame)
 
     // 1. Connections between this shoe body and connector bodies
 
     // Create and initialize the revolute joints/bushings between shoe body and connector bodies.
-    pShoe_L = ChVector<>(sign * GetShoeLength() / 2, +GetShoeWidth() / 2, 0);
-    pShoe_R = ChVector<>(sign * GetShoeLength() / 2, -GetShoeWidth() / 2, 0);
-    pConnector = ChVector<>(-sign * GetConnectorLength() / 2, 0, 0);
+    pShoe_L = ChVector3d(sign * GetShoeLength() / 2, +GetShoeWidth() / 2, 0);
+    pShoe_R = ChVector3d(sign * GetShoeLength() / 2, -GetShoeWidth() / 2, 0);
+    pConnector = ChVector3d(-sign * GetConnectorLength() / 2, 0, 0);
 
     loc_L = m_shoe->TransformPointLocalToParent(pShoe_L);
     loc_R = m_shoe->TransformPointLocalToParent(pShoe_R);
@@ -392,9 +392,9 @@ void ChTrackShoeDoublePin::Connect2(std::shared_ptr<ChTrackShoe> next,
 
     // 2. Connections between connector bodies and next shoe body
 
-    pShoe_L = ChVector<>(-sign * GetShoeLength() / 2, +GetShoeWidth() / 2, 0);
-    pShoe_R = ChVector<>(-sign * GetShoeLength() / 2, -GetShoeWidth() / 2, 0);
-    pConnector = ChVector<>(sign * GetConnectorLength() / 2, 0, 0);
+    pShoe_L = ChVector3d(-sign * GetShoeLength() / 2, +GetShoeWidth() / 2, 0);
+    pShoe_R = ChVector3d(-sign * GetShoeLength() / 2, -GetShoeWidth() / 2, 0);
+    pConnector = ChVector3d(sign * GetConnectorLength() / 2, 0, 0);
 
     loc_L = m_connector_L->TransformPointLocalToParent(pConnector);
     loc_R = m_connector_R->TransformPointLocalToParent(pConnector);
@@ -443,17 +443,17 @@ void ChTrackShoeDoublePin::Connect1(std::shared_ptr<ChTrackShoe> next,
     ChSystem* system = m_shoe->GetSystem();
     double sign = ccw ? +1 : -1;
 
-    ChVector<> pShoe;       // local point on shoe
-    ChVector<> pConnector;  // local point on connector
+    ChVector3d pShoe;       // local point on shoe
+    ChVector3d pConnector;  // local point on connector
 
-    ChVector<> loc;      // point (expressed in absolute frame)
+    ChVector3d loc;      // point (expressed in absolute frame)
     ChQuaternion<> rot;  // orientation (expressed in absolute frame)
 
     // 1. Connections between this shoe body and connector body
 
     // Create and initialize the joint/bushing between shoe body and connector body.
-    pShoe = ChVector<>(sign * GetShoeLength() / 2, 0, 0);
-    pConnector = ChVector<>(-sign * GetConnectorLength() / 2, 0, 0);
+    pShoe = ChVector3d(sign * GetShoeLength() / 2, 0, 0);
+    pConnector = ChVector3d(-sign * GetConnectorLength() / 2, 0, 0);
 
     loc = m_shoe->TransformPointLocalToParent(pShoe);
 
@@ -483,8 +483,8 @@ void ChTrackShoeDoublePin::Connect1(std::shared_ptr<ChTrackShoe> next,
 
     // 2. Connection between connector body and next shoe body
 
-    pShoe = ChVector<>(-sign * GetShoeLength() / 2, 0, 0);
-    pConnector = ChVector<>(sign * GetConnectorLength() / 2, 0, 0);
+    pShoe = ChVector3d(-sign * GetShoeLength() / 2, 0, 0);
+    pConnector = ChVector3d(sign * GetConnectorLength() / 2, 0, 0);
 
     loc = m_connector_L->TransformPointLocalToParent(pConnector);
 
@@ -516,14 +516,14 @@ void ChTrackShoeDoublePin::Connect1(std::shared_ptr<ChTrackShoe> next,
     }
 }
 
-ChVector<> ChTrackShoeDoublePin::GetTension() const {
+ChVector3d ChTrackShoeDoublePin::GetTension() const {
     switch (m_topology) {
         case DoublePinTrackShoeType::TWO_CONNECTORS:
             return m_joint_L->GetForce() + m_joint_R->GetForce();
         case DoublePinTrackShoeType::ONE_CONNECTOR:
             return m_joint_L->GetForce();
     }
-    return ChVector<>(0);
+    return ChVector3d(0);
 }
 
 // -----------------------------------------------------------------------------

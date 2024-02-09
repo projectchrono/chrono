@@ -274,7 +274,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
         double sqe;              // Zero after complete sliding at actual load level
         double brx{0};           // bristle deformation x
         double bry{0};           // bristle deformation y
-        ChVector<> disc_normal;  // (temporary for debug)
+        ChVector3d disc_normal;  // (temporary for debug)
     };
 
     TireStates m_states;

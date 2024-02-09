@@ -42,10 +42,10 @@ const double G500_RearAxle::m_spindleWidth = 0.06;
 const double G500_RearAxle::m_panhardRodRadius = 0.03;
 const double G500_RearAxle::m_arbRadius = 0.025;
 
-const ChVector<> G500_RearAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
-const ChVector<> G500_RearAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
-const ChVector<> G500_RearAxle::m_panhardRodInertia(1.0, 0.04, 1.0);
-const ChVector<> G500_RearAxle::m_arbInertia(0.5, 0.02, 0.5);
+const ChVector3d G500_RearAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
+const ChVector3d G500_RearAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector3d G500_RearAxle::m_panhardRodInertia(1.0, 0.04, 1.0);
+const ChVector3d G500_RearAxle::m_arbInertia(0.5, 0.02, 0.5);
 
 const double G500_RearAxle::m_arb_stiffness = 1000.0;
 const double G500_RearAxle::m_arb_damping = 10.0;
@@ -189,28 +189,28 @@ G500_RearAxle::G500_RearAxle(const std::string& name) : ChRigidPanhardAxle(name)
 // -----------------------------------------------------------------------------
 G500_RearAxle::~G500_RearAxle() {}
 
-const ChVector<> G500_RearAxle::getLocation(PointId which) {
+const ChVector3d G500_RearAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.0, 0.5142, m_axleTubeRadius);
+            return ChVector3d(0.0, 0.5142, m_axleTubeRadius);
         case SPRING_C:
-            return ChVector<>(0.0, 0.5142, m_axleTubeRadius + m_springDesignLength);
+            return ChVector3d(0.0, 0.5142, m_axleTubeRadius + m_springDesignLength);
         case SHOCK_A:
-            return ChVector<>(0.125, 0.5842, -0.0507);
+            return ChVector3d(0.125, 0.5842, -0.0507);
         case SHOCK_C:
-            return ChVector<>(0.20, 0.5142, m_axleTubeRadius + m_springDesignLength);
+            return ChVector3d(0.20, 0.5142, m_axleTubeRadius + m_springDesignLength);
         case SPINDLE:
-            return ChVector<>(0.0, 0.7325, 0.0);
+            return ChVector3d(0.0, 0.7325, 0.0);
         case PANHARD_A:
-            return ChVector<>(-0.1, -0.5142, 0.0);
+            return ChVector3d(-0.1, -0.5142, 0.0);
         case PANHARD_C:
-            return ChVector<>(-0.1, 0.5142, 0.0);
+            return ChVector3d(-0.1, 0.5142, 0.0);
         case ANTIROLL_A:
-            return ChVector<>(0.0, 0.4, -0.05);
+            return ChVector3d(0.0, 0.4, -0.05);
         case ANTIROLL_C:
-            return ChVector<>(0.4, 0.4, -0.05);
+            return ChVector3d(0.4, 0.4, -0.05);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

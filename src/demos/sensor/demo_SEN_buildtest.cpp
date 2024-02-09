@@ -132,16 +132,16 @@ int main(int argc, char* argv[]) {
     // add a mesh
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/bulldozer/shoe_collision.obj"), false, true);
-    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+    mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     mmesh->RepairDuplicateVertexes(1e-9);
 
     double mmass;
-    ChVector<> mcog;
+    ChVector3d mcog;
     ChMatrix33<> minertia;
     double mdensity = 1000;
     mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
+    ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
         mesh_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
         mesh_body->SetMass(mmass * mdensity);
         mesh_body->SetInertiaXX(mdensity * principal_I);
-        mesh_body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(ChRandom(), ChRandom(), 2.0 + i)));
+        mesh_body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(ChRandom(), ChRandom(), 2.0 + i)));
         sys.Add(mesh_body);
 
         auto mesh_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(phys_mat, mmesh, false, false, 0.005);
@@ -444,19 +444,19 @@ int main(int argc, char* argv[]) {
                                                                100,              // update rate
                                                                imu_offset_pose,  // offset pose from body
                                                                noise_none,       // IMU noise model
-                                                               ChVector<double>(43.300, -89.000, 260.0));
+                                                               ChVector3d(43.300, -89.000, 260.0));
     mag->SetName("IMU - Accelerometer");
     mag->PushFilter(chrono_types::make_shared<ChFilterMagnetAccess>());  // Add a filter to access the imu data
     manager->AddSensor(mag);                                             // Add the IMU sensor to the sensor manager
 
     // add an IMU sensor to one of the boxes
     auto noise_model =
-        chrono_types::make_shared<ChNoiseNormal>(ChVector<float>(0.f, 0.f, 0.f), ChVector<float>(1.f, 1.f, 1.f));
+        chrono_types::make_shared<ChNoiseNormal>(ChVector3f(0.f, 0.f, 0.f), ChVector3f(1.f, 1.f, 1.f));
     auto gps = chrono_types::make_shared<ChGPSSensor>(
         gps_parent,                                                        // body to which the GPS is attached
         10,                                                                // update rate
         chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
-        ChVector<double>(43.300, -89.000, 260.0),  // reference GPS location (GPS coordinates of simulation origin)
+        ChVector3d(43.300, -89.000, 260.0),  // reference GPS location (GPS coordinates of simulation origin)
         noise_model                                // noise model to use for adding GPS noise (NOT THREAD SAFE)
     );
     gps->SetName("GPS");

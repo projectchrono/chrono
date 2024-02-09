@@ -40,7 +40,7 @@ const SynFlatBuffers::AgentKey* const AgentKey::GetFlatbuffersKey() const {
     return new SynFlatBuffers::AgentKey(m_node_id, m_agent_id);
 }
 
-SynPose::SynPose(const ChVector<>& mv, const ChQuaternion<>& mq) {
+SynPose::SynPose(const ChVector3d& mv, const ChQuaternion<>& mq) {
     m_frame = ChFrameMoving<>(mv, mq);
 }
 

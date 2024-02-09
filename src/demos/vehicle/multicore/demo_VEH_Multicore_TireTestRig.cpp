@@ -89,7 +89,7 @@ int main() {
     // ----------------------------------
 
     double collision_envelope;
-    ChVector<int> collision_bins;
+    ChVector3i collision_bins;
     rig.GetSuggestedCollisionSettings(collision_envelope, collision_bins);
     sys.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
     sys.GetSettings()->collision.broadphase_grid = ChBroadphase::GridType::FIXED_RESOLUTION;
@@ -143,7 +143,7 @@ int main() {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, 3, 0), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(0, 3, 0), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // Perform the simulation
@@ -154,8 +154,8 @@ int main() {
 
         double body_x = rig.GetPos().x();
         double buffer_dist = 0;
-        ChVector<> cam_loc(body_x + buffer_dist, 3, -0.5);
-        ChVector<> cam_point(body_x + buffer_dist, 0, -0.5);
+        ChVector3d cam_loc(body_x + buffer_dist, 3, -0.5);
+        ChVector3d cam_point(body_x + buffer_dist, 0, -0.5);
         vis.UpdateCamera(cam_loc, cam_point);
         vis.Render();
 

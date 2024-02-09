@@ -25,7 +25,7 @@ namespace geometry {
 /// Geometric object representing a polygonal line in 3D space, controlled by control points.
 class ChApi ChLinePoly : public ChLine {
   private:
-    std::vector<ChVector<> > points;  ///< control points
+    std::vector<ChVector3d > points;  ///< control points
     int degree;                       ///< polynomial degree
 
   public:
@@ -43,7 +43,7 @@ class ChApi ChLinePoly : public ChLine {
     virtual void Set_complexity(int mc) override{};
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(double U) const override;
+    virtual ChVector3d Evaluate(double U) const override;
 
     /// Returns curve length. sampling does not matter
     virtual double Length(int sampling) const override;
@@ -56,10 +56,10 @@ class ChApi ChLinePoly : public ChLine {
     int Get_degree() const;
 
     /// Get the n-th control point
-    ChVector<> Get_point(size_t mnum) const;
+    ChVector3d Get_point(size_t mnum) const;
 
     /// Set the n-th control point
-    bool Set_point(int mnum, ChVector<> mpoint);
+    bool Set_point(int mnum, ChVector3d mpoint);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

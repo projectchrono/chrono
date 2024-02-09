@@ -51,10 +51,10 @@ class ChApi ChElasticityKirchhoff {
 
     /// Compute the generalized force and torque, given actual deformation and curvature.
 	/// This MUST be implemented by subclasses.
-    virtual void ComputeStress(ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
-                               ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
-                               const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
-                               const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+    virtual void ComputeStress(ChVector3d& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+                               ChVector3d& m,            ///< torques m_11, m_22, m_12 (per unit length)
+                               const ChVector3d& eps,    ///< strains   e_11, e_22, e_12
+                               const ChVector3d& kur,    ///< curvature k_11, k_22, k_12
                                const double z_inf,       ///< layer lower z value (along thickness coord)
                                const double z_sup,       ///< layer upper z value (along thickness coord)
                                const double angle        ///< layer angle respect to x (if needed)
@@ -65,8 +65,8 @@ class ChApi ChElasticityKirchhoff {
     /// By default, it is computed by backward differentiation from the ComputeStress() function,
     /// but inherited classes should better provide an analytical form, if possible.
     virtual void ComputeStiffnessMatrix(ChMatrixRef mC,    ///< tangent matrix
-                                 const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
-                                 const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+                                 const ChVector3d& eps,    ///< strains   e_11, e_22, e_12
+                                 const ChVector3d& kur,    ///< curvature k_11, k_22, k_12
                                  const double z_inf,       ///< layer lower z value (along thickness coord)
                                  const double z_sup,       ///< layer upper z value (along thickness coord)
                                  const double angle        ///< layer angle respect to x (if needed)
@@ -98,10 +98,10 @@ class ChApi ChElasticityKirchhoffIsothropic : public ChElasticityKirchhoff {
     /// The FE code will evaluate this function to compute
     /// per-unit-length forces/torques given the strains/curvatures.
     virtual void ComputeStress(
-        ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
-        ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
-        const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
-        const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+        ChVector3d& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+        ChVector3d& m,            ///< torques m_11, m_22, m_12 (per unit length)
+        const ChVector3d& eps,    ///< strains   e_11, e_22, e_12
+        const ChVector3d& kur,    ///< curvature k_11, k_22, k_12
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -111,8 +111,8 @@ class ChApi ChElasticityKirchhoffIsothropic : public ChElasticityKirchhoff {
     /// per-unit-length forces/torques vs generalized strains.
     virtual void ComputeStiffnessMatrix(
         ChMatrixRef mC,           ///< tangent matrix
-        const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
-        const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+        const ChVector3d& eps,    ///< strains   e_11, e_22, e_12
+        const ChVector3d& kur,    ///< curvature k_11, k_22, k_12
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed)
@@ -159,10 +159,10 @@ class ChApi ChElasticityKirchhoffOrthotropic : public ChElasticityKirchhoff {
     /// The FE code will evaluate this function to compute
     /// per-unit-length forces/torques given the strains/curvatures.
     virtual void ComputeStress(
-        ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
-        ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
-        const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
-        const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+        ChVector3d& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+        ChVector3d& m,            ///< torques m_11, m_22, m_12 (per unit length)
+        const ChVector3d& eps,    ///< strains   e_11, e_22, e_12
+        const ChVector3d& kur,    ///< curvature k_11, k_22, k_12
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -172,8 +172,8 @@ class ChApi ChElasticityKirchhoffOrthotropic : public ChElasticityKirchhoff {
     /// per-unit-length forces/torques vs generalized strains.
     virtual void ComputeStiffnessMatrix(
         ChMatrixRef mC,           ///< tangent matrix
-        const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
-        const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+        const ChVector3d& eps,    ///< strains   e_11, e_22, e_12
+        const ChVector3d& kur,    ///< curvature k_11, k_22, k_12
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed)
@@ -213,10 +213,10 @@ class ChApi ChElasticityKirchhoffGeneric : public ChElasticityKirchhoff {
     /// The FE code will evaluate this function to compute
     /// per-unit-length forces/torques given the strains/curvatures.
     virtual void ComputeStress(
-        ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
-        ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
-        const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
-        const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+        ChVector3d& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+        ChVector3d& m,            ///< torques m_11, m_22, m_12 (per unit length)
+        const ChVector3d& eps,    ///< strains   e_11, e_22, e_12
+        const ChVector3d& kur,    ///< curvature k_11, k_22, k_12
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -226,8 +226,8 @@ class ChApi ChElasticityKirchhoffGeneric : public ChElasticityKirchhoff {
     /// per-unit-length forces/torques vs generalized strains.
     virtual void ComputeStiffnessMatrix(
         ChMatrixRef mC,           ///< tangent matrix
-        const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
-        const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+        const ChVector3d& eps,    ///< strains   e_11, e_22, e_12
+        const ChVector3d& kur,    ///< curvature k_11, k_22, k_12
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed)
@@ -282,11 +282,11 @@ class ChApi ChPlasticityKirchhoff {
     /// Returns true if it had to do return mapping, false if it was in elastic regime
 	/// This MUST be implemented by subclasses.
     virtual bool ComputeStressWithReturnMapping(
-		ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
-        ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
+		ChVector3d& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+        ChVector3d& m,            ///< torques m_11, m_22, m_12 (per unit length)
         ChShellKirchhoffInternalData& data_new,  ///< updated material internal variables, at this point, including {p_strain_e, p_strain_k, p_strain_acc}
-        const ChVector<>& eps_trial,  ///< trial strains    e_11, e_22, e_12 
-        const ChVector<>& kur_trial,  ///< trial curvature  k_11, k_22, k_12 
+        const ChVector3d& eps_trial,  ///< trial strains    e_11, e_22, e_12 
+        const ChVector3d& kur_trial,  ///< trial curvature  k_11, k_22, k_12 
         const ChShellKirchhoffInternalData& data,  ///< trial material internal variables, at this point, including {p_strain_e, p_strain_k, p_strain_acc}
 		const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
@@ -301,8 +301,8 @@ class ChApi ChPlasticityKirchhoff {
     /// [Km] by numerical differentiation calling ComputeStressWithReturnMapping() multiple times.
     virtual void ComputeStiffnessMatrixElastoplastic(
         ChMatrixRef K,        ///< 12x12 material elastoplastic stiffness matrix values here
-        const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
-        const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+        const ChVector3d& eps,    ///< strains   e_11, e_22, e_12
+        const ChVector3d& kur,    ///< curvature k_11, k_22, k_12
 		const ChShellKirchhoffInternalData& data,  ///< updated material internal variables, at this point including {p_strain_e, p_strain_k, p_strain_acc}
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
@@ -342,10 +342,10 @@ class ChApi ChDampingKirchhoff {
     /// given actual deformation speed and curvature speed.
     /// This MUST be implemented by subclasses.
     virtual void ComputeStress(
-        ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
-        ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
-        const ChVector<>& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
-        const ChVector<>& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
+        ChVector3d& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+        ChVector3d& m,            ///< torques m_11, m_22, m_12 (per unit length)
+        const ChVector3d& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
+        const ChVector3d& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed)
@@ -356,8 +356,8 @@ class ChApi ChDampingKirchhoff {
     /// known (preferred for high performance), otherwise the base behaviour here is to compute
     /// [Rm] by numerical differentiation calling ComputeStress() multiple times.
     virtual void ComputeDampingMatrix(	ChMatrixRef R,			  ///< 6x6 material damping matrix values here
-										const ChVector<>& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
-										const ChVector<>& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
+										const ChVector3d& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
+										const ChVector3d& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
 										const double z_inf,       ///< layer lower z value (along thickness coord)
 										const double z_sup,       ///< layer upper z value (along thickness coord)
 										const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -399,10 +399,10 @@ class ChApi ChDampingKirchhoffRayleigh : public ChDampingKirchhoff {
 	/// Compute the generalized cut force and cut torque, caused by structural damping,
     /// given actual deformation speed and curvature speed.
 	virtual void ComputeStress(
-		ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
-		ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
-		const ChVector<>& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
-		const ChVector<>& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
+		ChVector3d& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+		ChVector3d& m,            ///< torques m_11, m_22, m_12 (per unit length)
+		const ChVector3d& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
+		const ChVector3d& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
 		const double z_inf,       ///< layer lower z value (along thickness coord)
 		const double z_sup,       ///< layer upper z value (along thickness coord)
 		const double angle        ///< layer angle respect to x (if needed)
@@ -411,8 +411,8 @@ class ChApi ChDampingKirchhoffRayleigh : public ChDampingKirchhoff {
     /// Compute the 6x6 tangent material damping matrix, ie the jacobian [Rm]=dstress/dstrainspeed.
     /// In this model, it is beta*[E] where [E] is the 6x6 stiffness matrix at material level, assumed constant
     virtual void ComputeDampingMatrix(	ChMatrixRef R,			  ///< 6x6 material damping matrix values here
-										const ChVector<>& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
-										const ChVector<>& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
+										const ChVector3d& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
+										const ChVector3d& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
 										const double z_inf,       ///< layer lower z value (along thickness coord)
 										const double z_sup,       ///< layer upper z value (along thickness coord)
 										const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -477,10 +477,10 @@ class ChApi ChMaterialShellKirchhoff  {
     /// In sake of generality, if possible this is the function that should be used by beam finite elements
     /// to compute internal forces, ex.by some Gauss quadrature.
     virtual void ComputeStress(
-        ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
-        ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
-        const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
-        const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+        ChVector3d& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+        ChVector3d& m,            ///< torques m_11, m_22, m_12 (per unit length)
+        const ChVector3d& eps,    ///< strains   e_11, e_22, e_12
+        const ChVector3d& kur,    ///< curvature k_11, k_22, k_12
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle,        ///< layer angle respect to x (if needed)
@@ -495,8 +495,8 @@ class ChApi ChMaterialShellKirchhoff  {
     /// computes only the elastic tangent stiffenss, regardless of plasticity).
     virtual void ComputeStiffnessMatrix(
         ChMatrixRef K,			  ///< 12x12 stiffness matrix
-        const ChVector<>& eps,    ///< strains   e_11, e_22, e_12
-        const ChVector<>& kur,    ///< curvature k_11, k_22, k_12
+        const ChVector3d& eps,    ///< strains   e_11, e_22, e_12
+        const ChVector3d& kur,    ///< curvature k_11, k_22, k_12
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle,       ///< layer angle respect to x (if needed) 

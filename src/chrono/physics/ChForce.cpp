@@ -74,14 +74,14 @@ ChForce::ChForce(const ChForce& other) : ChObj(other) {
 }
 
 // Impose absolute or relative positions, also setting the correct "rest position".
-void ChForce::SetVpoint(ChVector<> mypoint) {
+void ChForce::SetVpoint(ChVector3d mypoint) {
     // abs pos
     vpoint = mypoint;
     // rel pos
     vrelpoint = GetBody()->Point_World2Body(vpoint);
 
     // computes initial rest position.
-    ChVector<> displace = VNULL;
+    ChVector3d displace = VNULL;
     if (move_x)
         displace.x() = move_x->Get_y(ChTime);
     if (move_y)
@@ -99,14 +99,14 @@ void ChForce::SetVpoint(ChVector<> mypoint) {
     }
 }
 
-void ChForce::SetVrelpoint(ChVector<> myrelpoint) {
+void ChForce::SetVrelpoint(ChVector3d myrelpoint) {
     // rel pos
     vrelpoint = myrelpoint;
     // abs pos
     vpoint = GetBody()->Point_Body2World(vrelpoint);
 
     // computes initial rest position.
-    ChVector<> displace = VNULL;
+    ChVector3d displace = VNULL;
     if (move_x)
         displace.x() = move_x->Get_y(ChTime);
     if (move_y)
@@ -125,14 +125,14 @@ void ChForce::SetVrelpoint(ChVector<> myrelpoint) {
 }
 
 // Impose absolute force directions
-void ChForce::SetDir(ChVector<> newf) {
+void ChForce::SetDir(ChVector3d newf) {
     vdir = Vnorm(newf);
     vreldir = GetBody()->TransformDirectionParentToLocal(vdir);
     UpdateState();  // update also F
 }
 
 // Impose relative force directions
-void ChForce::SetRelDir(ChVector<> newf) {
+void ChForce::SetRelDir(ChVector3d newf) {
     vreldir = Vnorm(newf);
     vdir = GetBody()->TransformDirectionLocalToParent(vreldir);
     UpdateState();  // update also F
@@ -145,7 +145,7 @@ void ChForce::SetMforce(double newf) {
 }
 
 // Force as applied to body
-void ChForce::GetBodyForceTorque(ChVector<>& body_force, ChVector<>& body_torque) const {
+void ChForce::GetBodyForceTorque(ChVector3d& body_force, ChVector3d& body_torque) const {
     switch (mode) {
         case FORCE: {
             body_force = force;  // Fb = F.w
@@ -174,9 +174,9 @@ void ChForce::UpdateTime(double mytime) {
 void ChForce::UpdateState() {
     ChBody* my_body;
     double modforce;
-    ChVector<> vectforce;
-    ChVector<> vmotion;
-    ChVector<> xyzforce;
+    ChVector3d vectforce;
+    ChVector3d vmotion;
+    ChVector3d xyzforce;
 
     my_body = GetBody();
 
@@ -242,7 +242,7 @@ void ChForce::UpdateState() {
             //   Qfrot= (-[A][u][G])'f
 
             ChStarMatrix33<> Xpos(vrelpoint);
-            ChVector<> VQtemp = Xpos.transpose() * relforce; // = [u]'[A]'F,w
+            ChVector3d VQtemp = Xpos.transpose() * relforce; // = [u]'[A]'F,w
 
             ChGlMatrix34<> mGl(my_body->GetCoord().rot);
             ChVectorN<double, 4> Qfrot = -mGl.transpose() * VQtemp.eigen(); // Q = - [Gl]'[u]'[A]'F,w

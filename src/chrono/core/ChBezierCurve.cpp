@@ -62,9 +62,9 @@ const double ChBezierCurve::m_paramTol = 1e-5;
 // the control polygon vertices so that the resulting curve is a piecewise cubic
 // spline.
 // -----------------------------------------------------------------------------
-ChBezierCurve::ChBezierCurve(const std::vector<ChVector<> >& points,
-                             const std::vector<ChVector<> >& inCV,
-                             const std::vector<ChVector<> >& outCV,
+ChBezierCurve::ChBezierCurve(const std::vector<ChVector3d >& points,
+                             const std::vector<ChVector3d >& inCV,
+                             const std::vector<ChVector3d >& outCV,
                              bool closed)
     : m_points(points), m_inCV(inCV), m_outCV(outCV), m_closed(closed) {
     assert(m_points.size() > 1);
@@ -84,7 +84,7 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector<> >& points,
     }
 }
 
-ChBezierCurve::ChBezierCurve(const std::vector<ChVector<> >& points, bool closed) : m_points(points), m_closed(closed) {
+ChBezierCurve::ChBezierCurve(const std::vector<ChVector3d >& points, bool closed) : m_points(points), m_closed(closed) {
     int np = (int)m_points.size();  // number of points
     assert(np > 1);
 
@@ -174,7 +174,7 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector<> >& points, bool closed
 
         // Set control points outCV and inCV.
         for (size_t i = 0; i < n; i++)
-            m_outCV[i] = ChVector<>(x[i], y[i], z[i]);
+            m_outCV[i] = ChVector3d(x[i], y[i], z[i]);
 
         for (size_t i = 1; i < n; i++)
             m_inCV[i] = 2.0 * m_points[i] - m_outCV[i];
@@ -213,7 +213,7 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector<> >& points, bool closed
 
         // Set control points outCV and inCV.
         for (size_t i = 0; i < n; i++)
-            m_outCV[i] = ChVector<>(x[i], y[i], z[i]);
+            m_outCV[i] = ChVector3d(x[i], y[i], z[i]);
 
         for (size_t i = 1; i < n; i++)
             m_inCV[i] = 2.0 * m_points[i] - m_outCV[i];
@@ -229,9 +229,9 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector<> >& points, bool closed
     }
 }
 
-void ChBezierCurve::setPoints(const std::vector<ChVector<> >& points,
-                              const std::vector<ChVector<> >& inCV,
-                              const std::vector<ChVector<> >& outCV) {
+void ChBezierCurve::setPoints(const std::vector<ChVector3d >& points,
+                              const std::vector<ChVector3d >& inCV,
+                              const std::vector<ChVector3d >& outCV) {
     assert(points.size() > 1);
     assert(points.size() == inCV.size());
     assert(points.size() == outCV.size());
@@ -299,7 +299,7 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::read(const std::string& filename, 
 
     if (numCols == 3) {
         // Read knots from the following numPoints lines
-        std::vector<ChVector<> > points;
+        std::vector<ChVector3d > points;
 
         for (size_t i = 0; i < numPoints; i++) {
             double x, y, z;
@@ -308,7 +308,7 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::read(const std::string& filename, 
             std::istringstream jss(line);
             jss >> x >> y >> z;
 
-            points.push_back(ChVector<>(x, y, z));
+            points.push_back(ChVector3d(x, y, z));
         }
 
         ifile.close();
@@ -317,9 +317,9 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::read(const std::string& filename, 
 
     if (numCols == 9) {
         // Read knots and control points from the following numPoints lines
-        std::vector<ChVector<> > points;
-        std::vector<ChVector<> > inCV;
-        std::vector<ChVector<> > outCV;
+        std::vector<ChVector3d > points;
+        std::vector<ChVector3d > inCV;
+        std::vector<ChVector3d > outCV;
 
         for (size_t i = 0; i < numPoints; i++) {
             double x, y, z;
@@ -330,9 +330,9 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::read(const std::string& filename, 
             std::istringstream jss(line);
             jss >> x >> y >> z >> inX >> inY >> inZ >> outX >> outY >> outZ;
 
-            points.push_back(ChVector<>(x, y, z));
-            inCV.push_back(ChVector<>(inX, inY, inZ));
-            outCV.push_back(ChVector<>(outX, outY, outZ));
+            points.push_back(ChVector3d(x, y, z));
+            inCV.push_back(ChVector3d(inX, inY, inZ));
+            outCV.push_back(ChVector3d(outX, outY, outZ));
         }
 
         ifile.close();
@@ -380,7 +380,7 @@ void ChBezierCurve::write(const std::string& filename) {
 // returns the point on the curve; the second function returns the tangent
 // vector.
 // -----------------------------------------------------------------------------
-ChVector<> ChBezierCurve::eval(size_t i, double t) const {
+ChVector3d ChBezierCurve::eval(size_t i, double t) const {
     assert(i >= 0 && i < getNumPoints() - 1);
 
     double omt = 1 - t;
@@ -395,7 +395,7 @@ ChVector<> ChBezierCurve::eval(size_t i, double t) const {
     return B0 * m_points[i] + B1 * m_outCV[i] + B2 * m_inCV[i + 1] + B3 * m_points[i + 1];
 }
 
-ChVector<> ChBezierCurve::evalD(size_t i, double t) const {
+ChVector3d ChBezierCurve::evalD(size_t i, double t) const {
     assert(i >= 0 && i < getNumPoints() - 1);
 
     double omt = 1 - t;
@@ -410,7 +410,7 @@ ChVector<> ChBezierCurve::evalD(size_t i, double t) const {
     return B0 * m_points[i] + B1 * m_outCV[i] + B2 * m_inCV[i + 1] + B3 * m_points[i + 1];
 }
 
-ChVector<> ChBezierCurve::evalDD(size_t i, double t) const {
+ChVector3d ChBezierCurve::evalDD(size_t i, double t) const {
     assert(i >= 0 && i < getNumPoints() - 1);
 
     double omt = 1 - t;
@@ -430,7 +430,7 @@ ChVector<> ChBezierCurve::evalDD(size_t i, double t) const {
 // A value t=0 returns the first point of the Bezier curve.
 // A value t=1 returns the last point of the Bezier curve.
 // -----------------------------------------------------------------------------
-ChVector<> ChBezierCurve::eval(double t) const {
+ChVector3d ChBezierCurve::eval(double t) const {
     double par = ChClamp(t, 0.0, 1.0);
     size_t numIntervals = getNumPoints() - 1;
     double epar = par * numIntervals;
@@ -457,7 +457,7 @@ ChVector<> ChBezierCurve::eval(double t) const {
 //  - curve parameter out of the (0,1) range;
 //  - no significant change in the curve parameter (along the Q' direction).
 // -----------------------------------------------------------------------------
-ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, double& t) const {
+ChVector3d ChBezierCurve::calcClosestPoint(const ChVector3d& loc, size_t i, double& t) const {
     // Bracket location of projection
     int m_numEvals = 20;
     double dt = 1.0 / m_numEvals;
@@ -492,13 +492,13 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
 
     /*
     // Newton method
-    ChVector<> Q = eval(i, t);
-    ChVector<> Qd;
-    ChVector<> Qdd;
+    ChVector3d Q = eval(i, t);
+    ChVector3d Qd;
+    ChVector3d Qdd;
 
     size_t j = 0;
     for (j = 0; j < m_maxNumIters; j++) {
-        ChVector<> vec = Q - loc;
+        ChVector3d vec = Q - loc;
         double d2 = vec.Length2();
 
         if (d2 < m_sqrDistTol)
@@ -530,8 +530,8 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
         ChClampValue(t, 0.0, 1.0);
         Q = eval(i, t);
     } else {
-        ChVector<> Q_0 = eval(i, 0.0);
-        ChVector<> Q_1 = eval(i, 1.0);
+        ChVector3d Q_0 = eval(i, 0.0);
+        ChVector3d Q_1 = eval(i, 1.0);
 
         double d2 = (Q - loc).Length2();
         double d2_0 = (Q_0 - loc).Length2();
@@ -609,7 +609,7 @@ static bool comparePoints(const PointSpec& p1, const PointSpec& p2) {
     return p1.m_dist2 < p2.m_dist2;
 }
 
-void ChBezierCurveTracker::reset(const ChVector<>& loc) {
+void ChBezierCurveTracker::reset(const ChVector3d& loc) {
     // Walk all curve points and calculate the distance to the specified reset
     // location, then sort them in increasing order.
     std::vector<PointSpec> points;
@@ -632,8 +632,8 @@ void ChBezierCurveTracker::reset(const ChVector<>& loc) {
         return;
     }
 
-    ChVector<> loc2cur = m_path->m_points[m_curInterval] - loc;
-    ChVector<> loc2prev = m_path->m_points[m_curInterval - 1] - loc;
+    ChVector3d loc2cur = m_path->m_points[m_curInterval] - loc;
+    ChVector3d loc2prev = m_path->m_points[m_curInterval - 1] - loc;
 
     if (Vdot(loc2cur, loc2prev) < 0)
         m_curInterval--;
@@ -659,7 +659,7 @@ void ChBezierCurveTracker::reset(const ChVector<>& loc) {
 //  - if the curve parameter is close to 1, check the next interval, unless at
 //    the previous iteration the parameter was close to 0.
 // -----------------------------------------------------------------------------
-int ChBezierCurveTracker::calcClosestPoint(const ChVector<>& loc, ChVector<>& point) {
+int ChBezierCurveTracker::calcClosestPoint(const ChVector3d& loc, ChVector3d& point) {
     // Evaluate in current interval
     point = m_path->calcClosestPoint(loc, m_curInterval, m_curParam);
 
@@ -761,28 +761,28 @@ int ChBezierCurveTracker::calcClosestPoint(const ChVector<>& loc, ChVector<>& po
     */
 }
 
-int ChBezierCurveTracker::calcClosestPoint(const ChVector<>& loc, ChFrame<>& tnb, double& curvature) {
+int ChBezierCurveTracker::calcClosestPoint(const ChVector3d& loc, ChFrame<>& tnb, double& curvature) {
     // Find closest point to specified location
-    ChVector<> r;
+    ChVector3d r;
     int flag = calcClosestPoint(loc, r);
 
     // Find 1st and 2nd order derivative vectors at the closest point
-    ChVector<> rp = m_path->evalD(m_curInterval, m_curParam);
-    ChVector<> rpp = m_path->evalDD(m_curInterval, m_curParam);
+    ChVector3d rp = m_path->evalD(m_curInterval, m_curParam);
+    ChVector3d rpp = m_path->evalDD(m_curInterval, m_curParam);
 
     // Calculate TNB frame
-    ChVector<> rp_rpp = Vcross(rp, rpp);
+    ChVector3d rp_rpp = Vcross(rp, rpp);
     double rp_norm = rp.Length();
     double rp_rpp_norm = rp_rpp.Length();
 
-    ChVector<> T = rp / rp_norm;
-    ChVector<> N;
-    ChVector<> B;
+    ChVector3d T = rp / rp_norm;
+    ChVector3d N;
+    ChVector3d B;
     if (std::abs(rp_rpp_norm) > 1e-6) {
         N = Vcross(rp_rpp, rp) / (rp_norm * rp_rpp_norm);
         B = rp_rpp / rp_rpp_norm;
     } else {  // Zero curvature
-        B = ChVector<>(0, 0, 1);
+        B = ChVector3d(0, 0, 1);
         N = Vcross(B, T);
         B = Vcross(T, N);
     }

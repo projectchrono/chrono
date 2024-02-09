@@ -33,7 +33,7 @@ ChSingleTrackWheel::ChSingleTrackWheel(const std::string& name) : ChTrackWheel(n
 
 void ChSingleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
                                     std::shared_ptr<ChBody> carrier,
-                                    const ChVector<>& location,
+                                    const ChVector3d& location,
                                     ChTrackAssembly* track) {
     // Invoke the base class method
     ChTrackWheel::Initialize(chassis, carrier, location, track);
@@ -64,8 +64,8 @@ void ChSingleTrackWheel::AddVisualizationAssets(VisualizationType vis) {
     double width = GetWidth();
 
     ChVehicleGeometry::AddVisualizationCylinder(m_wheel,                       //
-                                                ChVector<>(0, width / 2, 0),   //
-                                                ChVector<>(0, -width / 2, 0),  //
+                                                ChVector3d(0, width / 2, 0),   //
+                                                ChVector3d(0, -width / 2, 0),  //
                                                 radius);
 }
 

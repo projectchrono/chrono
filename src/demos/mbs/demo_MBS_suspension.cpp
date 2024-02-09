@@ -128,9 +128,9 @@ class MySimpleCar {
 
         // --- The car body ---
         chassis = chrono_types::make_shared<ChBodyEasyBox>(1, 0.5, 3, 1.0, true, true, chassis_mat);
-        chassis->SetPos(ChVector<>(0, 1, 0));
+        chassis->SetPos(ChVector3d(0, 1, 0));
         chassis->SetMass(150);
-        chassis->SetInertiaXX(ChVector<>(4.8, 4.5, 1));
+        chassis->SetInertiaXX(ChVector3d(4.8, 4.5, 1));
         chassis->SetBodyFixed(false);
         sys.AddBody(chassis);
 
@@ -138,231 +138,231 @@ class MySimpleCar {
 
         // ..the car right-front spindle
         spindleRF = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, true, false);
-        spindleRF->SetPos(ChVector<>(1.3, 1, 1));
+        spindleRF->SetPos(ChVector3d(1.3, 1, 1));
         spindleRF->SetMass(8);
-        spindleRF->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
+        spindleRF->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
         sys.AddBody(spindleRF);
 
         // ..the car right-front wheel
         wheelRF =
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
-        wheelRF->SetPos(ChVector<>(1.5, 1, 1));
+        wheelRF->SetPos(ChVector3d(1.5, 1, 1));
         wheelRF->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelRF->SetMass(3);
-        wheelRF->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
+        wheelRF->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
         wheelRF->GetVisualShape(0)->SetMaterial(0, wheel_vis_mat);
         sys.AddBody(wheelRF);
 
         // .. create the revolute joint between the wheel and the spindle
         link_revoluteRF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
         link_revoluteRF->Initialize(wheelRF, spindleRF,
-                                    ChCoordsys<>(ChVector<>(1.5, 1, 1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                                    ChCoordsys<>(ChVector3d(1.5, 1, 1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         sys.AddLink(link_revoluteRF);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
         link_distRFU1 = chrono_types::make_shared<ChLinkDistance>();  // right, front, upper, 1
-        link_distRFU1->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.2, 1.2), ChVector<>(1.25, 1.2, 1));
+        link_distRFU1->Initialize(chassis, spindleRF, false, ChVector3d(0.5, 1.2, 1.2), ChVector3d(1.25, 1.2, 1));
         sys.AddLink(link_distRFU1);
 
         link_distRFU2 = chrono_types::make_shared<ChLinkDistance>();  // right, front, upper, 2
-        link_distRFU2->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.2, 0.8), ChVector<>(1.25, 1.2, 1));
+        link_distRFU2->Initialize(chassis, spindleRF, false, ChVector3d(0.5, 1.2, 0.8), ChVector3d(1.25, 1.2, 1));
         sys.AddLink(link_distRFU2);
 
         link_distRFL1 = chrono_types::make_shared<ChLinkDistance>();  // right, front, lower, 1
-        link_distRFL1->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 0.8, 1.2), ChVector<>(1.25, 0.8, 1));
+        link_distRFL1->Initialize(chassis, spindleRF, false, ChVector3d(0.5, 0.8, 1.2), ChVector3d(1.25, 0.8, 1));
         sys.AddLink(link_distRFL1);
 
         link_distRFL2 = chrono_types::make_shared<ChLinkDistance>();  // right, front, lower, 2
-        link_distRFL2->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 0.8, 0.8), ChVector<>(1.25, 0.8, 1));
+        link_distRFL2->Initialize(chassis, spindleRF, false, ChVector3d(0.5, 0.8, 0.8), ChVector3d(1.25, 0.8, 1));
         sys.AddLink(link_distRFL2);
 
         // .. create the spring between the truss and the spindle
         link_springRF = chrono_types::make_shared<ChLinkTSDA>();
-        link_springRF->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.2, 1.0), ChVector<>(1.25, 0.8, 1));
+        link_springRF->Initialize(chassis, spindleRF, false, ChVector3d(0.5, 1.2, 1.0), ChVector3d(1.25, 0.8, 1));
         link_springRF->SetSpringCoefficient(28300);
         link_springRF->SetDampingCoefficient(80);
         sys.AddLink(link_springRF);
 
         // .. create the rod for steering the wheel
         link_distRSTEER = chrono_types::make_shared<ChLinkDistance>();  // right steer
-        link_distRSTEER->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.21, 1.4), ChVector<>(1.25, 1.21, 1.3));
+        link_distRSTEER->Initialize(chassis, spindleRF, false, ChVector3d(0.5, 1.21, 1.4), ChVector3d(1.25, 1.21, 1.3));
         sys.AddLink(link_distRSTEER);
 
         // --- Left Front suspension ---
 
         // ..the car right-front spindle
         spindleLF = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, true, false);
-        spindleLF->SetPos(ChVector<>(-1.3, 1, 1));
+        spindleLF->SetPos(ChVector3d(-1.3, 1, 1));
         spindleLF->SetMass(8);
-        spindleLF->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
+        spindleLF->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
         sys.AddBody(spindleLF);
 
         // ..the car left-front wheel
         wheelLF =
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
-        wheelLF->SetPos(ChVector<>(-1.5, 1, 1));
+        wheelLF->SetPos(ChVector3d(-1.5, 1, 1));
         wheelLF->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelLF->SetMass(3);
-        wheelLF->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
+        wheelLF->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
         wheelLF->GetVisualShape(0)->SetMaterial(0, wheel_vis_mat);
         sys.AddBody(wheelLF);
 
         // .. create the revolute joint between the wheel and the spindle
         link_revoluteLF = chrono_types::make_shared<ChLinkLockRevolute>();  // left, front, upper, 1
         link_revoluteLF->Initialize(wheelLF, spindleLF,
-                                    ChCoordsys<>(ChVector<>(-1.5, 1, 1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                                    ChCoordsys<>(ChVector3d(-1.5, 1, 1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         sys.AddLink(link_revoluteLF);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
         link_distLFU1 = chrono_types::make_shared<ChLinkDistance>();  // left, front, upper, 1
-        link_distLFU1->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.2, 1.2), ChVector<>(-1.25, 1.2, 1));
+        link_distLFU1->Initialize(chassis, spindleLF, false, ChVector3d(-0.5, 1.2, 1.2), ChVector3d(-1.25, 1.2, 1));
         sys.AddLink(link_distLFU1);
 
         link_distLFU2 = chrono_types::make_shared<ChLinkDistance>();  // left, front, upper, 2
-        link_distLFU2->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.2, 0.8), ChVector<>(-1.25, 1.2, 1));
+        link_distLFU2->Initialize(chassis, spindleLF, false, ChVector3d(-0.5, 1.2, 0.8), ChVector3d(-1.25, 1.2, 1));
         sys.AddLink(link_distLFU2);
 
         link_distLFL1 = chrono_types::make_shared<ChLinkDistance>();  // left, front, lower, 1
-        link_distLFL1->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 0.8, 1.2), ChVector<>(-1.25, 0.8, 1));
+        link_distLFL1->Initialize(chassis, spindleLF, false, ChVector3d(-0.5, 0.8, 1.2), ChVector3d(-1.25, 0.8, 1));
         sys.AddLink(link_distLFL1);
 
         link_distLFL2 = chrono_types::make_shared<ChLinkDistance>();  // left, front, lower, 2
-        link_distLFL2->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 0.8, 0.8), ChVector<>(-1.25, 0.8, 1));
+        link_distLFL2->Initialize(chassis, spindleLF, false, ChVector3d(-0.5, 0.8, 0.8), ChVector3d(-1.25, 0.8, 1));
         sys.AddLink(link_distLFL2);
 
         // .. create the spring between the truss and the spindle
         link_springLF = chrono_types::make_shared<ChLinkTSDA>();
-        link_springLF->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.2, 1.0), ChVector<>(-1.25, 0.8, 1));
+        link_springLF->Initialize(chassis, spindleLF, false, ChVector3d(-0.5, 1.2, 1.0), ChVector3d(-1.25, 0.8, 1));
         link_springLF->SetSpringCoefficient(28300);
         link_springLF->SetDampingCoefficient(80);
         sys.AddLink(link_springLF);
 
         // .. create the rod for steering the wheel
         link_distLSTEER = chrono_types::make_shared<ChLinkDistance>();  // right steer
-        link_distLSTEER->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.21, 1.4),
-                                    ChVector<>(-1.25, 1.21, 1.3));
+        link_distLSTEER->Initialize(chassis, spindleLF, false, ChVector3d(-0.5, 1.21, 1.4),
+                                    ChVector3d(-1.25, 1.21, 1.3));
         sys.AddLink(link_distLSTEER);
 
         // --- Right Back suspension ---
 
         // ..the car right-back spindle
         spindleRB = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, true, false);
-        spindleRB->SetPos(ChVector<>(1.3, 1, -1));
+        spindleRB->SetPos(ChVector3d(1.3, 1, -1));
         spindleRB->SetMass(8);
-        spindleRB->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
+        spindleRB->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
         sys.AddBody(spindleRB);
 
         // ..the car right-back wheel
         wheelRB =
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
-        wheelRB->SetPos(ChVector<>(1.5, 1, -1));
+        wheelRB->SetPos(ChVector3d(1.5, 1, -1));
         wheelRB->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelRB->SetMass(3);
-        wheelRB->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
+        wheelRB->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
         wheelRB->GetVisualShape(0)->SetMaterial(0, wheel_vis_mat);
         sys.AddBody(wheelRB);
 
         // .. create the revolute joint between the wheel and the spindle
         link_revoluteRB = chrono_types::make_shared<ChLinkLockRevolute>();  // right, back, upper, 1
         link_revoluteRB->Initialize(wheelRB, spindleRB,
-                                    ChCoordsys<>(ChVector<>(1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                                    ChCoordsys<>(ChVector3d(1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         sys.AddLink(link_revoluteRB);
 
         // .. create the motor transmission joint between the wheel and the truss (assuming small changes of alignment)
         link_motorR = chrono_types::make_shared<ChLinkMotorRotationTorque>();
         link_motorR->Initialize(wheelRB, chassis,
-                                ChFrame<>(ChVector<>(1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                                ChFrame<>(ChVector3d(1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         sys.AddLink(link_motorR);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
         link_distRBU1 = chrono_types::make_shared<ChLinkDistance>();  // right, back, upper, 1
-        link_distRBU1->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.2, -1.2), ChVector<>(1.25, 1.2, -1));
+        link_distRBU1->Initialize(chassis, spindleRB, false, ChVector3d(0.5, 1.2, -1.2), ChVector3d(1.25, 1.2, -1));
         sys.AddLink(link_distRBU1);
 
         link_distRBU2 = chrono_types::make_shared<ChLinkDistance>();  // right, back, upper, 2
-        link_distRBU2->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.2, -0.8), ChVector<>(1.25, 1.2, -1));
+        link_distRBU2->Initialize(chassis, spindleRB, false, ChVector3d(0.5, 1.2, -0.8), ChVector3d(1.25, 1.2, -1));
         sys.AddLink(link_distRBU2);
 
         link_distRBL1 = chrono_types::make_shared<ChLinkDistance>();  // right, back, lower, 1
-        link_distRBL1->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 0.8, -1.2), ChVector<>(1.25, 0.8, -1));
+        link_distRBL1->Initialize(chassis, spindleRB, false, ChVector3d(0.5, 0.8, -1.2), ChVector3d(1.25, 0.8, -1));
         sys.AddLink(link_distRBL1);
 
         link_distRBL2 = chrono_types::make_shared<ChLinkDistance>();  // right, back, lower, 2
-        link_distRBL2->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 0.8, -0.8), ChVector<>(1.25, 0.8, -1));
+        link_distRBL2->Initialize(chassis, spindleRB, false, ChVector3d(0.5, 0.8, -0.8), ChVector3d(1.25, 0.8, -1));
         sys.AddLink(link_distRBL2);
 
         // .. create the spring between the truss and the spindle
         link_springRB = chrono_types::make_shared<ChLinkTSDA>();
-        link_springRB->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.2, -1.0), ChVector<>(1.25, 0.8, -1));
+        link_springRB->Initialize(chassis, spindleRB, false, ChVector3d(0.5, 1.2, -1.0), ChVector3d(1.25, 0.8, -1));
         link_springRB->SetSpringCoefficient(28300);
         link_springRB->SetDampingCoefficient(80);
         sys.AddLink(link_springRB);
 
         // .. create the rod for avoid the steering of the wheel
         link_distRBlat = chrono_types::make_shared<ChLinkDistance>();  // right rod
-        link_distRBlat->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.21, -1.4),
-                                   ChVector<>(1.25, 1.21, -1.3));
+        link_distRBlat->Initialize(chassis, spindleRB, false, ChVector3d(0.5, 1.21, -1.4),
+                                   ChVector3d(1.25, 1.21, -1.3));
         sys.AddLink(link_distRBlat);
 
         // --- Left Back suspension ---
 
         // ..the car right-back spindle
         spindleLB = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, true, false);
-        spindleLB->SetPos(ChVector<>(-1.3, 1, -1));
+        spindleLB->SetPos(ChVector3d(-1.3, 1, -1));
         spindleLB->SetMass(8);
-        spindleLB->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
+        spindleLB->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
         sys.AddBody(spindleLB);
 
         // ..the car left-back wheel
         wheelLB =
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
-        wheelLB->SetPos(ChVector<>(-1.5, 1, -1));
+        wheelLB->SetPos(ChVector3d(-1.5, 1, -1));
         wheelLB->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelLB->SetMass(3);
-        wheelLB->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
+        wheelLB->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
         wheelLB->GetVisualShape(0)->SetMaterial(0, wheel_vis_mat);
         sys.AddBody(wheelLB);
 
         // .. create the revolute joint between the wheel and the spindle
         link_revoluteLB = chrono_types::make_shared<ChLinkLockRevolute>();  // left, back, upper, 1
         link_revoluteLB->Initialize(wheelLB, spindleLB,
-                                    ChCoordsys<>(ChVector<>(-1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                                    ChCoordsys<>(ChVector3d(-1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         sys.AddLink(link_revoluteLB);
 
         // .. create the motor transmission joint between the wheel and the truss (assuming small changes of alignment)
         link_motorL = chrono_types::make_shared<ChLinkMotorRotationTorque>();
         link_motorL->Initialize(wheelLB, chassis,
-                                ChFrame<>(ChVector<>(-1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                                ChFrame<>(ChVector3d(-1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         sys.AddLink(link_motorL);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
         link_distLBU1 = chrono_types::make_shared<ChLinkDistance>();  // left, front, upper, 1
-        link_distLBU1->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.2, -1.2), ChVector<>(-1.25, 1.2, -1));
+        link_distLBU1->Initialize(chassis, spindleLB, false, ChVector3d(-0.5, 1.2, -1.2), ChVector3d(-1.25, 1.2, -1));
         sys.AddLink(link_distLBU1);
 
         link_distLBU2 = chrono_types::make_shared<ChLinkDistance>();  // left, back, upper, 2
-        link_distLBU2->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.2, -0.8), ChVector<>(-1.25, 1.2, -1));
+        link_distLBU2->Initialize(chassis, spindleLB, false, ChVector3d(-0.5, 1.2, -0.8), ChVector3d(-1.25, 1.2, -1));
         sys.AddLink(link_distLBU2);
 
         link_distLBL1 = chrono_types::make_shared<ChLinkDistance>();  // left, back, lower, 1
-        link_distLBL1->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 0.8, -1.2), ChVector<>(-1.25, 0.8, -1));
+        link_distLBL1->Initialize(chassis, spindleLB, false, ChVector3d(-0.5, 0.8, -1.2), ChVector3d(-1.25, 0.8, -1));
         sys.AddLink(link_distLBL1);
 
         link_distLBL2 = chrono_types::make_shared<ChLinkDistance>();  // left, back, lower, 2
-        link_distLBL2->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 0.8, -0.8), ChVector<>(-1.25, 0.8, -1));
+        link_distLBL2->Initialize(chassis, spindleLB, false, ChVector3d(-0.5, 0.8, -0.8), ChVector3d(-1.25, 0.8, -1));
         sys.AddLink(link_distLBL2);
 
         // .. create the spring between the truss and the spindle
         link_springLB = chrono_types::make_shared<ChLinkTSDA>();
-        link_springLB->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.2, -1.0), ChVector<>(-1.25, 0.8, -1));
+        link_springLB->Initialize(chassis, spindleLB, false, ChVector3d(-0.5, 1.2, -1.0), ChVector3d(-1.25, 0.8, -1));
         link_springLB->SetSpringCoefficient(28300);
         link_springLB->SetDampingCoefficient(80);
         sys.AddLink(link_springLB);
 
         // .. create the rod for avoid the steering of the wheel
         link_distLBlat = chrono_types::make_shared<ChLinkDistance>();  // right
-        link_distLBlat->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.21, -1.4),
-                                   ChVector<>(-1.25, 1.21, -1.3));
+        link_distLBlat->Initialize(chassis, spindleLB, false, ChVector3d(-0.5, 1.21, -1.4),
+                                   ChVector3d(-1.25, 1.21, -1.3));
         sys.AddLink(link_distLBlat);
     }
 
@@ -503,8 +503,8 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newsteer = 0.18 * (((double)(50 - pos)) / 50.0);
                         // set the steering, moving horizontally the endpoints of the steer rod endpoint on truss.
-                        this->mcar->link_distRSTEER->SetEndPoint1Rel(ChVector<>(+0.5 + newsteer, 0.21, 1.4));
-                        this->mcar->link_distLSTEER->SetEndPoint1Rel(ChVector<>(-0.5 + newsteer, 0.21, 1.4));
+                        this->mcar->link_distRSTEER->SetEndPoint1Rel(ChVector3d(+0.5 + newsteer, 0.21, 1.4));
+                        this->mcar->link_distLSTEER->SetEndPoint1Rel(ChVector3d(-0.5 + newsteer, 0.21, 1.4));
                     }
                     if (id == 102)  // id of 'spring stiffness' slider..
                     {
@@ -613,7 +613,7 @@ int main(int argc, char* argv[]) {
 
     // ..ground body
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(60, 2, 60, 1.0, true, true, ground_mat);
-    my_ground->SetPos(ChVector<>(0, -1, 0));
+    my_ground->SetPos(ChVector3d(0, -1, 0));
     my_ground->SetBodyFixed(true);
     my_ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
     sys.AddBody(my_ground);
@@ -621,7 +621,7 @@ int main(int argc, char* argv[]) {
     // ..some obstacles on the ground
     for (int i = 0; i < 6; i++) {
         auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.5, 60.0, true, true, obstacle_mat);
-        my_obstacle->SetPos(ChVector<>(20 * ChRandom(), 2, 20 * ChRandom()));
+        my_obstacle->SetPos(ChVector3d(20 * ChRandom(), 2, 20 * ChRandom()));
         my_obstacle->SetMass(3);
         sys.AddBody(my_obstacle);
     }
@@ -664,7 +664,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 0, -6));
+    vis->AddCamera(ChVector3d(0, 0, -6));
     vis->AddTypicalLights();
 
     // Create some graphical-user-interface (GUI) items to show on the screen.
@@ -683,7 +683,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        tools::drawGrid(vis.get(), 2, 2, 30, 30, ChCoordsys<>(ChVector<>(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)),
+        tools::drawGrid(vis.get(), 2, 2, 30, 30, ChCoordsys<>(ChVector3d(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)),
                         ChColor(0.31f, 0.51f, 0.51f), true);
 
         vis->GetGUIEnvironment()->drawAll();

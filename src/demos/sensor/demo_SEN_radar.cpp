@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     // ----------------------
     // color visual materials
@@ -123,8 +123,8 @@ int main(int argc, char* argv[]) {
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 1000, true, false);
     floor->SetPos({0, 0, -1});
     floor->SetBodyFixed(true);
-    //    floor->SetWvel_par(ChVector<>(-0.2,-0.4,-0.3));
-    //    floor->SetPos_dt(ChVector<>(0.1, 0, 0));
+    //    floor->SetWvel_par(ChVector3d(-0.2,-0.4,-0.3));
+    //    floor->SetPos_dt(ChVector3d(0.1, 0, 0));
     sys.Add(floor);
     floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 

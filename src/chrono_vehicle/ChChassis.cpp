@@ -47,7 +47,7 @@ ChChassis::~ChChassis() {
 }
 
 // -----------------------------------------------------------------------------
-const ChVector<>& ChChassis::GetPos() const {
+const ChVector3d& ChChassis::GetPos() const {
     return m_body->GetFrame_REF_to_abs().GetPos();
 }
 
@@ -55,21 +55,21 @@ ChQuaternion<> ChChassis::GetRot() const {
     return m_body->GetFrame_REF_to_abs().GetRot() * ChWorldFrame::Quaternion();
 }
 
-ChVector<> ChChassis::GetPointLocation(const ChVector<>& locpos) const {
+ChVector3d ChChassis::GetPointLocation(const ChVector3d& locpos) const {
     return m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(locpos);
 }
 
-ChVector<> ChChassis::GetPointVelocity(const ChVector<>& locpos) const {
+ChVector3d ChChassis::GetPointVelocity(const ChVector3d& locpos) const {
     return m_body->GetFrame_REF_to_abs().PointSpeedLocalToParent(locpos);
 }
 
-ChVector<> ChChassis::GetPointAcceleration(const ChVector<>& locpos) const {
-    ChVector<> acc_abs = m_body->GetFrame_REF_to_abs().PointAccelerationLocalToParent(locpos);
+ChVector3d ChChassis::GetPointAcceleration(const ChVector3d& locpos) const {
+    ChVector3d acc_abs = m_body->GetFrame_REF_to_abs().PointAccelerationLocalToParent(locpos);
     return m_body->GetFrame_REF_to_abs().TransformDirectionParentToLocal(acc_abs);
 }
 
 // Return the global driver position
-ChVector<> ChChassis::GetDriverPos() const {
+ChVector3d ChChassis::GetDriverPos() const {
     return m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
 }
 
@@ -123,7 +123,7 @@ void ChChassis::Initialize(ChSystem* system,
     m_body->SetBodyFixed(m_fixed);
 
     m_body->SetFrame_REF_to_abs(chassis_pos);
-    m_body->SetPos_dt(chassisFwdVel * chassis_pos.TransformDirectionLocalToParent(ChVector<>(1, 0, 0)));
+    m_body->SetPos_dt(chassisFwdVel * chassis_pos.TransformDirectionLocalToParent(ChVector3d(1, 0, 0)));
 
     system->Add(m_body);
 
@@ -160,11 +160,11 @@ void ChChassis::AddMarker(const std::string& name, const ChCoordsys<>& pos) {
 void ChChassis::AddExternalForceTorque(std::shared_ptr<ExternalForceTorque> load) {
     m_external_loads.push_back(load);
 
-    auto force_load = chrono_types::make_shared<ChLoadBodyForce>(m_body, ChVector<>(0), true, ChVector<>(0), true);
+    auto force_load = chrono_types::make_shared<ChLoadBodyForce>(m_body, ChVector3d(0), true, ChVector3d(0), true);
     force_load->SetNameString(load->m_name + "_force");
     m_container_external->Add(force_load);
 
-    auto torque_load = chrono_types::make_shared<ChLoadBodyTorque>(m_body, ChVector<>(0), true);
+    auto torque_load = chrono_types::make_shared<ChLoadBodyTorque>(m_body, ChVector3d(0), true);
     torque_load->SetNameString(load->m_name + "_torque");
     m_container_external->Add(torque_load);
 }
@@ -216,16 +216,16 @@ class ChassisDragForce : public ChChassis::ExternalForceTorque {
     // the center of mass of the chassis body.
     virtual void Update(double time,
                         const ChChassis& chassis,
-                        ChVector<>& force,
-                        ChVector<>& point,
-                        ChVector<>& torque) override {
+                        ChVector3d& force,
+                        ChVector3d& point,
+                        ChVector3d& torque) override {
         auto body = chassis.GetBody();
         auto V = body->TransformDirectionParentToLocal(body->GetPos_dt());
         double Vx = V.x();
         double Fx = 0.5 * m_Cd * m_area * m_air_density * Vx * Vx;
-        point = ChVector<>(0, 0, 0);
-        force = ChVector<>(-Fx * ChSignum(Vx), 0.0, 0.0);
-        torque = ChVector<>(0);
+        point = ChVector3d(0, 0, 0);
+        force = ChVector3d(-Fx * ChSignum(Vx), 0.0, 0.0);
+        torque = ChVector3d(0);
     }
 
   private:
@@ -242,9 +242,9 @@ void ChChassis::SetAerodynamicDrag(double Cd, double area, double air_density) {
 void ChChassis::Synchronize(double time) {
     // Update all external forces (two ChLoad objects per external force/torque)
     auto& loads = m_container_external->GetLoadList();
-    ChVector<> force;
-    ChVector<> point;
-    ChVector<> torque;
+    ChVector3d force;
+    ChVector3d point;
+    ChVector3d torque;
     for (size_t i = 0; i < m_external_loads.size(); ++i) {
         m_external_loads[i]->Update(time, *this, force, point, torque);
         auto body_force = std::static_pointer_cast<ChLoadBodyForce>(loads[2 * i]);
@@ -263,8 +263,8 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
     // Express the rear chassis reference frame in the absolute coordinate system.
     // Set rear chassis orientation to be the same as the front chassis and
     // translate based on local positions of the connector point.
-    const ChVector<>& front_loc = chassis->GetLocalPosRearConnector();
-    const ChVector<>& rear_loc = GetLocalPosFrontConnector();
+    const ChVector3d& front_loc = chassis->GetLocalPosRearConnector();
+    const ChVector3d& rear_loc = GetLocalPosFrontConnector();
 
     ChFrame<> chassis_frame(front_loc - rear_loc);
     chassis_frame.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());

@@ -25,11 +25,11 @@ ChVisualShapeBox::ChVisualShapeBox() {
 }
 
 ChVisualShapeBox::ChVisualShapeBox(double length_x, double length_y, double length_z) {
-    gbox.SetLengths(ChVector<>(length_x, length_y, length_z));
+    gbox.SetLengths(ChVector3d(length_x, length_y, length_z));
     SetMutable(false);
 }
 
-ChVisualShapeBox::ChVisualShapeBox(const ChVector<>& lengths) {
+ChVisualShapeBox::ChVisualShapeBox(const ChVector3d& lengths) {
     gbox.SetLengths(lengths);
     SetMutable(false);
 }

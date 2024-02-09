@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     m113.SetPowertrainType(powertrain_type);
     m113.SetChassisCollisionType(chassis_collision_type);
 
-    m113.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
+    m113.SetInitPosition(ChCoordsys<>(ChVector3d(-terrainLength / 2 + 5, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
     m113.Initialize();
 
     m113.SetChassisVisualizationType(VisualizationType::NONE);
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     patch_mat->SetRestitution(0.01f);
     patch_mat->SetYoungModulus(2e7f);
     patch_mat->SetPoissonRatio(0.3f);
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, 5);
+    auto patch = terrain.AddPatch(patch_mat, ChVector3d(0, 0, 0), ChVector3d(0, 0, 1), terrainLength, 5);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
     terrain.Initialize();
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     ChTrackedVehicleVisualSystemIrrlicht app(&m113.GetVehicle());
     app.SetWindowTitle("M113 Vehicle Demo");
-    app.SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
+    app.SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
     app.Initialize();
     app.AddTypicalLights();
 
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     // Create the straight path and the driver system
     // ----------------------------------------------
 
-    auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(terrainLength / 2, 0, 0.5), 1);
+    auto path = StraightLinePath(ChVector3d(-terrainLength / 2, 0, 0.5), ChVector3d(terrainLength / 2, 0, 0.5), 1);
     ChPathFollowerDriver driver(m113.GetVehicle(), path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);

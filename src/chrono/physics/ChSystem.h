@@ -202,10 +202,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     std::shared_ptr<ChSystemDescriptor> GetSystemDescriptor() { return descriptor; }
 
     /// Set the G (gravity) acceleration vector, affecting all the bodies in the system.
-    void Set_G_acc(const ChVector<>& m_acc) { G_acc = m_acc; }
+    void Set_G_acc(const ChVector3d& m_acc) { G_acc = m_acc; }
 
     /// Get the G (gravity) acceleration vector affecting all the bodies in the system.
-    const ChVector<>& Get_G_acc() const { return G_acc; }
+    const ChVector3d& Get_G_acc() const { return G_acc; }
 
     /// Get the simulation time of this system.
     double GetChTime() const { return ch_time; }
@@ -461,13 +461,13 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// This resultant force includes all external applied loads acting on the body (from gravity, loads, springs,
     /// etc). However, this does *not* include any constraint forces. In particular, contact forces are not included if
     /// using the NSC formulation, but are included when using the SMC formulation.
-    virtual ChVector<> GetBodyAppliedForce(ChBody* body);
+    virtual ChVector3d GetBodyAppliedForce(ChBody* body);
 
     /// Return the resultant applied torque on the specified body.
     /// This resultant torque includes all external applied loads acting on the body (from gravity, loads, springs,
     /// etc). However, this does *not* include any constraint forces. In particular, contact torques are not included if
     /// using the NSC formulation, but are included when using the SMC formulation.
-    virtual ChVector<> GetBodyAppliedTorque(ChBody* body);
+    virtual ChVector3d GetBodyAppliedTorque(ChBody* body);
 
   public:
     /// Counts the number of bodies and links.
@@ -858,7 +858,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 
-    ChVector<> G_acc;  ///< gravitational acceleration
+    ChVector3d G_acc;  ///< gravitational acceleration
 
     bool is_initialized;  ///< if false, an initial setup is required (i.e. a call to Initialize)
     bool is_updated;      ///< if false, a new update is required (i.e. a call to Update)

@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBody>();
@@ -46,10 +46,10 @@ int main(int argc, char* argv[]) {
     ground->SetCollide(false);
 
     auto rail1 = chrono_types::make_shared<ChVisualShapeBox>(8, 0.1, 0.1);
-    ground->AddVisualShape(rail1, ChFrame<>(ChVector<>(0, 0, -1), QUNIT));
+    ground->AddVisualShape(rail1, ChFrame<>(ChVector3d(0, 0, -1), QUNIT));
 
     auto rail2 = chrono_types::make_shared<ChVisualShapeBox>(8, 0.1, 0.1);
-    ground->AddVisualShape(rail2, ChFrame<>(ChVector<>(0, 0, +1), QUNIT));
+    ground->AddVisualShape(rail2, ChFrame<>(ChVector3d(0, 0, +1), QUNIT));
 
     // Create the slider bodies
     auto slider1 = chrono_types::make_shared<ChBody>();
@@ -58,8 +58,8 @@ int main(int argc, char* argv[]) {
     slider1->SetBodyFixed(false);
     slider1->SetCollide(false);
     slider1->SetMass(1);
-    slider1->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
-    slider1->SetPos(ChVector<>(-4, 0, -1));
+    slider1->SetInertiaXX(ChVector3d(0.1, 0.1, 0.1));
+    slider1->SetPos(ChVector3d(-4, 0, -1));
 
     auto cyl1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
     cyl1->SetColor(ChColor(0.6f, 0, 0));
@@ -71,8 +71,8 @@ int main(int argc, char* argv[]) {
     slider2->SetBodyFixed(false);
     slider2->SetCollide(false);
     slider2->SetMass(1);
-    slider2->SetInertiaXX(ChVector<>(0.1, 0.1, 01));
-    slider2->SetPos(ChVector<>(-4, 0, +1));
+    slider2->SetInertiaXX(ChVector3d(0.1, 0.1, 01));
+    slider2->SetPos(ChVector3d(-4, 0, +1));
 
     auto cyl2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
     cyl2->SetColor(ChColor(0, 0, 0.6f));
@@ -80,11 +80,11 @@ int main(int argc, char* argv[]) {
 
     // Create prismatic joints between ground and sliders
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic1->Initialize(slider1, ground, ChCoordsys<>(ChVector<>(0, 0, -1), Q_from_AngY(CH_C_PI_2)));
+    prismatic1->Initialize(slider1, ground, ChCoordsys<>(ChVector3d(0, 0, -1), Q_from_AngY(CH_C_PI_2)));
     sys.AddLink(prismatic1);
 
     auto prismatic2 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic2->Initialize(slider2, ground, ChCoordsys<>(ChVector<>(0, 0, +1), Q_from_AngY(CH_C_PI_2)));
+    prismatic2->Initialize(slider2, ground, ChCoordsys<>(ChVector3d(0, 0, +1), Q_from_AngY(CH_C_PI_2)));
     sys.AddLink(prismatic2);
 
     // Sine function
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(-1, 1.5, -6));
+    vis->AddCamera(ChVector3d(-1, 1.5, -6));
     vis->AddTypicalLights();
     vis->EnableLinkFrameDrawing(true);
 

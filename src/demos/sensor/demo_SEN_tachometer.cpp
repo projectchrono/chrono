@@ -38,7 +38,7 @@ int main(int argc, char* argv[]){
 
     // Create the system
     ChSystemNSC mphysicalsystem;
-    mphysicalsystem.Set_G_acc(ChVector<>(0,0,0));
+    mphysicalsystem.Set_G_acc(ChVector3d(0,0,0));
 
     // add a ChBody to test
     auto body = chrono_types::make_shared<ChBodyEasyBox>(10, 1, 1, 1000, true, false);

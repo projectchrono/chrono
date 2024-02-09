@@ -57,9 +57,9 @@ bool ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
             int i0 = indices[3 * f + 0].vertex_index;
             int i1 = indices[3 * f + 1].vertex_index;
             int i2 = indices[3 * f + 2].vertex_index;
-            auto v0 = ChVector<>(att.vertices[3 * i0 + 0], att.vertices[3 * i0 + 1], att.vertices[3 * i0 + 2]);
-            auto v1 = ChVector<>(att.vertices[3 * i1 + 0], att.vertices[3 * i1 + 1], att.vertices[3 * i1 + 2]);
-            auto v2 = ChVector<>(att.vertices[3 * i2 + 0], att.vertices[3 * i2 + 1], att.vertices[3 * i2 + 2]);
+            auto v0 = ChVector3d(att.vertices[3 * i0 + 0], att.vertices[3 * i0 + 1], att.vertices[3 * i0 + 2]);
+            auto v1 = ChVector3d(att.vertices[3 * i1 + 0], att.vertices[3 * i1 + 1], att.vertices[3 * i1 + 2]);
+            auto v2 = ChVector3d(att.vertices[3 * i2 + 0], att.vertices[3 * i2 + 1], att.vertices[3 * i2 + 2]);
             addTriangle(v0, v1, v2);
         }
     }
@@ -67,12 +67,12 @@ bool ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
     return true;
 }
 
-void ChTriangleMeshSoup::addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) {
+void ChTriangleMeshSoup::addTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) {
     ChTriangle tri(vertex0, vertex1, vertex2);
     m_triangles.push_back(tri);
 }
 
-void ChTriangleMeshSoup::Transform(const ChVector<> displ, const ChMatrix33<> rotscale) {
+void ChTriangleMeshSoup::Transform(const ChVector3d displ, const ChMatrix33<> rotscale) {
     for (int i = 0; i < this->m_triangles.size(); ++i) {
         m_triangles[i].p1 = rotscale * m_triangles[i].p1;
         m_triangles[i].p1 += displ;

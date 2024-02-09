@@ -101,7 +101,7 @@ public:
 class ChApi ChPropertyScalar : public ChPropertyT<double> {};
 
 /// Data is an array of vectors 
-class ChApi ChPropertyVector : public ChPropertyT<ChVector<>> {};
+class ChApi ChPropertyVector : public ChPropertyT<ChVector3d> {};
 
 /// Data is an array of quaternions (for rotations) 
 class ChApi ChPropertyQuaternion : public ChPropertyT<ChQuaternion<>> {};

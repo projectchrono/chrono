@@ -391,8 +391,8 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
                 /*
                 // interpolate rotation of section at given u, to compute R.
                 ChQuaternion<> q_delta;
-                ChVector<> da = VNULL;
-                ChVector<> delta_rot_dir;
+                ChVector3d da = VNULL;
+                ChVector3d delta_rot_dir;
                 double delta_rot_angle;
                 for (int i = 0; i < nodes.size(); ++i) {
                     ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
@@ -494,8 +494,8 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
         // Note: this is approximate.
         // A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
         ChQuaternion<> q_delta;
-        ChVector<> da = VNULL;
-        ChVector<> delta_rot_dir;
+        ChVector3d da = VNULL;
+        ChVector3d delta_rot_dir;
         double delta_rot_angle;
         for (int i = 0; i < nodes.size(); ++i) {
             ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
@@ -512,18 +512,18 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
         ChMatrix33<> R(qR);
 
         // compute abs. spline gradient r'  = dr/ds
-        ChVector<> dr;
+        ChVector3d dr;
         for (int i = 0; i < nodes.size(); ++i) {
-            ChVector<> r_i(state_x.segment(i * 7, 3));
+            ChVector3d r_i(state_x.segment(i * 7, 3));
             dr += r_i * N(1, i);  // dr/du = N_i'*r_i
         }
         // (note r'= dr/ds = dr/du du/ds = dr/du * 1/Jsu   where Jsu computed in SetupInitial)
         dr *= 1.0 / Jsu;
 
         // compute abs. time rate of spline gradient  dr'/dt
-        ChVector<> drdt;
+        ChVector3d drdt;
         for (int i = 0; i < nodes.size(); ++i) {
-            ChVector<> drdt_i(state_w.segment(i * 6, 3));
+            ChVector3d drdt_i(state_w.segment(i * 6, 3));
             drdt += drdt_i * N(1, i);
         }
         drdt *= 1.0 / Jsu;
@@ -542,31 +542,31 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
         da *= 1.0 / Jsu;
 
         // compute abs rate of spline rotation gradient da'/dt
-        ChVector<> dadt;
+        ChVector3d dadt;
         for (int i = 0; i < nodes.size(); ++i) {
             ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
-            ChVector<> wl_i(state_w.segment(i * 6 + 3, 3));  //  w in node csys
-            ChVector<> w_i = q_i.Rotate(wl_i);               // w in absolute csys
+            ChVector3d wl_i(state_w.segment(i * 6 + 3, 3));  //  w in node csys
+            ChVector3d w_i = q_i.Rotate(wl_i);               // w in absolute csys
             dadt += w_i * N(1, i);
         }
         dadt *= 1.0 / Jsu;
 
         // compute local epsilon strain:  strain_e= R^t * r' - {1, 0, 0}
-        ChVector<> astrain_e = R.transpose() * dr - VECT_X - this->strain_e_0[ig];
+        ChVector3d astrain_e = R.transpose() * dr - VECT_X - this->strain_e_0[ig];
 
         // compute local time rate of strain:  strain_e_dt = R^t * dr'/dt
-        ChVector<> astrain_e_dt = R.transpose() * drdt;
+        ChVector3d astrain_e_dt = R.transpose() * drdt;
 
         // compute local curvature strain:  strain_k= 2*[F(q*)(+)] * q' = 2*[F(q*)(+)] * N_i'*q_i = R^t * a' = a'_local
-        ChVector<> astrain_k = da - this->strain_k_0[ig];
+        ChVector3d astrain_k = da - this->strain_k_0[ig];
 
         // compute local time rate of curvature strain:
-        ChVector<> astrain_k_dt = R.transpose() * dadt;
+        ChVector3d astrain_k_dt = R.transpose() * dadt;
 
         // compute stress n  (local cut forces)
         // compute stress_m  (local cut torque)
-        ChVector<> astress_n;
-        ChVector<> astress_m;
+        ChVector3d astress_n;
+        ChVector3d astress_m;
         ChBeamMaterialInternalData* aplastic_data_old = nullptr;
         ChBeamMaterialInternalData* aplastic_data = nullptr;
         std::vector<std::unique_ptr<ChBeamMaterialInternalData>> foo_plastic_data;
@@ -591,8 +591,8 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 
         // add viscous damping
         if (this->section->GetDamping()) {
-            ChVector<> n_sp;
-            ChVector<> m_sp;
+            ChVector3d n_sp;
+            ChVector3d m_sp;
             this->section->GetDamping()->ComputeStress(n_sp, m_sp, astrain_e_dt, astrain_k_dt);
             astress_n += n_sp;
             astress_m += m_sp;
@@ -600,13 +600,13 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 
         // compute internal force, in generalized coordinates:
 
-        ChVector<> stress_n_abs = R * astress_n;
-        ChVector<> stress_m_abs = R * astress_m;
+        ChVector3d stress_n_abs = R * astress_n;
+        ChVector3d stress_m_abs = R * astress_m;
 
         for (int i = 0; i < nodes.size(); ++i) {
             // -Force_i = w * Jue * Jsu * Jsu^-1 * N' * R * C * (strain_e - strain_e0)
             //          = w * Jue                * N'         * stress_n_abs
-            ChVector<> Force_i = stress_n_abs * N(1, i) * (-w * Jue);
+            ChVector3d Force_i = stress_n_abs * N(1, i) * (-w * Jue);
             Fi.segment(i * 6, 3) += Force_i.eigen();
 
             // -Torque_i =   w * Jue * Jsu * Jsu^-1 * R_i^t * N'               * R * D * (strain_k - strain_k0) +
@@ -614,7 +614,7 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
             //           =   w * Jue * R_i^t                * N'               * stress_m_abs +
             //             + w * Jue * Jsu * R_i^t          * N * skew(r')^t   * stress_n_abs
             ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
-            ChVector<> Torque_i = q_i.RotateBack(stress_m_abs * N(1, i) * (-w * Jue) -
+            ChVector3d Torque_i = q_i.RotateBack(stress_m_abs * N(1, i) * (-w * Jue) -
                                                  Vcross(dr, stress_n_abs) * N(0, i) * (-w * Jue * Jsu));
             Fi.segment(3 + i * 6, 3) += Torque_i.eigen();
         }
@@ -629,8 +629,8 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
         if (ChElementBeamIGA::lumped_mass == true) {
             // CASE OF LUMPED MASS - faster
             double node_multiplier = length / (double)nodes.size();
-            ChVector<> mFcent_i;
-            ChVector<> mTgyro_i;
+            ChVector3d mFcent_i;
+            ChVector3d mTgyro_i;
             for (int i = 0; i < nodes.size(); ++i) {
                 this->section->GetInertia()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, state_w.segment(3 + i * 6, 3));
                 ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
@@ -639,8 +639,8 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
             }
         } else {
             // CASE OF CONSISTENT MASS
-            ChVector<> mFcent_i;
-            ChVector<> mTgyro_i;
+            ChVector3d mFcent_i;
+            ChVector3d mTgyro_i;
             // evaluate inertial quadratic forces using same gauss points used for bending
             for (int ig = 0; ig < int_order_b; ++ig) {
                 double eta = ChQuadrature::GetStaticTables()->Lroots[int_order_b - 1][ig];
@@ -659,8 +659,8 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
                 // Note: this is approximate.
                 // A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
                 ChQuaternion<> q_delta;
-                ChVector<> da = VNULL;
-                ChVector<> delta_rot_dir;
+                ChVector3d da = VNULL;
+                ChVector3d delta_rot_dir;
                 double delta_rot_angle;
                 for (int i = 0; i < nodes.size(); ++i) {
                     ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
@@ -673,11 +673,11 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
                 qda.Q_from_Rotv(da);
                 ChQuaternion<> qR = nodes[0]->coord.rot * qda;
 
-                ChVector<> w_sect;
+                ChVector3d w_sect;
                 for (int i = 0; i < nodes.size(); ++i) {
                     ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
-                    ChVector<> wl_i(state_w.segment(i * 6 + 3, 3));  //  w in node csys
-                    ChVector<> w_i = q_i.Rotate(wl_i);               // w in absolute csys
+                    ChVector3d wl_i(state_w.segment(i * 6 + 3, 3));  //  w in node csys
+                    ChVector3d w_i = q_i.Rotate(wl_i);               // w in absolute csys
                     w_sect += w_i * N(0, i);
                 }
                 w_sect = qR.RotateBack(w_sect);  // w in sectional csys
@@ -693,7 +693,7 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
     }  // end quadratic inertial force terms
 }
 
-void ChElementBeamIGA::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementBeamIGA::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     // no so efficient... a temporary mass matrix here:
     ChMatrixDynamic<> mM(this->GetNdofs(), this->GetNdofs());
     this->ComputeMmatrixGlobal(mM);
@@ -740,7 +740,7 @@ void ChElementBeamIGA::ComputeNF(const double U,
     geometry::ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
                                                       N);  ///< h
 
-    ChVector<> dr0;
+    ChVector3d dr0;
     for (int i = 0; i < nodes.size(); ++i) {
         dr0 += nodes[i]->GetX0ref().coord.pos * N(1, i);
     }
@@ -813,7 +813,7 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
                                                           N);  ///< here return N and dN/du
 
         // compute reference spline gradient \dot{dr_0} = dr0/du
-        ChVector<> dr0;
+        ChVector3d dr0;
         for (int i = 0; i < nodes.size(); ++i) {
             dr0 += nodes[i]->GetX0ref().coord.pos * N(1, i);
         }
@@ -847,7 +847,7 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
                                                           N);  ///< here return N and dN/du
 
         // compute reference spline gradient \dot{dr_0} = dr0/du
-        ChVector<> dr0;
+        ChVector3d dr0;
         for (int i = 0; i < nodes.size(); ++i) {
             dr0 += nodes[i]->GetX0ref().coord.pos * N(1, i);
         }
@@ -864,8 +864,8 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
         // Note: this is approximate.
         // A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
         ChQuaternion<> q_delta;
-        ChVector<> da = VNULL;
-        ChVector<> delta_rot_dir;
+        ChVector3d da = VNULL;
+        ChVector3d delta_rot_dir;
         double delta_rot_angle;
         for (int i = 0; i < nodes.size(); ++i) {
             ChQuaternion<> q_i = nodes[i]->GetX0ref().GetRot();  // state_x.ClipQuaternion(i * 7 + 3, 0);
@@ -882,9 +882,9 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
         ChMatrix33<> R(qR);
 
         // compute abs. spline gradient r'  = dr/ds
-        ChVector<> dr;
+        ChVector3d dr;
         for (int i = 0; i < nodes.size(); ++i) {
-            ChVector<> r_i = nodes[i]->GetX0().GetPos();
+            ChVector3d r_i = nodes[i]->GetX0().GetPos();
             dr += r_i * N(1, i);  // dr/du = N_i'*r_i
         }
         // (note r'= dr/ds = dr/du du/ds = dr/du * 1/Jsu   where Jsu computed in SetupInitial)

@@ -45,12 +45,12 @@ ChSprocket::~ChSprocket() {
 }
 
 // -----------------------------------------------------------------------------
-void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location, ChTrackAssembly* track) {
     m_parent = chassis;
     m_rel_loc = location;
 
     // The sprocket reference frame is aligned with that of the chassis and centered at the specified location.
-    ChVector<> loc = chassis->GetBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(location);
+    ChVector3d loc = chassis->GetBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(location);
     ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
     ChQuaternion<> y2z = Q_from_AngX(CH_C_PI_2);
     ChMatrix33<> rot_y2z(y2z);
@@ -84,7 +84,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>
 
     m_axle_to_spindle = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle->SetNameString(m_name + "_axle_to_spindle");
-    m_axle_to_spindle->Initialize(m_axle, m_gear, ChVector<>(0, -1, 0));
+    m_axle_to_spindle->Initialize(m_axle, m_gear, ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle);
 
     // Enable contact for the gear body and set contact material properties.
@@ -126,12 +126,12 @@ void ChSprocket::AddVisualizationAssets(VisualizationType vis) {
     auto asset_1 = chrono_types::make_shared<ChVisualShapeLine>();
     asset_1->SetLineGeometry(profile);
     asset_1->SetColor(ChColor(1, 0, 0));
-    m_gear->AddVisualShape(asset_1, ChFrame<>(ChVector<>(0, sep / 2, 0), rot_y2z));
+    m_gear->AddVisualShape(asset_1, ChFrame<>(ChVector3d(0, sep / 2, 0), rot_y2z));
 
     auto asset_2 = chrono_types::make_shared<ChVisualShapeLine>();
     asset_2->SetLineGeometry(profile);
     asset_2->SetColor(ChColor(1, 0, 0));
-    m_gear->AddVisualShape(asset_2, ChFrame<>(ChVector<>(0, -sep / 2, 0), rot_y2z));
+    m_gear->AddVisualShape(asset_2, ChFrame<>(ChVector3d(0, -sep / 2, 0), rot_y2z));
 }
 
 void ChSprocket::RemoveVisualizationAssets() {
@@ -149,31 +149,31 @@ std::shared_ptr<geometry::ChTriangleMeshConnected> ChSprocket::CreateVisualizati
     // Evaluate points on gear profile and on ring.
     // Generate equidistant points on profile, then transform to x-z plane.
     // Calculate normals in radial direction.
-    std::vector<ChVector<>> ppoints; // points on profile
-    std::vector<ChVector<>> rpoints; // points on ring
-    std::vector<ChVector<>> pnormals; // normals on profile
-    std::vector<ChVector<>> rnormals; // normals on ring
+    std::vector<ChVector3d> ppoints; // points on profile
+    std::vector<ChVector3d> rpoints; // points on ring
+    std::vector<ChVector3d> pnormals; // normals on profile
+    std::vector<ChVector3d> rnormals; // normals on ring
     for (auto il = 0; il < profile->GetSubLinesCount(); il++) {
         auto line = profile->GetSubLineN(il);
         auto n = static_cast<int>(std::ceil(line->Length(2) / delta));
         for (auto ip = 0; ip < n; ip++) {            
             auto p = line->Evaluate((1.0 * ip)/n);
-            ppoints.push_back(ChVector<>(p.x(), 0, p.y())); // Point on profile
+            ppoints.push_back(ChVector3d(p.x(), 0, p.y())); // Point on profile
             p *= radius / p.Length();
-            rpoints.push_back(ChVector<>(p.x(), 0, p.y())); // Point on ring
+            rpoints.push_back(ChVector3d(p.x(), 0, p.y())); // Point on ring
             p.Normalize();
-            pnormals.push_back(ChVector<>(+p.x(), 0, +p.y())); // Normal on profile (approximate)
-            rnormals.push_back(ChVector<>(-p.x(), 0, -p.y())); // Normal on ring
+            pnormals.push_back(ChVector3d(+p.x(), 0, +p.y())); // Normal on profile (approximate)
+            rnormals.push_back(ChVector3d(-p.x(), 0, -p.y())); // Normal on ring
         }
     }
 
     // Create trimesh
     auto mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    std::vector<ChVector<>>& vertices = mesh->getCoordsVertices();
-    std::vector<ChVector<>>& normals = mesh->getCoordsNormals();
-    std::vector<ChVector<int>>& idx_vertices = mesh->getIndicesVertexes();
-    std::vector<ChVector<int>>& idx_normals = mesh->getIndicesNormals();
-    ////std::vector<ChVector2<>>& uv_coords = mesh->getCoordsUV();
+    std::vector<ChVector3d>& vertices = mesh->getCoordsVertices();
+    std::vector<ChVector3d>& normals = mesh->getCoordsNormals();
+    std::vector<ChVector3i>& idx_vertices = mesh->getIndicesVertexes();
+    std::vector<ChVector3i>& idx_normals = mesh->getIndicesNormals();
+    ////std::vector<ChVector2d>& uv_coords = mesh->getCoordsUV();
     std::vector<ChColor>& colors = mesh->getCoordsColors();
 
     // Calculate number of vertices, normals, and faces. Resize mesh arrays.
@@ -199,16 +199,16 @@ std::shared_ptr<geometry::ChTriangleMeshConnected> ChSprocket::CreateVisualizati
     for (size_t i = 0; i < 4; i++) {
         size_t ivstart = i * (2 * npoints);
         for (size_t ip = 0; ip < npoints; ip++) {
-            vertices[ivstart + ip] = ppoints[ip] + ChVector<>(0, offset[i], 0);
-            vertices[ivstart + ip + npoints] = rpoints[ip] + ChVector<>(0, offset[i], 0);
+            vertices[ivstart + ip] = ppoints[ip] + ChVector3d(0, offset[i], 0);
+            vertices[ivstart + ip + npoints] = rpoints[ip] + ChVector3d(0, offset[i], 0);
         }
     }
 
     // Create mesh normals
-    normals[0] = ChVector<>(0, +1, 0);
-    normals[1] = ChVector<>(0, -1, 0);
-    normals[2] = ChVector<>(0, +1, 0);
-    normals[3] = ChVector<>(0, -1, 0);
+    normals[0] = ChVector3d(0, +1, 0);
+    normals[1] = ChVector3d(0, -1, 0);
+    normals[2] = ChVector3d(0, +1, 0);
+    normals[3] = ChVector3d(0, -1, 0);
     for (size_t ip = 0; ip < npoints; ip++) {
         normals[4 + ip] = pnormals[ip];
         normals[4 + npoints + ip] = rnormals[ip];
@@ -223,23 +223,23 @@ std::shared_ptr<geometry::ChTriangleMeshConnected> ChSprocket::CreateVisualizati
         size_t ivstart = i * (2 * npoints);
         for (size_t ip = 0; ip < npoints - 1; ip++) {
             int iv = static_cast<int>(ivstart + ip);
-            idx_vertices[it] = (i % 2 == 0) ? ChVector<int>(iv, iv + 1, iv + np)  //
-                                            : ChVector<int>(iv, iv + np, iv + 1);
-            idx_normals[it] = ChVector<int>(i, i, i);
+            idx_vertices[it] = (i % 2 == 0) ? ChVector3i(iv, iv + 1, iv + np)  //
+                                            : ChVector3i(iv, iv + np, iv + 1);
+            idx_normals[it] = ChVector3i(i, i, i);
             ++it;
-            idx_vertices[it] = (i % 2 == 0) ? ChVector<int>(iv + 1, iv + np + 1, iv + np)  //
-                                            : ChVector<int>(iv + 1, iv + np, iv + np + 1);
-            idx_normals[it] = ChVector<int>(i, i, i);
+            idx_vertices[it] = (i % 2 == 0) ? ChVector3i(iv + 1, iv + np + 1, iv + np)  //
+                                            : ChVector3i(iv + 1, iv + np, iv + np + 1);
+            idx_normals[it] = ChVector3i(i, i, i);
             ++it;
         }
         int iv = static_cast<int>(ivstart);
-        idx_vertices[it] = (i % 2 == 0) ? ChVector<int>(iv + np - 1, iv, iv + 2 * np - 1)  //
-                                        : ChVector<int>(iv + np - 1, iv + 2 * np - 1, iv);
-        idx_normals[it] = ChVector<int>(i, i, i);
+        idx_vertices[it] = (i % 2 == 0) ? ChVector3i(iv + np - 1, iv, iv + 2 * np - 1)  //
+                                        : ChVector3i(iv + np - 1, iv + 2 * np - 1, iv);
+        idx_normals[it] = ChVector3i(i, i, i);
         ++it;
-        idx_vertices[it] = (i % 2 == 0) ? ChVector<int>(iv, iv + np, iv + 2 * np - 1)   //
-                                        : ChVector<int>(iv, iv + 2 * np - 1, iv + np);  
-        idx_normals[it] = ChVector<int>(i, i, i);
+        idx_vertices[it] = (i % 2 == 0) ? ChVector3i(iv, iv + np, iv + 2 * np - 1)   //
+                                        : ChVector3i(iv, iv + 2 * np - 1, iv + np);  
+        idx_normals[it] = ChVector3i(i, i, i);
         ++it;
     }
 
@@ -249,20 +249,20 @@ std::shared_ptr<geometry::ChTriangleMeshConnected> ChSprocket::CreateVisualizati
         for (size_t ip = 0; ip < npoints - 1; ip++) {
             int iv = static_cast<int>(ivstart + ip);
             int in = 0;  //static_cast<int>(4 + ip);
-            idx_vertices[it] = ChVector<int>(iv, iv + 2 * np, iv + 1);
-            idx_normals[it] = ChVector<int>(in, in, in);
+            idx_vertices[it] = ChVector3i(iv, iv + 2 * np, iv + 1);
+            idx_normals[it] = ChVector3i(in, in, in);
             ++it;
-            idx_vertices[it] = ChVector<int>(iv + 1, iv + 2 * np, iv + 2 * np + 1);
-            idx_normals[it] = ChVector<int>(in, in, in);
+            idx_vertices[it] = ChVector3i(iv + 1, iv + 2 * np, iv + 2 * np + 1);
+            idx_normals[it] = ChVector3i(in, in, in);
             ++it;
         }
         int iv = static_cast<int>(ivstart);
         int in = 0;  // static_cast<int>(4 + npoints - 1);
-        idx_vertices[it] = ChVector<int>(iv + np - 1, iv + 3 * np - 1, iv);
-        idx_normals[it] = ChVector<int>(in, in, in);
+        idx_vertices[it] = ChVector3i(iv + np - 1, iv + 3 * np - 1, iv);
+        idx_normals[it] = ChVector3i(in, in, in);
         ++it;
-        idx_vertices[it] = ChVector<int>(iv, iv + 3 * np - 1, iv + 2 * np);
-        idx_normals[it] = ChVector<int>(in, in, in);
+        idx_vertices[it] = ChVector3i(iv, iv + 3 * np - 1, iv + 2 * np);
+        idx_normals[it] = ChVector3i(in, in, in);
         ++it;
     }
 
@@ -272,20 +272,20 @@ std::shared_ptr<geometry::ChTriangleMeshConnected> ChSprocket::CreateVisualizati
         for (size_t ip = 0; ip < npoints - 1; ip++) {
             int iv = static_cast<int>(ivstart + ip);
             int in = 0;  // static_cast<int>(4 + npoints + ip);
-            idx_vertices[it] = ChVector<int>(iv, iv + 1, iv + 2 * np);
-            idx_normals[it] = ChVector<int>(in, in, in);
+            idx_vertices[it] = ChVector3i(iv, iv + 1, iv + 2 * np);
+            idx_normals[it] = ChVector3i(in, in, in);
             ++it;
-            idx_vertices[it] = ChVector<int>(iv + 1, iv + 2 * np + 1, iv + 2 * np);
-            idx_normals[it] = ChVector<int>(in, in, in);
+            idx_vertices[it] = ChVector3i(iv + 1, iv + 2 * np + 1, iv + 2 * np);
+            idx_normals[it] = ChVector3i(in, in, in);
             ++it;
         }
         int iv = static_cast<int>(ivstart);
         int in = 0;  // static_cast<int>(4 + 2 * npoints - 1);
-        idx_vertices[it] = ChVector<int>(iv + np - 1, iv, iv + 3 * np - 1);
-        idx_normals[it] = ChVector<int>(in, in, in);
+        idx_vertices[it] = ChVector3i(iv + np - 1, iv, iv + 3 * np - 1);
+        idx_normals[it] = ChVector3i(in, in, in);
         ++it;
-        idx_vertices[it] = ChVector<int>(iv, iv + 2 * np, iv + 3 * np - 1);
-        idx_normals[it] = ChVector<int>(in, in, in);
+        idx_vertices[it] = ChVector3i(iv, iv + 2 * np, iv + 3 * np - 1);
+        idx_normals[it] = ChVector3i(in, in, in);
         ++it;
     }
 

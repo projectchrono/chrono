@@ -22,15 +22,15 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChEllipsoid)
 
-ChEllipsoid::ChEllipsoid(const ChVector<>& axes) : rad(0.5 * axes) {}
-ChEllipsoid::ChEllipsoid(double axis_x, double axis_y, double axis_z) : rad(0.5 * ChVector<>(axis_x, axis_y, axis_z)) {}
+ChEllipsoid::ChEllipsoid(const ChVector3d& axes) : rad(0.5 * axes) {}
+ChEllipsoid::ChEllipsoid(double axis_x, double axis_y, double axis_z) : rad(0.5 * ChVector3d(axis_x, axis_y, axis_z)) {}
 ChEllipsoid::ChEllipsoid(const ChEllipsoid& source) {
     rad = source.rad;
 }
 
 // -----------------------------------------------------------------------------
 
-double ChEllipsoid::GetVolume(const ChVector<>& axes) {
+double ChEllipsoid::GetVolume(const ChVector3d& axes) {
     return (1 / 6.0) * CH_C_PI * axes.x() * axes.y() * axes.z();
 }
 
@@ -38,7 +38,7 @@ double ChEllipsoid::GetVolume() const {
     return GetVolume(2.0 * rad);
 }
 
-ChMatrix33<> ChEllipsoid::GetGyration(const ChVector<>& axes) {
+ChMatrix33<> ChEllipsoid::GetGyration(const ChVector3d& axes) {
     ChMatrix33<> J;
     J.setZero();
     J(0, 0) = (1.0 / 20.0) * (axes.y() * axes.y() + axes.z() * axes.z());
@@ -52,7 +52,7 @@ ChMatrix33<> ChEllipsoid::GetGyration() const {
     return GetGyration(rad);
 }
 
-ChAABB ChEllipsoid::GetBoundingBox(const ChVector<>& axes) {
+ChAABB ChEllipsoid::GetBoundingBox(const ChVector3d& axes) {
     auto rad = 0.5 * axes;
     return ChAABB(-rad, +rad);
 }
@@ -61,7 +61,7 @@ ChAABB ChEllipsoid::GetBoundingBox() const {
     return GetBoundingBox(2.0 * rad);
 }
 
-double ChEllipsoid::GetBoundingSphereRadius(const ChVector<>& axes) {
+double ChEllipsoid::GetBoundingSphereRadius(const ChVector3d& axes) {
     return 0.5 * std::max(axes.x(), std::max(axes.y(), axes.z()));
 }
 

@@ -71,7 +71,7 @@ class CH_MODELS_API Turtlebot_Part {
                    bool fixed,
                    std::shared_ptr<ChContactMaterial> mat,
                    ChSystem* system,
-                   const ChVector<>& body_pos,
+                   const ChVector3d& body_pos,
                    const ChQuaternion<>& body_rot,
                    std::shared_ptr<ChBodyAuxRef> chassis_body,
                    bool collide);
@@ -90,7 +90,7 @@ class CH_MODELS_API Turtlebot_Part {
     std::shared_ptr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
 
     /// Return the Position of the Turtlebot part.
-    const ChVector<>& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
+    const ChVector3d& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
 
     /// Return the Rotation of the Turtlebot part.
     const ChQuaternion<>& GetRot() const { return m_body->GetFrame_REF_to_abs().GetRot(); }
@@ -110,12 +110,12 @@ class CH_MODELS_API Turtlebot_Part {
     std::shared_ptr<ChContactMaterial> m_mat;  ///< contact material (shared among all shapes)
 
     std::string m_mesh_name;                  ///< visualization mesh name
-    ChVector<> m_offset;                      ///< offset for visualization mesh
+    ChVector3d m_offset;                      ///< offset for visualization mesh
     ChColor m_color;                          ///< visualization asset color
     ChSystem* m_system;                       ///< system which Turtlebot Part belongs to
     std::shared_ptr<ChBodyAuxRef> m_chassis;  ///< the chassis body for the robot
 
-    ChVector<> m_pos;      ///< Turtlebot part's relative position wrt the chassis
+    ChVector3d m_pos;      ///< Turtlebot part's relative position wrt the chassis
     ChQuaternion<> m_rot;  ///< Turtlebot part's relative rotation wrt the chassis
     double m_density;      ///< Turtlebot part's density
 
@@ -130,7 +130,7 @@ class CH_MODELS_API Turtlebot_Chassis : public Turtlebot_Part {
                       bool fixed,
                       std::shared_ptr<ChContactMaterial> mat,
                       ChSystem* system,
-                      const ChVector<>& body_pos,
+                      const ChVector3d& body_pos,
                       const ChQuaternion<>& body_rot,
                       bool collide);
     ~Turtlebot_Chassis() {}
@@ -143,7 +143,7 @@ class CH_MODELS_API Turtlebot_Chassis : public Turtlebot_Part {
 
   private:
     /// Translate the chassis by the specified value.
-    void Translate(const ChVector<>& shift);
+    void Translate(const ChVector3d& shift);
     friend class TurtleBot;
 };
 
@@ -154,7 +154,7 @@ class CH_MODELS_API Turtlebot_ActiveWheel : public Turtlebot_Part {
                           bool fixed,
                           std::shared_ptr<ChContactMaterial> mat,
                           ChSystem* system,
-                          const ChVector<>& body_pos,
+                          const ChVector3d& body_pos,
                           const ChQuaternion<>& body_rot,
                           std::shared_ptr<ChBodyAuxRef> chassis,
                           bool collide);
@@ -168,7 +168,7 @@ class CH_MODELS_API Turtlebot_ActiveWheel : public Turtlebot_Part {
 
   private:
     /// Translate the chassis by the specified value.
-    void Translate(const ChVector<>& shift);
+    void Translate(const ChVector3d& shift);
     friend class TurtleBot;
 };
 
@@ -179,7 +179,7 @@ class CH_MODELS_API Turtlebot_PassiveWheel : public Turtlebot_Part {
                            bool fixed,
                            std::shared_ptr<ChContactMaterial> mat,
                            ChSystem* system,
-                           const ChVector<>& body_pos,
+                           const ChVector3d& body_pos,
                            const ChQuaternion<>& body_rot,
                            std::shared_ptr<ChBodyAuxRef> chassis,
                            bool collide);
@@ -193,7 +193,7 @@ class CH_MODELS_API Turtlebot_PassiveWheel : public Turtlebot_Part {
 
   private:
     /// Translate the chassis by the specified value.
-    void Translate(const ChVector<>& shift);
+    void Translate(const ChVector3d& shift);
     friend class TurtleBot;
 };
 
@@ -204,7 +204,7 @@ class CH_MODELS_API Turtlebot_Rod_Short : public Turtlebot_Part {
                         bool fixed,
                         std::shared_ptr<ChContactMaterial> mat,
                         ChSystem* system,
-                        const ChVector<>& body_pos,
+                        const ChVector3d& body_pos,
                         const ChQuaternion<>& body_rot,
                         std::shared_ptr<ChBodyAuxRef> chassis,
                         bool collide);
@@ -218,7 +218,7 @@ class CH_MODELS_API Turtlebot_Rod_Short : public Turtlebot_Part {
 
   private:
     /// Translate the chassis by the specified value.
-    void Translate(const ChVector<>& shift);
+    void Translate(const ChVector3d& shift);
     friend class TurtleBot;
 };
 
@@ -229,7 +229,7 @@ class CH_MODELS_API Turtlebot_BottomPlate : public Turtlebot_Part {
                           bool fixed,
                           std::shared_ptr<ChContactMaterial> mat,
                           ChSystem* system,
-                          const ChVector<>& body_pos,
+                          const ChVector3d& body_pos,
                           const ChQuaternion<>& body_rot,
                           std::shared_ptr<ChBodyAuxRef> chassis,
                           bool collide);
@@ -243,7 +243,7 @@ class CH_MODELS_API Turtlebot_BottomPlate : public Turtlebot_Part {
 
   private:
     /// Translate the chassis by the specified value.
-    void Translate(const ChVector<>& shift);
+    void Translate(const ChVector3d& shift);
     friend class TurtleBot;
 };
 
@@ -254,7 +254,7 @@ class CH_MODELS_API Turtlebot_MiddlePlate : public Turtlebot_Part {
                           bool fixed,
                           std::shared_ptr<ChContactMaterial> mat,
                           ChSystem* system,
-                          const ChVector<>& body_pos,
+                          const ChVector3d& body_pos,
                           const ChQuaternion<>& body_rot,
                           std::shared_ptr<ChBodyAuxRef> chassis,
                           bool collide);
@@ -268,7 +268,7 @@ class CH_MODELS_API Turtlebot_MiddlePlate : public Turtlebot_Part {
 
   private:
     /// Translate the chassis by the specified value.
-    void Translate(const ChVector<>& shift);
+    void Translate(const ChVector3d& shift);
     friend class TurtleBot;
 };
 
@@ -279,7 +279,7 @@ class CH_MODELS_API Turtlebot_TopPlate : public Turtlebot_Part {
                        bool fixed,
                        std::shared_ptr<ChContactMaterial> mat,
                        ChSystem* system,
-                       const ChVector<>& body_pos,
+                       const ChVector3d& body_pos,
                        const ChQuaternion<>& body_rot,
                        std::shared_ptr<ChBodyAuxRef> chassis,
                        bool collide);
@@ -293,7 +293,7 @@ class CH_MODELS_API Turtlebot_TopPlate : public Turtlebot_Part {
 
   private:
     /// Translate the chassis by the specified value.
-    void Translate(const ChVector<>& shift);
+    void Translate(const ChVector3d& shift);
     friend class TurtleBot;
 };
 
@@ -304,7 +304,7 @@ class CH_MODELS_API Turtlebot_Rod_Long : public Turtlebot_Part {
                        bool fixed,
                        std::shared_ptr<ChContactMaterial> mat,
                        ChSystem* system,
-                       const ChVector<>& body_pos,
+                       const ChVector3d& body_pos,
                        const ChQuaternion<>& body_rot,
                        std::shared_ptr<ChBodyAuxRef> chassis,
                        bool collide);
@@ -318,7 +318,7 @@ class CH_MODELS_API Turtlebot_Rod_Long : public Turtlebot_Part {
 
   private:
     /// Translate the chassis by the specified value.
-    void Translate(const ChVector<>& shift);
+    void Translate(const ChVector3d& shift);
     friend class TurtleBot;
 };
 
@@ -328,7 +328,7 @@ class CH_MODELS_API Turtlebot_Rod_Long : public Turtlebot_Part {
 class CH_MODELS_API TurtleBot {
   public:
     TurtleBot(ChSystem* system,
-              const ChVector<>& robot_pos,
+              const ChVector3d& robot_pos,
               const ChQuaternion<>& robot_rot,
               std::shared_ptr<ChContactMaterial> wheel_mat = nullptr);
     ~TurtleBot();
@@ -340,10 +340,10 @@ class CH_MODELS_API TurtleBot {
     void SetMotorSpeed(double rad_speed, WheelID id);
 
     /// Get active drive wheel speed
-    ChVector<> GetActiveWheelSpeed(WheelID id);
+    ChVector3d GetActiveWheelSpeed(WheelID id);
 
     /// Get active driver wheel angular velocity
-    ChVector<> GetActiveWheelAngVel(WheelID id);
+    ChVector3d GetActiveWheelAngVel(WheelID id);
 
   private:
     /// This function initializes all parameters for the robot.
@@ -366,7 +366,7 @@ class CH_MODELS_API TurtleBot {
     std::shared_ptr<Turtlebot_TopPlate> m_top_plate;                     ///< top plate of the turtlebot robot
 
     ChQuaternion<> m_robot_rot;  ///< robot rotation
-    ChVector<> m_robot_pos;      ///< robot translation position
+    ChVector3d m_robot_pos;      ///< robot translation position
 
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_motors;  ///< vector to store motors
 

@@ -359,7 +359,7 @@ void ChTrackedVehicle::InitializeInertiaProperties() {
 void ChTrackedVehicle::UpdateInertiaProperties() {
     // 1. Calculate the vehicle COM location relative to the global reference frame
     // 2. Calculate vehicle inertia relative to global reference frame
-    ChVector<> com(0);
+    ChVector3d com(0);
     ChMatrix33<> inertia(0);
     
     m_chassis->AddInertiaProperties(com, inertia);

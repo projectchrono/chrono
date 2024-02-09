@@ -38,7 +38,7 @@ static const std::string ref_dir = "testing/joints/revolute_joint/";
 // =============================================================================
 // Prototypes of local functions
 //
-bool TestRevolute(const ChVector<>& jointLoc,
+bool TestRevolute(const ChVector3d& jointLoc,
                   const ChQuaternion<>& jointRot,
                   double simTimeStep,
                   double outTimeStep,
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
     // must be rotated -pi/2 about the global X-axis.
 
     test_name = "Revolute_Case01";
-    TestRevolute(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), sim_step, out_step, test_name);
+    TestRevolute(ChVector3d(0, 0, 0), Q_from_AngX(-CH_C_PI_2), sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     // In this case, the joint must be rotated -pi/4 about the global X-axis.
 
     test_name = "Revolute_Case02";
-    TestRevolute(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), sim_step, out_step, test_name);
+    TestRevolute(ChVector3d(1, 2, 3), Q_from_AngX(-CH_C_PI_4), sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(test_name, "Acc", 1e-2);
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
 //
 // Worker function for performing the simulation with specified parameters.
 //
-bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
+bool TestRevolute(const ChVector3d& jointLoc,      // absolute location of joint
                   const ChQuaternion<>& jointRot,  // orientation of joint
                   double simTimeStep,              // simulation time step
                   double outTimeStep,              // output time step
@@ -134,7 +134,7 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
 
     double mass = 1.0;                     // mass of pendulum
     double length = 4.0;                   // length of pendulum
-    ChVector<> inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
+    ChVector3d inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;
 
     double timeRecord = 5;  // simulation length
@@ -148,7 +148,7 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
     std::cout << "  Create system..." << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
@@ -170,7 +170,7 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
 
     auto pendulum = chrono_types::make_shared<ChBody>();
     sys.AddBody(pendulum);
-    pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
+    pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector3d(length / 2, 0, 0)));
     pendulum->SetRot(jointRot);
     pendulum->SetMass(mass);
     pendulum->SetInertiaXX(inertiaXX);
@@ -265,7 +265,7 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();
-    ChVector<> angVelLoc = pendulum->GetWvel_loc();
+    ChVector3d angVelLoc = pendulum->GetWvel_loc();
     double transKE = 0.5 * mass * pendulum->GetPos_dt().Length2();
     double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
     double deltaPE = mass * g * (pendulum->GetPos().z() - jointLoc.z());
@@ -282,8 +282,8 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
             std::cout << "    record output at simTime=" << simTime << std::endl;
 
             // CM position, velocity, and acceleration (expressed in global frame).
-            const ChVector<>& position = pendulum->GetPos();
-            const ChVector<>& velocity = pendulum->GetPos_dt();
+            const ChVector3d& position = pendulum->GetPos();
+            const ChVector3d& velocity = pendulum->GetPos_dt();
             out_pos << simTime << position << std::endl;
             out_vel << simTime << velocity << std::endl;
             out_acc << simTime << pendulum->GetPos_dtdt() << std::endl;
@@ -305,8 +305,8 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
             ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
 
             //    reaction force and torque on ground, expressed in joint frame
-            ChVector<> reactForce = revoluteJoint->Get_react_force();
-            ChVector<> reactTorque = revoluteJoint->Get_react_torque();
+            ChVector3d reactForce = revoluteJoint->Get_react_force();
+            ChVector3d reactTorque = revoluteJoint->Get_react_torque();
 
             //    reaction force and torque on ground, expressed in ground frame
             reactForce = linkCoordsys.TransformDirectionLocalToParent(reactForce);

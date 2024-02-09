@@ -51,7 +51,7 @@ ChAABB ChLineBezier::GetBoundingBox() const {
     return aabb;
 }
 
-ChVector<> ChLineBezier::Evaluate(double parU) const {
+ChVector3d ChLineBezier::Evaluate(double parU) const {
     double par = ChClamp(parU, 0.0, 1.0);
     size_t numIntervals = m_path->getNumPoints() - 1;
     double epar = par * numIntervals;

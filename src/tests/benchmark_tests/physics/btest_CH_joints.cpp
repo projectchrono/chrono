@@ -34,7 +34,7 @@ class LinkLockBM : public ::benchmark::Fixture {
         sys = new ChSystemNSC();
         for (int i = 0; i < N + 1; i++) {
             auto body = chrono_types::make_shared<ChBody>();
-            body->SetPos(ChVector<>(rand() % 1000 / 1000.0, rand() % 1000 / 1000.0, rand() % 1000 / 1000.0));
+            body->SetPos(ChVector3d(rand() % 1000 / 1000.0, rand() % 1000 / 1000.0, rand() % 1000 / 1000.0));
             sys->AddBody(body);
         }
         for (int i = 0; i < N; i++) {

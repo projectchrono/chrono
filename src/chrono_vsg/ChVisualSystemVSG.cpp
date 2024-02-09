@@ -451,8 +451,8 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
 
     // make some default settings
     SetWindowTitle("VSG: Vehicle Demo");
-    SetWindowSize(ChVector2<int>(800, 600));
-    SetWindowPosition(ChVector2<int>(50, 50));
+    SetWindowSize(ChVector2i(800, 600));
+    SetWindowPosition(ChVector2i(50, 50));
     SetUseSkyBox(true);
     SetCameraAngleDeg(40);
     SetLightIntensity(1.0);
@@ -531,7 +531,7 @@ void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
     m_guiFontSize = theSize;
 }
 
-void ChVisualSystemVSG::SetWindowSize(const ChVector2<int>& size) {
+void ChVisualSystemVSG::SetWindowSize(const ChVector2i& size) {
     if (m_initialized) {
         std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize must be used before initialization!" << std::endl;
         return;
@@ -549,7 +549,7 @@ void ChVisualSystemVSG::SetWindowSize(int width, int height) {
     m_windowHeight = height;
 }
 
-void ChVisualSystemVSG::SetWindowPosition(const ChVector2<int>& pos) {
+void ChVisualSystemVSG::SetWindowPosition(const ChVector2i& pos) {
     if (m_initialized) {
         std::cerr << "Function ChVisualSystemVSG::SetWindowPosition must be used before initialization!" << std::endl;
         return;
@@ -591,13 +591,13 @@ void ChVisualSystemVSG::SetUseSkyBox(bool yesno) {
     m_useSkybox = yesno;
 }
 
-int ChVisualSystemVSG::AddCamera(const ChVector<>& pos, ChVector<> targ) {
+int ChVisualSystemVSG::AddCamera(const ChVector3d& pos, ChVector3d targ) {
     if (m_initialized) {
         std::cerr << "Function ChVisualSystemVSG::AddCamera must be used before initialization!" << std::endl;
         return 1;
     }
 
-    ChVector<> test = pos - targ;
+    ChVector3d test = pos - targ;
     if (test.Length() == 0.0) {
         std::cerr << "Function ChVisualSystemVSG::AddCamera Camera Pos and Target cannot be identical!" << std::endl;
         std::cerr << "  pos    = { " << pos.x() << " ; " << pos.y() << " ; " << pos.z() << " }" << std::endl;
@@ -626,30 +626,30 @@ int ChVisualSystemVSG::AddCamera(const ChVector<>& pos, ChVector<> targ) {
     return 0;
 }
 
-void ChVisualSystemVSG::SetCameraPosition(int id, const ChVector<>& pos) {
+void ChVisualSystemVSG::SetCameraPosition(int id, const ChVector3d& pos) {
     m_lookAt->eye = vsg::dvec3(pos.x(), pos.y(), pos.z());
 }
 
-void ChVisualSystemVSG::SetCameraTarget(int id, const ChVector<>& target) {
+void ChVisualSystemVSG::SetCameraTarget(int id, const ChVector3d& target) {
     m_lookAt->center = vsg::dvec3(target.x(), target.y(), target.z());
 }
 
-void ChVisualSystemVSG::SetCameraPosition(const ChVector<>& pos) {
+void ChVisualSystemVSG::SetCameraPosition(const ChVector3d& pos) {
     m_lookAt->eye = vsg::dvec3(pos.x(), pos.y(), pos.z());
 }
 
-void ChVisualSystemVSG::SetCameraTarget(const ChVector<>& target) {
+void ChVisualSystemVSG::SetCameraTarget(const ChVector3d& target) {
     m_lookAt->center = vsg::dvec3(target.x(), target.y(), target.z());
 }
 
-ChVector<> ChVisualSystemVSG::GetCameraPosition() const {
+ChVector3d ChVisualSystemVSG::GetCameraPosition() const {
     const auto& p = m_lookAt->eye;
-    return ChVector<>(p.x, p.y, p.z);
+    return ChVector3d(p.x, p.y, p.z);
 }
 
-ChVector<> ChVisualSystemVSG::GetCameraTarget() const {
+ChVector3d ChVisualSystemVSG::GetCameraTarget() const {
     const auto& p = m_lookAt->center;
-    return ChVector<>(p.x, p.y, p.z);
+    return ChVector3d(p.x, p.y, p.z);
 }
 
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
@@ -1086,11 +1086,11 @@ void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
 // -----------------------------------------------------------------------------
 
 // Utility function for creating a frame with its X axis defined by 2 points.
-ChFrame<> PointPointFrame(const ChVector<>& P1, const ChVector<>& P2, double& dist) {
-    ChVector<> dir = P2 - P1;
+ChFrame<> PointPointFrame(const ChVector3d& P1, const ChVector3d& P2, double& dist) {
+    ChVector3d dir = P2 - P1;
     dist = dir.Length();
     dir.Normalize();
-    ChVector<> mx, my, mz;
+    ChVector3d mx, my, mz;
     dir.DirToDxDyDz(my, mz, mx);
     ChMatrix33<> R_CS;
     R_CS.Set_A_axis(mx, my, mz);
@@ -1142,7 +1142,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             double rad = cylinder->GetRadius();
             double height = cylinder->GetHeight();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, height));
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
             auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER_SHAPE, material, transform,
                                                       m_wireframe);
             group->addChild(grp);
@@ -1150,7 +1150,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             double rad = capsule->GetRadius();
             double height = capsule->GetHeight();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, rad / 2 + height / 4));
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, rad / 2 + height / 4));
             auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE_SHAPE, material, transform,
                                                       m_wireframe);
             group->addChild(grp);
@@ -1160,7 +1160,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             double rad = cone->GetRadius();
             double height = cone->GetHeight();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, height));
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
             auto grp =
                 m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE_SHAPE, material, transform, m_wireframe);
             group->addChild(grp);
@@ -1328,10 +1328,10 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     typedef geometry::ChGeometry::Type ShapeType;
     auto shape = vis_model->GetShape(0);
     ShapeType shape_type = ShapeType::NONE;
-    ChVector<> shape_size(0);
+    ChVector3d shape_size(0);
     if (auto sph = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
         shape_type = ShapeType::SPHERE;
-        shape_size = ChVector<>(2 * sph->GetRadius());
+        shape_size = ChVector3d(2 * sph->GetRadius());
     } else if (auto ell = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
         shape_type = ShapeType::ELLIPSOID;
         shape_size = ell->GetAxes();
@@ -1342,17 +1342,17 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
         double rad = cap->GetRadius();
         double height = cap->GetHeight();
         shape_type = ShapeType::CAPSULE;
-        shape_size = ChVector<>(2 * rad, 2 * rad, height);
+        shape_size = ChVector3d(2 * rad, 2 * rad, height);
     } else if (auto cyl = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
         double rad = cyl->GetRadius();
         double height = cyl->GetHeight();
         shape_type = ShapeType::CYLINDER;
-        shape_size = ChVector<>(2 * rad, 2 * rad, height);
+        shape_size = ChVector3d(2 * rad, 2 * rad, height);
     } else if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
         double rad = cone->GetRadius();
         double height = cone->GetHeight();
         shape_type = ShapeType::CONE;
-        shape_size = ChVector<>(2 * rad, 2 * rad, height);
+        shape_size = ChVector3d(2 * rad, 2 * rad, height);
     }
 
     if (shape_type == ShapeType::NONE)
@@ -1485,7 +1485,7 @@ void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
                 shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
             m_linkScene->addChild(m_shapeBuilder->CreateUnitSegment(tsda, shape_instance, material, transform));
         } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
             double rad = sprshape->GetRadius();
@@ -1495,7 +1495,7 @@ void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
                 shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X, ChVector<>(rad, length, rad));
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
             m_linkScene->addChild(
                 m_shapeBuilder->CreateSpringShape(tsda, shape_instance, material, transform, sprshape));
         }
@@ -1517,7 +1517,7 @@ void ChVisualSystemVSG::BindLinkDistance(const std::shared_ptr<ChLinkDistance>& 
                 shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
             m_linkScene->addChild(m_shapeBuilder->CreateUnitSegment(dist, shape_instance, material, transform));
         }
     }
@@ -1687,18 +1687,18 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
                 double length;
                 auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
-                transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
+                transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
             } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
                 double rad = sprshape->GetRadius();
                 double length;
                 auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
-                transform->matrix = vsg::dmat4CH(X, ChVector<>(rad, length, rad));
+                transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
             }
         } else if (auto dist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
             if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
                 double length;
                 auto X = PointPointFrame(dist->GetEndPoint1Abs(), dist->GetEndPoint2Abs(), length);
-                transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
+                transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
             }
         }
     }

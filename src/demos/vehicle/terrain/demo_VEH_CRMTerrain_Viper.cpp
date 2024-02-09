@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
 
     double tend = 30;
     double step_size = 5e-4;
-    ChVector<> active_box_hdim(0.4, 0.3, 0.5);
+    ChVector3d active_box_hdim(0.4, 0.3, 0.5);
 
     bool visualization = true;             // run-time visualization
     double visualizationFPS = 0;           // frames rendered per second (0: every frame)
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     ChSystemFsi& sysFSI = terrain.GetSystemFSI();
 
     // Set SPH parameters and soil material properties
-    const ChVector<> gravity(0, 0, -9.81);
+    const ChVector3d gravity(0, 0, -9.81);
     sysFSI.Set_G_acc(gravity);
     sys.Set_G_acc(gravity);
 
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetDensity(density);
     sysFSI.SetCohesionForce(cohesion);
 
-    sysFSI.SetActiveDomain(ChVector<>(active_box_hdim));
+    sysFSI.SetActiveDomain(ChVector3d(active_box_hdim));
     sysFSI.SetDiscreType(false, false);
     sysFSI.SetWallBC(BceVersion::ADAMI);
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
 
     // Set the simulation domain size
     //// TODO: needed?
-    ////sysFSI.SetContainerDim(ChVector<>(4, 2, 0.1));
+    ////sysFSI.SetContainerDim(ChVector3d(4, 2, 0.1));
 
     cout << "Create terrain..." << endl;
     terrain.Construct(vehicle::GetDataFile("terrain/height_maps/terrain3.bmp"),  // height map image file
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
                       {0, 2.55},                                                 // height range
                       0.3,                                                       // depth
                       3,                                                         // number of BCE layers
-                      ChVector<>(0, 0, 0),                                       // patch center
+                      ChVector3d(0, 0, 0),                                       // patch center
                       0.0,                                                       // patch yaw rotation
                       false                                                      // side walls?
     );
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
                                     2e5f,   // kt
                                     20.0f   // gt
     );
-    ChVector<> init_loc(-1, 0.0, 2.4);
+    ChVector3d init_loc(-1, 0.0, 2.4);
 
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     auto rover = chrono_types::make_shared<Viper>(&sys, wheel_type);
@@ -158,10 +158,10 @@ int main(int argc, char* argv[]) {
     auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     double scale_ratio = 1.0;
     trimesh->LoadWavefrontMesh(GetChronoDataFile(wheel_obj), false, true);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
+    trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
-    std::vector<ChVector<>> BCE_wheel;
+    std::vector<ChVector3d> BCE_wheel;
     sysFSI.CreateMeshPoints(*trimesh, sysFSI.GetInitialSpacing(), BCE_wheel);
 
     // Add BCE particles and mesh of wheels to the system
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
 
         visFSI->SetTitle("Viper rover on CRM deformable terrain");
         visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(init_loc + ChVector<>(0, 6, 0.5), init_loc);
+        visFSI->AddCamera(init_loc + ChVector3d(0, 6, 0.5), init_loc);
         visFSI->SetCameraMoveScale(0.2f);
         visFSI->EnableFluidMarkers(visualization_sph);
         visFSI->EnableBoundaryMarkers(visualization_bndry_bce);

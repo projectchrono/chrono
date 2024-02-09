@@ -54,7 +54,7 @@ using namespace chrono::vehicle::m113;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle position
-ChVector<> initLoc(-5, 0, 1.1);
+ChVector3d initLoc(-5, 0, 1.1);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -78,7 +78,7 @@ bool use_mkl = false;
 double render_step_size = 1.0 / 120;  // FPS = 50
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(-2.0, 0.0, 0.0);
+ChVector3d trackPoint(-2.0, 0.0, 0.0);
 
 // Output directories
 const std::string out_dir = GetChronoOutputPath() + "M113_DEF_SOIL";
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
             auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("Tracked vehicle on SCM deformable terrain");
             vis_irr->SetChaseCamera(trackPoint, 4.0, 1.0);
-            vis_irr->SetChaseCameraPosition(ChVector<>(-3, 4, 1.5));
+            vis_irr->SetChaseCameraPosition(ChVector3d(-3, 4, 1.5));
             vis_irr->SetChaseCameraMultipliers(1e-4, 10);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
@@ -226,13 +226,13 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Tracked vehicle on SCM deformable terrain");
-            vis_vsg->SetWindowSize(ChVector2<int>(1000, 800));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->SetWindowSize(ChVector2i(1000, 800));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetChaseCamera(trackPoint, 7.0, 2.0);
-            vis_vsg->SetChaseCameraPosition(ChVector<>(-3, 4, 1.5));
+            vis_vsg->SetChaseCameraPosition(ChVector3d(-3, 4, 1.5));
             vis_vsg->SetChaseCameraMultipliers(1e-4, 10);
             vis_vsg->AttachVehicle(&m113.GetVehicle());
             vis_vsg->AddGuiColorbar("Sinkage (m)", 0.0, 0.1);
@@ -373,7 +373,7 @@ void AddFixedObstacles(ChSystem* system) {
     double length = 10;
 
     auto obstacle = chrono_types::make_shared<ChBody>();
-    obstacle->SetPos(ChVector<>(0, 0, -1.8));
+    obstacle->SetPos(ChVector3d(0, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);
 
@@ -384,7 +384,7 @@ void AddFixedObstacles(ChSystem* system) {
 
     auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(terrain_length, 2 * length, 0.1);
     box_shape->SetColor(ChColor(0.2f, 0.2f, 0.2f));
-    obstacle->AddVisualShape(box_shape, ChFrame<>(ChVector<>(0, 0, 1.5), QUNIT));
+    obstacle->AddVisualShape(box_shape, ChFrame<>(ChVector3d(0, 0, 1.5), QUNIT));
 
     // Contact
     ChContactMaterialData minfo;
@@ -402,10 +402,10 @@ void AddFixedObstacles(ChSystem* system) {
 void AddMovingObstacles(ChSystem* system) {
     double radius = 0.2;
     double mass = 100;
-    ChVector<> pos(-4, 0, 0.6);
+    ChVector3d pos(-4, 0, 0.6);
     ChQuaternion<> rot(1, 0, 0, 0);
-    ChVector<> init_vel(0, 0, 0);
-    ChVector<> init_ang_vel(0, 30, 0);
+    ChVector3d init_vel(0, 0, 0);
+    ChVector3d init_ang_vel(0, 30, 0);
 
     // Create a material
     auto material = chrono_types::make_shared<ChContactMaterialSMC>();
@@ -426,7 +426,7 @@ void AddMovingObstacles(ChSystem* system) {
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
     ball->AddCollisionShape(ct_shape);
 
-    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
+    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
 
     auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
     sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));

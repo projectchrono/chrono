@@ -81,7 +81,7 @@ class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
     SetStockAlpha(double a1, double a2, double a3, double a4, double a5, double a6, double a7, double a8, double a9);
 
     /// Set some element parameters (dimensions).
-    void SetInertFlexVec(const ChVector<double>& a) { m_InertFlexVec = a; }
+    void SetInertFlexVec(const ChVector3d& a) { m_InertFlexVec = a; }
 
     int GetElemNum() const { return m_elementnumber; }
 
@@ -182,7 +182,7 @@ class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
     ChMatrixNM<double, 24, 24> m_StiffnessMatrix;  ///< Stiffness matrix
     ChMatrixNM<double, 24, 24> m_MassMatrix;       ///< Mass matrix
     ChVectorN<double, 8> m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
-    ChVector<double> m_InertFlexVec;        ///< for element size (EL,EW,EH)
+    ChVector3d m_InertFlexVec;        ///< for element size (EL,EW,EH)
     // EAS
     int m_elementnumber;                         ///< Element number, for EAS
     ChMatrixNM<double, 24, 24> m_stock_jac_EAS;  ///< EAS Jacobian matrix
@@ -219,7 +219,7 @@ class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
     virtual void ComputeMmatrixGlobal(ChMatrixRef M) override { M = m_MassMatrix; }
 
     /// Compute the generalized force vector due to gravity using the efficient element specific method
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.

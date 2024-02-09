@@ -51,13 +51,13 @@ const double G500_FrontAxle::m_arbRadius = 0.025;
 const double G500_FrontAxle::m_arbStiffness = 1000.0;
 const double G500_FrontAxle::m_arbDamping = 10.0;
 
-const ChVector<> G500_FrontAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
-const ChVector<> G500_FrontAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
-const ChVector<> G500_FrontAxle::m_knuckleInertia(0.1, 0.1, 0.1);
-const ChVector<> G500_FrontAxle::m_tierodInertia(1.0, 0.1, 1.0);
-const ChVector<> G500_FrontAxle::m_draglinkInertia(0.1, 1.0, 0.1);
-const ChVector<> G500_FrontAxle::m_panhardRodInertia(1.0, 0.04, 1.0);
-const ChVector<> G500_FrontAxle::m_arbInertia(0.04, 1.0, 1.0);
+const ChVector3d G500_FrontAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
+const ChVector3d G500_FrontAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector3d G500_FrontAxle::m_knuckleInertia(0.1, 0.1, 0.1);
+const ChVector3d G500_FrontAxle::m_tierodInertia(1.0, 0.1, 1.0);
+const ChVector3d G500_FrontAxle::m_draglinkInertia(0.1, 1.0, 0.1);
+const ChVector3d G500_FrontAxle::m_panhardRodInertia(1.0, 0.04, 1.0);
+const ChVector3d G500_FrontAxle::m_arbInertia(0.04, 1.0, 1.0);
 
 const double G500_FrontAxle::m_springDesignLength = 0.3;
 const double G500_FrontAxle::m_springCoefficient = 94748.2022504578;
@@ -197,40 +197,40 @@ G500_FrontAxle::G500_FrontAxle(const std::string& name) : ChToeBarRigidPanhardAx
 // -----------------------------------------------------------------------------
 G500_FrontAxle::~G500_FrontAxle() {}
 
-const ChVector<> G500_FrontAxle::getLocation(PointId which) {
+const ChVector3d G500_FrontAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.0, 0.3824, m_axleTubeRadius);
+            return ChVector3d(0.0, 0.3824, m_axleTubeRadius);
         case SPRING_C:
-            return ChVector<>(0.0, 0.3824, m_axleTubeRadius+m_springDesignLength);
+            return ChVector3d(0.0, 0.3824, m_axleTubeRadius+m_springDesignLength);
         case SHOCK_A:
-            return ChVector<>(-0.125, 0.441, -0.0507);
+            return ChVector3d(-0.125, 0.441, -0.0507);
         case SHOCK_C:
-            return ChVector<>(-0.3648,  0.4193, 0.3298);
+            return ChVector3d(-0.3648,  0.4193, 0.3298);
         case SPINDLE:
-            return ChVector<>(0.0, 0.7325, 0.0);
+            return ChVector3d(0.0, 0.7325, 0.0);
         case KNUCKLE_CM:
-            return ChVector<>(0.0, 0.7325-0.07, 0.0);
+            return ChVector3d(0.0, 0.7325-0.07, 0.0);
         case KNUCKLE_L:
-            return ChVector<>(0.0, 0.7325-0.07+0.0098058067569092, -0.1);
+            return ChVector3d(0.0, 0.7325-0.07+0.0098058067569092, -0.1);
         case KNUCKLE_U :
-            return ChVector<>(0.0, 0.7325-0.07-0.0098058067569092, 0.1);
+            return ChVector3d(0.0, 0.7325-0.07-0.0098058067569092, 0.1);
         case KNUCKLE_DRL:
-            return ChVector<>(0.0, 0.7325-0.2, 0.2);
+            return ChVector3d(0.0, 0.7325-0.2, 0.2);
         case TIEROD_K:
-            return ChVector<>(-0.190568826619798, 0.7325-0.07-0.060692028477827, 0.1);
+            return ChVector3d(-0.190568826619798, 0.7325-0.07-0.060692028477827, 0.1);
         case DRAGLINK_C:
-            return ChVector<>(0.6, 0.7325-0.2, 0.2);
+            return ChVector3d(0.6, 0.7325-0.2, 0.2);
         case PANHARD_A:
-            return ChVector<>(0.1, -0.44, 0.0);
+            return ChVector3d(0.1, -0.44, 0.0);
         case PANHARD_C:
-            return ChVector<>(0.1, 0.44, 0.0);
+            return ChVector3d(0.1, 0.44, 0.0);
         case ANTIROLL_A:
-            return ChVector<>(0.0, 0.35, -0.05);
+            return ChVector3d(0.0, 0.35, -0.05);
         case ANTIROLL_C:
-            return ChVector<>(-0.4, 0.35, -0.05);
+            return ChVector3d(-0.4, 0.35, -0.05);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

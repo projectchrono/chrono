@@ -174,16 +174,16 @@ void ChMeshExporter::WriteFrame(std::shared_ptr<ChMesh> mesh,
     }
 
     out_stream << "VECTORS Strain float\n";
-    ChVector<> StrainV;
+    ChVector3d StrainV;
     for (unsigned int iele = 0; iele < mesh->GetNelements(); iele++) {
         if (auto elementC = std::dynamic_pointer_cast<ChElementCableANCF>(mesh->GetElement(iele)))
             elementC->EvaluateSectionStrain(0.0, StrainV);
         else if (auto elementS = std::dynamic_pointer_cast<ChElementShellANCF_3423>(mesh->GetElement(iele))) {
             const ChStrainStress3D strainStressOut =
-                elementS->EvaluateSectionStrainStress(ChVector<double>(0, 0, 0), 0);
+                elementS->EvaluateSectionStrainStress(ChVector3d(0, 0, 0), 0);
             StrainV.Set(strainStressOut.strain[0], strainStressOut.strain[1], strainStressOut.strain[3]);
         }
-        StrainV += ChVector<>(1e-20);
+        StrainV += ChVector3d(1e-20);
         out_stream << StrainV.x() << " " << StrainV.y() << " " << StrainV.z() << "\n";
     }
 
@@ -191,16 +191,16 @@ void ChMeshExporter::WriteFrame(std::shared_ptr<ChMesh> mesh,
 
     out_stream << "VECTORS Velocity float\n";
     for (unsigned int i = 0; i < mesh->GetNnodes(); i++) {
-        ChVector<> vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i))->GetPos_dt();
-        vel += ChVector<>(1e-20);
+        ChVector3d vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i))->GetPos_dt();
+        vel += ChVector3d(1e-20);
         out_stream << (double)vel.x() << " " << (double)vel.y() << " " << (double)vel.z() << "\n";
     }
 
     out_stream << "VECTORS Acceleration float\n";
 
     for (unsigned int i = 0; i < mesh->GetNnodes(); i++) {
-        ChVector<> acc = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i))->GetPos_dtdt();
-        acc += ChVector<>(1e-20);
+        ChVector3d acc = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i))->GetPos_dtdt();
+        acc += ChVector3d(1e-20);
         out_stream << (double)acc.x() << " " << (double)acc.y() << " " << (double)acc.z() << "\n";
     }
 

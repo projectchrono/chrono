@@ -186,8 +186,8 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     /// Fills the Ny shape function derivative matrix with respect to Y.
     void ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y);
 
-    ChVector<> EvaluateGP(int igp);
-    ChVector<> EvaluatePT(int ipt);
+    ChVector3d EvaluateGP(int igp);
+    ChVector3d EvaluatePT(int ipt);
 
     /// Inner EAS dofs
     virtual unsigned int iGetNumDof(void) const { return 7; };
@@ -288,19 +288,19 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     //***TODO*** make protected
   public:
     // nodal positions (0: initial; otherwise current)
-    ChVector<> xa_0[NUMNODES];
-    ChVector<> xa[NUMNODES];
+    ChVector3d xa_0[NUMNODES];
+    ChVector3d xa[NUMNODES];
     // current nodal orientation
     ChMatrix33<> iTa[NUMNODES];
     ChMatrix33<> iTa_i[NUMIP];
     ChMatrix33<> iTa_A[NUMSSEP];
     // Euler vector of Ra
-    ChVector<> phi_tilde_n[NUMNODES];
+    ChVector3d phi_tilde_n[NUMNODES];
 
     // Average orientation matrix
-    ChVector<> phi_tilde_i[NUMIP];
-    ChVector<> phi_tilde_A[NUMSSEP];
-    ChVector<> phi_tilde_0;
+    ChVector3d phi_tilde_i[NUMIP];
+    ChVector3d phi_tilde_A[NUMSSEP];
+    ChVector3d phi_tilde_0;
     // Average orientation matrix
     //    .. in reference configuration
     ChMatrix33<> T0_overline;
@@ -327,28 +327,28 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     ChMatrix33<> Q_A[NUMSSEP];
 
     // Orientation tensor derivative axial vector
-    ChVector<> k_1_i[NUMIP];
-    ChVector<> k_2_i[NUMIP];
+    ChVector3d k_1_i[NUMIP];
+    ChVector3d k_2_i[NUMIP];
 
     // linear deformation vectors
     //    .. in reference configuration
-    ChVector<> eps_tilde_1_0_i[NUMIP];
-    ChVector<> eps_tilde_2_0_i[NUMIP];
-    ChVector<> eps_tilde_1_0_A[NUMSSEP];
-    ChVector<> eps_tilde_2_0_A[NUMSSEP];
+    ChVector3d eps_tilde_1_0_i[NUMIP];
+    ChVector3d eps_tilde_2_0_i[NUMIP];
+    ChVector3d eps_tilde_1_0_A[NUMSSEP];
+    ChVector3d eps_tilde_2_0_A[NUMSSEP];
     //    .. in current configuration
-    ChVector<> eps_tilde_1_i[NUMIP];
-    ChVector<> eps_tilde_2_i[NUMIP];
-    ChVector<> eps_tilde_1_A[NUMSSEP];
-    ChVector<> eps_tilde_2_A[NUMSSEP];
+    ChVector3d eps_tilde_1_i[NUMIP];
+    ChVector3d eps_tilde_2_i[NUMIP];
+    ChVector3d eps_tilde_1_A[NUMSSEP];
+    ChVector3d eps_tilde_2_A[NUMSSEP];
 
     // angular deformation vectors
     //    .. in reference configuration
-    ChVector<> k_tilde_1_0_i[NUMIP];
-    ChVector<> k_tilde_2_0_i[NUMIP];
+    ChVector3d k_tilde_1_0_i[NUMIP];
+    ChVector3d k_tilde_2_0_i[NUMIP];
     //    .. in current configuration
-    ChVector<> k_tilde_1_i[NUMIP];
-    ChVector<> k_tilde_2_i[NUMIP];
+    ChVector3d k_tilde_1_i[NUMIP];
+    ChVector3d k_tilde_2_i[NUMIP];
 
     ChMatrixNM<double, 2, 2> S_alpha_beta_0;
     ChMatrixNM<double, 2, 2> S_alpha_beta_i[NUMIP];
@@ -366,8 +366,8 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
 
     ChMatrixNM<double, IDOFS, IDOFS> K_beta_beta_i[NUMIP];
 
-    ChVector<> y_i_1[NUMIP];
-    ChVector<> y_i_2[NUMIP];
+    ChVector3d y_i_1[NUMIP];
+    ChVector3d y_i_2[NUMIP];
 
     ChVectorN<double, IDOFS> beta;
     ChVectorN<double, 12> epsilon_hat;
@@ -417,17 +417,17 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
 
     virtual void EvaluateSectionDisplacement(const double u,
                                              const double v,
-                                             ChVector<>& u_displ,
-                                             ChVector<>& u_rotaz) override;
+                                             ChVector3d& u_displ,
+                                             ChVector3d& u_rotaz) override;
 
     virtual void EvaluateSectionFrame(const double u,
                                       const double v,
-                                      ChVector<>& point,
+                                      ChVector3d& point,
                                       ChQuaternion<>& rot) override;
 
     virtual void EvaluateSectionPoint(const double u,
                                       const double v,
-                                      ChVector<>& point) override;
+                                      ChVector3d& point) override;
 
     // Internal computations
     // ---------------------
@@ -479,7 +479,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     /// Check if the specified sub-block of DOFs is active.
     virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
-    virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) override;
+    virtual void EvaluateSectionVelNorm(double U, double V, ChVector3d& Result) override;
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -517,7 +517,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
 
     /// Gets the normal to the surface at the parametric coordinate U,V.
     /// Each coordinate ranging in -1..+1.
-    virtual ChVector<> ComputeNormal(const double U, const double V) override;
+    virtual ChVector3d ComputeNormal(const double U, const double V) override;
 };
 
 /// @} fea_elements

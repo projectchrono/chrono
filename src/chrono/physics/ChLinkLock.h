@@ -250,7 +250,6 @@ class ChApi ChLinkLock : public ChLinkMarkers {
 
     void ChangeLinkType(LinkType new_link_type);
 
-
     // Extend parent functions to account for any ChLinkLimit objects.
     ////virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
@@ -315,7 +314,7 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     void SetMotion_ang(std::shared_ptr<ChFunction> m_funct);
     void SetMotion_ang2(std::shared_ptr<ChFunction> m_funct);
     void SetMotion_ang3(std::shared_ptr<ChFunction> m_funct);
-    void SetMotion_axis(Vector m_axis);
+    void SetMotion_axis(ChVector3d m_axis);
     void Set_angleset(AngleSet mset) { angleset = mset; }
 
     std::shared_ptr<ChFunction> GetMotion_X() const { return motion_X; }
@@ -324,7 +323,7 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     std::shared_ptr<ChFunction> GetMotion_ang() const { return motion_ang; }
     std::shared_ptr<ChFunction> GetMotion_ang2() const { return motion_ang2; }
     std::shared_ptr<ChFunction> GetMotion_ang3() const { return motion_ang3; }
-    const ChVector<>& GetMotion_axis() const { return motion_axis; }
+    const ChVector3d& GetMotion_axis() const { return motion_axis; }
     AngleSet Get_angleset() const { return angleset; }
 
     /// Get constraint violations in pos/rot coordinates.
@@ -347,7 +346,7 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     std::shared_ptr<ChFunction> motion_ang;   ///< user imposed angle rotation about axis
     std::shared_ptr<ChFunction> motion_ang2;  ///< user imposed angle rotation if three-angles rot.
     std::shared_ptr<ChFunction> motion_ang3;  ///< user imposed angle rotation if three-angles rot.
-    Vector motion_axis;                       ///< this is the axis for the user imposed rotation
+    ChVector3d motion_axis;                    ///< this is the axis for the user imposed rotation
     AngleSet angleset;                        ///< type of rotation (3 Eul angles, angle/axis, etc.)
 
     Coordsys relC;       ///< relative constraint position: relC = (relM-deltaC)

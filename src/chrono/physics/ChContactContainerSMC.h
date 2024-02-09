@@ -128,10 +128,10 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     virtual void ComputeContactForces() override;
 
     /// Return the resultant contact force acting on the specified contactable object.
-    virtual ChVector<> GetContactableForce(ChContactable* contactable) override;
+    virtual ChVector3d GetContactableForce(ChContactable* contactable) override;
 
     /// Return the resultant contact torque acting on the specified contactable object.
-    virtual ChVector<> GetContactableTorque(ChContactable* contactable) override;
+    virtual ChVector3d GetContactableTorque(ChContactable* contactable) override;
 
     // STATE FUNCTIONS
 

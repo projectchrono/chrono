@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     // Create the sys
     // Set gravitational acceleration to zero
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(3, 2, 0.1, 10, true, false);
@@ -46,15 +46,15 @@ int main(int argc, char* argv[]) {
     auto body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 10, true, false);
     sys.AddBody(body);
     body->SetBodyFixed(false);
-    body->SetPos(ChVector<>(-1.25, -0.75, 0.1));
-    body->SetWvel_loc(ChVector<>(0.1, 0.1, 0.1));
+    body->SetPos(ChVector3d(-1.25, -0.75, 0.1));
+    body->SetWvel_loc(ChVector3d(0.1, 0.1, 0.1));
     body->GetVisualShape(0)->SetColor(ChColor(0.6f, 0, 0));
 
     // Create the plane-plane constraint
     // Constrain the sliding body to move and rotate in the x-y plane
     // (i.e. the plane whose normal is the z-axis of the specified coord sys)
     auto plane_plane = chrono_types::make_shared<ChLinkLockPlanePlane>();
-    plane_plane->Initialize(ground, body, ChCoordsys<>(ChVector<>(-1.25, -0.75, 0), ChQuaternion<>(1, 0, 0, 0)));
+    plane_plane->Initialize(ground, body, ChCoordsys<>(ChVector3d(-1.25, -0.75, 0), ChQuaternion<>(1, 0, 0, 0)));
     sys.AddLink(plane_plane);
 
     // Create a linear spring (with default spring & damping coefficients)
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     sys.AddLink(spring);
     spring->SetSpringCoefficient(100);
     spring->SetDampingCoefficient(5);
-    spring->Initialize(ground, body, true, ChVector<>(0, 0, 2), ChVector<>(0, 0, 0));
+    spring->Initialize(ground, body, true, ChVector3d(0, 0, 2), ChVector3d(0, 0, 0));
     spring->SetRestLength(1.9);
     auto spring_shape = chrono_types::make_shared<ChVisualShapeSpring>(0.05, 200, 25);
     spring_shape->SetColor(ChColor(0.0f, 0.3f, 0.8f));
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(3, 0, 3));
+    vis->AddCamera(ChVector3d(3, 0, 3));
     vis->AddTypicalLights();
     vis->EnableBodyFrameDrawing(true);
 

@@ -15,7 +15,7 @@
 #ifndef CH_COLLISION_ALGORITHMS_BULLET_H
 #define CH_COLLISION_ALGORITHMS_BULLET_H
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 #include "chrono/collision/bullet/cbtBulletCollisionCommon.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtEmptyCollisionAlgorithm.h"
@@ -234,8 +234,8 @@ class cbtCEtriangleShapeCollisionAlgorithm : public cbtActivatingCollisionAlgori
     };
 
   private:
-    void _add_contact(const ChVector<>& candid_pA,
-                      const ChVector<>& candid_pB,
+    void _add_contact(const ChVector3d& candid_pA,
+                      const ChVector3d& candid_pB,
                       const double dist,
                       cbtManifoldResult* resultOut,
                       const double offsetA,

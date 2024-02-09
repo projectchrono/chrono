@@ -93,7 +93,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// The sprocket subsystem is initialized by attaching it to the specified chassis body at the specified location
     /// (with respect to and expressed in the reference frame of the chassis).
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
-                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             ChTrackAssembly* track               ///< [in] pointer to containing track assembly
     );
 
@@ -130,7 +130,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     virtual double GetGearMass() const = 0;
 
     /// Return the moments of inertia of the gear body.
-    virtual const ChVector<>& GetGearInertia() = 0;
+    virtual const ChVector3d& GetGearInertia() = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double GetAxleInertia() const = 0;
@@ -162,7 +162,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Output data for this subsystem's component list to the specified database.
     virtual void Output(ChVehicleOutput& database) const override;
 
-    ChVector<> m_rel_loc;                             ///< sprocket subsystem location relative to chassis
+    ChVector3d m_rel_loc;                             ///< sprocket subsystem location relative to chassis
     std::shared_ptr<ChBody> m_gear;                   ///< sprocket gear body
     std::shared_ptr<ChShaft> m_axle;                  ///< gear shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< gear-shaft connector

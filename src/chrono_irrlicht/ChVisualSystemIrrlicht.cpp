@@ -85,8 +85,8 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
 }
 
 ChVisualSystemIrrlicht::ChVisualSystemIrrlicht(ChSystem* sys,
-                                               const ChVector<>& camera_pos,
-                                               const ChVector<>& camera_targ)
+                                               const ChVector3d& camera_pos,
+                                               const ChVector3d& camera_targ)
     : ChVisualSystemIrrlicht() {
     AttachSystem(sys);
     SetWindowSize(800, 600);
@@ -284,7 +284,7 @@ void ChVisualSystemIrrlicht::PurgeIrrNodes() {
 
 // -----------------------------------------------------------------------------
 
-int ChVisualSystemIrrlicht::AddCamera(const ChVector<>& pos, ChVector<> targ) {
+int ChVisualSystemIrrlicht::AddCamera(const ChVector3d& pos, ChVector3d targ) {
     if (!m_device)
         return -1;
 
@@ -312,19 +312,19 @@ void ChVisualSystemIrrlicht::UpdateGrid(int id, const ChCoordsys<>& csys) {
     m_grids[id].csys = csys;
 }
 
-void ChVisualSystemIrrlicht::SetCameraPosition(int id, const ChVector<>& pos) {
+void ChVisualSystemIrrlicht::SetCameraPosition(int id, const ChVector3d& pos) {
     m_cameras[id]->setPosition(core::vector3dfCH(pos));
 }
 
-void ChVisualSystemIrrlicht::SetCameraTarget(int id, const ChVector<>& target) {
+void ChVisualSystemIrrlicht::SetCameraTarget(int id, const ChVector3d& target) {
     m_cameras[id]->setTarget(core::vector3dfCH(target));
 }
 
-void ChVisualSystemIrrlicht::SetCameraPosition(const ChVector<>& pos) {
+void ChVisualSystemIrrlicht::SetCameraPosition(const ChVector3d& pos) {
     GetActiveCamera()->setPosition(core::vector3dfCH(pos));
 }
 
-void ChVisualSystemIrrlicht::SetCameraTarget(const ChVector<>& target) {
+void ChVisualSystemIrrlicht::SetCameraTarget(const ChVector3d& target) {
     GetActiveCamera()->setTarget(core::vector3dfCH(target));
 }
 
@@ -343,11 +343,11 @@ void ChVisualSystemIrrlicht::AddTypicalLights() {
         return;
 
     if (m_yup) {
-        AddLight(ChVector<>(30, 80, +30), 280, ChColor(0.7f, 0.7f, 0.7f));
-        AddLight(ChVector<>(30, 80, -30), 280, ChColor(0.7f, 0.7f, 0.7f));
+        AddLight(ChVector3d(30, 80, +30), 280, ChColor(0.7f, 0.7f, 0.7f));
+        AddLight(ChVector3d(30, 80, -30), 280, ChColor(0.7f, 0.7f, 0.7f));
     } else {
-        AddLight(ChVector<>(30, +30, 80), 280, ChColor(0.7f, 0.7f, 0.7f));
-        AddLight(ChVector<>(30, -30, 80), 280, ChColor(0.7f, 0.7f, 0.7f));
+        AddLight(ChVector3d(30, +30, 80), 280, ChColor(0.7f, 0.7f, 0.7f));
+        AddLight(ChVector3d(30, -30, 80), 280, ChColor(0.7f, 0.7f, 0.7f));
     }
 }
 
@@ -396,7 +396,7 @@ ILightSceneNode* ChVisualSystemIrrlicht::AddLightDirectional(double elevation,
     return light;
 }
 
-ILightSceneNode* ChVisualSystemIrrlicht::AddLight(const ChVector<>& pos, double radius, ChColor color) {
+ILightSceneNode* ChVisualSystemIrrlicht::AddLight(const ChVector3d& pos, double radius, ChColor color) {
     if (!m_device)
         return nullptr;
 
@@ -405,8 +405,8 @@ ILightSceneNode* ChVisualSystemIrrlicht::AddLight(const ChVector<>& pos, double 
     return light;
 }
 
-ILightSceneNode* ChVisualSystemIrrlicht::AddLightWithShadow(const ChVector<>& pos,
-                                                            const ChVector<>& aim,
+ILightSceneNode* ChVisualSystemIrrlicht::AddLightWithShadow(const ChVector3d& pos,
+                                                            const ChVector3d& aim,
                                                             double radius,
                                                             double near_value,
                                                             double far_value,
@@ -915,7 +915,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                 mproxynode->drop();
 
                 double mradius = sphere->GetRadius();
-                mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
+                mchildnode->setScale(core::vector3dfCH(ChVector3d(mradius, mradius, mradius)));
                 mchildnode->setPosition(shape_m4.getTranslation());
                 mchildnode->setRotation(shape_m4.getRotationDegrees());
 

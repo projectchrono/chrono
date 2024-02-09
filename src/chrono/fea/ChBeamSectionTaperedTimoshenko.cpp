@@ -517,9 +517,9 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeSimpleConsistentInert
 
     // In case the section is rotated:
     ChMatrix33<> RotsectA;
-    RotsectA.Set_A_Rxyz(ChVector<>(mass_phi1, 0, 0));
+    RotsectA.Set_A_Rxyz(ChVector3d(mass_phi1, 0, 0));
     ChMatrix33<> RotsectB;
-    RotsectB.Set_A_Rxyz(ChVector<>(mass_phi2, 0, 0));
+    RotsectB.Set_A_Rxyz(ChVector3d(mass_phi2, 0, 0));
     ChMatrixNM<double, 12, 12> Rotsect;
     Rotsect.setZero();
     Rotsect.block<3, 3>(0, 0) = RotsectA;
@@ -821,8 +821,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaMatrix(ChMatri
 }
 
 void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaDampingMatrix(ChMatrixNM<double, 12, 12>& Ri,
-                                                                                const ChVector<>& mW_A,
-                                                                                const ChVector<>& mW_B) {
+                                                                                const ChVector3d& mW_A,
+                                                                                const ChVector3d& mW_B) {
     Ri.setZero(12, 12);
 
     if (this->compute_inertia_damping_matrix == false)
@@ -847,12 +847,12 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaDampingMatrix(
 
 void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaStiffnessMatrix(
     ChMatrixNM<double, 12, 12>& Ki,
-    const ChVector<>& mWvel_A,  ///< current angular velocity of section of node A, in material frame
-    const ChVector<>& mWacc_A,  ///< current angular acceleration of section of node A, in material frame
-    const ChVector<>& mXacc_A,  ///< current acceleration of section of node A, in material frame)
-    const ChVector<>& mWvel_B,  ///< current angular velocity of section of node B, in material frame
-    const ChVector<>& mWacc_B,  ///< current angular acceleration of section of node B, in material frame
-    const ChVector<>& mXacc_B   ///< current acceleration of section of node B, in material frame
+    const ChVector3d& mWvel_A,  ///< current angular velocity of section of node A, in material frame
+    const ChVector3d& mWacc_A,  ///< current angular acceleration of section of node A, in material frame
+    const ChVector3d& mXacc_A,  ///< current acceleration of section of node A, in material frame)
+    const ChVector3d& mWvel_B,  ///< current angular velocity of section of node B, in material frame
+    const ChVector3d& mWacc_B,  ///< current angular acceleration of section of node B, in material frame
+    const ChVector3d& mXacc_B   ///< current acceleration of section of node B, in material frame
 ) {
     Ki.setZero(12, 12);
 

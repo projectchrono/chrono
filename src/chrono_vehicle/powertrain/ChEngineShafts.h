@@ -52,7 +52,7 @@ class CH_VEHICLE_API ChEngineShafts : public ChEngine {
 
   protected:
     /// Construct a shafts-based engine model.
-    ChEngineShafts(const std::string& name, const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
+    ChEngineShafts(const std::string& name, const ChVector3d& dir_motor_block = ChVector3d(1, 0, 0));
 
     /// Set inertia of the motor block.
     virtual double GetMotorBlockInertia() const = 0;
@@ -87,7 +87,7 @@ class CH_VEHICLE_API ChEngineShafts : public ChEngine {
     std::shared_ptr<ChShaftsThermalEngine> m_engine_losses;
     std::shared_ptr<ChShaft> m_motorshaft;  ///< shaft connection to the transmission
 
-    ChVector<> m_dir_motor_block;
+    ChVector3d m_dir_motor_block;
 };
 
 /// @} vehicle_powertrain

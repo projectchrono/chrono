@@ -70,7 +70,7 @@ void create_items(ChSystem& sys) {
                                                                         true,       // visualization?
                                                                         true,       // collision?
                                                                         material);  // contact material
-                rigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
+                rigidBody->SetPos(ChVector3d(0.5, sphrad + level, 0.7));
                 rigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
 
                 sys.Add(rigidBody);
@@ -80,7 +80,7 @@ void create_items(ChSystem& sys) {
                                                                      true,                    // visualization?
                                                                      true,                    // collision?
                                                                      material);               // contact material
-                rigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
+                rigidBody->SetPos(ChVector3d(0.5, sphrad + level, 0.7));
                 rigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
 
                 sys.Add(rigidBody);
@@ -104,7 +104,7 @@ void create_items(ChSystem& sys) {
                                                                               true,             // visualization?
                                                                               true,             // collision?
                                                                               material);        // contact material
-                    rigidWall->SetPos(ChVector<>(-0.8 + ui * 0.4 + 0.2 * (bi % 2), 0.10 + bi * 0.2, -0.5 + ai * 0.6));
+                    rigidWall->SetPos(ChVector3d(-0.8 + ui * 0.4 + 0.2 * (bi % 2), 0.10 + bi * 0.2, -0.5 + ai * 0.6));
                     rigidWall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
 
                     sys.Add(rigidWall);
@@ -122,7 +122,7 @@ void create_items(ChSystem& sys) {
                                                                       true,            // visualization?
                                                                       true,            // collision?
                                                                       material);       // contact material
-        rigidHeavy->SetPos(ChVector<>(0.5, sphrad + 0.6, -1));
+        rigidHeavy->SetPos(ChVector3d(0.5, sphrad + 0.6, -1));
         rigidHeavy->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));
 
         sys.Add(rigidHeavy);
@@ -138,7 +138,7 @@ void create_items(ChSystem& sys) {
                                                                true,       // visualization?
                                                                true,       // collision?
                                                                material);  // contact material
-    rigidFloor->SetPos(ChVector<>(0, -2, 0));
+    rigidFloor->SetPos(ChVector3d(0, -2, 0));
     rigidFloor->SetBodyFixed(true);
     rigidFloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
 
@@ -152,7 +152,7 @@ void create_items(ChSystem& sys) {
 void align_spheres() {
     for (unsigned int i = 0; i < mspheres.size(); ++i) {
         std::shared_ptr<ChBody> body = mspheres[i];
-        ChVector<> mpos = body->GetPos();
+        ChVector3d mpos = body->GetPos();
         mpos.x() = 0.5;
         mpos.z() = 0.7;
         body->SetPos(mpos);
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(1, 2, 6), ChVector<>(0, 2, 0));
+    vis->AddCamera(ChVector3d(1, 2, 6), ChVector3d(0, 2, 0));
     vis->AddTypicalLights();
 
     // Modify some setting of the physical system for the simulation, if you want

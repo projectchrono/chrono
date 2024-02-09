@@ -42,7 +42,7 @@ class CH_VEHICLE_API LeafspringAxle : public ChLeafspringAxle {
     virtual double getToeAngle() const override { return m_toe_angle; }
 
     /// Return the center of mass of the axle tube.
-    virtual const ChVector<> getAxleTubeCOM() const override { return m_axleTubeCOM; }
+    virtual const ChVector3d getAxleTubeCOM() const override { return m_axleTubeCOM; }
     /// Return the radius of the spindle body (visualization only).
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
 
@@ -58,9 +58,9 @@ class CH_VEHICLE_API LeafspringAxle : public ChLeafspringAxle {
     virtual double getAxleTubeRadius() const override { return m_axleTubeRadius; }
 
     /// Return the moments of inertia of the axle tube body.
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
     /// Return the moments of inertia of the spindle body.
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const override { return m_axleInertia; }
@@ -77,14 +77,14 @@ class CH_VEHICLE_API LeafspringAxle : public ChLeafspringAxle {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
-    ChVector<> m_points[NUM_POINTS];
+    ChVector3d m_points[NUM_POINTS];
 
     ////double m_damperDegressivityCompression;
     ////double m_damperDegressivityExpansion;
@@ -103,9 +103,9 @@ class CH_VEHICLE_API LeafspringAxle : public ChLeafspringAxle {
     double m_shockRestLength;
     double m_axleInertia;
 
-    ChVector<> m_spindleInertia;
-    ChVector<> m_axleTubeInertia;
-    ChVector<> m_axleTubeCOM;
+    ChVector3d m_spindleInertia;
+    ChVector3d m_axleTubeInertia;
+    ChVector3d m_axleTubeCOM;
 };
 
 /// @} vehicle_wheeled_suspension

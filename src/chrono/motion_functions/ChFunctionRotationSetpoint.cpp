@@ -93,14 +93,14 @@ ChQuaternion<> ChFunctionRotationSetpoint::Get_q(double s) const {
     return Q * dQ;
 }
 
-ChVector<> ChFunctionRotationSetpoint::Get_w_loc(double s) const {
+ChVector3d ChFunctionRotationSetpoint::Get_w_loc(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return W;
     return W;  // +A * (s - S); //// TO DO - intrinsic W and A, but rotation Q might have changed too much.. require
                // better formula?
 }
 
-ChVector<> ChFunctionRotationSetpoint::Get_a_loc(double s) const {
+ChVector3d ChFunctionRotationSetpoint::Get_a_loc(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return A;
     return A;

@@ -51,14 +51,14 @@ const double FEDA_DoubleWishboneFront::m_uprightRadius = 0.04;
 const double FEDA_DoubleWishboneFront::m_tierodRadius = 0.02;
 
 // TODO: Fix these values
-const ChVector<> FEDA_DoubleWishboneFront::m_spindleInertia(5.32e-4, 5.52E-04, 5.32e-4);
-const ChVector<> FEDA_DoubleWishboneFront::m_UCAInertiaMoments(0.03, 0.03, 0.06276);
-const ChVector<> FEDA_DoubleWishboneFront::m_UCAInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> FEDA_DoubleWishboneFront::m_LCAInertiaMoments(0.4, 0.4, 0.8938);
-const ChVector<> FEDA_DoubleWishboneFront::m_LCAInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> FEDA_DoubleWishboneFront::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
-const ChVector<> FEDA_DoubleWishboneFront::m_uprightInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> FEDA_DoubleWishboneFront::m_tierodInertia(0.05, 0.05, 0.5);
+const ChVector3d FEDA_DoubleWishboneFront::m_spindleInertia(5.32e-4, 5.52E-04, 5.32e-4);
+const ChVector3d FEDA_DoubleWishboneFront::m_UCAInertiaMoments(0.03, 0.03, 0.06276);
+const ChVector3d FEDA_DoubleWishboneFront::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneFront::m_LCAInertiaMoments(0.4, 0.4, 0.8938);
+const ChVector3d FEDA_DoubleWishboneFront::m_LCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneFront::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
+const ChVector3d FEDA_DoubleWishboneFront::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneFront::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double FEDA_DoubleWishboneFront::m_axleInertia = 0.4;
 
@@ -88,14 +88,14 @@ const double FEDA_DoubleWishboneRear::m_uprightRadius = 0.04;
 const double FEDA_DoubleWishboneRear::m_tierodRadius = 0.02;
 
 // TODO: Fix these values
-const ChVector<> FEDA_DoubleWishboneRear::m_spindleInertia(5.32e-4, 5.52E-04, 5.32e-4);
-const ChVector<> FEDA_DoubleWishboneRear::m_UCAInertiaMoments(0.03, 0.03, 0.06276);
-const ChVector<> FEDA_DoubleWishboneRear::m_UCAInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> FEDA_DoubleWishboneRear::m_LCAInertiaMoments(0.4, 0.4, 0.8938);
-const ChVector<> FEDA_DoubleWishboneRear::m_LCAInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> FEDA_DoubleWishboneRear::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
-const ChVector<> FEDA_DoubleWishboneRear::m_uprightInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> FEDA_DoubleWishboneRear::m_tierodInertia(0.05, 0.05, 0.5);
+const ChVector3d FEDA_DoubleWishboneRear::m_spindleInertia(5.32e-4, 5.52E-04, 5.32e-4);
+const ChVector3d FEDA_DoubleWishboneRear::m_UCAInertiaMoments(0.03, 0.03, 0.06276);
+const ChVector3d FEDA_DoubleWishboneRear::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneRear::m_LCAInertiaMoments(0.4, 0.4, 0.8938);
+const ChVector3d FEDA_DoubleWishboneRear::m_LCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneRear::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
+const ChVector3d FEDA_DoubleWishboneRear::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneRear::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double FEDA_DoubleWishboneRear::m_axleInertia = 0.4;
 
@@ -431,7 +431,7 @@ FEDA_DoubleWishboneRear::~FEDA_DoubleWishboneRear() {
 void FEDA_DoubleWishboneFront::Initialize(std::shared_ptr<ChChassis> chassis,
                                           std::shared_ptr<ChSubchassis> subchassis,
                                           std::shared_ptr<ChSteering> steering,
-                                          const ChVector<>& location,
+                                          const ChVector3d& location,
                                           double left_ang_vel,
                                           double right_ang_vel) {
     ChDoubleWishbone::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
@@ -446,7 +446,7 @@ void FEDA_DoubleWishboneFront::Initialize(std::shared_ptr<ChChassis> chassis,
 void FEDA_DoubleWishboneRear::Initialize(std::shared_ptr<ChChassis> chassis,
                                          std::shared_ptr<ChSubchassis> subchassis,
                                          std::shared_ptr<ChSteering> steering,
-                                         const ChVector<>& location,
+                                         const ChVector3d& location,
                                          double left_ang_vel,
                                          double right_ang_vel) {
     ChDoubleWishbone::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
@@ -461,81 +461,81 @@ void FEDA_DoubleWishboneRear::Initialize(std::shared_ptr<ChChassis> chassis,
 // Implementations of the getLocation() virtual methods.
 // -----------------------------------------------------------------------------
 
-const ChVector<> FEDA_DoubleWishboneFront::getLocation(PointId which) {
+const ChVector3d FEDA_DoubleWishboneFront::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return ChVector<>(0.0, 0.97663, 0);
+            return ChVector3d(0.0, 0.97663, 0);
         case UPRIGHT:
-            return ChVector<>(0, 0.87, 0);
+            return ChVector3d(0, 0.87, 0);
         case UCA_F:
-            return ChVector<>(0.0478, 0.2324, 0.3469);
+            return ChVector3d(0.0478, 0.2324, 0.3469);
         case UCA_B:
-            return ChVector<>(-0.3215, 0.2324, 0.3469);
+            return ChVector3d(-0.3215, 0.2324, 0.3469);
         case UCA_U:
-            return ChVector<>(-0.01759, 0.6744, 0.30589);
+            return ChVector3d(-0.01759, 0.6744, 0.30589);
         case UCA_CM:
-            return ChVector<>(-0.0971018, 0.379784667, 0.333246667);
+            return ChVector3d(-0.0971018, 0.379784667, 0.333246667);
         case LCA_F:
-            return ChVector<>(0.16781, 0.2245, -0.08);
+            return ChVector3d(0.16781, 0.2245, -0.08);
         case LCA_B:
-            return ChVector<>(-0.45219, 0.22245, -0.119);
+            return ChVector3d(-0.45219, 0.22245, -0.119);
         case LCA_U:
-            return ChVector<>(0.00789, 0.80719, -0.13904);
+            return ChVector3d(0.00789, 0.80719, -0.13904);
         case LCA_CM:
-            return ChVector<>(-0.092163333, 0.418393333, -0.1128);
+            return ChVector3d(-0.092163333, 0.418393333, -0.1128);
         case SHOCK_C:
-            return ChVector<>(0.09397, 0.493925, 0.46209);
+            return ChVector3d(0.09397, 0.493925, 0.46209);
         case SHOCK_A:
-            return ChVector<>(0.09397, 0.65153, -0.119);
+            return ChVector3d(0.09397, 0.65153, -0.119);
         case SPRING_C:
-            return ChVector<>(0.09397, 0.493925, 0.46209);
+            return ChVector3d(0.09397, 0.493925, 0.46209);
         case SPRING_A:
-            return ChVector<>(0.09397, 0.65153, -0.119);
+            return ChVector3d(0.09397, 0.65153, -0.119);
         case TIEROD_C:
-            return ChVector<>(-0.24078, 0.379095, 0.04);
+            return ChVector3d(-0.24078, 0.379095, 0.04);
         case TIEROD_U:
-            return ChVector<>(-0.207, 0.82618, 0);
+            return ChVector3d(-0.207, 0.82618, 0);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 
-const ChVector<> FEDA_DoubleWishboneRear::getLocation(PointId which) {
+const ChVector3d FEDA_DoubleWishboneRear::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return ChVector<>(0.0, 0.97663, 0);
+            return ChVector3d(0.0, 0.97663, 0);
         case UPRIGHT:
-            return ChVector<>(0, 0.87, 0);
+            return ChVector3d(0, 0.87, 0);
         case UCA_F:
-            return ChVector<>(0.0478, 0.2324, 0.3469);
+            return ChVector3d(0.0478, 0.2324, 0.3469);
         case UCA_B:
-            return ChVector<>(-0.3215, 0.2324, 0.3469);
+            return ChVector3d(-0.3215, 0.2324, 0.3469);
         case UCA_U:
-            return ChVector<>(-0.01759, 0.6744, 0.30589);
+            return ChVector3d(-0.01759, 0.6744, 0.30589);
         case UCA_CM:
-            return ChVector<>(-0.0971018, 0.379784667, 0.333246667);
+            return ChVector3d(-0.0971018, 0.379784667, 0.333246667);
         case LCA_F:
-            return ChVector<>(0.16781, 0.2245, -0.08);
+            return ChVector3d(0.16781, 0.2245, -0.08);
         case LCA_B:
-            return ChVector<>(-0.45219, 0.22245, -0.119);
+            return ChVector3d(-0.45219, 0.22245, -0.119);
         case LCA_U:
-            return ChVector<>(0.00789, 0.80719, -0.13904);
+            return ChVector3d(0.00789, 0.80719, -0.13904);
         case LCA_CM:
-            return ChVector<>(-0.092163333, 0.418393333, -0.1128);
+            return ChVector3d(-0.092163333, 0.418393333, -0.1128);
         case SHOCK_C:
-            return ChVector<>(-0.09397, 0.493925, 0.46209);
+            return ChVector3d(-0.09397, 0.493925, 0.46209);
         case SHOCK_A:
-            return ChVector<>(-0.09397, 0.65153, -0.119);
+            return ChVector3d(-0.09397, 0.65153, -0.119);
         case SPRING_C:
-            return ChVector<>(-0.09397, 0.493925, 0.46209);
+            return ChVector3d(-0.09397, 0.493925, 0.46209);
         case SPRING_A:
-            return ChVector<>(-0.09397, 0.65153, -0.119);
+            return ChVector3d(-0.09397, 0.65153, -0.119);
         case TIEROD_C:
-            return ChVector<>(0.24078, 0.379095, 0.04);
+            return ChVector3d(0.24078, 0.379095, 0.04);
         case TIEROD_U:
-            return ChVector<>(0.207, 0.82618, 0);
+            return ChVector3d(0.207, 0.82618, 0);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/utils/ChConstants.h"
 

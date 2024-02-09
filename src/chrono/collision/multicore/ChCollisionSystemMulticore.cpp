@@ -47,12 +47,12 @@ void ChCollisionSystemMulticore::SetEnvelope(double envelope) {
     cd_data->collision_envelope = real(envelope);
 }
 
-void ChCollisionSystemMulticore::SetBroadphaseGridResolution(const ChVector<int>& num_bins) {
+void ChCollisionSystemMulticore::SetBroadphaseGridResolution(const ChVector3i& num_bins) {
     broadphase.grid_resolution = vec3(num_bins.x(), num_bins.y(), num_bins.z());
     broadphase.grid_type = ChBroadphase::GridType::FIXED_RESOLUTION;
 }
 
-void ChCollisionSystemMulticore::SetBroadphaseGridSize(const ChVector<>& bin_size) {
+void ChCollisionSystemMulticore::SetBroadphaseGridSize(const ChVector3d& bin_size) {
     broadphase.bin_size = real3(bin_size.x(), bin_size.y(), bin_size.z());
     broadphase.grid_type = ChBroadphase::GridType::FIXED_RESOLUTION;
 }
@@ -66,7 +66,7 @@ void ChCollisionSystemMulticore::SetNarrowphaseAlgorithm(ChNarrowphase::Algorith
     narrowphase.algorithm = algorithm;
 }
 
-void ChCollisionSystemMulticore::EnableActiveBoundingBox(const ChVector<>& aabb_min, const ChVector<>& aabb_max) {
+void ChCollisionSystemMulticore::EnableActiveBoundingBox(const ChVector3d& aabb_min, const ChVector3d& aabb_max) {
     active_aabb_min = FromChVector(aabb_min);
     active_aabb_max = FromChVector(aabb_max);
 
@@ -203,7 +203,7 @@ void ChCollisionSystemMulticore::Remove(std::shared_ptr<ChCollisionModel> model)
 
 // -----------------------------------------------------------------------------
 
-bool ChCollisionSystemMulticore::GetActiveBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
+bool ChCollisionSystemMulticore::GetActiveBoundingBox(ChVector3d& aabb_min, ChVector3d& aabb_max) const {
     aabb_min = ToChVector(active_aabb_min);
     aabb_max = ToChVector(active_aabb_max);
 
@@ -211,9 +211,9 @@ bool ChCollisionSystemMulticore::GetActiveBoundingBox(ChVector<>& aabb_min, ChVe
 }
 
 geometry::ChAABB ChCollisionSystemMulticore::GetBoundingBox() const {
-    ChVector<> aabb_min((double)cd_data->min_bounding_point.x, (double)cd_data->min_bounding_point.y,
+    ChVector3d aabb_min((double)cd_data->min_bounding_point.x, (double)cd_data->min_bounding_point.y,
                         (double)cd_data->min_bounding_point.z);
-    ChVector<> aabb_max((double)cd_data->max_bounding_point.x, (double)cd_data->max_bounding_point.y,
+    ChVector3d aabb_max((double)cd_data->max_bounding_point.x, (double)cd_data->max_bounding_point.y,
                         (double)cd_data->max_bounding_point.z);
 
     return geometry::ChAABB(aabb_min, aabb_max);
@@ -257,7 +257,7 @@ void ChCollisionSystemMulticore::PreProcess() {
     for (int i = 0; i < nbodies; i++) {
         const auto& body = blist[i];
 
-        ChVector<>& body_pos = body->GetPos();
+        ChVector3d& body_pos = body->GetPos();
         ChQuaternion<>& body_rot = body->GetRot();
 
         position[i] = real3(body_pos.x(), body_pos.y(), body_pos.z());
@@ -570,7 +570,7 @@ std::vector<vec2> ChCollisionSystemMulticore::GetOverlappingPairs() {
 
 // -----------------------------------------------------------------------------
 
-bool ChCollisionSystemMulticore::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const {
+bool ChCollisionSystemMulticore::RayHit(const ChVector3d& from, const ChVector3d& to, ChRayhitResult& result) const {
     if (cd_data->num_active_bins == 0) {
         result.hit = false;
         return false;
@@ -598,8 +598,8 @@ bool ChCollisionSystemMulticore::RayHit(const ChVector<>& from, const ChVector<>
     return false;
 }
 
-bool ChCollisionSystemMulticore::RayHit(const ChVector<>& from,
-                                        const ChVector<>& to,
+bool ChCollisionSystemMulticore::RayHit(const ChVector3d& from,
+                                        const ChVector3d& to,
                                         ChCollisionModel* model,
                                         ChRayhitResult& result) const {
     return false;
@@ -621,15 +621,15 @@ void DrawHemisphere(ChCollisionSystem::VisualizationCallback* vis,
         double y_top = radius * std::sin((j + vstep) * CH_C_DEG_TO_RAD);
         double r_top = radius * std::cos((j + vstep) * CH_C_DEG_TO_RAD);
 
-        ChVector<> crt(r_low, y_low, 0);
+        ChVector3d crt(r_low, y_low, 0);
         for (int i = 0; i < 360; i += rstep) {
             double rc = r_top * std::cos(i * CH_C_DEG_TO_RAD);
             double rs = r_top * std::sin(i * CH_C_DEG_TO_RAD);
-            ChVector<> up(rc, y_top, rs);
+            ChVector3d up(rc, y_top, rs);
             vis->DrawLine(csys.TransformPointLocalToParent(crt), csys.TransformPointLocalToParent(up), color);
             rc = r_low * std::cos((i + rstep) * CH_C_DEG_TO_RAD);
             rs = r_low * std::sin((i + rstep) * CH_C_DEG_TO_RAD);
-            ChVector<> next(rc, y_low, rs);
+            ChVector3d next(rc, y_low, rs);
             vis->DrawLine(csys.TransformPointLocalToParent(crt), csys.TransformPointLocalToParent(next), color);
             crt = next;
         }
@@ -648,32 +648,32 @@ void DrawSphere(ChCollisionSystem::VisualizationCallback* vis,
 
 void DrawBox(ChCollisionSystem::VisualizationCallback* vis,
              const ChCoordsys<>& csys,
-             const ChVector<>& hdim,
+             const ChVector3d& hdim,
              const ChColor& color) {
-    vis->DrawLine(csys.TransformPointLocalToParent(ChVector<>(-hdim[0], -hdim[1], -hdim[2])),
-                  csys.TransformPointLocalToParent(ChVector<>(+hdim[0], -hdim[1], -hdim[2])), color);
-    vis->DrawLine(csys.TransformPointLocalToParent(ChVector<>(+hdim[0], -hdim[1], -hdim[2])),
-                  csys.TransformPointLocalToParent(ChVector<>(+hdim[0], +hdim[1], -hdim[2])), color);
-    vis->DrawLine(csys.TransformPointLocalToParent(ChVector<>(+hdim[0], +hdim[1], -hdim[2])),
-                  csys.TransformPointLocalToParent(ChVector<>(-hdim[0], +hdim[1], -hdim[2])), color);
-    vis->DrawLine(csys.TransformPointLocalToParent(ChVector<>(-hdim[0], +hdim[1], -hdim[2])),
-                  csys.TransformPointLocalToParent(ChVector<>(-hdim[0], -hdim[1], -hdim[2])), color);
-    vis->DrawLine(csys.TransformPointLocalToParent(ChVector<>(-hdim[0], -hdim[1], -hdim[2])),
-                  csys.TransformPointLocalToParent(ChVector<>(-hdim[0], -hdim[1], +hdim[2])), color);
-    vis->DrawLine(csys.TransformPointLocalToParent(ChVector<>(+hdim[0], -hdim[1], -hdim[2])),
-                  csys.TransformPointLocalToParent(ChVector<>(+hdim[0], -hdim[1], +hdim[2])), color);
-    vis->DrawLine(csys.TransformPointLocalToParent(ChVector<>(+hdim[0], +hdim[1], -hdim[2])),
-                  csys.TransformPointLocalToParent(ChVector<>(+hdim[0], +hdim[1], +hdim[2])), color);
-    vis->DrawLine(csys.TransformPointLocalToParent(ChVector<>(-hdim[0], +hdim[1], -hdim[2])),
-                  csys.TransformPointLocalToParent(ChVector<>(-hdim[0], +hdim[1], +hdim[2])), color);
-    vis->DrawLine(csys.TransformPointLocalToParent(ChVector<>(-hdim[0], -hdim[1], +hdim[2])),
-                  csys.TransformPointLocalToParent(ChVector<>(+hdim[0], -hdim[1], +hdim[2])), color);
-    vis->DrawLine(csys.TransformPointLocalToParent(ChVector<>(+hdim[0], -hdim[1], +hdim[2])),
-                  csys.TransformPointLocalToParent(ChVector<>(+hdim[0], +hdim[1], +hdim[2])), color);
-    vis->DrawLine(csys.TransformPointLocalToParent(ChVector<>(+hdim[0], +hdim[1], +hdim[2])),
-                  csys.TransformPointLocalToParent(ChVector<>(-hdim[0], +hdim[1], +hdim[2])), color);
-    vis->DrawLine(csys.TransformPointLocalToParent(ChVector<>(-hdim[0], +hdim[1], +hdim[2])),
-                  csys.TransformPointLocalToParent(ChVector<>(-hdim[0], -hdim[1], +hdim[2])), color);
+    vis->DrawLine(csys.TransformPointLocalToParent(ChVector3d(-hdim[0], -hdim[1], -hdim[2])),
+                  csys.TransformPointLocalToParent(ChVector3d(+hdim[0], -hdim[1], -hdim[2])), color);
+    vis->DrawLine(csys.TransformPointLocalToParent(ChVector3d(+hdim[0], -hdim[1], -hdim[2])),
+                  csys.TransformPointLocalToParent(ChVector3d(+hdim[0], +hdim[1], -hdim[2])), color);
+    vis->DrawLine(csys.TransformPointLocalToParent(ChVector3d(+hdim[0], +hdim[1], -hdim[2])),
+                  csys.TransformPointLocalToParent(ChVector3d(-hdim[0], +hdim[1], -hdim[2])), color);
+    vis->DrawLine(csys.TransformPointLocalToParent(ChVector3d(-hdim[0], +hdim[1], -hdim[2])),
+                  csys.TransformPointLocalToParent(ChVector3d(-hdim[0], -hdim[1], -hdim[2])), color);
+    vis->DrawLine(csys.TransformPointLocalToParent(ChVector3d(-hdim[0], -hdim[1], -hdim[2])),
+                  csys.TransformPointLocalToParent(ChVector3d(-hdim[0], -hdim[1], +hdim[2])), color);
+    vis->DrawLine(csys.TransformPointLocalToParent(ChVector3d(+hdim[0], -hdim[1], -hdim[2])),
+                  csys.TransformPointLocalToParent(ChVector3d(+hdim[0], -hdim[1], +hdim[2])), color);
+    vis->DrawLine(csys.TransformPointLocalToParent(ChVector3d(+hdim[0], +hdim[1], -hdim[2])),
+                  csys.TransformPointLocalToParent(ChVector3d(+hdim[0], +hdim[1], +hdim[2])), color);
+    vis->DrawLine(csys.TransformPointLocalToParent(ChVector3d(-hdim[0], +hdim[1], -hdim[2])),
+                  csys.TransformPointLocalToParent(ChVector3d(-hdim[0], +hdim[1], +hdim[2])), color);
+    vis->DrawLine(csys.TransformPointLocalToParent(ChVector3d(-hdim[0], -hdim[1], +hdim[2])),
+                  csys.TransformPointLocalToParent(ChVector3d(+hdim[0], -hdim[1], +hdim[2])), color);
+    vis->DrawLine(csys.TransformPointLocalToParent(ChVector3d(+hdim[0], -hdim[1], +hdim[2])),
+                  csys.TransformPointLocalToParent(ChVector3d(+hdim[0], +hdim[1], +hdim[2])), color);
+    vis->DrawLine(csys.TransformPointLocalToParent(ChVector3d(+hdim[0], +hdim[1], +hdim[2])),
+                  csys.TransformPointLocalToParent(ChVector3d(-hdim[0], +hdim[1], +hdim[2])), color);
+    vis->DrawLine(csys.TransformPointLocalToParent(ChVector3d(-hdim[0], +hdim[1], +hdim[2])),
+                  csys.TransformPointLocalToParent(ChVector3d(-hdim[0], -hdim[1], +hdim[2])), color);
 }
 
 void DrawCylinder(ChCollisionSystem::VisualizationCallback* vis,
@@ -682,15 +682,15 @@ void DrawCylinder(ChCollisionSystem::VisualizationCallback* vis,
                   double hlen,
                   const ChColor& color) {
     int rstep = 30;
-    ChVector<> p_start(radius, 0, -hlen);
-    ChVector<> p_end(radius, 0, +hlen);
+    ChVector3d p_start(radius, 0, -hlen);
+    ChVector3d p_end(radius, 0, +hlen);
 
     for (int i = 0; i < 360; i += rstep) {
         vis->DrawLine(csys.TransformPointLocalToParent(p_start), csys.TransformPointLocalToParent(p_end), color);
         double rc = radius * std::cos((i + rstep) * CH_C_DEG_TO_RAD);
         double rs = radius * std::sin((i + rstep) * CH_C_DEG_TO_RAD);
-        ChVector<> start(rc, rs, -hlen);
-        ChVector<> end(rc, rs, +hlen);
+        ChVector3d start(rc, rs, -hlen);
+        ChVector3d end(rc, rs, +hlen);
         vis->DrawLine(csys.TransformPointLocalToParent(p_start), csys.TransformPointLocalToParent(start), color);
         vis->DrawLine(csys.TransformPointLocalToParent(p_end), csys.TransformPointLocalToParent(end), color);
         p_start = start;
@@ -704,15 +704,15 @@ void DrawCone(ChCollisionSystem::VisualizationCallback* vis,
               double hlen,
               const ChColor& color) {
     int rstep = 30;
-    ChVector<> p_start(radius, 0, 0);
-    ChVector<> p_end(0, 0, 2 * hlen);
+    ChVector3d p_start(radius, 0, 0);
+    ChVector3d p_end(0, 0, 2 * hlen);
 
     for (int i = 0; i < 360; i += rstep) {
         vis->DrawLine(csys.TransformPointLocalToParent(p_start), csys.TransformPointLocalToParent(p_end), color);
         double rc = radius * std::cos((i + rstep) * CH_C_DEG_TO_RAD);
         double rs = radius * std::sin((i + rstep) * CH_C_DEG_TO_RAD);
-        ChVector<> start(rc, rs, 0);
-        ChVector<> end(rc, rs, 2 * hlen);
+        ChVector3d start(rc, rs, 0);
+        ChVector3d end(rc, rs, 2 * hlen);
         vis->DrawLine(csys.TransformPointLocalToParent(p_start), csys.TransformPointLocalToParent(start), color);
         p_start = start;
     }
@@ -728,16 +728,16 @@ void DrawCapsule(ChCollisionSystem::VisualizationCallback* vis,
     for (int i = 0; i < 360; i += rstep) {
         double rc = radius * std::cos((i + rstep) * CH_C_DEG_TO_RAD);
         double rs = radius * std::sin((i + rstep) * CH_C_DEG_TO_RAD);
-        ChVector<> start(rc, rs, -hlen);
-        ChVector<> end(rc, rs, +hlen);
+        ChVector3d start(rc, rs, -hlen);
+        ChVector3d end(rc, rs, +hlen);
         vis->DrawLine(csys.TransformPointLocalToParent(start), csys.TransformPointLocalToParent(end), color);
     }
     ChCoordsys<> csys1;
-    csys1.pos = csys.TransformPointLocalToParent(ChVector<>(0, 0, hlen));
+    csys1.pos = csys.TransformPointLocalToParent(ChVector3d(0, 0, hlen));
     csys1.rot = csys.rot;
     DrawHemisphere(vis, csys1, radius, color);
     ChCoordsys<> csys2;
-    csys2.pos = csys.TransformPointLocalToParent(ChVector<>(0, 0, -hlen));
+    csys2.pos = csys.TransformPointLocalToParent(ChVector3d(0, 0, -hlen));
     csys2.rot = csys.rot * Q_from_AngX(CH_C_PI);
     DrawHemisphere(vis, csys2, radius, color);
 }

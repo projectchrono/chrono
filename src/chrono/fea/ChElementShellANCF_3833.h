@@ -267,7 +267,7 @@ class ChApi ChElementShellANCF_3833 : public ChElementANCF,
                                           double Mfactor = 0) override;
 
     /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     // Interface to ChElementShell base class
     // --------------------------------------
@@ -276,8 +276,8 @@ class ChApi ChElementShellANCF_3833 : public ChElementANCF,
     /// and the rotation RxRyRz of section plane, at abscissa '(xi,eta,0)'.
     virtual void EvaluateSectionDisplacement(const double xi,
                                              const double eta,
-                                             ChVector<>& u_displ,
-                                             ChVector<>& u_rotaz) override {}
+                                             ChVector3d& u_displ,
+                                             ChVector3d& u_rotaz) override {}
 
     /// Gets the absolute xyz position of a point on the shell midsurface,
     /// and the absolute rotation of section plane, at abscissa '(xi,eta,0)'.
@@ -287,14 +287,14 @@ class ChApi ChElementShellANCF_3833 : public ChElementANCF,
     /// Note, nodeD = (xi=-1, eta=1)
     virtual void EvaluateSectionFrame(const double xi,
                                       const double eta,
-                                      ChVector<>& point,
+                                      ChVector3d& point,
                                       ChQuaternion<>& rot) override;
 
     /// Gets the absolute xyz position of a point on the shell midsurface specified in normalized coordinates
-    virtual void EvaluateSectionPoint(const double xi, const double eta, ChVector<>& point) override;
+    virtual void EvaluateSectionPoint(const double xi, const double eta, ChVector3d& point) override;
 
     /// Gets the absolute xyz velocity of a point on the shell midsurface specified in normalized coordinates
-    virtual void EvaluateSectionVelNorm(const double xi, const double eta, ChVector<>& Result) override;
+    virtual void EvaluateSectionVelNorm(const double xi, const double eta, ChVector3d& Result) override;
 
     // Functions for ChLoadable interface
     // ----------------------------------
@@ -374,7 +374,7 @@ class ChApi ChElementShellANCF_3833 : public ChElementANCF,
 
     /// Gets the normal to the surface at the parametric coordinate xi,eta.
     /// Each coordinate ranging in -1..+1.
-    virtual ChVector<> ComputeNormal(const double xi, const double eta) override;
+    virtual ChVector3d ComputeNormal(const double xi, const double eta) override;
 
   private:
     /// Initial setup. This is used to precompute matrices that do not change during the simulation, such as the local

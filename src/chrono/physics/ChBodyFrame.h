@@ -35,11 +35,11 @@ class ChApi ChBodyFrame : public ChFrameMoving<double> {
     /// the absolute frame.
     /// If local = true, the provided applied force and point are assumed to be expressed in body coordinates.
     /// If local = false, the provided applied force and point is assumed to be expressed in absolute coordinates.
-    void To_abs_forcetorque(const ChVector<>& force,
-                            const ChVector<>& appl_point,
+    void To_abs_forcetorque(const ChVector3d& force,
+                            const ChVector3d& appl_point,
                             bool local,
-                            ChVector<>& resultforce,
-                            ChVector<>& resulttorque);
+                            ChVector3d& resultforce,
+                            ChVector3d& resulttorque);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

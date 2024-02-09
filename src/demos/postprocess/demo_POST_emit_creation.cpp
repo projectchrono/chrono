@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, 4, -6), ChVector<>(0, -2, 0));
+    vis->AddCamera(ChVector3d(0, 4, -6), ChVector3d(0, -2, 0));
 
     // Create an exporter to POVray !!
     ChPovRay pov_exporter = ChPovRay(&sys);
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto floor_body = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
-    floor_body->SetPos(ChVector<>(0, -5, 0));
+    floor_body->SetPos(ChVector3d(0, -5, 0));
     floor_body->SetBodyFixed(true);
     floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
 
@@ -101,10 +101,10 @@ int main(int argc, char* argv[]) {
     auto shape3 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 24, 2);
 
     floor_body->AddCollisionShape(shape1);
-    floor_body->AddCollisionShape(shape2, ChFrame<>(ChVector<>(-5, 0, 0), QUNIT));
-    floor_body->AddCollisionShape(shape2, ChFrame<>(ChVector<>(5, 0, 0), QUNIT));
-    floor_body->AddCollisionShape(shape3, ChFrame<>(ChVector<>(0, 0, -5), QUNIT));
-    floor_body->AddCollisionShape(shape3, ChFrame<>(ChVector<>(0, 0, 5), QUNIT));
+    floor_body->AddCollisionShape(shape2, ChFrame<>(ChVector3d(-5, 0, 0), QUNIT));
+    floor_body->AddCollisionShape(shape2, ChFrame<>(ChVector3d(5, 0, 0), QUNIT));
+    floor_body->AddCollisionShape(shape3, ChFrame<>(ChVector3d(0, 0, -5), QUNIT));
+    floor_body->AddCollisionShape(shape3, ChFrame<>(ChVector3d(0, 0, 5), QUNIT));
 
     // Custom rendering in POVray:
     pov_exporter.SetCustomCommands(floor_body,
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
     // ---Initialize the randomizer for positions
     auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
     emitter_positions->Outlet() =
-        ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
+        ChCoordsys<>(ChVector3d(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 3.0;
     emitter_positions->OutletHeight() = 3.0;
     emitter.SetParticlePositioner(emitter_positions);

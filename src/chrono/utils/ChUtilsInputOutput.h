@@ -105,7 +105,7 @@ class ChApi CSV_writer {
 };
 
 template <typename T>
-inline CSV_writer& operator<<(CSV_writer& out, const ChVector<T>& v) {
+inline CSV_writer& operator<<(CSV_writer& out, const ChVector3<T>& v) {
     out << v.x() << v.y() << v.z();
     return out;
 }
@@ -150,9 +150,9 @@ ChApi void ReadCheckpoint(ChSystem* system, const std::string& filename);
 /// The output file includes three vectors, one per line, for camera position, camera target (look-at point), and camera
 /// up vector, respectively.
 ChApi void WriteCamera(const std::string& filename,
-                       const ChVector<>& cam_location,
-                       const ChVector<>& cam_target,
-                       const ChVector<>& camera_upvec,
+                       const ChVector3d& cam_location,
+                       const ChVector3d& cam_target,
+                       const ChVector3d& camera_upvec,
                        const std::string& delim = ",");
 
 /// Write CSV output file with body and asset information for off-line visualization.
@@ -204,7 +204,7 @@ ChApi void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
                            const std::string& mesh_name,
                            const std::string& out_dir,
                            const ChColor& color = ChColor(0.4f, 0.4f, 0.4f),
-                           const ChVector<>& pos = ChVector<>(0, 0, 0),
+                           const ChVector3d& pos = ChVector3d(0, 0, 0),
                            const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                            bool smoothed = false);
 
@@ -215,7 +215,7 @@ ChApi bool WriteMeshPovray(const std::string& obj_filename,
                            const std::string& mesh_name,
                            const std::string& out_dir,
                            const ChColor& color = ChColor(0.4f, 0.4f, 0.4f),
-                           const ChVector<>& pos = ChVector<>(0, 0, 0),
+                           const ChVector3d& pos = ChVector3d(0, 0, 0),
                            const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
 
 /// Write the specified Bezier curve as a macro in a PovRay include file.

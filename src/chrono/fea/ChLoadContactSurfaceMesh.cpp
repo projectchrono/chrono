@@ -21,15 +21,15 @@ namespace fea {
 ChLoadContactSurfaceMesh::ChLoadContactSurfaceMesh(std::shared_ptr<ChContactSurfaceMesh> contact_mesh)
     : m_contact_mesh(contact_mesh) {}
 
-void ChLoadContactSurfaceMesh::OutputSimpleMesh(std::vector<ChVector<>>& vert_pos,
-                                                std::vector<ChVector<>>& vert_vel,
-                                                std::vector<ChVector<int>>& triangles) {
-    std::vector<ChVector<bool>> owns_node;
-    std::vector<ChVector<bool>> owns_edge;
+void ChLoadContactSurfaceMesh::OutputSimpleMesh(std::vector<ChVector3d>& vert_pos,
+                                                std::vector<ChVector3d>& vert_vel,
+                                                std::vector<ChVector3i>& triangles) {
+    std::vector<ChVector3b> owns_node;
+    std::vector<ChVector3b> owns_edge;
     m_contact_mesh->OutputSimpleMesh(vert_pos, vert_vel, triangles, owns_node, owns_edge);
 }
 
-void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector<>>& vert_forces,
+void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector3d>& vert_forces,
                                                  const std::vector<int>& vert_ind) {
     // check the vert_forces and vert_ind arrays must have same size:
     assert(vert_forces.size() == vert_ind.size());

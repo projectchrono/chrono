@@ -75,9 +75,9 @@ class ChApiCASCADE ChCascadeDoc {
     static bool GetVolumeProperties(
         const TopoDS_Shape& mshape,   ///< pass the shape here
         const double density,         ///< pass the density here
-        ChVector<>& center_position,  ///< get the COG position center, respect to shape pos.
-        ChVector<>& inertiaXX,        ///< get the inertia diagonal terms
-        ChVector<>& inertiaXY,        ///< get the inertia extradiagonal terms
+        ChVector3d& center_position,  ///< get the COG position center, respect to shape pos.
+        ChVector3d& inertiaXX,        ///< get the inertia diagonal terms
+        ChVector3d& inertiaXY,        ///< get the inertia extradiagonal terms
         double& volume,               ///< get the volume
         double& mass                  ///< get the mass
     );

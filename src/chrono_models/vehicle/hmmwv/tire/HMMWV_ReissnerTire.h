@@ -68,17 +68,17 @@ class CH_MODELS_API HMMWV_ReissnerTire : public ChReissnerTire {
     static const double m_default_pressure;
 
     static const double m_rho_0;
-    static const ChVector<> m_E_0; // Ex Ey (Ez not used)
+    static const ChVector3d m_E_0; // Ex Ey (Ez not used)
     static const double m_nu_0;    // nu for xy shear
-    static const ChVector<> m_G_0; // Gxy Gxz Gyz
+    static const ChVector3d m_G_0; // Gxy Gxz Gyz
     static const double m_rho_1;   
-    static const ChVector<> m_E_1; // Ex Ey (Ez not used)
+    static const ChVector3d m_E_1; // Ex Ey (Ez not used)
     static const double m_nu_1;    // nu for xy shear
-    static const ChVector<> m_G_1; // Gxy Gxz Gyz
+    static const ChVector3d m_G_1; // Gxy Gxz Gyz
     static const double m_rho_2;
-    static const ChVector<> m_E_2; // Ex Ey (Ez not used)
+    static const ChVector3d m_E_2; // Ex Ey (Ez not used)
     static const double m_nu_2;    // nu for xy shear
-    static const ChVector<> m_G_2; // Gxy Gxz Gyz
+    static const ChVector3d m_G_2; // Gxy Gxz Gyz
     std::vector<std::shared_ptr<fea::ChMaterialShellReissnerOrthotropic>> m_materials;
 
     static const unsigned int m_num_elements_bead;

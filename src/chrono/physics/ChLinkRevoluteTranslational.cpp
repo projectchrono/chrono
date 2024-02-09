@@ -23,11 +23,11 @@ CH_FACTORY_REGISTER(ChLinkRevoluteTranslational)
 // Constructor and destructor
 // -----------------------------------------------------------------------------
 ChLinkRevoluteTranslational::ChLinkRevoluteTranslational()
-    : m_p1(ChVector<>(0, 0, 0)),
-      m_p2(ChVector<>(0, 0, 0)),
-      m_z1(ChVector<>(0, 0, 1)),
-      m_x2(ChVector<>(1, 0, 0)),
-      m_y2(ChVector<>(0, 1, 0)),
+    : m_p1(ChVector3d(0, 0, 0)),
+      m_p2(ChVector3d(0, 0, 0)),
+      m_z1(ChVector3d(0, 0, 1)),
+      m_x2(ChVector3d(1, 0, 0)),
+      m_y2(ChVector3d(0, 1, 0)),
       m_dist(0),
       m_cur_par1(0),
       m_cur_par2(0),
@@ -79,9 +79,9 @@ void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
     m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
 
-    ChVector<> x_axis = csys.rot.GetXaxis();
-    ChVector<> y_axis = csys.rot.GetYaxis();
-    ChVector<> z_axis = csys.rot.GetZaxis();
+    ChVector3d x_axis = csys.rot.GetXaxis();
+    ChVector3d y_axis = csys.rot.GetYaxis();
+    ChVector3d z_axis = csys.rot.GetZaxis();
 
     m_p1 = Body1->TransformPointParentToLocal(csys.pos);
     m_z1 = Body1->TransformDirectionParentToLocal(z_axis);
@@ -100,11 +100,11 @@ void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
 void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
                                              std::shared_ptr<ChBody> body2,
                                              bool local,
-                                             const ChVector<>& p1,
-                                             const ChVector<>& dirZ1,
-                                             const ChVector<>& p2,
-                                             const ChVector<>& dirX2,
-                                             const ChVector<>& dirY2,
+                                             const ChVector3d& p1,
+                                             const ChVector3d& dirZ1,
+                                             const ChVector3d& p2,
+                                             const ChVector3d& dirX2,
+                                             const ChVector3d& dirY2,
                                              bool auto_distance,
                                              double distance) {
     Body1 = body1.get();
@@ -115,11 +115,11 @@ void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
     m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
 
-    ChVector<> p1_abs;
-    ChVector<> p2_abs;
-    ChVector<> z1_abs;
-    ChVector<> x2_abs;
-    ChVector<> y2_abs;
+    ChVector3d p1_abs;
+    ChVector3d p2_abs;
+    ChVector3d z1_abs;
+    ChVector3d x2_abs;
+    ChVector3d y2_abs;
 
     if (local) {
         m_p1 = p1;
@@ -145,7 +145,7 @@ void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
         m_y2 = Body2->TransformDirectionParentToLocal(y2_abs);
     }
 
-    ChVector<> d12_abs = p2_abs - p1_abs;
+    ChVector3d d12_abs = p2_abs - p1_abs;
 
     m_cur_par1 = Vdot(z1_abs, x2_abs);
     m_cur_par2 = Vdot(z1_abs, y2_abs);
@@ -161,7 +161,7 @@ void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
 ChCoordsys<> ChLinkRevoluteTranslational::GetLinkRelativeCoords() {
     // Origin at P1 (center of revolute side) and orientation formed using
     // the mutually orthogonal direction x2 and y2.
-    ChVector<> p = Body2->TransformPointParentToLocal(Body1->TransformPointLocalToParent(m_p1));
+    ChVector3d p = Body2->TransformPointParentToLocal(Body1->TransformPointLocalToParent(m_p1));
     ChMatrix33<> A(m_x2, m_y2, Vcross(m_x2, m_y2));
 
     return ChCoordsys<>(p, A.Get_A_quaternion());
@@ -175,12 +175,12 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
     ChLink::UpdateTime(time);
 
     // Express the body locations and direction in absolute frame
-    ChVector<> p1_abs = Body1->TransformPointLocalToParent(m_p1);
-    ChVector<> p2_abs = Body2->TransformPointLocalToParent(m_p2);
-    ChVector<> z1_abs = Body1->TransformDirectionLocalToParent(m_z1);
-    ChVector<> x2_abs = Body2->TransformDirectionLocalToParent(m_x2);
-    ChVector<> y2_abs = Body2->TransformDirectionLocalToParent(m_y2);
-    ChVector<> d12_abs = p2_abs - p1_abs;
+    ChVector3d p1_abs = Body1->TransformPointLocalToParent(m_p1);
+    ChVector3d p2_abs = Body2->TransformPointLocalToParent(m_p2);
+    ChVector3d z1_abs = Body1->TransformDirectionLocalToParent(m_z1);
+    ChVector3d x2_abs = Body2->TransformDirectionLocalToParent(m_x2);
+    ChVector3d y2_abs = Body2->TransformDirectionLocalToParent(m_y2);
+    ChVector3d d12_abs = p2_abs - p1_abs;
 
     // Update current constraint quantities
     m_cur_par1 = Vdot(z1_abs, x2_abs);
@@ -190,12 +190,12 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
 
     // Calculate a few more quantities
     // (express directions on one body in the frame ot the other body)
-    ChVector<> z1_2 = Body2->TransformDirectionParentToLocal(z1_abs);
-    ChVector<> x2_1 = Body1->TransformDirectionParentToLocal(x2_abs);
-    ChVector<> y2_1 = Body1->TransformDirectionParentToLocal(y2_abs);
+    ChVector3d z1_2 = Body2->TransformDirectionParentToLocal(z1_abs);
+    ChVector3d x2_1 = Body1->TransformDirectionParentToLocal(x2_abs);
+    ChVector3d y2_1 = Body1->TransformDirectionParentToLocal(y2_abs);
 
-    ChVector<> d12_1 = Body1->TransformDirectionParentToLocal(d12_abs);
-    ChVector<> d12_2 = Body2->TransformDirectionParentToLocal(d12_abs);
+    ChVector3d d12_1 = Body1->TransformDirectionParentToLocal(d12_abs);
+    ChVector3d d12_2 = Body2->TransformDirectionParentToLocal(d12_abs);
 
     // First constraint (par1)
     {
@@ -203,7 +203,7 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         m_C(0) = m_cur_par1;
 
         // Set Jacobian w.r.t. states of Body 1
-        ChVector<> Phi_pi1 = Vcross(m_z1, x2_1);
+        ChVector3d Phi_pi1 = Vcross(m_z1, x2_1);
 
         m_cnstr_par1.Get_Cq_a()(0) = 0;
         m_cnstr_par1.Get_Cq_a()(1) = 0;
@@ -214,7 +214,7 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         m_cnstr_par1.Get_Cq_a()(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
-        ChVector<> Phi_pi2 = Vcross(m_x2, z1_2);
+        ChVector3d Phi_pi2 = Vcross(m_x2, z1_2);
 
         m_cnstr_par1.Get_Cq_b()(0) = 0;
         m_cnstr_par1.Get_Cq_b()(1) = 0;
@@ -231,7 +231,7 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         m_C(1) = m_cur_par2;
 
         // Set Jacobian w.r.t. states of Body 1
-        ChVector<> Phi_pi1 = Vcross(m_z1, y2_1);
+        ChVector3d Phi_pi1 = Vcross(m_z1, y2_1);
 
         m_cnstr_par2.Get_Cq_a()(0) = 0;
         m_cnstr_par2.Get_Cq_a()(1) = 0;
@@ -242,7 +242,7 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         m_cnstr_par2.Get_Cq_a()(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
-        ChVector<> Phi_pi2 = Vcross(m_y2, z1_2);
+        ChVector3d Phi_pi2 = Vcross(m_y2, z1_2);
 
         m_cnstr_par2.Get_Cq_b()(0) = 0;
         m_cnstr_par2.Get_Cq_b()(1) = 0;
@@ -259,7 +259,7 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         m_C(2) = m_cur_dot;
 
         // Set Jacobian w.r.t. states of Body 1
-        ChVector<> Phi_pi1 = Vcross(m_z1, d12_1) - Vcross(m_p1, m_z1);
+        ChVector3d Phi_pi1 = Vcross(m_z1, d12_1) - Vcross(m_p1, m_z1);
 
         m_cnstr_dot.Get_Cq_a()(0) = -z1_abs.x();
         m_cnstr_dot.Get_Cq_a()(1) = -z1_abs.y();
@@ -270,7 +270,7 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         m_cnstr_dot.Get_Cq_a()(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
-        ChVector<> Phi_pi2 = Vcross(m_p2, z1_2);
+        ChVector3d Phi_pi2 = Vcross(m_p2, z1_2);
 
         m_cnstr_dot.Get_Cq_b()(0) = z1_abs.x();
         m_cnstr_dot.Get_Cq_b()(1) = z1_abs.y();
@@ -287,7 +287,7 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         m_C(3) = m_cur_dist - m_dist;
 
         // Set Jacobian w.r.t. states of Body 1
-        ChVector<> Phi_pi1 = -Vcross(m_p1, x2_1);
+        ChVector3d Phi_pi1 = -Vcross(m_p1, x2_1);
 
         m_cnstr_dist.Get_Cq_a()(0) = -x2_abs.x();
         m_cnstr_dist.Get_Cq_a()(1) = -x2_abs.y();
@@ -298,7 +298,7 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         m_cnstr_dist.Get_Cq_a()(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
-        ChVector<> Phi_pi2 = Vcross(m_x2, d12_2) + Vcross(m_p2, m_x2);
+        ChVector3d Phi_pi2 = Vcross(m_x2, d12_2) + Vcross(m_p2, m_x2);
 
         m_cnstr_dist.Get_Cq_b()(0) = x2_abs.x();
         m_cnstr_dist.Get_Cq_b()(1) = x2_abs.y();
@@ -504,7 +504,7 @@ void ChLinkRevoluteTranslational::ConstraintsFetch_react(double factor) {
 //  of the standard output for this joint style
 // -----------------------------------------------------------------------------
 
-ChVector<> ChLinkRevoluteTranslational::Get_react_force_body1() {
+ChVector3d ChLinkRevoluteTranslational::Get_react_force_body1() {
     ////
     ////  TODO
     ////
@@ -519,7 +519,7 @@ ChVector<> ChLinkRevoluteTranslational::Get_react_force_body1() {
     return -react_force;
 }
 
-ChVector<> ChLinkRevoluteTranslational::Get_react_torque_body1() {
+ChVector3d ChLinkRevoluteTranslational::Get_react_torque_body1() {
     ////
     ////  TODO
     ////
@@ -534,7 +534,7 @@ ChVector<> ChLinkRevoluteTranslational::Get_react_torque_body1() {
     return -react_torque;
 }
 
-ChVector<> ChLinkRevoluteTranslational::Get_react_force_body2() {
+ChVector3d ChLinkRevoluteTranslational::Get_react_force_body2() {
     ////
     ////  TODO
     ////
@@ -547,7 +547,7 @@ ChVector<> ChLinkRevoluteTranslational::Get_react_force_body2() {
     return react_force;
 }
 
-ChVector<> ChLinkRevoluteTranslational::Get_react_torque_body2() {
+ChVector3d ChLinkRevoluteTranslational::Get_react_torque_body2() {
     ////
     ////  TODO
     ////

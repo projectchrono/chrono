@@ -33,7 +33,7 @@ CH_SENSOR_API ChTachometerSensor::ChTachometerSensor(std::shared_ptr<chrono::ChB
     m_filters.push_front(chrono_types::make_shared<ChFilterTachometerUpdate>());
 }
 CH_SENSOR_API void ChTachometerSensor::PushKeyFrame() {
-    ChVector<double> rot_speed = m_parent->GetWvel_loc();
+    ChVector3d rot_speed = m_parent->GetWvel_loc();
     m_keyframes.push_back(rot_speed);
 }
 

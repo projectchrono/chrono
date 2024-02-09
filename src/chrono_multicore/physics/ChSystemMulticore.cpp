@@ -356,7 +356,7 @@ void ChSystemMulticore::UpdateRigidBodies() {
 
         ChVectorRef body_qb = body->Variables().Get_qb();
         ChVectorRef body_fb = body->Variables().Get_fb();
-        ChVector<>& body_pos = body->GetPos();
+        ChVector3d& body_pos = body->GetPos();
         ChQuaternion<>& body_rot = body->GetRot();
 
         data_manager->host_data.v[i * 6 + 0] = body_qb(0);
@@ -767,20 +767,20 @@ void ChSystemMulticore::SetMaterialCompositionStrategy(std::unique_ptr<ChContact
 
 // -------------------------------------------------------------
 
-ChVector<> ChSystemMulticore::GetBodyAppliedForce(ChBody* body) {
+ChVector3d ChSystemMulticore::GetBodyAppliedForce(ChBody* body) {
     auto h = data_manager->settings.step_size;
     auto fx = data_manager->host_data.hf[body->GetId() * 6 + 0] / h;
     auto fy = data_manager->host_data.hf[body->GetId() * 6 + 1] / h;
     auto fz = data_manager->host_data.hf[body->GetId() * 6 + 2] / h;
-    return ChVector<>((double)fx, (double)fy, (double)fz);
+    return ChVector3d((double)fx, (double)fy, (double)fz);
 }
 
-ChVector<> ChSystemMulticore::GetBodyAppliedTorque(ChBody* body) {
+ChVector3d ChSystemMulticore::GetBodyAppliedTorque(ChBody* body) {
     auto h = data_manager->settings.step_size;
     auto tx = data_manager->host_data.hf[body->GetId() * 6 + 3] / h;
     auto ty = data_manager->host_data.hf[body->GetId() * 6 + 4] / h;
     auto tz = data_manager->host_data.hf[body->GetId() * 6 + 5] / h;
-    return ChVector<>((double)tx, (double)ty, (double)tz);
+    return ChVector3d((double)tx, (double)ty, (double)tz);
 }
 
 }  // end namespace chrono

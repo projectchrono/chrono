@@ -33,7 +33,7 @@ namespace marder {
 // Static variables
 // -----------------------------------------------------------------------------
 const double Marder_RoadWheel::m_wheel_mass = 35.56;
-const ChVector<> Marder_RoadWheel::m_wheel_inertia(1.14, 2.16, 1.14);
+const ChVector3d Marder_RoadWheel::m_wheel_inertia(1.14, 2.16, 1.14);
 const double Marder_RoadWheel::m_wheel_radius = 0.350;
 const double Marder_RoadWheel::m_wheel_width = 0.220;
 const double Marder_RoadWheel::m_wheel_gap = 0.051;

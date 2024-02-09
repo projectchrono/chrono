@@ -137,14 +137,14 @@ double ChMultiplePathSteeringController::Advance(const ChFrameMoving<>& ref_fram
     }
 
     // The "error" vector is the projection onto the horizontal plane of the vector between sentinel and target.
-    ChVector<> err_vec = m_target - m_sentinel;
+    ChVector3d err_vec = m_target - m_sentinel;
     ChWorldFrame::Project(err_vec);
 
     // Calculate the sign of the angle between the projections of the sentinel
     // vector and the target vector (with origin at vehicle location).
-    ChVector<> sentinel_vec = m_sentinel - ref_frame.GetPos();
+    ChVector3d sentinel_vec = m_sentinel - ref_frame.GetPos();
     ChWorldFrame::Project(sentinel_vec);
-    ChVector<> target_vec = m_target - ref_frame.GetPos();
+    ChVector3d target_vec = m_target - ref_frame.GetPos();
     ChWorldFrame::Project(target_vec);
 
     double temp = Vdot(Vcross(sentinel_vec, target_vec), ChWorldFrame::Vertical());

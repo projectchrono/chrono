@@ -134,7 +134,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                                       true,      // visualization?
                                                                       true,      // collision?
                                                                       obj_mat);  // contact material
-        mrigidBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        mrigidBody->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         mrigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/rock.jpg"));
         sys.Add(mrigidBody);
     }
@@ -146,31 +146,31 @@ void create_some_falling_items(ChSystemNSC& sys) {
 
     // Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, ground_mat);
-    floorBody->SetPos(ChVector<>(0, -5, 0));
+    floorBody->SetPos(ChVector3d(0, -5, 0));
     floorBody->SetBodyFixed(true);
     floorBody->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(floorBody);
 
     auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, ground_mat);
-    wallBody1->SetPos(ChVector<>(-10, 0, 0));
+    wallBody1->SetPos(ChVector3d(-10, 0, 0));
     wallBody1->SetBodyFixed(true);
     wallBody1->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody1);
 
     auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, ground_mat);
-    wallBody2->SetPos(ChVector<>(10, 0, 0));
+    wallBody2->SetPos(ChVector3d(10, 0, 0));
     wallBody2->SetBodyFixed(true);
     wallBody2->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody2);
 
     auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true, ground_mat);
-    wallBody3->SetPos(ChVector<>(0, 0, -10));
+    wallBody3->SetPos(ChVector3d(0, 0, -10));
     wallBody3->SetBodyFixed(true);
     wallBody3->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody3);
 
     auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true, ground_mat);
-    wallBody4->SetPos(ChVector<>(0, 0, 10));
+    wallBody4->SetPos(ChVector3d(0, 0, 10));
     wallBody4->SetBodyFixed(true);
     wallBody4->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody4);
@@ -184,13 +184,13 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                                  true,        // visualization?
                                                                  true,        // collision?
                                                                  mixer_mat);  // contact material
-    rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
+    rotatingBody->SetPos(ChVector3d(0, -1.6, 0));
     rotatingBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
     sys.Add(rotatingBody);
 
     // .. a motor between mixer and truss
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
+    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
     motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 2.0));
     sys.AddLink(motor);
 }
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 14, -20));
+    vis->AddCamera(ChVector3d(0, 14, -20));
     vis->AddTypicalLights();
 
     // This is for GUI tweaking of system parameters..

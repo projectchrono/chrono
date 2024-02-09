@@ -87,7 +87,7 @@ class ChApi ChElementHexaCorot_8 : public ChElementHexahedron,
     /// Puts inside 'Jacobian' and 'J1' the Jacobian matrix and the shape functions derivatives matrix of the element.
     /// The vector "coord" contains the natural coordinates of the integration point.
     /// in case of hexahedral elements natural coords vary in the classical range -1 ... +1.
-    virtual void ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynamic<>& J1, ChVector<> coord);
+    virtual void ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynamic<>& J1, ChVector3d coord);
 
     /// Computes the matrix of partial derivatives and puts data in "MatrB"
     ///	evaluated at natural coordinates zeta1,...,zeta4 . Also computes determinant of jacobian.

@@ -265,7 +265,7 @@ void ChElementHexaANCF_3813_9::ComputeGravityForceScale() {
 }
 
 // Compute the generalized force vector due to gravity
-void ChElementHexaANCF_3813_9::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementHexaANCF_3813_9::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     assert(Fg.size() == 33);
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
@@ -534,7 +534,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                 double EEVD3 = (LogStrain(0) + LogStrain(1) + LogStrain(2)) / 3.0;
 
                 // Deviatoric  Hencky strain
-                ChVector<double> EETD;
+                ChVector3d EETD;
                 EETD.x() = LogStrain(0) - EEVD3;
                 EETD.y() = LogStrain(1) - EEVD3;
                 EETD.z() = LogStrain(2) - EEVD3;
@@ -543,7 +543,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                 // Hydrostatic pressure
                 double hydroP;
                 // Deviatoric stress
-                ChVector<double> devStress;
+                ChVector3d devStress;
                 // Norm of deviatoric stress tensor
                 double NormSn;
                 // Second invariant of stress tensor
@@ -555,9 +555,9 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                 // Variation of flow rate
                 double DeltaGamma;
                 // Updated value of deviatoric stress tensor
-                ChVector<double> devStressUp;
+                ChVector3d devStressUp;
                 // Vector of eigenvalues of current logarithmic strain
-                ChVector<double> lambda;
+                ChVector3d lambda;
                 switch (m_element->m_plast_form) {
                     case ChElementHexaANCF_3813_9::PlasticityFormulation::J2: {
                         // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
@@ -975,7 +975,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                 double EPBAR = EPBARN;
                                 double SQRJ2 = SQRJ2T;
                                 double P = PT;
-                                ChVector<double> devS = devStress;
+                                ChVector3d devS = devStress;
 
                                 // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
                                 m_element->ComputeHardening(EPBAR, MeanEffP, Hi);
@@ -1597,7 +1597,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                 double EEVD3 = (LogStrain(0) + LogStrain(1) + LogStrain(2)) / 3.0;
 
                 // Deviatoric  Hencky strain
-                ChVector<double> EETD;
+                ChVector3d EETD;
                 EETD.x() = LogStrain(0) - EEVD3;
                 EETD.y() = LogStrain(1) - EEVD3;
                 EETD.z() = LogStrain(2) - EEVD3;
@@ -1606,7 +1606,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                 // Hydrostatic pressure
                 double hydroP;
                 // Deviatoric stress tensor
-                ChVector<double> devStress;
+                ChVector3d devStress;
                 // Norm of deviatoric stress tensor
                 double NormSn;
                 // Second invariant of stress tensor
@@ -1618,9 +1618,9 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                 // Variation of flow rate
                 double DeltaGamma;
                 // Deviatoric stresses updated
-                ChVector<double> devStressUp;
+                ChVector3d devStressUp;
                 // Vector of eigenvalues of current logarithmic strain
-                ChVector<double> lambda;
+                ChVector3d lambda;
 
                 switch (m_element->m_plast_form) {
                     case ChElementHexaANCF_3813_9::PlasticityFormulation::J2: {
@@ -2103,7 +2103,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                 double EPBAR = EPBARN;
                                 double SQRJ2 = SQRJ2T;
                                 double P = PT;
-                                ChVector<double> devS = devStress;
+                                ChVector3d devS = devStress;
                                 double Acof;
                                 double A11;
                                 double A12;
@@ -2824,15 +2824,15 @@ double ChElementHexaANCF_3813_9::Calc_detJ0(double x, double y, double z) {
 
 void ChElementHexaANCF_3813_9::CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d) {
     for (int i = 0; i < 8; i++) {
-        const ChVector<>& pos = m_nodes[i]->GetPos();
+        const ChVector3d& pos = m_nodes[i]->GetPos();
         d(i, 0) = pos.x();
         d(i, 1) = pos.y();
         d(i, 2) = pos.z();
     }
 
-    const ChVector<>& rxx = m_central_node->GetCurvatureXX();
-    const ChVector<>& ryy = m_central_node->GetCurvatureYY();
-    const ChVector<>& rzz = m_central_node->GetCurvatureZZ();
+    const ChVector3d& rxx = m_central_node->GetCurvatureXX();
+    const ChVector3d& ryy = m_central_node->GetCurvatureYY();
+    const ChVector3d& rzz = m_central_node->GetCurvatureZZ();
 
     d(8, 0) = rxx.x();
     d(8, 1) = rxx.y();
@@ -2849,7 +2849,7 @@ void ChElementHexaANCF_3813_9::CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d) {
 
 void ChElementHexaANCF_3813_9::CalcCoordDerivMatrix(ChVectorN<double, 33>& dt) {
     for (int i = 0; i < 8; i++) {
-        const ChVector<>& vel = m_nodes[i]->GetPos_dt();
+        const ChVector3d& vel = m_nodes[i]->GetPos_dt();
         dt(3 * i + 0) = vel.x();
         dt(3 * i + 1) = vel.y();
         dt(3 * i + 2) = vel.z();

@@ -287,7 +287,7 @@ void ChElementShellANCF_3423::ComputeGravityForceScale() {
 }
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
-void ChElementShellANCF_3423::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementShellANCF_3423::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     assert(Fg.size() == GetNdofs());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
@@ -353,7 +353,7 @@ void ShellANCF_Force::Evaluate(ChVectorN<double, 54>& result, const double x, co
     m_element->Basis_M(M, x, y, z);
 
     // Transformation : Orthogonal transformation (A and J)
-    ChVector<double> G1xG2;  // Cross product of first and second column of
+    ChVector3d G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
     G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
@@ -362,9 +362,9 @@ void ShellANCF_Force::Evaluate(ChVectorN<double, 54>& result, const double x, co
     G1dotG1 = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
 
     // Tangent Frame
-    ChVector<double> A1;
-    ChVector<double> A2;
-    ChVector<double> A3;
+    ChVector3d A1;
+    ChVector3d A2;
+    ChVector3d A3;
     A1.x() = Nx_d0(0);
     A1.y() = Nx_d0(1);
     A1.z() = Nx_d0(2);
@@ -374,18 +374,18 @@ void ShellANCF_Force::Evaluate(ChVectorN<double, 54>& result, const double x, co
 
     // Direction for orthotropic material
     double theta = m_element->GetLayer(m_kl).Get_theta();  // Fiber angle
-    ChVector<double> AA1;
-    ChVector<double> AA2;
-    ChVector<double> AA3;
+    ChVector3d AA1;
+    ChVector3d AA2;
+    ChVector3d AA3;
     AA1 = A1 * cos(theta) + A2 * sin(theta);
     AA2 = -A1 * sin(theta) + A2 * cos(theta);
     AA3 = A3;
 
     /// Beta
     ChMatrixNM<double, 3, 3> j0;
-    ChVector<double> j01;
-    ChVector<double> j02;
-    ChVector<double> j03;
+    ChVector3d j01;
+    ChVector3d j02;
+    ChVector3d j03;
     ChVectorN<double, 9> beta;
     // Calculates inverse of rd0 (j0) (position vector gradient: Initial Configuration)
     j0(0, 0) = Ny_d0(1) * Nz_d0(2) - Nz_d0(1) * Ny_d0(2);
@@ -694,7 +694,7 @@ void ShellANCF_Jacobian::Evaluate(ChVectorN<double, 696>& result, const double x
     m_element->Basis_M(M, x, y, z);
 
     // Transformation : Orthogonal transformation (A and J)
-    ChVector<double> G1xG2;  // Cross product of first and second column of
+    ChVector3d G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
     G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
@@ -703,9 +703,9 @@ void ShellANCF_Jacobian::Evaluate(ChVectorN<double, 696>& result, const double x
     G1dotG1 = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
 
     // Tangent Frame
-    ChVector<double> A1;
-    ChVector<double> A2;
-    ChVector<double> A3;
+    ChVector3d A1;
+    ChVector3d A2;
+    ChVector3d A3;
     A1.x() = Nx_d0(0);
     A1.y() = Nx_d0(1);
     A1.z() = Nx_d0(2);
@@ -715,18 +715,18 @@ void ShellANCF_Jacobian::Evaluate(ChVectorN<double, 696>& result, const double x
 
     // Direction for orthotropic material
     double theta = m_element->GetLayer(m_kl).Get_theta();  // Fiber angle
-    ChVector<double> AA1;
-    ChVector<double> AA2;
-    ChVector<double> AA3;
+    ChVector3d AA1;
+    ChVector3d AA2;
+    ChVector3d AA3;
     AA1 = A1 * cos(theta) + A2 * sin(theta);
     AA2 = -A1 * sin(theta) + A2 * cos(theta);
     AA3 = A3;
 
     /// Beta
     ChMatrixNM<double, 3, 3> j0;
-    ChVector<double> j01;
-    ChVector<double> j02;
-    ChVector<double> j03;
+    ChVector3d j01;
+    ChVector3d j02;
+    ChVector3d j03;
     // Calculates inverse of rd0 (j0) (position vector gradient: Initial Configuration)
     j0(0, 0) = Ny_d0(1) * Nz_d0(2) - Nz_d0(1) * Ny_d0(2);
     j0(0, 1) = Ny_d0(2) * Nz_d0(0) - Ny_d0(0) * Nz_d0(2);
@@ -1125,14 +1125,14 @@ double ChElementShellANCF_3423::Calc_detJ0(double x, double y, double z) {
 }
 
 void ChElementShellANCF_3423::CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d) {
-    const ChVector<>& pA = m_nodes[0]->GetPos();
-    const ChVector<>& dA = m_nodes[0]->GetD();
-    const ChVector<>& pB = m_nodes[1]->GetPos();
-    const ChVector<>& dB = m_nodes[1]->GetD();
-    const ChVector<>& pC = m_nodes[2]->GetPos();
-    const ChVector<>& dC = m_nodes[2]->GetD();
-    const ChVector<>& pD = m_nodes[3]->GetPos();
-    const ChVector<>& dD = m_nodes[3]->GetD();
+    const ChVector3d& pA = m_nodes[0]->GetPos();
+    const ChVector3d& dA = m_nodes[0]->GetD();
+    const ChVector3d& pB = m_nodes[1]->GetPos();
+    const ChVector3d& dB = m_nodes[1]->GetD();
+    const ChVector3d& pC = m_nodes[2]->GetPos();
+    const ChVector3d& dC = m_nodes[2]->GetD();
+    const ChVector3d& pD = m_nodes[3]->GetPos();
+    const ChVector3d& dD = m_nodes[3]->GetD();
 
     d(0, 0) = pA.x();
     d(0, 1) = pA.y();
@@ -1164,14 +1164,14 @@ void ChElementShellANCF_3423::CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d) {
 }
 
 void ChElementShellANCF_3423::CalcCoordDerivMatrix(ChVectorN<double, 24>& dt) {
-    const ChVector<>& pA_dt = m_nodes[0]->GetPos_dt();
-    const ChVector<>& dA_dt = m_nodes[0]->GetD_dt();
-    const ChVector<>& pB_dt = m_nodes[1]->GetPos_dt();
-    const ChVector<>& dB_dt = m_nodes[1]->GetD_dt();
-    const ChVector<>& pC_dt = m_nodes[2]->GetPos_dt();
-    const ChVector<>& dC_dt = m_nodes[2]->GetD_dt();
-    const ChVector<>& pD_dt = m_nodes[3]->GetPos_dt();
-    const ChVector<>& dD_dt = m_nodes[3]->GetD_dt();
+    const ChVector3d& pA_dt = m_nodes[0]->GetPos_dt();
+    const ChVector3d& dA_dt = m_nodes[0]->GetD_dt();
+    const ChVector3d& pB_dt = m_nodes[1]->GetPos_dt();
+    const ChVector3d& dB_dt = m_nodes[1]->GetD_dt();
+    const ChVector3d& pC_dt = m_nodes[2]->GetPos_dt();
+    const ChVector3d& dC_dt = m_nodes[2]->GetD_dt();
+    const ChVector3d& pD_dt = m_nodes[3]->GetPos_dt();
+    const ChVector3d& dD_dt = m_nodes[3]->GetD_dt();
 
     dt(0) = pA_dt.x();
     dt(1) = pA_dt.y();
@@ -1216,16 +1216,16 @@ void ChElementShellANCF_3423::ShapeFunctionANSbilinearShell(ChMatrixNM<double, 1
 
 // Calculate ANS strain and its Jacobian
 void ChElementShellANCF_3423::CalcStrainANSbilinearShell() {
-    std::vector<ChVector<>> knots(8);
+    std::vector<ChVector3d> knots(8);
 
-    knots[0] = ChVector<>(-1, -1, 0);
-    knots[1] = ChVector<>(1, -1, 0);
-    knots[2] = ChVector<>(-1, 1, 0);
-    knots[3] = ChVector<>(1, 1, 0);
-    knots[4] = ChVector<>(-1, 0, 0);  // A
-    knots[5] = ChVector<>(1, 0, 0);   // B
-    knots[6] = ChVector<>(0, -1, 0);  // C
-    knots[7] = ChVector<>(0, 1, 0);   // D
+    knots[0] = ChVector3d(-1, -1, 0);
+    knots[1] = ChVector3d(1, -1, 0);
+    knots[2] = ChVector3d(-1, 1, 0);
+    knots[3] = ChVector3d(1, 1, 0);
+    knots[4] = ChVector3d(-1, 0, 0);  // A
+    knots[5] = ChVector3d(1, 0, 0);   // B
+    knots[6] = ChVector3d(0, -1, 0);  // C
+    knots[7] = ChVector3d(0, 1, 0);   // D
 
     ChMatrixNM<double, 1, 8> Nx;
     ChMatrixNM<double, 1, 8> Ny;
@@ -1281,9 +1281,9 @@ void ChElementShellANCF_3423::CalcStrainANSbilinearShell() {
 // Interface to ChElementShell base class
 // -----------------------------------------------------------------------------
 void ChElementShellANCF_3423::EvaluateDeflection(double& def) {
-    ChVector<> oldPos;
-    ChVector<> newPos;
-    ChVector<> defVec;
+    ChVector3d oldPos;
+    ChVector3d newPos;
+    ChVector3d defVec;
 
     for (int i = 0; i < 4; i++) {
         oldPos.x() += this->m_d0(2 * i, 0);
@@ -1301,7 +1301,7 @@ void ChElementShellANCF_3423::EvaluateDeflection(double& def) {
     def = defVec.Length();
 }
 
-ChStrainStress3D ChElementShellANCF_3423::EvaluateSectionStrainStress(const ChVector<>& loc, int layer_id) {
+ChStrainStress3D ChElementShellANCF_3423::EvaluateSectionStrainStress(const ChVector3d& loc, int layer_id) {
     // Element shape function
     ShapeVector N;
     ShapeFunctions(N, loc.x(), loc.y(), loc.z());
@@ -1322,7 +1322,7 @@ ChStrainStress3D ChElementShellANCF_3423::EvaluateSectionStrainStress(const ChVe
     this->Basis_M(M, loc.x(), loc.y(), loc.z());
 
     // Transformation : Orthogonal transformation (A and J)
-    ChVector<double> G1xG2;  // Cross product of first and second column of
+    ChVector3d G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
     G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
@@ -1331,9 +1331,9 @@ ChStrainStress3D ChElementShellANCF_3423::EvaluateSectionStrainStress(const ChVe
     G1dotG1 = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
 
     // Tangent Frame
-    ChVector<double> A1;
-    ChVector<double> A2;
-    ChVector<double> A3;
+    ChVector3d A1;
+    ChVector3d A2;
+    ChVector3d A3;
     A1.x() = Nx_d0(0);
     A1.y() = Nx_d0(1);
     A1.z() = Nx_d0(2);
@@ -1342,18 +1342,18 @@ ChStrainStress3D ChElementShellANCF_3423::EvaluateSectionStrainStress(const ChVe
     A2.Cross(A3, A1);
 
     // Direction for orthotropic material
-    ChVector<double> AA1;
-    ChVector<double> AA2;
-    ChVector<double> AA3;
+    ChVector3d AA1;
+    ChVector3d AA2;
+    ChVector3d AA3;
     AA1 = A1;
     AA2 = A2;
     AA3 = A3;
 
     /// Beta
     ChMatrixNM<double, 3, 3> j0;
-    ChVector<double> j01;
-    ChVector<double> j02;
-    ChVector<double> j03;
+    ChVector3d j01;
+    ChVector3d j02;
+    ChVector3d j03;
     ChVectorN<double, 9> beta;
     // Calculates inverse of rd0 (j0) (position vector gradient: Initial Configuration)
     j0(0, 0) = Ny_d0(1) * Nz_d0(2) - Nz_d0(1) * Ny_d0(2);
@@ -1439,8 +1439,8 @@ ChStrainStress3D ChElementShellANCF_3423::EvaluateSectionStrainStress(const ChVe
 }
 void ChElementShellANCF_3423::EvaluateSectionDisplacement(const double u,
                                                           const double v,
-                                                          ChVector<>& u_displ,
-                                                          ChVector<>& u_rotaz) {
+                                                          ChVector3d& u_displ,
+                                                          ChVector3d& u_rotaz) {
     // this is not a corotational element, so just do:
     EvaluateSectionPoint(u, v, u_displ);
     u_rotaz = VNULL;  // no angles.. this is ANCF (or maybe return here the slope derivatives?)
@@ -1448,7 +1448,7 @@ void ChElementShellANCF_3423::EvaluateSectionDisplacement(const double u,
 
 void ChElementShellANCF_3423::EvaluateSectionFrame(const double u,
                                                    const double v,
-                                                   ChVector<>& point,
+                                                   ChVector3d& point,
                                                    ChQuaternion<>& rot) {
     // this is not a corotational element, so just do:
     EvaluateSectionPoint(u, v, point);
@@ -1463,8 +1463,8 @@ void ChElementShellANCF_3423::EvaluateSectionFrame(const double u,
 
     // Since ANCF does not use rotations, calculate an approximate
     // rotation based off the position vector gradients
-    ChVector<double> MidsurfaceX = e_bar.transpose() * Nx.transpose();
-    ChVector<double> MidsurfaceY = e_bar.transpose() * Ny.transpose();
+    ChVector3d MidsurfaceX = e_bar.transpose() * Nx.transpose();
+    ChVector3d MidsurfaceY = e_bar.transpose() * Ny.transpose();
 
     // Since the position vector gradients are not in general orthogonal,
     // set the Dx direction tangent to the shell xi axis and
@@ -1476,8 +1476,8 @@ void ChElementShellANCF_3423::EvaluateSectionFrame(const double u,
     rot = msect.Get_A_quaternion();
 }
 
-void ChElementShellANCF_3423::EvaluateSectionPoint(const double u, const double v, ChVector<>& point) {
-    ChVector<> u_displ;
+void ChElementShellANCF_3423::EvaluateSectionPoint(const double u, const double v, ChVector3d& point) {
+    ChVector3d u_displ;
 
     double x = u;  // because ShapeFunctions() works in -1..1 range
     double y = v;  // because ShapeFunctions() works in -1..1 range
@@ -1485,10 +1485,10 @@ void ChElementShellANCF_3423::EvaluateSectionPoint(const double u, const double 
     ShapeVector N;
     ShapeFunctions(N, x, y, z);
 
-    const ChVector<>& pA = m_nodes[0]->GetPos();
-    const ChVector<>& pB = m_nodes[1]->GetPos();
-    const ChVector<>& pC = m_nodes[2]->GetPos();
-    const ChVector<>& pD = m_nodes[3]->GetPos();
+    const ChVector3d& pA = m_nodes[0]->GetPos();
+    const ChVector3d& pB = m_nodes[1]->GetPos();
+    const ChVector3d& pC = m_nodes[2]->GetPos();
+    const ChVector3d& pD = m_nodes[3]->GetPos();
 
     point.x() = N(0) * pA.x() + N(2) * pB.x() + N(4) * pC.x() + N(6) * pD.x();
     point.y() = N(0) * pA.y() + N(2) * pB.y() + N(4) * pC.y() + N(6) * pD.y();
@@ -1533,7 +1533,7 @@ void ChElementShellANCF_3423::LoadableStateIncrement(const unsigned int off_x,
     }
 }
 
-void ChElementShellANCF_3423::EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) {
+void ChElementShellANCF_3423::EvaluateSectionVelNorm(double U, double V, ChVector3d& Result) {
     ShapeVector N;
     ShapeFunctions(N, U, V, 0);
     for (unsigned int ii = 0; ii < 4; ii++) {
@@ -1705,7 +1705,7 @@ double ChElementShellANCF_3423::GetDensity() {
 }
 
 // Calculate normal to the surface at (U,V) coordinates.
-ChVector<> ChElementShellANCF_3423::ComputeNormal(const double U, const double V) {
+ChVector3d ChElementShellANCF_3423::ComputeNormal(const double U, const double V) {
     ChMatrixNM<double, 8, 3> mD;
     ChMatrixNM<double, 1, 8> Nx;
     ChMatrixNM<double, 1, 8> Ny;
@@ -1732,7 +1732,7 @@ ChVector<> ChElementShellANCF_3423::ComputeNormal(const double U, const double V
     rd(1, 2) = Nz_d(0, 1);
     rd(2, 2) = Nz_d(0, 2);
 
-    ChVector<> G1xG2;
+    ChVector3d G1xG2;
     G1xG2[0] = rd(1, 0) * rd(2, 1) - rd(2, 0) * rd(1, 1);
     G1xG2[1] = rd(2, 0) * rd(0, 1) - rd(0, 0) * rd(2, 1);
     G1xG2[2] = rd(0, 0) * rd(1, 1) - rd(1, 0) * rd(0, 1);
@@ -1772,7 +1772,7 @@ void ChElementShellANCF_3423::Layer::SetupInitial() {
                Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
 
     //// Transformation : Orthogonal transformation (A and J) ////
-    ChVector<double> G1xG2;  // Cross product of first and second column of
+    ChVector3d G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
     G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
@@ -1781,9 +1781,9 @@ void ChElementShellANCF_3423::Layer::SetupInitial() {
     G1dotG1 = Nx_d0(0) * Nx_d0(0) + Nx_d0(1) * Nx_d0(1) + Nx_d0(2) * Nx_d0(2);
 
     // Tangent Frame
-    ChVector<double> A1;
-    ChVector<double> A2;
-    ChVector<double> A3;
+    ChVector3d A1;
+    ChVector3d A2;
+    ChVector3d A3;
     A1.x() = Nx_d0(0);
     A1.y() = Nx_d0(1);
     A1.z() = Nx_d0(2);
@@ -1791,18 +1791,18 @@ void ChElementShellANCF_3423::Layer::SetupInitial() {
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
 
-    ChVector<double> AA1;
-    ChVector<double> AA2;
-    ChVector<double> AA3;
+    ChVector3d AA1;
+    ChVector3d AA2;
+    ChVector3d AA3;
     AA1 = A1 * cos(m_theta) + A2 * sin(m_theta);
     AA2 = -A1 * sin(m_theta) + A2 * cos(m_theta);
     AA3 = A3;
 
     ////Beta
     ChMatrixNM<double, 3, 3> j0;
-    ChVector<double> j01;
-    ChVector<double> j02;
-    ChVector<double> j03;
+    ChVector3d j01;
+    ChVector3d j02;
+    ChVector3d j03;
     ChVectorN<double, 9> beta;
 
     j0(0, 0) = Ny_d0(1) * Nz_d0(2) - Nz_d0(1) * Ny_d0(2);

@@ -21,9 +21,9 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 
 ChLoadBodyForce::ChLoadBodyForce(std::shared_ptr<ChBody> body,
-                                 const ChVector<>& force,
+                                 const ChVector3d& force,
                                  bool local_force,
-                                 const ChVector<>& point,
+                                 const ChVector3d& point,
                                  bool local_point)
     : ChLoadCustom(body),
       m_force(force),
@@ -39,7 +39,7 @@ void ChLoadBodyForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     if (!mbody->Variables().IsActive())
         return;
 
-    ChVector<> abs_force;
+    ChVector3d abs_force;
     if (m_local_force)
         abs_force = mbody->TransformDirectionLocalToParent(m_force);
     else
@@ -47,7 +47,7 @@ void ChLoadBodyForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     abs_force *= m_scale;
 
-    ChVector<> abs_point;
+    ChVector3d abs_point;
     if (m_local_point)
         abs_point = mbody->TransformPointLocalToParent(m_point);
     else
@@ -76,17 +76,17 @@ void ChLoadBodyForce::Update(double time) {
     ChLoadCustom::Update(time);
 }
 
-void ChLoadBodyForce::SetForce(const ChVector<>& force, bool is_local) {
+void ChLoadBodyForce::SetForce(const ChVector3d& force, bool is_local) {
     m_force = force;
     m_local_force = is_local;
 }
 
-void ChLoadBodyForce::SetApplicationPoint(const ChVector<>& point, const bool is_local) {
+void ChLoadBodyForce::SetApplicationPoint(const ChVector3d& point, const bool is_local) {
     m_point = point;
     m_local_point = is_local;
 }
 
-ChVector<> ChLoadBodyForce::GetForce() const {
+ChVector3d ChLoadBodyForce::GetForce() const {
     return m_force * m_scale;
 }
 
@@ -94,7 +94,7 @@ ChVector<> ChLoadBodyForce::GetForce() const {
 // ChLoadBodyTorque
 // -----------------------------------------------------------------------------
 
-ChLoadBodyTorque::ChLoadBodyTorque(std::shared_ptr<ChBody> body, const ChVector<>& torque, bool local_torque)
+ChLoadBodyTorque::ChLoadBodyTorque(std::shared_ptr<ChBody> body, const ChVector3d& torque, bool local_torque)
     : ChLoadCustom(body), m_torque(torque), m_local_torque(local_torque), m_scale(1) {
     m_modulation = chrono_types::make_shared<ChFunctionConst>(1.0);
 }
@@ -104,7 +104,7 @@ void ChLoadBodyTorque::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     if (!mbody->Variables().IsActive())
         return;
 
-    ChVector<> abs_torque;
+    ChVector3d abs_torque;
     if (m_local_torque)
         abs_torque = mbody->TransformDirectionLocalToParent(m_torque);
     else
@@ -135,12 +135,12 @@ void ChLoadBodyTorque::Update(double time) {
     ChLoadCustom::Update(time);
 }
 
-void ChLoadBodyTorque::SetTorque(const ChVector<>& torque, bool is_local) {
+void ChLoadBodyTorque::SetTorque(const ChVector3d& torque, bool is_local) {
     m_torque = torque;
     m_local_torque = is_local;
 }
 
-ChVector<> ChLoadBodyTorque::GetTorque() const {
+ChVector3d ChLoadBodyTorque::GetTorque() const {
     return m_torque * m_scale;
 }
 
@@ -157,10 +157,10 @@ bool ChLoadBodyInertia::use_gyroscopic_torque = true;           // default true.
 
 
 ChLoadBodyInertia::ChLoadBodyInertia(std::shared_ptr<ChBody> body,  ///< object to apply additional inertia to
-    const ChVector<>& m_offset,      ///< offset of the center of mass, in body coordinate system
+    const ChVector3d& m_offset,      ///< offset of the center of mass, in body coordinate system
     const double m_mass,             ///< added mass [kg]
-    const ChVector<>& m_IXX,         ///< added diag. inertia values Ixx, Iyy, Izz (in body coordinate system, centered in body)
-    const ChVector<>& m_IXY) 
+    const ChVector3d& m_IXX,         ///< added diag. inertia values Ixx, Iyy, Izz (in body coordinate system, centered in body)
+    const ChVector3d& m_IXY) 
     : ChLoadCustom(body), c_m(m_offset), mass(m_mass)
 {
     this->SetInertiaXX(m_IXX);
@@ -173,13 +173,13 @@ void ChLoadBodyInertia::SetInertia(const ChMatrix33<>& newXInertia) {
     I = newXInertia;
 }
 
-void ChLoadBodyInertia::SetInertiaXX(const ChVector<>& iner) {
+void ChLoadBodyInertia::SetInertiaXX(const ChVector3d& iner) {
     I(0, 0) = iner.x();
     I(1, 1) = iner.y();
     I(2, 2) = iner.z();
 }
 
-void ChLoadBodyInertia::SetInertiaXY(const ChVector<>& iner) {
+void ChLoadBodyInertia::SetInertiaXY(const ChVector3d& iner) {
     I(0, 1) = iner.x();
     I(0, 2) = iner.y();
     I(1, 2) = iner.z();
@@ -188,16 +188,16 @@ void ChLoadBodyInertia::SetInertiaXY(const ChVector<>& iner) {
     I(2, 1) = iner.z();
 }
 
-ChVector<> ChLoadBodyInertia::GetInertiaXX() const {
-    ChVector<> iner;
+ChVector3d ChLoadBodyInertia::GetInertiaXX() const {
+    ChVector3d iner;
     iner.x() = I(0, 0);
     iner.y() = I(1, 1);
     iner.z() = I(2, 2);
     return iner;
 }
 
-ChVector<> ChLoadBodyInertia::GetInertiaXY() const {
-    ChVector<> iner;
+ChVector3d ChLoadBodyInertia::GetInertiaXY() const {
+    ChVector3d iner;
     iner.x() = I(0, 1);
     iner.y() = I(0, 2);
     iner.z() = I(1, 2);
@@ -210,17 +210,17 @@ void ChLoadBodyInertia::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         return;
 
     // fetch speeds/pos/accel as 3d vectors for convenience
-    ChVector<> v_x = state_w->segment(0,3); // abs. 
-    ChVector<> v_w = state_w->segment(3,3); // local 
+    ChVector3d v_x = state_w->segment(0,3); // abs. 
+    ChVector3d v_w = state_w->segment(3,3); // local 
 
     /* // NO ACCELERATION PROPORTIONAL TERM ADDED HERE! Can use LoadIntLoadResidual_Mv if needed.
-    ChVector<> Ma_x = this->mass * (a_x + chrono::Vcross(a_w, this->c_m)); 
-    ChVector<> Ma_w = this->mass * chrono::Vcross(this->c_m, a_x) + this->I * a_w;
+    ChVector3d Ma_x = this->mass * (a_x + chrono::Vcross(a_w, this->c_m)); 
+    ChVector3d Ma_w = this->mass * chrono::Vcross(this->c_m, a_x) + this->I * a_w;
     */
 
     // Terms of inertial quadratic type (centrifugal, gyroscopic)
-    ChVector<> quadratic_x;
-    ChVector<> quadratic_w;
+    ChVector3d quadratic_x;
+    ChVector3d quadratic_w;
     quadratic_x = this->mass * chrono::Vcross(v_w ,chrono::Vcross(v_w, this->c_m)); // centrifugal: m*(w X w X c_m)
     if (this->use_gyroscopic_torque)
         quadratic_w = chrono::Vcross(v_w, this->I * v_w); // gyroscopical: w X J*w
@@ -239,16 +239,16 @@ void ChLoadBodyInertia::ComputeJacobian(ChState* state_x,       ///< state posit
     ChMatrixRef mM          ///< result dQ/da
 ) {
     // fetch speeds as 3d vectors for convenience
-    ChVector<> v_x = state_w->segment(0,3); // abs. 
-    ChVector<> v_w = state_w->segment(3,3); // local 
+    ChVector3d v_x = state_w->segment(0,3); // abs. 
+    ChVector3d v_w = state_w->segment(3,3); // local 
     // (note: accelerations should be fetched from a "state_acc" like we did for speeds with state_w, 
     // but acc. are not available in ComputeQ inputs... maybe in future we should change the ChLoad 
     // class to support also this. For this special case, it works also with the following trick, but 
     // would fail the default numerical differentiation in ComputeJacobian() for the M=dQ/da matrix, so 
     // we override ComputeJacobian and provide the analytical jacobians)
     auto mbody = std::dynamic_pointer_cast<ChBody>(this->loadable);
-    ChVector<> a_x = mbody->GetA().transpose() * mbody->GetPos_dtdt(); // local 
-    ChVector<> a_w = mbody->GetWacc_loc(); // local 
+    ChVector3d a_x = mbody->GetA().transpose() * mbody->GetPos_dtdt(); // local 
+    ChVector3d a_w = mbody->GetWacc_loc(); // local 
     
     ChStarMatrix33<> wtilde(v_w);  // [w~]
     ChStarMatrix33<> ctilde(c_m);  // [c~]
@@ -291,8 +291,8 @@ void ChLoadBodyInertia::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVec
         return;
 
     // fetch w as a contiguous vector
-    ChVector<> a_x = w.segment(loadable->GetSubBlockOffset(0), 3);
-    ChVector<> a_w = w.segment(loadable->GetSubBlockOffset(0)+3, 3);
+    ChVector3d a_x = w.segment(loadable->GetSubBlockOffset(0), 3);
+    ChVector3d a_w = w.segment(loadable->GetSubBlockOffset(0)+3, 3);
 
     // R+=c*M*a  
     R.segment(loadable->GetSubBlockOffset(0), 3)   += c * (this->mass * (a_x + chrono::Vcross(a_w, this->c_m))).eigen();
@@ -347,13 +347,13 @@ void ChLoadBodyBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     ComputeBodyBodyForceTorque(rel_AB, locB_force, locB_torque);
 
-    ChVector<> abs_force = frame_Bw.TransformDirectionLocalToParent(locB_force);
-    ChVector<> abs_torque = frame_Bw.TransformDirectionLocalToParent(locB_torque);
+    ChVector3d abs_force = frame_Bw.TransformDirectionLocalToParent(locB_force);
+    ChVector3d abs_torque = frame_Bw.TransformDirectionLocalToParent(locB_torque);
 
     // Compute Q
 
-    ChVector<> loc_ftorque = bodycoordA.GetRot().RotateBack(((frame_Aw.GetPos() - bodycoordA.GetPos()) % -abs_force));
-    ChVector<> loc_torque = bodycoordA.GetRot().RotateBack(-abs_torque);
+    ChVector3d loc_ftorque = bodycoordA.GetRot().RotateBack(((frame_Aw.GetPos() - bodycoordA.GetPos()) % -abs_force));
+    ChVector3d loc_torque = bodycoordA.GetRot().RotateBack(-abs_torque);
     load_Q.segment(0, 3) = -abs_force.eigen();
     load_Q.segment(3, 3) = (loc_ftorque + loc_torque).eigen();
 
@@ -377,15 +377,15 @@ std::shared_ptr<ChBody> ChLoadBodyBody::GetBodyB() const {
 
 ChLoadBodyBodyTorque::ChLoadBodyBodyTorque(std::shared_ptr<ChBody> bodyA,
                                            std::shared_ptr<ChBody> bodyB,
-                                           const ChVector<> torque,
+                                           const ChVector3d torque,
                                            bool local_torque)
     : ChLoadBodyBody(bodyA, bodyB, ChFrame<>()), m_torque(torque), m_local_torque(local_torque), m_scale(1) {
     m_modulation = chrono_types::make_shared<ChFunctionConst>(1.0);
 }
 
 void ChLoadBodyBodyTorque::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
-                                                      ChVector<>& loc_force,
-                                                      ChVector<>& loc_torque) {
+                                                      ChVector3d& loc_force,
+                                                      ChVector3d& loc_torque) {
     loc_force = VNULL;
 
     if (m_local_torque)
@@ -411,13 +411,13 @@ void ChLoadBodyBodyTorque::Update(double time) {
 ChLoadBodyBodyBushingSpherical::ChLoadBodyBodyBushingSpherical(std::shared_ptr<ChBody> bodyA,
                                                                std::shared_ptr<ChBody> bodyB,
                                                                const ChFrame<>& abs_application,
-                                                               const ChVector<>& mstiffness,
-                                                               const ChVector<>& mdamping)
+                                                               const ChVector3d& mstiffness,
+                                                               const ChVector3d& mdamping)
     : ChLoadBodyBody(bodyA, bodyB, abs_application), stiffness(mstiffness), damping(mdamping) {}
 
 void ChLoadBodyBodyBushingSpherical::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
-                                                                ChVector<>& loc_force,
-                                                                ChVector<>& loc_torque) {
+                                                                ChVector3d& loc_force,
+                                                                ChVector3d& loc_torque) {
     loc_force = rel_AB.GetPos() * stiffness      // element-wise product!
                 + rel_AB.GetPos_dt() * damping;  // element-wise product!
     loc_torque = VNULL;
@@ -430,16 +430,16 @@ void ChLoadBodyBodyBushingSpherical::ComputeBodyBodyForceTorque(const ChFrameMov
 ChLoadBodyBodyBushingPlastic::ChLoadBodyBodyBushingPlastic(std::shared_ptr<ChBody> mbodyA,
                                                            std::shared_ptr<ChBody> mbodyB,
                                                            const ChFrame<>& abs_application,
-                                                           const ChVector<>& mstiffness,
-                                                           const ChVector<>& mdamping,
-                                                           const ChVector<>& myield)
+                                                           const ChVector3d& mstiffness,
+                                                           const ChVector3d& mdamping,
+                                                           const ChVector3d& myield)
     : ChLoadBodyBodyBushingSpherical(mbodyA, mbodyB, abs_application, mstiffness, mdamping),
       yield(myield),
       plastic_def(VNULL) {}
 
 void ChLoadBodyBodyBushingPlastic::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
-                                                              ChVector<>& loc_force,
-                                                              ChVector<>& loc_torque) {
+                                                              ChVector3d& loc_force,
+                                                              ChVector3d& loc_torque) {
     loc_force = (rel_AB.GetPos() - plastic_def) * stiffness  // element-wise product!
                 + rel_AB.GetPos_dt() * damping;              // element-wise product!
 
@@ -482,31 +482,31 @@ void ChLoadBodyBodyBushingPlastic::ComputeBodyBodyForceTorque(const ChFrameMovin
 ChLoadBodyBodyBushingMate::ChLoadBodyBodyBushingMate(std::shared_ptr<ChBody> mbodyA,
                                                      std::shared_ptr<ChBody> mbodyB,
                                                      const ChFrame<>& abs_application,
-                                                     const ChVector<>& mstiffness,
-                                                     const ChVector<>& mdamping,
-                                                     const ChVector<>& mrotstiffness,
-                                                     const ChVector<>& mrotdamping)
+                                                     const ChVector3d& mstiffness,
+                                                     const ChVector3d& mdamping,
+                                                     const ChVector3d& mrotstiffness,
+                                                     const ChVector3d& mrotdamping)
     : ChLoadBodyBodyBushingSpherical(mbodyA, mbodyB, abs_application, mstiffness, mdamping),
       rot_stiffness(mrotstiffness),
       rot_damping(mrotdamping) {}
 
 void ChLoadBodyBodyBushingMate::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
-                                                           ChVector<>& loc_force,
-                                                           ChVector<>& loc_torque) {
+                                                           ChVector3d& loc_force,
+                                                           ChVector3d& loc_torque) {
     // inherit parent to compute loc_force = ...
     ChLoadBodyBodyBushingSpherical::ComputeBodyBodyForceTorque(rel_AB, loc_force, loc_torque);
 
     // compute local torque using small rotations:
     ChQuaternion<> rel_rot = rel_AB.GetRot();
 
-    ChVector<> dir_rot;
+    ChVector3d dir_rot;
     double angle_rot;
     rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
     if (angle_rot > CH_C_PI)
         angle_rot -= CH_C_2PI;
     if (angle_rot < -CH_C_PI)
         angle_rot += CH_C_2PI;
-    ChVector<> vect_rot = dir_rot * angle_rot;
+    ChVector3d vect_rot = dir_rot * angle_rot;
 
     loc_torque = vect_rot * rot_stiffness           // element-wise product!
                  + rel_AB.GetWvel_par() * rot_damping;  // element-wise product!
@@ -524,22 +524,22 @@ ChLoadBodyBodyBushingGeneric::ChLoadBodyBodyBushingGeneric(std::shared_ptr<ChBod
     : ChLoadBodyBody(mbodyA, mbodyB, abs_application), stiffness(mstiffness), damping(mdamping) {}
 
 void ChLoadBodyBodyBushingGeneric::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
-                                                              ChVector<>& loc_force,
-                                                              ChVector<>& loc_torque) {
+                                                              ChVector3d& loc_force,
+                                                              ChVector3d& loc_torque) {
     // compute local force & torque (assuming small rotations):
     ChVectorDynamic<> mF(6);
     ChVectorDynamic<> mS(6);
     ChVectorDynamic<> mSdt(6);
-    ChVector<> rel_pos = rel_AB.GetPos() + neutral_displacement.GetPos();
+    ChVector3d rel_pos = rel_AB.GetPos() + neutral_displacement.GetPos();
     ChQuaternion<> rel_rot = rel_AB.GetRot() * neutral_displacement.GetRot();
-    ChVector<> dir_rot;
+    ChVector3d dir_rot;
     double angle_rot;
     rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
     if (angle_rot > CH_C_PI)
         angle_rot -= CH_C_2PI;
     if (angle_rot < -CH_C_PI)
         angle_rot += CH_C_2PI;
-    ChVector<> vect_rot = dir_rot * angle_rot;
+    ChVector3d vect_rot = dir_rot * angle_rot;
 
     mS.segment(0, 3) = rel_pos.eigen();
     mS.segment(3, 3) = vect_rot.eigen();
@@ -548,8 +548,8 @@ void ChLoadBodyBodyBushingGeneric::ComputeBodyBodyForceTorque(const ChFrameMovin
 
     mF = stiffness * mS + damping * mSdt;
 
-    loc_force = ChVector<>(mF.segment(0, 3)) - neutral_force;
-    loc_torque = ChVector<>(mF.segment(3, 3)) - neutral_torque;
+    loc_force = ChVector3d(mF.segment(0, 3)) - neutral_force;
+    loc_torque = ChVector3d(mF.segment(3, 3)) - neutral_torque;
 }
 
 }  // end namespace chrono

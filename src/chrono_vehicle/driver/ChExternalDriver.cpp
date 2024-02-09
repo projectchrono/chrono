@@ -188,7 +188,7 @@ ChJSONWriter& ChJSONWriter::operator<<(unsigned long long v) {
     return *this;
 }
 
-ChJSONWriter& ChJSONWriter::operator<<(ChVector<> v) {
+ChJSONWriter& ChJSONWriter::operator<<(ChVector3d v) {
     m_writer.StartArray();
     m_writer.Double(v.x());
     m_writer.Double(v.y());

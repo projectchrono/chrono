@@ -21,7 +21,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/utils/ChConstants.h"
 
 namespace chrono {
@@ -52,7 +52,7 @@ class ChQuaternion {
     ChQuaternion(Real e0, Real e1, Real e2, Real e3);
 
     /// Constructor from real part, and vector with i,j,k imaginary part.
-    ChQuaternion(Real s, const ChVector<Real>& v);
+    ChQuaternion(Real s, const ChVector3<Real>& v);
 
     /// Copy constructor
     ChQuaternion(const ChQuaternion<Real>& other);
@@ -125,7 +125,7 @@ class ChQuaternion {
     void SetScalar(Real s);
 
     /// Sets the vectorial part only
-    void SetVector(const ChVector<Real>& v);
+    void SetVector(const ChVector3<Real>& v);
 
     /// Return true if this quaternion is the null quaternion.
     bool IsNull() const;
@@ -140,22 +140,22 @@ class ChQuaternion {
     bool Equals(const ChQuaternion<Real>& other, Real tol) const;
 
     /// Gets the vectorial part only
-    ChVector<Real> GetVector() const;
+    ChVector3<Real> GetVector() const;
 
     /// Get the X axis of a coordsystem, given the quaternion which represents
     /// the alignment of the coordsystem. Note that it is assumed that the
     /// quaternion is already normalized.
-    ChVector<Real> GetXaxis() const;
+    ChVector3<Real> GetXaxis() const;
 
     /// Get the Y axis of a coordsystem, given the quaternion which represents
     /// the alignment of the coordsystem. Note that it is assumed that the
     /// quaternion is already normalized.
-    ChVector<Real> GetYaxis() const;
+    ChVector3<Real> GetYaxis() const;
 
     /// Get the Z axis of a coordsystem, given the quaternion which represents
     /// the alignment of the coordsystem. Note that it is assumed that the
     /// quaternion is already normalized.
-    ChVector<Real> GetZaxis() const;
+    ChVector3<Real> GetZaxis() const;
 
     // QUATERNION NORMS
 
@@ -310,86 +310,86 @@ class ChQuaternion {
 
     /// Rotate the vector A on the basis of this quaternion: res=p*[0,A]*p'
     /// (speed-optimized version). Endomorphism assumes p is already normalized.
-    ChVector<Real> Rotate(const ChVector<Real>& A) const;
+    ChVector3<Real> Rotate(const ChVector3<Real>& A) const;
 
     /// Rotate the vector A on the basis of conjugate of this quaternion: res=p'*[0,A]*p
     /// (speed-optimized version).  Endomorphism assumes p is already normalized.
-    ChVector<Real> RotateBack(const ChVector<Real>& A) const;
+    ChVector3<Real> RotateBack(const ChVector3<Real>& A) const;
 
     // CONVERSIONS
 
     /// Set the quaternion from a rotation vector (ie. a 3D axis of rotation with length as angle of rotation)
     /// defined in absolute coords.
     /// If you need distinct axis and angle, use Q_from_AngAxis().
-    void Q_from_Rotv(const ChVector<Real>& angle_axis);
+    void Q_from_Rotv(const ChVector3<Real>& angle_axis);
 
     /// Get the rotation vector (ie. a 3D axis of rotation with length as angle of rotation) from a quaternion.
     /// If you need distinct axis and angle, use rather Q_to_AngAxis().
-    ChVector<Real> Q_to_Rotv();
+    ChVector3<Real> Q_to_Rotv();
 
     /// Set the quaternion from an angle of rotation and an axis, defined in absolute coords.
     /// The axis is supposed to be fixed, i.e. it is constant during rotation!
     /// NOTE, axis must be normalized!
     /// If you need directly the rotation vector=axis * angle, use Q_from_Rotv().
-    void Q_from_AngAxis(Real angle, const ChVector<Real>& axis);
+    void Q_from_AngAxis(Real angle, const ChVector3<Real>& axis);
 
     /// Set the quaternion from an angle of rotation about X axis.
-    void Q_from_AngX(Real angleX) { Q_from_AngAxis(angleX, ChVector<Real>(1, 0, 0)); }
+    void Q_from_AngX(Real angleX) { Q_from_AngAxis(angleX, ChVector3<Real>(1, 0, 0)); }
 
     /// Set the quaternion from an angle of rotation about Y axis.
-    void Q_from_AngY(Real angleY) { Q_from_AngAxis(angleY, ChVector<Real>(0, 1, 0)); }
+    void Q_from_AngY(Real angleY) { Q_from_AngAxis(angleY, ChVector3<Real>(0, 1, 0)); }
 
     /// Set the quaternion from an angle of rotation about Z axis.
-    void Q_from_AngZ(Real angleZ) { Q_from_AngAxis(angleZ, ChVector<Real>(0, 0, 1)); }
+    void Q_from_AngZ(Real angleZ) { Q_from_AngAxis(angleZ, ChVector3<Real>(0, 0, 1)); }
 
     /// Convert the quaternion to an angle of rotation and an axis, defined in absolute coords.
     /// Resulting angle and axis must be passed as parameters.
     /// Note that angle is in [-PI....+PI] range. Also remember  (angle, axis) is the same of (-angle,-axis).
     /// If you need directly the rotation vector=axis * angle, use Q_to_Rotv().
-    void Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_axis) const;
+    void Q_to_AngAxis(Real& a_angle, ChVector3<Real>& a_axis) const;
 
     /// Set the quaternion from three angles (NASA angle set) heading, bank, and attitude.
-    void Q_from_NasaAngles(const ChVector<Real>& ang);
+    void Q_from_NasaAngles(const ChVector3<Real>& ang);
 
     /// Convert the quaternion to three angles (NASA angle set) heading, bank and attitude.
-    ChVector<Real> Q_to_NasaAngles();
+    ChVector3<Real> Q_to_NasaAngles();
 
     /// Set the quaternion from three angles (Euler Sequence 123) roll, pitch, and yaw.
-    void Q_from_Euler123(const ChVector<Real>& ang);
+    void Q_from_Euler123(const ChVector3<Real>& ang);
 
     /// Convert the quaternion to three angles (Euler Sequence 123) roll, pitch, and yaw.
-    ChVector<Real> Q_to_Euler123();
+    ChVector3<Real> Q_to_Euler123();
 
     /// Set the quaternion dq/dt. Inputs: the vector of angular speed w specified in absolute coords,
     /// and the rotation expressed as a quaternion q.
-    void Qdt_from_Wabs(const ChVector<Real>& w, const ChQuaternion<Real>& q);
+    void Qdt_from_Wabs(const ChVector3<Real>& w, const ChQuaternion<Real>& q);
 
     /// Set the quaternion dq/dt. Inputs: the vector of angular speed w specified in relative coords,
     /// and the rotation expressed as a quaternion q.
-    void Qdt_from_Wrel(const ChVector<Real>& w, const ChQuaternion<Real>& q);
+    void Qdt_from_Wrel(const ChVector3<Real>& w, const ChQuaternion<Real>& q);
 
     /// Compute the vector of angular speed 'w' specified in absolute coords,
     /// from the quaternion dq/dt and the rotation expressed as a quaternion q.
-    void Qdt_to_Wabs(ChVector<Real>& w, const ChQuaternion<Real>& q);
+    void Qdt_to_Wabs(ChVector3<Real>& w, const ChQuaternion<Real>& q);
 
     /// Compute the vector of angular speed 'w' specified in relative coords,
     /// from the quaternion dq/dt and the rotation expressed as a quaternion q.
-    void Qdt_to_Wrel(ChVector<Real>& w, const ChQuaternion<Real>& q);
+    void Qdt_to_Wrel(ChVector3<Real>& w, const ChQuaternion<Real>& q);
 
     /// Set the quaternion ddq/dtdt. Inputs: the vector of angular acceleration 'a' specified
     /// in absolute coords, the rotation expressed as a quaternion q, the rotation speed
     /// as a quaternion 'q_dt'.
-    void Qdtdt_from_Aabs(const ChVector<Real>& a, const ChQuaternion<Real>& q, const ChQuaternion<Real>& q_dt);
+    void Qdtdt_from_Aabs(const ChVector3<Real>& a, const ChQuaternion<Real>& q, const ChQuaternion<Real>& q_dt);
 
     /// Set the quaternion ddq/dtdt. Inputs: the vector of angular acceleration 'a' specified
     /// in relative coords, the rotation expressed as a quaternion q, the rotation speed
     /// as a quaternion 'q_dt'.
-    void Qdtdt_from_Arel(const ChVector<Real>& a, const ChQuaternion<Real>& q, const ChQuaternion<Real>& q_dt);
+    void Qdtdt_from_Arel(const ChVector3<Real>& a, const ChQuaternion<Real>& q, const ChQuaternion<Real>& q_dt);
 
     /// Set the quaternion dq/dt. Inputs:  the axis of rotation 'axis' (assuming it is already normalized
     /// and expressed in absolute coords), the angular speed 'angle_dt' (scalar value), and the
     /// rotation expressed as a quaternion 'q'.
-    void Qdt_from_AngAxis(const ChQuaternion<Real>& q, Real angle_dt, const ChVector<Real>& axis);
+    void Qdt_from_AngAxis(const ChQuaternion<Real>& q, Real angle_dt, const ChVector3<Real>& axis);
 
     /// Set the quaternion ddq/dtdt. Inputs: the axis of ang. acceleration 'axis' (assuming it is already
     /// normalized and expressed in absolute coords), the angular acceleration 'angle_dtdt' (scalar value),
@@ -397,16 +397,16 @@ class ChQuaternion {
     void Qdtdt_from_AngAxis(const ChQuaternion<Real>& q,
                             const ChQuaternion<Real>& q_dt,
                             Real angle_dtdt,
-                            const ChVector<Real>& axis);
+                            const ChVector3<Real>& axis);
 
     /// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion,
     /// tries to set the entire quaternion q = {e0, e1, e2, e3}.  Also for q_dt and q_dtdt.
     /// Note: singularities may happen!
-    void ImmQ_complete(const ChVector<Real>& qimm);
-    void ImmQ_dt_complete(const ChQuaternion<Real>& q, const ChVector<Real>& qimm_dt);
+    void ImmQ_complete(const ChVector3<Real>& qimm);
+    void ImmQ_dt_complete(const ChQuaternion<Real>& q, const ChVector3<Real>& qimm_dt);
     void ImmQ_dtdt_complete(const ChQuaternion<Real>& q,
                             const ChQuaternion<Real>& qdt,
-                            const ChVector<Real>& qimm_dtdt);
+                            const ChVector3<Real>& qimm_dtdt);
 
     /// Method to allow serialization of transient m_data to archives.
     void ArchiveOut(ChArchiveOut& marchive);
@@ -492,19 +492,19 @@ ChApi ChQuaternion<double> Qnorm(const ChQuaternion<double>& q);
 /// Get the quaternion from an angle of rotation and an axis, defined in _abs_ coords.
 /// The axis is supposed to be fixed, i.e. it is constant during rotation.
 /// The 'axis' vector must be normalized.
-ChApi ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis);
+ChApi ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector3d& axis);
 
 /// Get the quaternion from a source vector and a destination vector which specifies
 /// the rotation from one to the other.  The vectors do not need to be normalized.
-ChApi ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const ChVector<double>& to_vect);
+ChApi ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector3d& fr_vect, const ChVector3d& to_vect);
 
-ChApi ChQuaternion<double> Q_from_NasaAngles(const ChVector<double>& RxRyRz);
+ChApi ChQuaternion<double> Q_from_NasaAngles(const ChVector3d& RxRyRz);
 
-ChApi ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& mq);
+ChApi ChVector3d Q_to_NasaAngles(const ChQuaternion<double>& mq);
 
-ChApi ChQuaternion<double> Q_from_Euler123(const ChVector<double>& RxRyRz);
+ChApi ChQuaternion<double> Q_from_Euler123(const ChVector3d& RxRyRz);
 
-ChApi ChVector<double> Q_to_Euler123(const ChQuaternion<double>& mq);
+ChApi ChVector3d Q_to_Euler123(const ChQuaternion<double>& mq);
 
 ChApi ChQuaternion<double> Q_from_AngZ(double angleZ);
 
@@ -512,32 +512,30 @@ ChApi ChQuaternion<double> Q_from_AngX(double angleX);
 
 ChApi ChQuaternion<double> Q_from_AngY(double angleY);
 
-ChApi void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector<double>& axis);
+ChApi void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector3d& axis);
 
 /// Get the quaternion time derivative from the vector of angular speed, with w specified in _local_ coords.
-ChApi ChQuaternion<double> Qdt_from_Wrel(const ChVector<double>& w, const Quaternion& q);
+ChApi ChQuaternion<double> Qdt_from_Wrel(const ChVector3d& w, const Quaternion& q);
 
 /// Get the quaternion time derivative from the vector of angular speed, with w specified in _absolute_ coords.
-ChApi ChQuaternion<double> Qdt_from_Wabs(const ChVector<double>& w, const Quaternion& q);
+ChApi ChQuaternion<double> Qdt_from_Wabs(const ChVector3d& w, const Quaternion& q);
 
 /// Get the time derivative from a quaternion, a speed of rotation and an axis, defined in _abs_ coords.
-ChApi ChQuaternion<double> Qdt_from_AngAxis(const ChQuaternion<double>& quat,
-                                            double angle_dt,
-                                            const ChVector<double>& axis);
+ChApi ChQuaternion<double> Qdt_from_AngAxis(const ChQuaternion<double>& quat, double angle_dt, const ChVector3d& axis);
 
 /// Get the quaternion first derivative from the vector of angular acceleration with a specified in _absolute_ coords.
-ChApi ChQuaternion<double> Qdtdt_from_Aabs(const ChVector<double>& a,
+ChApi ChQuaternion<double> Qdtdt_from_Aabs(const ChVector3d& a,
                                            const ChQuaternion<double>& q,
                                            const ChQuaternion<double>& q_dt);
 
 ///	Get the quaternion second derivative from the vector of angular acceleration with a specified in _relative_ coords.
-ChApi ChQuaternion<double> Qdtdt_from_Arel(const ChVector<double>& a,
+ChApi ChQuaternion<double> Qdtdt_from_Arel(const ChVector3d& a,
                                            const ChQuaternion<double>& q,
                                            const ChQuaternion<double>& q_dt);
 
 /// Get the second time derivative from a quaternion, an angular acceleration and an axis, defined in _abs_ coords.
 ChApi ChQuaternion<double> Qdtdt_from_AngAxis(double angle_dtdt,
-                                              const ChVector<double>& axis,
+                                              const ChVector3d& axis,
                                               const ChQuaternion<double>& q,
                                               const ChQuaternion<double>& q_dt);
 
@@ -556,31 +554,29 @@ ChApi bool Qnotnull(const ChQuaternion<double>& qa);
 /// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion,
 /// find the entire quaternion q = {e0, e1, e2, e3}.
 /// Note: singularities are possible.
-ChApi ChQuaternion<double> ImmQ_complete(const ChVector<double>& qimm);
+ChApi ChQuaternion<double> ImmQ_complete(const ChVector3d& qimm);
 
 /// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion time derivative,
 /// find the entire quaternion q = {e0, e1, e2, e3}.
 /// Note: singularities are possible.
-ChApi ChQuaternion<double> ImmQ_dt_complete(const ChQuaternion<double>& mq, const ChVector<double>& qimm_dt);
+ChApi ChQuaternion<double> ImmQ_dt_complete(const ChQuaternion<double>& mq, const ChVector3d& qimm_dt);
 
 /// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion second time derivative,
 /// find the entire quaternion q = {e0, e1, e2, e3}.
 /// Note: singularities are possible.
 ChApi ChQuaternion<double> ImmQ_dtdt_complete(const ChQuaternion<double>& mq,
                                               const ChQuaternion<double>& mqdt,
-                                              const ChVector<double>& qimm_dtdt);
+                                              const ChVector3d& qimm_dtdt);
 
-ChApi ChVector<double> VaxisXfromQuat(const ChQuaternion<double>& quat);
+ChApi ChVector3d VaxisXfromQuat(const ChQuaternion<double>& quat);
 
 /// Angle conversion utilities.
-ChApi ChVector<double> Quat_to_Angle(AngleSet angset, const ChQuaternion<double>& mquat);
-ChApi ChVector<double> Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector<double>& mangles);
-ChApi ChQuaternion<double> Angle_to_Quat(AngleSet angset, const ChVector<double>& mangles);
-ChApi ChQuaternion<double> AngleDT_to_QuatDT(AngleSet angset,
-                                             const ChVector<double>& mangles,
-                                             const ChQuaternion<double>& q);
+ChApi ChVector3d Quat_to_Angle(AngleSet angset, const ChQuaternion<double>& mquat);
+ChApi ChVector3d Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector3d& mangles);
+ChApi ChQuaternion<double> Angle_to_Quat(AngleSet angset, const ChVector3d& mangles);
+ChApi ChQuaternion<double> AngleDT_to_QuatDT(AngleSet angset, const ChVector3d& mangles, const ChQuaternion<double>& q);
 ChApi ChQuaternion<double> AngleDTDT_to_QuatDTDT(AngleSet angset,
-                                                 const ChVector<double>& mangles,
+                                                 const ChVector3d& mangles,
                                                  const ChQuaternion<double>& q);
 
 /// Insertion of quaternion to output stream.
@@ -614,7 +610,7 @@ inline ChQuaternion<Real>::ChQuaternion(Real e0, Real e1, Real e2, Real e3) {
 }
 
 template <class Real>
-inline ChQuaternion<Real>::ChQuaternion(Real s, const ChVector<Real>& v) {
+inline ChQuaternion<Real>::ChQuaternion(Real s, const ChVector3<Real>& v) {
     m_data[0] = s;
     m_data[1] = v.x();
     m_data[2] = v.y();
@@ -894,7 +890,7 @@ inline void ChQuaternion<Real>::SetScalar(Real s) {
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::SetVector(const ChVector<Real>& v) {
+inline void ChQuaternion<Real>::SetVector(const ChVector3<Real>& v) {
     m_data[1] = v.x();
     m_data[2] = v.y();
     m_data[3] = v.z();
@@ -923,29 +919,29 @@ inline bool ChQuaternion<Real>::Equals(const ChQuaternion<Real>& other, Real tol
 }
 
 template <class Real>
-inline ChVector<Real> ChQuaternion<Real>::GetVector() const {
-    return ChVector<Real>(m_data[1], m_data[2], m_data[3]);
+inline ChVector3<Real> ChQuaternion<Real>::GetVector() const {
+    return ChVector3<Real>(m_data[1], m_data[2], m_data[3]);
 }
 
 template <class Real>
-inline ChVector<Real> ChQuaternion<Real>::GetXaxis() const {
-    return ChVector<Real>((m_data[0] * m_data[0] + m_data[1] * m_data[1]) * 2 - 1,
-                          (m_data[1] * m_data[2] + m_data[0] * m_data[3]) * 2,
-                          (m_data[1] * m_data[3] - m_data[0] * m_data[2]) * 2);
+inline ChVector3<Real> ChQuaternion<Real>::GetXaxis() const {
+    return ChVector3<Real>((m_data[0] * m_data[0] + m_data[1] * m_data[1]) * 2 - 1,
+                           (m_data[1] * m_data[2] + m_data[0] * m_data[3]) * 2,
+                           (m_data[1] * m_data[3] - m_data[0] * m_data[2]) * 2);
 }
 
 template <class Real>
-inline ChVector<Real> ChQuaternion<Real>::GetYaxis() const {
-    return ChVector<Real>((m_data[1] * m_data[2] - m_data[0] * m_data[3]) * 2,
-                          (m_data[0] * m_data[0] + m_data[2] * m_data[2]) * 2 - 1,
-                          (m_data[2] * m_data[3] + m_data[0] * m_data[1]) * 2);
+inline ChVector3<Real> ChQuaternion<Real>::GetYaxis() const {
+    return ChVector3<Real>((m_data[1] * m_data[2] - m_data[0] * m_data[3]) * 2,
+                           (m_data[0] * m_data[0] + m_data[2] * m_data[2]) * 2 - 1,
+                           (m_data[2] * m_data[3] + m_data[0] * m_data[1]) * 2);
 }
 
 template <class Real>
-inline ChVector<Real> ChQuaternion<Real>::GetZaxis() const {
-    return ChVector<Real>((m_data[1] * m_data[3] + m_data[0] * m_data[2]) * 2,
-                          (m_data[2] * m_data[3] - m_data[0] * m_data[1]) * 2,
-                          (m_data[0] * m_data[0] + m_data[3] * m_data[3]) * 2 - 1);
+inline ChVector3<Real> ChQuaternion<Real>::GetZaxis() const {
+    return ChVector3<Real>((m_data[1] * m_data[3] + m_data[0] * m_data[2]) * 2,
+                           (m_data[2] * m_data[3] - m_data[0] * m_data[1]) * 2,
+                           (m_data[0] * m_data[0] + m_data[3] * m_data[3]) * 2 - 1);
 }
 
 template <class Real>
@@ -1066,7 +1062,7 @@ inline ChQuaternion<Real> ChQuaternion<Real>::GetInverse() const {
 }
 
 template <class Real>
-inline ChVector<Real> ChQuaternion<Real>::Rotate(const ChVector<Real>& A) const {
+inline ChVector3<Real> ChQuaternion<Real>::Rotate(const ChVector3<Real>& A) const {
     Real e0e0 = m_data[0] * m_data[0];
     Real e1e1 = m_data[1] * m_data[1];
     Real e2e2 = m_data[2] * m_data[2];
@@ -1077,13 +1073,13 @@ inline ChVector<Real> ChQuaternion<Real>::Rotate(const ChVector<Real>& A) const 
     Real e1e2 = m_data[1] * m_data[2];
     Real e1e3 = m_data[1] * m_data[3];
     Real e2e3 = m_data[2] * m_data[3];
-    return ChVector<Real>(((e0e0 + e1e1) * 2 - 1) * A.x() + ((e1e2 - e0e3) * 2) * A.y() + ((e1e3 + e0e2) * 2) * A.z(),
-                          ((e1e2 + e0e3) * 2) * A.x() + ((e0e0 + e2e2) * 2 - 1) * A.y() + ((e2e3 - e0e1) * 2) * A.z(),
-                          ((e1e3 - e0e2) * 2) * A.x() + ((e2e3 + e0e1) * 2) * A.y() + ((e0e0 + e3e3) * 2 - 1) * A.z());
+    return ChVector3<Real>(((e0e0 + e1e1) * 2 - 1) * A.x() + ((e1e2 - e0e3) * 2) * A.y() + ((e1e3 + e0e2) * 2) * A.z(),
+                           ((e1e2 + e0e3) * 2) * A.x() + ((e0e0 + e2e2) * 2 - 1) * A.y() + ((e2e3 - e0e1) * 2) * A.z(),
+                           ((e1e3 - e0e2) * 2) * A.x() + ((e2e3 + e0e1) * 2) * A.y() + ((e0e0 + e3e3) * 2 - 1) * A.z());
 }
 
 template <class Real>
-inline ChVector<Real> ChQuaternion<Real>::RotateBack(const ChVector<Real>& A) const {
+inline ChVector3<Real> ChQuaternion<Real>::RotateBack(const ChVector3<Real>& A) const {
     Real e0e0 = +m_data[0] * m_data[0];
     Real e1e1 = +m_data[1] * m_data[1];
     Real e2e2 = +m_data[2] * m_data[2];
@@ -1094,13 +1090,13 @@ inline ChVector<Real> ChQuaternion<Real>::RotateBack(const ChVector<Real>& A) co
     Real e1e2 = +m_data[1] * m_data[2];
     Real e1e3 = +m_data[1] * m_data[3];
     Real e2e3 = +m_data[2] * m_data[3];
-    return ChVector<Real>(((e0e0 + e1e1) * 2 - 1) * A.x() + ((e1e2 - e0e3) * 2) * A.y() + ((e1e3 + e0e2) * 2) * A.z(),
-                          ((e1e2 + e0e3) * 2) * A.x() + ((e0e0 + e2e2) * 2 - 1) * A.y() + ((e2e3 - e0e1) * 2) * A.z(),
-                          ((e1e3 - e0e2) * 2) * A.x() + ((e2e3 + e0e1) * 2) * A.y() + ((e0e0 + e3e3) * 2 - 1) * A.z());
+    return ChVector3<Real>(((e0e0 + e1e1) * 2 - 1) * A.x() + ((e1e2 - e0e3) * 2) * A.y() + ((e1e3 + e0e2) * 2) * A.z(),
+                           ((e1e2 + e0e3) * 2) * A.x() + ((e0e0 + e2e2) * 2 - 1) * A.y() + ((e2e3 - e0e1) * 2) * A.z(),
+                           ((e1e3 - e0e2) * 2) * A.x() + ((e2e3 + e0e1) * 2) * A.y() + ((e0e0 + e3e3) * 2 - 1) * A.z());
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::Q_from_Rotv(const ChVector<Real>& angle_axis) {
+inline void ChQuaternion<Real>::Q_from_Rotv(const ChVector3<Real>& angle_axis) {
     Real theta_squared = angle_axis.Length2();
     // For non-zero rotation:
     if (theta_squared > 1e-30) {
@@ -1122,8 +1118,8 @@ inline void ChQuaternion<Real>::Q_from_Rotv(const ChVector<Real>& angle_axis) {
 }
 
 template <class Real>
-inline ChVector<Real> ChQuaternion<Real>::Q_to_Rotv() {
-    ChVector<Real> angle_axis;
+inline ChVector3<Real> ChQuaternion<Real>::Q_to_Rotv() {
+    ChVector3<Real> angle_axis;
     Real sin_squared = m_data[1] * m_data[1] + m_data[2] * m_data[2] + m_data[3] * m_data[3];
     // For non-zero rotation
     if (sin_squared > 1e-30) {
@@ -1143,7 +1139,7 @@ inline ChVector<Real> ChQuaternion<Real>::Q_to_Rotv() {
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::Q_from_AngAxis(Real angle, const ChVector<Real>& axis) {
+inline void ChQuaternion<Real>::Q_from_AngAxis(Real angle, const ChVector3<Real>& axis) {
     Real halfang = (angle / 2);
     Real sinhalf = sin(halfang);
     m_data[0] = cos(halfang);
@@ -1153,7 +1149,7 @@ inline void ChQuaternion<Real>::Q_from_AngAxis(Real angle, const ChVector<Real>&
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_axis) const {
+inline void ChQuaternion<Real>::Q_to_AngAxis(Real& a_angle, ChVector3<Real>& a_axis) const {
     Real sin_squared = m_data[1] * m_data[1] + m_data[2] * m_data[2] + m_data[3] * m_data[3];
     // For non-zero rotation
     if (sin_squared > 0) {
@@ -1181,7 +1177,7 @@ inline void ChQuaternion<Real>::Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_ax
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::Q_from_NasaAngles(const ChVector<Real>& ang) {
+inline void ChQuaternion<Real>::Q_from_NasaAngles(const ChVector3<Real>& ang) {
     Real c1 = cos(ang.z() / 2);
     Real s1 = sin(ang.z() / 2);
     Real c2 = cos(ang.x() / 2);
@@ -1199,8 +1195,8 @@ inline void ChQuaternion<Real>::Q_from_NasaAngles(const ChVector<Real>& ang) {
 }
 
 template <class Real>
-inline ChVector<Real> ChQuaternion<Real>::Q_to_NasaAngles() {
-    ChVector<Real> nasa;
+inline ChVector3<Real> ChQuaternion<Real>::Q_to_NasaAngles() {
+    ChVector3<Real> nasa;
     Real sqw = m_data[0] * m_data[0];
     Real sqx = m_data[1] * m_data[1];
     Real sqy = m_data[2] * m_data[2];
@@ -1215,7 +1211,7 @@ inline ChVector<Real> ChQuaternion<Real>::Q_to_NasaAngles() {
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::Q_from_Euler123(const ChVector<Real>& ang) {
+inline void ChQuaternion<Real>::Q_from_Euler123(const ChVector3<Real>& ang) {
     // Angles {phi;theta;psi} aka {roll;pitch;yaw}
     Real t0 = cos(ang.z() * Real(0.5));
     Real t1 = sin(ang.z() * Real(0.5));
@@ -1231,9 +1227,9 @@ inline void ChQuaternion<Real>::Q_from_Euler123(const ChVector<Real>& ang) {
 }
 
 template <class Real>
-inline ChVector<Real> ChQuaternion<Real>::Q_to_Euler123() {
+inline ChVector3<Real> ChQuaternion<Real>::Q_to_Euler123() {
     // Angles {phi;theta;psi} aka {roll;pitch;yaw} rotation XYZ
-    ChVector<Real> euler;
+    ChVector3<Real> euler;
     Real sq0 = m_data[0] * m_data[0];
     Real sq1 = m_data[1] * m_data[1];
     Real sq2 = m_data[2] * m_data[2];
@@ -1248,21 +1244,21 @@ inline ChVector<Real> ChQuaternion<Real>::Q_to_Euler123() {
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::Qdt_from_Wabs(const ChVector<Real>& w, const ChQuaternion<Real>& q) {
+inline void ChQuaternion<Real>::Qdt_from_Wabs(const ChVector3<Real>& w, const ChQuaternion<Real>& q) {
     ChQuaternion<Real> qwo(0, w);
     this->Cross(qwo, q);
     this->Scale((Real)0.5);  // {q_dt} = 1/2 {0,w}*{q}
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::Qdt_from_Wrel(const ChVector<Real>& w, const ChQuaternion<Real>& q) {
+inline void ChQuaternion<Real>::Qdt_from_Wrel(const ChVector3<Real>& w, const ChQuaternion<Real>& q) {
     ChQuaternion<Real> qwl(0, w);
     this->Cross(q, qwl);
     this->Scale((Real)0.5);  // {q_dt} = 1/2 {q}*{0,w_rel}
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::Qdt_to_Wabs(ChVector<Real>& w, const ChQuaternion<Real>& q) {
+inline void ChQuaternion<Real>::Qdt_to_Wabs(ChVector3<Real>& w, const ChQuaternion<Real>& q) {
     ChQuaternion<Real> qwo;
     qwo.Cross(*this, q.GetConjugate());
     w = qwo.GetVector();
@@ -1270,7 +1266,7 @@ inline void ChQuaternion<Real>::Qdt_to_Wabs(ChVector<Real>& w, const ChQuaternio
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::Qdt_to_Wrel(ChVector<Real>& w, const ChQuaternion<Real>& q) {
+inline void ChQuaternion<Real>::Qdt_to_Wrel(ChVector3<Real>& w, const ChQuaternion<Real>& q) {
     ChQuaternion<Real> qwl;
     qwl.Cross(q.GetConjugate(), *this);
     w = qwl.GetVector();
@@ -1278,7 +1274,7 @@ inline void ChQuaternion<Real>::Qdt_to_Wrel(ChVector<Real>& w, const ChQuaternio
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::Qdtdt_from_Aabs(const ChVector<Real>& a,
+inline void ChQuaternion<Real>::Qdtdt_from_Aabs(const ChVector3<Real>& a,
                                                 const ChQuaternion<Real>& q,
                                                 const ChQuaternion<Real>& q_dt) {
     ChQuaternion<Real> qao(0, a);
@@ -1293,7 +1289,7 @@ inline void ChQuaternion<Real>::Qdtdt_from_Aabs(const ChVector<Real>& a,
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::Qdtdt_from_Arel(const ChVector<Real>& a,
+inline void ChQuaternion<Real>::Qdtdt_from_Arel(const ChVector3<Real>& a,
                                                 const ChQuaternion<Real>& q,
                                                 const ChQuaternion<Real>& q_dt) {
     ChQuaternion<Real> qal(0, a);
@@ -1310,7 +1306,7 @@ inline void ChQuaternion<Real>::Qdtdt_from_Arel(const ChVector<Real>& a,
 template <class Real>
 inline void ChQuaternion<Real>::Qdt_from_AngAxis(const ChQuaternion<Real>& q,
                                                  Real angle_dt,
-                                                 const ChVector<Real>& axis) {
+                                                 const ChVector3<Real>& axis) {
     this->Qdt_from_Wabs(angle_dt * axis, q);
 }
 
@@ -1318,18 +1314,18 @@ template <class Real>
 inline void ChQuaternion<Real>::Qdtdt_from_AngAxis(const ChQuaternion<Real>& q,
                                                    const ChQuaternion<Real>& q_dt,
                                                    Real angle_dtdt,
-                                                   const ChVector<Real>& axis) {
+                                                   const ChVector3<Real>& axis) {
     this->Qdtdt_from_Aabs(angle_dtdt * axis, q, q_dt);
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::ImmQ_complete(const ChVector<Real>& qimm) {
+inline void ChQuaternion<Real>::ImmQ_complete(const ChVector3<Real>& qimm) {
     SetVector(qimm);
     m_data[0] = sqrt(1 - m_data[1] * m_data[1] - m_data[2] * m_data[2] - m_data[3] * m_data[3]);
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::ImmQ_dt_complete(const ChQuaternion<Real>& q, const ChVector<Real>& qimm_dt) {
+inline void ChQuaternion<Real>::ImmQ_dt_complete(const ChQuaternion<Real>& q, const ChVector3<Real>& qimm_dt) {
     SetVector(qimm_dt);
     m_data[0] = (-q.m_data[1] * m_data[1] - q.m_data[2] * m_data[2] - q.m_data[3] * m_data[3]) / q.m_data[0];
 }
@@ -1337,7 +1333,7 @@ inline void ChQuaternion<Real>::ImmQ_dt_complete(const ChQuaternion<Real>& q, co
 template <class Real>
 inline void ChQuaternion<Real>::ImmQ_dtdt_complete(const ChQuaternion<Real>& q,
                                                    const ChQuaternion<Real>& qdt,
-                                                   const ChVector<Real>& qimm_dtdt) {
+                                                   const ChVector3<Real>& qimm_dtdt) {
     SetVector(qimm_dtdt);
     m_data[0] =
         (-q.m_data[1] * m_data[1] - q.m_data[2] * m_data[2] - q.m_data[3] * m_data[3] - qdt.m_data[0] * qdt.m_data[0] -
@@ -1362,7 +1358,7 @@ inline void ChQuaternion<Real>::ArchiveOut(ChArchiveOut& marchive) {
 template <class Real>
 inline void ChQuaternion<Real>::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChQuaternion<double>>();  // must use specialized template (any)
+    /*int version =*/marchive.VersionRead<ChQuaternion<double>>();  // must use specialized template (any)
     // stream in all member m_data
     marchive >> CHNVP(m_data[0], "e0");
     marchive >> CHNVP(m_data[1], "e1");

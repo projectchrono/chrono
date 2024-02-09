@@ -31,13 +31,13 @@ using namespace chrono::irrlicht;
 class ContactManager : public ChContactContainer::ReportContactCallback {
   public:
     ContactManager() {}
-    virtual bool OnReportContact(const ChVector<>& pA,
-                                 const ChVector<>& pB,
+    virtual bool OnReportContact(const ChVector3d& pA,
+                                 const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
                                  const double& distance,
                                  const double& eff_radius,
-                                 const ChVector<>& cforce,
-                                 const ChVector<>& ctorque,
+                                 const ChVector3d& cforce,
+                                 const ChVector3d& ctorque,
                                  ChContactable* modA,
                                  ChContactable* modB) override;
 };
@@ -91,8 +91,8 @@ int main(int argc, char* argv[]) {
     double init_z = 0.0;
     double init_roll = 0 * CH_C_DEG_TO_RAD;
 
-    ChVector<> init_vel(0, 0, 0);
-    ChVector<> init_omg(0, 0, 0);
+    ChVector3d init_vel(0, 0, 0);
+    ChVector3d init_omg(0, 0, 0);
 
     double radius = 0.5;  // cylinder radius
     double hlen = 0.4;    // cylinder half-length
@@ -145,13 +145,13 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sys->Set_G_acc(ChVector<>(0, -9.81, 0));
+    sys->Set_G_acc(ChVector3d(0, -9.81, 0));
 
     // Create and attach the collision detection sys
     switch (collision_type) {
         case ChCollisionSystem::Type::MULTICORE: {
             auto cd = chrono_types::make_shared<ChCollisionSystemMulticore>();
-            cd->SetBroadphaseGridResolution(ChVector<int>(1, 1, 1));
+            cd->SetBroadphaseGridResolution(ChVector3i(1, 1, 1));
             cd->SetNarrowphaseAlgorithm(narrowphase_algorithm);
             cd->SetEnvelope(collision_envelope);
             sys->SetCollisionSystem(cd);
@@ -173,8 +173,8 @@ int main(int argc, char* argv[]) {
 
     object->SetName("object");
     object->SetMass(1500);
-    object->SetInertiaXX(40.0 * ChVector<>(1, 1, 0.2));
-    object->SetPos(ChVector<>(init_x, init_height, init_z));
+    object->SetInertiaXX(40.0 * ChVector3d(1, 1, 0.2));
+    object->SetPos(ChVector3d(init_x, init_height, init_z));
     object->SetRot(z2y * Q_from_AngX(init_roll));
     object->SetPos_dt(init_vel);
     object->SetWvel_par(init_omg);
@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
 
     ground->SetName("ground");
     ground->SetMass(1);
-    ground->SetPos(ChVector<>(0, 0, 0));
+    ground->SetPos(ChVector3d(0, 0, 0));
     ground->SetCollide(true);
     ground->SetBodyFixed(true);
 
@@ -280,11 +280,11 @@ int main(int argc, char* argv[]) {
     double size_z = 2;
 
     auto shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, size_x, size_y, size_z);
-    ground->AddCollisionShape(shape, ChFrame<>(ChVector<>(0, -size_y / 2, 0), QUNIT));
+    ground->AddCollisionShape(shape, ChFrame<>(ChVector3d(0, -size_y / 2, 0), QUNIT));
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(size_x, size_y, size_z);
     box->SetTexture(GetChronoDataFile("textures/checker1.png"), 4, 2);
-    ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, -size_y / 2, 0), QUNIT));
+    ground->AddVisualShape(box, ChFrame<>(ChVector3d(0, -size_y / 2, 0), QUNIT));
 
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -294,7 +294,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(3, 1, init_z), ChVector<>(0, 0, init_z));
+    vis->AddCamera(ChVector3d(3, 1, init_z), ChVector3d(0, 0, init_z));
     vis->AddTypicalLights();
 
     // Render contact forces or normals
@@ -321,8 +321,8 @@ int main(int argc, char* argv[]) {
             sys->GetContactContainer()->ReportAllContacts(cmanager);
 
             // Cumulative contact force on object
-            ChVector<> frc1 = object->GetContactForce();
-            ChVector<> trq1 = object->GetContactTorque();
+            ChVector3d frc1 = object->GetContactForce();
+            ChVector3d trq1 = object->GetContactTorque();
             std::cout << "Contact force at COM:  " << frc1 << std::endl;
             std::cout << "Contact torque at COM: " << trq1 << std::endl;
         }
@@ -334,13 +334,13 @@ int main(int argc, char* argv[]) {
 
 // ====================================================================================
 
-bool ContactManager::OnReportContact(const ChVector<>& pA,
-                                     const ChVector<>& pB,
+bool ContactManager::OnReportContact(const ChVector3d& pA,
+                                     const ChVector3d& pB,
                                      const ChMatrix33<>& plane_coord,
                                      const double& distance,
                                      const double& eff_radius,
-                                     const ChVector<>& cforce,
-                                     const ChVector<>& ctorque,
+                                     const ChVector3d& cforce,
+                                     const ChVector3d& ctorque,
                                      ChContactable* modA,
                                      ChContactable* modB) {
     auto bodyA = static_cast<ChBody*>(modA);

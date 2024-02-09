@@ -34,7 +34,7 @@ double ChLinePath::Length(int sampling) const {
     return tot;
 }
 
-ChVector<> ChLinePath::Evaluate(double parU) const {
+ChVector3d ChLinePath::Evaluate(double parU) const {
     if (lines.size() == 0)
         return VNULL;
 

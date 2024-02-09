@@ -83,7 +83,7 @@ ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChSystemFsi* sysFSI, bool verbose) 
     m_vsys->SetWindowTitle("");
     m_vsys->SetWindowSize(1280, 720);
     m_vsys->SetWireFrameMode(true);
-    m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+    m_vsys->AddCamera(ChVector3d(0, -3, 0), ChVector3d(0, 0, 0));
     m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     m_vsys->SetUseSkyBox(false);
     m_vsys->SetClearColor(ChColor(18.0f / 255, 26.0f / 255, 32.0f / 255));
@@ -101,11 +101,11 @@ void ChFsiVisualizationVSG::SetTitle(const std::string& title) {
     m_vsys->SetWindowTitle(title);
 }
 
-void ChFsiVisualizationVSG::AddCamera(const ChVector<>& pos, const ChVector<>& target) {
+void ChFsiVisualizationVSG::AddCamera(const ChVector3d& pos, const ChVector3d& target) {
     m_vsys->AddCamera(pos, target);
 }
 
-void ChFsiVisualizationVSG::UpdateCamera(const ChVector<>& pos, const ChVector<>& target) {
+void ChFsiVisualizationVSG::UpdateCamera(const ChVector3d& pos, const ChVector3d& target) {
     m_vsys->UpdateCamera(pos, target);
 }
 
@@ -215,28 +215,28 @@ bool ChFsiVisualizationVSG::Render() {
 
         if (m_sph_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
-                m_sph_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_sph_cloud->GetParticle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumFluidMarkers();
 
         if (m_bndry_bce_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
-                m_bndry_bce_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_bndry_bce_cloud->GetParticle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumBoundaryMarkers();
 
         if (m_rigid_bce_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
-                m_rigid_bce_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_rigid_bce_cloud->GetParticle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumRigidBodyMarkers();
 
         if (m_flex_bce_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
-                m_flex_bce_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_flex_bce_cloud->GetParticle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
 

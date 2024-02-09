@@ -187,7 +187,7 @@ void ChBody::IntLoadResidual_Mv(const unsigned int off,      // offset in R resi
     R(off + 0) += c * GetMass() * w(off + 0);
     R(off + 1) += c * GetMass() * w(off + 1);
     R(off + 2) += c * GetMass() * w(off + 2);
-    ChVector<> Iw = GetInertia() * ChVector<>(w.segment(off + 3, 3));
+    ChVector3d Iw = GetInertia() * ChVector3d(w.segment(off + 3, 3));
     Iw *= c;
     R.segment(off + 3, 3) += Iw.eigen();
 }
@@ -285,8 +285,8 @@ void ChBody::VariablesQbIncrementPosition(double dt_step) {
     // Updates position with incremental action of speed contained in the
     // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
 
-    ChVector<> newspeed(variables.Get_qb().segment(0, 3));
-    ChVector<> newwel(variables.Get_qb().segment(3, 3));
+    ChVector3d newspeed(variables.Get_qb().segment(0, 3));
+    ChVector3d newwel(variables.Get_qb().segment(3, 3));
 
     // ADVANCE POSITION: pos' = pos + dt * vel
     SetPos(GetPos() + newspeed * dt_step);
@@ -294,7 +294,7 @@ void ChBody::VariablesQbIncrementPosition(double dt_step) {
     // ADVANCE ROTATION: rot' = [dt*wwel]%rot  (use quaternion for delta rotation)
     ChQuaternion<> mdeltarot;
     ChQuaternion<> moldrot = GetRot();
-    ChVector<> newwel_abs = Amatrix * newwel;
+    ChVector3d newwel_abs = Amatrix * newwel;
     double mangle = newwel_abs.Length() * dt_step;
     newwel_abs.Normalize();
     mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
@@ -324,27 +324,27 @@ void ChBody::ClampSpeed() {
 
 //// Utilities for coordinate transformations
 
-ChVector<> ChBody::Point_World2Body(const ChVector<>& mpoint) {
+ChVector3d ChBody::Point_World2Body(const ChVector3d& mpoint) {
     return ChFrame<double>::TransformParentToLocal(mpoint);
 }
 
-ChVector<> ChBody::Point_Body2World(const ChVector<>& mpoint) {
+ChVector3d ChBody::Point_Body2World(const ChVector3d& mpoint) {
     return ChFrame<double>::TransformLocalToParent(mpoint);
 }
 
-ChVector<> ChBody::Dir_World2Body(const ChVector<>& dir) {
+ChVector3d ChBody::Dir_World2Body(const ChVector3d& dir) {
     return Amatrix.transpose() * dir;
 }
 
-ChVector<> ChBody::Dir_Body2World(const ChVector<>& dir) {
+ChVector3d ChBody::Dir_Body2World(const ChVector3d& dir) {
     return Amatrix * dir;
 }
 
-ChVector<> ChBody::RelPoint_AbsSpeed(const ChVector<>& mrelpoint) {
+ChVector3d ChBody::RelPoint_AbsSpeed(const ChVector3d& mrelpoint) {
     return PointSpeedLocalToParent(mrelpoint);
 }
 
-ChVector<> ChBody::RelPoint_AbsAcc(const ChVector<>& mrelpoint) {
+ChVector3d ChBody::RelPoint_AbsAcc(const ChVector3d& mrelpoint) {
     return PointAccelerationLocalToParent(mrelpoint);
 }
 
@@ -354,14 +354,14 @@ void ChBody::SetInertia(const ChMatrix33<>& newXInertia) {
     variables.SetBodyInertia(newXInertia);
 }
 
-void ChBody::SetInertiaXX(const ChVector<>& iner) {
+void ChBody::SetInertiaXX(const ChVector3d& iner) {
     variables.GetBodyInertia()(0, 0) = iner.x();
     variables.GetBodyInertia()(1, 1) = iner.y();
     variables.GetBodyInertia()(2, 2) = iner.z();
     variables.GetBodyInvInertia() = variables.GetBodyInertia().inverse();
 }
 
-void ChBody::SetInertiaXY(const ChVector<>& iner) {
+void ChBody::SetInertiaXY(const ChVector3d& iner) {
     variables.GetBodyInertia()(0, 1) = iner.x();
     variables.GetBodyInertia()(0, 2) = iner.y();
     variables.GetBodyInertia()(1, 2) = iner.z();
@@ -371,16 +371,16 @@ void ChBody::SetInertiaXY(const ChVector<>& iner) {
     variables.GetBodyInvInertia() = variables.GetBodyInertia().inverse();
 }
 
-ChVector<> ChBody::GetInertiaXX() const {
-    ChVector<> iner;
+ChVector3d ChBody::GetInertiaXX() const {
+    ChVector3d iner;
     iner.x() = variables.GetBodyInertia()(0, 0);
     iner.y() = variables.GetBodyInertia()(1, 1);
     iner.z() = variables.GetBodyInertia()(2, 2);
     return iner;
 }
 
-ChVector<> ChBody::GetInertiaXY() const {
-    ChVector<> iner;
+ChVector3d ChBody::GetInertiaXY() const {
+    ChVector3d iner;
     iner.x() = variables.GetBodyInertia()(0, 1);
     iner.y() = variables.GetBodyInertia()(0, 2);
     iner.z() = variables.GetBodyInertia()(1, 2);
@@ -400,16 +400,16 @@ void ChBody::Empty_forces_accumulators() {
     Torque_acc = VNULL;
 }
 
-void ChBody::Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, bool local) {
-    ChVector<> absforce;
-    ChVector<> abstorque;
+void ChBody::Accumulate_force(const ChVector3d& force, const ChVector3d& appl_point, bool local) {
+    ChVector3d absforce;
+    ChVector3d abstorque;
     To_abs_forcetorque(force, appl_point, local, absforce, abstorque);
 
     Force_acc += absforce;
     Torque_acc += Dir_World2Body(abstorque);
 }
 
-void ChBody::Accumulate_torque(const ChVector<>& torque, bool local) {
+void ChBody::Accumulate_torque(const ChVector3d& torque, bool local) {
     if (local) {
         Torque_acc += torque;
     } else {
@@ -420,7 +420,7 @@ void ChBody::Accumulate_torque(const ChVector<>& torque, bool local) {
 //////
 
 void ChBody::ComputeGyro() {
-    ChVector<> Wvel = GetWvel_loc();
+    ChVector3d Wvel = GetWvel_loc();
     gyro = Vcross(Wvel, variables.GetBodyInertia() * Wvel);
 }
 
@@ -556,8 +556,8 @@ void ChBody::UpdateForces(double mytime) {
     Xtorque = Torque_acc;
 
     // Accumulate other applied forces
-    ChVector<> mforce;
-    ChVector<> mtorque;
+    ChVector3d mforce;
+    ChVector3d mtorque;
 
     for (auto& force : forcelist) {
         // update positions, f=f(t,q)
@@ -761,24 +761,24 @@ void ChBody::ContactableIncrementState(const ChState& x, const ChStateDelta& dw,
     IntStateIncrement(0, x_new, x, 0, dw);
 }
 
-ChVector<> ChBody::GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) {
+ChVector3d ChBody::GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) {
     ChCoordsys<> csys(state_x.segment(0, 7));
     return csys.TransformPointLocalToParent(loc_point);
 }
 
-ChVector<> ChBody::GetContactPointSpeed(const ChVector<>& loc_point,
+ChVector3d ChBody::GetContactPointSpeed(const ChVector3d& loc_point,
                                         const ChState& state_x,
                                         const ChStateDelta& state_w) {
     ChCoordsys<> csys(state_x.segment(0, 7));
-    ChVector<> abs_vel(state_w.segment(0, 3));
-    ChVector<> loc_omg(state_w.segment(3, 3));
-    ChVector<> abs_omg = csys.TransformDirectionLocalToParent(loc_omg);
+    ChVector3d abs_vel(state_w.segment(0, 3));
+    ChVector3d loc_omg(state_w.segment(3, 3));
+    ChVector3d abs_omg = csys.TransformDirectionLocalToParent(loc_omg);
 
     return abs_vel + Vcross(abs_omg, loc_point);
 }
 
-ChVector<> ChBody::GetContactPointSpeed(const ChVector<>& abs_point) {
-    ChVector<> m_p1_loc = Point_World2Body(abs_point);
+ChVector3d ChBody::GetContactPointSpeed(const ChVector3d& abs_point) {
+    ChVector3d m_p1_loc = Point_World2Body(abs_point);
     return PointSpeedLocalToParent(m_p1_loc);
 }
 
@@ -786,43 +786,43 @@ ChCoordsys<> ChBody::GetCsysForCollisionModel() {
     return ChCoordsys<>(GetFrame_REF_to_abs().coord);
 }
 
-void ChBody::ContactForceLoadResidual_F(const ChVector<>& F,
-                                        const ChVector<>& T,
-                                        const ChVector<>& abs_point,
+void ChBody::ContactForceLoadResidual_F(const ChVector3d& F,
+                                        const ChVector3d& T,
+                                        const ChVector3d& abs_point,
                                         ChVectorDynamic<>& R) {
-    ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
-    ChVector<> force1_loc = this->Dir_World2Body(F);
-    ChVector<> torque1_loc = Vcross(m_p1_loc, force1_loc);
+    ChVector3d m_p1_loc = this->Point_World2Body(abs_point);
+    ChVector3d force1_loc = this->Dir_World2Body(F);
+    ChVector3d torque1_loc = Vcross(m_p1_loc, force1_loc);
     if (!T.IsNull())
         torque1_loc += this->Dir_World2Body(T);
     R.segment(this->GetOffset_w() + 0, 3) += F.eigen();
     R.segment(this->GetOffset_w() + 3, 3) += torque1_loc.eigen();
 }
 
-void ChBody::ContactComputeQ(const ChVector<>& F,
-                               const ChVector<>& T,
-                               const ChVector<>& point,
+void ChBody::ContactComputeQ(const ChVector3d& F,
+                               const ChVector3d& T,
+                               const ChVector3d& point,
                                const ChState& state_x,
                                ChVectorDynamic<>& Q,
                                int offset) {
     ChCoordsys<> csys(state_x.segment(0, 7));
-    ChVector<> point_loc = csys.TransformPointParentToLocal(point);
-    ChVector<> force_loc = csys.TransformDirectionParentToLocal(F);
-    ChVector<> torque_loc = Vcross(point_loc, force_loc);
+    ChVector3d point_loc = csys.TransformPointParentToLocal(point);
+    ChVector3d force_loc = csys.TransformDirectionParentToLocal(F);
+    ChVector3d torque_loc = Vcross(point_loc, force_loc);
     if (!T.IsNull())
         torque_loc += csys.TransformDirectionParentToLocal(T);
     Q.segment(offset + 0, 3) = F.eigen();
     Q.segment(offset + 3, 3) = torque_loc.eigen();
 }
 
-void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+void ChBody::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                            ChMatrix33<>& contact_plane,
                                            ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
                                            ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
                                            ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
                                            bool second) {
     /*
-    ChVector<> p1 = Point_World2Body(abs_point);
+    ChVector3d p1 = Point_World2Body(abs_point);
     ChStarMatrix33<> Ps1(p1);
 
     ChMatrix33<> Jx1 = contact_plane.transpose();
@@ -843,7 +843,7 @@ void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point,
     */
 
     // UNROLLED VERSION - FASTER
-    ChVector<> p1 = Point_World2Body(abs_point);
+    ChVector3d p1 = Point_World2Body(abs_point);
     double temp00 =
         Amatrix(0, 2) * contact_plane(0, 0) + Amatrix(1, 2) * contact_plane(1, 0) + Amatrix(2, 2) * contact_plane(2, 0);
     double temp01 =
@@ -916,7 +916,7 @@ void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point,
 }
 
 void ChBody::ComputeJacobianForRollingContactPart(
-    const ChVector<>& abs_point,
+    const ChVector3d& abs_point,
     ChMatrix33<>& contact_plane,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
@@ -934,19 +934,19 @@ void ChBody::ComputeJacobianForRollingContactPart(
     jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
 }
 
-ChVector<> ChBody::GetAppliedForce() {
+ChVector3d ChBody::GetAppliedForce() {
     return GetSystem()->GetBodyAppliedForce(this);
 }
 
-ChVector<> ChBody::GetAppliedTorque() {
+ChVector3d ChBody::GetAppliedTorque() {
     return GetSystem()->GetBodyAppliedTorque(this);
 }
 
-ChVector<> ChBody::GetContactForce() {
+ChVector3d ChBody::GetContactForce() {
     return GetSystem()->GetContactContainer()->GetContactableForce(this);
 }
 
-ChVector<> ChBody::GetContactTorque() {
+ChVector3d ChBody::GetContactTorque() {
     return GetSystem()->GetContactContainer()->GetContactableTorque(this);
 }
 
@@ -984,11 +984,11 @@ void ChBody::ComputeNF(
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
 ) {
-    ChVector<> abs_pos(U, V, W);
-    ChVector<> absF(F.segment(0, 3));
-    ChVector<> absT(F.segment(3, 3));
-    ChVector<> body_absF;
-    ChVector<> body_locT;
+    ChVector3d abs_pos(U, V, W);
+    ChVector3d absF(F.segment(0, 3));
+    ChVector3d absT(F.segment(3, 3));
+    ChVector3d body_absF;
+    ChVector3d body_locT;
     ChCoordsys<> bodycoord;
     if (state_x)
         bodycoord = state_x->segment(0, 7);  // the numerical jacobian algo might change state_x

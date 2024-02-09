@@ -419,7 +419,7 @@ void ChOptixEngine::SceneProcess(RenderThread& tself) {
 void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
                                      std::shared_ptr<ChVisualShapeBox> box_shape,
                                      ChFrame<> asset_frame) {
-    ChVector<double> size = box_shape->GetLengths();
+    ChVector3d size = box_shape->GetLengths();
 
     unsigned int mat_id;
     if (box_shape->GetNumMaterials() == 0) {
@@ -434,7 +434,7 @@ void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
 void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
                                         std::shared_ptr<ChVisualShapeSphere> sphere_shape,
                                         ChFrame<> asset_frame) {
-    ChVector<double> size(sphere_shape->GetRadius());
+    ChVector3d size(sphere_shape->GetRadius());
 
     unsigned int mat_id;
     if (sphere_shape->GetNumMaterials() == 0) {
@@ -452,7 +452,7 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
     double radius = cyl_shape->GetRadius();
     double height = cyl_shape->GetHeight();
 
-    ChVector<double> size = {radius, radius, height};
+    ChVector3d size = {radius, radius, height};
 
     unsigned int mat_id;
     if (cyl_shape->GetNumMaterials() == 0) {
@@ -471,7 +471,7 @@ void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
         std::cerr << "WARNING: Chrono::Sensor does not support wireframe meshes. Defaulting back to solid mesh, please "
                      "check for visual issues.\n";
     }
-    ChVector<double> size = mesh_shape->GetScale();
+    ChVector3d size = mesh_shape->GetScale();
 
     unsigned int mat_id;
     CUdeviceptr d_vertex_buffer;  // handle will go to m_geometry
@@ -489,7 +489,7 @@ void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
         std::cerr << "WARNING: Chrono::Sensor does not support wireframe meshes. Defaulting back to solid mesh, please "
                      "check for visual issues.\n";
     }
-    ChVector<double> size = mesh_shape->GetScale();
+    ChVector3d size = mesh_shape->GetScale();
 
     unsigned int mat_id;
     CUdeviceptr d_vertex_buffer;  // handle will go to m_geometry
@@ -524,7 +524,7 @@ void ChOptixEngine::ConstructScene() {
                 // if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
 
                 // collect relative position and orientation of the asset
-                // ChVector<double> asset_pos = visual_asset->Pos;
+                // ChVector3d asset_pos = visual_asset->Pos;
                 // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
 
                 // const ChFrame<float> asset_frame = ChFrame<float>(asset_pos,asset_rot_mat);
@@ -626,7 +626,7 @@ void ChOptixEngine::UpdateCameraTransforms(std::vector<int>& to_be_updated, std:
 
         // update radar velocity
         if (auto radar = std::dynamic_pointer_cast<ChRadarSensor>(sensor)) {
-            ChVector<float> origin(0, 0, 0);
+            ChVector3f origin(0, 0, 0);
             auto r = radar->GetOffsetPose().GetPos() - origin;
             auto ang_vel = radar->GetAngularVelocity() % r;
             auto vel_abs =
@@ -644,8 +644,8 @@ void ChOptixEngine::UpdateCameraTransforms(std::vector<int>& to_be_updated, std:
         ChFrame<double> global_loc_0 = f_body_0 * f_offset;
         ChFrame<double> global_loc_1 = f_body_1 * f_offset;
 
-        ChVector<float> pos_0 = global_loc_0.GetPos() - scene->GetOriginOffset();
-        ChVector<float> pos_1 = global_loc_1.GetPos() - scene->GetOriginOffset();
+        ChVector3f pos_0 = global_loc_0.GetPos() - scene->GetOriginOffset();
+        ChVector3f pos_1 = global_loc_1.GetPos() - scene->GetOriginOffset();
 
         m_assignedRenderers[id]->m_raygen_record->data.t0 =
             (float)(m_system->GetChTime() - sensor->GetCollectionWindow());

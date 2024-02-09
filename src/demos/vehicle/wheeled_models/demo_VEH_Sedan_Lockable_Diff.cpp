@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     sedan.SetContactMethod(ChContactMethod::SMC);
     sedan.SetChassisCollisionType(CollisionType::NONE);
     sedan.SetChassisFixed(false);
-    sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-40, 0, 1.0)));
+    sedan.SetInitPosition(ChCoordsys<>(ChVector3d(-40, 0, 1.0)));
     sedan.SetTireType(TireModelType::TMEASY);
     sedan.SetTireStepSize(1e-3);
     sedan.Initialize();
@@ -88,8 +88,8 @@ int main(int argc, char* argv[]) {
     patch2_mat->SetYoungModulus(2e7f);
     patch2_mat->SetPoissonRatio(0.3f);
 
-    auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(0, -25, 0), QUNIT), 100, 50);
-    auto patch2 = terrain.AddPatch(patch2_mat, ChCoordsys<>(ChVector<>(0, +25, 0), QUNIT), 100, 50);
+    auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector3d(0, -25, 0), QUNIT), 100, 50);
+    auto patch2 = terrain.AddPatch(patch2_mat, ChCoordsys<>(ChVector3d(0, +25, 0), QUNIT), 100, 50);
 
     patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch1->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 50);
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("Sedan Demo Locked Diff");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.5), 4.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.5), 4.0, 0.5);
     vis->Initialize();
     vis->AddLightDirectional();
     vis->AddSkyBox();

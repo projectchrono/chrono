@@ -83,7 +83,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     void EnableMovingPatch(std::shared_ptr<ChBody> body,              ///< monitored body
                            double buffer_distance,                    ///< look-ahead distance
                            double shift_distance,                     ///< chunk size of relocated particles
-                           const ChVector<>& init_vel = ChVector<>()  ///< initial particle velocity
+                           const ChVector3d& init_vel = ChVector3d()  ///< initial particle velocity
                            );
 
     /// Set start value for body identifiers of generated particles (default: 1000000).
@@ -103,13 +103,13 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// minimum value (see SetMinNumParticles).
     /// The initial particle locations are obtained with Poisson Disk sampling, using the
     /// given minimum separation distance.
-    void Initialize(const ChVector<>& center,                  ///< [in] center of bottom
+    void Initialize(const ChVector3d& center,                  ///< [in] center of bottom
                     double length,                             ///< [in] patch dimension in X direction
                     double width,                              ///< [in] patch dimension in Y direction
                     unsigned int num_layers,                   ///< [in] number of layers
                     double radius,                             ///< [in] particle radius
                     double density,                            ///< [in] particle density
-                    const ChVector<>& init_vel = ChVector<>()  ///< [in] particle initial velocity
+                    const ChVector3d& init_vel = ChVector3d()  ///< [in] particle initial velocity
                     );
 
     /// Update the state of the terrain system at the specified time.
@@ -134,10 +134,10 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
 
     /// Get the terrain height below the specified location.
     /// This function returns the highest point over all granular particles.
-    virtual double GetHeight(const ChVector<>& loc) const override;
+    virtual double GetHeight(const ChVector3d& loc) const override;
 
     /// Get the terrain normal at the point below the specified location.
-    virtual chrono::ChVector<> GetNormal(const ChVector<>& loc) const override;
+    virtual chrono::ChVector3d GetNormal(const ChVector3d& loc) const override;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
@@ -146,7 +146,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// For GranularTerrain, this function defers to the user-provided functor object of type
     /// ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value specified through SetContactFrictionCoefficient.
-    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
+    virtual float GetCoefficientFriction(const ChVector3d& loc) const override;
 
   private:
     unsigned int m_min_num_particles;  ///< requested minimum number of particles
@@ -171,7 +171,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     std::shared_ptr<ChBody> m_body;  ///< tracked body
     double m_buffer_distance;        ///< minimum distance to front boundary
     double m_shift_distance;         ///< size (X direction) of relocated volume
-    ChVector<> m_init_part_vel;      ///< initial particle velocity
+    ChVector3d m_init_part_vel;      ///< initial particle velocity
 
     // Rough surface (ground-fixed spheres)
     bool m_rough_surface;  ///< rough surface feature enabled?

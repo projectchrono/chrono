@@ -44,7 +44,7 @@ class CH_MODELS_API ARTcar_Wheel : public chrono::vehicle::ChWheel {
     ~ARTcar_Wheel() {}
 
     virtual double GetWheelMass() const override { return m_mass; }
-    virtual const ChVector<>& GetWheelInertia() const override { return m_inertia; }
+    virtual const ChVector3d& GetWheelInertia() const override { return m_inertia; }
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
 
@@ -60,7 +60,7 @@ class CH_MODELS_API ARTcar_Wheel : public chrono::vehicle::ChWheel {
     static const double m_radius;
     static const double m_width;
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
 };
 
 /// ARTcar left wheel (front or rear).

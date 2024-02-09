@@ -28,12 +28,12 @@ ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChContact
                                                        double length_z,
                                                        double sradius)
     : ChCollisionShape(Type::ROUNDEDBOX, material) {
-    gbox.SetLengths(ChVector<>(length_x, length_y, length_z));
+    gbox.SetLengths(ChVector3d(length_x, length_y, length_z));
     gbox.SetSphereRadius(sradius);
 }
 
 ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material,
-                                                       const ChVector<>& lengths,
+                                                       const ChVector3d& lengths,
                                                        double sradius)
     : ChCollisionShape(Type::ROUNDEDBOX, material) {
     gbox.SetLengths(lengths);

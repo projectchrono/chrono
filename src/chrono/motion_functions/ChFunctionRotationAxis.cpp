@@ -47,12 +47,12 @@ ChQuaternion<> ChFunctionRotationAxis::Get_q(double s) const {
 	return Q_from_AngAxis(this->fangle->Get_y(s), this->axis);
 }
 
-ChVector<> ChFunctionRotationAxis::Get_w_loc(double s) const {
+ChVector3d ChFunctionRotationAxis::Get_w_loc(double s) const {
 
 	return this->fangle->Get_y_dx(s) * this->axis;
 }
 
-ChVector<> ChFunctionRotationAxis::Get_a_loc(double s) const {
+ChVector3d ChFunctionRotationAxis::Get_a_loc(double s) const {
 
 	return this->fangle->Get_y_dxdx(s) * this->axis;
 }

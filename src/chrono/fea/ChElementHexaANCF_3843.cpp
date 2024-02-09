@@ -515,7 +515,7 @@ void ChElementHexaANCF_3843::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfac
 }
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
-void ChElementHexaANCF_3843::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementHexaANCF_3843::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     assert(Fg.size() == GetNdofs());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
@@ -534,7 +534,7 @@ void ChElementHexaANCF_3843::ComputeGravityForces(ChVectorDynamic<>& Fg, const C
 void ChElementHexaANCF_3843::EvaluateElementFrame(const double xi,
                                                   const double eta,
                                                   const double zeta,
-                                                  ChVector<>& point,
+                                                  ChVector3d& point,
                                                   ChQuaternion<>& rot) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, zeta);
@@ -551,8 +551,8 @@ void ChElementHexaANCF_3843::EvaluateElementFrame(const double xi,
 
     // Since ANCF does not use rotations, calculate an approximate
     // rotation based off the position vector gradients
-    ChVector<double> Xdir = e_bar * Sxi_xi_compact * 2 / m_lenX;
-    ChVector<double> Ydir = e_bar * Sxi_eta_compact * 2 / m_lenY;
+    ChVector3d Xdir = e_bar * Sxi_xi_compact * 2 / m_lenX;
+    ChVector3d Ydir = e_bar * Sxi_eta_compact * 2 / m_lenY;
 
     // Since the position vector gradients are not in general orthogonal,
     // set the Dx direction tangent to the brick xi axis and
@@ -567,7 +567,7 @@ void ChElementHexaANCF_3843::EvaluateElementFrame(const double xi,
 void ChElementHexaANCF_3843::EvaluateElementPoint(const double xi,
                                                   const double eta,
                                                   const double zeta,
-                                                  ChVector<>& point) {
+                                                  ChVector3d& point) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, zeta);
 
@@ -578,7 +578,7 @@ void ChElementHexaANCF_3843::EvaluateElementPoint(const double xi,
     point = e_bar * Sxi_compact;
 }
 
-void ChElementHexaANCF_3843::EvaluateElementVel(double xi, double eta, const double zeta, ChVector<>& Result) {
+void ChElementHexaANCF_3843::EvaluateElementVel(double xi, double eta, const double zeta, ChVector3d& Result) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, zeta);
 

@@ -22,20 +22,20 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBox)
 
-ChBox::ChBox(const ChVector<>& lengths) : hlen(0.5 * lengths) {}
+ChBox::ChBox(const ChVector3d& lengths) : hlen(0.5 * lengths) {}
 ChBox::ChBox(double length_x, double length_y, double length_z)
-    : hlen(0.5 * ChVector<>(length_z, length_y, length_z)) {}
+    : hlen(0.5 * ChVector3d(length_z, length_y, length_z)) {}
 ChBox::ChBox(const ChBox& source) {
     hlen = source.hlen;
 }
 
-ChVector<> ChBox::Evaluate(double parU, double parV, double parW) const {
-    return ChVector<>(hlen.x() * (parU - 0.5), hlen.y() * (parV - 0.5), hlen.z() * (parW - 0.5));
+ChVector3d ChBox::Evaluate(double parU, double parV, double parW) const {
+    return ChVector3d(hlen.x() * (parU - 0.5), hlen.y() * (parV - 0.5), hlen.z() * (parW - 0.5));
 }
 
 // -----------------------------------------------------------------------------
 
-double ChBox::GetVolume(const ChVector<>& lengths) {
+double ChBox::GetVolume(const ChVector3d& lengths) {
     return lengths.x() * lengths.y() * lengths.z();
 }
 
@@ -43,7 +43,7 @@ double ChBox::GetVolume() const {
     return GetVolume(2.0 * hlen);
 }
 
-ChMatrix33<> ChBox::GetGyration(const ChVector<>& lengths) {
+ChMatrix33<> ChBox::GetGyration(const ChVector3d& lengths) {
     ChMatrix33<> J;
     J.setZero();
     J(0, 0) = (1.0 / 12.0) * (lengths.y() * lengths.y() + lengths.z() * lengths.z());
@@ -57,18 +57,18 @@ ChMatrix33<> ChBox::GetGyration() const {
     return GetGyration(hlen);
 }
 
-ChAABB ChBox::GetBoundingBox(const ChVector<>& lengths) {
+ChAABB ChBox::GetBoundingBox(const ChVector3d& lengths) {
     auto hlen = lengths / 2;
 
-    std::vector<ChVector<>> vertices{
-        ChVector<>(+hlen.x(), +hlen.y(), +hlen.z()),  //
-        ChVector<>(-hlen.x(), +hlen.y(), +hlen.z()),  //
-        ChVector<>(-hlen.x(), -hlen.y(), +hlen.z()),  //
-        ChVector<>(+hlen.x(), -hlen.y(), +hlen.z()),  //
-        ChVector<>(+hlen.x(), +hlen.y(), -hlen.z()),  //
-        ChVector<>(-hlen.x(), +hlen.y(), -hlen.z()),  //
-        ChVector<>(-hlen.x(), -hlen.y(), -hlen.z()),  //
-        ChVector<>(+hlen.x(), -hlen.y(), -hlen.z())   //
+    std::vector<ChVector3d> vertices{
+        ChVector3d(+hlen.x(), +hlen.y(), +hlen.z()),  //
+        ChVector3d(-hlen.x(), +hlen.y(), +hlen.z()),  //
+        ChVector3d(-hlen.x(), -hlen.y(), +hlen.z()),  //
+        ChVector3d(+hlen.x(), -hlen.y(), +hlen.z()),  //
+        ChVector3d(+hlen.x(), +hlen.y(), -hlen.z()),  //
+        ChVector3d(-hlen.x(), +hlen.y(), -hlen.z()),  //
+        ChVector3d(-hlen.x(), -hlen.y(), -hlen.z()),  //
+        ChVector3d(+hlen.x(), -hlen.y(), -hlen.z())   //
     };
 
     ChAABB bbox;
@@ -89,7 +89,7 @@ ChAABB ChBox::GetBoundingBox() const {
     return GetBoundingBox(2.0 * hlen);
 }
 
-double ChBox::GetBoundingSphereRadius(const ChVector<>& lengths) {
+double ChBox::GetBoundingSphereRadius(const ChVector3d& lengths) {
     return lengths.Length() / 2;
 }
 
@@ -105,7 +105,7 @@ void ChBox::ArchiveOut(ChArchiveOut& marchive) {
     // serialize parent class
     ChVolume::ArchiveOut(marchive);
     // serialize all member data:
-    ChVector<> lengths = GetLengths();
+    ChVector3d lengths = GetLengths();
     marchive << CHNVP(lengths);
 }
 
@@ -115,7 +115,7 @@ void ChBox::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChVolume::ArchiveIn(marchive);
     // stream in all member data:
-    ChVector<> lengths;
+    ChVector3d lengths;
     marchive >> CHNVP(lengths);
     SetLengths(lengths);
 }

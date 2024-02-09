@@ -129,7 +129,7 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
     m_useContInt = useContInt;
 
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector<>(0, 0, -9.80665));
+    m_system->Set_G_acc(ChVector3d(0, 0, -9.80665));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -161,26 +161,26 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
     m_system->Add(mesh);
 
     // Setup brick position vector gradients to initially align with the global x, y, and z directions
-    ChVector<> dir1(1, 0, 0);
-    ChVector<> dir2(0, 1, 0);
-    ChVector<> dir3(0, 0, 1);
+    ChVector3d dir1(1, 0, 0);
+    ChVector3d dir2(0, 1, 0);
+    ChVector3d dir3(0, 0, 1);
 
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, 0, 0.0), dir1, dir2, dir3);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0, 0.0), dir1, dir2, dir3);
     mesh->AddNode(nodeA);
-    auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(length, 0, 0), dir1, dir2, dir3);
+    auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(length, 0, 0), dir1, dir2, dir3);
     mesh->AddNode(nodeB);
     m_nodeB = nodeB;
-    auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(length, width, 0), dir1, dir2, dir3);
+    auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(length, width, 0), dir1, dir2, dir3);
     mesh->AddNode(nodeC);
-    auto nodeD = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, width, 0), dir1, dir2, dir3);
+    auto nodeD = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, width, 0), dir1, dir2, dir3);
     mesh->AddNode(nodeD);
-    auto nodeE = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, 0, height), dir1, dir2, dir3);
+    auto nodeE = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0, height), dir1, dir2, dir3);
     mesh->AddNode(nodeE);
-    auto nodeF = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(length, 0, height), dir1, dir2, dir3);
+    auto nodeF = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(length, 0, height), dir1, dir2, dir3);
     mesh->AddNode(nodeF);
-    auto nodeG = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(length, width, height), dir1, dir2, dir3);
+    auto nodeG = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(length, width, height), dir1, dir2, dir3);
     mesh->AddNode(nodeG);
-    auto nodeH = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, width, height), dir1, dir2, dir3);
+    auto nodeH = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, width, height), dir1, dir2, dir3);
     mesh->AddNode(nodeH);
 
     auto element = chrono_types::make_shared<ChElementHexaANCF_3843>();
@@ -373,8 +373,8 @@ bool ANCFBrickTest::GeneralizedInternalForceSmallDispNoVelCheck(int msglvl) {
         return false;
 
     // Setup the test conditions
-    ChVector<double> OriginalPos = m_nodeB->GetPos();
-    m_nodeB->SetPos(ChVector<>(m_nodeB->GetPos().x(), m_nodeB->GetPos().y(), 0.001));
+    ChVector3d OriginalPos = m_nodeB->GetPos();
+    m_nodeB->SetPos(ChVector3d(m_nodeB->GetPos().x(), m_nodeB->GetPos().y(), 0.001));
 
     ChVectorDynamic<double> InternalForceSmallDispNoVel;
     InternalForceSmallDispNoVel.resize(3 * NSF);
@@ -416,8 +416,8 @@ bool ANCFBrickTest::GeneralizedInternalForceNoDispSmallVelCheck(int msglvl) {
         return false;
 
     // Setup the test conditions
-    ChVector<double> OriginalVel = m_nodeB->GetPos_dt();
-    m_nodeB->SetPos_dt(ChVector<>(0.0, 0.0, 0.001));
+    ChVector3d OriginalVel = m_nodeB->GetPos_dt();
+    m_nodeB->SetPos_dt(ChVector3d(0.0, 0.0, 0.001));
     m_element->SetAlphaDamp(0.01);
 
     ChVectorDynamic<double> InternalForceNoDispSmallVel;
@@ -579,8 +579,8 @@ bool ANCFBrickTest::JacobianSmallDispNoVelNoDampingCheck(int msglvl) {
         return false;
 
     // Setup the test conditions
-    ChVector<double> OriginalPos = m_nodeB->GetPos();
-    m_nodeB->SetPos(ChVector<>(m_nodeB->GetPos().x(), m_nodeB->GetPos().y(), 0.001));
+    ChVector3d OriginalPos = m_nodeB->GetPos();
+    m_nodeB->SetPos(ChVector3d(m_nodeB->GetPos().x(), m_nodeB->GetPos().y(), 0.001));
 
     // Ensure that the internal force is recalculated in case the results are expected
     // by the Jacobian Calculation
@@ -881,8 +881,8 @@ bool ANCFBrickTest::JacobianSmallDispNoVelWithDampingCheck(int msglvl) {
         Expected_Jacobians.block(Expected_Jacobians.cols(), 0, Expected_Jacobians.cols(), Expected_Jacobians.cols());
 
     // Setup the test conditions
-    ChVector<double> OriginalPos = m_nodeB->GetPos();
-    m_nodeB->SetPos(ChVector<>(m_nodeB->GetPos().x(), m_nodeB->GetPos().y(), 0.001));
+    ChVector3d OriginalPos = m_nodeB->GetPos();
+    m_nodeB->SetPos(ChVector3d(m_nodeB->GetPos().x(), m_nodeB->GetPos().y(), 0.001));
     m_element->SetAlphaDamp(0.01);
 
     // Ensure that the internal force is recalculated in case the results are expected
@@ -1059,8 +1059,8 @@ bool ANCFBrickTest::JacobianNoDispSmallVelWithDampingCheck(int msglvl) {
         Expected_Jacobians.block(Expected_Jacobians.cols(), 0, Expected_Jacobians.cols(), Expected_Jacobians.cols());
 
     // Setup the test conditions
-    ChVector<double> OriginalVel = m_nodeB->GetPos_dt();
-    m_nodeB->SetPos_dt(ChVector<>(0.0, 0.0, 0.001));
+    ChVector3d OriginalVel = m_nodeB->GetPos_dt();
+    m_nodeB->SetPos_dt(ChVector3d(0.0, 0.0, 0.001));
     m_element->SetAlphaDamp(0.01);
 
     // Ensure that the internal force is recalculated in case the results are expected
@@ -1227,7 +1227,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector<>(0, 0, 0));
+    system->Set_G_acc(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1264,24 +1264,24 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     double dx = length / (num_elements);
 
     // Setup brick position vector gradients to initially align with the global x, y, and z directions
-    ChVector<> dir1(1, 0, 0);
-    ChVector<> dir2(0, 1, 0);
-    ChVector<> dir3(0, 0, 1);
+    ChVector3d dir1(1, 0, 0);
+    ChVector3d dir2(0, 1, 0);
+    ChVector3d dir3(0, 0, 1);
 
     // Create the first nodes and fix them completely to ground (Cantilever constraint)
     auto nodeA =
-        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, -0.5 * width, -0.5 * height), dir1, dir2, dir3);
+        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, -0.5 * width, -0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeA);
     nodeA->SetFixed(true);
     auto nodeD =
-        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, 0.5 * width, -0.5 * height), dir1, dir2, dir3);
+        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0.5 * width, -0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeD);
     nodeD->SetFixed(true);
     auto nodeE =
-        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, -0.5 * width, 0.5 * height), dir1, dir2, dir3);
+        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, -0.5 * width, 0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeE);
     nodeE->SetFixed(true);
-    auto nodeH = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
+    auto nodeH = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeH);
     nodeH->SetFixed(true);
 
@@ -1289,17 +1289,17 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     std::shared_ptr<ChNodeFEAxyzDDD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, -0.5 * width, -0.5 * height), dir1,
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, -0.5 * width, -0.5 * height), dir1,
                                                                 dir2, dir3);
         mesh->AddNode(nodeB);
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, 0.5 * width, -0.5 * height), dir1,
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, 0.5 * width, -0.5 * height), dir1,
                                                                 dir2, dir3);
         mesh->AddNode(nodeC);
-        auto nodeF = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, -0.5 * width, 0.5 * height), dir1,
+        auto nodeF = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, -0.5 * width, 0.5 * height), dir1,
                                                                 dir2, dir3);
         mesh->AddNode(nodeF);
         auto nodeG =
-            chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
+            chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
         mesh->AddNode(nodeG);
 
         auto element = chrono_types::make_shared<ChElementHexaANCF_3843>();
@@ -1373,14 +1373,14 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     system->DoStaticLinear();
 
     // Calculate the axial displacement of the end of the ANCF brick mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateElementFrame(1, 0, 0, point, rot);
 
     // For Analytical Formula, see a mechanics of materials textbook (delta = (P*L)/(A*E))
     double Displacement_Theory = (TIP_FORCE * length) / (width * height * E);
     double Displacement_Model = point.x() - length;
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.Q_to_Euler123();
 
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100;
 
@@ -1423,7 +1423,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector<>(0, 0, 0));
+    system->Set_G_acc(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1460,24 +1460,24 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     double dx = length / (num_elements);
 
     // Setup brick position vector gradients to initially align with the global x, y, and z directions
-    ChVector<> dir1(1, 0, 0);
-    ChVector<> dir2(0, 1, 0);
-    ChVector<> dir3(0, 0, 1);
+    ChVector3d dir1(1, 0, 0);
+    ChVector3d dir2(0, 1, 0);
+    ChVector3d dir3(0, 0, 1);
 
     // Create the first nodes and fix them completely to ground (Cantilever constraint)
     auto nodeA =
-        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, -0.5 * width, -0.5 * height), dir1, dir2, dir3);
+        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, -0.5 * width, -0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeA);
     nodeA->SetFixed(true);
     auto nodeD =
-        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, 0.5 * width, -0.5 * height), dir1, dir2, dir3);
+        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0.5 * width, -0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeD);
     nodeD->SetFixed(true);
     auto nodeE =
-        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, -0.5 * width, 0.5 * height), dir1, dir2, dir3);
+        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, -0.5 * width, 0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeE);
     nodeE->SetFixed(true);
-    auto nodeH = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
+    auto nodeH = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeH);
     nodeH->SetFixed(true);
 
@@ -1485,17 +1485,17 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     std::shared_ptr<ChNodeFEAxyzDDD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, -0.5 * width, -0.5 * height), dir1,
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, -0.5 * width, -0.5 * height), dir1,
                                                                 dir2, dir3);
         mesh->AddNode(nodeB);
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, 0.5 * width, -0.5 * height), dir1,
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, 0.5 * width, -0.5 * height), dir1,
                                                                 dir2, dir3);
         mesh->AddNode(nodeC);
-        auto nodeF = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, -0.5 * width, 0.5 * height), dir1,
+        auto nodeF = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, -0.5 * width, 0.5 * height), dir1,
                                                                 dir2, dir3);
         mesh->AddNode(nodeF);
         auto nodeG =
-            chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
+            chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
         mesh->AddNode(nodeG);
 
         auto element = chrono_types::make_shared<ChElementHexaANCF_3843>();
@@ -1570,7 +1570,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     system->DoStaticNonlinear(50);
 
     // Calculate the displacement of the end of the ANCF brick mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateElementFrame(1, 0, 0, point, rot);
 
@@ -1578,7 +1578,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     double I = 1.0 / 12.0 * width * std::pow(height, 3);
     double Displacement_Theory = (TIP_FORCE * std::pow(length, 3)) / (3.0 * E * I);
     double Displacement_Model = point.z();
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.Q_to_Euler123();
 
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100.0;
 
@@ -1624,7 +1624,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     double g = -9.80665;
-    system->Set_G_acc(ChVector<>(0, 0, g));
+    system->Set_G_acc(ChVector3d(0, 0, g));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1661,24 +1661,24 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
     double dx = length / (num_elements);
 
     // Setup brick position vector gradients to initially align with the global x, y, and z directions
-    ChVector<> dir1(1, 0, 0);
-    ChVector<> dir2(0, 1, 0);
-    ChVector<> dir3(0, 0, 1);
+    ChVector3d dir1(1, 0, 0);
+    ChVector3d dir2(0, 1, 0);
+    ChVector3d dir3(0, 0, 1);
 
     // Create the first nodes and fix them completely to ground (Cantilever constraint)
     auto nodeA =
-        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, -0.5 * width, -0.5 * height), dir1, dir2, dir3);
+        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, -0.5 * width, -0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeA);
     nodeA->SetFixed(true);
     auto nodeD =
-        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, 0.5 * width, -0.5 * height), dir1, dir2, dir3);
+        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0.5 * width, -0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeD);
     nodeD->SetFixed(true);
     auto nodeE =
-        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, -0.5 * width, 0.5 * height), dir1, dir2, dir3);
+        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, -0.5 * width, 0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeE);
     nodeE->SetFixed(true);
-    auto nodeH = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
+    auto nodeH = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeH);
     nodeH->SetFixed(true);
 
@@ -1686,17 +1686,17 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
     std::shared_ptr<ChNodeFEAxyzDDD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, -0.5 * width, -0.5 * height), dir1,
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, -0.5 * width, -0.5 * height), dir1,
                                                                 dir2, dir3);
         mesh->AddNode(nodeB);
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, 0.5 * width, -0.5 * height), dir1,
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, 0.5 * width, -0.5 * height), dir1,
                                                                 dir2, dir3);
         mesh->AddNode(nodeC);
-        auto nodeF = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, -0.5 * width, 0.5 * height), dir1,
+        auto nodeF = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, -0.5 * width, 0.5 * height), dir1,
                                                                 dir2, dir3);
         mesh->AddNode(nodeF);
         auto nodeG =
-            chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
+            chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
         mesh->AddNode(nodeG);
 
         auto element = chrono_types::make_shared<ChElementHexaANCF_3843>();
@@ -1726,7 +1726,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
     system->DoStaticNonlinear(50);
 
     // Calculate the displacement of the end of the ANCF brick mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateElementFrame(1, 0, 0, point, rot);
 
@@ -1734,7 +1734,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
     double I = 1.0 / 12.0 * width * std::pow(height, 3);
     double Displacement_Theory = (rho * width * height * g * std::pow(length, 4)) / (8.0 * E * I);
     double Displacement_Model = point.z();
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.Q_to_Euler123();
 
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100.0;
 
@@ -1781,7 +1781,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector<>(0, 0, 0));
+    system->Set_G_acc(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1820,24 +1820,24 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
     double dx = length / (num_elements);
 
     // Setup brick position vector gradients to initially align with the global x, y, and z directions
-    ChVector<> dir1(1, 0, 0);
-    ChVector<> dir2(0, 1, 0);
-    ChVector<> dir3(0, 0, 1);
+    ChVector3d dir1(1, 0, 0);
+    ChVector3d dir2(0, 1, 0);
+    ChVector3d dir3(0, 0, 1);
 
     // Create the first nodes and fix them completely to ground (Cantilever constraint)
     auto nodeA =
-        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, -0.5 * width, -0.5 * height), dir1, dir2, dir3);
+        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, -0.5 * width, -0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeA);
     nodeA->SetFixed(true);
     auto nodeD =
-        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, 0.5 * width, -0.5 * height), dir1, dir2, dir3);
+        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0.5 * width, -0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeD);
     nodeD->SetFixed(true);
     auto nodeE =
-        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, -0.5 * width, 0.5 * height), dir1, dir2, dir3);
+        chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, -0.5 * width, 0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeE);
     nodeE->SetFixed(true);
-    auto nodeH = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
+    auto nodeH = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
     mesh->AddNode(nodeH);
     nodeH->SetFixed(true);
 
@@ -1845,17 +1845,17 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
     std::shared_ptr<ChNodeFEAxyzDDD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, -0.5 * width, -0.5 * height), dir1,
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, -0.5 * width, -0.5 * height), dir1,
                                                                 dir2, dir3);
         mesh->AddNode(nodeB);
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, 0.5 * width, -0.5 * height), dir1,
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, 0.5 * width, -0.5 * height), dir1,
                                                                 dir2, dir3);
         mesh->AddNode(nodeC);
-        auto nodeF = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, -0.5 * width, 0.5 * height), dir1,
+        auto nodeF = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, -0.5 * width, 0.5 * height), dir1,
                                                                 dir2, dir3);
         mesh->AddNode(nodeF);
         auto nodeG =
-            chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
+            chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
         mesh->AddNode(nodeG);
 
         auto element = chrono_types::make_shared<ChElementHexaANCF_3843>();
@@ -1929,10 +1929,10 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
     system->DoStaticLinear();
 
     // Calculate the twist angle of the end of the ANCF brick mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateElementFrame(1, 0, 0, point, rot);
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.Q_to_Euler123();
 
     // For Analytical Formula, see: https://en.wikipedia.org/wiki/Torsion_constant
     double J = 2.25 * std::pow(0.5 * width, 4);

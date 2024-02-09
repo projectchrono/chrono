@@ -93,7 +93,7 @@ double terrainLength = 300.0;  // size in X direction
 double terrainWidth = 300.0;   // size in Y direction
 
 // Point on chassis tracked by the chase camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Simulation step size
 double step_size = 2e-3;
@@ -133,10 +133,10 @@ int main(int argc, char* argv[]) {
     auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file), closed_loop);
 
     // Parameterized ISO double lane change (to left)
-    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 13.5, 4.0, 11.0, 50.0, true);
+    ////auto path = DoubleLaneChangePath(ChVector3d(-125, -125, 0.1), 13.5, 4.0, 11.0, 50.0, true);
 
     // Parameterized NATO double lane change (to right)
-    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
+    ////auto path = DoubleLaneChangePath(ChVector3d(-125, -125, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
 
     ////path->write("my_path.txt");
 
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
     auto point0 = path->getPoint(0);
     auto point1 = path->getPoint(1);
 
-    ChVector<> initLoc = point0;
+    ChVector3d initLoc = point0;
     initLoc.z() = 0.5;
     ChQuaternion<> initRot = Q_from_AngZ(std::atan2(point1.y() - point0.y(), point1.x() - point0.x()));
 
@@ -248,10 +248,10 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddSkyBox();
     vis->AddLogo();
-    vis->AddLight(ChVector<>(-150, -150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(-150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(+150, -150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(+150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(-150, -150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(-150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(+150, -150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(+150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
 
     // Visualization of controller points (sentinel & target)
     auto ballS = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
@@ -299,7 +299,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Driver location in vehicle local frame
-    ChVector<> driver_pos = hmmwv.GetChassis()->GetLocalDriverCoordsys().pos;
+    ChVector3d driver_pos = hmmwv.GetChassis()->GetLocalDriverCoordsys().pos;
 
     // Number of simulation steps between miscellaneous events
     double render_step_size = 1 / fps;
@@ -315,8 +315,8 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         // Extract system state
         double time = hmmwv.GetSystem()->GetChTime();
-        ChVector<> acc_CG = hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
-        ChVector<> acc_driver = hmmwv.GetVehicle().GetPointAcceleration(driver_pos);
+        ChVector3d acc_CG = hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
+        ChVector3d acc_driver = hmmwv.GetVehicle().GetPointAcceleration(driver_pos);
         double fwd_acc_CG = fwd_acc_GC_filter.Add(acc_CG.x());
         double lat_acc_CG = lat_acc_GC_filter.Add(acc_CG.y());
         double fwd_acc_driver = fwd_acc_driver_filter.Add(acc_driver.x());

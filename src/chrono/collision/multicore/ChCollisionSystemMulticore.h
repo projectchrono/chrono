@@ -67,11 +67,11 @@ class ChApi ChCollisionSystemMulticore : public ChCollisionSystem {
     /// Set a fixed number of grid bins (default 10x10x10).
     /// This is the default setting; to continuously adjust the number of bins, use SetBroadphaseGridSize or
     /// SetBroadphaseGridDensity.
-    void SetBroadphaseGridResolution(const ChVector<int>& num_bins);
+    void SetBroadphaseGridResolution(const ChVector3i& num_bins);
 
     /// Set a variable number of grids, such that each bin has roughly the specified size.
     /// By default, a fixed grid resolution is used (see SetBroadphaseGridResolution).
-    void SetBroadphaseGridSize(const ChVector<>& bin_size);
+    void SetBroadphaseGridSize(const ChVector3d& bin_size);
 
     /// Set a variable number of grid bins, such that there are roughly `density` collision shapes per bin.
     /// By default, a fixed number of bins is used (see SetBroadphaseGridResolution).
@@ -86,11 +86,11 @@ class ChApi ChCollisionSystemMulticore : public ChCollisionSystem {
     /// Enable monitoring of shapes outside active bounding box (default: false).
     /// If enabled, objects whose collision shapes exit the active bounding box are deactivated (frozen).
     /// The size of the bounding box is specified by its min and max extents.
-    void EnableActiveBoundingBox(const ChVector<>& aabb_min, const ChVector<>& aabb_max);
+    void EnableActiveBoundingBox(const ChVector3d& aabb_min, const ChVector3d& aabb_max);
 
     /// Get the dimensions of the "active" box.
     /// The return value indicates whether or not the active box feature is enabled.
-    bool GetActiveBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const;
+    bool GetActiveBoundingBox(ChVector3d& aabb_min, ChVector3d& aabb_max) const;
 
     /// Set the number of OpenMP threads for collision detection.
     virtual void SetNumThreads(int nthreads) override;
@@ -127,12 +127,12 @@ class ChApi ChCollisionSystemMulticore : public ChCollisionSystem {
 
     /// Perform a ray-hit test with all collision models.
     /// Currently not implemented.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const override;
+    virtual bool RayHit(const ChVector3d& from, const ChVector3d& to, ChRayhitResult& result) const override;
 
     /// Perform a ray-hit test with the specified collision model.
     /// Currently not implemented.
-    virtual bool RayHit(const ChVector<>& from,
-                        const ChVector<>& to,
+    virtual bool RayHit(const ChVector3d& from,
+                        const ChVector3d& to,
                         ChCollisionModel* model,
                         ChRayhitResult& result) const override;
 

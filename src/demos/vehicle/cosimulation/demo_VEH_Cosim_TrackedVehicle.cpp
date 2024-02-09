@@ -160,13 +160,13 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    ChVector<> init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, 0.9);
+    ChVector3d init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, 0.9);
 
     // Overwrite terrain patch size if using a DBP rig
     if (use_DBP_rig) {
         terrain_length = 20;
         terrain_width = 5;
-        init_loc = ChVector<>(-5, 0, 0.9);
+        init_loc = ChVector3d(-5, 0, 0.9);
     }
 
     // Peek in spec file and extract terrain type
@@ -236,7 +236,7 @@ int main(int argc, char** argv) {
         vehicle->SetOutDir(out_dir, suffix);
         if (renderRT)
             vehicle->EnableRuntimeVisualization(render_fps, writeRT);
-        vehicle->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+        vehicle->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
         if (verbose)
             cout << "[Vehicle node] output directory: " << vehicle->GetOutDirName() << endl;
 
@@ -256,7 +256,7 @@ int main(int argc, char** argv) {
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
-                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+                terrain->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -273,7 +273,7 @@ int main(int argc, char** argv) {
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps, writeRT);
-                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+                terrain->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 

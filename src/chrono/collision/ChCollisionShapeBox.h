@@ -28,7 +28,7 @@ class ChApi ChCollisionShapeBox : public ChCollisionShape {
   public:
     ChCollisionShapeBox();
     ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, double length_x, double length_y, double length_z);
-    ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const ChVector<>& lengths);
+    ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const ChVector3d& lengths);
     ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const geometry::ChBox& box);
 
     ~ChCollisionShapeBox() {}
@@ -37,10 +37,10 @@ class ChApi ChCollisionShapeBox : public ChCollisionShape {
     geometry::ChBox& GetGeometry() { return gbox; }
 
     /// Get the box half-lengths.
-    const ChVector<>& GetHalflengths() const { return gbox.GetHalflengths(); }
+    const ChVector3d& GetHalflengths() const { return gbox.GetHalflengths(); }
 
     /// Get the box dimensions.
-    ChVector<> GetLengths() const { return gbox.GetLengths(); }
+    ChVector3d GetLengths() const { return gbox.GetLengths(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

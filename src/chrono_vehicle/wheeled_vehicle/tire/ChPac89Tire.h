@@ -178,7 +178,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
         double R_eff;            // Effective Radius
         double brx{0};           // bristle deformation x
         double bry{0};           // bristle deformation y
-        ChVector<> disc_normal;  //(temporary for debug)
+        ChVector3d disc_normal;  //(temporary for debug)
     };
 
     TireStates m_states;

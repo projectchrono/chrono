@@ -164,10 +164,10 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
 
     /// Get the normal to the surface at the parametric coordinate u,v.
     /// Normal must be considered pointing outside in case the surface is a boundary to a volume.
-    virtual ChVector<> ComputeNormal(const double U, const double V) override {
-        ChVector<> p0 = GetNodeN(0)->GetPos();
-        ChVector<> p1 = GetNodeN(1)->GetPos();
-        ChVector<> p2 = GetNodeN(2)->GetPos();
+    virtual ChVector3d ComputeNormal(const double U, const double V) override {
+        ChVector3d p0 = GetNodeN(0)->GetPos();
+        ChVector3d p1 = GetNodeN(1)->GetPos();
+        ChVector3d p2 = GetNodeN(2)->GetPos();
         return Vcross(p1 - p0, p2 - p0).GetNormalized();
     }
 

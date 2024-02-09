@@ -42,9 +42,9 @@ const double U401_PushPipeAxle::m_spindleRadius = 0.10;
 const double U401_PushPipeAxle::m_spindleWidth = 0.06;
 const double U401_PushPipeAxle::m_panhardRodRadius = 0.02;
 
-const ChVector<> U401_PushPipeAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
-const ChVector<> U401_PushPipeAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
-const ChVector<> U401_PushPipeAxle::m_panhardRodInertia(0.1, 0.02, 0.1);
+const ChVector3d U401_PushPipeAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
+const ChVector3d U401_PushPipeAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector3d U401_PushPipeAxle::m_panhardRodInertia(0.1, 0.02, 0.1);
 
 const double U401_PushPipeAxle::m_springDesignLength = 0.35;
 const double U401_PushPipeAxle::m_springCoefficient = 102643.885771329;
@@ -180,26 +180,26 @@ U401_PushPipeAxle::U401_PushPipeAxle(const std::string& name) : ChPushPipeAxle(n
 // -----------------------------------------------------------------------------
 U401_PushPipeAxle::~U401_PushPipeAxle() {}
 
-const ChVector<> U401_PushPipeAxle::getLocation(PointId which) {
+const ChVector3d U401_PushPipeAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(-0.18, 0.4242, 0.124);
+            return ChVector3d(-0.18, 0.4242, 0.124);
         case SPRING_C:
-            return ChVector<>(-0.18, 0.4242, 0.468);
+            return ChVector3d(-0.18, 0.4242, 0.468);
         case SHOCK_A:
-            return ChVector<>(0.1, 0.4242, 0.124);
+            return ChVector3d(0.1, 0.4242, 0.124);
         case SHOCK_C:
-            return ChVector<>(0.1, 0.4242, 0.468);
+            return ChVector3d(0.1, 0.4242, 0.468);
         case SPINDLE:
-            return ChVector<>(0.0, 0.635, 0.0);
+            return ChVector3d(0.0, 0.635, 0.0);
         case AXLE_C:
-            return ChVector<>(0.68, -0.1, 0.335);
+            return ChVector3d(0.68, -0.1, 0.335);
         case PANHARD_A:
-            return ChVector<>(-0.1, -0.45, 0.0 + m_portalOffset);
+            return ChVector3d(-0.1, -0.45, 0.0 + m_portalOffset);
         case PANHARD_C:
-            return ChVector<>(-0.1, 0.45, 0.0 + m_portalOffset);
+            return ChVector3d(-0.1, 0.45, 0.0 + m_portalOffset);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

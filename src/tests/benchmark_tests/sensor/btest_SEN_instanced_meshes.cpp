@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
         // ---------------------------------------
         auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
             GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
-        mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+        mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
         int x_instances = q;
         int y_instances = q;
@@ -65,10 +65,10 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < x_instances; i++) {
             for (int j = 0; j < y_instances; j++) {
                 for (int k = 0; k < z_instances; k++) {
-                    ChVector<> p = {x_spread * (i + .5 - x_instances / 2.), y_spread * (j + .5 - y_instances / 2.),
+                    ChVector3d p = {x_spread * (i + .5 - x_instances / 2.), y_spread * (j + .5 - y_instances / 2.),
                                     z_spread * (k + .5 - z_instances / 2.)};
 
-                    // ChVector<> p = {10 * (float)rand() - 5, 10 * (float)rand() - 5, 10 * (float)rand() - 5};
+                    // ChVector3d p = {10 * (float)rand() - 5, 10 * (float)rand() - 5, 10 * (float)rand() - 5};
 
                     ChQuaternion<> quat = Q_from_AngAxis(p.Length(), {0, 0, 1});
 

@@ -62,7 +62,7 @@ double byDim = 2.0;
 double bzDim = 0.1;
 
 // Rover initial location
-ChVector<> init_loc(-bxDim / 2.0 + 1.0, 0, bzDim + 0.3);
+ChVector3d init_loc(-bxDim / 2.0 + 1.0, 0, bzDim + 0.3);
 
 // Simulation time and stepsize
 double total_time = 20.0;
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sysMBS;
     ChSystemFsi sysFSI(&sysMBS);
 
-    ChVector<> gravity = ChVector<>(0, 0, -9.81);
+    ChVector3d gravity = ChVector3d(0, 0, -9.81);
     sysMBS.Set_G_acc(gravity);
     sysFSI.Set_G_acc(gravity);
 
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetStepSize(dT);
 
     // Set the simulation domain size
-    sysFSI.SetContainerDim(ChVector<>(bxDim, byDim, bzDim));
+    sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
     // Set SPH discretization type, consistent or inconsistent
     sysFSI.SetDiscreType(false, false);
@@ -186,8 +186,8 @@ int main(int argc, char* argv[]) {
 
     // Set the periodic boundary condition
     double initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> cMin(-bxDim / 2 * 2, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10);
-    ChVector<> cMax(bxDim / 2 * 2, byDim / 2 + 0.5 * iniSpacing, bzDim * 20);
+    ChVector3d cMin(-bxDim / 2 * 2, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10);
+    ChVector3d cMax(bxDim / 2 * 2, byDim / 2 + 0.5 * iniSpacing, bzDim * 20);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Set simulation data output length
@@ -195,9 +195,9 @@ int main(int argc, char* argv[]) {
 
     // Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
-    ChVector<> boxCenter(0, 0, bzDim / 2);
-    ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
-    std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
+    ChVector3d boxCenter(0, 0, bzDim / 2);
+    ChVector3d boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
+    std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add SPH particles from the sampler points to the FSI system
     std::cout << "Generate SPH particles (" << points.size() << ")" << std::endl;
@@ -206,9 +206,9 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < numPart; i++) {
         double pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + bzDim);
         sysFSI.AddSPHParticle(points[i], sysFSI.GetDensity(), 0, sysFSI.GetViscosity(),
-                              ChVector<>(0),         // initial velocity
-                              ChVector<>(-pre_ini),  // tauxxyyzz
-                              ChVector<>(0)          // tauxyxzyz
+                              ChVector3d(0),         // initial velocity
+                              ChVector3d(-pre_ini),  // tauxxyyzz
+                              ChVector3d(0)          // tauxyxzyz
         );
     }
 
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
 
         visFSI->SetTitle("Viper on CRM terrain");
         visFSI->SetSize(1280, 720);        
-        visFSI->AddCamera(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
+        visFSI->AddCamera(ChVector3d(0, -3 * byDim, bzDim), ChVector3d(0, 0, 0));
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(false);
@@ -326,7 +326,7 @@ int main(int argc, char* argv[]) {
 void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
     // Create a body for the rigid soil container
     auto box = chrono_types::make_shared<ChBodyEasyBox>(10, 10, 0.02, 1000, false, false);
-    box->SetPos(ChVector<>(0, 0, 0));
+    box->SetPos(ChVector3d(0, 0, 0));
     box->SetBodyFixed(true);
     sysMBS.Add(box);
 
@@ -335,9 +335,9 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Fluid-Solid Coupling at the walls via BCE particles
     sysFSI.AddBoxContainerBCE(box,                                        //
-                              ChFrame<>(ChVector<>(0, 0, bzDim), QUNIT),  //
-                              ChVector<>(bxDim, byDim, 2 * bzDim),        //
-                              ChVector<int>(2, 0, -1));
+                              ChFrame<>(ChVector3d(0, 0, bzDim), QUNIT),  //
+                              ChVector3d(bxDim, byDim, 2 * bzDim),        //
+                              ChVector3i(2, 0, -1));
 
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     rover = chrono_types::make_shared<Viper>(&sysMBS, wheel_type);
@@ -349,10 +349,10 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
     auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     double scale_ratio = 1.0;
     trimesh->LoadWavefrontMesh(GetChronoDataFile(wheel_obj), false, true);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
+    trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
-    std::vector<ChVector<>> BCE_wheel;
+    std::vector<ChVector3d> BCE_wheel;
     sysFSI.CreateMeshPoints(*trimesh, initSpace0, BCE_wheel);
 
     // Add BCE particles and mesh of wheels to the system
@@ -393,18 +393,18 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
     for (int i = 0; i < 1; i++) {
         auto body = rover->GetChassis()->GetBody();
         ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
-        ChVector<> body_pos = body_ref_frame.GetPos();      // body->GetPos();
+        ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
 
         auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         std::string obj_path = (GetChronoDataFile("robot/viper/obj/viper_chassis.obj"));
         double scale_ratio = 1.0;
         mmesh->LoadWavefrontMesh(obj_path, false, true);
-        mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
+        mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
         mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
         double mmass;
-        ChVector<> mcog;
+        ChVector3d mcog;
         ChMatrix33<> minertia;
         mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
         mmesh->Transform(body_pos, ChMatrix33<>(body_rot));  // rotate the mesh based on the orientation of body
@@ -453,7 +453,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         }
 
         ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
-        ChVector<> body_pos = body_ref_frame.GetPos();      // body->GetPos();
+        ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
         if (i == 0 || i == 2) {
             body_rot.Cross(body_rot, Q_from_AngZ(CH_C_PI));
@@ -463,11 +463,11 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         std::string obj_path = GetChronoDataFile(wheel_obj);
         double scale_ratio = 1.0;
         mmesh->LoadWavefrontMesh(obj_path, false, true);
-        mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
+        mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
         mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
         double mmass;
-        ChVector<> mcog;
+        ChVector3d mcog;
         ChMatrix33<> minertia;
         mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
         mmesh->Transform(body_pos, ChMatrix33<>(body_rot));  // rotate the mesh based on the orientation of body
@@ -515,7 +515,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             body = rover->GetUpright(ViperWheelID::V_RB)->GetBody();
         }
         ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
-        ChVector<> body_pos = body_ref_frame.GetPos();      // body->GetPos();
+        ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
 
         auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
@@ -528,11 +528,11 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         }
         double scale_ratio = 1.0;
         mmesh->LoadWavefrontMesh(obj_path, false, true);
-        mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
+        mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
         mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
         double mmass;
-        ChVector<> mcog;
+        ChVector3d mcog;
         ChMatrix33<> minertia;
         mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
         mmesh->Transform(body_pos, ChMatrix33<>(body_rot));  // rotate the mesh based on the orientation of body
@@ -580,7 +580,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             body = rover->GetLowerArm(ViperWheelID::V_RB)->GetBody();
         }
         ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
-        ChVector<> body_pos = body_ref_frame.GetPos();      // body->GetPos();
+        ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
 
         auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
@@ -593,11 +593,11 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         }
         double scale_ratio = 1.0;
         mmesh->LoadWavefrontMesh(obj_path, false, true);
-        mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
+        mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
         mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
         double mmass;
-        ChVector<> mcog;
+        ChVector3d mcog;
         ChMatrix33<> minertia;
         mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
         mmesh->Transform(body_pos, ChMatrix33<>(body_rot));  // rotate the mesh based on the orientation of body
@@ -645,7 +645,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             body = rover->GetUpperArm(ViperWheelID::V_RB)->GetBody();
         }
         ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
-        ChVector<> body_pos = body_ref_frame.GetPos();      // body->GetPos();
+        ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
 
         auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
@@ -659,11 +659,11 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
 
         double scale_ratio = 1.0;
         mmesh->LoadWavefrontMesh(obj_path, false, true);
-        mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
+        mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
         mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
         double mmass;
-        ChVector<> mcog;
+        ChVector3d mcog;
         ChMatrix33<> minertia;
         mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
         mmesh->Transform(body_pos, ChMatrix33<>(body_rot));  // rotate the mesh based on the orientation of body
@@ -699,14 +699,14 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
     double lx = 0.1;
     double ly = 0.25;
     double lz = 0.05;
-    ChVector<double> Node1 = ChVector<double>(-lx, -ly, -lz);
-    ChVector<double> Node2 = ChVector<double>(lx, -ly, -lz);
-    ChVector<double> Node3 = ChVector<double>(lx, -ly, lz);
-    ChVector<double> Node4 = ChVector<double>(-lx, -ly, lz);
-    ChVector<double> Node5 = ChVector<double>(-lx, ly, -lz);
-    ChVector<double> Node6 = ChVector<double>(lx, ly, -lz);
-    ChVector<double> Node7 = ChVector<double>(lx, ly, lz);
-    ChVector<double> Node8 = ChVector<double>(-lx, ly, lz);
+    ChVector3d Node1 = ChVector3d(-lx, -ly, -lz);
+    ChVector3d Node2 = ChVector3d(lx, -ly, -lz);
+    ChVector3d Node3 = ChVector3d(lx, -ly, lz);
+    ChVector3d Node4 = ChVector3d(-lx, -ly, lz);
+    ChVector3d Node5 = ChVector3d(-lx, ly, -lz);
+    ChVector3d Node6 = ChVector3d(lx, ly, -lz);
+    ChVector3d Node7 = ChVector3d(lx, ly, lz);
+    ChVector3d Node8 = ChVector3d(-lx, ly, lz);
 
     for (int i = 0; i < 2; i++) {
         filename = rover_dir + "/obstacle_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
@@ -720,16 +720,16 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         file << "POINTS " << 8 << " "
              << "float" << std::endl;
         auto Body = sysMBS.Get_bodylist()[i + 2 + 16];
-        ChVector<> center = Body->GetPos();
+        ChVector3d center = Body->GetPos();
         ChMatrix33<> Rotation = Body->GetRot();
-        ChVector<double> vertex1 = Rotation * Node1 + center;
-        ChVector<double> vertex2 = Rotation * Node2 + center;
-        ChVector<double> vertex3 = Rotation * Node3 + center;
-        ChVector<double> vertex4 = Rotation * Node4 + center;
-        ChVector<double> vertex5 = Rotation * Node5 + center;
-        ChVector<double> vertex6 = Rotation * Node6 + center;
-        ChVector<double> vertex7 = Rotation * Node7 + center;
-        ChVector<double> vertex8 = Rotation * Node8 + center;
+        ChVector3d vertex1 = Rotation * Node1 + center;
+        ChVector3d vertex2 = Rotation * Node2 + center;
+        ChVector3d vertex3 = Rotation * Node3 + center;
+        ChVector3d vertex4 = Rotation * Node4 + center;
+        ChVector3d vertex5 = Rotation * Node5 + center;
+        ChVector3d vertex6 = Rotation * Node6 + center;
+        ChVector3d vertex7 = Rotation * Node7 + center;
+        ChVector3d vertex8 = Rotation * Node8 + center;
         file << vertex1.x() << " " << vertex1.y() << " " << vertex1.z() << "\n";
         file << vertex2.x() << " " << vertex2.y() << " " << vertex2.z() << "\n";
         file << vertex3.x() << " " << vertex3.y() << " " << vertex3.z() << "\n";
@@ -752,9 +752,9 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
     for (int i = 1; i < sysMBS.Get_bodylist().size(); i++) {
         auto body = sysMBS.Get_bodylist()[i];
         ChFrame<> ref_frame = body->GetFrame_REF_to_abs();
-        ChVector<> pos = ref_frame.GetPos();
+        ChVector3d pos = ref_frame.GetPos();
         ChQuaternion<> rot = ref_frame.GetRot();
-        ChVector<> vel = body->GetPos_dt();
+        ChVector3d vel = body->GetPos_dt();
 
         std::string delim = ",";
         filename = rover_dir + "/body_pos_rot_vel" + std::to_string(i) + ".csv";

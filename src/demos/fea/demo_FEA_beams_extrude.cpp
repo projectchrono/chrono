@@ -41,7 +41,7 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 // A helper function that creates a'lobed gear', to quickly create one or two rotating obstacles for the extruding beam
-std::shared_ptr<ChBody> CreateLobedGear(ChVector<> gear_center,
+std::shared_ptr<ChBody> CreateLobedGear(ChVector3d gear_center,
                                         int lobe_copies,
                                         double lobe_width,
                                         double lobe_primitive_rad,
@@ -57,7 +57,7 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector<> gear_center,
     // cylindrical lobes
     for (int i = 0; i < lobe_copies; ++i) {
         double phase = CH_C_2PI * ((double)i / (double)lobe_copies);
-        ChVector<> loc(lobe_primitive_rad * sin(phase), lobe_primitive_rad * cos(phase), 0);
+        ChVector3d loc(lobe_primitive_rad * sin(phase), lobe_primitive_rad * cos(phase), 0);
         // shortcut from ChUtilsCreators.h: adds both collision shape and visualization asset
         chrono::utils::AddCylinderGeometry(mgear.get(), mysurfmaterial,             //
                                            lobe_width * 0.5, lobe_thickness * 0.5,  //
@@ -106,8 +106,8 @@ int main(int argc, char* argv[]) {
     melasticity->SetAsCircularSection(wire_diameter);
 
     auto mdamping = chrono_types::make_shared<ChDampingCosseratLinear>();
-    mdamping->SetDampingCoefficientsRe((1e-3) * ChVector<>(1, 1, 1));
-    mdamping->SetDampingCoefficientsRk((1e-4) * ChVector<>(1, 1, 1));  //***??? -/+
+    mdamping->SetDampingCoefficientsRe((1e-3) * ChVector3d(1, 1, 1));
+    mdamping->SetDampingCoefficientsRk((1e-4) * ChVector3d(1, 1, 1));  //***??? -/+
 
     auto mplasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
     mplasticity->n_yeld_Mx = chrono_types::make_shared<ChFunctionRamp>(1, 0.01);
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
         my_mesh,   // the mesh where to add the beams
         msection,  // section for created beam
         0.015,     // beam element length (size of discretization: the smaller, the more precise)
-        ChCoordsys<>(ChVector<>(0, 0, 0)),  // outlet coordinate system (x axis is the extrusion dir)
+        ChCoordsys<>(ChVector3d(0, 0, 0)),  // outlet coordinate system (x axis is the extrusion dir)
         0.08,                               // the extrusion speed
         1                                   // the order of beams
     );
@@ -189,8 +189,8 @@ int main(int argc, char* argv[]) {
     double lobe_inner_rad = 0.13;
     double lobe_outer_rad = 0.34;
     double lobe_thickness = 0.08;
-    ChVector<> gear_centerLOW(0.3, -lobe_primitive_rad + 0.01, 0);
-    ChVector<> gear_centerHI(0.3, lobe_primitive_rad - 0.01, 0);
+    ChVector3d gear_centerLOW(0.3, -lobe_primitive_rad + 0.01, 0);
+    ChVector3d gear_centerHI(0.3, lobe_primitive_rad - 0.01, 0);
 
     auto gearLOW = CreateLobedGear(gear_centerLOW, lobe_copies, lobe_width, lobe_primitive_rad, lobe_inner_rad,
                                    lobe_outer_rad, lobe_thickness, sys, mysurfmaterial);
@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.2, 0, 0.3));
+    vis->AddCamera(ChVector3d(-0.2, 0, 0.3));
     vis->AttachSystem(&sys);
 
     // SIMULATION LOOP

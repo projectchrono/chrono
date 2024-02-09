@@ -135,12 +135,12 @@ void ChLinkMotorRotationSpeed::KRMmatricesLoad(double Kfactor, double Rfactor, d
         ChFrame<> F2_W = this->frame2 >> (*this->Body2);
         ChMatrix33<> R_F1_W = F1_W.GetA();
         ChMatrix33<> R_F2_W = F2_W.GetA();
-        ChVector<> P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
+        ChVector3d P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
         // ChFrame<> F1_wrt_F2;
         // F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
 
-        ChVector<> r_F1_B1 = this->frame1.GetPos();
-        ChVector<> r_F2_B2 = this->frame2.GetPos();
+        ChVector3d r_F1_B1 = this->frame1.GetPos();
+        ChVector3d r_F2_B2 = this->frame2.GetPos();
         ChStarMatrix33<> rtilde_F1_B1(r_F1_B1);
         ChStarMatrix33<> rtilde_F2_B2(r_F2_B2);
 
@@ -170,7 +170,7 @@ void ChLinkMotorRotationSpeed::KRMmatricesLoad(double Kfactor, double Rfactor, d
         q_F1M_F2.e2() = 2.0 * this->P(0, 2);
         q_F1M_F2.e3() = -2.0 * this->P(0, 1);
         double s_F1M_F2 = q_F1M_F2.e0();
-        ChVector<> v_F1M_F2 = q_F1M_F2.GetVector();
+        ChVector3d v_F1M_F2 = q_F1M_F2.GetVector();
         ChMatrix33<> I33;
         I33.setIdentity();
         ChMatrix33<> G = -0.25 * TensorProduct(gamma_m, v_F1M_F2) -

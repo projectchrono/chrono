@@ -55,8 +55,8 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
     mat->SetFriction(0.4f);
 
     utils::CreateBoxContainer(sys, 0, mat,                              //
-                              ChVector<>(1.1, 1.2, 1.1), 0.1,           //
-                              ChVector<>(0, 0, 0.3), Q_from_AngY(-10),  //
+                              ChVector3d(1.1, 1.2, 1.1), 0.1,           //
+                              ChVector3d(0, 0, 0.3), Q_from_AngY(-10),  //
                               true, true, true);
 }
 
@@ -95,7 +95,7 @@ void AddFluid(ChSystemMulticoreNSC* sys) {
     double dist = kernel_radius * .9;
     utils::HCPSampler<> sampler(dist);
     vol = dist * dist * dist * .8;
-    utils::Generator::PointVector points = sampler.SampleSphere(ChVector<>(0, 0, 0), radius);
+    utils::Generator::PointVector points = sampler.SampleSphere(ChVector3d(0, 0, 0), radius);
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     sys.SetNumThreads(8);
 
     // Set gravitational acceleration
-    sys.Set_G_acc(ChVector<>(0, 0, -gravity));
+    sys.Set_G_acc(ChVector3d(0, 0, -gravity));
 
     // Set solver parameters
     sys.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, -2.5, 0), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(0, -2.5, 0), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // Uncomment the following two lines for the OpenGL manager to automatically

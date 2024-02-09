@@ -23,7 +23,6 @@ namespace chrono {
 /// ***OBSOLETE***
 
 class ChApi ChLinkClearance : public ChLinkLockLock {
-
   protected:
     double clearance;           ///< distance offset
     double c_friction;          ///< friction coeff.
@@ -33,8 +32,8 @@ class ChApi ChLinkClearance : public ChLinkLockLock {
 
     double diameter;  ///< radius of shaft (in case of circular shaft)
 
-    Vector contact_F_abs;  ///< [internal]
-    Vector contact_V_abs;  ///< [internal]
+    ChVector3d contact_F_abs;  ///< [internal]
+    ChVector3d contact_V_abs;  ///< [internal]
 
   public:
     // builders and destroyers
@@ -73,9 +72,9 @@ class ChApi ChLinkClearance : public ChLinkLockLock {
     double Get_axis_eccentricity();  // distance between the two shafts
     double Get_axis_phase();         // phase of center of shaft, respect to hole
     double Get_rotation_angle();     // rotation of shafti in hole (relative)
-    Vector Get_contact_P_abs();      // absolute contact point
-    Vector Get_contact_N_abs();      // absolute normal to contact
-    Vector Get_contact_F_abs();      // absolute force in contact
+    ChVector3d Get_contact_P_abs();   // absolute contact point
+    ChVector3d Get_contact_N_abs();   // absolute normal to contact
+    ChVector3d Get_contact_F_abs();   // absolute force in contact
     double Get_contact_F_n();        // normal  part of force
     double Get_contact_F_t();        // tangent part of force
     double Get_contact_V_t();        // tangent part of speed
@@ -89,8 +88,7 @@ class ChApi ChLinkClearance : public ChLinkLockLock {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChLinkClearance,0)
-
+CH_CLASS_VERSION(ChLinkClearance, 0)
 
 }  // end namespace chrono
 

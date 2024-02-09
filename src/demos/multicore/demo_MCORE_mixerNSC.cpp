@@ -60,15 +60,15 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
     auto bin = chrono_types::make_shared<ChBody>();
     bin->SetIdentifier(binId);
     bin->SetMass(100);
-    bin->SetPos(ChVector<>(0, 0, 0));
+    bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
     utils::AddBoxContainer(bin, mat,                                 //
-                           ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
-                           ChVector<>(2, 2, 1), 0.2,                 //
-                           ChVector<int>(2, 2, -1));
+                           ChFrame<>(ChVector3d(0, 0, 0.5), QUNIT),  //
+                           ChVector3d(2, 2, 1), 0.2,                 //
+                           ChVector3i(2, 2, -1));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
 
@@ -78,12 +78,12 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
     auto mixer = chrono_types::make_shared<ChBody>();
     mixer->SetIdentifier(mixerId);
     mixer->SetMass(10.0);
-    mixer->SetInertiaXX(ChVector<>(50, 50, 50));
-    mixer->SetPos(ChVector<>(0, 0, 0.205));
+    mixer->SetInertiaXX(ChVector3d(50, 50, 50));
+    mixer->SetPos(ChVector3d(0, 0, 0.205));
     mixer->SetBodyFixed(false);
     mixer->SetCollide(true);
 
-    ChVector<> hsize(0.8, 0.1, 0.2);
+    ChVector3d hsize(0.8, 0.1, 0.2);
 
     utils::AddBoxGeometry(mixer.get(), mat, hsize);
     mixer->GetCollisionModel()->SetFamily(2);
@@ -92,7 +92,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
 
     // Create a motor between the two bodies, constrained to rotate at 90 deg/s
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    motor->Initialize(mixer, bin, ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    motor->Initialize(mixer, bin, ChFrame<>(ChVector3d(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, CH_C_PI / 2));
     sys->AddLink(motor);
 
@@ -111,8 +111,8 @@ void AddFallingBalls(ChSystemMulticore* sys) {
     // Create the falling objects
     for (int ix = -2; ix < 3; ix++) {
         for (int iy = -2; iy < 3; iy++) {
-            ChVector<> b_pos(0.4 * ix, 0.4 * iy, 1);
-            ChVector<> c_pos(0.4 * ix, 0.4 * iy, 1.4);
+            ChVector3d b_pos(0.4 * ix, 0.4 * iy, 1);
+            ChVector3d c_pos(0.4 * ix, 0.4 * iy, 1.4);
 
             auto ball = chrono_types::make_shared<ChBodyEasySphere>(0.1, 2000, ball_mat);
             ball->SetPos(b_pos);
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     // Set gravitational acceleration
-    sys.Set_G_acc(ChVector<>(0, 0, -gravity));
+    sys.Set_G_acc(ChVector3d(0, 0, -gravity));
 
     // Set solver parameters
     sys.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, -3, 2), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(0, -3, 2), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     while (vis.Run()) {

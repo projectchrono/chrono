@@ -55,11 +55,11 @@ void RigidChassis::Create(const rapidjson::Document& d) {
 
     for (int i = 0; i < num_comp; i++) {
         const Value& comp = d["Components"][i];
-        ChVector<> loc = ReadVectorJSON(comp["Centroidal Frame"]["Location"]);
+        ChVector3d loc = ReadVectorJSON(comp["Centroidal Frame"]["Location"]);
         ChQuaternion<> rot = ReadQuaternionJSON(comp["Centroidal Frame"]["Orientation"]);
         double mass = comp["Mass"].GetDouble();
-        ChVector<> inertiaXX = ReadVectorJSON(comp["Moments of Inertia"]);
-        ChVector<> inertiaXY = ReadVectorJSON(comp["Products of Inertia"]);
+        ChVector3d inertiaXX = ReadVectorJSON(comp["Moments of Inertia"]);
+        ChVector3d inertiaXY = ReadVectorJSON(comp["Products of Inertia"]);
         bool is_void = comp["Void"].GetBool();
 
         ChMatrix33<> inertia(inertiaXX, inertiaXY);
@@ -78,7 +78,7 @@ void RigidChassis::Create(const rapidjson::Document& d) {
     if (d.HasMember("Rear Connector Location")) {
         m_connector_rear_loc = ReadVectorJSON(d["Rear Connector Location"]);
     } else {
-        m_connector_rear_loc = ChVector<>(0, 0, 0);
+        m_connector_rear_loc = ChVector3d(0, 0, 0);
     }
 
     // Read contact and visualization data.
@@ -115,11 +115,11 @@ void RigidChassisRear::Create(const rapidjson::Document& d) {
 
     for (int i = 0; i < num_comp; i++) {
         const Value& comp = d["Components"][i];
-        ChVector<> loc = ReadVectorJSON(comp["Centroidal Frame"]["Location"]);
+        ChVector3d loc = ReadVectorJSON(comp["Centroidal Frame"]["Location"]);
         ChQuaternion<> rot = ReadQuaternionJSON(comp["Centroidal Frame"]["Orientation"]);
         double mass = comp["Mass"].GetDouble();
-        ChVector<> inertiaXX = ReadVectorJSON(comp["Moments of Inertia"]);
-        ChVector<> inertiaXY = ReadVectorJSON(comp["Products of Inertia"]);
+        ChVector3d inertiaXX = ReadVectorJSON(comp["Moments of Inertia"]);
+        ChVector3d inertiaXY = ReadVectorJSON(comp["Products of Inertia"]);
         bool is_void = comp["Void"].GetBool();
 
         ChMatrix33<> inertia(inertiaXX, inertiaXY);
@@ -138,7 +138,7 @@ void RigidChassisRear::Create(const rapidjson::Document& d) {
     if (d.HasMember("Rear Connector Location")) {
         m_connector_rear_loc = ReadVectorJSON(d["Rear Connector Location"]);
     } else {
-        m_connector_rear_loc = ChVector<>(0, 0, 0);
+        m_connector_rear_loc = ChVector3d(0, 0, 0);
     }
 
     // Read contact and visualization data.

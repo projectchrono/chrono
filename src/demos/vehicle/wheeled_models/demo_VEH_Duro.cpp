@@ -56,7 +56,7 @@ using namespace chrono::vehicle::duro;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 0.5);
+ChVector3d initLoc(0, 0, 0.5);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
@@ -73,7 +73,7 @@ TireModelType tire_model = TireModelType::TMEASY;
 BrakeType brake_model = BrakeType::SIMPLE;
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 0.75);
+ChVector3d trackPoint(0.0, 0.0, 0.75);
 
 bool use_realtime = true;
 
@@ -222,8 +222,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("Duro 4x4 Demo");
             vis_vsg->AttachVehicle(&duro.GetVehicle());
             vis_vsg->SetChaseCamera(trackPoint, 8.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2<int>(1200, 800));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);

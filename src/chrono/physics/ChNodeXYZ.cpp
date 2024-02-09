@@ -18,7 +18,7 @@ namespace chrono {
 
 ChNodeXYZ::ChNodeXYZ() : pos(VNULL), pos_dt(VNULL), pos_dtdt(VNULL) {}
 
-ChNodeXYZ::ChNodeXYZ(const ChVector<>& initial_pos) : pos(initial_pos), pos_dt(VNULL), pos_dtdt(VNULL) {}
+ChNodeXYZ::ChNodeXYZ(const ChVector3d& initial_pos) : pos(initial_pos), pos_dt(VNULL), pos_dtdt(VNULL) {}
 
 ChNodeXYZ::ChNodeXYZ(const ChNodeXYZ& other) {
     offset_x = other.offset_x;

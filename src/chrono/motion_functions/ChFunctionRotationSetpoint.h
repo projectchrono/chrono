@@ -88,7 +88,7 @@ class ChApi ChFunctionRotationSetpoint : public ChFunctionRotation {
     /// Set the setpoint, and also its derivatives (angular velocity, angular acceleration). Moreover, changes the mode to eChSetpointMode::OVERRIDE, so 
     /// all values will persist indefinitely until next call, that is multiple calls to Get_q(s) Get_w_loc() etc. will give same 
 	/// results (non interpolated) regardless of s.
-    virtual void SetSetpointAndDerivatives(ChQuaternion<> q_setpoint, ChVector<> w_loc_setpoint, ChVector<> a_loc_setpoint) {
+    virtual void SetSetpointAndDerivatives(ChQuaternion<> q_setpoint, ChVector3d w_loc_setpoint, ChVector3d a_loc_setpoint) {
 		mode = eChSetpointMode::OVERRIDE;
         Q = q_setpoint;
         W = w_loc_setpoint;
@@ -100,10 +100,10 @@ class ChApi ChFunctionRotationSetpoint : public ChFunctionRotation {
     virtual ChQuaternion<> Get_q(double s) const override;
 
     /// Return the derivative of the rotation function, at s, expressed as angular velocity w in local frame.
-	virtual ChVector<> Get_w_loc(double s) const override;
+	virtual ChVector3d Get_w_loc(double s) const override;
 
     /// Return the derivative of the rotation function, at s, expressed as angular acceleration in local frame.
-	virtual ChVector<> Get_a_loc(double s) const override;
+	virtual ChVector3d Get_a_loc(double s) const override;
 
 
     /// Method to allow serialization of transient data to archives
@@ -118,11 +118,11 @@ private:
 	eChSetpointMode mode;
 	double	   S;
 	ChQuaternion<> Q;
-    ChVector<>     W;
-    ChVector<>     A;
+    ChVector3d     W;
+    ChVector3d     A;
 	double	       last_S;
 	ChQuaternion<> last_Q;
-    ChVector<>     last_W;
+    ChVector3d     last_W;
 };
 
 /// @} chrono_functions

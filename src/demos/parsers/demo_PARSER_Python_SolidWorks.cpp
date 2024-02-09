@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     if (mescape_wheel && mtruss && mbalance && manchor) {
         // Set a constant torque to escape wheel, in a very simple way
         mescape_wheel->Empty_forces_accumulators();
-        mescape_wheel->Accumulate_torque(ChVector<>(0, -0.03, 0), false);
+        mescape_wheel->Accumulate_torque(ChVector3d(0, -0.03, 0), false);
 
         // Add a torsional spring
         std::shared_ptr<ChLinkLockFree> mspring(new ChLinkLockFree);
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
         sys.Add(mspring);
 
         // Set an initial angular velocity to the balance:
-        mbalance->SetWvel_par(ChVector<>(0, 5, 0));
+        mbalance->SetWvel_par(ChVector3d(0, 5, 0));
 
         // Set no friction in all parts
         assert(mbalance->GetCollisionModel());
@@ -127,11 +127,11 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 0.25, 0.25), ChVector<>(0, 0, -0.1));
+    vis->AddCamera(ChVector3d(0, 0.25, 0.25), ChVector3d(0, 0, -0.1));
     vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector<>(-0.5, 0.5, 0.0), ChVector<>(0, 0, 0), 1, 0.2, 1.2, 30, 512,
+    vis->AddLightWithShadow(ChVector3d(-0.5, 0.5, 0.0), ChVector3d(0, 0, 0), 1, 0.2, 1.2, 30, 512,
                             ChColor(1.0f, 0.9f, 0.9f));
-    vis->AddLightWithShadow(ChVector<>(+0.5, 0.5, 0.5), ChVector<>(0, 0, 0), 1, 0.2, 1.2, 30, 512,
+    vis->AddLightWithShadow(ChVector3d(+0.5, 0.5, 0.5), ChVector3d(0, 0, 0), 1, 0.2, 1.2, 30, 512,
                             ChColor(0.6f, 0.8f, 1.0f));
     vis->EnableShadows();
 

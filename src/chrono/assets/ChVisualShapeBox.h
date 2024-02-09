@@ -28,7 +28,7 @@ class ChApi ChVisualShapeBox : public ChVisualShape {
   public:
     ChVisualShapeBox();
     ChVisualShapeBox(double length_x, double length_y, double length_z);
-    ChVisualShapeBox(const ChVector<>& lengths);
+    ChVisualShapeBox(const ChVector3d& lengths);
     ChVisualShapeBox(const geometry::ChBox& box);
 
     ~ChVisualShapeBox() {}
@@ -37,10 +37,10 @@ class ChApi ChVisualShapeBox : public ChVisualShape {
     geometry::ChBox& GetGeometry() { return gbox; }
 
     /// Get the box half-lengths.
-    const ChVector<>& GetHalflengths() const { return gbox.GetHalflengths(); }
+    const ChVector3d& GetHalflengths() const { return gbox.GetHalflengths(); }
 
     /// Get the box dimensions.
-    ChVector<> GetLengths() const { return gbox.GetLengths(); }
+    ChVector3d GetLengths() const { return gbox.GetLengths(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

@@ -55,20 +55,20 @@ int main(int argc, char* argv[]) {
 
         auto my_body_B = chrono_types::make_shared<ChBody>();  // moving body
         my_body_B->SetMass(114);
-        my_body_B->SetInertiaXX(ChVector<>(50, 50, 50));
-        my_body_B->SetPos(ChVector<>(1, 1, 0));
+        my_body_B->SetInertiaXX(ChVector3d(50, 50, 50));
+        my_body_B->SetPos(ChVector3d(1, 1, 0));
         my_system.AddBody(my_body_B);
 
         // Now create a mechanical link (a revolute joint in 0,0,0)
         // between these two markers, and insert in system:
         auto my_link_BA = chrono_types::make_shared<ChLinkLockRevolute>();
-        my_link_BA->Initialize(my_body_B, my_body_A, ChCoordsys<>(ChVector<>(0, 1, 0)));
+        my_link_BA->Initialize(my_body_B, my_body_A, ChCoordsys<>(ChVector3d(0, 1, 0)));
         my_system.AddLink(my_link_BA);
 
         // Now create a 'dead' linear actuator between two points using a ChLinkTSDA with zero stiffness and damping.
         // This will be used to apply the force between the two bodies as a cylinder with spherical ball ends.
         auto my_link_actuator = chrono_types::make_shared<ChLinkTSDA>();
-        my_link_actuator->Initialize(my_body_B, my_body_A, false, ChVector<>(1, 0, 0), ChVector<>(1, 1, 0));
+        my_link_actuator->Initialize(my_body_B, my_body_A, false, ChVector3d(1, 0, 0), ChVector3d(1, 1, 0));
         my_link_actuator->SetSpringCoefficient(0);
         my_link_actuator->SetDampingCoefficient(0);
         my_link_actuator->SetRestLength(my_link_actuator->GetLength());
@@ -76,13 +76,13 @@ int main(int argc, char* argv[]) {
 
         // Create also a spring-damper to have some load when moving:
         auto my_link_springdamper = chrono_types::make_shared<ChLinkTSDA>();
-        my_link_springdamper->Initialize(my_body_B, my_body_A, false, ChVector<>(1, 0, 0), ChVector<>(1, 1, 0));
+        my_link_springdamper->Initialize(my_body_B, my_body_A, false, ChVector3d(1, 0, 0), ChVector3d(1, 1, 0));
         my_link_springdamper->SetSpringCoefficient(4450);
         my_link_springdamper->SetDampingCoefficient(284);
         my_link_springdamper->SetRestLength(my_link_springdamper->GetLength());
         my_system.AddLink(my_link_springdamper);
 
-        my_system.Set_G_acc(ChVector<>(0, 0, 0));
+        my_system.Set_G_acc(ChVector3d(0, 0, 0));
         my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
         my_system.SetSolverMaxIterations(20);
 

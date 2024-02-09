@@ -70,7 +70,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     } else {
         // Cylinder contact
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, GetRadius(), GetWidth());
-        wheel_body->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, GetOffset()), Q_from_AngX(CH_C_PI_2)));
+        wheel_body->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, 0, GetOffset()), Q_from_AngX(CH_C_PI_2)));
     }
 
     wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRE);
@@ -99,14 +99,14 @@ void ChRigidTire::InitializeInertiaProperties() {
 
 void ChRigidTire::UpdateInertiaProperties() {
     auto spindle = m_wheel->GetSpindle();
-    m_xform = ChFrame<>(spindle->TransformPointLocalToParent(ChVector<>(0, GetOffset(), 0)), spindle->GetRot());
+    m_xform = ChFrame<>(spindle->TransformPointLocalToParent(ChVector3d(0, GetOffset(), 0)), spindle->GetRot());
 }
 
 double ChRigidTire::GetAddedMass() const {
     return GetTireMass();
 }
 
-ChVector<> ChRigidTire::GetAddedInertia() const {
+ChVector3d ChRigidTire::GetAddedInertia() const {
     return GetTireInertia();
 }
 
@@ -116,8 +116,8 @@ void ChRigidTire::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     m_cyl_shape = ChVehicleGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                           //
-                                                              ChVector<>(0, GetOffset() + GetWidth() / 2, 0),  //
-                                                              ChVector<>(0, GetOffset() - GetWidth() / 2, 0),  //
+                                                              ChVector3d(0, GetOffset() + GetWidth() / 2, 0),  //
+                                                              ChVector3d(0, GetOffset() - GetWidth() / 2, 0),  //
                                                               GetRadius());
     m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
 }
@@ -137,28 +137,28 @@ class RigidTireContactReporter : public ChContactContainer::ReportContactCallbac
     RigidTireContactReporter(std::shared_ptr<ChBody> body) : m_body(body) {}
 
     // Accumulated force, expressed in global frame, applied to wheel center.
-    const ChVector<>& GetAccumulatedForce() const { return m_force; }
+    const ChVector3d& GetAccumulatedForce() const { return m_force; }
 
     // Accumulated torque, expressed in global frame.
-    const ChVector<>& GetAccumulatedTorque() const { return m_torque; }
+    const ChVector3d& GetAccumulatedTorque() const { return m_torque; }
 
   private:
-    virtual bool OnReportContact(const ChVector<>& pA,
-                                 const ChVector<>& pB,
+    virtual bool OnReportContact(const ChVector3d& pA,
+                                 const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
                                  const double& distance,
                                  const double& eff_radius,
-                                 const ChVector<>& rforce,
-                                 const ChVector<>& rtorque,
+                                 const ChVector3d& rforce,
+                                 const ChVector3d& rtorque,
                                  ChContactable* modA,
                                  ChContactable* modB) override {
         // Filter contacts that involve the tire body.
         if (modA == m_body.get() || modB == m_body.get()) {
             // Express current contact force and torque in global frame
-            ChVector<> force = plane_coord * rforce;
-            ChVector<> torque = plane_coord * rtorque;
+            ChVector3d force = plane_coord * rforce;
+            ChVector3d torque = plane_coord * rtorque;
             // Wheel center in global frame
-            const ChVector<>& center = m_body->GetPos();
+            const ChVector3d& center = m_body->GetPos();
             // Accumulate
             m_force += force;
             m_torque += torque + Vcross(Vsub(pA, center), force);
@@ -168,8 +168,8 @@ class RigidTireContactReporter : public ChContactContainer::ReportContactCallbac
     }
 
     std::shared_ptr<ChBody> m_body;
-    ChVector<> m_force;
-    ChVector<> m_torque;
+    ChVector3d m_force;
+    ChVector3d m_torque;
 };
 
 TerrainForce ChRigidTire::GetTireForce() const {
@@ -177,8 +177,8 @@ TerrainForce ChRigidTire::GetTireForce() const {
     // to the associated wheel through Chrono's frictional contact system.
     TerrainForce tire_force;
     tire_force.point = m_wheel->GetPos();
-    tire_force.force = ChVector<>(0, 0, 0);
-    tire_force.moment = ChVector<>(0, 0, 0);
+    tire_force.force = ChVector3d(0, 0, 0);
+    tire_force.moment = ChVector3d(0, 0, 0);
 
     return tire_force;
 }
@@ -187,8 +187,8 @@ TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
     // If interacting with an SCM terrain, interrogate the terrain system
     // for the cumulative force on the associated rigid body.
     if (auto scm = dynamic_cast<SCMTerrain*>(terrain)) {
-        ChVector<> force;
-        ChVector<> torque;
+        ChVector3d force;
+        ChVector3d torque;
         scm->GetContactForceBody(m_wheel->GetSpindle(), force, torque);
 
         TerrainForce tire_force;
@@ -231,7 +231,7 @@ std::shared_ptr<geometry::ChTriangleMeshConnected> ChRigidTire::GetContactMesh()
     return m_trimesh;
 }
 
-void ChRigidTire::GetMeshVertexStates(std::vector<ChVector<>>& pos, std::vector<ChVector<>>& vel) const {
+void ChRigidTire::GetMeshVertexStates(std::vector<ChVector3d>& pos, std::vector<ChVector3d>& vel) const {
     assert(m_use_contact_mesh);
     auto vertices = m_trimesh->getCoordsVertices();
 

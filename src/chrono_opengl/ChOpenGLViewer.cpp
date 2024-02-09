@@ -259,7 +259,7 @@ void ChOpenGLViewer::Render(bool render_stats) {
 #pragma omp parallel for
             for (int i = 0; i < s->Get_bodylist().size(); i++) {
                 auto abody = s->Get_bodylist().at(i);
-                ChVector<> pos = abody->GetPos();
+                ChVector3d pos = abody->GetPos();
                 cloud_data[i] = glm::vec3(pos.x(), pos.y(), pos.z());
             }
         }
@@ -313,7 +313,7 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
         auto pos = X_SA.GetPos();
         auto rot = X_SA.GetRot();
         double angle;
-        Vector axis;
+        ChVector3d axis;
         rot.Q_to_AngAxis(angle, axis);
 
         if (ChVisualShapeSphere* sphere_shape = dynamic_cast<ChVisualShapeSphere*>(shape.get())) {
@@ -324,14 +324,14 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
             model = glm::scale(model, glm::vec3(radius, radius, radius));
             model_sphere.push_back(model);
         } else if (ChVisualShapeEllipsoid* ellipsoid_shape = dynamic_cast<ChVisualShapeEllipsoid*>(shape.get())) {
-            Vector radius = ellipsoid_shape->GetSemiaxes();
+            ChVector3d radius = ellipsoid_shape->GetSemiaxes();
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::scale(model, glm::vec3(radius.x(), radius.y(), radius.z()));
             model_sphere.push_back(model);
         } else if (ChVisualShapeBox* box_shape = dynamic_cast<ChVisualShapeBox*>(shape.get())) {
-            const Vector& size = box_shape->GetHalflengths();
+            const ChVector3d& size = box_shape->GetHalflengths();
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
@@ -391,7 +391,7 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
             if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(mline))
                 maxU = mline_path->GetPathDuration();
 
-            ChVector<> t2 = mline->Evaluate(0.0);
+            ChVector3d t2 = mline->Evaluate(0.0);
             t2 = X_SA.TransformPointLocalToParent(t2);
             line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
 
@@ -410,9 +410,9 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
         }
         /*
         else if (ChVisualShapeRoundedBox* shape = dynamic_cast<ChVisualShapeRoundedBox*>(asset.get())) {
-            Vector rad = shape->GetHalflengths();
+            ChVector3d rad = shape->GetHalflengths();
             double radsphere = shape->GetRadius();
-            ChVector<> pos_final = pos + center;
+            ChVector3d pos_final = pos + center;
             model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::scale(model, glm::vec3(rad.x(), rad.y(), rad.z()));

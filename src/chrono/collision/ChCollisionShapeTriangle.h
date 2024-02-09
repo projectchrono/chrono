@@ -28,9 +28,9 @@ class ChApi ChCollisionShapeTriangle : public ChCollisionShape {
   public:
     ChCollisionShapeTriangle();
     ChCollisionShapeTriangle(std::shared_ptr<ChContactMaterial> material,
-                             const ChVector<>& p1,
-                             const ChVector<>& p2,
-                             const ChVector<>& p3);
+                             const ChVector3d& p1,
+                             const ChVector3d& p2,
+                             const ChVector3d& p3);
     ChCollisionShapeTriangle(std::shared_ptr<ChContactMaterial> material, const geometry::ChTriangle& triangle);
 
     ~ChCollisionShapeTriangle() {}

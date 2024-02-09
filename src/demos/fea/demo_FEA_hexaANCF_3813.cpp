@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     int i = 0;
     while (i < TotalNumNodes) {
         auto node =
-            chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+            chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         my_mesh->AddNode(node);
         if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1) {
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
         auto element = chrono_types::make_shared<ChElementHexaANCF_3813>();
-        ChVector<double> InertFlexVec(
+        ChVector3d InertFlexVec(
             ElemLengthXY(elemcount, 0), ElemLengthXY(elemcount, 1),
             ElemLengthXY(elemcount, 2));  // read element length, used in ChElementHexaANCF_3813
         element->SetInertFlexVec(InertFlexVec);
@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
         elemcount++;
     }
 
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
 
@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(1.7, 1.0, -1.7), ChVector<>(0.2, 0.2, 0.0));
+    vis->AddCamera(ChVector3d(1.7, 1.0, -1.7), ChVector3d(0.2, 0.2, 0.0));
     vis->AttachSystem(&sys);
 
     // Perform a dynamic time integration:

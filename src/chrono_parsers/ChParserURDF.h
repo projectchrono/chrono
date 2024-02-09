@@ -148,7 +148,7 @@ class ChApiParsers ChParserURDF {
 
   private:
     ChColor toChColor(const urdf::Color& color);
-    ChVector<> toChVector(const urdf::Vector3& vec);
+    ChVector3d toChVector(const urdf::Vector3& vec);
     ChQuaternion<> toChQuaternion(const urdf::Rotation& rot);
     ChFrame<> toChFrame(const urdf::Pose& pose);
     std::shared_ptr<ChVisualShape> toChVisualShape(const urdf::GeometrySharedPtr geometry);

@@ -65,7 +65,7 @@ void ChLoadXYZROTnode::Update(double time) {
 // -----------------------------------------------------------------------------
 
 ChLoadXYZROTnodeForceAbsolute::ChLoadXYZROTnodeForceAbsolute(std::shared_ptr<ChNodeFEAxyzrot> body,
-                                                             const ChVector<>& force)
+                                                             const ChVector3d& force)
     : ChLoadXYZROTnode(body), m_force_base(force), m_scale(1) {
     m_modulation = chrono_types::make_shared<ChFunctionConst>(1.0);
 }
@@ -73,8 +73,8 @@ ChLoadXYZROTnodeForceAbsolute::ChLoadXYZROTnodeForceAbsolute(std::shared_ptr<ChN
 /// Compute the force on the node, in absolute coordsystem,
 /// given position of node as abs_pos.
 void ChLoadXYZROTnodeForceAbsolute::ComputeForceTorque(const ChFrameMoving<>& node_frame_abs_pos_vel,
-                                                       ChVector<>& abs_force,
-                                                       ChVector<>& abs_torque) {
+                                                       ChVector3d& abs_force,
+                                                       ChVector3d& abs_torque) {
     abs_force = GetForce();
 }
 
@@ -84,11 +84,11 @@ void ChLoadXYZROTnodeForceAbsolute::Update(double time) {
     ChLoadXYZROTnode::Update(time);
 }
 
-void ChLoadXYZROTnodeForceAbsolute::SetForceBase(const ChVector<>& force) {
+void ChLoadXYZROTnodeForceAbsolute::SetForceBase(const ChVector3d& force) {
     m_force_base = force;
 }
 
-ChVector<> ChLoadXYZROTnodeForceAbsolute::GetForce() const {
+ChVector3d ChLoadXYZROTnodeForceAbsolute::GetForce() const {
     return m_force_base * m_scale;
 }
 
@@ -137,13 +137,13 @@ void ChLoadXYZROTnodeXYZROTnode::ComputeQ(ChState* state_x, ChStateDelta* state_
 
     ComputeForceTorque(rel_AB, locB_force, locB_torque);
 
-    ChVector<> abs_force = frame_Bw.TransformDirectionLocalToParent(locB_force);
-    ChVector<> abs_torque = frame_Bw.TransformDirectionLocalToParent(locB_torque);
+    ChVector3d abs_force = frame_Bw.TransformDirectionLocalToParent(locB_force);
+    ChVector3d abs_torque = frame_Bw.TransformDirectionLocalToParent(locB_torque);
 
     // Compute Q
 
-    ChVector<> loc_ftorque = bodycoordA.GetRot().RotateBack(((frame_Aw.GetPos() - bodycoordA.GetPos()) % -abs_force));
-    ChVector<> loc_torque = bodycoordA.GetRot().RotateBack(-abs_torque);
+    ChVector3d loc_ftorque = bodycoordA.GetRot().RotateBack(((frame_Aw.GetPos() - bodycoordA.GetPos()) % -abs_force));
+    ChVector3d loc_torque = bodycoordA.GetRot().RotateBack(-abs_torque);
     load_Q.segment(0, 3) = -abs_force.eigen();
     load_Q.segment(3, 3) = (loc_ftorque + loc_torque).eigen();
 
@@ -170,14 +170,14 @@ ChLoadXYZROTnodeXYZROTnodeBushingSpherical::ChLoadXYZROTnodeXYZROTnodeBushingSph
     std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
     const ChFrame<>& abs_application,  ///< bushing location, in abs. coordinates. Will define loc_application_A and
                                        ///< loc_application_B
-    const ChVector<>& mstiffness,      ///< stiffness, along x y z axes of the abs_application
-    const ChVector<>& mdamping         ///< damping, along x y z axes of the abs_application
+    const ChVector3d& mstiffness,      ///< stiffness, along x y z axes of the abs_application
+    const ChVector3d& mdamping         ///< damping, along x y z axes of the abs_application
     )
     : ChLoadXYZROTnodeXYZROTnode(mnodeA, mnodeB, abs_application), stiffness(mstiffness), damping(mdamping) {}
 
 void ChLoadXYZROTnodeXYZROTnodeBushingSpherical::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                                    ChVector<>& loc_force,
-                                                                    ChVector<>& loc_torque) {
+                                                                    ChVector3d& loc_force,
+                                                                    ChVector3d& loc_torque) {
     loc_force = rel_AB.GetPos() * stiffness      // element-wise product!
                 + rel_AB.GetPos_dt() * damping;  // element-wise product!
     loc_torque = VNULL;
@@ -191,16 +191,16 @@ ChLoadXYZROTnodeXYZROTnodeBushingPlastic::ChLoadXYZROTnodeXYZROTnodeBushingPlast
     std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
     std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
     const ChFrame<>& abs_application,
-    const ChVector<>& mstiffness,
-    const ChVector<>& mdamping,
-    const ChVector<>& myield)
+    const ChVector3d& mstiffness,
+    const ChVector3d& mdamping,
+    const ChVector3d& myield)
     : ChLoadXYZROTnodeXYZROTnodeBushingSpherical(mnodeA, mnodeB, abs_application, mstiffness, mdamping),
       yield(myield),
       plastic_def(VNULL) {}
 
 void ChLoadXYZROTnodeXYZROTnodeBushingPlastic::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                                  ChVector<>& loc_force,
-                                                                  ChVector<>& loc_torque) {
+                                                                  ChVector3d& loc_force,
+                                                                  ChVector3d& loc_torque) {
     loc_force = (rel_AB.GetPos() - plastic_def) * stiffness  // element-wise product!
                 + rel_AB.GetPos_dt() * damping;              // element-wise product!
 
@@ -244,31 +244,31 @@ ChLoadXYZROTnodeXYZROTnodeBushingMate::ChLoadXYZROTnodeXYZROTnodeBushingMate(
     std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
     std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
     const ChFrame<>& abs_application,
-    const ChVector<>& mstiffness,
-    const ChVector<>& mdamping,
-    const ChVector<>& mrotstiffness,
-    const ChVector<>& mrotdamping)
+    const ChVector3d& mstiffness,
+    const ChVector3d& mdamping,
+    const ChVector3d& mrotstiffness,
+    const ChVector3d& mrotdamping)
     : ChLoadXYZROTnodeXYZROTnodeBushingSpherical(mnodeA, mnodeB, abs_application, mstiffness, mdamping),
       rot_stiffness(mrotstiffness),
       rot_damping(mrotdamping) {}
 
 void ChLoadXYZROTnodeXYZROTnodeBushingMate::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                               ChVector<>& loc_force,
-                                                               ChVector<>& loc_torque) {
+                                                               ChVector3d& loc_force,
+                                                               ChVector3d& loc_torque) {
     // inherit parent to compute loc_force = ...
     ChLoadXYZROTnodeXYZROTnodeBushingSpherical::ComputeForceTorque(rel_AB, loc_force, loc_torque);
 
     // compute local torque using small rotations:
     ChQuaternion<> rel_rot = rel_AB.GetRot();
 
-    ChVector<> dir_rot;
+    ChVector3d dir_rot;
     double angle_rot;
     rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
     if (angle_rot > CH_C_PI)
         angle_rot -= CH_C_2PI;
     if (angle_rot < -CH_C_PI)
         angle_rot += CH_C_2PI;
-    ChVector<> vect_rot = dir_rot * angle_rot;
+    ChVector3d vect_rot = dir_rot * angle_rot;
 
     loc_torque = vect_rot * rot_stiffness               // element-wise product!
                  + rel_AB.GetWvel_par() * rot_damping;  // element-wise product!
@@ -287,22 +287,22 @@ ChLoadXYZROTnodeXYZROTnodeBushingGeneric::ChLoadXYZROTnodeXYZROTnodeBushingGener
     : ChLoadXYZROTnodeXYZROTnode(mnodeA, mnodeB, abs_application), stiffness(mstiffness), damping(mdamping) {}
 
 void ChLoadXYZROTnodeXYZROTnodeBushingGeneric::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                                  ChVector<>& loc_force,
-                                                                  ChVector<>& loc_torque) {
+                                                                  ChVector3d& loc_force,
+                                                                  ChVector3d& loc_torque) {
     // compute local force & torque (assuming small rotations):
     ChVectorDynamic<> mF(6);
     ChVectorDynamic<> mS(6);
     ChVectorDynamic<> mSdt(6);
-    ChVector<> rel_pos = rel_AB.GetPos() + neutral_displacement.GetPos();
+    ChVector3d rel_pos = rel_AB.GetPos() + neutral_displacement.GetPos();
     ChQuaternion<> rel_rot = rel_AB.GetRot() * neutral_displacement.GetRot();
-    ChVector<> dir_rot;
+    ChVector3d dir_rot;
     double angle_rot;
     rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
     if (angle_rot > CH_C_PI)
         angle_rot -= CH_C_2PI;
     if (angle_rot < -CH_C_PI)
         angle_rot += CH_C_2PI;
-    ChVector<> vect_rot = dir_rot * angle_rot;
+    ChVector3d vect_rot = dir_rot * angle_rot;
 
     mS.segment(0, 3) = rel_pos.eigen();
     mS.segment(3, 3) = vect_rot.eigen();
@@ -311,8 +311,8 @@ void ChLoadXYZROTnodeXYZROTnodeBushingGeneric::ComputeForceTorque(const ChFrameM
 
     mF = stiffness * mS + damping * mSdt;
 
-    loc_force = ChVector<>(mF.segment(0, 3)) - neutral_force;
-    loc_torque = ChVector<>(mF.segment(3, 3)) - neutral_torque;
+    loc_force = ChVector3d(mF.segment(0, 3)) - neutral_force;
+    loc_torque = ChVector3d(mF.segment(3, 3)) - neutral_torque;
 }
 
 // -----------------------------------------------------------------------------
@@ -360,13 +360,13 @@ void ChLoadXYZROTnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     ComputeForceTorque(rel_AB, locB_force, locB_torque);
 
-    ChVector<> abs_force = frame_Bw.TransformDirectionLocalToParent(locB_force);
-    ChVector<> abs_torque = frame_Bw.TransformDirectionLocalToParent(locB_torque);
+    ChVector3d abs_force = frame_Bw.TransformDirectionLocalToParent(locB_force);
+    ChVector3d abs_torque = frame_Bw.TransformDirectionLocalToParent(locB_torque);
 
     // Compute Q
 
-    ChVector<> loc_ftorque = bodycoordA.GetRot().RotateBack(((frame_Aw.GetPos() - bodycoordA.GetPos()) % -abs_force));
-    ChVector<> loc_torque = bodycoordA.GetRot().RotateBack(-abs_torque);
+    ChVector3d loc_ftorque = bodycoordA.GetRot().RotateBack(((frame_Aw.GetPos() - bodycoordA.GetPos()) % -abs_force));
+    ChVector3d loc_torque = bodycoordA.GetRot().RotateBack(-abs_torque);
     load_Q.segment(0, 3) = -abs_force.eigen();
     load_Q.segment(3, 3) = (loc_ftorque + loc_torque).eigen();
 
@@ -391,13 +391,13 @@ std::shared_ptr<ChBody> ChLoadXYZROTnodeBody::GetBodyB() const {
 ChLoadXYZROTnodeBodyBushingSpherical::ChLoadXYZROTnodeBodyBushingSpherical(std::shared_ptr<ChNodeFEAxyzrot> mnodeA,
                                                                            std::shared_ptr<ChBody> mbodyB,
                                                                            const ChFrame<>& abs_application,
-                                                                           const ChVector<>& mstiffness,
-                                                                           const ChVector<>& mdamping)
+                                                                           const ChVector3d& mstiffness,
+                                                                           const ChVector3d& mdamping)
     : ChLoadXYZROTnodeBody(mnodeA, mbodyB, abs_application), stiffness(mstiffness), damping(mdamping) {}
 
 void ChLoadXYZROTnodeBodyBushingSpherical::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                              ChVector<>& loc_force,
-                                                              ChVector<>& loc_torque) {
+                                                              ChVector3d& loc_force,
+                                                              ChVector3d& loc_torque) {
     loc_force = rel_AB.GetPos() * stiffness      // element-wise product!
                 + rel_AB.GetPos_dt() * damping;  // element-wise product!
     loc_torque = VNULL;
@@ -410,16 +410,16 @@ void ChLoadXYZROTnodeBodyBushingSpherical::ComputeForceTorque(const ChFrameMovin
 ChLoadXYZROTnodeBodyBushingPlastic::ChLoadXYZROTnodeBodyBushingPlastic(std::shared_ptr<ChNodeFEAxyzrot> mnodeA,
                                                                        std::shared_ptr<ChBody> mbodyB,
                                                                        const ChFrame<>& abs_application,
-                                                                       const ChVector<>& mstiffness,
-                                                                       const ChVector<>& mdamping,
-                                                                       const ChVector<>& myield)
+                                                                       const ChVector3d& mstiffness,
+                                                                       const ChVector3d& mdamping,
+                                                                       const ChVector3d& myield)
     : ChLoadXYZROTnodeBodyBushingSpherical(mnodeA, mbodyB, abs_application, mstiffness, mdamping),
       yield(myield),
       plastic_def(VNULL) {}
 
 void ChLoadXYZROTnodeBodyBushingPlastic::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                            ChVector<>& loc_force,
-                                                            ChVector<>& loc_torque) {
+                                                            ChVector3d& loc_force,
+                                                            ChVector3d& loc_torque) {
     loc_force = (rel_AB.GetPos() - plastic_def) * stiffness  // element-wise product!
                 + rel_AB.GetPos_dt() * damping;              // element-wise product!
 
@@ -462,31 +462,31 @@ void ChLoadXYZROTnodeBodyBushingPlastic::ComputeForceTorque(const ChFrameMoving<
 ChLoadXYZROTnodeBodyBushingMate::ChLoadXYZROTnodeBodyBushingMate(std::shared_ptr<ChNodeFEAxyzrot> mnodeA,
                                                                  std::shared_ptr<ChBody> mbodyB,
                                                                  const ChFrame<>& abs_application,
-                                                                 const ChVector<>& mstiffness,
-                                                                 const ChVector<>& mdamping,
-                                                                 const ChVector<>& mrotstiffness,
-                                                                 const ChVector<>& mrotdamping)
+                                                                 const ChVector3d& mstiffness,
+                                                                 const ChVector3d& mdamping,
+                                                                 const ChVector3d& mrotstiffness,
+                                                                 const ChVector3d& mrotdamping)
     : ChLoadXYZROTnodeBodyBushingSpherical(mnodeA, mbodyB, abs_application, mstiffness, mdamping),
       rot_stiffness(mrotstiffness),
       rot_damping(mrotdamping) {}
 
 void ChLoadXYZROTnodeBodyBushingMate::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                         ChVector<>& loc_force,
-                                                         ChVector<>& loc_torque) {
+                                                         ChVector3d& loc_force,
+                                                         ChVector3d& loc_torque) {
     // inherit parent to compute loc_force = ...
     ChLoadXYZROTnodeBodyBushingSpherical::ComputeForceTorque(rel_AB, loc_force, loc_torque);
 
     // compute local torque using small rotations:
     ChQuaternion<> rel_rot = rel_AB.GetRot();
 
-    ChVector<> dir_rot;
+    ChVector3d dir_rot;
     double angle_rot;
     rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
     if (angle_rot > CH_C_PI)
         angle_rot -= CH_C_2PI;
     if (angle_rot < -CH_C_PI)
         angle_rot += CH_C_2PI;
-    ChVector<> vect_rot = dir_rot * angle_rot;
+    ChVector3d vect_rot = dir_rot * angle_rot;
 
     loc_torque = vect_rot * rot_stiffness               // element-wise product!
                  + rel_AB.GetWvel_par() * rot_damping;  // element-wise product!
@@ -504,22 +504,22 @@ ChLoadXYZROTnodeBodyBushingGeneric::ChLoadXYZROTnodeBodyBushingGeneric(std::shar
     : ChLoadXYZROTnodeBody(mnodeA, mbodyB, abs_application), stiffness(mstiffness), damping(mdamping) {}
 
 void ChLoadXYZROTnodeBodyBushingGeneric::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                            ChVector<>& loc_force,
-                                                            ChVector<>& loc_torque) {
+                                                            ChVector3d& loc_force,
+                                                            ChVector3d& loc_torque) {
     // compute local force & torque (assuming small rotations):
     ChVectorDynamic<> mF(6);
     ChVectorDynamic<> mS(6);
     ChVectorDynamic<> mSdt(6);
-    ChVector<> rel_pos = rel_AB.GetPos() + neutral_displacement.GetPos();
+    ChVector3d rel_pos = rel_AB.GetPos() + neutral_displacement.GetPos();
     ChQuaternion<> rel_rot = rel_AB.GetRot() * neutral_displacement.GetRot();
-    ChVector<> dir_rot;
+    ChVector3d dir_rot;
     double angle_rot;
     rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
     if (angle_rot > CH_C_PI)
         angle_rot -= CH_C_2PI;
     if (angle_rot < -CH_C_PI)
         angle_rot += CH_C_2PI;
-    ChVector<> vect_rot = dir_rot * angle_rot;
+    ChVector3d vect_rot = dir_rot * angle_rot;
 
     mS.segment(0, 3) = rel_pos.eigen();
     mS.segment(3, 3) = vect_rot.eigen();
@@ -528,8 +528,8 @@ void ChLoadXYZROTnodeBodyBushingGeneric::ComputeForceTorque(const ChFrameMoving<
 
     mF = stiffness * mS + damping * mSdt;
 
-    loc_force = ChVector<>(mF.segment(0, 3)) - neutral_force;
-    loc_torque = ChVector<>(mF.segment(3, 3)) - neutral_torque;
+    loc_force = ChVector3d(mF.segment(0, 3)) - neutral_force;
+    loc_torque = ChVector3d(mF.segment(3, 3)) - neutral_torque;
 }
 
 }  // namespace fea

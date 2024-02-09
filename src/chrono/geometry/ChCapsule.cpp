@@ -59,8 +59,8 @@ ChMatrix33<> ChCapsule::GetGyration() const {
 }
 
 ChAABB ChCapsule::GetBoundingBox(double radius, double height) {
-    return ChAABB(ChVector<>(-radius, -radius, -(radius + height / 2)),
-                  ChVector<>(+radius, +radius, +(radius + height / 2)));
+    return ChAABB(ChVector3d(-radius, -radius, -(radius + height / 2)),
+                  ChVector3d(+radius, +radius, +(radius + height / 2)));
 }
 
 ChAABB ChCapsule::GetBoundingBox() const {

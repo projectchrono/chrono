@@ -144,7 +144,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
         ChMatrix33<> Jx2 = -F2_W.GetA().transpose();
 
         ChMatrix33<> Jr1 = -F2_W.GetA().transpose() * Body1->GetA() * ChStarMatrix33<>(frame1.GetPos());
-        ChVector<> r12_B2 = Body2->GetA().transpose() * (F1_W.GetPos() - F2_W.GetPos());
+        ChVector3d r12_B2 = Body2->GetA().transpose() * (F1_W.GetPos() - F2_W.GetPos());
         ChMatrix33<> Jr2 = this->frame2.GetA().transpose() * ChStarMatrix33<>(frame2.GetPos() + r12_B2);
 
         // Premultiply by Jw1 and Jw2 by P = 0.5 * [Fp(q_resid^*)]'.bottomRow(3) to get residual as imaginary part of a
@@ -248,10 +248,10 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
 void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                    std::shared_ptr<ChBodyFrame> mbody2,
                                    bool pos_are_relative,
-                                   ChVector<> mpt1,
-                                   ChVector<> mpt2,
-                                   ChVector<> mnorm1,
-                                   ChVector<> mnorm2) {
+                                   ChVector3d mpt1,
+                                   ChVector3d mpt2,
+                                   ChVector3d mnorm1,
+                                   ChVector3d mnorm2) {
     assert(mbody1.get() != mbody2.get());
 
     this->Body1 = mbody1.get();
@@ -260,7 +260,7 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
 
     this->mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
 
-    ChVector<> mx, my, mz, mN;
+    ChVector3d mx, my, mz, mN;
     ChMatrix33<> mrot;
 
     ChFrame<> mfr1;
@@ -279,7 +279,7 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
         mfr2.SetRot(mrot);
         mfr2.SetPos(mpt2);
     } else {
-        ChVector<> temp = VECT_Z;
+        ChVector3d temp = VECT_Z;
         // from abs to body-rel
         mN = this->Body1->TransformDirectionParentToLocal(mnorm1);
         mN.DirToDxDyDz(mx, my, mz, temp);
@@ -333,19 +333,19 @@ void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double M
         ChFrame<> F2_W = this->frame2 >> (*this->Body2);
         ChMatrix33<> R_F1_W = F1_W.GetA();
         ChMatrix33<> R_F2_W = F2_W.GetA();
-        ChVector<> r12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
+        ChVector3d r12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
         ChFrame<> F1_wrt_F2;
         F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
 
-        ChVector<> r_F1_B1 = this->frame1.GetPos();
-        ChVector<> r_F2_B2 = this->frame2.GetPos();
+        ChVector3d r_F1_B1 = this->frame1.GetPos();
+        ChVector3d r_F2_B2 = this->frame2.GetPos();
         ChStarMatrix33<> rtilde_F1_B1(r_F1_B1);
         ChStarMatrix33<> rtilde_F2_B2(r_F2_B2);
 
         // Precomupte utilities
         ChMatrix33<> R_F2_W_cross_gamma_f = R_F2_W * ChStarMatrix33<>(gamma_f);
         ChMatrix33<> R_W_F2 = R_F2_W.transpose();
-        ChVector<> v_F1_F2 = F1_wrt_F2.GetRot().GetVector();
+        ChVector3d v_F1_F2 = F1_wrt_F2.GetRot().GetVector();
         ChMatrix33<> s_F1_F2_mat(F1_wrt_F2.GetRot().e0());
         ChMatrix33<> R_F2_W_times_G_times_R_W_F1 = R_F2_W * (-0.25 * TensorProduct(gamma_m, v_F1_F2)
                                                    - 0.25 * ChStarMatrix33<>(gamma_m) * (s_F1_F2_mat + ChStarMatrix33<>(v_F1_F2))) * R_F1_W.transpose();
@@ -477,7 +477,7 @@ void ChLinkMateGeneric::IntStateScatterReactions(const unsigned int off_L, const
     react_force = gamma_f;
     ChFrame<> F1_W = this->frame1 >> (*this->Body1);
     ChFrame<> F2_W = this->frame2 >> (*this->Body2);
-    ChVector<> r12_F2 = F2_W.GetA().transpose() * (F1_W.GetPos() - F2_W.GetPos());
+    ChVector3d r12_F2 = F2_W.GetA().transpose() * (F1_W.GetPos() - F2_W.GetPos());
     react_torque = ChStarMatrix33<>(r12_F2) * gamma_f + this->P * gamma_m;
 }
 
@@ -657,7 +657,7 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
 
     ChFrame<> F1_W = this->frame1 >> (*this->Body1);
     ChFrame<> F2_W = this->frame2 >> (*this->Body2);
-    ChVector<> r12_F2 = F2_W.GetA().transpose() * (F1_W.GetPos() - F2_W.GetPos());
+    ChVector3d r12_F2 = F2_W.GetA().transpose() * (F1_W.GetPos() - F2_W.GetPos());
     react_torque = ChStarMatrix33<>(r12_F2) * gamma_f + this->P * gamma_m;
 }
 
@@ -727,14 +727,14 @@ void ChLinkMatePlane::SetFlipped(bool doflip) {
 void ChLinkMatePlane::Initialize(std::shared_ptr<ChBodyFrame> mbody1, 
                                  std::shared_ptr<ChBodyFrame> mbody2,
                                  bool pos_are_relative, 
-                                 ChVector<> mpt1,
-                                 ChVector<> mpt2,
-                                 ChVector<> mnorm1,
-                                 ChVector<> mnorm2) {
+                                 ChVector3d mpt1,
+                                 ChVector3d mpt2,
+                                 ChVector3d mnorm1,
+                                 ChVector3d mnorm2) {
     // set the two frames so that they have the X axis aligned when the
     // two normals are opposed (default behavior, otherwise is considered 'flipped')
 
-    ChVector<> mnorm1_reversed;
+    ChVector3d mnorm1_reversed;
     if (!flipped)
         mnorm1_reversed = -mnorm1;
     else
@@ -801,14 +801,14 @@ void ChLinkMateCoaxial::SetFlipped(bool doflip) {
 void ChLinkMateCoaxial::Initialize(std::shared_ptr<ChBodyFrame> mbody1, 
                                    std::shared_ptr<ChBodyFrame> mbody2,
                                    bool pos_are_relative,
-                                   ChVector<> mpt1,
-                                   ChVector<> mpt2,
-                                   ChVector<> mnorm1,
-                                   ChVector<> mnorm2) {
+                                   ChVector3d mpt1,
+                                   ChVector3d mpt2,
+                                   ChVector3d mnorm1,
+                                   ChVector3d mnorm2) {
     // set the two frames so that they have the X axis aligned when the
     // two normals are opposed (default behavior, otherwise is considered 'flipped')
 
-    ChVector<> mnorm1_reversed;
+    ChVector3d mnorm1_reversed;
     if (!flipped)
         mnorm1_reversed = mnorm1;
     else
@@ -862,14 +862,14 @@ void ChLinkMateRevolute::SetFlipped(bool doflip) {
 void ChLinkMateRevolute::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
     std::shared_ptr<ChBodyFrame> mbody2,
     bool pos_are_relative,
-    ChVector<> mpt1,
-    ChVector<> mpt2,
-    ChVector<> mdir1,
-    ChVector<> mdir2) {
+    ChVector3d mpt1,
+    ChVector3d mpt2,
+    ChVector3d mdir1,
+    ChVector3d mdir2) {
     // set the two frames so that they have the Z axis aligned when the
     // two normals are opposed (default behavior, otherwise is considered 'flipped')
 
-    ChVector<> mdir1_reversed;
+    ChVector3d mdir1_reversed;
     if (!flipped)
         mdir1_reversed = mdir1;
     else
@@ -951,14 +951,14 @@ void ChLinkMatePrismatic::SetFlipped(bool doflip) {
 void ChLinkMatePrismatic::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                      std::shared_ptr<ChBodyFrame> mbody2,
                                      bool pos_are_relative,
-                                     ChVector<> mpt1,
-                                     ChVector<> mpt2,
-                                     ChVector<> mdir1,
-                                     ChVector<> mdir2) {
+                                     ChVector3d mpt1,
+                                     ChVector3d mpt2,
+                                     ChVector3d mdir1,
+                                     ChVector3d mdir2) {
     // set the two frames so that they have the X axis aligned when the
     // two normals are opposed (default behavior, otherwise is considered 'flipped')
 
-    ChVector<> mdir1_reversed;
+    ChVector3d mdir1_reversed;
     if (!flipped)
         mdir1_reversed = mdir1;
     else
@@ -970,21 +970,21 @@ void ChLinkMatePrismatic::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
 double ChLinkMatePrismatic::GetRelativePos() {
     ChFrame<> F1_W = frame1 >> *Body1;
     ChFrame<> F2_W = frame2 >> *Body2;
-    ChVector<> pos12_W = F1_W.GetPos() - F2_W.GetPos();
+    ChVector3d pos12_W = F1_W.GetPos() - F2_W.GetPos();
     return pos12_W.x(); // NB: assumes translation along x
 }
 
 double ChLinkMatePrismatic::GetRelativePos_dt() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
-    ChVector<> vel12_W = F1_W.GetPos_dt() - F2_W.GetPos_dt();
+    ChVector3d vel12_W = F1_W.GetPos_dt() - F2_W.GetPos_dt();
     return vel12_W.x(); // NB: assumes translation along x
 }
 
 double ChLinkMatePrismatic::GetRelativePos_dtdt() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
-    ChVector<> acc12_W = F1_W.GetPos_dtdt() - F2_W.GetPos_dtdt();
+    ChVector3d acc12_W = F1_W.GetPos_dtdt() - F2_W.GetPos_dtdt();
     return acc12_W.x(); // NB: assumes translation along x
 }
 
@@ -1020,8 +1020,8 @@ ChLinkMateSpherical::ChLinkMateSpherical(const ChLinkMateSpherical& other) : ChL
 void ChLinkMateSpherical::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                      std::shared_ptr<ChBodyFrame> mbody2,
                                      bool pos_are_relative,
-                                     ChVector<> mpt1,
-                                     ChVector<> mpt2) {
+                                     ChVector3d mpt1,
+                                     ChVector3d mpt2) {
     ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, VECT_X, VECT_X);
 }
 
@@ -1037,9 +1037,9 @@ ChLinkMateXdistance::ChLinkMateXdistance(const ChLinkMateXdistance& other) : ChL
 void ChLinkMateXdistance::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                      std::shared_ptr<ChBodyFrame> mbody2,
                                      bool pos_are_relative,
-                                     ChVector<> mpt1,
-                                     ChVector<> mpt2,
-                                     ChVector<> mdir2) {
+                                     ChVector3d mpt1,
+                                     ChVector3d mpt2,
+                                     ChVector3d mdir2) {
     ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mdir2, mdir2);
 }
 
@@ -1098,14 +1098,14 @@ void ChLinkMateParallel::SetFlipped(bool doflip) {
 void ChLinkMateParallel::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                     std::shared_ptr<ChBodyFrame> mbody2,
                                     bool pos_are_relative,
-                                    ChVector<> mpt1,
-                                    ChVector<> mpt2,
-                                    ChVector<> mnorm1,
-                                    ChVector<> mnorm2) {
+                                    ChVector3d mpt1,
+                                    ChVector3d mpt2,
+                                    ChVector3d mnorm1,
+                                    ChVector3d mnorm2) {
     // set the two frames so that they have the X axis aligned when the
     // two axes are aligned (default behavior, otherwise is considered 'flipped')
 
-    ChVector<> mnorm1_reversed;
+    ChVector3d mnorm1_reversed;
     if (!flipped)
         mnorm1_reversed = mnorm1;
     else
@@ -1150,12 +1150,12 @@ ChLinkMateOrthogonal::ChLinkMateOrthogonal(const ChLinkMateOrthogonal& other) : 
 void ChLinkMateOrthogonal::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                       std::shared_ptr<ChBodyFrame> mbody2,
                                       bool pos_are_relative,
-                                      ChVector<> mpt1,
-                                      ChVector<> mpt2,
-                                      ChVector<> mnorm1,
-                                      ChVector<> mnorm2) {
+                                      ChVector3d mpt1,
+                                      ChVector3d mpt2,
+                                      ChVector3d mnorm1,
+                                      ChVector3d mnorm2) {
     // set the two frames so that they have the X axis aligned
-    ChVector<> mabsnorm1, mabsnorm2;
+    ChVector3d mabsnorm1, mabsnorm2;
     if (pos_are_relative) {
         reldir1 = mnorm1;
         reldir2 = mnorm2;
@@ -1183,18 +1183,18 @@ void ChLinkMateOrthogonal::Update(double mtime, bool update_assets) {
     // Prepare the alignment of the two frames so that the X axis is orthogonal
     // to the two directions
 
-    ChVector<> mabsD1, mabsD2;
+    ChVector3d mabsD1, mabsD2;
 
     if (this->Body1 && this->Body2) {
         mabsD1 = this->Body1->TransformDirectionLocalToParent(reldir1);
         mabsD2 = this->Body2->TransformDirectionLocalToParent(reldir2);
 
-        ChVector<> mX = Vcross(mabsD2, mabsD1);
+        ChVector3d mX = Vcross(mabsD2, mabsD1);
         double xlen = mX.Length();
 
         // Ops.. parallel directions? -> fallback to singularity handling
         if (fabs(xlen) < 1e-20) {
-            ChVector<> ortho_gen;
+            ChVector3d ortho_gen;
             if (fabs(mabsD1.z()) < 0.9)
                 ortho_gen = VECT_Z;
             if (fabs(mabsD1.y()) < 0.9)
@@ -1206,14 +1206,14 @@ void ChLinkMateOrthogonal::Update(double mtime, bool update_assets) {
         }
         mX.Scale(1.0 / xlen);
 
-        ChVector<> mY1, mZ1;
+        ChVector3d mY1, mZ1;
         mZ1 = mabsD1;
         mY1 = Vcross(mZ1, mX);
 
         ChMatrix33<> mA1;
         mA1.Set_A_axis(mX, mY1, mZ1);
 
-        ChVector<> mY2, mZ2;
+        ChVector3d mY2, mZ2;
         mY2 = mabsD2;
         mZ2 = Vcross(mX, mY2);
 

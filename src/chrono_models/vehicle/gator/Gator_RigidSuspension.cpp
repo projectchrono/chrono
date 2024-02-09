@@ -41,7 +41,7 @@ const double Gator_RigidSuspension::m_spindleMass = 3.0;
 const double Gator_RigidSuspension::m_spindleRadius = 0.06;
 const double Gator_RigidSuspension::m_spindleWidth = 0.025;
 
-const ChVector<> Gator_RigidSuspension::m_spindleInertia(0.000478, 0.000496, 0.000478);
+const ChVector3d Gator_RigidSuspension::m_spindleInertia(0.000478, 0.000496, 0.000478);
 
 const double Gator_RigidSuspension::m_axleInertia = 0.4;
 
@@ -54,12 +54,12 @@ const double Gator_RigidSuspension::m_axleInertia = 0.4;
 // function are for the left half of the suspension only.
 // -----------------------------------------------------------------------------
 
-const ChVector<> Gator_RigidSuspension::getLocation(PointId which) {
+const ChVector3d Gator_RigidSuspension::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return ChVector<>(0, 0.62, 0);  // location of spindle center of mass
+            return ChVector3d(0, 0.62, 0);  // location of spindle center of mass
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

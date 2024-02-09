@@ -70,7 +70,7 @@ std::string steering_controller_file("hmmwv/SteeringController.json");
 std::string speed_controller_file("hmmwv/SpeedController.json");
 
 // Initial vehicle position
-ChVector<> initLoc(90, 0, 0.6);
+ChVector3d initLoc(90, 0, 0.6);
 
 // Simulation step size (should not be too high!)
 double step_size = 1e-3;
@@ -208,7 +208,7 @@ int main(int argc, char* argv[]) {
 
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle(windowTitle);
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
     vis->AddLightDirectional();
     vis->AddSkyBox();
@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         if (xpos >= xstart) {
-            ChVector<> seat_acc = vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+            ChVector3d seat_acc = vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
             seat_logger.AddData(seat_acc);
         }
 
@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
 
         if (v_pos >= xstart) {
-            ChVector<> seat_acc = vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+            ChVector3d seat_acc = vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
             seat_logger.AddData(seat_acc);
         }
     }

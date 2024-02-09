@@ -47,7 +47,7 @@ class CH_MODELS_API Generic_MacPhersonStrut : public ChMacPhersonStrut {
 
     // Implementation of virtual methods imposed by the base class ChMacPhersonStrut
 
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     virtual double getCamberAngle() const override { return 0; }
     virtual double getToeAngle() const override { return 0; }
@@ -63,10 +63,10 @@ class CH_MODELS_API Generic_MacPhersonStrut : public ChMacPhersonStrut {
     virtual double getLCARadius() const override { return m_LCARadius; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getStrutInertia() const override { return m_strutInertia; }
-    virtual const ChVector<>& getLCAInertia() const override { return m_LCAInertia; }
-    virtual const ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getStrutInertia() const override { return m_strutInertia; }
+    virtual const ChVector3d& getLCAInertia() const override { return m_LCAInertia; }
+    virtual const ChVector3d& getUprightInertia() const override { return m_uprightInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -89,10 +89,10 @@ class CH_MODELS_API Generic_MacPhersonStrut : public ChMacPhersonStrut {
     static const double m_strutRadius;
     static const double m_LCARadius;
 
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_strutInertia;
-    static const ChVector<> m_LCAInertia;
-    static const ChVector<> m_uprightInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_strutInertia;
+    static const ChVector3d m_LCAInertia;
+    static const ChVector3d m_uprightInertia;
 
     static const double m_axleInertia;
 

@@ -45,7 +45,7 @@ class CH_VEHICLE_API WheeledTrailer : public ChWheeledTrailer {
 
   private:
     int m_num_axles;                           // number of axles for this vehicle
-    std::vector<ChVector<> > m_suspLocations;  // locations of the suspensions relative to chassis
+    std::vector<ChVector3d > m_suspLocations;  // locations of the suspensions relative to chassis
     std::vector<double> m_wheelSeparations;    // wheel separations for each axle
 };
 

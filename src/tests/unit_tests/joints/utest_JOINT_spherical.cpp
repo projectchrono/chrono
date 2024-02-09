@@ -38,7 +38,7 @@ static const std::string ref_dir = "testing/joints/spherical_joint/";
 // =============================================================================
 // Prototypes of local functions
 //
-bool TestSpherical(const ChVector<>& jointLoc,
+bool TestSpherical(const ChVector3d& jointLoc,
                    const ChQuaternion<>& jointRot,
                    double simTimeStep,
                    double outTimeStep,
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     // Case 1 - Joint at the origin and aligned with the global frame.
 
     test_name = "Spherical_Case01";
-    TestSpherical(ChVector<>(0, 0, 0), QUNIT, sim_step, out_step, test_name);
+    TestSpherical(ChVector3d(0, 0, 0), QUNIT, sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 2e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-3);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     // In this case, the joint must be rotated -pi/4 about the global X-axis.
 
     test_name = "Spherical_Case02";
-    TestSpherical(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), sim_step, out_step, test_name);
+    TestSpherical(ChVector3d(1, 2, 3), Q_from_AngX(-CH_C_PI_4), sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 2e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-3);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
 //
 // Worker function for performing the simulation with specified parameters.
 //
-bool TestSpherical(const ChVector<>& jointLoc,      // absolute location of joint
+bool TestSpherical(const ChVector3d& jointLoc,      // absolute location of joint
                    const ChQuaternion<>& jointRot,  // orientation of joint
                    double simTimeStep,              // simulation time step
                    double outTimeStep,              // output time step
@@ -126,7 +126,7 @@ bool TestSpherical(const ChVector<>& jointLoc,      // absolute location of join
 
     double mass = 1.0;                     // mass of pendulum
     double length = 4.0;                   // length of pendulum
-    ChVector<> inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
+    ChVector3d inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;
 
     double timeRecord = 5;  // simulation length
@@ -138,7 +138,7 @@ bool TestSpherical(const ChVector<>& jointLoc,      // absolute location of join
     // handled by this ChSystem object.
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
@@ -158,7 +158,7 @@ bool TestSpherical(const ChVector<>& jointLoc,      // absolute location of join
 
     auto pendulum = chrono_types::make_shared<ChBody>();
     sys.AddBody(pendulum);
-    pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
+    pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector3d(length / 2, 0, 0)));
     pendulum->SetRot(jointRot);
     pendulum->SetMass(mass);
     pendulum->SetInertiaXX(inertiaXX);
@@ -246,7 +246,7 @@ bool TestSpherical(const ChVector<>& jointLoc,      // absolute location of join
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();
-    ChVector<> angVelLoc = pendulum->GetWvel_loc();
+    ChVector3d angVelLoc = pendulum->GetWvel_loc();
     double transKE = 0.5 * mass * pendulum->GetPos_dt().Length2();
     double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
     double deltaPE = mass * g * (pendulum->GetPos().z() - jointLoc.z());
@@ -260,8 +260,8 @@ bool TestSpherical(const ChVector<>& jointLoc,      // absolute location of join
         // Ensure that the final data point is recorded.
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
-            const ChVector<>& position = pendulum->GetPos();
-            const ChVector<>& velocity = pendulum->GetPos_dt();
+            const ChVector3d& position = pendulum->GetPos();
+            const ChVector3d& velocity = pendulum->GetPos_dt();
             out_pos << simTime << position << std::endl;
             out_vel << simTime << velocity << std::endl;
             out_acc << simTime << pendulum->GetPos_dtdt() << std::endl;
@@ -276,12 +276,12 @@ bool TestSpherical(const ChVector<>& jointLoc,      // absolute location of join
             // These are expressed in the link coordinate system. We convert them to
             // the coordinate system of Body2 (in our case this is the ground).
             ChCoordsys<> linkCoordsys = sphericalJoint->GetLinkRelativeCoords();
-            ChVector<> reactForce = sphericalJoint->Get_react_force();
-            ChVector<> reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
+            ChVector3d reactForce = sphericalJoint->Get_react_force();
+            ChVector3d reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
             out_rfrc << simTime << reactForceGlobal << std::endl;
 
-            ChVector<> reactTorque = sphericalJoint->Get_react_torque();
-            ChVector<> reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
+            ChVector3d reactTorque = sphericalJoint->Get_react_torque();
+            ChVector3d reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
             out_rtrq << simTime << reactTorqueGlobal << std::endl;
 
             // Conservation of Energy

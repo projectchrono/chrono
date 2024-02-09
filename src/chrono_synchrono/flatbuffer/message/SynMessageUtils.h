@@ -60,7 +60,7 @@ class SYN_API AgentKey {
 class SYN_API SynPose {
   public:
     ///@brief Construct a new Pose object
-    SynPose(const ChVector<>& mv = ChVector<>(0, 0, 0), const ChQuaternion<>& mq = ChQuaternion<>(1, 0, 0, 0));
+    SynPose(const ChVector3d& mv = ChVector3d(0, 0, 0), const ChQuaternion<>& mq = ChQuaternion<>(1, 0, 0, 0));
 
     ///@brief Construct a new Pose object
     SynPose(const ChFrameMoving<>& frame);

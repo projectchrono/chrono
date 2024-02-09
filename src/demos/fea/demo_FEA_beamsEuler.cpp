@@ -61,8 +61,8 @@ int main(int argc, char* argv[]) {
     // msection->SetSectionRotation(45*CH_C_RAD_TO_DEG);
 
     // These are for the external loads (define here to help using ChStaticNonLinearIncremental later)
-    ChVector<> F_node_1(9, 2, 0);
-    ChVector<> F_node_2(0, -2, 0);
+    ChVector3d F_node_1(9, 2, 0);
+    ChVector3d F_node_2(0, -2, 0);
     std::shared_ptr<ChNodeFEAxyzrot> loaded_node_1;
     std::shared_ptr<ChNodeFEAxyzrot> loaded_node_2;
 
@@ -72,9 +72,9 @@ int main(int argc, char* argv[]) {
 
     double beam_L = 0.1;
 
-    auto hnode1 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
-    auto hnode2 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L, 0, 0)));
-    auto hnode3 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L * 2, 0, 0)));
+    auto hnode1 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(0, 0, 0)));
+    auto hnode2 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(beam_L, 0, 0)));
+    auto hnode3 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(beam_L * 2, 0, 0)));
 
     my_mesh->AddNode(hnode1);
     my_mesh->AddNode(hnode2);
@@ -131,9 +131,9 @@ int main(int argc, char* argv[]) {
     builder.BuildBeam(my_mesh,   // the mesh where to put the created nodes and elements
                       msection,  // the ChBeamSectionEulerAdvanced to use for the ChElementBeamEuler elements
                       5,         // the number of ChElementBeamEuler to create
-                      ChVector<>(0, 0, -0.1),    // the 'A' point in space (beginning of beam)
-                      ChVector<>(0.2, 0, -0.1),  // the 'B' point in space (end of beam)
-                      ChVector<>(0, 1, 0));      // the 'Y' up direction of the section for the beam
+                      ChVector3d(0, 0, -0.1),    // the 'A' point in space (beginning of beam)
+                      ChVector3d(0.2, 0, -0.1),  // the 'B' point in space (end of beam)
+                      ChVector3d(0, 1, 0));      // the 'Y' up direction of the section for the beam
 
     // After having used BuildBeam(), you can retrieve the nodes used for the beam.
     // For example say you want to fix the A end and apply a force to the B end:
@@ -145,8 +145,8 @@ int main(int argc, char* argv[]) {
     // beam) and one point:
     builder.BuildBeam(my_mesh, msection, 5,
                       builder.GetLastBeamNodes().front(),  // the 'A' node in space (beginning of beam)
-                      ChVector<>(0.2, 0.1, -0.1),          // the 'B' point in space (end of beam)
-                      ChVector<>(0, 1, 0));                // the 'Y' up direction of the section for the beam
+                      ChVector3d(0.2, 0.1, -0.1),          // the 'B' point in space (end of beam)
+                      ChVector3d(0, 1, 0));                // the 'Y' up direction of the section for the beam
 
     // No gravity effect on FEA elements in this demo
     my_mesh->SetAutomaticGravity(false);
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.1, 0.2, -0.2));
+    vis->AddCamera(ChVector3d(-0.1, 0.2, -0.2));
     vis->AttachSystem(&sys);
 
     // THE SIMULATION LOOP
@@ -243,13 +243,13 @@ int main(int argc, char* argv[]) {
             ) {
                 // Scale the external loads. In our example, just two forces. 
                 // Note: if gravity is used, consider scaling also gravity effect, e.g: 
-                //    sys.Set_G_acc(load_scaling * ChVector<>(0,-9.8,0))
+                //    sys.Set_G_acc(load_scaling * ChVector3d(0,-9.8,0))
                 cb_loaded_node_1->SetForce(load_scaling * cb_F_node_1);
                 cb_loaded_node_2->SetForce(load_scaling * cb_F_node_2);
             }
             // helper data for the callback
-            ChVector<> cb_F_node_1;
-            ChVector<> cb_F_node_2;
+            ChVector3d cb_F_node_1;
+            ChVector3d cb_F_node_2;
             std::shared_ptr<ChNodeFEAxyzrot> cb_loaded_node_1;
             std::shared_ptr<ChNodeFEAxyzrot> cb_loaded_node_2;
         };
@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
         sys.DoStaticAnalysis(static_analysis);
     }
 
-    ChVector<> F, M;
+    ChVector3d F, M;
     ChVectorDynamic<> displ;
 
     belement1->GetStateBlock(displ);

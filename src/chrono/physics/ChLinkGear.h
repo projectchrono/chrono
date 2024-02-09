@@ -39,7 +39,7 @@ class ChApi ChLinkGear : public ChLinkLock {
     double r1;  ///< auxiliary
     double r2;  ///< auxiliary
 
-    ChVector<> contact_pt;
+    ChVector3d contact_pt;
 
     ChFrame<double> local_shaft1;  ///< shaft1 pos & dir (as Z axis), relative to body1
     ChFrame<double> local_shaft2;  ///< shaft2 pos & dir (as Z axis), relative to body2
@@ -127,14 +127,14 @@ class ChApi ChLinkGear : public ChLinkLock {
     void Set_local_shaft2(ChFrame<double> mf) { local_shaft2 = mf; }
 
     /// Get shaft direction, for 1st gear, in absolute reference
-    ChVector<> Get_shaft_dir1() const;
+    ChVector3d Get_shaft_dir1() const;
     /// Get shaft direction, for 2nd gear, in absolute reference
-    ChVector<> Get_shaft_dir2() const;
+    ChVector3d Get_shaft_dir2() const;
 
     /// Get shaft position, for 1st gear, in absolute reference
-    ChVector<> Get_shaft_pos1() const;
+    ChVector3d Get_shaft_pos1() const;
     /// Get shaft position, for 2nd gear, in absolute reference
-    ChVector<> Get_shaft_pos2() const;
+    ChVector3d Get_shaft_pos2() const;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

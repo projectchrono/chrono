@@ -43,11 +43,11 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     virtual int GetDOC_c() override { return 2; }
 
     /// Get the point on Body1 (revolute side), expressed in Body1 coordinate system.
-    const ChVector<>& GetPoint1Rel() const { return m_pos1; }
+    const ChVector3d& GetPoint1Rel() const { return m_pos1; }
     /// Get the direction of the revolute joint, expressed in Body1 coordinate system.
-    const ChVector<>& GetDir1Rel() const { return m_dir1; }
+    const ChVector3d& GetDir1Rel() const { return m_dir1; }
     /// Get the point on Body2 (spherical side), expressed in Body2 coordinate system.
-    const ChVector<>& GetPoint2Rel() const { return m_pos2; }
+    const ChVector3d& GetPoint2Rel() const { return m_pos2; }
 
     /// Get the imposed distance (length of massless connector).
     double GetImposedDistance() const { return m_dist; }
@@ -55,11 +55,11 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     double GetCurrentDistance() const { return m_cur_dist; }
 
     /// Get the point on Body1 (revolute side), expressed in absolute coordinate system.
-    ChVector<> GetPoint1Abs() const { return Body1->TransformPointLocalToParent(m_pos1); }
+    ChVector3d GetPoint1Abs() const { return Body1->TransformPointLocalToParent(m_pos1); }
     /// Get the direction of the revolute joint, expressed in absolute coordinate system.
-    ChVector<> GetDir1Abs() const { return Body1->TransformDirectionLocalToParent(m_dir1); }
+    ChVector3d GetDir1Abs() const { return Body1->TransformDirectionLocalToParent(m_dir1); }
     /// Get the point on Body2 (spherical side), expressed in absolute coordinate system.
-    ChVector<> GetPoint2Abs() const { return Body2->TransformPointLocalToParent(m_pos2); }
+    ChVector3d GetPoint2Abs() const { return Body2->TransformPointLocalToParent(m_pos2); }
 
     /// Get the link coordinate system, expressed relative to Body2 (spherical side).
     /// This represents the 'main' reference of the link: reaction forces
@@ -91,9 +91,9 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first frame (revolute side)
                     std::shared_ptr<ChBody> body2,  ///< second frame (spherical side)
                     bool local,                     ///< true if data given in body local frames
-                    const ChVector<>& pos1,         ///< point on first frame (center of revolute)
-                    const ChVector<>& dir1,         ///< direction of revolute on first frame
-                    const ChVector<>& pos2,         ///< point on second frame (center of spherical)
+                    const ChVector3d& pos1,         ///< point on first frame (center of revolute)
+                    const ChVector3d& dir1,         ///< direction of revolute on first frame
+                    const ChVector3d& pos2,         ///< point on second frame (center of spherical)
                     bool auto_distance = true,      ///< true if imposed distance equal to |pos1 - po2|
                     double distance = 0             ///< imposed distance (used only if auto_distance = false)
     );
@@ -146,10 +146,10 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     // EXTRA REACTION FORCE & TORQUE FUNCTIONS
     //
 
-    ChVector<> Get_react_force_body1();
-    ChVector<> Get_react_torque_body1();
-    ChVector<> Get_react_force_body2();
-    ChVector<> Get_react_torque_body2();
+    ChVector3d Get_react_force_body1();
+    ChVector3d Get_react_torque_body1();
+    ChVector3d Get_react_force_body2();
+    ChVector3d Get_react_torque_body2();
 
     //
     // SERIALIZATION
@@ -162,9 +162,9 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    ChVector<> m_pos1;  ///< point on first frame (in local frame)
-    ChVector<> m_pos2;  ///< point on second frame (in local frame)
-    ChVector<> m_dir1;  ///< direction of revolute on first frame (in local frame)
+    ChVector3d m_pos1;  ///< point on first frame (in local frame)
+    ChVector3d m_pos2;  ///< point on second frame (in local frame)
+    ChVector3d m_dir1;  ///< direction of revolute on first frame (in local frame)
     double m_dist;      ///< imposed distance between pos1 and pos2
 
     double m_cur_dist;  ///< actual distance between pos1 and pos2

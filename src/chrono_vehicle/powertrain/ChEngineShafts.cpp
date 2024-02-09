@@ -28,7 +28,7 @@ namespace vehicle {
 // direction of the crankshaft, in chassis local coords. This is needed because
 // ChShaftsBody could transfer rolling torque to the chassis.
 // -----------------------------------------------------------------------------
-ChEngineShafts::ChEngineShafts(const std::string& name, const ChVector<>& dir_motor_block)
+ChEngineShafts::ChEngineShafts(const std::string& name, const ChVector3d& dir_motor_block)
     : ChEngine(name), m_dir_motor_block(dir_motor_block) {}
 
 ChEngineShafts::~ChEngineShafts() {

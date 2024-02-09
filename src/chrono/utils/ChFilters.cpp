@@ -837,7 +837,7 @@ void ChISO2631_Vibration_SeatCushionLogger::Config(double step) {
     m_logging_time = 0.0;
 
     m_sinestep =
-        chrono_types::make_unique<ChFunctionSineStep>(ChVector2<>(m_tstart1, 0.0), ChVector2<>(m_tstart2, 1.0));
+        chrono_types::make_unique<ChFunctionSineStep>(ChVector2d(m_tstart1, 0.0), ChVector2d(m_tstart2, 1.0));
 
     // prepare all filters for 1st usage
     m_filter_wd_x.Config(step);
@@ -1154,7 +1154,7 @@ void ChISO2631_Shock_SeatCushionLogger::Config(double step) {
     m_legacy_lpz.Config(4, m_step_inp, 30.0);
 
     m_sinestep =
-        chrono_types::make_unique<ChFunctionSineStep>(ChVector2<>(m_tstart1, 0.0), ChVector2<>(m_tstart2, 1.0));
+        chrono_types::make_unique<ChFunctionSineStep>(ChVector2d(m_tstart1, 0.0), ChVector2d(m_tstart2, 1.0));
 
     Reset();
 }

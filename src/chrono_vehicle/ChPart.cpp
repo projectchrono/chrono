@@ -62,7 +62,7 @@ void ChPart::AddMass(double& mass) {
     mass += m_mass;
 }
 
-void ChPart::AddInertiaProperties(ChVector<>& com, ChMatrix33<>& inertia) {
+void ChPart::AddInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia) {
     //// RADU TODO: change ChFrame::TransformLocalToParent to return the transformed frame!!!!
     UpdateInertiaProperties();
 
@@ -86,8 +86,8 @@ void ChPart::AddInertiaProperties(ChVector<>& com, ChMatrix33<>& inertia) {
 // reference frame.
 // -----------------------------------------------------------------------------
 ChMatrix33<> ChPart::TransformInertiaMatrix(
-    const ChVector<>& moments,        // moments of inertia in vehicle-aligned centroidal frame
-    const ChVector<>& products,       // products of inertia in vehicle-aligned centroidal frame
+    const ChVector3d& moments,        // moments of inertia in vehicle-aligned centroidal frame
+    const ChVector3d& products,       // products of inertia in vehicle-aligned centroidal frame
     const ChMatrix33<>& vehicle_rot,  // vehicle absolute orientation matrix
     const ChMatrix33<>& body_rot      // body absolute orientation matrix
 ) {
@@ -108,7 +108,7 @@ ChMatrix33<> ChPart::TransformInertiaMatrix(
 // functions, as appropriate.
 // -----------------------------------------------------------------------------
 
-rapidjson::Value Vec2Val(const ChVector<>& vec, rapidjson::Document::AllocatorType& allocator) {
+rapidjson::Value Vec2Val(const ChVector3d& vec, rapidjson::Document::AllocatorType& allocator) {
     rapidjson::Value array(rapidjson::kArrayType);
     array.PushBack(vec.x(), allocator);
     array.PushBack(vec.y(), allocator);

@@ -197,10 +197,10 @@ void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chas
     // vertical load.
     auto carrier = chrono_types::make_shared<ChBody>();
     carrier->SetMass(10);
-    carrier->SetInertiaXX(ChVector<>(1, 1, 1));
+    carrier->SetInertiaXX(ChVector3d(1, 1, 1));
     carrier->SetPos(chassis->GetPos());
     carrier->SetRot(QUNIT);
-    carrier->SetPos_dt(ChVector<>(m_lin_vel, 0, 0));
+    carrier->SetPos_dt(ChVector3d(m_lin_vel, 0, 0));
     chassis->GetSystem()->AddBody(carrier);
 
     // Connect chassis body to connector using a vertical prismatic joint
@@ -249,7 +249,7 @@ void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> ch
     // vertical load.
     m_carrier = chrono_types::make_shared<ChBody>();
     m_carrier->SetMass(10);
-    m_carrier->SetInertiaXX(ChVector<>(1, 1, 1));
+    m_carrier->SetInertiaXX(ChVector3d(1, 1, 1));
     m_carrier->SetPos(chassis->GetPos());
     m_carrier->SetRot(QUNIT);
     chassis->GetSystem()->AddBody(m_carrier);
@@ -266,7 +266,7 @@ void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> ch
 
     // Apply a resistive force to carrier body
     auto ramp = chrono_types::make_shared<RampFunction>(m_force_rate, 0.2 + 0.5);
-    m_DBP_force = chrono_types::make_shared<ChLoadBodyForce>(m_carrier, ChVector<>(-1, 0, 0), true, VNULL, true);
+    m_DBP_force = chrono_types::make_shared<ChLoadBodyForce>(m_carrier, ChVector3d(-1, 0, 0), true, VNULL, true);
     m_DBP_force->SetModulationFunction(ramp);
 
     auto load_container = chrono_types::make_shared<ChLoadContainer>();

@@ -96,9 +96,9 @@ class CH_VEHICLE_API ChHumanDriver : public ChDriver {
 
     void SetSpeedRange(double u0 = 10.0, double umax = 30.0);
 
-    ChVector<> GetTargetLocation() { return m_target; }
+    ChVector3d GetTargetLocation() { return m_target; }
 
-    ChVector<> GetSentinelLocation() { return m_sentinel; }
+    ChVector3d GetSentinelLocation() { return m_sentinel; }
 
     double GetTraveledDistance() { return m_distance; }
 
@@ -124,16 +124,16 @@ class CH_VEHICLE_API ChHumanDriver : public ChDriver {
     double m_u0;
     double m_umax;
     double m_uthres;
-    ChVector<> m_target;
-    ChVector<> m_sentinel;
+    ChVector3d m_target;
+    ChVector3d m_sentinel;
     size_t m_idx_curr;
     size_t m_i_curr;
     size_t m_j_curr;
-    std::vector<ChVector<> > m_S_l;   ///< course definition points
-    std::vector<ChVector<> > m_R_l;   ///< direction vector: S_l[i+1] = S_l[i] + R_l[i]
-    std::vector<ChVector<> > m_R_lu;  ///< R_l with unit length, precalculated to avoid redundant calculations
-    std::vector<ChVector<> > m_Li;    ///< left road border
-    std::vector<ChVector<> > m_Rj;    ///< right road border
+    std::vector<ChVector3d > m_S_l;   ///< course definition points
+    std::vector<ChVector3d > m_R_l;   ///< direction vector: S_l[i+1] = S_l[i] + R_l[i]
+    std::vector<ChVector3d > m_R_lu;  ///< R_l with unit length, precalculated to avoid redundant calculations
+    std::vector<ChVector3d > m_Li;    ///< left road border
+    std::vector<ChVector3d > m_Rj;    ///< right road border
     double m_delta;
     double m_delta_max;
     double m_L;

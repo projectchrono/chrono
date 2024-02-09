@@ -1,7 +1,7 @@
 %{
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/motion_functions/ChFunctionRecorder.h"
 #include "chrono_vehicle/ChApiVehicle.h"

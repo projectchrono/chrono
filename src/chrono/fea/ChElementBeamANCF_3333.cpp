@@ -440,7 +440,7 @@ void ChElementBeamANCF_3333::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfac
 }
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
-void ChElementBeamANCF_3333::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementBeamANCF_3333::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     assert(Fg.size() == GetNdofs());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
@@ -457,7 +457,7 @@ void ChElementBeamANCF_3333::ComputeGravityForces(ChVectorDynamic<>& Fg, const C
 // Interface to ChElementBeam base class (and similar methods)
 // -----------------------------------------------------------------------------
 
-void ChElementBeamANCF_3333::EvaluateSectionFrame(const double xi, ChVector<>& point, ChQuaternion<>& rot) {
+void ChElementBeamANCF_3333::EvaluateSectionFrame(const double xi, ChVector3d& point, ChQuaternion<>& rot) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, 0, 0);
     VectorN Sxi_xi_compact;
@@ -473,8 +473,8 @@ void ChElementBeamANCF_3333::EvaluateSectionFrame(const double xi, ChVector<>& p
 
     // Since ANCF does not use rotations, calculate an approximate
     // rotation based off the position vector gradients
-    ChVector<double> BeamAxisTangent = e_bar * Sxi_xi_compact * 2 / m_lenX;
-    ChVector<double> CrossSectionY = e_bar * Sxi_eta_compact * 2 / m_thicknessY;
+    ChVector3d BeamAxisTangent = e_bar * Sxi_xi_compact * 2 / m_lenX;
+    ChVector3d CrossSectionY = e_bar * Sxi_eta_compact * 2 / m_thicknessY;
 
     // Since the position vector gradients are not in general orthogonal,
     // set the Dx direction tangent to the beam axis and
@@ -486,7 +486,7 @@ void ChElementBeamANCF_3333::EvaluateSectionFrame(const double xi, ChVector<>& p
     rot = msect.Get_A_quaternion();
 }
 
-void ChElementBeamANCF_3333::EvaluateSectionPoint(const double xi, ChVector<>& point) {
+void ChElementBeamANCF_3333::EvaluateSectionPoint(const double xi, ChVector3d& point) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, 0, 0);
 
@@ -497,7 +497,7 @@ void ChElementBeamANCF_3333::EvaluateSectionPoint(const double xi, ChVector<>& p
     point = e_bar * Sxi_compact;
 }
 
-void ChElementBeamANCF_3333::EvaluateSectionVel(const double xi, ChVector<>& Result) {
+void ChElementBeamANCF_3333::EvaluateSectionVel(const double xi, ChVector3d& Result) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, 0, 0);
 
@@ -710,7 +710,7 @@ double ChElementBeamANCF_3333::GetDensity() {
 
 // Calculate tangent to the centerline at coordinate xi [-1 to 1].
 
-ChVector<> ChElementBeamANCF_3333::ComputeTangent(const double xi) {
+ChVector3d ChElementBeamANCF_3333::ComputeTangent(const double xi) {
     VectorN Sxi_xi_compact;
     Calc_Sxi_xi_compact(Sxi_xi_compact, xi, 0, 0);
 
@@ -719,7 +719,7 @@ ChVector<> ChElementBeamANCF_3333::ComputeTangent(const double xi) {
 
     // partial derivative of the position vector with respect to xi (normalized coordinate along the beam axis).  In
     // general, this will not be a unit vector
-    ChVector<double> BeamAxisTangent = e_bar * Sxi_xi_compact;
+    ChVector3d BeamAxisTangent = e_bar * Sxi_xi_compact;
 
     return BeamAxisTangent.GetNormalized();
 }

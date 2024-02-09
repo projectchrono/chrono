@@ -27,11 +27,11 @@ ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMa
                                                      double axis_y,
                                                      double axis_z)
     : ChCollisionShape(Type::ELLIPSOID, material) {
-    gellipsoid.rad = ChVector<>(axis_x / 2, axis_y / 2, axis_z / 2);
+    gellipsoid.rad = ChVector3d(axis_x / 2, axis_y / 2, axis_z / 2);
 }
 
 ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material,
-                                                     const ChVector<>& axes)
+                                                     const ChVector3d& axes)
     : ChCollisionShape(Type::ELLIPSOID, material) {
     gellipsoid.rad = axes / 2;
 }

@@ -35,7 +35,6 @@ class ChBody;
 /// to parent ChBody, if needed to represent imposed trajectories etc.
 
 class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
-
   public:
     enum eChMarkerMotion {
         M_MOTION_FUNCTIONS = 0,  ///< marker uses its own x, y, z functions
@@ -50,7 +49,7 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     std::shared_ptr<ChFunction> motion_Y;    ///< user imposed motion for Y coord, body relative
     std::shared_ptr<ChFunction> motion_Z;    ///< user imposed motion for Z coord, body relative
     std::shared_ptr<ChFunction> motion_ang;  ///< user imposed angle rotation about axis
-    Vector motion_axis;      ///< this is the axis for the user imposed rotation
+    ChVector3d motion_axis;                   ///< this is the axis for the user imposed rotation
 
     ChBody* Body;  ///< points to parent body
 
@@ -153,11 +152,11 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
     /// Get the angular speed respect to absolute coordinates,
     /// expressed in  absolute coordinates.
-    Vector GetAbsWvel() const { return abs_frame.GetWvel_par(); }
+    ChVector3d GetAbsWvel() const { return abs_frame.GetWvel_par(); }
 
     /// Get the angular acceleration respect to absolute coordinates,
     /// expressed in  absolute coordinates.
-    Vector GetAbsWacc() const { return abs_frame.GetWacc_par(); }
+    ChVector3d GetAbsWacc() const { return abs_frame.GetWacc_par(); }
 
     //
     // Imposed motion
@@ -172,7 +171,7 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     /// Set the imposed motion law, for rotation about an axis
     void SetMotion_ang(std::shared_ptr<ChFunction> m_funct);
     /// Set the axis of rotation, if rotation motion law is used.
-    void SetMotion_axis(Vector m_axis);
+    void SetMotion_axis(ChVector3d m_axis);
 
     /// The imposed motion law, for translation on X body axis
     std::shared_ptr<ChFunction> GetMotion_X() const { return motion_X; }
@@ -183,7 +182,7 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     /// The imposed motion law, for rotation about an axis
     std::shared_ptr<ChFunction> GetMotion_ang() const { return motion_ang; }
     /// Get the axis of rotation, if rotation motion law is used.
-    Vector GetMotion_axis() const { return motion_axis; }
+    ChVector3d GetMotion_axis() const { return motion_axis; }
 
     /// Sets the way the motion of this marker (if any) is handled (see
     /// the eChMarkerMotion enum options).
@@ -216,10 +215,10 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     // UTILITIES
     //
 
-    ChVector<> Point_World2Ref(const ChVector<>& point) const;
-    ChVector<> Point_Ref2World(const ChVector<>& point) const;
-    ChVector<> Dir_World2Ref(const ChVector<>& dir) const;
-    ChVector<> Dir_Ref2World(const ChVector<>& dir) const;
+    ChVector3d Point_World2Ref(const ChVector3d& point) const;
+    ChVector3d Point_Ref2World(const ChVector3d& point) const;
+    ChVector3d Dir_World2Ref(const ChVector3d& dir) const;
+    ChVector3d Dir_Ref2World(const ChVector3d& dir) const;
 
     //
     // SERIALIZATION
@@ -232,8 +231,7 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChMarker,0)
-
+CH_CLASS_VERSION(ChMarker, 0)
 
 }  // end namespace chrono
 

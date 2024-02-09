@@ -63,13 +63,13 @@ class ChApi ChFunctionPositionXYZFunctions : public ChFunctionPosition {
 	}
 
     /// Return the p value of the function, at s, as p=f(s).
-	virtual ChVector<> Get_p(double s) const override;
+	virtual ChVector3d Get_p(double s) const override;
 
     /// Return the dp/ds derivative of the function, at s.
-	virtual ChVector<> Get_p_ds(double s) const override;
+	virtual ChVector3d Get_p_ds(double s) const override;
 
     /// Return the ddp/dsds double derivative of the function, at s.
-    virtual ChVector<> Get_p_dsds(double s) const override;
+    virtual ChVector3d Get_p_dsds(double s) const override;
 
     /// Return an estimate of the domain of the function argument.
 	virtual void Estimate_s_domain(double& smin, double& smax) const override;

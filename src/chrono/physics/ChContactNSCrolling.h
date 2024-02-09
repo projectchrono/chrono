@@ -40,7 +40,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
     ChConstraintTwoTuplesRollingT<typecarr_a, typecarr_b> Ru;
     ChConstraintTwoTuplesRollingT<typecarr_a, typecarr_b> Rv;
 
-    ChVector<> react_torque;
+    ChVector3d react_torque;
 
     float complianceRoll;
     float complianceSpin;
@@ -105,7 +105,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
     }
 
     /// Get the contact force, if computed, in contact coordinate system
-    virtual ChVector<> GetContactTorque() { return react_torque; }
+    virtual ChVector3d GetContactTorque() { return react_torque; }
 
     /// Get the contact rolling friction coefficient
     virtual float GetRollingFriction() { return Rx.GetRollingFrictionCoefficient(); }

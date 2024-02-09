@@ -45,12 +45,12 @@ void ChLinkBeamIGAslider::UpdateNodes() {
     this->tau = 0;
     this->active_element = 0;
     int nnodes = (int)this->m_nodes.size();
-    ChVector<> point = VNULL;
-    ChVector<> goodpoint = VNULL;
+    ChVector3d point = VNULL;
+    ChVector3d goodpoint = VNULL;
     ChVectorDynamic<> N(nnodes);
     int nsamples = 6;  //***TODO*** search via NR
     double mdist = 1e30;
-    ChVector<> absoutlet = this->m_body->TransformPointLocalToParent(this->m_csys.pos);
+    ChVector3d absoutlet = this->m_body->TransformPointLocalToParent(this->m_csys.pos);
 
     for (size_t iel = 0; iel < m_beams.size(); ++iel) {
         double u1 = m_beams[iel]->GetU1();
@@ -94,7 +94,7 @@ void ChLinkBeamIGAslider::UpdateNodes() {
 
 int ChLinkBeamIGAslider::Initialize(std::vector<std::shared_ptr<fea::ChElementBeamIGA>>& melements,
                                     std::shared_ptr<ChBodyFrame> body,
-                                    ChVector<>* pos) {
+                                    ChVector3d* pos) {
     assert(body);
 
     m_beams = melements;
@@ -102,7 +102,7 @@ int ChLinkBeamIGAslider::Initialize(std::vector<std::shared_ptr<fea::ChElementBe
 
     UpdateNodes();
 
-    ChVector<> pos_abs = pos ? *pos : m_body->GetPos();
+    ChVector3d pos_abs = pos ? *pos : m_body->GetPos();
     SetAttachPositionInAbsoluteCoords(pos_abs);
 
     return true;
@@ -154,7 +154,7 @@ void ChLinkBeamIGAslider::IntLoadConstraint_C(const unsigned int off_L,  // offs
 
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
-    ChVector<> splinepoint;
+    ChVector3d splinepoint;
     double u1 = m_beams[this->active_element]->GetU1();
     double u2 = m_beams[this->active_element]->GetU2();
     double eta = (2.0 * (this->tau - u1) / (u2 - u1)) - 1.0;
@@ -165,8 +165,8 @@ void ChLinkBeamIGAslider::IntLoadConstraint_C(const unsigned int off_L,  // offs
     ////std::cout << "u2 = " << u2 << std::endl;
     ////std::cout << "eta = " << eta << std::endl;
     ////std::cout << "point = " << splinepoint << std::endl;
-    ChVector<> res = Arw.transpose() * (splinepoint - m_body->TransformPointLocalToParent(m_csys.pos));
-    ChVector<> cres = res * c;
+    ChVector3d res = Arw.transpose() * (splinepoint - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector3d cres = res * c;
     ////std::cout << "res = " << res << std::endl;
     if (do_clamp) {
         cres.x() = std::min(std::max(cres.x(), -recovery_clamp), recovery_clamp);
@@ -234,13 +234,13 @@ void ChLinkBeamIGAslider::ConstraintsBiLoad_C(double factor, double recovery_cla
         return;
 
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
-    ChVector<> splinepoint;
+    ChVector3d splinepoint;
     double u1 = m_beams[this->active_element]->GetU1();
     double u2 = m_beams[this->active_element]->GetU2();
     double eta = (2.0 * (this->tau - u1) / (u2 - u1)) - 1.0;
     m_beams[this->active_element]->EvaluateSectionPoint(eta, splinepoint);
 
-    ChVector<> res = Arw.transpose() * (splinepoint - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector3d res = Arw.transpose() * (splinepoint - m_body->TransformPointLocalToParent(m_csys.pos));
 
     // constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
@@ -264,7 +264,7 @@ void ChLinkBeamIGAslider::ConstraintsLoadJacobians() {
 
     ChMatrix33<> Jxb = -Arw.transpose();
 
-    ChVector<> splinepoint;
+    ChVector3d splinepoint;
     double u1 = m_beams[this->active_element]->GetU1();
     double u2 = m_beams[this->active_element]->GetU2();
     double eta = (2.0 * (this->tau - u1) / (u2 - u1)) - 1.0;

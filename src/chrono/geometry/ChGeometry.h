@@ -42,19 +42,19 @@ struct ChApi ChAABB {
     ChAABB();
 
     /// Construct an AABB with provided corners.
-    ChAABB(const ChVector<>& aabb_min, const ChVector<>& aabb_max);
+    ChAABB(const ChVector3d& aabb_min, const ChVector3d& aabb_max);
 
     /// Get AABB center.
-    ChVector<> Center() const;
+    ChVector3d Center() const;
 
     /// Get AABB dimensions.
-    ChVector<> Size() const;
+    ChVector3d Size() const;
 
     /// Return true foir an inverted bounding box.
     bool IsInverted() const;
 
-    ChVector<> min;  ///< low AABB corner
-    ChVector<> max;  ///< high AABB corner
+    ChVector3d min;  ///< low AABB corner
+    ChVector3d max;  ///< high AABB corner
 };
 
 /// Base class for geometric objects used for collisions and visualization.
@@ -108,7 +108,7 @@ class ChApi ChGeometry {
     virtual double GetBoundingSphereRadius() const;
 
     /// Compute center of mass.
-    virtual ChVector<> Baricenter() const { return VNULL; }
+    virtual ChVector3d Baricenter() const { return VNULL; }
 
     /// Returns the dimension of the geometry
     /// (0=point, 1=line, 2=surface, 3=solid)

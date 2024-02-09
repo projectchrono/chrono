@@ -73,7 +73,7 @@ void ChLinkBrake::UpdateForces(double mytime) {
             if (mask.Constr_E3().IsActive() == false) {
                 int mdir;
 
-                Vector mv_torque = Vmul(VECT_Z, this->brake_torque);
+                ChVector3d mv_torque = Vmul(VECT_Z, this->brake_torque);
                 mdir = 0;  // clockwise torque
 
                 if (Vdot(this->relWvel, mv_torque) > 0.0) {
@@ -93,7 +93,7 @@ void ChLinkBrake::UpdateForces(double mytime) {
             if (mask.Constr_X().IsActive() == false) {
                 int mdir;
 
-                Vector mv_force = Vmul(VECT_X, this->brake_torque);
+                ChVector3d mv_force = Vmul(VECT_X, this->brake_torque);
                 mdir = 0;  // F-->  rear motion: frontfacing break force
 
                 if (this->relM_dt.pos.x() > 0.0) {
@@ -132,7 +132,7 @@ void ChLinkBrake::ArchiveOut(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkBrake::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkBrake>();
+    /*int version =*/marchive.VersionRead<ChLinkBrake>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIn(marchive);

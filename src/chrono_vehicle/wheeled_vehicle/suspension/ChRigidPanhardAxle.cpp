@@ -65,7 +65,7 @@ ChRigidPanhardAxle::~ChRigidPanhardAxle() {
 void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
                                     std::shared_ptr<ChSubchassis> subchassis,
                                     std::shared_ptr<ChSteering> steering,
-                                    const ChVector<>& location,
+                                    const ChVector3d& location,
                                     double left_ang_vel,
                                     double right_ang_vel) {
     ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
@@ -74,9 +74,9 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_rel_loc = location;
 
     // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w;
     ChMatrix33<> rot;
 
     // Express the suspension reference frame in the absolute coordinate system.
@@ -84,14 +84,14 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform the location of the axle body COM to absolute frame.
-    ChVector<> axleCOM_local = getAxleTubeCOM();
-    ChVector<> axleCOM = suspension_to_abs.TransformLocalToParent(axleCOM_local);
+    ChVector3d axleCOM_local = getAxleTubeCOM();
+    ChVector3d axleCOM = suspension_to_abs.TransformLocalToParent(axleCOM_local);
 
     // Calculate end points on the axle body, expressed in the absolute frame
     // (for visualization)
-    ////ChVector<> midpoint_local = 0.0;
-    ////ChVector<> outer_local(axleCOM_local.x(), midpoint_local.y(), axleCOM_local.z());
-    ChVector<> outer_local(getLocation(SPINDLE));
+    ////ChVector3d midpoint_local = 0.0;
+    ////ChVector3d outer_local(axleCOM_local.x(), midpoint_local.y(), axleCOM_local.z());
+    ChVector3d outer_local(getLocation(SPINDLE));
     m_axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
     outer_local.y() = -outer_local.y();
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
@@ -100,12 +100,12 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_panrodOuterA = suspension_to_abs.TransformPointLocalToParent(getLocation(PANHARD_A));
     m_panrodOuterC = suspension_to_abs.TransformPointLocalToParent(getLocation(PANHARD_C));
 
-    ChVector<> arbC_local(getLocation(ANTIROLL_C));
+    ChVector3d arbC_local(getLocation(ANTIROLL_C));
     m_ptARBChassis[LEFT] = suspension_to_abs.TransformPointLocalToParent(arbC_local);
     arbC_local.y() *= -1.0;
     m_ptARBChassis[RIGHT] = suspension_to_abs.TransformPointLocalToParent(arbC_local);
 
-    ChVector<> arbA_local(getLocation(ANTIROLL_A));
+    ChVector3d arbA_local(getLocation(ANTIROLL_A));
     m_ptARBAxle[LEFT] = suspension_to_abs.TransformPointLocalToParent(arbA_local);
     arbA_local.y() *= -1.0;
     m_ptARBAxle[RIGHT] = suspension_to_abs.TransformPointLocalToParent(arbA_local);
@@ -130,7 +130,7 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuide);
 
     // Create and initialize the Panhard body.
-    ChVector<> ptPanhardCom = 0.5 * (m_panrodOuterA + m_panrodOuterC);
+    ChVector3d ptPanhardCom = 0.5 * (m_panrodOuterA + m_panrodOuterC);
     m_panhardRodBody = chrono_types::make_shared<ChBody>();
     m_panhardRodBody->SetNameString(m_name + "_panhardRod");
     m_panhardRodBody->SetPos(ptPanhardCom);
@@ -155,7 +155,7 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_pointsL.resize(NUM_POINTS);
     m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
+        ChVector3d rel_pos = getLocation(static_cast<PointId>(i));
         m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
         rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
@@ -171,16 +171,16 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
                                         std::shared_ptr<ChChassis> chassis,
                                         std::shared_ptr<ChBody> scbeam,
-                                        const std::vector<ChVector<>>& points,
+                                        const std::vector<ChVector3d>& points,
                                         double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     auto chassisBody = chassis->GetBody();
 
     // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w;
     ChMatrix33<> rot;
 
     // Chassis orientation (expressed in absolute frame)
@@ -196,7 +196,7 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
-    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
+    m_spindle[side]->SetWvel_loc(ChVector3d(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
     chassis->GetSystem()->AddBody(m_spindle[side]);
@@ -234,7 +234,7 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
-    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
+    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 
     m_arb[side] = chrono_types::make_shared<ChBody>();
@@ -313,11 +313,11 @@ std::vector<ChSuspension::ForceTSDA> ChRigidPanhardAxle::ReportSuspensionForce(V
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidPanhardAxle::LogHardpointLocations(const ChVector<>& ref, bool inches) {
+void ChRigidPanhardAxle::LogHardpointLocations(const ChVector3d& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
+        ChVector3d pos = ref + unit * getLocation(static_cast<PointId>(i));
 
         std::cout << "   " << m_pointNames[i] << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
@@ -377,13 +377,13 @@ void ChRigidPanhardAxle::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRigidPanhardAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                              const ChVector<> pt_1,
-                                              const ChVector<> pt_2,
+                                              const ChVector3d pt_1,
+                                              const ChVector3d pt_2,
                                               double radius,
                                               const ChColor& color) {
     // Express hardpoint locations in body frame.
-    ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
-    ChVector<> p_2 = body->TransformPointParentToLocal(pt_2);
+    ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
+    ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
 
     auto cyl = ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
     cyl->SetColor(color);

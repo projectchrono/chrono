@@ -42,7 +42,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      double sphere_swept_thickness,
                      double scaleFactor,
                      double elementThickness,
-                     ChVector<> trans_elem2,
+                     ChVector3d trans_elem2,
                      ChMatrix33<> rot_elem2,
                      bool AlsoPrint);
 
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     mysurfmaterial->SetGt(0);
     // =============================================================================
     ChMatrix33<> rot_transform(1);
-    ChVector<> translate;
+    ChVector3d translate;
     double sphere_swept_thickness;
     double scaleFactor;
     double elementThickness;
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 
     // =======================TEST 1============================================
     printf("--------------------------------------------------\n");
-    translate = ChVector<>(0, 1, 0);
+    translate = ChVector3d(0, 1, 0);
     sphere_swept_thickness = 0.505;
     scaleFactor = 1;
     elementThickness = 0.01;
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     printf("--------------------------------------------------\n");
     // =======================TEST 2============================================
     // same test with smaller sphere_swept_thickness
-    translate = ChVector<>(0, 1, 0);
+    translate = ChVector3d(0, 1, 0);
     sphere_swept_thickness = 0.499;
     scaleFactor = 1;
     elementThickness = 0.01;
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     printf("--------------------------------------------------\n");
     // =======================TEST 3============================================
     // test for to elements positioned on the same plane.
-    translate = ChVector<>(2.5, 0, 0);
+    translate = ChVector3d(2.5, 0, 0);
     sphere_swept_thickness = 0.249;
     scaleFactor = 1;
     elementThickness = 0.01;
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
 
     // =======================TEST 4============================================
 
-    translate = ChVector<>(2.1, 0, 0);
+    translate = ChVector3d(2.1, 0, 0);
     sphere_swept_thickness = 0.4;
     scaleFactor = 1;
     elementThickness = 0.01;
@@ -167,8 +167,8 @@ class MyContactContainer : public ChContactContainerSMC {
         auto iter = contactlist_333_333.begin();
         int num_contact = 0;
         while (iter != contactlist_333_333.end()) {
-            ChVector<> p1 = (*iter)->GetContactP1();
-            ChVector<> p2 = (*iter)->GetContactP2();
+            ChVector3d p1 = (*iter)->GetContactP1();
+            ChVector3d p2 = (*iter)->GetContactP2();
             double CD = (*iter)->GetContactDistance();
 
             if (print) {
@@ -191,7 +191,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      double sphere_swept_thickness,
                      double scaleFactor,
                      double elementThickness,
-                     ChVector<> trans_elem2,
+                     ChVector3d trans_elem2,
                      ChMatrix33<> rot_elem2,
                      bool AlsoPrint) {
     ChSystemSMC sys(false);
@@ -203,21 +203,21 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     double L_y = elementThickness;
     double L_z = 1.0;  // small thickness
 
-    std::vector<ChVector<>> N1(4);  // To add nodes of the first element
-    std::vector<ChVector<>> N2(4);  // To add nodes of the second element
+    std::vector<ChVector3d> N1(4);  // To add nodes of the first element
+    std::vector<ChVector3d> N2(4);  // To add nodes of the second element
 
-    N1[0] = ChVector<>(-L_x, 0, -L_z) * scaleFactor;
-    N1[1] = ChVector<>(+L_x, 0, -L_z) * scaleFactor;
-    N1[2] = ChVector<>(+L_x, 0, +L_z) * scaleFactor;
-    N1[3] = ChVector<>(-L_x, 0, +L_z) * scaleFactor;
+    N1[0] = ChVector3d(-L_x, 0, -L_z) * scaleFactor;
+    N1[1] = ChVector3d(+L_x, 0, -L_z) * scaleFactor;
+    N1[2] = ChVector3d(+L_x, 0, +L_z) * scaleFactor;
+    N1[3] = ChVector3d(-L_x, 0, +L_z) * scaleFactor;
 
-    N2[0] = ChVector<>(-L_x, 0, -L_z) * scaleFactor + trans_elem2;
-    N2[1] = ChVector<>(-L_x, 0, +L_z) * scaleFactor + trans_elem2;
-    N2[2] = ChVector<>(+L_x, 0, +L_z) * scaleFactor + trans_elem2;
-    N2[3] = ChVector<>(+L_x, 0, -L_z) * scaleFactor + trans_elem2;
+    N2[0] = ChVector3d(-L_x, 0, -L_z) * scaleFactor + trans_elem2;
+    N2[1] = ChVector3d(-L_x, 0, +L_z) * scaleFactor + trans_elem2;
+    N2[2] = ChVector3d(+L_x, 0, +L_z) * scaleFactor + trans_elem2;
+    N2[3] = ChVector3d(+L_x, 0, -L_z) * scaleFactor + trans_elem2;
 
-    ChVector<> direction1(0, 1, 0);
-    ChVector<> direction2(0, -1, 0);
+    ChVector3d direction1(0, 1, 0);
+    ChVector3d direction2(0, -1, 0);
     auto my_mesh_1 = chrono_types::make_shared<ChMesh>();
     auto my_mesh_2 = chrono_types::make_shared<ChMesh>();
 
@@ -270,9 +270,9 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_mesh_2->SetAutomaticGravity(addGravity);
 
     if (addGravity) {
-        sys.Set_G_acc(ChVector<>(0, -1, 0));
+        sys.Set_G_acc(ChVector3d(0, -1, 0));
     } else {
-        sys.Set_G_acc(ChVector<>(0, 0, 0));
+        sys.Set_G_acc(ChVector3d(0, 0, 0));
     }
     sys.Add(my_mesh_1);
     sys.Add(my_mesh_2);

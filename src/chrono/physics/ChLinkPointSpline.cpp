@@ -50,7 +50,7 @@ void ChLinkPointSpline::UpdateTime(double time) {
     ChTime = time;
 
     if (trajectory_line) {
-        Vector param, vdir, vdir2, vnorm, vrad, vpoint;
+        ChVector3d param, vdir, vdir2, vnorm, vrad, vpoint;
         double mu, ds, dh, mrad;
 
         // find nearest point

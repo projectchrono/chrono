@@ -57,7 +57,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
 
     // Create system
     m_system = new ChSystemNSC;
-    m_system->Set_G_acc(ChVector<>(0, -1, 0));
+    m_system->Set_G_acc(ChVector3d(0, -1, 0));
 
     // Set solver parameters
     switch (solver_type) {
@@ -116,11 +116,11 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
         auto prev = m_system->Get_bodylist().back();
 
         auto pend = chrono_types::make_shared<ChBodyEasyBox>(m_length, width, width, density, true, false);
-        pend->SetPos(ChVector<>((ib + 0.5) * m_length, 0, 0));
+        pend->SetPos(ChVector3d((ib + 0.5) * m_length, 0, 0));
         m_system->AddBody(pend);
 
         auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
-        rev->Initialize(pend, prev, ChCoordsys<>(ChVector<>(ib * m_length, 0, 0)));
+        rev->Initialize(pend, prev, ChCoordsys<>(ChVector3d(ib * m_length, 0, 0)));
         m_system->AddLink(rev);
     }
 }
@@ -139,7 +139,7 @@ void ChainTest<N>::SimulateVis() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, -offset / 2, offset), ChVector<>(0, -offset / 2, 0));
+    vis->AddCamera(ChVector3d(0, -offset / 2, offset), ChVector3d(0, -offset / 2, 0));
 
     while (vis->Run()) {
         vis->BeginScene();

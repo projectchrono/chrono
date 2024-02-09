@@ -69,7 +69,7 @@ void Balancer::Create(const rapidjson::Document& d) {
     if (d["Beam"].HasMember("Pin Direction")) {
         m_dir = ReadVectorJSON(d["Beam"]["Pin Direction"]);
     } else {
-        m_dir = ChVector<>(0, 1, 0);
+        m_dir = ChVector3d(0, 1, 0);
     }
 }
 

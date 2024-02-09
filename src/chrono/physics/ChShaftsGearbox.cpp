@@ -42,7 +42,7 @@ ChShaftsGearbox::ChShaftsGearbox(const ChShaftsGearbox& other) : ChPhysicsItem(o
 bool ChShaftsGearbox::Initialize(std::shared_ptr<ChShaft> mshaft1,   // first (input) shaft to join
                                  std::shared_ptr<ChShaft> mshaft2,   // second  (output) shaft to join
                                  std::shared_ptr<ChBodyFrame> mbody, // 3D body to use as truss
-                                 ChVector<>& mdir                    // direction of the shaft on 3D body
+                                 ChVector3d& mdir                    // direction of the shaft on 3D body
                                  ) {
     ChShaft* mm1 = mshaft1.get();
     ChShaft* mm2 = mshaft2.get();
@@ -151,8 +151,8 @@ void ChShaftsGearbox::ConstraintsLoadJacobians() {
     constraint.Get_Cq_a()(0) = r1;
     constraint.Get_Cq_b()(0) = r2;
 
-    // ChVector<> jacw = body->TransformDirectionParentToLocal(shaft_dir);
-    ChVector<> jacw = shaft_dir;
+    // ChVector3d jacw = body->TransformDirectionParentToLocal(shaft_dir);
+    ChVector3d jacw = shaft_dir;
 
     constraint.Get_Cq_c()(0) = 0;
     constraint.Get_Cq_c()(1) = 0;

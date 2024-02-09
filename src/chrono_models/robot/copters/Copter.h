@@ -40,8 +40,8 @@ template <int nop>
 class Copter {
   public:
     Copter(ChSystem& sys,                 ///< containing physical system
-           const ChVector<>& cpos,        ///< chassis position
-           std::vector<ChVector<>> ppos,  ///< propeller relative position
+           const ChVector3d& cpos,        ///< chassis position
+           std::vector<ChVector3d> ppos,  ///< propeller relative position
            const bool clockwise[],        ///< rotation direction ofr each propeller
            bool are_prop_pos_rel = true,  ///< if false, propeller axes position has to be given in the abs frame
            bool z_up = false              ///< orientation of vertical axis
@@ -55,7 +55,7 @@ class Copter {
     /// Set the propeller properties.
     /// Coefficient as eq 6.29 of "Aerodynamics, Aeronautics, and Flight Mechanics" by McCormick.
     void SetPropellerData(double mass,               ///< propeller mass
-                          const ChVector<>& inerXX,  ///< propeller diagonal inertia (axis assumed principal)
+                          const ChVector3d& inerXX,  ///< propeller diagonal inertia (axis assumed principal)
                           double diam,               ///< propeller diameter
                           double thrust_coeff,       ///< propeller thrust coefficient
                           double power_coeff,        ///< propeller power coefficient
@@ -168,7 +168,7 @@ class Copter {
     double Temp = 298;                                  ///< Air Temperature [K]
     double Altitude0 = 0;                               ///< Initial Altitude [m]
     double h0 = 0;                                      ///< Initial Altitude in simulation [m]
-    ChVector<> up;                                      ///< Vertical axis
+    ChVector3d up;                                      ///< Vertical axis
     std::vector<std::shared_ptr<ChForce>> thrusts;      ///< Thrust Forces
     std::vector<std::shared_ptr<ChForce>> backtorques;  ///< Propeller Resistance torques
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> motors;  ///< Propeller Motors
@@ -180,8 +180,8 @@ class Copter {
 
 template <int nop>
 Copter<nop>::Copter(ChSystem& sys,
-                    const ChVector<>& cpos,
-                    std::vector<ChVector<>> ppos,
+                    const ChVector3d& cpos,
+                    std::vector<ChVector3d> ppos,
                     const bool clockwise[],
                     bool are_prop_pos_rel,
                     bool z_up) {
@@ -191,7 +191,7 @@ Copter<nop>::Copter(ChSystem& sys,
     chassis->SetPos(cpos);
     // placeholder Data.
     chassis->SetMass(10);
-    chassis->SetInertiaXX(ChVector<>(1, 1, 1));
+    chassis->SetInertiaXX(ChVector3d(1, 1, 1));
     chassis->SetBodyFixed(false);
     sys.AddBody(chassis);
     h0 = chassis->GetPos() ^ up;
@@ -206,7 +206,7 @@ Copter<nop>::Copter(ChSystem& sys,
         }
         // Data from little hexy, page 132.
         prop->SetMass(1);
-        prop->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
+        prop->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
         prop->SetBodyFixed(false);
         sys.AddBody(prop);
 
@@ -246,7 +246,7 @@ Copter<nop>::Copter(ChSystem& sys,
         backtorque->SetMode(ChForce::TORQUE);
         backtorque->SetMforce(0);
         // Resistance Torque direction opposed to omega
-        ChVector<> tdir = (clockwise[p]) ? up : -up;
+        ChVector3d tdir = (clockwise[p]) ? up : -up;
         backtorque->SetRelDir(tdir);
         backtorques.push_back(backtorque);
     }
@@ -260,7 +260,7 @@ Copter<nop>::Copter(ChSystem& sys,
 
 template <int nop>
 void Copter<nop>::SetPropellerData(double mass,
-                                   const ChVector<>& inerXX,
+                                   const ChVector3d& inerXX,
                                    double diam,
                                    double thrust_coeff,
                                    double power_coeff,
@@ -347,7 +347,7 @@ void Copter<nop>::RotateCopter(ChMatrix33<>& A) {
     for (auto prop : this->GetProps()) {
         ChMatrix33<> proprot = prop->GetA() * A.transpose();
         prop->SetRot(proprot);
-        ChVector<> deltap = A * (prop->GetPos() - this->GetChassis()->GetPos());
+        ChVector3d deltap = A * (prop->GetPos() - this->GetChassis()->GetPos());
         prop->SetPos(prop->GetPos() + deltap);
     }
 }

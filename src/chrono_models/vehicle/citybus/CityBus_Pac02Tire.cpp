@@ -29,7 +29,7 @@ namespace citybus {
 
 // Static variables
 const double CityBus_Pac02Tire::m_mass = 68.6;
-const ChVector<> CityBus_Pac02Tire::m_inertia(6.104, 11.144, 6.104);
+const ChVector3d CityBus_Pac02Tire::m_inertia(6.104, 11.144, 6.104);
 const std::string CityBus_Pac02Tire::m_meshFile_left = "citybus/CityBusTire.obj";
 const std::string CityBus_Pac02Tire::m_meshFile_right = "citybus/CityBusTire.obj";
 

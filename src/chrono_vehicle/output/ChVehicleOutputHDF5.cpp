@@ -366,7 +366,7 @@ void ChVehicleOutputHDF5::WriteBodies(const std::vector<std::shared_ptr<ChBody>>
     H5::DataSpace dataspace(1, dim);
     std::vector<body_info> info(nbodies);
     for (auto i = 0; i < nbodies; i++) {
-        const ChVector<>& p = bodies[i]->GetPos();
+        const ChVector3d& p = bodies[i]->GetPos();
         const ChQuaternion<>& q = bodies[i]->GetRot();
         info[i] = {bodies[i]->GetIdentifier(), p.x(), p.y(), p.z(), q.e0(), q.e1(), q.e2(), q.e3()};
     }
@@ -384,7 +384,7 @@ void ChVehicleOutputHDF5::WriteAuxRefBodies(const std::vector<std::shared_ptr<Ch
     H5::DataSpace dataspace(1, dim);
     std::vector<bodyaux_info> info(nbodies);
     for (auto i = 0; i < nbodies; i++) {
-        const ChVector<>& p = bodies[i]->GetPos();
+        const ChVector3d& p = bodies[i]->GetPos();
         const ChQuaternion<>& q = bodies[i]->GetRot();
         info[i] = { bodies[i]->GetIdentifier(), p.x(), p.y(), p.z(), q.e0(), q.e1(), q.e2(), q.e3() };
     }
@@ -402,9 +402,9 @@ void ChVehicleOutputHDF5::WriteMarkers(const std::vector<std::shared_ptr<ChMarke
     H5::DataSpace dataspace(1, dim);
     std::vector<marker_info> info(nmarkers);
     for (auto i = 0; i < nmarkers; i++) {
-        const ChVector<>& p = markers[i]->GetAbsCoord().pos;
-        const ChVector<>& pd = markers[i]->GetAbsCoord_dt().pos;
-        const ChVector<>& pdd = markers[i]->GetAbsCoord_dtdt().pos;
+        const ChVector3d& p = markers[i]->GetAbsCoord().pos;
+        const ChVector3d& pd = markers[i]->GetAbsCoord_dt().pos;
+        const ChVector3d& pdd = markers[i]->GetAbsCoord_dtdt().pos;
         info[i] = {markers[i]->GetIdentifier(), p.x(), p.y(), p.z(), pd.x(), pd.y(), pd.z(), pdd.x(), pdd.y(), pdd.z()};
     }
 
@@ -438,8 +438,8 @@ void ChVehicleOutputHDF5::WriteJoints(const std::vector<std::shared_ptr<ChLink>>
     H5::DataSpace dataspace(1, dim);
     std::vector<joint_info> info(njoints);
     for (auto i = 0; i < njoints; i++) {
-        const ChVector<>& f = joints[i]->Get_react_force();
-        const ChVector<>& t = joints[i]->Get_react_torque();
+        const ChVector3d& f = joints[i]->Get_react_force();
+        const ChVector3d& t = joints[i]->Get_react_torque();
         info[i] = { joints[i]->GetIdentifier(), f.x(), f.y(), f.z(), t.x(), t.y(), t.z() };
     }
 
@@ -508,8 +508,8 @@ void ChVehicleOutputHDF5::WriteBodyLoads(const std::vector<std::shared_ptr<ChLoa
     H5::DataSpace dataspace(1, dim);
     std::vector<bodyload_info> info(nloads);
     for (auto i = 0; i < nloads; i++) {
-        ChVector<> f = loads[i]->GetForce();
-        ChVector<> t = loads[i]->GetTorque();
+        ChVector3d f = loads[i]->GetForce();
+        ChVector3d t = loads[i]->GetTorque();
         info[i] = { loads[i]->GetIdentifier(), f.x(), f.y(), f.z(), t.x(), t.y(), t.z() };
     }
 

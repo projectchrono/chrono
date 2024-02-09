@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CHVECTOR2_H
-#define CHVECTOR2_H
+#ifndef CH_VECTOR2_H
+#define CH_VECTOR2_H
 
 #include <algorithm>
 #include <cmath>
@@ -194,6 +194,46 @@ class ChVector2 {
 };
 
 CH_CLASS_VERSION(ChVector2<double>, 0)
+
+// -----------------------------------------------------------------------------
+
+/// Alias for double-precision vectors.
+/// <pre>
+/// Instead of writing
+///    ChVector2<double> v;
+/// or
+///    ChVector2<> v;
+/// you can use:
+///    ChVector2d v;
+/// </pre>
+typedef ChVector2<double> ChVector2d;
+
+/// Alias for single-precision vectors.
+/// <pre>
+/// Instead of writing
+///    ChVector2<float> v;
+/// you can use:
+///    ChVector2f v;
+/// </pre>
+typedef ChVector2<float> ChVector2f;
+
+/// Alias for integer vectors.
+/// <pre>
+/// Instead of writing
+///    ChVector2<int> v;
+/// you can use:
+///    ChVector2i v;
+/// </pre>
+typedef ChVector2<int> ChVector2i;
+
+/// Alias for bool vectors.
+/// <pre>
+/// Instead of writing
+///    ChVector2<bool> v;
+/// you can use:
+///    ChVector2b v;
+/// </pre>
+typedef ChVector2<bool> ChVector2b;
 
 // -----------------------------------------------------------------------------
 // STATIC VECTOR MATH OPERATIONS

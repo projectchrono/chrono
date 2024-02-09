@@ -27,7 +27,7 @@ namespace geometry {
 /// Geometric object representing a NURBS spline.
 class ChApi ChLineNurbs : public ChLine {
   public:
-    std::vector<ChVector<> > points;
+    std::vector<ChVector3d > points;
     ChVectorDynamic<> weights;
     ChVectorDynamic<> knots;
     int p;
@@ -41,7 +41,7 @@ class ChApi ChLineNurbs : public ChLine {
     /// If the weights are not provided, a constant weight vector is made.
     ChLineNurbs(
         int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-        std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+        std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
         ChVectorDynamic<>* mknots = 0,  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
         ChVectorDynamic<>* weights = 0  ///< weights, size w. Required w=n. If not provided, all weights as 1.
     );
@@ -55,10 +55,10 @@ class ChApi ChLineNurbs : public ChLine {
     virtual int Get_complexity() const override { return (int)points.size(); }
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(double U) const override;
+    virtual ChVector3d Evaluate(double U) const override;
 
     /// Return the tangent unit vector at the parametric coordinate U (in [0,1]).
-    virtual ChVector<> GetTangent(double parU) const override;
+    virtual ChVector3d GetTangent(double parU) const override;
 
     // NURBS specific functions
 
@@ -72,7 +72,7 @@ class ChApi ChLineNurbs : public ChLine {
     double ComputeKnotUfromU(double U) const { return U * (knots(knots.size() - 1 - p) - knots(p)) + knots(p); }
 
     /// Access the points
-    std::vector<ChVector<> >& Points() { return points; }
+    std::vector<ChVector3d >& Points() { return points; }
 
     /// Access the weights
     ChVectorDynamic<>& Weights() { return weights; }
@@ -88,7 +88,7 @@ class ChApi ChLineNurbs : public ChLine {
     /// If the weights are not provided, a constant weight vector is made.
     virtual void SetupData(
         int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-        std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+        std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
         ChVectorDynamic<>* mknots = 0,  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
         ChVectorDynamic<>* weights = 0  ///< weights, size w. Required w=n. If not provided, all weights as 1.
     );

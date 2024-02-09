@@ -36,7 +36,7 @@ namespace m113 {
 const int M113_SprocketSinglePin::m_num_teeth = 10;
 
 const double M113_SprocketSinglePin::m_gear_mass = 27.68;
-const ChVector<> M113_SprocketSinglePin::m_gear_inertia(0.646, 0.883, 0.646);
+const ChVector3d M113_SprocketSinglePin::m_gear_inertia(0.646, 0.883, 0.646);
 const double M113_SprocketSinglePin::m_axle_inertia = 0.4;
 const double M113_SprocketSinglePin::m_separation = 0.225;
 

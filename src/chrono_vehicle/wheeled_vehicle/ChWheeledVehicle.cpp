@@ -318,7 +318,7 @@ void ChWheeledVehicle::InitializeInertiaProperties() {
 void ChWheeledVehicle::UpdateInertiaProperties() {
     // 1. Calculate vehicle COM location relative to the global reference frame
     // 2. Calculate vehicle inertia relative to global reference frame
-    ChVector<> com(0);
+    ChVector3d com(0);
     ChMatrix33<> inertia(0);
 
     m_chassis->AddInertiaProperties(com, inertia);
@@ -358,7 +358,7 @@ void ChWheeledVehicle::UpdateInertiaProperties() {
 }
 
 // -----------------------------------------------------------------------------
-const ChVector<>& ChWheeledVehicle::GetSpindlePos(int axle, VehicleSide side) const {
+const ChVector3d& ChWheeledVehicle::GetSpindlePos(int axle, VehicleSide side) const {
     return m_axles[axle]->m_suspension->GetSpindlePos(side);
 }
 
@@ -366,11 +366,11 @@ ChQuaternion<> ChWheeledVehicle::GetSpindleRot(int axle, VehicleSide side) const
     return m_axles[axle]->m_suspension->GetSpindleRot(side);
 }
 
-const ChVector<>& ChWheeledVehicle::GetSpindleLinVel(int axle, VehicleSide side) const {
+const ChVector3d& ChWheeledVehicle::GetSpindleLinVel(int axle, VehicleSide side) const {
     return m_axles[axle]->m_suspension->GetSpindleLinVel(side);
 }
 
-ChVector<> ChWheeledVehicle::GetSpindleAngVel(int axle, VehicleSide side) const {
+ChVector3d ChWheeledVehicle::GetSpindleAngVel(int axle, VehicleSide side) const {
     return m_axles[axle]->m_suspension->GetSpindleAngVel(side);
 }
 

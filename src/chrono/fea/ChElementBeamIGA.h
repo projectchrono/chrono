@@ -104,18 +104,18 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
     std::vector<std::unique_ptr<ChBeamMaterialInternalData>>& GetPlasticData() { return plastic_data; }
 
     /// Get the stress, as cut-force [N], in a vector with as many elements as Gauss points.
-    std::vector<ChVector<>>& GetStressN() { return this->stress_n; }
+    std::vector<ChVector3d>& GetStressN() { return this->stress_n; }
 
     /// Get the stress, as cut-torque [Nm], in a vector with as many elements as Gauss points.
-    std::vector<ChVector<>>& GetStressM() { return this->stress_m; }
+    std::vector<ChVector3d>& GetStressM() { return this->stress_m; }
 
     /// Get the strain (total=elastic+plastic), as deformation (x is axial strain), in a vector with as many elements as
     /// Gauss points.
-    std::vector<ChVector<>>& GetStrainE() { return this->strain_e; }
+    std::vector<ChVector3d>& GetStrainE() { return this->strain_e; }
 
     /// Get the strain (total=elastic+plastic), as curvature (x is torsion), in a vector with as many elements as Gauss
     /// points.
-    std::vector<ChVector<>>& GetStrainK() { return this->strain_k; }
+    std::vector<ChVector3d>& GetStrainK() { return this->strain_k; }
 
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
@@ -149,7 +149,7 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
     );
 
     /// Compute gravity forces, grouped in the Fg vector, one node after the other
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     //
     // Beam-specific functions
@@ -160,7 +160,7 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are not corotated.
-    virtual void EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) override {
+    virtual void EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) override {
         ChMatrixDynamic<> N(1, (int)nodes.size());
 
         /* To be completed: Created to be consistent with base class implementation*/
@@ -168,7 +168,7 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
 
     /// Gets the absolute xyz position of a point on the beam line, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    virtual void EvaluateSectionPoint(const double eta, ChVector<>& point) {
+    virtual void EvaluateSectionPoint(const double eta, ChVector3d& point) {
         // compute parameter in knot space from eta-1..+1
         double u1 = knots(order);  // extreme of span
         double u2 = knots(knots.size() - order - 1);
@@ -189,7 +189,7 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
     /// Gets the absolute xyz position of a point on the beam line,
     /// and the absolute rotation of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    virtual void EvaluateSectionFrame(const double eta, ChVector<>& point, ChQuaternion<>& rot) override {
+    virtual void EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) override {
         // compute parameter in knot space from eta-1..+1
 
         double u1 = knots(order);  // extreme of span
@@ -221,11 +221,11 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
     /// torque (torsion on x, bending on y, on bending on z) at a section along
     /// the beam line, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    virtual void EvaluateSectionForceTorque(const double eta, ChVector<>& Fforce, ChVector<>& Mtorque) override {
+    virtual void EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) override {
         /* To be completed: Created to be consistent with base class implementation*/
     }
 
-    virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV) override {
+    virtual void EvaluateSectionStrain(const double eta, ChVector3d& StrainV) override {
         /* To be completed: Created to be consistent with base class implementation*/
     }
 
@@ -362,13 +362,13 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
     std::vector<double> Jacobian_s;
     std::vector<double> Jacobian_b;
 
-    std::vector<ChVector<>> strain_e_0;
-    std::vector<ChVector<>> strain_k_0;
+    std::vector<ChVector3d> strain_e_0;
+    std::vector<ChVector3d> strain_k_0;
 
-    std::vector<ChVector<>> stress_n;
-    std::vector<ChVector<>> stress_m;
-    std::vector<ChVector<>> strain_e;
-    std::vector<ChVector<>> strain_k;
+    std::vector<ChVector3d> stress_n;
+    std::vector<ChVector3d> stress_m;
+    std::vector<ChVector3d> strain_e;
+    std::vector<ChVector3d> strain_k;
 
     std::vector<std::unique_ptr<ChBeamMaterialInternalData>> plastic_data_old;
     std::vector<std::unique_ptr<ChBeamMaterialInternalData>> plastic_data;

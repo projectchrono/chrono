@@ -54,8 +54,8 @@ void test_1() {
     sys.Add(my_mesh);
 
     // Create some nodes.
-    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
-    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(2, 0, 0)));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(0, 0, 0)));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(2, 0, 0)));
 
     // Default mass for FEM nodes is zero
     mnodeA->SetMass(0.0);
@@ -104,14 +104,14 @@ void test_1() {
     // Add a vertical load to the end of the beam element:
     auto mwrench = chrono_types::make_shared<ChLoadBeamWrench>(melementA);
     mwrench->loader.SetApplication(1.0);  // in -1..+1 range, -1: end A, 0: mid, +1: end B
-    mwrench->loader.SetForce(ChVector<>(0, -0.2, 0));
+    mwrench->loader.SetForce(ChVector3d(0, -0.2, 0));
     mloadcontainer->Add(mwrench);  // do not forget to add the load to the load container.
 
     // Example 2:
 
     // Add a distributed load along the beam element:
     auto mwrenchdis = chrono_types::make_shared<ChLoadBeamWrenchDistributed>(melementA);
-    mwrenchdis->loader.SetForcePerUnit(ChVector<>(0, -0.1, 0));  // load per unit length
+    mwrenchdis->loader.SetForcePerUnit(ChVector3d(0, -0.1, 0));  // load per unit length
     mloadcontainer->Add(mwrenchdis);
 
     // Example 3:
@@ -150,7 +150,7 @@ void test_1() {
             ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
         ) {
             double Fy_max = 0.005;
-            F.segment(0, 3) = ChVector<>(0, ((1 + U) / 2) * Fy_max, 0).eigen();  // load, force part
+            F.segment(0, 3) = ChVector3d(0, ((1 + U) / 2) * Fy_max, 0).eigen();  // load, force part
             F.segment(3, 3).setZero();                                           // load, torque part
         }
 
@@ -171,7 +171,7 @@ void test_1() {
     // As a stiff load, this will automatically generate a jacobian (tangent stiffness matrix K)
     // that will be used in statics, implicit integrators, etc.
 
-    auto mnodeC = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
+    auto mnodeC = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(2, 10, 3));
     my_mesh->AddNode(mnodeC);
 
     class MyLoaderPointStiff : public ChLoaderUVWatomic {
@@ -190,8 +190,8 @@ void test_1() {
             ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
             ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
         ) {
-            ChVector<> node_pos;
-            ChVector<> node_vel;
+            ChVector3d node_pos;
+            ChVector3d node_vel;
             if (state_x) {
                 node_pos = state_x->segment(0, 3);
                 node_vel = state_w->segment(0, 3);
@@ -233,7 +233,7 @@ void test_1() {
     // As a stiff load, this will automatically generate a jacobian (tangent stiffness matrix K)
     // that will be used in statics, implicit integrators, etc.
 
-    auto mnodeD = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
+    auto mnodeD = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(2, 10, 3));
     my_mesh->AddNode(mnodeD);
 
     class MyLoadCustom : public ChLoadCustom {
@@ -251,8 +251,8 @@ void test_1() {
         virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                               ChStateDelta* state_w  ///< state speed to evaluate Q
                               ) override {
-            ChVector<> node_pos;
-            ChVector<> node_vel;
+            ChVector3d node_pos;
+            ChVector3d node_vel;
             if (state_x && state_w) {
                 node_pos = state_x->segment(0, 3);
                 node_vel = state_w->segment(0, 3);
@@ -309,9 +309,9 @@ void test_1() {
     // by default using numerical differentiation; but if you want you
     // can override ComputeJacobian() and compute mK, mR analytically - see prev.example.
 
-    auto mnodeE = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
+    auto mnodeE = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(2, 10, 3));
     my_mesh->AddNode(mnodeE);
-    auto mnodeF = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(2, 11, 3));
+    auto mnodeF = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(2, 11, 3));
     my_mesh->AddNode(mnodeF);
 
     class MyLoadCustomMultiple : public ChLoadCustomMultiple {
@@ -331,10 +331,10 @@ void test_1() {
         virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                               ChStateDelta* state_w  ///< state speed to evaluate Q
                               ) override {
-            ChVector<> Enode_pos;
-            ChVector<> Enode_vel;
-            ChVector<> Fnode_pos;
-            ChVector<> Fnode_vel;
+            ChVector3d Enode_pos;
+            ChVector3d Enode_vel;
+            ChVector3d Fnode_pos;
+            ChVector3d Fnode_vel;
             if (state_x && state_w) {
                 Enode_pos = state_x->segment(0, 3);
                 Enode_vel = state_w->segment(0, 3);
@@ -356,13 +356,13 @@ void test_1() {
             double Dy1 = 0.2;
             double E_x_offset = 2;
             double E_y_offset = 10;
-            ChVector<> spring1(-Kx1 * (Enode_pos.x() - E_x_offset) - Dx1 * Enode_vel.x(),
+            ChVector3d spring1(-Kx1 * (Enode_pos.x() - E_x_offset) - Dx1 * Enode_vel.x(),
                                -Ky1 * (Enode_pos.y() - E_y_offset) - Dy1 * Enode_vel.y(), 0);
             // ... from node F to node E,
             double Ky2 = 10;
             double Dy2 = 0.2;
             double EF_dist = 1;
-            ChVector<> spring2(
+            ChVector3d spring2(
                 0, -Ky2 * (Fnode_pos.y() - Enode_pos.y() - EF_dist) - Dy2 * (Enode_vel.y() - Fnode_vel.y()), 0);
             double Fforcey = 2;
             // store generalized forces as a contiguous vector in this->load_Q, with same order of state_w

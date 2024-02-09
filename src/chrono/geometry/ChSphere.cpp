@@ -53,7 +53,7 @@ ChMatrix33<> ChSphere::GetGyration() const {
 }
 
 ChAABB ChSphere::GetBoundingBox(double radius) {
-    return ChAABB(ChVector<>(-radius), ChVector<>(+radius));
+    return ChAABB(ChVector3d(-radius), ChVector3d(+radius));
 }
 
 ChAABB ChSphere::GetBoundingBox() const {

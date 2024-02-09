@@ -26,7 +26,7 @@ namespace fmtv {
 const double FMTV_EngineShafts::m_motorblock_inertia = 10.5;
 const double FMTV_EngineShafts::m_motorshaft_inertia = 1.1;
 
-FMTV_EngineShafts::FMTV_EngineShafts(const std::string& name) : ChEngineShafts(name, ChVector<>(1, 0, 0)) {}
+FMTV_EngineShafts::FMTV_EngineShafts(const std::string& name) : ChEngineShafts(name, ChVector3d(1, 0, 0)) {}
 
 void FMTV_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionRecorder>& map) {
     double rpm_to_radsec = CH_C_2PI / 60.;

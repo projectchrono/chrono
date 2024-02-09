@@ -23,7 +23,7 @@
 
 #include <string>
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColor.h"
 
@@ -93,7 +93,7 @@ class ChApi ChVisualMaterial {
     const std::string& GetDisplacementTexture() const { return disp_texture.GetFilename(); }
     const std::string& GetAmbientOcclusionTexture() const { return ao_texture.GetFilename(); }
 
-    const ChVector2<float>& GetTextureScale() const;
+    const ChVector2f& GetTextureScale() const;
 
     float GetFresnelExp() const { return fresnel_exp; }
     float GetFresnelMax() const { return fresnel_max; }

@@ -26,14 +26,14 @@ ChLineSegment::ChLineSegment(const ChLineSegment& source) : ChLine(source) {
 }
 
 ChFrame<> ChLineSegment::GetFrame() const {
-    ChVector<> dir = (pB - pA).GetNormalized();
-    ChVector<> u, v, w;
+    ChVector3d dir = (pB - pA).GetNormalized();
+    ChVector3d u, v, w;
     dir.DirToDxDyDz(w, u, v);
 
     return ChFrame<>(0.5 * (pB + pA), ChMatrix33<>(u, v, w));
 }
 
-ChVector<> ChLineSegment::Evaluate(double parU) const {
+ChVector3d ChLineSegment::Evaluate(double parU) const {
     return pA * (1 - parU) + pB * parU;
 }
 

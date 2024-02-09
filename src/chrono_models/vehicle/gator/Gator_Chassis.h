@@ -53,9 +53,9 @@ class CH_MODELS_API Gator_Chassis : public ChRigidChassis {
     ChMatrix33<> m_body_inertia;
 
     static const double m_body_mass;
-    static const ChVector<> m_body_inertiaXX;
-    static const ChVector<> m_body_inertiaXY;
-    static const ChVector<> m_body_COM_loc;
+    static const ChVector3d m_body_inertiaXX;
+    static const ChVector3d m_body_inertiaXY;
+    static const ChVector3d m_body_COM_loc;
     static const ChCoordsys<> m_driverCsys;
 };
 

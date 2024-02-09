@@ -802,7 +802,7 @@ TEST_P(Collision, box_box) {
 
         real3 hdims2(1.0, 1.0, 1.0);
         real3 pos2(0.5, 0.5, 1.0 + sqrt(3.0));
-        quaternion rot2 = FromChQuaternion(Q_from_AngAxis(atan(sqrt(2.0)), ChVector<>(1, 1, 0).GetNormalized()));
+        quaternion rot2 = FromChQuaternion(Q_from_AngAxis(atan(sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
 
         ConvexShapeCustom* shape1 = new ConvexShapeCustom();
         shape1->type = ChCollisionShape::Type::BOX;
@@ -931,11 +931,11 @@ TEST_P(Collision, box_box) {
     {
         real3 hdims1(1.0, 1.0, 1.0);
         real3 pos1(0.0, 0.0, 0.0);
-        quaternion rot1 = FromChQuaternion(Q_from_AngAxis(atan(sqrt(2.0)), ChVector<>(1, 1, 0).GetNormalized()));
+        quaternion rot1 = FromChQuaternion(Q_from_AngAxis(atan(sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
 
         real3 hdims2(1.0, 1.0, 1.0);
         real3 pos2(0, 0, sqrt(3.0) + sqrt(3.0));
-        quaternion rot2 = FromChQuaternion(Q_from_AngAxis(atan(sqrt(2.0)), ChVector<>(1, 1, 0).GetNormalized()));
+        quaternion rot2 = FromChQuaternion(Q_from_AngAxis(atan(sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
 
         ConvexShapeCustom* shape1 = new ConvexShapeCustom();
         shape1->type = ChCollisionShape::Type::BOX;

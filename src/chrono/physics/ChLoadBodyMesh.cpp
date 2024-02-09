@@ -23,9 +23,9 @@ ChLoadBodyMesh::ChLoadBodyMesh(std::shared_ptr<ChBody> cbody, geometry::ChTriang
 }
 
 void ChLoadBodyMesh::OutputSimpleMesh(
-    std::vector<ChVector<>>& vert_pos,     // array of vertexes (absolute xyz positions)
-    std::vector<ChVector<>>& vert_vel,     // array of vertexes (absolute xyz velocities, might be useful)
-    std::vector<ChVector<int>>& triangles  // array of triangles (indexes to vertexes, ccw)
+    std::vector<ChVector3d>& vert_pos,     // array of vertexes (absolute xyz positions)
+    std::vector<ChVector3d>& vert_vel,     // array of vertexes (absolute xyz velocities, might be useful)
+    std::vector<ChVector3i>& triangles  // array of triangles (indexes to vertexes, ccw)
 ) {
     vert_pos.resize(contactmesh.m_vertices.size());
     vert_vel.resize(contactmesh.m_vertices.size());
@@ -38,7 +38,7 @@ void ChLoadBodyMesh::OutputSimpleMesh(
 }
 
 void ChLoadBodyMesh::InputSimpleForces(
-    const std::vector<ChVector<>> vert_forces,  // array of forces (absolute xyz forces in [N])
+    const std::vector<ChVector3d> vert_forces,  // array of forces (absolute xyz forces in [N])
     const std::vector<int> vert_ind             // array of indexes to vertexes to whom you apply forces
 ) {
     // check the vert_forces and vert_ind arrays must have same size:
@@ -48,7 +48,7 @@ void ChLoadBodyMesh::InputSimpleForces(
 
     // Populate the array of applied loads to nodes
     for (size_t i = 0; i < vert_forces.size(); ++i) {
-        ChVector<> rel_application = contactmesh.m_vertices[vert_ind[i]];
+        ChVector3d rel_application = contactmesh.m_vertices[vert_ind[i]];
 
         std::shared_ptr<ChLoadBodyForce> mforce(
             new ChLoadBodyForce(contactbody, vert_forces[i], false, rel_application, true));

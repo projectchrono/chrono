@@ -23,7 +23,7 @@ CH_UPCASTING(ChCollisionShapePoint, ChCollisionShape)
 ChCollisionShapePoint::ChCollisionShapePoint() : ChCollisionShape(Type::POINT), radius(0.01) {}
 
 ChCollisionShapePoint::ChCollisionShapePoint(std::shared_ptr<ChContactMaterial> material,
-                                             const ChVector<>& point,
+                                             const ChVector3d& point,
                                              double radius)
     : ChCollisionShape(Type::POINT, material) {
     this->point = point;

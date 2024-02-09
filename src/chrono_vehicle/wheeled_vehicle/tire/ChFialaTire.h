@@ -136,7 +136,7 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
         double Fy_l;
         double brx{0};           // bristle deformation x
         double bry{0};           // bristle deformation y
-        ChVector<> disc_normal;  // temporary for debug
+        ChVector3d disc_normal;  // temporary for debug
     };
 
     TireStates m_states;

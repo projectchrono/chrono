@@ -85,12 +85,12 @@ class ChApi ChFunctionPositionSetpoint : public ChFunctionPosition {
     /// If in ZOH mode: value p will persist indefinitely until next call, derivative p_ds and p_dsds will be zero. 
 	/// If in FOH mode: value p will interpolate linearly from the previous value, derivative p_ds will be constant, p_dsds will be zero.
 	/// If in SOH mode: value p will interpolate quadratically, derivative p_ds will be linear, p_dsds will be constant.
-    virtual void SetSetpoint(ChVector<> p_setpoint, double s);
+    virtual void SetSetpoint(ChVector3d p_setpoint, double s);
 
     /// Set the setpoint, and also its derivatives. Moreover, changes the mode to eChSetpointMode::OVERRIDE, so 
     /// all values will persist indefinitely until next call, that is multiple calls to Get_p(s) Get_p_ds() etc. will give same 
 	/// results (non interpolated) regardless of s.
-    virtual void SetSetpointAndDerivatives(ChVector<> p_setpoint, ChVector<> p_setpoint_ds, ChVector<> p_setpoint_dsds) {
+    virtual void SetSetpointAndDerivatives(ChVector3d p_setpoint, ChVector3d p_setpoint_ds, ChVector3d p_setpoint_dsds) {
 		mode = eChSetpointMode::OVERRIDE;
         P = p_setpoint;
         P_ds = p_setpoint_ds;
@@ -99,13 +99,13 @@ class ChApi ChFunctionPositionSetpoint : public ChFunctionPosition {
 	
 
     /// Return the p value of the function, at s, as p=f(s).
-	virtual ChVector<> Get_p(double s) const override;
+	virtual ChVector3d Get_p(double s) const override;
 
     /// Return the dp/ds derivative of the function, at s.
-	virtual ChVector<> Get_p_ds(double s) const override;
+	virtual ChVector3d Get_p_ds(double s) const override;
 
     /// Return the ddp/dsds double derivative of the function, at s.
-    virtual ChVector<> Get_p_dsds(double s) const override;
+    virtual ChVector3d Get_p_dsds(double s) const override;
 
 
     /// Method to allow serialization of transient data to archives
@@ -119,12 +119,12 @@ class ChApi ChFunctionPositionSetpoint : public ChFunctionPosition {
 private:
 	eChSetpointMode mode;
 	double	   S;
-	ChVector<> P;
-    ChVector<> P_ds;
-    ChVector<> P_dsds;
+	ChVector3d P;
+    ChVector3d P_ds;
+    ChVector3d P_dsds;
 	double last_s;
-	ChVector<> last_P;
-    ChVector<> last_P_ds;
+	ChVector3d last_P;
+    ChVector3d last_P_ds;
 };
 
 /// @} chrono_functions

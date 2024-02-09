@@ -34,7 +34,7 @@ namespace m113 {
 // Static variables
 // -----------------------------------------------------------------------------
 const double M113_SprocketBand::m_gear_mass = 27.68;
-const ChVector<> M113_SprocketBand::m_gear_inertia(0.646, 0.883, 0.646);
+const ChVector3d M113_SprocketBand::m_gear_inertia(0.646, 0.883, 0.646);
 const double M113_SprocketBand::m_axle_inertia = 0.4;
 const double M113_SprocketBand::m_separation = 0.278;
 

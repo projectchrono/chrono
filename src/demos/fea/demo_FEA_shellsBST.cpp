@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     ChFunctionRecorder ref_X;
     ChFunctionRecorder ref_Y;
 
-    ChVector<> load_force;
+    ChVector3d load_force;
 
     //
     // BENCHMARK 1
@@ -101,12 +101,12 @@ int main(int argc, char* argv[]) {
         // Create nodes
         double L = 1.0;
 
-        ChVector<> p0(0, 0, 0);
-        ChVector<> p1(L, 0, 0);
-        ChVector<> p2(0, L, 0);
-        ChVector<> p3(L, L, 0);
-        ChVector<> p4(-L, L, 0);
-        ChVector<> p5(L, -L, 0);
+        ChVector3d p0(0, 0, 0);
+        ChVector3d p1(L, 0, 0);
+        ChVector3d p2(0, L, 0);
+        ChVector3d p3(L, L, 0);
+        ChVector3d p4(-L, L, 0);
+        ChVector3d p5(L, -L, 0);
 
         auto node0 = chrono_types::make_shared<ChNodeFEAxyz>(p0);
         auto node1 = chrono_types::make_shared<ChNodeFEAxyz>(p1);
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
                   << "k0: " << element->k0 << "\n"
                   << "e0: " << element->e0 << "\n";
 
-        node1->SetPos(node1->GetPos() + ChVector<>(0.1, 0, 0));
+        node1->SetPos(node1->GetPos() + ChVector3d(0.1, 0, 0));
 
         sys.Update();
         ChVectorDynamic<double> Fi(element->GetNdofs());
@@ -151,12 +151,12 @@ int main(int argc, char* argv[]) {
                   << "e: " << element->e << "\n"
                   << "m: " << element->m << "\n"
                   << "n: " << element->n << "\n";
-        ChVector<> resultant = VNULL;
+        ChVector3d resultant = VNULL;
         std::cout << "Fi= \n";
         for (int i = 0; i < Fi.size(); ++i) {
             if (i % 3 == 0) {
                 std::cout << "-------" << i / 3 << "\n";
-                ChVector<> fi = Fi.segment(i, 3);
+                ChVector3d fi = Fi.segment(i, 3);
                 resultant += fi;
             }
             std::cout << Fi(i) << "\n";
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
         std::vector<std::shared_ptr<ChNodeFEAxyz>> nodes;  // for future loop when adding elements
         for (size_t iz = 0; iz <= nsections_z; ++iz) {
             for (size_t ix = 0; ix <= nsections_x; ++ix) {
-                ChVector<> p(ix * (L_x / nsections_x), 0, iz * (L_z / nsections_z));
+                ChVector3d p(ix * (L_x / nsections_x), 0, iz * (L_z / nsections_z));
 
                 auto node = chrono_types::make_shared<ChNodeFEAxyz>(p);
 
@@ -338,7 +338,7 @@ int main(int argc, char* argv[]) {
         auto cylinder =
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.1, 1.0, 1000, true, true, mat);
         cylinder->SetBodyFixed(true);
-        cylinder->SetPos(ChVector<>(0.75, -0.25, 0.5));
+        cylinder->SetPos(ChVector3d(0.75, -0.25, 0.5));
         cylinder->SetRot(Q_from_AngZ(CH_C_PI_2));
         cylinder->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.4f, 0.4f));
         sys.AddBody(cylinder);
@@ -352,9 +352,9 @@ int main(int argc, char* argv[]) {
     vsys->Initialize();
     vsys->AddLogo();
     vsys->AddSkyBox();
-    vsys->AddCamera(ChVector<>(1, 0.3, 1.3), ChVector<>(0.5, -0.3, 0.5));
-    vsys->AddLight(ChVector<>(2, 2, 0), 6, ChColor(0.6f, 0.6f, 0.6f));
-    vsys->AddLight(ChVector<>(0, -2, 2), 6, ChColor(0.6f, 0.6f, 0.6f));
+    vsys->AddCamera(ChVector3d(1, 0.3, 1.3), ChVector3d(0.5, -0.3, 0.5));
+    vsys->AddLight(ChVector3d(2, 2, 0), 6, ChColor(0.6f, 0.6f, 0.6f));
+    vsys->AddLight(ChVector3d(0, -2, 2), 6, ChColor(0.6f, 0.6f, 0.6f));
 
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();

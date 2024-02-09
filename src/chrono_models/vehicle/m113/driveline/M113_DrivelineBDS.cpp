@@ -38,8 +38,8 @@ const double M113_DrivelineBDS::m_differential_locking_limit = 100;
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
 M113_DrivelineBDS::M113_DrivelineBDS() : ChTrackDrivelineBDS("M113_DrivelineBDS") {
-    SetMotorBlockDirection(ChVector<>(1, 0, 0));
-    SetAxleDirection(ChVector<>(0, 1, 0));
+    SetMotorBlockDirection(ChVector3d(1, 0, 0));
+    SetAxleDirection(ChVector3d(0, 1, 0));
 }
 
 }  // end namespace m113

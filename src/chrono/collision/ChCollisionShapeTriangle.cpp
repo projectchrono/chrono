@@ -23,9 +23,9 @@ CH_UPCASTING(ChCollisionShapeTriangle, ChCollisionShape)
 ChCollisionShapeTriangle::ChCollisionShapeTriangle() : ChCollisionShape(Type::TRIANGLE) {}
 
 ChCollisionShapeTriangle::ChCollisionShapeTriangle(std::shared_ptr<ChContactMaterial> material,
-                                                   const ChVector<>& p1,
-                                                   const ChVector<>& p2,
-                                                   const ChVector<>& p3)
+                                                   const ChVector3d& p1,
+                                                   const ChVector3d& p2,
+                                                   const ChVector3d& p3)
     : ChCollisionShape(Type::TRIANGLE, material) {
     gtriangle.SetPoints(p1, p2, p3);
 }

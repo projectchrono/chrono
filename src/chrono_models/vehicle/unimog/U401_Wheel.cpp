@@ -31,7 +31,7 @@ namespace unimog {
 // -----------------------------------------------------------------------------
 
 const double U401_Wheel::m_mass = 10.0;
-const ChVector<> U401_Wheel::m_inertia(0.3308, 0.5194, 0.3308);
+const ChVector3d U401_Wheel::m_inertia(0.3308, 0.5194, 0.3308);
 
 const double U401_Wheel::m_radius = 0.252;
 const double U401_Wheel::m_width = 0.063;

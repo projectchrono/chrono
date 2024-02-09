@@ -26,7 +26,7 @@ namespace geometry {
 class ChApi ChTriangle : public ChGeometry {
   public:
     ChTriangle() : p1(VNULL), p2(VNULL), p3(VNULL) {}
-    ChTriangle(const ChVector<>& P1, const ChVector<>& P2, const ChVector<>& P3) : p1(P1), p2(P2), p3(P3) {}
+    ChTriangle(const ChVector3d& P1, const ChVector3d& P2, const ChVector3d& P3) : p1(P1), p2(P2), p3(P3) {}
     ChTriangle(const ChTriangle& source);
     ~ChTriangle() {}
 
@@ -43,7 +43,7 @@ class ChApi ChTriangle : public ChGeometry {
     virtual ChAABB GetBoundingBox() const override;
 
     /// Compute center of mass.
-    virtual ChVector<> Baricenter() const override;
+    virtual ChVector3d Baricenter() const override;
 
     /// This is a surface
     virtual int GetManifoldDimension() const override { return 2; }
@@ -52,20 +52,20 @@ class ChApi ChTriangle : public ChGeometry {
     bool IsDegenerated() const;
 
     // compute triangle normal
-    bool Normal(ChVector<>& N) const;
-    ChVector<> GetNormal() const;
+    bool Normal(ChVector3d& N) const;
+    ChVector3d GetNormal() const;
 
     /// Given point B, computes the distance from this triangle plane,
     /// returning also the projection of point on the plane.
-    double PointTriangleDistance(ChVector<> B,           ///< point to be measured
+    double PointTriangleDistance(ChVector3d B,           ///< point to be measured
                                  double& mu,             ///< returns U parametric coord of projection
                                  double& mv,             ///< returns V parametric coord of projection
                                  bool& is_into,          ///< returns true if projection falls on the triangle
-                                 ChVector<>& Bprojected  ///< returns the position of the projected point
+                                 ChVector3d& Bprojected  ///< returns the position of the projected point
     );
 
     /// Set the triangle vertices.
-    void SetPoints(const ChVector<>& P1, const ChVector<>& P2, const ChVector<>& P3);
+    void SetPoints(const ChVector3d& P1, const ChVector3d& P2, const ChVector3d& P3);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -74,11 +74,11 @@ class ChApi ChTriangle : public ChGeometry {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
     /// Return the bounding box of a triangle with given vertices.
-    static ChAABB GetBoundingBox(const ChVector<>& P1, const ChVector<>& P2, const ChVector<>& P3);
+    static ChAABB GetBoundingBox(const ChVector3d& P1, const ChVector3d& P2, const ChVector3d& P3);
 
-    ChVector<> p1;  ///< first triangle vertex
-    ChVector<> p2;  ///< second triangle vertex
-    ChVector<> p3;  ///< third triangle vertex
+    ChVector3d p1;  ///< first triangle vertex
+    ChVector3d p2;  ///< second triangle vertex
+    ChVector3d p3;  ///< third triangle vertex
 };
 
 }  // end namespace geometry

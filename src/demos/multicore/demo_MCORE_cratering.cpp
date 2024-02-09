@@ -106,13 +106,13 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
     void write(const std::string& filename) { csv.write_to_file(filename); }
 
   private:
-    virtual bool OnReportContact(const ChVector<>& pA,
-                                 const ChVector<>& pB,
+    virtual bool OnReportContact(const ChVector3d& pA,
+                                 const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
                                  const double& distance,
                                  const double& eff_radius,
-                                 const ChVector<>& cforce,
-                                 const ChVector<>& ctorque,
+                                 const ChVector3d& cforce,
+                                 const ChVector3d& ctorque,
                                  ChContactable* modA,
                                  ChContactable* modB) override {
         auto bodyA = static_cast<ChBody*>(modA);
@@ -192,7 +192,7 @@ double r_g = 1e-3;
 double rho_g = 2500;
 double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
 double mass_g = rho_g * vol_g;
-ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * ChVector<>(1, 1, 1);
+ChVector3d inertia_g = 0.4 * mass_g * r_g * r_g * ChVector3d(1, 1, 1);
 
 float Y_g = 1e8f;
 float mu_g = 0.3f;
@@ -204,7 +204,7 @@ double R_b = 2.54e-2 / 2;
 double rho_b = 700;
 double vol_b = (4.0 / 3) * CH_C_PI * R_b * R_b * R_b;
 double mass_b = rho_b * vol_b;
-ChVector<> inertia_b = 0.4 * mass_b * R_b * R_b * ChVector<>(1, 1, 1);
+ChVector3d inertia_b = 0.4 * mass_b * R_b * R_b * ChVector3d(1, 1, 1);
 
 float Y_b = 1e8f;
 float mu_b = 0.3f;
@@ -245,12 +245,12 @@ int CreateObjects(ChSystemMulticore* system) {
     mat_c->SetFriction(mu_c);
     mat_c->SetRestitution(cr_c);
 
-    utils::CreateBoxContainer(system, binId, mat_c, ChVector<>(sizeX, sizeY, sizeZ), thickness);
+    utils::CreateBoxContainer(system, binId, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness);
 #else
     auto mat_c = chrono_types::make_shared<ChContactMaterialNSC>();
     mat_c->SetFriction(mu_c);
 
-    utils::CreateBoxContainer(system, binId, mat_c, ChVector<>(sizeX, sizeY, sizeZ), thickness);
+    utils::CreateBoxContainer(system, binId, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness);
 #endif
 
     // Create a material for the granular material
@@ -278,8 +278,8 @@ int CreateObjects(ChSystemMulticore* system) {
 
     for (int i = 0; i < numLayers; i++) {
         double center = r + layerHeight / 2 + i * (2 * r + layerHeight);
-        gen.CreateObjectsBox(sampler, ChVector<>(0, 0, center),
-                             ChVector<>(sizeX / 2 - r, sizeY / 2 - r, layerHeight / 2));
+        gen.CreateObjectsBox(sampler, ChVector3d(0, 0, center),
+                             ChVector3d(sizeX / 2 - r, sizeY / 2 - r, layerHeight / 2));
         cout << "Layer " << i << "  total bodies: " << gen.getTotalNumBodies() << endl;
     }
 
@@ -308,9 +308,9 @@ void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
     ball->SetIdentifier(Id_b);
     ball->SetMass(mass_b);
     ball->SetInertiaXX(inertia_b);
-    ball->SetPos(ChVector<>(0, 0, z + r_g + R_b));
+    ball->SetPos(ChVector3d(0, 0, z + r_g + R_b));
     ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    ball->SetPos_dt(ChVector<>(0, 0, -vz));
+    ball->SetPos_dt(ChVector3d(0, 0, -vz));
     ball->SetCollide(true);
     ball->SetBodyFixed(false);
 
@@ -382,7 +382,7 @@ int main(int argc, char* argv[]) {
     cout << "Using " << threads << " threads" << endl;
 
     // Set gravitational acceleration
-    sys->Set_G_acc(ChVector<>(0, 0, -gravity));
+    sys->Set_G_acc(ChVector3d(0, 0, -gravity));
 
     // Edit system settings
     sys->GetSettings()->solver.use_full_inertia_tensor = false;
@@ -447,9 +447,9 @@ int main(int argc, char* argv[]) {
         double vz = std::sqrt(2 * gravity * h);
         cout << "Move falling ball with center at " << z + R_b + r_g << " and velocity " << vz << endl;
         ball = sys->Get_bodylist().at(0);
-        ball->SetPos(ChVector<>(0, 0, z + r_g + R_b));
+        ball->SetPos(ChVector3d(0, 0, z + r_g + R_b));
         ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-        ball->SetPos_dt(ChVector<>(0, 0, -vz));
+        ball->SetPos_dt(ChVector3d(0, 0, -vz));
         ball->SetBodyFixed(false);
     }
 
@@ -486,7 +486,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, -5 * sizeY, sizeZ / 2), ChVector<>(0, 0, sizeZ / 2));
+    vis.AddCamera(ChVector3d(0, -5 * sizeY, sizeZ / 2), ChVector3d(0, 0, sizeZ / 2));
     vis.SetCameraVertical(CameraVerticalDir::Z);
     vis.SetCameraProperties(0.01f);
 #endif

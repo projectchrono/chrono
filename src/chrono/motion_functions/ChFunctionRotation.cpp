@@ -26,7 +26,7 @@ namespace chrono {
 
   static const double FD_PERTURBATION = 1e-7;
 
-ChVector<> ChFunctionRotation::Get_w_loc(double s) const {
+ChVector3d ChFunctionRotation::Get_w_loc(double s) const {
     ChQuaternion<> q0 = Get_q(s);
     ChQuaternion<> q1 = Get_q(s + FD_PERTURBATION);
     if (q0.Dot(q1) < 0)
@@ -36,7 +36,7 @@ ChVector<> ChFunctionRotation::Get_w_loc(double s) const {
     return Gl * qdt;
 }
 
-ChVector<> ChFunctionRotation::Get_a_loc(double s) const {
+ChVector3d ChFunctionRotation::Get_a_loc(double s) const {
     ChQuaternion<> q0 = Get_q(s - FD_PERTURBATION);
     ChQuaternion<> q1 = Get_q(s);
     ChQuaternion<> q2 = Get_q(s + FD_PERTURBATION);

@@ -72,7 +72,7 @@ bool fix_chassis = false;
 bool create_track = true;
 
 // Initial vehicle position
-ChVector<> initLoc(-40, 0, 0.8);
+ChVector3d initLoc(-40, 0, 0.8);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -111,7 +111,7 @@ bool verbose_integrator = false;
 double render_step_size = 1.0 / 120;  // FPS = 120
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 0.0);
+ChVector3d trackPoint(0.0, 0.0, 0.0);
 
 // Output directories
 const std::string out_dir = GetChronoOutputPath() + "M113";
@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
     m113.SetTrackShoeVisualizationType(track_vis);
 
     // Disable gravity in this simulation
-    ////m113.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+    ////m113.GetSystem()->Set_G_acc(ChVector3d(0, 0, 0));
 
     // Change (SMC) contact force model
     ////if (contact_method == ChContactMethod::SMC) {
@@ -321,21 +321,21 @@ int main(int argc, char* argv[]) {
         virtual void ComputeIdlerContactForce(const ChCollisionInfo& cinfo,
                                               std::shared_ptr<ChBody> wheelBody,
                                               std::shared_ptr<ChBody> shoeBody,
-                                              ChVector<>& forceShoe) override {
+                                              ChVector3d& forceShoe) override {
             ComputeContactForce(cinfo, wheelBody, shoeBody, forceShoe);
         };
 
         virtual void ComputeWheelContactForce(const ChCollisionInfo& cinfo,
                                               std::shared_ptr<ChBody> wheelBody,
                                               std::shared_ptr<ChBody> shoeBody,
-                                              ChVector<>& forceShoe) override {
+                                              ChVector3d& forceShoe) override {
             ComputeContactForce(cinfo, wheelBody, shoeBody, forceShoe);
         };
 
         virtual void ComputeGroundContactForce(const ChCollisionInfo& cinfo,
                                                std::shared_ptr<ChBody> groundBody,
                                                std::shared_ptr<ChBody> shoeBody,
-                                               ChVector<>& forceShoe) override {
+                                               ChVector3d& forceShoe) override {
             ComputeContactForce(cinfo, groundBody, shoeBody, forceShoe);
         };
 
@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
         void ComputeContactForce(const ChCollisionInfo& cinfo,
                                  std::shared_ptr<ChBody> other,
                                  std::shared_ptr<ChBody> shoe,
-                                 ChVector<>& forceShoe) {
+                                 ChVector3d& forceShoe) {
             ////std::cout << other->GetName() << " " << shoe->GetName() << std::endl;
 
             if (cinfo.distance >= 0) {
@@ -366,7 +366,7 @@ int main(int argc, char* argv[]) {
             auto vel1 = objA->GetContactPointSpeed(p1);
             auto vel2 = objB->GetContactPointSpeed(p2);
 
-            ChVector<> relvel = vel2 - vel1;
+            ChVector3d relvel = vel2 - vel1;
             double relvel_n_mag = relvel.Dot(normal_dir);
 
             double eff_radius = 0.1;
@@ -423,8 +423,8 @@ int main(int argc, char* argv[]) {
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("M113 Vehicle Demo");
-            vis_irr->SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
-            ////vis_irr->SetChaseCameraPosition(vehicle.GetPos() + ChVector<>(0, 2, 0));
+            vis_irr->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
+            ////vis_irr->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
             vis_irr->SetChaseCameraMultipliers(1e-4, 10);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
@@ -454,7 +454,7 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("M113 Vehicle Demo");
-            vis_vsg->SetChaseCamera(ChVector<>(0, 0, 0), 7.0, 0.5);
+            vis_vsg->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);
             vis_vsg->AttachVehicle(&m113.GetVehicle());
             ////vis_vsg->ShowAllCoGs(0.3);
             vis_vsg->Initialize();
@@ -485,7 +485,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case DriverMode::PATH: {
-            auto endLoc = initLoc + initRot.Rotate(ChVector<>(terrainLength, 0, 0));
+            auto endLoc = initLoc + initRot.Rotate(ChVector3d(terrainLength, 0, 0));
             auto path = chrono::vehicle::StraightLinePath(initLoc, endLoc, 50);
             auto path_driver = std::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
             path_driver->GetSteeringController().SetLookAheadDistance(5.0);
@@ -582,25 +582,25 @@ int main(int argc, char* argv[]) {
             cout << "Time: " << m113.GetSystem()->GetChTime() << endl;
             cout << "      Num. contacts: " << m113.GetSystem()->GetNcontacts() << endl;
             const ChFrameMoving<>& c_ref = m113.GetChassisBody()->GetFrame_REF_to_abs();
-            const ChVector<>& c_pos = vehicle.GetPos();
+            const ChVector3d& c_pos = vehicle.GetPos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
-                const ChVector<>& i_pos_abs = track_L->GetIdler()->GetWheelBody()->GetPos();
-                const ChVector<>& s_pos_abs = track_L->GetSprocket()->GetGearBody()->GetPos();
-                const ChVector<>& s_omg_rel = track_L->GetSprocket()->GetGearBody()->GetWvel_loc();
+                const ChVector3d& i_pos_abs = track_L->GetIdler()->GetWheelBody()->GetPos();
+                const ChVector3d& s_pos_abs = track_L->GetSprocket()->GetGearBody()->GetPos();
+                const ChVector3d& s_omg_rel = track_L->GetSprocket()->GetGearBody()->GetWvel_loc();
                 auto s_appl_trq = track_L->GetSprocket()->GetAxle()->GetAppliedTorque();
-                ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
-                ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+                ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+                ChVector3d s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
                 cout << "      L idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
                 cout << "      L sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
                 cout << "      L sprocket omg: " << s_omg_rel << endl;
                 cout << "      L sprocket trq: " << s_appl_trq << endl;
             }
             {
-                const ChVector<>& i_pos_abs = track_R->GetIdler()->GetWheelBody()->GetPos();
-                const ChVector<>& s_pos_abs = track_R->GetSprocket()->GetGearBody()->GetPos();
-                ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
-                ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+                const ChVector3d& i_pos_abs = track_R->GetIdler()->GetWheelBody()->GetPos();
+                const ChVector3d& s_pos_abs = track_R->GetSprocket()->GetGearBody()->GetPos();
+                ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+                ChVector3d s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
                 cout << "      R idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
                 cout << "      R sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
             }
@@ -679,7 +679,7 @@ void AddFixedObstacles(ChSystem* system) {
     double length = 6;
 
     auto obstacle = chrono_types::make_shared<ChBody>();
-    obstacle->SetPos(ChVector<>(10, 0, -1.8));
+    obstacle->SetPos(ChVector3d(10, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);
 
@@ -708,10 +708,10 @@ void AddFallingObjects(ChSystem* system) {
 
     auto ball = chrono_types::make_shared<ChBody>();
     ball->SetMass(mass);
-    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
-    ball->SetPos(initLoc + ChVector<>(-3, 0, 2));
+    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
+    ball->SetPos(initLoc + ChVector3d(-3, 0, 2));
     ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    ball->SetPos_dt(ChVector<>(3, 0, 0));
+    ball->SetPos_dt(ChVector3d(3, 0, 0));
     ball->SetBodyFixed(false);
 
     ChContactMaterialData minfo;

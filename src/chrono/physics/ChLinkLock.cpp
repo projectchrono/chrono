@@ -420,9 +420,9 @@ void ChLinkLock::UpdateState() {
     }
 
     //--------- COMPLETE Qc VECTOR
-    ChVector<> Qcx;
-    ChVector<> vtemp1;
-    ChVector<> vtemp2;
+    ChVector3d Qcx;
+    ChVector3d vtemp1;
+    ChVector3d vtemp2;
 
     vtemp1 = Vcross(Body1->GetWvel_loc(), Vcross(Body1->GetWvel_loc(), marker1->GetCoord().pos));
     vtemp1 = Vadd(vtemp1, marker1->GetCoord_dtdt().pos);
@@ -590,8 +590,8 @@ void ChLinkLock::UpdateCqw() {
 void ChLinkLock::UpdateForces(double mytime) {
     ChLinkMarkers::UpdateForces(mytime);
 
-    ChVector<> m_force = VNULL;
-    ChVector<> m_torque = VNULL;
+    ChVector3d m_force = VNULL;
+    ChVector3d m_torque = VNULL;
 
     // COMPUTE THE FORCES IN THE LINK, FOR EXAMPLE
     // CAUSED BY SPRINGS
@@ -689,12 +689,12 @@ void ChLinkLock::UpdateForces(double mytime) {
         m_torque.z() = limit_Rz->GetForce(relRotaxis.z(), relWvel.z());
     }
     if (limit_Rp && limit_Rp->IsActive()) {
-        ChVector<> arm_xaxis = VaxisXfromQuat(relM.rot);  // the X axis of the marker1, respect to m2.
+        ChVector3d arm_xaxis = VaxisXfromQuat(relM.rot);  // the X axis of the marker1, respect to m2.
         double zenith = VangleYZplaneNorm(arm_xaxis);     // the angle of m1 Xaxis about normal to YZ plane
         double polar = VangleRX(arm_xaxis);               // the polar angle of m1 Xaxis spinning about m2 Xaxis
 
-        ChVector<> projected_arm(0, arm_xaxis.y(), arm_xaxis.z());
-        ChVector<> torq_axis;
+        ChVector3d projected_arm(0, arm_xaxis.y(), arm_xaxis.z());
+        ChVector3d torq_axis;
         torq_axis = Vcross(VECT_X, projected_arm);
         torq_axis = Vnorm(torq_axis);  // the axis of torque, laying on YZ plane.
 
@@ -760,55 +760,55 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     react = L.segment(off_L, react.size());
 
     // From react vector to the 'intuitive' react_force and react_torque
-    //const ChQuaternion<>& q2 = Body2->GetRot();
-    //const ChQuaternion<>& q1p = marker1->GetAbsCoord().rot;
-    //const ChQuaternion<>& qs = marker2->GetCoord().rot;
-    //const ChMatrix33<>& Cs = marker2->GetA();
+    // const ChQuaternion<>& q2 = Body2->GetRot();
+    // const ChQuaternion<>& q1p = marker1->GetAbsCoord().rot;
+    // const ChQuaternion<>& qs = marker2->GetCoord().rot;
+    // const ChMatrix33<>& Cs = marker2->GetA();
 
-    //ChMatrix44<> Chi__q1p_barT;  //[Chi] * [transpose(bar(q1p))]
-    //Chi__q1p_barT(0, 0) = q1p.e0();
-    //Chi__q1p_barT(0, 1) = q1p.e1();
-    //Chi__q1p_barT(0, 2) = q1p.e2();
-    //Chi__q1p_barT(0, 3) = q1p.e3();
-    //Chi__q1p_barT(1, 0) = q1p.e1();
-    //Chi__q1p_barT(1, 1) = -q1p.e0();
-    //Chi__q1p_barT(1, 2) = q1p.e3();
-    //Chi__q1p_barT(1, 3) = -q1p.e2();
-    //Chi__q1p_barT(2, 0) = q1p.e2();
-    //Chi__q1p_barT(2, 1) = -q1p.e3();
-    //Chi__q1p_barT(2, 2) = -q1p.e0();
-    //Chi__q1p_barT(2, 3) = q1p.e1();
-    //Chi__q1p_barT(3, 0) = q1p.e3();
-    //Chi__q1p_barT(3, 1) = q1p.e2();
-    //Chi__q1p_barT(3, 2) = -q1p.e1();
-    //Chi__q1p_barT(3, 3) = -q1p.e0();
+    // ChMatrix44<> Chi__q1p_barT;  //[Chi] * [transpose(bar(q1p))]
+    // Chi__q1p_barT(0, 0) = q1p.e0();
+    // Chi__q1p_barT(0, 1) = q1p.e1();
+    // Chi__q1p_barT(0, 2) = q1p.e2();
+    // Chi__q1p_barT(0, 3) = q1p.e3();
+    // Chi__q1p_barT(1, 0) = q1p.e1();
+    // Chi__q1p_barT(1, 1) = -q1p.e0();
+    // Chi__q1p_barT(1, 2) = q1p.e3();
+    // Chi__q1p_barT(1, 3) = -q1p.e2();
+    // Chi__q1p_barT(2, 0) = q1p.e2();
+    // Chi__q1p_barT(2, 1) = -q1p.e3();
+    // Chi__q1p_barT(2, 2) = -q1p.e0();
+    // Chi__q1p_barT(2, 3) = q1p.e1();
+    // Chi__q1p_barT(3, 0) = q1p.e3();
+    // Chi__q1p_barT(3, 1) = q1p.e2();
+    // Chi__q1p_barT(3, 2) = -q1p.e1();
+    // Chi__q1p_barT(3, 3) = -q1p.e0();
 
-    //ChMatrix44<> qs_tilde;
-    //qs_tilde(0, 0) = qs.e0();
-    //qs_tilde(0, 1) = -qs.e1();
-    //qs_tilde(0, 2) = -qs.e2();
-    //qs_tilde(0, 3) = -qs.e3();
-    //qs_tilde(1, 0) = qs.e1();
-    //qs_tilde(1, 1) = qs.e0();
-    //qs_tilde(1, 2) = -qs.e3();
-    //qs_tilde(1, 3) = qs.e2();
-    //qs_tilde(2, 0) = qs.e2();
-    //qs_tilde(2, 1) = qs.e3();
-    //qs_tilde(2, 2) = qs.e0();
-    //qs_tilde(2, 3) = -qs.e1();
-    //qs_tilde(3, 0) = qs.e3();
-    //qs_tilde(3, 1) = -qs.e2();
-    //qs_tilde(3, 2) = qs.e1();
-    //qs_tilde(3, 3) = qs.e0();
+    // ChMatrix44<> qs_tilde;
+    // qs_tilde(0, 0) = qs.e0();
+    // qs_tilde(0, 1) = -qs.e1();
+    // qs_tilde(0, 2) = -qs.e2();
+    // qs_tilde(0, 3) = -qs.e3();
+    // qs_tilde(1, 0) = qs.e1();
+    // qs_tilde(1, 1) = qs.e0();
+    // qs_tilde(1, 2) = -qs.e3();
+    // qs_tilde(1, 3) = qs.e2();
+    // qs_tilde(2, 0) = qs.e2();
+    // qs_tilde(2, 1) = qs.e3();
+    // qs_tilde(2, 2) = qs.e0();
+    // qs_tilde(2, 3) = -qs.e1();
+    // qs_tilde(3, 0) = qs.e3();
+    // qs_tilde(3, 1) = -qs.e2();
+    // qs_tilde(3, 2) = qs.e1();
+    // qs_tilde(3, 3) = qs.e0();
 
-    //ChGlMatrix34<> Gl_q2(q2);
+    // ChGlMatrix34<> Gl_q2(q2);
 
     //// Ts = 0.5*G(q2)*Chi*(q1 qp)_barT*qs~*KT*lambda  (What is KT?)
-    //ChMatrix34<> Ts = 0.25 * Gl_q2 * Chi__q1p_barT * qs_tilde;
+    // ChMatrix34<> Ts = 0.25 * Gl_q2 * Chi__q1p_barT * qs_tilde;
     //// Ts.rightCols(3) is equal to the rotational block of Cqw2.T for completely fixed joint.
     //// The rotational block of Cqw2.T is a part of Ts.
     //// Cqw2.T*lambda is the reaction torque acting on Body2, expressed in the local frame of Body2
-    // 
+    //
     // Ts_F2 = CsT*Ts;
     //// The reaction torque is then rotated to the local frame of Marker2 (frame2, F2, master frame of link)
 
@@ -840,8 +840,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
         local_off++;
     }
 
-
-    ChVector<> m_torque_L; // = Cqw2.T * lambda, reaction torque in local frame of Body2
+    ChVector3d m_torque_L;  // = Cqw2.T * lambda, reaction torque in local frame of Body2
     if (mask.Constr_E1().IsActive()) {
         m_torque_L.x() += Cqw2T(3, local_off) * (react(local_off));
         m_torque_L.y() += Cqw2T(4, local_off) * (react(local_off));
@@ -1581,7 +1580,11 @@ void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
     }
 }
 
-void Transform_Cq_to_Cqw_row(const ChMatrixNM<double, 7, BODY_QDOF>& mCq, int qrow, ChMatrixRef mCqw, int qwrow, const ChGlMatrix34<>& Gl) {
+void Transform_Cq_to_Cqw_row(const ChMatrixNM<double, 7, BODY_QDOF>& mCq,
+                             int qrow,
+                             ChMatrixRef mCqw,
+                             int qwrow,
+                             const ChGlMatrix34<>& Gl) {
     // translational part - not changed
     mCqw.block<1, 3>(qwrow, 0) = mCq.block<1, 3>(qrow, 0);
 
@@ -1742,7 +1745,7 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 
     // Cqw2.T*lambda is the reaction torque acting on Body2, expressed in the local frame of Body2
     ChMatrixDynamic<> Cqw2T = Cqw2.transpose();
-    ChVector<> m_torque_L;  // = Cqw2.T * lambda
+    ChVector3d m_torque_L;  // = Cqw2.T * lambda
     if (mask.Constr_E1().IsActive()) {
         m_torque_L.x() += Cqw2T(3, n_constraint) * (react(n_constraint));
         m_torque_L.y() += Cqw2T(4, n_constraint) * (react(n_constraint));
@@ -1862,7 +1865,7 @@ void ChLinkLock::ArchiveOut(ChArchiveOut& marchive) {
     ChLinkLock_LinkType_enum_mapper::LinkType_mapper typemapper;
     marchive << CHNVP(typemapper(type), "link_type");
 
-    marchive << CHNVP(mask); //// TODO: needed?
+    marchive << CHNVP(mask);  //// TODO: needed?
 
     marchive << CHNVP(d_restlength);
 
@@ -1889,7 +1892,7 @@ void ChLinkLock::ArchiveOut(ChArchiveOut& marchive) {
 
 void ChLinkLock::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkLock>();
+    /*int version =*/marchive.VersionRead<ChLinkLock>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIn(marchive);
@@ -1901,7 +1904,7 @@ void ChLinkLock::ArchiveIn(ChArchiveIn& marchive) {
     ChangeLinkType(link_type);
 
     ////if (mask) delete (mask);
-    marchive >> CHNVP(mask); //// TODO: needed?
+    marchive >> CHNVP(mask);  //// TODO: needed?
 
     marchive >> CHNVP(d_restlength);
 
@@ -1931,7 +1934,6 @@ void ChLinkLock::ArchiveIn(ChArchiveIn& marchive) {
     mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
 
     BuildLink();
-
 }
 
 // =======================================================================================
@@ -2100,7 +2102,7 @@ void ChLinkLockLock::SetMotion_ang3(std::shared_ptr<ChFunction> m_funct) {
     motion_ang3 = m_funct;
 }
 
-void ChLinkLockLock::SetMotion_axis(Vector m_axis) {
+void ChLinkLockLock::SetMotion_axis(ChVector3d m_axis) {
     motion_axis = m_axis;
 }
 
@@ -2118,9 +2120,8 @@ void ChLinkLockLock::UpdateTime(double time) {
 
     // If some limit is provided, the delta values may have been changed by limits themselves,
     // so no further modifications by motion laws.
-    if ((limit_X && limit_X->IsActive()) || (limit_Y && limit_Y->IsActive()) ||
-        (limit_Z && limit_Z->IsActive()) || (limit_Rx && limit_Rx->IsActive()) ||
-        (limit_Ry && limit_Ry->IsActive()) || (limit_Rz && limit_Rz->IsActive()))
+    if ((limit_X && limit_X->IsActive()) || (limit_Y && limit_Y->IsActive()) || (limit_Z && limit_Z->IsActive()) ||
+        (limit_Rx && limit_Rx->IsActive()) || (limit_Ry && limit_Ry->IsActive()) || (limit_Rz && limit_Rz->IsActive()))
         return;
 
     // Update motion position/speed/acceleration by motion laws
@@ -2157,7 +2158,7 @@ void ChLinkLockLock::UpdateTime(double time) {
         case AngleSet::CARDANO:
         case AngleSet::HPB:
         case AngleSet::RXYZ: {
-            Vector vangles, vangles_dt, vangles_dtdt;
+            ChVector3d vangles, vangles_dt, vangles_dtdt;
             vangles.x() = motion_ang->Get_y(time);
             vangles.y() = motion_ang2->Get_y(time);
             vangles.z() = motion_ang3->Get_y(time);
@@ -2259,10 +2260,10 @@ void ChLinkLockLock::UpdateState() {
     }
 
     //--------- COMPLETE Qc VECTOR
-    ChVector<> Qcx;
+    ChVector3d Qcx;
     ChQuaternion<> Qcr;
-    ChVector<> vtemp1;
-    ChVector<> vtemp2;
+    ChVector3d vtemp1;
+    ChVector3d vtemp2;
 
     vtemp1 = Vcross(Body1->GetWvel_loc(), Vcross(Body1->GetWvel_loc(), marker1->GetCoord().pos));
     vtemp1 = Vadd(vtemp1, marker1->GetCoord_dtdt().pos);
@@ -2466,7 +2467,7 @@ void ChLinkLockLock::ArchiveOut(ChArchiveOut& marchive) {
 
 void ChLinkLockLock::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkLockLock>();
+    /*int version =*/marchive.VersionRead<ChLinkLockLock>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIn(marchive);

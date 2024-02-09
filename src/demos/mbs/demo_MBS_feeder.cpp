@@ -75,7 +75,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
 
         // position on staggered array for a non-intersecating cascade of items
         rigidBody->SetPos(
-            ChVector<>(((particlelist.size() % 3) / 3.0 - 0.5) * xnozzlesize, ynozzle + particlelist.size() * 0.005,
+            ChVector3d(((particlelist.size() % 3) / 3.0 - 0.5) * xnozzlesize, ynozzle + particlelist.size() * 0.005,
                        ((((particlelist.size() - particlelist.size() % 3) % 5) / (5.0)) - 0.5) * xnozzlesize));
 
         rigidBody->GetVisualShape(0)->SetColor(ChColor(0.3f, 0.6f, 0.6f));
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
         0.002  // radius of 'inflating' of mesh (for more robust collision detection)
     );
     feeder_bowl->SetBodyFixed(true);
-    feeder_bowl->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(0, -0.1, 0)));
+    feeder_bowl->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(0, -0.1, 0)));
     sys.Add(feeder_bowl);
 
     // Create the vibration-like effect for the bowl.
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     // axis:
     feeder->SetFeederVibration(
         ChFrame<>(
-            ChVector<>(0, -0.1, 0)),  // this is the coordinate frame respect to whom we assume the virtual vibration
+            ChVector3d(0, -0.1, 0)),  // this is the coordinate frame respect to whom we assume the virtual vibration
         0, 1, 0,                      // virtual vibration mode: x,y,z components. No need to normalize.
         0, 1, 0                       // virtual vibration mode: Rx,Ry,Rz rotation components. No need to normalize.
     );
@@ -148,8 +148,8 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0.6, 0.5, -0.7), ChVector<>(0.0, 0.0, 0.0));
-    vis->AddLight(ChVector<>(2.5, 1.4, -2.0), 6);
+    vis->AddCamera(ChVector3d(0.6, 0.5, -0.7), ChVector3d(0.0, 0.0, 0.0));
+    vis->AddLight(ChVector3d(2.5, 1.4, -2.0), 6);
 
     // Simulation loop
     ChRealtimeStepTimer realtime_timer;

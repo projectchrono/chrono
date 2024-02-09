@@ -74,7 +74,7 @@ void ChLineCam::Set_flat_oscillate(double me, double md, double mb0) {
     Rb = e + d * sin(b0);
 }
 
-ChVector<> ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
+ChVector3d ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
     double a = par * 2 * CH_C_PI;  // range : par 0..1 -> angle 0...2PI
     double r, f, b, B, fshift, y, ydx, ydxdx, sa, fxalpha, u, uh = 0;
     double sign, signdx, signdxdx;
@@ -82,7 +82,7 @@ ChVector<> ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
     // defaults
     g = 0;
     q = 0;
-    ChVector<> res = VNULL;
+    ChVector3d res = VNULL;
 
     double radius = internal ? -Rr : +Rr;
     double ecc = negative ? -e : +e;
@@ -174,7 +174,7 @@ ChVector<> ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
     return res;
 }
 
-ChVector<> ChLineCam::Evaluate(double parU) const {
+ChVector3d ChLineCam::Evaluate(double parU) const {
     double qtmp, gtmp;
     return EvaluateCamPoint(parU, gtmp, qtmp);
 }

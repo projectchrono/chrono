@@ -55,8 +55,8 @@ void ChHydraulicActuatorBase::Initialize() {
 void ChHydraulicActuatorBase::Initialize(std::shared_ptr<ChBody> body1,  // first connected body
                                          std::shared_ptr<ChBody> body2,  // second connected body
                                          bool local,                     // true if locations given in body local frames
-                                         ChVector<> loc1,                // location of connection point on body 1
-                                         ChVector<> loc2                 // location of connection point on body 2
+                                         ChVector3d loc1,                // location of connection point on body 1
+                                         ChVector3d loc2                 // location of connection point on body 2
 ) {
     is_attached = true;
 
@@ -116,7 +116,7 @@ void ChHydraulicActuatorBase::Update(double time, bool update_assets) {
         auto avel1 = m_body1->PointSpeedLocalToParent(m_loc1);
         auto avel2 = m_body2->PointSpeedLocalToParent(m_loc2);
 
-        ChVector<> dir = (m_aloc1 - m_aloc2).GetNormalized();
+        ChVector3d dir = (m_aloc1 - m_aloc2).GetNormalized();
 
         s = (m_aloc1 - m_aloc2).Length();
         sd = Vdot(dir, avel1 - avel2);
@@ -125,7 +125,7 @@ void ChHydraulicActuatorBase::Update(double time, bool update_assets) {
 
         // Actuator force
         auto f = GetActuatorForce();
-        ChVector<> force = f * dir;
+        ChVector3d force = f * dir;
 
         // Force and moment acting on body 1
         auto atorque1 = Vcross(m_aloc1 - m_body1->coord.pos, force);         // applied torque (absolute frame)

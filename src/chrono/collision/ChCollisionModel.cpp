@@ -170,8 +170,8 @@ void ChCollisionModel::AddShapes(std::shared_ptr<ChCollisionModel> model, const 
 
 void ChCollisionModel::AddCylinder(std::shared_ptr<ChContactMaterial> material,
                                    double radius,
-                                   const ChVector<>& p1,
-                                   const ChVector<>& p2) {
+                                   const ChVector3d& p1,
+                                   const ChVector3d& p2) {
     geometry::ChLineSegment seg(p1, p2);
     auto height = seg.GetLength();
     auto frame = seg.GetFrame();

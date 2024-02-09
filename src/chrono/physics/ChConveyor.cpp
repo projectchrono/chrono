@@ -274,8 +274,8 @@ void ChConveyor::Update(double mytime, bool update_assets) {
     if (conveyor_truss->GetBodyFixed()) {
         double largemass = 100000;
         conveyor_plate->SetMass(largemass);
-        conveyor_plate->SetInertiaXX(ChVector<>(largemass, largemass, largemass));
-        conveyor_plate->SetInertiaXY(ChVector<>(0, 0, 0));
+        conveyor_plate->SetInertiaXX(ChVector3d(largemass, largemass, largemass));
+        conveyor_plate->SetInertiaXY(ChVector3d(0, 0, 0));
     } else {
         conveyor_plate->SetMass(conveyor_truss->GetMass());
         conveyor_plate->SetInertiaXX(conveyor_truss->GetInertiaXX());
@@ -286,7 +286,7 @@ void ChConveyor::Update(double mytime, bool update_assets) {
     conveyor_plate->SetCoord(conveyor_truss->GetCoord());
     conveyor_plate->SetCoord_dt(conveyor_truss->GetCoord_dt());
     // keep the plate always at the same speed of the main reference, plus the conveyor speed on X local axis
-    conveyor_plate->SetPos_dt(conveyor_truss->GetPos_dt() + (ChVector<>(conveyor_speed, 0, 0) >> (*conveyor_truss)));
+    conveyor_plate->SetPos_dt(conveyor_truss->GetPos_dt() + (ChVector3d(conveyor_speed, 0, 0) >> (*conveyor_truss)));
 
     conveyor_plate->Update(mytime, update_assets);
 

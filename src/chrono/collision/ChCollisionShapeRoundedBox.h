@@ -32,7 +32,7 @@ class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
                                double length_y,
                                double length_z,
                                double sradius);
-    ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material, const ChVector<>& lengths, double sradius);
+    ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material, const ChVector3d& lengths, double sradius);
     ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material, const geometry::ChRoundedBox& box);
 
     ~ChCollisionShapeRoundedBox() {}
@@ -41,10 +41,10 @@ class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
     geometry::ChRoundedBox& GetGeometry() { return gbox; }
 
     /// Get the box half-lengths.
-    const ChVector<>& GetHalflengths() const { return gbox.GetHalflengths(); }
+    const ChVector3d& GetHalflengths() const { return gbox.GetHalflengths(); }
 
     /// Get the box dimensions.
-    ChVector<> GetLengths() const { return gbox.GetLengths(); }
+    ChVector3d GetLengths() const { return gbox.GetLengths(); }
 
     /// Get the radius of the sweeping sphere.
     double GetSRadius() const { return gbox.GetSphereRadius(); }

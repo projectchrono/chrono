@@ -121,12 +121,12 @@ int main(int argc, char* argv[]) {
     // Create the Chrono system
     // ------------------------
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
     sys.SetNumThreads(nthreads, nthreads, 1);
     if (chrono_collsys) {
 #ifdef CHRONO_COLLISION
         auto collsys = chrono_types::make_shared<ChCollisionSystemMulticore>();
-        collsys->SetBroadphaseGridResolution(ChVector<int>(2, 2, 1));
+        collsys->SetBroadphaseGridResolution(ChVector3i(2, 2, 1));
         sys.SetCollisionSystem(collsys);
 #endif
     }
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     // --------------------
     // Create HMMWV vehicle
     // --------------------
-    ChVector<> init_loc(0, 2, 0.5);
+    ChVector3d init_loc(0, 2, 0.5);
     ChQuaternion<> init_rot = Q_from_AngZ(0);
 
     HMMWV_Full hmmwv(&sys);
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
     // Create driver system
     // --------------------
     double pathLength = 1.5 * target_speed * end_time;
-    auto path = StraightLinePath(init_loc, init_loc + ChVector<>(pathLength, 0, 0), 0);
+    auto path = StraightLinePath(init_loc, init_loc + ChVector3d(pathLength, 0, 0), 0);
     ChPathFollowerDriver driver(hmmwv.GetVehicle(), path, "Box path", target_speed);
     driver.Initialize();
 
@@ -208,12 +208,12 @@ int main(int argc, char* argv[]) {
     if (wheel_patches) {
         // Optionally, enable moving patch feature (multiple patches around each wheel)
         for (auto& axle : hmmwv.GetVehicle().GetAxles()) {
-            terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
-            terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
+            terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
+            terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
         }
     } else {
         // Optionally, enable moving patch feature (single patch around vehicle chassis)
-        terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
+        terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
     }
 
     terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
         vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
         vis->AttachVehicle(&hmmwv.GetVehicle());
         vis->SetWindowTitle("Chrono SCM test");
-        vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+        vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
         vis->Initialize();
         vis->AddTypicalLights();
     }

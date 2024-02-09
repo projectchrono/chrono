@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // Disable gravity
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     // Set the half-length of the two shafts
     double hl = 2;
@@ -64,10 +64,10 @@ int main(int argc, char* argv[]) {
     // joints that connect the two shafts to ground
     {
         auto cyl_1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.4);
-        ground->AddVisualShape(cyl_1, ChFrame<>(ChVector<>(0, 0, -hl), QUNIT));
+        ground->AddVisualShape(cyl_1, ChFrame<>(ChVector3d(0, 0, -hl), QUNIT));
 
-        geometry::ChLineSegment seg(ChVector<>(0, -(hl - 0.2) * sina, (hl - 0.2) * cosa),
-                                    ChVector<>(0, -(hl + 0.2) * sina, (hl + 0.2) * cosa));
+        geometry::ChLineSegment seg(ChVector3d(0, -(hl - 0.2) * sina, (hl - 0.2) * cosa),
+                                    ChVector3d(0, -(hl + 0.2) * sina, (hl + 0.2) * cosa));
         auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, seg.GetLength());
         ground->AddVisualShape(cyl_2, seg.GetFrame());
     }
@@ -81,8 +81,8 @@ int main(int argc, char* argv[]) {
     shaft_1->SetBodyFixed(false);
     shaft_1->SetCollide(false);
     shaft_1->SetMass(1);
-    shaft_1->SetInertiaXX(ChVector<>(1, 1, 0.2));
-    shaft_1->SetPos(ChVector<>(0, 0, -hl));
+    shaft_1->SetInertiaXX(ChVector3d(1, 1, 0.2));
+    shaft_1->SetPos(ChVector3d(0, 0, -hl));
     shaft_1->SetRot(ChQuaternion<>(1, 0, 0, 0));
 
     // Add visualization assets to represent the shaft (a box) and the arm of the
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
 
         auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, 0.4);
         cyl_2->SetColor(ChColor(0.6f, 0, 0));
-        shaft_1->AddVisualShape(cyl_2, ChFrame<>(ChVector<>(0, 0, hl), Q_from_AngY(CH_C_PI_2)));
+        shaft_1->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, hl), Q_from_AngY(CH_C_PI_2)));
     }
 
     // Create the second shaft body
@@ -109,8 +109,8 @@ int main(int argc, char* argv[]) {
     shaft_2->SetBodyFixed(false);
     shaft_2->SetCollide(false);
     shaft_2->SetMass(1);
-    shaft_2->SetInertiaXX(ChVector<>(1, 1, 0.2));
-    shaft_2->SetPos(ChVector<>(0, -hl * sina, hl * cosa));
+    shaft_2->SetInertiaXX(ChVector3d(1, 1, 0.2));
+    shaft_2->SetPos(ChVector3d(0, -hl * sina, hl * cosa));
     shaft_2->SetRot(rot);
 
     // Add visualization assets to represent the shaft (a box) and the arm of the
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 
         auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, 0.4);
         cyl_2->SetColor(ChColor(0, 0, 0.6f));
-        shaft_2->AddVisualShape(cyl_2, ChFrame<>(ChVector<>(0, 0, -hl), Q_from_AngX(CH_C_PI_2)));
+        shaft_2->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, -hl), Q_from_AngX(CH_C_PI_2)));
     }
 
     // Connect the first shaft to ground
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     // Alternatively, we could use a ChLinkMotorAngularSpeed with constant speed.
     // The joint is located at the origin of the first shaft.
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    motor->Initialize(ground, shaft_1, ChFrame<>(ChVector<>(0, 0, -hl), ChQuaternion<>(1, 0, 0, 0)));
+    motor->Initialize(ground, shaft_1, ChFrame<>(ChVector3d(0, 0, -hl), ChQuaternion<>(1, 0, 0, 0)));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, 1));
     sys.AddLink(motor);
 
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
 
     auto cyljoint = chrono_types::make_shared<ChLinkLockCylindrical>();
     sys.AddLink(cyljoint);
-    cyljoint->Initialize(ground, shaft_2, ChCoordsys<>(ChVector<>(0, -hl * sina, hl * cosa), rot));
+    cyljoint->Initialize(ground, shaft_2, ChCoordsys<>(ChVector3d(0, -hl * sina, hl * cosa), rot));
 
     // Connect the two shafts through a universal joint
     // ------------------------------------------------
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
 
     auto ujoint = chrono_types::make_shared<ChLinkUniversal>();
     sys.AddLink(ujoint);
-    ujoint->Initialize(shaft_1, shaft_2, ChFrame<>(ChVector<>(0, 0, 0), rot));
+    ujoint->Initialize(shaft_1, shaft_2, ChFrame<>(ChVector3d(0, 0, 0), rot));
 
     // Create the Irrlicht application
     // -------------------------------
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(3, 1, -1.5));
+    vis->AddCamera(ChVector3d(3, 1, -1.5));
     vis->AddTypicalLights();
 
     // Simulation loop

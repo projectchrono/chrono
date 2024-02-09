@@ -35,8 +35,8 @@ ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU) : m_systemGPU(sysGPU
     m_vsys->SetWindowSize(1280, 720);
     m_vsys->SetCameraProperties(0.1f);
     m_vsys->SetRenderMode(opengl::WIREFRAME);
-    m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
-    m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
+    m_vsys->AddCamera(ChVector3d(0, -3, 0), ChVector3d(0, 0, 0));
+    m_vsys->SetCameraVertical(ChVector3d(0, 0, 1));
     m_vsys->EnableStats(false);
 #else
     m_system = nullptr;
@@ -63,13 +63,13 @@ void ChGpuVisualization::SetTitle(const std::string& title) {
 #endif
 }
 
-void ChGpuVisualization::AddCamera(const ChVector<>& pos, const ChVector<>& target) {
+void ChGpuVisualization::AddCamera(const ChVector3d& pos, const ChVector3d& target) {
 #ifdef CHRONO_OPENGL
     m_vsys->UpdateCamera(pos, target);
 #endif
 }
 
-void ChGpuVisualization::UpdateCamera(const ChVector<>& pos, const ChVector<>& target) {
+void ChGpuVisualization::UpdateCamera(const ChVector3d& pos, const ChVector3d& target) {
 #ifdef CHRONO_OPENGL
     m_vsys->UpdateCamera(pos, target);
 #endif
@@ -78,8 +78,8 @@ void ChGpuVisualization::UpdateCamera(const ChVector<>& pos, const ChVector<>& t
 void ChGpuVisualization::SetCameraVertical(CameraVerticalDir up) {
 #ifdef CHRONO_OPENGL
     if (up == CameraVerticalDir::Z)
-        m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
-    m_vsys->SetCameraVertical(ChVector<>(0, 1, 0));
+        m_vsys->SetCameraVertical(ChVector3d(0, 0, 1));
+    m_vsys->SetCameraVertical(ChVector3d(0, 1, 0));
 #endif
 }
 

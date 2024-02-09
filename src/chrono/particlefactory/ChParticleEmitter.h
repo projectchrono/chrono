@@ -21,7 +21,7 @@
 #include "chrono/particlefactory/ChRandomParticleVelocity.h"
 
 #include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChDistribution.h"
 #include "chrono/physics/ChSystem.h"
@@ -127,12 +127,12 @@ class ChParticleEmitter {
 
             // 4) 
             // Random velocity and angular speed
-            ChVector<> mv_loc = particle_velocity->RandomVelocity();
-            ChVector<> mw_loc = particle_angular_velocity->RandomVelocity();
+            ChVector3d mv_loc = particle_velocity->RandomVelocity();
+            ChVector3d mw_loc = particle_angular_velocity->RandomVelocity();
             
-            ChVector<> mv_abs; 
-            ChVector<> mw_abs; 
-            ChVector<> jitter;
+            ChVector3d mv_abs; 
+            ChVector3d mw_abs; 
+            ChVector3d jitter;
 
             // in case everything is transformed 
             if (inherit_owner_speed) {

@@ -18,7 +18,7 @@
 
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/motion_functions/ChFunctionBase.h"
@@ -35,7 +35,7 @@ namespace core {
 /// Utility class to convert a Chrono vector into an Irrlicht vector3df.
 class ChApiIrr vector3dfCH : public vector3df {
   public:
-    vector3dfCH(const chrono::ChVector<>& mch);
+    vector3dfCH(const chrono::ChVector3d& mch);
 };
 
 /// Utility class to convert a Chrono frame into an Irrlicht transform.
@@ -163,14 +163,14 @@ ChApiIrr void drawChFunction(ChVisualSystemIrrlicht* vis,
 
 /// Draw line segments in 3D space with given color.
 ChApiIrr void drawSegment(ChVisualSystemIrrlicht* vis,
-                          ChVector<> start,
-                          ChVector<> end,
+                          ChVector3d start,
+                          ChVector3d end,
                           ChColor col = ChColor(1, 1, 1),
                           bool use_Zbuffer = false);
 
 /// Draw a polyline in 3D space, given the array of points.
 ChApiIrr void drawPolyline(ChVisualSystemIrrlicht* vis,
-                           std::vector<ChVector<> >& points,
+                           std::vector<ChVector3d >& points,
                            ChColor col = ChColor(1, 1, 1),
                            bool use_Zbuffer = false);
 
@@ -188,8 +188,8 @@ ChApiIrr void drawCircle(ChVisualSystemIrrlicht* vis,
 /// helix) and the number of turns.
 ChApiIrr void drawSpring(ChVisualSystemIrrlicht* vis,
                          double radius,
-                         ChVector<> start,
-                         ChVector<> end,
+                         ChVector3d start,
+                         ChVector3d end,
                          ChColor col = ChColor(1, 1, 1),
                          int resolution = 65,
                          double turns = 5,
@@ -240,9 +240,9 @@ ChApiIrr void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coor
 
 /// Draw a line arrow in 3D space with given color.
 ChApiIrr void drawArrow(ChVisualSystemIrrlicht* vis,           ///< visual system
-                        ChVector<> start,                      ///< arrow start point
-                        ChVector<> end,                        ///< arrow end point
-                        ChVector<> plane_normal = VECT_Y,      ///< normal to plane containing arrow segments
+                        ChVector3d start,                      ///< arrow start point
+                        ChVector3d end,                        ///< arrow end point
+                        ChVector3d plane_normal = VECT_Y,      ///< normal to plane containing arrow segments
                         bool sharp = false,                    ///< set arrow shape as 'sharp' or 'wide'
                         ChColor col = ChColor(1.f, 1.f, 1.f),  ///< color
                         bool use_Zbuffer = false);             ///< use Z buffer

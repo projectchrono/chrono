@@ -1,6 +1,6 @@
 %{
 #include <cstddef>
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include <Eigen/Core>
 %}
 
@@ -23,7 +23,7 @@
 %ignore chrono::ChVector::eigen;
 
 // Parse the header file to generate wrappers
-%include "../../../chrono/core/ChVector.h"  
+%include "../../../chrono/core/ChVector3.h"  
 
 
 %template(ChVectorD) chrono::ChVector<double>; 

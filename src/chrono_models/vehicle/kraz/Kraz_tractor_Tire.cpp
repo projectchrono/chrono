@@ -33,7 +33,7 @@ namespace kraz {
 const std::string Kraz_tractor_Tire::m_meshFile = "longhaul/meshes/SemiTractor_tire.obj";
 
 const double Kraz_tractor_Tire::m_mass = 90.0;
-const chrono::ChVector<> Kraz_tractor_Tire::m_inertia(11.5173, 20.9672, 11.5173);
+const chrono::ChVector3d Kraz_tractor_Tire::m_inertia(11.5173, 20.9672, 11.5173);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

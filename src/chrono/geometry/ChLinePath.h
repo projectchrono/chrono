@@ -43,13 +43,13 @@ class ChApi ChLinePath : public ChLine {
     virtual double Length(int sampling) const override;
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(double U) const override;
+    virtual ChVector3d Evaluate(double U) const override;
 
     /// Return the start point of the line.
-    virtual ChVector<> GetEndA() const override { return (lines.front())->GetEndA(); }
+    virtual ChVector3d GetEndA() const override { return (lines.front())->GetEndA(); }
 
     /// Return the end point of the line.
-    virtual ChVector<> GetEndB() const override { return (lines.back())->GetEndB(); }
+    virtual ChVector3d GetEndB() const override { return (lines.back())->GetEndB(); }
 
     /// Get count of sub-lines that have been added.
     size_t GetSubLinesCount() const { return lines.size(); }

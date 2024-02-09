@@ -42,19 +42,19 @@ ChFunctionPositionLine::ChFunctionPositionLine(const ChFunctionPositionLine& oth
 
 ChFunctionPositionLine::~ChFunctionPositionLine() {}
 
-ChVector<> ChFunctionPositionLine::Get_p(double s) const {
+ChVector3d ChFunctionPositionLine::Get_p(double s) const {
     double u = space_fx->Get_y(s);
     return trajectory_line->Evaluate(u);
 }
 
-ChVector<> ChFunctionPositionLine::Get_p_ds(double s) const {
+ChVector3d ChFunctionPositionLine::Get_p_ds(double s) const {
     double u = space_fx->Get_y(s);
     double du_ds = space_fx->Get_y_dx(s);
     auto dp_du = trajectory_line->GetTangent(u);
     return dp_du * du_ds;
 }
 
-ChVector<> ChFunctionPositionLine::Get_p_dsds(double s) const {
+ChVector3d ChFunctionPositionLine::Get_p_dsds(double s) const {
     // note: same as not implementing the function and let the fallback default BDF numerical differentiation do similar
     // computation... to remove?
     double tstep = FD_STEP;

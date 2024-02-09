@@ -136,7 +136,7 @@ void ChNodeFEAxyzrot::NodeIntStateGetIncrement(const unsigned int off_x,
 }
 
 void ChNodeFEAxyzrot::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
-    ChVector<> gyro = Vcross(this->GetWvel_loc(), (variables.GetBodyInertia() * this->GetWvel_loc()));
+    ChVector3d gyro = Vcross(this->GetWvel_loc(), (variables.GetBodyInertia() * this->GetWvel_loc()));
 
     R.segment(off + 0, 3) += c * Force.eigen();
     R.segment(off + 3, 3) += c * (Torque - gyro).eigen();
@@ -149,7 +149,7 @@ void ChNodeFEAxyzrot::NodeIntLoadResidual_Mv(const unsigned int off,
     R(off + 0) += c * GetMass() * w(off + 0);
     R(off + 1) += c * GetMass() * w(off + 1);
     R(off + 2) += c * GetMass() * w(off + 2);
-    ChVector<> Iw(GetInertia() * w.segment(off + 3, 3));
+    ChVector3d Iw(GetInertia() * w.segment(off + 3, 3));
     R.segment(off + 3, 3) += c * Iw.eigen();
 }
 
@@ -187,7 +187,7 @@ void ChNodeFEAxyzrot::VariablesFbReset() {
 }
 
 void ChNodeFEAxyzrot::VariablesFbLoadForces(double factor) {
-    ChVector<> gyro = Vcross(this->GetWvel_loc(), variables.GetBodyInertia() * this->GetWvel_loc());
+    ChVector3d gyro = Vcross(this->GetWvel_loc(), variables.GetBodyInertia() * this->GetWvel_loc());
 
     variables.Get_fb().segment(0, 3) = factor * Force.eigen();
     variables.Get_fb().segment(3, 3) = factor * (Torque - gyro).eigen();
@@ -227,8 +227,8 @@ void ChNodeFEAxyzrot::VariablesQbIncrementPosition(double step) {
     // Updates position with incremental action of speed contained in the
     // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
 
-    ChVector<> newspeed(variables.Get_qb().segment(0, 3));
-    ChVector<> newwel(variables.Get_qb().segment(3, 3));
+    ChVector3d newspeed(variables.Get_qb().segment(0, 3));
+    ChVector3d newwel(variables.Get_qb().segment(3, 3));
 
     // ADVANCE POSITION: pos' = pos + dt * vel
     this->SetPos(this->GetPos() + newspeed * step);
@@ -236,7 +236,7 @@ void ChNodeFEAxyzrot::VariablesQbIncrementPosition(double step) {
     // ADVANCE ROTATION: rot' = [dt*wwel]%rot  (use quaternion for delta rotation)
     ChQuaternion<> mdeltarot;
     ChQuaternion<> moldrot = this->GetRot();
-    ChVector<> newwel_abs = this->Amatrix * newwel;
+    ChVector3d newwel_abs = this->Amatrix * newwel;
     double mangle = newwel_abs.Length() * step;
     newwel_abs.Normalize();
     mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
@@ -279,11 +279,11 @@ void ChNodeFEAxyzrot::ComputeNF(
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
 ) {
-    ChVector<> abs_pos(U, V, W);
-    ChVector<> absF(F.segment(0, 3));
-    ChVector<> absT(F.segment(3, 3));
-    ChVector<> body_absF;
-    ChVector<> body_locT;
+    ChVector3d abs_pos(U, V, W);
+    ChVector3d absF(F.segment(0, 3));
+    ChVector3d absT(F.segment(3, 3));
+    ChVector3d body_absF;
+    ChVector3d body_locT;
     ChCoordsys<> nodecoord;
     if (state_x)
         nodecoord = state_x->segment(0, 7);  // the numerical jacobian algo might change state_x

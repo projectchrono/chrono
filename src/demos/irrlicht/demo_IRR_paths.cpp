@@ -48,13 +48,13 @@ int main(int argc, char* argv[]) {
 
     // Create a ChLinePath geometry, and insert sub-paths:
     auto path = chrono_types::make_shared<ChLinePath>();
-    ChLineSegment mseg1(ChVector<>(1, 2, 0), ChVector<>(2, 2, 0));
+    ChLineSegment mseg1(ChVector3d(1, 2, 0), ChVector3d(2, 2, 0));
     path->AddSubLine(mseg1);
-    ChLineArc marc1(ChCoordsys<>(ChVector<>(2, 2.5, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2, true);
+    ChLineArc marc1(ChCoordsys<>(ChVector3d(2, 2.5, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2, true);
     path->AddSubLine(marc1);
-    ChLineSegment mseg2(ChVector<>(2, 3, 0), ChVector<>(1, 3, 0));
+    ChLineSegment mseg2(ChVector3d(2, 3, 0), ChVector3d(1, 3, 0));
     path->AddSubLine(mseg2);
-    ChLineArc marc2(ChCoordsys<>(ChVector<>(1, 2.5, 0)), 0.5, CH_C_PI_2, -CH_C_PI_2, true);
+    ChLineArc marc2(ChCoordsys<>(ChVector3d(1, 2.5, 0)), 0.5, CH_C_PI_2, -CH_C_PI_2, true);
     path->AddSubLine(marc2);
     path->Set_closed(true);
 
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     // Create a body that will follow the trajectory
 
     auto pendulum = chrono_types::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000, true, false);
-    pendulum->SetPos(ChVector<>(1, 1.5, 0));
+    pendulum->SetPos(ChVector3d(1, 1.5, 0));
     sys.Add(pendulum);
 
     // The trajectory constraint:
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     // Define which parts are connected (the trajectory is considered in the 2nd body).
     trajectory->Initialize(pendulum,               // body1 that follows the trajectory
                            floor,                  // body2 that 'owns' the trajectory
-                           ChVector<>(0, 0.5, 0),  // point on body1 that will follow the trajectory
+                           ChVector3d(0, 0.5, 0),  // point on body1 that will follow the trajectory
                            path                    // the trajectory (reuse the one already added to body2 as asset)
     );
 
@@ -95,24 +95,24 @@ int main(int argc, char* argv[]) {
     // Create a ChBody that contains the trajectory
 
     auto wheel = chrono_types::make_shared<ChBody>();
-    wheel->SetPos(ChVector<>(-3, 2, 0));
+    wheel->SetPos(ChVector3d(-3, 2, 0));
     sys.Add(wheel);
 
     // Create a motor that spins the wheel
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    motor->Initialize(wheel, floor, ChFrame<>(ChVector<>(-3, 2, 0)));
+    motor->Initialize(wheel, floor, ChFrame<>(ChVector3d(-3, 2, 0)));
     motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 4.0));
     sys.AddLink(motor);
 
     // Create a ChLinePath geometry, and insert sub-paths:
     auto glyph = chrono_types::make_shared<ChLinePath>();
-    ChLineSegment ms1(ChVector<>(-0.5, -0.5, 0), ChVector<>(0.5, -0.5, 0));
+    ChLineSegment ms1(ChVector3d(-0.5, -0.5, 0), ChVector3d(0.5, -0.5, 0));
     glyph->AddSubLine(ms1);
-    ChLineArc ma1(ChCoordsys<>(ChVector<>(0.5, 0, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2, true);
+    ChLineArc ma1(ChCoordsys<>(ChVector3d(0.5, 0, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2, true);
     glyph->AddSubLine(ma1);
-    ChLineSegment ms2(ChVector<>(0.5, 0.5, 0), ChVector<>(-0.5, 0.5, 0));
+    ChLineSegment ms2(ChVector3d(0.5, 0.5, 0), ChVector3d(-0.5, 0.5, 0));
     glyph->AddSubLine(ms2);
-    ChLineArc ma2(ChCoordsys<>(ChVector<>(-0.5, 0, 0)), 0.5, CH_C_PI_2, -CH_C_PI_2, true);
+    ChLineArc ma2(ChCoordsys<>(ChVector3d(-0.5, 0, 0)), 0.5, CH_C_PI_2, -CH_C_PI_2, true);
     glyph->AddSubLine(ma2);
     glyph->SetPathDuration(1);
     glyph->Set_closed(true);
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     // Create a body that will slide on the glyph
 
     auto pendulum2 = chrono_types::make_shared<ChBodyEasyBox>(0.1, 1, 0.1, 1000, true, false);
-    pendulum2->SetPos(ChVector<>(-3, 1, 0));
+    pendulum2->SetPos(ChVector3d(-3, 1, 0));
     sys.Add(pendulum2);
 
     // The glyph constraint:
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     glyphconstraint->Initialize(pendulum2,  // body1 that follows the trajectory
                                 wheel,      // body2 that 'owns' the trajectory
                                 true,
-                                ChCoordsys<>(ChVector<>(0, 0.5, 0)),  // point on body1 that will follow the trajectory
+                                ChCoordsys<>(ChVector3d(0, 0.5, 0)),  // point on body1 that will follow the trajectory
                                 ChCoordsys<>());
 
     glyphconstraint->Set_trajectory_line(glyph);
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 4, -6));
+    vis->AddCamera(ChVector3d(0, 4, -6));
     vis->AddTypicalLights();
 
     // This means that contactforces will be shown in Irrlicht application

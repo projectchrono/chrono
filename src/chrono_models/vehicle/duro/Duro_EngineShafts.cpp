@@ -26,7 +26,7 @@ namespace duro {
 const double Duro_EngineShafts::m_motorblock_inertia = 10.5;
 const double Duro_EngineShafts::m_motorshaft_inertia = 1.1;
 
-Duro_EngineShafts::Duro_EngineShafts(const std::string& name) : ChEngineShafts(name, ChVector<>(1, 0, 0)) {}
+Duro_EngineShafts::Duro_EngineShafts(const std::string& name) : ChEngineShafts(name, ChVector3d(1, 0, 0)) {}
 
 void Duro_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionRecorder>& map) {
     // could not get data for original 110 kW at 4000 rpm engine (VM Motori 20B/EP638LI)

@@ -76,7 +76,7 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction)
 
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
     my_body_A->SetBodyFixed(true);
-    my_body_A->SetPos(ChVector<>(-0.5, 0, 0));
+    my_body_A->SetPos(ChVector3d(-0.5, 0, 0));
     my_assembly->Add(my_body_A);
 
     // MESH:  Create two FEM meshes: one for nodes that will be removed in modal reduction,
@@ -112,27 +112,26 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction)
     my_mesh_boundary->AddNode(my_node_A_boundary); 
 
     // The last node is a boundary node: add it to my_mesh_boundary
-    auto my_node_B_boundary = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L, 0, 0)));
+    auto my_node_B_boundary = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(beam_L, 0, 0)));
     my_node_B_boundary->SetMass(0); my_node_B_boundary->GetInertia().setZero();
     my_mesh_boundary->AddNode(my_node_B_boundary); 
 
     //my_node_A_boundary->SetFixed(true); // NO - issues with bookeeping in modal_Hblock ***TO FIX***, for the moment: use constraint:
     // Constraint the boundary node to truss
     auto my_root = chrono_types::make_shared<ChLinkMateGeneric>();
-    my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector<>(0, 0, 1), QUNIT));
+    my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector3d(0, 0, 1), QUNIT));
     my_assembly->Add(my_root);
 
     // The other nodes are internal nodes: let the builder.BuildBeam add them to my_mesh_internal
-    builder.BuildBeam(
-        my_mesh_internal,  // the mesh where to put the created nodes and elements
-        msection,  // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
-        6,         // the number of ChElementBeamEuler to create
-        my_node_A_boundary,       // the 'A' point in space (beginning of beam)
-        my_node_B_boundary, //ChVector<>(beam_L, 0, 0), // the 'B' point in space (end of beam)
-        ChVector<>(0, 1, 0)       // the 'Y' up direction of the section for the beam
+    builder.BuildBeam(my_mesh_internal,    // the mesh where to put the created nodes and elements
+                      msection,            // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
+                      6,                   // the number of ChElementBeamEuler to create
+                      my_node_A_boundary,  // the 'A' point in space (beginning of beam)
+                      my_node_B_boundary,  // ChVector3d(beam_L, 0, 0), // the 'B' point in space (end of beam)
+                      ChVector3d(0, 1, 0)  // the 'Y' up direction of the section for the beam
     );
 
-    my_node_B_boundary->SetForce(ChVector<>(0, 2, 0)); // to trigger some vibration at the free end
+    my_node_B_boundary->SetForce(ChVector3d(0, 2, 0));  // to trigger some vibration at the free end
 
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
     my_system->Setup();
@@ -203,9 +202,8 @@ void MakeAndRunDemoCantilever(ChIrrApp& myapp, bool do_modal_reduction)
     while ((ID_current_example == current_example) && myapp.GetDevice()->run()) {
         myapp.BeginScene();
         myapp.DrawAll();
-        tools::drawGrid(myapp.GetVideoDriver(), 1, 1, 12, 12,
-                             ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
-                             video::SColor(100, 120, 120, 120), true);
+        tools::drawGrid(myapp.GetVideoDriver(), 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_C_PI_2, VECT_Z),
+                        video::SColor(100, 120, 120, 120), true);
         myapp.DoStep();
         myapp.EndScene();
     }
@@ -356,10 +354,9 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         tools::drawGrid(application.GetVideoDriver(), 1, 1, 12, 12,
-                             ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
-                             video::SColor(100, 120, 120, 120), true);
+                        ChCoordsys<>(ChVector3d(0, 0, 0), CH_C_PI_2, VECT_Z), video::SColor(100, 120, 120, 120), true);
 
-        application.DoStep(); // if application.SetModalShow(true), dynamics is paused and just shows the modes
+        application.DoStep();  // if application.SetModalShow(true), dynamics is paused and just shows the modes
 
         application.EndScene();
     }
