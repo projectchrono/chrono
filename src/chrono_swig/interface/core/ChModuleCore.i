@@ -320,7 +320,7 @@ using namespace chrono::fea;
 %include "../../../chrono/core/ChGlobal.h"
 //%include "ChArchive.i"
 %include "ChMatrix.i"
-%include "ChVector.i"
+%include "ChVector3.i"
 #define ChVector3d ChVector3d
 %include "ChQuaternion.i"
 %include "ChTensors.i"

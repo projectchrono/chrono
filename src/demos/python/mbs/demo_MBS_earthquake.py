@@ -75,10 +75,10 @@ for ix in range(0,nbricks_on_x):
         # create it
         body_brick = chrono.ChBody()
         # set initial position
-        body_brick.SetPos(chrono.ChVectorD(ix*size_brick_x, (iy+0.5)*size_brick_y, 0 ))
+        body_brick.SetPos(chrono.ChVector3d(ix*size_brick_x, (iy+0.5)*size_brick_y, 0 ))
         # set mass properties
         body_brick.SetMass(mass_brick)
-        body_brick.SetInertiaXX(chrono.ChVectorD(inertia_brick,inertia_brick,inertia_brick))       
+        body_brick.SetInertiaXX(chrono.ChVector3d(inertia_brick,inertia_brick,inertia_brick))       
 
         # Collision shape
         body_brick_ct_shape = chrono.ChCollisionShapeBox(brick_material, size_brick_x, size_brick_y, size_brick_z)
@@ -99,7 +99,7 @@ for ix in range(0,nbricks_on_x):
 
 body_floor = chrono.ChBody()
 body_floor.SetBodyFixed(True)
-body_floor.SetPos(chrono.ChVectorD(0, -2, 0 ))
+body_floor.SetPos(chrono.ChVector3d(0, -2, 0 ))
 
 # Collision shape
 body_floor_ct_shape = chrono.ChCollisionShapeBox(brick_material, 6, 2, 6)
@@ -122,7 +122,7 @@ size_table_y = 0.2;
 size_table_z = 1;
 
 body_table = chrono.ChBody()
-body_table.SetPos(chrono.ChVectorD(0, -size_table_y/2, 0 ))
+body_table.SetPos(chrono.ChVector3d(0, -size_table_y/2, 0 ))
 
 # Collision shape
 body_table_ct_shape = chrono.ChCollisionShapeBox(brick_material, size_table_x, size_table_y, size_table_z)
@@ -172,10 +172,10 @@ vis.SetWindowTitle('Earthquake demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0.5,0.5,1.0))
+vis.AddCamera(chrono.ChVector3d(0.5,0.5,1.0))
 vis.AddTypicalLights()
-vis.AddLightWithShadow(chrono.ChVectorD(0, 3, 6),    # point
-                       chrono.ChVectorD(0, 3, 6),    # aimpoint
+vis.AddLightWithShadow(chrono.ChVector3d(0, 3, 6),    # point
+                       chrono.ChVector3d(0, 3, 6),    # aimpoint
                        9,                 # radius (power)
                        1,9,               # near, far
                        30)                # angle of FOV

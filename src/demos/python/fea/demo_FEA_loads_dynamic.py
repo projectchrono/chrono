@@ -40,8 +40,8 @@ mesh = fea.ChMesh()
 sys.Add(mesh)
 
 # Create some nodes (with default mass 0)
-nodeA = fea.ChNodeFEAxyzrot(chrono.ChFrameD(chrono.ChVectorD(0, 0, 0)))
-nodeB = fea.ChNodeFEAxyzrot(chrono.ChFrameD(chrono.ChVectorD(2, 0, 0)))
+nodeA = fea.ChNodeFEAxyzrot(chrono.ChFramed(chrono.ChVector3d(0, 0, 0)))
+nodeB = fea.ChNodeFEAxyzrot(chrono.ChFramed(chrono.ChVector3d(2, 0, 0)))
 nodeA.SetMass(0.0)
 nodeB.SetMass(0.0)
 mesh.AddNode(nodeA)
@@ -99,7 +99,7 @@ print("Applied loads: \n")
 
 print("   Custom load with stiff force, acting on a single node (VER 2).")
 
-nodeD = fea.ChNodeFEAxyz(chrono.ChVectorD(2, 10, 3))
+nodeD = fea.ChNodeFEAxyz(chrono.ChVector3d(2, 10, 3))
 mesh.AddNode(nodeD)
 
 class MyLoadCustom(chrono.ChLoadCustom):
@@ -117,8 +117,8 @@ class MyLoadCustom(chrono.ChLoadCustom):
     def ComputeQ(self,state_x,      #/< state position to evaluate Q
                  state_w):     #/< state speed to evaluate Q
         if not state_x==None and not state_w==None :
-            node_pos = chrono.ChVectorD(state_x[0], state_x[1], state_x[2])
-            node_vel = chrono.ChVectorD(state_w[0], state_w[1], state_w[2])
+            node_pos = chrono.ChVector3d(state_x[0], state_x[1], state_x[2])
+            node_vel = chrono.ChVector3d(state_w[0], state_w[1], state_w[2])
         else:
             mynode = fea.CastToChNodeFEAxyz( fea.CastToChNodeFEAbase( chrono.CastToChNodeBase(self.loadable) ))
             node_pos = mynode.GetPos()
@@ -193,7 +193,7 @@ vis.SetWindowTitle('Loads on beams')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0.5, 0.0, -3.0), chrono.ChVectorD(0.5, 0.0, 0.0))
+vis.AddCamera(chrono.ChVector3d(0.5, 0.0, -3.0), chrono.ChVector3d(0.5, 0.0, 0.0))
 vis.AddTypicalLights()
 
 # -----------------------------------------------------------------

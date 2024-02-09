@@ -29,7 +29,7 @@ def main():
     # Create the system
     # -----------------
     mphysicalSystem = chrono.ChSystemNSC()
-    mphysicalSystem.Set_G_acc(chrono.ChVectorD(0,0,-9.81))
+    mphysicalSystem.Set_G_acc(chrono.ChVector3d(0,0,-9.81))
 
     # ----------------------------------------
     # add a floor, box and sphere to the scene
@@ -41,18 +41,18 @@ def main():
     phys_mat.SetComplianceT(1e-9)
 
     floor = chrono.ChBodyEasyBox(10,10,1,1000,True,True,phys_mat)
-    floor.SetPos(chrono.ChVectorD(0,0,-1))
+    floor.SetPos(chrono.ChVector3d(0,0,-1))
     floor.SetBodyFixed(True)
     mphysicalSystem.Add(floor)
 
     box = chrono.ChBodyEasyBox(1,1,1,1000,True,True,phys_mat)
-    box.SetPos(chrono.ChVectorD(0,0,5))
-    box.SetRot(chrono.Q_from_AngAxis(.2,chrono.ChVectorD(1,0,0)))
+    box.SetPos(chrono.ChVector3d(0,0,5))
+    box.SetRot(chrono.Q_from_AngAxis(.2,chrono.ChVector3d(1,0,0)))
     mphysicalSystem.Add(box)
 
     sphere = chrono.ChBodyEasySphere(.5,1000,True,True,phys_mat)
-    sphere.SetPos(chrono.ChVectorD(0,0,8))
-    sphere.SetRot(chrono.Q_from_AngAxis(.2,chrono.ChVectorD(1,0,0)))
+    sphere.SetPos(chrono.ChVector3d(0,0,8))
+    sphere.SetRot(chrono.Q_from_AngAxis(.2,chrono.ChVector3d(1,0,0)))
     mphysicalSystem.Add(sphere)
 
     vis_mat = chrono.ChVisualMaterial()
@@ -66,14 +66,14 @@ def main():
     # Create a sensor manager
     # -----------------------
     manager = sens.ChSensorManager(mphysicalSystem)
-    manager.scene.AddPointLight(chrono.ChVectorF(100,100,100),chrono.ChColor(1,1,1),1000.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(-100,-100,100),chrono.ChColor(1,1,1),1000.0)
+    manager.scene.AddPointLight(chrono.ChVector3f(100,100,100),chrono.ChColor(1,1,1),1000.0)
+    manager.scene.AddPointLight(chrono.ChVector3f(-100,-100,100),chrono.ChColor(1,1,1),1000.0)
 
 
     # ------------------------------------------------
     # Create a camera and add it to the sensor manager
     # ------------------------------------------------
-    offset_pose = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
+    offset_pose = chrono.ChFramed(chrono.ChVector3d(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVector3d(0, 1, 0)))
     cam = sens.ChCameraSensor(
         floor,                  # body camera is attached to
         cam_update_rate,        # update rate in Hz
@@ -120,7 +120,7 @@ def main():
     # ------------------------------------------------
     # Create a lidar and add it to the sensor manager
     # ------------------------------------------------
-    offset_pose = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
+    offset_pose = chrono.ChFramed(chrono.ChVector3d(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVector3d(0, 1, 0)))
     lidar = sens.ChLidarSensor(
         floor,                  # body lidar is attached to
         lidar_update_rate,      # scanning rate in Hz
@@ -162,7 +162,7 @@ def main():
     # ----------------------------------------------
     # Create an IMU sensor and add it to the manager
     # ----------------------------------------------
-    offset_pose = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
+    offset_pose = chrono.ChFramed(chrono.ChVector3d(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVector3d(0, 1, 0)))
     acc = sens.ChAccelerometerSensor(box,                     # body imu is attached to
                            imu_update_rate,         # update rate in Hz
                            offset_pose,             # offset pose
@@ -213,7 +213,7 @@ def main():
     # ----------------------------------------------
     # Create an GPS sensor and add it to the manager
     # ----------------------------------------------
-    offset_pose = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
+    offset_pose = chrono.ChFramed(chrono.ChVector3d(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVector3d(0, 1, 0)))
     gps = sens.ChGPSSensor(box,                     # body imu is attached to
                            gps_update_rate,       # update rate in Hz
                            offset_pose,             # offset pose
@@ -320,7 +320,7 @@ gps_collection_time = 0 # instant
 
 # GPS reference point
 # Located in Madison, WI
-gps_reference = chrono.ChVectorD(-89.400, 43.070, 260.0)
+gps_reference = chrono.ChVector3d(-89.400, 43.070, 260.0)
 
 # IMU and GPS noise models
 # Setting to none (does not affect the data)

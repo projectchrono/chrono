@@ -37,7 +37,7 @@ def main():
     feda.SetContactMethod(contact_method)
     feda.SetChassisCollisionType(chassis_collision_type)
     feda.SetChassisFixed(False) 
-    feda.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+    feda.SetInitPosition(chrono.ChCoordsysd(initLoc, initRot))
     feda.SetEngineType(veh.EngineModelType_SIMPLE_MAP)
     feda.SetTransmissionType(veh.TransmissionModelType_SIMPLE_MAP)
     feda.SetTireType(tire_model)
@@ -131,8 +131,8 @@ def main():
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
-initLoc = chrono.ChVectorD(0, 0, 0.5)
-initRot = chrono.ChQuaternionD(1, 0, 0, 0)
+initLoc = chrono.ChVector3d(0, 0, 0.5)
+initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 chassis_vis_type = veh.VisualizationType_MESH
@@ -153,7 +153,7 @@ terrainLength = 100.0;  # size in X direction
 terrainWidth = 100.0;   # size in Y direction
 
 # Point on chassis tracked by the camera
-trackPoint = chrono.ChVectorD(0.0, 0.0, 1.75)
+trackPoint = chrono.ChVector3d(0.0, 0.0, 1.75)
 
 # Contact method
 contact_method = chrono.ChContactMethod_SMC

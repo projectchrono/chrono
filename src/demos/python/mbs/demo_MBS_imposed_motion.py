@@ -51,7 +51,7 @@ sys.Add(mfloor)
 mmoved_1 = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile(
     "models/support.obj"), 1000, True, True, False)
 sys.Add(mmoved_1)
-mmoved_1.SetPos(chrono.ChVectorD(-0.5, 0, 0))
+mmoved_1.SetPos(chrono.ChVector3d(-0.5, 0, 0))
 
 # Create a position function p(t) from three x,y,z distinct ChFunction objects,
 # in this case two sine functions on y and z, whereas x remains constant 0 by default.
@@ -62,7 +62,7 @@ f_xyz.SetFunctionZ(chrono.ChFunctionSine(0, 0.5, 0.5))
 # Create a rotation function q(t) from a angle(time) rotation with fixed axis:
 f_rot_axis = chrono.ChFunctionRotation_axis()
 f_rot_axis.SetFunctionAngle(chrono.ChFunctionSine(0, 0.15, chrono.CH_C_PI))
-f_rot_axis.SetAxis(chrono.ChVectorD(1, 1, 1).GetNormalized())
+f_rot_axis.SetAxis(chrono.ChVector3d(1, 1, 1).GetNormalized())
 
 # Create the constraint to impose motion and rotation.
 # Note that the constraint acts by imposing the motion and rotation between
@@ -72,7 +72,7 @@ f_rot_axis.SetAxis(chrono.ChVectorD(1, 1, 1).GetNormalized())
 # main reference of the moved mesh, by setting it during the Initialize() method.
 impose_1 = chrono.ChLinkMotionImposed()
 sys.Add(impose_1)
-impose_1.Initialize(mmoved_1, mfloor, chrono.ChFrameD(mmoved_1.GetPos()))
+impose_1.Initialize(mmoved_1, mfloor, chrono.ChFramed(mmoved_1.GetPos()))
 impose_1.SetPositionFunction(f_xyz)
 impose_1.SetRotationFunction(f_rot_axis)
 
@@ -89,15 +89,15 @@ impose_1.SetRotationFunction(f_rot_axis)
 mmoved_2 = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile(
     "models/support.obj"), 1000, True, True, False)
 sys.Add(mmoved_2)
-mmoved_2.SetPos(chrono.ChVectorD(0.5, 0, 0))
+mmoved_2.SetPos(chrono.ChVector3d(0.5, 0, 0))
 
-v1 = chrono.ChVectorD(0, 0, 0)
-v2 = chrono.ChVectorD(0.3, 0, 0)
-v3 = chrono.ChVectorD(0.5, 0.2, 0)
-v4 = chrono.ChVectorD(0.6, 0.3, 0)
-v5 = chrono.ChVectorD(0.5, 0.5, 0.1)
-v6 = chrono.ChVectorD(0, 0.5, 0.1)
-splinepoints = chrono.vector_ChVectorD([v1, v2, v3, v4, v5, v6])
+v1 = chrono.ChVector3d(0, 0, 0)
+v2 = chrono.ChVector3d(0.3, 0, 0)
+v3 = chrono.ChVector3d(0.5, 0.2, 0)
+v4 = chrono.ChVector3d(0.6, 0.3, 0)
+v5 = chrono.ChVector3d(0.5, 0.5, 0.1)
+v6 = chrono.ChVector3d(0, 0.5, 0.1)
+splinepoints = chrono.vector_ChVector3d([v1, v2, v3, v4, v5, v6])
 mspline = chrono.ChLineBspline(3, splinepoints)
 mspline.SetClosed(True)
 
@@ -106,20 +106,20 @@ f_line.SetLine(mspline)
 f_line.SetSpaceFunction(chrono.ChFunctionRamp(0, 0.2))
 
 # Create a spline rotation interpolation
-q1 = chrono.ChQuaternionD(1, 0, 0, 0)
-q2 = chrono.ChQuaternionD(0, 0, 1, 0)
+q1 = chrono.ChQuaterniond(1, 0, 0, 0)
+q2 = chrono.ChQuaterniond(0, 0, 1, 0)
 q3 = chrono.Q_from_AngZ(1.2)
 q4 = chrono.Q_from_AngZ(2.2)
 q5 = chrono.Q_from_AngZ(-1.2)
-q6 = chrono.ChQuaternionD(0, 1, 0, 0)
-spinerots = chrono.vector_ChQuaternionD([q1, q2, q3, q4, q5, q6])
+q6 = chrono.ChQuaterniond(0, 1, 0, 0)
+spinerots = chrono.vector_ChQuaterniond([q1, q2, q3, q4, q5, q6])
 f_rotspline = chrono.ChFunctionRotation_spline(1, [q1, q2, q3, q4, q5, q6])
 f_rotspline.SetClosed(True)
 f_rotspline.SetSpaceFunction(chrono.ChFunctionRamp(0, 0.2))
 
 impose_2 = chrono.ChLinkMotionImposed()
 sys.Add(impose_2)
-impose_2.Initialize(mmoved_2, mfloor, chrono.ChFrameD(mmoved_2.GetPos()))
+impose_2.Initialize(mmoved_2, mfloor, chrono.ChFramed(mmoved_2.GetPos()))
 impose_2.SetPositionFunction(f_line)
 impose_2.SetRotationFunction(f_rotspline)
 
@@ -144,14 +144,14 @@ mmoved_2.SetPos(f_line.Get_p(0) >> impose_2.GetFrame2()
 mmoved_3 = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile(
     "models/support.obj"), 1000, True, True, False)
 sys.Add(mmoved_3)
-mmoved_3.SetPos(chrono.ChVectorD(1.5, 0, 0))
+mmoved_3.SetPos(chrono.ChVector3d(1.5, 0, 0))
 
 f_pos_setpoint = chrono.ChFunctionPosition_setpoint()
 f_rot_setpoint = chrono.ChFunctionRotation_setpoint()
 
 impose_3 = chrono.ChLinkMotionImposed()
 sys.Add(impose_3)
-impose_3.Initialize(mmoved_3, mfloor, chrono.ChFrameD(mmoved_3.GetPos()))
+impose_3.Initialize(mmoved_3, mfloor, chrono.ChFramed(mmoved_3.GetPos()))
 impose_3.SetPositionFunction(f_pos_setpoint)
 impose_3.SetRotationFunction(f_rot_setpoint)
 
@@ -168,7 +168,7 @@ impose_3.SetRotationFunction(f_rot_setpoint)
 mmoved_4 = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile(
     "models/support.obj"), 1000, True, True, False)
 sys.Add(mmoved_4)
-mmoved_4.SetPos(chrono.ChVectorD(2.5, 0, 0))
+mmoved_4.SetPos(chrono.ChVector3d(2.5, 0, 0))
 
 f_abc_angles = chrono.ChFunctionRotation_ABCfunctions()
 f_abc_angles.SetAngleset(chrono.AngleSet_RXYZ)
@@ -177,7 +177,7 @@ f_abc_angles.SetFunctionAngleB(chrono.ChFunctionRamp(0, 0.2))
 
 impose_4 = chrono.ChLinkMotionImposed()
 sys.Add(impose_4)
-impose_4.Initialize(mmoved_4, mfloor, chrono.ChFrameD(mmoved_4.GetPos()))
+impose_4.Initialize(mmoved_4, mfloor, chrono.ChFramed(mmoved_4.GetPos()))
 impose_4.SetRotationFunction(f_abc_angles)
 
 #
@@ -192,14 +192,14 @@ impose_4.SetRotationFunction(f_abc_angles)
 mmoved_5 = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile(
     "models/support.obj"), 1000, True, True, False)
 sys.Add(mmoved_5)
-mmoved_5.SetPos(chrono.ChVectorD(1, 1, 0))
+mmoved_5.SetPos(chrono.ChVector3d(1, 1, 0))
 
-q1 = chrono.ChQuaternionD(1, 0, 0, 0)
-q2 = chrono.ChQuaternionD(0, 0, 1, 0)
+q1 = chrono.ChQuaterniond(1, 0, 0, 0)
+q2 = chrono.ChQuaterniond(0, 0, 1, 0)
 q3 = chrono.Q_from_AngZ(1.2)
 q4 = chrono.Q_from_AngZ(2.2)
 q5 = chrono.Q_from_AngZ(-1.2)
-q6 = chrono.ChQuaternionD(0, 1, 0, 0)
+q6 = chrono.ChQuaterniond(0, 1, 0, 0)
 
 f_squad = chrono.ChFunctionRotation_SQUAD([q1, q2, q3, q4, q5, q6])
 f_squad.SetClosed(True)
@@ -208,7 +208,7 @@ f_squad.SetSpaceFunction(chrono.ChFunctionRamp(0, 0.2))
 # Create the constraint to impose motion and rotation
 impose_5 = chrono.ChLinkMotionImposed()
 sys.Add(impose_5)
-impose_5.Initialize(mmoved_5, mfloor, chrono.ChFrameD(mmoved_5.GetPos()))
+impose_5.Initialize(mmoved_5, mfloor, chrono.ChFramed(mmoved_5.GetPos()))
 impose_5.SetRotationFunction(f_squad)
 
 # Create the Irrlicht application
@@ -219,7 +219,7 @@ vis.SetWindowTitle('Imposing rotation and position to bodies')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 2, -3))
+vis.AddCamera(chrono.ChVector3d(0, 2, -3))
 vis.AddTypicalLights()
 
 # Simulation loop
@@ -234,6 +234,6 @@ while vis.Run():
     if (frame % 10 == 0):
         t = sys.GetChTime()
         f_pos_setpoint.SetSetpoint(
-            chrono.ChVectorD(0.2 * m.cos(t * 12), 0.2 * m.sin(t * 12), 0), t)
+            chrono.ChVector3d(0.2 * m.cos(t * 12), 0.2 * m.sin(t * 12), 0), t)
 
     frame = frame + 1

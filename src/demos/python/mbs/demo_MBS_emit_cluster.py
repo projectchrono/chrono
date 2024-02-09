@@ -66,7 +66,7 @@ msphereBody = chrono.ChBodyEasySphere(2.1,          # radius size
                                       True,         # visualization?
                                       True,         # collision?
                                       sphere_mat)  # contact material
-msphereBody.SetPos(chrono.ChVectorD(1, 1, 0))
+msphereBody.SetPos(chrono.ChVector3d(1, 1, 0))
 msphereBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
 
 sys.Add(msphereBody)
@@ -101,7 +101,7 @@ emitter.SetParticleReservoirAmount(200)
 # ---Initialize the randomizer for POSITIONS: random points in a large cube
 emitter_positions = chrono.ChRandomParticlePositionOnGeometry()
 sampled_cube = chrono.ChBox(50, 50, 50)
-emitter_positions.SetGeometry(sampled_cube, chrono.ChFrameD())
+emitter_positions.SetGeometry(sampled_cube, chrono.ChFramed())
 
 emitter.SetParticlePositioner(emitter_positions)
 
@@ -146,7 +146,7 @@ vis.SetWindowTitle('Particle emitter demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 14, -20))
+vis.AddCamera(chrono.ChVector3d(0, 14, -20))
 vis.AddTypicalLights()
 
 # --- Optional: what to do by default on ALL newly created particles?
@@ -166,7 +166,7 @@ sys.SetSolverType(chrono.ChSolver.Type_PSOR)
 sys.SetSolverMaxIterations(40)
 
 # Turn off default -9.8 downward gravity
-sys.Set_G_acc(chrono.ChVectorD(0, 0, 0))
+sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
 
 # Simulation loop
 stepsize = 1e-2

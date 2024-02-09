@@ -40,7 +40,7 @@ import math
 
 sys = chrono.ChSystemNSC()
 
-sys.Set_G_acc(chrono.ChVectorD(0, -9.81, 0))
+sys.Set_G_acc(chrono.ChVector3d(0, -9.81, 0))
 
 # Create the ground body with two visualization cylinders
 
@@ -51,10 +51,10 @@ ground.SetBodyFixed(True)
 ground.SetCollide(False)
 
 cyl_1 = chrono.ChVisualShapeCylinder(0.2, 0.4)
-ground.AddVisualShape(cyl_1, chrono.ChFrameD(chrono.ChVectorD(0, 0, +1)))
+ground.AddVisualShape(cyl_1, chrono.ChFramed(chrono.ChVector3d(0, 0, +1)))
 
 cyl_2 = chrono.ChVisualShapeCylinder(0.2, 0.4)
-ground.AddVisualShape(cyl_2, chrono.ChFrameD(chrono.ChVectorD(0, 0, -1)))
+ground.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(0, 0, -1)))
 
 
 # Create a pendulum modeled using ChBody
@@ -65,25 +65,25 @@ pend_1.SetIdentifier(1)
 pend_1.SetBodyFixed(False)
 pend_1.SetCollide(False)
 pend_1.SetMass(1)
-pend_1.SetInertiaXX(chrono.ChVectorD(0.2, 1, 1))
+pend_1.SetInertiaXX(chrono.ChVector3d(0.2, 1, 1))
 
 # Attach a visualization asset. Note that the cylinder is defined with
 # respect to the centroidal reference frame (which is the body reference
 # frame for a ChBody)
 cyl_1 = chrono.ChVisualShapeCylinder(0.2, 2)
 cyl_1.SetColor(chrono.ChColor(0.6, 0, 0))
-pend_1.AddVisualShape(cyl_1, chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+pend_1.AddVisualShape(cyl_1, chrono.ChFramed(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
 
 
 # Specify the intial position of the pendulum (horizontal, pointing towards
 # positive X). In this case, we set the absolute position of its center of 
 # mass
-pend_1.SetPos(chrono.ChVectorD(1, 0, 1))
+pend_1.SetPos(chrono.ChVector3d(1, 0, 1))
 
 # Create a revolute joint to connect pendulum to ground. We specify the link
 # coordinate frame in the absolute frame.
 rev_1 = chrono.ChLinkLockRevolute()
-rev_1.Initialize(ground, pend_1, chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 1), chrono.ChQuaternionD(1, 0, 0, 0)))
+rev_1.Initialize(ground, pend_1, chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 1), chrono.ChQuaterniond(1, 0, 0, 0)))
 sys.AddLink(rev_1)
 
 # Create a pendulum modeled using ChBodyAuxRef
@@ -93,25 +93,25 @@ pend_2.SetIdentifier(2)
 pend_2.SetBodyFixed(False)
 pend_2.SetCollide(False)
 pend_2.SetMass(1)
-pend_2.SetInertiaXX(chrono.ChVectorD(0.2, 1, 1))
+pend_2.SetInertiaXX(chrono.ChVector3d(0.2, 1, 1))
 # NOTE: the inertia tensor must still be expressed in the centroidal frame!
 
 # Attach a visualizationn asset. Note that now the cylinder is defined with
 # respect to the body reference frame.
 cyl_2 = chrono.ChVisualShapeCylinder(0.2, 2)
 cyl_2.SetColor(chrono.ChColor(0, 0, 0.6))
-pend_2.AddVisualShape(cyl_2, chrono.ChFrameD(chrono.ChVectorD(1, 0, 0), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+pend_2.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(1, 0, 0), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
 
 
 # In this case, we must specify the centroidal frame, relative to the body
 # reference frame
-pend_2.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(1, 0, 0), chrono.ChQuaternionD(1, 0, 0, 0)))
+pend_2.SetFrame_COG_to_REF(chrono.ChFramed(chrono.ChVector3d(1, 0, 0), chrono.ChQuaterniond(1, 0, 0, 0)))
 
 # Specify the initial position of the pendulum (horizontal, pointing towards
 # positive X).  Here, we want to specify the position of the body reference
 # frame (relative to the absolute frame). Recall that the body reference
 # frame is located at the pin.
-pend_2.SetFrame_REF_to_abs(chrono.ChFrameD(chrono.ChVectorD(0, 0, -1)))
+pend_2.SetFrame_REF_to_abs(chrono.ChFramed(chrono.ChVector3d(0, 0, -1)))
 
 
 # Note: Beware of using the method SetPos() to specify the initial position
@@ -131,7 +131,7 @@ pend_2.SetFrame_REF_to_abs(chrono.ChFrameD(chrono.ChVectorD(0, 0, -1)))
 # Create a revolute joint to connect pendulum to ground. We specify the link
 # coordinate frame in the absolute frame.
 rev_2 = chrono.ChLinkLockRevolute()
-rev_2.Initialize(ground, pend_2, chrono.ChCoordsysD(chrono.ChVectorD(0, 0, -2), chrono.ChQuaternionD(1, 0, 0, 0)))
+rev_2.Initialize(ground, pend_2, chrono.ChCoordsysd(chrono.ChVector3d(0, 0, -2), chrono.ChQuaterniond(1, 0, 0, 0)))
 sys.AddLink(rev_2)
 
 # Create the Irrlicht visualization
@@ -142,7 +142,7 @@ vis.SetWindowTitle('ChBodyAuxRef demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 3, 6))
+vis.AddCamera(chrono.ChVector3d(0, 3, 6))
 vis.AddTypicalLights()
 
 # Simulation Loop

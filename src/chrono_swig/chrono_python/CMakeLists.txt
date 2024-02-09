@@ -207,7 +207,7 @@ set(CHPY_CORE_MODULE_FILE
     )
 set(CHPY_CORE_WRAPPER_FILES
     ../interface/core/ChCoordsys.i
-    ../interface/core/ChVector.i
+    ../interface/core/ChVector3.i
     ../interface/core/ChQuaternion.i
     )
 

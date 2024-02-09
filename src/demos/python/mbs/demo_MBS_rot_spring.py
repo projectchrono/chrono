@@ -50,12 +50,12 @@ class MySpringTorque(chrono.TorqueFunctor):
 print("Copyright (c) 2017 projectchrono.org")
 
 sys = chrono.ChSystemNSC()
-sys.Set_G_acc(chrono.ChVectorD(0, 0, 0))
+sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
 
 # Revolute joint frame 
 rev_rot = chrono.Q_from_AngX(m.pi / 6.0)
 rev_dir = rev_rot.GetZaxis()
-rev_pos = chrono.ChVectorD(+1, 0, 0)
+rev_pos = chrono.ChVector3d(+1, 0, 0)
 
 # Create ground body
 ground = chrono.ChBody()
@@ -70,7 +70,7 @@ cyl_rev = chrono.ChVisualShapeCylinder(0.1, seg.GetLength())
 ground.AddVisualShape(cyl_rev, seg.GetFrame())
 
 # Offset from joint to body COM
-offset = chrono.ChVectorD(1.5, 0, 0)
+offset = chrono.ChVector3d(1.5, 0, 0)
 
 # Consistent initial velocities
 omega = 5.0
@@ -87,24 +87,24 @@ body.SetIdentifier(1)
 body.SetBodyFixed(False)
 body.SetCollide(False)
 body.SetMass(1)
-body.SetInertiaXX(chrono.ChVectorD(1, 1, 1))
+body.SetInertiaXX(chrono.ChVector3d(1, 1, 1))
 
 # Attach visualization assets
 sph = chrono.ChVisualShapeSphere(0.3)
 body.AddVisualShape(sph)
 cyl = chrono.ChVisualShapeCylinder(0.1, 1.5)
 cyl.SetColor(chrono.ChColor(0.7, 0.8, 0.8))
-body.AddVisualShape(cyl, chrono.ChFrameD(chrono.ChVectorD(-0.75,0,0), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+body.AddVisualShape(cyl, chrono.ChFramed(chrono.ChVector3d(-0.75,0,0), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
 
 # Create revolute joint between body and ground
 rev = chrono.ChLinkLockRevolute()
-rev.Initialize(body, ground, chrono.ChCoordsysD(rev_pos, rev_rot))
+rev.Initialize(body, ground, chrono.ChCoordsysd(rev_pos, rev_rot))
 sys.AddLink(rev)
 
 # Create the rotational spring between body and ground
 torque = MySpringTorque()
 spring = chrono.ChLinkRSDA()
-spring.Initialize(body, ground, chrono.ChCoordsysD(rev_pos, rev_rot))
+spring.Initialize(body, ground, chrono.ChCoordsysd(rev_pos, rev_rot))
 spring.RegisterTorqueFunctor(torque)
 rsda = chrono.ChVisualShapeRotSpring(0.5, 40)
 rsda.SetColor(chrono.ChColor(0, 0, 0))
@@ -119,7 +119,7 @@ vis.SetWindowTitle('ChLinkRSDA demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(3, 1, 3))
+vis.AddCamera(chrono.ChVector3d(3, 1, 3))
 vis.AddTypicalLights()
 
 # Simulation loop

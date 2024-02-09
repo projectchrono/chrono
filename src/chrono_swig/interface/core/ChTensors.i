@@ -9,12 +9,12 @@
 // This is not straightforward in SWIG. So access them as .x .y .z attributes 
 // using the following workaround (NOTE! must happen before calling %include)
 /*%include <attribute.i>
-%attributeref(chrono::ChVector<double>, double, x);
-%attributeref(chrono::ChVector<double>, double, y);
-%attributeref(chrono::ChVector<double>, double, z);
-%attributeref(chrono::ChVector<float>, float, x);
-%attributeref(chrono::ChVector<float>, float, y);
-%attributeref(chrono::ChVector<float>, float, z);*/
+%attributeref(chrono::ChVector3<double>, double, x);
+%attributeref(chrono::ChVector3<double>, double, y);
+%attributeref(chrono::ChVector3<double>, double, z);
+%attributeref(chrono::ChVector3<float>, float, x);
+%attributeref(chrono::ChVector3<float>, float, y);
+%attributeref(chrono::ChVector3<float>, float, z);*/
 
 #endif             // --------------------------------------------------------------------- CSHARP
 

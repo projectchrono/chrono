@@ -45,7 +45,7 @@ floor_mat = chrono.ChContactMaterialNSC()
 
 # Define a collision shape
 floor_ct_shape = chrono.ChCollisionShapeBox(floor_mat, 20, 1, 20)
-floor.AddCollisionShape(floor_ct_shape, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0), chrono.QUNIT))
+floor.AddCollisionShape(floor_ct_shape, chrono.ChFramed(chrono.ChVector3d(0, -1, 0), chrono.QUNIT))
 floor.SetCollide(True)
 
 # Add body to sys
@@ -56,15 +56,15 @@ sys.Add(floor)
 # Note that assets are managed via shared pointer, so they can also be shared.
 boxfloor = chrono.ChVisualShapeBox(20, 1, 20)
 boxfloor.SetColor(chrono.ChColor(0.2, 0.3, 1.0))
-floor.AddVisualShape(boxfloor, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0), chrono.QUNIT))
+floor.AddVisualShape(boxfloor, chrono.ChFramed(chrono.ChVector3d(0, -1, 0), chrono.QUNIT))
 
 
 # ==Asset== attack a 'path shape populated with segments and arc fillets:
 # TODO: not sure how to add them
 pathfloor = chrono.ChVisualShapePath()
-mseg1 = chrono.ChLineSegment(chrono.ChVectorD(1,2,0), chrono.ChVectorD(1,3,0))
-mseg2 = chrono.ChLineSegment(chrono.ChVectorD(1, 3, 0), chrono.ChVectorD(2, 3, 0))
-marc1 = chrono.ChLineArc(chrono.ChCoordsysD(chrono.ChVectorD(2, 3.5, 0)), 0.5, -chrono.CH_C_PI_2, chrono.CH_C_PI_2)
+mseg1 = chrono.ChLineSegment(chrono.ChVector3d(1,2,0), chrono.ChVector3d(1,3,0))
+mseg2 = chrono.ChLineSegment(chrono.ChVector3d(1, 3, 0), chrono.ChVector3d(2, 3, 0))
+marc1 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(2, 3.5, 0)), 0.5, -chrono.CH_C_PI_2, chrono.CH_C_PI_2)
 pathfloor.GetPathGeometry().AddSubLine(mseg1)
 pathfloor.GetPathGeometry().AddSubLine(mseg2)
 pathfloor.GetPathGeometry().AddSubLine(marc1)
@@ -75,11 +75,11 @@ floor.AddVisualShape(pathfloor)
 # then you put it inside a ChVisualShapeLine asset)
 
 nurbs = chrono.ChLineNurbs()
-v1 = chrono.ChVectorD(1, 2, -1)
-v2 = chrono.ChVectorD(1, 3, -1)
-v3 = chrono.ChVectorD(1, 3, -2)
-v4 = chrono.ChVectorD(1, 4, -2)
-controlpoints = chrono.vector_ChVectorD([v1, v2, v3, v4])
+v1 = chrono.ChVector3d(1, 2, -1)
+v2 = chrono.ChVector3d(1, 3, -1)
+v3 = chrono.ChVector3d(1, 3, -2)
+v4 = chrono.ChVector3d(1, 4, -2)
+controlpoints = chrono.vector_ChVector3d([v1, v2, v3, v4])
 nurbs.SetupData(3, controlpoints)
 
 nurbsasset = chrono.ChVisualShapeLine()
@@ -92,20 +92,20 @@ floor.AddVisualShape(nurbsasset)
 # then you put it inside a ChVisualShapeSurface asset)
 #
 # NOTE: not working at this time
-#       requires proper wrapping of matrix_ChVectorD...
+#       requires proper wrapping of matrix_ChVector3d...
 
-#mlist = [[chrono.ChVectorD(1, 2, 3), chrono.ChVectorD(1, 2, 1)],
-#         [chrono.ChVectorD(1, 3, 3), chrono.ChVectorD(1, 3, 1)],
-#         [chrono.ChVectorD(2, 3, 3), chrono.ChVectorD(3, 3, 1)],
-#         [chrono.ChVectorD(2, 4, 3), chrono.ChVectorD(2, 4, 1)]]
-#surfpoints = chrono.matrix_ChVectorD()
+#mlist = [[chrono.ChVector3d(1, 2, 3), chrono.ChVector3d(1, 2, 1)],
+#         [chrono.ChVector3d(1, 3, 3), chrono.ChVector3d(1, 3, 1)],
+#         [chrono.ChVector3d(2, 3, 3), chrono.ChVector3d(3, 3, 1)],
+#         [chrono.ChVector3d(2, 4, 3), chrono.ChVector3d(2, 4, 1)]]
+#surfpoints = chrono.matrix_ChVector3d()
 #surfpoints.SetMatr(mlist)
 #
 #msurf = chrono.ChSurfaceNurbs()
 #msurf.SetupData(3, 1, surfpoints)
 #
 #msurfasset = chrono.ChVisualShapeSurface()
-#msurfasset.Pos = chrono.ChVectorD(3, -1, 3)
+#msurfasset.Pos = chrono.ChVector3d(3, -1, 3)
 #msurfasset.SetSurfaceGeometry(msurf)
 #msurfasset.SetWireframe(True)
 #floor.AddVisualShape(msurfasset)
@@ -131,43 +131,43 @@ orange_mat.SetDiffuseColor(chrono.ChColor(0.9, 0.4, 0.2))
 # ==Asset== Attach a 'sphere' shape
 sphere = chrono.ChVisualShapeSphere(0.5)
 sphere.AddMaterial(orange_mat)
-body.AddVisualShape(sphere, chrono.ChFrameD(chrono.ChVectorD(-1,0,0), chrono.QUNIT))
+body.AddVisualShape(sphere, chrono.ChFramed(chrono.ChVector3d(-1,0,0), chrono.QUNIT))
 
 # ==Asset== Attach also a 'box' shape
 box = chrono.ChVisualShapeBox(0.6, 1.0, 0.2)
 box.AddMaterial(orange_mat)
-body.AddVisualShape(box, chrono.ChFrameD(chrono.ChVectorD(1,1,0), chrono.QUNIT))
+body.AddVisualShape(box, chrono.ChFramed(chrono.ChVector3d(1,1,0), chrono.QUNIT))
 
 # ==Asset== Attach also a 'cylinder' shape
 cyl = chrono.ChVisualShapeCylinder(0.3, 0.7)
 body.AddVisualShape(cyl, 
-                    chrono.ChFrameD(chrono.ChVectorD(2, 0.15, 0),
+                    chrono.ChFramed(chrono.ChVector3d(2, 0.15, 0),
                                     chrono.Q_from_AngX(chrono.CH_C_PI_2)))
 
 # ==Asset== Attach three instances of the same 'triangle mesh' shape
 # TODO: not sure how to add vertices
 mesh = chrono.ChVisualShapeTriangleMesh()
-mesh.GetMesh().addTriangle(chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 1, 0), chrono.ChVectorD(1, 0, 0))
+mesh.GetMesh().addTriangle(chrono.ChVector3d(0, 0, 0), chrono.ChVector3d(0, 1, 0), chrono.ChVector3d(1, 0, 0))
 mesh.AddMaterial(orange_mat)
 
-body.AddVisualShape(mesh, chrono.ChFrameD(chrono.ChVectorD(2,0,2), chrono.QUNIT))
-body.AddVisualShape(mesh, chrono.ChFrameD(chrono.ChVectorD(3,0,2), chrono.QUNIT))
-body.AddVisualShape(mesh, chrono.ChFrameD(chrono.ChVectorD(2,1,2), chrono.QUNIT))
+body.AddVisualShape(mesh, chrono.ChFramed(chrono.ChVector3d(2,0,2), chrono.QUNIT))
+body.AddVisualShape(mesh, chrono.ChFramed(chrono.ChVector3d(3,0,2), chrono.QUNIT))
+body.AddVisualShape(mesh, chrono.ChFramed(chrono.ChVector3d(2,1,2), chrono.QUNIT))
 
 
 # ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
 objmesh = chrono.ChVisualShapeModelFile()
 objmesh.SetFilename(chrono.GetChronoDataFile('models/forklift/body.obj'))
 objmesh.SetTexture(chrono.GetChronoDataFile('textures/bluewhite.png'))
-body.AddVisualShape(objmesh, chrono.ChFrameD(chrono.ChVectorD(0,0,2), chrono.QUNIT))
+body.AddVisualShape(objmesh, chrono.ChFramed(chrono.ChVector3d(0,0,2), chrono.QUNIT))
 
-# ==Asset== , chrono.ChFrameD(chrono.ChVectorD(2,1,2), chrono.QUNIT))
+# ==Asset== , chrono.ChFramed(chrono.ChVector3d(2,1,2), chrono.QUNIT))
 for j in range(20):
     smallbox = chrono.ChVisualShapeBox(0.2, 0.2, 0.02)
     smallbox.SetColor(chrono.ChColor(j * 0.05, 1 - j * 0.05, 0.0))
     rot = chrono.ChMatrix33D(chrono.Q_from_AngY(j * 21 * chrono.CH_C_DEG_TO_RAD))
-    pos = rot * chrono.ChVectorD(0.4, 0, 0) + chrono.ChVectorD(0, j * 0.02, 0)
-    body.AddVisualShape(smallbox, chrono.ChFrameD(pos, rot))
+    pos = rot * chrono.ChVector3d(0.4, 0, 0) + chrono.ChVector3d(0, j * 0.02, 0)
+    body.AddVisualShape(smallbox, chrono.ChFramed(pos, rot))
 
 #
 # EXAMPLE 3:
@@ -191,12 +191,12 @@ particles.SetCollide(True)
 
 # Create the random particles
 for i in range(100):
-    particles.AddParticle(chrono.ChCoordsysD(chrono.ChVectorD(chrono.ChRandom() - 2, 1.5, chrono.ChRandom() + 2)))
+    particles.AddParticle(chrono.ChCoordsysd(chrono.ChVector3d(chrono.ChRandom() - 2, 1.5, chrono.ChRandom() + 2)))
 
 # Mass and inertia properties.
 # This will be shared among all particles in the ChParticleCloud.
 particles.SetMass(0.1)
-particles.SetInertiaXX(chrono.ChVectorD(0.001, 0.001, 0.001))
+particles.SetInertiaXX(chrono.ChVector3d(0.001, 0.001, 0.001))
 
 # Do not forget to add the particles cluster to the sys
 sys.Add(particles)
@@ -206,18 +206,18 @@ sys.Add(particles)
 sphereparticle = chrono.ChVisualShapeSphere(0.05)
 particles.AddVisualShape(sphereparticle)
  
-displ = chrono.ChVectorD(1.0, 0.0, 0.0)
-v1 = chrono.ChVectorD(0.8, 0.0, 0.0) + displ
-v2 = chrono.ChVectorD(0.8, 0.3, 0.0) + displ
-v3 = chrono.ChVectorD(0.8, 0.3, 0.3) + displ
-v4 = chrono.ChVectorD(0.0, 0.3, 0.3) + displ
-v5 = chrono.ChVectorD(0.0, 0.0, 0.3) + displ
-v6 = chrono.ChVectorD(0.8, 0.0, 0.3) + displ
-mpoints = chrono.vector_ChVectorD([v1 , v2, v3, v4, v5, v6])
+displ = chrono.ChVector3d(1.0, 0.0, 0.0)
+v1 = chrono.ChVector3d(0.8, 0.0, 0.0) + displ
+v2 = chrono.ChVector3d(0.8, 0.3, 0.0) + displ
+v3 = chrono.ChVector3d(0.8, 0.3, 0.3) + displ
+v4 = chrono.ChVector3d(0.0, 0.3, 0.3) + displ
+v5 = chrono.ChVector3d(0.0, 0.0, 0.3) + displ
+v6 = chrono.ChVector3d(0.8, 0.0, 0.3) + displ
+mpoints = chrono.vector_ChVector3d([v1 , v2, v3, v4, v5, v6])
 
 hull = chrono.ChBodyEasyConvexHullAuxRef(mpoints, 1000, True, True, chrono.ChContactMaterialNSC())
  
-hull.Move(chrono.ChVectorD(2, 0.3, 0))
+hull.Move(chrono.ChVector3d(2, 0.3, 0))
 sys.Add(hull)
 
 # Create the Irrlicht visualization
@@ -228,7 +228,7 @@ vis.SetWindowTitle('Chrono::Irrlicht visualization')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(-2, 3, -4))
+vis.AddCamera(chrono.ChVector3d(-2, 3, -4))
 vis.AddTypicalLights()
 
 # Simulation loop

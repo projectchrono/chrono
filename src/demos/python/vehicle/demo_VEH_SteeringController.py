@@ -33,7 +33,7 @@ def main():
     hmmwv = veh.HMMWV_Full()
     hmmwv.SetContactMethod(contact_method)
     hmmwv.SetChassisFixed(False) 
-    hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, chrono.ChQuaternionD(1, 0, 0, 0)))
+    hmmwv.SetInitPosition(chrono.ChCoordsysd(initLoc, chrono.ChQuaterniond(1, 0, 0, 0)))
     hmmwv.SetEngineType(engine_model)
     hmmwv.SetTransmissionType(transmission_model)
     hmmwv.SetDriveType(drive_type)
@@ -82,7 +82,7 @@ def main():
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
     vis.SetWindowTitle('HMMWV steering controller')
     vis.SetWindowSize(1280, 1024)
-    vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
+    vis.SetChaseCamera(chrono.ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5)
     vis.Initialize()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddLightDirectional()
@@ -141,7 +141,7 @@ def main():
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location
-initLoc = chrono.ChVectorD(-50, 0, 0.7)
+initLoc = chrono.ChVector3d(-50, 0, 0.7)
 
 # Vehicle target speed (cruise-control)
 target_speed = 12

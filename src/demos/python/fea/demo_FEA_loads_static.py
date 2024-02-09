@@ -24,8 +24,8 @@ mesh = fea.ChMesh()
 sys.Add(mesh)
 
 # Create some nodes.
-mnodeA = fea.ChNodeFEAxyzrot(chrono.ChFrameD(chrono.ChVectorD(0, 0, 0)))
-mnodeB = fea.ChNodeFEAxyzrot(chrono.ChFrameD(chrono.ChVectorD(2, 0, 0)))
+mnodeA = fea.ChNodeFEAxyzrot(chrono.ChFramed(chrono.ChVector3d(0, 0, 0)))
+mnodeB = fea.ChNodeFEAxyzrot(chrono.ChFramed(chrono.ChVector3d(2, 0, 0)))
 
 # Default mass for FEM nodes is zero
 mnodeA.SetMass(0.0)
@@ -74,14 +74,14 @@ sys.Add(mloadcontainer)
 # Add a vertical load to the end of the beam element:
 mwrench = fea.ChLoadBeamWrench(melementA)
 mwrench.loader.SetApplication(1.0)  # in -1..+1 range, -1: end A, 0: mid, +1: end B
-mwrench.loader.SetForce(chrono.ChVectorD(0, -0.2, 0))
+mwrench.loader.SetForce(chrono.ChVector3d(0, -0.2, 0))
 mloadcontainer.Add(mwrench)  # do not forget to add the load to the load container.
 
 # Example 2:
 
 # Add a distributed load along the beam element:
 mwrenchdis = fea.ChLoadBeamWrenchDistributed(melementA)
-mwrenchdis.loader.SetForcePerUnit(chrono.ChVectorD(0, -0.1, 0))  # load per unit length
+mwrenchdis.loader.SetForcePerUnit(chrono.ChVector3d(0, -0.1, 0))  # load per unit length
 mloadcontainer.Add(mwrenchdis)
 
 # Example 3:
@@ -108,7 +108,7 @@ Example 4 and 5 in C++ equivalent demo require respectively ChLoad<MyLoaderTrian
 # As a stiff load, this will automatically generate a jacobian (tangent stiffness matrix K)
 # that will be used in statics, implicit integrators, etc.
 
-mnodeD = fea.ChNodeFEAxyz(chrono.ChVectorD(2, 10, 3))
+mnodeD = fea.ChNodeFEAxyz(chrono.ChVector3d(2, 10, 3))
 mesh.AddNode(mnodeD)
 
 class MyLoadCustom(chrono.ChLoadCustom):
@@ -127,8 +127,8 @@ class MyLoadCustom(chrono.ChLoadCustom):
     def ComputeQ(self,state_x,      #/< state position to evaluate Q
                  state_w):     #/< state speed to evaluate Q
         if not state_x==None and not state_w==None :
-            node_pos = chrono.ChVectorD(state_x[0], state_x[1], state_x[2])
-            node_vel = chrono.ChVectorD(state_w[0], state_w[1], state_w[2])
+            node_pos = chrono.ChVector3d(state_x[0], state_x[1], state_x[2])
+            node_vel = chrono.ChVector3d(state_w[0], state_w[1], state_w[2])
         else:
             mynode = fea.CastToChNodeFEAxyz( fea.CastToChNodeFEAbase( chrono.CastToChNodeBase(self.loadable) ))
             node_pos = mynode.GetPos()
@@ -168,9 +168,9 @@ mloadcontainer.Add(mloadcustom)
 # by default using numerical differentiation but if you want you
 # can override ComputeJacobian() and compute mK, mR analytically - see prev.example.
 
-mnodeE = fea.ChNodeFEAxyz(chrono.ChVectorD(2, 10, 3))
+mnodeE = fea.ChNodeFEAxyz(chrono.ChVector3d(2, 10, 3))
 mesh.AddNode(mnodeE)
-mnodeF = fea.ChNodeFEAxyz(chrono.ChVectorD(2, 11, 3))
+mnodeF = fea.ChNodeFEAxyz(chrono.ChVector3d(2, 11, 3))
 mesh.AddNode(mnodeF)
 
 class MyLoadCustomMultiple(chrono.ChLoadCustomMultiple):
@@ -190,15 +190,15 @@ class MyLoadCustomMultiple(chrono.ChLoadCustomMultiple):
     # As this is a stiff force field, dependency from state_x and state_y must be considered.
     def ComputeQ(self,state_x,      #/< state position to evaluate Q
                  state_w):     #/< state speed to evaluate Q
-        #chrono.ChVectorD Enode_pos
-        #chrono.ChVectorD Enode_vel
-        #chrono.ChVectorD Fnode_pos
-        #chrono.ChVectorD Fnode_vel
+        #chrono.ChVector3d Enode_pos
+        #chrono.ChVector3d Enode_vel
+        #chrono.ChVector3d Fnode_pos
+        #chrono.ChVector3d Fnode_vel
         if not state_x==None and not state_w==None :
-            Enode_pos = chrono.ChVectorD(state_x[0], state_x[1], state_x[2])
-            Enode_vel = chrono.ChVectorD(state_w[0], state_w[1], state_w[2])
-            Fnode_pos = chrono.ChVectorD(state_x[3], state_x[4], state_x[5])
-            Fnode_vel = chrono.ChVectorD(state_w[3], state_w[4], state_w[5])
+            Enode_pos = chrono.ChVector3d(state_x[0], state_x[1], state_x[2])
+            Enode_vel = chrono.ChVector3d(state_w[0], state_w[1], state_w[2])
+            Fnode_pos = chrono.ChVector3d(state_x[3], state_x[4], state_x[5])
+            Fnode_vel = chrono.ChVector3d(state_w[3], state_w[4], state_w[5])
         else:
             # explicit integrators might call ComputeQ(0,0), null pointers mean
             # that we assume current state, without passing state_x for efficiency
@@ -216,12 +216,12 @@ class MyLoadCustomMultiple(chrono.ChLoadCustomMultiple):
         Dy1 = 0.2
         E_x_offset = 2
         E_y_offset = 10
-        spring1 = chrono.ChVectorD(-Kx1 * (Enode_pos.x - E_x_offset) - Dx1 * Enode_vel.x, -Ky1 * (Enode_pos.y - E_y_offset) - Dy1 * Enode_vel.y, 0)
+        spring1 = chrono.ChVector3d(-Kx1 * (Enode_pos.x - E_x_offset) - Dx1 * Enode_vel.x, -Ky1 * (Enode_pos.y - E_y_offset) - Dy1 * Enode_vel.y, 0)
   		# ... from node F to node E,
         Ky2 = 10
         Dy2 = 0.2
         EF_dist = 1
-        spring2 = chrono.ChVectorD (0, -Ky2 * (Fnode_pos.y - Enode_pos.y - EF_dist) - Dy2 * (Enode_vel.y - Fnode_vel.y), 0)
+        spring2 = chrono.ChVector3d (0, -Ky2 * (Fnode_pos.y - Enode_pos.y - EF_dist) - Dy2 * (Enode_vel.y - Fnode_vel.y), 0)
         Fforcey = 2
   		# store generalized forces as a contiguous vector in this.load_Q, with same order of state_w
         self.load_Q[0] = spring1.x - spring2.x    # Fx component of force on 1st node

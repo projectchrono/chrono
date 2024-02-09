@@ -6,8 +6,8 @@
   void Initialize(std::shared_ptr<ChBody> body1,
                   std::shared_ptr<ChBody> body2,
                   bool pos_are_relative,
-                  ChVector<double> pos1,
-                  ChVector<double> pos2) {
+                  ChVector3<double> pos1,
+                  ChVector3<double> pos2) {
      $self->Initialize(std::dynamic_pointer_cast<ChBodyFrame>(body1),
                        std::dynamic_pointer_cast<ChBodyFrame>(body2),
                        pos_are_relative, pos1, pos2,

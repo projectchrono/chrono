@@ -58,7 +58,7 @@ mmeshbox.LoadWavefrontMesh(chrono.GetChronoDataFile("models/cube.obj"), True, Tr
 if (do_mesh_collision_floor) :
     # floor as a triangle mesh surface:
     mfloor = chrono.chronoChBody()
-    mfloor.SetPos(chrono.ChVectorD(0, -1, 0))
+    mfloor.SetPos(chrono.ChVector3d(0, -1, 0))
     mfloor.SetBodyFixed(True)
     sys.Add(mfloor)
     
@@ -88,11 +88,11 @@ else :
 # two falling objects:
 
 mcube = chrono.ChBodyEasyBox(0.1, 0.1, 0.1, 2700, True, True, mysurfmaterial)
-mcube.SetPos(chrono.ChVectorD(0.6, 0.5, 0.6))
+mcube.SetPos(chrono.ChVector3d(0.6, 0.5, 0.6))
 sys.Add(mcube)
 
 msphere = chrono.ChBodyEasySphere(0.1, 2700, True, True, mysurfmaterial)
-msphere.SetPos(chrono.ChVectorD(0.8, 0.5, 0.6))
+msphere.SetPos(chrono.ChVector3d(0.8, 0.5, 0.6))
 sys.Add(msphere)
 
 #
@@ -116,10 +116,10 @@ mmaterial.Set_density(1000)
 
 for i in range(4) :
     try :
-        cdown = chrono.ChCoordsysD(chrono.ChVectorD(0, -0.4, 0))
-        crot = chrono.ChCoordsysD(chrono.VNULL, chrono.Q_from_AngAxis(chrono.CH_C_2PI * chrono.ChRandom(), 
+        cdown = chrono.ChCoordsysd(chrono.ChVector3d(0, -0.4, 0))
+        crot = chrono.ChCoordsysd(chrono.VNULL, chrono.Q_from_AngAxis(chrono.CH_C_2PI * chrono.ChRandom(), 
                                                                      chrono.VECT_Y) * chrono.Q_from_AngAxis(chrono.CH_C_PI_2, chrono.VECT_X))
-        cydisp = chrono.ChCoordsysD(chrono.ChVectorD(-0.3, 0.1 + i * 0.1, -0.3))
+        cydisp = chrono.ChCoordsysd(chrono.ChVector3d(-0.3, 0.1 + i * 0.1, -0.3))
         ctot = cydisp.TransformLocalToParent(crot.TransformLocalToParent(cdown))
         mrot = chrono.ChMatrix33D(ctot.rot)
         fea.ChMeshFileLoader.FromTetGenFile(mesh, chrono.GetChronoDataFile("fea/beam.node"),
@@ -162,8 +162,8 @@ builder = fea.ChBuilderCableANCF()
 builder.BuildBeam(my_mesh_beams,             # the mesh where to put the created nodes and elements
   msection_cable2,           # the ChBeamSectionCable to use for the ChElementCableANCF elements
   10,                        # the number of ChElementCableANCF to create
-  chrono.ChVectorD(0, 0.1, -0.1),  # the 'A' poin space (beginning of beam)
-  chrono.ChVectorD(0.5, 0.13, -0.1))  # the 'B' poin space (end of beam)
+  chrono.ChVector3d(0, 0.1, -0.1),  # the 'A' poin space (beginning of beam)
+  chrono.ChVector3d(0.5, 0.13, -0.1))  # the 'B' poin space (end of beam)
 
 # Create the contact surface(s).
 # In this case it is a ChContactSurfaceNodeCloud, so just pass
@@ -221,7 +221,7 @@ vis.SetWindowTitle('FEA contacts')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 0.6, -1))
+vis.AddCamera(chrono.ChVector3d(0, 0.6, -1))
 vis.AddTypicalLights()
 
 vis.EnableContactDrawing(chronoirr.ContactsDrawMode_CONTACT_DISTANCES)

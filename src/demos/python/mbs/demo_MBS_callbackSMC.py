@@ -94,7 +94,7 @@ friction = 0.6
 
 sys = chrono.ChSystemSMC()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
-sys.Set_G_acc(chrono.ChVectorD(0, -10, 0))
+sys.Set_G_acc(chrono.ChVector3d(0, -10, 0))
 
 # Set solver settings
 sys.SetSolverMaxIterations(100)
@@ -113,23 +113,23 @@ material.SetFriction(friction)
 
 container = chrono.ChBody()
 sys.Add(container)
-container.SetPos(chrono.ChVectorD(0, 0, 0))
+container.SetPos(chrono.ChVector3d(0, 0, 0))
 container.SetBodyFixed(True)
 container.SetIdentifier(-1)
 
 container.SetCollide(True)
-chrono.AddBoxGeometry(container, material, chrono.ChVectorD(8, 1, 8), chrono.ChVectorD(0, -0.5, 0))
+chrono.AddBoxGeometry(container, material, chrono.ChVector3d(8, 1, 8), chrono.ChVector3d(0, -0.5, 0))
 
 container.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
 
 box1 = chrono.ChBody()
 box1.SetMass(10)
-box1.SetInertiaXX(chrono.ChVectorD(1, 1, 1))
-box1.SetPos(chrono.ChVectorD(-1, 0.21, -1))
-box1.SetPos_dt(chrono.ChVectorD(5, 0, 0))
+box1.SetInertiaXX(chrono.ChVector3d(1, 1, 1))
+box1.SetPos(chrono.ChVector3d(-1, 0.21, -1))
+box1.SetPos_dt(chrono.ChVector3d(5, 0, 0))
 
 box1.SetCollide(True)
-chrono.AddBoxGeometry(box1, material, chrono.ChVectorD(0.4, 0.2, 0.1))
+chrono.AddBoxGeometry(box1, material, chrono.ChVector3d(0.4, 0.2, 0.1))
 
 box1.GetVisualShape(0).SetColor(chrono.ChColor(0.1, 0.1, 0.4))
 
@@ -137,12 +137,12 @@ sys.AddBody(box1)
 
 box2 = chrono.ChBody()
 box2.SetMass(10)
-box2.SetInertiaXX(chrono.ChVectorD(1, 1, 1))
-box2.SetPos(chrono.ChVectorD(-1, 0.21, +1))
-box2.SetPos_dt(chrono.ChVectorD(5, 0, 0))
+box2.SetInertiaXX(chrono.ChVector3d(1, 1, 1))
+box2.SetPos(chrono.ChVector3d(-1, 0.21, +1))
+box2.SetPos_dt(chrono.ChVector3d(5, 0, 0))
 
 box2.SetCollide(True)
-chrono.AddBoxGeometry(box2, material, chrono.ChVectorD(0.4, 0.2, 0.1))
+chrono.AddBoxGeometry(box2, material, chrono.ChVector3d(0.4, 0.2, 0.1))
 
 box2.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.1, 0.1))
 
@@ -159,7 +159,7 @@ vis.SetWindowTitle('SMC callbacks')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(4, 4, -6))
+vis.AddCamera(chrono.ChVector3d(4, 4, -6))
 vis.AddTypicalLights()
 
 # ---------------
@@ -175,7 +175,7 @@ while vis.Run():
     vis.BeginScene() 
     vis.Render()
     chronoirr.drawGrid(vis, 0.5, 0.5, 12, 12,
-                       chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
+                       chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
     chronoirr.drawAllCOGs(vis, 1.0)
     vis.EndScene()
     sys.DoStepDynamics(1e-3)

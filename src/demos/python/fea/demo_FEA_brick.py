@@ -137,7 +137,7 @@ for i in range(TotalNumNodes) :
 # Adding the nodes to the mesh
 i = 0
 while i < TotalNumNodes :
-	node = fea.ChNodeFEAxyz(chrono.ChVectorD(COORDFlex[i, 0], COORDFlex[i, 1], COORDFlex[i, 2]))
+	node = fea.ChNodeFEAxyz(chrono.ChVector3d(COORDFlex[i, 0], COORDFlex[i, 1], COORDFlex[i, 2]))
 	node.SetMass(0.0)
 	mesh.AddNode(node)
 	if (NDR[i, 0] == 1 and NDR[i, 1] == 1 and NDR[i, 2] == 1) :
@@ -150,7 +150,7 @@ nodetip = fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(TotalNumNo
 elemcount = 0
 while elemcount < TotalNumElements : 
     element = fea.ChElementHexaANCF_3813()
-    InertFlexVec  = chrono.ChVectorD(ElemLengthXY[elemcount, 0], ElemLengthXY[elemcount, 1], ElemLengthXY[elemcount, 2]) # read element length
+    InertFlexVec  = chrono.ChVector3d(ElemLengthXY[elemcount, 0], ElemLengthXY[elemcount, 1], ElemLengthXY[elemcount, 2]) # read element length
     element.SetInertFlexVec(InertFlexVec)
     element.SetNodes(fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(int(NumNodes[elemcount, 0])))),
 					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(int(NumNodes[elemcount, 1])))),
@@ -171,7 +171,7 @@ while elemcount < TotalNumElements :
     mesh.AddElement(element)
     elemcount += 1
 
-sys.Set_G_acc(chrono.ChVectorD(0, 0, -9.81))
+sys.Set_G_acc(chrono.ChVector3d(0, 0, -9.81))
 # Remember to add the mesh to the system!
 sys.Add(mesh)
 
@@ -210,7 +210,7 @@ vis.SetWindowTitle('Brick Elements')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(1.2, 0.6, 0.3), chrono.ChVectorD(0.2, -0.2, 0))
+vis.AddCamera(chrono.ChVector3d(1.2, 0.6, 0.3), chrono.ChVector3d(0.2, -0.2, 0))
 vis.AddTypicalLights()
 
 

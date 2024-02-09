@@ -38,13 +38,13 @@ sys.Add(mfloor)
 
 # Create a ChLinePath geometry, and insert sub-paths:
 mpath = chrono.ChLinePath()
-mseg1 = chrono.ChLineSegment(chrono.ChVectorD(1, 2, 0), chrono.ChVectorD(2, 2, 0))
+mseg1 = chrono.ChLineSegment(chrono.ChVector3d(1, 2, 0), chrono.ChVector3d(2, 2, 0))
 mpath.AddSubLine(mseg1)
-marc1 = chrono.ChLineArc(chrono.ChCoordsysD(chrono.ChVectorD(2, 2.5, 0)), 0.5, -chrono.CH_C_PI_2, chrono.CH_C_PI_2, True)
+marc1 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(2, 2.5, 0)), 0.5, -chrono.CH_C_PI_2, chrono.CH_C_PI_2, True)
 mpath.AddSubLine(marc1)
-mseg2 = chrono.ChLineSegment(chrono.ChVectorD(2, 3, 0), chrono.ChVectorD(1, 3, 0))
+mseg2 = chrono.ChLineSegment(chrono.ChVector3d(2, 3, 0), chrono.ChVector3d(1, 3, 0))
 mpath.AddSubLine(mseg2)
-marc2 = chrono.ChLineArc(chrono.ChCoordsysD(chrono.ChVectorD(1, 2.5, 0)), 0.5, chrono.CH_C_PI_2, -chrono.CH_C_PI_2, True);
+marc2 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(1, 2.5, 0)), 0.5, chrono.CH_C_PI_2, -chrono.CH_C_PI_2, True);
 mpath.AddSubLine(marc2)
 mpath.Set_closed(True)
 
@@ -57,7 +57,7 @@ mfloor.AddVisualShape(mpathasset)
 # Create a body that will follow the trajectory
 
 mpendulum = chrono.ChBodyEasyBox(0.1, 1, 0.1, 1000)
-mpendulum.SetPos(chrono.ChVectorD(1, 1.5, 0))
+mpendulum.SetPos(chrono.ChVector3d(1, 1.5, 0))
 sys.Add(mpendulum)
 
 # The trajectory constraint:
@@ -67,7 +67,7 @@ mtrajectory = chrono.ChLinkTrajectory()
 # Define which parts are connected (the trajectory is considered in the 2nd body).
 mtrajectory.Initialize(mpendulum, # body1 that follows the trajectory
           mfloor,                 # body2 that 'owns' the trajectory
-          chrono.ChVectorD(0, 0.5, 0),  # point on body1 that will follow the trajectory
+          chrono.ChVector3d(0, 0.5, 0),  # point on body1 that will follow the trajectory
           mpath                   # the trajectory (reuse the one already added to body2 as asset)
           )
 
@@ -86,25 +86,25 @@ sys.Add(mtrajectory)
 # Create a ChBody that contains the trajectory
 
 mwheel = chrono.ChBody()
-mwheel.SetPos(chrono.ChVectorD(-3, 2, 0))
+mwheel.SetPos(chrono.ChVector3d(-3, 2, 0))
 sys.Add(mwheel)
 
 # Create a motor that spins the wheel
 my_motor = chrono.ChLinkMotorRotationSpeed()
-my_motor.Initialize(mwheel, mfloor, chrono.ChFrameD(chrono.ChVectorD(-3, 2, 0)))
+my_motor.Initialize(mwheel, mfloor, chrono.ChFramed(chrono.ChVector3d(-3, 2, 0)))
 my_angularspeed = chrono.ChFunctionConst(chrono.CH_C_PI / 4.0)
 my_motor.SetMotorFunction(my_angularspeed)
 sys.Add(my_motor)
 
 # Create a ChLinePath geometry, and insert sub-paths:
 mglyph = chrono.ChLinePath()
-ms1 = chrono.ChLineSegment(chrono.ChVectorD(-0.5, -0.5, 0), chrono.ChVectorD(0.5, -0.5, 0))
+ms1 = chrono.ChLineSegment(chrono.ChVector3d(-0.5, -0.5, 0), chrono.ChVector3d(0.5, -0.5, 0))
 mglyph.AddSubLine(ms1)
-ma1 = chrono.ChLineArc(chrono.ChCoordsysD(chrono.ChVectorD(0.5, 0, 0)), 0.5, -chrono.CH_C_PI_2, chrono.CH_C_PI_2, True)
+ma1 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(0.5, 0, 0)), 0.5, -chrono.CH_C_PI_2, chrono.CH_C_PI_2, True)
 mglyph.AddSubLine(ma1)
-ms2 = chrono.ChLineSegment(chrono.ChVectorD(0.5, 0.5, 0), chrono.ChVectorD(-0.5, 0.5, 0))
+ms2 = chrono.ChLineSegment(chrono.ChVector3d(0.5, 0.5, 0), chrono.ChVector3d(-0.5, 0.5, 0))
 mglyph.AddSubLine(ms2)
-ma2 = chrono.ChLineArc(chrono.ChCoordsysD(chrono.ChVectorD(-0.5, 0, 0)), 0.5, chrono.CH_C_PI_2, -chrono.CH_C_PI_2, True);
+ma2 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(-0.5, 0, 0)), 0.5, chrono.CH_C_PI_2, -chrono.CH_C_PI_2, True);
 mglyph.AddSubLine(ma2)
 mglyph.SetPathDuration(1)
 mglyph.Set_closed(True)
@@ -118,7 +118,7 @@ mwheel.AddVisualShape(mglyphasset)
 # Create a body that will slide on the glyph
 
 mpendulum2 = chrono.ChBodyEasyBox(0.1, 1, 0.1, 1000)
-mpendulum2.SetPos(chrono.ChVectorD(-3, 1, 0))
+mpendulum2.SetPos(chrono.ChVector3d(-3, 1, 0))
 sys.Add(mpendulum2)
 
 # The glyph constraint:
@@ -129,8 +129,8 @@ mglyphconstraint = chrono.ChLinkPointSpline()
 mglyphconstraint.Initialize(mpendulum2,  # body1 that follows the trajectory
                mwheel,      # body2 that 'owns' the trajectory
                True,
-               chrono.ChCoordsysD(chrono.ChVectorD(0, 0.5, 0)), # point on body1 that will follow the trajectory
-               chrono.ChCoordsysD())
+               chrono.ChCoordsysd(chrono.ChVector3d(0, 0.5, 0)), # point on body1 that will follow the trajectory
+               chrono.ChCoordsysd())
 
 mglyphconstraint.Set_trajectory_line(mglyph)
 
@@ -149,7 +149,7 @@ vis.SetWindowTitle('Paths demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(1,4,5), chrono.ChVectorD(0,2,0))
+vis.AddCamera(chrono.ChVector3d(1,4,5), chrono.ChVector3d(0,2,0))
 vis.AddTypicalLights()
 
 

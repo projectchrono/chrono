@@ -24,8 +24,8 @@ except ImportError:
 
 print ('Test Euler sequence 1-2-3')
 
-q = chrono.ChQuaternionD()
-eu = chrono.ChVectorD()
+q = chrono.ChQuaterniond()
+eu = chrono.ChVector3d()
 
 alpha1 = 10
 beta1 = 11

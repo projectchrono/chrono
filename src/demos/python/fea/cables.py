@@ -37,8 +37,8 @@ class Model1:
         msection_cable.SetBeamRaleyghDamping(0.000)
 
         # Create the nodes
-        hnodeancf1 = fea.ChNodeFEAxyzD(chrono.ChVectorD(0, 0, -0.2), chrono.ChVectorD(1, 0, 0))
-        hnodeancf2 = fea.ChNodeFEAxyzD(chrono.ChVectorD(beam_L, 0, -0.2), chrono.ChVectorD(1, 0, 0))
+        hnodeancf1 = fea.ChNodeFEAxyzD(chrono.ChVector3d(0, 0, -0.2), chrono.ChVector3d(1, 0, 0))
+        hnodeancf2 = fea.ChNodeFEAxyzD(chrono.ChVector3d(beam_L, 0, -0.2), chrono.ChVector3d(1, 0, 0))
 
         mesh.AddNode(hnodeancf1)
         mesh.AddNode(hnodeancf2)
@@ -53,14 +53,14 @@ class Model1:
         mesh.AddElement(belementancf1)
 
         # Apply a force or a torque to a node:
-        hnodeancf2.SetForce(chrono.ChVectorD(0, 3, 0))
+        hnodeancf2.SetForce(chrono.ChVector3d(0, 3, 0))
 
         hnodeancf1.SetFixed(True)
 
         # Add a rigid body connected to the end of the beam:
 
         self.body = chrono.ChBodyEasyBox(0.1, 0.02, 0.02, 1000)
-        self.body.SetPos(hnodeancf2.GetPos() + chrono.ChVectorD(0.05, 0, 0))
+        self.body.SetPos(hnodeancf2.GetPos() + chrono.ChVector3d(0.05, 0, 0))
         system.Add(self.body)
 
         constraint_pos = fea.ChLinkPointFrame()
@@ -69,7 +69,7 @@ class Model1:
 
         constraint_dir = fea.ChLinkDirFrame()
         constraint_dir.Initialize(hnodeancf2, self.body)
-        constraint_dir.SetDirectionInAbsoluteCoords(chrono.ChVectorD(1, 0, 0))
+        constraint_dir.SetDirectionInAbsoluteCoords(chrono.ChVector3d(1, 0, 0))
         system.Add(constraint_dir)
         
     # Prposition of end body
@@ -102,13 +102,13 @@ class Model2 :
         builder.BuildBeam(mesh,                    # the mesh where to put the created nodes and elements
                           msection_cable2,         # the ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
                           10,                      # the number of ChElementBeamANCF_3333 to create
-                          chrono.ChVectorD(0, 0, -0.1),  # the 'A' poin space (beginning of beam)
-                          chrono.ChVectorD(0.5, 0, -0.1))  # the 'B' poin space (end of beam)
+                          chrono.ChVector3d(0, 0, -0.1),  # the 'A' poin space (beginning of beam)
+                          chrono.ChVector3d(0.5, 0, -0.1))  # the 'B' poin space (end of beam)
 
         # After having used BuildBeam(), you can retrieve the nodes used for the beam,
         # For example say you want to fix both pos and dir of A end and apply a force to the B end:
         # builder.GetLastBeamNodes().back().SetFixed(True)
-        builder.GetLastBeamNodes().front().SetForce(chrono.ChVectorD(0, -0.2, 0))
+        builder.GetLastBeamNodes().front().SetForce(chrono.ChVector3d(0, -0.2, 0))
 
         # For instance, now retrieve the A end and add a constrato
         # block the position only of that node:
@@ -142,11 +142,11 @@ class Model3 :
             builder.BuildBeam(mesh,             # the mesh where to put the created nodes and elements
                               msection_cable2,  # ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
                               1 + j,            # number of ChElementBeamANCF_3333 to create
-                              chrono.ChVectorD(0, 0, -0.1 * j),             # poA (beginning of beam)
-                              chrono.ChVectorD(0.1 + 0.1 * j, 0, -0.1 * j)  # poB (end of beam)
+                              chrono.ChVector3d(0, 0, -0.1 * j),             # poA (beginning of beam)
+                              chrono.ChVector3d(0.1 + 0.1 * j, 0, -0.1 * j)  # poB (end of beam)
             )
 
-            builder.GetLastBeamNodes().back().SetForce(chrono.ChVectorD(0, -0.2, 0))
+            builder.GetLastBeamNodes().back().SetForce(chrono.ChVector3d(0, -0.2, 0))
 
             constraint_hinge = fea.ChLinkPointFrame()
             constraint_hinge.Initialize(builder.GetLastBeamNodes().front(), mtruss)
@@ -157,7 +157,7 @@ class Model3 :
 
             # make a box and connect it
             mbox = chrono.ChBodyEasyBox(0.2, 0.04, 0.04, 1000)
-            mbox.SetPos(builder.GetLastBeamNodes().back().GetPos() + chrono.ChVectorD(0.1, 0, 0))
+            mbox.SetPos(builder.GetLastBeamNodes().back().GetPos() + chrono.ChVector3d(0.1, 0, 0))
             system.Add(mbox)
 
             constraint_pos = fea.ChLinkPointFrame()
@@ -166,7 +166,7 @@ class Model3 :
 
             constraint_dir = fea.ChLinkDirFrame()
             constraint_dir.Initialize(builder.GetLastBeamNodes().back(), mbox)
-            constraint_dir.SetDirectionInAbsoluteCoords(chrono.ChVectorD(1, 0, 0))
+            constraint_dir.SetDirectionInAbsoluteCoords(chrono.ChVector3d(1, 0, 0))
             system.Add(constraint_dir)
 
             # make another beam
@@ -174,8 +174,8 @@ class Model3 :
                 mesh,                # mesh where to put the created nodes and elements
                 msection_cable2,     # ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
                 1 + (n_chains - j),  # number of ChElementBeamANCF_3333 to create
-                chrono.ChVectorD(mbox.GetPos().x + 0.1, 0, -0.1 * j),                        # poA (beginning of beam)
-                chrono.ChVectorD(mbox.GetPos().x + 0.1 + 0.1 * (n_chains - j), 0, -0.1 * j)  # poB (end of beam)
+                chrono.ChVector3d(mbox.GetPos().x + 0.1, 0, -0.1 * j),                        # poA (beginning of beam)
+                chrono.ChVector3d(mbox.GetPos().x + 0.1 + 0.1 * (n_chains - j), 0, -0.1 * j)  # poB (end of beam)
             )
 
             constraint_pos2 = fea.ChLinkPointFrame()
@@ -184,12 +184,12 @@ class Model3 :
 
             constraint_dir2 = fea.ChLinkDirFrame()
             constraint_dir2.Initialize(builder.GetLastBeamNodes().front(), mbox)
-            constraint_dir2.SetDirectionInAbsoluteCoords(chrono.ChVectorD(1, 0, 0))
+            constraint_dir2.SetDirectionInAbsoluteCoords(chrono.ChVector3d(1, 0, 0))
             system.Add(constraint_dir2)
 
             # make a box and connect it
             self.bodies.append( chrono.ChBodyEasyBox(0.2, 0.04, 0.04, 1000) )
-            self.bodies[j].SetPos(builder.GetLastBeamNodes().back().GetPos() + chrono.ChVectorD(0.1, 0, 0))
+            self.bodies[j].SetPos(builder.GetLastBeamNodes().back().GetPos() + chrono.ChVector3d(0.1, 0, 0))
             system.Add(self.bodies[j])
 
             constraint_pos3 = fea.ChLinkPointFrame()
@@ -198,7 +198,7 @@ class Model3 :
 
             constraint_dir3 = fea.ChLinkDirFrame()
             constraint_dir3.Initialize(builder.GetLastBeamNodes().back(), self.bodies[j])
-            constraint_dir3.SetDirectionInAbsoluteCoords(chrono.ChVectorD(1, 0, 0))
+            constraint_dir3.SetDirectionInAbsoluteCoords(chrono.ChVector3d(1, 0, 0))
             system.Add(constraint_dir3)
     
 

@@ -99,11 +99,11 @@ if postprocess_available and enable_povray_export:
     pov_exporter.SetPictureFilebase("anim/picture")
 
     # Sets the viewpoint, aimed point, lens angle
-    pov_exporter.SetCamera(chrono.ChVectorD(0.2,0.3,0.5), chrono.ChVectorD(0,0,0), 35)
+    pov_exporter.SetCamera(chrono.ChVector3d(0.2,0.3,0.5), chrono.ChVector3d(0,0,0), 35)
 
     # Sets the default ambient light and default light lamp
     pov_exporter.SetAmbientLight(chrono.ChColor(1,1,0.9))
-    pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(0.9,0.9,1.0), True)
+    pov_exporter.SetLight(chrono.ChVector3d(-2,2,-1), chrono.ChColor(0.9,0.9,1.0), True)
 
     # Sets other settings
     pov_exporter.SetPictureSize(640,480)
@@ -149,7 +149,7 @@ vis.SetWindowTitle('Test: using data exported by Chrono::Solidworks')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0.3,0.3,0.4))
+vis.AddCamera(chrono.ChVector3d(0.3,0.3,0.4))
 vis.AddTypicalLights()
 
 
@@ -163,7 +163,7 @@ vis.AddTypicalLights()
 sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
 sys.SetSolverMaxIterations(40)
 sys.SetMaxPenetrationRecoverySpeed(0.002)
-sys.Set_G_acc(chrono.ChVectorD(0,-9.80,-9.8))
+sys.Set_G_acc(chrono.ChVector3d(0,-9.80,-9.8))
 
 
 while vis.Run():

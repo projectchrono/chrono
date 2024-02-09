@@ -27,7 +27,7 @@ print ("Example: demonstration of a plane-plane joint")
 #
 
 sys      = chrono.ChSystemNSC()
-sys.Set_G_acc(chrono.ChVectorD(0, 0, 0))
+sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
 
 # Create the ground body
 ground = chrono.ChBodyEasyBox(3, 2, 0.1, 10, True, False)
@@ -39,8 +39,8 @@ sys.Add(ground)
 body = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 10, True, False)
 body.SetBodyFixed(False)
 sys.Add(body)
-body.SetPos(chrono.ChVectorD(-1.25, -0.75, 0.1))
-body.SetWvel_loc(chrono.ChVectorD(0.1, 0.1, 0.1))
+body.SetPos(chrono.ChVector3d(-1.25, -0.75, 0.1))
+body.SetWvel_loc(chrono.ChVector3d(0.1, 0.1, 0.1))
 
 body.GetVisualShape(0).SetColor(chrono.ChColor(0.9, 0.4, 0.1))
 
@@ -50,7 +50,7 @@ body.GetVisualShape(0).SetColor(chrono.ChColor(0.9, 0.4, 0.1))
 plane_plane = chrono.ChLinkLockPlanePlane()
 plane_plane.Initialize(ground, 
                        body, 
-                       chrono.ChCoordsysD(chrono.ChVectorD(-1.25, -0.75, 0), chrono.ChQuaternionD(1, 0, 0, 0)))
+                       chrono.ChCoordsysd(chrono.ChVector3d(-1.25, -0.75, 0), chrono.ChQuaterniond(1, 0, 0, 0)))
 sys.AddLink(plane_plane)
 
 # Create a linear spring (with default sprint & damping coefficients)
@@ -60,8 +60,8 @@ spring.SetDampingCoefficient(5)
 spring.Initialize(ground,
                   body,
                   True,
-                  chrono.ChVectorD(0, 0, 2),
-                  chrono.ChVectorD(0, 0, 0))
+                  chrono.ChVector3d(0, 0, 2),
+                  chrono.ChVector3d(0, 0, 0))
 spring.SetRestLength(1.9)
 sys.AddLink(spring)
 
@@ -79,7 +79,7 @@ vis.SetWindowTitle('ChLinkLockPlanePlane demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(3, 0 ,3))
+vis.AddCamera(chrono.ChVector3d(3, 0 ,3))
 vis.AddTypicalLights()
 
 

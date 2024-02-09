@@ -36,7 +36,7 @@ body_1.AddVisualShape(myasset)
 
 # Assets can be shared, ex. to save memory...
 body_2= chrono.ChBodyAuxRef()
-body_2.SetPos(chrono.ChVectorD(0.5,0,0))
+body_2.SetPos(chrono.ChVector3d(0.5,0,0))
 my_system.Add(body_2)
 body_2.AddVisualShape(myasset)
 

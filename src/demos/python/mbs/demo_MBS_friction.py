@@ -54,14 +54,14 @@ for bi in range(10):
                                           mat)      # contact material
 
     # Set some properties
-    msphereBody.SetPos(chrono.ChVectorD(-7, mradius - 0.5, -5 + bi * mradius * 2.5))
+    msphereBody.SetPos(chrono.ChVector3d(-7, mradius - 0.5, -5 + bi * mradius * 2.5))
     msphereBody.GetVisualShape(0).SetMaterial(0, vis_mat_ball)
 
     # Set initial speed: rolling in horizontal direction
     initial_angspeed = 10
     initial_linspeed = initial_angspeed * mradius
-    msphereBody.SetWvel_par(chrono.ChVectorD(0, 0, -initial_angspeed))
-    msphereBody.SetPos_dt(chrono.ChVectorD(initial_linspeed, 0, 0))
+    msphereBody.SetWvel_par(chrono.ChVector3d(0, 0, -initial_angspeed))
+    msphereBody.SetPos_dt(chrono.ChVector3d(initial_linspeed, 0, 0))
 
     # Add to the sys
     sys.Add(msphereBody)
@@ -78,11 +78,11 @@ for bi in range(10):
                                           True,     # collision?
                                           mat)      # contact material
     # Set some properties
-    msphereBody.SetPos(chrono.ChVectorD(-8, 1 + mradius - 0.5, -5 + bi * mradius * 2.5))
+    msphereBody.SetPos(chrono.ChVector3d(-8, 1 + mradius - 0.5, -5 + bi * mradius * 2.5))
     msphereBody.GetVisualShape(0).SetMaterial(0, vis_mat_ball)
 
     # Set initial speed: spinning in vertical direction
-    msphereBody.SetWvel_par(chrono.ChVectorD(0, 20, 0))
+    msphereBody.SetWvel_par(chrono.ChVector3d(0, 20, 0))
 
     # Add to the sys
     sys.Add(msphereBody)
@@ -95,7 +95,7 @@ for bi in range(10):
 
 # Create a container fixed to ground
 bin = chrono.ChBody()
-bin.SetPos(chrono.ChVectorD(0, -1, 0))
+bin.SetPos(chrono.ChVector3d(0, -1, 0))
 bin.SetBodyFixed(True)
 bin.SetCollide(True)
 
@@ -112,31 +112,31 @@ cshape_3 = chrono.ChCollisionShapeBox(bin_mat, 1,  2, 20.99)
 cshape_4 = chrono.ChCollisionShapeBox(bin_mat, 20.99, 2, 1)
 cshape_5 = chrono.ChCollisionShapeBox(bin_mat, 20.99, 2, 1)
 
-bin.AddCollisionShape(cshape_1, chrono.ChFrameD(chrono.ChVectorD(0, 0, 0)  , chrono.QUNIT))
-bin.AddCollisionShape(cshape_2, chrono.ChFrameD(chrono.ChVectorD(-10, 1, 0), chrono.QUNIT))
-bin.AddCollisionShape(cshape_3, chrono.ChFrameD(chrono.ChVectorD( 10, 1, 0), chrono.QUNIT))
-bin.AddCollisionShape(cshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 1, -10), chrono.QUNIT))
-bin.AddCollisionShape(cshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 1,  10), chrono.QUNIT))
+bin.AddCollisionShape(cshape_1, chrono.ChFramed(chrono.ChVector3d(0, 0, 0)  , chrono.QUNIT))
+bin.AddCollisionShape(cshape_2, chrono.ChFramed(chrono.ChVector3d(-10, 1, 0), chrono.QUNIT))
+bin.AddCollisionShape(cshape_3, chrono.ChFramed(chrono.ChVector3d( 10, 1, 0), chrono.QUNIT))
+bin.AddCollisionShape(cshape_4, chrono.ChFramed(chrono.ChVector3d(0, 1, -10), chrono.QUNIT))
+bin.AddCollisionShape(cshape_5, chrono.ChFramed(chrono.ChVector3d(0, 1,  10), chrono.QUNIT))
 
 vshape_1 = chrono.ChVisualShapeBox(20, 1, 20)
 vshape_1.SetMaterial(0, vis_mat_floor)
-bin.AddVisualShape(vshape_1, chrono.ChFrameD(chrono.ChVectorD(0, 0, 0)))
+bin.AddVisualShape(vshape_1, chrono.ChFramed(chrono.ChVector3d(0, 0, 0)))
 
 vshape_2 = chrono.ChVisualShapeBox(1, 2, 20.99)
 vshape_2.SetMaterial(0, vis_mat_floor)
-bin.AddVisualShape(vshape_2, chrono.ChFrameD(chrono.ChVectorD(-10, 1, 0)))
+bin.AddVisualShape(vshape_2, chrono.ChFramed(chrono.ChVector3d(-10, 1, 0)))
 
 vshape_3 = chrono.ChVisualShapeBox(1, 2, 20.99)
 vshape_3.SetMaterial(0, vis_mat_floor)
-bin.AddVisualShape(vshape_3, chrono.ChFrameD(chrono.ChVectorD(10, 1, 0)))
+bin.AddVisualShape(vshape_3, chrono.ChFramed(chrono.ChVector3d(10, 1, 0)))
 
 vshape_4 = chrono.ChVisualShapeBox(20.99, 2, 1)
 vshape_4.SetMaterial(0, vis_mat_floor)
-bin.AddVisualShape(vshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 1, -10)))
+bin.AddVisualShape(vshape_4, chrono.ChFramed(chrono.ChVector3d(0, 1, -10)))
 
 vshape_5 = chrono.ChVisualShapeBox(20.99, 2, 1)
 vshape_5.SetMaterial(0, vis_mat_floor)
-bin.AddVisualShape(vshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 1, 10)))
+bin.AddVisualShape(vshape_5, chrono.ChFramed(chrono.ChVector3d(0, 1, 10)))
 
 sys.Add(bin)
 
@@ -149,7 +149,7 @@ vis.SetWindowTitle('Friction demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 14, -20))
+vis.AddCamera(chrono.ChVector3d(0, 14, -20))
 vis.AddTypicalLights()
 
 

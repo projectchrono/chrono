@@ -31,7 +31,7 @@ print ("Example: create a slider crank and plot results");
 sys      = chrono.ChSystemNSC()
 
 # Some data shared in the following
-crank_center = chrono.ChVectorD(-1,0.5,0)
+crank_center = chrono.ChVector3d(-1,0.5,0)
 crank_rad    = 0.4
 crank_thick  = 0.1
 rod_length   = 1.5
@@ -41,25 +41,25 @@ rod_length   = 1.5
 
 # Create the floor truss
 mfloor = chrono.ChBodyEasyBox(3, 1, 3, 1000)
-mfloor.SetPos(chrono.ChVectorD(0,-0.5,0))
+mfloor.SetPos(chrono.ChVector3d(0,-0.5,0))
 mfloor.SetBodyFixed(True)
 sys.Add(mfloor)
 
 # Create the flywheel crank
 mcrank = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, crank_rad, crank_thick, 1000)
-mcrank.SetPos(crank_center + chrono.ChVectorD(0, 0, -0.1))
+mcrank.SetPos(crank_center + chrono.ChVector3d(0, 0, -0.1))
 # Since ChBodyEasyCylinder creates a vertical (y up) cylinder, here rotate it:
 mcrank.SetRot(chrono.Q_ROTATE_Y_TO_Z)
 sys.Add(mcrank)
 
 # Create a stylized rod
 mrod = chrono.ChBodyEasyBox(rod_length, 0.1, 0.1, 1000)
-mrod.SetPos(crank_center + chrono.ChVectorD(crank_rad+rod_length/2 , 0, 0))
+mrod.SetPos(crank_center + chrono.ChVector3d(crank_rad+rod_length/2 , 0, 0))
 sys.Add(mrod)
 
 # Create a stylized piston
 mpiston = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.2, 0.3, 1000)
-mpiston.SetPos(crank_center + chrono.ChVectorD(crank_rad+rod_length, 0, 0))
+mpiston.SetPos(crank_center + chrono.ChVector3d(crank_rad+rod_length, 0, 0))
 mpiston.SetRot(chrono.Q_ROTATE_Y_TO_X)
 sys.Add(mpiston)
 
@@ -70,7 +70,7 @@ sys.Add(mpiston)
 my_motor = chrono.ChLinkMotorRotationSpeed()
 my_motor.Initialize(mcrank,   # the first connected body
                     mfloor,   # the second connected body
-                    chrono.ChFrameD(crank_center)) # where to create the motor in abs.space
+                    chrono.ChFramed(crank_center)) # where to create the motor in abs.space
 my_angularspeed = chrono.ChFunctionConst(chrono.CH_C_PI) # ang.speed: 180°/s
 my_motor.SetMotorFunction(my_angularspeed)
 sys.Add(my_motor)
@@ -79,22 +79,22 @@ sys.Add(my_motor)
 mjointA = chrono.ChLinkLockRevolute()
 mjointA.Initialize(mrod,
                    mcrank, 
-                   chrono.ChCoordsysD( crank_center + chrono.ChVectorD(crank_rad,0,0) ))
+                   chrono.ChCoordsysd( crank_center + chrono.ChVector3d(crank_rad,0,0) ))
 sys.Add(mjointA)
 
 # Create rod-piston joint
 mjointB = chrono.ChLinkLockRevolute()
 mjointB.Initialize(mpiston,
                    mrod, 
-                   chrono.ChCoordsysD( crank_center + chrono.ChVectorD(crank_rad+rod_length,0,0) ))
+                   chrono.ChCoordsysd( crank_center + chrono.ChVector3d(crank_rad+rod_length,0,0) ))
 sys.Add(mjointB)
 
 # Create piston-truss joint
 mjointC = chrono.ChLinkLockPrismatic()
 mjointC.Initialize(mpiston,
                    mfloor, 
-                   chrono.ChCoordsysD( 
-                               crank_center + chrono.ChVectorD(crank_rad+rod_length,0,0), 
+                   chrono.ChCoordsysd( 
+                               crank_center + chrono.ChVector3d(crank_rad+rod_length,0,0), 
                                chrono.Q_ROTATE_Z_TO_X)
                   )
 sys.Add(mjointC)
@@ -113,7 +113,7 @@ vis.SetWindowTitle('Crank demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(1,1,3), chrono.ChVectorD(0,1,0))
+vis.AddCamera(chrono.ChVector3d(1,1,3), chrono.ChVector3d(0,1,0))
 vis.AddTypicalLights()
 
 

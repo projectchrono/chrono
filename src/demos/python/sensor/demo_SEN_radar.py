@@ -22,7 +22,7 @@ def main():
     # Create the system
     #------------------
     mphysicalSystem = chrono.ChSystemNSC()
-    mphysicalSystem.Set_G_acc(chrono.ChVectorD(0,0,0))
+    mphysicalSystem.Set_G_acc(chrono.ChVector3d(0,0,0))
 
     red = chrono.ChVisualMaterial()
     red.SetDiffuseColor(chrono.ChColor(1,0,0))
@@ -37,7 +37,7 @@ def main():
     #------------------------------
 
     floor = chrono.ChBodyEasyBox(1000,20,1, 1000, True, False)
-    floor.SetPos(chrono.ChVectorD(0,0,-1))
+    floor.SetPos(chrono.ChVector3d(0,0,-1))
     floor.SetBodyFixed(True)
     mphysicalSystem.Add(floor)
 
@@ -46,8 +46,8 @@ def main():
         y = 1
         z = 0
         box = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 1000, True, False)
-        box.SetPos(chrono.ChVectorD(5+x, y, z))
-        box.SetPos_dt(chrono.ChVectorD(-0.5, 0, 0))
+        box.SetPos(chrono.ChVector3d(5+x, y, z))
+        box.SetPos_dt(chrono.ChVector3d(-0.5, 0, 0))
         box.GetVisualShape(0).SetMaterial(0, red)
         mphysicalSystem.Add(box)
     
@@ -56,8 +56,8 @@ def main():
         y = -1
         z = 0
         box = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 1000, True, False)
-        box.SetPos(chrono.ChVectorD(10-x, y, z))
-        box.SetPos_dt(chrono.ChVectorD(0.5, 0, 0))
+        box.SetPos(chrono.ChVector3d(10-x, y, z))
+        box.SetPos_dt(chrono.ChVector3d(0.5, 0, 0))
         box.GetVisualShape(0).SetMaterial(0, red)
         mphysicalSystem.Add(box)
 
@@ -68,8 +68,8 @@ def main():
     # ------------------------------------------------
     # Create a radar and add it to the sensor manager
     # ------------------------------------------------
-    offset_pose = chrono.ChFrameD(
-        chrono.ChVectorD(0, 0, 1), chrono.Q_from_AngZ(0))
+    offset_pose = chrono.ChFramed(
+        chrono.ChVector3d(0, 0, 1), chrono.Q_from_AngZ(0))
     radar = sens.ChRadarSensor(
         floor,              # body radar is attached to
         update_rate,            # scanning rate in Hz

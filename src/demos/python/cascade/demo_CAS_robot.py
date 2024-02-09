@@ -44,13 +44,13 @@ CH_C_PI = 3.1456
 
 # In most CADs the Y axis is horizontal, but we want it vertical.
 # So define a root transformation for rotating all the imported objects.
-rotation1 = chrono.ChQuaternionD()
-rotation1.Q_from_AngAxis(-CH_C_PI / 2, chrono.ChVectorD(1, 0, 0))  # 1: rotate 90° on X axis
-rotation2 = chrono.ChQuaternionD()
-rotation2.Q_from_AngAxis(CH_C_PI, chrono.ChVectorD(0, 1, 0))  # 2: rotate 180° on vertical Y axis
-tot_rotation = chrono.ChQuaternionD()
+rotation1 = chrono.ChQuaterniond()
+rotation1.Q_from_AngAxis(-CH_C_PI / 2, chrono.ChVector3d(1, 0, 0))  # 1: rotate 90° on X axis
+rotation2 = chrono.ChQuaterniond()
+rotation2.Q_from_AngAxis(CH_C_PI, chrono.ChVector3d(0, 1, 0))  # 2: rotate 180° on vertical Y axis
+tot_rotation = chrono.ChQuaterniond()
 tot_rotation = rotation2 % rotation1     # rotate on 1 then on 2, using quaternion product
-root_frame = chrono.ChFrameMovingD(chrono.ChVectorD(0, 0, 0), tot_rotation)
+root_frame = chrono.ChFrameMovingD(chrono.ChVector3d(0, 0, 0), tot_rotation)
 
 # Retrieve some sub shapes from the loaded model, using
 # the GetNamedShape() function, that can use path/subpath/subsubpath/part
@@ -93,7 +93,7 @@ rigidBody_base.SetBodyFixed(True)
 def make_frame_from_name(partname, root_transformation):
     shape_marker = TopoDS.TopoDS_Shape()
     if (mydoc.GetNamedShape(shape_marker, partname)):
-        frame_marker = chrono.ChFrameD()
+        frame_marker = chrono.ChFramed()
         mydoc.FromCascadeToChrono(shape_marker.Location(), frame_marker)
         frame_marker.ConcatenatePreTransformation(root_transformation)
         return frame_marker
@@ -156,7 +156,7 @@ sys.Add(my_link9)
 # Create a large cube as a floor.
 
 floor = chrono.ChBodyEasyBox(5, 1, 5, 1000, True, True)
-floor.SetPos(chrono.ChVectorD(0,-0.5,0))
+floor.SetPos(chrono.ChVector3d(0,-0.5,0))
 floor.SetBodyFixed(True)
 floor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile('textures/blue.png'))
 sys.Add(floor)
@@ -170,7 +170,7 @@ sys.Add(floor)
 # Create a ChLinePath geometry, for the hand path, and insert arc/lines sub-paths:
 path = chrono.ChLinePath()
 a1 = chrono.ChLineArc(
-            chrono.ChCoordsysD(rigidBody_hand.GetPos(), # arc center position
+            chrono.ChCoordsysd(rigidBody_hand.GetPos(), # arc center position
                                chrono.Q_ROTATE_X_TO_Z),   # arc plane alignment (default: xy plane) 
             0.3, # radius 
             -chrono.CH_C_PI_2, # start arc ngle (counterclockwise, from local x)
@@ -214,10 +214,10 @@ vis.SetWindowTitle('Import STEP')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(2,2,2),chrono.ChVectorD(0,0.8,0))
+vis.AddCamera(chrono.ChVector3d(2,2,2),chrono.ChVector3d(0,0.8,0))
 vis.AddTypicalLights()
-#vis.AddLightWithShadow(chrono.ChVectorD(3,6,2),  # point
-#                       chrono.ChVectorD(0,0,0),  # aimpoint
+#vis.AddLightWithShadow(chrono.ChVector3d(3,6,2),  # point
+#                       chrono.ChVector3d(0,0,0),  # aimpoint
 #                       12,                       # radius (power)
 #                       1,11,                     # near, far
 #                       55)                       # angle of FOV

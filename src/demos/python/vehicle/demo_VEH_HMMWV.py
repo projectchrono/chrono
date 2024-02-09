@@ -39,7 +39,7 @@ def main():
     hmmwv.SetContactMethod(contact_method)
     hmmwv.SetChassisCollisionType(chassis_collision_type)
     hmmwv.SetChassisFixed(False) 
-    hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+    hmmwv.SetInitPosition(chrono.ChCoordsysd(initLoc, initRot))
     hmmwv.SetEngineType(engine_model)
     hmmwv.SetTransmissionType(transmission_model)
     hmmwv.SetDriveType(drive_type)
@@ -196,8 +196,8 @@ def main():
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
-initLoc = chrono.ChVectorD(0, 0, 1.6)
-initRot = chrono.ChQuaternionD(1, 0, 0, 0)
+initLoc = chrono.ChVector3d(0, 0, 1.6)
+initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 chassis_vis_type = veh.VisualizationType_MESH
@@ -228,7 +228,7 @@ terrainLength = 100.0;  # size in X direction
 terrainWidth = 100.0;   # size in Y direction
 
 # Point on chassis tracked by the camera
-trackPoint = chrono.ChVectorD(0.0, 0.0, 1.75)
+trackPoint = chrono.ChVector3d(0.0, 0.0, 1.75)
 
 # Contact method
 contact_method = chrono.ChContactMethod_SMC

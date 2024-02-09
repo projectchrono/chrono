@@ -58,7 +58,7 @@ floor = chrono.ChBodyEasyBox(1, 0.2, 1,   # x y z size
                              True,        # must visualize?
                              True,        # must collide?
                              material)    # collision material
-floor.SetPos(chrono.ChVectorD(0,-0.3,0))
+floor.SetPos(chrono.ChVector3d(0,-0.3,0))
 floor.SetBodyFixed(True)
 floor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile('textures/blue.png'))
 sys.Add(floor)
@@ -71,7 +71,7 @@ vis.SetWindowTitle('Use OpenCascade shapes')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0.5,0.1,-0.5))
+vis.AddCamera(chrono.ChVector3d(0.5,0.1,-0.5))
 vis.AddTypicalLights()
 
 #  Run the simulation

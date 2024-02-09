@@ -36,12 +36,12 @@ def CreateSliderGuide(material,
     system.Add(guide)
 
     slider = chrono.ChBodyEasyBox(0.4, 0.2, 0.5, 1000, True, True, material)
-    slider.SetPos(pos + chrono.ChVectorD(0, 0.3, 0))
+    slider.SetPos(pos + chrono.ChVector3d(0, 0.3, 0))
     slider.GetVisualShape(0).SetColor(chrono.ChColor(0.6, 0.6, 0.0))
     system.Add(slider)
 
     obstacle = chrono.ChBodyEasyBox(0.4, 0.4, 0.4, 8000, True, True, material)
-    obstacle.SetPos(pos + chrono.ChVectorD(1.5, 0.4, 0))
+    obstacle.SetPos(pos + chrono.ChVector3d(1.5, 0.4, 0))
     obstacle.GetVisualShape(0).SetColor(chrono.ChColor(0.2, 0.2, 0.2))
     system.Add(obstacle)
 
@@ -65,7 +65,7 @@ def CreateStatorRotor(material,
     
 
     rotor = chrono.ChBodyEasyBox(1, 0.1, 0.1, 1000, True, True, material)
-    rotor.SetPos(pos + chrono.ChVectorD(0.5, 0, -0.15))
+    rotor.SetPos(pos + chrono.ChVector3d(0.5, 0, -0.15))
     rotor.GetVisualShape(0).SetColor(chrono.ChColor(0.6, 0.6, 0.0))
     system.Add(rotor)
 
@@ -82,7 +82,7 @@ material = chrono.ChContactMaterialNSC()
 
 # Create a floor that is fixed (that is used also to represent the absolute reference)
 floorBody = chrono.ChBodyEasyBox(20, 2, 20, 3000, True, True, material)
-floorBody.SetPos(chrono.ChVectorD(0, -2, 0))
+floorBody.SetPos(chrono.ChVector3d(0, -2, 0))
 floorBody.SetBodyFixed(True)
 floorBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/blue.png"))
 sys.Add(floorBody)
@@ -106,7 +106,7 @@ sys.Add(floorBody)
 # rotating body hits some hard contact, the solver might give unpredictable
 # oscillatory or diverging results because of the contradiction.
 
-positionA1 = chrono.ChVectorD(-3, 2, -3) 
+positionA1 = chrono.ChVector3d(-3, 2, -3) 
 stator1, rotor1 = CreateStatorRotor(material, sys, positionA1)
 
 # Create the motor
@@ -115,7 +115,7 @@ rotmotor1 = chrono.ChLinkMotorRotationSpeed()
 # Connect the rotor and the stator and add the motor to the sys:
 rotmotor1.Initialize(rotor1,                # body A (slave)
                       stator1,               # body B (master)
-                      chrono.ChFrameD(positionA1)  # motor frame, in abs. coords
+                      chrono.ChFramed(positionA1)  # motor frame, in abs. coords
 )
 sys.Add(rotmotor1)
 
@@ -149,7 +149,7 @@ rotmotor1.SetSpeedFunction(mwspeed)
 # rotating body hits some hard contact, the solver might give unpredictable
 # oscillatory or diverging results because of the contradiction.
 
-positionA2 = chrono.ChVectorD(-3, 2, -2)
+positionA2 = chrono.ChVector3d(-3, 2, -2)
 stator2, rotor2 = CreateStatorRotor(material, sys, positionA2)
 
 # Create the motor
@@ -158,7 +158,7 @@ rotmotor2 = chrono.ChLinkMotorRotationAngle()
 # Connect the rotor and the stator and add the motor to the sys:
 rotmotor2.Initialize(rotor2,                # body A (slave)
                       stator2,               # body B (master)
-                      chrono.ChFrameD(positionA2)  # motor frame, in abs. coords
+                      chrono.ChFramed(positionA2)  # motor frame, in abs. coords
 )
 sys.Add(rotmotor2)
 
@@ -181,7 +181,7 @@ rotmotor2.SetAngleFunction(msineangle)
 # must implement a PID controller that continuously adjusts the value of the
 # torque during the simulation).
 
-positionA3 = chrono.ChVectorD(-3, 2, -1)
+positionA3 = chrono.ChVector3d(-3, 2, -1)
 stator3, rotor3 = CreateStatorRotor(material, sys, positionA3)
 
 # Create the motor
@@ -190,7 +190,7 @@ rotmotor3 = chrono.ChLinkMotorRotationTorque()
 # Connect the rotor and the stator and add the motor to the sys:
 rotmotor3.Initialize(rotor3,                # body A (slave)
                       stator3,               # body B (master)
-                      chrono.ChFrameD(positionA3))  # motor frame, in abs. coords
+                      chrono.ChFramed(positionA3))  # motor frame, in abs. coords
 
 sys.Add(rotmotor3)
 
@@ -208,7 +208,7 @@ rotmotor3.SetTorqueFunction(mtorquetime)
 # torque by a custom function. In this example we implement a
 # basic torque(speed) model of a three-phase induction electric motor..
 
-positionA4 = chrono.ChVectorD(-3, 2, 0)
+positionA4 = chrono.ChVector3d(-3, 2, 0)
 stator4, rotor4 =  CreateStatorRotor( material, sys, positionA4)
 
 # Create the motor
@@ -217,7 +217,7 @@ rotmotor4 = chrono.ChLinkMotorRotationTorque()
 # Connect the rotor and the stator and add the motor to the sys:
 rotmotor4.Initialize(rotor4,                # body A (slave)
                       stator4,               # body B (master)
-                      chrono.ChFrameD(positionA4))  # motor frame, in abs. coords
+                      chrono.ChFramed(positionA4))  # motor frame, in abs. coords
 
 sys.Add(rotmotor4)
 
@@ -277,7 +277,7 @@ rotmotor4.SetTorqueFunction(mtorquespeed)
 # if any) and ending at inner shaft 1 (consider it to be the output, i.e. the
 # slow-rotation spindle).
 
-positionA5 = chrono.ChVectorD(-3, 2, 1)
+positionA5 = chrono.ChVector3d(-3, 2, 1)
 stator5, rotor5 = CreateStatorRotor(material, sys, positionA5)
 
 # Create the motor
@@ -286,7 +286,7 @@ rotmotor5 = chrono.ChLinkMotorRotationDriveline()
 # Connect the rotor and the stator and add the motor to the sys:
 rotmotor5.Initialize(rotor5,                # body A (slave)
                       stator5,               # body B (master)
-                      chrono.ChFrameD(positionA5) ) # motor frame, in abs. coords
+                      chrono.ChFramed(positionA5) ) # motor frame, in abs. coords
 
 sys.Add(rotmotor5)
 
@@ -362,7 +362,7 @@ sys.Add(my_reducer)
 # sliding body hits some hard contact, the solver might give unpredictable
 # oscillatory or diverging results because of the contradiction.
 
-positionB1 = chrono.ChVectorD(0, 0, -3)
+positionB1 = chrono.ChVector3d(0, 0, -3)
 guide1, slider1 = CreateSliderGuide(material, sys, positionB1)
 
 # Create the linear motor
@@ -371,7 +371,7 @@ motor1 = chrono.ChLinkMotorLinearPosition()
 # Connect the guide and the slider and add the motor to the sys:
 motor1.Initialize(slider1,               # body A (slave)
                    guide1,                # body B (master)
-                   chrono.ChFrameD(positionB1)  # motor frame, in abs. coords
+                   chrono.ChFramed(positionB1)  # motor frame, in abs. coords
 )
 sys.Add(motor1)
 
@@ -402,7 +402,7 @@ motor1.SetMotionFunction(msine)
 # accumulation (position drift). Optionally, such constraon
 # position level can be disabled if you are not interested in pos.drift.
 
-positionB2 = chrono.ChVectorD(0, 0, -2)
+positionB2 = chrono.ChVector3d(0, 0, -2)
 guide2, slider2 = CreateSliderGuide(material, sys, positionB2)
 
 # Create the linear motor
@@ -411,7 +411,7 @@ motor2 = chrono.ChLinkMotorLinearSpeed()
 # Connect the guide and the slider and add the motor to the sys:
 motor2.Initialize(slider2,               # body A (slave)
                    guide2,                # body B (master)
-                   chrono.ChFrameD(positionB2) ) # motor frame, in abs. coords
+                   chrono.ChFramed(positionB2) ) # motor frame, in abs. coords
 
 sys.Add(motor2)
 
@@ -453,11 +453,11 @@ motor2.SetSpeedFunction(msp)
 # some hard contact, it just stops and keeps pushing, and no troubles
 # with the solver happen.
 
-positionB3 = chrono.ChVectorD(0, 0, -1)
+positionB3 = chrono.ChVector3d(0, 0, -1)
 guide3, slider3 = CreateSliderGuide(material, sys, positionB3)
 
 # just for fun: modify the initial speed of slider to match other examples
-slider3.SetPos_dt(chrono.ChVectorD(1.6 * 0.5 * chrono.CH_C_2PI))
+slider3.SetPos_dt(chrono.ChVector3d(1.6 * 0.5 * chrono.CH_C_2PI))
 
 # Create the linear motor
 motor3 = chrono.ChLinkMotorLinearForce()
@@ -465,7 +465,7 @@ motor3 = chrono.ChLinkMotorLinearForce()
 # Connect the guide and the slider and add the motor to the sys:
 motor3.Initialize(slider3,               # body A (slave)
                    guide3,                # body B (master)
-                   chrono.ChFrameD(positionB3) ) # motor frame, in abs. coords
+                   chrono.ChFramed(positionB3) ) # motor frame, in abs. coords
 
 sys.Add(motor3)
 
@@ -489,7 +489,7 @@ mF2 =chrono.ChFunctionSine(0,                                                   
 # F by a user-defined procedure (as a callback). For example, here we write a very
 # basic PID control algorithm that adjusts F trying to chase a sinusoidal position.
 
-positionB4 = chrono.ChVectorD(0, 0, 0)
+positionB4 = chrono.ChVector3d(0, 0, 0)
 guide4, slider4 = CreateSliderGuide(material, sys, positionB4)
 
 # Create the linear motor
@@ -498,7 +498,7 @@ motor4 = chrono.ChLinkMotorLinearForce()
 # Connect the guide and the slider and add the motor to the sys:
 motor4.Initialize(slider4,                       # body A (slave)
                   guide4,                       # body B (master)
-                  chrono.ChFrameD(positionB4))  # motor frame, in abs. coords
+                  chrono.ChFramed(positionB4))  # motor frame, in abs. coords
 
 sys.Add(motor4)
 
@@ -585,7 +585,7 @@ motor4.SetForceFunction(mFcallback)
 # drive+screw you will anchor the drive to part 2 using this rotational shaft so
 # reaction torques arising because of inner flywheel accelerations can be transmitted to this shaft.
 
-positionB5 = chrono.ChVectorD(0, 0, 1)
+positionB5 = chrono.ChVector3d(0, 0, 1)
 guide5, slider5 = CreateSliderGuide(material, sys, positionB5)
 
 # Create the motor
@@ -594,7 +594,7 @@ motor5 = chrono.ChLinkMotorLinearDriveline()
 # Connect the rotor and the stator and add the motor to the sys:
 motor5.Initialize(slider5,               # body A (slave)
                    guide5,                # body B (master)
-                   chrono.ChFrameD(positionB5) ) # motor frame, in abs. coords
+                   chrono.ChFramed(positionB5) ) # motor frame, in abs. coords
 
 sys.Add(motor5)
 
@@ -702,7 +702,7 @@ sys.Add(my_rackpinion)
 # motor6.SetMotionFunction(mycallback) this would avoid polluting the while{...} loop
 # but sometimes is faster to do the quick & dirty approach of this example.
 
-positionB6 = chrono.ChVectorD(0, 0, 2)
+positionB6 = chrono.ChVector3d(0, 0, 2)
 guide6, slider6 = CreateSliderGuide(material, sys, positionB6)
 
 # Create the linear motor
@@ -711,7 +711,7 @@ motor6 = chrono.ChLinkMotorLinearPosition()
 # Connect the guide and the slider and add the motor to the sys:
 motor6.Initialize(slider6,               # body A (slave)
                    guide6,                # body B (master)
-                   chrono.ChFrameD(positionB6) ) # motor frame, in abs. coords
+                   chrono.ChFramed(positionB6) ) # motor frame, in abs. coords
 
 sys.Add(motor6)
 
@@ -734,9 +734,9 @@ vis.SetWindowTitle('Motors demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(1, 3, -7))
+vis.AddCamera(chrono.ChVector3d(1, 3, -7))
 vis.AddTypicalLights()
-vis.AddLightWithShadow(chrono.ChVectorD(20.0, 35.0, -25.0), chrono.ChVectorD(0, 0, 0), 55, 20, 55, 35, 512)
+vis.AddLightWithShadow(chrono.ChVector3d(20.0, 35.0, -25.0), chrono.ChVector3d(0, 0, 0), 55, 20, 55, 35, 512)
 ##vis.EnableShadows()
 
 

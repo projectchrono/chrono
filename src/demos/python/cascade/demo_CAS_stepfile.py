@@ -38,13 +38,13 @@ load_ok = mydoc.Load_STEP(chrono.GetChronoDataFile('cascade/assembly.stp'))
 
 # In most CAD systems the Y axis is horizontal, but we want it vertical.
 # So define a root transformation for rotating all the imported objects.
-rotation1 = chrono.ChQuaternionD()
-rotation1.Q_from_AngAxis(-chrono.CH_C_PI / 2, chrono.ChVectorD(1, 0, 0))  # 1: rotate 90° on X axis
-rotation2 = chrono.ChQuaternionD()
-rotation2.Q_from_AngAxis(chrono.CH_C_PI, chrono.ChVectorD(0, 1, 0))  # 2: rotate 180° on vertical Y axis
-tot_rotation = chrono.ChQuaternionD()
+rotation1 = chrono.ChQuaterniond()
+rotation1.Q_from_AngAxis(-chrono.CH_C_PI / 2, chrono.ChVector3d(1, 0, 0))  # 1: rotate 90° on X axis
+rotation2 = chrono.ChQuaterniond()
+rotation2.Q_from_AngAxis(chrono.CH_C_PI, chrono.ChVector3d(0, 1, 0))  # 2: rotate 180° on vertical Y axis
+tot_rotation = chrono.ChQuaterniond()
 tot_rotation = rotation2 % rotation1     # rotate on 1 then on 2, using quaternion product
-root_frame = chrono.ChFrameMovingD(chrono.ChVectorD(0, 0, 0), tot_rotation)
+root_frame = chrono.ChFrameMovingD(chrono.ChVector3d(0, 0, 0), tot_rotation)
 
 # Retrieve some sub shapes from the loaded model, using
 # the GetNamedShape() function, that can use path/subpath/subsubpath/part
@@ -86,20 +86,20 @@ else:
 # as in a pendulum. We assume we already know in advance
 # the aboslute position of the joint (ex. we used measuring tools in the 3D CAD)
 
-measured_joint_pos_mm = chrono.ChVectorD(0, 48, 120);
+measured_joint_pos_mm = chrono.ChVector3d(0, 48, 120);
 
 scale = 1. / 1000.  # because we use meters instead of mm
 
-joint_pos = chrono.ChVectorD(root_frame.TransformPointLocalToParent(measured_joint_pos_mm * scale)) 
+joint_pos = chrono.ChVector3d(root_frame.TransformPointLocalToParent(measured_joint_pos_mm * scale)) 
 
 if (rigidBody1 and rigidBody2):
     link = chrono.ChLinkLockRevolute()
-    link.Initialize(rigidBody1, rigidBody2, chrono.ChCoordsysD(joint_pos));
+    link.Initialize(rigidBody1, rigidBody2, chrono.ChCoordsysd(joint_pos));
     sys.Add(link);
 
 # Create a large cube as a floor.
 floor = chrono.ChBodyEasyBox(1, 0.2, 1, 1000)
-floor.SetPos(chrono.ChVectorD(0,-0.3,0))
+floor.SetPos(chrono.ChVector3d(0,-0.3,0))
 floor.SetBodyFixed(True)
 floor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile('textures/blue.png'))
 sys.Add(floor)
@@ -112,7 +112,7 @@ vis.SetWindowTitle('Test')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0.2,0.2,-0.2))
+vis.AddCamera(chrono.ChVector3d(0.2,0.2,-0.2))
 vis.AddTypicalLights()
 
 #  Run the simulation

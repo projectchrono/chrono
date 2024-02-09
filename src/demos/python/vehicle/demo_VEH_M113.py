@@ -42,7 +42,7 @@ def main():
     m113.SetTransmissionType(veh.TransmissionModelType_SHAFTS)
     m113.SetBrakeType(veh.BrakeType_SIMPLE)
 
-    m113.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+    m113.SetInitPosition(chrono.ChCoordsysd(initLoc, initRot))
     m113.Initialize()
 
     m113.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
@@ -155,8 +155,8 @@ def main():
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
-initLoc = chrono.ChVectorD(0, 0, 1.1)
-initRot = chrono.ChQuaternionD(1, 0, 0, 0)
+initLoc = chrono.ChVector3d(0, 0, 1.1)
+initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Collision type for chassis (PRIMITIVES, MESH, or NONE)
 chassis_collision_type = veh.CollisionType_NONE
@@ -167,7 +167,7 @@ terrainLength = 100.0;  # size in X direction
 terrainWidth = 100.0;   # size in Y direction
 
 # Point on chassis tracked by the camera
-trackPoint = chrono.ChVectorD(0.0, 0.0, 0.0)
+trackPoint = chrono.ChVector3d(0.0, 0.0, 0.0)
 
 # Contact method
 contact_method = chrono.ChContactMethod_SMC
