@@ -49,7 +49,7 @@ namespace ChronoDemo
             ChCollisionInfo.SetDefaultEffectiveCurvatureRadius(1);
 
             // Create a material (will be used by both objects)
-            ChMaterialSurfaceSMC material = new ChMaterialSurfaceSMC();
+            ChContactMaterialSMC material = new ChContactMaterialSMC();
             material.SetRestitution(0.1f);
             material.SetFriction(0.4f);
             material.SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
