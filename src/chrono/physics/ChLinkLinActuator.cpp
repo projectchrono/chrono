@@ -59,7 +59,7 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
 
     ma.Set_A_axis(mx, my, mz);
 
-    Coordsys newmarkpos;
+    ChCoordsysd newmarkpos;
     ChVector3d oldpos = marker2->GetPos();  // backup to avoid numerical err.accumulation
     newmarkpos.pos = marker2->GetAbsCoord().pos;
     newmarkpos.rot = ma.Get_A_quaternion();

@@ -34,9 +34,9 @@ class ChApi ChLinkMarkers : public ChLink {
     ChMarker* marker1;  ///< slave coordsys
     ChMarker* marker2;  ///< master coordsys, =0 if liked to ground
 
-    Coordsys relM;       ///< relative marker position 2-1
-    Coordsys relM_dt;    ///< relative marker speed
-    Coordsys relM_dtdt;  ///< relative marker acceleration
+    ChCoordsysd relM;    ///< relative marker position 2-1
+    ChCoordsysd relM_dt;  ///< relative marker speed
+    ChCoordsysd relM_dtdt;  ///< relative marker acceleration
 
     double relAngle;        ///< relative angle of rotation
     ChVector3d relAxis;     ///< relative axis of rotation
@@ -164,22 +164,31 @@ class ChApi ChLinkMarkers : public ChLink {
     //
 
     /// Relative position of marker 1 respect to marker 2.
-    const Coordsys& GetRelM() const { return relM; }
+    const ChCoordsysd& GetRelM() const { return relM; }
+
     /// Relative speed of marker 1 respect to marker 2.
-    const Coordsys& GetRelM_dt() const { return relM_dt; }
+    const ChCoordsysd& GetRelM_dt() const { return relM_dt; }
+
     /// Relative acceleration of marker 1 respect to marker 2.
-    const Coordsys& GetRelM_dtdt() const { return relM_dtdt; }
+    const ChCoordsysd& GetRelM_dtdt() const { return relM_dtdt; }
+
     /// Relative rotation angle of marker 1 respect to marker 2 (best with revolute joints..).
     double GetRelAngle() const { return relAngle; }
+    
     /// Relative finite rotation axis of marker 1 respect to marker 2.
     const ChVector3d& GetRelAxis() const { return relAxis; }
+    
     const ChVector3d& GetRelRotaxis() const { return relRotaxis; }
+    
     /// Relative angular speed of marker 1 respect to marker 2.
     const ChVector3d& GetRelWvel() const { return relWvel; }
+    
     /// Relative angular acceleration of marker 1 respect to marker 2.
     const ChVector3d& GetRelWacc() const { return relWacc; }
+    
     /// Relative 'polar' distance of marker 1 respect to marker 2.
     double GetDist() const { return dist; }
+    
     /// Relative speed of marker 1 respect to marker 2, along the polar distance vector.
     double GetDist_dt() const { return dist_dt; }
 

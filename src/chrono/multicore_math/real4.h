@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// Description: Vectorized implementation of a 4D vector/Quaternion
+// Description: Vectorized implementation of a 4D vector/quaternion
 // =============================================================================
 
 #pragma once

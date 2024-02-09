@@ -427,48 +427,48 @@ CH_CLASS_VERSION(ChQuaternion<double>, 0)
 
 // -----------------------------------------------------------------------------
 
-/// Shortcut for faster use of typical double-precision quaternion.
+/// Alias for double-precision quaternions.
 /// <pre>
 /// Instead of writing
-///    ChQuaternion<double> foo;
+///    ChQuaternion<double> q;
 /// or
-///    ChQuaternion<> foo;
-/// you can use the shorter version
-///    Quaternion foo;
+///    ChQuaternion<> q;
+/// you can use:
+///    ChQuaterniond q;
 /// </pre>
-typedef ChQuaternion<double> Quaternion;
+typedef ChQuaternion<double> ChQuaterniond;
 
-/// Shortcut for faster use of typical single-precision quaternion.
+/// Alias for single-precision quaternions.
 /// <pre>
 /// Instead of writing
-///    ChQuaternion<float> foo;
-/// you can use the shorter version
-///    Quaternion foo;
+///    ChQuaternion<float> q;
+/// you can use:
+///    ChQuaternionf q;
 /// </pre>
-typedef ChQuaternion<float> QuaternionF;
+typedef ChQuaternion<float> ChQuaternionf;
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
 
 /// Constant null quaternion: {0, 0, 0, 0}
-ChApi extern const ChQuaternion<double> QNULL;
+ChApi extern const ChQuaterniond QNULL;
 
 /// Constant unit quaternion: {1, 0, 0, 0} ,
 /// corresponds to no rotation (diagonal rotation matrix)
-ChApi extern const ChQuaternion<double> QUNIT;
+ChApi extern const ChQuaterniond QUNIT;
 
 // Constants for rotations of 90 degrees:
-ChApi extern const ChQuaternion<double> Q_ROTATE_Y_TO_X;
-ChApi extern const ChQuaternion<double> Q_ROTATE_Y_TO_Z;
-ChApi extern const ChQuaternion<double> Q_ROTATE_X_TO_Y;
-ChApi extern const ChQuaternion<double> Q_ROTATE_X_TO_Z;
-ChApi extern const ChQuaternion<double> Q_ROTATE_Z_TO_Y;
-ChApi extern const ChQuaternion<double> Q_ROTATE_Z_TO_X;
+ChApi extern const ChQuaterniond Q_ROTATE_Y_TO_X;
+ChApi extern const ChQuaterniond Q_ROTATE_Y_TO_Z;
+ChApi extern const ChQuaterniond Q_ROTATE_X_TO_Y;
+ChApi extern const ChQuaterniond Q_ROTATE_X_TO_Z;
+ChApi extern const ChQuaterniond Q_ROTATE_Z_TO_Y;
+ChApi extern const ChQuaterniond Q_ROTATE_Z_TO_X;
 
 // Constants for rotations of 180 degrees:
-ChApi extern const ChQuaternion<double> Q_FLIP_AROUND_X;
-ChApi extern const ChQuaternion<double> Q_FLIP_AROUND_Y;
-ChApi extern const ChQuaternion<double> Q_FLIP_AROUND_Z;
+ChApi extern const ChQuaterniond Q_FLIP_AROUND_X;
+ChApi extern const ChQuaterniond Q_FLIP_AROUND_Y;
+ChApi extern const ChQuaterniond Q_FLIP_AROUND_Z;
 
 // -----------------------------------------------------------------------------
 // STATIC QUATERNION MATH OPERATIONS
@@ -478,106 +478,106 @@ ChApi extern const ChQuaternion<double> Q_FLIP_AROUND_Z;
 // NOTE: sometimes a wise adoption of the following functions may give faster
 // results than using overloaded operators +/-/* in the quaternion class.
 
-ChApi double Qlength(const ChQuaternion<double>& q);
+ChApi double Qlength(const ChQuaterniond& q);
 
-ChApi ChQuaternion<double> Qadd(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
+ChApi ChQuaterniond Qadd(const ChQuaterniond& qa, const ChQuaterniond& qb);
 
-ChApi ChQuaternion<double> Qsub(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
+ChApi ChQuaterniond Qsub(const ChQuaterniond& qa, const ChQuaterniond& qb);
 
-ChApi ChQuaternion<double> Qscale(const ChQuaternion<double>& q, double fact);
+ChApi ChQuaterniond Qscale(const ChQuaterniond& q, double fact);
 
 /// Return the norm two of the quaternion. Euler's parameters have norm = 1
-ChApi ChQuaternion<double> Qnorm(const ChQuaternion<double>& q);
+ChApi ChQuaterniond Qnorm(const ChQuaterniond& q);
 
 /// Get the quaternion from an angle of rotation and an axis, defined in _abs_ coords.
 /// The axis is supposed to be fixed, i.e. it is constant during rotation.
 /// The 'axis' vector must be normalized.
-ChApi ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector3d& axis);
+ChApi ChQuaterniond Q_from_AngAxis(double angle, const ChVector3d& axis);
 
 /// Get the quaternion from a source vector and a destination vector which specifies
 /// the rotation from one to the other.  The vectors do not need to be normalized.
-ChApi ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector3d& fr_vect, const ChVector3d& to_vect);
+ChApi ChQuaterniond Q_from_Vect_to_Vect(const ChVector3d& fr_vect, const ChVector3d& to_vect);
 
-ChApi ChQuaternion<double> Q_from_NasaAngles(const ChVector3d& RxRyRz);
+ChApi ChQuaterniond Q_from_NasaAngles(const ChVector3d& RxRyRz);
 
-ChApi ChVector3d Q_to_NasaAngles(const ChQuaternion<double>& mq);
+ChApi ChVector3d Q_to_NasaAngles(const ChQuaterniond& mq);
 
-ChApi ChQuaternion<double> Q_from_Euler123(const ChVector3d& RxRyRz);
+ChApi ChQuaterniond Q_from_Euler123(const ChVector3d& RxRyRz);
 
-ChApi ChVector3d Q_to_Euler123(const ChQuaternion<double>& mq);
+ChApi ChVector3d Q_to_Euler123(const ChQuaterniond& mq);
 
-ChApi ChQuaternion<double> Q_from_AngZ(double angleZ);
+ChApi ChQuaterniond Q_from_AngZ(double angleZ);
 
-ChApi ChQuaternion<double> Q_from_AngX(double angleX);
+ChApi ChQuaterniond Q_from_AngX(double angleX);
 
-ChApi ChQuaternion<double> Q_from_AngY(double angleY);
+ChApi ChQuaterniond Q_from_AngY(double angleY);
 
-ChApi void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector3d& axis);
+ChApi void Q_to_AngAxis(const ChQuaterniond& quat, double& angle, ChVector3d& axis);
 
 /// Get the quaternion time derivative from the vector of angular speed, with w specified in _local_ coords.
-ChApi ChQuaternion<double> Qdt_from_Wrel(const ChVector3d& w, const Quaternion& q);
+ChApi ChQuaterniond Qdt_from_Wrel(const ChVector3d& w, const ChQuaterniond& q);
 
 /// Get the quaternion time derivative from the vector of angular speed, with w specified in _absolute_ coords.
-ChApi ChQuaternion<double> Qdt_from_Wabs(const ChVector3d& w, const Quaternion& q);
+ChApi ChQuaterniond Qdt_from_Wabs(const ChVector3d& w, const ChQuaterniond& q);
 
 /// Get the time derivative from a quaternion, a speed of rotation and an axis, defined in _abs_ coords.
-ChApi ChQuaternion<double> Qdt_from_AngAxis(const ChQuaternion<double>& quat, double angle_dt, const ChVector3d& axis);
+ChApi ChQuaterniond Qdt_from_AngAxis(const ChQuaterniond& quat, double angle_dt, const ChVector3d& axis);
 
 /// Get the quaternion first derivative from the vector of angular acceleration with a specified in _absolute_ coords.
-ChApi ChQuaternion<double> Qdtdt_from_Aabs(const ChVector3d& a,
-                                           const ChQuaternion<double>& q,
-                                           const ChQuaternion<double>& q_dt);
+ChApi ChQuaterniond Qdtdt_from_Aabs(const ChVector3d& a,
+                                           const ChQuaterniond& q,
+                                           const ChQuaterniond& q_dt);
 
 ///	Get the quaternion second derivative from the vector of angular acceleration with a specified in _relative_ coords.
-ChApi ChQuaternion<double> Qdtdt_from_Arel(const ChVector3d& a,
-                                           const ChQuaternion<double>& q,
-                                           const ChQuaternion<double>& q_dt);
+ChApi ChQuaterniond Qdtdt_from_Arel(const ChVector3d& a,
+                                           const ChQuaterniond& q,
+                                           const ChQuaterniond& q_dt);
 
 /// Get the second time derivative from a quaternion, an angular acceleration and an axis, defined in _abs_ coords.
-ChApi ChQuaternion<double> Qdtdt_from_AngAxis(double angle_dtdt,
+ChApi ChQuaterniond Qdtdt_from_AngAxis(double angle_dtdt,
                                               const ChVector3d& axis,
-                                              const ChQuaternion<double>& q,
-                                              const ChQuaternion<double>& q_dt);
+                                              const ChQuaterniond& q,
+                                              const ChQuaterniond& q_dt);
 
 /// Return the conjugate of the quaternion [s,v1,v2,v3] is [s,-v1,-v2,-v3]
-ChApi ChQuaternion<double> Qconjugate(const ChQuaternion<double>& q);
+ChApi ChQuaterniond Qconjugate(const ChQuaterniond& q);
 
 /// Return the product of two quaternions. It is non-commutative (like cross product in vectors).
-ChApi ChQuaternion<double> Qcross(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
+ChApi ChQuaterniond Qcross(const ChQuaterniond& qa, const ChQuaterniond& qb);
 
 /// Check if two quaternions are equal.
-ChApi bool Qequal(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
+ChApi bool Qequal(const ChQuaterniond& qa, const ChQuaterniond& qb);
 
 /// Check if quaternion is not null.
-ChApi bool Qnotnull(const ChQuaternion<double>& qa);
+ChApi bool Qnotnull(const ChQuaterniond& qa);
 
 /// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion,
 /// find the entire quaternion q = {e0, e1, e2, e3}.
 /// Note: singularities are possible.
-ChApi ChQuaternion<double> ImmQ_complete(const ChVector3d& qimm);
+ChApi ChQuaterniond ImmQ_complete(const ChVector3d& qimm);
 
 /// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion time derivative,
 /// find the entire quaternion q = {e0, e1, e2, e3}.
 /// Note: singularities are possible.
-ChApi ChQuaternion<double> ImmQ_dt_complete(const ChQuaternion<double>& mq, const ChVector3d& qimm_dt);
+ChApi ChQuaterniond ImmQ_dt_complete(const ChQuaterniond& mq, const ChVector3d& qimm_dt);
 
 /// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion second time derivative,
 /// find the entire quaternion q = {e0, e1, e2, e3}.
 /// Note: singularities are possible.
-ChApi ChQuaternion<double> ImmQ_dtdt_complete(const ChQuaternion<double>& mq,
-                                              const ChQuaternion<double>& mqdt,
+ChApi ChQuaterniond ImmQ_dtdt_complete(const ChQuaterniond& mq,
+                                              const ChQuaterniond& mqdt,
                                               const ChVector3d& qimm_dtdt);
 
-ChApi ChVector3d VaxisXfromQuat(const ChQuaternion<double>& quat);
+ChApi ChVector3d VaxisXfromQuat(const ChQuaterniond& quat);
 
 /// Angle conversion utilities.
-ChApi ChVector3d Quat_to_Angle(AngleSet angset, const ChQuaternion<double>& mquat);
+ChApi ChVector3d Quat_to_Angle(AngleSet angset, const ChQuaterniond& mquat);
 ChApi ChVector3d Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector3d& mangles);
-ChApi ChQuaternion<double> Angle_to_Quat(AngleSet angset, const ChVector3d& mangles);
-ChApi ChQuaternion<double> AngleDT_to_QuatDT(AngleSet angset, const ChVector3d& mangles, const ChQuaternion<double>& q);
-ChApi ChQuaternion<double> AngleDTDT_to_QuatDTDT(AngleSet angset,
+ChApi ChQuaterniond Angle_to_Quat(AngleSet angset, const ChVector3d& mangles);
+ChApi ChQuaterniond AngleDT_to_QuatDT(AngleSet angset, const ChVector3d& mangles, const ChQuaterniond& q);
+ChApi ChQuaterniond AngleDTDT_to_QuatDTDT(AngleSet angset,
                                                  const ChVector3d& mangles,
-                                                 const ChQuaternion<double>& q);
+                                                 const ChQuaterniond& q);
 
 /// Insertion of quaternion to output stream.
 template <typename Real>
@@ -1347,7 +1347,7 @@ inline void ChQuaternion<Real>::ImmQ_dtdt_complete(const ChQuaternion<Real>& q,
 template <class Real>
 inline void ChQuaternion<Real>::ArchiveOut(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChQuaternion<double>>();  // must use specialized template (any)
+    marchive.VersionWrite<ChQuaterniond>();  // must use specialized template (any)
     // stream out all member m_data
     marchive << CHNVP(m_data[0], "e0");
     marchive << CHNVP(m_data[1], "e1");
@@ -1358,7 +1358,7 @@ inline void ChQuaternion<Real>::ArchiveOut(ChArchiveOut& marchive) {
 template <class Real>
 inline void ChQuaternion<Real>::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/marchive.VersionRead<ChQuaternion<double>>();  // must use specialized template (any)
+    /*int version =*/marchive.VersionRead<ChQuaterniond>();  // must use specialized template (any)
     // stream in all member m_data
     marchive >> CHNVP(m_data[0], "e0");
     marchive >> CHNVP(m_data[1], "e1");

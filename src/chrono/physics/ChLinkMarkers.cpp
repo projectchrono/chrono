@@ -122,10 +122,10 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     dist = Vlength(PQw);                 // distance between origins, modulus
     dist_dt = Vdot(Vnorm(PQw), PQw_dt);  // speed between origins, modulus.
 
-    Quaternion qtemp1;
+    ChQuaterniond qtemp1;
 
-    Quaternion temp1 = marker1->GetCoord_dt().rot;
-    Quaternion temp2 = marker2->GetCoord_dt().rot;
+    ChQuaterniond temp1 = marker1->GetCoord_dt().rot;
+    ChQuaterniond temp2 = marker2->GetCoord_dt().rot;
 
     if (Qnotnull(temp1) || Qnotnull(temp2)) {
         q_AD =  //  q'qqq + qqqq'

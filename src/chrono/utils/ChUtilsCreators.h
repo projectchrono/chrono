@@ -59,7 +59,7 @@ ChApi void AddSphereGeometry(
     ChContactMaterialSharedPtr material,                                  ///< contact material
     double radius,                                                        ///< sphere radius
     const ChVector3d& pos = ChVector3d(0, 0, 0),                          ///< position on body
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),                 ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
@@ -70,7 +70,7 @@ ChApi void AddEllipsoidGeometry(
     ChContactMaterialSharedPtr material,                                  ///< contact material
     const ChVector3d& axes,                                               ///< elipsoid axes
     const ChVector3d& pos = ChVector3d(0, 0, 0),                          ///< position on body
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),                 ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
@@ -81,7 +81,7 @@ ChApi void AddBoxGeometry(
     ChContactMaterialSharedPtr material,                                  ///< contact material
     const ChVector3d& size,                                               ///< box side lengths
     const ChVector3d& pos = ChVector3d(0, 0, 0),                          ///< position on body
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),                 ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
@@ -93,7 +93,7 @@ ChApi void AddBiSphereGeometry(
     double radius,                                                        ///< sphere radius
     double cDist,                                                         ///< distance between centers
     const ChVector3d& pos = ChVector3d(0, 0, 0),                          ///< position on body
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),                 ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
@@ -105,7 +105,7 @@ ChApi void AddCapsuleGeometry(
     double radius,                                                        ///< capsule radius
     double height,                                                        ///< capsule height (cylindrical portion)
     const ChVector3d& pos = ChVector3d(0, 0, 0),                          ///< position on body
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),                 ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
@@ -117,7 +117,7 @@ ChApi void AddCylinderGeometry(
     double radius,                                                        ///< cylinder radius
     double height,                                                        ///< cylinder height
     const ChVector3d& pos = ChVector3d(0, 0, 0),                          ///< position on body
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),                 ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
@@ -140,7 +140,7 @@ ChApi void AddConeGeometry(
     double radius,                                                        ///< cone radius
     double height,                                                        ///< cone height
     const ChVector3d& pos = ChVector3d(0, 0, 0),                          ///< position on body
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),                 ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
@@ -152,7 +152,7 @@ ChApi bool AddTriangleMeshGeometry(
     const std::string& obj_filename,                                      ///< name of Wavefront OBJ file
     const std::string& name,                                              ///< mesh name
     const ChVector3d& pos = ChVector3d(0, 0, 0),                          ///< position on body
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),                 ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
@@ -163,7 +163,7 @@ ChApi bool AddTriangleMeshConvexDecomposition(ChBody* body,
                                               const std::string& obj_filename,
                                               const std::string& name,
                                               const ChVector3d& pos = ChVector3d(0, 0, 0),
-                                              const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                                              const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),
                                               float skin_thickness = 0.0f,
                                               bool use_original_asset = true,
                                               ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default());
@@ -174,7 +174,7 @@ ChApi bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
                                                 const std::string& obj_filename,
                                                 const std::string& name,
                                                 const ChVector3d& pos = ChVector3d(0, 0, 0),
-                                                const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                                                const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),
                                                 bool use_original_asset = true,
                                                 ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default());
 
@@ -184,7 +184,7 @@ ChApi bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                                    const std::string& obj_filename,
                                                    const std::string& name,
                                                    const ChVector3d& pos,
-                                                   const ChQuaternion<>& rot,
+                                                   const ChQuaterniond& rot,
                                                    double total_mass);
 
 /// Add a triangle collision shape and optionally a corresponding visualization asset to the specified body.
@@ -196,7 +196,7 @@ ChApi void AddTriangleGeometry(
     const ChVector3d& vertC,                                              ///< third triangle vertex
     const std::string& name,                                              ///< name of generated mesh
     const ChVector3d& pos = ChVector3d(0, 0, 0),                          ///< position on body
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),                 ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
@@ -209,7 +209,7 @@ ChApi void AddRoundedBoxGeometry(
     const ChVector3d& size,                                               ///< box side lengths
     double srad,                                                          ///< radius of sweeping sphere
     const ChVector3d& pos = ChVector3d(0, 0, 0),                          ///< position on body
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),                 ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
@@ -223,7 +223,7 @@ ChApi void AddRoundedCylinderGeometry(
     double height,                                                        ///< cylinder radius
     double srad,                                                          ///< radius of sweeping sphere
     const ChVector3d& pos = ChVector3d(0, 0, 0),                          ///< position on body
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),                 ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
@@ -237,7 +237,7 @@ ChApi void AddTorusGeometry(ChBody* body,
                             int segments = 20,
                             int angle = 360,
                             const ChVector3d& pos = ChVector3d(0, 0, 0),
-                            const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                            const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),
                             bool visualization = true,
                             ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default());
 
@@ -253,7 +253,7 @@ ChApi void AddBoxContainer(
     const ChFrame<>& frame,                                               ///< position and orientation wrt body frame
     const ChVector3d& size,                                               ///< interior container dimensions
     double thickness,                                                     ///< wall thickness
-    const ChVector3i faces,                                            ///< indices of container faces to be created
+    const ChVector3i faces,                                               ///< indices of container faces to be created
     bool visualization = true,                                            ///< create visualization shape
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
@@ -261,36 +261,36 @@ ChApi void AddBoxContainer(
 /// Create a fixed body with collision and visualization geometry representing a box volume.
 /// The center of the bottom box wall is at the body origin.
 ChApi std::shared_ptr<ChBody> CreateBoxContainer(
-    ChSystem* system,                                        ///< containing system
-    int id,                                                  ///< body identifier
-    ChContactMaterialSharedPtr mat,                          ///< contact material
-    const ChVector3d& size,                                  ///< interior container dimensions
-    double thickness,                                        ///< wall thickness
-    const ChVector3d& pos = ChVector3d(0, 0, 0),             ///< body position
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),  ///< body orientation
-    bool collide = true,                                     ///< enable collision
-    bool overlap = true,                                     ///< include overlap at container edges
-    bool closed = false                                      ///< create top wall
+    ChSystem* system,                                      ///< containing system
+    int id,                                                ///< body identifier
+    ChContactMaterialSharedPtr mat,                        ///< contact material
+    const ChVector3d& size,                                ///< interior container dimensions
+    double thickness,                                      ///< wall thickness
+    const ChVector3d& pos = ChVector3d(0, 0, 0),           ///< body position
+    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),  ///< body orientation
+    bool collide = true,                                   ///< enable collision
+    bool overlap = true,                                   ///< include overlap at container edges
+    bool closed = false                                    ///< create top wall
 );
 
 /// Create a fixed body with collision and visualization representing a cylindrical volume.
 /// The volume geometry is modeled using boxes. The container is aligned with the z direction with the center of the
 /// bottom at the body origin. Optionally, the side boxes in the first quadrant are not visualized.
 ChApi std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(
-    ChSystem* system,                                        ///< containing system
-    int id,                                                  ///< body identifier
-    ChContactMaterialSharedPtr mat,                          ///< contact material
-    double radius,                                           ///< container inner radius
-    double height,                                           ///< container inner height
-    double thickness,                                        ///< wall thickness
-    int numBoxes,                                            ///< number of circumference boxes
-    const ChVector3d& pos = ChVector3d(0, 0, 0),             ///< body position
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),  ///< body orientation
-    bool collide = true,                                     ///< enable collision
-    bool overlap = true,                                     ///< include overlap at box edges
-    bool closed = false,                                     ///< create top
-    bool isBoxBase = true,                                   ///< use a box or a cylinder for bases
-    bool partialVisualization = true                         ///< visualize only half of the boxes
+    ChSystem* system,                                      ///< containing system
+    int id,                                                ///< body identifier
+    ChContactMaterialSharedPtr mat,                        ///< contact material
+    double radius,                                         ///< container inner radius
+    double height,                                         ///< container inner height
+    double thickness,                                      ///< wall thickness
+    int numBoxes,                                          ///< number of circumference boxes
+    const ChVector3d& pos = ChVector3d(0, 0, 0),           ///< body position
+    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),  ///< body orientation
+    bool collide = true,                                   ///< enable collision
+    bool overlap = true,                                   ///< include overlap at box edges
+    bool closed = false,                                   ///< create top
+    bool isBoxBase = true,                                 ///< use a box or a cylinder for bases
+    bool partialVisualization = true                       ///< visualize only half of the boxes
 );
 
 /// Load an object from a Wavefront OBJ file and generate its convex decomposition.
@@ -298,7 +298,7 @@ ChApi bool LoadConvexMesh(const std::string& file_name,
                           geometry::ChTriangleMeshConnected& convex_mesh,
                           ChConvexDecompositionHACDv2& convex_shape,
                           const ChVector3d& pos = ChVector3d(0, 0, 0),
-                          const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                          const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),
                           int hacd_maxhullcount = 1024,
                           int hacd_maxhullmerge = 256,
                           int hacd_maxhullvertexes = 64,
@@ -319,7 +319,7 @@ ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
                                    std::shared_ptr<geometry::ChTriangleMeshConnected> convex_mesh,
                                    ChConvexDecompositionHACDv2& convex_shape,
                                    const ChVector3d& pos = ChVector3d(0, 0, 0),
-                                   const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                                   const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),
                                    bool use_original_asset = true,
                                    ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default());
 
@@ -330,7 +330,7 @@ ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
                                    std::shared_ptr<geometry::ChTriangleMeshConnected> convex_mesh,
                                    std::vector<std::vector<ChVector3d>>& convex_hulls,
                                    const ChVector3d& pos = ChVector3d(0, 0, 0),
-                                   const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                                   const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),
                                    ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default());
 
 /// @} chrono_utils

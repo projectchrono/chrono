@@ -87,12 +87,12 @@ void ChLinkPointSpline::UpdateTime(double time) {
             vrad = Vnorm(Vcross(vdir, vnorm));
             ma.Set_A_axis(vdir, vnorm, vrad);
         }
-        Quaternion qabsdir = ma.Get_A_quaternion();
+        ChQuaterniond qabsdir = ma.Get_A_quaternion();
 
         ptang = Body2->TransformPointLocalToParent(ptang);
         qabsdir = Body2->GetRot() * qabsdir;
 
-        Coordsys newmarkpos;
+        ChCoordsysd newmarkpos;
         newmarkpos.pos = ptang;
         newmarkpos.rot = qabsdir;
         marker2->Impose_Abs_Coord(newmarkpos);  // move "main" marker2 into tangent position

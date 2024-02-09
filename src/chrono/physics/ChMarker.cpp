@@ -33,9 +33,9 @@ ChMarker::ChMarker()
       last_rel_coord_dt(CSYSNULL),
       last_time(0) {
     motion_X = chrono_types::make_shared<ChFunctionConst>(0);  // default: no motion
-    motion_Y = chrono_types::make_shared<ChFunctionConst>(0); 
-    motion_Z = chrono_types::make_shared<ChFunctionConst>(0); 
-    motion_ang = chrono_types::make_shared<ChFunctionConst>(0); 
+    motion_Y = chrono_types::make_shared<ChFunctionConst>(0);
+    motion_Z = chrono_types::make_shared<ChFunctionConst>(0);
+    motion_ang = chrono_types::make_shared<ChFunctionConst>(0);
 
     UpdateState();
 }
@@ -49,9 +49,9 @@ ChMarker::ChMarker(const std::string& name,
     Body = body;
 
     motion_X = chrono_types::make_shared<ChFunctionConst>(0);  // default: no motion
-    motion_Y = chrono_types::make_shared<ChFunctionConst>(0); 
-    motion_Z = chrono_types::make_shared<ChFunctionConst>(0); 
-    motion_ang = chrono_types::make_shared<ChFunctionConst>(0); 
+    motion_Y = chrono_types::make_shared<ChFunctionConst>(0);
+    motion_Z = chrono_types::make_shared<ChFunctionConst>(0);
+    motion_ang = chrono_types::make_shared<ChFunctionConst>(0);
     motion_axis = VECT_Z;
 
     rest_coord = CSYSNORM;
@@ -90,9 +90,7 @@ ChMarker::ChMarker(const ChMarker& other) : ChObj(other), ChFrameMoving<double>(
     last_time = other.last_time;
 }
 
-ChMarker::~ChMarker() {
-
-}
+ChMarker::~ChMarker() {}
 
 // Setup the functions when user changes them.
 
@@ -118,8 +116,8 @@ void ChMarker::SetMotion_axis(ChVector3d m_axis) {
 
 // Coordinate setting, for user access
 
-void ChMarker::Impose_Rel_Coord(const Coordsys& m_coord) {
-    Quaternion qtemp;
+void ChMarker::Impose_Rel_Coord(const ChCoordsysd& m_coord) {
+    ChQuaterniond qtemp;
     // set the actual coordinates
     SetCoord(m_coord);
     // set the resting position coordinates
@@ -132,11 +130,11 @@ void ChMarker::Impose_Rel_Coord(const Coordsys& m_coord) {
     UpdateState();
 }
 
-void ChMarker::Impose_Abs_Coord(const Coordsys& m_coord) {
+void ChMarker::Impose_Abs_Coord(const ChCoordsysd& m_coord) {
     ChBody* my_body;
     my_body = GetBody();
 
-    Coordsys csys;
+    ChCoordsysd csys;
     // coordsys: transform the representation from the parent reference frame
     // to the local reference frame.
     csys.pos = ChTransform<>::TransformParentToLocal(m_coord.pos, my_body->GetCoord().pos, my_body->GetA());
@@ -165,8 +163,8 @@ ChVector3d ChMarker::Dir_Ref2World(const ChVector3d& dir) const {
 
 // This handles the time-varying functions for the relative coordinates
 void ChMarker::UpdateTime(double mytime) {
-    Coordsys csys, csys_dt, csys_dtdt;
-    Quaternion qtemp;
+    ChCoordsysd csys, csys_dt, csys_dtdt;
+    ChQuaterniond qtemp;
     double ang, ang_dt, ang_dtdt;
 
     ChTime = mytime;
@@ -248,8 +246,8 @@ void ChMarker::Update(double mytime) {
 void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
     double mstep = mtime - prevtime;
 
-    Coordsys m_rel_pos_dt;
-    Coordsys m_rel_pos_dtdt;
+    ChCoordsysd m_rel_pos_dt;
+    ChCoordsysd m_rel_pos_dtdt;
 
     // do not try to switch on the M_MOTION_KEYFRAMED mode if
     // we are already in the M_MOTION_EXTERNAL mode, maybe because
@@ -322,7 +320,7 @@ void ChMarker::ArchiveOut(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChMarker::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChMarker>();
+    /*int version =*/marchive.VersionRead<ChMarker>();
 
     // deserialize parent class
     ChObj::ArchiveIn(marchive);
@@ -338,11 +336,9 @@ void ChMarker::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(motion_ang);
     marchive >> CHNVP(motion_axis);
     marchive >> CHNVP(Body);
-    
 
-    UpdateState(); // updates the ChMarker::abs_frame first
-    Impose_Abs_Coord(this->GetAbsCoord()); // from ChMarker::abs_frame update ChMarker::rest_coord and ChFrame::coord
-
+    UpdateState();                          // updates the ChMarker::abs_frame first
+    Impose_Abs_Coord(this->GetAbsCoord());  // from ChMarker::abs_frame update ChMarker::rest_coord and ChFrame::coord
 }
 
 }  // end namespace chrono

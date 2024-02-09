@@ -53,10 +53,10 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
     ChBody* Body;  ///< points to parent body
 
-    Coordsys rest_coord;  ///< relative resting position for function=0.
+    ChCoordsysd rest_coord;  ///< relative resting position for function=0.
 
-    Coordsys last_rel_coord;     ///< These values are set for each marker update, and are
-    Coordsys last_rel_coord_dt;  ///< used internally to guess if there's some external routine
+    ChCoordsysd last_rel_coord;  ///< These values are set for each marker update, and are
+    ChCoordsysd last_rel_coord_dt;  ///< used internally to guess if there's some external routine
     double last_time;            ///< which moves the marker, so marker motion is guessed by BDF.
 
     /// Absolute position of frame (expressed in absolute coordinate system).
@@ -73,9 +73,9 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     ChMarker();
     ChMarker(const std::string& name,
              ChBody* body,
-             const ChCoordsys<>& rel_pos,
-             const ChCoordsys<>& rel_pos_dt,
-             const ChCoordsys<>& rel_pos_dtdt);
+             const ChCoordsysd& rel_pos,
+             const ChCoordsysd& rel_pos_dt,
+             const ChCoordsysd& rel_pos_dtdt);
     ChMarker(const ChMarker& other);
     ~ChMarker();
 
@@ -90,16 +90,16 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     /// Set body-relative coord. and update auxiliary variables
     /// Also, current position becomes the 'resting position' coordinates
     /// for the current time.
-    void Impose_Rel_Coord(const Coordsys& m_coord);
+    void Impose_Rel_Coord(const ChCoordsysd& m_coord);
 
     /// Set absolute coordinates  and update auxiliary variables
     /// Also, current position becomes the 'resting position' coordinates
     /// for the current time.
-    void Impose_Abs_Coord(const Coordsys& m_coord);
+    void Impose_Abs_Coord(const ChCoordsysd& m_coord);
 
     /// Get the 'resting position' (that is, the position which the
     /// marker should have when the x,y,z motion laws are at time=0).
-    const Coordsys& GetRest_Coord() const { return rest_coord; }
+    const ChCoordsysd& GetRest_Coord() const { return rest_coord; }
 
     //
     // Body-relative coordinates
@@ -125,30 +125,30 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     /// reasons. Note! it is updated only after each Update() function.
     const ChFrameMoving<double>& GetAbsFrame() const { return abs_frame; }
 
-    /// Get the translation and rotation (as a ChCoordsys) of the marker
+    /// Get the translation and rotation (as a ChCoordsysd) of the marker
     /// respect to the absolute coordinates.
-    const Coordsys& GetAbsCoord() const { return abs_frame.GetCoord(); }
+    const ChCoordsysd& GetAbsCoord() const { return abs_frame.GetCoord(); }
 
-    /// Get the speed of translation and rotation (as a derived ChCoordsys)
+    /// Get the speed of translation and rotation (as a derived ChCoordsysd)
     /// of the marker respect to the absolute coordinates.
-    const Coordsys& GetAbsCoord_dt() const { return abs_frame.GetCoord_dt(); }
+    const ChCoordsysd& GetAbsCoord_dt() const { return abs_frame.GetCoord_dt(); }
 
-    /// Get the acceleration of translation and rotation (as a derived ChCoordsys)
+    /// Get the acceleration of translation and rotation (as a derived ChCoordsysd)
     /// of the marker respect to the absolute coordinates.
-    const Coordsys& GetAbsCoord_dtdt() const { return abs_frame.GetCoord_dtdt(); }
+    const ChCoordsysd& GetAbsCoord_dtdt() const { return abs_frame.GetCoord_dtdt(); }
 
-    /// Set the translation and rotation (as a ChCoordsys) of the marker
+    /// Set the translation and rotation (as a ChCoordsysd) of the marker
     /// respect to the absolute coordinates.
     /// NOTE! inner use only, for the moment. Use  Impose_Abs_Coord() if needed.
-    void SetAbsCoord(const Coordsys& newpos) { abs_frame.SetCoord(newpos); }
-    /// Set the speed of translation and rotation (as a ChCoordsys) of the marker
+    void SetAbsCoord(const ChCoordsysd& newpos) { abs_frame.SetCoord(newpos); }
+    /// Set the speed of translation and rotation (as a ChCoordsysd) of the marker
     /// respect to the absolute coordinates.
     /// NOTE! inner use only, for the moment.
-    void SetAbsCoord_dt(const Coordsys& newpos_dt) { abs_frame.SetCoord(newpos_dt); }
-    /// Set the speed of translation and rotation (as a ChCoordsys) of the marker
+    void SetAbsCoord_dt(const ChCoordsysd& newpos_dt) { abs_frame.SetCoord(newpos_dt); }
+    /// Set the speed of translation and rotation (as a ChCoordsysd) of the marker
     /// respect to the absolute coordinates.
     /// NOTE! inner use only, for the moment.
-    void SetAbsCoord_dtdt(const Coordsys& newpos_dtdt) { abs_frame.SetCoord(newpos_dtdt); }
+    void SetAbsCoord_dtdt(const ChCoordsysd& newpos_dtdt) { abs_frame.SetCoord(newpos_dtdt); }
 
     /// Get the angular speed respect to absolute coordinates,
     /// expressed in  absolute coordinates.

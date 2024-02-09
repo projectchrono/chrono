@@ -107,7 +107,7 @@ void ChLinkGear::UpdateTime(double mytime) {
     ChVector3d mmark2;
     ChVector3d lastX;
     ChVector3d vrota;
-    Coordsys newmarkpos;
+    ChCoordsysd newmarkpos;
 
     ChFrame<double> abs_shaft1;
     ChFrame<double> abs_shaft2;

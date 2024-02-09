@@ -22,9 +22,8 @@ namespace chrono {
 /// A ChCoordsys contains both translational variable (the origin of the axis) and the rotational variable (that is the
 /// unitary quaternion which represent the special-orthogonal transformation matrix).
 /// Basic features for point-coordinate transformations are provided. However, for more advanced features, the heavier
-/// classes ChFrame() or ChFrameMoving() may suit better.
-/// The coordsys object comes either with the template "ChCoordsys<type>" mode, either in the 'shortcut' flavor, that is
-/// "Coordsys", which assumes the type of the four scalars is double precision, so it is faster to type.
+/// classes ChFrame or ChFrameMoving may suit better.
+///
 /// Further info at the @ref coordinate_transformations manual page.
 template <class Real = double>
 class ChCoordsys {
@@ -403,27 +402,40 @@ ChCoordsys<Real> operator>>(const ChCoordsys<Real>& Fa, const ChQuaternion<Real>
     return res;
 }
 
-/// Shortcut for faster use of typical double-precision coordsys.
-///  Instead of writing    "ChCoordsys<double> foo;"   you can write
-///  the shorter version   "Coordsys foo;"
-///
-typedef ChCoordsys<double> Coordsys;
+// -----------------------------------------------------------------------------
 
-/// Shortcut for faster use of typical single-precision coordsys.
-///
-typedef ChCoordsys<float> CoordsysF;
+/// Alias for double-precision coordinate systems.
+/// <pre>
+/// Instead of writing
+///    ChCoordsys<double> csys;
+/// or
+///    ChCoordsys<> csys;
+/// you can use:
+///    ChCoordsysd csys;
+/// </pre>
+typedef ChCoordsys<double> ChCoordsysd;
 
-//
+/// Alias for single-precision coordinate systems.
+/// <pre>
+/// Instead of writing
+///    ChCoordsys<float> csys;
+/// you can use:
+///    ChCoordsysf csys;
+/// </pre>
+typedef ChCoordsys<float> ChCoordsysf;
+
+// -----------------------------------------------------------------------------
+// CONSTANTS
+
+ChApi extern const ChCoordsysd CSYSNULL;
+ChApi extern const ChCoordsysd CSYSNORM;
+
+// -----------------------------------------------------------------------------
 // STATIC COORDSYS OPERATIONS
 //
 
 /// Force 3d coordsys to lie on a XY plane (note: no normaliz. on quat)
-ChApi Coordsys Force2Dcsys(const Coordsys& cs);
-
-// CONSTANTS
-
-ChApi extern const ChCoordsys<double> CSYSNULL;
-ChApi extern const ChCoordsys<double> CSYSNORM;
+ChApi ChCoordsysd Force2Dcsys(const ChCoordsysd& cs);
 
 }  // end namespace chrono
 

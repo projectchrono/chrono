@@ -234,7 +234,7 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     ChMatrixNM<double, 7, BODY_QDOF> Cq1_temp;  //
     ChMatrixNM<double, 7, BODY_QDOF> Cq2_temp;  //   the temporary "lock" jacobians,
     ChVectorN<double, 7> Qc_temp;               //   i.e. the full x,y,z,r0,r1,r2,r3 joint
-    Coordsys Ct_temp;                           //
+    ChCoordsysd Ct_temp;                        //
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -327,11 +327,11 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     AngleSet Get_angleset() const { return angleset; }
 
     /// Get constraint violations in pos/rot coordinates.
-    const Coordsys& GetRelC() const { return relC; }
+    const ChCoordsysd& GetRelC() const { return relC; }
     /// Get first time derivative of constraint violations in pos/rot coordinates.
-    const Coordsys& GetRelC_dt() const { return relC_dt; }
+    const ChCoordsysd& GetRelC_dt() const { return relC_dt; }
     /// Get second time derivative of constraint violations in pos/rot coordinates.
-    const Coordsys& GetRelC_dtdt() const { return relC_dtdt; }
+    const ChCoordsysd& GetRelC_dtdt() const { return relC_dtdt; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -346,16 +346,16 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     std::shared_ptr<ChFunction> motion_ang;   ///< user imposed angle rotation about axis
     std::shared_ptr<ChFunction> motion_ang2;  ///< user imposed angle rotation if three-angles rot.
     std::shared_ptr<ChFunction> motion_ang3;  ///< user imposed angle rotation if three-angles rot.
-    ChVector3d motion_axis;                    ///< this is the axis for the user imposed rotation
+    ChVector3d motion_axis;                   ///< this is the axis for the user imposed rotation
     AngleSet angleset;                        ///< type of rotation (3 Eul angles, angle/axis, etc.)
 
-    Coordsys relC;       ///< relative constraint position: relC = (relM-deltaC)
-    Coordsys relC_dt;    ///< relative constraint speed
-    Coordsys relC_dtdt;  ///< relative constraint acceleration
+    ChCoordsysd relC;       ///< relative constraint position: relC = (relM-deltaC)
+    ChCoordsysd relC_dt;    ///< relative constraint speed
+    ChCoordsysd relC_dtdt;  ///< relative constraint acceleration
 
-    Coordsys deltaC;       ///< user-imposed rel. position
-    Coordsys deltaC_dt;    ///< user-imposed rel. speed
-    Coordsys deltaC_dtdt;  ///< user-imposed rel. acceleration
+    ChCoordsysd deltaC;       ///< user-imposed rel. position
+    ChCoordsysd deltaC_dt;    ///< user-imposed rel. speed
+    ChCoordsysd deltaC_dtdt;  ///< user-imposed rel. acceleration
 
     /// Inherits, and also updates motion laws: deltaC, deltaC_dt, deltaC_dtdt
     virtual void UpdateTime(double mytime) override;

@@ -400,11 +400,32 @@ class ChFrame {
 
 CH_CLASS_VERSION(ChFrame<double>, 0)
 
-//
-// MIXED ARGUMENT OPERATORS
-//
+// -----------------------------------------------------------------------------
 
-// Mixing with ChCoordsys :
+/// Alias for double-precision coordinate frames.
+/// <pre>
+/// Instead of writing
+///    ChFrame<double> f;
+/// or
+///    ChFrame<> f;
+/// you can use:
+///    ChFramed f;
+/// </pre>
+typedef ChFrame<double> ChFramed;
+
+/// Alias for double-precision coordinate frames.
+/// <pre>
+/// Instead of writing
+///    ChFrame<float> f;
+/// you can use:
+///    ChFramef f;
+/// </pre>
+typedef ChFrame<float> ChFramef;
+
+// -----------------------------------------------------------------------------
+// MIXED ARGUMENT OPERATORS
+
+// Mixing with ChCoordsys
 
 /// The '*' operator that transforms a coordinate system of 'mixed' type:
 ///  frame_C = frame_A * frame_B;
@@ -458,7 +479,7 @@ ChFrame<Real> operator>>(const ChFrame<Real>& Fa, const ChCoordsys<Real>& Fb) {
     return res;
 }
 
-// Mixing with ChVector :
+// Mixing with ChVector
 
 /// The '*' operator that transforms 'mixed' types:
 ///  vector_C = frame_A * vector_B;
@@ -514,7 +535,7 @@ ChFrame<Real> operator>>(const ChFrame<Real>& Fa, const ChVector3<Real>& Fb) {
     return res;
 }
 
-// Mixing with ChQuaternion :
+// Mixing with ChQuaternion
 
 /// The '*' operator that transforms 'mixed' types:
 ///  quat_C = frame_A * quat_B;
@@ -561,6 +582,8 @@ ChFrame<Real> operator>>(const ChFrame<Real>& Fa, const ChQuaternion<Real>& Fb) 
     ChFrame<Real> res(Fb.Rotate(Fa.coord.pos), Fa.coord.rot >> Fb);
     return res;
 }
+
+// -----------------------------------------------------------------------------
 
 // Insertion to output stream
 template <typename Real>

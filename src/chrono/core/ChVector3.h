@@ -254,9 +254,9 @@ CH_CLASS_VERSION(ChVector3<double>, 0)
 /// Alias for double-precision vectors.
 /// <pre>
 /// Instead of writing
-///    ChVector3d v;
+///    ChVector3<double> v;
 /// or
-///    ChVector3d v;
+///    ChVector3<> v;
 /// you can use:
 ///    ChVector3d v;
 /// </pre>
@@ -265,7 +265,7 @@ typedef ChVector3<double> ChVector3d;
 /// Alias for single-precision vectors.
 /// <pre>
 /// Instead of writing
-///    ChVector3f v;
+///    ChVector3<float> v;
 /// you can use:
 ///    ChVector3f v;
 /// </pre>

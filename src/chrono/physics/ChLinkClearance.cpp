@@ -157,7 +157,7 @@ void ChLinkClearance::UpdateTime(double mytime) {
 
     ma.Set_A_axis(mx, my, mz);
 
-    Coordsys newmarkpos;
+    ChCoordsysd newmarkpos;
     newmarkpos.pos = marker2->GetAbsCoord().pos;
     newmarkpos.rot = ma.Get_A_quaternion();
     marker2->Impose_Abs_Coord(newmarkpos);  // rotate "main" marker2 into tangent position

@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
         q.Normalize();                         // as unit quaternion, must be normalized
         chrono::ChMatrix33<> R;                // rotation of coord system (rotation matrix)
         R.Set_A_quaternion(q);                 // set from quaternion
-        chrono::Coordsys csys(t, q);           // coordinate system representing translation + rotation
+        chrono::ChCoordsysd csys(t, q);        // coordinate system representing translation + rotation
 
         // Perform the transformation: v = t + [R] * v'
         // NOTE: all the following ways will give the same result, so you can use them equivalently!
