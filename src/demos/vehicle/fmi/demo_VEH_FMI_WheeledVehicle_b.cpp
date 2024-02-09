@@ -90,7 +90,7 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
     vehicle_fmu.SetVariable("transmission_JSON", transmission_JSON);
     vehicle_fmu.SetVariable("step_size", step_size, FmuVariable::Type::Real);
 
-    ////ChVector<> g_acc(0, 0, 0);
+    ////ChVector3d g_acc(0, 0, 0);
     ////vehicle_fmu.SetVecVariable("g_acc", g_acc);
 }
 
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
     vehicle_fmu.EnterInitializationMode();
     {
         // Set initial vehicle location
-        ChVector<> init_loc;
+        ChVector3d init_loc;
         double init_yaw;
         driver_fmu.GetVecVariable("init_loc", init_loc);
         driver_fmu.GetVariable("init_yaw", init_yaw, FmuVariable::Type::Real);
@@ -323,11 +323,11 @@ int main(int argc, char* argv[]) {
 
         // ------------ Set terrain information for each tire FMU
         for (int i = 0; i < 4; i++) {
-            ChVector<> query_point;
+            ChVector3d query_point;
             tire_fmu[i].GetVecVariable("query_point", query_point);
 
             double terrain_height = terrain.GetHeight(query_point);
-            ChVector<> terrain_normal = terrain.GetNormal(query_point);
+            ChVector3d terrain_normal = terrain.GetNormal(query_point);
             double terrain_mu = (double)terrain.GetCoefficientFriction(query_point);
             tire_fmu[i].SetVariable("terrain_height", terrain_height, FmuVariable::Type::Real);
             tire_fmu[i].SetVecVariable("terrain_normal", terrain_normal);

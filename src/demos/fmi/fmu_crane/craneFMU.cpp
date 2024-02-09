@@ -60,16 +60,16 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
 
     // Hardcoded mount points
-    m_point_ground = ChVector<>(std::sqrt(3.0) / 2, 0, 0);
-    m_point_crane = ChVector<>(0, 0, 0);
+    m_point_ground = ChVector3d(std::sqrt(3.0) / 2, 0, 0);
+    m_point_crane = ChVector3d(0, 0, 0);
 
     // Initial crane and pendulum positions
-    ChVector<> crane_pos(0.5 * crane_length * std::cos(init_crane_angle), 0,
+    ChVector3d crane_pos(0.5 * crane_length * std::cos(init_crane_angle), 0,
                          0.5 * crane_length * std::sin(init_crane_angle));
-    ChVector<> pend_pos = 2.0 * crane_pos + ChVector<>(0, 0, -pend_length);
+    ChVector3d pend_pos = 2.0 * crane_pos + ChVector3d(0, 0, -pend_length);
 
     // Set gravitational acceleration
-    ChVector<> Gacc(0, 0, -9.8);
+    ChVector3d Gacc(0, 0, -9.8);
     sys.Set_G_acc(Gacc);
 
     // Estimate initial required force (moment balance about crane pivot)
@@ -93,7 +93,7 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     m_crane->SetPos(crane_pos);
     m_crane->SetRot(Q_from_AngY(-init_crane_angle));
     m_crane->AddVisualShape(connection_sph, ChFrame<>(m_point_crane, QUNIT));
-    m_crane->AddVisualShape(connection_sph, ChFrame<>(ChVector<>(crane_length / 2, 0, 0), QUNIT));
+    m_crane->AddVisualShape(connection_sph, ChFrame<>(ChVector3d(crane_length / 2, 0, 0), QUNIT));
     auto crane_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.015, crane_length);
     m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
     sys.AddBody(m_crane);
@@ -104,7 +104,7 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     auto ball_sph = chrono_types::make_shared<ChVisualShapeSphere>(0.04);
     ball->AddVisualShape(ball_sph);
     auto ball_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.005, pend_length);
-    ball->AddVisualShape(ball_cyl, ChFrame<>(ChVector<>(0, 0, pend_length / 2), QUNIT));
+    ball->AddVisualShape(ball_cyl, ChFrame<>(ChVector3d(0, 0, pend_length / 2), QUNIT));
     sys.AddBody(ball);
 
     // Create joints
@@ -148,8 +148,8 @@ void FmuComponent::ProcessActuatorForce() {
     // Set actuator force (F received from outside)
     const auto& P1 = m_point_ground;
     auto P2 = m_crane->TransformPointLocalToParent(m_point_crane);
-    ChVector<> dir = (P2 - P1).GetNormalized();
-    ChVector<> force = F * dir;
+    ChVector3d dir = (P2 - P1).GetNormalized();
+    ChVector3d force = F * dir;
     m_external_load->SetForce(force, false);
     m_external_load->SetApplicationPoint(P2, false);
 }
@@ -161,7 +161,7 @@ void FmuComponent::CalculateActuatorLength() {
     auto P2 = this->m_crane->TransformPointLocalToParent(m_point_crane);
     auto V2 = this->m_crane->PointSpeedLocalToParent(m_point_crane);
 
-    ChVector<> dir = (P2 - P1).GetNormalized();
+    ChVector3d dir = (P2 - P1).GetNormalized();
 
     s = (P2 - P1).Length();   // actuator length
     sd = Vdot(dir, V2 - V1);  // actuator length rate
@@ -188,7 +188,7 @@ void FmuComponent::_exitInitializationMode() {
         vissys->SetWindowTitle("Hydraulic crane");
         vissys->SetCameraVertical(CameraVerticalDir::Z);
         vissys->Initialize();
-        vissys->AddCamera(ChVector<>(0.5, -1, 0.5), ChVector<>(0.5, 0, 0.5));
+        vissys->AddCamera(ChVector3d(0.5, -1, 0.5), ChVector3d(0.5, 0, 0.5));
         vissys->AddTypicalLights();
 #else
         sendToLog("Run-time visualization not available", fmi2Status::fmi2OK, "logAll");

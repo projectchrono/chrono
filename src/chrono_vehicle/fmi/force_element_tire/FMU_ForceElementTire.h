@@ -73,12 +73,12 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     /// This represents a locally-flat terrain patch, with the plane updated at each synchronization time.
     class LocalTerrain : public chrono::vehicle::ChTerrain {
       public:
-        LocalTerrain() : height(0), normal(chrono::ChVector<>(0, 0, 1)), mu(0.8) {}
-        virtual double GetHeight(const chrono::ChVector<>& loc) const override { return height; }
-        virtual chrono::ChVector<> GetNormal(const chrono::ChVector<>& loc) const override { return normal; }
-        virtual float GetCoefficientFriction(const chrono::ChVector<>& loc) const override { return (float)mu; }
+        LocalTerrain() : height(0), normal(chrono::ChVector3d(0, 0, 1)), mu(0.8) {}
+        virtual double GetHeight(const chrono::ChVector3d& loc) const override { return height; }
+        virtual chrono::ChVector3d GetNormal(const chrono::ChVector3d& loc) const override { return normal; }
+        virtual float GetCoefficientFriction(const chrono::ChVector3d& loc) const override { return (float)mu; }
         double height;
-        chrono::ChVector<> normal;
+        chrono::ChVector3d normal;
         double mu;
     };
 
@@ -96,9 +96,9 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     chrono::vehicle::TerrainForce wheel_load;  ///< tire loads on associated wheel (output)
 
     // FMU inputs and outputs (terrain side)
-    chrono::ChVector<> query_point;
+    chrono::ChVector3d query_point;
     double terrain_height;
-    chrono::ChVector<> terrain_normal;
+    chrono::ChVector3d terrain_normal;
     double terrain_mu;
 };
 

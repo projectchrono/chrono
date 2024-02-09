@@ -130,7 +130,7 @@ void FmuComponent::CreateVehicle() {
     // Create the vehicle system
     vehicle = chrono_types::make_shared<WheeledVehicle>(vehicle_JSON,
                                                         system_SMC ? ChContactMethod::SMC : ChContactMethod::NSC);
-    vehicle->Initialize(ChCoordsys<>(init_loc + ChVector<>(0, 0, 0.5), Q_from_AngZ(init_yaw)));
+    vehicle->Initialize(ChCoordsys<>(init_loc + ChVector3d(0, 0, 0.5), Q_from_AngZ(init_yaw)));
     ////vehicle->GetChassis()->SetFixed(true);
     ////std::cout << "\n\nATTENTION: vehicle chassis fixed to ground!\n\n" << std::endl;
 
@@ -230,7 +230,7 @@ void FmuComponent::_exitInitializationMode() {
         vis_sys = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
         vis_sys->SetLogLevel(irr::ELL_NONE);
         vis_sys->SetWindowTitle("Wheeled Vehicle FMU");
-        vis_sys->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+        vis_sys->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
         vis_sys->AddGrid(0.5, 0.5, 400, 400, ChCoordsys<>(init_loc, Q_from_AngZ(init_yaw)),
                          ChColor(0.31f, 0.43f, 0.43f));
         vis_sys->Initialize();

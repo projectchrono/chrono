@@ -56,7 +56,7 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
 
     // Set gravitational acceleration
-    ChVector<> Gacc(0, 0, -9.8);
+    ChVector3d Gacc(0, 0, -9.8);
     sys.Set_G_acc(Gacc);
 
     // Create the actuation object

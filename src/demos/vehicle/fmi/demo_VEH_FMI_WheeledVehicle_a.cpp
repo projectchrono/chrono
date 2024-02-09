@@ -90,7 +90,7 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
     vehicle_fmu.SetVariable("transmission_JSON", transmission_JSON);
     vehicle_fmu.SetVariable("step_size", step_size, FmuVariable::Type::Real);
 
-    ////ChVector<> g_acc(0, 0, 0);
+    ////ChVector3d g_acc(0, 0, 0);
     ////vehicle_fmu.SetVecVariable("g_acc", g_acc);
 }
 
@@ -138,14 +138,14 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
 
 class DummyWheel : public ChWheel {
   public:
-    DummyWheel() : ChWheel("tire_wheel"), m_inertia(ChVector<>(0)) {}
+    DummyWheel() : ChWheel("tire_wheel"), m_inertia(ChVector3d(0)) {}
     virtual double GetWheelMass() const override { return 0; }
-    virtual const ChVector<>& GetWheelInertia() const override { return m_inertia; }
+    virtual const ChVector3d& GetWheelInertia() const override { return m_inertia; }
     virtual double GetRadius() const override { return 1; }
     virtual double GetWidth() const override { return 1; }
 
   private:
-    ChVector<> m_inertia;
+    ChVector3d m_inertia;
 };
 
 struct WheelTire {
@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
     vehicle_fmu.EnterInitializationMode();
     {
         // Set initial vehicle location
-        ChVector<> init_loc;
+        ChVector3d init_loc;
         double init_yaw;
         driver_fmu.GetVecVariable("init_loc", init_loc);
         driver_fmu.GetVariable("init_yaw", init_yaw, FmuVariable::Type::Real);

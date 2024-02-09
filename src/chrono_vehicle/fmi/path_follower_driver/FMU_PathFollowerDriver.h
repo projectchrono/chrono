@@ -100,7 +100,7 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double target_speed;                ///< current target speed (FMU input)
     chrono::ChFrameMoving<> ref_frame;  ///< vehicle reference frame (FMU input)
 
-    chrono::ChVector<> init_loc;  ///< location of first path point (FMU constant output)
+    chrono::ChVector3d init_loc;  ///< location of first path point (FMU constant output)
     double init_yaw;              ///< orientation of first path segment (FMU constant output)
 
     // Vehicle driver commands (FMU countinuous outputs)

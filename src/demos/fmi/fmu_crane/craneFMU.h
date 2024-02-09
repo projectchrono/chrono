@@ -71,8 +71,8 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double F;   // actuator force (FMU input)
 
     // Mount points
-    chrono::ChVector<> m_point_ground;
-    chrono::ChVector<> m_point_crane;
+    chrono::ChVector3d m_point_ground;
+    chrono::ChVector3d m_point_crane;
 
     std::shared_ptr<chrono::ChBody> m_crane;
     std::shared_ptr<chrono::ChLoadBodyForce> m_external_load;

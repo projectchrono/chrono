@@ -22,6 +22,7 @@
 #include <algorithm>
 
 #include "chrono/geometry/ChLineBezier.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono/utils/ChUtils.h"
 
@@ -190,7 +191,7 @@ void FmuComponent::_exitInitializationMode() {
         double spacing = 0.5;
         int grid_x = (int)std::ceil(path_aabb.Size().x() / spacing);
         int grid_y = 2 * (int)std::ceil(path_aabb.Size().y() / spacing);
-        auto grid_pos = path_aabb.Center() - ChVector<>(0, 0, 0.05);
+        auto grid_pos = path_aabb.Center() - ChVector3d(0, 0, 0.05);
         auto grid_rot = Q_from_AngZ(init_yaw);
 
         // Create run-time visualization system
@@ -203,7 +204,7 @@ void FmuComponent::_exitInitializationMode() {
         vis_sys->AddGrid(spacing, spacing, grid_x, grid_y, ChCoordsys<>(grid_pos, grid_rot),
                          ChColor(0.31f, 0.43f, 0.43f));
         vis_sys->Initialize();
-        vis_sys->AddCamera(ChVector<>(-4, 0, 0.5), ChVector<>(0, 0, 0));
+        vis_sys->AddCamera(ChVector3d(-4, 0, 0.5), ChVector3d(0, 0, 0));
         vis_sys->AddTypicalLights();
 
         // Create visualization objects for steering controller (sentinel and target points)
@@ -257,7 +258,7 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
             // Update camera position
             auto x_dir = ref_frame.GetA().Get_A_Xaxis();
             auto camera_target = ref_frame.GetPos();
-            auto camera_pos = camera_target - 2.0 * x_dir + ChVector<>(0, 0, 0.5);
+            auto camera_pos = camera_target - 2.0 * x_dir + ChVector3d(0, 0, 0.5);
             vis_sys->UpdateCamera(camera_pos, camera_target);
 
             // Update sentinel and target location markers for the path-follower controller.

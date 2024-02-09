@@ -41,10 +41,10 @@ class FmuChronoComponentBase : public FmuComponentBase {
         : FmuComponentBase(_instanceName, _fmuType, _fmuGUID) {}
     virtual ~FmuChronoComponentBase() {}
 
-    /// Add FMU variables corresponding to the specified ChVector.
-    /// This function creates 3 FMU variables, one for each component of the ChVector, with names "name.x", "name.y",
+    /// Add FMU variables corresponding to the specified ChVector3d.
+    /// This function creates 3 FMU variables, one for each component of the ChVector3d, with names "name.x", "name.y",
     /// and "name.z", all of type FmuVariable::Type::Real.
-    void AddFmuVecVariable(ChVector<>& v,
+    void AddFmuVecVariable(ChVector3d& v,
                            const std::string& name,
                            const std::string& unit_name,
                            const std::string& description,
@@ -58,8 +58,8 @@ class FmuChronoComponentBase : public FmuComponentBase {
     }
 
     /// Add FMU variables corresponding to the specified ChQuaternion.
-    /// This function creates 4 FMU variables, one for each component of the ChVector, with names "name.e0", "name.e1",
-    /// "name.e2", and "name.e3", all of type FmuVariable::Type::Real.
+    /// This function creates 4 FMU variables, one for each component of the ChVector3d, with names "name.e0",
+    /// "name.e1", "name.e2", and "name.e3", all of type FmuVariable::Type::Real.
     void AddFmuQuatVariable(ChQuaternion<>& q,
                             const std::string& name,
                             const std::string& unit_name,
@@ -74,9 +74,9 @@ class FmuChronoComponentBase : public FmuComponentBase {
     }
 
     /// Add FMU variables corresponding to the specified ChCoordsys.
-    /// This function creates 7 FMU variables, one for each component of the position ChVector and one for each
+    /// This function creates 7 FMU variables, one for each component of the position ChVector3d and one for each
     /// component of the rotation quaternion, all of type FmuVariable::Type::Real.
-    void AddFmuCsysVariable(ChCoordsys<>& s,
+    void AddFmuCsysVariable(ChCoordsysd& s,
                             const std::string& name,
                             const std::string& unit_name,
                             const std::string& description,
@@ -87,7 +87,7 @@ class FmuChronoComponentBase : public FmuComponentBase {
     }
 
     /// Add FMU variables corresponding to the specified ChFrame.
-    /// This function creates 7 FMU variables, one for each component of the position ChVector and one for each
+    /// This function creates 7 FMU variables, one for each component of the position ChVector3d and one for each
     /// component of the rotation quaternion, all of type FmuVariable::Type::Real.
     void AddFmuFrameVariable(ChFrame<>& s,
                              const std::string& name,
@@ -99,9 +99,9 @@ class FmuChronoComponentBase : public FmuComponentBase {
     }
 
     /// Add FMU variables corresponding to the specified ChFrameMoving.
-    /// This function creates 7 FMU variables for the pose, one for each component of the position ChVector and one for
-    /// each component of the rotation quaternion, all of type FmuVariable::Type::Real.  Additionally, 7 FMU variables
-    /// are created to encode the position and orientation time derivatives.
+    /// This function creates 7 FMU variables for the pose, one for each component of the position ChVector3d and one
+    /// for each component of the rotation quaternion, all of type FmuVariable::Type::Real.  Additionally, 7 FMU
+    /// variables are created to encode the position and orientation time derivatives.
     void AddFmuFrameMovingVariable(
         ChFrameMoving<>& s,
         const std::string& name,

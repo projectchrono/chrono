@@ -81,14 +81,14 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
 
 class DummyWheel : public ChWheel {
   public:
-    DummyWheel() : ChWheel("tire_wheel"), m_inertia(ChVector<>(0)) {}
+    DummyWheel() : ChWheel("tire_wheel"), m_inertia(ChVector3d(0)) {}
     virtual double GetWheelMass() const override { return 0; }
-    virtual const ChVector<>& GetWheelInertia() const override { return m_inertia; }
+    virtual const ChVector3d& GetWheelInertia() const override { return m_inertia; }
     virtual double GetRadius() const override { return 1; }
     virtual double GetWidth() const override { return 1; }
 
   private:
-    ChVector<> m_inertia;
+    ChVector3d m_inertia;
 };
 
 void FmuComponent::CreateTire() {

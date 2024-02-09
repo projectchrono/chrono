@@ -99,7 +99,7 @@ struct FsiBodiesDataH {
     thrust::host_vector<Real4> velMassRigid_fsiBodies_H;  ///< Vector of the linear velocities of rigid bodies
     thrust::host_vector<Real3> accRigid_fsiBodies_H;      ///< Vector of the linear acceleration of rigid bodies
     thrust::host_vector<Real4>
-        q_fsiBodies_H;  ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
+        q_fsiBodies_H;  ///< Vector of the orientations (Euler parameters as quaternion) of rigid bodies
     thrust::host_vector<Real3> omegaVelLRF_fsiBodies_H;  ///< Vector of the angular velocities of rigid bodies
     thrust::host_vector<Real3> omegaAccLRF_fsiBodies_H;  ///< Vector of the angular acceleration of rigid bodies
 
@@ -113,7 +113,7 @@ struct FsiBodiesDataD {
     thrust::device_vector<Real4> velMassRigid_fsiBodies_D;  ///< Vector of the linear velocities of rigid bodies
     thrust::device_vector<Real3> accRigid_fsiBodies_D;      ///< Vector of the linear acceleration of rigid bodies
     thrust::device_vector<Real4>
-        q_fsiBodies_D;  ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
+        q_fsiBodies_D;  ///< Vector of the orientations (Euler parameters as quaternion) of rigid bodies
     thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;  ///< Vector of the angular velocities of rigid bodies
     thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;  ///< Vector of the angular acceleration of rigid bodies
 
@@ -212,7 +212,7 @@ struct ChronoBodiesDataH {
     thrust::host_vector<Real3> vel_ChSystemH;  ///< Vector of the linear velocities of rigid bodies
     thrust::host_vector<Real3> acc_ChSystemH;  ///< Vector of the linear accelerations of rigid bodies
     thrust::host_vector<Real4>
-        quat_ChSystemH;  ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
+        quat_ChSystemH;  ///< Vector of the orientations (Euler parameters as quaternion) of rigid bodies
     thrust::host_vector<Real3> omegaVelGRF_ChSystemH;  ///< Vector of the angular velocities of rigid bodies
     thrust::host_vector<Real3> omegaAccGRF_ChSystemH;  ///< Vector of the angular acceleraion of rigid bodies
 
@@ -260,8 +260,10 @@ struct FsiGeneralData {
     thrust::device_vector<uint> freeSurfaceIdD;  ///< Identifies if a particle is close to free surface
 
     // BCE
-    thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a rigid body in a local
-    thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a mesh in a local on device
+    thrust::device_vector<Real3>
+        rigidSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a rigid body in a local
+    thrust::device_vector<Real3>
+        FlexSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a mesh in a local on device
     thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;  ///< Position of a particle attached to a mesh in a local on host
 
     thrust::device_vector<uint> rigidIdentifierD;  ///< Identifies which rigid body a particle belongs to
@@ -272,10 +274,10 @@ struct FsiGeneralData {
     thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< Vector of the surface-integrated torques to rigid bodies
     thrust::device_vector<Real3> Flex_FSI_ForcesD;    ///< Vector of the surface-integrated force on FEA nodes
 
-    thrust::host_vector<int2> CableElementsNodesH;   ///< Vector of the cable elements nodes on host
+    thrust::host_vector<int2> CableElementsNodesH;    ///< Vector of the cable elements nodes on host
     thrust::device_vector<int2> CableElementsNodesD;  ///< Vector of the cable elements nodes on device
 
-    thrust::host_vector<int4> ShellElementsNodesH;   ///< Vector of the shell elements nodes on host
+    thrust::host_vector<int4> ShellElementsNodesH;    ///< Vector of the shell elements nodes on host
     thrust::device_vector<int4> ShellElementsNodesD;  ///< Vector of the shell elements nodes on device
 };
 

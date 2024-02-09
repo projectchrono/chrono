@@ -18,7 +18,7 @@
 #include <string>
 
 #include "chrono/serialization/ChArchive.h"
-#include "chrono/core/ChFrame.h"
+#include "chrono/core/ChFrameMoving.h"
 
 // fmu_tools
 #include "FmuToolsImport.hpp"
@@ -30,8 +30,8 @@ class FmuChronoUnit : public FmuUnit {
   public:
     FmuChronoUnit() : FmuUnit() {}
 
-    /// Load the given ChVector from the FMU variable with the specified name.
-    fmi2Status GetVecVariable(const std::string& name, ChVector<>& v) {
+    /// Load the given ChVector3d from the FMU variable with the specified name.
+    fmi2Status GetVecVariable(const std::string& name, ChVector3d& v) {
         std::string comp[3] = {"x", "y", "z"};
         for (int i = 0; i < 3; i++) {
             fmi2ValueReference vr = scalarVariables.at(name + "." + comp[i]).GetValueReference();
@@ -42,8 +42,8 @@ class FmuChronoUnit : public FmuUnit {
         return fmi2OK;
     }
 
-    /// Set the FMU variable with specified name to the values of the given ChVector.
-    fmi2Status SetVecVariable(const std::string& name, const ChVector<>& v) {
+    /// Set the FMU variable with specified name to the values of the given ChVector3d.
+    fmi2Status SetVecVariable(const std::string& name, const ChVector3d& v) {
         std::string comp[3] = {"x", "y", "z"};
         for (int i = 0; i < 3; i++) {
             fmi2ValueReference vr = scalarVariables.at(name + "." + comp[i]).GetValueReference();
@@ -79,7 +79,7 @@ class FmuChronoUnit : public FmuUnit {
     }
 
     /// Load the given ChCoordsys from the FMU variable with the specified name.
-    fmi2Status GetCsysVariable(const std::string& name, ChCoordsys<>& csys) {
+    fmi2Status GetCsysVariable(const std::string& name, ChCoordsysd& csys) {
         auto status_pos = GetVecVariable(name + ".pos", csys.pos);
         if (status_pos != fmi2OK)
             return status_pos;
@@ -90,7 +90,7 @@ class FmuChronoUnit : public FmuUnit {
     }
 
     /// Set the FMU variable with specified name to the values of the given ChQuaternion.
-    fmi2Status SetCsysVariable(const std::string& name, const ChCoordsys<>& csys) {
+    fmi2Status SetCsysVariable(const std::string& name, const ChCoordsysd& csys) {
         auto status_pos = SetVecVariable(name + ".pos", csys.pos);
         if (status_pos != fmi2OK)
             return status_pos;
@@ -102,7 +102,7 @@ class FmuChronoUnit : public FmuUnit {
 
     /// Load the given ChFrame from the FMU variable with the specified name.
     fmi2Status GetFrameVariable(const std::string& name, ChFrame<>& frame) {
-        ChCoordsys<> csys;
+        ChCoordsysd csys;
         auto status = GetCsysVariable(name, csys);
         frame = ChFrame<>(csys);
         return status;
@@ -119,11 +119,11 @@ class FmuChronoUnit : public FmuUnit {
 
     /// Load the given ChFrameMoving from FMU variables with the specified name.
     fmi2Status GetFrameMovingVariable(const std::string& name, ChFrameMoving<>& frame) {
-        ChCoordsys<> csys;
+        ChCoordsysd csys;
         auto status_csys = GetCsysVariable(name, csys);
         if (status_csys != fmi2OK)
             return status_csys;
-        ChVector<> pos_dt;
+        ChVector3d pos_dt;
         auto status_pos_dt = GetVecVariable(name + ".pos_dt", pos_dt);
         if (status_pos_dt != fmi2OK)
             return status_pos_dt;
