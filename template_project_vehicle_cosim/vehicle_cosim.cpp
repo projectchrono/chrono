@@ -88,7 +88,7 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
 
 MyTerrain::MyTerrain(double length, double width) : ChVehicleCosimTerrainNode(length, width) {
     m_system = new ChSystemSMC;
-    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
     m_system->SetNumThreads(1);
     m_system->SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
 #ifdef CHRONO_IRRLICHT
@@ -121,7 +121,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     mat_terrain->SetKt(4e5f);
     mat_terrain->SetGt(4e1f);
 
-    utils::AddBoxGeometry(ground.get(), mat_terrain, ChVector<>(m_dimX, m_dimY, 0.2), ChVector<>(0, 0, -0.1),
+    utils::AddBoxGeometry(ground.get(), mat_terrain, ChVector3d(m_dimX, m_dimY, 0.2), ChVector3d(0, 0, -0.1),
                           ChQuaternion<>(1, 0, 0, 0), true);
 
     // Shared proxy contact material
@@ -145,7 +145,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     for (unsigned int i = 0; i < num_tires; i++) {
         m_bodies[i] = chrono_types::make_shared<ChBody>();
         m_bodies[i]->SetMass(m_load_mass[0]);
-        m_bodies[i]->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
+        m_bodies[i]->SetInertiaXX(ChVector3d(0.1, 0.1, 0.1));
         m_bodies[i]->SetCollide(true);
 
         utils::AddCylinderGeometry(m_bodies[i].get(), mat_proxy, tire_radius, tire_width / 2);
@@ -169,7 +169,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
         m_vis->AddLogo();
         m_vis->AddSkyBox();
         m_vis->AddTypicalLights();
-        m_vis->AddCamera(ChVector<>(2, 1.4, 1), ChVector<>(0, 0, 0));
+        m_vis->AddCamera(ChVector3d(2, 1.4, 1), ChVector3d(0, 0, 0));
         m_vis->AttachSystem(m_system);
     }
 #endif
@@ -203,7 +203,7 @@ void MyTerrain::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
 }
 
 void MyTerrain::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
-    rigid_contact.point = ChVector<>(0, 0, 0);
+    rigid_contact.point = ChVector3d(0, 0, 0);
     rigid_contact.force = m_bodies[i]->GetContactForce();
     rigid_contact.moment = m_bodies[i]->GetContactTorque();
 }

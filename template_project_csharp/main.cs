@@ -23,9 +23,9 @@ namespace ChronoDemo
             int ballId = 100;
             double radius = 1;
             double mass = 1000;
-            ChVectorD pos = new ChVectorD(0, 2, 0);
-            ChQuaternionD rot = new ChQuaternionD(1, 0, 0, 0);
-            ChVectorD init_vel = new ChVectorD(0, 0, 0);
+            ChVector3d pos = new ChVector3d(0, 2, 0);
+            ChQuaterniond rot = new ChQuaterniond(1, 0, 0, 0);
+            ChVector3d init_vel = new ChVector3d(0, 0, 0);
 
             // Parameters for the containing bin
             int binId = 200;
@@ -37,7 +37,7 @@ namespace ChronoDemo
             // Create the system
             ChSystemSMC sys = new ChSystemSMC();
 
-            sys.Set_G_acc(new ChVectorD(0, gravity, 0));
+            sys.Set_G_acc(new ChVector3d(0, gravity, 0));
             sys.SetCollisionSystemType(coll_type);
 
             // The following two lines are optional, since they are the default options. They are added for future reference,
@@ -69,7 +69,7 @@ namespace ChronoDemo
             ball.SetBodyFixed(false);
 
             ChCollisionShapeSphere sphere_coll = new ChCollisionShapeSphere(material, radius);
-            ball.AddCollisionShape(sphere_coll, new ChFrameD());
+            ball.AddCollisionShape(sphere_coll, new ChFramed());
             ball.SetCollide(true);
 
             ChVisualShapeSphere sphere_vis = new ChVisualShapeSphere(radius);
@@ -84,12 +84,12 @@ namespace ChronoDemo
 
             bin.SetIdentifier(binId);
             bin.SetMass(1);
-            bin.SetPos(new ChVectorD(0, 0, 0));
-            bin.SetRot(new ChQuaternionD(1, 0, 0, 0));
+            bin.SetPos(new ChVector3d(0, 0, 0));
+            bin.SetRot(new ChQuaterniond(1, 0, 0, 0));
             bin.SetBodyFixed(true);
 
             ChCollisionShapeBox box_coll = new ChCollisionShapeBox(material, width * 2, thickness * 2, length * 2);
-            bin.AddCollisionShape(box_coll, new ChFrameD());
+            bin.AddCollisionShape(box_coll, new ChFramed());
             bin.SetCollide(true);
 
             ChVisualShapeBox box_vis = new ChVisualShapeBox(width * 2, thickness * 2, length * 2);
@@ -108,9 +108,9 @@ namespace ChronoDemo
             vis.AddLogo();
             vis.AddSkyBox();
             vis.AddTypicalLights();
-            vis.AddCamera(new ChVectorD(0, 3, -6));
+            vis.AddCamera(new ChVector3d(0, 3, -6));
             vis.AttachSystem(sys);
-            vis.AddGrid(0.2, 0.2, 20, 20, new ChCoordsysD(new ChVectorD(0, 0.11, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)),
+            vis.AddGrid(0.2, 0.2, 20, 20, new ChCoordsysd(new ChVector3d(0, 0.11, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)),
                                 new ChColor(0.1f, 0.1f, 0.1f));
 
             // The soft-real-time cycle
@@ -121,7 +121,7 @@ namespace ChronoDemo
             {
                 vis.BeginScene();
                 vis.Render();
-                vis.RenderFrame(new ChFrameD(chrono.CastToChBodyFrame(ball).GetCoord()), 1.2 * radius);
+                vis.RenderFrame(new ChFramed(chrono.CastToChBodyFrame(ball).GetCoord()), 1.2 * radius);
                 vis.EndScene();
 
                 while (time < out_time)

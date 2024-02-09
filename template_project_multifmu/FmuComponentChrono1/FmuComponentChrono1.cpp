@@ -52,7 +52,7 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
 
     auto pendulum = chrono_types::make_shared<ChBodyEasyBox>(0.025, pendulum_length, 0.01, 750, true, false);
     pendulum->SetMass(pendulum_mass);
-    pendulum->SetInertiaXX(ChVector<>(0.01, 0.01, 0.01));
+    pendulum->SetInertiaXX(ChVector3d(0.01, 0.01, 0.01));
     sys.Add(pendulum);
 
     auto cart_prism = chrono_types::make_shared<ChLinkLockPrismatic>();
@@ -62,7 +62,7 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
 
     auto pendulum_rev = chrono_types::make_shared<ChLinkRevolute>();
     pendulum_rev->Initialize(pendulum, cart, true, ChFrame<>(VNULL, QUNIT),
-                             ChFrame<>(ChVector<>(0, +pendulum_length / 2, 0), QUNIT));
+                             ChFrame<>(ChVector3d(0, +pendulum_length / 2, 0), QUNIT));
     pendulum_rev->SetName("pendulum_rev");
     sys.Add(pendulum_rev);
 
@@ -76,7 +76,7 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(-0.5, -0.5, -1.0));
+    vis->AddCamera(ChVector3d(-0.5, -0.5, -1.0));
     vis->AddTypicalLights();
 #endif
 
