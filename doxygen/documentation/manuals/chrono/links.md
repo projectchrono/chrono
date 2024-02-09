@@ -74,8 +74,8 @@ In general, the process involves the following steps:
    ~~~{.cpp}
    mylink->Initialize(pendulumBody,        // the 1st body to connect
                       floorBody,      // the 2nd body to connect
-                      ChCoordsys<>(ChVector<>(1, 0, 0),
-                                   Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0))
+                      ChCoordsys<>(ChVector3<>(1, 0, 0),
+                                   Q_from_AngAxis(-CH_C_PI / 2, ChVector3<>(1, 0, 0))
                                    )   // master reference
                       );
    ~~~

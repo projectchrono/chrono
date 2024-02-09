@@ -78,7 +78,7 @@ auto rotmotor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
 // Connect the rotor and the stator and add the motor to the system:
 rotmotor->Initialize( rotor,                // body A (slave)
                       stator,               // body B (master)
-                      ChFrame<>(ChVector<>(1,0,0)) // motor frame, in abs. coords
+                      ChFrame<>(ChVector3<>(1,0,0)) // motor frame, in abs. coords
                       );
                       
 // Add the motor to the system
@@ -182,7 +182,7 @@ auto rotmotor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
 // Connect the rotor and the stator and add the motor to the system:
 rotmotor->Initialize( rotor,                // body A (slave)
                       stator,               // body B (master)
-                      ChFrame<>(ChVector<>(1,0,0)) // motor frame, in abs. coords
+                      ChFrame<>(ChVector3<>(1,0,0)) // motor frame, in abs. coords
                       );
                       
 // Add the motor to the system
@@ -497,7 +497,7 @@ auto motor1 = chrono_types::make_shared<ChLinkMotorLinearPosition>();
 // Connect the guide and the slider and add the motor to the system:
 motor1->Initialize(slider1,              // body A (slave)
                    guide1,               // body B (master)
-                   ChFrame<>(ChVector<>(3,1,0))  // motor frame, in abs. coords
+                   ChFrame<>(ChVector3<>(3,1,0))  // motor frame, in abs. coords
                    );
 mphysicalSystem.Add(motor1);
 

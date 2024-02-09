@@ -17,7 +17,7 @@ Chrono uses [Eigen3](https://eigen.tuxfamily.org/dox/index.html) for representin
 Dense matrices in Chrono are templated by the scalar type and have row-major storage order. All Chrono matrix and vector types below are simply aliases to appropriate Eigen matrix types; see @ref chrono_linalg and the ChMatrix.h header.
 
 <div class="ce-info">
-The [ChVector](@ref chrono::ChVector) and [ChVector2](@ref chrono::ChVector2) classes, used to represent 3D vectors in space and 2D vectors in a plane, respectively, are not Eigen types nor derived from Eigen matrices.
+The [ChVector3](@ref chrono::ChVector3) and [ChVector2](@ref chrono::ChVector2) classes, used to represent 3D vectors in space and 2D vectors in a plane, respectively, are not Eigen types nor derived from Eigen matrices.
 </div>
 
 Matrices are indexed starting from 0, with (row,column) indexing:

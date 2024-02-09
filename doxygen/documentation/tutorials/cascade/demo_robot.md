@@ -221,7 +221,7 @@ Print the contained shapes, showing the assembly hierarchy:
 	ChQuaternion<> rotation2;
 	rotation2.Q_from_AngAxis(CH_C_PI, VECT_Y);	 // 2: rotate 180° on vertical Y axis
 	ChQuaternion<> tot_rotation = rotation2 % rotation1;  // rotate on 1 then on 2, using quaternion product
-	ChFrameMoving<> root_frame( ChVector<>(0,0,0), tot_rotation); 
+	ChFrameMoving<> root_frame( ChVector3<>(0,0,0), tot_rotation); 
 ~~~
 
 
@@ -577,9 +577,9 @@ Set motions for Z and Y coordinates of the 'my_link_teacher' marker, so that the
 	ChBodySceneNode* mfloor = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 											&my_system, application.GetSceneManager(),
 											1000.0,
-											ChVector<>(0,-0.6,0),
+											ChVector3<>(0,-0.6,0),
 											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(20,1,20) );
+											ChVector3<>(20,1,20) );
 	mfloor->GetBody()->SetBodyFixed(true);
 	mfloor->GetBody()->SetCollide(true);
 	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/blu.png");

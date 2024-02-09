@@ -148,6 +148,7 @@ Note that this represents a major public API change and we expect most user code
 | ChFunctionRotation_setpoint.h       | rename: ChFunctionRotationSetpoint.h      |
 | ChFunctionRotation_spline.h         | rename: ChFunctionRotationBSpline.h       |
 | ChFunctionRotation_SQUAD.h          | rename: ChFunctionRotationSQUAD.h         |
+| ChVector.h                          | rename: ChVector3.h                       |
 
 
  
@@ -225,6 +226,16 @@ Note that this represents a major public API change and we expect most user code
 | ChStreamOutBinary                 |                     | remove                                           |
 | ChStreamOutBinaryFile             |                     | remove                                           |
 
+**Types**
+
+| Class                             | Type                | Action                                           |
+| :-------------------------------- | :------------------ | :----------------------------------------------- |
+| ChCoordsys                        | Coordsys            | rename: ChCoordsysd                              |
+|                                   | CoordsysF           | rename: ChCoordsysf                              |
+| ChQuaternion                      | Quaternion          | rename: ChQuaterniond                            |
+|                                   | QuaternionF         | rename: ChQuaternionf                            |
+| ChVector                          | Vector              | rename: ChVector3d                               |
+|                                   | VectorF             | rename: ChVector3f                               |
 
 
 **Notes**
