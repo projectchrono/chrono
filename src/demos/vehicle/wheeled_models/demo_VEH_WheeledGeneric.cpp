@@ -100,9 +100,8 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 // Simulation length (Povray only)
 double tend = 20.0;
 
-// Output directories (Povray only)
-const std::string out_dir = GetChronoOutputPath() + "GENERIC_VEHICLE";
-const std::string pov_dir = out_dir + "/POVRAY";
+// Enable debug logging
+bool debug_log = false;
 
 // =============================================================================
 
@@ -115,7 +114,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
     // and visualization mode for the various vehicle components.
-    Generic_Vehicle vehicle(true,            // fixed chassis
+    Generic_Vehicle vehicle(false,            // fixed chassis
                             suspension_type,  // front suspension type
                             suspension_type,  // rear suspension type
                             steering_type,    // sterring mechanism type
@@ -238,11 +237,6 @@ int main(int argc, char* argv[]) {
 
     vehicle.EnableRealtime(true);
 
-#ifdef DEBUG_LOG
-    GetLog() << "\n\n============ System Configuration ============\n";
-    vehicle.LogHardpointLocations();
-#endif
-
     while (vis->Run()) {
         double time = vehicle.GetSystem()->GetChTime();
 
@@ -251,16 +245,15 @@ int main(int argc, char* argv[]) {
         vis->Render();
         vis->EndScene();
 
-#ifdef DEBUG_LOG
-        // Number of simulation steps between two output frames
-        int output_steps = (int)std::ceil(output_step_size / step_size);
+        if (debug_log) {
+            // Number of simulation steps between two output frames
+            int output_steps = (int)std::ceil(output_step_size / step_size);
 
-        if (step_number % output_steps == 0) {
-            GetLog() << "\n\n============ System Information ============\n";
-            GetLog() << "Time = " << time << "\n\n";
-            vehicle.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+            if (step_number % output_steps == 0) {
+                GetLog() << "Time = " << time << "\n\n";
+                vehicle.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+            }
         }
-#endif
 
         // Driver inputs
         DriverInputs driver_inputs = driver->GetInputs();
