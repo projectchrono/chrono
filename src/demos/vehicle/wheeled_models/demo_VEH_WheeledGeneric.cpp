@@ -22,7 +22,7 @@
 // =============================================================================
 
 #include <vector>
-
+
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -44,9 +44,6 @@ using namespace chrono::irrlicht;
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
-
-// DEBUGGING:  Uncomment the following line to print suspension data
-// #define DEBUG_LOG
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -99,9 +96,8 @@ ChVector3d trackPoint(0.0, 0.0, 1.75);
 // Simulation length (Povray only)
 double tend = 20.0;
 
-// Output directories (Povray only)
-const std::string out_dir = GetChronoOutputPath() + "GENERIC_VEHICLE";
-const std::string pov_dir = out_dir + "/POVRAY";
+// Enable debug logging
+bool debug_log = false;
 
 // =============================================================================
 
@@ -114,7 +110,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
     // and visualization mode for the various vehicle components.
-    Generic_Vehicle vehicle(true,            // fixed chassis
+    Generic_Vehicle vehicle(false,            // fixed chassis
                             suspension_type,  // front suspension type
                             suspension_type,  // rear suspension type
                             steering_type,    // sterring mechanism type
@@ -206,8 +202,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("Generic Vehicle Demo");
             vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->SetChaseCamera(trackPoint, 8.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
+            vis_vsg->SetWindowSize(ChVector2<int>(1200, 900));
+            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
@@ -237,11 +233,6 @@ int main(int argc, char* argv[]) {
 
     vehicle.EnableRealtime(true);
 
-#ifdef DEBUG_LOG
-    std::cout << "\n\n============ System Configuration ============\n";
-    vehicle.LogHardpointLocations();
-#endif
-
     while (vis->Run()) {
         double time = vehicle.GetSystem()->GetChTime();
 
@@ -250,16 +241,15 @@ int main(int argc, char* argv[]) {
         vis->Render();
         vis->EndScene();
 
-#ifdef DEBUG_LOG
-        // Number of simulation steps between two output frames
-        int output_steps = (int)std::ceil(output_step_size / step_size);
+        if (debug_log) {
+            // Number of simulation steps between two output frames
+            int output_steps = (int)std::ceil(output_step_size / step_size);
 
-        if (step_number % output_steps == 0) {
-            std::cout << "\n\n============ System Information ============\n";
-            std::cout << "Time = " << time << "\n\n";
-            vehicle.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+            if (step_number % output_steps == 0) {
+                std::cout << "Time = " << time << std::endl;
+                vehicle.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+            }
         }
-#endif
 
         // Driver inputs
         DriverInputs driver_inputs = driver->GetInputs();

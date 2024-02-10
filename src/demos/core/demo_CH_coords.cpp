@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include <cmath>
-
+
 #include "chrono/core/ChTransform.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChFrameMoving.h"
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
     // BENCHMARK FOR EXECUTION SPEED
     //
 
-    std::cout << " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" << std::endl;
+    std::cout << "-------------------------------------------\n" << std::endl;
 
     mrotA.Set_A_quaternion(qrotA);
     ChFpMatrix34<> Fp(qrotA);
@@ -278,7 +278,7 @@ int main(int argc, char* argv[]) {
     testa.SetWvel_loc(ChVector3d(1.1, 2.1, 5.1));
     testa.SetPos_dtdt(ChVector3d(7, 8, 9));
     testa.SetWacc_loc(ChVector3d(4.3, 5.3, 2.3));
-    std::cout << testa << "a moving frame";
+    std::cout << testa << "a moving frame " << std::endl;
 
     ChVector3d locpos(0.1, 3.1, 1.1);
     ChVector3d locspeed(3.2, 9.2, 7.2);
@@ -296,14 +296,13 @@ int main(int argc, char* argv[]) {
 
     ChFrameMoving<> bres = (testPl >> testa);
 
-    std::cout << bres << " trasf loc->abs" << std::endl;
+    std::cout << bres << " transform loc->abs" << std::endl;
 
     ChQuaternion<> pollo(3, 5, 6, 7);
     ChVector3d pallo(2, 4, 6);
 
     ChTimer timer;
 
-    //int numcycles = 100000;
     int i;
 
     timer.start();
@@ -311,116 +310,21 @@ int main(int argc, char* argv[]) {
         testa.TransformLocalToParent(testPl, testPw);
     }
     timer.stop();
-    std::cout << "TEST 10e6 of ChFrameMoving::TransformLocalToParent (1.38) Time: " << timer() << std::endl;
-    // VC6   : 1.380
-    // VC2003: 0.861
-    // VC2005: 0.691
-    // GCC   : 0.661
+    std::cout << "TEST 1e6 calls to ChFrameMoving::TransformLocalToParent. Time = " << timer() << std::endl;
 
     timer.start();
     for (i = 0; i < 1000000; i++) {
         mvect2 = mvect1 >> mframeA;
     }
     timer.stop();
-    std::cout << "TEST 10e6 of mvect2 = mvect1 >> mframeA; (0.03)" << timer() << std::endl;
-    // VC6   : 0.03
-    // VC2003: 0.03
-    // VC2005: 0.03
-    // GCC   : 0.03
+    std::cout << "TEST 1e6 calls of mvect2 = mvect1 >> mframeA.  Time = " << timer() << std::endl;
 
     timer.start();
     for (i = 0; i < 1000000; i++) {
         testa.PointAccelerationParentToLocal(vtraslA, vtraslA, vtraslA);
     }
     timer.stop();
-    std::cout << "TEST 10e6 of PointAccelerationParentToLocal (0.811)" << timer() << std::endl;
-    // VC6   : 0.811
-    // VC2003: 0.531
-    // VC2005: 0.410
-    // GCC   : 0.320
-
-    /*
-       timer.start();
-       for (i= 0; i<numcycles; i++)
-       {
-           for (int j = 0; j<100; j++)
-           {
-               mvect2 = mvect1 >> f32 >> f21 >> f10;
-               // NOTE: thank to the fact that operators are executed from left to
-               // right, the above is MUCH faster (16x) than the equivalent:
-               //    mvect2 =  f10 * f21 * f32 * mvect1;
-               // because the latter, if no parenthesis are used, would imply
-               // three expensive frame*frame operations, and a last frame*vector.
-           }
-       }
-       timer.stop();
-       std::cout << "Test 3 frame transf. with >> ChFrame operator: " <<  timer() << std::endl;
-
-
-       timer.start();
-       for (i= 0; i<1000000; i++)
-       {
-           testa.SetCoord(vtraslA,qrotA);
-       }
-       timer.stop();
-       std::cout << "Test ChFrame::SetPos() " <<  timer() << std::endl;
-
-
-   //ChQuaternion<> mqdt(1, 2, 3, 4);
-       timer.start();
-       for (i= 0; i<1000000; i++)
-       {
-           testa.SetRot_dt(mqdt);
-       }
-       timer.stop();
-       std::cout << "Test ChFrame::SetRot_dt() " <<  timer() << std::endl;
-
-       timer.start();
-       for (i= 0; i<1000000; i++)
-       {
-           testa.SetRot_dtdt(mqdt);
-       }
-       timer.stop()
-       std::cout << "Test ChFrame::SetRot_dtdt() " <<  timer() << std::endl;
-
-
-   ChVector3d mv(1, 2, 3);
-       timer.start();
-       for (i= 0; i<1000000; i++)
-       {
-           testa.SetWvel_loc(mv);
-       }
-       timer.stop();
-       std::cout << "Test ChFrame::SetWvel_loc() " <<  timer() << std::endl;
-
-       timer.start();
-       for (i= 0; i<1000000; i++)
-       {
-           testa.SetWacc_loc(mv);
-       }
-       timer.stop();
-       std::cout << "Test ChFrame::SetWacc_loc() " <<  timer() << std::endl;
-
-       timer.start();
-       for (i= 0; i<1000000; i++)
-       {
-           ChVector3d p= testa.GetWvel_loc();
-       }
-       timer.stop();
-       std::cout << "Test ChFrame::GetWvel_loc() " <<  timer() << std::endl;
-
-       timer.start();
-       for (i= 0; i<1000000; i++)
-       {
-           ChVector3d p= testa.GetWacc_loc();
-       }
-       timer.stop();
-       std::cout << "Test ChFrame::GetWacc_loc() " <<  timer() << std::endl;
-
-
-   */
-
-    std::cout << "\nCHRONO execution terminated.";
+    std::cout << "TEST 1e6 calls to PointAccelerationParentToLocal. Time = " << timer() << std::endl;
 
     return 0;
 }
