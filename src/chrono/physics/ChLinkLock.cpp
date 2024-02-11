@@ -2038,7 +2038,7 @@ CH_FACTORY_REGISTER(ChLinkLockLock)
 
 ChLinkLockLock::ChLinkLockLock()
     : motion_axis(VECT_Z),
-      angleset(AngleSet::ANGLE_AXIS),
+      angleset(ChRotation::Representation::ANGLE_AXIS),
       relC(CSYSNORM),
       relC_dt(CSYSNULL),
       relC_dtdt(CSYSNULL),
@@ -2106,6 +2106,20 @@ void ChLinkLockLock::SetMotion_axis(ChVector3d m_axis) {
     motion_axis = m_axis;
 }
 
+void ChLinkLockLock::SetRotationRepresentation(ChRotation::Representation rot_rep) {
+    if (rot_rep != ChRotation::Representation::ANGLE_AXIS ||
+        rot_rep != ChRotation::Representation::EULER_ANGLES_ZXZ ||
+        rot_rep != ChRotation::Representation::CARDAN_ANGLES_XYZ ||
+        rot_rep != ChRotation::Representation::CARDAN_ANGLES_ZXY ||
+        rot_rep != ChRotation::Representation::CARDAN_ANGLES_ZYX) {
+        std::cerr << "Unknown input rotation representation" << std::endl;
+        throw std::runtime_error("Unknown input rotation representation");
+        return;
+    }
+
+    angleset = rot_rep;
+}
+
 // Sequence of calls for full update:
 //     UpdateTime(time);
 //     UpdateRelMarkerCoords();
@@ -2139,7 +2153,7 @@ void ChLinkLockLock::UpdateTime(double time) {
     deltaC_dtdt.pos.z() = motion_Z->Get_y_dxdx(time);
 
     switch (angleset) {
-        case AngleSet::ANGLE_AXIS:
+        case ChRotation::Representation::ANGLE_AXIS:
             ang = motion_ang->Get_y(time);
             ang_dt = motion_ang->Get_y_dx(time);
             ang_dtdt = motion_ang->Get_y_dxdx(time);
@@ -2154,10 +2168,10 @@ void ChLinkLockLock::UpdateTime(double time) {
                 deltaC_dtdt.rot = QNULL;
             }
             break;
-        case AngleSet::EULERO:
-        case AngleSet::CARDANO:
-        case AngleSet::HPB:
-        case AngleSet::RXYZ: {
+        case ChRotation::Representation::EULER_ANGLES_ZXZ:
+        case ChRotation::Representation::CARDAN_ANGLES_ZXY:
+        case ChRotation::Representation::CARDAN_ANGLES_ZYX:
+        case ChRotation::Representation::CARDAN_ANGLES_XYZ: {
             ChVector3d vangles, vangles_dt, vangles_dtdt;
             vangles.x() = motion_ang->Get_y(time);
             vangles.y() = motion_ang2->Get_y(time);
@@ -2168,9 +2182,9 @@ void ChLinkLockLock::UpdateTime(double time) {
             vangles_dtdt.x() = motion_ang->Get_y_dxdx(time);
             vangles_dtdt.y() = motion_ang2->Get_y_dxdx(time);
             vangles_dtdt.z() = motion_ang3->Get_y_dxdx(time);
-            deltaC.rot = Angle_to_Quat(angleset, vangles);
-            deltaC_dt.rot = AngleDT_to_QuatDT(angleset, vangles_dt, deltaC.rot);
-            deltaC_dtdt.rot = AngleDTDT_to_QuatDTDT(angleset, vangles_dtdt, deltaC.rot);
+            deltaC.rot = ChRotation::AngleSetToQuaternion(angleset, vangles);
+            deltaC_dt.rot = ChRotation::AngleSetToQuaternionDer(angleset, vangles_dt, deltaC.rot);
+            deltaC_dtdt.rot = ChRotation::AngleSetToQuaternionDer2(angleset, vangles_dtdt, deltaC.rot);
             break;
         }
         default:
@@ -2409,18 +2423,19 @@ void ChLinkLockLock::UpdateState() {
 }
 
 // To avoid putting the following mapper macro inside the class definition,
-// enclose macros in local 'ChLinkLockLock_AngleSet_enum_mapper'.
-class ChLinkLockLock_AngleSet_enum_mapper : public ChLinkLockLock {
+// enclose macros in local 'ChLinkLockLock_RotationRepresentation_enum_mapper'.
+class ChLinkLockLock_RotationRepresentation_enum_mapper : public ChLinkLockLock {
   public:
-    CH_ENUM_MAPPER_BEGIN(AngleSet);
-    CH_ENUM_VAL(AngleSet::ANGLE_AXIS);
-    CH_ENUM_VAL(AngleSet::EULERO);
-    CH_ENUM_VAL(AngleSet::CARDANO);
-    CH_ENUM_VAL(AngleSet::HPB);
-    CH_ENUM_VAL(AngleSet::RXYZ);
-    CH_ENUM_VAL(AngleSet::RODRIGUEZ);
-    CH_ENUM_VAL(AngleSet::QUATERNION);
-    CH_ENUM_MAPPER_END(AngleSet);
+    typedef ChRotation::Representation ChRotationRepresentation;
+
+    CH_ENUM_MAPPER_BEGIN(ChRotationRepresentation);
+    CH_ENUM_VAL(ChRotation::Representation::ANGLE_AXIS);
+    CH_ENUM_VAL(ChRotation::Representation::EULER_ANGLES_ZXZ);
+    CH_ENUM_VAL(ChRotation::Representation::CARDAN_ANGLES_ZXY);
+    CH_ENUM_VAL(ChRotation::Representation::CARDAN_ANGLES_ZYX);
+    CH_ENUM_VAL(ChRotation::Representation::CARDAN_ANGLES_XYZ);
+    CH_ENUM_VAL(ChRotation::Representation::RODRIGUEZ);
+    CH_ENUM_MAPPER_END(ChRotationRepresentation);
 };
 
 void ChLinkLockLock::ArchiveOut(ChArchiveOut& marchive) {
@@ -2461,7 +2476,7 @@ void ChLinkLockLock::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(motion_ang3);
     marchive << CHNVP(motion_axis);
 
-    ChLinkLockLock_AngleSet_enum_mapper::AngleSet_mapper setmapper;
+    ChLinkLockLock_RotationRepresentation_enum_mapper::ChRotationRepresentation_mapper setmapper;
     marchive << CHNVP(setmapper(angleset), "angle_set");
 }
 
@@ -2503,7 +2518,7 @@ void ChLinkLockLock::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(motion_ang3);
     marchive >> CHNVP(motion_axis);
 
-    ChLinkLockLock_AngleSet_enum_mapper::AngleSet_mapper setmapper;
+    ChLinkLockLock_RotationRepresentation_enum_mapper::ChRotationRepresentation_mapper setmapper;
     marchive >> CHNVP(setmapper(angleset), "angle_set");
 }
 

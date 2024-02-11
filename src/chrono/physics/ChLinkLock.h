@@ -15,6 +15,8 @@
 #ifndef CHLINKLOCK_H
 #define CHLINKLOCK_H
 
+#include "chrono/core/ChRotation.h"
+
 #include "chrono/physics/ChLimit.h"
 #include "chrono/physics/ChLinkForce.h"
 #include "chrono/physics/ChLinkMarkers.h"
@@ -315,7 +317,8 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     void SetMotion_ang2(std::shared_ptr<ChFunction> m_funct);
     void SetMotion_ang3(std::shared_ptr<ChFunction> m_funct);
     void SetMotion_axis(ChVector3d m_axis);
-    void Set_angleset(AngleSet mset) { angleset = mset; }
+
+    void SetRotationRepresentation(ChRotation::Representation rot_rep);
 
     std::shared_ptr<ChFunction> GetMotion_X() const { return motion_X; }
     std::shared_ptr<ChFunction> GetMotion_Y() const { return motion_Y; }
@@ -324,7 +327,8 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     std::shared_ptr<ChFunction> GetMotion_ang2() const { return motion_ang2; }
     std::shared_ptr<ChFunction> GetMotion_ang3() const { return motion_ang3; }
     const ChVector3d& GetMotion_axis() const { return motion_axis; }
-    AngleSet Get_angleset() const { return angleset; }
+
+    ChRotation::Representation GetRotationRepresentation() const { return angleset; }
 
     /// Get constraint violations in pos/rot coordinates.
     const ChCoordsysd& GetRelC() const { return relC; }
@@ -347,7 +351,7 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     std::shared_ptr<ChFunction> motion_ang2;  ///< user imposed angle rotation if three-angles rot.
     std::shared_ptr<ChFunction> motion_ang3;  ///< user imposed angle rotation if three-angles rot.
     ChVector3d motion_axis;                   ///< this is the axis for the user imposed rotation
-    AngleSet angleset;                        ///< type of rotation (3 Eul angles, angle/axis, etc.)
+    ChRotation::Representation angleset;      ///< type of rotation (3 Eul angles, angle/axis, etc.)
 
     ChCoordsysd relC;       ///< relative constraint position: relC = (relM-deltaC)
     ChCoordsysd relC_dt;    ///< relative constraint speed

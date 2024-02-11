@@ -15,74 +15,61 @@
 #ifndef CHFUNCTIONROTATION_ABCFUNCTIONS_H
 #define CHFUNCTIONROTATION_ABCFUNCTIONS_H
 
+#include "chrono/core/ChRotation.h"
+
 #include "chrono/motion_functions/ChFunctionBase.h"
 #include "chrono/motion_functions/ChFunctionRotation.h"
-
 
 namespace chrono {
 
 /// @addtogroup chrono_functions
 /// @{
 
-/// A rotation function q=f(s) where q(s) is defined with three ChFunction objects, each per 
-/// an an angle in an intrinsic triplets of angles (ex. Eulero angles, Cardano angles, etc),
+/// A rotation function q=f(s) where q(s) is defined with three ChFunction objects, each per
+/// an an angle in an intrinsic triplets of angles (ex. Euler angles, Cardan angles, etc),
 /// ex. A=A(s), B=B(s), C=C(s).
-/// By default, rotation is constant zero rotation. 
-/// By default, the angleset is AngleSet::RXYZ (sequence: X-Y'-Z'' intrinsic), may be changed.
+/// By default, rotation is constant zero rotation.
+/// By default, the angleset is ChRotation::Representation::CARDAN_ANGLES_XYZ (sequence: X-Y'-Z'' intrinsic).
 
 class ChApi ChFunctionRotationABCFunctions : public ChFunctionRotation {
-
   public:
-	ChFunctionRotationABCFunctions();
-	ChFunctionRotationABCFunctions(const ChFunctionRotationABCFunctions& other);
-	virtual ~ChFunctionRotationABCFunctions();
+    ChFunctionRotationABCFunctions();
+    ChFunctionRotationABCFunctions(const ChFunctionRotationABCFunctions& other);
+    virtual ~ChFunctionRotationABCFunctions();
 
     /// "Virtual" copy constructor.
     virtual ChFunctionRotationABCFunctions* Clone() const override { return new ChFunctionRotationABCFunctions(*this); }
 
-	/// Set the angle function A=A(s) expressing the rotation about the first axis of rotation. Angle assumed in radians.
-	void SetFunctionAngleA(std::shared_ptr<ChFunction> mx) {
-		this->angleA = mx;
-	}
-	/// Get the angle function A=A(s) expressing the rotation about the fixed axis of rotation. Angle assumed in radians.
-	std::shared_ptr<ChFunction> GetFunctionAngleA() const {
-		return this->angleA;
-	}
+    /// Set the function A=A(s) for the rotation angle (in radians) about the first axis. 
+    /// Default: constant 0 function.
+    void SetFunctionAngleA(std::shared_ptr<ChFunction> angle_function) { angleA = angle_function; }
+    
+    /// Get the function A=A(s) for the rotation angle (in radians) about the first axis.
+    std::shared_ptr<ChFunction> GetFunctionAngleA() const { return angleA; }
 
-	/// Set the angle function B=B(s) expressing the rotation about the second axis of rotation. Angle assumed in radians.
-	void SetFunctionAngleB(std::shared_ptr<ChFunction> mx) {
-		this->angleB = mx;
-	}
-	/// Get the angle function B=B(s) expressing the rotation about the second axis of rotation. Angle assumed in radians.
-	std::shared_ptr<ChFunction> GetFunctionAngleB() const {
-		return this->angleB;
-	}
+    /// Set the function B(s) for the rotation angle (in radians) about the second axis.
+    /// Default: constant 0 function.
+    void SetFunctionAngleB(std::shared_ptr<ChFunction> angle_function) { angleB = angle_function; }
+    
+    /// Get the function B(s) for the rotation angle (in radians) about the second axis.
+    std::shared_ptr<ChFunction> GetFunctionAngleB() const { return angleB; }
 
-	/// Set the angle function C=C(s) expressing the rotation about the second axis of rotation. Angle assumed in radians.
-	void SetFunctionAngleC(std::shared_ptr<ChFunction> mx) {
-		this->angleC = mx;
-	}
-	/// Get the angle function C=C(s) expressing the rotation about the second axis of rotation. Angle assumed in radians.
-	std::shared_ptr<ChFunction> GetFunctionAngleC() const {
-		return this->angleC;
-	}
+    /// Set the function C(s) for the rotation angle (in radians) about the third axis.
+    /// Default: constant 0 function.
+    void SetFunctionAngleC(std::shared_ptr<ChFunction> angle_function) { angleC = angle_function; }
 
-	/// Set the angle set: Cardano, Eulero, etc. The angle set define the order of the xyz axes of the intrinsic rotation 
-	/// with the three A(s) B(s) C(s) rotations, for example Eulero angle set means that there is a rotation about Z, X', Z'',
-	/// Cardano angle set means Z,X',Y', etc. 
-	void SetAngleset(const AngleSet mset) {
-		this->angleset = mset;
-	}
-	/// Get the angle set: Cardano, Eulero, etc. The angle set define the order of the xyz axes of the intrinsic rotation.
-	AngleSet GetAngleset() const {
-		return this->angleset;
-	}
+    /// Get the function C(s) for the rotation angle (in radians) about the third axis.
+    std::shared_ptr<ChFunction> GetFunctionAngleC() const { return angleC; }
 
+    /// Set the angle set for rotation representation.
+    /// This can be one of the supported Euler angle sets. 
+    void SetAngleset(const ChRotation::Representation rot_rep);
 
-   
-	/// Return the rotation as a quaternion, function of s, as q=f(s).
-	virtual ChQuaternion<> Get_q(double s) const override;
+    /// Get the angle set for rotation representation.
+    ChRotation::Representation GetAngleset() const { return angleset; }
 
+    /// Return the rotation as a quaternion, function of s, as q=f(s).
+    virtual ChQuaternion<> Get_q(double s) const override;
 
     /// Method to allow serialization of transient data to archives
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -90,11 +77,12 @@ class ChApi ChFunctionRotationABCFunctions : public ChFunctionRotation {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
-private:
-	std::shared_ptr<ChFunction> angleA;
-	std::shared_ptr<ChFunction> angleB;
-	std::shared_ptr<ChFunction> angleC;
-	AngleSet angleset;
+  private:
+    ChRotation::Representation angleset;
+
+    std::shared_ptr<ChFunction> angleA;
+    std::shared_ptr<ChFunction> angleB;
+    std::shared_ptr<ChFunction> angleC;
 };
 
 /// @} chrono_functions

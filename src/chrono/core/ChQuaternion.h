@@ -26,17 +26,6 @@
 
 namespace chrono {
 
-/// Definitions of various angle sets for conversions.
-enum class AngleSet {
-    ANGLE_AXIS,
-    EULERO,   ///< sequence: Z - X' - Z''
-    CARDANO,  ///< sequence: Z - X' - Y''
-    HPB,      ///< sequence:
-    RXYZ,     ///< sequence: X - Y' - Z''
-    RODRIGUEZ,
-    QUATERNION,
-};
-
 /// Class defining quaternion objects, that is four-dimensional numbers, also known as Euler parameters.
 /// Quaternions are very useful when used to represent rotations in 3d.
 ///
@@ -569,15 +558,6 @@ ChApi ChQuaterniond ImmQ_dtdt_complete(const ChQuaterniond& mq,
                                               const ChVector3d& qimm_dtdt);
 
 ChApi ChVector3d VaxisXfromQuat(const ChQuaterniond& quat);
-
-/// Angle conversion utilities.
-ChApi ChVector3d Quat_to_Angle(AngleSet angset, const ChQuaterniond& mquat);
-ChApi ChVector3d Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector3d& mangles);
-ChApi ChQuaterniond Angle_to_Quat(AngleSet angset, const ChVector3d& mangles);
-ChApi ChQuaterniond AngleDT_to_QuatDT(AngleSet angset, const ChVector3d& mangles, const ChQuaterniond& q);
-ChApi ChQuaterniond AngleDTDT_to_QuatDTDT(AngleSet angset,
-                                                 const ChVector3d& mangles,
-                                                 const ChQuaterniond& q);
 
 /// Insertion of quaternion to output stream.
 template <typename Real>

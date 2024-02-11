@@ -12,79 +12,91 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-
-
 #include "chrono/motion_functions/ChFunctionRotationABCFunctions.h"
 #include "chrono/motion_functions/ChFunctionConst.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChFunctionRotationABCFunctions) 
+CH_FACTORY_REGISTER(ChFunctionRotationABCFunctions)
 
 ChFunctionRotationABCFunctions::ChFunctionRotationABCFunctions() {
+    angleset = ChRotation::Representation::CARDAN_ANGLES_XYZ;
 
-	// default s(t) function. User will provide better fx.
-    this->angleA = chrono_types::make_shared<ChFunctionConst>(0);
-	this->angleB = chrono_types::make_shared<ChFunctionConst>(0);
-	this->angleC = chrono_types::make_shared<ChFunctionConst>(0);
-	this->angleset = AngleSet::RXYZ;
+    angleA = chrono_types::make_shared<ChFunctionConst>(0);
+    angleB = chrono_types::make_shared<ChFunctionConst>(0);
+    angleC = chrono_types::make_shared<ChFunctionConst>(0);
 }
-
 
 ChFunctionRotationABCFunctions::ChFunctionRotationABCFunctions(const ChFunctionRotationABCFunctions& other) {
+    angleset = other.angleset;
 
-	this->angleA = std::shared_ptr<ChFunction>(other.angleA->Clone());
-	this->angleB = std::shared_ptr<ChFunction>(other.angleB->Clone());
-	this->angleC = std::shared_ptr<ChFunction>(other.angleC->Clone());
-	this->angleset = other.angleset;
+    angleA = std::shared_ptr<ChFunction>(other.angleA->Clone());
+    angleB = std::shared_ptr<ChFunction>(other.angleB->Clone());
+    angleC = std::shared_ptr<ChFunction>(other.angleC->Clone());
 }
 
-ChFunctionRotationABCFunctions::~ChFunctionRotationABCFunctions() {
+ChFunctionRotationABCFunctions::~ChFunctionRotationABCFunctions() {}
 
+void ChFunctionRotationABCFunctions::SetAngleset(const ChRotation::Representation rot_rep) {
+    if (rot_rep != ChRotation::Representation::EULER_ANGLES_ZXZ ||
+        rot_rep != ChRotation::Representation::CARDAN_ANGLES_XYZ ||
+        rot_rep != ChRotation::Representation::CARDAN_ANGLES_ZXY ||
+        rot_rep != ChRotation::Representation::CARDAN_ANGLES_ZYX) {
+        std::cerr << "Unknown input rotation representation" << std::endl;
+        throw std::runtime_error("Unknown input rotation representation");
+        return;
+    }
+
+    angleset = rot_rep;
 }
-
-
 
 ChQuaternion<> ChFunctionRotationABCFunctions::Get_q(double s) const {
-	
-	return Angle_to_Quat(this->angleset, 
-						  ChVector3d(
-							this->angleA->Get_y(s),
-							this->angleB->Get_y(s),
-							this->angleC->Get_y(s)
-						  )
-						);
+    return ChRotation::AngleSetToQuaternion(angleset, ChVector3d(angleA->Get_y(s), angleB->Get_y(s), angleC->Get_y(s)));
 }
 
+// To avoid putting the following mapper macro inside the class definition,
+// enclose macros in local 'ChLinkLockLock_RotationRepresentation_enum_mapper'.
+class ChFunctionRotationABCFunctions_RotationRepresentation_enum_mapper : public ChFunctionRotationABCFunctions {
+  public:
+    typedef ChRotation::Representation ChRotationRepresentation;
 
+    CH_ENUM_MAPPER_BEGIN(ChRotationRepresentation);
+    CH_ENUM_VAL(ChRotation::Representation::ANGLE_AXIS);
+    CH_ENUM_VAL(ChRotation::Representation::EULER_ANGLES_ZXZ);
+    CH_ENUM_VAL(ChRotation::Representation::CARDAN_ANGLES_ZXY);
+    CH_ENUM_VAL(ChRotation::Representation::CARDAN_ANGLES_ZYX);
+    CH_ENUM_VAL(ChRotation::Representation::CARDAN_ANGLES_XYZ);
+    CH_ENUM_VAL(ChRotation::Representation::RODRIGUEZ);
+    CH_ENUM_MAPPER_END(ChRotationRepresentation);
+};
 
 void ChFunctionRotationABCFunctions::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunctionRotationABCFunctions>();
-	// serialize parent class
+
     ChFunctionRotation::ArchiveOut(marchive);
-    // serialize all member data:
+
     marchive << CHNVP(angleA);
-	marchive << CHNVP(angleB);
-	marchive << CHNVP(angleC);
-	marchive << CHNVP((int)angleset); //***TODO: use CH_ENUM_MAPPER_BEGIN ... END to serialize enum with readable names
+    marchive << CHNVP(angleB);
+    marchive << CHNVP(angleC);
+
+    ChFunctionRotationABCFunctions_RotationRepresentation_enum_mapper::ChRotationRepresentation_mapper setmapper;
+    marchive << CHNVP(setmapper(angleset), "angle_set");
 }
 
 void ChFunctionRotationABCFunctions::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionRotationABCFunctions>();
-	// deserialize parent class
+    /*int version =*/marchive.VersionRead<ChFunctionRotationABCFunctions>();
+
     ChFunctionRotation::ArchiveIn(marchive);
-    // deserialize all member data:
+
     marchive >> CHNVP(angleA);
-	marchive >> CHNVP(angleB);
-	marchive >> CHNVP(angleC);
-	int foo;
-	marchive >> CHNVP(foo);
-	angleset = (AngleSet)foo;  //***TODO: use CH_ENUM_MAPPER_BEGIN ... END to serialize enum with readable names
+    marchive >> CHNVP(angleB);
+    marchive >> CHNVP(angleC);
+
+    ChFunctionRotationABCFunctions_RotationRepresentation_enum_mapper::ChRotationRepresentation_mapper setmapper;
+    marchive >> CHNVP(setmapper(angleset), "angle_set");
 }
-
-
 
 }  // end namespace chrono

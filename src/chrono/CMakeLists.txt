@@ -38,6 +38,7 @@ set(ChronoEngine_core_SOURCES
     core/ChClassFactory.cpp
     core/ChMathematics.cpp
     core/ChQuaternion.cpp
+    core/ChRotation.cpp
     core/ChVector3.cpp
     core/ChCoordsys.cpp
     core/ChQuadrature.cpp
@@ -63,6 +64,7 @@ set(ChronoEngine_core_HEADERS
     core/ChMatrixMBD.h
     core/ChPlatform.h
     core/ChQuaternion.h
+    core/ChRotation.h
     core/ChRealtimeStep.h
     core/ChTimer.h
     core/ChTransform.h

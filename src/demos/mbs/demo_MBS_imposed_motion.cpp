@@ -17,12 +17,14 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChRotation.h"
+#include "chrono/core/ChRealtimeStep.h"
+
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkTrajectory.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/geometry/ChLineBspline.h"
-#include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -211,9 +213,9 @@ int main(int argc, char* argv[]) {
     sys.Add(mmoved_4);
     mmoved_4->SetPos(ChVector3d(2.5, 0, 0));
 
-    // Create the rotation function: use 3 distinct A,B,C functions of time to set Eulero or Cardano or Rxyz angles:
+    // Create the rotation function: use 3 distinct A,B,C functions of time to set Euler or Cardan angles
     auto f_abc_angles = chrono_types::make_shared<ChFunctionRotationABCFunctions>();
-    f_abc_angles->SetAngleset(AngleSet::RXYZ);
+    f_abc_angles->SetAngleset(ChRotation::Representation::CARDAN_ANGLES_XYZ);
     f_abc_angles->SetFunctionAngleA(chrono_types::make_shared<ChFunctionSine>(0, 2, 0.3));  // phase freq ampl
     f_abc_angles->SetFunctionAngleB(chrono_types::make_shared<ChFunctionRamp>(0, 0.2));     // a0, da/dt
 
