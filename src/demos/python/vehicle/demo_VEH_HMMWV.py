@@ -211,7 +211,7 @@ chassis_collision_type = veh.CollisionType_NONE
 
 # Type of powertrain models (SHAFTS, SIMPLE)
 engine_model = veh.EngineModelType_SHAFTS
-transmission_model = veh.TransmissionModelType_SHAFTS
+transmission_model = veh.TransmissionModelType_AUTOMATIC_SHAFTS
 
 # Drive type (FWD, RWD, or AWD)
 drive_type = veh.DrivelineTypeWV_AWD

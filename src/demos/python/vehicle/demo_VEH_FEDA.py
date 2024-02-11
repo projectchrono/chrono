@@ -39,7 +39,7 @@ def main():
     feda.SetChassisFixed(False) 
     feda.SetInitPosition(chrono.ChCoordsysd(initLoc, initRot))
     feda.SetEngineType(veh.EngineModelType_SIMPLE_MAP)
-    feda.SetTransmissionType(veh.TransmissionModelType_SIMPLE_MAP)
+    feda.SetTransmissionType(veh.TransmissionModelType_AUTOMATIC_SIMPLE_MAP)
     feda.SetTireType(tire_model)
     feda.SetTireStepSize(tire_step_size)
     feda.Initialize()
