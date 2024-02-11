@@ -252,12 +252,12 @@ void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
     w = points[LINK_C] - points[LINK_A];
     w.Normalize();
     u = Vcross(v, w);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     // Create and initialize the universal joint between draglink and knuckle
     m_linkBodyToChassis[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_linkBodyToChassis[side]->SetNameString(m_name + "_universalDraglink");
-    m_linkBodyToChassis[side]->Initialize(m_linkBody[side], chassis, ChFrame<>(points[LINK_C], rot.Get_A_quaternion()));
+    m_linkBodyToChassis[side]->Initialize(m_linkBody[side], chassis, ChFrame<>(points[LINK_C], rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_linkBodyToChassis[side]);
 }
 

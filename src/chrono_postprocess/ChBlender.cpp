@@ -342,7 +342,7 @@ void ChBlender::ExportScript(const std::string& filename) {
             ChVector3d cdirx = Vcross(cdirzm, VECT_Y);
             ChVector3d cdiry = Vcross(cdirx, cdirzm);
             ChMatrix33<> cmrot;
-            cmrot.Set_A_axis(cdirx.GetNormalized(), cdiry.GetNormalized(), -cdirzm.GetNormalized());
+            cmrot.SetFromDirectionAxes(cdirx.GetNormalized(), cdiry.GetNormalized(), -cdirzm.GetNormalized());
             ChFrame<> cframeloc(camera_location, cmrot);
             ChFrame<> cframeabs = cframeloc >> blender_frame;
             assets_file << "update_camera_coordinates(";
@@ -1105,7 +1105,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
             ChVector3d cdirx = Vcross(cdirzm, camera_instance->GetUpVector());
             ChVector3d cdiry = Vcross(cdirx, cdirzm);
             ChMatrix33<> cmrot;
-            cmrot.Set_A_axis(cdirx.GetNormalized(), cdiry.GetNormalized(), -cdirzm.GetNormalized());
+            cmrot.SetFromDirectionAxes(cdirx.GetNormalized(), cdiry.GetNormalized(), -cdirzm.GetNormalized());
             ChFrame<> cframeloc(cpos, cmrot);
             ChFrame<> cframeabs = cframeloc >> parentframe;
             state_file << "update_camera_coordinates(";
@@ -1240,8 +1240,8 @@ void ChBlender::ExportData(const std::string& filename) {
                     if (fabs(react_forces.x()) > 1e-8 || fabs(react_forces.y()) > 1e-8 ||
                         fabs(react_forces.z()) > 1e-8) {
                         // ChMatrix33<> localmatr(plane_coord);
-                        ChQuaternion<> q = plane_coord.Get_A_quaternion();
-                        // ChVector3d n1 = localmatr.Get_A_Xaxis();
+                        ChQuaternion<> q = plane_coord.GetQuaternion();
+                        // ChVector3d n1 = localmatr.GetAxisX();
                         // ChVector3d absreac = localmatr * react_forces;
                         (*mfile) << "\t\t[";
                         (*mfile) << pA.x() << ", ";

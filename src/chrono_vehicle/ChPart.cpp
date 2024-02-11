@@ -129,9 +129,9 @@ rapidjson::Value Frame2Val(const ChFrame<>& frame, rapidjson::Document::Allocato
     rapidjson::Value obj(rapidjson::kObjectType);
     obj.AddMember("pos", Vec2Val(frame.GetPos(), allocator), allocator);
     obj.AddMember("rot quat", Quat2Val(frame.GetRot(), allocator), allocator);
-    obj.AddMember("rot u", Vec2Val(frame.GetA().Get_A_Xaxis(), allocator), allocator);
-    obj.AddMember("rot v", Vec2Val(frame.GetA().Get_A_Yaxis(), allocator), allocator);
-    obj.AddMember("rot w", Vec2Val(frame.GetA().Get_A_Zaxis(), allocator), allocator);
+    obj.AddMember("rot u", Vec2Val(frame.GetA().GetAxisX(), allocator), allocator);
+    obj.AddMember("rot v", Vec2Val(frame.GetA().GetAxisY(), allocator), allocator);
+    obj.AddMember("rot w", Vec2Val(frame.GetA().GetAxisZ(), allocator), allocator);
     return obj;
 }
 
@@ -358,7 +358,7 @@ void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument,
     rapidjson::Value jsonArray(rapidjson::kArrayType);
     for (auto spring : springs) {
         auto pos = spring->GetVisualModelFrame().GetPos();               // position in absolute frame
-        auto axis = spring->GetVisualModelFrame().GetA().Get_A_Zaxis();  // axis in absolute frame
+        auto axis = spring->GetVisualModelFrame().GetA().GetAxisZ();  // axis in absolute frame
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
         obj.AddMember("name", rapidjson::StringRef(spring->GetName()), allocator);

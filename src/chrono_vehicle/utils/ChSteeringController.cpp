@@ -387,7 +387,7 @@ double ChPathSteeringControllerXT::Advance(const ChFrameMoving<>& ref_frame, dou
     double y_err_out = m_PathErrCtl.Filter(y_err);
 
     // Calculate the heading error
-    ChVector3d veh_head = ref_frame.GetA().Get_A_Xaxis(); // vehicle forward direction (ISO frame)
+    ChVector3d veh_head = ref_frame.GetA().GetAxisX(); // vehicle forward direction (ISO frame)
     ChVector3d path_head = m_ptangent;
 
     double h_err = CalcHeadingError(veh_head, path_head);
@@ -407,7 +407,7 @@ double ChPathSteeringControllerXT::Advance(const ChFrameMoving<>& ref_frame, dou
     // in right bending curves only right steering allowed
     // |res| is never allowed to grow above 1
 
-    ChVector3d veh_left = ref_frame.GetA().Get_A_Yaxis();  // vehicle left direction (ISO frame)
+    ChVector3d veh_left = ref_frame.GetA().GetAxisY();  // vehicle left direction (ISO frame)
     ChVector3d path_left = m_pnormal;
     int crvcode = CalcCurvatureCode(veh_left, path_left);
 
@@ -537,10 +537,10 @@ void ChPathSteeringControllerSR::SetPreviewTime(double Tp) {
 double ChPathSteeringControllerSR::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
     const double g = 9.81;
 
-    double u = Vdot(ref_frame.GetPos_dt(), ref_frame.GetA().Get_A_Xaxis()); // vehicle forward speed
+    double u = Vdot(ref_frame.GetPos_dt(), ref_frame.GetA().GetAxisX()); // vehicle forward speed
 
     // Calculate unit vector pointing to the yaw center
-    ChVector3d n_g = ref_frame.GetA().Get_A_Yaxis();  // vehicle left direction (ISO frame)
+    ChVector3d n_g = ref_frame.GetA().GetAxisY();  // vehicle left direction (ISO frame)
     ChWorldFrame::Project(n_g);                       // projected onto horizontal plane (world frame)
     n_g.Normalize();                                  // normalized
 
@@ -685,7 +685,7 @@ double ChPathSteeringControllerStanley::Advance(const ChFrameMoving<>& ref_frame
         m_delayFilter = std::shared_ptr<utils::ChFilterPT1>(new utils::ChFilterPT1(step, m_Tdelay));
     }
 
-    double u = Vdot(ref_frame.GetPos_dt(), ref_frame.GetA().Get_A_Xaxis());  // vehicle forward speed
+    double u = Vdot(ref_frame.GetPos_dt(), ref_frame.GetA().GetAxisX());  // vehicle forward speed
 
     // Calculate current "sentinel" location.  This is a point at the look-ahead distance in front of the vehicle.
     m_sentinel = ref_frame.TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
@@ -719,7 +719,7 @@ double ChPathSteeringControllerStanley::Advance(const ChFrameMoving<>& ref_frame
     err *= w;
     double err_dot = -u * sin(atan(m_Kp * err / ChClamp(u, m_umin, u)));
     // Calculate the heading error
-    ChVector3d veh_head = ref_frame.GetA().Get_A_Xaxis();  // vehicle forward direction (ISO frame)
+    ChVector3d veh_head = ref_frame.GetA().GetAxisX();  // vehicle forward direction (ISO frame)
     ChVector3d path_head = m_ptangent;
 
     // Calculate current error integral (trapezoidal rule).

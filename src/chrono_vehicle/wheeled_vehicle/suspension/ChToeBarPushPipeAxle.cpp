@@ -203,12 +203,12 @@ void ChToeBarPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         w = m_pointsL[DRAGLINK_C] - m_pointsL[KNUCKLE_DRL];
         w.Normalize();
         u = Vcross(v, w);
-        rot.Set_A_axis(u, v, w);
+        rot.SetFromDirectionAxes(u, v, w);
 
         m_draglink = chrono_types::make_shared<ChBody>();
         m_draglink->SetNameString(m_name + "_draglink");
         m_draglink->SetPos((m_pointsL[DRAGLINK_C] + m_pointsL[KNUCKLE_DRL]) / 2);
-        m_draglink->SetRot(rot.Get_A_quaternion());
+        m_draglink->SetRot(rot.GetQuaternion());
         m_draglink->SetMass(getDraglinkMass());
         m_draglink->SetInertiaXX(getDraglinkInertia());
         chassis->GetBody()->GetSystem()->AddBody(m_draglink);
@@ -224,7 +224,7 @@ void ChToeBarPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
         m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_L");
         m_universalDraglink->Initialize(m_draglink, m_knuckle[LEFT],
-                                        ChFrame<>(m_pointsL[KNUCKLE_DRL], rot.Get_A_quaternion()));
+                                        ChFrame<>(m_pointsL[KNUCKLE_DRL], rot.GetQuaternion()));
         chassis->GetBody()->GetSystem()->AddLink(m_universalDraglink);
     } else {
         // Create and initialize the draglink body (one side only).
@@ -235,12 +235,12 @@ void ChToeBarPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         w = m_pointsL[DRAGLINK_C] - m_pointsR[KNUCKLE_DRL];
         w.Normalize();
         u = Vcross(v, w);
-        rot.Set_A_axis(u, v, w);
+        rot.SetFromDirectionAxes(u, v, w);
 
         m_draglink = chrono_types::make_shared<ChBody>();
         m_draglink->SetNameString(m_name + "_draglink");
         m_draglink->SetPos((m_pointsL[DRAGLINK_C] + m_pointsR[KNUCKLE_DRL]) / 2);
-        m_draglink->SetRot(rot.Get_A_quaternion());
+        m_draglink->SetRot(rot.GetQuaternion());
         m_draglink->SetMass(getDraglinkMass());
         m_draglink->SetInertiaXX(getDraglinkInertia());
         chassis->GetBody()->GetSystem()->AddBody(m_draglink);
@@ -256,7 +256,7 @@ void ChToeBarPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
         m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_R");
         m_universalDraglink->Initialize(m_draglink, m_knuckle[RIGHT],
-                                        ChFrame<>(m_pointsR[KNUCKLE_DRL], rot.Get_A_quaternion()));
+                                        ChFrame<>(m_pointsR[KNUCKLE_DRL], rot.GetQuaternion()));
         chassis->GetBody()->GetSystem()->AddLink(m_universalDraglink);
     }
 }
@@ -323,12 +323,12 @@ void ChToeBarPushPipeAxle::InitializeSide(VehicleSide side,
     u = Vcross(points[KNUCKLE_U] - points[SPINDLE], points[KNUCKLE_L] - points[SPINDLE]);
     u.Normalize();
     v = Vcross(w, u);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_revoluteKingpin[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteKingpin[side]->SetNameString(m_name + "_revoluteKingpin" + suffix);
     m_revoluteKingpin[side]->Initialize(
-        m_axleTube, m_knuckle[side], ChCoordsys<>((points[KNUCKLE_U] + points[KNUCKLE_L]) / 2, rot.Get_A_quaternion()));
+        m_axleTube, m_knuckle[side], ChCoordsys<>((points[KNUCKLE_U] + points[KNUCKLE_L]) / 2, rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_revoluteKingpin[side]);
 
     // Create and initialize the revolute joint between upright and spindle.

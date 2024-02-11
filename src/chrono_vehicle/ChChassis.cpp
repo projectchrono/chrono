@@ -75,14 +75,14 @@ ChVector3d ChChassis::GetDriverPos() const {
 
 // Return the speed measured at the origin of the chassis reference frame.
 double ChChassis::GetSpeed() const {
-    const auto& x_dir = m_body->GetA().Get_A_Xaxis();
+    const auto& x_dir = m_body->GetA().GetAxisX();
     const auto& vel = m_body->GetFrame_REF_to_abs().GetPos_dt();
     return Vdot(vel, x_dir);
 }
 
 // Return the speed measured at the chassis center of mass.
 double ChChassis::GetCOMSpeed() const {
-    const auto& x_dir = m_body->GetA().Get_A_Xaxis();
+    const auto& x_dir = m_body->GetA().GetAxisX();
     const auto& vel = m_body->GetPos_dt();
     return Vdot(vel, x_dir);
 }

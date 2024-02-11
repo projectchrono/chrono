@@ -127,7 +127,7 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     u = points[TA_O] - points[TA_I];
     u.Normalize();
     v = Vcross(w, u);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_arm[side] = chrono_types::make_shared<ChBody>();
     m_arm[side]->SetNameString(m_name + "_arm" + suffix);
@@ -153,11 +153,11 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     w = points[TA_O] - points[TA_I];
     w.Normalize();
     u = Vcross(v, w);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_revoluteArm[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteArm" + suffix, chassis->GetBody(), m_arm[side],
-        ChCoordsys<>((points[TA_O] + points[TA_I]) / 2, rot.Get_A_quaternion()), getCABushingData());
+        ChCoordsys<>((points[TA_O] + points[TA_I]) / 2, rot.GetQuaternion()), getCABushingData());
     chassis->AddJoint(m_revoluteArm[side]);
 
     // Create and initialize the spring/damper

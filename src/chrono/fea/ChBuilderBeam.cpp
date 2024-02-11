@@ -33,7 +33,7 @@ void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                
     beam_nodes.clear();
 
     ChMatrix33<> mrot;
-    mrot.Set_A_Xdir(B - A, Ydir);
+    mrot.SetFromAxisX(B - A, Ydir);
 
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(A, mrot));
     mesh->AddNode(nodeA);
@@ -68,7 +68,7 @@ void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                
     beam_nodes.clear();
 
     ChMatrix33<> mrot;
-    mrot.Set_A_Xdir(nodeB->Frame().GetPos() - nodeA->Frame().GetPos(), Ydir);
+    mrot.SetFromAxisX(nodeB->Frame().GetPos() - nodeA->Frame().GetPos(), Ydir);
 
     beam_nodes.push_back(nodeA);
 
@@ -91,7 +91,7 @@ void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                
 
         element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
 
-        ChQuaternion<> elrot = mrot.Get_A_quaternion();
+        ChQuaternion<> elrot = mrot.GetQuaternion();
         element->SetNodeAreferenceRot(elrot.GetConjugate() % element->GetNodeA()->Frame().GetRot());
         element->SetNodeBreferenceRot(elrot.GetConjugate() % element->GetNodeB()->Frame().GetRot());
 
@@ -110,7 +110,7 @@ void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                
     beam_nodes.clear();
 
     ChMatrix33<> mrot;
-    mrot.Set_A_Xdir(B - nodeA->Frame().GetPos(), Ydir);
+    mrot.SetFromAxisX(B - nodeA->Frame().GetPos(), Ydir);
 
     beam_nodes.push_back(nodeA);
 
@@ -128,7 +128,7 @@ void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                
 
         element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
 
-        ChQuaternion<> elrot = mrot.Get_A_quaternion();
+        ChQuaternion<> elrot = mrot.GetQuaternion();
         element->SetNodeAreferenceRot(elrot.GetConjugate() % element->GetNodeA()->Frame().GetRot());
         element->SetNodeBreferenceRot(elrot.GetConjugate() % element->GetNodeB()->Frame().GetRot());
         // std::cout << "Element n." << i << " with rotations:" << std::endl;
@@ -155,7 +155,7 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
 
     // rotation of all nodes
     ChMatrix33<> mrot;
-    mrot.Set_A_Xdir(B - A, Ydir);
+    mrot.SetFromAxisX(B - A, Ydir);
 
     int p = order;
 
@@ -221,7 +221,7 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
         // rotation of node, x aligned to tangent at input spline
         auto tangent = spline.GetTangent(abscyssa);
         ChMatrix33<> mrot;
-        mrot.Set_A_Xdir(tangent, Ydir);
+        mrot.SetFromAxisX(tangent, Ydir);
 
         auto hnode_i = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(pos, mrot));
         mesh->AddNode(hnode_i);
@@ -408,7 +408,7 @@ void ChBuilderBeamTaperedTimoshenko::BuildBeam(
     beam_nodes.clear();
 
     ChMatrix33<> mrot;
-    mrot.Set_A_Xdir(B - A, Ydir);
+    mrot.SetFromAxisX(B - A, Ydir);
 
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(A, mrot));
     mesh->AddNode(nodeA);
@@ -444,7 +444,7 @@ void ChBuilderBeamTaperedTimoshenko::BuildBeam(
     beam_nodes.clear();
 
     ChMatrix33<> mrot;
-    mrot.Set_A_Xdir(nodeB->Frame().GetPos() - nodeA->Frame().GetPos(), Ydir);
+    mrot.SetFromAxisX(nodeB->Frame().GetPos() - nodeA->Frame().GetPos(), Ydir);
 
     beam_nodes.push_back(nodeA);
 
@@ -467,7 +467,7 @@ void ChBuilderBeamTaperedTimoshenko::BuildBeam(
 
         element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
 
-        ChQuaternion<> elrot = mrot.Get_A_quaternion();
+        ChQuaternion<> elrot = mrot.GetQuaternion();
         element->SetNodeAreferenceRot(elrot.GetConjugate() % element->GetNodeA()->Frame().GetRot());
         element->SetNodeBreferenceRot(elrot.GetConjugate() % element->GetNodeB()->Frame().GetRot());
 
@@ -487,7 +487,7 @@ void ChBuilderBeamTaperedTimoshenko::BuildBeam(
     beam_nodes.clear();
 
     ChMatrix33<> mrot;
-    mrot.Set_A_Xdir(B - nodeA->Frame().GetPos(), Ydir);
+    mrot.SetFromAxisX(B - nodeA->Frame().GetPos(), Ydir);
 
     beam_nodes.push_back(nodeA);
 
@@ -505,7 +505,7 @@ void ChBuilderBeamTaperedTimoshenko::BuildBeam(
 
         element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
 
-        ChQuaternion<> elrot = mrot.Get_A_quaternion();
+        ChQuaternion<> elrot = mrot.GetQuaternion();
         element->SetNodeAreferenceRot(elrot.GetConjugate() % element->GetNodeA()->Frame().GetRot());
         element->SetNodeBreferenceRot(elrot.GetConjugate() % element->GetNodeB()->Frame().GetRot());
         // std::cout << "Element n." << i << " with rotations:" << std::endl;
@@ -532,7 +532,7 @@ void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
     beam_nodes.clear();
 
     ChMatrix33<> mrot;
-    mrot.Set_A_Xdir(B - A, Ydir);
+    mrot.SetFromAxisX(B - A, Ydir);
 
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(A, mrot));
     mesh->AddNode(nodeA);
@@ -568,7 +568,7 @@ void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
     beam_nodes.clear();
 
     ChMatrix33<> mrot;
-    mrot.Set_A_Xdir(nodeB->Frame().GetPos() - nodeA->Frame().GetPos(), Ydir);
+    mrot.SetFromAxisX(nodeB->Frame().GetPos() - nodeA->Frame().GetPos(), Ydir);
 
     beam_nodes.push_back(nodeA);
 
@@ -591,7 +591,7 @@ void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
 
         element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
 
-        ChQuaternion<> elrot = mrot.Get_A_quaternion();
+        ChQuaternion<> elrot = mrot.GetQuaternion();
         element->SetNodeAreferenceRot(elrot.GetConjugate() % element->GetNodeA()->Frame().GetRot());
         element->SetNodeBreferenceRot(elrot.GetConjugate() % element->GetNodeB()->Frame().GetRot());
 
@@ -611,7 +611,7 @@ void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
     beam_nodes.clear();
 
     ChMatrix33<> mrot;
-    mrot.Set_A_Xdir(B - nodeA->Frame().GetPos(), Ydir);
+    mrot.SetFromAxisX(B - nodeA->Frame().GetPos(), Ydir);
 
     beam_nodes.push_back(nodeA);
 
@@ -629,7 +629,7 @@ void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
 
         element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
 
-        ChQuaternion<> elrot = mrot.Get_A_quaternion();
+        ChQuaternion<> elrot = mrot.GetQuaternion();
         element->SetNodeAreferenceRot(elrot.GetConjugate() % element->GetNodeA()->Frame().GetRot());
         element->SetNodeBreferenceRot(elrot.GetConjugate() % element->GetNodeB()->Frame().GetRot());
         // std::cout << "Element n." << i << " with rotations:" << std::endl;

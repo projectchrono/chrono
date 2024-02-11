@@ -62,14 +62,14 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     // Create the trailing arm body. The reference frame of the arm body has its
     // x-axis aligned with the line between the arm-chassis connection point and
     // the arm-wheel connection point.
-    ChVector3d y_dir = susp_to_abs.GetA().Get_A_Yaxis();
+    ChVector3d y_dir = susp_to_abs.GetA().GetAxisY();
     ChVector3d u = points[ARM_WHEEL] - points[ARM_CHASSIS];
     u.Normalize();
     ChVector3d w = Vcross(u, y_dir);
     w.Normalize();
     ChVector3d v = Vcross(w, u);
     ChMatrix33<> rot;
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_arm = chrono_types::make_shared<ChBody>();
     m_arm->SetNameString(m_name + "_arm");

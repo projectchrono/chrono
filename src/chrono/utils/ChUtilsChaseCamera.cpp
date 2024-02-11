@@ -214,7 +214,7 @@ ChVector3d ChChaseCamera::GetTargetPos() const {
 
     if(m_state == Free) {
         ChMatrix33<> rot(m_angle, m_up);
-        return m_loc + rot.Get_A_Xaxis() * 1.0;
+        return m_loc + rot.GetAxisX() * 1.0;
     }
 
     return m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_ptOnChassis);
@@ -267,7 +267,7 @@ ChVector3d ChChaseCamera::calcDeriv(const ChVector3d& loc) {
         uC2T = targetLoc - m_loc;
     else {
         ChQuaternion<> rot = Q_from_AngAxis(m_angle, m_up);
-        uC2T = rot.Rotate(m_chassis->GetA().Get_A_Xaxis());
+        uC2T = rot.Rotate(m_chassis->GetA().GetAxisX());
     }
 
     uC2T -= (uC2T ^ m_up) * m_up;  // zero out component in the vertical direction

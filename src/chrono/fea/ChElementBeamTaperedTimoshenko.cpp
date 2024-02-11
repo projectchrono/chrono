@@ -258,8 +258,8 @@ void ChElementBeamTaperedTimoshenko::UpdateRotation() {
         ChVector3d myele_wB = nodes[1]->Frame().GetRot().Rotate(q_refrotB.RotateBack(ChVector3d(0, 1, 0)));
         // Average the two Y directions to have midpoint torsion (ex -30?torsion A and +30?torsion B= 0?
         ChVector3d myele_w = (myele_wA + myele_wB).GetNormalized();
-        Aabs.Set_A_Xdir(mXele_w, myele_w);
-        q_element_abs_rot = Aabs.Get_A_quaternion();
+        Aabs.SetFromAxisX(mXele_w, myele_w);
+        q_element_abs_rot = Aabs.GetQuaternion();
     }
 
     this->A = A0.transpose() * Aabs;
@@ -361,9 +361,9 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
 
     // In case the section is rotated:
     ChMatrix33<> RotsectA;
-    RotsectA.Set_A_Rxyz(ChVector3d(alpha1, 0, 0));
+    RotsectA.SetFromCardanAnglesXYZ(ChVector3d(alpha1, 0, 0));
     ChMatrix33<> RotsectB;
-    RotsectB.Set_A_Rxyz(ChVector3d(alpha2, 0, 0));
+    RotsectB.SetFromCardanAnglesXYZ(ChVector3d(alpha2, 0, 0));
     ChMatrixNM<double, 12, 12> Rotsect;
     Rotsect.setZero();
     Rotsect.block<3, 3>(0, 0) = RotsectA;
@@ -496,7 +496,7 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrixAtPoint(ChMatrixDynam
 
     // In case the section is rotated:
     ChMatrix33<> RotsectA;
-    RotsectA.Set_A_Rxyz(ChVector3d(alpha, 0, 0));
+    RotsectA.SetFromCardanAnglesXYZ(ChVector3d(alpha, 0, 0));
     ChMatrixNM<double, 6, 6> Rotsect;
     Rotsect.setZero();
     Rotsect.block<3, 3>(0, 0) = RotsectA;
@@ -918,9 +918,9 @@ void ChElementBeamTaperedTimoshenko::SetupInitial(ChSystem* system) {
     ChMatrix33<> A0;
     ChVector3d mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
     ChVector3d myele =
-        (nodes[0]->GetX0().GetA().Get_A_Yaxis() + nodes[1]->GetX0().GetA().Get_A_Yaxis()).GetNormalized();
-    A0.Set_A_Xdir(mXele, myele);
-    q_element_ref_rot = A0.Get_A_quaternion();
+        (nodes[0]->GetX0().GetA().GetAxisY() + nodes[1]->GetX0().GetA().GetAxisY()).GetNormalized();
+    A0.SetFromAxisX(mXele, myele);
+    q_element_ref_rot = A0.GetQuaternion();
 
     // Compute local mass matrix
     // It could be lumped or consistent mass matrix, depends on SetLumpedMassMatrix(true/false)

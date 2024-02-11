@@ -169,7 +169,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     u = points[UA_F] - points[UA_B];
     u.Normalize();
     v = Vcross(w, u);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_upperArm[side] = chrono_types::make_shared<ChBody>();
     m_upperArm[side]->SetNameString(m_name + "_upperArm" + suffix);
@@ -187,7 +187,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     w = points[LAT_C] - points[LAT_U];
     w.Normalize();
     u = Vcross(v, w);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_lateral[side] = chrono_types::make_shared<ChBody>();
     m_lateral[side]->SetNameString(m_name + "_lateral" + suffix);
@@ -205,7 +205,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     w = points[TL_C] - points[TL_U];
     w.Normalize();
     u = Vcross(v, w);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_trailingLink[side] = chrono_types::make_shared<ChBody>();
     m_trailingLink[side]->SetNameString(m_name + "_trailingLink" + suffix);
@@ -231,12 +231,12 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     w = points[UA_F] - points[UA_B];
     w.Normalize();
     u = Vcross(v, w);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_revoluteUA[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteUA[side]->SetNameString(m_name + "_revoluteUA" + suffix);
     m_revoluteUA[side]->Initialize(chassis->GetBody(), m_upperArm[side],
-                                   ChCoordsys<>((points[UA_F] + points[UA_B]) / 2, rot.Get_A_quaternion()));
+                                   ChCoordsys<>((points[UA_F] + points[UA_B]) / 2, rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_revoluteUA[side]);
 
     // Create and initialize the spherical joint between upright and upper arm.
@@ -255,12 +255,12 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     u = dirs[UNIV_AXIS_CHASSIS_LAT];
     v = dirs[UNIV_AXIS_LINK_LAT];
     w = Vcross(u, v);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_universalLateralChassis[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_universalLateralChassis[side]->SetNameString(m_name + "_universalLateralChassis" + suffix);
     m_universalLateralChassis[side]->Initialize(m_lateral[side], chassis->GetBody(),
-                                                ChFrame<>(points[LAT_C], rot.Get_A_quaternion()));
+                                                ChFrame<>(points[LAT_C], rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_universalLateralChassis[side]);
 
     // Create and initialize the spherical joint between upright and trailing link.
@@ -273,12 +273,12 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     u = dirs[UNIV_AXIS_CHASSIS_TL];
     v = dirs[UNIV_AXIS_LINK_TL];
     w = Vcross(u, v);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_universalTLChassis[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_universalTLChassis[side]->SetNameString(m_name + "_universalTLChassis" + suffix);
     m_universalTLChassis[side]->Initialize(m_trailingLink[side], chassis->GetBody(),
-                                           ChFrame<>(points[TL_C], rot.Get_A_quaternion()));
+                                           ChFrame<>(points[TL_C], rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_universalTLChassis[side]);
 
     if (UseTierodBodies()) {
@@ -287,13 +287,13 @@ void ChMultiLink::InitializeSide(VehicleSide side,
         u = chassisRot.GetXaxis();
         v = Vcross(w, u).GetNormalized();
         u = Vcross(v, w);
-        rot.Set_A_axis(u, v, w);
+        rot.SetFromDirectionAxes(u, v, w);
 
         // Create the tierod body
         m_tierod[side] = chrono_types::make_shared<ChBody>();
         m_tierod[side]->SetNameString(m_name + "_tierodBody" + suffix);
         m_tierod[side]->SetPos((points[TIEROD_U] + points[TIEROD_C]) / 2);
-        m_tierod[side]->SetRot(rot.Get_A_quaternion());
+        m_tierod[side]->SetRot(rot.GetQuaternion());
         m_tierod[side]->SetMass(getTierodMass());
         m_tierod[side]->SetInertiaXX(getTierodInertia());
         chassis->GetBody()->GetSystem()->AddBody(m_tierod[side]);
@@ -305,7 +305,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
         chassis->AddJoint(m_sphericalTierod[side]);
         m_universalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
-            ChCoordsys<>(points[TIEROD_C], rot.Get_A_quaternion()), getTierodBushingData());
+            ChCoordsys<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
         chassis->AddJoint(m_universalTierod[side]);
     } else {
         // Create and initialize the tierod distance constraint between chassis and upright.

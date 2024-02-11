@@ -582,7 +582,7 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
             assets_file << "#macro sh_" << (size_t)shape.get() << "()" << std::endl;  // start macro
             assets_file << "cylinder  {" << std::endl;                                // start cylinder
 
-            auto axis = shape_frame.GetA().Get_A_Zaxis();
+            auto axis = shape_frame.GetA().GetAxisZ();
             auto hlen = cylinder->GetHeight() / 2;
 
             assets_file << " <" << -hlen * axis.x() << "," << -hlen * axis.y() << "," << -hlen * axis.z() << ">," << std::endl;
@@ -907,7 +907,7 @@ void ChPovRay::ExportData(const std::string& filename) {
                     if (fabs(react_forces.x()) > 1e-8 || fabs(react_forces.y()) > 1e-8 ||
                         fabs(react_forces.z()) > 1e-8) {
                         ChMatrix33<> localmatr(plane_coord);
-                        ChVector3d n1 = localmatr.Get_A_Xaxis();
+                        ChVector3d n1 = localmatr.GetAxisX();
                         ChVector3d absreac = localmatr * react_forces;
                         (*mfile) << pA.x() << ", ";
                         (*mfile) << pA.y() << ", ";

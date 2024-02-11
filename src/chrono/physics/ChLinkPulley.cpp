@@ -74,7 +74,7 @@ ChVector3d ChLinkPulley::Get_shaft_dir1() {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
-        return absframe.GetA().Get_A_Zaxis();
+        return absframe.GetA().GetAxisZ();
     } else
         return VECT_Z;
 }
@@ -83,7 +83,7 @@ ChVector3d ChLinkPulley::Get_shaft_dir2() {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
-        return absframe.GetA().Get_A_Zaxis();
+        return absframe.GetA().GetAxisZ();
     } else
         return VECT_Z;
 }
@@ -195,11 +195,11 @@ void ChLinkPulley::UpdateTime(double mytime) {
 
     // move marker1 in proper positions
     newmarkpos.pos = this->belt_up1;
-    newmarkpos.rot = maU.Get_A_quaternion();
+    newmarkpos.rot = maU.GetQuaternion();
     marker1->Impose_Abs_Coord(newmarkpos);  // move marker1 into teeth position
     // move marker2 in proper positions
     newmarkpos.pos = this->belt_up2;
-    newmarkpos.rot = maU.Get_A_quaternion();
+    newmarkpos.rot = maU.GetQuaternion();
     marker2->Impose_Abs_Coord(newmarkpos);  // move marker2 into teeth position
 
     double phase_correction_up = m_delta * r1;

@@ -86,7 +86,7 @@ void ChBalancer::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     ChMatrix33<> rot(u, v, w);
 
-    ChQuaternion<> joint_rot = chassisRot * rot.Get_A_quaternion();
+    ChQuaternion<> joint_rot = chassisRot * rot.GetQuaternion();
 
     // Create beam body
     m_beam[side] = chrono_types::make_shared<ChBody>();

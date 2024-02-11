@@ -23,7 +23,7 @@ namespace vehicle {
 
 void ChWorldFrame::Set(const ChMatrix33<>& rot) {
     instance().m_rot = rot;
-    instance().m_quat = rot.Get_A_quaternion();
+    instance().m_quat = rot.GetQuaternion();
     instance().m_vertical = rot.transpose() * ChVector3d(0, 0, 1);
     instance().m_forward = rot.transpose() * ChVector3d(1, 0, 0);
     instance().m_ISO = false;
@@ -31,7 +31,7 @@ void ChWorldFrame::Set(const ChMatrix33<>& rot) {
 
 void ChWorldFrame::SetYUP() {
     instance().m_rot = ChMatrix33<>(Q_from_AngX(CH_C_PI_2));
-    instance().m_quat = instance().m_rot.Get_A_quaternion();
+    instance().m_quat = instance().m_rot.GetQuaternion();
     instance().m_vertical = ChVector3d(0, 1, 0);
     instance().m_forward = ChVector3d(1, 0, 0);
     instance().m_ISO = false;

@@ -72,7 +72,7 @@ void ChLinkTrajectory::UpdateTime(double time) {
         auto resultB = trajectory_line->Evaluate(tr_timeB);
 
         ChMatrix33<> mw;
-        mw.Set_A_quaternion(marker2->GetAbsCoord().rot);
+        mw.SetFromQuaternion(marker2->GetAbsCoord().rot);
 
         // if line coordinate is relative to body2:
         marker2->Impose_Rel_Coord(CSYSNORM);

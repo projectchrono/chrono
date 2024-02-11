@@ -92,7 +92,7 @@ ChVehicleGeometry TransformVehicleGeometry(const ChVehicleGeometry& geom, int si
             w.y() *= -1;
             ChVector3d v = Vcross(w, u);
             ChMatrix33<> R(u, v, w);
-            c.m_rot = R.Get_A_quaternion();
+            c.m_rot = R.GetQuaternion();
         }
         for (auto& b : g.m_vis_boxes) {
             b.m_pos.y() *= -1;
@@ -103,7 +103,7 @@ ChVehicleGeometry TransformVehicleGeometry(const ChVehicleGeometry& geom, int si
             w.y() *= -1;
             ChVector3d v = Vcross(w, u);
             ChMatrix33<> R(u, v, w);
-            b.m_rot = R.Get_A_quaternion();
+            b.m_rot = R.GetQuaternion();
         }
     }
 
@@ -291,7 +291,7 @@ ChQuaternion<> ChGenericWheeledSuspension::TransformRotation(const ChQuaternion<
         w.y() *= -1;
         ChVector3d v = Vcross(w, u);
         ChMatrix33<> R(u, v, w);
-        rot = R.Get_A_quaternion();
+        rot = R.GetQuaternion();
     }
     return m_X_SA.GetRot() * rot;
 }
@@ -527,8 +527,8 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         ChVector3d pos = TransformPosition(item.second.pos, item.first.side);
         ChVector3d axis = TransformDirection(item.second.axis, item.first.side);
         ChMatrix33<> rot;
-        rot.Set_A_Xdir(axis);
-        ChQuaternion<> quat = rot.Get_A_quaternion() * Q_from_AngY(CH_C_PI_2);
+        rot.SetFromAxisX(axis);
+        ChQuaternion<> quat = rot.GetQuaternion() * Q_from_AngY(CH_C_PI_2);
         item.second.rsda = chrono_types::make_shared<ChLinkRSDA>();
         item.second.rsda->SetNameString(Name(item.first));
         item.second.rsda->Initialize(body1, body2, ChCoordsys<>(pos, quat));

@@ -1471,9 +1471,9 @@ void ChElementShellANCF_3423::EvaluateSectionFrame(const double u,
     // compute the Dy and Dz directions by using a
     // Gram-Schmidt orthonormalization, guided by the shell eta axis
     ChMatrix33<> msect;
-    msect.Set_A_Xdir(MidsurfaceX, MidsurfaceY);
+    msect.SetFromAxisX(MidsurfaceX, MidsurfaceY);
 
-    rot = msect.Get_A_quaternion();
+    rot = msect.GetQuaternion();
 }
 
 void ChElementShellANCF_3423::EvaluateSectionPoint(const double u, const double v, ChVector3d& point) {

@@ -102,7 +102,7 @@ void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContac
 
         // Contact plane coordinate system (normal in x direction from pB to pA)
         XdirToDxDyDz(ToChVector(nrm[i]), VECT_Y, plane_x, plane_y, plane_z);
-        contact_plane.Set_A_axis(plane_x, plane_y, plane_z);
+        contact_plane.SetFromDirectionAxes(plane_x, plane_y, plane_z);
 
         // Contact force and torque expressed in the contact plane
         switch (GetSystem()->GetContactMethod()) {

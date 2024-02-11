@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
         DriverInputs driver_inputs = {0, 0.5, 0};
 
         // Check rollover -- detach chase camera
-        if (Vdot(hmmwv.GetChassisBody()->GetA().Get_A_Zaxis(), ChWorldFrame::Vertical()) < 0) {
+        if (Vdot(hmmwv.GetChassisBody()->GetA().GetAxisZ(), ChWorldFrame::Vertical()) < 0) {
             auto camera = vis->GetChaseCamera();
             auto camera_pos = vis->GetCameraPosition();
             camera_pos.z() = 1;

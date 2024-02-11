@@ -641,9 +641,9 @@ void ChVisualSystemIrrlicht::Render() {
 
 void ChVisualSystemIrrlicht::RenderFrame(const ChFrame<>& frame, double axis_length) {
     const auto& loc = frame.GetPos();
-    const auto& u = frame.GetA().Get_A_Xaxis();
-    const auto& v = frame.GetA().Get_A_Yaxis();
-    const auto& w = frame.GetA().Get_A_Zaxis();
+    const auto& u = frame.GetA().GetAxisX();
+    const auto& v = frame.GetA().GetAxisY();
+    const auto& w = frame.GetA().GetAxisZ();
     irrlicht::tools::drawSegment(this, loc, loc + u * axis_length, ChColor(1, 0, 0));
     irrlicht::tools::drawSegment(this, loc, loc + v * axis_length, ChColor(0, 1, 0));
     irrlicht::tools::drawSegment(this, loc, loc + w * axis_length, ChColor(0, 0, 1));

@@ -107,11 +107,11 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
     v = Vcross(dirs[REV_AXIS], u);
     v.Normalize();
     u = Vcross(v, dirs[REV_AXIS]);
-    rot.Set_A_axis(u, v, dirs[REV_AXIS]);
+    rot.SetFromDirectionAxes(u, v, dirs[REV_AXIS]);
 
     m_revolute = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     m_revolute->SetNameString(m_name + "_revolute");
-    m_revolute->Initialize(chassisBody, m_link, ChFrame<>(points[ARM_C], rot.Get_A_quaternion()));
+    m_revolute->Initialize(chassisBody, m_link, ChFrame<>(points[ARM_C], rot.GetQuaternion()));
     auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
     m_revolute->SetAngleFunction(motor_fun);
     sys->AddLink(m_revolute);

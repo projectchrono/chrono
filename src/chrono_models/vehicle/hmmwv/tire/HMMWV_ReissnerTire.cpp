@@ -177,7 +177,7 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
             // Node direction
             ChVector3d tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
             ChVector3d nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
-            ChMatrix33<> mrot; mrot.Set_A_Xdir(tan_prf,nrm_prf);
+            ChMatrix33<> mrot; mrot.SetFromAxisX(tan_prf,nrm_prf);
             auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));
 
             // Node velocity

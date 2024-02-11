@@ -92,7 +92,7 @@ class ChContactTuple {
         // Contact plane
         ChVector3d Vx, Vy, Vz;
         XdirToDxDyDz(normal, VECT_Y, Vx, Vy, Vz);
-        contact_plane.Set_A_axis(Vx, Vy, Vz);
+        contact_plane.SetFromDirectionAxes(Vx, Vy, Vz);
     }
 
     /// Get the colliding object A, with point P1
@@ -107,7 +107,7 @@ class ChContactTuple {
     /// (It is the coordinate system of the contact plane and normal)
     ChCoordsys<> GetContactCoords() const {
         ChCoordsys<> mcsys;
-        ChQuaternion<> mrot = this->contact_plane.Get_A_quaternion();
+        ChQuaternion<> mrot = this->contact_plane.GetQuaternion();
         mcsys.rot.Set(mrot.e0(), mrot.e1(), mrot.e2(), mrot.e3());
         mcsys.pos = this->p2;
         return mcsys;

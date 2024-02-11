@@ -262,14 +262,14 @@ ChVector3d VecRot(const ChMatrix33<>& Phi) {
         eet(1, 1) -= cosphi;
         eet(2, 2) -= cosphi;
         int maxcol = 0;
-        ChVector3d col = eet.Get_A_Xaxis();
+        ChVector3d col = eet.GetAxisX();
         if (eet(1, 1) > eet(0, 0)) {
             maxcol = 1;
-            col = eet.Get_A_Yaxis();
+            col = eet.GetAxisY();
         }
         if (eet(2, 2) > eet(maxcol, maxcol)) {
             maxcol = 2;
-            col = eet.Get_A_Zaxis();
+            col = eet.GetAxisZ();
         }
         unit = (col / sqrt(eet(maxcol, maxcol) * (1. - cosphi)));
         ChStarMatrix33<> unitx(unit);

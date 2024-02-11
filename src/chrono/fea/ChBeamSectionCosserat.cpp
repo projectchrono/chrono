@@ -301,11 +301,11 @@ void ChElasticityCosseratAdvancedGenericFPM::ComputeTransformMatrix() {
 
     // In case the section is rotated:
     ChMatrix33<> RotsectA;
-    RotsectA.Set_A_Rxyz(ChVector3d(this->alpha, 0, 0));
+    RotsectA.SetFromCardanAnglesXYZ(ChVector3d(this->alpha, 0, 0));
 
     // In case the shear axis is rotated:
     ChMatrix33<> RotShearA;
-    RotShearA.Set_A_Rxyz(ChVector3d(this->beta, 0, 0));
+    RotShearA.SetFromCardanAnglesXYZ(ChVector3d(this->beta, 0, 0));
 
     ChMatrixNM<double, 6, 6> RotA;
     RotA.setZero();

@@ -164,7 +164,7 @@ ChCoordsys<> ChLinkRevoluteTranslational::GetLinkRelativeCoords() {
     ChVector3d p = Body2->TransformPointParentToLocal(Body1->TransformPointLocalToParent(m_p1));
     ChMatrix33<> A(m_x2, m_y2, Vcross(m_x2, m_y2));
 
-    return ChCoordsys<>(p, A.Get_A_quaternion());
+    return ChCoordsys<>(p, A.GetQuaternion());
 }
 
 // -----------------------------------------------------------------------------

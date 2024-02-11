@@ -49,7 +49,7 @@ ChVector3d ChLinkRackpinion::GetAbsPinionDir() {
     if (this->Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion, absframe);
-        return absframe.GetA().Get_A_Zaxis();
+        return absframe.GetA().GetAxisZ();
     } else
         return VECT_Z;
 }
@@ -67,7 +67,7 @@ ChVector3d ChLinkRackpinion::GetAbsRackDir() {
     if (this->Body2) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, absframe);
-        return absframe.GetA().Get_A_Zaxis();
+        return absframe.GetA().GetAxisZ();
     } else
         return VECT_Z;
 }
@@ -92,16 +92,16 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
     ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, abs_rack);
 
     ChVector3d abs_distpr = abs_pinion.GetPos() - abs_rack.GetPos();
-    ChVector3d abs_Dpin = abs_pinion.GetA().Get_A_Zaxis();
+    ChVector3d abs_Dpin = abs_pinion.GetA().GetAxisZ();
     ChVector3d abs_Dx;
     ChVector3d abs_Dy;
     ChVector3d abs_Dz;
     abs_Dpin.DirToDxDyDz(abs_Dz, abs_Dx, abs_Dy,
-                         abs_rack.GetA().Get_A_Xaxis());  // with z as pinion shaft and x as suggested rack X dir
+                         abs_rack.GetA().GetAxisX());  // with z as pinion shaft and x as suggested rack X dir
 
     /*
     std::cout << "abs_distpr " << abs_distpr << std::endl;
-    std::cout << "abs_rack Xaxis()" << abs_rack.GetA()->Get_A_Xaxis() << std::endl;
+    std::cout << "abs_rack Xaxis()" << abs_rack.GetA()->GetAxisX() << std::endl;
     std::cout << "abs_Dpin " << abs_Dpin << std::endl;
     std::cout << "abs_Dx " << abs_Dx << std::endl;
     */
@@ -122,15 +122,15 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
     ChMatrix33<> mrot;
 
     // rotate link frame on its Y because of beta
-    mrot.Set_A_Rxyz(ChVector3d(0, this->beta, 0));
+    mrot.SetFromCardanAnglesXYZ(ChVector3d(0, this->beta, 0));
     ChFrame<> mrotframe(VNULL, mrot);
     abs_contact.ConcatenatePostTransformation(mrotframe);  // or: abs_contact *= mrotframe;
 
     // rotate link frame on its Z because of alpha
     if (this->react_force.x() < 0)
-        mrot.Set_A_Rxyz(ChVector3d(0, 0, this->alpha));
+        mrot.SetFromCardanAnglesXYZ(ChVector3d(0, 0, this->alpha));
     else
-        mrot.Set_A_Rxyz(ChVector3d(0, 0, -this->alpha));
+        mrot.SetFromCardanAnglesXYZ(ChVector3d(0, 0, -this->alpha));
     mrotframe.SetRot(mrot);
     abs_contact.ConcatenatePostTransformation(mrotframe);  // or: abs_contact *= mrotframe;
 

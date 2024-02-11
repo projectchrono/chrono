@@ -81,13 +81,13 @@ void ChLinkPointSpline::UpdateTime(double time) {
         vnorm = Vcross(vdir2, vdir);
         if (vnorm.Length() < 1e-7) {
             // on a straight segment, no curvature, so define normal and radial by these:
-            ma.Set_A_Xdir(vdir, -VECT_Z);
+            ma.SetFromAxisX(vdir, -VECT_Z);
         } else {
             vnorm.Normalize();
             vrad = Vnorm(Vcross(vdir, vnorm));
-            ma.Set_A_axis(vdir, vnorm, vrad);
+            ma.SetFromDirectionAxes(vdir, vnorm, vrad);
         }
-        ChQuaterniond qabsdir = ma.Get_A_quaternion();
+        ChQuaterniond qabsdir = ma.GetQuaternion();
 
         ptang = Body2->TransformPointLocalToParent(ptang);
         qabsdir = Body2->GetRot() * qabsdir;
@@ -104,7 +104,7 @@ void ChLinkPointSpline::UpdateTime(double time) {
         mrad = ((ds * ds) / (2 * dh));  // radius of curvature on spline
 
         ChMatrix33<> mw;
-        mw.Set_A_quaternion(marker2->GetAbsCoord().rot);
+        mw.SetFromQuaternion(marker2->GetAbsCoord().rot);
 
         deltaC.pos = VNULL;
         deltaC_dt.pos = VNULL;

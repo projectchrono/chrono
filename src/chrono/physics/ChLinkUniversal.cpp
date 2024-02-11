@@ -65,8 +65,8 @@ void ChLinkUniversal::Initialize(std::shared_ptr<ChBody> body1,
     ((ChFrame<>*)Body1)->TransformParentToLocal(frame, m_frame1);
     ((ChFrame<>*)Body2)->TransformParentToLocal(frame, m_frame2);
 
-    m_u1_tilde = ChStarMatrix33<>(m_frame1.GetA().Get_A_Xaxis());
-    m_v2_tilde = ChStarMatrix33<>(m_frame2.GetA().Get_A_Yaxis());
+    m_u1_tilde = ChStarMatrix33<>(m_frame1.GetA().GetAxisX());
+    m_v2_tilde = ChStarMatrix33<>(m_frame2.GetA().GetAxisY());
 
     m_C(0) = 0.0;
     m_C(1) = 0.0;
@@ -102,13 +102,13 @@ void ChLinkUniversal::Initialize(std::shared_ptr<ChBody> body1,
         frame2_abs = frame2;
     }
 
-    m_u1_tilde = ChStarMatrix33<>(m_frame1.GetA().Get_A_Xaxis());
-    m_v2_tilde = ChStarMatrix33<>(m_frame2.GetA().Get_A_Yaxis());
+    m_u1_tilde = ChStarMatrix33<>(m_frame1.GetA().GetAxisX());
+    m_v2_tilde = ChStarMatrix33<>(m_frame2.GetA().GetAxisY());
 
     m_C(0) = frame2_abs.coord.pos.x() - frame1_abs.coord.pos.x();
     m_C(1) = frame2_abs.coord.pos.y() - frame1_abs.coord.pos.y();
     m_C(2) = frame2_abs.coord.pos.z() - frame1_abs.coord.pos.z();
-    m_C(3) = Vdot(frame1_abs.GetA().Get_A_Xaxis(), frame2_abs.GetA().Get_A_Yaxis());
+    m_C(3) = Vdot(frame1_abs.GetA().GetAxisX(), frame2_abs.GetA().GetAxisY());
 }
 
 // -----------------------------------------------------------------------------
@@ -174,8 +174,8 @@ void ChLinkUniversal::Update(double time, bool update_assets) {
     }
 
     // Calculate violation of the dot constraint
-    ChVector3d u1 = frame1_abs.GetA().Get_A_Xaxis();
-    ChVector3d v2 = frame2_abs.GetA().Get_A_Yaxis();
+    ChVector3d u1 = frame1_abs.GetA().GetAxisX();
+    ChVector3d v2 = frame2_abs.GetA().GetAxisY();
 
     m_C(3) = Vdot(u1, v2);
 
@@ -246,7 +246,7 @@ void ChLinkUniversal::IntStateScatterReactions(const unsigned int off_L, const C
     react_force = m_frame2.GetA().transpose() * F2;
 
     // Reaction torque
-    ChVector3d u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
+    ChVector3d u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().GetAxisX());
     ChMatrix33<> mat2 = Body2->GetA() * m_v2_tilde;
     ChVector3d T2 = mat2.transpose() * (lam_dot * u1);
     react_torque = m_frame2.GetA().transpose() * (-T2);
@@ -397,7 +397,7 @@ void ChLinkUniversal::ConstraintsFetch_react(double factor) {
     react_force = m_frame2.GetA().transpose() * F2;
 
     // Reaction torque
-    ChVector3d u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
+    ChVector3d u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().GetAxisX());
     ChMatrix33<> mat2 = Body2->GetA() * m_v2_tilde;
     ChVector3d T2 = mat2.transpose() * (lam_dot * u1);
     react_torque = m_frame2.GetA().transpose() * (-T2);

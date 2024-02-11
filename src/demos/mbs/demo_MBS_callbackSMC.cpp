@@ -70,7 +70,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
             printf("  B contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
         }
 
-        const ChVector3d& nrm = plane_coord.Get_A_Xaxis();
+        const ChVector3d& nrm = plane_coord.GetAxisX();
         printf("  nrm: %7.3f, %7.3f  %7.3f", nrm.x(), nrm.y(), nrm.z());
         printf("  frc: %7.3f  %7.3f  %7.3f", cforce.x(), cforce.y(), cforce.z());
         printf("  trq: %7.3f, %7.3f  %7.3f", ctorque.x(), ctorque.y(), ctorque.z());

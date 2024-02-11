@@ -42,14 +42,14 @@ class ChFrame {
         : coord(mv, mq), Amatrix(mq) {}
 
     /// Construct from pos and rotation (as a 3x3 matrix)
-    ChFrame(const ChVector3<Real>& mv, const ChMatrix33<Real>& ma) : coord(mv, ma.Get_A_quaternion()), Amatrix(ma) {}
+    ChFrame(const ChVector3<Real>& mv, const ChMatrix33<Real>& ma) : coord(mv, ma.GetQuaternion()), Amatrix(ma) {}
 
     /// Construct from a coordsys
     explicit ChFrame(const ChCoordsys<Real>& mc) : coord(mc), Amatrix(mc.rot) {}
 
     /// Construct from position mv and rotation of angle alpha around unit vector mu
     ChFrame(const ChVector3<Real>& mv, const Real alpha, const ChVector3<Real>& mu) : coord(mv, alpha, mu) {
-        Amatrix.Set_A_quaternion(coord.rot);
+        Amatrix.SetFromQuaternion(coord.rot);
     }
 
     /// Copy constructor, build from another frame
@@ -226,7 +226,7 @@ class ChFrame {
     /// already normalized!
     void SetCoord(const ChCoordsys<Real>& mcoord) {
         coord = mcoord;
-        Amatrix.Set_A_quaternion(mcoord.rot);
+        Amatrix.SetFromQuaternion(mcoord.rot);
     }
 
     /// Impose both translation and rotation.
@@ -234,20 +234,20 @@ class ChFrame {
     void SetCoord(const ChVector3<Real>& mv, const ChQuaternion<Real>& mq) {
         coord.pos = mv;
         coord.rot = mq;
-        Amatrix.Set_A_quaternion(mq);
+        Amatrix.SetFromQuaternion(mq);
     }
 
     /// Impose the rotation as a quaternion.
     /// Note: the quaternion must be already normalized!
     void SetRot(const ChQuaternion<Real>& mrot) {
         coord.rot = mrot;
-        Amatrix.Set_A_quaternion(mrot);
+        Amatrix.SetFromQuaternion(mrot);
     }
 
     /// Impose the rotation as a 3x3 matrix.
     /// Note: the rotation matrix must be already orthogonal!
     void SetRot(const ChMatrix33<Real>& mA) {
-        coord.rot = mA.Get_A_quaternion();
+        coord.rot = mA.GetQuaternion();
         Amatrix = mA;
     }
 
@@ -354,7 +354,7 @@ class ChFrame {
     /// Normalize the rotation, so that quaternion has unit length
     void Normalize() {
         coord.rot.Normalize();
-        Amatrix.Set_A_quaternion(coord.rot);
+        Amatrix.SetFromQuaternion(coord.rot);
     }
 
     /// Sets to no translation and no rotation
@@ -391,7 +391,7 @@ class ChFrame {
         /*int version =*/marchive.VersionRead<ChFrame<double>>();
         // stream in all member data
         if (marchive.in(CHNVP(coord)))
-            Amatrix.Set_A_quaternion(coord.rot);
+            Amatrix.SetFromQuaternion(coord.rot);
     }
 
   public:

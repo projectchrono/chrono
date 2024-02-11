@@ -473,9 +473,9 @@ void ChElementBeamANCF_3243::EvaluateSectionFrame(const double xi, ChVector3d& p
     // compute the Dy and Dz directions by using a
     // Gram-Schmidt orthonormalization, guided by the cross section Y direction
     ChMatrix33<> msect;
-    msect.Set_A_Xdir(BeamAxisTangent, CrossSectionY);
+    msect.SetFromAxisX(BeamAxisTangent, CrossSectionY);
 
-    rot = msect.Get_A_quaternion();
+    rot = msect.GetQuaternion();
 }
 
 void ChElementBeamANCF_3243::EvaluateSectionPoint(const double xi, ChVector3d& point) {

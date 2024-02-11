@@ -219,9 +219,9 @@ ChCoordsys<> calcJointFrame(const ChFrame<>& base, const ChVector3d& axis) {
         v = Vcross(w, u);
     }
     ChMatrix33<> A;
-    A.Set_A_axis(u, v, w);
+    A.SetFromDirectionAxes(u, v, w);
     ChMatrix33<> B = base.GetA() * A;
-    return ChCoordsys<>(base.GetPos(), B.Get_A_quaternion());
+    return ChCoordsys<>(base.GetPos(), B.GetQuaternion());
 }
 
 // =============================================================================

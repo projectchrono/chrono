@@ -517,9 +517,9 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeSimpleConsistentInert
 
     // In case the section is rotated:
     ChMatrix33<> RotsectA;
-    RotsectA.Set_A_Rxyz(ChVector3d(mass_phi1, 0, 0));
+    RotsectA.SetFromCardanAnglesXYZ(ChVector3d(mass_phi1, 0, 0));
     ChMatrix33<> RotsectB;
-    RotsectB.Set_A_Rxyz(ChVector3d(mass_phi2, 0, 0));
+    RotsectB.SetFromCardanAnglesXYZ(ChVector3d(mass_phi2, 0, 0));
     ChMatrixNM<double, 12, 12> Rotsect;
     Rotsect.setZero();
     Rotsect.block<3, 3>(0, 0) = RotsectA;

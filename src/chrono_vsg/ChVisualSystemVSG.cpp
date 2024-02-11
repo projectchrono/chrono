@@ -1093,7 +1093,7 @@ ChFrame<> PointPointFrame(const ChVector3d& P1, const ChVector3d& P2, double& di
     ChVector3d mx, my, mz;
     dir.DirToDxDyDz(my, mz, mx);
     ChMatrix33<> R_CS;
-    R_CS.Set_A_axis(mx, my, mz);
+    R_CS.SetFromDirectionAxes(mx, my, mz);
 
     return ChFrame<>(0.5 * (P2 + P1), R_CS);
 }

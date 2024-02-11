@@ -60,8 +60,8 @@ ChVehicleGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
                                                 int matID)
     : m_pos(pos), m_radius(radius), m_length(length), m_matID(matID) {
     ChMatrix33<> rot;
-    rot.Set_A_Xdir(axis);
-    m_rot = rot.Get_A_quaternion() * Q_from_AngY(-CH_C_PI_2);
+    rot.SetFromAxisX(axis);
+    m_rot = rot.GetQuaternion() * Q_from_AngY(-CH_C_PI_2);
 }
 
 ChVehicleGeometry::LineShape::LineShape(const ChVector3d& pos,

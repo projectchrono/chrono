@@ -164,7 +164,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     u = points[LCA_F] - points[LCA_B];
     u.Normalize();
     v = Vcross(w, u);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_LCA[side] = chrono_types::make_shared<ChBody>();
     m_LCA[side]->SetNameString(m_name + "_LCA" + suffix);
@@ -191,12 +191,12 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     v.Normalize();
     u = Vcross(v, w);
     u.Normalize();
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_cylindricalStrut[side] = chrono_types::make_shared<ChLinkLockCylindrical>();
     m_cylindricalStrut[side]->SetNameString(m_name + "_cylindricalStrut" + suffix);
     m_cylindricalStrut[side]->Initialize(m_strut[side], m_upright[side],
-                                         ChCoordsys<>(points[SPRING_U], rot.Get_A_quaternion()));
+                                         ChCoordsys<>(points[SPRING_U], rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_cylindricalStrut[side]);
 
     // Create and initialize the universal joint between chassis and UCA.
@@ -208,12 +208,12 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     // w = points[UCA_F] - points[UCA_B];
     // w.Normalize();
     // u = Vcross(v, w);
-    // rot.Set_A_axis(u, v, w);
+    // rot.SetFromDirectionAxes(u, v, w);
     // TODO: Is this the correct rotation matrix?
     m_universalStrut[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_universalStrut[side]->SetNameString(m_name + "_universalStrut" + suffix);
     m_universalStrut[side]->Initialize(chassis->GetBody(), m_strut[side],
-                                       ChFrame<>(points[SPRING_C], rot.Get_A_quaternion()));
+                                       ChFrame<>(points[SPRING_C], rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_universalStrut[side]);
 
     // Create and initialize the revolute joint between chassis and LCA.
@@ -225,11 +225,11 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     w = points[LCA_F] - points[LCA_B];
     w.Normalize();
     u = Vcross(v, w);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_revoluteLCA[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteLCA" + suffix, chassis->GetBody(), m_LCA[side],
-        ChCoordsys<>((points[LCA_F] + points[LCA_B]) / 2, rot.Get_A_quaternion()), getLCABushingData());
+        ChCoordsys<>((points[LCA_F] + points[LCA_B]) / 2, rot.GetQuaternion()), getLCABushingData());
     chassis->AddJoint(m_revoluteLCA[side]);
 
     // Create and initialize the spherical joint between upright and LCA.
@@ -244,13 +244,13 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
         u = chassisRot.GetXaxis();
         v = Vcross(w, u).GetNormalized();
         u = Vcross(v, w);
-        rot.Set_A_axis(u, v, w);
+        rot.SetFromDirectionAxes(u, v, w);
 
         // Create the tierod body
         m_tierod[side] = chrono_types::make_shared<ChBody>();
         m_tierod[side]->SetNameString(m_name + "_tierodBody" + suffix);
         m_tierod[side]->SetPos((points[TIEROD_U] + points[TIEROD_C]) / 2);
-        m_tierod[side]->SetRot(rot.Get_A_quaternion());
+        m_tierod[side]->SetRot(rot.GetQuaternion());
         m_tierod[side]->SetMass(getTierodMass());
         m_tierod[side]->SetInertiaXX(getTierodInertia());
         chassis->GetBody()->GetSystem()->AddBody(m_tierod[side]);
@@ -262,7 +262,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
         chassis->AddJoint(m_sphericalTierod[side]);
         m_universalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
-            ChCoordsys<>(points[TIEROD_C], rot.Get_A_quaternion()), getTierodBushingData());
+            ChCoordsys<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
         chassis->AddJoint(m_universalTierod[side]);
     } else {
         // Create and initialize the tierod distance constraint between chassis and upright.

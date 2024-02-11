@@ -559,9 +559,9 @@ void ChElementHexaANCF_3843::EvaluateElementFrame(const double xi,
     // compute the Dy and Dz directions by using a
     // Gram-Schmidt orthonormalization, guided by the brick eta axis
     ChMatrix33<> msect;
-    msect.Set_A_Xdir(Xdir, Ydir);
+    msect.SetFromAxisX(Xdir, Ydir);
 
-    rot = msect.Get_A_quaternion();
+    rot = msect.GetQuaternion();
 }
 
 void ChElementHexaANCF_3843::EvaluateElementPoint(const double xi,

@@ -67,7 +67,7 @@ void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, Vehicl
             double ny = sin(theta);
             double nz = cos(theta) * sin(phi);
             ChVector3d dir = wheel_frame.TransformDirectionLocalToParent(ChVector3d(nx, ny, nz));
-            ChMatrix33<> mrot; mrot.Set_A_Xdir(dir,VECT_Y);
+            ChMatrix33<> mrot; mrot.SetFromAxisX(dir,VECT_Y);
 
             auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));         
 

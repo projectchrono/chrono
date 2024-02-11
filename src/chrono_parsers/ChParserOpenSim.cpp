@@ -733,13 +733,13 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         // Don't make a connection between overlapping bodies
         if ((p2 - p1).Length() > 1e-5) {
             ChMatrix33<> rot;
-            rot.Set_A_Xdir(p1 - p2);
+            rot.SetFromAxisX(p1 - p2);
             // Center of cylinder is halfway between points
             collision_cylinder_specs new_cyl;
             new_cyl.rad = .02;
             new_cyl.hlen = (p1 - p2).Length() / 2;
             new_cyl.pos = (p2 - p1) / 2;
-            new_cyl.rot = rot.Get_A_quaternion() * Q_from_AngY(-CH_C_PI / 2);
+            new_cyl.rot = rot.GetQuaternion() * Q_from_AngY(-CH_C_PI / 2);
             body_collision_info[parent->GetName()].cylinders.push_back(new_cyl);
         }
 
@@ -751,13 +751,13 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         // Don't make a connection between overlapping bodies
         if ((p2 - p1).Length() > 1e-5) {
             ChMatrix33<> rot;
-            rot.Set_A_Xdir(p2 - p1);
+            rot.SetFromAxisX(p2 - p1);
             // Center of cylinder is halfway between points
             collision_cylinder_specs new_cyl;
             new_cyl.rad = .02;
             new_cyl.hlen = (p2 - p1).Length() / 2;
             new_cyl.pos = (p1 - p2) / 2;
-            new_cyl.rot = rot.Get_A_quaternion() * Q_from_AngY(-CH_C_PI / 2);
+            new_cyl.rot = rot.GetQuaternion() * Q_from_AngY(-CH_C_PI / 2);
             body_collision_info[child->GetName()].cylinders.push_back(new_cyl);
         }
 

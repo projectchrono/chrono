@@ -279,7 +279,7 @@ void ChElementHexaCorot_8::UpdateRotation() {
     avgY2 = nodes[2]->GetX0() + nodes[3]->GetX0() + nodes[6]->GetX0() + nodes[7]->GetX0();
     ChVector3d Ydir = avgY2 - avgY1;
     ChMatrix33<> rotX0;
-    rotX0.Set_A_Xdir(Xdir.GetNormalized(), Ydir.GetNormalized());
+    rotX0.SetFromAxisX(Xdir.GetNormalized(), Ydir.GetNormalized());
 
     avgX1 = nodes[0]->pos + nodes[1]->pos + nodes[2]->pos + nodes[3]->pos;
     avgX2 = nodes[4]->pos + nodes[5]->pos + nodes[6]->pos + nodes[7]->pos;
@@ -289,7 +289,7 @@ void ChElementHexaCorot_8::UpdateRotation() {
     avgY2 = nodes[2]->pos + nodes[3]->pos + nodes[6]->pos + nodes[7]->pos;
     Ydir = avgY2 - avgY1;
     ChMatrix33<> rotXcurrent;
-    rotXcurrent.Set_A_Xdir(Xdir.GetNormalized(), Ydir.GetNormalized());
+    rotXcurrent.SetFromAxisX(Xdir.GetNormalized(), Ydir.GetNormalized());
 
     this->A = rotXcurrent * rotX0.transpose();
 }

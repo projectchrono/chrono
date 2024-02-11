@@ -172,7 +172,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     /// Get the total thickness of the shell element (might be sum of multiple layer thicknesses)
     double GetThickness() { return tot_thickness; }
 
-    ChQuaternion<> GetAvgRot() { return T_overline.Get_A_quaternion(); }
+    ChQuaternion<> GetAvgRot() { return T_overline.GetQuaternion(); }
 
     // Shape functions
     // ---------------

@@ -28,16 +28,16 @@ ChVector3d ChRotation::AngleSetToAngleSet(ChRotation::Representation from,
 
     switch (from) {
         case Representation::EULER_ANGLES_ZXZ:
-            R.Set_A_Eulero(from_angles);
+            R.SetFromEulerAnglesZXZ(from_angles);
             break;
         case Representation::CARDAN_ANGLES_ZXY:
-            R.Set_A_Cardano(from_angles);
+            R.SetFromCardanAnglesZXY(from_angles);
             break;
         case Representation::CARDAN_ANGLES_ZYX:
-            R.Set_A_Hpb(from_angles);
+            R.SetFromCardanAnglesZYX(from_angles);
             break;
         case Representation::CARDAN_ANGLES_XYZ:
-            R.Set_A_Rxyz(from_angles);
+            R.SetFromCardanAnglesXYZ(from_angles);
             break;
         default:
             std::cerr << "Unknown input angle set representation" << std::endl;
@@ -48,16 +48,16 @@ ChVector3d ChRotation::AngleSetToAngleSet(ChRotation::Representation from,
     ChVector3d to_angles;
     switch (to) {
         case Representation::EULER_ANGLES_ZXZ:
-            to_angles = R.Get_A_Eulero();
+            to_angles = R.GetEulerAnglesZXZ();
             break;
         case Representation::CARDAN_ANGLES_ZXY:
-            to_angles = R.Get_A_Cardano();
+            to_angles = R.GetCardanAnglesZXY();
             break;
         case Representation::CARDAN_ANGLES_ZYX:
-            to_angles = R.Get_A_Hpb();
+            to_angles = R.GetCardanAnglesZYX();
             break;
         case Representation::CARDAN_ANGLES_XYZ:
-            to_angles = R.Get_A_Rxyz();
+            to_angles = R.GetCardanAnglesXYZ();
             break;
         default:
             std::cerr << "Unknown output angle set representation" << std::endl;
@@ -73,16 +73,16 @@ ChVector3d ChRotation::AngleSetToRodriguez(Representation from, const ChVector3d
 
     switch (from) {
         case Representation::EULER_ANGLES_ZXZ:
-            R.Set_A_Eulero(angles);
+            R.SetFromEulerAnglesZXZ(angles);
             break;
         case Representation::CARDAN_ANGLES_ZXY:
-            R.Set_A_Cardano(angles);
+            R.SetFromCardanAnglesZXY(angles);
             break;
         case Representation::CARDAN_ANGLES_ZYX:
-            R.Set_A_Hpb(angles);
+            R.SetFromCardanAnglesZYX(angles);
             break;
         case Representation::CARDAN_ANGLES_XYZ:
-            R.Set_A_Rxyz(angles);
+            R.SetFromCardanAnglesXYZ(angles);
             break;
         default:
             std::cerr << "Unknown input angle set representation" << std::endl;
@@ -90,26 +90,26 @@ ChVector3d ChRotation::AngleSetToRodriguez(Representation from, const ChVector3d
             break;
     }
 
-    return R.Get_A_Rodriguez();
+    return R.GetRodriguezParameters();
 }
 
 ChVector3d ChRotation::RodriguezToAngleSet(Representation to, const ChVector3d& params) {
     ChMatrix33<> R;
-    R.Set_A_Rodriguez(params);
+    R.SetFromRodriguezParameters(params);
 
     ChVector3d to_angles;
     switch (to) {
         case Representation::EULER_ANGLES_ZXZ:
-            to_angles = R.Get_A_Eulero();
+            to_angles = R.GetEulerAnglesZXZ();
             break;
         case Representation::CARDAN_ANGLES_ZXY:
-            to_angles = R.Get_A_Cardano();
+            to_angles = R.GetCardanAnglesZXY();
             break;
         case Representation::CARDAN_ANGLES_ZYX:
-            to_angles = R.Get_A_Hpb();
+            to_angles = R.GetCardanAnglesZYX();
             break;
         case Representation::CARDAN_ANGLES_XYZ:
-            to_angles = R.Get_A_Rxyz();
+            to_angles = R.GetCardanAnglesXYZ();
             break;
         default:
             std::cerr << "Unknown output angle set representation" << std::endl;
@@ -122,13 +122,13 @@ ChVector3d ChRotation::RodriguezToAngleSet(Representation to, const ChVector3d& 
 
 ChVector3d ChRotation::QuaternionToRodriguez(const ChQuaterniond& q) {
     ChMatrix33<> R(q);
-    return R.Get_A_Rodriguez();
+    return R.GetRodriguezParameters();
 }
 
 ChQuaterniond ChRotation::RodriguezToQuaternion(const ChVector3d& params) {
     ChMatrix33<> R;
-    R.Set_A_Rodriguez(params);
-    return R.Get_A_quaternion();
+    R.SetFromRodriguezParameters(params);
+    return R.GetQuaternion();
 }
 
 ChQuaterniond ChRotation::RodriguezToQuaternionDer(const ChVector3d& params_der, const ChQuaterniond& q) {
@@ -155,16 +155,16 @@ ChVector3d ChRotation::QuaternionToAngleSet(ChRotation::Representation to, const
     ChVector3d to_angles;
     switch (to) {
         case Representation::EULER_ANGLES_ZXZ:
-            to_angles = R.Get_A_Eulero();
+            to_angles = R.GetEulerAnglesZXZ();
             break;
         case Representation::CARDAN_ANGLES_ZXY:
-            to_angles = R.Get_A_Cardano();
+            to_angles = R.GetCardanAnglesZXY();
             break;
         case Representation::CARDAN_ANGLES_ZYX:
-            to_angles = R.Get_A_Hpb();
+            to_angles = R.GetCardanAnglesZYX();
             break;
         case Representation::CARDAN_ANGLES_XYZ:
-            to_angles = R.Get_A_Rxyz();
+            to_angles = R.GetCardanAnglesXYZ();
             break;
         default:
             std::cerr << "Unknown output angle set representation" << std::endl;
@@ -180,16 +180,16 @@ ChQuaterniond ChRotation::AngleSetToQuaternion(Representation from, const ChVect
 
     switch (from) {
         case Representation::EULER_ANGLES_ZXZ:
-            R.Set_A_Eulero(angles);
+            R.SetFromEulerAnglesZXZ(angles);
             break;
         case Representation::CARDAN_ANGLES_ZXY:
-            R.Set_A_Cardano(angles);
+            R.SetFromCardanAnglesZXY(angles);
             break;
         case Representation::CARDAN_ANGLES_ZYX:
-            R.Set_A_Hpb(angles);
+            R.SetFromCardanAnglesZYX(angles);
             break;
         case Representation::CARDAN_ANGLES_XYZ:
-            R.Set_A_Rxyz(angles);
+            R.SetFromCardanAnglesXYZ(angles);
             break;
         default:
             std::cerr << "Unknown input angle set representation" << std::endl;
@@ -197,7 +197,7 @@ ChQuaterniond ChRotation::AngleSetToQuaternion(Representation from, const ChVect
             break;
     }
 
-    return R.Get_A_quaternion();
+    return R.GetQuaternion();
 }
 
 ChQuaterniond ChRotation::AngleSetToQuaternionDer(Representation from,

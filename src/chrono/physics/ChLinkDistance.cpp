@@ -95,7 +95,7 @@ ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords() {
     XdirToDxDyDz(dir_F1_F2_B1, VECT_Y, Vx, Vy, Vz);
     ChMatrix33<> rel_matrix(Vx, Vy, Vz);
 
-    ChQuaterniond Ql2 = rel_matrix.Get_A_quaternion();
+    ChQuaterniond Ql2 = rel_matrix.GetQuaternion();
     return ChCoordsys<>(pos2, Ql2);
 }
 

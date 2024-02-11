@@ -205,10 +205,10 @@ bool ChTire::DiscTerrainCollision1pt(
     longitudinal.Normalize();
     ChVector3d lateral = Vcross(normal, longitudinal);
     ChMatrix33<> rot;
-    rot.Set_A_axis(longitudinal, lateral, normal);
+    rot.SetFromDirectionAxes(longitudinal, lateral, normal);
 
     contact.pos = wheel_bottom_location;
-    contact.rot = rot.Get_A_quaternion();
+    contact.rot = rot.GetQuaternion();
 
     return true;
 }
@@ -299,10 +299,10 @@ bool ChTire::DiscTerrainCollision4pt(
         return false;
 
     ChMatrix33<> rot;
-    rot.Set_A_axis(longitudinal, lateral, terrain_normal);
+    rot.SetFromDirectionAxes(longitudinal, lateral, terrain_normal);
 
     contact.pos = wheel_bottom_location;
-    contact.rot = rot.Get_A_quaternion();
+    contact.rot = rot.GetQuaternion();
 
     depth = disc_radius - da;
     assert(depth > 0);
@@ -380,10 +380,10 @@ bool ChTire::DiscTerrainCollisionEnvelope(
     longitudinal.Normalize();
     ChVector3d lateral = Vcross(normal, longitudinal);
     ChMatrix33<> rot;
-    rot.Set_A_axis(longitudinal, lateral, normal);
+    rot.SetFromDirectionAxes(longitudinal, lateral, normal);
 
     contact.pos = ptD;
-    contact.rot = rot.Get_A_quaternion();
+    contact.rot = rot.GetQuaternion();
 
     mu = terrain.GetCoefficientFriction(ptD);
 

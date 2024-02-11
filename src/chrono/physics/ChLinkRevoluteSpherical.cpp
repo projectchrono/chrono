@@ -130,7 +130,7 @@ ChCoordsys<> ChLinkRevoluteSpherical::GetLinkRelativeCoords() {
     ChVector3d v = Vcross(w, u);
     ChMatrix33<> A(u, v, w);
 
-    return ChCoordsys<>(pos1, A.Get_A_quaternion());
+    return ChCoordsys<>(pos1, A.GetQuaternion());
 }
 
 // -----------------------------------------------------------------------------

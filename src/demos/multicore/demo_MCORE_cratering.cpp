@@ -120,7 +120,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
 
         csv << bodyA->GetIdentifier() << bodyB->GetIdentifier();
         csv << pA << pB;
-        csv << plane_coord.Get_A_Xaxis() << plane_coord.Get_A_Yaxis() << plane_coord.Get_A_Zaxis();
+        csv << plane_coord.GetAxisX() << plane_coord.GetAxisY() << plane_coord.GetAxisZ();
         csv << cforce << ctorque;
         csv << endl;
         return true;  // continue parsing

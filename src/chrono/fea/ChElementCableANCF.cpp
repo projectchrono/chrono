@@ -690,9 +690,9 @@ void ChElementCableANCF::EvaluateSectionFrame(const double eta, ChVector3d& poin
     // VECT_Y for the vertical:
     ChMatrix33<> msect;
     Dx.Normalize();
-    msect.Set_A_Xdir(Dx, VECT_Y);
+    msect.SetFromAxisX(Dx, VECT_Y);
 
-    rot = msect.Get_A_quaternion();
+    rot = msect.GetQuaternion();
 }
 
 void ChElementCableANCF::EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) {

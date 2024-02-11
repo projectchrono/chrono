@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     qrotA.Normalize();
 
     // ..Also create a 3x3 rotation matrix [A] from the quaternion
-    // (at any time you can use mrotA.Set_A_quaternion(qrotA) );
+    // (at any time you can use mrotA.SetFromQuaternion(qrotA) );
     ChMatrix33<> mrotA(qrotA);
 
     // ..Also create a ChCoordsys<>tem object, representing both
@@ -267,7 +267,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "-------------------------------------------\n" << std::endl;
 
-    mrotA.Set_A_quaternion(qrotA);
+    mrotA.SetFromQuaternion(qrotA);
     ChFpMatrix34<> Fp(qrotA);
     ChFmMatrix34<> Fm(qrotA);
     ChGlMatrix34<> Gl(qrotA);

@@ -193,7 +193,7 @@ void test_pendulum() {
     ChVector3d mY;
     ChVector3d mZ;
     Xdir.DirToDxDyDz(mX, mY, mZ, Ydir);
-    ChQuaternion<> mass_rot = ChMatrix33<>(mX, mY, mZ).Get_A_quaternion();
+    ChQuaternion<> mass_rot = ChMatrix33<>(mX, mY, mZ).GetQuaternion();
     my_mass->SetCoord(mass_pos, mass_rot);
     my_mass->SetMass(tip_mass);
     my_mass->SetInertiaXX(ChVector3d(0, 0, 0));
@@ -402,7 +402,7 @@ void test_anchorchain() {
         ChVector3d mY;
         ChVector3d mZ;
         Xdir.DirToDxDyDz(mX, mY, mZ, Ydir);
-        ChQuaternion<> knot_rot = ChMatrix33<>(mX, mY, mZ).Get_A_quaternion();
+        ChQuaternion<> knot_rot = ChMatrix33<>(mX, mY, mZ).GetQuaternion();
 
         for (int i_body = 0; i_body < mN; i_body++) {
             auto knot = chrono_types::make_shared<ChBody>();

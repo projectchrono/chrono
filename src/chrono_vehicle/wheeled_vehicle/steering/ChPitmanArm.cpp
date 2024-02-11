@@ -131,11 +131,11 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChChassis> chassis,
     v = Vcross(dirs[REV_AXIS], u);
     v.Normalize();
     u = Vcross(v, dirs[REV_AXIS]);
-    rot.Set_A_axis(u, v, dirs[REV_AXIS]);
+    rot.SetFromDirectionAxes(u, v, dirs[REV_AXIS]);
 
     m_revolute = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     m_revolute->SetNameString(m_name + "_revolute");
-    m_revolute->Initialize(chassisBody, m_arm, ChFrame<>(points[REV], rot.Get_A_quaternion()));
+    m_revolute->Initialize(chassisBody, m_arm, ChFrame<>(points[REV], rot.GetQuaternion()));
     auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
     m_revolute->SetAngleFunction(motor_fun);
     sys->AddLink(m_revolute);
@@ -145,11 +145,11 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChChassis> chassis,
     // dirs[UNIV_AXIS_ARM] and dirs[UNIV_AXIS_LINK], assumed to be unit vectors
     // and orthogonal.
     w = Vcross(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK]);
-    rot.Set_A_axis(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK], w);
+    rot.SetFromDirectionAxes(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK], w);
 
     m_universal = chrono_types::make_shared<ChLinkUniversal>();
     m_universal->SetNameString(m_name + "_universal");
-    m_universal->Initialize(m_arm, m_link, ChFrame<>(points[UNIV], rot.Get_A_quaternion()));
+    m_universal->Initialize(m_arm, m_link, ChFrame<>(points[UNIV], rot.GetQuaternion()));
     sys->AddLink(m_universal);
 
     // Create and initialize the revolute-spherical joint (massless idler arm).
@@ -162,11 +162,11 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChChassis> chassis,
     v = Vcross(dirs[REVSPH_AXIS], u);
     v.Normalize();
     u = Vcross(v, dirs[REVSPH_AXIS]);
-    rot.Set_A_axis(u, v, dirs[REVSPH_AXIS]);
+    rot.SetFromDirectionAxes(u, v, dirs[REVSPH_AXIS]);
 
     m_revsph = chrono_types::make_shared<ChLinkRevoluteSpherical>();
     m_revsph->SetNameString(m_name + "_revsph");
-    m_revsph->Initialize(chassisBody, m_link, ChCoordsys<>(points[REVSPH_R], rot.Get_A_quaternion()), distance);
+    m_revsph->Initialize(chassisBody, m_link, ChCoordsys<>(points[REVSPH_R], rot.GetQuaternion()), distance);
     sys->AddLink(m_revsph);
 }
 

@@ -126,7 +126,7 @@ void ChTrackedVehicleVisualSystemIrrlicht::renderOtherGraphics() {
     for (const auto& c : m_tvehicle->m_contact_manager->m_sprocket_L_contacts) {
         ChVector3d v1 = c.m_point;
         if (normals) {
-            ChVector3d v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
+            ChVector3d v2 = v1 + c.m_csys.GetAxisX() * scale_normals;
             if (v1.y() > m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y())
                 irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
@@ -142,7 +142,7 @@ void ChTrackedVehicleVisualSystemIrrlicht::renderOtherGraphics() {
     for (const auto& c : m_tvehicle->m_contact_manager->m_sprocket_R_contacts) {
         ChVector3d v1 = c.m_point;
         if (normals) {
-            ChVector3d v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
+            ChVector3d v2 = v1 + c.m_csys.GetAxisX() * scale_normals;
             if (v1.y() < m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos().y())
                 irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
@@ -180,7 +180,7 @@ void ChTrackedVehicleVisualSystemIrrlicht::renderContacts(const std::list<ChTrac
     for (const auto& c : lst) {
         ChVector3d v1 = c.m_point;
         if (normals) {
-            ChVector3d v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
+            ChVector3d v2 = v1 + c.m_csys.GetAxisX() * scale_normals;
             irrlicht::tools::drawSegment(this, v1, v2, col, false);
         }
         if (forces) {

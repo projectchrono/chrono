@@ -40,8 +40,8 @@ ChCoordsys<> ChLinkDirFrame::GetLinkAbsoluteCoords() {
 void ChLinkDirFrame::SetDirectionInBodyCoords(const ChVector3d& dir_loc) {
     assert(m_body);
     ChMatrix33<> rot;
-    rot.Set_A_Xdir(dir_loc);
-    m_csys.rot = rot.Get_A_quaternion();
+    rot.SetFromAxisX(dir_loc);
+    m_csys.rot = rot.GetQuaternion();
     m_csys.pos = VNULL;
 }
 

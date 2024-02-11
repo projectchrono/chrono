@@ -269,13 +269,13 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
     if (pos_are_relative) {
         mN = mnorm1;
         mN.DirToDxDyDz(mx, my, mz);
-        mrot.Set_A_axis(mx, my, mz);
+        mrot.SetFromDirectionAxes(mx, my, mz);
         mfr1.SetRot(mrot);
         mfr1.SetPos(mpt1);
 
         mN = mnorm2;
         mN.DirToDxDyDz(mx, my, mz);
-        mrot.Set_A_axis(mx, my, mz);
+        mrot.SetFromDirectionAxes(mx, my, mz);
         mfr2.SetRot(mrot);
         mfr2.SetPos(mpt2);
     } else {
@@ -283,13 +283,13 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
         // from abs to body-rel
         mN = this->Body1->TransformDirectionParentToLocal(mnorm1);
         mN.DirToDxDyDz(mx, my, mz, temp);
-        mrot.Set_A_axis(mx, my, mz);
+        mrot.SetFromDirectionAxes(mx, my, mz);
         mfr1.SetRot(mrot);
         mfr1.SetPos(this->Body1->TransformPointParentToLocal(mpt1));
 
         mN = this->Body2->TransformDirectionParentToLocal(mnorm2);
         mN.DirToDxDyDz(mx, my, mz, temp);
-        mrot.Set_A_axis(mx, my, mz);
+        mrot.SetFromDirectionAxes(mx, my, mz);
         mfr2.SetRot(mrot);
         mfr2.SetPos(this->Body2->TransformPointParentToLocal(mpt2));
     }
@@ -1211,14 +1211,14 @@ void ChLinkMateOrthogonal::Update(double mtime, bool update_assets) {
         mY1 = Vcross(mZ1, mX);
 
         ChMatrix33<> mA1;
-        mA1.Set_A_axis(mX, mY1, mZ1);
+        mA1.SetFromDirectionAxes(mX, mY1, mZ1);
 
         ChVector3d mY2, mZ2;
         mY2 = mabsD2;
         mZ2 = Vcross(mX, mY2);
 
         ChMatrix33<> mA2;
-        mA2.Set_A_axis(mX, mY2, mZ2);
+        mA2.SetFromDirectionAxes(mX, mY2, mZ2);
 
         ChFrame<> absframe1(VNULL, mA1);  // position not needed for orth. constr. computation
         ChFrame<> absframe2(VNULL, mA2);  // position not needed for orth. constr. computation

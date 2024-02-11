@@ -61,7 +61,7 @@ ChVector3d ChLinkGear::Get_shaft_dir1() const {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
-        return absframe.GetA().Get_A_Zaxis();
+        return absframe.GetA().GetAxisZ();
     } else
         return VECT_Z;
 }
@@ -70,7 +70,7 @@ ChVector3d ChLinkGear::Get_shaft_dir2() const {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
-        return absframe.GetA().Get_A_Zaxis();
+        return absframe.GetA().GetAxisZ();
     } else
         return VECT_Z;
 }
@@ -167,7 +167,7 @@ void ChLinkGear::UpdateTime(double mytime) {
     vrota.y() = beta;
     vrota.z() = 0.0;
     ChMatrix33<> mrotma;
-    mrotma.Set_A_Rxyz(vrota);
+    mrotma.SetFromCardanAnglesXYZ(vrota);
     ChMatrix33<> marot_beta = ma1 * mrotma;
     // rotate csys because of alpha
     vrota.x() = 0.0;
@@ -177,7 +177,7 @@ void ChLinkGear::UpdateTime(double mytime) {
         vrota.z() = alpha;
     else
         vrota.z() = -alpha;
-    mrotma.Set_A_Rxyz(vrota);
+    mrotma.SetFromCardanAnglesXYZ(vrota);
     ma1 = marot_beta * mrotma;
 
     ChMatrix33<> ma2 = ma1;
@@ -236,7 +236,7 @@ void ChLinkGear::UpdateTime(double mytime) {
 
         vrota.x() = vrota.y() = 0.0;
         vrota.z() = -m_delta;
-        mrotma.Set_A_Rxyz(vrota);  // rotate about Z of shaft to correct
+        mrotma.SetFromCardanAnglesXYZ(vrota);  // rotate about Z of shaft to correct
         mmark1 = abs_shaft1.GetA().transpose() * (mmark1 - Get_shaft_pos1());
         mmark1 = mrotma * mmark1;
         mmark1 = abs_shaft1.GetA() * mmark1 + Get_shaft_pos1();
@@ -253,11 +253,11 @@ void ChLinkGear::UpdateTime(double mytime) {
 
     // move marker1 in proper positions
     newmarkpos.pos = mmark1;
-    newmarkpos.rot = ma1.Get_A_quaternion();
+    newmarkpos.rot = ma1.GetQuaternion();
     marker1->Impose_Abs_Coord(newmarkpos);  // move marker1 into teeth position
     // move marker2 in proper positions
     newmarkpos.pos = mmark2;
-    newmarkpos.rot = ma2.Get_A_quaternion();
+    newmarkpos.rot = ma2.GetQuaternion();
     marker2->Impose_Abs_Coord(newmarkpos);  // move marker2 into teeth position
 }
 

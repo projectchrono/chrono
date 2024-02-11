@@ -359,7 +359,7 @@ bool ContactManager::OnReportContact(const ChVector3d& pA,
     std::cout << "  " << bodyA->GetPos() << std::endl;
     std::cout << "  " << distance << std::endl;
     std::cout << "  " << pA << "    " << pB << std::endl;
-    std::cout << "  " << plane_coord.Get_A_Xaxis() << std::endl;
+    std::cout << "  " << plane_coord.GetAxisX() << std::endl;
     std::cout << std::endl;
 
     return true;

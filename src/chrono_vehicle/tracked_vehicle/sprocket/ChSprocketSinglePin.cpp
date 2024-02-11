@@ -143,7 +143,7 @@ void SprocketSinglePinContactCB::OnCustomCollision(ChSystem* system) {
     ChVector3d locS_abs = m_sprocket->GetGearBody()->GetPos();
 
     // Sprocket "normal" (Y axis), expressed in global frame
-    ChVector3d dirS_abs = m_sprocket->GetGearBody()->GetA().Get_A_Yaxis();
+    ChVector3d dirS_abs = m_sprocket->GetGearBody()->GetA().GetAxisY();
 
     // Loop over all shoes in the associated track
     for (size_t is = 0; is < m_track->GetNumTrackShoes(); ++is) {
@@ -155,7 +155,7 @@ void SprocketSinglePinContactCB::OnCustomCollision(ChSystem* system) {
         ChVector3d locR_abs = shoe->GetShoeBody()->TransformPointLocalToParent(ChVector3d(m_shoe_locR, 0, 0));
 
         // Express contact cylinder direction (common for both cylinders) in the global frame
-        ChVector3d dir_abs = shoe->GetShoeBody()->GetA().Get_A_Yaxis();
+        ChVector3d dir_abs = shoe->GetShoeBody()->GetA().GetAxisY();
 
         // Perform collision test for the front contact cylinder
         CheckCylinderSprocket(shoe, locF_abs, dir_abs, locS_abs);

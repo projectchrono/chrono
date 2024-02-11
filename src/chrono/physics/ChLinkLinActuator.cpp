@@ -47,7 +47,7 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
 
     ChVector3d mx = Vnorm(absdist);
 
-    ChVector3d my = ma.Get_A_Yaxis();
+    ChVector3d my = ma.GetAxisY();
     if (Vequal(mx, my)) {
         if (mx.x() == 1.0)
             my = VECT_Y;
@@ -57,12 +57,12 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
     ChVector3d mz = Vnorm(Vcross(mx, my));
     my = Vnorm(Vcross(mz, mx));
 
-    ma.Set_A_axis(mx, my, mz);
+    ma.SetFromDirectionAxes(mx, my, mz);
 
     ChCoordsysd newmarkpos;
     ChVector3d oldpos = marker2->GetPos();  // backup to avoid numerical err.accumulation
     newmarkpos.pos = marker2->GetAbsCoord().pos;
-    newmarkpos.rot = ma.Get_A_quaternion();
+    newmarkpos.rot = ma.GetQuaternion();
     marker2->Impose_Abs_Coord(newmarkpos);  // rotate "main" marker2 into tangent position (may add err.accumulation)
     marker2->SetPos(oldpos);                // backup to avoid numerical err.accumulation
 

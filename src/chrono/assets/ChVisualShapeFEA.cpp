@@ -1164,7 +1164,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                         m_glyphs_shape->GetNumberOfGlyphs();
                         m_glyphs_shape->SetGlyphCoordsys(
                             (unsigned int)m_glyphs_shape->GetNumberOfGlyphs(),
-                            ChCoordsys<>(myshell->EvaluateGP(igp), myshell->T_i[igp].Get_A_quaternion()));
+                            ChCoordsys<>(myshell->EvaluateGP(igp), myshell->T_i[igp].GetQuaternion()));
                     }
                 }
                 // gauss point weights

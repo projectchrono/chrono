@@ -30,7 +30,7 @@ class ChApi ChRotation {
         EULER_ANGLES_ZXZ,   ///< Euler angle sequence: Z - X' - Z'' (intrinsic rotations)
         CARDAN_ANGLES_ZXY,  ///< Cardan (Tait-Bryant) angle sequence: Z - X' - Y'' (intrinsic rotations)
         CARDAN_ANGLES_ZYX,  ///< Cardan (Tait-Bryant) angle sequence: Z - Y' - X'' (intrinsic rotations)
-        CARDAN_ANGLES_XYZ,  ///< Cardan (Tait-Bryant) angle sequence: X - Y' - Z''  (intrinsic rotations)
+        CARDAN_ANGLES_XYZ,  ///< Cardan (Tait-Bryant) angle sequence: X - Y' - Z'' (intrinsic rotations)
         RODRIGUEZ           ///< Rodriguez parameters
     };
 

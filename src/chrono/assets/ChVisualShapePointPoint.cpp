@@ -66,7 +66,7 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
     XdirToDxDyDz(dir, VECT_Y, Vx, Vy, Vz);
 
     ChMatrix33<> rel_matrix(Vx, Vy, Vz);
-    ChCoordsys<> mpos(endpoint1, rel_matrix.Get_A_quaternion());
+    ChCoordsys<> mpos(endpoint1, rel_matrix.GetQuaternion());
 
     double phaseA = 0;
     double phaseB = 0;

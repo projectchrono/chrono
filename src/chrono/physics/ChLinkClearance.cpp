@@ -147,19 +147,19 @@ void ChLinkClearance::UpdateTime(double mytime) {
     marker2->SetMotionType(ChMarker::M_MOTION_EXTERNAL);
 
     ChMatrix33<> ma;
-    ma.Set_A_quaternion(marker2->GetAbsCoord().rot);
+    ma.SetFromQuaternion(marker2->GetAbsCoord().rot);
 
     ChVector3d absdist = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
 
-    ChVector3d mz = ma.Get_A_Zaxis();
-    ChVector3d my = Vnorm(Vcross(ma.Get_A_Zaxis(), absdist));
-    ChVector3d mx = Vnorm(Vcross(my, ma.Get_A_Zaxis()));
+    ChVector3d mz = ma.GetAxisZ();
+    ChVector3d my = Vnorm(Vcross(ma.GetAxisZ(), absdist));
+    ChVector3d mx = Vnorm(Vcross(my, ma.GetAxisZ()));
 
-    ma.Set_A_axis(mx, my, mz);
+    ma.SetFromDirectionAxes(mx, my, mz);
 
     ChCoordsysd newmarkpos;
     newmarkpos.pos = marker2->GetAbsCoord().pos;
-    newmarkpos.rot = ma.Get_A_quaternion();
+    newmarkpos.rot = ma.GetQuaternion();
     marker2->Impose_Abs_Coord(newmarkpos);  // rotate "main" marker2 into tangent position
 
     // imposed relative positions/speeds

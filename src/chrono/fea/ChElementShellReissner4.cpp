@@ -161,18 +161,18 @@ void ChElementShellReissner4::UpdateNodalAndAveragePosAndOrientation() {
     /*
         // ***ALEX*** test an alternative for T_overline:
         // average four rotations with quaternion averaging:
-        ChQuaternion<> qTa = Tn[0].Get_A_quaternion();
-        ChQuaternion<> qTb = Tn[1].Get_A_quaternion();
+        ChQuaternion<> qTa = Tn[0].GetQuaternion();
+        ChQuaternion<> qTb = Tn[1].GetQuaternion();
         if ( (qTa ^ qTb) < 0)
             qTb *= -1;
-        ChQuaternion<> qTc = Tn[2].Get_A_quaternion();
+        ChQuaternion<> qTc = Tn[2].GetQuaternion();
         if ( (qTa ^ qTc) < 0)
             qTc *= -1;
-        ChQuaternion<> qTd = Tn[3].Get_A_quaternion();
+        ChQuaternion<> qTd = Tn[3].GetQuaternion();
         if ( (qTa ^ qTd) < 0)
             qTd *= -1;
         ChQuaternion<> Tavg =(qTa + qTb + qTc + qTd ).GetNormalized();
-        T_overline.Set_A_quaternion(Tavg);
+        T_overline.SetFromQuaternion(Tavg);
     */
 
     ChMatrix33<> R_tilde_n[NUMNODES];
@@ -441,10 +441,10 @@ void ChElementShellReissner4::SetupInitial(ChSystem* system) {
     {
         ChVector3d x_1 = InterpDeriv_xi1(xa, xi_0);
         ChVector3d x_2 = InterpDeriv_xi2(xa, xi_0);
-        S_alpha_beta_0(0, 0) = T_0_0.Get_A_Xaxis() ^ x_1;
-        S_alpha_beta_0(1, 0) = T_0_0.Get_A_Yaxis() ^ x_1;
-        S_alpha_beta_0(0, 1) = T_0_0.Get_A_Xaxis() ^ x_2;
-        S_alpha_beta_0(1, 1) = T_0_0.Get_A_Yaxis() ^ x_2;
+        S_alpha_beta_0(0, 0) = T_0_0.GetAxisX() ^ x_1;
+        S_alpha_beta_0(1, 0) = T_0_0.GetAxisY() ^ x_1;
+        S_alpha_beta_0(0, 1) = T_0_0.GetAxisX() ^ x_2;
+        S_alpha_beta_0(1, 1) = T_0_0.GetAxisY() ^ x_2;
         alpha_0 = S_alpha_beta_0(0, 0) * S_alpha_beta_0(1, 1) - S_alpha_beta_0(0, 1) * S_alpha_beta_0(1, 0);
 
         M_0(0, 0) = S_alpha_beta_0(0, 0) * S_alpha_beta_0(0, 0);
@@ -474,10 +474,10 @@ void ChElementShellReissner4::SetupInitial(ChSystem* system) {
         ChMatrixNM<double, 4, 2> L_alpha_B_i;
         ChVector3d x_1 = InterpDeriv_xi1(xa, xi_i[i]);
         ChVector3d x_2 = InterpDeriv_xi2(xa, xi_i[i]);
-        S_alpha_beta_i[i](0, 0) = T_0_i[i].Get_A_Xaxis() ^ x_1;
-        S_alpha_beta_i[i](1, 0) = T_0_i[i].Get_A_Yaxis() ^ x_1;
-        S_alpha_beta_i[i](0, 1) = T_0_i[i].Get_A_Xaxis() ^ x_2;
-        S_alpha_beta_i[i](1, 1) = T_0_i[i].Get_A_Yaxis() ^ x_2;
+        S_alpha_beta_i[i](0, 0) = T_0_i[i].GetAxisX() ^ x_1;
+        S_alpha_beta_i[i](1, 0) = T_0_i[i].GetAxisY() ^ x_1;
+        S_alpha_beta_i[i](0, 1) = T_0_i[i].GetAxisX() ^ x_2;
+        S_alpha_beta_i[i](1, 1) = T_0_i[i].GetAxisY() ^ x_2;
         // alpha_i = det(S_alpha_beta_i)
         alpha_i[i] =
             S_alpha_beta_i[i](0, 0) * S_alpha_beta_i[i](1, 1) - S_alpha_beta_i[i](0, 1) * S_alpha_beta_i[i](1, 0);
@@ -535,10 +535,10 @@ void ChElementShellReissner4::SetupInitial(ChSystem* system) {
         ChMatrixNM<double, 4, 2> L_alpha_B_A;
         ChVector3d x_1 = InterpDeriv_xi1(xa, xi_A[i]);
         ChVector3d x_2 = InterpDeriv_xi2(xa, xi_A[i]);
-        S_alpha_beta_A[i](0, 0) = T_0_A[i].Get_A_Xaxis() ^ x_1;
-        S_alpha_beta_A[i](1, 0) = T_0_A[i].Get_A_Yaxis() ^ x_1;
-        S_alpha_beta_A[i](0, 1) = T_0_A[i].Get_A_Xaxis() ^ x_2;
-        S_alpha_beta_A[i](1, 1) = T_0_A[i].Get_A_Yaxis() ^ x_2;
+        S_alpha_beta_A[i](0, 0) = T_0_A[i].GetAxisX() ^ x_1;
+        S_alpha_beta_A[i](1, 0) = T_0_A[i].GetAxisY() ^ x_1;
+        S_alpha_beta_A[i](0, 1) = T_0_A[i].GetAxisX() ^ x_2;
+        S_alpha_beta_A[i](1, 1) = T_0_A[i].GetAxisY() ^ x_2;
 
         ChVector3d y_A_1;
         ChVector3d y_A_2;

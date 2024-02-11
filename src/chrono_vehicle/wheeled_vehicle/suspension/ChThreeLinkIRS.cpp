@@ -145,7 +145,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     v = Vcross(ChVector3d(0, 0, 1), u);
     v.Normalize();
     w = Vcross(u, v);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_arm[side] = chrono_types::make_shared<ChBody>();
     m_arm[side]->SetNameString(m_name + "_arm" + suffix);
@@ -160,7 +160,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     v = Vcross(ChVector3d(0, 0, 1), u);
     v.Normalize();
     w = Vcross(u, v);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_upper[side] = chrono_types::make_shared<ChBody>();
     m_upper[side]->SetNameString(m_name + "_upper" + suffix);
@@ -175,7 +175,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     v = Vcross(ChVector3d(0, 0, 1), u);
     v.Normalize();
     w = Vcross(u, v);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_lower[side] = chrono_types::make_shared<ChBody>();
     m_lower[side]->SetNameString(m_name + "_lower" + suffix);
@@ -214,22 +214,22 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     w = Vcross(u, ChVector3d(0, 0, 1));
     w.Normalize();
     v = Vcross(w, u);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_universalUpper[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalUpper" + suffix, m_upper[side], chassis->GetBody(),
-        ChCoordsys<>(points[UL_C], rot.Get_A_quaternion()), getChassisUpperBushingData());
+        ChCoordsys<>(points[UL_C], rot.GetQuaternion()), getChassisUpperBushingData());
     chassis->AddJoint(m_universalUpper[side]);
 
     u = dirs[UNIV_AXIS_LOWER];
     w = Vcross(u, ChVector3d(0, 0, 1));
     w.Normalize();
     v = Vcross(w, u);
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_universalLower[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalLower" + suffix, m_lower[side], chassis->GetBody(),
-        ChCoordsys<>(points[LL_C], rot.Get_A_quaternion()), getChassisLowerBushingData());
+        ChCoordsys<>(points[LL_C], rot.GetQuaternion()), getChassisLowerBushingData());
     chassis->AddJoint(m_universalLower[side]);
 
     // Create and initialize the spring/damper.
