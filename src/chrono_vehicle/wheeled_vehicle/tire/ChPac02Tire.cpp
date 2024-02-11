@@ -613,7 +613,8 @@ void ChPac02Tire::LoadSectionModel(FILE* fp) {
             sval = sval.substr(a1pos, a2pos - a1pos + 1);
             if (sval.compare("'NO'") == 0 || sval.compare("'no'") == 0) {
                 m_use_friction_ellipsis = false;
-                std::cout << "Friction Ellipsis Method switched off, relying on Pac02 parameters!\n";
+                if (m_verbose)
+                    std::cout << "Friction Ellipsis Method switched off, relying on Pac02 parameters!\n";
             }
         }
         if (skey.compare("USE_MODE") == 0) {
@@ -622,23 +623,28 @@ void ChPac02Tire::LoadSectionModel(FILE* fp) {
                 default:
                 case 0:
                     m_use_mode = m_par.USE_MODE;
-                    std::cout << "Only Vertical Force Fz will be calculated!\n";
+                    if (m_verbose)
+                        std::cout << "Only Vertical Force Fz will be calculated!\n";
                     break;
                 case 1:
                     m_use_mode = m_par.USE_MODE;
-                    std::cout << "Only Forces Fx and Fz will be calculated!\n";
+                    if (m_verbose)
+                        std::cout << "Only Forces Fx and Fz will be calculated!\n";
                     break;
                 case 2:
                     m_use_mode = m_par.USE_MODE;
-                    std::cout << "Only Forces Fy and Fz will be calculated!\n";
+                    if (m_verbose)
+                        std::cout << "Only Forces Fy and Fz will be calculated!\n";
                     break;
                 case 3:
                     m_use_mode = m_par.USE_MODE;
-                    std::cout << "Uncombined Force calculation!\n";
+                    if (m_verbose)
+                        std::cout << "Uncombined Force calculation!\n";
                     break;
                 case 4:
                     m_use_mode = m_par.USE_MODE;
-                    std::cout << "Combined Force calculation!\n";
+                    if (m_verbose)
+                        std::cout << "Combined Force calculation!\n";
                     break;
             }
         }
@@ -1664,10 +1670,11 @@ void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
             m_par.QHZ1 *= -1.0;
             m_par.QHZ2 *= -1.0;
             m_par.SSZ1 *= -1.0;
-            if (m_measured_side == LEFT) {
-                std::cout << "Tire is measured as left tire but mounted on the right vehicle side -> mirroring.\n";
-            } else {
-                std::cout << "Tire is measured as right tire but mounted on the lleft vehicle side -> mirroring.\n";
+            if (m_verbose) {
+                if (m_measured_side == LEFT)
+                    std::cout << "Tire is measured as left tire but mounted on the right -> mirroring." << std::endl;
+                else
+                    std::cout << "Tire is measured as right tire but mounted on the left -> mirroring." << std::endl;
             }
         }
     }

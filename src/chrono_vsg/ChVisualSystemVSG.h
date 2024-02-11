@@ -156,7 +156,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Get estimated FPS.
     double GetRenderingFPS() const { return m_fps; }
 
-    /// Enable/disable VSG information terminal output during initialization (default: true).
+    /// Enable/disable VSG information terminal output during initialization (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     /// Enable/disable Shadows, use before Initialization, to see an effect

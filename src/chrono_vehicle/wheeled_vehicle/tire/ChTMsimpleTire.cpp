@@ -316,7 +316,8 @@ void ChTMsimpleTire::SetVerticalStiffness(std::vector<double>& defl, std::vector
     r = A.colPivHouseholderQr().solve(b);
     m_d1 = r(0);
     m_d2 = r(1);
-    std::cout << "Stiffness Coeffs from test data d1 = " << m_d1 << "  d2 = " << m_d2 << "\n";
+    if (m_verbose)
+        std::cout << "Stiffness Coeffs from test data d1 = " << m_d1 << "  d2 = " << m_d2 << "\n";
 }
 
 double ChTMsimpleTire::GetTireMaxLoad(unsigned int li) {

@@ -94,7 +94,7 @@ void CRGTerrain::SetRoadDiffuseTextureFile(std::string texFile) {
     filesystem::path path(m_diffuse_texture_filename);
     if (path.is_file() && path.exists()) {
         m_use_diffuseTexture = true;
-        std::cout << "Diffuse Texture file " << m_diffuse_texture_filename << " can be used.\n";
+        ////std::cout << "Diffuse Texture file " << m_diffuse_texture_filename << " can be used.\n";
     }
 }
 
@@ -103,7 +103,7 @@ void CRGTerrain::SetRoadNormalTextureFile(std::string texFile) {
     filesystem::path path(m_normal_texture_filename);
     if (path.is_file() && path.exists()) {
         m_use_normalTexture = true;
-        std::cout << "Normal Texture file " << m_normal_texture_filename << " can be used.\n";
+        ////std::cout << "Normal Texture file " << m_normal_texture_filename << " can be used.\n";
     }
 }
 
@@ -112,7 +112,7 @@ void CRGTerrain::SetRoadRoughnessTextureFile(std::string texFile) {
     filesystem::path path(m_rough_texture_filename);
     if (path.is_file() && path.exists()) {
         m_use_roughTexture = true;
-        std::cout << "Roughness Texture file " << m_rough_texture_filename << " can be used.\n";
+        ////std::cout << "Roughness Texture file " << m_rough_texture_filename << " can be used.\n";
     }
 }
 

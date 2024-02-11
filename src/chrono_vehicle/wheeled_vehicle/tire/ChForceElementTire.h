@@ -59,6 +59,9 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     /// If the tire is not in contact, all information is set to zero.
     const ContactData& ReportTireContactData() const { return m_data; }
 
+    /// Enable/disable information terminal output (default: false).
+    void SetVerbose(bool verbose) { m_verbose = verbose; }
+
   protected:
     /// Construct a tire with the specified name.
     ChForceElementTire(const std::string& name);
@@ -89,6 +92,8 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     ChFunctionRecorder m_areaDep;  ///< lookup table for estimation of penetration depth from intersection area
 
     std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
+
+    bool m_verbose;  ///< verbose output
 
   private:
     virtual void InitializeInertiaProperties() override final;

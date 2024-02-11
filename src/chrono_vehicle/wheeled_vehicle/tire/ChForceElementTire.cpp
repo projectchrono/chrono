@@ -21,7 +21,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChForceElementTire::ChForceElementTire(const std::string& name) : ChTire(name) {}
+ChForceElementTire::ChForceElementTire(const std::string& name) : ChTire(name), m_verbose(false) {}
 
 void ChForceElementTire::InitializeInertiaProperties() {
     m_mass = GetTireMass();

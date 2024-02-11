@@ -422,7 +422,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_old_time(0),
       m_current_time(0),
       m_fps(0),
-      m_verbose(true) {
+      m_verbose(false) {
     m_windowTitle = string("Window Title");
     m_clearColor = ChColor(0, 0, 0);
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
