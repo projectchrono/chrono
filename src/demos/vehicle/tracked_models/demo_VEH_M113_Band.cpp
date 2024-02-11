@@ -31,8 +31,15 @@
 #include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
-    #define USE_IRRLICHT
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
 #endif
 
 #ifdef CHRONO_MUMPS
@@ -55,6 +62,9 @@ using std::endl;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
+
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // Band track type (BAND_BUSHING or BAND_ANCF)
 TrackShoeType shoe_type = TrackShoeType::BAND_BUSHING;
@@ -239,22 +249,46 @@ int main(int argc, char* argv[]) {
 
     AddFixedObstacles(sys);
 
-#ifdef USE_IRRLICHT
-    // ---------------------------------------
-    // Create the vehicle Irrlicht application
-    // ---------------------------------------
+    // -----------------------------------------
+    // Create the vehicle run-time visualization
+    // -----------------------------------------
 
-    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("M113 Band-track Vehicle Demo");
-    vis->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
-    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
-    vis->SetChaseCameraMultipliers(1e-4, 10);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&vehicle);
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            // Create the vehicle Irrlicht interface
+            auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle("M113 Band-track Vehicle Demo");
+            vis_irr->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
+            vis_irr->SetChaseCameraMultipliers(1e-4, 10);
+            vis_irr->Initialize();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AttachVehicle(&vehicle);
+
+            vis = vis_irr;
 #endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            // Create the vehicle VSG interface
+            auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle("M113 Band-track Vehicle Demo");
+            vis_vsg->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);
+            vis_vsg->AttachVehicle(&m113.GetVehicle());
+            ////vis_vsg->ShowAllCoGs(0.3);
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // -----------------
     // Initialize output
@@ -375,7 +409,6 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Number of steps
-    int sim_steps = (int)std::ceil(t_end / step_size);          // total number of simulation steps
     int img_steps = (int)std::ceil(1 / (img_FPS * step_size));  // interval between IMG output frames
     int vtk_steps = (int)std::ceil(1 / (vtk_FPS * step_size));  // interval between VIS postprocess output frames
 
@@ -387,8 +420,10 @@ int main(int argc, char* argv[]) {
     int img_frame = 0;
     int vtk_frame = 0;
 
-    while (step_number < sim_steps) {
-        double time = vehicle.GetChTime();
+    double time = 0;
+
+    while (time < t_end) {
+        time = vehicle.GetChTime();
         const ChVector3d& c_pos = vehicle.GetPos();
 
         // File output
@@ -429,21 +464,20 @@ int main(int argc, char* argv[]) {
             cout << endl;
         }
 
-#ifdef USE_IRRLICHT
-        if (!vis->Run())
-            break;
+        if (vis) {
+            if (!vis->Run())
+                break;
 
-        // Render scene
-        vis->BeginScene();
-        vis->Render();
-#endif
+            // Render scene
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
 
-        if (img_output && step_number % img_steps == 0) {
-#ifdef USE_IRRLICHT
-            std::string filename = img_dir + "/img." + std::to_string(img_frame) + ".jpg";
-            vis->WriteImageToFile(filename);
-            img_frame++;
-#endif
+            if (img_output && step_number % img_steps == 0) {
+                std::string filename = img_dir + "/img." + std::to_string(img_frame) + ".jpg";
+                vis->WriteImageToFile(filename);
+                img_frame++;
+            }
         }
 
         if (vtk_output && step_number % vtk_steps == 0) {
@@ -460,14 +494,10 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         m113.Synchronize(time, driver_inputs);
-#ifdef USE_IRRLICHT
-        vis->Synchronize(time, driver_inputs);
-#endif
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        if (step_number == 100) {
-            step_size = 5e-5;
-        }
         if (step_number == 140) {
             step_size = 1e-4;
         }
@@ -475,9 +505,8 @@ int main(int argc, char* argv[]) {
         driver.Advance(step_size);
         terrain.Advance(step_size);
         m113.Advance(step_size);
-#ifdef USE_IRRLICHT
-        vis->Advance(step_size);
-#endif
+        if (vis)
+            vis->Advance(step_size);
 
         // Report if the chassis experienced a collision
         if (vehicle.IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
@@ -496,10 +525,6 @@ int main(int argc, char* argv[]) {
         cout << "   Step Time: " << step_timing;
         cout << "   Total Time: " << total_timing;
         cout << endl;
-
-#ifdef USE_IRRLICHT
-        vis->EndScene();
-#endif
     }
 
     if (output) {
