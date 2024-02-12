@@ -21,7 +21,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunctionRotationABCFunctions)
 
 ChFunctionRotationABCFunctions::ChFunctionRotationABCFunctions() {
-    angleset = ChRotation::Representation::CARDAN_ANGLES_XYZ;
+    angleset = RotRepresentation::CARDAN_ANGLES_XYZ;
 
     angleA = chrono_types::make_shared<ChFunctionConst>(0);
     angleB = chrono_types::make_shared<ChFunctionConst>(0);
@@ -38,11 +38,9 @@ ChFunctionRotationABCFunctions::ChFunctionRotationABCFunctions(const ChFunctionR
 
 ChFunctionRotationABCFunctions::~ChFunctionRotationABCFunctions() {}
 
-void ChFunctionRotationABCFunctions::SetAngleset(const ChRotation::Representation rot_rep) {
-    if (rot_rep != ChRotation::Representation::EULER_ANGLES_ZXZ ||
-        rot_rep != ChRotation::Representation::CARDAN_ANGLES_XYZ ||
-        rot_rep != ChRotation::Representation::CARDAN_ANGLES_ZXY ||
-        rot_rep != ChRotation::Representation::CARDAN_ANGLES_ZYX) {
+void ChFunctionRotationABCFunctions::SetAngleset(const RotRepresentation rot_rep) {
+    if (rot_rep != RotRepresentation::EULER_ANGLES_ZXZ && rot_rep != RotRepresentation::CARDAN_ANGLES_XYZ &&
+        rot_rep != RotRepresentation::CARDAN_ANGLES_ZXY && rot_rep != RotRepresentation::CARDAN_ANGLES_ZYX) {
         std::cerr << "Unknown input rotation representation" << std::endl;
         throw std::runtime_error("Unknown input rotation representation");
         return;
@@ -52,22 +50,22 @@ void ChFunctionRotationABCFunctions::SetAngleset(const ChRotation::Representatio
 }
 
 ChQuaternion<> ChFunctionRotationABCFunctions::Get_q(double s) const {
-    return ChRotation::AngleSetToQuaternion(angleset, ChVector3d(angleA->Get_y(s), angleB->Get_y(s), angleC->Get_y(s)));
+    return QuatFromAngleSet({angleset, ChVector3d(angleA->Get_y(s), angleB->Get_y(s), angleC->Get_y(s))});
 }
 
 // To avoid putting the following mapper macro inside the class definition,
-// enclose macros in local 'ChLinkLockLock_RotationRepresentation_enum_mapper'.
-class ChFunctionRotationABCFunctions_RotationRepresentation_enum_mapper : public ChFunctionRotationABCFunctions {
+// enclose macros in local 'ChFunctionRotationABCFunctions_RotRep_enum_mapper'.
+class ChFunctionRotationABCFunctions_RotRep_enum_mapper : public ChFunctionRotationABCFunctions {
   public:
-    typedef ChRotation::Representation ChRotationRepresentation;
+    typedef RotRepresentation ChRotationRepresentation;
 
     CH_ENUM_MAPPER_BEGIN(ChRotationRepresentation);
-    CH_ENUM_VAL(ChRotation::Representation::ANGLE_AXIS);
-    CH_ENUM_VAL(ChRotation::Representation::EULER_ANGLES_ZXZ);
-    CH_ENUM_VAL(ChRotation::Representation::CARDAN_ANGLES_ZXY);
-    CH_ENUM_VAL(ChRotation::Representation::CARDAN_ANGLES_ZYX);
-    CH_ENUM_VAL(ChRotation::Representation::CARDAN_ANGLES_XYZ);
-    CH_ENUM_VAL(ChRotation::Representation::RODRIGUEZ);
+    CH_ENUM_VAL(RotRepresentation::ANGLE_AXIS);
+    CH_ENUM_VAL(RotRepresentation::EULER_ANGLES_ZXZ);
+    CH_ENUM_VAL(RotRepresentation::CARDAN_ANGLES_ZXY);
+    CH_ENUM_VAL(RotRepresentation::CARDAN_ANGLES_ZYX);
+    CH_ENUM_VAL(RotRepresentation::CARDAN_ANGLES_XYZ);
+    CH_ENUM_VAL(RotRepresentation::RODRIGUEZ);
     CH_ENUM_MAPPER_END(ChRotationRepresentation);
 };
 
@@ -81,7 +79,7 @@ void ChFunctionRotationABCFunctions::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(angleB);
     marchive << CHNVP(angleC);
 
-    ChFunctionRotationABCFunctions_RotationRepresentation_enum_mapper::ChRotationRepresentation_mapper setmapper;
+    ChFunctionRotationABCFunctions_RotRep_enum_mapper::ChRotationRepresentation_mapper setmapper;
     marchive << CHNVP(setmapper(angleset), "angle_set");
 }
 
@@ -95,7 +93,7 @@ void ChFunctionRotationABCFunctions::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(angleB);
     marchive >> CHNVP(angleC);
 
-    ChFunctionRotationABCFunctions_RotationRepresentation_enum_mapper::ChRotationRepresentation_mapper setmapper;
+    ChFunctionRotationABCFunctions_RotRep_enum_mapper::ChRotationRepresentation_mapper setmapper;
     marchive >> CHNVP(setmapper(angleset), "angle_set");
 }
 

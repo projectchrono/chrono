@@ -132,9 +132,9 @@ void ChLinkRSDA::CalcAngle() {
     ChQuaternion<> rot2 = Body2->GetRot() * m_csys2.rot;
 
     // Extract unit vectors
-    auto f1 = rot1.GetXaxis();
-    auto g1 = rot1.GetYaxis();
-    auto f2 = rot2.GetXaxis();
+    auto f1 = rot1.GetAxisX();
+    auto g1 = rot1.GetAxisY();
+    auto f2 = rot2.GetAxisX();
 
     // Calculate sine and cosine of rotation angle
     double s = Vdot(g1, f2);
@@ -149,7 +149,7 @@ void ChLinkRSDA::CalcAngle() {
     }
 
     // Get angle rate of change
-    m_axis = rot1.GetZaxis();
+    m_axis = rot1.GetAxisZ();
     m_angle_dt = Vdot(m_axis, Body2->GetWvel_par() - Body1->GetWvel_par());
 }
 

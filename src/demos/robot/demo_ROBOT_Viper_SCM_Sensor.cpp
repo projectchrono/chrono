@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
 
         // set the abs orientation, position and velocity
         auto rock_Body = chrono_types::make_shared<ChBodyAuxRef>();
-        ChQuaternion<> rock_rot = Q_from_AngX(CH_C_PI / 2);
+        ChQuaternion<> rock_rot = QuatFromAngleX(CH_C_PI / 2);
         ChVector3d rock_pos;
 
         // predefined customized location
@@ -406,7 +406,7 @@ int main(int argc, char* argv[]) {
     manager->SetVerbose(false);
 
     // Create a lidar and add it to the sensor manager
-    auto offset_pose = chrono::ChFrame<double>({1.5, 0, 0.4}, Q_from_AngAxis(0, {0, 0, 1}));
+    auto offset_pose = chrono::ChFrame<double>({1.5, 0, 0.4}, QuatFromAngleZ(0));
 
     auto lidar = chrono_types::make_shared<ChLidarSensor>(viper.GetChassis()->GetBody(),  // body lidar is attached to
                                                           50,                             // scanning rate in Hz

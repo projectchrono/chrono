@@ -321,7 +321,7 @@ int main(int argc, char* argv[]) {
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         my_hmmwv.GetChassisBody(),                                           // body camera is attached to
         cam_update_rate,                                                     // update rate in Hz
-        chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({-8, 0, 3}, QuatFromAngleAxis(.2, {0, 1, 0})),  // offset pose
         image_width,                                                         // image width
         image_height,                                                        // image height
         cam_fov,
@@ -351,7 +351,7 @@ int main(int argc, char* argv[]) {
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(
         my_hmmwv.GetChassisBody(),                                            // body camera is attached to
         cam_update_rate,                                                      // update rate in Hz
-        chrono::ChFrame<double>({1, 0, .875}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose
+        chrono::ChFrame<double>({1, 0, .875}, QuatFromAngleAxis(0, {1, 0, 0})),  // offset pose
         image_width,                                                          // image width
         image_height,                                                         // image height
         cam_fov,
@@ -380,7 +380,7 @@ int main(int argc, char* argv[]) {
     // auto lidar = chrono_types::make_shared<ChLidarSensor>(
     //     my_hmmwv.GetChassisBody(),                                         // body to which the IMU is attached
     //     lidar_update_rate,                                                 // update rate
-    //     chrono::ChFrame<double>({0, 0, 2}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
+    //     chrono::ChFrame<double>({0, 0, 2}, QuatFromAngleAxis(0, {1, 0, 0})),  // offset pose from body
     //     horizontal_samples,                                                // horizontal samples
     //     vertical_samples,                                                  // vertical samples/channels
     //     lidar_hfov,                                                        // horizontal field of view
@@ -428,7 +428,7 @@ int main(int argc, char* argv[]) {
 
         cam->SetOffsetPose(
             chrono::ChFrame<double>({-orbit_radius * cos(time * orbit_rate), -orbit_radius * sin(time * orbit_rate), 3},
-                                    Q_from_AngAxis(time * orbit_rate, {0, 0, 1})));
+                                    QuatFromAngleAxis(time * orbit_rate, {0, 0, 1})));
 
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0) {

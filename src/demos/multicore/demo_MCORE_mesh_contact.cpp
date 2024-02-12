@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     sys->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Rotation Z->Y (because meshes used here assume Z up)
-    ChQuaternion<> z2y = Q_from_AngX(-CH_C_PI_2);
+    ChQuaternion<> z2y = QuatFromAngleX(-CH_C_PI_2);
 
     // Create the falling object
     auto object = chrono_types::make_shared<ChBody>();

@@ -390,9 +390,8 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
     sys.Add(motor);
-    motor->Initialize(
-        builder.GetLastBeamNodes().back(), truss,
-        ChFrame<>(builder.GetLastBeamNodes().back()->GetPos(), chrono::Q_from_AngAxis(0 * CH_C_PI_2, VECT_Z)));
+    motor->Initialize(builder.GetLastBeamNodes().back(), truss,
+                      ChFrame<>(builder.GetLastBeamNodes().back()->GetPos(), chrono::QuatFromAngleZ(0 * CH_C_PI_2)));
     motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::SPHERICAL);
     auto rampup = chrono_types::make_shared<ChFunctionRamp>(0, 0.1);
     auto rampdo = chrono_types::make_shared<ChFunctionRamp>(0, -0.1);
@@ -518,9 +517,9 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     auto mbodyflywheel = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
                                                                        0.24, 0.05, 7800);    // R, h, density
-    mbodyflywheel->SetCoord(ChCoordsys<>(
-        node_mid->GetPos() + ChVector3d(0, 0.05, 0),  // flywheel initial center (plus Y offset)
-        Q_from_AngAxis(CH_C_PI_2, VECT_Z))  // flywheel initial alignment (rotate 90� so cylinder axis is on X)
+    mbodyflywheel->SetCoord(
+        ChCoordsys<>(node_mid->GetPos() + ChVector3d(0, 0.05, 0),  // flywheel initial center (plus Y offset)
+                     QuatFromAngleZ(CH_C_PI_2))  // flywheel initial alignment (rotate 90 deg so cylinder axis is on X)
     );
     sys.Add(mbodyflywheel);
 
@@ -546,7 +545,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     rotmotor1->Initialize(builder.GetLastBeamNodes().front(),  // body A (slave)
                           truss,                               // body B (master)
                           ChFrame<>(builder.GetLastBeamNodes().front()->GetPos(),
-                                    Q_from_AngAxis(CH_C_PI_2, VECT_Y))  // motor frame, in abs. coords
+                                    QuatFromAngleY(CH_C_PI_2))  // motor frame, in abs. coords
     );
     sys.Add(rotmotor1);
 

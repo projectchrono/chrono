@@ -124,12 +124,12 @@ int main(int argc, char* argv[]) {
     if (node_id % 2 == 0) {
         // Start even vehicles in a row on the south side, driving north
         initLoc = offset + ChVector3d(0, 2.0 * (node_id + 1), 1.1);
-        initRot = Q_from_AngZ(0);
+        initRot = QuatFromAngleZ(0);
         curve_pts = {initLoc, initLoc + ChVector3d(100, 0, 0)};
     } else {
         // Start odd vehicles staggered going up the west edge, driving east
         initLoc = offset + ChVector3d(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 1.1);
-        initRot = Q_from_AngZ(CH_C_PI / 2);
+        initRot = QuatFromAngleZ(CH_C_PI / 2);
         curve_pts = {initLoc, initLoc + ChVector3d(0, 100, 0)};
     }
 
@@ -258,13 +258,13 @@ int main(int argc, char* argv[]) {
         ChQuaternion<> rotation = QUNIT;
         const bool USE_ISO_VIEW = true;
         if (USE_ISO_VIEW) {
-            ChQuaternion<> qA = Q_from_AngAxis(35 * CH_C_DEG_TO_RAD, VECT_Y);
-            ChQuaternion<> qB = Q_from_AngAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
+            ChQuaternion<> qA = QuatFromAngleAxis(35 * CH_C_DEG_TO_RAD, VECT_Y);
+            ChQuaternion<> qB = QuatFromAngleAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
             rotation = rotation >> qA >> qB;
         } else {
             // Top down view
-            ChQuaternion<> qA = Q_from_AngAxis(90 * CH_C_DEG_TO_RAD, VECT_Y);
-            ChQuaternion<> qB = Q_from_AngAxis(180 * CH_C_DEG_TO_RAD, VECT_Z);
+            ChQuaternion<> qA = QuatFromAngleAxis(90 * CH_C_DEG_TO_RAD, VECT_Y);
+            ChQuaternion<> qB = QuatFromAngleAxis(180 * CH_C_DEG_TO_RAD, VECT_Z);
             rotation = rotation >> qA >> qB;
         }
 

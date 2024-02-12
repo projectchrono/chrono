@@ -339,9 +339,9 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
             ChFrame<> displacement;
             displacement.SetPos(ChVector3d(realinterval, 0, 0));  // shift on x
             ChQuaternion<> mrotU;
-            mrotU.Q_from_AngY(realinterval * mtwistU);
+            mrotU.SetFromAngleY(realinterval * mtwistU);
             ChQuaternion<> mrotV;
-            mrotV.Q_from_AngX(realinterval * mtwistV);
+            mrotV.SetFromAngleX(realinterval * mtwistV);
             displacement.SetRot(mrotU % mrotV);  // rotate on z and y
             localframe.ConcatenatePostTransformation(displacement);
         }

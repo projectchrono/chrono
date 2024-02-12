@@ -22,6 +22,7 @@
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChFrameMoving.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono/core/ChRotation.h"
 
 using namespace chrono;
 
@@ -259,7 +260,7 @@ int main(int argc, char* argv[]) {
     mframeA1 >>= ChVector3d(1, 2, 3);
 
     // Transform mframeA1 by rotating it 30 degrees on axis Y, using a quaternion:
-    mframeA1 >>= Q_from_AngAxis(30 * CH_C_DEG_TO_RAD, VECT_Y);
+    mframeA1 >>= QuatFromAngleY(30 * CH_C_DEG_TO_RAD);
 
     //
     // BENCHMARK FOR EXECUTION SPEED

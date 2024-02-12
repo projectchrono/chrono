@@ -126,7 +126,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
 
     // Spindle orientation (based on camber and toe angles)
     double sign = (side == LEFT) ? -1 : +1;
-    auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
+    auto spindleRot = chassisRot * QuatFromAngleZ(sign * getToeAngle()) * QuatFromAngleX(sign * getCamberAngle());
 
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = chrono_types::make_shared<ChBody>();
@@ -175,7 +175,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_LCA[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * Q_from_AngAxis(-CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * QuatFromAngleX(-CH_C_PI_2));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
@@ -241,7 +241,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     if (UseTierodBodies()) {
         // Orientation of tierod body
         w = (points[TIEROD_U] - points[TIEROD_C]).GetNormalized();
-        u = chassisRot.GetXaxis();
+        u = chassisRot.GetAxisX();
         v = Vcross(w, u).GetNormalized();
         u = Vcross(v, w);
         rot.SetFromDirectionAxes(u, v, w);
@@ -444,7 +444,8 @@ void ChMacPhersonStrut::LogConstraintViolations(VehicleSide side) {
         }
     } else {
         std::cout << "Tierod distance       ";
-        std::cout << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
+        std::cout << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance()
+                  << "\n";
     }
 }
 
@@ -520,7 +521,7 @@ void ChMacPhersonStrut::AddVisualizationStrut(std::shared_ptr<ChBody> strut,
     ChVector3d p_c = strut->TransformPointParentToLocal(pt_c);
     ChVector3d p_u = strut->TransformPointParentToLocal(pt_u);
 
-  ChVehicleGeometry::AddVisualizationCylinder(strut, p_c, p_u, radius);
+    ChVehicleGeometry::AddVisualizationCylinder(strut, p_c, p_u, radius);
 }
 
 void ChMacPhersonStrut::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
@@ -528,13 +529,13 @@ void ChMacPhersonStrut::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
                                                    const ChVector3d pt_B,
                                                    const ChVector3d pt_U,
                                                    double radius) {
-  // Express hardpoint locations in body frame.
-  ChVector3d p_F = arm->TransformPointParentToLocal(pt_F);
-  ChVector3d p_B = arm->TransformPointParentToLocal(pt_B);
-  ChVector3d p_U = arm->TransformPointParentToLocal(pt_U);
+    // Express hardpoint locations in body frame.
+    ChVector3d p_F = arm->TransformPointParentToLocal(pt_F);
+    ChVector3d p_B = arm->TransformPointParentToLocal(pt_B);
+    ChVector3d p_U = arm->TransformPointParentToLocal(pt_U);
 
-  ChVehicleGeometry::AddVisualizationCylinder(arm, p_F, p_U, radius);
-  ChVehicleGeometry::AddVisualizationCylinder(arm, p_B, p_U, radius);
+    ChVehicleGeometry::AddVisualizationCylinder(arm, p_F, p_U, radius);
+    ChVehicleGeometry::AddVisualizationCylinder(arm, p_B, p_U, radius);
 }
 
 void ChMacPhersonStrut::AddVisualizationUpright(std::shared_ptr<ChBody> upright,

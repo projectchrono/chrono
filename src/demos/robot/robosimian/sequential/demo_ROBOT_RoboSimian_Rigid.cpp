@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
     // Initialize Robosimian robot
 
     ////robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
-    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), Q_from_AngX(CH_C_PI)));
+    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI)));
 
     // -----------------------------------
     // Create a driver and attach to robot
@@ -283,8 +283,10 @@ int main(int argc, char* argv[]) {
     // Cast rays into collision models
     // -------------------------------
 
-    ////RayCaster caster(my_sys, ChFrame<>(ChVector3d(2, 0, -1), Q_from_AngY(-CH_C_PI_2)), ChVector2d(2.5, 2.5), 0.02);
-    RayCaster caster(my_sys, ChFrame<>(ChVector3d(0, -2, -1), Q_from_AngX(-CH_C_PI_2)), ChVector2d(2.5, 2.5), 0.02);
+    ////RayCaster caster(my_sys, ChFrame<>(ChVector3d(2, 0, -1), QuatFromAngleY(-CH_C_PI_2)),
+    ////                 ChVector2d(2.5, 2.5), 0.02);
+    RayCaster caster(my_sys, ChFrame<>(ChVector3d(0, -2, -1), QuatFromAngleX(-CH_C_PI_2)),
+                     ChVector2d(2.5, 2.5), 0.02);
 
     // -------------------------------
     // Create the visualization window

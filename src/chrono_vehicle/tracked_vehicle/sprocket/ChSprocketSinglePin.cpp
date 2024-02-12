@@ -370,7 +370,7 @@ std::shared_ptr<geometry::ChLinePath> ChSprocketSinglePin::GetProfile() const {
         ChVector3d p3(x, y, 0);
         ChVector3d p4(R_T * sbeta, R_T * cbeta, 0);
         ChQuaternion<> quat;
-        quat.Q_from_AngZ(alpha);
+        quat.SetFromAngleZ(alpha);
         ChMatrix33<> rot(quat);
         p0 = rot * p0;
         p1 = rot * p1;

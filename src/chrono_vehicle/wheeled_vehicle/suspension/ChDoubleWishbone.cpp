@@ -127,7 +127,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
 
     // Spindle orientation (based on camber and toe angles)
     double sign = (side == LEFT) ? -1 : +1;
-    auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
+    auto spindleRot = chassisRot * QuatFromAngleZ(sign * getToeAngle()) * QuatFromAngleX(sign * getCamberAngle());
 
     // Create and initialize spindle body
     m_spindle[side] = chrono_types::make_shared<ChBody>();
@@ -204,7 +204,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_LCA[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * Q_from_AngX(CH_C_PI_2));
+    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
@@ -257,7 +257,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     if (UseTierodBodies()) {
         // Orientation of tierod body
         w = (points[TIEROD_U] - points[TIEROD_C]).GetNormalized();
-        u = chassisRot.GetXaxis();
+        u = chassisRot.GetAxisX();
         v = Vcross(w, u).GetNormalized();
         u = Vcross(v, w);
         rot.SetFromDirectionAxes(u, v, w);
@@ -456,7 +456,8 @@ void ChDoubleWishbone::LogConstraintViolations(VehicleSide side) {
         }
     } else {
         std::cout << "Tierod distance       ";
-        std::cout << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
+        std::cout << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance()
+                  << "\n";
     }
 }
 

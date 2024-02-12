@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     mrim->SetMass(80);
     mrim->SetInertiaXX(ChVector3d(1, 1, 1));
     mrim->SetPos(tire_center + ChVector3d(0, 0.2, 0));
-    mrim->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_Z));
+    mrim->SetRot(QuatFromAngleZ(CH_C_PI_2));
 
     // The wheel object:
     auto wheel = chrono_types::make_shared<Wheel>(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel.json"));
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
     motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, CH_C_PI / 4.0));
-    motor->Initialize(mrim, mtruss, ChFrame<>(tire_center, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
+    motor->Initialize(mrim, mtruss, ChFrame<>(tire_center, QuatFromAngleY(CH_C_PI_2)));
     sys.Add(motor);
 
     // THE DEFORMABLE TERRAIN
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     // Displace/rotate the terrain reference plane.
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    mterrain.SetPlane(ChCoordsys<>(ChVector3d(0, 0.2, 0.3), Q_from_AngX(-CH_C_PI_2)));
+    mterrain.SetPlane(ChCoordsys<>(ChVector3d(0, 0.2, 0.3), QuatFromAngleX(-CH_C_PI_2)));
 
     // Initialize the geometry of the soil: use either a regular grid:
     mterrain.Initialize(1.5, 6, 0.075);

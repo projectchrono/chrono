@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
 
     // ==Asset== Attach a 'cylinder' shape
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.7);
-    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
+    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(2, 0.15, 0), QuatFromAngleX(CH_C_PI_2)));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
                          ChFrame<>(ChVector3d(2, -0.2, 0), QUNIT));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     for (int j = 0; j < 20; j++) {
         auto smallbox = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.2, 0.02);
         smallbox->SetColor(ChColor(j * 0.05f, 1 - j * 0.05f, 0.0f));
-        ChMatrix33<> rot(Q_from_AngY(j * 21 * CH_C_DEG_TO_RAD));
+        ChMatrix33<> rot(QuatFromAngleY(j * 21 * CH_C_DEG_TO_RAD));
         ChVector3d pos = rot * ChVector3d(0.4, 0, 0) + ChVector3d(0, j * 0.02, 0);
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
@@ -201,9 +201,9 @@ int main(int argc, char* argv[]) {
 
     auto glyphs_coords = chrono_types::make_shared<ChGlyphs>();
     for (int i = 0; i < 6; ++i)
-        glyphs_coords->SetGlyphCoordsys(i,                                                              // i-th glyph
-                                        ChCoordsys<>(ChVector3d(1 + i * 0.2, 2, 0.5),                   // the position
-                                                     Q_from_AngAxis(i * 20 * CH_C_DEG_TO_RAD, VECT_X))  // the rotation
+        glyphs_coords->SetGlyphCoordsys(i,                                                      // i-th glyph
+                                        ChCoordsys<>(ChVector3d(1 + i * 0.2, 2, 0.5),           // the position
+                                                     QuatFromAngleX(i * 20 * CH_C_DEG_TO_RAD))  // the rotation
         );
     body->AddVisualShape(glyphs_coords);
 
@@ -243,10 +243,10 @@ int main(int argc, char* argv[]) {
     auto glyphs_tensors = chrono_types::make_shared<ChGlyphs>();
     for (int i = 0; i < 6; ++i)
         glyphs_tensors->SetGlyphTensor(
-            i,                                                 // i-th glyph
-            ChVector3d(1 + i * 0.2, 2, 1.2),                   // the position
-            Q_from_AngAxis(i * 20 * CH_C_DEG_TO_RAD, VECT_Z),  // the rotation (local basis of the tensor)
-            ChVector3d(0.2, 0.05 + i * 0.05, 0.04)             // the eigenvalues, aka the ellipsoids lengths
+            i,                                         // i-th glyph
+            ChVector3d(1 + i * 0.2, 2, 1.2),           // the position
+            QuatFromAngleZ(i * 20 * CH_C_DEG_TO_RAD),  // the rotation (local basis of the tensor)
+            ChVector3d(0.2, 0.05 + i * 0.05, 0.04)     // the eigenvalues, aka the ellipsoids lengths
         );
     glyphs_vectors->glyph_eigenvalues_type = ChGlyphs::eCh_GlyphEigenvalues::PROPERTY;
     glyphs_vectors->glyph_eigenvalues_prop = "eigenvalues";

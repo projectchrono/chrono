@@ -153,7 +153,8 @@ void ChSolidBellcrankThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassi
     chassis->GetBody()->GetSystem()->AddBody(m_triangleBody);
 
     // Create and initialize the revolute joint between chassis and triangle.
-    ChCoordsys<> rev_csys(pt_tri_chassis, chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * Q_from_AngX(CH_C_PI_2));
+    ChCoordsys<> rev_csys(pt_tri_chassis,
+                          chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * QuatFromAngleX(CH_C_PI_2));
     m_triangleRev = chrono_types::make_shared<ChLinkLockRevolute>();
     m_triangleRev->SetNameString(m_name + "_revoluteTriangle");
     m_triangleRev->Initialize(m_triangleBody, chassis->GetBody(), rev_csys);
@@ -196,7 +197,7 @@ void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
 
     // Spindle orientation (based on camber and toe angles)
     double sign = (side == LEFT) ? -1 : +1;
-    auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
+    auto spindleRot = chassisRot * QuatFromAngleZ(sign * getToeAngle()) * QuatFromAngleX(sign * getCamberAngle());
 
     // Create and initialize knuckle body (same orientation as the chassis)
     m_knuckle[side] = chrono_types::make_shared<ChBody>();
@@ -234,7 +235,7 @@ void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_revKingpin[side]);
 
     // Create and initialize the revolute joint between knuckle and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revoluteSpindle" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_knuckle[side], rev_csys);
@@ -314,8 +315,7 @@ void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
         // Create and initialize the universal joint between draglink and knuckle
         m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
         m_universalDraglink->SetNameString(m_name + "_universalDraglink");
-        m_universalDraglink->Initialize(m_draglink, m_bellcrank,
-                                        ChFrame<>(points[BELLCRANK_D], rot.GetQuaternion()));
+        m_universalDraglink->Initialize(m_draglink, m_bellcrank, ChFrame<>(points[BELLCRANK_D], rot.GetQuaternion()));
         chassis->GetSystem()->AddLink(m_universalDraglink);
     }
 

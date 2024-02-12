@@ -80,7 +80,7 @@ M113_Chassis::M113_Chassis(const std::string& name, bool fixed, CollisionType ch
     ChVector3d dims2((Cx - Bx) / std::cos(alpha), width, thickness);
     ChVector3d loc2(0.5 * (Bx + Cx) - 0.5 * thickness * std::sin(alpha), 0.0,
                     0.5 * (Bz + Cz) + 0.5 * thickness * std::cos(alpha));
-    ChQuaternion<> rot2 = Q_from_AngY(-alpha);
+    ChQuaternion<> rot2 = QuatFromAngleY(-alpha);
     ChVehicleGeometry::BoxShape box2(loc2, rot2, dims2);
 
     m_geometry.m_has_primitives = true;

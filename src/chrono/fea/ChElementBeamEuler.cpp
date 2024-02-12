@@ -129,7 +129,7 @@ void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
     // Node 0, x,y,z small rotations (in local element frame)
     ChQuaternion<> q_delta0 = q_element_abs_rot.GetConjugate() % nodes[0]->Frame().GetRot() % q_refrotA.GetConjugate();
     // note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition
-    q_delta0.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
+    q_delta0.GetAngleAxis(delta_rot_angle, delta_rot_dir);
 
     if (delta_rot_angle > CH_C_PI)
         delta_rot_angle -= CH_C_2PI;  // no 0..360 range, use -180..+180
@@ -145,7 +145,7 @@ void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
     // Node 1, x,y,z small rotations (in local element frame)
     ChQuaternion<> q_delta1 = q_element_abs_rot.GetConjugate() % nodes[1]->Frame().GetRot() % q_refrotB.GetConjugate();
     // note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition
-    q_delta1.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
+    q_delta1.GetAngleAxis(delta_rot_angle, delta_rot_dir);
 
     if (delta_rot_angle > CH_C_PI)
         delta_rot_angle -= CH_C_2PI;  // no 0..360 range, use -180..+180
@@ -493,7 +493,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
                 ChVector3d rotator(VNULL);
                 rotator[i] = delta_r;
                 ChQuaternion<> mdeltarotL;
-                mdeltarotL.Q_from_Rotv(rotator);  // rot.in local basis - as in system wide vectors
+                mdeltarotL.SetFromRotVec(rotator);  // rot.in local basis - as in system wide vectors
                 ChQuaternion<> qaD = qa0 * mdeltarotL;
                 this->GetNodeA()->SetRot(qaD);
                 this->ComputeInternalForces(FiD);
@@ -512,7 +512,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
                 ChVector3d rotator(VNULL);
                 rotator[i] = delta_r;
                 ChQuaternion<> mdeltarotL;
-                mdeltarotL.Q_from_Rotv(rotator);  // rot.in local basis - as in system wide vectors
+                mdeltarotL.SetFromRotVec(rotator);  // rot.in local basis - as in system wide vectors
                 ChQuaternion<> qbD = qb0 * mdeltarotL;
                 this->GetNodeB()->SetRot(qbD);
                 this->ComputeInternalForces(FiD);
@@ -854,7 +854,7 @@ void ChElementBeamEuler::EvaluateSectionFrame(const double eta, ChVector3d& poin
                                                                               Nx2 * this->nodes[1]->GetX0().GetPos()));
 
     ChQuaternion<> msectionrot;
-    msectionrot.Q_from_AngAxis(u_rotaz.Length(), u_rotaz.GetNormalized());
+    msectionrot.SetFromAngleAxis(u_rotaz.Length(), u_rotaz.GetNormalized());
     rot = this->q_element_abs_rot % msectionrot;
 }
 

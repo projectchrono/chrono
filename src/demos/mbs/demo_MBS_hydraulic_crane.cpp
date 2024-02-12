@@ -100,11 +100,11 @@ int main(int argc, char* argv[]) {
     auto crane = chrono_types::make_shared<ChBody>();
     crane->SetMass(crane_mass);
     crane->SetPos(crane_pos);
-    crane->SetRot(Q_from_AngY(-crane_angle));
+    crane->SetRot(QuatFromAngleY(-crane_angle));
     crane->AddVisualShape(connection_sph, ChFrame<>(attachment_crane, QUNIT));
     crane->AddVisualShape(connection_sph, ChFrame<>(ChVector3d(crane_length / 2, 0, 0), QUNIT));
     auto crane_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.015, crane_length);
-    crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+    crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
     sys.AddBody(crane);
 
     auto ball = chrono_types::make_shared<ChBody>();
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(ball);
 
     auto rev_joint = chrono_types::make_shared<ChLinkRevolute>();
-    rev_joint->Initialize(ground, crane, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    rev_joint->Initialize(ground, crane, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
     sys.AddLink(rev_joint);
 
     auto sph_joint = chrono_types::make_shared<ChLinkLockSpherical>();

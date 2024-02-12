@@ -149,7 +149,7 @@ void MTV_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVe
 
     // Initialize the steering subsystem (specify the steering frame relative to the chassis reference frame)
     ChVector3d offset = ChVector3d(0, 0, 0);
-    ChQuaternion<> rotation = Q_from_AngY(0);
+    ChQuaternion<> rotation = QuatFromAngleY(0);
     m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems

@@ -207,7 +207,7 @@ class ChFrame {
     ChVector3<Real> GetRotAxis() {
         ChVector3<Real> vtmp;
         Real angle;
-        coord.rot.Q_to_AngAxis(angle, vtmp);
+        coord.rot.GetAngleAxis(angle, vtmp);
         return vtmp;
     }
 
@@ -215,7 +215,7 @@ class ChFrame {
     Real GetRotAngle() {
         ChVector3<Real> vtmp;
         Real angle;
-        coord.rot.Q_to_AngAxis(angle, vtmp);
+        coord.rot.GetAngleAxis(angle, vtmp);
         return angle;
     }
 

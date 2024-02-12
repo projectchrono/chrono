@@ -52,7 +52,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     // The sprocket reference frame is aligned with that of the chassis and centered at the specified location.
     ChVector3d loc = chassis->GetBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(location);
     ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
-    ChQuaternion<> y2z = Q_from_AngX(CH_C_PI_2);
+    ChQuaternion<> y2z = QuatFromAngleX(CH_C_PI_2);
     ChMatrix33<> rot_y2z(y2z);
 
     // Create and initialize the gear body (same orientation as the chassis).
@@ -118,7 +118,7 @@ void ChSprocket::AddVisualizationAssets(VisualizationType vis) {
     auto sep = GetSeparation();
     auto profile = GetProfile();
 
-    ChQuaternion<> y2z = Q_from_AngX(CH_C_PI_2);
+    ChQuaternion<> y2z = QuatFromAngleX(CH_C_PI_2);
     ChMatrix33<> rot_y2z(y2z);
 
     //// RADU TODO: can use a single instance of the LineShape

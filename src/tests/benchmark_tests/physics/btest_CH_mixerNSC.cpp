@@ -99,7 +99,7 @@ MixerTestNSC<N>::MixerTestNSC() : m_system(new ChSystemNSC()), m_step(0.02) {
     m_system->Add(rotatingBody);
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
+    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2)));
     auto fun = chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 3.0);
     motor->SetSpeedFunction(fun);
     m_system->AddLink(motor);

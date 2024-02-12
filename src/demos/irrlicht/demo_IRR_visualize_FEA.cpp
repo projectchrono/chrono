@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
         double angle = e * (2 * CH_C_PI / 8.0);
         hexpos.z() = 0.3 * cos(angle);
         hexpos.x() = 0.3 * sin(angle);
-        ChMatrix33<> hexrot(Q_from_AngAxis(angle, VECT_Y));
+        ChMatrix33<> hexrot(QuatFromAngleY(angle));
 
         std::shared_ptr<ChNodeFEAxyz> hnode1_lower;
         std::shared_ptr<ChNodeFEAxyz> hnode2_lower;

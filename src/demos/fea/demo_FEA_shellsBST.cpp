@@ -339,7 +339,7 @@ int main(int argc, char* argv[]) {
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.1, 1.0, 1000, true, true, mat);
         cylinder->SetBodyFixed(true);
         cylinder->SetPos(ChVector3d(0.75, -0.25, 0.5));
-        cylinder->SetRot(Q_from_AngZ(CH_C_PI_2));
+        cylinder->SetRot(QuatFromAngleZ(CH_C_PI_2));
         cylinder->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.4f, 0.4f));
         sys.AddBody(cylinder);
     }

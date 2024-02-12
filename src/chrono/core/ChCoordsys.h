@@ -41,7 +41,7 @@ class ChCoordsys {
 
     // Construct from position mv and rotation of angle alpha around unit vector mu
     explicit ChCoordsys(const ChVector3<Real>& mv, const Real alpha, const ChVector3<Real>& mu) : pos(mv) {
-        rot.Q_from_AngAxis(alpha, mu);
+        rot.SetFromAngleAxis(alpha, mu);
     };
 
     /// Copy constructor

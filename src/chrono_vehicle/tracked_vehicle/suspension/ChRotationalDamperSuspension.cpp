@@ -83,7 +83,7 @@ void ChRotationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis
     m_pAC = m_arm->TransformPointParentToLocal(points[ARM_CHASSIS]);
     m_dY = m_arm->TransformDirectionParentToLocal(y_dir);
 
-    ChQuaternion<> z2y = susp_to_abs.GetRot() * Q_from_AngX(-CH_C_PI_2);
+    ChQuaternion<> z2y = susp_to_abs.GetRot() * QuatFromAngleX(-CH_C_PI_2);
 
     // Create and initialize the joint between arm and chassis.
     if (m_lock_arm) {

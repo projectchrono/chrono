@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
 
     ChVector3d initLoc = point0;
     initLoc.z() = 0.5;
-    ChQuaternion<> initRot = Q_from_AngZ(std::atan2(point1.y() - point0.y(), point1.x() - point0.x()));
+    ChQuaternion<> initRot = QuatFromAngleZ(std::atan2(point1.y() - point0.y(), point1.x() - point0.x()));
 
     ////std::cout << " initial location:    " << initLoc << std::endl;
     ////std::cout << " initial orientation: " << initRot << std::endl;

@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     double s = std::sin(slope);
     double c = std::cos(slope);
     auto patch2 =
-        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(100 * c, 0, 100 * s), Q_from_AngY(-slope)), 200.0, 20.0);
+        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(100 * c, 0, 100 * s), QuatFromAngleY(-slope)), 200.0, 20.0);
     patch2->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
     patch2->SetColor(ChColor(0.8f, 0.5f, 0.8f));
 

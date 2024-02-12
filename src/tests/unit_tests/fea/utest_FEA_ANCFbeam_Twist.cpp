@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateSectionFrame(1, point, rot);
-    ChVector3d Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     // For Analytical Formula, see: https://en.wikipedia.org/wiki/Torsion_constant
     double J = 2.25 * std::pow(0.5 * width, 4);

@@ -1380,7 +1380,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     // For Analytical Formula, see a mechanics of materials textbook (delta = (P*L)/(A*E))
     double Displacement_Theory = (TIP_FORCE * length) / (width * height * E);
     double Displacement_Model = point.x() - length;
-    ChVector3d Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100;
 
@@ -1578,7 +1578,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     double I = 1.0 / 12.0 * width * std::pow(height, 3);
     double Displacement_Theory = (TIP_FORCE * std::pow(length, 3)) / (3.0 * E * I);
     double Displacement_Model = point.z();
-    ChVector3d Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100.0;
 
@@ -1734,7 +1734,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
     double I = 1.0 / 12.0 * width * std::pow(height, 3);
     double Displacement_Theory = (rho * width * height * g * std::pow(length, 4)) / (8.0 * E * I);
     double Displacement_Model = point.z();
-    ChVector3d Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100.0;
 
@@ -1932,7 +1932,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
     ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateElementFrame(1, 0, 0, point, rot);
-    ChVector3d Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     // For Analytical Formula, see: https://en.wikipedia.org/wiki/Torsion_constant
     double J = 2.25 * std::pow(0.5 * width, 4);

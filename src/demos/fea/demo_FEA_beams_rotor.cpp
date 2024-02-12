@@ -79,13 +79,13 @@ int main(int argc, char* argv[]) {
 
     // Attach a 'cylinder' shape asset for visualization of the tower.
     auto mtower = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 9.0);
-    my_body_A->AddVisualShape(mtower, ChFrame<>(ChVector3d(0, 5.5, 0), Q_from_AngX(CH_C_PI_2)));
+    my_body_A->AddVisualShape(mtower, ChFrame<>(ChVector3d(0, 5.5, 0), QuatFromAngleX(CH_C_PI_2)));
 
     // BODY: the rotating hub:
 
     auto my_body_hub = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.2, 0.5, 1000);
     my_body_hub->SetPos(ChVector3d(0, 0, 1));
-    my_body_hub->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_X));
+    my_body_hub->SetRot(QuatFromAngleX(CH_C_PI_2));
     sys.Add(my_body_hub);
 
     // CONSTRAINT: the hub of the motor.
@@ -208,8 +208,7 @@ int main(int argc, char* argv[]) {
     // CONSTRAINT: connect root of blade to the hub. Use a motor, but with zero speed.
 
     auto my_root = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    my_root->Initialize(nodes.front(), my_body_hub,
-                        ChFrame<>(ChVector3d(0, 0.5, 1), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
+    my_root->Initialize(nodes.front(), my_body_hub, ChFrame<>(ChVector3d(0, 0.5, 1), QuatFromAngleX(CH_C_PI_2)));
     auto my_angle = chrono_types::make_shared<ChFunctionConst>(0);  // rad
     my_root->SetMotorFunction(my_angle);
     sys.Add(my_root);

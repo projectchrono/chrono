@@ -19,6 +19,7 @@
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrixMBD.h"
 #include "chrono/core/ChTransform.h"
+#include "chrono/core/ChRotation.h"
 
 #include "gtest/gtest.h"
 
@@ -32,7 +33,7 @@ TEST(LinearAlgebraTest, create_assign) {
     ChMatrixDynamic<> Md1(5, 7);
     ChMatrixDynamic<> Md2(4, 4);
     ChMatrixNM<double, 4, 4> Ms;
-    ChMatrix33<> A33(Q_from_AngY(0.4));
+    ChMatrix33<> A33(QuatFromAngleY(0.4));
 
     Ms.setConstant(0.1);  // Fill a matrix with an element
     ASSERT_DOUBLE_EQ(Ms.maxCoeff(), 0.1);
@@ -96,7 +97,7 @@ TEST(LinearAlgebraTest, operations) {
     ChMatrixDynamic<> D(2, 3);
     C << 1, 2, 3, 4, 5, 6;
     D << 1, 2, 3, 4, 5, 6;
-    ChMatrix33<> R(Q_from_AngX(CH_C_PI_2));
+    ChMatrix33<> R(QuatFromAngleX(CH_C_PI_2));
 
     ChMatrixDynamic<double> CD = C * D;
     ChMatrixDynamic<double> CD_t = D.transpose() * C.transpose();
@@ -216,7 +217,7 @@ TEST(LinearAlgebraTest, custom_matrices) {
     q = G.transpose() * v;
     cout << q << endl;
 
-    ChMatrix33<> rot(Q_from_AngX(CH_C_PI / 6));
+    ChMatrix33<> rot(QuatFromAngleX(CH_C_PI / 6));
     cout << rot << endl;
     cout << rot.transpose() << endl;
 

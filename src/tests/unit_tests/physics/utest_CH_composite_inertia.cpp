@@ -19,6 +19,7 @@
 #include "gtest/gtest.h"
 
 #include "chrono/utils/ChCompositeInertia.h"
+#include "chrono/core/ChRotation.h"
 
 using namespace chrono;
 
@@ -51,7 +52,7 @@ TEST(CompositeInertia, hemispheres) {
     comp.AddComponent(ChFrame<>(ChVector3d(0, 0, height + offset), ChQuaternion<>(1, 0, 0, 0)), mass,
                       ChMatrix33<>(ChVector3d(Jxx, Jyy, Jzz)));
 
-    comp.AddComponent(ChFrame<>(ChVector3d(0, 0, height - offset), Q_from_AngX(CH_C_PI)), mass,
+    comp.AddComponent(ChFrame<>(ChVector3d(0, 0, height - offset), QuatFromAngleX(CH_C_PI)), mass,
                       ChMatrix33<>(ChVector3d(Jxx, Jyy, Jzz)));
 
     double c_mass = comp.GetMass();

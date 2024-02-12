@@ -263,7 +263,7 @@ void ChLoadXYZROTnodeXYZROTnodeBushingMate::ComputeForceTorque(const ChFrameMovi
 
     ChVector3d dir_rot;
     double angle_rot;
-    rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
+    rel_rot.GetAngleAxis(angle_rot, dir_rot);
     if (angle_rot > CH_C_PI)
         angle_rot -= CH_C_2PI;
     if (angle_rot < -CH_C_PI)
@@ -297,7 +297,7 @@ void ChLoadXYZROTnodeXYZROTnodeBushingGeneric::ComputeForceTorque(const ChFrameM
     ChQuaternion<> rel_rot = rel_AB.GetRot() * neutral_displacement.GetRot();
     ChVector3d dir_rot;
     double angle_rot;
-    rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
+    rel_rot.GetAngleAxis(angle_rot, dir_rot);
     if (angle_rot > CH_C_PI)
         angle_rot -= CH_C_2PI;
     if (angle_rot < -CH_C_PI)
@@ -481,7 +481,7 @@ void ChLoadXYZROTnodeBodyBushingMate::ComputeForceTorque(const ChFrameMoving<>& 
 
     ChVector3d dir_rot;
     double angle_rot;
-    rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
+    rel_rot.GetAngleAxis(angle_rot, dir_rot);
     if (angle_rot > CH_C_PI)
         angle_rot -= CH_C_2PI;
     if (angle_rot < -CH_C_PI)
@@ -514,7 +514,7 @@ void ChLoadXYZROTnodeBodyBushingGeneric::ComputeForceTorque(const ChFrameMoving<
     ChQuaternion<> rel_rot = rel_AB.GetRot() * neutral_displacement.GetRot();
     ChVector3d dir_rot;
     double angle_rot;
-    rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
+    rel_rot.GetAngleAxis(angle_rot, dir_rot);
     if (angle_rot > CH_C_PI)
         angle_rot -= CH_C_2PI;
     if (angle_rot < -CH_C_PI)

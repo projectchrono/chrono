@@ -155,7 +155,7 @@ CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply() {
 
     double ang;
     ChVector3d axis;
-    m_magSensor->m_keyframes[0].GetRot().Q_to_AngAxis(ang, axis);
+    m_magSensor->m_keyframes[0].GetRot().GetAngleAxis(ang, axis);
     ChVector3d mag_field_sensor = m_magSensor->m_keyframes[0].GetRot().Rotate(mag_field);
 
     if (m_noise_model) {

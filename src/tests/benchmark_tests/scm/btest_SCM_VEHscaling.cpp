@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     // Create HMMWV vehicle
     // --------------------
     ChVector3d init_loc(0, 2, 0.5);
-    ChQuaternion<> init_rot = Q_from_AngZ(0);
+    ChQuaternion<> init_rot = QuatFromAngleZ(0);
 
     HMMWV_Full hmmwv(&sys);
     hmmwv.SetChassisFixed(false);

@@ -145,7 +145,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
     // auto mbody_gearA = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, false, mat);
     sys.Add(mbody_gearA);
     mbody_gearA->SetPos(ChVector3d(0, 0, -1));
-    mbody_gearA->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+    mbody_gearA->SetRot(QuatFromAngleAxis(CH_C_PI / 2, VECT_X));
     mbody_gearA->GetVisualShape(0)->SetMaterial(0, vis_mat);
 
     // ...impose rotation speed between the first gear and the fixed truss
@@ -160,7 +160,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
         chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radB, 0.4, 1000, true, false, mat);
     sys.Add(mbody_gearB);
     mbody_gearB->SetPos(ChVector3d(interaxis12, 0, -1));
-    mbody_gearB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+    mbody_gearB->SetRot(QuatFromAngleAxis(CH_C_PI / 2, VECT_X));
     mbody_gearB->GetVisualShape(0)->SetMaterial(0, vis_mat);
 
     // ... the second gear is fixed to the rotating bar
@@ -171,8 +171,8 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
 
     auto link_gearAB = chrono_types::make_shared<ChLinkGear>();
     link_gearAB->Initialize(mbody_gearA, mbody_gearB, CSYSNORM);
-    link_gearAB->Set_local_shaft1(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
-    link_gearAB->Set_local_shaft2(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
+    link_gearAB->Set_local_shaft1(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_C_PI_2)));
+    link_gearAB->Set_local_shaft2(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_C_PI_2)));
     link_gearAB->Set_tau(radA / radB);
     link_gearAB->Set_checkphase(true);
     sys.AddLink(link_gearAB);

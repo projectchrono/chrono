@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     body->SetMass(500);
     body->SetInertiaXX(ChVector3d(20, 20, 20));
     body->SetPos(tire_center);
-    body->SetRot(Q_from_AngZ(CH_C_PI_2));
+    body->SetRot(QuatFromAngleZ(CH_C_PI_2));
     sys->AddBody(body);
 
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
     motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, -tire_ang_vel));
-    motor->Initialize(body, terrain.GetGroundBody(), ChFrame<>(tire_center, Q_from_AngX(CH_C_PI_2)));
+    motor->Initialize(body, terrain.GetGroundBody(), ChFrame<>(tire_center, QuatFromAngleX(CH_C_PI_2)));
     sys->Add(motor);
 
     std::cout << "Tire location: " << tire_center.x() << " " << tire_center.y() << " " << tire_center.z() << std::endl;

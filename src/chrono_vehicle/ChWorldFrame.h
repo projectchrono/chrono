@@ -21,6 +21,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono/core/ChMatrix33.h"
+#include "chrono/core/ChRotation.h"
 
 namespace chrono {
 namespace vehicle {

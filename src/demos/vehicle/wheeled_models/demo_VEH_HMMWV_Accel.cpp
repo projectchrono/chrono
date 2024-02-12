@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     // Create systems
     // --------------
 
-    ChQuaternion<> yaw_rot = Q_from_AngZ(yaw_angle);
+    ChQuaternion<> yaw_rot = QuatFromAngleZ(yaw_angle);
     ChCoordsys<> patch_sys(VNULL, yaw_rot);
     ChVector3d init_loc = patch_sys.TransformPointLocalToParent(ChVector3d(-terrainLength / 2 + 5, 0, 0.7));
     ChVector3d path_start = patch_sys.TransformPointLocalToParent(ChVector3d(-terrainLength / 2, 0, 0.5));

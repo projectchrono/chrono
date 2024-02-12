@@ -63,7 +63,7 @@ void SynWheeledVehicleAgent::InitializeZombie(ChSystem* system) {
         auto wheel_trimesh = CreateMeshZombieComponent(m_description->wheel_vis_file);
 
         //// RADU - pass this transform to AddVisualShape
-        ChQuaternion<> rot = (i % 2 == 0) ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
+        ChQuaternion<> rot = (i % 2 == 0) ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_C_PI);
         wheel_trimesh->GetMesh()->Transform(ChVector3d(), ChMatrix33<>(rot));
         tire_trimesh->GetMesh()->Transform(ChVector3d(), ChMatrix33<>(rot));
 

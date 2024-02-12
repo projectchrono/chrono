@@ -642,7 +642,7 @@ void DrawSphere(ChCollisionSystem::VisualizationCallback* vis,
                 const ChColor& color) {
     DrawHemisphere(vis, csys, radius, color);
     ChCoordsys<> csys1 = csys;
-    csys1.rot = csys.rot * Q_from_AngX(CH_C_PI);
+    csys1.rot = csys.rot * QuatFromAngleX(CH_C_PI);
     DrawHemisphere(vis, csys1, radius, color);
 }
 
@@ -738,7 +738,7 @@ void DrawCapsule(ChCollisionSystem::VisualizationCallback* vis,
     DrawHemisphere(vis, csys1, radius, color);
     ChCoordsys<> csys2;
     csys2.pos = csys.TransformPointLocalToParent(ChVector3d(0, 0, -hlen));
-    csys2.rot = csys.rot * Q_from_AngX(CH_C_PI);
+    csys2.rot = csys.rot * QuatFromAngleX(CH_C_PI);
     DrawHemisphere(vis, csys2, radius, color);
 }
 

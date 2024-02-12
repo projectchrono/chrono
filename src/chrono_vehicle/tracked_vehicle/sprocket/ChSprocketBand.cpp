@@ -316,7 +316,7 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
 
     // Determine the tooth x and z axes in the sprocket frame
     ChVector3d tooth_x_axis_point = m_sprocket->GetGearBody()->TransformPointParentToLocal(
-        treadsegment->GetPos() + treadsegment->GetRot().GetXaxis());
+        treadsegment->GetPos() + treadsegment->GetRot().GetAxisX());
     ChVector2d tooth_x_axis(tooth_x_axis_point.x() - loc.x(), tooth_x_axis_point.z() - loc.z());
     tooth_x_axis.Normalize();
     ChVector2d tooth_z_axis(-tooth_x_axis.y(), tooth_x_axis.x());
@@ -339,8 +339,8 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
 
     // Calculate the positive tooth arc center point in the sprocket frame
     ChVector3d tooth_center_p_3d = m_sprocket->GetGearBody()->TransformPointParentToLocal(
-        treadsegment->GetPos() + m_tread_center_p.x() * treadsegment->GetRot().GetXaxis() +
-        m_tread_center_p.y() * treadsegment->GetRot().GetZaxis());
+        treadsegment->GetPos() + m_tread_center_p.x() * treadsegment->GetRot().GetAxisX() +
+        m_tread_center_p.y() * treadsegment->GetRot().GetAxisZ());
     ChVector2d tooth_center_p(tooth_center_p_3d.x(), tooth_center_p_3d.z());
 
     // Calculate the tooth arc starting point and end points in the sprocket frame
@@ -384,8 +384,8 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
 
     // Calculate the positive tooth arc center point in the sprocket frame
     ChVector3d tooth_center_m_3d = m_sprocket->GetGearBody()->TransformPointParentToLocal(
-        treadsegment->GetPos() + m_tread_center_m.x() * treadsegment->GetRot().GetXaxis() +
-        m_tread_center_m.y() * treadsegment->GetRot().GetZaxis());
+        treadsegment->GetPos() + m_tread_center_m.x() * treadsegment->GetRot().GetAxisX() +
+        m_tread_center_m.y() * treadsegment->GetRot().GetAxisZ());
     ChVector2d tooth_center_m(tooth_center_m_3d.x(), tooth_center_m_3d.z());
 
     // Calculate the tooth arc starting point and end points in the sprocket frame
@@ -420,12 +420,12 @@ void SprocketBandContactCB::CheckTreadTipSprocketTip(std::shared_ptr<ChTrackShoe
     // If so, clip the part of the tip line segment that is out of the arc, if need and run a line segment to circle
     // check
     ChVector3d tooth_tip_p = m_sprocket->GetGearBody()->TransformPointParentToLocal(
-        treadsegment->GetPos() + m_tread_tip_halfwidth * treadsegment->GetRot().GetXaxis() +
-        m_tread_tip_height * treadsegment->GetRot().GetZaxis());
+        treadsegment->GetPos() + m_tread_tip_halfwidth * treadsegment->GetRot().GetAxisX() +
+        m_tread_tip_height * treadsegment->GetRot().GetAxisZ());
     tooth_tip_p.y() = 0;
     ChVector3d tooth_tip_m = m_sprocket->GetGearBody()->TransformPointParentToLocal(
-        treadsegment->GetPos() - m_tread_tip_halfwidth * treadsegment->GetRot().GetXaxis() +
-        m_tread_tip_height * treadsegment->GetRot().GetZaxis());
+        treadsegment->GetPos() - m_tread_tip_halfwidth * treadsegment->GetRot().GetAxisX() +
+        m_tread_tip_height * treadsegment->GetRot().GetAxisZ());
     tooth_tip_m.y() = 0;
 
     double tooth_tip_p_angle = std::atan2(tooth_tip_p.z(), tooth_tip_p.x());

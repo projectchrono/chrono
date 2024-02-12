@@ -63,12 +63,12 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
             aframe2.TransformParentToLocal(aframe1, aframe12);
 
             // to have it aligned to current rot, to allow C=0.
-            aux_rotation = aframe12.GetRot().Q_to_Rotv().z();
+            aux_rotation = aframe12.GetRot().GetRotVec().z();
         }
 
         ChFrame<> aframe1rotating;
         aframe1rotating.SetPos(aframe1.GetPos());  // for safe
-        aframe1rotating.SetRot(aframe1.GetRot() * Q_from_AngAxis(aux_rotation, VECT_Z).GetConjugate());
+        aframe1rotating.SetRot(aframe1.GetRot() * QuatFromAngleZ(aux_rotation).GetConjugate());
 
         ChFrame<> aframe1rotating2;
         aframe2.TransformParentToLocal(aframe1rotating, aframe1rotating2);

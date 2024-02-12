@@ -113,8 +113,8 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     m_hmmwv->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_hmmwv->SetContactMethod(ChContactMethod::SMC);
     m_hmmwv->SetChassisFixed(false);
-    m_hmmwv->SetInitPosition(
-        ChCoordsys<>(ChVector3d(5.0 - patch_size / 2, 5.0 - patch_size / 2, 0.7), Q_from_AngZ(CH_C_PI / 4)));
+    m_hmmwv->SetInitPosition(ChCoordsys<>(ChVector3d(5.0 - patch_size / 2, 5.0 - patch_size / 2, 0.7),
+                                          QuatFromAngleZ(CH_C_PI / 4)));
     m_hmmwv->SetEngineType(engine_model);
     m_hmmwv->SetTransmissionType(transmission_model);
     m_hmmwv->SetDriveType(drive_type);

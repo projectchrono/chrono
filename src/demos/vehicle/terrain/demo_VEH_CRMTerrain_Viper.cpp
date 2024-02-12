@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
     // Add BCE particles and mesh of wheels to the system
     for (int i = 0; i < 4; i++) {
         auto wheel_body = rover->GetWheels()[i]->GetBody();
-        auto yaw = (i % 2 == 0) ? Q_from_AngZ(CH_C_PI) : QUNIT;
+        auto yaw = (i % 2 == 0) ? QuatFromAngleZ(CH_C_PI) : QUNIT;
         sysFSI.AddFsiBody(wheel_body);
         sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, yaw), true);
     }

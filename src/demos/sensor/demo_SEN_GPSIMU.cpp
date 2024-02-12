@@ -138,12 +138,12 @@ int main(int argc, char* argv[]) {
     sys.Add(plate);
 
     auto link1 = chrono_types::make_shared<ChLinkLockRevolute>();
-    link1->Initialize(base, pendulum_leg_1, ChCoordsys<>({0, 0, 1}, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+    link1->Initialize(base, pendulum_leg_1, ChCoordsys<>({0, 0, 1}, chrono::QuatFromAngleAxis(CH_C_PI / 2, VECT_Y)));
     sys.AddLink(link1);
 
     auto link2 = chrono_types::make_shared<ChLinkLockRevolute>();
     link2->Initialize(pendulum_leg_1, pendulum_leg_2,
-                      ChCoordsys<>({0, .4, 1}, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                      ChCoordsys<>({0, .4, 1}, chrono::QuatFromAngleAxis(CH_C_PI / 2, VECT_Y)));
     sys.AddLink(link2);
 
     // -----------------------
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     }
 
     // add an accelerometer, gyroscope, and magnetometer to one of the pendulum legs
-    auto imu_offset_pose = chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {1, 0, 0}));
+    auto imu_offset_pose = chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleAxis(0, {1, 0, 0}));
     auto acc = chrono_types::make_shared<ChAccelerometerSensor>(pendulum_leg_1,    // body to which the IMU is attached
                                                                 imu_update_rate,   // update rate
                                                                 imu_offset_pose,   // offset pose from body
@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
     }
 
     // add a GPS sensor to one of the boxes
-    auto gps_offset_pose = chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {1, 0, 0}));
+    auto gps_offset_pose = chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleAxis(0, {1, 0, 0}));
     auto gps = chrono_types::make_shared<ChGPSSensor>(
         pendulum_leg_2,   // body to which the GPS is attached
         gps_update_rate,  // update rate
@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
 
     double time = 0;
     while (time < end_time) {
-        plate->SetRot(Q_from_AngZ(rot_rate * time));
+        plate->SetRot(QuatFromAngleZ(rot_rate * time));
 
         // Get the most recent imu data
         bufferAcc = acc->GetMostRecentBuffer<UserAccelBufferPtr>();
@@ -297,7 +297,7 @@ int main(int argc, char* argv[]) {
             GyroData gyro_data = bufferGyro->Buffer[0];
             MagnetData mag_data = bufferMag->Buffer[0];
 
-            plate->GetRot().Q_to_AngAxis(ang, axis);
+            plate->GetRot().GetAngleAxis(ang, axis);
 
             imu_csv << std::fixed << std::setprecision(6);
             imu_csv << acc_data.X;

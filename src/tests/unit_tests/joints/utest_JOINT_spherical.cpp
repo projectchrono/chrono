@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     // In this case, the joint must be rotated -pi/4 about the global X-axis.
 
     test_name = "Spherical_Case02";
-    TestSpherical(ChVector3d(1, 2, 3), Q_from_AngX(-CH_C_PI_4), sim_step, out_step, test_name);
+    TestSpherical(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_C_PI_4), sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 2e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-3);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);

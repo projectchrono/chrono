@@ -175,11 +175,11 @@ void ChBodyEasyCylinder::SetupBody(geometry::ChAxis direction,
 
     switch (direction) {
         case geometry::ChAxis::X:
-            rot = Q_from_AngY(CH_C_PI_2);
+            rot = QuatFromAngleY(CH_C_PI_2);
             SetInertiaXX(ChVector3d(I_axis, I_orth, I_orth));
             break;
         case geometry::ChAxis::Y:
-            rot = Q_from_AngX(CH_C_PI_2);
+            rot = QuatFromAngleX(CH_C_PI_2);
             SetInertiaXX(ChVector3d(I_orth, I_axis, I_orth));
             break;
         case geometry::ChAxis::Z:

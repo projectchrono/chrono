@@ -106,7 +106,7 @@ void SCMTerrain::SetTexture(const std::string tex_file, float scale_x, float sca
 // Set the SCM reference plane.
 void SCMTerrain::SetPlane(const ChCoordsys<>& plane) {
     m_loader->m_plane = plane;
-    m_loader->m_Z = plane.rot.GetZaxis();
+    m_loader->m_Z = plane.rot.GetAxisZ();
 }
 
 // Get the SCM reference plane.
@@ -372,7 +372,7 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
 
     // Default SCM plane and plane normal
     m_plane = ChCoordsys<>(VNULL, QUNIT);
-    m_Z = m_plane.rot.GetZaxis();
+    m_Z = m_plane.rot.GetAxisZ();
 
     // Bulldozing effects
     m_bulldozing = false;

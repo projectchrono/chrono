@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------
     // Create a radar and add it to the sensor manager
     // -----------------------------------------------
-    auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(0));
+    auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleZ(0));
 
     auto radar = chrono_types::make_shared<ChRadarSensor>(floor, update_rate, offset_pose, horizontal_samples,
                                                           vertical_samples, horizontal_fov, vertical_fov,
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZVisualize>(640, 480, 1, "Radar XYZ Return"));
     manager->AddSensor(radar);
 
-    auto cam_offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(0));
+    auto cam_offset_pose = chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleZ(0));
     auto cam1 = chrono_types::make_shared<ChCameraSensor>(floor,            // body camera is attached to
                                                           update_rate,      // update rate in Hz
                                                           cam_offset_pose,  // offset pose

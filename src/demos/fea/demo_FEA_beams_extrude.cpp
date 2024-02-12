@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
 
     auto gearHI = CreateLobedGear(gear_centerHI, lobe_copies, lobe_width, lobe_primitive_rad, lobe_inner_rad,
                                   lobe_outer_rad, lobe_thickness, sys, mysurfmaterial);
-    gearHI->SetRot(Q_from_AngZ(0.5 * CH_C_2PI / lobe_copies));  // to phase half step respect to other gear
+    gearHI->SetRot(QuatFromAngleZ(0.5 * CH_C_2PI / lobe_copies));  // to phase half step respect to other gear
 
     auto mgear_motorHI = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     mgear_motorHI->Initialize(gearHI, mground, ChFrame<>(gear_centerHI));

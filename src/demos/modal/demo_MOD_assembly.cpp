@@ -218,10 +218,9 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         assembly0->Add(my_body_blade);
 
         auto rotmotor1 = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-        rotmotor1->Initialize(
-            my_body_blade,                                                     // slave
-            my_body_D,                                                         // master
-            ChFrame<>(my_body_D->GetPos(), Q_from_AngAxis(CH_C_PI_2, VECT_Y))  // motor frame, in abs. coords
+        rotmotor1->Initialize(my_body_blade,                                             // slave
+                              my_body_D,                                                 // master
+                              ChFrame<>(my_body_D->GetPos(), QuatFromAngleY(CH_C_PI_2))  // motor frame, in abs. coords
         );
         auto mwspeed =
             chrono_types::make_shared<ChFunctionConst>(CH_C_2PI);  // constant angular speed, in [rad/s], 2PI/s =360�/s

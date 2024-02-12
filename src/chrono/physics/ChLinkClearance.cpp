@@ -64,7 +64,7 @@ double ChLinkClearance::Get_axis_phase() {
         return 0;
     double mangle;
     ChVector3d maxis;
-    Q_to_AngAxis(this->GetMarker2()->GetCoord().rot, mangle, maxis);
+    GetMarker2()->GetCoord().rot.GetAngleAxis(mangle, maxis);
     if (maxis.z() < 0.0) {
         maxis = Vmul(maxis, -1.0);
         mangle = (2.0 * CH_C_PI) - mangle;

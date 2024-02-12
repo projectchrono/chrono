@@ -21,71 +21,117 @@
 
 namespace chrono {
 
-/// Utilities for conversions between rotation representations.
-class ChApi ChRotation {
-  public:
-    /// Definitions of various rotation representations for conversions.
-    enum class Representation {
-        ANGLE_AXIS,         ///< angle-axis
-        EULER_ANGLES_ZXZ,   ///< Euler angle sequence: Z - X' - Z'' (intrinsic rotations)
-        CARDAN_ANGLES_ZXY,  ///< Cardan (Tait-Bryant) angle sequence: Z - X' - Y'' (intrinsic rotations)
-        CARDAN_ANGLES_ZYX,  ///< Cardan (Tait-Bryant) angle sequence: Z - Y' - X'' (intrinsic rotations)
-        CARDAN_ANGLES_XYZ,  ///< Cardan (Tait-Bryant) angle sequence: X - Y' - Z'' (intrinsic rotations)
-        RODRIGUEZ           ///< Rodriguez parameters
-    };
-
-    // --------------------------
-
-    /// Convert from one set of Euler or Cardan angles to another.
-    static ChVector3d AngleSetToAngleSet(Representation from, Representation to, const ChVector3d& from_angles);
-
-    /// Convert from a set of Euler angles to Rodriguez parameters.
-    static ChVector3d AngleSetToRodriguez(Representation from, const ChVector3d& angles);
-
-    /// Convert from Rodriguez parameters to a set of Euler angles.
-    static ChVector3d RodriguezToAngleSet(Representation to, const ChVector3d& params);
-
-    // --------------------------
-
-    //// TODO: do we want these?
-    //// If yes, they can be implemented using ChQuaternion functions by first separating the unit axis and the angle.
-    // static ChVector3d QuaternionToAngAxis(const ChQuaterniond& q);
-    // static ChQuaterniond AngAxisToQuaternion(const ChVector3d& params);
-    // static ChQuaterniond AngAxisToQuaternionDer(const ChVector3d& params_der, const ChQuaterniond& q);
-    // static ChQuaterniond AngAxisToQuaternionDer2(const ChVector3d& params_der2, const ChQuaterniond& q);
-
-    // --------------------------
-
-    /// Convert a quaternion to Rodriguez parameters.
-    static ChVector3d QuaternionToRodriguez(const ChQuaterniond& q);
-
-    /// Convert from Rodriguez parameters to a quaternion.
-    static ChQuaterniond RodriguezToQuaternion(const ChVector3d& params);
-    
-    /// Convert a set of Rodriguez parameter derivatives to a quaternion derivative.
-    static ChQuaterniond RodriguezToQuaternionDer(const ChVector3d& params_der, const ChQuaterniond& q);
-
-    /// Convert a set of Rodriguez parameter second derivatives to a quaternion second derivative.
-    static ChQuaterniond RodriguezToQuaternionDer2(const ChVector3d& params_der2, const ChQuaterniond& q);
-
-    // --------------------------
-
-    /// Convert a quaternion to a set of Euler angles.
-    static ChVector3d QuaternionToAngleSet(Representation to, const ChQuaterniond& q);
-
-    /// Convert a set of Euler angles to a quaternion.
-    static ChQuaterniond AngleSetToQuaternion(Representation from, const ChVector3d& angles);
-
-    /// Convert a set of Euler angle derivatives to a quaternion derivative.
-    static ChQuaterniond AngleSetToQuaternionDer(Representation from,
-                                                 const ChVector3d& angles_der,
-                                                 const ChQuaterniond& q);
-
-    /// Convert a set of Euler angle second derivatives to a quaternion second derivative.
-    static ChQuaterniond AngleSetToQuaternionDer2(Representation from,
-                                                 const ChVector3d& angles_der2,
-                                                 const ChQuaterniond& q);
+/// Definitions of various rotation representations for conversions.
+enum class RotRepresentation {
+    ANGLE_AXIS,         ///< angle-axis
+    ROTATION_VECTOR,    ///< rotation vector (vector parallel with axis and length equal to angle)
+    EULER_ANGLES_ZXZ,   ///< Euler angle sequence: Z - X' - Z'' (intrinsic rotations)
+    CARDAN_ANGLES_ZXY,  ///< Cardan (Tait-Bryan) angle sequence: Z - X' - Y'' (intrinsic rotations)
+    CARDAN_ANGLES_ZYX,  ///< Cardan (Tait-Bryan) angle sequence: Z - Y' - X'' (intrinsic rotations)
+    CARDAN_ANGLES_XYZ,  ///< Cardan (Tait-Bryan) angle sequence: X - Y' - Z'' (intrinsic rotations)
+    RODRIGUEZ           ///< Rodriguez parameters
 };
+
+/// Representation of an Euler/Cardan angle set.
+struct AngleSet {
+    RotRepresentation seq;  ///< angle sequence
+    ChVector3d angles;      ///< Euler/Cardan angles
+};
+
+/// Representation of a rotation as angle-axis.
+struct AngleAxis {
+    double angle;     ///< rotation angle
+    ChVector3d axis;  ///< rotation axis
+};
+
+// --------------------------
+
+/// Convert from one set of Euler or Cardan angles to another.
+ChApi AngleSet AngleSetFromAngleSet(RotRepresentation to_seq, const AngleSet& set);
+
+/// Convert from a set of Euler angles to Rodriguez parameters.
+ChApi ChVector3d RodriguezFromAngleSet(const AngleSet& set);
+
+/// Convert from Rodriguez parameters to a set of Euler angles.
+ChApi AngleSet AngleSetFromRodriguez(RotRepresentation to_seq, const ChVector3d& params);
+
+// --------------------------
+
+/// Convert from a quaternion to an angle-axis pair.
+ChApi AngleAxis AngleAxisFromQuat(const ChQuaterniond& q);
+
+/// Convert from an angle-axis pair to a quaternion.
+/// The axis is supposed to be fixed, i.e. it is constant during rotation.
+/// The 'axis' vector must be normalized.
+ChApi ChQuaterniond QuatFromAngleAxis(const AngleAxis& angle_axis);
+
+/// Convert from an angle and an axis to a quaternion.
+/// The axis is supposed to be fixed, i.e. it is constant during rotation.
+/// The 'axis' vector must be normalized.
+ChApi ChQuaterniond QuatFromAngleAxis(double angle, const ChVector3d& axis);
+
+/// Convert from a speed of rotation and an axis to a quaternion derivative.
+/// The rotation axis is assumed to be represented in absolute coordinates.
+ChApi ChQuaterniond QuatDerFromAngleAxis(const ChQuaterniond& quat, double angle_dt, const ChVector3d& axis);
+
+/// Convert from a rotation acceleration and an axis to a quaternion second derivative.
+/// The rotation axis is assumed to be represented in absolute coordinates.
+ChApi ChQuaterniond QuatDer2FromAngleAxis(double angle_dtdt,
+                                          const ChVector3d& axis,
+                                          const ChQuaterniond& q,
+                                          const ChQuaterniond& q_dt);
+
+/// Convert from a rotation about X axis to a quaternion.
+ChApi ChQuaterniond QuatFromAngleX(double angle);
+
+/// Convert from a rotation about Y axis to a quaternion.
+ChApi ChQuaterniond QuatFromAngleY(double angle);
+
+/// Convert from a rotation about Z axis to a quaternion.
+ChApi ChQuaterniond QuatFromAngleZ(double angle);
+
+// --------------------------
+
+/// Convert from a quaternion to a rotation vector.
+ChApi ChVector3d RotVecFromQuat(const ChQuaterniond& q);
+
+/// Convert from a rotation vector to a quaternion.
+ChApi ChQuaterniond QuatFromRotVec(const ChVector3d& vec);
+
+// --------------------------
+
+/// Convert from a quaternion to Rodriguez parameters.
+ChApi ChVector3d RodriguezFromQuat(const ChQuaterniond& q);
+
+/// Convert from Rodriguez parameters to a quaternion.
+ChApi ChQuaterniond QuatFromRodriguez(const ChVector3d& params);
+
+/// Convert from a set of Rodriguez parameter derivatives to a quaternion derivative.
+ChApi ChQuaterniond QuatDerFromRodriguez(const ChVector3d& params, const ChQuaterniond& q);
+
+/// Convert a set of Rodriguez parameter second derivatives to a quaternion second derivative.
+ChApi ChQuaterniond QuatDer2FromRodriguez(const ChVector3d& params, const ChQuaterniond& q);
+
+// --------------------------
+
+/// Convert from a quaternion to a set of Euler angles.
+ChApi AngleSet AngleSetFromQuat(RotRepresentation to_seq, const ChQuaterniond& q);
+
+/// Convert from a set of Euler angles to a quaternion.
+ChApi ChQuaterniond QuatFromAngleSet(const AngleSet& set);
+
+/// Convert from a set of Euler angle derivatives to a quaternion derivative.
+ChApi ChQuaterniond QuatDerFromAngleSet(const AngleSet& set, const ChQuaterniond& q);
+
+/// Convert from a set of Euler angle second derivatives to a quaternion second derivative.
+ChApi ChQuaterniond QuatDer2FromAngleSet(const AngleSet& set, const ChQuaterniond& q);
+
+// --------------------------
+
+/// Convert from a vector-to-vector rotation to a quaternion.
+/// This quaternion represents the rotation that rotates the source vector to be aligned with the destination vector.
+/// The vectors do not need to be normalized.
+ChApi ChQuaterniond QuatFromVec2Vec(const ChVector3d& start, const ChVector3d& end);
 
 }  // end namespace chrono
 

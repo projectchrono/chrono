@@ -86,8 +86,8 @@ ChVehicleGeometry TransformVehicleGeometry(const ChVehicleGeometry& geom, int si
         for (auto& c : g.m_vis_cylinders) {
             c.m_pos.y() *= -1;
             auto rot = c.m_rot;
-            ChVector3d u = rot.GetXaxis();
-            ChVector3d w = rot.GetZaxis();
+            ChVector3d u = rot.GetAxisX();
+            ChVector3d w = rot.GetAxisZ();
             u.y() *= -1;
             w.y() *= -1;
             ChVector3d v = Vcross(w, u);
@@ -97,8 +97,8 @@ ChVehicleGeometry TransformVehicleGeometry(const ChVehicleGeometry& geom, int si
         for (auto& b : g.m_vis_boxes) {
             b.m_pos.y() *= -1;
             auto rot = b.m_rot;
-            ChVector3d u = rot.GetXaxis();
-            ChVector3d w = rot.GetZaxis();
+            ChVector3d u = rot.GetAxisX();
+            ChVector3d w = rot.GetAxisZ();
             u.y() *= -1;
             w.y() *= -1;
             ChVector3d v = Vcross(w, u);
@@ -285,8 +285,8 @@ ChVector3d ChGenericWheeledSuspension::TransformDirection(const ChVector3d& dir_
 ChQuaternion<> ChGenericWheeledSuspension::TransformRotation(const ChQuaternion<>& rot_local, int side) const {
     ChQuaternion<> rot = rot_local.GetNormalized();
     if (side == VehicleSide::RIGHT) {
-        ChVector3d u = rot.GetXaxis();
-        ChVector3d w = rot.GetZaxis();
+        ChVector3d u = rot.GetAxisX();
+        ChVector3d w = rot.GetAxisZ();
         u.y() *= -1;
         w.y() *= -1;
         ChVector3d v = Vcross(w, u);
@@ -426,7 +426,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         double sign = (side == LEFT) ? -1 : +1;
 
         auto spindlePos = TransformPosition(getSpindlePos(), side);
-        auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
+        auto spindleRot = chassisRot * QuatFromAngleZ(sign * getToeAngle()) * QuatFromAngleX(sign * getCamberAngle());
 
         // Spindle body
         m_spindle[side] = chrono_types::make_shared<ChBody>();
@@ -446,7 +446,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         else
             abody = FindBody(abody_id, side);
 
-        ChCoordsys<> rev_csys(spindlePos, spindleRot * Q_from_AngX(CH_C_PI_2));
+        ChCoordsys<> rev_csys(spindlePos, spindleRot * QuatFromAngleX(CH_C_PI_2));
         m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
         m_revolute[side]->SetNameString(Name({"spindle_rev", side}));
         m_revolute[side]->Initialize(m_spindle[side], abody, rev_csys);
@@ -528,7 +528,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         ChVector3d axis = TransformDirection(item.second.axis, item.first.side);
         ChMatrix33<> rot;
         rot.SetFromAxisX(axis);
-        ChQuaternion<> quat = rot.GetQuaternion() * Q_from_AngY(CH_C_PI_2);
+        ChQuaternion<> quat = rot.GetQuaternion() * QuatFromAngleY(CH_C_PI_2);
         item.second.rsda = chrono_types::make_shared<ChLinkRSDA>();
         item.second.rsda->SetNameString(Name(item.first));
         item.second.rsda->Initialize(body1, body2, ChCoordsys<>(pos, quat));
@@ -613,7 +613,8 @@ void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
     // Spindle revolute joint
     {
         const auto& C = m_revolute[side]->GetConstraintViolation();
-        std::cout << "Spindle revolute " << "\n";
+        std::cout << "Spindle revolute "
+                  << "\n";
         std::cout << "   " << C.transpose() << "\n";
     }
 

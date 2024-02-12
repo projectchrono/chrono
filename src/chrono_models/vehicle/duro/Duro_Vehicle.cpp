@@ -107,7 +107,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
     ChVector3d offset = ChVector3d(0, 0, 0);
-    ChQuaternion<> rotation = Q_from_AngAxis(0, ChVector3d(0, 1, 0));
+    ChQuaternion<> rotation = QuatFromAngleY(0);
     m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
@@ -141,7 +141,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     m_chassis->GetBody()->GetSystem()->AddBody(rockerArmL);
 
     ChCoordsys<> rocker_csysL(
-        p3L, m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+        p3L, m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * QuatFromAngleX(CH_C_PI_2));
     auto rockerPivL = chrono_types::make_shared<ChLinkLockRevolute>();
     rockerPivL->SetNameString("rockerPivotL");
     rockerPivL->Initialize(rockerArmL, m_chassis->GetBody(), rocker_csysL);
@@ -160,7 +160,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     m_chassis->GetBody()->GetSystem()->AddBody(rockerArmR);
 
     ChCoordsys<> rocker_csysR(
-        p3R, m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+        p3R, m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * QuatFromAngleX(CH_C_PI_2));
     auto rockerPivR = chrono_types::make_shared<ChLinkLockRevolute>();
     rockerPivR->SetNameString("rockerPivotR");
     rockerPivR->Initialize(rockerArmR, m_chassis->GetBody(), rocker_csysR);

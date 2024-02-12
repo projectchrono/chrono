@@ -75,7 +75,8 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the prismatic joint between chassis and link.
     m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetNameString(m_name + "_prismatic");
-    m_prismatic->Initialize(chassisBody, m_link, ChCoordsys<>(link_pos, link_rot * Q_from_AngX(CH_C_PI_2)));
+    m_prismatic->Initialize(chassisBody, m_link,
+                            ChCoordsys<>(link_pos, link_rot * QuatFromAngleX(CH_C_PI_2)));
     sys->AddLink(m_prismatic);
 
     // Create and initialize the linear actuator.
@@ -84,7 +85,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
     // becomes zero).
     double offset = 2;
     ChVector3d pt1 = link_pos;
-    ChVector3d pt2 = link_pos - offset * link_rot.GetYaxis();
+    ChVector3d pt2 = link_pos - offset * link_rot.GetAxisY();
 
     m_actuator = chrono_types::make_shared<ChLinkLinActuator>();
     m_actuator->SetNameString(m_name + "_actuator");

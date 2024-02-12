@@ -101,7 +101,7 @@ ChVehicleCosimCuriosityNode::~ChVehicleCosimCuriosityNode() {}
 
 void ChVehicleCosimCuriosityNode::InitializeMBS(const ChVector2d& terrain_size, double terrain_height) {
     // Initialize vehicle
-    ChFrame<> init_pos(m_init_loc + ChVector3d(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
+    ChFrame<> init_pos(m_init_loc + ChVector3d(0, 0, terrain_height), QuatFromAngleZ(m_init_yaw));
 
     m_curiosity->SetDriver(m_driver);
     m_curiosity->SetWheelVisualization(false);

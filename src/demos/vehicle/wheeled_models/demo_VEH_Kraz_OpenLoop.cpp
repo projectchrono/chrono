@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     Kraz truck;
     truck.SetContactMethod(ChContactMethod::NSC);
     truck.SetChassisFixed(false);
-    truck.SetInitPosition(ChCoordsys<>(initLoc, Q_from_AngZ(initYaw)));
+    truck.SetInitPosition(ChCoordsys<>(initLoc, QuatFromAngleZ(initYaw)));
     truck.SetTireStepSize(tire_step_size);
     truck.SetInitFwdVel(0.0);
 

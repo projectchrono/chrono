@@ -70,7 +70,8 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     } else {
         // Cylinder contact
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, GetRadius(), GetWidth());
-        wheel_body->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, 0, GetOffset()), Q_from_AngX(CH_C_PI_2)));
+        wheel_body->AddCollisionShape(ct_shape,
+                                      ChFrame<>(ChVector3d(0, 0, GetOffset()), QuatFromAngleX(CH_C_PI_2)));
     }
 
     wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRE);
@@ -83,7 +84,7 @@ void ChRigidTire::Synchronize(double time, const ChTerrain& terrain) {
     ChCoordsys<> tire_frame;
     double depth;
     float mu;
-    bool contact = ChTire::DiscTerrainCollision1pt(terrain, wheel_state.pos, wheel_state.rot.GetYaxis(), GetRadius(),
+    bool contact = ChTire::DiscTerrainCollision1pt(terrain, wheel_state.pos, wheel_state.rot.GetAxisY(), GetRadius(),
                                                    tire_frame, depth, mu);
 
     // Calculate tire kinematics

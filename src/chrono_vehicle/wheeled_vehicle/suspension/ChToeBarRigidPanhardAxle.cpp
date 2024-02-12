@@ -139,7 +139,7 @@ void ChToeBarRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTubeGuide->SetNameString(m_name + "_planePlaneAxleTube");
     const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
     m_axleTubeGuide->Initialize(chassis->GetBody(), m_axleTubeBody,
-                                ChCoordsys<>(axleCOM, guideRot * Q_from_AngY(CH_C_PI_2)));
+                                ChCoordsys<>(axleCOM, guideRot * QuatFromAngleY(CH_C_PI_2)));
     chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuide);
 
     // Create and initialize the Panhard body.
@@ -282,7 +282,7 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
 
     // Spindle orientation (based on camber and toe angles)
     double sign = (side == LEFT) ? -1 : +1;
-    auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
+    auto spindleRot = chassisRot * QuatFromAngleZ(sign * getToeAngle()) * QuatFromAngleX(sign * getCamberAngle());
 
     // Create and initialize knuckle body (same orientation as the chassis)
     m_knuckleBody[side] = chrono_types::make_shared<ChBody>();
@@ -313,7 +313,7 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
         m_universalTierod = chrono_types::make_shared<ChLinkUniversal>();
         m_universalTierod->SetNameString(m_name + "_universalTierod" + suffix);
         m_universalTierod->Initialize(m_tierodBody, m_knuckleBody[side],
-                                      ChFrame<>(points[TIEROD_K], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
+                                      ChFrame<>(points[TIEROD_K], chassisRot * QuatFromAngleX(CH_C_PI_2)));
         chassis->GetSystem()->AddLink(m_universalTierod);
     }
 
@@ -329,13 +329,12 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
 
     m_revoluteKingpin[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteKingpin[side]->SetNameString(m_name + "_revoluteKingpin" + suffix);
-    m_revoluteKingpin[side]->Initialize(
-        m_axleTubeBody, m_knuckleBody[side],
-        ChCoordsys<>((points[KNUCKLE_U] + points[KNUCKLE_L]) / 2, rot.GetQuaternion()));
+    m_revoluteKingpin[side]->Initialize(m_axleTubeBody, m_knuckleBody[side],
+                                        ChCoordsys<>((points[KNUCKLE_U] + points[KNUCKLE_L]) / 2, rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_revoluteKingpin[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_knuckleBody[side], rev_csys);
@@ -380,13 +379,13 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
     if (side == LEFT) {
         m_revARBChassis = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::REVOLUTE, m_name + "_revARBchassis", chassisBody, m_arbBody[side],
-            ChCoordsys<>(m_ptARBCenter, chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
+            ChCoordsys<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_C_PI_2)));
         chassis->AddJoint(m_revARBChassis);
     } else {
         m_revARBLeftRight = chrono_types::make_shared<ChLinkLockRevolute>();
         m_revARBLeftRight->SetNameString(m_name + "_revARBleftRight");
         m_revARBLeftRight->Initialize(m_arbBody[LEFT], m_arbBody[RIGHT],
-                                      ChCoordsys<>(m_ptARBCenter, chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
+                                      ChCoordsys<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_C_PI_2)));
         chassis->GetSystem()->AddLink(m_revARBLeftRight);
 
         m_revARBLeftRight->GetForce_Rz().SetActive(1);

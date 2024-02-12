@@ -17,7 +17,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChRotation.h"
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono/physics/ChBodyEasy.h"
@@ -143,9 +142,9 @@ int main(int argc, char* argv[]) {
         std::vector<ChQuaternion<>>{// std::vector with ChQuaternion<> rot.controlpoints
                                     {1, 0, 0, 0},
                                     {0, 0, 1, 0},
-                                    Q_from_AngZ(1.2),
-                                    Q_from_AngZ(2.2),
-                                    Q_from_AngZ(-1.2),
+                                    QuatFromAngleZ(1.2),
+                                    QuatFromAngleZ(2.2),
+                                    QuatFromAngleZ(-1.2),
                                     {0, 1, 0, 0}});
     // This will make the rotation spline evaluation periodic, otherwise by default it extrapolates if beyond s=1
     f_rotspline->SetClosed(true);
@@ -215,7 +214,7 @@ int main(int argc, char* argv[]) {
 
     // Create the rotation function: use 3 distinct A,B,C functions of time to set Euler or Cardan angles
     auto f_abc_angles = chrono_types::make_shared<ChFunctionRotationABCFunctions>();
-    f_abc_angles->SetAngleset(ChRotation::Representation::CARDAN_ANGLES_XYZ);
+    f_abc_angles->SetAngleset(RotRepresentation::CARDAN_ANGLES_XYZ);
     f_abc_angles->SetFunctionAngleA(chrono_types::make_shared<ChFunctionSine>(0, 2, 0.3));  // phase freq ampl
     f_abc_angles->SetFunctionAngleB(chrono_types::make_shared<ChFunctionRamp>(0, 0.2));     // a0, da/dt
 
@@ -247,9 +246,9 @@ int main(int argc, char* argv[]) {
         // std::vector with ChQuaternion<> rot.controlpoints
         {1, 0, 0, 0},
         {0, 0, 1, 0},
-        Q_from_AngZ(1.2),
-        Q_from_AngZ(2.2),
-        Q_from_AngZ(-1.2),
+        QuatFromAngleZ(1.2),
+        QuatFromAngleZ(2.2),
+        QuatFromAngleZ(-1.2),
         {0, 1, 0, 0}});
     f_squad->SetClosed(true);
     f_squad->SetSpaceFunction(chrono_types::make_shared<ChFunctionRamp>(0, 0.2));
@@ -285,7 +284,7 @@ int main(int argc, char* argv[]) {
 
         if (sys.GetStepcount() % 10 == 0) {
             f_pos_setpoint->SetSetpoint(0.2 * ChVector3d(cos(t * 12), sin(t * 12), 0), t);
-            // f_rot_setpoint->SetSetpoint(Q_from_AngAxis(t*0.5, VECT_Z), t );
+            // f_rot_setpoint->SetSetpoint(QuatFromAngleZ(t*0.5), t );
             // std::cout << "set p = " << f_setpoint->Get_p(t).y() << " at t=" << t  << std::endl;
         }
 

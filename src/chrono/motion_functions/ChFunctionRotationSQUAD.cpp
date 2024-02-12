@@ -80,7 +80,7 @@ namespace chrono {
 
 ChQuaternion<> SLERP(const ChQuaternion<>& qa, const ChQuaternion<>& qb, double t) {
 	ChQuaternion<> qdelta = qa.GetConjugate() * qb;
-	ChQuaternion<> qdelta_t; qdelta_t.Q_from_Rotv(qdelta.Q_to_Rotv() * t);
+	ChQuaternion<> qdelta_t; qdelta_t.SetFromRotVec(qdelta.GetRotVec() * t);
 
 	return  qa * qdelta_t;
 };
@@ -91,15 +91,15 @@ ChQuaternion<> QUADRANGLE(const ChQuaternion<>& q0, const ChQuaternion<>& q1, co
 
 	ChQuaternion<> sq1 = qInv * q2;
         
-	ChVector3d cart0 = sq1.Q_to_Rotv(); 
+	ChVector3d cart0 = sq1.GetRotVec(); 
  
 	ChQuaternion<> sq0 = qInv * q0;
 
-	ChVector3d cart1 = sq0.Q_to_Rotv();
+	ChVector3d cart1 = sq0.GetRotVec();
 
 	ChVector3d cart_aux = (cart0 + cart1) * -0.25;
 
-	ChQuaternion<> q_aux; q_aux.Q_from_Rotv(cart_aux);
+	ChQuaternion<> q_aux; q_aux.SetFromRotVec(cart_aux);
 
 	return q1 * q_aux; 
  };

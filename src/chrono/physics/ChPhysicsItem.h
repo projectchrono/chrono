@@ -16,6 +16,8 @@
 #define CH_PHYSICSITEM_H
 
 #include "chrono/core/ChFrame.h"
+#include "chrono/core/ChRotation.h"
+
 #include "chrono/geometry/ChGeometry.h"
 #include "chrono/physics/ChObject.h"
 #include "chrono/assets/ChCamera.h"

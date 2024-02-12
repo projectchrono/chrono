@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     // Attach also a 'cylinder' shape
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.7);
     cyl->AddMaterial(orange_mat);
-    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
+    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(2, 0.15, 0), QuatFromAngleX(CH_C_PI_2)));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
                          ChFrame<>(ChVector3d(2, -0.2, 0), QUNIT));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
@@ -166,15 +166,15 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(0, 0.0, 2)));
     body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(3, 0.0, 2.5)));
     body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(5, 0.0, 3)));
-    body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(4, 0.0, -3), Q_from_AngY(0.5 * CH_C_PI)));
-    body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(0, 0.0, -5), Q_from_AngY(CH_C_PI)));
-    body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(-4, 0.0, -6), Q_from_AngY(-CH_C_PI_4)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(4, 0.0, -3), QuatFromAngleY(0.5 * CH_C_PI)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(0, 0.0, -5), QuatFromAngleY(CH_C_PI)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(-4, 0.0, -6), QuatFromAngleY(-CH_C_PI_4)));
 
     // Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
         auto smallbox = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.2, 0.02);
         smallbox->SetColor(ChColor(j * 0.05f, 1 - j * 0.05f, 0.0f));
-        ChMatrix33<> rot(Q_from_AngY(j * 21 * CH_C_DEG_TO_RAD));
+        ChMatrix33<> rot(QuatFromAngleY(j * 21 * CH_C_DEG_TO_RAD));
         ChVector3d pos = rot * ChVector3d(0.4, 0, 0) + ChVector3d(0, j * 0.02, 0);
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
@@ -300,11 +300,11 @@ int main(int argc, char* argv[]) {
     vis->SetCameraAngleDeg(40);
     vis->SetLightIntensity(1.0f);
     vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
-    vis->AddGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector3d(0, -0.49, 0), Q_from_AngX(CH_C_PI_2)),
+    vis->AddGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector3d(0, -0.49, 0), QuatFromAngleX(CH_C_PI_2)),
                  ChColor(0.31f, 0.43f, 0.43f));
 
     // add scenery objects, not bound to bodies
-    auto Zup = Q_from_AngX(-CH_C_PI_2);
+    auto Zup = QuatFromAngleX(-CH_C_PI_2);
 
     auto sceneMesh1 = chrono_types::make_shared<ChVisualShapeModelFile>();
     sceneMesh1->SetFilename(GetChronoDataFile("models/red_teapot.obj"));
@@ -387,9 +387,10 @@ int main(int argc, char* argv[]) {
         }
 
         vis->UpdateVisualModel(teapotId1, ChFrame<>(ChVector3d(0, 3.5 + 0.5 * sin(CH_C_PI * time / 10), 3), Zup));
-        vis->UpdateVisualModel(teapotId2, ChFrame<>(ChVector3d(-5, 3.5, 3), Zup * Q_from_AngY(time / 20)));
+        vis->UpdateVisualModel(teapotId2, ChFrame<>(ChVector3d(-5, 3.5, 3), Zup * QuatFromAngleY(time / 20)));
         vis->UpdateVisualModel(boxId, ChFrame<>(ChVector3d(0, 0.01 * time, 0), QUNIT));
-        vis->UpdateVisualModel(ellId, ChFrame<>(ellPos, Zup * Q_from_AngY(0.2 * time) * Q_from_AngZ(0.1 * time)));
+        vis->UpdateVisualModel(ellId, ChFrame<>(ellPos, Zup * QuatFromAngleY(0.2 * time) *
+                                                            QuatFromAngleZ(0.1 * time)));
 
         if (time < 10.0)
             vis->UpdateVisualModel(sphereId, ChFrame<>(ChVector3d(6, 2, 6), QUNIT));

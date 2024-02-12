@@ -1187,7 +1187,8 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             size_t objHashValue = m_stringHash(objFilename);
             auto grp = vsg::Group::create();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * Q_from_AngX(-CH_C_PI_2)), scale);
+            transform->matrix =
+                vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_C_PI_2)), scale);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
             // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);

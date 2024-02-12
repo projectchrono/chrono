@@ -70,13 +70,13 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < walls; i++) {
         auto wall_body = std::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, wall_size, 1, 1000, true, true);
         wall_body->SetPos({4 * i * wall_size, 4, wall_size / 2});
-        wall_body->SetRot(Q_from_AngX(CH_C_PI / 2));
+        wall_body->SetRot(QuatFromAngleX(CH_C_PI / 2));
         wall_body->SetBodyFixed(true);
         sys.Add(wall_body);
 
         auto wall_body1 = std::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, wall_size, 1, 1000, true, true);
         wall_body1->SetPos({4 * i * wall_size, -4, wall_size / 2});
-        wall_body1->SetRot(Q_from_AngX(CH_C_PI / 2));
+        wall_body1->SetRot(QuatFromAngleX(CH_C_PI / 2));
         wall_body1->SetBodyFixed(true);
         sys.Add(wall_body1);
     }
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     auto lidar1 = std::make_shared<ChLidarSensor>(
         cart,                                                              // body lidar is attached to
         1.0f,                                                              // scanning rate in Hz
-        chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1000,                                                              // number of horizontal samples
         10,                                                                // number of vertical channels
         2 * (float)CH_C_PI,                                                // horizontal field of view
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
     auto camera = std::make_shared<ChCameraSensor>(
         cart,                                                              // body lidar is attached to
         10.0f,                                                             // scanning rate in Hz
-        chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1280,                                                              // number of horizontal samples
         720,                                                               // number of vertical channels
         (float)CH_C_PI / 4                                                 // horizontal field of view

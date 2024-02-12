@@ -124,7 +124,7 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
     virtual std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
 
     /// Get the constrained direction, expressed in the reference coordinates of the body.
-    ChVector3d GetDirection() const { return m_csys.rot.GetXaxis(); }
+    ChVector3d GetDirection() const { return m_csys.rot.GetAxisX(); }
 
     /// Set the constrained direction, expressed in the reference coordinates of the body.
     /// This function may be called only after initialization.

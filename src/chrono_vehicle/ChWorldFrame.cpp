@@ -30,7 +30,7 @@ void ChWorldFrame::Set(const ChMatrix33<>& rot) {
 }
 
 void ChWorldFrame::SetYUP() {
-    instance().m_rot = ChMatrix33<>(Q_from_AngX(CH_C_PI_2));
+    instance().m_rot = ChMatrix33<>(QuatFromAngleX(CH_C_PI_2));
     instance().m_quat = instance().m_rot.GetQuaternion();
     instance().m_vertical = ChVector3d(0, 1, 0);
     instance().m_forward = ChVector3d(1, 0, 0);

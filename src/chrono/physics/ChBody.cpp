@@ -141,7 +141,7 @@ void ChBody::IntStateIncrement(const unsigned int off_x,  // offset in x state v
     // (using quaternions, local or abs:  q_new = Dq_a * q_old =  q_old * Dq_l  )
     ChQuaternion<> q_old(x.segment(off_x + 3, 4));
     ChQuaternion<> rel_q;
-    rel_q.Q_from_Rotv(Dv.segment(off_v + 3, 3));
+    rel_q.SetFromRotVec(Dv.segment(off_v + 3, 3));
     ChQuaternion<> q_new = q_old * rel_q;
     x_new.segment(off_x + 3, 4) = q_new.eigen();
 }
@@ -162,7 +162,7 @@ void ChBody::IntStateGetIncrement(const unsigned int off_x,  // offset in x stat
     ChQuaternion<> q_old(x.segment(off_x + 3, 4));
     ChQuaternion<> q_new(x_new.segment(off_x + 3, 4));
     ChQuaternion<> rel_q = q_old.GetConjugate() % q_new;
-    Dv.segment(off_v + 3, 3) = rel_q.Q_to_Rotv().eigen();
+    Dv.segment(off_v + 3, 3) = rel_q.GetRotVec().eigen();
 }
 
 void ChBody::IntLoadResidual_F(const unsigned int off,  // offset in R residual
@@ -297,7 +297,7 @@ void ChBody::VariablesQbIncrementPosition(double dt_step) {
     ChVector3d newwel_abs = Amatrix * newwel;
     double mangle = newwel_abs.Length() * dt_step;
     newwel_abs.Normalize();
-    mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
+    mdeltarot.SetFromAngleAxis(mangle, newwel_abs);
     ChQuaternion<> mnewrot = mdeltarot % moldrot;
     SetRot(mnewrot);
 }

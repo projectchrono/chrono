@@ -257,9 +257,9 @@ void ChPathSteeringControllerXT::CalcTargetLocation() {
 
     m_target = tnb.GetPos();
 
-    m_ptangent = tnb.GetRot().GetXaxis();
-    m_pnormal = tnb.GetRot().GetYaxis();
-    m_pbinormal = tnb.GetRot().GetZaxis();
+    m_ptangent = tnb.GetRot().GetAxisX();
+    m_pnormal = tnb.GetRot().GetAxisY();
+    m_pbinormal = tnb.GetRot().GetAxisZ();
 }
 
 void ChPathSteeringControllerXT::Reset(const ChFrameMoving<>& ref_frame) {
@@ -749,7 +749,7 @@ void ChPathSteeringControllerStanley::CalcTargetLocation() {
 
     m_tracker->calcClosestPoint(m_sentinel, tnb, m_pcurvature);
     m_target = tnb.GetPos();
-    m_ptangent = tnb.GetRot().GetXaxis();
+    m_ptangent = tnb.GetRot().GetAxisX();
 }
 
 double ChPathSteeringControllerStanley::CalcHeadingError(ChVector3d& a, ChVector3d& b) {

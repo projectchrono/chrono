@@ -172,7 +172,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     // Assemble the tire contact from 15 segments, properly offset.
     // Each segment is further decomposed in convex hulls.
     for (int iseg = 0; iseg < 15; iseg++) {
-        ChQuaternion<> rot = Q_from_AngAxis(iseg * 24 * CH_C_DEG_TO_RAD, VECT_Y);
+        ChQuaternion<> rot = QuatFromAngleAxis(iseg * 24 * CH_C_DEG_TO_RAD, VECT_Y);
         for (int ihull = 0; ihull < num_hulls; ihull++) {
             std::vector<ChVector3d > convexhull;
             lugged_convex.GetConvexHullResult(ihull, convexhull);
@@ -183,7 +183,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
 
     // Add a cylinder to represent the wheel hub.
     auto cyl_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_material, 0.223, 0.252);
-    wheel_body->AddCollisionShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    wheel_body->AddCollisionShape(cyl_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
 
     // Visualization
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
@@ -334,7 +334,7 @@ int main(int argc, char* argv[]) {
     manager->scene->AddPointLight({20, 20, 30}, {intensity, intensity, intensity}, 5000);
     
     // Set up Camera
-    chrono::ChFrame<double> offset_pose1({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0}));
+    chrono::ChFrame<double> offset_pose1({-8, 0, 3}, QuatFromAngleAxis(.2, {0, 1, 0}));
     auto cam =
         chrono_types::make_shared<ChCameraSensor>(my_hmmwv.GetChassisBody(), update_rate, offset_pose1, image_width,
                                                   image_height, fov, 1, CameraLensModelType::PINHOLE, false);

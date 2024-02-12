@@ -711,13 +711,13 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         auto linact_L = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_L->SetNameString("L_post_linActuator");
         linact_L->SetMotionFunction(func_L);
-        linact_L->Initialize(post_L, m_vehicle->GetChassisBody(), ChFrame<>(pos_postL, Q_from_AngY(CH_C_PI_2)));
+        linact_L->Initialize(post_L, m_vehicle->GetChassisBody(), ChFrame<>(pos_postL, QuatFromAngleY(CH_C_PI_2)));
         sys->AddLink(linact_L);
 
         auto linact_R = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_R->SetNameString("R_post_linActuator");
         linact_R->SetMotionFunction(func_R);
-        linact_R->Initialize(post_R, m_vehicle->GetChassisBody(), ChFrame<>(pos_postR, Q_from_AngY(CH_C_PI_2)));
+        linact_R->Initialize(post_R, m_vehicle->GetChassisBody(), ChFrame<>(pos_postR, QuatFromAngleY(CH_C_PI_2)));
         sys->AddLink(linact_R);
 
         // Cache bodies and actuators
@@ -841,7 +841,7 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
         linact_L->SetNameString("L_rod_linActuator");
         linact_L->SetMotionFunction(func_L);
         linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(),
-                             ChFrame<>(pos_spindleL, Q_from_AngY(CH_C_PI_2)));
+                             ChFrame<>(pos_spindleL, QuatFromAngleY(CH_C_PI_2)));
         sys->AddLink(linact_L);
 
         auto linact_R = chrono_types::make_shared<ChLinkMotorLinearPosition>();
@@ -849,7 +849,7 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
         linact_R->SetNameString("R_rod_linActuator");
         linact_R->SetMotionFunction(func_R);
         linact_R->Initialize(suspension->GetSpindle(RIGHT), m_vehicle->GetChassisBody(),
-                             ChFrame<>(pos_spindleR, Q_from_AngY(CH_C_PI_2)));
+                             ChFrame<>(pos_spindleR, QuatFromAngleY(CH_C_PI_2)));
         sys->AddLink(linact_R);
 
         // Create the two rod bodies (used only for visualization)

@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     double angle = CH_C_PI / 6;
     double cosa = std::cos(angle);
     double sina = std::sin(angle);
-    ChQuaternion<> rot = Q_from_AngX(angle);
+    ChQuaternion<> rot = QuatFromAngleX(angle);
 
     // Create the ground (fixed) body
     // ------------------------------
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
 
         auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, 0.4);
         cyl_2->SetColor(ChColor(0.6f, 0, 0));
-        shaft_1->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, hl), Q_from_AngY(CH_C_PI_2)));
+        shaft_1->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, hl), QuatFromAngleY(CH_C_PI_2)));
     }
 
     // Create the second shaft body
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 
         auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, 0.4);
         cyl_2->SetColor(ChColor(0, 0, 0.6f));
-        shaft_2->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, -hl), Q_from_AngX(CH_C_PI_2)));
+        shaft_2->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, -hl), QuatFromAngleX(CH_C_PI_2)));
     }
 
     // Connect the first shaft to ground

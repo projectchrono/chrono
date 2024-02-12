@@ -102,14 +102,14 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
     sys->AddBody(m_arm_right);
 
     // Create and initialize the revolute joint between left arm and chassis.
-    ChCoordsys<> rev_ch_csys(P_arm_left, chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_ch_csys(P_arm_left, chassisRot * QuatFromAngleX(CH_C_PI_2));
     m_revolute_ch = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute_ch->SetNameString(m_name + "_revolute_ch");
     m_revolute_ch->Initialize(m_arm_left, chassisBody, rev_ch_csys);
     sys->AddLink(m_revolute_ch);
 
     // Create and initialize the revolute joint between left and right arms.
-    ChCoordsys<> rev_csys(P_center, chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys(P_center, chassisRot * QuatFromAngleX(CH_C_PI_2));
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(m_arm_left, m_arm_right, rev_csys);

@@ -72,7 +72,7 @@ void ChRigidSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
 
 void ChRigidSuspension::InitializeSide(VehicleSide side,
                                        std::shared_ptr<ChBodyAuxRef> chassis,
-                                       const std::vector<ChVector3d >& points,
+                                       const std::vector<ChVector3d>& points,
                                        double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
@@ -91,7 +91,7 @@ void ChRigidSuspension::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize joints
-    ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * QuatFromAngleX(CH_C_PI_2));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(chassis, m_spindle[side], rev_csys);

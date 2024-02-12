@@ -101,7 +101,7 @@ ChVehicleCosimWheeledVehicleNode::~ChVehicleCosimWheeledVehicleNode() {}
 
 void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const ChVector2d& terrain_size, double terrain_height) {
     // Initialize vehicle
-    ChCoordsys<> init_pos(m_init_loc + ChVector3d(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
+    ChCoordsys<> init_pos(m_init_loc + ChVector3d(0, 0, terrain_height), QuatFromAngleZ(m_init_yaw));
 
     m_vehicle->Initialize(init_pos);
     m_vehicle->GetChassis()->SetFixed(m_chassis_fixed);

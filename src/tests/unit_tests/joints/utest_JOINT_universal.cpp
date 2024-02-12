@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     // Case 1
 
     test_name = "Universal_Case01";
-    TestUniversal(ChVector3d(0, 0, 0), Q_from_AngX(CH_C_PI_2), sim_step, out_step, test_name);
+    TestUniversal(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2), sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 2e-3);
     test_passed &= ValidateReference(test_name, "Vel", 2e-3);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     // Case 2
 
     test_name = "Universal_Case02";
-    TestUniversal(ChVector3d(0, 0, 0), Q_from_AngY(CH_C_PI_2), sim_step, out_step, test_name);
+    TestUniversal(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2), sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 2e-3);
     test_passed &= ValidateReference(test_name, "Vel", 2e-3);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     // Case 3
 
     ////test_name = "Universal_Case03";
-    ////TestUniversal(ChVector3d(0, 0, 0), Q_from_AngAxis(CH_C_PI / 2, ChVector3d(0.707107, -0.707107, 0)), sim_step,
+    ////TestUniversal(ChVector3d(0, 0, 0), QuatFromAngleAxis(CH_C_PI / 2, ChVector3d(0.707107, -0.707107, 0)), sim_step,
     /// out_step, test_name); /test_passed &= ValidateReference(test_name, "Pos", 2e-3); /test_passed &=
     /// ValidateReference(test_name, "Vel", 2e-3); /test_passed &= ValidateReference(test_name, "Acc", 2e-2);
     ////test_passed &= ValidateReference(test_name, "Quat", 1e-3);

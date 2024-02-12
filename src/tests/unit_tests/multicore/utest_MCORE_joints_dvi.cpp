@@ -116,18 +116,19 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 
         auto wheel_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
-        utils::AddCylinderGeometry(wheel.get(), wheel_mat, 0.3, 0.1, ChVector3d(0, 0, 0), Q_from_AngZ(CH_C_PI_2));
+        utils::AddCylinderGeometry(wheel.get(), wheel_mat, 0.3, 0.1, ChVector3d(0, 0, 0),
+                                   QuatFromAngleZ(CH_C_PI_2));
 
         sys->AddBody(wheel);
 
         // Create and initialize translational joint ground - sled
         prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-        prismatic->Initialize(ground, sled, ChCoordsys<>(ChVector3d(0, 0, 0), Q_from_AngY(CH_C_PI_2)));
+        prismatic->Initialize(ground, sled, ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
         sys->AddLink(prismatic);
 
         // Create and initialize revolute joint sled - wheel
         revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-        revolute->Initialize(wheel, sled, ChCoordsys<>(ChVector3d(1, 0, 0), Q_from_AngX(CH_C_PI_2)));
+        revolute->Initialize(wheel, sled, ChCoordsys<>(ChVector3d(1, 0, 0), QuatFromAngleX(CH_C_PI_2)));
         sys->AddLink(revolute);
     }
 

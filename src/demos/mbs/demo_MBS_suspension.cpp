@@ -147,7 +147,7 @@ class MySimpleCar {
         wheelRF =
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelRF->SetPos(ChVector3d(1.5, 1, 1));
-        wheelRF->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
+        wheelRF->SetRot(chrono::QuatFromAngleZ(CH_C_PI_2));
         wheelRF->SetMass(3);
         wheelRF->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
         wheelRF->GetVisualShape(0)->SetMaterial(0, wheel_vis_mat);
@@ -156,7 +156,7 @@ class MySimpleCar {
         // .. create the revolute joint between the wheel and the spindle
         link_revoluteRF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
         link_revoluteRF->Initialize(wheelRF, spindleRF,
-                                    ChCoordsys<>(ChVector3d(1.5, 1, 1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                                    ChCoordsys<>(ChVector3d(1.5, 1, 1), chrono::QuatFromAngleY(CH_C_PI_2)));
         sys.AddLink(link_revoluteRF);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
@@ -201,7 +201,7 @@ class MySimpleCar {
         wheelLF =
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelLF->SetPos(ChVector3d(-1.5, 1, 1));
-        wheelLF->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
+        wheelLF->SetRot(chrono::QuatFromAngleZ(CH_C_PI_2));
         wheelLF->SetMass(3);
         wheelLF->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
         wheelLF->GetVisualShape(0)->SetMaterial(0, wheel_vis_mat);
@@ -210,7 +210,7 @@ class MySimpleCar {
         // .. create the revolute joint between the wheel and the spindle
         link_revoluteLF = chrono_types::make_shared<ChLinkLockRevolute>();  // left, front, upper, 1
         link_revoluteLF->Initialize(wheelLF, spindleLF,
-                                    ChCoordsys<>(ChVector3d(-1.5, 1, 1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                                    ChCoordsys<>(ChVector3d(-1.5, 1, 1), chrono::QuatFromAngleY(CH_C_PI_2)));
         sys.AddLink(link_revoluteLF);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
@@ -256,7 +256,7 @@ class MySimpleCar {
         wheelRB =
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelRB->SetPos(ChVector3d(1.5, 1, -1));
-        wheelRB->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
+        wheelRB->SetRot(chrono::QuatFromAngleZ(CH_C_PI_2));
         wheelRB->SetMass(3);
         wheelRB->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
         wheelRB->GetVisualShape(0)->SetMaterial(0, wheel_vis_mat);
@@ -265,13 +265,12 @@ class MySimpleCar {
         // .. create the revolute joint between the wheel and the spindle
         link_revoluteRB = chrono_types::make_shared<ChLinkLockRevolute>();  // right, back, upper, 1
         link_revoluteRB->Initialize(wheelRB, spindleRB,
-                                    ChCoordsys<>(ChVector3d(1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                                    ChCoordsys<>(ChVector3d(1.5, 1, -1), chrono::QuatFromAngleY(CH_C_PI_2)));
         sys.AddLink(link_revoluteRB);
 
         // .. create the motor transmission joint between the wheel and the truss (assuming small changes of alignment)
         link_motorR = chrono_types::make_shared<ChLinkMotorRotationTorque>();
-        link_motorR->Initialize(wheelRB, chassis,
-                                ChFrame<>(ChVector3d(1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+        link_motorR->Initialize(wheelRB, chassis, ChFrame<>(ChVector3d(1.5, 1, -1), chrono::QuatFromAngleY(CH_C_PI_2)));
         sys.AddLink(link_motorR);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
@@ -317,7 +316,7 @@ class MySimpleCar {
         wheelLB =
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelLB->SetPos(ChVector3d(-1.5, 1, -1));
-        wheelLB->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
+        wheelLB->SetRot(chrono::QuatFromAngleZ(CH_C_PI_2));
         wheelLB->SetMass(3);
         wheelLB->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
         wheelLB->GetVisualShape(0)->SetMaterial(0, wheel_vis_mat);
@@ -326,13 +325,13 @@ class MySimpleCar {
         // .. create the revolute joint between the wheel and the spindle
         link_revoluteLB = chrono_types::make_shared<ChLinkLockRevolute>();  // left, back, upper, 1
         link_revoluteLB->Initialize(wheelLB, spindleLB,
-                                    ChCoordsys<>(ChVector3d(-1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                                    ChCoordsys<>(ChVector3d(-1.5, 1, -1), chrono::QuatFromAngleY(CH_C_PI_2)));
         sys.AddLink(link_revoluteLB);
 
         // .. create the motor transmission joint between the wheel and the truss (assuming small changes of alignment)
         link_motorL = chrono_types::make_shared<ChLinkMotorRotationTorque>();
         link_motorL->Initialize(wheelLB, chassis,
-                                ChFrame<>(ChVector3d(-1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                                ChFrame<>(ChVector3d(-1.5, 1, -1), chrono::QuatFromAngleY(CH_C_PI_2)));
         sys.AddLink(link_motorL);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
@@ -436,7 +435,8 @@ class MySimpleCar {
         if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(link_motorR->GetTorqueFunction()))
             mfun->Set_yconst(singlewheeltorque);
         // debug:print infos on screen:
-        // std::cout << "motor torque="<< motortorque<< "  speed=" << motorspeed << "  wheel torqe=" << singlewheeltorque
+        // std::cout << "motor torque="<< motortorque<< "  speed=" << motorspeed << "  wheel torqe=" <<
+        // singlewheeltorque
         //  << std::endl;
         // If needed, return also the value of wheel torque:
         return singlewheeltorque;
@@ -641,7 +641,8 @@ int main(int argc, char* argv[]) {
 
     class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
-        virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
+        virtual void OnAddContact(const ChCollisionInfo& contactinfo,
+                                  ChContactMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
             auto mat = static_cast<ChContactMaterialCompositeNSC* const>(material);
 
@@ -683,7 +684,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        tools::drawGrid(vis.get(), 2, 2, 30, 30, ChCoordsys<>(ChVector3d(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)),
+        tools::drawGrid(vis.get(), 2, 2, 30, 30, ChCoordsys<>(ChVector3d(0, 0.01, 0), QuatFromAngleX(CH_C_PI_2)),
                         ChColor(0.31f, 0.51f, 0.51f), true);
 
         vis->GetGUIEnvironment()->drawAll();

@@ -263,7 +263,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     chrono::utils::AddBoxContainer(ground, cmaterial,                              //
                                    ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                                    ChVector3d(bxDim, byDim, bzDim), 0.1,           //
-                                   ChVector3i(0, 0, -1),                        //
+                                   ChVector3i(0, 0, -1),                           //
                                    false);
     ground->SetCollide(true);
 
@@ -276,7 +276,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // ******************************* Rigid bodies ***********************************
     // set the abs orientation, position and velocity
     auto wheel = chrono_types::make_shared<ChBodyAuxRef>();
-    ChQuaternion<> Body_rot = Q_from_Euler123(ChVector3d(0, 0, 0));
+    ChQuaternion<> Body_rot = QUNIT;
     ChVector3d Body_pos = wheel_IniPos;
     ChVector3d Body_vel = wheel_IniVel;
 
@@ -310,7 +310,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Connect the chassis to the ground through a translational joint and create a linear actuator.
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic1->Initialize(ground, chassis, ChCoordsys<>(chassis->GetPos(), Q_from_AngY(CH_C_PI_2)));
+    prismatic1->Initialize(ground, chassis, ChCoordsys<>(chassis->GetPos(), QuatFromAngleY(CH_C_PI_2)));
     prismatic1->SetName("prismatic_chassis_ground");
     sysMBS.AddLink(prismatic1);
 
@@ -332,8 +332,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Connect the wheel to the axle through a engine joint.
     motor->SetName("engine_wheel_axle");
-    motor->Initialize(wheel, axle,
-                      ChFrame<>(wheel->GetPos(), chrono::Q_from_AngAxis(-CH_C_PI / 2.0, ChVector3d(1, 0, 0))));
+    motor->Initialize(wheel, axle, ChFrame<>(wheel->GetPos(), chrono::QuatFromAngleX(-CH_C_PI_2)));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, wheel_AngVel));
     sysMBS.AddLink(motor);
 

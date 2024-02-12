@@ -16,28 +16,29 @@
 #include <stdexcept>
 
 #include "chrono/core/ChRotation.h"
+#include "chrono/utils/ChUtils.h"
 
 namespace chrono {
 
 static const double FD_STEP = 1e-4;
 
-ChVector3d ChRotation::AngleSetToAngleSet(ChRotation::Representation from,
-                                          Representation to,
-                                          const ChVector3d& from_angles) {
+// --------------------------
+
+AngleSet AngleSetFromAngleSet(RotRepresentation to_seq, const AngleSet& set) {
     ChMatrix33<> R;
 
-    switch (from) {
-        case Representation::EULER_ANGLES_ZXZ:
-            R.SetFromEulerAnglesZXZ(from_angles);
+    switch (set.seq) {
+        case RotRepresentation::EULER_ANGLES_ZXZ:
+            R.SetFromEulerAnglesZXZ(set.angles);
             break;
-        case Representation::CARDAN_ANGLES_ZXY:
-            R.SetFromCardanAnglesZXY(from_angles);
+        case RotRepresentation::CARDAN_ANGLES_ZXY:
+            R.SetFromCardanAnglesZXY(set.angles);
             break;
-        case Representation::CARDAN_ANGLES_ZYX:
-            R.SetFromCardanAnglesZYX(from_angles);
+        case RotRepresentation::CARDAN_ANGLES_ZYX:
+            R.SetFromCardanAnglesZYX(set.angles);
             break;
-        case Representation::CARDAN_ANGLES_XYZ:
-            R.SetFromCardanAnglesXYZ(from_angles);
+        case RotRepresentation::CARDAN_ANGLES_XYZ:
+            R.SetFromCardanAnglesXYZ(set.angles);
             break;
         default:
             std::cerr << "Unknown input angle set representation" << std::endl;
@@ -46,17 +47,17 @@ ChVector3d ChRotation::AngleSetToAngleSet(ChRotation::Representation from,
     }
 
     ChVector3d to_angles;
-    switch (to) {
-        case Representation::EULER_ANGLES_ZXZ:
+    switch (to_seq) {
+        case RotRepresentation::EULER_ANGLES_ZXZ:
             to_angles = R.GetEulerAnglesZXZ();
             break;
-        case Representation::CARDAN_ANGLES_ZXY:
+        case RotRepresentation::CARDAN_ANGLES_ZXY:
             to_angles = R.GetCardanAnglesZXY();
             break;
-        case Representation::CARDAN_ANGLES_ZYX:
+        case RotRepresentation::CARDAN_ANGLES_ZYX:
             to_angles = R.GetCardanAnglesZYX();
             break;
-        case Representation::CARDAN_ANGLES_XYZ:
+        case RotRepresentation::CARDAN_ANGLES_XYZ:
             to_angles = R.GetCardanAnglesXYZ();
             break;
         default:
@@ -65,24 +66,24 @@ ChVector3d ChRotation::AngleSetToAngleSet(ChRotation::Representation from,
             break;
     }
 
-    return to_angles;
+    return AngleSet({to_seq, to_angles});
 }
 
-ChVector3d ChRotation::AngleSetToRodriguez(Representation from, const ChVector3d& angles) {
+ChVector3d RodriguezFromAngleSet(const AngleSet& set) {
     ChMatrix33<> R;
 
-    switch (from) {
-        case Representation::EULER_ANGLES_ZXZ:
-            R.SetFromEulerAnglesZXZ(angles);
+    switch (set.seq) {
+        case RotRepresentation::EULER_ANGLES_ZXZ:
+            R.SetFromEulerAnglesZXZ(set.angles);
             break;
-        case Representation::CARDAN_ANGLES_ZXY:
-            R.SetFromCardanAnglesZXY(angles);
+        case RotRepresentation::CARDAN_ANGLES_ZXY:
+            R.SetFromCardanAnglesZXY(set.angles);
             break;
-        case Representation::CARDAN_ANGLES_ZYX:
-            R.SetFromCardanAnglesZYX(angles);
+        case RotRepresentation::CARDAN_ANGLES_ZYX:
+            R.SetFromCardanAnglesZYX(set.angles);
             break;
-        case Representation::CARDAN_ANGLES_XYZ:
-            R.SetFromCardanAnglesXYZ(angles);
+        case RotRepresentation::CARDAN_ANGLES_XYZ:
+            R.SetFromCardanAnglesXYZ(set.angles);
             break;
         default:
             std::cerr << "Unknown input angle set representation" << std::endl;
@@ -93,22 +94,22 @@ ChVector3d ChRotation::AngleSetToRodriguez(Representation from, const ChVector3d
     return R.GetRodriguezParameters();
 }
 
-ChVector3d ChRotation::RodriguezToAngleSet(Representation to, const ChVector3d& params) {
+AngleSet AngleSetFromRodriguez(RotRepresentation to_seq, const ChVector3d& params) {
     ChMatrix33<> R;
     R.SetFromRodriguezParameters(params);
 
     ChVector3d to_angles;
-    switch (to) {
-        case Representation::EULER_ANGLES_ZXZ:
+    switch (to_seq) {
+        case RotRepresentation::EULER_ANGLES_ZXZ:
             to_angles = R.GetEulerAnglesZXZ();
             break;
-        case Representation::CARDAN_ANGLES_ZXY:
+        case RotRepresentation::CARDAN_ANGLES_ZXY:
             to_angles = R.GetCardanAnglesZXY();
             break;
-        case Representation::CARDAN_ANGLES_ZYX:
+        case RotRepresentation::CARDAN_ANGLES_ZYX:
             to_angles = R.GetCardanAnglesZYX();
             break;
-        case Representation::CARDAN_ANGLES_XYZ:
+        case RotRepresentation::CARDAN_ANGLES_XYZ:
             to_angles = R.GetCardanAnglesXYZ();
             break;
         default:
@@ -117,53 +118,145 @@ ChVector3d ChRotation::RodriguezToAngleSet(Representation to, const ChVector3d& 
             break;
     }
 
-    return to_angles;
+    return AngleSet({to_seq, to_angles});
 }
 
-ChVector3d ChRotation::QuaternionToRodriguez(const ChQuaterniond& q) {
+// --------------------------
+
+AngleAxis AngleAxisFromQuat(const ChQuaterniond& q) {
+    double angle;
+    ChVector3d axis;
+
+    if (std::abs(q.e0()) < 0.99999999) {
+        double arg = acos(q.e0());
+        double invsine = 1 / sin(arg);
+        ChVector3d vtemp;
+        vtemp.x() = invsine * q.e1();
+        vtemp.y() = invsine * q.e2();
+        vtemp.z() = invsine * q.e3();
+        angle = 2 * arg;
+        axis = Vnorm(vtemp);
+    } else {
+        axis.x() = 1;
+        axis.y() = 0;
+        axis.z() = 0;
+        angle = 0;
+    }
+
+    return AngleAxis({angle, axis});
+}
+
+ChQuaterniond QuatFromAngleAxis(double angle, const ChVector3d& axis) {
+    ChQuaterniond q;
+    double halfang;
+    double sinhalf;
+
+    halfang = angle / 2;
+    sinhalf = sin(halfang);
+
+    q.e0() = cos(halfang);
+    q.e1() = axis.x() * sinhalf;
+    q.e2() = axis.y() * sinhalf;
+    q.e3() = axis.z() * sinhalf;
+
+    return q;
+}
+
+ChQuaterniond QuatFromAngleAxis(const AngleAxis& angle_axis) {
+    return QuatFromAngleAxis(angle_axis.angle, angle_axis.axis);
+}
+
+ChQuaterniond QuatDerFromAngleAxis(const ChQuaterniond& quat, double angle_dt, const ChVector3d& axis) {
+    ChVector3d W;
+
+    W = Vmul(axis, angle_dt);
+
+    return QuatDerFromAngVelAbs(W, quat);
+}
+
+ChQuaterniond QuatDer2FromAngleAxis(double angle_dtdt,
+                                    const ChVector3d& axis,
+                                    const ChQuaterniond& q,
+                                    const ChQuaterniond& q_dt) {
+    ChVector3d Acc;
+
+    Acc = Vmul(axis, angle_dtdt);
+
+    return QuatDer2FromAngAccAbs(Acc, q, q_dt);
+}
+
+ChQuaterniond QuatFromAngleX(double angle) {
+    return QuatFromAngleAxis({angle, ChVector3d(1, 0, 0)});
+}
+
+ChQuaterniond QuatFromAngleY(double angle) {
+    return QuatFromAngleAxis({angle, ChVector3d(0, 1, 0)});
+}
+
+ChQuaterniond QuatFromAngleZ(double angle) {
+    return QuatFromAngleAxis({angle, ChVector3d(0, 0, 1)});
+}
+
+// --------------------------
+
+ChVector3d RotVecFromQuat(const ChQuaterniond& q) {
+    return q.GetRotVec();
+}
+
+ChQuaterniond QuatFromRotVec(const ChVector3d& vec) {
+    ChQuaterniond q;
+    q.SetFromRotVec(vec);
+    return q;
+}
+
+// --------------------------
+
+ChVector3d RodriguezFromQuat(const ChQuaterniond& q) {
     ChMatrix33<> R(q);
     return R.GetRodriguezParameters();
 }
 
-ChQuaterniond ChRotation::RodriguezToQuaternion(const ChVector3d& params) {
+ChQuaterniond QuatFromRodriguez(const ChVector3d& params) {
     ChMatrix33<> R;
     R.SetFromRodriguezParameters(params);
     return R.GetQuaternion();
 }
 
-ChQuaterniond ChRotation::RodriguezToQuaternionDer(const ChVector3d& params_der, const ChQuaterniond& q) {
-    auto params1 = QuaternionToRodriguez(q);
-    auto params2 = Vadd(params1, Vmul(params_der, FD_STEP));
-    auto q2 = RodriguezToQuaternion(params2);
+ChQuaterniond QuatDerFromRodriguez(const ChVector3d& params, const ChQuaterniond& q) {
+    auto params1 = RodriguezFromQuat(q);
+    auto params2 = Vadd(params1, Vmul(params, FD_STEP));
+    auto q2 = QuatFromRodriguez(params2);
 
     return Qscale(Qsub(q2, q), 1 / FD_STEP);
 }
 
-ChQuaterniond ChRotation::RodriguezToQuaternionDer2(const ChVector3d& params_der2, const ChQuaterniond& q) {
-    auto ang0 = QuaternionToRodriguez(q);
-    auto paramsA = Vsub(ang0, Vmul(params_der2, FD_STEP));
-    auto paramsB = Vadd(ang0, Vmul(params_der2, FD_STEP));
-    auto qa = RodriguezToQuaternion(paramsA);
-    auto qb = RodriguezToQuaternion(paramsB);
+ChQuaterniond QuatDer2FromRodriguez(const ChVector3d& params, const ChQuaterniond& q) {
+    auto params0 = RodriguezFromQuat(q);
+    auto paramsA = Vsub(params0, Vmul(params, FD_STEP));
+    auto paramsB = Vadd(params0, Vmul(params, FD_STEP));
+    auto qa = QuatFromRodriguez(paramsA);
+    auto qb = QuatFromRodriguez(paramsB);
 
     return Qscale(Qadd(Qadd(qa, qb), Qscale(q, -2)), 1 / FD_STEP);
 }
 
-ChVector3d ChRotation::QuaternionToAngleSet(ChRotation::Representation to, const ChQuaterniond& q) {
+// --------------------------
+
+AngleSet AngleSetFromQuat(RotRepresentation to_seq, const ChQuaterniond& q) {
     ChMatrix33<> R(q);
 
     ChVector3d to_angles;
-    switch (to) {
-        case Representation::EULER_ANGLES_ZXZ:
+    switch (to_seq) {
+        case RotRepresentation::EULER_ANGLES_ZXZ:
             to_angles = R.GetEulerAnglesZXZ();
             break;
-        case Representation::CARDAN_ANGLES_ZXY:
+        case RotRepresentation::CARDAN_ANGLES_ZXY:
             to_angles = R.GetCardanAnglesZXY();
             break;
-        case Representation::CARDAN_ANGLES_ZYX:
+        case RotRepresentation::CARDAN_ANGLES_ZYX:
             to_angles = R.GetCardanAnglesZYX();
             break;
-        case Representation::CARDAN_ANGLES_XYZ:
+        case RotRepresentation::CARDAN_ANGLES_XYZ:
             to_angles = R.GetCardanAnglesXYZ();
             break;
         default:
@@ -172,24 +265,24 @@ ChVector3d ChRotation::QuaternionToAngleSet(ChRotation::Representation to, const
             break;
     }
 
-    return to_angles;
+    return AngleSet({to_seq, to_angles});
 }
 
-ChQuaterniond ChRotation::AngleSetToQuaternion(Representation from, const ChVector3d& angles) {
+ChQuaterniond QuatFromAngleSet(const AngleSet& set) {
     ChMatrix33<> R;
 
-    switch (from) {
-        case Representation::EULER_ANGLES_ZXZ:
-            R.SetFromEulerAnglesZXZ(angles);
+    switch (set.seq) {
+        case RotRepresentation::EULER_ANGLES_ZXZ:
+            R.SetFromEulerAnglesZXZ(set.angles);
             break;
-        case Representation::CARDAN_ANGLES_ZXY:
-            R.SetFromCardanAnglesZXY(angles);
+        case RotRepresentation::CARDAN_ANGLES_ZXY:
+            R.SetFromCardanAnglesZXY(set.angles);
             break;
-        case Representation::CARDAN_ANGLES_ZYX:
-            R.SetFromCardanAnglesZYX(angles);
+        case RotRepresentation::CARDAN_ANGLES_ZYX:
+            R.SetFromCardanAnglesZYX(set.angles);
             break;
-        case Representation::CARDAN_ANGLES_XYZ:
-            R.SetFromCardanAnglesXYZ(angles);
+        case RotRepresentation::CARDAN_ANGLES_XYZ:
+            R.SetFromCardanAnglesXYZ(set.angles);
             break;
         default:
             std::cerr << "Unknown input angle set representation" << std::endl;
@@ -200,26 +293,65 @@ ChQuaterniond ChRotation::AngleSetToQuaternion(Representation from, const ChVect
     return R.GetQuaternion();
 }
 
-ChQuaterniond ChRotation::AngleSetToQuaternionDer(Representation from,
-                                                  const ChVector3d& angles_der,
-                                                  const ChQuaterniond& q) {
-    auto ang1 = QuaternionToAngleSet(from, q);
-    auto ang2 = Vadd(ang1, Vmul(angles_der, FD_STEP));
-    auto q2 = AngleSetToQuaternion(from, ang2);
+ChQuaterniond QuatDerFromAngleSet(const AngleSet& set, const ChQuaterniond& q) {
+    auto set1 = AngleSetFromQuat(set.seq, q);
+    auto ang2 = Vadd(set1.angles, Vmul(set.angles, FD_STEP));
+    auto q2 = QuatFromAngleSet({set.seq, ang2});
 
     return Qscale(Qsub(q2, q), 1 / FD_STEP);
 }
 
-ChQuaterniond ChRotation::AngleSetToQuaternionDer2(Representation from,
-                                                   const ChVector3d& angles_der2,
-                                                   const ChQuaterniond& q) {
-    auto ang0 = QuaternionToAngleSet(from, q);
-    auto angA = Vsub(ang0, Vmul(angles_der2, FD_STEP));
-    auto angB = Vadd(ang0, Vmul(angles_der2, FD_STEP));
-    auto qa = AngleSetToQuaternion(from, angA);
-    auto qb = AngleSetToQuaternion(from, angB);
+ChQuaterniond QuatDer2FromAngleSet(const AngleSet& set, const ChQuaterniond& q) {
+    auto set0 = AngleSetFromQuat(set.seq, q);
+    auto angA = Vsub(set0.angles, Vmul(set.angles, FD_STEP));
+    auto angB = Vadd(set0.angles, Vmul(set.angles, FD_STEP));
+    auto qa = QuatFromAngleSet({set.seq, angA});
+    auto qb = QuatFromAngleSet({set.seq, angB});
 
     return Qscale(Qadd(Qadd(qa, qb), Qscale(q, -2)), 1 / FD_STEP);
+}
+
+// --------------------------
+
+ChQuaterniond QuatFromVec2Vec(const ChVector3d& start, const ChVector3d& end) {
+    const double ANGLE_TOLERANCE = 1e-6;
+    ChQuaterniond quat;
+    double halfang;
+    double sinhalf;
+    ChVector3d axis;
+
+    double lenXlen = start.Length() * end.Length();
+    axis = start % end;
+    double sinangle = ChClamp(axis.Length() / lenXlen, -1.0, +1.0);
+    double cosangle = ChClamp(start ^ end / lenXlen, -1.0, +1.0);
+
+    // Consider three cases: Parallel, Opposite, non-collinear
+    if (std::abs(sinangle) == 0.0 && cosangle > 0) {
+        // fr_vect & to_vect are parallel
+        quat.e0() = 1.0;
+        quat.e1() = 0.0;
+        quat.e2() = 0.0;
+        quat.e3() = 0.0;
+    } else if (std::abs(sinangle) < ANGLE_TOLERANCE && cosangle < 0) {
+        // fr_vect & to_vect are opposite, i.e. ~180 deg apart
+        axis = start.GetOrthogonalVector() + (-end).GetOrthogonalVector();
+        axis.Normalize();
+        quat.e0() = 0.0;
+        quat.e1() = ChClamp(axis.x(), -1.0, +1.0);
+        quat.e2() = ChClamp(axis.y(), -1.0, +1.0);
+        quat.e3() = ChClamp(axis.z(), -1.0, +1.0);
+    } else {
+        // fr_vect & to_vect are not co-linear case
+        axis.Normalize();
+        halfang = 0.5 * std::atan2(sinangle, cosangle);
+        sinhalf = sin(halfang);
+
+        quat.e0() = cos(halfang);
+        quat.e1() = sinhalf * axis.x();
+        quat.e2() = sinhalf * axis.y();
+        quat.e3() = sinhalf * axis.z();
+    }
+    return (quat);
 }
 
 }  // end namespace chrono

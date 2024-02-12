@@ -214,9 +214,9 @@ ChMatrix33<Real>::ChMatrix33(const ChVector3d& diag, const ChVector3d& off_diag)
 
 template <typename Real>
 ChMatrix33<Real>::ChMatrix33(Real angle, const ChVector3d& axis) {
-    ChQuaternion<Real> mr;
-    mr.Q_from_AngAxis(angle, axis);
-    this->SetFromQuaternion(mr);
+    ChQuaternion<Real> q;
+    q.SetFromAngleAxis(angle, axis);
+    this->SetFromQuaternion(q);
 }
 
 template <typename Real>

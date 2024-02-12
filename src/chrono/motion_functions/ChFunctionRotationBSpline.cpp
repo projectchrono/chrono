@@ -114,13 +114,13 @@ ChQuaternion<> ChFunctionRotationBSpline::Get_q(double s) const {
 	// should be Bi(0) = 1 in most cases, anyway: compute first cumulative basis:
 	for (int j = 0; j < N.size(); ++j)
 		Bi += N(j);  
-	q.Q_from_Rotv(q0.Q_to_Rotv() * Bi);
+	q.SetFromRotVec(q0.GetRotVec() * Bi);
 
     for (int i = 1; i <= this->p; i++) {
 		// update cumulative basis - avoids repeating the sums, as it should be:  Bi=0; for (int j = i; j < N.size(); ++j) {Bi += N(j);} 
 		Bi -= N(i-1); 
 		// compute delta rotation
-		qqpowBi.Q_from_Rotv((rotations[uind + i - 1].GetConjugate() * rotations[uind + i]).Q_to_Rotv() * Bi);
+		qqpowBi.SetFromRotVec((rotations[uind + i - 1].GetConjugate() * rotations[uind + i]).GetRotVec() * Bi);
 		// apply delta rotation
 		q *= qqpowBi;
     }

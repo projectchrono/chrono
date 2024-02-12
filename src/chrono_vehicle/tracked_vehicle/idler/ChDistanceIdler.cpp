@@ -96,7 +96,7 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_carrier_pin");
     m_revolute->Initialize(chassis->GetBody(), m_carrier,
-                           ChCoordsys<>(m_points[CARRIER_CHASSIS], idler_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
+        ChCoordsys<>(m_points[CARRIER_CHASSIS], idler_to_abs.GetRot() * QuatFromAngleX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Linear actuator function

@@ -57,10 +57,10 @@ int main(int argc, char* argv[]) {
     sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     // ChQuaternion<> rev_rot = QUNIT;
-    ChQuaternion<> rev_rot = Q_from_AngX(CH_C_PI / 6.0);
-    // ChQuaternion<> rev_rot = Q_from_AngX(CH_C_PI / 2.0);
+    ChQuaternion<> rev_rot = QuatFromAngleX(CH_C_PI / 6.0);
+    // ChQuaternion<> rev_rot = QuatFromAngleX(CH_C_PI / 2.0);
 
-    ChVector3d rev_dir = rev_rot.GetZaxis();
+    ChVector3d rev_dir = rev_rot.GetAxisZ();
 
     ChVector3d rev_pos(+1, 0, 0);
 
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, 1.5);
     cyl->SetColor(ChColor(0.7f, 0.8f, 0.8f));
-    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(-0.75, 0, 0), Q_from_AngY(CH_C_PI_2)));
+    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(-0.75, 0, 0), QuatFromAngleY(CH_C_PI_2)));
 
     // Create revolute joint between body and ground
     auto rev = chrono_types::make_shared<ChLinkLockRevolute>();

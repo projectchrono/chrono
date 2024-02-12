@@ -49,7 +49,7 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Express the tread body location and orientation in global frame.
     ChVector3d loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
-    ChVector3d xdir = rot.GetXaxis();
+    ChVector3d xdir = rot.GetAxisX();
 
     // Create the required number of web segment bodies
     auto web_mat = m_body_matinfo.CreateMaterial(chassis->GetSystem()->GetContactMethod());
@@ -156,7 +156,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
                                      bool ccw) {
     int index = 0;
 
-    auto z2y = Q_from_AngX(CH_C_PI_2);
+    auto z2y = QuatFromAngleX(CH_C_PI_2);
 
     // Connect tread body to the first web segment.
     {

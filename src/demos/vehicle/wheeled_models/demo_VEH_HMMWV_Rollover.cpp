@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     auto patch = terrain.AddPatch(terrain_mat, CSYSNORM, 100.0, 100.0);
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 20, 20);
 
-    auto slope = Q_from_AngY(-15 * CH_C_DEG_TO_RAD);
+    auto slope = QuatFromAngleY(-15 * CH_C_DEG_TO_RAD);
     auto ramp = terrain.AddPatch(terrain_mat, ChCoordsys<>(ChVector3d(20, 3, 0), slope), 20, 6);
     ramp->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 2, 2);
 

@@ -397,10 +397,10 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
                 for (int i = 0; i < nodes.size(); ++i) {
                     ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
                     q_delta = nodes[0]->coord.rot.GetConjugate() * q_i;
-                    q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); // a_i = dir_i*angle_i (in spline local
+                    q_delta.GetAngleAxis(delta_rot_angle, delta_rot_dir); // a_i = dir_i*angle_i (in spline local
                 reference, -PI..+PI) da += delta_rot_dir * delta_rot_angle * N(i);  // a = N_i*a_i
                 }
-                ChQuaternion<> qda; qda.Q_from_Rotv(da);
+                ChQuaternion<> qda; qda.SetFromRotVec(da);
                 ChQuaternion<> qR = nodes[0]->coord.rot * qda;
 
                 // compute the 3x3 rotation matrix R equivalent to quaternion above
@@ -500,12 +500,12 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
         for (int i = 0; i < nodes.size(); ++i) {
             ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
             q_delta = nodes[0]->coord.rot.GetConjugate() * q_i;
-            q_delta.Q_to_AngAxis(delta_rot_angle,
+            q_delta.GetAngleAxis(delta_rot_angle,
                                  delta_rot_dir);  // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
             da += delta_rot_dir * delta_rot_angle * N(0, i);  // a = N_i*a_i
         }
         ChQuaternion<> qda;
-        qda.Q_from_Rotv(da);
+        qda.SetFromRotVec(da);
         ChQuaternion<> qR = nodes[0]->coord.rot * qda;
 
         // compute the 3x3 rotation matrix R equivalent to quaternion above
@@ -534,7 +534,7 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
         for (int i = 0; i < nodes.size(); ++i) {
             ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
             q_delta = qR.GetConjugate() * q_i;
-            q_delta.Q_to_AngAxis(delta_rot_angle,
+            q_delta.GetAngleAxis(delta_rot_angle,
                                  delta_rot_dir);  // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
             da += delta_rot_dir * delta_rot_angle * N(1, i);  // da/du = N_i'*a_i
         }
@@ -665,12 +665,12 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
                 for (int i = 0; i < nodes.size(); ++i) {
                     ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
                     q_delta = nodes[0]->coord.rot.GetConjugate() * q_i;
-                    q_delta.Q_to_AngAxis(delta_rot_angle,
+                    q_delta.GetAngleAxis(delta_rot_angle,
                                          delta_rot_dir);  // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
                     da += delta_rot_dir * delta_rot_angle * N(0, i);  // a = N_i*a_i
                 }
                 ChQuaternion<> qda;
-                qda.Q_from_Rotv(da);
+                qda.SetFromRotVec(da);
                 ChQuaternion<> qR = nodes[0]->coord.rot * qda;
 
                 ChVector3d w_sect;
@@ -870,12 +870,12 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
         for (int i = 0; i < nodes.size(); ++i) {
             ChQuaternion<> q_i = nodes[i]->GetX0ref().GetRot();  // state_x.ClipQuaternion(i * 7 + 3, 0);
             q_delta = nodes[0]->GetX0ref().GetRot().GetConjugate() * q_i;
-            q_delta.Q_to_AngAxis(delta_rot_angle,
+            q_delta.GetAngleAxis(delta_rot_angle,
                                  delta_rot_dir);  // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
             da += delta_rot_dir * delta_rot_angle * N(0, i);  // a = N_i*a_i
         }
         ChQuaternion<> qda;
-        qda.Q_from_Rotv(da);
+        qda.SetFromRotVec(da);
         ChQuaternion<> qR = nodes[0]->GetX0().GetRot() * qda;
 
         // compute the 3x3 rotation matrix R equivalent to quaternion above
@@ -896,7 +896,7 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
         for (int i = 0; i < nodes.size(); ++i) {
             ChQuaternion<> q_i = nodes[i]->GetX0ref().GetRot();
             q_delta = qR.GetConjugate() * q_i;
-            q_delta.Q_to_AngAxis(delta_rot_angle,
+            q_delta.GetAngleAxis(delta_rot_angle,
                                  delta_rot_dir);  // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
             da += delta_rot_dir * delta_rot_angle * N(1, i);  // da/du = N_i'*a_i
         }

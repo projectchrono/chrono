@@ -66,7 +66,7 @@ void ChTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 void ChTire::CalculateKinematics(const WheelState& wheel_state, 
                                  const ChCoordsys<>& tire_frame) {
     // Wheel normal (expressed in global frame)
-    ChVector3d wheel_normal = wheel_state.rot.GetYaxis();
+    ChVector3d wheel_normal = wheel_state.rot.GetAxisY();
 
     // Express wheel linear velocity in tire frame
     ChVector3d V = tire_frame.TransformDirectionParentToLocal(wheel_state.lin_vel);
@@ -94,7 +94,7 @@ void ChTire::CalculateKinematics(const WheelState& wheel_state,
 std::shared_ptr<ChVisualShapeTriangleMesh> ChTire::AddVisualizationMesh(const std::string& mesh_file_left,
                                                                   const std::string& mesh_file_right) {
     bool left = (m_wheel->GetSide() == VehicleSide::LEFT);
-    ChQuaternion<> rot = left ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
+    ChQuaternion<> rot = left ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_C_PI);
     m_vis_mesh_file = left ? mesh_file_left : mesh_file_right;
 
     auto trimesh =

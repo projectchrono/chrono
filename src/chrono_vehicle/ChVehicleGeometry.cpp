@@ -61,7 +61,7 @@ ChVehicleGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
     : m_pos(pos), m_radius(radius), m_length(length), m_matID(matID) {
     ChMatrix33<> rot;
     rot.SetFromAxisX(axis);
-    m_rot = rot.GetQuaternion() * Q_from_AngY(-CH_C_PI_2);
+    m_rot = rot.GetQuaternion() * QuatFromAngleY(-CH_C_PI_2);
 }
 
 ChVehicleGeometry::LineShape::LineShape(const ChVector3d& pos,
@@ -266,7 +266,7 @@ geometry::ChAABB ChVehicleGeometry::CalculateAABB() {
     }
 
     for (const auto& cyl : m_coll_cylinders) {
-        auto axis = cyl.m_rot.GetYaxis();
+        auto axis = cyl.m_rot.GetAxisY();
         auto p1 = cyl.m_pos - (cyl.m_length / 2) * axis;
         auto p2 = cyl.m_pos + (cyl.m_length / 2) * axis;
         auto e2 = ChVector3d(1.0) - axis * axis;

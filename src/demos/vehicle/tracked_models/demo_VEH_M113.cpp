@@ -686,7 +686,7 @@ void AddFixedObstacles(ChSystem* system) {
     // Visualization
     auto shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
     shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
-    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
 
     // Contact
     ChContactMaterialData minfo;
@@ -696,7 +696,7 @@ void AddFixedObstacles(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
-    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
 
     system->AddBody(obstacle);
 }

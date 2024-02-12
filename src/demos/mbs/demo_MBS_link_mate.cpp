@@ -182,12 +182,12 @@ void test_pendulum() {
     sys.AddBody(my_root);
 
     auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, 0.4);
-    my_root->AddVisualShape(cyl_rev, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+    my_root->AddVisualShape(cyl_rev, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
 
     auto my_mass = chrono_types::make_shared<ChBody>();
     ChVector3d mass_pos = ChVector3d(length * std::sin(offset_angle), 0, -length * std::cos(offset_angle));
     ChVector3d Zdir = (my_root->GetPos() - mass_pos).GetNormalized();
-    ChVector3d Ydir = my_root->GetRot().GetYaxis().GetNormalized();
+    ChVector3d Ydir = my_root->GetRot().GetAxisY().GetNormalized();
     ChVector3d Xdir = Ydir.Cross(Zdir).GetNormalized();
     ChVector3d mX;
     ChVector3d mY;
@@ -349,7 +349,7 @@ void test_anchorchain() {
     auto anchorA = chrono_types::make_shared<ChBody>();
     anchorA->SetNameString("anchorA");
     anchorA->SetPos({xA, 0, 0});
-    anchorA->SetRot(Q_from_AngY(CH_C_PI_4));
+    anchorA->SetRot(QuatFromAngleY(CH_C_PI_4));
     anchorA->SetMass(mass);
     anchorA->SetInertiaXX({Jxx, Jyy, Jzz});
     anchorA->AddVisualShape(box);
@@ -370,7 +370,7 @@ void test_anchorchain() {
     auto anchorB = chrono_types::make_shared<ChBody>();
     anchorB->SetNameString("anchorB");
     anchorB->SetPos({xB, 0, 0});
-    anchorB->SetRot(Q_from_AngY(-CH_C_PI_4));
+    anchorB->SetRot(QuatFromAngleY(-CH_C_PI_4));
     anchorB->SetMass(mass);
     anchorB->SetInertiaXX({Jxx, Jyy, Jzz});
     anchorB->AddVisualShape(box);
@@ -414,7 +414,7 @@ void test_anchorchain() {
 
             auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, len * 0.8);
             cyl_rev->SetColor(ChColor(0, 0, 1));
-            knot->AddVisualShape(cyl_rev, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+            knot->AddVisualShape(cyl_rev, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
 
             knot_list.push_back(knot);
             sys.AddBody(knot);

@@ -20,6 +20,7 @@
 #include "chrono/core/ChMatrixMBD.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/core/ChVector3.h"
+#include "chrono/core/ChRotation.h"
 
 int main(int argc, char* argv[]) {
     ///! [Basic operations with matrices]
@@ -88,7 +89,7 @@ int main(int argc, char* argv[]) {
         chrono::ChMatrixDynamic<double> CD = C * D;
         chrono::ChMatrixDynamic<double> CD_t = D.transpose() * C.transpose();
 
-        chrono::ChMatrix33<> R(chrono::Q_from_AngX(chrono::CH_C_PI / 3));
+        chrono::ChMatrix33<> R(chrono::QuatFromAngleX(chrono::CH_C_PI / 3));
         std::cout << "rot * matrix\n" << R * C << std::endl;
         std::cout << "matrix * rot\n" << D * R << std::endl;
     }
@@ -193,7 +194,7 @@ int main(int argc, char* argv[]) {
         q = G.transpose() * v;
         std::cout << q << std::endl;
 
-        chrono::ChMatrix33<> rot(chrono::Q_from_AngX(chrono::CH_C_PI / 6));
+        chrono::ChMatrix33<> rot(chrono::QuatFromAngleX(chrono::CH_C_PI / 6));
         std::cout << rot << std::endl;
         std::cout << rot.transpose() << std::endl;
 

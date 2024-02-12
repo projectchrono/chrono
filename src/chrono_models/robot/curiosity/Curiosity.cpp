@@ -412,9 +412,9 @@ void Curiosity::Create(CuriosityChassisType chassis_type, CuriosityWheelType whe
         m_wheels[i] = chrono_types::make_shared<CuriosityWheel>("wheel", ChFrame<>(wheel_pos[i], QUNIT),
                                                                 m_wheel_material, wheel_type);
     }
-    m_wheels[C_RF]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
-    m_wheels[C_RM]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
-    m_wheels[C_RB]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
+    m_wheels[C_RF]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI));
+    m_wheels[C_RM]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI));
+    m_wheels[C_RB]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI));
 
     // Create Curiosity suspension rockers and bogies
     m_rockers[0] = chrono_types::make_shared<CuriosityRocker>(  //
@@ -428,7 +428,7 @@ void Curiosity::Create(CuriosityChassisType chassis_type, CuriosityWheelType whe
         "bogie_R", ChFrame<>(cr_rel_pos_rb, QUNIT), m_default_material, 1);
 
     // Create the steering uprights
-    ChQuaternion<> steer_rot = Q_from_Euler123(ChVector3d(0, 0, CH_C_PI));
+    ChQuaternion<> steer_rot = QuatFromAngleZ(CH_C_PI);
 
     m_rocker_uprights[0] = chrono_types::make_shared<CuriosityUpright>(  //
         "upright_FL", ChFrame<>(sr_rel_pos_lf, QUNIT), m_default_material);
@@ -475,7 +475,7 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
     }
 
     // Add drive motors on all six wheels
-    ChQuaternion<> z2y = Q_from_AngX(CH_C_PI_2);  // align Z with (negative) Y
+    ChQuaternion<> z2y = QuatFromAngleX(CH_C_PI_2);  // align Z with (negative) Y
 
     // Front (wheels attached to rocker uprights)
     for (int i = 0; i < 2; i++) {
@@ -540,7 +540,7 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
     for (int i = 0; i < 2; i++) {
         m_rocker_motor_funcs[i] = chrono_types::make_shared<ChFunctionConst>(0.0);
         m_rocker_motors[i] = AddMotorAngle(m_rocker_uprights[i]->GetBody(), m_rockers[i]->GetBody(), m_chassis,
-                                           rocker_motor_loc[i], Q_from_AngX(CH_C_PI));
+                                           rocker_motor_loc[i], QuatFromAngleX(CH_C_PI));
         m_rocker_motors[i]->SetMotorFunction(m_rocker_motor_funcs[i]);
     }
 

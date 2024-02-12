@@ -26,11 +26,9 @@ namespace chrono {
 /// @{
 
 /// A rotation function q=f(s) where q(s) is defined with three ChFunction objects, each per
-/// an an angle in an intrinsic triplets of angles (ex. Euler angles, Cardan angles, etc),
-/// ex. A=A(s), B=B(s), C=C(s).
+/// an an angle in an intrinsic triplets of angles (e.g. Euler angles, Cardan angles, etc).
 /// By default, rotation is constant zero rotation.
-/// By default, the angleset is ChRotation::Representation::CARDAN_ANGLES_XYZ (sequence: X-Y'-Z'' intrinsic).
-
+/// By default, uses RotRepresentation::CARDAN_ANGLES_XYZ (sequence: X-Y'-Z'' intrinsic).
 class ChApi ChFunctionRotationABCFunctions : public ChFunctionRotation {
   public:
     ChFunctionRotationABCFunctions();
@@ -40,17 +38,17 @@ class ChApi ChFunctionRotationABCFunctions : public ChFunctionRotation {
     /// "Virtual" copy constructor.
     virtual ChFunctionRotationABCFunctions* Clone() const override { return new ChFunctionRotationABCFunctions(*this); }
 
-    /// Set the function A=A(s) for the rotation angle (in radians) about the first axis. 
+    /// Set the function A=A(s) for the rotation angle (in radians) about the first axis.
     /// Default: constant 0 function.
     void SetFunctionAngleA(std::shared_ptr<ChFunction> angle_function) { angleA = angle_function; }
-    
+
     /// Get the function A=A(s) for the rotation angle (in radians) about the first axis.
     std::shared_ptr<ChFunction> GetFunctionAngleA() const { return angleA; }
 
     /// Set the function B(s) for the rotation angle (in radians) about the second axis.
     /// Default: constant 0 function.
     void SetFunctionAngleB(std::shared_ptr<ChFunction> angle_function) { angleB = angle_function; }
-    
+
     /// Get the function B(s) for the rotation angle (in radians) about the second axis.
     std::shared_ptr<ChFunction> GetFunctionAngleB() const { return angleB; }
 
@@ -62,11 +60,11 @@ class ChApi ChFunctionRotationABCFunctions : public ChFunctionRotation {
     std::shared_ptr<ChFunction> GetFunctionAngleC() const { return angleC; }
 
     /// Set the angle set for rotation representation.
-    /// This can be one of the supported Euler angle sets. 
-    void SetAngleset(const ChRotation::Representation rot_rep);
+    /// This can be one of the supported Euler angle sets.
+    void SetAngleset(const RotRepresentation rot_rep);
 
     /// Get the angle set for rotation representation.
-    ChRotation::Representation GetAngleset() const { return angleset; }
+    RotRepresentation GetAngleset() const { return angleset; }
 
     /// Return the rotation as a quaternion, function of s, as q=f(s).
     virtual ChQuaternion<> Get_q(double s) const override;
@@ -78,7 +76,7 @@ class ChApi ChFunctionRotationABCFunctions : public ChFunctionRotation {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    ChRotation::Representation angleset;
+    RotRepresentation angleset;
 
     std::shared_ptr<ChFunction> angleA;
     std::shared_ptr<ChFunction> angleB;

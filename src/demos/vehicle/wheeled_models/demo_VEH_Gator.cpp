@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
         case RigidTerrain::PatchType::BOX:
             patch = terrain.AddPatch(patch_mat, CSYSNORM, 100.0, 100.0);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-            patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(10, 0, 0), Q_from_AngY(-10 * CH_C_DEG_TO_RAD)),
+            patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(10, 0, 0), QuatFromAngleY(-10 * CH_C_DEG_TO_RAD)),
                                      5, 10);
             patch->SetColor(ChColor(0.6f, 0.5f, 0.2f));
             break;

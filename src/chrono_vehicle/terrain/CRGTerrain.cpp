@@ -255,7 +255,7 @@ ChCoordsys<> CRGTerrain::GetStartPosition() {
         z = 0;
     }
 
-    return ChCoordsys<>(ChVector3d(x, y, z), Q_from_AngZ(GetStartHeading()));
+    return ChCoordsys<>(ChVector3d(x, y, z), QuatFromAngleZ(GetStartHeading()));
 }
 
 double CRGTerrain::GetHeight(const ChVector3d& loc) const {

@@ -742,7 +742,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateGrid(double ustep,
     auto r = pos.rot;
     double rotAngle;
     ChVector3d rotAxis;
-    r.Q_to_AngAxis(rotAngle, rotAxis);
+    r.GetAngleAxis(rotAngle, rotAxis);
     transform->matrix =
         vsg::translate(p.x(), p.y(), p.z()) * vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
 

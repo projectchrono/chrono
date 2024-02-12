@@ -356,7 +356,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle system
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_model->VehicleJSON()), vehicle_model->ContactMethod());
-    vehicle.Initialize(ChCoordsys<>(initLoc, Q_from_AngZ(initYaw)));
+    vehicle.Initialize(ChCoordsys<>(initLoc, QuatFromAngleZ(initYaw)));
     vehicle.GetChassis()->SetFixed(false);
     vehicle.SetChassisVisualizationType(VisualizationType::MESH);
     vehicle.SetChassisRearVisualizationType(VisualizationType::PRIMITIVES);

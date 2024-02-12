@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     // In this case, the joint must be rotated -pi/4 about the global X-axis.
 
     test_name = "Prismatic_Case02";
-    TestPrismatic(ChVector3d(1, 2, 3), Q_from_AngX(-CH_C_PI_4), sim_step, out_step, test_name);
+    TestPrismatic(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_C_PI_4), sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-2);
     test_passed &= ValidateReference(test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     // X-axis.  This is a statics test of the joint (no motion)
 
     test_name = "Prismatic_Case03";
-    TestPrismatic(ChVector3d(1, 2, 3), Q_from_AngX(-CH_C_PI_2), sim_step, out_step, test_name);
+    TestPrismatic(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_C_PI_2), sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-5);
     test_passed &= ValidateReference(test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);

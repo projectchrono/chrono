@@ -320,7 +320,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_spindle_body = chrono_types::make_shared<ChBody>();
     m_spindle_body->SetBodyFixed(mode == Mode::SUSPEND);
     ChQuaternion<> qc;
-    qc.Q_from_AngX(-m_camber_angle);
+    qc.SetFromAngleX(-m_camber_angle);
     m_system->AddBody(m_spindle_body);
     m_spindle_body->SetName("rig_spindle");
     m_spindle_body->SetIdentifier(4);
@@ -340,7 +340,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
         m_lin_motor->Initialize(m_carrier_body, m_ground_body, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
     } else {
         ChQuaternion<> z2x;
-        z2x.Q_from_AngY(CH_C_PI_2);
+        z2x.SetFromAngleY(CH_C_PI_2);
         auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
         m_system->AddLink(prismatic);
         prismatic->Initialize(m_carrier_body, m_ground_body, ChCoordsys<>(VNULL, z2x));
@@ -356,7 +356,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_slip_lock->SetMotion_axis(ChVector3d(0, 0, 1));
 
     ChQuaternion<> z2y;
-    z2y.Q_from_AngAxis(-CH_C_PI / 2 - m_camber_angle, ChVector3d(1, 0, 0));
+    z2y.SetFromAngleX(-CH_C_PI_2 - m_camber_angle);
     if (mode == Mode::TEST && m_rs_actuated) {
         m_rot_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         m_system->AddLink(m_rot_motor);

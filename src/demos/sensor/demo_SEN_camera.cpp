@@ -233,7 +233,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------
-    chrono::ChFrame<double> offset_pose1({-8, 0, 2}, Q_from_AngAxis(.2, {0, 1, 0}));
+    chrono::ChFrame<double> offset_pose1({-8, 0, 2}, QuatFromAngleAxis(.2, {0, 1, 0}));
     auto cam = chrono_types::make_shared<ChCameraSensor>(ground_body,   // body camera is attached to
                                                          update_rate,   // update rate in Hz
                                                          offset_pose1,  // offset pose
@@ -299,7 +299,7 @@ int main(int argc, char* argv[]) {
     // Create a second camera and add it to the sensor manager
     // -------------------------------------------------------
 
-    chrono::ChFrame<double> offset_pose2({5, 0, 0}, Q_from_AngAxis(CH_C_PI, {0, 0, 1}));
+    chrono::ChFrame<double> offset_pose2({5, 0, 0}, QuatFromAngleAxis(CH_C_PI, {0, 0, 1}));
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(ground_body,   // body camera is attached to
                                                           update_rate,   // update rate in Hz
                                                           offset_pose2,  // offset pose
@@ -381,15 +381,15 @@ int main(int argc, char* argv[]) {
         // Rotate the cameras around the mesh at a fixed rate
         cam->SetOffsetPose(chrono::ChFrame<double>(
             {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            Q_from_AngAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
+            QuatFromAngleAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
 
         cam2->SetOffsetPose(chrono::ChFrame<double>(
             {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            Q_from_AngAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
+            QuatFromAngleAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
 
         seg->SetOffsetPose(chrono::ChFrame<double>(
             {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            Q_from_AngAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
+            QuatFromAngleAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
 
         // Access the RGBA8 buffer from the first camera
         // rgba8_ptr = cam->GetMostRecentBuffer<UserRGBA8BufferPtr>();

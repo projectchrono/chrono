@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     // Simple Spring
 
     test_name = "RotSpring_Case01";
-    TestRotSpring(ChVector3d(0, 0, 0), Q_from_AngX(-CH_C_PI_2), 1, sim_step, out_step, test_name);
+    TestRotSpring(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_C_PI_2), 1, sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(test_name, "Vel", 5e-4);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 
     // Case 2 - Same as Case01 except a nonlinear spring coefficent is used
     test_name = "RotSpring_Case02";
-    TestRotSpring(ChVector3d(0, 0, 0), Q_from_AngX(-CH_C_PI_2), 2, sim_step, out_step, test_name);
+    TestRotSpring(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_C_PI_2), 2, sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(test_name, "Vel", 5e-4);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);

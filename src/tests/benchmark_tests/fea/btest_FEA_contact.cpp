@@ -175,7 +175,7 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChContactMaterialSMC> cmat) {
 
     for (int i = 0; i < 4; ++i) {
         ChCoordsys<> cdown(ChVector3d(0, -0.4, 0));
-        ChCoordsys<> crot(VNULL, Q_from_AngAxis(CH_C_2PI * angles[i], VECT_Y) * Q_from_AngAxis(CH_C_PI_2, VECT_X));
+        ChCoordsys<> crot(VNULL, QuatFromAngleY(CH_C_2PI * angles[i]) * QuatFromAngleX(CH_C_PI_2));
         ChCoordsys<> cydisp(ChVector3d(0.0, 0.1 + i * 0.1, -0.3));
         ChCoordsys<> ctot = cdown >> crot >> cydisp;
         ChMeshFileLoader::FromTetGenFile(mesh, GetChronoDataFile("fea/beam.node").c_str(),

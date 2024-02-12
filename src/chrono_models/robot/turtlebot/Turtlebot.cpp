@@ -1000,8 +1000,8 @@ void TurtleBot::Initialize() {
     m_motors_func.push_back(const_speed_function_l);
     m_motors_func.push_back(const_speed_function_r);
 
-    ChQuaternion<> z2y = Q_from_AngX(CH_C_PI_2);
-    ChQuaternion<> z2x = Q_from_AngY(-CH_C_PI_2);
+    ChQuaternion<> z2y = QuatFromAngleX(CH_C_PI_2);
+    ChQuaternion<> z2x = QuatFromAngleY(-CH_C_PI_2);
 
     m_motors.push_back(AddMotor(m_drive_wheels[0]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
                                 ChVector3d(dwx, dwy, dwz), z2y, const_speed_function_l));

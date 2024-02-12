@@ -89,9 +89,9 @@ int main(int argc, char* argv[]) {
     // Note, In most CADs the Y axis is horizontal, but we want it vertical.
     // So define a root transformation for rotating all the imported objects.
     ChQuaternion<> rotation1;
-    rotation1.Q_from_AngAxis(-CH_C_PI / 2, VECT_X);  // 1: rotate 90� on X axis
+    rotation1.SetFromAngleX(-CH_C_PI_2);  // 1: rotate 90 deg on X axis
     ChQuaternion<> rotation2;
-    rotation2.Q_from_AngAxis(CH_C_PI, VECT_Y);            // 2: rotate 180� on vertical Y axis
+    rotation2.SetFromAngleY(CH_C_PI);                     // 2: rotate 180 deg on vertical Y axis
     ChQuaternion<> tot_rotation = rotation2 % rotation1;  // rotate on 1 then on 2, using quaternion product
     ChFrameMoving<> root_frame(ChVector3d(0, 0, 0), tot_rotation);
 
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
     body_base->AddMarker(my_marker_move);
 
     ChQuaternion<> rot_on_x;
-    rot_on_x.Q_from_AngAxis(CH_C_PI / 2, VECT_X);
+    rot_on_x.SetFromAngleX(CH_C_PI_2);
     ChFrame<> frame_marker_move = ChFrame<>(VNULL, rot_on_x) >> frame_marker_wrist_hand;
 
     my_marker_hand->Impose_Abs_Coord(frame_marker_wrist_hand.GetCoord());
@@ -381,7 +381,7 @@ int main(int argc, char* argv[]) {
                 std::shared_ptr<ChBodyEasyBox> cube(
                     new ChBodyEasyBox(0.4, brick_h, 0.4, 1000, true, true, mysurfmaterial));
                 cube->SetPos(ChVector3d(-1.4, (0.5 * brick_h) + ib * brick_h, -0.4 - 0.5 * ix));
-                cube->SetRot(Q_from_AngAxis(ib * 0.1, VECT_Y));
+                cube->SetRot(QuatFromAngleY(ib * 0.1));
                 cube->GetVisualShape(0)->SetColor(ChColor(0.5f + float(0.5 * ChRandom()),  //
                                                           0.5f + float(0.5 * ChRandom()),  //
                                                           0.5f + float(0.5 * ChRandom())   //

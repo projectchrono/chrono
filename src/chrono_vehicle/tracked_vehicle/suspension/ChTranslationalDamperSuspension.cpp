@@ -87,7 +87,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     m_pAS = m_arm->TransformPointParentToLocal(points[SHOCK_A]);
     m_dY = m_arm->TransformDirectionParentToLocal(y_dir);
 
-    ChQuaternion<> z2y = susp_to_abs.GetRot() * Q_from_AngX(-CH_C_PI_2);
+    ChQuaternion<> z2y = susp_to_abs.GetRot() * QuatFromAngleX(-CH_C_PI_2);
 
     // Create and initialize the joint between arm and chassis.
     if (m_lock_arm) {

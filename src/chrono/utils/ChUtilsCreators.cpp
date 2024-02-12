@@ -544,7 +544,7 @@ void AddTorusGeometry(ChBody* body,
         double alpha = i * CH_C_PI / 180.0;
         double x = cos(alpha) * radius;
         double z = sin(alpha) * radius;
-        ChQuaterniond q = chrono::Q_from_AngAxis(-alpha, VECT_Y) % chrono::Q_from_AngAxis(CH_C_PI / 2.0, VECT_X);
+        ChQuaterniond q = chrono::QuatFromAngleY(-alpha) % chrono::QuatFromAngleX(CH_C_PI_2);
         double outer_circ = 2 * CH_C_PI * (radius + thickness);
 
         AddCapsuleGeometry(body, material, thickness, outer_circ / segments * .5, ChVector3d(x, 0, z) + pos, q,
@@ -717,7 +717,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
         double angle = i * delta_angle;
         auto plate_pos =
             pos + ChVector3d(sin(angle) * (hthick + radius), cos(angle) * (hthick + height / 2), height / 2);
-        auto plate_rot = Q_from_AngZ(angle);
+        auto plate_rot = QuatFromAngleZ(angle);
 
         bool visualize = !partialVisualization || angle > CH_C_PI_2;
         utils::AddBoxGeometry(body.get(), mat, plate_size, plate_pos, plate_rot, visualize);
@@ -729,7 +729,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                               ChVector3d(0, 0, -hthick), QUNIT, true);
     else
         utils::AddCylinderGeometry(body.get(), mat, radius + thickness, thickness, ChVector3d(0, 0, -hthick),
-                                   Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+                                   QuatFromAngleX(CH_C_PI_2));
 
     // Add top piece
     if (closed) {
@@ -738,7 +738,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                   ChVector3d(0, 0, height + hthick), QUNIT, true);
         else
             utils::AddCylinderGeometry(body.get(), mat, radius + thickness, thickness,
-                                       ChVector3d(0, 0, height + hthick), Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+                                       ChVector3d(0, 0, height + hthick), QuatFromAngleX(CH_C_PI_2));
     }
 
     body->GetCollisionModel()->SetEnvelope(0.2 * thickness);

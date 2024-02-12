@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     sedan.SetContactMethod(ChContactMethod::SMC);
     sedan.SetChassisCollisionType(CollisionType::NONE);
     sedan.SetChassisFixed(false);
-    sedan.SetInitPosition(ChCoordsys<>(ChVector3d(-30, -30, 1.0), Q_from_AngZ(CH_C_PI / 4)));
+    sedan.SetInitPosition(ChCoordsys<>(ChVector3d(-30, -30, 1.0), QuatFromAngleZ(CH_C_PI / 4)));
     sedan.SetTireType(TireModelType::TMEASY);
     sedan.Initialize();
 

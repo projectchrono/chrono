@@ -112,7 +112,8 @@ void ChNodeFEAxyzrot::NodeIntStateIncrement(const unsigned int off_x,
     // ADVANCE ROTATION: R_new = DR_a * R_old 
     // (using quaternions, local or abs:  q_new = Dq_a * q_old =  q_old * Dq_l  )
     ChQuaternion<> q_old(x.segment(off_x + 3, 4));
-    ChQuaternion<> rel_q; rel_q.Q_from_Rotv(Dv.segment(off_v + 3, 3));
+    ChQuaternion<> rel_q;
+    rel_q.SetFromRotVec(Dv.segment(off_v + 3, 3));
     ChQuaternion<> q_new = q_old * rel_q;
     x_new.segment(off_x + 3, 4) = q_new.eigen();
 }
@@ -132,7 +133,7 @@ void ChNodeFEAxyzrot::NodeIntStateGetIncrement(const unsigned int off_x,
     ChQuaternion<> q_old(x.segment(off_x + 3, 4));
     ChQuaternion<> q_new(x_new.segment(off_x + 3, 4));
     ChQuaternion<> rel_q = q_old.GetConjugate() % q_new;
-    Dv.segment(off_v + 3, 3) = rel_q.Q_to_Rotv().eigen();
+    Dv.segment(off_v + 3, 3) = rel_q.GetRotVec().eigen();
 }
 
 void ChNodeFEAxyzrot::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
@@ -239,7 +240,7 @@ void ChNodeFEAxyzrot::VariablesQbIncrementPosition(double step) {
     ChVector3d newwel_abs = this->Amatrix * newwel;
     double mangle = newwel_abs.Length() * step;
     newwel_abs.Normalize();
-    mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
+    mdeltarot.SetFromAngleAxis(mangle, newwel_abs);
     ChQuaternion<> mnewrot = mdeltarot % moldrot;
     this->SetRot(mnewrot);
 }

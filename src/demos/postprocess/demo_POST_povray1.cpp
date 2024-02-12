@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
 
     // ==Asset== Attach also a 'cylinder' shape
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.7);
-    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
+    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(2, 0.15, 0), QuatFromAngleX(CH_C_PI_2)));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
                          ChFrame<>(ChVector3d(2, -0.2, 0), QUNIT));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     for (int j = 0; j < 20; j++) {
         auto smallbox = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.2, 0.02);
         smallbox->SetColor(ChColor(j * 0.05f, 1 - j * 0.05f, 0.0f));
-        ChMatrix33<> rot(Q_from_AngY(j * 21 * CH_C_DEG_TO_RAD));
+        ChMatrix33<> rot(QuatFromAngleY(j * 21 * CH_C_DEG_TO_RAD));
         ChVector3d pos = rot * ChVector3d(0.4, 0, 0) + ChVector3d(0, j * 0.02, 0);
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }

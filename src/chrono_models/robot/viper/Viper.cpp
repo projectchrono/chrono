@@ -30,7 +30,6 @@
 #include <cmath>
 
 #include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChTexture.h"
@@ -38,6 +37,7 @@
 
 #include "chrono/motion_functions/ChFunctionSetpoint.h"
 
+#include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
@@ -235,8 +235,7 @@ void ViperPart::Construct(ChSystem* system) {
         trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
         trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
-        auto shape =
-            chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh_col, false, false, 0.005);
+        auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh_col, false, false, 0.005);
         m_body->AddCollisionShape(shape);
         m_body->SetCollide(m_collide);
     }
@@ -400,8 +399,8 @@ void Viper::Create(ViperWheelType wheel_type) {
     m_wheels[V_RB] = chrono_types::make_shared<ViperWheel>("wheel_RB", ChFrame<>(ChVector3d(-wx, -wy, wz), QUNIT),
                                                            m_wheel_material, wheel_type);
 
-    m_wheels[V_LF]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
-    m_wheels[V_LB]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
+    m_wheels[V_LF]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI));
+    m_wheels[V_LB]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI));
 
     // create rover upper and lower suspension arms
     double cr_lx = 0.5618 + 0.08;
@@ -518,22 +517,22 @@ void Viper::Initialize(const ChFrame<>& pos) {
     // A positive steering input results in positive (left) front wheel steering and negative (right) rear wheel
     // steering.
     ChQuaternion<> sm_rot[] = {
-        QUNIT,                 // LF
-        QUNIT,                 // RF
-        Q_from_AngX(CH_C_PI),  // LB
-        Q_from_AngX(CH_C_PI)   // RB
+        QUNIT,                    // LF
+        QUNIT,                    // RF
+        QuatFromAngleX(CH_C_PI),  // LB
+        QuatFromAngleX(CH_C_PI)   // RB
     };
 
     // Orientation of lift motors.
     // A positive lifting input results in rasing the chassis relative to the wheels.
     ChQuaternion<> lm_rot[] = {
-        QUNIT,                 // LF
-        Q_from_AngX(CH_C_PI),  // RF
-        QUNIT,                 // LB
-        Q_from_AngX(CH_C_PI)   // RB
+        QUNIT,                    // LF
+        QuatFromAngleX(CH_C_PI),  // RF
+        QUNIT,                    // LB
+        QuatFromAngleX(CH_C_PI)   // RB
     };
 
-    ChQuaternion<> z2x = Q_from_AngY(CH_C_PI_2);
+    ChQuaternion<> z2x = QuatFromAngleY(CH_C_PI_2);
 
     for (int i = 0; i < 4; i++) {
         AddUniversalJoint(m_lower_arms[i]->GetBody(), m_uprights[i]->GetBody(), m_chassis, sr_rel_pos_lower[i], QUNIT);
@@ -552,7 +551,7 @@ void Viper::Initialize(const ChFrame<>& pos) {
         m_system->Add(steer_rod);
 
         ChQuaternion<> z2y;
-        z2y.Q_from_AngAxis(CH_C_PI / 2, ChVector3d(1, 0, 0));
+        z2y.SetFromAngleX(CH_C_PI_2);
 
         switch (m_driver->GetDriveMotorType()) {
             case ViperDriver::DriveMotorType::SPEED:

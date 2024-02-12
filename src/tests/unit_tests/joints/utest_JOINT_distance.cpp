@@ -107,7 +107,8 @@ int main(int argc, char* argv[]) {
     // pendulum to ground (Double Pendulum).
 
     test_name = "Distance_Case03";
-    TestDistance(ChVector3d(0, 0, 0), ChVector3d(0, 2, 0), ChCoordsys<>(ChVector3d(0, 4, 0), Q_from_AngZ(-CH_C_PI_2)),
+    TestDistance(ChVector3d(0, 0, 0), ChVector3d(0, 2, 0),
+                 ChCoordsys<>(ChVector3d(0, 4, 0), QuatFromAngleZ(-CH_C_PI_2)),
                  sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-4);

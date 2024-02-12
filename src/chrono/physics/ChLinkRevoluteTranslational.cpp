@@ -79,9 +79,9 @@ void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
     m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
 
-    ChVector3d x_axis = csys.rot.GetXaxis();
-    ChVector3d y_axis = csys.rot.GetYaxis();
-    ChVector3d z_axis = csys.rot.GetZaxis();
+    ChVector3d x_axis = csys.rot.GetAxisX();
+    ChVector3d y_axis = csys.rot.GetAxisY();
+    ChVector3d z_axis = csys.rot.GetAxisZ();
 
     m_p1 = Body1->TransformPointParentToLocal(csys.pos);
     m_z1 = Body1->TransformDirectionParentToLocal(z_axis);

@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
 
                     // ChVector3d p = {10 * (float)rand() - 5, 10 * (float)rand() - 5, 10 * (float)rand() - 5};
 
-                    ChQuaternion<> quat = Q_from_AngAxis(p.Length(), {0, 0, 1});
+                    ChQuaternion<> quat = QuatFromAngleAxis(p.Length(), {0, 0, 1});
 
                     ChFrame<> f = ChFrame<>(p, quat);
 
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
         auto cam = std::make_shared<ChCameraSensor>(
             cam_body,                                                            // body camera is attached to
             60.0f,                                                               // update rate in Hz
-            chrono::ChFrame<double>({-10, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+            chrono::ChFrame<double>({-10, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
             1920,                                                                // image width
             1080,                                                                // image height
             (float)CH_C_PI / 3, 1, CameraLensModelType::PINHOLE, true            // FOV
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
         while (ch_time < end_time) {
             cam->SetOffsetPose(chrono::ChFrame<double>(
                 {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 1},
-                Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
+                QuatFromAngleAxis(ch_time * orbit_rate, {0, 0, 1})));
 
             manager->Update();
             sys.DoStepDynamics(0.001);

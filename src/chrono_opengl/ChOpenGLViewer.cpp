@@ -314,7 +314,7 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
         auto rot = X_SA.GetRot();
         double angle;
         ChVector3d axis;
-        rot.Q_to_AngAxis(angle, axis);
+        rot.GetAngleAxis(angle, axis);
 
         if (ChVisualShapeSphere* sphere_shape = dynamic_cast<ChVisualShapeSphere*>(shape.get())) {
             double radius = sphere_shape->GetRadius();

@@ -373,7 +373,7 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
 
         sysFSI.AddFsiBody(wheel_body);
         if (i == 0 || i == 2) {
-            sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI)), true);
+            sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI)), true);
         } else {
             sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, QUNIT), true);
         }
@@ -456,7 +456,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
         if (i == 0 || i == 2) {
-            body_rot.Cross(body_rot, Q_from_AngZ(CH_C_PI));
+            body_rot.Cross(body_rot, QuatFromAngleZ(CH_C_PI));
         }
 
         auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();

@@ -209,7 +209,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
 
     // Cache patch parameters
     patch->m_location = position.pos;
-    patch->m_normal = position.rot.GetZaxis();
+    patch->m_normal = position.rot.GetAxisZ();
     patch->m_hlength = length / 2;
     patch->m_hwidth = width / 2;
     patch->m_hthickness = thickness / 2;

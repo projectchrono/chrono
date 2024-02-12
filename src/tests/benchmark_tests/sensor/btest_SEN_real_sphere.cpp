@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     auto cam = std::make_shared<ChCameraSensor>(
         sphere2,                                                            // body camera is attached to
         20.0f,                                                              // update rate in Hz
-        chrono::ChFrame<double>({-4, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({-4, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         800,                                                                // image width
         800,                                                                // image height
         (float)CH_C_PI / 4                                                  // FOV
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
     while (sys.GetChTime() < end_time) {
         // cam->SetOffsetPose(chrono::ChFrame<double>(
         //     {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 1},
-        //     Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
+        //     QuatFromAngleAxis(ch_time * orbit_rate, {0, 0, 1})));
 
         manager->Update();
         sys.DoStepDynamics(0.001);

@@ -33,7 +33,7 @@ class MyObstacle {
     void AddVisualization(std::shared_ptr<ChBody> body) {
         auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 1.1);
         cyl->SetColor(ChColor(0.6f, 0.3f, 0.0f));
-        body->AddVisualShape(cyl, ChFrame<>(center + ChVector3d(0, 0.55, 0), Q_from_AngX(CH_C_PI_2)));
+        body->AddVisualShape(cyl, ChFrame<>(center + ChVector3d(0, 0.55, 0), QuatFromAngleX(CH_C_PI_2)));
     }
 
     double radius;

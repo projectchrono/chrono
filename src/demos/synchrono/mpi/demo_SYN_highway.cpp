@@ -265,8 +265,8 @@ int main(int argc, char* argv[]) {
 
         // Rotations to get a nice angle
         ChQuaternion<> rotation = QUNIT;
-        ChQuaternion<> qA = Q_from_AngAxis(30 * CH_C_DEG_TO_RAD, VECT_Y);
-        ChQuaternion<> qB = Q_from_AngAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
+        ChQuaternion<> qA = QuatFromAngleAxis(30 * CH_C_DEG_TO_RAD, VECT_Y);
+        ChQuaternion<> qB = QuatFromAngleAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
         rotation = rotation >> qA >> qB;
 
         intersection_camera = chrono_types::make_shared<chrono::sensor::ChCameraSensor>(
@@ -343,8 +343,8 @@ int main(int argc, char* argv[]) {
             // Move the camera parallel to the vehicle as it goes down the road
             camera_loc += ChVector3d(0, step_size * 7, 0);
             ChQuaternion<> rotation = QUNIT;
-            ChQuaternion<> qA = Q_from_AngAxis(30 * CH_C_DEG_TO_RAD, VECT_Y);
-            ChQuaternion<> qB = Q_from_AngAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
+            ChQuaternion<> qA = QuatFromAngleAxis(30 * CH_C_DEG_TO_RAD, VECT_Y);
+            ChQuaternion<> qB = QuatFromAngleAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
             rotation = rotation >> qA >> qB;
             intersection_camera->SetOffsetPose(chrono::ChFrame<double>(camera_loc, rotation));
         }
@@ -404,7 +404,7 @@ ChCoordsys<> GetVehicleConfig(int node_id,
             tire = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
             zombie = synchrono::GetDataFile("vehicle/Sedan.json");
             initLoc = ChVector3d(2.8, -70, 0.2);
-            initRot = Q_from_AngZ(90 * CH_C_DEG_TO_RAD);
+            initRot = QuatFromAngleZ(90 * CH_C_DEG_TO_RAD);
             cam_distance = 6.0;
             break;
         case 1:
@@ -414,7 +414,7 @@ ChCoordsys<> GetVehicleConfig(int node_id,
             tire = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
             zombie = synchrono::GetDataFile("vehicle/Sedan.json");
             initLoc = ChVector3d(2.8, -40, 0.2);
-            initRot = Q_from_AngZ(90 * CH_C_DEG_TO_RAD);
+            initRot = QuatFromAngleZ(90 * CH_C_DEG_TO_RAD);
             cam_distance = 6.0;
             break;
         case 2:
@@ -424,7 +424,7 @@ ChCoordsys<> GetVehicleConfig(int node_id,
             tire = vehicle::GetDataFile("citybus/tire/CityBus_TMeasyTire.json");
             zombie = synchrono::GetDataFile("vehicle/CityBus.json");
             initLoc = ChVector3d(6.4, 0, 0.2);
-            initRot = Q_from_AngZ(90 * CH_C_DEG_TO_RAD);
+            initRot = QuatFromAngleZ(90 * CH_C_DEG_TO_RAD);
             cam_distance = 14.0;
             break;
         default:
@@ -445,7 +445,7 @@ ChCoordsys<> GetVehicleConfig(int node_id,
                 initLoc = ChVector3d(-6.4, 70.0 - (node_id - 4.0) * 30, 0.2);
                 cam_distance = 14.0;
             }
-            initRot = Q_from_AngZ(-90 * CH_C_DEG_TO_RAD);
+            initRot = QuatFromAngleZ(-90 * CH_C_DEG_TO_RAD);
     }
 
     return ChCoordsys<>(initLoc, initRot);

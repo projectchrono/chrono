@@ -347,7 +347,8 @@ int main(int argc, char* argv[]) {
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName("Trees");
         trimesh_shape->SetMutable(false);
-        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI_2)));
+        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape,
+                                                           ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI_2)));
     }
 
     // ------------------------
@@ -388,7 +389,7 @@ int main(int argc, char* argv[]) {
     manager->scene->SetBackground(b);
 
     // Create a camera that's placed on the hood
-    chrono::ChFrame<double> offset_pose({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0}));
+    chrono::ChFrame<double> offset_pose({-8, 0, 3}, QuatFromAngleY(0.2));
     auto cam = chrono_types::make_shared<ChCameraSensor>(hmmwv.GetChassisBody(),  // body camera is attached to
                                                          30,                      // update rate in Hz
                                                          offset_pose,             // offset pose

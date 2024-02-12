@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     double tire_rad = 0.8;
     double tire_vel_z0 = -3;
     ChVector3d tire_center(0, 0.02 + tire_rad, 0.5);
-    ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y));  // create rotated 180° on y
+    ChMatrix33<> tire_alignment(QuatFromAngleY(CH_C_PI));  // create rotated 180 deg on y
 
     double tire_w0 = tire_vel_z0 / tire_rad;
 
@@ -86,9 +86,9 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < 50; ++i) {
             auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.25, 0.2, 0.25, 2700, true, true, mysurfmaterial);
             ChQuaternion<> vrot;
-            vrot.Q_from_AngAxis(ChRandom() * CH_C_2PI, VECT_Y);
+            vrot.SetFromAngleY(ChRandom() * CH_C_2PI);
             mcube->Move(ChCoordsys<>(VNULL, vrot));
-            vrot.Q_from_AngAxis((ChRandom() - 0.5) * 2 * CH_C_DEG_TO_RAD * 20,
+            vrot.SetFromAngleAxis((ChRandom() - 0.5) * 2 * CH_C_DEG_TO_RAD * 20,
                                 ChVector3d(ChRandom() - 0.5, 0, ChRandom() - 0.5).Normalize());
             mcube->Move(ChCoordsys<>(VNULL, vrot));
             mcube->SetPos(ChVector3d((ChRandom() - 0.5) * 1.8, ChRandom() * 0.1, -ChRandom() * 3.2 + 0.9));
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < 150; ++i) {
             auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.18, 0.04, 0.18, 2700, true, true, mysurfmaterial2);
             ChQuaternion<> vrot;
-            vrot.Q_from_AngAxis(ChRandom() * CH_C_2PI, VECT_Y);
+            vrot.SetFromAngleY(ChRandom() * CH_C_2PI);
             mcube->Move(ChCoordsys<>(VNULL, vrot));
             mcube->SetPos(ChVector3d((ChRandom() - 0.5) * 1.4, ChRandom() * 0.2 + 0.05, -ChRandom() * 2.6 + 0.2));
             sys.Add(mcube);

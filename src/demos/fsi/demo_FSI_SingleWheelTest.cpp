@@ -90,9 +90,7 @@ bool verbose = true;
 //------------------------------------------------------------------
 // Function to save wheel to Paraview VTK files
 //------------------------------------------------------------------
-void WriteWheelVTK(const std::string& filename,
-                   ChTriangleMeshConnected& mesh,
-                   const ChFrame<>& frame) {
+void WriteWheelVTK(const std::string& filename, ChTriangleMeshConnected& mesh, const ChFrame<>& frame) {
     std::ofstream outf;
     outf.open(filename);
     outf << "# vtk DataFile Version 2.0" << std::endl;
@@ -128,7 +126,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     cmaterial->SetFriction(0.9f);
     cmaterial->SetRestitution(0.4f);
     cmaterial->SetAdhesion(0);
-    
+
     // Create a container -- always FIRST body in the system
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
@@ -138,7 +136,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     chrono::utils::AddBoxContainer(ground, cmaterial,                              //
                                    ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                                    ChVector3d(bxDim, byDim, bzDim), 0.1,           //
-                                   ChVector3i(0, 0, -1),                        //
+                                   ChVector3i(0, 0, -1),                           //
                                    false);
     ground->SetCollide(true);
 
@@ -168,7 +166,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Set the abs orientation, position and velocity
     auto wheel = chrono_types::make_shared<ChBodyAuxRef>();
-    ChQuaternion<> wheel_Rot = Q_from_Euler123(ChVector3d(0, 0, 0));
+    ChQuaternion<> wheel_Rot = QUNIT;
 
     // Set the COG coordinates to barycenter, without displacing the REF reference.
     // Make the COG frame a principal frame.
@@ -219,7 +217,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Connect the chassis to the containing bin (ground) through a translational joint and create a linear actuator.
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic1->Initialize(ground, chassis, ChCoordsys<>(chassis->GetPos(), Q_from_AngY(CH_C_PI_2)));
+    prismatic1->Initialize(ground, chassis, ChCoordsys<>(chassis->GetPos(), QuatFromAngleY(CH_C_PI_2)));
     prismatic1->SetName("prismatic_chassis_ground");
     sysMBS.AddLink(prismatic1);
 
@@ -241,8 +239,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Connect the wheel to the axle through a engine joint.
     motor->SetName("engine_wheel_axle");
-    motor->Initialize(wheel, axle, ChFrame<>(wheel->GetPos(), 
-        chrono::Q_from_AngAxis(-CH_C_PI / 2.0, ChVector3d(1, 0, 0))));
+    motor->Initialize(wheel, axle, ChFrame<>(wheel->GetPos(), chrono::QuatFromAngleX(-CH_C_PI_2)));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, wheel_AngVel));
     sysMBS.AddLink(motor);
 }

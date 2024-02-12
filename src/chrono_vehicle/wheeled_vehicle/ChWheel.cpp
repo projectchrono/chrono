@@ -136,7 +136,8 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     if (vis == VisualizationType::MESH && !m_vis_mesh_file.empty()) {
-        ChQuaternion<> rot = (m_side == VehicleSide::LEFT) ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
+        ChQuaternion<> rot =
+            (m_side == VehicleSide::LEFT) ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_C_PI);
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
                                                                                   true, true);
         m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

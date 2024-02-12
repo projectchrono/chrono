@@ -68,7 +68,7 @@ void ChFunctionRotationSetpoint::SetSetpoint(ChQuaternion<> q_setpoint, double s
     if (mode == FOH) {
         double ds = s - last_S;
         if (ds > 0) {
-            W = (last_Q.GetConjugate() * Q).Q_to_Rotv() / ds;
+            W = (last_Q.GetConjugate() * Q).GetRotVec() / ds;
             A = 0;
         }
     }
@@ -88,7 +88,7 @@ ChQuaternion<> ChFunctionRotationSetpoint::Get_q(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return Q;
     ChQuaternion<> dQ;
-    dQ.Q_from_Rotv(W * (s - S));  // + A * pow((s - S), 2)); //// TO DO - intrinsic W and A, but rotation Q might have
+    dQ.SetFromRotVec(W * (s - S));  // + A * pow((s - S), 2)); //// TO DO - intrinsic W and A, but rotation Q might have
                                   // changed too much.. require better formula?
     return Q * dQ;
 }

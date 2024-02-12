@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     auto lidar1 = std::make_shared<ChLidarSensor>(
         floor,                                                             // body lidar is attached to
         10.0f,                                                             // scanning rate in Hz
-        chrono::ChFrame<double>({0, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
         1,                                                                 // horizontal field of view
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     auto lidar2 = chrono_types::make_shared<ChLidarSensor>(
         floor,                                                             // body lidar is attached to
         10.0f,                                                             // scanning rate in Hz
-        chrono::ChFrame<double>({0, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
         1.f,                                                               // horizontal field of view
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     auto lidar3 = chrono_types::make_shared<ChLidarSensor>(
         floor,                                                             // body lidar is attached to
         10.0f,                                                             // scanning rate in Hz
-        chrono::ChFrame<double>({0, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
         1.f,                                                               // horizontal field of view

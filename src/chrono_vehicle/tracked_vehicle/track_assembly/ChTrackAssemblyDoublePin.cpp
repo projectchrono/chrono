@@ -286,8 +286,8 @@ void ChTrackAssemblyDoublePin::CreateTrackShoe(std::shared_ptr<ChBodyAuxRef> cha
 
     // Body orientation (relative to chassis frame)
     // Note that the angle sign must be flipped (x->y positive in 2D, but x->z negative in 3D)
-    ChQuaternion<> rot_shoe = Q_from_AngY(-as);
-    ChQuaternion<> rot_connector = Q_from_AngY(-ac);
+    ChQuaternion<> rot_shoe = QuatFromAngleY(-as);
+    ChQuaternion<> rot_connector = QuatFromAngleY(-ac);
 
     // Initialize the track shoe system
     m_shoes[index]->Initialize(chassis, loc_shoe, rot_shoe, loc_connector_L, loc_connector_R, rot_connector);

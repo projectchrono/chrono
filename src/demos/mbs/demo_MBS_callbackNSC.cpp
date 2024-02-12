@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddCamera(ChVector3d(4, 4, -6));
             vis_irr->AddTypicalLights();
-            vis_irr->AddGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
+            vis_irr->AddGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2)),
                              ChColor(1, 0, 0));
 
             vis = vis_irr;
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
             vis_vsg->SetWireFrameMode(false);
-            vis_vsg->AddGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
+            vis_vsg->AddGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2)),
                              ChColor(1, 0, 0));
             vis_vsg->Initialize();
 

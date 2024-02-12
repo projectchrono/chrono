@@ -2038,7 +2038,7 @@ CH_FACTORY_REGISTER(ChLinkLockLock)
 
 ChLinkLockLock::ChLinkLockLock()
     : motion_axis(VECT_Z),
-      angleset(ChRotation::Representation::ANGLE_AXIS),
+      angleset(RotRepresentation::ANGLE_AXIS),
       relC(CSYSNORM),
       relC_dt(CSYSNULL),
       relC_dtdt(CSYSNULL),
@@ -2106,12 +2106,10 @@ void ChLinkLockLock::SetMotion_axis(ChVector3d m_axis) {
     motion_axis = m_axis;
 }
 
-void ChLinkLockLock::SetRotationRepresentation(ChRotation::Representation rot_rep) {
-    if (rot_rep != ChRotation::Representation::ANGLE_AXIS ||
-        rot_rep != ChRotation::Representation::EULER_ANGLES_ZXZ ||
-        rot_rep != ChRotation::Representation::CARDAN_ANGLES_XYZ ||
-        rot_rep != ChRotation::Representation::CARDAN_ANGLES_ZXY ||
-        rot_rep != ChRotation::Representation::CARDAN_ANGLES_ZYX) {
+void ChLinkLockLock::SetRotationRepresentation(RotRepresentation rot_rep) {
+    if (rot_rep != RotRepresentation::ANGLE_AXIS || rot_rep != RotRepresentation::EULER_ANGLES_ZXZ ||
+        rot_rep != RotRepresentation::CARDAN_ANGLES_XYZ || rot_rep != RotRepresentation::CARDAN_ANGLES_ZXY ||
+        rot_rep != RotRepresentation::CARDAN_ANGLES_ZYX) {
         std::cerr << "Unknown input rotation representation" << std::endl;
         throw std::runtime_error("Unknown input rotation representation");
         return;
@@ -2153,25 +2151,25 @@ void ChLinkLockLock::UpdateTime(double time) {
     deltaC_dtdt.pos.z() = motion_Z->Get_y_dxdx(time);
 
     switch (angleset) {
-        case ChRotation::Representation::ANGLE_AXIS:
+        case RotRepresentation::ANGLE_AXIS:
             ang = motion_ang->Get_y(time);
             ang_dt = motion_ang->Get_y_dx(time);
             ang_dtdt = motion_ang->Get_y_dxdx(time);
 
             if ((ang != 0) || (ang_dt != 0) || (ang_dtdt != 0)) {
-                deltaC.rot = Q_from_AngAxis(ang, motion_axis);
-                deltaC_dt.rot = Qdt_from_AngAxis(deltaC.rot, ang_dt, motion_axis);
-                deltaC_dtdt.rot = Qdtdt_from_AngAxis(ang_dtdt, motion_axis, deltaC.rot, deltaC_dt.rot);
+                deltaC.rot = QuatFromAngleAxis(ang, motion_axis);
+                deltaC_dt.rot = QuatDerFromAngleAxis(deltaC.rot, ang_dt, motion_axis);
+                deltaC_dtdt.rot = QuatDer2FromAngleAxis(ang_dtdt, motion_axis, deltaC.rot, deltaC_dt.rot);
             } else {
                 deltaC.rot = QUNIT;
                 deltaC_dt.rot = QNULL;
                 deltaC_dtdt.rot = QNULL;
             }
             break;
-        case ChRotation::Representation::EULER_ANGLES_ZXZ:
-        case ChRotation::Representation::CARDAN_ANGLES_ZXY:
-        case ChRotation::Representation::CARDAN_ANGLES_ZYX:
-        case ChRotation::Representation::CARDAN_ANGLES_XYZ: {
+        case RotRepresentation::EULER_ANGLES_ZXZ:
+        case RotRepresentation::CARDAN_ANGLES_ZXY:
+        case RotRepresentation::CARDAN_ANGLES_ZYX:
+        case RotRepresentation::CARDAN_ANGLES_XYZ: {
             ChVector3d vangles, vangles_dt, vangles_dtdt;
             vangles.x() = motion_ang->Get_y(time);
             vangles.y() = motion_ang2->Get_y(time);
@@ -2182,9 +2180,9 @@ void ChLinkLockLock::UpdateTime(double time) {
             vangles_dtdt.x() = motion_ang->Get_y_dxdx(time);
             vangles_dtdt.y() = motion_ang2->Get_y_dxdx(time);
             vangles_dtdt.z() = motion_ang3->Get_y_dxdx(time);
-            deltaC.rot = ChRotation::AngleSetToQuaternion(angleset, vangles);
-            deltaC_dt.rot = ChRotation::AngleSetToQuaternionDer(angleset, vangles_dt, deltaC.rot);
-            deltaC_dtdt.rot = ChRotation::AngleSetToQuaternionDer2(angleset, vangles_dtdt, deltaC.rot);
+            deltaC.rot = QuatFromAngleSet({angleset, vangles});
+            deltaC_dt.rot = QuatDerFromAngleSet({angleset, vangles_dt}, deltaC.rot);
+            deltaC_dtdt.rot = QuatDer2FromAngleSet({angleset, vangles_dtdt}, deltaC.rot);
             break;
         }
         default:
@@ -2423,18 +2421,18 @@ void ChLinkLockLock::UpdateState() {
 }
 
 // To avoid putting the following mapper macro inside the class definition,
-// enclose macros in local 'ChLinkLockLock_RotationRepresentation_enum_mapper'.
-class ChLinkLockLock_RotationRepresentation_enum_mapper : public ChLinkLockLock {
+// enclose macros in local 'ChLinkLockLock_RotRep_enum_mapper'.
+class ChLinkLockLock_RotRep_enum_mapper : public ChLinkLockLock {
   public:
-    typedef ChRotation::Representation ChRotationRepresentation;
+    typedef RotRepresentation ChRotationRepresentation;
 
     CH_ENUM_MAPPER_BEGIN(ChRotationRepresentation);
-    CH_ENUM_VAL(ChRotation::Representation::ANGLE_AXIS);
-    CH_ENUM_VAL(ChRotation::Representation::EULER_ANGLES_ZXZ);
-    CH_ENUM_VAL(ChRotation::Representation::CARDAN_ANGLES_ZXY);
-    CH_ENUM_VAL(ChRotation::Representation::CARDAN_ANGLES_ZYX);
-    CH_ENUM_VAL(ChRotation::Representation::CARDAN_ANGLES_XYZ);
-    CH_ENUM_VAL(ChRotation::Representation::RODRIGUEZ);
+    CH_ENUM_VAL(RotRepresentation::ANGLE_AXIS);
+    CH_ENUM_VAL(RotRepresentation::EULER_ANGLES_ZXZ);
+    CH_ENUM_VAL(RotRepresentation::CARDAN_ANGLES_ZXY);
+    CH_ENUM_VAL(RotRepresentation::CARDAN_ANGLES_ZYX);
+    CH_ENUM_VAL(RotRepresentation::CARDAN_ANGLES_XYZ);
+    CH_ENUM_VAL(RotRepresentation::RODRIGUEZ);
     CH_ENUM_MAPPER_END(ChRotationRepresentation);
 };
 
@@ -2476,7 +2474,7 @@ void ChLinkLockLock::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(motion_ang3);
     marchive << CHNVP(motion_axis);
 
-    ChLinkLockLock_RotationRepresentation_enum_mapper::ChRotationRepresentation_mapper setmapper;
+    ChLinkLockLock_RotRep_enum_mapper::ChRotationRepresentation_mapper setmapper;
     marchive << CHNVP(setmapper(angleset), "angle_set");
 }
 
@@ -2518,7 +2516,7 @@ void ChLinkLockLock::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(motion_ang3);
     marchive >> CHNVP(motion_axis);
 
-    ChLinkLockLock_RotationRepresentation_enum_mapper::ChRotationRepresentation_mapper setmapper;
+    ChLinkLockLock_RotRep_enum_mapper::ChRotationRepresentation_mapper setmapper;
     marchive >> CHNVP(setmapper(angleset), "angle_set");
 }
 

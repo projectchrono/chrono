@@ -154,7 +154,7 @@ void CreateCylinders(ChSystemSMC& sys) {
 
     auto c2 = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 2.0, 4.0, 1, mat);
     c2->SetPos(ChVector3d(0, 0, 3));
-    c2->SetRot(Q_from_AngZ(CH_C_PI / 4));
+    c2->SetRot(QuatFromAngleZ(CH_C_PI / 4));
     c2->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.7f));
     c2->GetCollisionModel()->SetFamily(1);
     c2->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
@@ -278,7 +278,7 @@ int main(int argc, char* argv[]) {
     CreateShapes(sys);
 
     // Cast rays in collision models (in Z direction of specified frame)
-    RayCaster caster(&sys, ChFrame<>(ChVector3d(0, 0, -20), Q_from_AngX(0)), ChVector2d(10, 10), 0.5);
+    RayCaster caster(&sys, ChFrame<>(ChVector3d(0, 0, -20), QUNIT), ChVector2d(10, 10), 0.5);
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();

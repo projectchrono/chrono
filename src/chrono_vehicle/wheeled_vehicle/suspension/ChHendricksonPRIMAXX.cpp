@@ -241,9 +241,8 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
 
     m_revoluteKingpin[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteKingpin[side]->SetNameString(m_name + "_revoluteKingpin" + suffix);
-    m_revoluteKingpin[side]->Initialize(
-        m_axlehousing, m_knuckle[side],
-        ChCoordsys<>((points[KNUCKLE_U] + points[KNUCKLE_L]) / 2, rot.GetQuaternion()));
+    m_revoluteKingpin[side]->Initialize(m_axlehousing, m_knuckle[side],
+                                        ChCoordsys<>((points[KNUCKLE_U] + points[KNUCKLE_L]) / 2, rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_revoluteKingpin[side]);
 
     // Create and initialize the spherical joint between axle housing and torque rod.
@@ -259,21 +258,21 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_sphericalLowerbeam[side]);
 
     // Create and initialize the revolute joint between chassis and torque rod.
-    ChCoordsys<> revTR_csys(points[TORQUEROD_C], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> revTR_csys(points[TORQUEROD_C], chassisRot * QuatFromAngleX(CH_C_PI_2));
     m_revoluteTorquerod[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteTorquerod[side]->SetNameString(m_name + "_revoluteTorquerod" + suffix);
     m_revoluteTorquerod[side]->Initialize(chassis->GetBody(), m_torquerod[side], revTR_csys);
     chassis->GetSystem()->AddLink(m_revoluteTorquerod[side]);
 
     // Create and initialize the revolute joint between chassis and lower beam.
-    ChCoordsys<> revLB_csys(points[LOWERBEAM_C], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> revLB_csys(points[LOWERBEAM_C], chassisRot * QuatFromAngleX(CH_C_PI_2));
     m_revoluteLowerbeam[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteLowerbeam[side]->SetNameString(m_name + "_revoluteLowerbeam" + suffix);
     m_revoluteLowerbeam[side]->Initialize(chassis->GetBody(), m_lowerbeam[side], revLB_csys);
     chassis->GetSystem()->AddLink(m_revoluteLowerbeam[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * QuatFromAngleX(CH_C_PI_2));
 
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
@@ -297,7 +296,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     if (UseTierodBodies()) {
         // Orientation of tierod body
         w = (points[TIEROD_K] - points[TIEROD_C]).GetNormalized();
-        u = chassisRot.GetXaxis();
+        u = chassisRot.GetAxisX();
         v = Vcross(w, u).GetNormalized();
         u = Vcross(v, w);
         rot.SetFromDirectionAxes(u, v, w);
@@ -500,7 +499,8 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
         }
     } else {
         std::cout << "Tierod distance       ";
-        std::cout << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
+        std::cout << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance()
+                  << "\n";
     }
 }
 

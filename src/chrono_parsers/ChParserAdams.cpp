@@ -215,7 +215,7 @@ void parseADMMarker(std::string ID, std::vector<std::pair<int, std::string>>& to
 }
 
 ChQuaternion<> Q_from_313_angles(double q1, double q2, double q3) {
-    return ChQuaternion<>(Q_from_AngZ(q1) * Q_from_AngX(q2) * Q_from_AngZ(q3));
+    return ChQuaternion<>(QuatFromAngleZ(q1) * QuatFromAngleX(q2) * QuatFromAngleZ(q3));
 }
 
 // -----------------------------------------------------------------------------

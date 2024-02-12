@@ -165,15 +165,16 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        tools::drawGrid(vis.get(), 2, 2, 20, 20, ChCoordsys<>(ChVector3d(0, -20, 0), Q_from_AngX(CH_C_PI_2)),
+        tools::drawGrid(vis.get(), 2, 2, 20, 20,
+                        ChCoordsys<>(ChVector3d(0, -20, 0), QuatFromAngleX(CH_C_PI_2)),
                         ChColor(0.3f, 0.5f, 0.5f), true);
 
         // Update the position of the spinning fan (an Irrlicht
         // node, which is here just for aesthetical reasons!)
         ChQuaternion<> my_fan_rotation;
-        my_fan_rotation.Q_from_AngY(sys.GetChTime() * -0.5);
+        my_fan_rotation.SetFromAngleY(sys.GetChTime() * -0.5);
         ChQuaternion<> my_fan_spin;
-        my_fan_spin.Q_from_AngZ(sys.GetChTime() * 4);
+        my_fan_spin.SetFromAngleZ(sys.GetChTime() * 4);
         ChCoordsys<> my_fan_coord(ChVector3d(12, -6, 0), my_fan_rotation);
         ChFrame<> my_fan_framerotation(my_fan_coord);
         ChFrame<> my_fan_framespin(ChCoordsys<>(VNULL, my_fan_spin));

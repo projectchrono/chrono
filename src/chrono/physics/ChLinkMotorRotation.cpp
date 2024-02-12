@@ -93,7 +93,7 @@ void ChLinkMotorRotation::Update(double mytime, bool update_assets) {
     double last_totrot = this->mrot;
     double last_rot = remainder(last_totrot, CH_C_2PI);
     double last_turns = last_totrot - last_rot;
-    double new_rot = remainder(aframe12.GetRot().Q_to_Rotv().z(), CH_C_2PI);
+    double new_rot = remainder(aframe12.GetRot().GetRotVec().z(), CH_C_2PI);
     this->mrot = last_turns + new_rot;
     if (fabs(new_rot + CH_C_2PI - last_rot) < fabs(new_rot - last_rot))
         this->mrot = last_turns + new_rot + CH_C_2PI;

@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     // Attach visualization assets.
     auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 1.92);
     cyl_p->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
 
     auto sph_p = chrono_types::make_shared<ChVisualShapeSphere>(0.04);
     sph_p->SetColor(ChColor(0.6f, 0, 0));

@@ -92,7 +92,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
 
     /// Set the plane reference.
     /// By default, the reference plane is horizontal with Z up (ISO vehicle reference frame).
-    /// To set as Y up, call SetPlane(ChCoordys(VNULL, Q_from_AngX(-CH_C_PI_2)));
+    /// To set as Y up, call SetPlane(ChCoordys(VNULL, QuatFromAngleX(-CH_C_PI_2)));
     void SetPlane(const ChCoordsys<>& plane);
 
     /// Get the current reference plane.

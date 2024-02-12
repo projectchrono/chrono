@@ -192,24 +192,24 @@ int main(int argc, char* argv[]) {
         if (node_id % 2 == 0) {
             // Start even vehicles in a row on the south side, driving north
             init_loc = ChVector3d(0, 3.0 * (node_id + 1), 0.5);
-            init_rot = Q_from_AngZ(0);
+            init_rot = QuatFromAngleZ(0);
             path = StraightLinePath(init_loc, init_loc + ChVector3d(pathLength, 0, 0));
         } else {
             // Start odd vehicles in a row on the north side, driving south
             init_loc = ChVector3d(20.0, 3.0 * (node_id - 1), 0.5);
-            init_rot = Q_from_AngZ(CH_C_PI);
+            init_rot = QuatFromAngleZ(CH_C_PI);
             path = StraightLinePath(init_loc, init_loc - ChVector3d(pathLength, 0, 0));
         }
     } else {
         if (node_id % 2 == 0) {
             // Start even vehicles in a row on the south side, driving north
             init_loc = ChVector3d(0, 2.0 * (node_id + 1), 0.5);
-            init_rot = Q_from_AngZ(0);
+            init_rot = QuatFromAngleZ(0);
             path = StraightLinePath(init_loc, init_loc + ChVector3d(pathLength, 0, 0));
         } else {
             // Start odd vehicles staggered going up the west edge, driving east
             init_loc = ChVector3d(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
-            init_rot = Q_from_AngZ(CH_C_PI / 2);
+            init_rot = QuatFromAngleZ(CH_C_PI / 2);
             path = StraightLinePath(init_loc, init_loc + ChVector3d(0, pathLength, 0));
         }
     }

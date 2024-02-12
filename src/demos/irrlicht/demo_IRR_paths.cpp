@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(3, 0.2, 3, 1000, true, false);
     floor->SetBodyFixed(true);
-    // floor->SetRot(Q_from_AngAxis(0.1,VECT_Z));
+    // floor->SetRot(QuatFromAngleZ(0.1));
     sys.Add(floor);
 
     // Create a ChLinePath geometry, and insert sub-paths:

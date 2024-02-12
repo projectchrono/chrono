@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     // Attach visualization assets.
     auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2.92);
     cyl_p->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
 
     auto cyl_j = chrono_types::make_shared<ChVisualShapeCylinder>(0.04, 0.4);
     cyl_j->SetColor(ChColor(0.6f, 0, 0));
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
     // Initialize the joint specifying a coordinate sys (expressed in the
     // absolute frame) and a distance. The revolute side is attached to the
     // pendulum and the translational side to the ground.
-    rev_trans->Initialize(pend, ground, ChCoordsys<>(ChVector3d(0, -L, -1), Q_from_AngZ(CH_C_PI_2)), L);
+    rev_trans->Initialize(pend, ground, ChCoordsys<>(ChVector3d(0, -L, -1), QuatFromAngleZ(CH_C_PI_2)), L);
 
     // Create the Irrlicht application
     // -------------------------------

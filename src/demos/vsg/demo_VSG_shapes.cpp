@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     ChVector3d ydir(0.0, 1.5, 0.0);
     ChVector3d zdir(0.0, 0.0, 1.5);
     ChQuaternion<> rot(1, 0, 0, 0);
-    rot = Q_from_AngX(CH_C_PI / 6);
+    rot = QuatFromAngleX(CH_C_PI / 6);
 
     utils::AddSphereGeometry(bin.get(), mat, 0.05, ChVector3d(0, 0, 0));
 

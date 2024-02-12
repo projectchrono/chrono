@@ -195,7 +195,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
         auto linact = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact->SetNameString("post_actuator");
         linact->SetMotionFunction(chrono_types::make_shared<ChFunctionSetpoint>());
-        linact->Initialize(m_chassis->GetBody(), post, ChFrame<>(ChVector3d(post_pos), Q_from_AngY(CH_C_PI_2)));
+        linact->Initialize(m_chassis->GetBody(), post, ChFrame<>(ChVector3d(post_pos), QuatFromAngleY(CH_C_PI_2)));
         m_system->AddLink(linact);
 
         m_post.push_back(post);

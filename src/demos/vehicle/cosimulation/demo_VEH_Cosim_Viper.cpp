@@ -121,7 +121,7 @@ ChVehicleCosimTerrainNodeChrono::RigidObstacle CreateObstacle(const ChVector3d& 
     o.m_mesh_filename = "vehicle/hmmwv/hmmwv_tire_coarse_closed.obj";
     o.m_density = 1000;
     o.m_init_pos = pos;
-    o.m_init_rot = Q_from_AngX(CH_C_PI_2);
+    o.m_init_rot = QuatFromAngleX(CH_C_PI_2);
     o.m_contact_mat = ChContactMaterialData();
     o.m_oobb_center = ChVector3d(0, 0, 0);
     o.m_oobb_dims = ChVector3d(1, 0.3, 1);

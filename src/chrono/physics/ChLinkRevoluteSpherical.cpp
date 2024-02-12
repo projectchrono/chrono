@@ -65,8 +65,8 @@ void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBody> body1,
     m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
 
-    ChVector3d x_Axis = csys.rot.GetXaxis();
-    ChVector3d z_axis = csys.rot.GetZaxis();
+    ChVector3d x_Axis = csys.rot.GetAxisX();
+    ChVector3d z_axis = csys.rot.GetAxisZ();
 
     m_pos1 = Body1->TransformPointParentToLocal(csys.pos);
     m_dir1 = Body1->TransformDirectionParentToLocal(z_axis);

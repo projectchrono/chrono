@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
 
     for (float t = 0; t < params.time_end; t += iteration_step, step++) {
         ChVector3d mesh_pos(0, 0, chamber_bottom + chamber_height / 2.0);
-        ChQuaternion<> mesh_rot = Q_from_AngZ(t * ang_vel_Z);
+        ChQuaternion<> mesh_rot = QuatFromAngleZ(t * ang_vel_Z);
         gpu_sys.ApplyMeshMotion(mixer_mesh_id, mesh_pos, mesh_rot, mesh_lin_vel, mesh_ang_vel);
 
         if (step % out_steps == 0) {

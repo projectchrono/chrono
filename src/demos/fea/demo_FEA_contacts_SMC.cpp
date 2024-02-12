@@ -150,8 +150,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < 4; ++i) {
             try {
                 ChCoordsys<> cdown(ChVector3d(0, -0.4, 0));
-                ChCoordsys<> crot(VNULL,
-                                  Q_from_AngAxis(CH_C_2PI * ChRandom(), VECT_Y) * Q_from_AngAxis(CH_C_PI_2, VECT_X));
+                ChCoordsys<> crot(VNULL, QuatFromAngleY(CH_C_2PI * ChRandom()) * QuatFromAngleX(CH_C_PI_2));
                 ChCoordsys<> cydisp(ChVector3d(-0.3, 0.1 + i * 0.1, -0.3));
                 ChCoordsys<> ctot = cdown >> crot >> cydisp;
                 ChMatrix33<> mrot(ctot.rot);

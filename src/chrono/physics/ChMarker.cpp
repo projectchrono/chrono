@@ -124,7 +124,7 @@ void ChMarker::Impose_Rel_Coord(const ChCoordsysd& m_coord) {
     rest_coord.pos.x() = m_coord.pos.x() - motion_X->Get_y(ChTime);
     rest_coord.pos.y() = m_coord.pos.y() - motion_Y->Get_y(ChTime);
     rest_coord.pos.z() = m_coord.pos.z() - motion_Z->Get_y(ChTime);
-    qtemp = Q_from_AngAxis(-(motion_ang->Get_y(ChTime)), motion_axis);
+    qtemp = QuatFromAngleAxis(-(motion_ang->Get_y(ChTime)), motion_axis);
     rest_coord.rot = Qcross(m_coord.rot, qtemp);  // ***%%% check
                                                   // set also the absolute positions, and other.
     UpdateState();
@@ -207,12 +207,12 @@ void ChMarker::UpdateTime(double mytime) {
     if ((ang != 0) || (ang_dt != 0) || (ang_dtdt != 0)) {
         // update q
         ChVector3d motion_axis_versor = Vnorm(motion_axis);
-        qtemp = Q_from_AngAxis(ang, motion_axis_versor);
+        qtemp = QuatFromAngleAxis(ang, motion_axis_versor);
         csys.rot = Qcross(qtemp, rest_coord.rot);
         // update q_dt
-        csys_dt.rot = chrono::Qdt_from_AngAxis(csys.rot, ang_dt, motion_axis_versor);
+        csys_dt.rot = QuatDerFromAngleAxis(csys.rot, ang_dt, motion_axis_versor);
         // update q_dtdt
-        csys_dtdt.rot = chrono::Qdtdt_from_AngAxis(ang_dtdt, motion_axis_versor, csys.rot, csys_dt.rot);
+        csys_dtdt.rot = QuatDer2FromAngleAxis(ang_dtdt, motion_axis_versor, csys.rot, csys_dt.rot);
     } else {
         csys.rot = coord.rot;  // rel_pos.rot;
         csys_dt.rot = QNULL;

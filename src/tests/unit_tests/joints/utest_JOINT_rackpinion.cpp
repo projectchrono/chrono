@@ -147,7 +147,7 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
     auto pinion = chrono_types::make_shared<ChBody>();
     sys.AddBody(pinion);
     pinion->SetPos(jointLoc);
-    pinion->SetRot(Q_from_AngY(CH_C_PI_2));
+    pinion->SetRot(QuatFromAngleY(CH_C_PI_2));
     pinion->SetMass(massPinion);
     pinion->SetInertiaXX(inertiaXX_Pinion);
 
@@ -163,7 +163,7 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
     // reference frame. The revolute joint's axis of rotation (Z) will be the
     // global x axis.
     auto revoluteJoint = chrono_types::make_shared<ChLinkLockRevolute>();
-    revoluteJoint->Initialize(pinion, ground, ChCoordsys<>(jointLoc, Q_from_AngY(CH_C_PI_2)));
+    revoluteJoint->Initialize(pinion, ground, ChCoordsys<>(jointLoc, QuatFromAngleY(CH_C_PI_2)));
     sys.AddLink(revoluteJoint);
 
     // Create prismatic joint between rack and ground at "loc" - Pinion Radius in the global
@@ -175,8 +175,8 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
 
     // Create the Rack and Pinion joint
     auto rackpinionJoint = chrono_types::make_shared<ChLinkRackpinion>();
-    rackpinionJoint->Initialize(pinion, rack, false, ChFrame<>(jointLoc, Q_from_AngY(-CH_C_PI_2)),
-                                ChFrame<>(jointLoc + ChVector3d(0, 0, 0), Q_from_AngY(-CH_C_PI_2)));
+    rackpinionJoint->Initialize(pinion, rack, false, ChFrame<>(jointLoc, QuatFromAngleY(-CH_C_PI_2)),
+                                ChFrame<>(jointLoc + ChVector3d(0, 0, 0), QuatFromAngleY(-CH_C_PI_2)));
     rackpinionJoint->SetPinionRadius(-radiusPinion);
     rackpinionJoint->SetAlpha(CH_C_PI_4);
     rackpinionJoint->SetBeta(0);

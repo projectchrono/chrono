@@ -56,7 +56,7 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
 
     utils::CreateBoxContainer(sys, 0, mat,                              //
                               ChVector3d(1.1, 1.2, 1.1), 0.1,           //
-                              ChVector3d(0, 0, 0.3), Q_from_AngY(-10),  //
+                              ChVector3d(0, 0, 0.3), QuatFromAngleY(-10),  //
                               true, true, true);
 }
 

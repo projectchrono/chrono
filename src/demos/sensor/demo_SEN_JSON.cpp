@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------
     auto cam = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Camera.json"), mesh_body,
-                                      ChFrame<>({-5, 0, 0}, Q_from_AngZ(0)));
+                                      ChFrame<>({-5, 0, 0}, QuatFromAngleZ(0)));
     // add sensor to the manager
     manager->AddSensor(cam);
 
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     // Create a lidar and add it to the sensor manager
     // -----------------------------------------------
     auto lidar = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Lidar.json"), mesh_body,
-                                        ChFrame<>({-5, 0, .5}, Q_from_AngZ(0)));
+                                        ChFrame<>({-5, 0, .5}, QuatFromAngleZ(0)));
     // add sensor to the manager
     manager->AddSensor(lidar);
 
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     // Create a gps and add it to the sensor manager
     // ---------------------------------------------
     auto gps = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/GPS.json"), mesh_body,
-                                      ChFrame<>({0, 0, 0}, Q_from_AngZ(0)));
+                                      ChFrame<>({0, 0, 0}, QuatFromAngleZ(0)));
     // add sensor to the manager
     manager->AddSensor(gps);
 
@@ -110,17 +110,17 @@ int main(int argc, char* argv[]) {
     // Create a imu and add it to the sensor manager
     // ---------------------------------------------
     auto acc = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Accelerometer.json"), mesh_body,
-                                      ChFrame<>({0, 0, 0}, Q_from_AngZ(0)));
+                                      ChFrame<>({0, 0, 0}, QuatFromAngleZ(0)));
     // add sensor to the manager
     manager->AddSensor(acc);
 
     auto gyro = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Gyroscope.json"), mesh_body,
-                                       ChFrame<>({0, 0, 0}, Q_from_AngZ(0)));
+                                       ChFrame<>({0, 0, 0}, QuatFromAngleZ(0)));
     // add sensor to the manager
     manager->AddSensor(gyro);
 
     auto mag = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Magnetometer.json"), mesh_body,
-                                      ChFrame<>({0, 0, 0}, Q_from_AngZ(0)));
+                                      ChFrame<>({0, 0, 0}, QuatFromAngleZ(0)));
     // add sensor to the manager
     manager->AddSensor(mag);
 
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
 
         cam->SetOffsetPose(chrono::ChFrame<double>(
             {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 3},
-            Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
+            QuatFromAngleAxis(ch_time * orbit_rate, {0, 0, 1})));
 
         UserR8BufferPtr camera_data = cam->GetMostRecentBuffer<UserR8BufferPtr>();
         if (camera_data->Buffer) {

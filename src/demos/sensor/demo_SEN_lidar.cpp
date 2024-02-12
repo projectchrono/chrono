@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------
     // Create a lidar and add it to the sensor manager
     // -----------------------------------------------
-    auto offset_pose = chrono::ChFrame<double>({-4, 0, 1}, Q_from_AngAxis(0, {0, 1, 0}));
+    auto offset_pose = chrono::ChFrame<double>({-4, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0}));
 
     auto lidar =
         chrono_types::make_shared<ChLidarSensor>(box_body,                               // body lidar is attached to
@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
     while (ch_time < end_time) {
-        mesh_body->SetRot(Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1}));
+        mesh_body->SetRot(QuatFromAngleAxis(ch_time * orbit_rate, {0, 0, 1}));
         // Access the DI buffer from the ideal lidar
         // di_ideal_ptr =
         // lidar->GetMostRecentBuffer<UserDIBufferPtr>();

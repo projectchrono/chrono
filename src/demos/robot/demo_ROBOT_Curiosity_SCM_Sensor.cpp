@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
 
     // Curiosity rover initial position and orientation
     ChVector3d body_pos(-5, -0.2, 0);
-    ChQuaternion<> body_rot = Q_from_AngX(-CH_C_PI / 2);
+    ChQuaternion<> body_rot = QuatFromAngleX(-CH_C_PI / 2);
 
     // Create a Curiosity rover
     Curiosity rover(&sys, chassis_type, wheel_type);
@@ -341,7 +341,7 @@ int main(int argc, char* argv[]) {
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
     // Note: Irrlicht uses a Y-up frame
-    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, -0.5, 0), Q_from_AngX(-CH_C_PI_2)));
+    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, -0.5, 0), QuatFromAngleX(-CH_C_PI_2)));
 
     // Use a regular grid:
     double length = 14;
@@ -467,7 +467,7 @@ int main(int argc, char* argv[]) {
     manager->SetVerbose(false);
 
     // Create a lidar and add it to the sensor manager
-    auto offset_pose = chrono::ChFrame<double>({0, 0, 0.16}, Q_from_AngAxis(0, {0, 0, 1}));
+    auto offset_pose = chrono::ChFrame<double>({0, 0, 0.16}, QuatFromAngleZ(0));
 
     auto lidar = chrono_types::make_shared<ChLidarSensor>(rover.GetChassis()->GetBody(),  // body lidar is attached to
                                                           25,                             // scanning rate in Hz
@@ -500,7 +500,7 @@ int main(int argc, char* argv[]) {
     lidar->PushFilter(chrono_types::make_shared<ChFilterLidarNoiseXYZI>(0.01f, 0.001f, 0.001f, 0.01f));
 
     // Radar Offset
-    auto offset_pose_1 = chrono::ChFrame<double>({-0.5, 0, 0.4}, Q_from_AngAxis(0, {0, 0, 1}));
+    auto offset_pose_1 = chrono::ChFrame<double>({-0.5, 0, 0.4}, QuatFromAngleZ(0));
 
     // Create a radar and attach to rover chassis
     auto radar = chrono_types::make_shared<ChRadarSensor>(rover.GetChassis()->GetBody(), 25, offset_pose_1, 300, 200,

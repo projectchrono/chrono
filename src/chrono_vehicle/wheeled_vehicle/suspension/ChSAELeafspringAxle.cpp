@@ -189,7 +189,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // Spindle orientation (based on camber and toe angles)
     double sign = (side == LEFT) ? -1 : +1;
-    auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
+    auto spindleRot = chassisRot * QuatFromAngleZ(sign * getToeAngle()) * QuatFromAngleX(sign * getCamberAngle());
 
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = chrono_types::make_shared<ChBody>();
@@ -202,7 +202,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize the revolute joint between axle tube and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_axleTube, rev_csys);
@@ -247,7 +247,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_shackle[side]);
 
     // chassis-shackle rev joint
-    ChCoordsys<> rev_csys_shackle(points[REAR_HANGER], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys_shackle(points[REAR_HANGER], chassisRot * QuatFromAngleX(CH_C_PI_2));
     m_shackleRev[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_shackleRev" + suffix, m_shackle[side], chassis->GetBody(),
         rev_csys_shackle, getShackleBushingData());
@@ -328,7 +328,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_latRotSpringB[side]);
 
     // clampB-rearleaf rev joint (Y)
-    ChCoordsys<> rev_csys_rearleaf(points[CLAMP_B], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys_rearleaf(points[CLAMP_B], chassisRot * QuatFromAngleX(CH_C_PI_2));
     m_rearleafRev[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_rearleafRev" + suffix, m_clampB[side], m_rearleaf[side],
         rev_csys_rearleaf, getLeafspringBushingData());
@@ -340,7 +340,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_vertRotSpringB[side]);
 
     // clampA-frontleaf rev joint (Y)
-    ChCoordsys<> rev_csys_frontleaf(points[CLAMP_A], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys_frontleaf(points[CLAMP_A], chassisRot * QuatFromAngleX(CH_C_PI_2));
     m_frontleafRev[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_frontleafRev" + suffix, m_clampA[side], m_frontleaf[side],
         rev_csys_frontleaf, getLeafspringBushingData());

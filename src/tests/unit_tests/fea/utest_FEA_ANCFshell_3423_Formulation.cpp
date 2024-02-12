@@ -222,7 +222,7 @@ bool AxialDisplacementCheck(int msglvl) {
     // For Analytical Formula, see a mechanics of materials textbook (delta = (P*L)/(A*E))
     double Displacement_Theory = (TIP_FORCE * length) / (width * height * E);
     double Displacement_Model = point.x() - length;
-    ChVector3d Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100;
 
@@ -390,7 +390,7 @@ bool CantileverTipLoadCheck(int msglvl) {
     double I = 1.0 / 12.0 * width * std::pow(height, 3);
     double Displacement_Theory = (TIP_FORCE * std::pow(length, 3)) / (3.0 * E * I);
     double Displacement_Model = point.z();
-    ChVector3d Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100.0;
 
@@ -520,7 +520,7 @@ bool CantileverGravityCheck(int msglvl) {
     double I = 1.0 / 12.0 * width * std::pow(height, 3);
     double Displacement_Theory = (rho * width * height * g * std::pow(length, 4)) / (8.0 * E * I);
     double Displacement_Model = point.z();
-    ChVector3d Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100.0;
 
@@ -690,7 +690,7 @@ bool AxialTwistCheck(int msglvl) {
     ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateSectionFrame(1, 0, point, rot);
-    ChVector3d Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     // For Analytical Formula, see: https://en.wikipedia.org/wiki/Torsion_constant
     double J = 0.281 * width * std::pow(height, 3);
@@ -836,7 +836,7 @@ bool MLCantileverCheck1A(int msglvl) {
     // Expect Value From Liu et al. ABAQUS Model
     double Displacement_Expected = -40.3;
     double Displacement_Model = point.z();
-    ChVector3d Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     double Percent_Error = (Displacement_Model - Displacement_Expected) / Displacement_Expected * 100.0;
 
@@ -981,7 +981,7 @@ bool MLCantileverCheck1B(int msglvl) {
     // Expect Value From Liu et al. ABAQUS Model
     double Displacement_Expected = -357.5;
     double Displacement_Model = point.z();
-    ChVector3d Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     double Percent_Error = (Displacement_Model - Displacement_Expected) / Displacement_Expected * 100.0;
 
@@ -1126,7 +1126,7 @@ bool MLCantileverCheck2A(int msglvl) {
     // Expect Value From Liu et al. ABAQUS Model
     double Displacement_Expected = -45.6;
     double Displacement_Model = point.z();
-    ChVector3d Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     double Percent_Error = (Displacement_Model - Displacement_Expected) / Displacement_Expected * 100.0;
 
@@ -1268,7 +1268,7 @@ bool MLCantileverCheck2B(int msglvl) {
     // Expect Value From Liu et al. ABAQUS Model
     double Displacement_Expected = -198.0;
     double Displacement_Model = point.z();
-    ChVector3d Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     double Percent_Error = (Displacement_Model - Displacement_Expected) / Displacement_Expected * 100.0;
 

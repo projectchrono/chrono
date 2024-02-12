@@ -2,6 +2,7 @@
 
 /* Includes the header in the wrapper code */
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChRotation.h"
 #include <Eigen/Core>
 %}
  
@@ -31,6 +32,7 @@
 
 /* Parse the header file to generate wrappers */
 %include "../../../chrono/core/ChQuaternion.h"  
+%include "../../../chrono/core/ChRotation.h"  
 
 
 %template(ChQuaterniond) chrono::ChQuaternion<double>; 

@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
     // ---Initialize the randomizer for positions
     auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
     emitter_positions->Outlet() =
-        ChCoordsys<>(ChVector3d(0, 3, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
+        ChCoordsys<>(ChVector3d(0, 3, 0), QuatFromAngleX(CH_C_PI_2));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 3.0;
     emitter_positions->OutletHeight() = 4.5;
     emitter.SetParticlePositioner(emitter_positions);
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
     //  -create the trigger:
     auto rectangleflow = chrono_types::make_shared<ChParticleEventFlowInRectangle>(8, 8);
     rectangleflow->rectangle_csys =
-        ChCoordsys<>(ChVector3d(0, 2, 0), Q_from_AngAxis(-CH_C_PI_2, VECT_X));  // center and alignment of rectangle
+        ChCoordsys<>(ChVector3d(0, 2, 0), QuatFromAngleX(-CH_C_PI_2));  // center and alignment of rectangle
     rectangleflow->margin = 1;
     //  -create the counter:
     auto counter = chrono_types::make_shared<ChParticleProcessEventCount>();

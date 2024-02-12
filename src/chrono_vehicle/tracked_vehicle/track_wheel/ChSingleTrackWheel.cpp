@@ -49,10 +49,10 @@ void ChSingleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
 
     if (track->IsRoadwheelCylinder()) {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, radius, width);
-        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
     } else {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylindricalShell>(m_material, radius, width);
-        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
     }
 }
 

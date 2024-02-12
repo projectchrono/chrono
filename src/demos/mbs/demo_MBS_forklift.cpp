@@ -73,7 +73,6 @@ class MySimpleForklift {
     std::shared_ptr<ChLinkLinActuator> link_actuatorFork;
     std::shared_ptr<ChLinkLockPrismatic> link_prismaticFork;
 
-
     // Build and initialize the forklift, creating all bodies corresponding to
     // the various parts and adding them to the physical system - also creating
     // and adding constraints to the system.
@@ -135,33 +134,33 @@ class MySimpleForklift {
         wheelRF->SetMass(20);
         wheelRF->SetInertiaXX(ChVector3d(2, 2, 2));
         // collision properties:
-        wheelRF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI / 2)));
+        wheelRF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI / 2)));
         wheelRF->SetCollide(true);
         // visualization properties:
         wheelRF->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
 
         // .. create the revolute joint between the wheel and the truss
         link_revoluteRF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
-        link_revoluteRF->Initialize(wheelRF, chassis, ChCoordsys<>(COG_wheelRF, chrono::Q_from_AngY(CH_C_PI / 2)));
+        link_revoluteRF->Initialize(wheelRF, chassis, ChCoordsys<>(COG_wheelRF, chrono::QuatFromAngleY(CH_C_PI / 2)));
         sys->AddLink(link_revoluteRF);
 
         // ..the left-front wheel
         wheelLF = chrono_types::make_shared<ChBody>();
         sys->Add(wheelLF);
         wheelLF->SetPos(COG_wheelLF);
-        wheelLF->SetRot(chrono::Q_from_AngY(CH_C_PI));  // reuse RF wheel shape, flipped
+        wheelLF->SetRot(chrono::QuatFromAngleY(CH_C_PI));  // reuse RF wheel shape, flipped
         wheelLF->SetMass(20);
         wheelLF->SetInertiaXX(ChVector3d(2, 2, 2));
         // collision properties:
         auto shapeLF = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_mat, RAD_front_wheel, 0.2);
-        wheelLF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI / 2)));
+        wheelLF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI / 2)));
         wheelLF->SetCollide(true);
         // visualization properties:
         wheelLF->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
 
         // .. create the revolute joint between the wheel and the truss
         link_revoluteLF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
-        link_revoluteLF->Initialize(wheelLF, chassis, ChCoordsys<>(COG_wheelLF, chrono::Q_from_AngY(CH_C_PI / 2)));
+        link_revoluteLF->Initialize(wheelLF, chassis, ChCoordsys<>(COG_wheelLF, chrono::QuatFromAngleY(CH_C_PI / 2)));
         sys->AddLink(link_revoluteLF);
 
         // ..the back steering spindle (invisible)
@@ -174,18 +173,18 @@ class MySimpleForklift {
         // .. create the vertical steering link between the spindle structure and the truss
         link_steer_engineB = chrono_types::make_shared<ChLinkMotorRotationAngle>();
         link_steer_engineB->SetAngleFunction(chrono_types::make_shared<ChFunctionConst>(0));
-        link_steer_engineB->Initialize(spindleB, chassis, ChFrame<>(COG_wheelB, chrono::Q_from_AngX(CH_C_PI / 2)));
+        link_steer_engineB->Initialize(spindleB, chassis, ChFrame<>(COG_wheelB, QuatFromAngleX(CH_C_PI_2)));
         sys->AddLink(link_steer_engineB);
 
         // ..the back wheel
         wheelB = chrono_types::make_shared<ChBody>();
         sys->Add(wheelB);
         wheelB->SetPos(COG_wheelB);
-        wheelB->SetRot(chrono::Q_from_AngAxis(CH_C_PI, VECT_Y));
+        wheelB->SetRot(chrono::QuatFromAngleY(CH_C_PI));
         wheelB->SetMass(20);
         wheelB->SetInertiaXX(ChVector3d(2, 2, 2));
         // collision properties:
-        wheelB->AddCollisionShape(wshapeB, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI / 2)));
+        wheelB->AddCollisionShape(wshapeB, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
         wheelB->SetCollide(true);
         // visualization properties:
         wheelB->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
@@ -193,7 +192,7 @@ class MySimpleForklift {
         // .. create the motor between the back wheel and the steering spindle structure
         link_engineB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         link_engineB->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0));
-        link_engineB->Initialize(wheelB, spindleB, ChFrame<>(COG_wheelB, chrono::Q_from_AngY(CH_C_PI / 2)));
+        link_engineB->Initialize(wheelB, spindleB, ChFrame<>(COG_wheelB, chrono::QuatFromAngleY(CH_C_PI / 2)));
         sys->AddLink(link_engineB);
 
         // ..the arm
@@ -210,7 +209,7 @@ class MySimpleForklift {
         // .. create the revolute joint between the arm and the truss
         link_engineArm = chrono_types::make_shared<ChLinkMotorRotationAngle>();
         link_engineArm->SetAngleFunction(chrono_types::make_shared<ChFunctionConst>(0));
-        link_engineArm->Initialize(arm, chassis, ChFrame<>(POS_pivotarm, chrono::Q_from_AngY(CH_C_PI / 2)));
+        link_engineArm->Initialize(arm, chassis, ChFrame<>(POS_pivotarm, chrono::QuatFromAngleY(CH_C_PI / 2)));
         sys->AddLink(link_engineArm);
 
         // ..the fork
@@ -237,7 +236,7 @@ class MySimpleForklift {
         // .. create the prismatic joint between the fork and arm
         // (set joint as vertical; default would be aligned to z, horizontal)
         link_prismaticFork = chrono_types::make_shared<ChLinkLockPrismatic>();
-        link_prismaticFork->Initialize(fork, arm, ChCoordsys<>(POS_prismatic, chrono::Q_from_AngX(CH_C_PI / 2)));
+        link_prismaticFork->Initialize(fork, arm, ChCoordsys<>(POS_prismatic, QuatFromAngleX(CH_C_PI / 2)));
         sys->AddLink(link_prismaticFork);
 
         // .. create the linear actuator that pushes upward the fork
@@ -334,13 +333,13 @@ class MyEventReceiver : public IEventReceiver {
                         mfun->Set_yconst(-0.5 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_S:
-                    if (auto mfun =
-                            std::dynamic_pointer_cast<ChFunctionConst>(forklift->link_actuatorFork->GetActuatorFunction()))
+                    if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(
+                            forklift->link_actuatorFork->GetActuatorFunction()))
                         mfun->Set_yconst(0.05 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_X:
-                    if (auto mfun =
-                            std::dynamic_pointer_cast<ChFunctionConst>(forklift->link_actuatorFork->GetActuatorFunction()))
+                    if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(
+                            forklift->link_actuatorFork->GetActuatorFunction()))
                         mfun->Set_yconst(-0.05 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_D:

@@ -168,7 +168,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
             ChVector2d dir = shoe_points[i + 1 + s * num_shoe_elements] - shoe_points[i + s * num_shoe_elements];
             ChVector3d loc(mid.x(), m_sprocket_offset, mid.y());
             double ang = std::atan2(dir.y(), dir.x());
-            ChQuaternion<> rot = Q_from_AngY(-ang);  // Negative of the angle in 3D
+            ChQuaternion<> rot = QuatFromAngleY(-ang);  // Negative of the angle in 3D
 
             shoe_components_coordsys.push_back(ChCoordsys<>(loc, rot));
         }

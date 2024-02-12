@@ -170,7 +170,8 @@ int main(int argc, char* argv[]) {
 
     test_name = "TranSpringCB_Case04";
     TestTranSpringCB(ChVector3d(0, 0, 0), ChVector3d(0, 2, 0),
-                     ChCoordsys<>(ChVector3d(0, 4, 0), Q_from_AngZ(-CH_C_PI_2)), 3, sim_step, out_step, test_name);
+                     ChCoordsys<>(ChVector3d(0, 4, 0), QuatFromAngleZ(-CH_C_PI_2)), 3, sim_step, out_step,
+                     test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-4);
     test_passed &= ValidateReference(test_name, "Vel", 5e-4);
     test_passed &= ValidateReference(test_name, "Acc", 1e-3);

@@ -197,7 +197,7 @@ ChVector3d ChChaseCamera::GetCameraPos() const {
     if (m_state == Inside) {
         ChVector3d driverPos = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_driverCsys.pos);
         ChVector3d driverViewDir =
-            m_chassis->GetFrame_REF_to_abs().TransformDirectionLocalToParent(m_driverCsys.rot.GetXaxis());
+            m_chassis->GetFrame_REF_to_abs().TransformDirectionLocalToParent(m_driverCsys.rot.GetAxisX());
         return driverPos - 1.1 * driverViewDir;
     }
 
@@ -266,7 +266,7 @@ ChVector3d ChChaseCamera::calcDeriv(const ChVector3d& loc) {
     if (m_state == Follow)
         uC2T = targetLoc - m_loc;
     else {
-        ChQuaternion<> rot = Q_from_AngAxis(m_angle, m_up);
+        ChQuaternion<> rot = QuatFromAngleAxis(m_angle, m_up);
         uC2T = rot.Rotate(m_chassis->GetA().GetAxisX());
     }
 

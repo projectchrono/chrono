@@ -240,12 +240,12 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     }
 
     // Calculate unit vector pointing to the yaw center
-    ChVector3d n_g = chassis_rot.GetYaxis();  // vehicle left direction (ISO frame)
+    ChVector3d n_g = chassis_rot.GetAxisY();  // vehicle left direction (ISO frame)
     ChWorldFrame::Project(n_g);               // projected onto horizontal plane (world frame)
     n_g.Normalize();                          // normalized
 
     // Calculate unit vector in the vehicle forward direction
-    ChVector3d t_g = chassis_rot.GetXaxis();  // vehicle forward direction (ISO frame)
+    ChVector3d t_g = chassis_rot.GetAxisX();  // vehicle forward direction (ISO frame)
     ChWorldFrame::Project(t_g);               // projected onto horizontal plane (world frame)
     t_g.Normalize();                          // normalized
 

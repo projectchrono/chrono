@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     // ---Initialize the randomizer for positions
     auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
     emitter_positions->Outlet() =
-        ChCoordsys<>(ChVector3d(0, 3, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
+        ChCoordsys<>(ChVector3d(0, 3, 0), QuatFromAngleX(CH_C_PI_2));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 3.0;
     emitter_positions->OutletHeight() = 4.5;
 

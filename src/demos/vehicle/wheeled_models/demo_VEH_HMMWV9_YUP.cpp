@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetContactMethod(ChContactMethod::NSC);
     hmmwv.SetChassisFixed(false);
     hmmwv.SetChassisCollisionType(CollisionType::NONE);
-    hmmwv.SetInitPosition(ChCoordsys<>(initLoc, Q_from_AngY(initYaw)));
+    hmmwv.SetInitPosition(ChCoordsys<>(initLoc, QuatFromAngleY(initYaw)));
     hmmwv.SetEngineType(EngineModelType::SIMPLE);
     hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     hmmwv.SetDriveType(DrivelineTypeWV::RWD);
@@ -109,7 +109,8 @@ int main(int argc, char* argv[]) {
     double terrainHeight = 0;
     double terrainLength = 300.0;  // size in "forward" direction
     double terrainWidth = 300.0;   // size in "lateral" direction
-    auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, terrainHeight, 0), Q_from_AngX(-CH_C_PI_2)),
+    auto patch =
+        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, terrainHeight, 0), QuatFromAngleX(-CH_C_PI_2)),
                                   terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);

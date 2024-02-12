@@ -113,7 +113,7 @@ void UAZBUS_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
     ChVector3d offset = ChVector3d(0, 0, 0);
-    ChQuaternion<> rotation = Q_from_AngAxis(0, ChVector3d(0, 1, 0));
+    ChQuaternion<> rotation = QuatFromAngleY(0);
     m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.

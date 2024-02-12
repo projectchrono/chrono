@@ -213,7 +213,8 @@ int main(int argc, char* argv[]) {
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName("Trees");
         trimesh_shape->SetMutable(false);
-        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI_2)));
+        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape,
+                                                           ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI_2)));
     }
 
     // -----------------

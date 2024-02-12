@@ -183,9 +183,11 @@ int main(int argc, char* argv[]) {
         // Set object pose randomly to generate calibration images
         box_body->SetPos({x_min + ChRandom() * (x_max - x_min), y_min + ChRandom() * (y_max - y_min),
                           z_min + ChRandom() * (z_max - z_min)});
-        box_body->SetRot(
-            Q_from_Euler123({ax_min + ChRandom() * (ax_max - ax_min), ay_min + ChRandom() * (ay_max - ay_min),
-                             az_min + ChRandom() * (az_max - az_min)}));
+        box_body->SetRot(QuatFromAngleSet({RotRepresentation::EULER_ANGLES_ZXZ,                  //
+                                           ChVector3d(ax_min + ChRandom() * (ax_max - ax_min),   //
+                                                      ay_min + ChRandom() * (ay_max - ay_min),   //
+                                                      az_min + ChRandom() * (az_max - az_min))}  //
+                                          ));
 
         manager->Update();
 
