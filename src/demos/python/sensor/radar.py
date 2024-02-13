@@ -51,7 +51,7 @@ class simulation:
             rightcar.GetVisualShape(0).SetMaterial(0, black)
             self.system.Add(rightcar)
 
-        offset_pose = chrono.ChFramed(chrono.ChVector3d(3,0,0), chrono.Q_from_AngZ(0))
+        offset_pose = chrono.ChFramed(chrono.ChVector3d(3,0,0), chrono.QuatFromAngleZ(0))
         self.adding_sensors(egocar, offset_pose)
 
 

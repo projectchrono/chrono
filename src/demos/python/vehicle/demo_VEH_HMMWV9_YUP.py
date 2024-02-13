@@ -35,7 +35,7 @@ def main():
     hmmwv.SetContactMethod(chrono.ChContactMethod_NSC)
     hmmwv.SetChassisCollisionType(veh.CollisionType_NONE)
     hmmwv.SetChassisFixed(False) 
-    hmmwv.SetInitPosition(chrono.ChCoordsysd(initLoc, chrono.Q_from_AngY(initYaw)))
+    hmmwv.SetInitPosition(chrono.ChCoordsysd(initLoc, chrono.QuatFromAngleY(initYaw)))
     hmmwv.SetEngineType(veh.EngineModelType_SIMPLE)
     hmmwv.SetTransmissionType(veh.TransmissionModelType_AUTOMATIC_SIMPLE_MAP)
     hmmwv.SetDriveType(veh.DrivelineTypeWV_AWD)
@@ -57,7 +57,7 @@ def main():
     patch_mat = chrono.ChContactMaterialNSC()
     patch_mat.SetFriction(0.9)
     patch = terrain.AddPatch(patch_mat, 
-                             chrono.ChCoordsysd(chrono.VNULL, chrono.Q_from_AngX(-m.pi / 2)), 
+                             chrono.ChCoordsysd(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)), 
                              200.0, 100.0)
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))

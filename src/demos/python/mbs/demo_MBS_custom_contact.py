@@ -32,7 +32,7 @@ class MyObstacle:
         cyl = chrono.ChVisualShapeCylinder(self.radius, 1.1)
         cyl.SetColor(chrono.ChColor(0.6, 0.3, 0.0))
         body.AddVisualShape(cyl, chrono.ChFramed(self.center + chrono.ChVector3d(0, 0.55, 0),
-                                                 chrono.Q_from_AngX(chrono.CH_C_PI_2)))
+                                                 chrono.QuatFromAngleX(chrono.CH_C_PI_2)))
 
 # Custom collision detection callback class
 class MyCustomCollisionDetection(chrono.CustomCollisionCallback):

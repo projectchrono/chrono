@@ -58,7 +58,7 @@ def CreateStatorRotor(material,
                       pos) :
     stator = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.5, 0.1, 1000, True, True, material)
     stator.SetPos(pos)
-    stator.SetRot(chrono.Q_from_AngAxis(chrono.CH_C_PI_2, chrono.VECT_X))
+    stator.SetRot(chrono.QuatFromAngleAxis(chrono.CH_C_PI_2, chrono.VECT_X))
     stator.SetBodyFixed(True)
     stator.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
     system.Add(stator)
@@ -749,7 +749,7 @@ while vis.Run():
     # Example B.6 requires the setpoto be changed in the simulation loop:
     # for example use a clamped sinusoid, just for fun:
     t = sys.GetChTime()
-    Sp = chrono.ChMin(chrono.ChMax(2.6 * m.sin(t * 1.8), -1.4), 1.4)
+    Sp = min(max(2.6 * m.sin(t * 1.8), -1.4), 1.4)
     motor6setpoint.SetSetpoint(Sp, t)
 
     vis.BeginScene() 

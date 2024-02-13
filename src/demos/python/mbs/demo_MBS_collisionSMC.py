@@ -120,7 +120,7 @@ def AddContainer(sys):
     my_motor.Initialize(rotatingBody,
                         fixedBody,
                         chrono.ChFramed(chrono.ChVector3d(0, 0, 0), 
-                                        chrono.Q_from_AngAxis(chrono.CH_C_PI_2, chrono.VECT_X)))
+                                        chrono.QuatFromAngleAxis(chrono.CH_C_PI_2, chrono.VECT_X)))
     mfun = chrono.ChFunctionConst(chrono.CH_C_PI / 2.0)  # speed w=90°/s
     my_motor.SetSpeedFunction(mfun)
 

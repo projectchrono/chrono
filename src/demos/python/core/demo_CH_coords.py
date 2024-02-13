@@ -64,7 +64,7 @@ print (mr*my_vect1);
 # Test frames -
 #  create a frame representing a translation and a rotation
 #  of 20 degrees on X axis
-my_frame = chrono.ChFramed(my_vect2, chrono.Q_from_AngAxis(20*chrono.CH_C_DEG_TO_RAD, chrono.ChVector3d(1,0,0)))
+my_frame = chrono.ChFramed(my_vect2, chrono.QuatFromAngleAxis(20*chrono.CH_C_DEG_TO_RAD, chrono.ChVector3d(1,0,0)))
 my_vect5 = my_vect1 >> my_frame
 
 

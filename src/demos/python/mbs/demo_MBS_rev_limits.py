@@ -55,7 +55,7 @@ pend.SetPos(chrono.ChVector3d(1.5, 0, 0))
 # Attach visualization assets.
 cyl_p = chrono.ChVisualShapeCylinder(0.2, 2.92)
 cyl_p.SetColor(chrono.ChColor(0.6, 0, 0))
-pend.AddVisualShape(cyl_p, chrono.ChFramed(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+pend.AddVisualShape(cyl_p, chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
 
 # Create a revolute joint to connect pendulum to ground
 rev = chrono.ChLinkLockRevolute()

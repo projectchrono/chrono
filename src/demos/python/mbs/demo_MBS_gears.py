@@ -62,12 +62,12 @@ sys.AddLink(link_revoluteTT)
 mbody_gearA = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, radA, 0.5, 1000, True, False, mat)
 sys.Add(mbody_gearA)
 mbody_gearA.SetPos(chrono.ChVector3d(0, 0, -1))
-mbody_gearA.SetRot(chrono.Q_from_AngX(m.pi / 2))
+mbody_gearA.SetRot(chrono.QuatFromAngleX(m.pi / 2))
 mbody_gearA.GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # for aesthetic reasons, also add a thin cylinder only as a visualization
 mshaft_shape = chrono.ChVisualShapeCylinder(radA * 0.4, 13)
-mbody_gearA.AddVisualShape(mshaft_shape, chrono.ChFramed(chrono.ChVector3d(0, 3.5, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
+mbody_gearA.AddVisualShape(mshaft_shape, chrono.ChFramed(chrono.ChVector3d(0, 3.5, 0), chrono.QuatFromAngleX(chrono.CH_C_PI_2)))
 
 # ...impose rotation speed between the first gear and the fixed truss
 link_motor = chrono.ChLinkMotorRotationSpeed()
@@ -82,7 +82,7 @@ interaxis12 = radA + radB
 mbody_gearB = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, radB, 0.4, 1000, True, False, mat)
 sys.Add(mbody_gearB)
 mbody_gearB.SetPos(chrono.ChVector3d(interaxis12, 0, -1))
-mbody_gearB.SetRot(chrono.Q_from_AngX(m.pi / 2))
+mbody_gearB.SetRot(chrono.QuatFromAngleX(m.pi / 2))
 mbody_gearB.GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # ...the second gear is fixed to the rotating bar
@@ -100,12 +100,12 @@ sys.AddLink(link_revolute)
 #    Also, note that the initial position of the constraint has no importance (simply use CSYSNORM),
 #    but we must set where the two axes are placed in the local coordinates of the two wheels, so
 #    we use Set_local_shaft1() and pass some local ChFrame. Note that, since the Z axis of that frame
-#    will be considered the axis of the wheel, we must rotate the frame 90� with Q_from_AngAxis(), because
-#    we created the wheel with ChBodyEasyCylinder() which created a cylinder with Y as axis
+#    will be considered the axis of the wheel, we must rotate the frame 90 deg with SetFromAngleAxis(),
+#    because we created the wheel with ChBodyEasyCylinder() which created a cylinder with Y as axis
 link_gearAB = chrono.ChLinkGear()
 link_gearAB.Initialize(mbody_gearA, mbody_gearB, chrono.CSYSNORM)
-link_gearAB.Set_local_shaft1(chrono.ChFramed(chrono.VNULL, chrono.Q_from_AngX(-m.pi / 2)))
-link_gearAB.Set_local_shaft2(chrono.ChFramed(chrono.VNULL, chrono.Q_from_AngX(-m.pi / 2)))
+link_gearAB.Set_local_shaft1(chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)))
+link_gearAB.Set_local_shaft2(chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)))
 link_gearAB.Set_tau(radA / radB)
 link_gearAB.Set_checkphase(True)
 sys.AddLink(link_gearAB)
@@ -116,7 +116,7 @@ sys.AddLink(link_gearAB)
 radC = 2 * radB + radA
 link_gearBC = chrono.ChLinkGear()
 link_gearBC.Initialize(mbody_gearB, mbody_truss, chrono.CSYSNORM)
-link_gearBC.Set_local_shaft1(chrono.ChFramed(chrono.VNULL, chrono.Q_from_AngX(-m.pi / 2)))
+link_gearBC.Set_local_shaft1(chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)))
 link_gearBC.Set_local_shaft2(chrono.ChFramed(chrono.ChVector3d(0, 0, -4), chrono.QUNIT))
 link_gearBC.Set_tau(radB / radC)
 link_gearBC.Set_epicyclic(True) # <-- this means: use a wheel with internal teeth!
@@ -127,7 +127,7 @@ radD = 5
 mbody_gearD = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, radD, 0.8, 1000, True, False, mat)
 sys.Add(mbody_gearD)
 mbody_gearD.SetPos(chrono.ChVector3d(-10, 0, -9))
-mbody_gearD.SetRot(chrono.Q_from_AngZ(m.pi / 2))
+mbody_gearD.SetRot(chrono.QuatFromAngleZ(m.pi / 2))
 mbody_gearD.GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # ...it is fixed to the truss using a revolute joint with horizontal axis (must rotate
@@ -136,15 +136,15 @@ mbody_gearD.GetVisualShape(0).SetMaterial(0, vis_mat)
 link_revoluteD = chrono.ChLinkLockRevolute()
 link_revoluteD.Initialize(mbody_gearD, mbody_truss, 
                           chrono.ChCoordsysd(chrono.ChVector3d(-10, 0, -9), 
-                          chrono.Q_from_AngY(m.pi / 2)))
+                          chrono.QuatFromAngleY(m.pi / 2)))
 sys.AddLink(link_revoluteD)
 
 # ... Let's make a 1:1 gear between wheel A and wheel D as a bevel gear: Chrono does not require
 #     special info for this case -the position of the two shafts and the transmission ratio are enough-
 link_gearAD = chrono.ChLinkGear()
 link_gearAD.Initialize(mbody_gearA, mbody_gearD, chrono.CSYSNORM)
-link_gearAD.Set_local_shaft1(chrono.ChFramed(chrono.ChVector3d(0, -7, 0), chrono.Q_from_AngX(-m.pi / 2)))
-link_gearAD.Set_local_shaft2(chrono.ChFramed(chrono.ChVector3d(0, -7, 0), chrono.Q_from_AngX(-m.pi / 2)))
+link_gearAD.Set_local_shaft1(chrono.ChFramed(chrono.ChVector3d(0, -7, 0), chrono.QuatFromAngleX(-m.pi / 2)))
+link_gearAD.Set_local_shaft2(chrono.ChFramed(chrono.ChVector3d(0, -7, 0), chrono.QuatFromAngleX(-m.pi / 2)))
 link_gearAD.Set_tau(1)
 sys.AddLink(link_gearAD)
 
@@ -153,22 +153,22 @@ radE = 2;
 mbody_pulleyE = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, radE, 0.8, 1000, True, False, mat)
 sys.Add(mbody_pulleyE)
 mbody_pulleyE.SetPos(chrono.ChVector3d(-10, -11, -9))
-mbody_pulleyE.SetRot(chrono.Q_from_AngZ(m.pi / 2))
+mbody_pulleyE.SetRot(chrono.QuatFromAngleZ(m.pi / 2))
 mbody_pulleyE.GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # ... it is fixed to the truss using a revolute joint with horizontal axis (must rotate
 #     default ChLink creation coordys 90� on the Y vertical, since the revolute axis is the Z axis).
 link_revoluteE = chrono.ChLinkLockRevolute()
 link_revoluteE.Initialize(mbody_pulleyE, mbody_truss,
-                          chrono.ChCoordsysd(chrono.ChVector3d(-10, -11, -9), chrono.Q_from_AngY(m.pi / 2)))
+                          chrono.ChCoordsysd(chrono.ChVector3d(-10, -11, -9), chrono.QuatFromAngleY(m.pi / 2)))
 sys.AddLink(link_revoluteE)
 
 # ... Let's make a synchro belt constraint between pulley D and pulley E. The user must be
 #     sure that the two shafts are parallel in absolute space. Also, interaxial distance should not change.
 link_pulleyDE = chrono.ChLinkPulley()
 link_pulleyDE.Initialize(mbody_gearD, mbody_pulleyE, chrono.CSYSNORM)
-link_pulleyDE.Set_local_shaft1(chrono.ChFramed(chrono.VNULL, chrono.Q_from_AngX(-m.pi / 2)))
-link_pulleyDE.Set_local_shaft2(chrono.ChFramed(chrono.VNULL, chrono.Q_from_AngX(-m.pi / 2)))
+link_pulleyDE.Set_local_shaft1(chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)))
+link_pulleyDE.Set_local_shaft2(chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)))
 link_pulleyDE.Set_r1(radD);
 link_pulleyDE.Set_r2(radE);
 link_pulleyDE.Set_checkphase(True); # synchro belts don't tolerate slipping: this avoids it as numerical errors accumulate.

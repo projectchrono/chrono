@@ -72,7 +72,7 @@ pend_1.SetInertiaXX(chrono.ChVector3d(0.2, 1, 1))
 # frame for a ChBody)
 cyl_1 = chrono.ChVisualShapeCylinder(0.2, 2)
 cyl_1.SetColor(chrono.ChColor(0.6, 0, 0))
-pend_1.AddVisualShape(cyl_1, chrono.ChFramed(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+pend_1.AddVisualShape(cyl_1, chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
 
 
 # Specify the intial position of the pendulum (horizontal, pointing towards
@@ -100,7 +100,7 @@ pend_2.SetInertiaXX(chrono.ChVector3d(0.2, 1, 1))
 # respect to the body reference frame.
 cyl_2 = chrono.ChVisualShapeCylinder(0.2, 2)
 cyl_2.SetColor(chrono.ChColor(0, 0, 0.6))
-pend_2.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(1, 0, 0), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+pend_2.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(1, 0, 0), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
 
 
 # In this case, we must specify the centroidal frame, relative to the body

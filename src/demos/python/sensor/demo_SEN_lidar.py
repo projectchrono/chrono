@@ -60,7 +60,7 @@ def main():
     # Create a lidar and add it to the sensor manager
     # ------------------------------------------------
     offset_pose = chrono.ChFramed(
-        chrono.ChVector3d(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVector3d(0, 1, 0)))
+        chrono.ChVector3d(-8, 0, 1), chrono.QuatFromAngleAxis(0, chrono.ChVector3d(0, 1, 0)))
     lidar = sens.ChLidarSensor(
         mesh_body,              # body lidar is attached to
         update_rate,            # scanning rate in Hz
@@ -127,7 +127,7 @@ def main():
         lidar.SetOffsetPose(chrono.ChFramed(
             chrono.ChVector3d(-orbit_radius * math.cos(ch_time * orbit_rate), -
                              orbit_radius * math.sin(ch_time * orbit_rate), 1),
-            chrono.Q_from_AngAxis(ch_time * orbit_rate, chrono.ChVector3d(0, 0, 1))))
+            chrono.QuatFromAngleAxis(ch_time * orbit_rate, chrono.ChVector3d(0, 0, 1))))
 
         # Access the XYZI buffer from lidar
         xyzi_buffer = lidar.GetMostRecentXYZIBuffer()

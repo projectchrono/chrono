@@ -86,7 +86,7 @@ node_mid = builder.GetLastBeamNodes()[m.floor(builder.GetLastBeamNodes().size()/
 mbodyflywheel = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.24, 0.1, 7800) # R, h, density
 mbodyflywheel.SetCoord(
 		chrono.ChCoordsysd(node_mid.GetPos() + chrono.ChVector3d(0,0.05,0), # flywheel initial center (plus Y offset)
-		chrono.Q_from_AngAxis(CH_C_PI/2.0, chrono.VECT_Z)) # flywheel initial alignment (rotate 90° so cylinder axis is on X)
+		chrono.QuatFromAngleAxis(CH_C_PI/2.0, chrono.VECT_Z)) # flywheel initial alignment (rotate 90° so cylinder axis is on X)
 )
 sys.Add(mbodyflywheel)
 
@@ -114,7 +114,7 @@ rotmotor1 = chrono.ChLinkMotorRotationSpeed()
 rotmotor1.Initialize(builder.GetLastBeamNodes().front(),                # body A (slave)
 	truss,               # body B (master)
 	chrono.ChFramed(builder.GetLastBeamNodes().front().GetPos(), 
-                    chrono.Q_from_AngAxis(CH_C_PI/2.0, chrono.VECT_Y)) # motor frame, in abs. coords
+                    chrono.QuatFromAngleAxis(CH_C_PI/2.0, chrono.VECT_Y)) # motor frame, in abs. coords
 )
 sys.Add(rotmotor1)
 	

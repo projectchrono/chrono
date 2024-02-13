@@ -55,12 +55,12 @@ mmoved_1.SetPos(chrono.ChVector3d(-0.5, 0, 0))
 
 # Create a position function p(t) from three x,y,z distinct ChFunction objects,
 # in this case two sine functions on y and z, whereas x remains constant 0 by default.
-f_xyz = chrono.ChFunctionPosition_XYZfunctions()
+f_xyz = chrono.ChFunctionPositionXYZFunctions()
 f_xyz.SetFunctionY(chrono.ChFunctionSine(0, 0.5, 0.5))
 f_xyz.SetFunctionZ(chrono.ChFunctionSine(0, 0.5, 0.5))
 
 # Create a rotation function q(t) from a angle(time) rotation with fixed axis:
-f_rot_axis = chrono.ChFunctionRotation_axis()
+f_rot_axis = chrono.ChFunctionRotationAxis()
 f_rot_axis.SetFunctionAngle(chrono.ChFunctionSine(0, 0.15, chrono.CH_C_PI))
 f_rot_axis.SetAxis(chrono.ChVector3d(1, 1, 1).GetNormalized())
 
@@ -101,19 +101,19 @@ splinepoints = chrono.vector_ChVector3d([v1, v2, v3, v4, v5, v6])
 mspline = chrono.ChLineBspline(3, splinepoints)
 mspline.SetClosed(True)
 
-f_line = chrono.ChFunctionPosition_line()
+f_line = chrono.ChFunctionPositionLine()
 f_line.SetLine(mspline)
 f_line.SetSpaceFunction(chrono.ChFunctionRamp(0, 0.2))
 
 # Create a spline rotation interpolation
 q1 = chrono.ChQuaterniond(1, 0, 0, 0)
 q2 = chrono.ChQuaterniond(0, 0, 1, 0)
-q3 = chrono.Q_from_AngZ(1.2)
-q4 = chrono.Q_from_AngZ(2.2)
-q5 = chrono.Q_from_AngZ(-1.2)
+q3 = chrono.QuatFromAngleZ(1.2)
+q4 = chrono.QuatFromAngleZ(2.2)
+q5 = chrono.QuatFromAngleZ(-1.2)
 q6 = chrono.ChQuaterniond(0, 1, 0, 0)
 spinerots = chrono.vector_ChQuaterniond([q1, q2, q3, q4, q5, q6])
-f_rotspline = chrono.ChFunctionRotation_spline(1, [q1, q2, q3, q4, q5, q6])
+f_rotspline = chrono.ChFunctionRotationBSpline(1, [q1, q2, q3, q4, q5, q6])
 f_rotspline.SetClosed(True)
 f_rotspline.SetSpaceFunction(chrono.ChFunctionRamp(0, 0.2))
 
@@ -146,8 +146,8 @@ mmoved_3 = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile(
 sys.Add(mmoved_3)
 mmoved_3.SetPos(chrono.ChVector3d(1.5, 0, 0))
 
-f_pos_setpoint = chrono.ChFunctionPosition_setpoint()
-f_rot_setpoint = chrono.ChFunctionRotation_setpoint()
+f_pos_setpoint = chrono.ChFunctionPositionSetpoint()
+f_rot_setpoint = chrono.ChFunctionRotationSetpoint()
 
 impose_3 = chrono.ChLinkMotionImposed()
 sys.Add(impose_3)
@@ -170,8 +170,8 @@ mmoved_4 = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile(
 sys.Add(mmoved_4)
 mmoved_4.SetPos(chrono.ChVector3d(2.5, 0, 0))
 
-f_abc_angles = chrono.ChFunctionRotation_ABCfunctions()
-f_abc_angles.SetAngleset(chrono.AngleSet_RXYZ)
+f_abc_angles = chrono.ChFunctionRotationABCFunctions()
+f_abc_angles.SetAngleset(chrono.RotRepresentation_CARDAN_ANGLES_XYZ)
 f_abc_angles.SetFunctionAngleA(chrono.ChFunctionSine(0, 2, 0.3))
 f_abc_angles.SetFunctionAngleB(chrono.ChFunctionRamp(0, 0.2))
 
@@ -196,12 +196,12 @@ mmoved_5.SetPos(chrono.ChVector3d(1, 1, 0))
 
 q1 = chrono.ChQuaterniond(1, 0, 0, 0)
 q2 = chrono.ChQuaterniond(0, 0, 1, 0)
-q3 = chrono.Q_from_AngZ(1.2)
-q4 = chrono.Q_from_AngZ(2.2)
-q5 = chrono.Q_from_AngZ(-1.2)
+q3 = chrono.QuatFromAngleZ(1.2)
+q4 = chrono.QuatFromAngleZ(2.2)
+q5 = chrono.QuatFromAngleZ(-1.2)
 q6 = chrono.ChQuaterniond(0, 1, 0, 0)
 
-f_squad = chrono.ChFunctionRotation_SQUAD([q1, q2, q3, q4, q5, q6])
+f_squad = chrono.ChFunctionRotationSQUAD([q1, q2, q3, q4, q5, q6])
 f_squad.SetClosed(True)
 f_squad.SetSpaceFunction(chrono.ChFunctionRamp(0, 0.2))
 

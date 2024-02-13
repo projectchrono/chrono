@@ -118,7 +118,7 @@ body.SetCollide(True)
 motor = chrono.ChLinkMotorRotationAngle()
 motor.SetSpindleConstraint(chrono.ChLinkMotorRotation.SpindleConstraint_OLDHAM)
 motor.SetAngleFunction(chrono.ChFunctionRamp(0, math.pi / 4))
-motor.Initialize(body, ground, chrono.ChFramed(tire_center, chrono.Q_from_AngY(math.pi/2)))
+motor.Initialize(body, ground, chrono.ChFramed(tire_center, chrono.QuatFromAngleY(math.pi/2)))
 sys.Add(motor)
 
 # ------------------------
@@ -128,7 +128,7 @@ sys.Add(motor)
 # Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
 # a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
 terrain = veh.SCMTerrain(sys)
-terrain.SetPlane(chrono.ChCoordsysd(chrono.ChVector3d(0,0.2,0), chrono.Q_from_AngX(-math.pi/2)))
+terrain.SetPlane(chrono.ChCoordsysd(chrono.ChVector3d(0,0.2,0), chrono.QuatFromAngleX(-math.pi/2)))
 terrain.Initialize(2.0, 6.0, 0.04)
 
 my_params = MySoilParams()

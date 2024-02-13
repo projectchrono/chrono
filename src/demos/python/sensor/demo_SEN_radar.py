@@ -69,7 +69,7 @@ def main():
     # Create a radar and add it to the sensor manager
     # ------------------------------------------------
     offset_pose = chrono.ChFramed(
-        chrono.ChVector3d(0, 0, 1), chrono.Q_from_AngZ(0))
+        chrono.ChVector3d(0, 0, 1), chrono.QuatFromAngleZ(0))
     radar = sens.ChRadarSensor(
         floor,              # body radar is attached to
         update_rate,            # scanning rate in Hz

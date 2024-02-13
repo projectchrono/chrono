@@ -38,7 +38,7 @@ hl = 2
 angle = math.pi / 6.
 cosa  = math.cos(angle)
 sina  = math.sin(angle)
-rot   = chrono.Q_from_AngX(angle) 
+rot   = chrono.QuatFromAngleX(angle) 
 
 # Create the ground body
 # ----------------------
@@ -78,7 +78,7 @@ shaft_1.AddVisualShape(box_1)
 
 cyl_2 = chrono.ChVisualShapeCylinder(0.05, 0.4)
 cyl_2.SetColor(chrono.ChColor(0.9, 0.4, 0.1))
-shaft_1.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(0, 0, hl), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+shaft_1.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(0, 0, hl), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
 
 # Create the second shaft body
 # ----------------------------
@@ -103,7 +103,7 @@ shaft_2.AddVisualShape(box_1)
 
 cyl_2 = chrono.ChVisualShapeCylinder(0.05, 0.4)
 cyl_2.SetColor(chrono.ChColor(0.2, 0.4, 0.8))
-shaft_2.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(0, 0, -hl), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
+shaft_2.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(0, 0, -hl), chrono.QuatFromAngleX(chrono.CH_C_PI_2)))
 
 # Connect the first shaft to ground
 # ---------------------------------

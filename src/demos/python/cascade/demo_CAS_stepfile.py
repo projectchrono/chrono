@@ -39,9 +39,9 @@ load_ok = mydoc.Load_STEP(chrono.GetChronoDataFile('cascade/assembly.stp'))
 # In most CAD systems the Y axis is horizontal, but we want it vertical.
 # So define a root transformation for rotating all the imported objects.
 rotation1 = chrono.ChQuaterniond()
-rotation1.Q_from_AngAxis(-chrono.CH_C_PI / 2, chrono.ChVector3d(1, 0, 0))  # 1: rotate 90° on X axis
+rotation1.SetFromAngleAxis(-chrono.CH_C_PI / 2, chrono.ChVector3d(1, 0, 0))  # 1: rotate 90° on X axis
 rotation2 = chrono.ChQuaterniond()
-rotation2.Q_from_AngAxis(chrono.CH_C_PI, chrono.ChVector3d(0, 1, 0))  # 2: rotate 180° on vertical Y axis
+rotation2.SetFromAngleAxis(chrono.CH_C_PI, chrono.ChVector3d(0, 1, 0))  # 2: rotate 180° on vertical Y axis
 tot_rotation = chrono.ChQuaterniond()
 tot_rotation = rotation2 % rotation1     # rotate on 1 then on 2, using quaternion product
 root_frame = chrono.ChFrameMovingD(chrono.ChVector3d(0, 0, 0), tot_rotation)

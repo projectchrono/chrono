@@ -241,7 +241,7 @@ while vis.Run():
     vis.Render()
     chronoirr.drawGrid(vis,
         0.05, 0.05, 20, 20, 
-        chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.Q_from_AngZ(chrono.CH_C_PI_2)))
+        chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.QuatFromAngleZ(chrono.CH_C_PI_2)))
     vis.EndScene()
 
     sys.DoStepDynamics(0.001)

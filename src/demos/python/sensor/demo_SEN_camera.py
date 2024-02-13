@@ -65,7 +65,7 @@ def main():
     # Create a camera and add it to the sensor manager
     # ------------------------------------------------
     offset_pose = chrono.ChFramed(
-        chrono.ChVector3d(-5, 0, 2), chrono.Q_from_AngAxis(2, chrono.ChVector3d(0, 1, 0)))
+        chrono.ChVector3d(-5, 0, 2), chrono.QuatFromAngleAxis(2, chrono.ChVector3d(0, 1, 0)))
     cam = sens.ChCameraSensor(
         mesh_body,              # body camera is attached to
         update_rate,            # update rate in Hz
@@ -136,7 +136,7 @@ def main():
         cam.SetOffsetPose(chrono.ChFramed(
             chrono.ChVector3d(-orbit_radius * math.cos(ch_time * orbit_rate), -
                              orbit_radius * math.sin(ch_time * orbit_rate), 1),
-            chrono.Q_from_AngAxis(ch_time * orbit_rate, chrono.ChVector3d(0, 0, 1))))
+            chrono.QuatFromAngleAxis(ch_time * orbit_rate, chrono.ChVector3d(0, 0, 1))))
 
         # Access the RGBA8 buffer from the camera
         rgba8_buffer = cam.GetMostRecentRGBA8Buffer()

@@ -127,7 +127,7 @@ class Model(object):
       for i in range(len(leg_ang)):
              
              # Legs
-             Leg_quat[i].Q_from_AngAxis(-leg_ang[i] , chrono.ChVector3d(0, 1, 0))
+             Leg_quat[i].SetFromAngleAxis(-leg_ang[i] , chrono.ChVector3d(0, 1, 0))
              self.leg_pos[i] = chrono.ChVector3d( (0.5*self.leg_length+self.abdomen_x)*math.cos(leg_ang[i]) ,self.abdomen_y0, (0.5*self.leg_length+self.abdomen_z)*math.sin(leg_ang[i]))
              self.leg_body[i].SetPos(self.leg_pos[i])
              self.leg_body[i].SetRot(Leg_quat[i])
@@ -137,8 +137,8 @@ class Model(object):
              self.ant_sys.Add(self.leg_body[i])
              x_rel.append( Leg_quat[i].Rotate(chrono.ChVector3d(1, 0, 0)))
              z_rel.append( Leg_quat[i].Rotate(chrono.ChVector3d(0, 0, 1)))
-             Leg_qa[i].Q_from_AngAxis(-leg_ang[i] , chrono.ChVector3d(0, 1, 0))
-             z2x_leg[i].Q_from_AngAxis(chrono.CH_C_PI / 2 , x_rel[i])
+             Leg_qa[i].SetFromAngleAxis(-leg_ang[i] , chrono.ChVector3d(0, 1, 0))
+             z2x_leg[i].SetFromAngleAxis(chrono.CH_C_PI / 2 , x_rel[i])
              Leg_q[i] = z2x_leg[i] * Leg_qa[i] 
              Leg_rev_pos.append(chrono.ChVector3d(self.leg_pos[i]-chrono.ChVector3d(math.cos(leg_ang[i])*self.leg_length/2,0,math.sin(leg_ang[i])*self.leg_length/2)))
              Leg_chordsys.append(chrono.ChCoordsysd(Leg_rev_pos[i], Leg_q[i]))
@@ -148,7 +148,7 @@ class Model(object):
              self.leg_motor[i].Initialize(self.body_abdomen, self.leg_body[i],self.legjoint_frame[i])
              self.ant_sys.Add(self.leg_motor[i])
              # Ankles
-             q_ankle_zrot[i].Q_from_AngAxis(-self.ankle_angle , z_rel[i])
+             q_ankle_zrot[i].SetFromAngleAxis(-self.ankle_angle , z_rel[i])
              anklejoint_chordsys.append(chrono.ChCoordsysd(self.leg_body[i].GetPos()+ self.leg_body[i].GetRot().Rotate(chrono.ChVector3d(self.leg_length/2, 0, 0)) , q_ankle_zrot[i] * self.leg_body[i].GetRot() ))
              self.anklejoint_frame.append(chrono.ChFramed(anklejoint_chordsys[i]))
              self.ankle_body[i].SetPos(self.anklejoint_frame[i].GetPos() + self.anklejoint_frame[i].GetRot().Rotate(chrono.ChVector3d(self.ankle_length/2, 0, 0)))
@@ -238,7 +238,7 @@ class Model(object):
    def get_ob(self):
           
 
-          ab_rot =  	self.body_abdomen.GetRot().Q_to_Euler123()
+          ab_rot =  	self.body_abdomen.GetRot().GetCardanAnglesXYZ()
           ab_q = np.asarray([self.body_abdomen.GetPos().z, ab_rot.x, ab_rot.y, ab_rot.z])
           ab_speed = self.body_abdomen.GetRot().RotateBack(self.body_abdomen.GetPos_dt())
           ab_qdot = np.asarray([ ab_speed.x, ab_speed.y, ab_speed.z, self.body_abdomen.GetWvel_loc().x, self.body_abdomen.GetWvel_loc().y, self.body_abdomen.GetWvel_loc().z ])

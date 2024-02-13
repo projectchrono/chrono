@@ -215,7 +215,7 @@ robot.SetOutputDirectory(out_dir)
 # Initialize Robosimian robot
 
 ##robot.Initialize(ChCoordsys<>(chrono.ChVector3d(0, 0, 0), QUNIT))
-robot.Initialize(chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.Q_from_AngX(chrono.CH_C_PI)))
+robot.Initialize(chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.QuatFromAngleX(chrono.CH_C_PI)))
 
 # -----------------------------------
 # Create a driver and attach to robot
@@ -260,7 +260,7 @@ robot.SetDriver(driver)
 # Cast rays into collision models
 # -------------------------------
 
-caster = RayCaster(sys, chrono.ChFramed(chrono.ChVector3d(0, -2, -1), chrono.Q_from_AngX(-chrono.CH_C_PI_2)), [2.5, 2.5], 0.02)
+caster = RayCaster(sys, chrono.ChFramed(chrono.ChVector3d(0, -2, -1), chrono.QuatFromAngleX(-chrono.CH_C_PI_2)), [2.5, 2.5], 0.02)
 
 # -------------------------------
 # Create the visualization window

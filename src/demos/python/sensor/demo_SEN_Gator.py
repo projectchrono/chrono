@@ -175,7 +175,7 @@ manager.scene.AddPointLight(chrono.ChVector3f(23, 2.5, 100), chrono.ChColor(inte
 # ------------------------------------------------
 # Create two camera and add it to the sensor manager
 # ------------------------------------------------
-offset_pose = chrono.ChFramed(chrono.ChVector3d(.1, 0, 1.45), chrono.Q_from_AngAxis(.2, chrono.ChVector3d(0, 1, 0)))
+offset_pose = chrono.ChFramed(chrono.ChVector3d(.1, 0, 1.45), chrono.QuatFromAngleAxis(.2, chrono.ChVector3d(0, 1, 0)))
 cam = sens.ChCameraSensor(
     gator.GetChassisBody(),
     update_rate,
@@ -192,7 +192,7 @@ if vis:
 
 manager.AddSensor(cam)
 
-offset_pose1 = chrono.ChFramed(chrono.ChVector3d(-8, 0, 3), chrono.Q_from_AngAxis(.2, chrono.ChVector3d(0, 1, 0)))
+offset_pose1 = chrono.ChFramed(chrono.ChVector3d(-8, 0, 3), chrono.QuatFromAngleAxis(.2, chrono.ChVector3d(0, 1, 0)))
 cam1 = sens.ChCameraSensor(
     gator.GetChassisBody(),
     update_rate,
@@ -236,7 +236,7 @@ while vis.Run() :
     # Update sensor manager
     cam1.SetOffsetPose(chrono.ChFramed(
         chrono.ChVector3d(-orbit_radius * math.cos(time * orbit_rate), -orbit_radius * math.sin(time * orbit_rate), 1),
-        chrono.Q_from_AngAxis(time * orbit_rate, chrono.ChVector3d(0, 0, 1))))
+        chrono.QuatFromAngleAxis(time * orbit_rate, chrono.ChVector3d(0, 0, 1))))
     manager.Update()
 
     # Advance simulation for one timestep for all modules

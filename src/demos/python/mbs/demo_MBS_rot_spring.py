@@ -53,8 +53,8 @@ sys = chrono.ChSystemNSC()
 sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
 
 # Revolute joint frame 
-rev_rot = chrono.Q_from_AngX(m.pi / 6.0)
-rev_dir = rev_rot.GetZaxis()
+rev_rot = chrono.QuatFromAngleX(m.pi / 6.0)
+rev_dir = rev_rot.GetAxisZ()
 rev_pos = chrono.ChVector3d(+1, 0, 0)
 
 # Create ground body
@@ -94,7 +94,7 @@ sph = chrono.ChVisualShapeSphere(0.3)
 body.AddVisualShape(sph)
 cyl = chrono.ChVisualShapeCylinder(0.1, 1.5)
 cyl.SetColor(chrono.ChColor(0.7, 0.8, 0.8))
-body.AddVisualShape(cyl, chrono.ChFramed(chrono.ChVector3d(-0.75,0,0), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+body.AddVisualShape(cyl, chrono.ChFramed(chrono.ChVector3d(-0.75,0,0), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
 
 # Create revolute joint between body and ground
 rev = chrono.ChLinkLockRevolute()

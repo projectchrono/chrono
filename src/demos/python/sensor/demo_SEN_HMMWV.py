@@ -172,7 +172,7 @@ def main():
     # Create an IMU sensor and add it to the manager
     # ----------------------------------------------
     offset_pose = chrono.ChFramed(
-        chrono.ChVector3d(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVector3d(0, 1, 0)))
+        chrono.ChVector3d(-8, 0, 1), chrono.QuatFromAngleAxis(0, chrono.ChVector3d(0, 1, 0)))
     imu = sens.ChAccelerometerSensor(hmmwv.GetChassisBody(),                     # body imu is attached to
                                      imu_update_rate,         # update rate in Hz
                                      offset_pose,             # offset pose
@@ -192,7 +192,7 @@ def main():
     # Create an GPS sensor and add it to the manager
     # ----------------------------------------------
     offset_pose = chrono.ChFramed(
-        chrono.ChVector3d(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVector3d(0, 1, 0)))
+        chrono.ChVector3d(-8, 0, 1), chrono.QuatFromAngleAxis(0, chrono.ChVector3d(0, 1, 0)))
     gps = sens.ChGPSSensor(hmmwv.GetChassisBody(),                     # body imu is attached to
                            gps_update_rate,       # update rate in Hz
                            offset_pose,             # offset pose
