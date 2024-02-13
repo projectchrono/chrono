@@ -594,13 +594,13 @@ std::shared_ptr<ChNoiseModel> CreateNoiseJSON(const Value& value) {
         model = chrono_types::make_shared<ChNoiseNone>();
     } else if (type.compare("ChNoiseNormal") == 0) {
         ChVector3f mean = ReadVectorJSON(value["Mean"]);
-        ChVector3f stdev = ReadVectorJSON(value["Mean"]);
+        ChVector3f stdev = ReadVectorJSON(value["Standard Deviation"]);
         model = chrono_types::make_shared<ChNoiseNormal>(mean, stdev);
     } else if (type.compare("ChNoiseNormalDrift") == 0) {
         float updateRate = value["Update Rate"].GetFloat();
         ChVector3f mean = ReadVectorJSON(value["Mean"]);
-        ChVector3f stdev = ReadVectorJSON(value["Mean"]);
-        float drift_bias = value["Drift Bias"].GetFloat();
+        ChVector3f stdev = ReadVectorJSON(value["Standard Deviation"]);
+        float drift_bias = value["Bias Drift"].GetFloat();
         float tau_drift = value["Tau Drift"].GetFloat();
         model = chrono_types::make_shared<ChNoiseNormalDrift>(updateRate, mean, stdev, drift_bias, tau_drift);
     } else {
