@@ -91,11 +91,11 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     m_crane = chrono_types::make_shared<ChBody>();
     m_crane->SetMass(crane_mass);
     m_crane->SetPos(crane_pos);
-    m_crane->SetRot(Q_from_AngY(-init_crane_angle));
+    m_crane->SetRot(QuatFromAngleY(-init_crane_angle));
     m_crane->AddVisualShape(connection_sph, ChFrame<>(m_point_crane, QUNIT));
     m_crane->AddVisualShape(connection_sph, ChFrame<>(ChVector3d(crane_length / 2, 0, 0), QUNIT));
     auto crane_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.015, crane_length);
-    m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+    m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
     sys.AddBody(m_crane);
 
     auto ball = chrono_types::make_shared<ChBody>();
@@ -109,7 +109,7 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
 
     // Create joints
     auto rev_joint = chrono_types::make_shared<ChLinkRevolute>();
-    rev_joint->Initialize(ground, m_crane, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    rev_joint->Initialize(ground, m_crane, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
     sys.AddLink(rev_joint);
 
     auto sph_joint = chrono_types::make_shared<ChLinkLockSpherical>();

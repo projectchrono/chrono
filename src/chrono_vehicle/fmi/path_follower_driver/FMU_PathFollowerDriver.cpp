@@ -144,7 +144,7 @@ void FmuComponent::CreateDriver() {
     init_yaw = std::atan2(point1.y() - point0.y(), point1.x() - point0.x());
 
     ref_frame.SetPos(init_loc);
-    ref_frame.SetRot(Q_from_AngZ(init_yaw));
+    ref_frame.SetRot(QuatFromAngleZ(init_yaw));
 
 #ifdef CHRONO_IRRLICHT
     auto ground = chrono_types::make_shared<ChBody>();
@@ -165,7 +165,7 @@ void FmuComponent::CreateDriver() {
 
 void FmuComponent::SynchronizeDriver(double time) {
     // Set the rotation matrix of the reference frame
-    ref_frame.GetA().Set_A_quaternion(ref_frame.GetRot());
+    ref_frame.GetA().SetFromQuaternion(ref_frame.GetRot());
 }
 
 void FmuComponent::CalculateDriverOutputs() {
@@ -192,7 +192,7 @@ void FmuComponent::_exitInitializationMode() {
         int grid_x = (int)std::ceil(path_aabb.Size().x() / spacing);
         int grid_y = 2 * (int)std::ceil(path_aabb.Size().y() / spacing);
         auto grid_pos = path_aabb.Center() - ChVector3d(0, 0, 0.05);
-        auto grid_rot = Q_from_AngZ(init_yaw);
+        auto grid_rot = QuatFromAngleZ(init_yaw);
 
         // Create run-time visualization system
         vis_sys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
@@ -256,7 +256,7 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
             sys.Update(true);
 
             // Update camera position
-            auto x_dir = ref_frame.GetA().Get_A_Xaxis();
+            auto x_dir = ref_frame.GetA().GetAxisX();
             auto camera_target = ref_frame.GetPos();
             auto camera_pos = camera_target - 2.0 * x_dir + ChVector3d(0, 0, 0.5);
             vis_sys->UpdateCamera(camera_pos, camera_target);
