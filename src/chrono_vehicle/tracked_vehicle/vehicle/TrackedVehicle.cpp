@@ -28,18 +28,23 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TrackedVehicle::TrackedVehicle(const std::string& filename, ChContactMethod contact_method)
+TrackedVehicle::TrackedVehicle(const std::string& filename,
+                               ChContactMethod contact_method,
+                               CustomConstructorsTV custom_constructors)
     : ChTrackedVehicle("", contact_method) {
-    Create(filename);
+    Create(filename, custom_constructors);
 }
 
-TrackedVehicle::TrackedVehicle(ChSystem* system, const std::string& filename) : ChTrackedVehicle("", system) {
-    Create(filename);
+TrackedVehicle::TrackedVehicle(ChSystem* system,
+                               const std::string& filename,
+                               CustomConstructorsTV custom_constructors)
+    : ChTrackedVehicle("", system) {
+    Create(filename, custom_constructors);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TrackedVehicle::Create(const std::string& filename) {
+void TrackedVehicle::Create(const std::string& filename, CustomConstructorsTV custom_constructors) {
     // -------------------------------------------
     // Open and parse the input file
     // -------------------------------------------
@@ -67,7 +72,10 @@ void TrackedVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Chassis"]["Input File"].GetString();
-        m_chassis = ReadChassisJSON(vehicle::GetDataFile(file_name));
+        m_chassis = ReadChassisJSON(
+            vehicle::GetDataFile(file_name),
+            custom_constructors.chassis_constructor
+        );
         if (d["Chassis"].HasMember("Output")) {
             m_chassis->SetOutput(d["Chassis"]["Output"].GetBool());
         }
@@ -83,7 +91,10 @@ void TrackedVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Track Assemblies"][0u]["Input File"].GetString();
-        m_tracks[VehicleSide::LEFT] = ReadTrackAssemblyJSON(vehicle::GetDataFile(file_name));
+        m_tracks[VehicleSide::LEFT] = ReadTrackAssemblyJSON(
+            vehicle::GetDataFile(file_name),
+            custom_constructors.track_assembly_constructor
+        );
         if (d["Track Assemblies"][0u].HasMember("Output")) {
             m_tracks[VehicleSide::LEFT]->SetOutput(d["Track Assemblies"][0u]["Output"].GetBool());
         }
@@ -91,7 +102,10 @@ void TrackedVehicle::Create(const std::string& filename) {
     }
     {
         std::string file_name = d["Track Assemblies"][1u]["Input File"].GetString();
-        m_tracks[VehicleSide::RIGHT] = ReadTrackAssemblyJSON(vehicle::GetDataFile(file_name));
+        m_tracks[VehicleSide::RIGHT] = ReadTrackAssemblyJSON(
+            vehicle::GetDataFile(file_name),
+            custom_constructors.track_assembly_constructor
+        );
         if (d["Track Assemblies"][1u].HasMember("Output")) {
             m_tracks[VehicleSide::RIGHT]->SetOutput(d["Track Assemblies"][1u]["Output"].GetBool());
         }
@@ -106,7 +120,10 @@ void TrackedVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Driveline"]["Input File"].GetString();
-        m_driveline = ReadDrivelineTVJSON(vehicle::GetDataFile(file_name));
+        m_driveline = ReadDrivelineTVJSON(
+            vehicle::GetDataFile(file_name),
+            custom_constructors.driveline_tv_constructor
+        );
         if (d["Driveline"].HasMember("Output")) {
             m_driveline->SetOutput(d["Driveline"]["Output"].GetBool());
         }

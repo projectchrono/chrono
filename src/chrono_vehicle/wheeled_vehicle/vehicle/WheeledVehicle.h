@@ -27,6 +27,34 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled
 /// @{
 
+
+/// Constructors for different vehicle subsystems. Used to construct custom
+/// instances of the subsystems from a JSON document.
+struct CH_VEHICLE_API CustomConstructorsWV {
+
+    /// A constructor for creating a vehicle subsystem from a JSON document.
+    template<typename T>
+    using CustomConstructor =
+        std::function<std::shared_ptr<T>(
+            const std::string&,         /// The name of the template to create an instance of
+            const rapidjson::Document&  /// The JSON document
+        )>;
+
+    CustomConstructor<ChChassis> chassis_constructor;
+    CustomConstructor<ChChassisRear> chassis_rear_constructor;
+    CustomConstructor<ChChassisConnector> chassis_connector_constructor;
+    CustomConstructor<ChEngine> engine_constructor;
+    CustomConstructor<ChTransmission> transmission_constructor;
+    CustomConstructor<ChSuspension> suspension_constructor;
+    CustomConstructor<ChSteering> steering_constructor;
+    CustomConstructor<ChDrivelineWV> driveline_constructor;
+    CustomConstructor<ChAntirollBar> antirollbar_constructor;
+    CustomConstructor<ChWheel> wheel_constructor;
+    CustomConstructor<ChSubchassis> subchassis_constructor;
+    CustomConstructor<ChBrake> brake_constructor;
+    CustomConstructor<ChTire> tire_constructor;
+};
+
 /// Wheeled vehicle model constructed from a JSON specification file.
 class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
   public:
@@ -36,7 +64,8 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
     WheeledVehicle(const std::string& filename,
                    ChContactMethod contact_method = ChContactMethod::NSC,
                    bool create_powertrain = true,
-                   bool create_tires = true);
+                   bool create_tires = true,
+                   CustomConstructorsWV custom_constructors = {});
 
     /// Create a wheeled vehicle from the provided JSON specification file.
     /// The vehicle is added to the given Chrono system. If indicated, an associated powertrain and tires are created
@@ -44,7 +73,8 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
     WheeledVehicle(ChSystem* system,
                    const std::string& filename,
                    bool create_powertrain = true,
-                   bool create_tires = true);
+                   bool create_tires = true,
+                   CustomConstructorsWV custom_constructors = {});
 
     ~WheeledVehicle() {}
 
@@ -57,7 +87,10 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
   private:
-    void Create(const std::string& filename, bool create_powertrain, bool create_tires);
+    void Create(const std::string& filename,
+                bool create_powertrain,
+                bool create_tires,
+                CustomConstructorsWV custom_constructors);
 
   private:
     int m_num_rear_chassis;                   // number of rear chassis subsystems for this vehicle
