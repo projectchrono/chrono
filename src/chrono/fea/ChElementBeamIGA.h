@@ -128,6 +128,9 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
         }
     }
 
+    /// Add contribution of element inertia to total nodal masses
+    virtual void ComputeNodalMass() override;
+
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     virtual void ComputeKRMmatricesGlobal(ChMatrixRef H,

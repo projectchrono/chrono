@@ -47,10 +47,10 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
 
             // Solve:
             //
-            // [M          Cq' ] [ dx  ] = [ 0]
-            // [ Cq        0   ] [  l  ] = [ C]
+            // [M          Cq' ] [ dx  ] = [  0]
+            // [ Cq        0   ] [ -l  ] = [ -C]
 
-            integrable->LoadConstraint_C(Qc, 1.0);
+            integrable->LoadConstraint_C(Qc, 1.0); // sign flipped later in StateSolveCorrection
 
             integrable->StateSolveCorrection(
                 Dx, L, R, Qc,
@@ -85,12 +85,12 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
         // Perform a linearized semi-implicit Euler integration step
         //
         // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ v_new  ] = [ M*(v_old) + dt*f]
-        // [ Cq                           0   ] [ -dt*l  ] = [ C/dt + Ct ]
+        // [ Cq                           0   ] [ -dt*l  ] = [ -C/dt - Ct ]
 
         integrable->LoadResidual_F(R, dt);
         integrable->LoadResidual_Mv(R, V, 1.0);
-        integrable->LoadConstraint_C(Qc, 1.0 / dt, false);
-        integrable->LoadConstraint_Ct(Qc, 1.0);
+        integrable->LoadConstraint_C(Qc, 1.0 / dt, false); // sign later flipped in StateSolveCorrection
+        integrable->LoadConstraint_Ct(Qc, 1.0);  // sign later flipped in StateSolveCorrection
 
         integrable->StateSolveCorrection(
             V, L, R, Qc,

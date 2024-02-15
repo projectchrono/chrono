@@ -93,7 +93,8 @@ using namespace chrono;
 %shared_ptr(chrono::ChTimestepperHHT)
 %shared_ptr(chrono::ChImplicitIterativeTimestepper)
 %shared_ptr(chrono::ChImplicitTimestepper)
-  
+%shared_ptr(chrono::ChExplicitTimestepper)  
+
 %include "../../../chrono/timestepper/ChState.h"
 %include "../../../chrono/timestepper/ChIntegrable.h"
 %include "../../../chrono/timestepper/ChTimestepper.h"

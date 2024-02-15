@@ -5,16 +5,16 @@
 
   "Steering Link":
   {
-    "Mass":                     10,
+    "Mass":                     9.072,
     "COM":                      0,
     "Inertia":                  [1, 1, 1],
     "Radius":                   0.03,
-    "Length":                   0.9
+    "Length":                   0.896
   },
 
   "Pinion":
   {
     "Radius":                   0.1,
-    "Maximum Angle (deg)":      50
+    "Maximum Angle (deg)":      30
   }
 }

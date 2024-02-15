@@ -265,6 +265,11 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     /// Update the state of this element.
     virtual void Update() override;
 
+    // The default implementation in ChElementBase is ok, but inefficient because it passes
+    // through the computation of the M mass matrix via ComputeKRMmatricesGlobal(H,0,0,M).
+    void EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, const double c) override;
+
+
     // Interface to ChElementShell base class
     // --------------------------------------
 

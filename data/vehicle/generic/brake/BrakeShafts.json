@@ -1,0 +1,8 @@
+{
+  "Name":                       "Generic Shafts Brake",
+  "Type":                       "Brake",
+  "Template":                   "BrakeShafts",
+
+  "Maximum Torque":             4000,
+  "Shaft Inertia":              0.4
+}

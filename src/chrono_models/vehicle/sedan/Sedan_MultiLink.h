@@ -15,9 +15,8 @@
 // Sedan multi-link suspension subsystem.
 //
 // This concrete suspension subsystem is defined with respect to a right-handed
-// frame with X pointing towards the front, Y to the left, and Z up (as imposed
-// by the base class ChSolidAxle) and origin at the midpoint between the wheel
-// centers.
+// frame with X pointing towards the front, Y to the left, and Z up and origin
+// at the midpoint between the wheel centers.
 //
 // All point locations are provided for the left half of the suspension.
 //

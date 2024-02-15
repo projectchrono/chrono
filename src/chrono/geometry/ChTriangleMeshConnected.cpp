@@ -13,11 +13,11 @@
 // =============================================================================
 // =============================================================================
 
-//// RADU TODO
-//// (1) Merge() does nothing for the face material indices.
-////     The problem is that we cannot merge the visual material lists (not present here)
-//// (2) SplitEdge() does not do anything for face material indices.
-///      This could be implemented such that the two new faces point to the same material.
+// RADU TODO
+// (1) Merge() does nothing for the face material indices.
+//     The problem is that we cannot merge the visual material lists (not present here)
+// (2) SplitEdge() does not do anything for face material indices.
+//     This could be implemented such that the two new faces point to the same material.
 
 #include <algorithm>
 #include <cstdio>
