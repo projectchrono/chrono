@@ -20,7 +20,7 @@
 //	   - perform a simulation
 //
 // =============================================================================
-
+
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
 
@@ -97,10 +97,7 @@ int main(int argc, char* argv[]) {
         my_marker_a1->SetName("JohnFoo");
         // ..so you can later use  my_body_B.SearchMarker("JohnFoo"); etc.
 
-        std::cout << std::endl
-                  << std::endl
-                  << "Here's the system hierarchy after modifications:\n"
-                  << std::endl;
+        std::cout << std::endl << std::endl << "Here's the system hierarchy after modifications:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
     }
 
@@ -176,10 +173,7 @@ int main(int argc, char* argv[]) {
         my_motor_AB->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_C_PI));
         sys.AddLink(my_motor_AB);
 
-        std::cout << std::endl
-                  << std::endl
-                  << "Here's the system hierarchy for slider-crank:\n"
-                  << std::endl;
+        std::cout << std::endl << std::endl << "Here's the system hierarchy for slider-crank:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
         std::cout << "Now use an interator to scan through already-added constraints:\n" << std::endl;

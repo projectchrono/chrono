@@ -22,7 +22,7 @@
 // =============================================================================
 
 #include <vector>
-
+
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"

@@ -18,7 +18,7 @@
 // Y pointing to the left.
 //
 // =============================================================================
-
+
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 
@@ -213,8 +213,7 @@ int main(int argc, char* argv[]) {
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName("Trees");
         trimesh_shape->SetMutable(false);
-        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape,
-                                                           ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI_2)));
+        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI_2)));
     }
 
     // -----------------

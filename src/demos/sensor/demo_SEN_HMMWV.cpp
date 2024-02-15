@@ -16,7 +16,7 @@
 // Attach multiple sensors to a hmmwv full vehicle model
 //
 // =============================================================================
-
+
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -319,11 +319,11 @@ int main(int argc, char* argv[]) {
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------
     auto cam = chrono_types::make_shared<ChCameraSensor>(
-        my_hmmwv.GetChassisBody(),                                           // body camera is attached to
-        cam_update_rate,                                                     // update rate in Hz
+        my_hmmwv.GetChassisBody(),                                              // body camera is attached to
+        cam_update_rate,                                                        // update rate in Hz
         chrono::ChFrame<double>({-8, 0, 3}, QuatFromAngleAxis(.2, {0, 1, 0})),  // offset pose
-        image_width,                                                         // image width
-        image_height,                                                        // image height
+        image_width,                                                            // image width
+        image_height,                                                           // image height
         cam_fov,
         super_samples);  // fov, lag, exposure
     cam->SetName("Camera Sensor");
@@ -349,11 +349,11 @@ int main(int argc, char* argv[]) {
     // Create a second camera and add it to the sensor manager
     // -------------------------------------------------------
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(
-        my_hmmwv.GetChassisBody(),                                            // body camera is attached to
-        cam_update_rate,                                                      // update rate in Hz
+        my_hmmwv.GetChassisBody(),                                               // body camera is attached to
+        cam_update_rate,                                                         // update rate in Hz
         chrono::ChFrame<double>({1, 0, .875}, QuatFromAngleAxis(0, {1, 0, 0})),  // offset pose
-        image_width,                                                          // image width
-        image_height,                                                         // image height
+        image_width,                                                             // image width
+        image_height,                                                            // image height
         cam_fov,
         super_samples);  // fov, lag, exposure
     cam2->SetName("Camera Sensor");

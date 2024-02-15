@@ -18,7 +18,6 @@
 // on revolute joints, etc.
 //
 // =============================================================================
-
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChShaftsGear.h"

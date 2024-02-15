@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include <cmath>
-
+
 #include "chrono/core/ChGlobal.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
@@ -810,8 +810,7 @@ void example5(const std::string& out_dir) {
                    //<< mystepper7.get_X()(0) << ", " << mystepper7.get_X()(1) << ", " << mystepper7.get_V()(0) << ", "
                    //<< mystepper7.get_V()(1) << ", "
                    << mystepper7.get_Y()(0) << ", " << mystepper7.get_Y()(1) << ", " << mystepper7.get_Y()(2) << ", "
-                   << mystepper7.get_Y()(3) << ", "
-                   << std::endl;
+                   << mystepper7.get_Y()(3) << ", " << std::endl;
         log_file5er << mystepper7.GetTime() << ", " << mystepper7.get_L()(0) << std::endl;
     }
 
@@ -862,7 +861,8 @@ void example5(const std::string& out_dir) {
 }
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2021 projectchrono.org\n"<< "Chrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2021 projectchrono.org\n"
+              << "Chrono version: " << CHRONO_VERSION << std::endl;
 
     std::cout << "CHRONO demo about low-level time integration of differential equations:" << std::endl;
 

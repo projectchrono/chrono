@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include <iomanip>
+#include <iomanip>
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -452,7 +452,7 @@ void test_anchorchain() {
 
     // Create output directory and output file
     std::string out_dir = GetChronoOutputPath() + "ANCHOR_CHAIN";
-    std::cout << "out_dir is:\n"<< out_dir << std::endl;
+    std::cout << "out_dir is:\n" << out_dir << std::endl;
 
     if (true) {  // static analysis
         std::cout << "\n\n******** Static analysis ******** \n" << std::endl;

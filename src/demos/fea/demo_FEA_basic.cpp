@@ -15,7 +15,7 @@
 // FEA (basic introduction)
 //
 // =============================================================================
-
+
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
@@ -103,10 +103,10 @@ void test_1() {
 
     // Output result
     std::cout << "poss after linear static analysis:" << std::endl;
-    std::cout << "  nodeA->pos\n"<< mnodeA->GetPos();
-    std::cout << "  nodeB->pos\n"<< mnodeB->GetPos();
+    std::cout << "  nodeA->pos\n" << mnodeA->GetPos();
+    std::cout << "  nodeB->pos\n" << mnodeB->GetPos();
     std::cout << "Forces after linear static analysis:" << std::endl;
-    std::cout << "  constraintA.react\n"<< constraintA->GetReactionOnBody();
+    std::cout << "  constraintA.react\n" << constraintA->GetReactionOnBody();
 }
 
 //////////////////////////////////////////////////////////////////

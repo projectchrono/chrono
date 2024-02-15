@@ -25,7 +25,6 @@
 // The user can uncomment and run any of the seven demos
 //
 // =============================================================================
-
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -76,7 +75,7 @@ int main(int argc, char* argv[]) {
     // AxialDynamics();
     // BendingQuasiStatic();
     SwingingShell();
-    
+
     return 0;
 }
 
@@ -1869,7 +1868,7 @@ void BendingQuasiStatic() {
         nodetip->SetForce(ChVector3d(0.0, 0.0, force));
 
         std::cout << sys.GetChTime() << " " << nodetip->GetPos().x() << " " << nodetip->GetPos().y() << " "
-                 << nodetip->GetPos().z() << std::endl;
+                  << nodetip->GetPos().z() << std::endl;
 
         sys.DoStepDynamics(timestep);
 
@@ -2097,6 +2096,6 @@ void SwingingShell() {
         vis->EndScene();
 
         std::cout << sys.GetChTime() << " " << nodetip->GetPos().x() << " " << nodetip->GetPos().y() << " "
-                 << nodetip->GetPos().z() << std::endl;
+                  << nodetip->GetPos().z() << std::endl;
     }
 }

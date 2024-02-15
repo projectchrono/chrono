@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
-
+
 #include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChMatrix.h"
 
@@ -168,8 +168,7 @@ void test_1(const std::string& out_dir) {
     StreamOut(matrCq, std::cout);
 
     std::cout << "**** Using ChSolverPSOR  **********\n" << std::endl;
-    std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "\n"
-              << std::endl;
+    std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "\n" << std::endl;
     std::cout << "vars q_a and q_b -------------------" << std::endl;
     std::cout << mvarA.Get_qb();
     std::cout << mvarB.Get_qb() << "  " << std::endl;
@@ -235,16 +234,16 @@ void test_2(const std::string& out_dir) {
 
         std::ofstream file_M(out_dir + "/dump_M_2.dat");
         StreamOutSparseMatlabFormat(mdM, file_M);
-        
+
         std::ofstream file_Cq(out_dir + "/dump_Cq_2.dat");
         StreamOutSparseMatlabFormat(mdCq, file_Cq);
-        
+
         std::ofstream file_E(out_dir + "/dump_E_2.dat");
         StreamOutSparseMatlabFormat(mdE, file_E);
-        
+
         std::ofstream file_f(out_dir + "/dump_f_2.dat");
         StreamOutDenseMatlabFormat(mdf, file_f);
-        
+
         std::ofstream file_b(out_dir + "/dump_b_2.dat");
         StreamOutDenseMatlabFormat(mdb, file_b);
 
@@ -411,7 +410,8 @@ void test_3(const std::string& out_dir) {
 // Results will be simply text-formatted outputs in the console..
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\n"<< "Chrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2017 projectchrono.org\n"
+              << "Chrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_SOLVER";

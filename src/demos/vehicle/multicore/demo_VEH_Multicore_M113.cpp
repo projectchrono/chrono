@@ -12,25 +12,26 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Note: this is only a demonstration. For proper simulation on DEM terrain, 
+// Note: this is only a demonstration. For proper simulation on DEM terrain,
 // significantly more particles would be required (with a corresponding increase
 // in computational cost).
-// 
+//
 // =============================================================================
 
 #include <iostream>
 
-#include "chrono/ChConfig.h"
+#include "chrono/ChConfig.h"
+
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
 
 // Chrono::Multicore OpenGL header files
-//#undef CHRONO_OPENGL
+// #undef CHRONO_OPENGL
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 #include "chrono/utils/ChUtilsGeometry.h"
@@ -57,7 +58,7 @@ using std::endl;
 // =============================================================================
 
 // Comment the following line to use Chrono::Multicore
-//#define USE_SEQ
+// #define USE_SEQ
 
 // -----------------------------------------------------------------------------
 // Specification of the terrain
@@ -72,7 +73,7 @@ TerrainType terrain_type = GRANULAR_TERRAIN;
 bool visible_walls = false;
 
 // Dimensions
-double hdimX = 5.5; //// 2.5;
+double hdimX = 5.5;  //// 2.5;
 double hdimY = 2.5;
 double hdimZ = 0.5;
 double hthick = 0.25;
@@ -177,18 +178,18 @@ double CreateParticles(ChSystem* sys) {
 // of '=' characters corresponding to 100%.
 
 void progressbar(unsigned int x, unsigned int n, unsigned int w = 50) {
-  if ((x != n) && (x % (n / 100 + 1) != 0))
-    return;
+    if ((x != n) && (x % (n / 100 + 1) != 0))
+        return;
 
-  float ratio = x / (float)n;
-  unsigned int c = (unsigned int)(ratio * w);
+    float ratio = x / (float)n;
+    unsigned int c = (unsigned int)(ratio * w);
 
-  std::cout << std::setw(3) << (int)(ratio * 100) << "% [";
-  for (unsigned int ix = 0; ix < c; ix++)
-    std::cout << "=";
-  for (unsigned int ix = c; ix < w; ix++)
-    std::cout << " ";
-  std::cout << "]\r" << std::flush;
+    std::cout << std::setw(3) << (int)(ratio * 100) << "% [";
+    for (unsigned int ix = 0; ix < c; ix++)
+        std::cout << "=";
+    for (unsigned int ix = c; ix < w; ix++)
+        std::cout << " ";
+    std::cout << "]\r" << std::flush;
 }
 
 // =============================================================================
@@ -227,7 +228,6 @@ int main(int argc, char* argv[]) {
 
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
     sys->Set_G_acc(ChVector3d(0, 0, -9.81));
-
 
     // ---------------------
     // Edit sys settings.
@@ -342,7 +342,8 @@ int main(int argc, char* argv[]) {
 
     ////m113.GetVehicle().SetCollide(TrackCollide::NONE);
     ////m113.GetVehicle().SetCollide(TrackCollide::WHEELS_LEFT | TrackCollide::WHEELS_RIGHT);
-    ////m113.GetVehicle().SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT) & (~TrackCollide::SPROCKET_RIGHT));
+    ////m113.GetVehicle().SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT) &
+    ///(~TrackCollide::SPROCKET_RIGHT));
 
     // Create the driver sys
     ChDataDriver driver(m113.GetVehicle(), vehicle::GetDataFile("M113/driver/Acceleration.txt"));

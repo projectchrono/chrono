@@ -21,7 +21,7 @@
 // Y pointing to the left.
 //
 // =============================================================================
-
+
 #include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -38,9 +38,9 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
-// specify whether the demo should actually use Irrlicht
-#define USE_IRRLICHT
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+    // specify whether the demo should actually use Irrlicht
+    #define USE_IRRLICHT
 #endif
 
 // =============================================================================
@@ -122,8 +122,8 @@ int main(int argc, char* argv[]) {
             break;
     }
     std::cout << "Terrain No. = " << iTerrain << "\n"
-             << "Speed       = " << target_speed << " m/s\n"
-             << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka89, 4=Pacejka02, 5=Rigid) = " << iTire << "\n";
+              << "Speed       = " << target_speed << " m/s\n"
+              << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka89, 4=Pacejka02, 5=Rigid) = " << iTire << "\n";
 
     // --------------------------
     // Create the various modules
@@ -304,8 +304,7 @@ int main(int argc, char* argv[]) {
         }
         if (xpos >= xstart) {
             double speed = vehicle.GetSpeed();
-            ChVector3d seat_acc =
-                vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+            ChVector3d seat_acc = vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
             seat_logger.AddData(speed, seat_acc);
         }
 
@@ -332,8 +331,7 @@ int main(int argc, char* argv[]) {
 
         if (xpos >= xstart) {
             double speed = vehicle.GetSpeed();
-            ChVector3d seat_acc =
-                vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+            ChVector3d seat_acc = vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
             seat_logger.AddData(speed, seat_acc);
         }
     }

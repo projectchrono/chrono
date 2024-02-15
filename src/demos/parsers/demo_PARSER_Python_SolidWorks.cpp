@@ -17,7 +17,7 @@
 // - simulating the system with Irrlicht run-time visualization
 //
 // =============================================================================
-
+
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_parsers/ChParserPython.h"
@@ -117,7 +117,10 @@ int main(int argc, char* argv[]) {
         mescape_wheel->GetCollisionModel()->SetAllShapesMaterial(mat);
         manchor->GetCollisionModel()->SetAllShapesMaterial(mat);
     } else
-        std::cerr << std::endl << std::endl << "ERROR: cannot find one or more objects from their names in the Chrono system!\n" << std::endl;
+        std::cerr << std::endl
+                  << std::endl
+                  << "ERROR: cannot find one or more objects from their names in the Chrono system!\n"
+                  << std::endl;
 
     // Irrlicht run-time visualization
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();

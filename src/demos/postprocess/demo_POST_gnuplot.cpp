@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include <cmath>
-
+
 #include "chrono/core/ChGlobal.h"
 #include "chrono/motion_functions/ChFunctionRecorder.h"
 #include "chrono/motion_functions/ChFunctionSine.h"

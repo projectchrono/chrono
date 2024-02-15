@@ -27,7 +27,7 @@
 #include "chrono/serialization/ChArchiveXML.h"
 #include "chrono/serialization/ChObjectExplorer.h"
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChQuaternion.h"
@@ -250,7 +250,7 @@ void my_serialization_example(ChArchiveOut& marchive) {
     m_stlvector.push_back(2.3);
     m_stlvector.push_back(45.3);
     m_stlvector.push_back(66.44);
-    std::list<ChVector3d > m_stllist;
+    std::list<ChVector3d> m_stllist;
     m_stllist.push_back(ChVector3d(1, 2, 3));
     m_stllist.push_back(ChVector3d(3, 4, 5));
     std::pair<int, double> m_stlpair(120, 0.99);
@@ -357,7 +357,7 @@ void my_deserialization_example(ChArchiveIn& marchive) {
     char m_text[12];  // better use std::string
     std::string m_string;
     std::vector<double> m_stlvector;
-    std::list<ChVector3d > m_stllist;
+    std::list<ChVector3d> m_stllist;
     std::pair<int, double> m_stlpair;
     std::unordered_map<int, double> m_stlunorderedmap;
     ChMatrixDynamic<> m_matr_dyn;
@@ -614,7 +614,7 @@ void my_reflection_example() {
         auto props2 = mexplorer2.FetchValues(*i, "*");
         for (auto i2 : props2) {
             std::cout << "    val: " << i2->name() << ",  reg.class: " << i2->GetClassRegisteredName()
-                          << ",  typeid: " << i2->GetTypeidName() << std::endl;
+                      << ",  typeid: " << i2->GetTypeidName() << std::endl;
         }
     }
 }

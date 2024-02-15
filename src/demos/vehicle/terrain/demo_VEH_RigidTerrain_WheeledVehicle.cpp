@@ -18,7 +18,7 @@
 // Y pointing to the left.
 //
 // =============================================================================
-
+
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"

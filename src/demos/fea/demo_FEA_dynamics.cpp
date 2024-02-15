@@ -15,7 +15,6 @@
 // FEA (introduction to dynamics)
 //
 // =============================================================================
-
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
