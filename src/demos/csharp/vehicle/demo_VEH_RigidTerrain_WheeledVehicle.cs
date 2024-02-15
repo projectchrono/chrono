@@ -63,7 +63,7 @@ namespace ChronoDemo
             hmmwv.SetChassisFixed(false);
             hmmwv.SetInitPosition(new ChCoordsysD(initLoc, chrono.QUNIT));
             hmmwv.SetEngineType(EngineModelType.SIMPLE);
-            hmmwv.SetTransmissionType(TransmissionModelType.SIMPLE_MAP);
+            hmmwv.SetTransmissionType(TransmissionModelType.AUTOMATIC_SIMPLE_MAP);
             hmmwv.SetDriveType(DrivelineTypeWV.RWD);
             hmmwv.SetBrakeType(BrakeType.SHAFTS);
             hmmwv.SetTireType(TireModelType.TMEASY);

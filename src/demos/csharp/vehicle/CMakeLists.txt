@@ -9,6 +9,7 @@ set(DEMOS
     demo_VEH_paths
     demo_VEH_RigidTerrain_WheeledVehicle
     demo_VEH_CRGTerrain_IRR
+    demo_VEH_HMMWV_MeshTerrain
 )
 
 

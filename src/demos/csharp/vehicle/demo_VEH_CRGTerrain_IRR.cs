@@ -448,7 +448,7 @@ namespace ChronoDemo
                 if (vehicleName == "HMMWV")
                 { // special initialisation for the full hmmwv
                     vehicle.SetEngineType(EngineModelType.SHAFTS);
-                    vehicle.SetTransmissionType(TransmissionModelType.SHAFTS);
+                    vehicle.SetTransmissionType(TransmissionModelType.AUTOMATIC_SHAFTS);
                     vehicle.SetDriveType(DrivelineTypeWV.RWD);
                 }
                 // Kraz doesn't have a call to Set tire type. Enable it for the others.

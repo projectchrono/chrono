@@ -102,9 +102,11 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     ~RigidTerrain();
 
+
     /// Add a terrain patch represented by a rigid box.
     /// The patch is constructed such that the center of its top surface (the "driving" surface) is in the x-y plane of
     /// the specified coordinate system. If tiled = true, multiple side-by-side boxes are used.
+    /// Detection of the ChWorldFrame.Vertical adjusts the terrain boxes to the z-x plane to suit a Y-Up world
     std::shared_ptr<Patch> AddPatch(
         std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
         const ChCoordsys<>& position,                 ///< [in] patch location and orientation
@@ -126,6 +128,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         double sweep_sphere_radius = 0,               ///< [in] radius of sweep sphere
         bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
+    
 
     /// Add a terrain patch represented by a heightmap image.
     /// If the image has an explicit gray channel, that value is used as an encoding of height. Otherwise, RGB values
@@ -143,6 +146,24 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
 
+    /// <summary>
+    /// Add a terrain patch drawn from a vector of vectors - refined using the LEPP method
+    /// For each Chvector, x and y represent grid elements and the z value is the height
+    std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(
+        std::shared_ptr<ChMaterialSurface> material,          ///< [in] contact material
+        const ChCoordsys<>& position,                         ///< [in] patch location and orientation
+        const std::vector<ChVector<double>>& point_cloud,     ///< [in] Vector of x,y grid and z is height data. A point cloud of height vectors
+        double length,                                        ///< [in] patch length (m)
+        double width,                                         ///< [in] patch width (m)
+        int unrefined_resolution,                             ///< [in] the starting resolution of the alternating triangle mesh. Usually 10% to 25% of the heightmap resolution produces good results
+        int heightmap_resolution,                             ///< [in] resolution of the heightmap to filter the point cloud. Can be mnanipulated to sharpen or blur the map
+        int max_refinements = 5,                              ///< [in] maximum triangle edge length for use in edge refinement method
+        double refine_angle_limit = 30,                       ///< [in] Normal threshold angle in degrees to determine when refinement of triangle stops
+        double smoothing_factor = 0.25,                       ///< [in] Smoothing degree from 0.0 (min) to 1.0 (max). Taubin smoothing.
+        double max_edge_length = 1.0,                         ///< [in] Maximum edge length in Refine Mesh Edges LEPP method
+        double sweep_sphere_radius = 0.001,                   ///< [in] radius of sweep sphere
+        bool visualization = true                             ///< [in] enable/disable construction of visualisation assets
+    );
     /// Initialize all defined terrain patches.
     void Initialize();
 
@@ -209,11 +230,13 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
   private:
     /// Patch represented as a box domain.
     struct CH_VEHICLE_API BoxPatch : public Patch {
-        ChVector<> m_location;  ///< center of top surface
-        ChVector<> m_normal;    ///< outward normal of the top surface
-        double m_hlength;       ///< patch half-length
-        double m_hwidth;        ///< patch half-width
-        double m_hthickness;    ///< patch half-thickness
+        ChVector<> m_location;      ///< center of top surface
+        ChVector<> m_normal;        ///< outward normal of the top surface
+        double m_hlength;           ///< patch half-length
+        double m_hwidth;            ///< patch half-width
+        double m_hthickness;        ///< patch half-thickness
+        ChVector<> m_visual_offset; ///< visual offset for alignment in different world orientations
+        ChVector<> m_dim;           ///< dimensions to cache for visual box
         virtual void Initialize() override;
         virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const override;
     };

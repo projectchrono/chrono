@@ -92,6 +92,11 @@ using namespace irr::scene; // This is inserted for the extend functions that us
         }
     }
 
+    %extend chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht {
+        ILightSceneNode* AddLight(const chrono::ChVector<>& pos, double radius, chrono::ChColor color) {
+            return $self->AddLight(pos, radius, color);
+        }
+    }
 
     %extend chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht {
         void SetWindowTitle(const std::string& win_title) {
@@ -102,6 +107,27 @@ using namespace irr::scene; // This is inserted for the extend functions that us
     %extend chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht {
         void AddLogo(const std::string& logo_filename = GetChronoDataFile("logo_chronoengine_alpha.png")) {
             $self->chrono::irrlicht::ChVisualSystemIrrlicht::AddLogo(logo_filename);
+        }
+    }
+
+    %extend chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht {
+        // for using irrlicht in Y-Up worlds.
+        void SetCameraVertical(CameraVerticalDir vert) {
+            $self->chrono::irrlicht::ChVisualSystemIrrlicht::SetCameraVertical(vert);
+        }
+        CameraVerticalDir GetCameraVertical() {
+            return $self->chrono::irrlicht::ChVisualSystemIrrlicht::GetCameraVertical();
+        }
+
+    }
+    // Visualisations for collision mesh and body frame ref
+        %extend chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht {
+        void EnableCollisionShapeDrawing(bool val){
+            $self->chrono::irrlicht::ChVisualSystemIrrlicht::EnableCollisionShapeDrawing(val);
+        }
+
+        void EnableBodyFrameDrawing(bool val){
+            $self->chrono::irrlicht::ChVisualSystemIrrlicht::EnableBodyFrameDrawing(val);
         }
     }
 
