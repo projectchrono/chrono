@@ -20,7 +20,7 @@
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 #include "chrono/geometry/ChLineNurbs.h"
 #include "chrono/geometry/ChSurfaceNurbs.h"
 #include "chrono/assets/ChVisualShapeBox.h"
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
         particles->SetCollide(true);
 
         for (int np = 0; np < 60; ++np)
-            particles->AddParticle(ChCoordsys<>(ChVector3d(2 * ChRandom() - 2, 1.5, 2 * ChRandom() + 2)));
+            particles->AddParticle(ChCoordsys<>(ChVector3d(2 * ChRandom::Get() - 2, 1.5, 2 * ChRandom::Get() + 2)));
 
         sys.Add(particles);
     }
@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
         particles->SetCollide(true);
 
         for (int np = 0; np < 30; ++np)
-            particles->AddParticle(ChCoordsys<>(ChVector3d(2 * ChRandom() + 4, 1.5, 2 * ChRandom() - 4)));
+            particles->AddParticle(ChCoordsys<>(ChVector3d(2 * ChRandom::Get() + 4, 1.5, 2 * ChRandom::Get() - 4)));
 
         sys.Add(particles);
     }
@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
 
         for (int np = 0; np < 40; ++np)
             particles->AddParticle(
-                ChCoordsys<>(ChVector3d(4 * ChRandom() - 6, 3 * ChRandom() + 2, 4 * ChRandom() - 6)));
+                ChCoordsys<>(ChVector3d(4 * ChRandom::Get() - 6, 3 * ChRandom::Get() + 2, 4 * ChRandom::Get() - 6)));
 
         particles->RegisterColorCallback(chrono_types::make_shared<MyColorCallback>(2, 5));
 

@@ -21,7 +21,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChFeeder.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -53,7 +53,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
     double exact_particles_dt = dt * particles_second;
     double particles_dt = floor(exact_particles_dt);
     double remaind = exact_particles_dt - particles_dt;
-    if (remaind > ChRandom())
+    if (remaind > ChRandom::Get())
         particles_dt += 1;
 
     auto item_mat = chrono_types::make_shared<ChContactMaterialNSC>();

@@ -21,7 +21,7 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 
                 auto vis_mat = std::make_shared<ChVisualMaterial>();
                 vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
-                vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+                vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
                 vis_mat->SetSpecularColor({.2f, .2f, .2f});
                 cyl->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
 
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
                     {2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
                 auto vis_mat = std::make_shared<ChVisualMaterial>();
                 vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
-                vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+                vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
                 vis_mat->SetSpecularColor({.2f, .2f, .2f});
                 sphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
 
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
                 box->SetPos({2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
                 auto vis_mat = std::make_shared<ChVisualMaterial>();
                 vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
-                vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+                vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
                 vis_mat->SetSpecularColor({.2f, .2f, .2f});
                 box->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
 

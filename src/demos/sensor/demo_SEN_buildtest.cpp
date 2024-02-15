@@ -29,7 +29,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -220,18 +220,18 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < num_bodies; i++) {
         // add a box
-        auto box = chrono_types::make_shared<ChBodyEasyBox>(ChRandom() / 2.0 + 0.1, ChRandom() / 2.0 + 0.1,
-                                                            ChRandom() / 2.0 + 0.1,  // x,y,z size
+        auto box = chrono_types::make_shared<ChBodyEasyBox>(ChRandom::Get() / 2.0 + 0.1, ChRandom::Get() / 2.0 + 0.1,
+                                                            ChRandom::Get() / 2.0 + 0.1,  // x,y,z size
                                                             1000,                    // density
                                                             true,                    // collide enable?
                                                             true, phys_mat);         // visualization?
-        box->SetPos({ChRandom(), ChRandom(), 2.0 + i});
+        box->SetPos({ChRandom::Get(), ChRandom::Get(), 2.0 + i});
         box->SetRot(
-            QuatFromAngleSet({RotRepresentation::EULER_ANGLES_ZXZ, ChVector3d(ChRandom(), ChRandom(), ChRandom())}));
+            QuatFromAngleSet({RotRepresentation::EULER_ANGLES_ZXZ, ChVector3d(ChRandom::Get(), ChRandom::Get(), ChRandom::Get())}));
         sys.Add(box);
         {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-            vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+            vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
             box->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
         }
@@ -241,27 +241,27 @@ int main(int argc, char* argv[]) {
         }
 
         auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,     //
-                                                                 ChRandom() / 2.0 + 0.1,  // radius
-                                                                 ChRandom() / 2.0 + 0.1,  // height
+                                                                 ChRandom::Get() / 2.0 + 0.1,  // radius
+                                                                 ChRandom::Get() / 2.0 + 0.1,  // height
                                                                  1000,                    // density
                                                                  true,                    // collide enable?
                                                                  true, phys_mat);         // visualization?
-        cyl->SetPos({ChRandom(), ChRandom(), 2.0 + i});
+        cyl->SetPos({ChRandom::Get(), ChRandom::Get(), 2.0 + i});
         cyl->SetRot(
-            QuatFromAngleSet({RotRepresentation::EULER_ANGLES_ZXZ, ChVector3d(ChRandom(), ChRandom(), ChRandom())}));
+            QuatFromAngleSet({RotRepresentation::EULER_ANGLES_ZXZ, ChVector3d(ChRandom::Get(), ChRandom::Get(), ChRandom::Get())}));
         sys.Add(cyl);
         {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-            vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+            vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
             cyl->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
         }
 
-        auto sphere = chrono_types::make_shared<ChBodyEasySphere>((float)ChRandom() / 2.0 + 0.1,  // radius
+        auto sphere = chrono_types::make_shared<ChBodyEasySphere>((float)ChRandom::Get() / 2.0 + 0.1,  // radius
                                                                   1000,                           // density
                                                                   true,                           // collide enable?
                                                                   true, phys_mat);                // visualization?
-        sphere->SetPos({ChRandom(), ChRandom(), 2.0 + i});
+        sphere->SetPos({ChRandom::Get(), ChRandom::Get(), 2.0 + i});
         sys.Add(sphere);
         if (!gps_parent) {
             gps_parent = sphere;
@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
         {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
             vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
-            vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+            vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
             sphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
         }
@@ -278,7 +278,7 @@ int main(int argc, char* argv[]) {
         mesh_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
         mesh_body->SetMass(mmass * mdensity);
         mesh_body->SetInertiaXX(mdensity * principal_I);
-        mesh_body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(ChRandom(), ChRandom(), 2.0 + i)));
+        mesh_body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(ChRandom::Get(), ChRandom::Get(), 2.0 + i)));
         sys.Add(mesh_body);
 
         auto mesh_ct_shape =

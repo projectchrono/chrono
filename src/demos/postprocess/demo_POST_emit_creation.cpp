@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     auto floor_body = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     floor_body->SetPos(ChVector3d(0, -5, 0));
     floor_body->SetBodyFixed(true);
-    floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
+    floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom::Get()));
 
     auto shape1 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
     auto shape2 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 2, 24, 40);
@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
     auto creator_boxes = chrono_types::make_shared<ChRandomShapeCreatorBoxes>();
     creator_boxes->SetXsizeDistribution(
         chrono_types::make_shared<ChZhangDistribution>(0.20, 0.09));  // Zhang parameters: average val, min val.
-    creator_boxes->SetSizeRatioZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.8, 1.0));
-    creator_boxes->SetSizeRatioYZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.2, 0.3));
+    creator_boxes->SetSizeRatioZDistribution(chrono_types::make_shared<ChUniformDistribution>(0.8, 1.0));
+    creator_boxes->SetSizeRatioYZDistribution(chrono_types::make_shared<ChUniformDistribution>(0.2, 0.3));
     creator_boxes->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
                                ChCoordsys<> coords,
                                ChRandomShapeCreator& creator) override {
             // Quick randomization of POV colors, without using the ChRandomShapeCreatorFromFamilies
-            double icol = ChRandom();
+            double icol = ChRandom::Get();
             if (icol < 0.3)
                 pov->SetCustomCommands(body, " texture {pigment{ color rgb<0.8,0.3,0.3>} }  \n");
             else if (icol < 0.8)
@@ -259,10 +259,10 @@ int main(int argc, char* argv[]) {
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
     auto creator_shavings = chrono_types::make_shared<ChRandomShapeCreatorShavings>();
-    creator_shavings->SetDiameterDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.06, 0.1));
-    creator_shavings->SetLengthRatioDistribution(chrono_types::make_shared<ChMinMaxDistribution>(3, 6));
-    creator_shavings->SetTwistDistributionU(chrono_types::make_shared<ChMinMaxDistribution>(5, 9));
-    creator_shavings->SetTwistDistributionV(chrono_types::make_shared<ChMinMaxDistribution>(2, 3));
+    creator_shavings->SetDiameterDistribution(chrono_types::make_shared<ChUniformDistribution>(0.06, 0.1));
+    creator_shavings->SetLengthRatioDistribution(chrono_types::make_shared<ChUniformDistribution>(3, 6));
+    creator_shavings->SetTwistDistributionU(chrono_types::make_shared<ChUniformDistribution>(5, 9));
+    creator_shavings->SetTwistDistributionV(chrono_types::make_shared<ChUniformDistribution>(2, 3));
     creator_shavings->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
@@ -272,7 +272,7 @@ int main(int argc, char* argv[]) {
         virtual void OnAddBody(std::shared_ptr<ChBody> body,
                                ChCoordsys<> coords,
                                ChRandomShapeCreator& creator) override {
-            float scale = (float)ChRandom();
+            float scale = (float)ChRandom::Get();
             body->GetVisualShape(0)->SetColor(ChColor(0.3f + scale * 0.6f, 0.2f + scale * 0.7f, 0.2f + scale * 0.7f));
         }
     };

@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     auto floor_body = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     floor_body->SetPos(ChVector3d(0, -5, 0));
     floor_body->SetBodyFixed(true);
-    floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
+    floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom::Get()));
 
     auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
     floor_body->AddCollisionShape(floor_shape);
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
         // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
         auto creator_spheres = chrono_types::make_shared<ChRandomShapeCreatorSpheres>();
-        creator_spheres->SetDiameterDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.20, 0.06));
+        creator_spheres->SetDiameterDistribution(chrono_types::make_shared<ChUniformDistribution>(0.06, 0.20));
         creator_spheres->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
 
         // Optional: define a callback to be exectuted at each creation of a sphere particle:
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
         // Create a ChRandomShapeCreator object (ex. here for hull particles)
 
         auto creator_hulls = chrono_types::make_shared<ChRandomShapeCreatorConvexHulls>();
-        creator_hulls->SetChordDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.68, 0.15));
+        creator_hulls->SetChordDistribution(chrono_types::make_shared<ChUniformDistribution>(0.15, 0.68));
         creator_hulls->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
 
         // Optional: define a callback to be exectuted at each creation of a sphere particle:

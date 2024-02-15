@@ -25,7 +25,7 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -388,7 +388,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < 6; i++) {
         auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(1, 0.5, 1, 200, true, true, ground_mat);
         sys.Add(my_obstacle);
-        my_obstacle->SetPos(ChVector3d(20 * ChRandom(), 2, 20 * ChRandom()));
+        my_obstacle->SetPos(ChVector3d(20 * ChRandom::Get(), 2, 20 * ChRandom::Get()));
         my_obstacle->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_wood.png"));
     }
 

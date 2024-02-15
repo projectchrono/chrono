@@ -18,7 +18,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_cascade/ChCascadeBodyEasy.h"
@@ -382,9 +382,9 @@ int main(int argc, char* argv[]) {
                     new ChBodyEasyBox(0.4, brick_h, 0.4, 1000, true, true, mysurfmaterial));
                 cube->SetPos(ChVector3d(-1.4, (0.5 * brick_h) + ib * brick_h, -0.4 - 0.5 * ix));
                 cube->SetRot(QuatFromAngleY(ib * 0.1));
-                cube->GetVisualShape(0)->SetColor(ChColor(0.5f + float(0.5 * ChRandom()),  //
-                                                          0.5f + float(0.5 * ChRandom()),  //
-                                                          0.5f + float(0.5 * ChRandom())   //
+                cube->GetVisualShape(0)->SetColor(ChColor(0.5f + float(0.5 * ChRandom::Get()),  //
+                                                          0.5f + float(0.5 * ChRandom::Get()),  //
+                                                          0.5f + float(0.5 * ChRandom::Get())   //
                                                           ));
                 sys.Add(cube);
             }

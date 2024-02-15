@@ -23,7 +23,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 
 #ifdef CHRONO_COLLISION
     #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
@@ -57,7 +57,7 @@ void AddFallingItems(ChSystemNSC& sys) {
                                                                       1000,     // density
                                                                       sph_mat  // contact material
 );
-        sphereBody->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        sphereBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         sphereBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
         sys.Add(sphereBody);
 
@@ -65,7 +65,7 @@ void AddFallingItems(ChSystemNSC& sys) {
                                                                 100,            // density
                                                                 box_mat        // contact material
                                                              );
-        boxBody->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        boxBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         boxBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
         sys.Add(boxBody);
 
@@ -74,7 +74,7 @@ void AddFallingItems(ChSystemNSC& sys) {
                                                                      100,                  // density
                                                                      cyl_mat              // contact material
                                                                  );
-        cylBody->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        cylBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         cylBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));
         sys.Add(cylBody);
     }

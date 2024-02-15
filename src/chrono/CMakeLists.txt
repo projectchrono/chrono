@@ -36,7 +36,6 @@ include_directories(${CH_INCLUDES})
 
 set(ChronoEngine_core_SOURCES
     core/ChClassFactory.cpp
-    core/ChMathematics.cpp
     core/ChQuaternion.cpp
     core/ChRotation.cpp
     core/ChVector3.cpp
@@ -44,7 +43,7 @@ set(ChronoEngine_core_SOURCES
     core/ChQuadrature.cpp
     core/ChBezierCurve.cpp
     core/ChCubicSpline.cpp
-    core/ChDistribution.cpp
+    core/ChRandom.cpp
     core/ChGlobal.cpp
     )
 
@@ -55,7 +54,6 @@ set(ChronoEngine_core_HEADERS
     core/ChCoordsys.h
     core/ChFrame.h
     core/ChFrameMoving.h
-    core/ChMathematics.h
     core/ChMatrix.h
     core/ChMatrixEigenExtensions.h
     core/ChSparseMatrixEigenExtensions.h
@@ -71,7 +69,7 @@ set(ChronoEngine_core_HEADERS
     core/ChVector3.h
     core/ChVector2.h
     core/ChAlignedAllocator.h
-    core/ChDistribution.h
+    core/ChRandom.h
     core/ChQuadrature.h
     core/ChTemplateExpressions.h
     core/ChBezierCurve.h

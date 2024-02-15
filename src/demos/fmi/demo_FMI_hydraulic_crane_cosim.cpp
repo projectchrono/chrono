@@ -18,7 +18,6 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
-#include "chrono/core/ChMathematics.h"
 #include "chrono/motion_functions/ChFunction.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 

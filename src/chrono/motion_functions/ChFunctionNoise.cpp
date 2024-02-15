@@ -12,8 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChMathematics.h"
-
+#include "chrono/core/ChRandom.h"
 #include "chrono/motion_functions/ChFunctionNoise.h"
 
 namespace chrono {
@@ -31,9 +30,7 @@ ChFunctionNoise::ChFunctionNoise(const ChFunctionNoise& other) {
 // Compute 1D harmonic multi-octave noise
 double ChNoise(double x, double amp, double freq, int octaves, double amp_ratio) {
     double ret = 0;
-    long oldseed = ChGetRandomSeed();
     double o_freq, o_amp, xA, xB, yA, yB, period;
-    int iA, iB;
 
     o_freq = freq;
     o_amp = amp;
@@ -42,27 +39,14 @@ double ChNoise(double x, double amp, double freq, int octaves, double amp_ratio)
         period = 1.0 / o_freq;
         xA = period * floor(x / period);
         xB = xA + period;
-        iA = int(floor(x / period));
-        iB = iA + 1;
-        ChSetRandomSeed((long)(iA + 12345));
-        ChRandom();
-        ChRandom();
-        ChRandom();  // just to puzzle the seed..
-        yA = (ChRandom() - 0.5) * o_amp;
-        ChSetRandomSeed((long)(iB + 12345));
-        ChRandom();
-        ChRandom();
-        ChRandom();  // just to puzzle the seed..
-        yB = (ChRandom() - 0.5) * o_amp;
+        yA = (ChRandom::Get() - 0.5) * o_amp;
+        yB = (ChRandom::Get() - 0.5) * o_amp;
         // cubic noise interpolation from (xA,yA) to (xB,yB), with flat extremal derivatives
         ret += yA + (yB - yA) * ((3 * (pow(((x - xA) / (xB - xA)), 2))) - 2 * (pow(((x - xA) / (xB - xA)), 3)));
         // for following octave, reduce amplitude...
         o_amp *= amp_ratio;
         o_freq *= 2.0;
     }
-    
-    // restore previous seed
-    ChSetRandomSeed(oldseed);
 
     return ret;
 }

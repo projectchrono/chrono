@@ -331,7 +331,7 @@ using namespace chrono::fea;
 #define Coordsys ChCoordsys<double>
 %include "ChFrame.i"
 %include "ChFrameMoving.i"
-%include "ChMathematics.i"
+%include "ChRandom.i"
 %include "ChTimer.i"
 %include "ChRealtimeStep.i"
 %include "ChTransform.i"

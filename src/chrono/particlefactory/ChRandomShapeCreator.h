@@ -20,10 +20,9 @@
 
 #include <memory>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChDistribution.h"
 #include "chrono/geometry/ChSphere.h"
 #include "chrono/geometry/ChBox.h"
 #include "chrono/geometry/ChCylinder.h"
@@ -241,15 +240,15 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
         double msizeratioYZ = sizeratioYZ->GetRandom();
         double msizeratioZ = sizeratioZ->GetRandom();
 
-        std::vector<ChVector3d > points;
+        std::vector<ChVector3d> points;
         points.resize(npoints);
         double hsizex = 0;
         double hsizey = 0;
         double hsizez = 0;
         for (int ip = 0; ip < npoints; ++ip) {
-            points[ip].x() = ChRandom();
-            points[ip].y() = ChRandom();
-            points[ip].z() = ChRandom();
+            points[ip].x() = ChRandom::Get();
+            points[ip].y() = ChRandom::Get();
+            points[ip].z() = ChRandom::Get();
             if (fabs(points[ip].x()) > hsizex)
                 hsizex = fabs(points[ip].x());
             if (fabs(points[ip].y()) > hsizey)
@@ -326,7 +325,7 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
         double realinterval = mlengthsweep / nintervals;
         unsigned int npoints = (unsigned int)nintervals + 1;
 
-        std::vector<ChVector3d > points;
+        std::vector<ChVector3d> points;
         points.resize(npoints);
         std::vector<double> radii;
         radii.resize(npoints);
@@ -430,7 +429,7 @@ class ChRandomShapeCreatorFromFamilies : public ChRandomShapeCreator {
         }
         // Scan families, starting from randomized index, and see which is
         // 'lagging behind'.
-        unsigned int tested_family = (int)floor((double)(family_generators.size() - 1) * ChRandom());
+        unsigned int tested_family = (int)floor((double)(family_generators.size() - 1) * ChRandom::Get());
         unsigned int ntests = 0;
         while (true) {
             // windup tested family to scan all families if reached end

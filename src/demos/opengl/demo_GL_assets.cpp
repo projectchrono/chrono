@@ -22,7 +22,7 @@
 #include "chrono/geometry/ChLineNurbs.h"
 #include "chrono/geometry/ChSurfaceNurbs.h"
 #include "chrono/assets/ChVisualShapeSurface.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
@@ -208,7 +208,7 @@ int main(int argc, char* argv[]) {
 
     // Create the random particles
     for (int np = 0; np < 100; ++np)
-        particles->AddParticle(ChCoordsys<>(ChVector3d(ChRandom() - 2, 0.5, ChRandom() + 2)));
+        particles->AddParticle(ChCoordsys<>(ChVector3d(ChRandom::Get() - 2, 0.5, ChRandom::Get() + 2)));
 
     // Mass and inertia properties.
     // This will be shared among all particles in the ChParticleCloud.

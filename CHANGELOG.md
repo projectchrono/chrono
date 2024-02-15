@@ -108,6 +108,7 @@ Note that this represents a major public API change and we expect most user code
 
 | File                                | Action                                    |
 | :---------------------------------- | :---------------------------------------- |
+| ChDistribution.h                    | rename: ChRandom.h                        |
 | ChException.h                       | remove                                    |
 | ChFx.h                              | remove                                    |
 | ChLists.h                           | remove                                    |
@@ -116,6 +117,7 @@ Note that this represents a major public API change and we expect most user code
 | ChMaterialSurfaceNSC.h              | rename: ChContactMaterialNSC.h            |
 | ChMaterialSurfaceSMC.h              | rename: ChContactMaterialSMC.h            |
 | ChMath.h                            | remove                                    |
+| ChMathematics.h                     | remove                                    |
 | ChSolvmin.h                         | remove                                    |
 | ChStream.h                          | remove                                    |
 | ChFunction_Const.h                  | rename: ChFunctionConst.h                 |
@@ -162,6 +164,8 @@ Note that this represents a major public API change and we expect most user code
 | -                                 | ChMax               | remove                                           |
 | -                                 | ChMin               | remove                                           |
 | -                                 | ChPeriodicPar       | remove                                           |
+| -                                 | ChGetRandomSeed     | remove                                           |
+| -                                 | ChSetRandomSeed     | replaced with ChRandom::SetSeed                  |
 | -                                 | ChSignum            | relocate to utils/ChUtils.h                      |
 | -                                 | ChSineStep          | implemented in ChFunctionSineStep                |
 | -                                 | GetLog              | remove                                           |
@@ -213,6 +217,8 @@ Note that this represents a major public API change and we expect most user code
 | ChMaterialCompositeNSC            |                     | rename: ChContactMaterialCompositeNSC            |
 | ChMaterialCompositeSMC            |                     | rename: ChContactMaterialCompositeSMC            |
 | ChMaterialCompositionStrategy     |                     | rename: ChContactMaterialCompositionStrategy     |
+| ChMinMaxDistribution              |                     | rename: ChUniformDistribution                    |
+|                                   | ChRandom            | rename: ChRandom::Get()                          |
 | ChStream                          |                     | remove                                           |
 | ChStreamFile                      |                     | remove                                           |
 | ChStreamIn                        |                     | remove                                           |

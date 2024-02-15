@@ -21,7 +21,7 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -181,12 +181,12 @@ int main(int argc, char* argv[]) {
         // Will render/save/filter automatically
 
         // Set object pose randomly to generate calibration images
-        box_body->SetPos({x_min + ChRandom() * (x_max - x_min), y_min + ChRandom() * (y_max - y_min),
-                          z_min + ChRandom() * (z_max - z_min)});
+        box_body->SetPos({x_min + ChRandom::Get() * (x_max - x_min), y_min + ChRandom::Get() * (y_max - y_min),
+                          z_min + ChRandom::Get() * (z_max - z_min)});
         box_body->SetRot(QuatFromAngleSet({RotRepresentation::EULER_ANGLES_ZXZ,                  //
-                                           ChVector3d(ax_min + ChRandom() * (ax_max - ax_min),   //
-                                                      ay_min + ChRandom() * (ay_max - ay_min),   //
-                                                      az_min + ChRandom() * (az_max - az_min))}  //
+                                           ChVector3d(ax_min + ChRandom::Get() * (ax_max - ax_min),   //
+                                                      ay_min + ChRandom::Get() * (ay_max - ay_min),   //
+                                                      az_min + ChRandom::Get() * (az_max - az_min))}  //
                                           ));
 
         manager->Update();

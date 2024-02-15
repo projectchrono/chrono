@@ -32,7 +32,7 @@
 #include "chrono/geometry/ChLineArc.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_postprocess/ChBlender.h"
 
@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
 
     // Create the random particles
     for (int np = 0; np < 100; ++np)
-        particles->AddParticle(ChCoordsys<>(ChVector3d(ChRandom() - 2, 1, ChRandom() - 0.5)));
+        particles->AddParticle(ChCoordsys<>(ChVector3d(ChRandom::Get() - 2, 1, ChRandom::Get() - 0.5)));
 
     // Do not forget to add the particle cluster to the system:
     sys.Add(particles);

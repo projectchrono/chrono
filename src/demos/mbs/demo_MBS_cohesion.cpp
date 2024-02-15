@@ -21,7 +21,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -134,7 +134,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                                       true,      // visualization?
                                                                       true,      // collision?
                                                                       obj_mat);  // contact material
-        mrigidBody->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        mrigidBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         mrigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/rock.jpg"));
         sys.Add(mrigidBody);
     }

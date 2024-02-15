@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/utils/ChBenchmark.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 #include "chrono/physics/ChBodyEasy.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -171,7 +171,7 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
                                                                       true,      // collision?
                                                                       sph_mat);  // contact material
             sphere->SetPos(
-                ChVector3d((2 * ChRandom() - 1) * 0.45 * patch_size, (2 * ChRandom() - 1) * 0.45 * patch_size, 1.0));
+                ChVector3d((2 * ChRandom::Get() - 1) * 0.45 * patch_size, (2 * ChRandom::Get() - 1) * 0.45 * patch_size, 1.0));
             m_hmmwv->GetSystem()->Add(sphere);
 
             m_terrain->AddMovingPatch(sphere, ChVector3d(0, 0, 0), ChVector3d(0.6, 0.6, 0.6));

@@ -24,7 +24,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
@@ -59,7 +59,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                                       true,  // visualization?
                                                                       true,  // collision?
                                                                       mat);  // contact material
-        mrigidBody->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        mrigidBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         sys.Add(mrigidBody);
     }
 

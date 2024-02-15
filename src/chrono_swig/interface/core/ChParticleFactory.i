@@ -15,7 +15,7 @@
 %}
  
 // Tell SWIG about parent class in Python
-%import "ChMathematics.i"
+%import "ChRandom.i"
 
 %shared_ptr(chrono::particlefactory::ChParticleEventTriggerBox)
 %shared_ptr(chrono::particlefactory::ChParticleEventTriggerNever)

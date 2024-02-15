@@ -111,12 +111,12 @@ emitter.SetParticleAligner(emitter_rotations)
 
 # ---Initialize the randomizer for VELOCITIES, with statistical distribution
 mvelo = chrono.ChRandomParticleVelocityAnyDirection()
-mvelo.SetModulusDistribution(chrono.ChMinMaxDistribution(0.0, 0.5))
+mvelo.SetModulusDistribution(chrono.ChUniformDistribution(0.0, 0.5))
 emitter.SetParticleVelocity(mvelo)
 
 # ---Initialize the randomizer for ANGULAR VELOCITIES, with statistical distribution
 mangvelo = chrono.ChRandomParticleVelocityAnyDirection()
-mangvelo.SetModulusDistribution(chrono.ChMinMaxDistribution(0.0, 0.2))
+mangvelo.SetModulusDistribution(chrono.ChUniformDistribution(0.0, 0.2))
 emitter.SetParticleAngularVelocity(mangvelo)
 
 # ---Initialize the randomizer for CREATED SHAPES, with statistical distribution

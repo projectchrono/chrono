@@ -19,7 +19,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     for (int bi = 0; bi < 20; bi++) {
         auto sphere = chrono_types::make_shared<ChBodyEasySphere>(1.1, 1000, true, true, mat);
         sys.Add(sphere);
-        sphere->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        sphere->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         if (bi == 0) {
             sphere->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
             my_sphere = sphere;
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
 
         auto box = chrono_types::make_shared<ChBodyEasyBox>(1.5, 1.5, 1.5, 100, true, true, mat);
         sys.Add(box);
-        box->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        box->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         if (bi == 0) {
             box->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
             my_box = box;
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
         auto cylinder =
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.75, 0.5, 100, true, true, mat);
         sys.Add(cylinder);
-        cylinder->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        cylinder->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         if (bi == 0) {
             cylinder->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));
             my_cylinder = cylinder;

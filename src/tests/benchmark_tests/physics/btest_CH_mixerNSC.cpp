@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 #include "chrono/utils/ChBenchmark.h"
 
 #include "chrono/physics/ChSystemNSC.h"
@@ -56,16 +56,16 @@ MixerTestNSC<N>::MixerTestNSC() : m_system(new ChSystemNSC()), m_step(0.02) {
 
     for (int bi = 0; bi < N; bi++) {
         auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(1.0, 1000, true, true, mat);
-        sphereBody->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        sphereBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         m_system->Add(sphereBody);
 
         auto boxBody = chrono_types::make_shared<ChBodyEasyBox>(1.25, 1.25, 1.25, 1000, true, true, mat);
-        boxBody->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        boxBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         m_system->Add(boxBody);
 
         auto cylBody =
             chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.8, 1.0, 1000, true, true, mat);
-        cylBody->SetPos(ChVector3d(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        cylBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         m_system->Add(cylBody);
     }
 

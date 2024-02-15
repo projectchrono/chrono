@@ -23,7 +23,7 @@
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChLoadContainer.h"
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
@@ -86,12 +86,12 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < 50; ++i) {
             auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.25, 0.2, 0.25, 2700, true, true, mysurfmaterial);
             ChQuaternion<> vrot;
-            vrot.SetFromAngleY(ChRandom() * CH_C_2PI);
+            vrot.SetFromAngleY(ChRandom::Get() * CH_C_2PI);
             mcube->Move(ChCoordsys<>(VNULL, vrot));
-            vrot.SetFromAngleAxis((ChRandom() - 0.5) * 2 * CH_C_DEG_TO_RAD * 20,
-                                ChVector3d(ChRandom() - 0.5, 0, ChRandom() - 0.5).Normalize());
+            vrot.SetFromAngleAxis((ChRandom::Get() - 0.5) * 2 * CH_C_DEG_TO_RAD * 20,
+                                ChVector3d(ChRandom::Get() - 0.5, 0, ChRandom::Get() - 0.5).Normalize());
             mcube->Move(ChCoordsys<>(VNULL, vrot));
-            mcube->SetPos(ChVector3d((ChRandom() - 0.5) * 1.8, ChRandom() * 0.1, -ChRandom() * 3.2 + 0.9));
+            mcube->SetPos(ChVector3d((ChRandom::Get() - 0.5) * 1.8, ChRandom::Get() * 0.1, -ChRandom::Get() * 3.2 + 0.9));
             mcube->SetBodyFixed(true);
             sys.Add(mcube);
         }
@@ -102,9 +102,9 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < 150; ++i) {
             auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.18, 0.04, 0.18, 2700, true, true, mysurfmaterial2);
             ChQuaternion<> vrot;
-            vrot.SetFromAngleY(ChRandom() * CH_C_2PI);
+            vrot.SetFromAngleY(ChRandom::Get() * CH_C_2PI);
             mcube->Move(ChCoordsys<>(VNULL, vrot));
-            mcube->SetPos(ChVector3d((ChRandom() - 0.5) * 1.4, ChRandom() * 0.2 + 0.05, -ChRandom() * 2.6 + 0.2));
+            mcube->SetPos(ChVector3d((ChRandom::Get() - 0.5) * 1.4, ChRandom::Get() * 0.2 + 0.05, -ChRandom::Get() * 2.6 + 0.2));
             sys.Add(mcube);
         }
     }

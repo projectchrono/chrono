@@ -17,10 +17,9 @@
 
 #include <memory>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChDistribution.h"
 #include "chrono/geometry/ChSurface.h"
 #include "chrono/geometry/ChVolume.h"
 
@@ -55,7 +54,8 @@ class ChRandomParticlePositionRectangleOutlet : public ChRandomParticlePosition 
     /// Function that creates a random position each
     /// time it is called.
     virtual ChVector3d RandomPosition() override {
-        ChVector3d localp = ChVector3d(ChRandom() * width - 0.5 * width, ChRandom() * height - 0.5 * height, 0);
+        ChVector3d localp =
+            ChVector3d(ChRandom::Get() * width - 0.5 * width, ChRandom::Get() * height - 0.5 * height, 0);
         return outlet.TransformLocalToParent(localp);
     }
     /// Access the coordinate system of the rectangular outlet.
@@ -89,13 +89,11 @@ class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
         ChVector3d pos = m_frame.GetPos();
 
         if (auto mline = std::dynamic_pointer_cast<geometry::ChLine>(m_geometry)) {
-            pos = mline->Evaluate(ChRandom());
-        }
-        else if (auto msurface = std::dynamic_pointer_cast<geometry::ChSurface>(m_geometry)) {
-            pos = msurface->Evaluate(ChRandom(), ChRandom());
-        }
-        else if (auto mvolume = std::dynamic_pointer_cast<geometry::ChVolume>(m_geometry)) {
-            pos = mvolume->Evaluate(ChRandom(), ChRandom(), ChRandom());
+            pos = mline->Evaluate(ChRandom::Get());
+        } else if (auto msurface = std::dynamic_pointer_cast<geometry::ChSurface>(m_geometry)) {
+            pos = msurface->Evaluate(ChRandom::Get(), ChRandom::Get());
+        } else if (auto mvolume = std::dynamic_pointer_cast<geometry::ChVolume>(m_geometry)) {
+            pos = mvolume->Evaluate(ChRandom::Get(), ChRandom::Get(), ChRandom::Get());
         }
 
         m_frame.SetPos(pos);

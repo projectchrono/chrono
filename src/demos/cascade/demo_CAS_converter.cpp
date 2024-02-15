@@ -17,7 +17,7 @@
 #include <cstdlib>
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 #include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/physics/ChSystemNSC.h"
 
@@ -202,8 +202,8 @@ void DecomposeModel(ChVisualSystemIrrlicht* application) {
         geometry::ChTriangleMeshSoup chmesh_hull;
         mydecompositionHACDv2.GetConvexHullResult(j, chmesh_hull);
 
-        video::SColor clr(255, 20 + (int)(140. * ChRandom()), 20 + (int)(140. * ChRandom()),
-                          20 + (int)(140. * ChRandom()));
+        video::SColor clr(255, 20 + (int)(140. * ChRandom::Get()), 20 + (int)(140. * ChRandom::Get()),
+                          20 + (int)(140. * ChRandom::Get()));
 
         // Convert the j-th convex hull from a ChTriangleMesh to an Irrlicht mesh.
         fillIrlichtMeshFromChTrimesh(mmesh, &chmesh_hull, clr);

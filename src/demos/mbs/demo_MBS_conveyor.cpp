@@ -21,7 +21,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChConveyor.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -125,7 +125,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
     double exact_particles_dt = dt * particles_second;
     double particles_dt = floor(exact_particles_dt);
     double remaind = exact_particles_dt - particles_dt;
-    if (remaind > ChRandom())
+    if (remaind > ChRandom::Get())
         particles_dt += 1;
 
     auto sphere_mat = chrono_types::make_shared<ChContactMaterialNSC>();
@@ -139,7 +139,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
     cyl_mat->SetFriction(0.2f);
 
     for (int i = 0; i < particles_dt; i++) {
-        double rand_fract = ChRandom();
+        double rand_fract = ChRandom::Get();
 
         if (rand_fract < box_fraction) {
             auto rigidBody = chrono_types::make_shared<ChBodyEasySphere>(sphrad,       // size
@@ -147,8 +147,8 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
                                                                          true,         // visualization?
                                                                          true,         // collision?
                                                                          sphere_mat);  // contact material
-            rigidBody->SetPos(ChVector3d(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
-                                         -0.5 * znozzlesize + ChRandom() * znozzlesize));
+            rigidBody->SetPos(ChVector3d(-0.5 * xnozzlesize + ChRandom::Get() * xnozzlesize, ynozzle + i * 0.005,
+                                         -0.5 * znozzlesize + ChRandom::Get() * znozzlesize));
             rigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
 
             sys.Add(rigidBody);
@@ -160,9 +160,9 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
         }
 
         if ((rand_fract > box_fraction) && (rand_fract < box_fraction + cyl_fraction)) {
-            double xscale = 1.3 * (1 - 0.4 * ChRandom());  // for oddly-shaped boxes..
-            double yscale = 1.3 * (1 - 0.4 * ChRandom());
-            double zscale = 1.3 * (1 - 0.4 * ChRandom());
+            double xscale = 1.3 * (1 - 0.4 * ChRandom::Get());  // for oddly-shaped boxes..
+            double yscale = 1.3 * (1 - 0.4 * ChRandom::Get());
+            double zscale = 1.3 * (1 - 0.4 * ChRandom::Get());
 
             auto rigidBody =
                 chrono_types::make_shared<ChBodyEasyBox>(sphrad * 2 * xscale, sphrad * 2 * yscale, sphrad * 2 * zscale,
@@ -170,8 +170,8 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
                                                          true,      // visualization?
                                                          true,      // collision?
                                                          box_mat);  // contact material
-            rigidBody->SetPos(ChVector3d(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
-                                         -0.5 * znozzlesize + ChRandom() * znozzlesize));
+            rigidBody->SetPos(ChVector3d(-0.5 * xnozzlesize + ChRandom::Get() * xnozzlesize, ynozzle + i * 0.005,
+                                         -0.5 * znozzlesize + ChRandom::Get() * znozzlesize));
             rigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
 
             sys.Add(rigidBody);
@@ -189,8 +189,8 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
                                                                            true,                 // visualization?
                                                                            true,                 // collision?
                                                                            cyl_mat);             // contact material
-            rigidBody->SetPos(ChVector3d(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
-                                         -0.5 * znozzlesize + ChRandom() * znozzlesize));
+            rigidBody->SetPos(ChVector3d(-0.5 * xnozzlesize + ChRandom::Get() * xnozzlesize, ynozzle + i * 0.005,
+                                         -0.5 * znozzlesize + ChRandom::Get() * znozzlesize));
             rigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));
 
             sys.Add(rigidBody);

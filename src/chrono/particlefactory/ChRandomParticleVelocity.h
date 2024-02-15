@@ -17,10 +17,9 @@
 
 #include <memory>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChDistribution.h"
 
 namespace chrono {
 namespace particlefactory {
@@ -60,9 +59,7 @@ class ChRandomParticleVelocityConstantDirection : public ChRandomParticleVelocit
     /// Set the statistical distribution for the modulus of velocities
     void SetModulusDistribution(std::shared_ptr<ChDistribution> mdistr) { modulus = mdistr; }
     /// Set the modulus of velocities as a constant value
-    void SetModulusDistribution(double mval) {
-        modulus = chrono_types::make_shared<ChConstantDistribution>(mval);
-    }
+    void SetModulusDistribution(double mval) { modulus = chrono_types::make_shared<ChConstantDistribution>(mval); }
 
   private:
     ChVector3d direction;
@@ -74,14 +71,12 @@ class ChRandomParticleVelocityConstantDirection : public ChRandomParticleVelocit
 /// randomized via a statistical distribution.
 class ChRandomParticleVelocityAnyDirection : public ChRandomParticleVelocity {
   public:
-    ChRandomParticleVelocityAnyDirection() {
-        modulus = chrono_types::make_shared<ChConstantDistribution>(0.1);
-    }
+    ChRandomParticleVelocityAnyDirection() { modulus = chrono_types::make_shared<ChConstantDistribution>(0.1); }
 
     /// Function that creates a random velocity each
     /// time it is called.
     virtual ChVector3d RandomVelocity() override {
-        ChVector3d random_direction(ChRandom() - 0.5, ChRandom() - 0.5, ChRandom() - 0.5);
+        ChVector3d random_direction(ChRandom::Get() - 0.5, ChRandom::Get() - 0.5, ChRandom::Get() - 0.5);
         random_direction.Normalize();
 
         return random_direction * modulus->GetRandom();
@@ -90,9 +85,7 @@ class ChRandomParticleVelocityAnyDirection : public ChRandomParticleVelocity {
     /// Set the statistical distribution for the modulus of velocities
     void SetModulusDistribution(std::shared_ptr<ChDistribution> mdistr) { modulus = mdistr; }
     /// Set the modulus of velocities as a constant value
-    void SetModulusDistribution(double mval) {
-        modulus = chrono_types::make_shared<ChConstantDistribution>(mval);
-    }
+    void SetModulusDistribution(double mval) { modulus = chrono_types::make_shared<ChConstantDistribution>(mval); }
 
   private:
     std::shared_ptr<ChDistribution> modulus;

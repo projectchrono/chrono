@@ -29,7 +29,7 @@
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -621,7 +621,7 @@ int main(int argc, char* argv[]) {
     // ..some obstacles on the ground
     for (int i = 0; i < 6; i++) {
         auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.5, 60.0, true, true, obstacle_mat);
-        my_obstacle->SetPos(ChVector3d(20 * ChRandom(), 2, 20 * ChRandom()));
+        my_obstacle->SetPos(ChVector3d(20 * ChRandom::Get(), 2, 20 * ChRandom::Get()));
         my_obstacle->SetMass(3);
         sys.AddBody(my_obstacle);
     }

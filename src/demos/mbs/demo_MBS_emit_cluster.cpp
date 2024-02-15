@@ -119,12 +119,12 @@ int main(int argc, char* argv[]) {
 
     // ---Initialize the randomizer for VELOCITIES, with statistical distribution
     auto mvelo = chrono_types::make_shared<ChRandomParticleVelocityAnyDirection>();
-    mvelo->SetModulusDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.0, 0.5));
+    mvelo->SetModulusDistribution(chrono_types::make_shared<ChUniformDistribution>(0.0, 0.5));
     emitter.SetParticleVelocity(mvelo);
 
     // ---Initialize the randomizer for ANGULAR VELOCITIES, with statistical distribution
     auto mangvelo = chrono_types::make_shared<ChRandomParticleVelocityAnyDirection>();
-    mangvelo->SetModulusDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.0, 0.2));
+    mangvelo->SetModulusDistribution(chrono_types::make_shared<ChUniformDistribution>(0.0, 0.2));
     emitter.SetParticleAngularVelocity(mangvelo);
 
     // ---Initialize the randomizer for CREATED SHAPES, with statistical distribution

@@ -22,7 +22,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     //	  0.005			                                        // radius of 'inflating' of mesh (for more robust
     //collision detection)
     //	  );
-    // falling->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(-0.9 + ChRandom() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom()
+    // falling->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(-0.9 + ChRandom::Get() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom::Get()
     // * 1.4))); sys.Add(falling);
     //
     // but here we want to show a more low-level control of this process, for
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
 
         // Set the absolute position of the body:
         falling->SetFrame_REF_to_abs(
-            ChFrame<>(ChVector3d(-0.9 + ChRandom() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom() * 1.4)));
+            ChFrame<>(ChVector3d(-0.9 + ChRandom::Get() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom::Get() * 1.4)));
         sys.Add(falling);
 
         falling->AddVisualModel(vis_model);
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
                                                                       true,      // visualization?
                                                                       true,      // collision?
                                                                       obj_mat);  // contact material
-        sphereBody->SetPos(ChVector3d(-0.5 + ChRandom() * 1, 1.4, -0.5 + ChRandom()));
+        sphereBody->SetPos(ChVector3d(-0.5 + ChRandom::Get() * 1, 1.4, -0.5 + ChRandom::Get()));
         sphereBody->GetVisualShape(0)->SetColor(ChColor(0.3f, 0.3f, 0.6f));
         sys.Add(sphereBody);
     }

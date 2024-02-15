@@ -112,8 +112,8 @@ int main(int argc, char* argv[]) {
     auto mcreator_boxes = chrono_types::make_shared<ChRandomShapeCreatorBoxes>();
     mcreator_boxes->SetXsizeDistribution(
         chrono_types::make_shared<ChZhangDistribution>(0.5, 0.2));  // Zhang parameters: average val, min val.
-    mcreator_boxes->SetSizeRatioZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.2, 1.0));
-    mcreator_boxes->SetSizeRatioYZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.4, 1.0));
+    mcreator_boxes->SetSizeRatioZDistribution(chrono_types::make_shared<ChUniformDistribution>(0.2, 1.0));
+    mcreator_boxes->SetSizeRatioYZDistribution(chrono_types::make_shared<ChUniformDistribution>(0.4, 1.0));
     mcreator_boxes->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
         virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
                                ChCoordsys<> mcoords,
                                ChRandomShapeCreator& mcreator) override {
-            mbody->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
+            mbody->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom::Get()));
         }
     };
     auto callback_boxes = chrono_types::make_shared<MyCreator_boxes>();
