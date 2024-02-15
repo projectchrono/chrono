@@ -149,7 +149,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// <summary>
     /// Add a terrain patch drawn from a vector of vectors - refined using the LEPP method
     /// For each Chvector, x and y represent grid elements and the z value is the height
-    std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(
+    std::shared_ptr<Patch> AddPatch(
         std::shared_ptr<ChMaterialSurface> material,          ///< [in] contact material
         const ChCoordsys<>& position,                         ///< [in] patch location and orientation
         const std::vector<ChVector<double>>& point_cloud,     ///< [in] Vector of x,y grid and z is height data. A point cloud of height vectors
