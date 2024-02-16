@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
 
     // Reasonable defaults for the underlying PID
     driver.GetSpeedController().SetGains(0.4, 0, 0);
-    driver.GetSteeringController().SetGains(0.4, 0.1, 0.2);
+    driver.GetSteeringController().SetGains(0.4, 0.1, 0);
     driver.GetSteeringController().SetLookAheadDistance(5);
 
     // Initialzie the SynChrono manager

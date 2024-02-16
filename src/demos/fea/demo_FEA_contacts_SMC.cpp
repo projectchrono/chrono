@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     // all surfaces that might generate contacts.
 
     auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
-    mysurfmaterial->SetYoungModulus(6e4);
+    mysurfmaterial->SetYoungModulus(1e5);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
     mysurfmaterial->SetAdhesion(0);
@@ -147,6 +147,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (true) {
+        double angles[4] = {0.24304, 0.774199, 0.963853, 0.47501};
         for (int i = 0; i < 4; ++i) {
             try {
                 ChCoordsys<> cdown(ChVector3d(0, -0.4, 0));
@@ -266,7 +267,7 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
-        sys.DoStepDynamics(0.001);
+        sys.DoStepDynamics(0.0005);
     }
 
     return 0;

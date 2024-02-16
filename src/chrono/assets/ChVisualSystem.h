@@ -37,7 +37,8 @@ class ChApi ChVisualSystem {
         IRRLICHT,  ///< Irrlicht
         VSG,       ///< Vulkan Scene Graph
         OpenGL,    ///< OpenGL
-        OptiX      ///< OptiX
+        OptiX,     ///< OptiX
+        NONE
     };
 
     virtual ~ChVisualSystem();

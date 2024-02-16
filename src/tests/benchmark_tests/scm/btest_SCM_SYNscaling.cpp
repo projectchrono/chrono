@@ -177,6 +177,8 @@ int main(int argc, char* argv[]) {
         collsys->SetBroadphaseGridResolution(ChVector3i(2, 2, 1));
         sys.SetCollisionSystem(collsys);
 #endif
+    } else {
+        sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     }
 
     // ----------------------

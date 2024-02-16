@@ -18,12 +18,13 @@
 //
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
 #include "chrono_models/vehicle/feda/FEDA.h"
 
@@ -31,6 +32,18 @@
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/filesystem/path.h"
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -41,6 +54,9 @@ using std::endl;
 
 // =============================================================================
 // Problem parameters
+
+// Run-time visualization system (IRRLICHT, VSG, or NONE)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::NONE;
 
 enum class DriverModelType {
     PID,      // pure PID lateral controller with constant speed controller
@@ -202,26 +218,73 @@ void RunTest(double speed,
     cout << "Driver model: " << driver.GetDriverType() << endl << endl;
 
     // Create the visualization system
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
     char cval[10];
     char sval[10];
     snprintf(cval, 9, "%.1f", rms);
     snprintf(sval, 9, "%.1f", speed);
     std::string winTitle =
         "FED Alpha Ride Test (RMS = " + std::string(cval) + " in | Speed = " + std::string(sval) + " mph)";
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-    vis->SetWindowTitle(winTitle);
-    vis->SetWindowSize(1200, 800);
-    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 12.0, 0.5);
-    vis->AttachVehicle(&my_feda.GetVehicle());
 
-    auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
-    auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
-    sentinel->SetColor(ChColor(1, 0, 0));
-    target->SetColor(ChColor(0, 1, 0));
-    int sentinelID = vis->AddVisualModel(sentinel, ChFrame<>());
-    int targetID = vis->AddVisualModel(target, ChFrame<>());
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+    int sentinelID;
+    int targetID;
+    switch (vis_type) {
+        case ChVisualSystem::Type::NONE:
+            break;
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            // Create the vehicle Irrlicht interface
+            auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle(winTitle);
+            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 12.0, 0.5);
+            vis_irr->Initialize();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AttachVehicle(&my_feda.GetVehicle());
 
-    vis->Initialize();
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            // Create the vehicle VSG interface
+            auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle(winTitle);
+            vis_vsg->AttachVehicle(&my_feda.GetVehicle());
+            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 12.0, 0.5);
+            vis_vsg->SetWindowSize(1200, 800);
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
+
+
+    if (vis) {
+        auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+        auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+        sentinel->SetColor(ChColor(1, 0, 0));
+        target->SetColor(ChColor(0, 1, 0));
+        sentinelID = vis->AddVisualModel(sentinel, ChFrame<>());
+        targetID = vis->AddVisualModel(target, ChFrame<>());
+
+        vis->Initialize();
+    }
 
     // ---------------
     // Simulation loop
@@ -238,7 +301,7 @@ void RunTest(double speed,
 
     chrono::utils::ChISO2631_Vibration_SeatCushionLogger cushion(step_size);
 
-    while (vis->Run()) {
+    while (true) {
         double time = my_feda.GetSystem()->GetChTime();
 
         ChVector3d xpos = my_feda.GetVehicle().GetPos();
@@ -248,15 +311,21 @@ void RunTest(double speed,
             cushion.AddData(vel, sacc);
         }
 
+        std::cout << std::fixed << std::setw(5) << std::setprecision(1) << xpos.x();
+        std::cout << "\r" << std::flush;
+
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
 
-        // Update sentinel and target location markers for the path-follower controller.
-        vis->UpdateVisualModel(sentinelID, ChFrame<>(driver.GetSentinelLocation()));
-        vis->UpdateVisualModel(targetID, ChFrame<>(driver.GetTargetLocation()));
-
         // Render scene and output images
-        if (sim_frame % render_steps == 0) {
+        if (vis && sim_frame % render_steps == 0) {
+            if (!vis->Run())
+                break;
+
+            // Update sentinel and target location markers for the path-follower controller.
+            vis->UpdateVisualModel(sentinelID, ChFrame<>(driver.GetSentinelLocation()));
+            vis->UpdateVisualModel(targetID, ChFrame<>(driver.GetTargetLocation()));
+
             vis->BeginScene();
             vis->Render();
             vis->EndScene();
@@ -266,21 +335,25 @@ void RunTest(double speed,
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_feda.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_feda.Advance(step_size);
-        vis->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
         sys.DoStepDynamics(step_size);
 
         // Increment simulation frame number
         sim_frame++;
+
+        // Test end of track
         if (xpos.x() > max_travel) {
             cout << "Front wheels at x = " << xpos.x() << " m" << endl;
             cout << "End of rms surface reached. Regular simulation end." << endl;
-            vis->Quit();
+            break;
         }
     }
 
