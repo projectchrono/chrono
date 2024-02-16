@@ -302,6 +302,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             CreateSceneObjects(vis_vsg, dlc, sentinelID, targetID);
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

@@ -240,8 +240,11 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("VSG: City Bus Demo");
-            vis_vsg->SetChaseCamera(trackPoint, 14.0, 0.5);
+            vis_vsg->SetWindowSize(1200, 800);
+            vis_vsg->SetChaseCamera(trackPoint, 16.0, 0.5);
             vis_vsg->AttachVehicle(&my_bus.GetVehicle());
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             // Create the interactive VSG driver system

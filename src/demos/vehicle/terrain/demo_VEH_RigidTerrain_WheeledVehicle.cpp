@@ -184,6 +184,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowSize(ChVector2i(1200, 800));
             vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 8.0, 0.75);
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             auto driver_vsg = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);

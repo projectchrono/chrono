@@ -273,6 +273,8 @@ int main(int argc, char* argv[]) {
     vis->SetWindowSize(1200, 800);
     vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 10.0, 0.5);
     vis->AttachVehicle(&my_feda.GetVehicle());
+    vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+    vis->SetShadows(true);
 
     auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
