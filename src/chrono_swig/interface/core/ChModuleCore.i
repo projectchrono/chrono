@@ -85,6 +85,8 @@
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/core/ChBezierCurve.h"
 #include "Eigen/src/Core/util/Memory.h"
+#include "chrono/utils/ChConstants.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsCreators.h"
@@ -423,6 +425,8 @@ using namespace chrono::fea;
 
 // Utils
 
+%include "../../../chrono/utils/ChConstants.h"
+%include "../../../chrono/utils/ChUtils.h"
 %include "../../../chrono/utils/ChUtilsInputOutput.h"
 %include "../../../chrono/utils/ChFilters.h"
 %include "../../../chrono/utils/ChUtilsCreators.h"
