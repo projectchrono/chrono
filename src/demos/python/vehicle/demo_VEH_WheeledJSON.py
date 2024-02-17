@@ -79,7 +79,8 @@ def main() :
     vehicle.ExportComponentList(out_dir + "/component_list.json")
 
     # Simulation loop
-    vehicle.EnableRealtime(True);
+    vehicle.EnableRealtime(True)
+
     while vis.Run() :
         # Render scene
         vis.BeginScene()

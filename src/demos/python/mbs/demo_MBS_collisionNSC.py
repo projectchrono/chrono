@@ -35,7 +35,7 @@ def AddFallingItems(sys):
                                               True,     # visualization?
                                               True,     # collision?
                                               sph_mat)  # contact material
-        msphereBody.SetPos(chrono.ChVector3d(-5 + chrono.ChRandom() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom() * 10))
+        msphereBody.SetPos(chrono.ChVector3d(-5 + chrono.ChRandom.Get() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom.Get() * 10))
         msphereBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
         sys.Add(msphereBody)
 
@@ -44,7 +44,7 @@ def AddFallingItems(sys):
                                         True,          # visualization?
                                         True,          # collision?
                                         box_mat)       # contact material
-        mboxBody.SetPos(chrono.ChVector3d(-5 + chrono.ChRandom() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom() * 10))
+        mboxBody.SetPos(chrono.ChVector3d(-5 + chrono.ChRandom.Get() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom.Get() * 10))
         mboxBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/cubetexture_bluewhite.png"))
         sys.Add(mboxBody)
 
@@ -54,7 +54,7 @@ def AddFallingItems(sys):
                                              True,      # visualization?
                                              True,      # collision?
                                              cyl_mat)   # contact material
-        mcylBody.SetPos(chrono.ChVector3d(-5 + chrono.ChRandom() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom() * 10))
+        mcylBody.SetPos(chrono.ChVector3d(-5 + chrono.ChRandom.Get() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom.Get() * 10))
         mcylBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"))
         sys.Add(mcylBody)
 

@@ -191,7 +191,7 @@ particles.SetCollide(True)
 
 # Create the random particles
 for i in range(100):
-    particles.AddParticle(chrono.ChCoordsysd(chrono.ChVector3d(chrono.ChRandom() - 2, 1.5, chrono.ChRandom() + 2)))
+    particles.AddParticle(chrono.ChCoordsysd(chrono.ChVector3d(chrono.ChRandom.Get() - 2, 1.5, chrono.ChRandom.Get() + 2)))
 
 # Mass and inertia properties.
 # This will be shared among all particles in the ChParticleCloud.

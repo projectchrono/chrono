@@ -43,7 +43,7 @@ sphere_swept_thickness = 0.002
 # all surfaces that might generate contacts.
 
 mysurfmaterial = chrono.ChContactMaterialSMC()
-mysurfmaterial.SetYoungModulus(6e4)
+mysurfmaterial.SetYoungModulus(1e5)
 mysurfmaterial.SetFriction(0.3)
 mysurfmaterial.SetRestitution(0.2)
 mysurfmaterial.SetAdhesion(0)
@@ -117,7 +117,7 @@ mmaterial.Set_density(1000)
 for i in range(4) :
     try :
         cdown = chrono.ChCoordsysd(chrono.ChVector3d(0, -0.4, 0))
-        crot = chrono.ChCoordsysd(chrono.VNULL, chrono.QuatFromAngleAxis(chrono.CH_C_2PI * chrono.ChRandom(), chrono.VECT_Y) * 
+        crot = chrono.ChCoordsysd(chrono.VNULL, chrono.QuatFromAngleAxis(chrono.CH_C_2PI * chrono.ChRandom.Get(), chrono.VECT_Y) * 
                                                 chrono.QuatFromAngleAxis(chrono.CH_C_PI_2, chrono.VECT_X))
         cydisp = chrono.ChCoordsysd(chrono.ChVector3d(-0.3, 0.1 + i * 0.1, -0.3))
         ctot = cydisp.TransformLocalToParent(crot.TransformLocalToParent(cdown))
@@ -242,5 +242,5 @@ while vis.Run():
     vis.BeginScene()
     vis.Render()
     vis.EndScene()
-    sys.DoStepDynamics(0.001)
+    sys.DoStepDynamics(0.0005)
 
