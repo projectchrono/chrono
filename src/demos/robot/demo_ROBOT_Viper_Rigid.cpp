@@ -171,6 +171,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->AddCamera(ChVector3d(3, 3, 1));
             vis_vsg->SetWindowTitle("Viper Rover on Rigid Terrain");
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

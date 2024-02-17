@@ -51,7 +51,7 @@ void create_column(ChSystemNSC& sys,
                    double col_density = 3000) {
     double col_base = 0;
 
-    std::vector<ChVector3d > mpoints;
+    std::vector<ChVector3d> mpoints;
     for (int i = 0; i < col_nedges; ++i) {
         double alpha = CH_C_2PI * ((double)i / (double)col_nedges);  // polar coord
         double x = col_radius_hi * cos(alpha);
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddCamera(ChVector3d(1, 3, -10));
             vis_irr->AddTypicalLights();
             vis_irr->AddLightWithShadow(ChVector3d(1.0, 25.0, -5.0), ChVector3d(0, 0, 0), 35, 0.2, 35, 35, 512,
-                                    ChColor(0.6f, 0.8f, 1.0f));
+                                        ChColor(0.6f, 0.8f, 1.0f));
             vis_irr->EnableShadows();
 
             vis = vis_irr;
@@ -184,6 +184,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraAngleDeg(50);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

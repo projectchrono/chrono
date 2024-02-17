@@ -106,6 +106,7 @@ void AddFallingBalls(ChSystemMulticore* sys) {
     // Shared contact materials
     auto ball_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     ball_mat->SetFriction(0.4f);
+    ball_mat->SetRestitution(0.5f);
     auto cyl_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Create the falling objects
@@ -118,7 +119,7 @@ void AddFallingBalls(ChSystemMulticore* sys) {
             ball->SetPos(b_pos);
             sys->AddBody(ball);
 
-            auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.1, 0.05, 2000, cyl_mat);
+            auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.1, 0.1, 2000, cyl_mat);
             cyl->SetPos(c_pos);
             sys->AddBody(cyl);
         }

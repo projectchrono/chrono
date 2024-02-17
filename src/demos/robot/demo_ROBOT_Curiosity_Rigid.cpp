@@ -139,6 +139,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowSize(800, 600);
             vis_vsg->SetWindowTitle("Curiosity Rover on Rigid Terrain");
             vis_vsg->AddCamera(ChVector3d(5, 5, 1));
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

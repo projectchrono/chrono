@@ -53,18 +53,18 @@ void AddFallingItems(ChSystemNSC& sys) {
 
     // Create falling rigid bodies (spheres and boxes etc.)
     for (int bi = 0; bi < 29; bi++) {
-        auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(1.1,      // radius size
-                                                                      1000,     // density
+        auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(1.1,     // radius size
+                                                                      1000,    // density
                                                                       sph_mat  // contact material
-);
+        );
         sphereBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         sphereBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
         sys.Add(sphereBody);
 
         auto boxBody = chrono_types::make_shared<ChBodyEasyBox>(1.5, 1.5, 1.5,  // x,y,z size
                                                                 100,            // density
-                                                                box_mat        // contact material
-                                                             );
+                                                                box_mat         // contact material
+        );
         boxBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         boxBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
         sys.Add(boxBody);
@@ -72,8 +72,8 @@ void AddFallingItems(ChSystemNSC& sys) {
         auto cylBody = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
                                                                      0.75, 0.5,            // radius, height
                                                                      100,                  // density
-                                                                     cyl_mat              // contact material
-                                                                 );
+                                                                     cyl_mat               // contact material
+        );
         cylBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         cylBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));
         sys.Add(cylBody);
@@ -121,10 +121,10 @@ std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
     auto mixer_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mixer_mat->SetFriction(0.4f);
 
-    auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1,   // x,y,z size
-                                                                 4000,       // density
+    auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1,  // x,y,z size
+                                                                 4000,      // density
                                                                  mixer_mat  // contact material
-                                                        );
+    );
     rotatingBody->SetPos(ChVector3d(0, -1.6, 0));
     rotatingBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
     sys.Add(rotatingBody);
@@ -210,6 +210,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();
 
