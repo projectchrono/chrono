@@ -26,6 +26,8 @@
 #include "rclcpp/publisher.hpp"
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
 
+#include <array>
+
 namespace chrono {
 namespace ros {
 
@@ -51,11 +53,19 @@ class ChROSGPSHandler : public ChROSHandler {
     virtual void Tick(double time) override;
 
   private:
+    /// Helper function to calculate the covariance of the accelerometer
+    /// ChGPSSensor currently doesn't support covariance, so we'll use store
+    /// the rolling averages and calculate the covariance here.
+    std::array<double, 9> CalculateCovariance(const chrono::sensor::GPSData& gps_data);
+
+  private:
     std::shared_ptr<chrono::sensor::ChGPSSensor> m_gps;  ///< handle to the gps sensor
 
     const std::string m_topic_name;                                         ///< name of the topic to publish to
     sensor_msgs::msg::NavSatFix m_gps_msg;                                  ///< message to publish
     rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr m_publisher;  ///< the publisher for the gps message
+
+    std::array<double, 3> m_running_average; ///< rolling average of the gps data to calculate covariance
 };
 
 /// @} ros_sensor_handlers

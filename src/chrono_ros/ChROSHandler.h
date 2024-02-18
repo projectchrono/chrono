@@ -61,6 +61,8 @@ class CH_ROS_API ChROSHandler {
     /// @param time the current simulation time
     virtual void Tick(double time) = 0;
 
+    uint64_t m_tick_count;  ///< Number of times Tick() has been called
+
   private:
     const double m_update_rate;  ///< Update rate of the handler
 
