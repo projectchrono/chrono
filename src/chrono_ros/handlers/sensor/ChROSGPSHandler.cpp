@@ -78,7 +78,6 @@ std::array<double, 9> ChROSGPSHandler::CalculateCovariance(const GPSData& gps_da
     auto gps_reference = m_gps->GetGPSReference();
     chrono::sensor::GPS2Cartesian(gps_coord, gps_reference);
     auto enu_data = gps_coord;
-    std::cout << enu_data << std::endl;
 
     std::array<double, 3> enu_data_array = {enu_data.x(), enu_data.y(), enu_data.z()};
 

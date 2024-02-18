@@ -63,6 +63,7 @@ class ChROSSensorHandlerUtilities {
         }
         return covariance;
     }
+
 };
 
 /// @} ros_sensor_handlers

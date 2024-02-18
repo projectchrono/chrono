@@ -131,6 +131,8 @@ if (ENABLE_MODULE_SENSOR)
     handlers/sensor/ChROSGyroscopeHandler.cpp
     handlers/sensor/ChROSMagnetometerHandler.h
     handlers/sensor/ChROSMagnetometerHandler.cpp
+    handlers/sensor/ChROSIMUHandler.h
+    handlers/sensor/ChROSIMUHandler.cpp
     handlers/sensor/ChROSGPSHandler.h
     handlers/sensor/ChROSGPSHandler.cpp
 

@@ -30,6 +30,8 @@
 namespace chrono {
 namespace ros {
 
+class ChROSIMUHandler;
+
 /// @addtogroup ros_sensor_handlers
 /// @{
 
@@ -66,6 +68,8 @@ class ChROSAccelerometerHandler : public ChROSHandler {
     rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr m_publisher;  ///< the publisher for the imu message
 
     std::array<double, 3> m_running_average;  ///< running average to calcualte covariance of the accelerometer
+
+    friend class ChROSIMUHandler;
 };
 
 /// @} ros_sensor_handlers

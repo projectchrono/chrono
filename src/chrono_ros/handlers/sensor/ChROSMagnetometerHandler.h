@@ -31,6 +31,8 @@
 namespace chrono {
 namespace ros {
 
+class ChROSIMUHandler;
+
 /// @addtogroup ros_sensor_handlers
 /// @{
 
@@ -66,6 +68,8 @@ class ChROSMagnetometerHandler : public ChROSHandler {
     rclcpp::Publisher<sensor_msgs::msg::MagneticField>::SharedPtr m_publisher;  ///< the publisher for the imu message
 
     std::array<double, 3> m_running_average;  ///< rolling average of the magnetometer data for covariance calculation
+
+    friend class ChROSIMUHandler;
 };
 
 /// @} ros_sensor_handlers
