@@ -31,6 +31,7 @@
 #include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
+#include "chrono_ros/handlers/sensor/ChROSIMUHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
 
@@ -188,6 +189,14 @@ int main(int argc, char* argv[]) {
     auto mag_topic_name = "~/output/magnetometer/data";
     auto mag_handler = chrono_types::make_shared<ChROSMagnetometerHandler>(mag, mag_topic_name);
     ros_manager->RegisterHandler(mag_handler);
+
+    // Create the publisher for _all_ imu sensors
+    auto imu_topic_name = "~/output/imu/data";
+    auto imu_handler = chrono_types::make_shared<ChROSIMUHandler>(100, imu_topic_name);
+    imu_handler->SetAccelerometerHandler(acc_handler);
+    imu_handler->SetGyroscopeHandler(gyro_handler);
+    imu_handler->SetMagnetometerHandler(mag_handler);
+    ros_manager->RegisterHandler(imu_handler);
 
     // Create the publisher for the GPS
     auto gps_topic_name = "~/output/gps/data";
