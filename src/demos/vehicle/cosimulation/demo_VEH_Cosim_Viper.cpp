@@ -201,9 +201,11 @@ int main(int argc, char** argv) {
     if (terrain_width < 0)
         terrain_width = size.y();
 
-    std::cout << "-------------------" << std::endl;
-    std::cout << "Dimensions: " << terrain_length << "  " << terrain_width << std::endl;
-    std::cout << "-------------------" << std::endl;
+    if (rank == 0) {
+        std::cout << "-------------------" << std::endl;
+        std::cout << "Dimensions: " << terrain_length << "  " << terrain_width << std::endl;
+        std::cout << "-------------------" << std::endl;
+    }
 
     // Do not create obstacles if a DBP rig is attached
     if (use_DBP_rig) {
