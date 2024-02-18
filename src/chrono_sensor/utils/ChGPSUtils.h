@@ -40,6 +40,26 @@ CH_SENSOR_API void Cartesian2GPS(ChVector<double>& coords, ChVector<double>& ref
 /// @param ref The simulation's reference location
 CH_SENSOR_API void GPS2Cartesian(ChVector<double>& coords, ChVector<double>& ref);
 
+/// Utility function for calculating East-North-Up (ENU) coordinates from Cartesian coordinates given the simulation's reference point
+/// @param coords The ENU coordinates to be modified. This ChVector is modified and used as output
+/// @param ref The simulation's reference location
+CH_SENSOR_API void Cartesian2ENU(ChVector<double>& coords, ChVector<double>& ref);
+
+/// Utility function for calculating Cartesian coordinates from ENU coordinates given the simulation's reference point
+/// @param coords The Cartesian coordinates to be modified. This ChVector is modified and used as output
+/// @param ref The simulation's reference location
+CH_SENSOR_API void ENU2Cartesian(ChVector<double>& coords, ChVector<double>& ref);
+
+/// Utility function for calculating GPS coordinates from ENU coordinates given the simulation's reference point
+/// @param coords The GPS coordinates to be modified. This ChVector is modified and used as output
+/// @param ref The simulation's reference location
+CH_SENSOR_API void ENU2GPS(ChVector<double>& coords, ChVector<double>& ref);
+
+/// Utility function for calculating ENU coordinates from GPS coordinates given the simulation's reference point
+/// @param coords The ENU coordinates to be modified. This ChVector is modified and used as output
+/// @param ref The simulation's reference location
+CH_SENSOR_API void GPS2ENU(ChVector<double>& coords, ChVector<double>& ref);
+
 }  // namespace sensor
 }  // namespace chrono
 #endif

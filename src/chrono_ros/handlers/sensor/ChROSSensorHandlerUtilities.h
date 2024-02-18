@@ -22,6 +22,7 @@
 #include "chrono_sensor/sensors/ChSensor.h"
 
 #include <memory>
+#include <array>
 
 namespace chrono {
 namespace ros {
@@ -46,6 +47,21 @@ class ChROSSensorHandlerUtilities {
             return false;
         }
         return true;
+    }
+
+    /// Calculates the covariance of the sensor data
+    /// @param data the sensor data
+    /// @return the covariance of the sensor data
+    template <typename T = double, unsigned long N = 3>
+    static std::array<T, N * N> CalculateCovariance(const std::array<T, N>& data, const std::array<T, N>& mean, unsigned long count) {
+        std::array<T, N * N> covariance;
+        std::fill(covariance.begin(), covariance.end(), T(0));
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                covariance[i * N + j] = (data[i] - mean[i]) * (data[j] - mean[j]) / count;
+            }
+        }
+        return covariance;
     }
 };
 
