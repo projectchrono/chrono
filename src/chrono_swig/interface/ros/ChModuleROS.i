@@ -79,6 +79,7 @@ except Exception as e:
 #include "chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
+#include "chrono_ros/handlers/sensor/ChROSIMUHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
 #endif
 
@@ -148,6 +149,7 @@ using namespace chrono::ros;
 %shared_ptr(chrono::ros::ChROSGyroscopeHandler)
 %shared_ptr(chrono::ros::ChROSLidarHandler)
 %shared_ptr(chrono::ros::ChROSMagnetometerHandler)
+%shared_ptr(chrono::ros::ChROSIMUHandler)
 #endif
 
 #ifdef CHRONO_ROS_HAS_INTERFACES
@@ -198,6 +200,7 @@ using namespace chrono::ros;
 %include "../../../chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
+%include "../../../chrono_ros/handlers/sensor/ChROSIMUHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
 #endif
 

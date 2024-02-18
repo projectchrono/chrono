@@ -118,12 +118,20 @@ def main():
         lidar, "~/output/lidar/data/pointcloud"))
     ros_manager.RegisterHandler(
         chros.ChROSGPSHandler(gps, "~/output/gps/data"))
-    ros_manager.RegisterHandler(chros.ChROSAccelerometerHandler(
-        acc, "~/output/accelerometer/data"))
-    ros_manager.RegisterHandler(
-        chros.ChROSGyroscopeHandler(gyro, "~/output/gyroscope/data"))
-    ros_manager.RegisterHandler(chros.ChROSMagnetometerHandler(
-        mag, "~/output/magnetometer/data"))
+    acc_handler = chros.ChROSAccelerometerHandler(
+        acc, "~/output/accelerometer/data")
+    ros_manager.RegisterHandler(acc_handler)
+    gyro_handler = chros.ChROSGyroscopeHandler(
+        gyro, "~/output/gyroscope/data")
+    ros_manager.RegisterHandler(gyro_handler)
+    mag_handler = chros.ChROSMagnetometerHandler(
+        mag, "~/output/magnetometer/data")
+    ros_manager.RegisterHandler(mag_handler)
+    imu_handler = chros.ChROSIMUHandler(100, "~/output/imu/data")
+    imu_handler.SetAccelerometerHandler(acc_handler)
+    imu_handler.SetGyroscopeHandler(gyro_handler)
+    imu_handler.SetMagnetometerHandler(mag_handler)
+    ros_manager.RegisterHandler(imu_handler)
     ros_manager.Initialize()
 
     # Simulation loop
