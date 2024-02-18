@@ -117,7 +117,9 @@ Note that this represents a major public API change and we expect most user code
 | ChMaterialSurfaceNSC.h              | rename: ChContactMaterialNSC.h            |
 | ChMaterialSurfaceSMC.h              | rename: ChContactMaterialSMC.h            |
 | ChMath.h                            | remove                                    |
-| ChMathematics.h                     | remove                                    |
+| ChMathematics.h                     | remove and replace with:                  |
+|                                     |         ChConstants.h                     |
+|                                     |         ChUtils.h                         |
 | ChSolvmin.h                         | remove                                    |
 | ChStream.h                          | remove                                    |
 | ChFunction_Const.h                  | rename: ChFunctionConst.h                 |
@@ -161,11 +163,12 @@ Note that this represents a major public API change and we expect most user code
 | -                                 | ChAtan2             | remove                                           |
 | -                                 | ChClamp             | relocate to utils/ChUtils.h                      |
 | -                                 | ChClampValue        | relocate to utils/ChUtils.h                      |
+| -                                 | ChGetRandomSeed     | remove                                           |
 | -                                 | ChMax               | remove                                           |
 | -                                 | ChMin               | remove                                           |
 | -                                 | ChPeriodicPar       | remove                                           |
-| -                                 | ChGetRandomSeed     | remove                                           |
-| -                                 | ChSetRandomSeed     | replaced with ChRandom::SetSeed                  |
+|                                   | ChRandom            | replace with: ChRandom::Get                      |
+| -                                 | ChSetRandomSeed     | replace with: ChRandom::SetSeed                  |
 | -                                 | ChSignum            | relocate to utils/ChUtils.h                      |
 | -                                 | ChSineStep          | implemented in ChFunctionSineStep                |
 | -                                 | GetLog              | remove                                           |
@@ -218,7 +221,33 @@ Note that this represents a major public API change and we expect most user code
 | ChMaterialCompositeSMC            |                     | rename: ChContactMaterialCompositeSMC            |
 | ChMaterialCompositionStrategy     |                     | rename: ChContactMaterialCompositionStrategy     |
 | ChMinMaxDistribution              |                     | rename: ChUniformDistribution                    |
-|                                   | ChRandom            | rename: ChRandom::Get()                          |
+| ChQuaternion                      |                     |                                                  |
+|                                   | free functions      | rename and move to ChRotation.h (see Notes)      |
+|                                   | GetXaxis            | rename: GetAxisX                                 |
+|                                   | GetYaxis            | rename: GetAxisY                                 |
+|                                   | GetZaxis            | rename: GetAxisZ                                 |
+|                                   | ImmQ_complete       | remove                                           |
+|                                   | ImmQ_dt_complete    | remove                                           |
+|                                   | ImmQ_dtdtcomplete   | remove                                           |
+|                                   | Q_from_AngAxis      | rename: SetFromAngleAxis                         |
+|                                   | Q_from_AngX         | rename: SetFromAngleX                            |
+|                                   | Q_from_AngY         | rename: SetFromAngleY                            |
+|                                   | Q_from_AngZ         | rename: SetFromAngleZ                            |
+|                                   | Q_from_Euler123     | rename: SetFromCardanAnglesXYZ                   |
+|                                   | Q_from_NasaAngles   | rename: SetFromCardanAnglesZYX                   |
+|                                   | Q_from_rotvec       | rename: SetFromRotVec                            |
+|                                   | Q_to_AngAxis        | rename: GetAngleAxis                             |
+|                                   | Q_to_Euler123       | rename: GetCardanAnglesXYZ                       |
+|                                   | Q_to_NasaAngles     | rename: GetCardanAnglesZYX                       |
+|                                   | Q_to_rotvec         | rename: GetRotVec                                |
+|                                   | Qdt_from_AngAxis    | rename: SetDerFromAngleAxis                      |
+|                                   | Qdt_from_Wabs       | rename: SetDerFromAngVelAbs                      |
+|                                   | Qdt_to_Wabs         | rename: GetAngVelAbs                             |
+|                                   | Qdt_to_Wrel         | rename: GetAngVelRel                             |
+|                                   | Qdt_from_Wrel       | rename: SetDerFromAngVelRel                      |
+|                                   | Qdtdt_from_Aabs     | rename: SetDer2FromAngAccAbs                     |
+|                                   | Qdtdt_from_Arel     | rename: SetDer2FromAngAccRel                     |
+|                                   | Qdtdt_from_AngAxis  | rename: SetDer2FromAngleAxis                     |
 | ChStream                          |                     | remove                                           |
 | ChStreamFile                      |                     | remove                                           |
 | ChStreamIn                        |                     | remove                                           |
@@ -248,10 +277,46 @@ Note that this represents a major public API change and we expect most user code
 
 + Functions that duplicated C++ Standard Library functions were removed and replaced with the corresponding C++ function (e.g., `ChMin` was obosoleted in favor of `std::min`).
 
-+ `ChStream` classes were simple wrappers arounf C++ ouptut streams. The entire code has been now refactored to operate on STL streams directly, in order to simplify the API and to allow the user a more familiar interaction with streams in Chrono.
++ The enum `AngleSet` (previously defined in ChQuaternion.h) was renamed to `RotRepresentation` and moved to a new header named ChRotation.h.
+
++ All free functions for converting from one rotation representation to another are now located in ChRotation.h.
+  These functions have consistent names of the form *XxxFromYyy*.
+
+  | Old (in ChQuaternion.h)  | New (in ChRotation.h)         |
+  | :----------------------- | :-----------------------------|
+  | -                        | AngleSetFromAngleSet          |
+  | -                        | AngleSetFromRodriguez         |
+  | -                        | RodriguezFromAngleSet         |
+  | -                        | QuatFromRotVec                |
+  | -                        | RotVecFromQuat                |
+  | Angle_to_Quat            | QuatFromRodriguez             |
+  | Angle_to_Quat            | QuatFromAngleSet              |
+  | AngleDT_to_QuatDT        | QuatDerFromAngleSet           |
+  | AngleDT_to_QuatDT        | QuatDerFromRodriguez          |
+  | AngleDTDT_to_QuatDTDT    | QuatDer2FromAngleSet          |
+  | AngleDTDT_to_QuatDTDT    | QuatDer2FromRodriguez         |
+  | ImmQ_complete            | QuatFromImaginary             |
+  | ImmQ_dt_complete         | QuatDerFromImaginary          |
+  | ImmQ_dtdt_complete       | QuatDer2FromImaginary         |
+  | Q_from_AngAxis           | QuatFromAngleAxis             |
+  | Q_from_AngX              | QuatFromAngleX                |
+  | Q_from_AngY              | QuatFromAngleY                |
+  | Q_from_AngZ              | QuatFromAngleZ                |
+  | Q_from_Euler123          | QuatFromAngleSet              |
+  | Q_from_NasaAngles        | QuatFromAngleSet              |
+  | Q_from_Vect_to_Vect      | QuatFromVec2Vec               |
+  | Q_to_AngAxis             | AngleAxisFromQuat             |
+  | Q_to_Euler123            | AngleSetFromQuat              |
+  | Q_to_NasaAngles          | AngleSetFromQuat              |
+  | Qdt_from_AngAxis         | QuatDerFromAngleAxis          |
+  | Qdtdt_from_AngAxis       | QuatDer2FromAngleAxis         |
+  | Quat_to_Angle            | RodriguezFromQuat             |
+  | Quat_to_Angle            | AngleSetFromQuat              |
+
++ `ChStream` classes were simple wrappers around C++ ouptut streams. The entire code has been now refactored to operate on STL streams directly, in order to simplify the API and to allow the user a more familiar interaction with streams in Chrono.
   - the `operator<<` associated to `ChStreamOutAscii` has been removed: this means that it is not possible to stream custom classes through this operator;
   this option has been replaced by appropriate overloads of STL streams (clearly limited to data members publicly accessible) or by the direct usage of `ChOutputASCII`.
-  - `ChStream[In/Out]Binary` features to operate on streams through the `read|write` methods have been incorporated into the one class that was using it `ChArchiveBinary`. 
+  - `ChStream[In/Out]Binary` features to operate on streams through the `read|write` methods have been incorporated into the one class that was using it, namely `ChArchiveBinary`. 
 
 + `ChArchive` classes have been refactored to adapt to the direct use of STL streams and have been renamed for consistency and clarity.
   - proper serialization/deserialization classes kept the same name:
