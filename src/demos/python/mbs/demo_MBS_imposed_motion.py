@@ -129,7 +129,7 @@ mglyphasset.SetLineGeometry(mspline)
 impose_2.AddVisualShape(mglyphasset)
 
 mmoved_2.SetPos(f_line.Get_p(0) >> impose_2.GetFrame2()
-                >> impose_2.GetBody2().GetCoord())
+                >> impose_2.GetBody2().GetCsys())
 
 #
 # EXAMPLE 3
