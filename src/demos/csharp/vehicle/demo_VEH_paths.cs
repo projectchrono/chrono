@@ -27,6 +27,9 @@ namespace ChronoDemo
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
+
             // TODO: correct CHRONO_VERSION call
             // Console.WriteLine(chrono.GetLog() + "Copyright (c) 2017 projectchrono.org\nChrono version: " + CHRONO_VERSION + "\n\n");
 
@@ -57,7 +60,7 @@ namespace ChronoDemo
                 double delta = 1.0 / n;
                 for (int i = 0; i < n; i++)
                 {
-                    ChVectorD pos = path.eval(delta * i);
+                    ChVector3d pos = path.eval(delta * i);
                     x.SetItem(i, pos.x);
                     y.SetItem(i, pos.y);
                 }
@@ -79,27 +82,27 @@ namespace ChronoDemo
 
             // Create the paths and call Plot for each
             // Straight-line path
-            var path1 = StraightLinePath(new ChVectorD(-10, -10, 1), new ChVectorD(10, 10, 1), 1);
+            var path1 = StraightLinePath(new ChVector3d(-10, -10, 1), new ChVector3d(10, 10, 1), 1);
             Plot(path1, 100, "Straight Line Path");
 
             // Circle path (left)
-            var path2 = CirclePath(new ChVectorD(1, 2, 0), 3.0, 5.0, true, 1);
+            var path2 = CirclePath(new ChVector3d(1, 2, 0), 3.0, 5.0, true, 1);
             Plot(path2, 100, "Left Circle Path");
 
             // Circle path (right)
-            var path3 = CirclePath(new ChVectorD(1, 2, 0), 3.0, 5.0, false, 1);
+            var path3 = CirclePath(new ChVector3d(1, 2, 0), 3.0, 5.0, false, 1);
             Plot(path3, 100, "Right Circle Path");
 
             // NATO double lane change path (left)
-            var path4 = DoubleLaneChangePath(new ChVectorD(-100, 0, 0.1), 28.93, 3.6105, 25.0, 100.0, true);
+            var path4 = DoubleLaneChangePath(new ChVector3d(-100, 0, 0.1), 28.93, 3.6105, 25.0, 100.0, true);
             Plot(path4, 100, "Left NATO Double Lane Change", false);
 
             // NATO double lane change path (right)
-            var path5 = DoubleLaneChangePath(new ChVectorD(-100, 0, 0.1), 28.93, 3.6105, 25.0, 100.0, false);
+            var path5 = DoubleLaneChangePath(new ChVector3d(-100, 0, 0.1), 28.93, 3.6105, 25.0, 100.0, false);
             Plot(path5, 100, "Right NATO Double Lane Change", false);
 
             // ISO double lane change path (left)
-            var path6 = DoubleLaneChangePath(new ChVectorD(-100, 0, 0.1), 13.5, 4.0, 11.0, 100.0, true);
+            var path6 = DoubleLaneChangePath(new ChVector3d(-100, 0, 0.1), 13.5, 4.0, 11.0, 100.0, true);
             Plot(path6, 100, "Right ISO Double Lane Change", false);
         }
     }

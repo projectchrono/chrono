@@ -32,6 +32,9 @@ namespace ChronoDemo
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
+
             //------------------------------------------------------------
             // Basic set up & world orientation
             //------------------------------------------------------------
@@ -67,7 +70,7 @@ namespace ChronoDemo
                 ChWorldFrame.SetYUP();
             }
             // Initial vehicle location and orientation
-            ChVectorD initLoc = new ChVectorD(0, (isYUp) ? 0.5 : 0, (isYUp) ? 0 : 0.5); // move away from the center
+            ChVector3d initLoc = new ChVector3d(0, (isYUp) ? 0.5 : 0, (isYUp) ? 0 : 0.5); // move away from the center
 
             // Create and configure the vehicle
             HMMWV_Full hmmwv = new HMMWV_Full();
@@ -76,7 +79,7 @@ namespace ChronoDemo
             hmmwv.SetChassisCollisionType(CollisionType.HULLS); // Enable collision for the chassis
             //hmmwv.SetCollisionSystemType(ChCollisionSystem.Type.BULLET);.
             // Configure vehicle specifics
-            hmmwv.SetInitPosition(new ChCoordsysD(initLoc, chrono.QUNIT));
+            hmmwv.SetInitPosition(new ChCoordsysd(initLoc, chrono.QUNIT));
             hmmwv.SetEngineType(EngineModelType.SHAFTS);
             hmmwv.SetTransmissionType(TransmissionModelType.AUTOMATIC_SHAFTS);
             hmmwv.SetDriveType(DrivelineTypeWV.AWD);
@@ -87,7 +90,7 @@ namespace ChronoDemo
             hmmwv.SetTireCollisionType(ChTire.CollisionType.SINGLE_POINT);
             hmmwv.SetTireStepSize(step_size);
             hmmwv.Initialize();
-            if (isYUp) { hmmwv.GetSystem().Set_G_acc(new ChVectorD(0, -9.81, 0)); } // adjust the gravity to the world
+            if (isYUp) { hmmwv.GetSystem().Set_G_acc(new ChVector3d(0, -9.81, 0)); } // adjust the gravity to the world
 
             // Visualisation of vehicle
             hmmwv.SetChassisVisualizationType(VisualizationType.MESH);
@@ -108,11 +111,11 @@ namespace ChronoDemo
             //------------------------------------------------------------
             RigidTerrain terrain = new RigidTerrain(hmmwv.GetSystem());
 
-            var patch_mat = new ChMaterialSurfaceNSC();
+            var patch_mat = new ChContactMaterialNSC();
             patch_mat.SetFriction(0.8f);
             patch_mat.SetRestitution(0.001f);
 
-            vector_ChVectorD point_cloud = new vector_ChVectorD();
+            vector_ChVector3d point_cloud = new vector_ChVector3d();
    
             // 1.
             // create undulating terrain from sin/cos
@@ -135,7 +138,7 @@ namespace ChronoDemo
                     double x = i * dx + startX;
                     double y = j * dy + startY;
                     double z = amplitude * Math.Sin(2 * Math.PI * x / length) * Math.Cos(2 * Math.PI * y / width);
-                    point_cloud.Add(new ChVectorD(x, y, z));
+                    point_cloud.Add(new ChVector3d(x, y, z));
                 }
             }
             
@@ -147,7 +150,7 @@ namespace ChronoDemo
                 double height = ( (x -10)/ 30) * 5; // Linearly increasing height
                 for (double y = -3; y <= 3; y += 0.05)
                 {
-                    point_cloud.Add(new ChVectorD(x, y, height));
+                    point_cloud.Add(new ChVector3d(x, y, height));
                 }
             }
             // Platform
@@ -155,7 +158,7 @@ namespace ChronoDemo
             {
                 for (double y = -10; y <= 10; y += 0.05)
                 {
-                    point_cloud.Add(new ChVectorD(x, y, 5));
+                    point_cloud.Add(new ChVector3d(x, y, 5));
                 }
             }
 
@@ -190,7 +193,7 @@ namespace ChronoDemo
                         double y = centerY + adjustedRadius * Math.Sin(angle);
                         double z = -vPointDepth; // V-shape depth
 
-                        point_cloud.Add(new ChVectorD((float)x, (float)y, (float)z));
+                        point_cloud.Add(new ChVector3d((float)x, (float)y, (float)z));
                     }
                 }
             }
@@ -217,20 +220,20 @@ namespace ChronoDemo
                 {
                     for (double y = y_start; y > y_start - platformLength; y -= pointSpacing)
                     {
-                        point_cloud.Add(new ChVectorD(x, y, z));
+                        point_cloud.Add(new ChVector3d(x, y, z));
                     }
                 }
             }
             
             // Adjust location and position
             // Note the differences in worldframes
-            ChVectorD positionZ = new ChVectorD(0,10,0); // ZUp
-            ChVectorD positionY = new ChVectorD(0, 0, -10); // YUp
-            ChQuaternionD rotationZ = chrono.Q_from_AngZ(-170); // Rotation in ZUp
-            ChQuaternionD rotationY = chrono.Q_from_AngY(-170); // Rotation in Yup
+            ChVector3d positionZ = new ChVector3d(0,10,0); // ZUp
+            ChVector3d positionY = new ChVector3d(0, 0, -10); // YUp
+            ChQuaterniond rotationZ = chrono.QuatFromAngleZ(-170 * chrono.CH_C_DEG_TO_RAD); // Rotation in ZUp
+            ChQuaterniond rotationY = chrono.QuatFromAngleY(-170 * chrono.CH_C_DEG_TO_RAD); // Rotation in Yup
 
             // Generate the patch of terrain built from the combined point cloud
-            var patch = terrain.AddPatch(patch_mat, new ChCoordsysD((isYUp ? positionY : positionZ), (isYUp ? rotationY : rotationZ)),
+            var patch = terrain.AddPatch(patch_mat, new ChCoordsysd((isYUp ? positionY : positionZ), (isYUp ? rotationY : rotationZ)),
                                                                                 point_cloud, 100, 100, 100, 500, 5, 20, 0.3, 1.0);
             patch.SetColor(new ChColor(0.7f, 0.7f, 0.7f));
             // Initialize the terrain
@@ -242,11 +245,11 @@ namespace ChronoDemo
             ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
             vis.SetWindowTitle("Mesh Terrain Demo");
             if (isYUp) { vis.SetCameraVertical(CameraVerticalDir.Y); } // Adjustment for Y-Up world
-            vis.SetChaseCamera(new ChVectorD(0.0, 0.0, 2.0), 5.0, 0.05);
+            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
             vis.Initialize();
             if (isYUp)
             { // add a light that's noticeably different for y up (green for y-axis)
-                vis.AddLight(new ChVectorD(30, 120, 30), 300, new ChColor(0.5f, 0.5f, 0.5f));
+                vis.AddLight(new ChVector3d(30, 120, 30), 300, new ChColor(0.5f, 0.5f, 0.5f));
             } else
             {
                 vis.AddLightDirectional(80, 10);

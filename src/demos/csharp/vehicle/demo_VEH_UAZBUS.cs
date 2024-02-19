@@ -33,7 +33,9 @@ namespace ChronoDemo
 
         static void Main(string[] args)
         {
-            
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
+
             // Local variables for C# 7.3 compatability
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
@@ -90,11 +92,11 @@ namespace ChronoDemo
             //------------------------------------------
 
             // Point on chassis tracked by the camera
-            ChVectorD trackPoint = new ChVectorD(0.0, 0.0, 1.75);
+            ChVector3d trackPoint = new ChVector3d(0.0, 0.0, 1.75);
 
             // Initial vehicle location and orientation
-            ChVectorD initLoc = new ChVectorD(0, 0, 0.4);
-            ChQuaternionD initRot = new ChQuaternionD(1, 0, 0, 0);
+            ChVector3d initLoc = new ChVector3d(0, 0, 0.4);
+            ChQuaterniond initRot = new ChQuaterniond(1, 0, 0, 0);
 
             // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
             VisualizationType chassis_vis_type = VisualizationType.MESH;
@@ -110,7 +112,7 @@ namespace ChronoDemo
             UAZBUS uaz = new UAZBUS();
             uaz.SetContactMethod(ChContactMethod.NSC);
             uaz.SetChassisFixed(false);
-            uaz.SetInitPosition(new ChCoordsysD(initLoc, initRot));
+            uaz.SetInitPosition(new ChCoordsysd(initLoc, initRot));
             uaz.SetTireType(tire_model);
             uaz.SetTireStepSize(tire_step_size);
             uaz.SetInitFwdVel(0.0);
@@ -152,7 +154,7 @@ namespace ChronoDemo
             // Create the terrain
             // ------------------
             RigidTerrain terrain = new RigidTerrain(system);
-            var patch_mat = new ChMaterialSurfaceNSC();
+            var patch_mat = new ChContactMaterialNSC();
             patch_mat.SetFriction(0.9f);
             patch_mat.SetRestitution(0.01f);
             var patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, terrainLength, terrainWidth);

@@ -31,6 +31,9 @@ namespace ChronoDemo
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
+
             bool setYUp = false; // default declaration regarding use of the y-up world.
             Console.WriteLine("Do you want to use a Y-Up world Orientation (Y/N)? (default N):");
             string orientationInput = Console.ReadLine();
@@ -62,7 +65,7 @@ namespace ChronoDemo
                 ChWorldFrame.SetYUP();
             }
             // Initial vehicle location and orientation
-            ChVectorD initLoc = new ChVectorD(0, (setYUp) ? 0.5 : 0, (setYUp) ? 0 : 0.5);
+            ChVector3d initLoc = new ChVector3d(0, (setYUp) ? 0.5 : 0, (setYUp) ? 0 : 0.5);
 
             // Create and configure the vehicle
             HMMWV_Full hmmwv = new HMMWV_Full();
@@ -71,7 +74,7 @@ namespace ChronoDemo
             hmmwv.SetChassisCollisionType(CollisionType.HULLS); // automatically enables collision for the chassis
             //hmmwv.SetCollisionSystemType(ChCollisionSystem.Type.BULLET); // TODO:: Currently has issues with SWIG wrapping. BULLET is presumed. May need to revisit if multicore module is wrapped.
             // Configure vehicle specifics
-            hmmwv.SetInitPosition(new ChCoordsysD(initLoc, chrono.QUNIT));
+            hmmwv.SetInitPosition(new ChCoordsysd(initLoc, chrono.QUNIT));
             hmmwv.SetEngineType(EngineModelType.SHAFTS);
             hmmwv.SetTransmissionType(TransmissionModelType.AUTOMATIC_SHAFTS);
             hmmwv.SetDriveType(DrivelineTypeWV.AWD);
@@ -81,7 +84,7 @@ namespace ChronoDemo
             hmmwv.SetTireType(TireModelType.TMEASY);
             hmmwv.SetTireStepSize(step_size);
             hmmwv.Initialize();
-            if (setYUp) { hmmwv.GetSystem().Set_G_acc(new ChVectorD(0, -9.81, 0)); } // adjust the gravity
+            if (setYUp) { hmmwv.GetSystem().Set_G_acc(new ChVector3d(0, -9.81, 0)); } // adjust the gravity
 
             // Visualisation of vehicle
             hmmwv.SetChassisVisualizationType(VisualizationType.MESH);
@@ -105,12 +108,12 @@ namespace ChronoDemo
             minfo.Y = 2e7f;
             var terrain_mat = minfo.CreateMaterial(hmmwv.GetSystem().GetContactMethod());
             // Ground patch
-            var patch = terrain.AddPatch(terrain_mat, new ChCoordsysD(), 100.0, 100.0, 0.5);
+            var patch = terrain.AddPatch(terrain_mat, new ChCoordsysd(), 100.0, 100.0, 0.5);
             patch.SetTexture(GetDataFile("terrain/textures/dirt.jpg"), 20, 20);
             // Ramp patch
             // NB: in Y-Up the +vs Zaxis is to the right of the vehicle, and a +ve slope angle causes an upwards gradient ramp
-            ChQuaternionD slope = (setYUp) ? chrono.Q_from_AngZ(15 * chrono.CH_C_DEG_TO_RAD) : chrono.Q_from_AngY(-15 * chrono.CH_C_DEG_TO_RAD);
-            var ramp = terrain.AddPatch(terrain_mat, new ChCoordsysD(new ChVectorD(20, (setYUp ? 0 : 3), (setYUp ? -3 : 0)), slope), 20, 6, 0.5);
+            ChQuaterniond slope = (setYUp) ? chrono.QuatFromAngleZ(15 * chrono.CH_C_DEG_TO_RAD) : chrono.QuatFromAngleY(-15 * chrono.CH_C_DEG_TO_RAD);
+            var ramp = terrain.AddPatch(terrain_mat, new ChCoordsysd(new ChVector3d(20, (setYUp ? 0 : 3), (setYUp ? -3 : 0)), slope), 20, 6, 0.5);
             ramp.SetTexture(GetDataFile("terrain/textures/concrete.jpg"), 2, 2);
 
             terrain.Initialize();
@@ -127,11 +130,11 @@ namespace ChronoDemo
             ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
             vis.SetWindowTitle("Rollover Demo");
             if (setYUp) { vis.SetCameraVertical(CameraVerticalDir.Y); } // Adjustment for Y-Up world
-            vis.SetChaseCamera(new ChVectorD(0.0, 0.0, 2.0), 5.0, 0.05);
+            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
             vis.Initialize();
             if (setYUp)
             { // add a light that's noticeably different for y up (green for y-axis)
-                vis.AddLight(new ChVectorD(30, 120, 30), 300, new ChColor(0.5f, 0.7f, 0.5f));
+                vis.AddLight(new ChVector3d(30, 120, 30), 300, new ChColor(0.5f, 0.7f, 0.5f));
             } else
             {
                 vis.AddLightDirectional(80, 10);
@@ -164,7 +167,7 @@ namespace ChronoDemo
                 if (setYUp)
                 {
 
-                    if (chrono.Vdot(hmmwv.GetChassisBody().GetA().Get_A_Zaxis(), ChWorldFrame.Vertical()) < 0)
+                    if (chrono.Vdot(hmmwv.GetChassisBody().GetRotMat().GetAxisZ(), ChWorldFrame.Vertical()) < 0)
                     {
                         var camera = vis.GetChaseCamera();
                         var camera_pos = vis.GetCameraPosition();
@@ -178,7 +181,7 @@ namespace ChronoDemo
                 }
                 else if (!setYUp)
                 {
-                    if (chrono.Vdot(hmmwv.GetChassisBody().GetA().Get_A_Zaxis(), ChWorldFrame.Vertical()) < 0)
+                    if (chrono.Vdot(hmmwv.GetChassisBody().GetRotMat().GetAxisZ(), ChWorldFrame.Vertical()) < 0)
                     {
                         var camera = vis.GetChaseCamera();
                         var camera_pos = vis.GetCameraPosition();
@@ -217,7 +220,7 @@ namespace ChronoDemo
 
                 // Calculate the start and end positions based on the grid size
                 double halfGridSize = gridSize / 2;
-                ChVectorD gridCentre = new ChVectorD(20,0,0); // Centre of the grid
+                ChVector3d gridCentre = new ChVector3d(20,0,0); // Centre of the grid
 
                 int pointsPerSide = (int)(gridSize / interval) + 1;  // Number of points per side
 
@@ -230,8 +233,8 @@ namespace ChronoDemo
                     for (int i = 0; i < pointsPerSide; i++)
                     {
                         double x = -halfGridSize + i * interval + gridCentre.x;
-                        double height = terrain.GetHeight(new ChVectorD(x, (setYUp ? 1000 : gridAxis), (setYUp ? gridAxis : 1000))); // Height query of terrain at set point
-                        polyline.Set_point(i, new ChVectorD(x, (setYUp ? height : gridAxis), (setYUp ? gridAxis : height)));  // Set each point along the polyline
+                        double height = terrain.GetHeight(new ChVector3d(x, (setYUp ? 1000 : gridAxis), (setYUp ? gridAxis : 1000))); // Height query of terrain at set point
+                        polyline.Set_point(i, new ChVector3d(x, (setYUp ? height : gridAxis), (setYUp ? gridAxis : height)));  // Set each point along the polyline
                     }
 
                     // Add polyline to visualisation
@@ -250,8 +253,8 @@ namespace ChronoDemo
                     for (int j = 0; j < pointsPerSide; j++)
                     {
                         double crossAxis = -halfGridSize + j * interval + (setYUp ? gridCentre.z : gridCentre.y);
-                        double height = terrain.GetHeight(new ChVectorD(x, (setYUp ? 1000 : crossAxis), (setYUp ? crossAxis : 1000))); // Query the height
-                        polyline.Set_point(j, new ChVectorD(x, (setYUp ? height : crossAxis), (setYUp ? crossAxis : height)));  // Set each point along the polyline
+                        double height = terrain.GetHeight(new ChVector3d(x, (setYUp ? 1000 : crossAxis), (setYUp ? crossAxis : 1000))); // Query the height
+                        polyline.Set_point(j, new ChVector3d(x, (setYUp ? height : crossAxis), (setYUp ? crossAxis : height)));  // Set each point along the polyline
                     }
 
                     // Add polyline to visualisation

@@ -29,6 +29,9 @@ namespace ChronoDemo
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
+
             // TODO: correct CHRONO_VERSION call
             //Console.WriteLine(chrono.GetLog() + "Copyright (c) 2017 projectchrono.org\nChrono version: " + CHRONO_VERSION + "\n\n");
 
@@ -40,8 +43,8 @@ namespace ChronoDemo
             double step_size = 1e-3;
 
             // Initial vehicle location and orientation (m)
-            ChVectorD initLoc = new ChVectorD(-40, 0, 0.5);
-            ChQuaternionD initRot = new ChQuaternionD(1, 0, 0, 0);
+            ChVector3d initLoc = new ChVector3d(-40, 0, 0.5);
+            ChQuaterniond initRot = new ChQuaterniond(1, 0, 0, 0);
 
             // Brake type (SIMPLE or SHAFTS)
             BrakeType brake_type = BrakeType.SHAFTS;
@@ -62,7 +65,7 @@ namespace ChronoDemo
             gator.SetContactMethod(ChContactMethod.NSC);
             gator.SetChassisCollisionType(CollisionType.NONE);
             // Configure vehicle specifics
-            gator.SetInitPosition(new ChCoordsysD(initLoc, initRot));
+            gator.SetInitPosition(new ChCoordsysd(initLoc, initRot));
             gator.SetChassisFixed(false);
             gator.SetBrakeType(brake_type);
             gator.SetTireType(TireModelType.TMEASY);
@@ -93,17 +96,17 @@ namespace ChronoDemo
             };
             var patch_mat = minfo.CreateMaterial(ChContactMethod.NSC);
 
-            var patch1 = terrain.AddPatch(patch_mat, new ChCoordsysD(new ChVectorD(-25, 0, 0), chrono.QUNIT), 50.0, 20.0);
+            var patch1 = terrain.AddPatch(patch_mat, new ChCoordsysd(new ChVector3d(-25, 0, 0), chrono.QUNIT), 50.0, 20.0);
             patch1.SetTexture(GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
             patch1.SetColor(new ChColor(0.8f, 0.8f, 0.5f));
 
             double s = Math.Sin(slope);
             double c = Math.Cos(slope);
-            var patch2 = terrain.AddPatch(patch_mat, new ChCoordsysD(new ChVectorD(100 * c, 0, 100 * s), chrono.Q_from_AngY(-slope)), 200.0, 20.0);
+            var patch2 = terrain.AddPatch(patch_mat, new ChCoordsysd(new ChVector3d(100 * c, 0, 100 * s), chrono.QuatFromAngleY(-slope)), 200.0, 20.0);
             patch2.SetTexture(GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
             patch2.SetColor(new ChColor(0.8f, 0.5f, 0.8f));
 
-            var patch3 = terrain.AddPatch(patch_mat, new ChCoordsysD(new ChVectorD(200 * c + 25, 0, 200 * s), chrono.QUNIT), 50.0, 20.0);
+            var patch3 = terrain.AddPatch(patch_mat, new ChCoordsysd(new ChVector3d(200 * c + 25, 0, 200 * s), chrono.QUNIT), 50.0, 20.0);
             patch3.SetTexture(GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
             patch3.SetColor(new ChColor(0.8f, 0.8f, 0.5f));
 
@@ -113,7 +116,7 @@ namespace ChronoDemo
             // Driver and Path Following Setup
             //------------------------------------------
             // Create the straight path and the driver system
-            var path = StraightLinePath(new ChVectorD(-50, 0, 0.5), new ChVectorD(300, 0, 0.5), 1);
+            var path = StraightLinePath(new ChVector3d(-50, 0, 0.5), new ChVector3d(300, 0, 0.5), 1);
             ChPathFollowerDriver driver = new ChPathFollowerDriver(gator.GetVehicle(), path, "my_path", target_speed);
             driver.GetSteeringController().SetLookAheadDistance(5.0);
             driver.GetSteeringController().SetGains(0.5, 0, 0);
@@ -123,7 +126,7 @@ namespace ChronoDemo
             // Create the vehicle Irrlicht interface
             ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
             vis.SetWindowTitle("Gator Acceleration");
-            vis.SetChaseCamera(new ChVectorD(0.0, 0.0, 2.0), 5.0, 0.05);
+            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
             vis.Initialize();
             vis.AddLightDirectional();
             vis.AddSkyBox();

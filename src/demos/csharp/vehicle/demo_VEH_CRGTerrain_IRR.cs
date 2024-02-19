@@ -168,7 +168,7 @@ namespace ChronoDemo
             public void Advance(double step) { m_driver.Advance(step); }
             public string GetDriverType() { return m_driverType; }
 
-            public ChVectorD GetTargetLocation()
+            public ChVector3d GetTargetLocation()
             {
                 if (m_type == DriverModelType.HUMAN)
                     return m_driver.GetTargetLocation();
@@ -176,7 +176,7 @@ namespace ChronoDemo
                     return m_steeringController.GetTargetLocation();
             }
 
-            public ChVectorD GetSentinelLocation()
+            public ChVector3d GetSentinelLocation()
             {
                 if (m_type == DriverModelType.HUMAN)
                     return m_driver.GetSentinelLocation();
@@ -201,12 +201,14 @@ namespace ChronoDemo
 
         }
 
-
         // ----------------
         // Main Function
         // ----------------
         static void Main(string[] args)
         {
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
+
             // TODO: correct CHRONO_VERSION call
             //Console.WriteLine(chrono.GetLog() + "Copyright (c) 2017 projectchrono.org\nChrono version: " + CHRONO_VERSION + "\n\n");
 
@@ -329,7 +331,7 @@ namespace ChronoDemo
             ChSystemSMC sys = new ChSystemSMC();
             sys.SetCollisionSystemType(ChCollisionSystem.Type.BULLET);
             // Set the gravity. Must be set after Y-UP
-            ChVectorD gravity = new ChVectorD(ChWorldFrame.Vertical());
+            ChVector3d gravity = new ChVector3d(ChWorldFrame.Vertical());
             gravity.Scale(-9.81);
             sys.Set_G_acc(gravity);
             Console.WriteLine($"Gravity direction: {gravity.x}, {gravity.y}, {gravity.z}");
@@ -368,12 +370,12 @@ namespace ChronoDemo
             Console.WriteLine("Closed loop?  " + pathIsClosed);
 
             // Workaround for direct expression operators not correctly wrapped (i.e. * and -);
-            ChVectorD halfUpVector = new ChVectorD(ChWorldFrame.Vertical());
+            ChVector3d halfUpVector = new ChVector3d(ChWorldFrame.Vertical());
             halfUpVector.Scale(0.05); // Scale the vector by half rather than multiplication operator *0.5;
-            ChVectorD shapeLocation = new ChVectorD();
+            ChVector3d shapeLocation = new ChVector3d();
             shapeLocation.Sub(initCsys.pos, halfUpVector);
             terrain.GetGround().AddVisualShape(new ChVisualShapeBox(new ChBox(1, roadWidth, 0.1)),
-                                    new ChFrameD(shapeLocation, initCsys.rot));
+                                    new ChFramed(shapeLocation, initCsys.rot));
             path.write(outDir + "/path.txt");
 
 
@@ -422,7 +424,7 @@ namespace ChronoDemo
             // --------------------------
             // Initial location and orientation from CRG terrain (create vehicle 0.5 m above road)
             // workaround to get initial location while direct operators not wrapped
-            ChVectorD initLoc = new ChVectorD(ChWorldFrame.Vertical());
+            ChVector3d initLoc = new ChVector3d(ChWorldFrame.Vertical());
             initLoc.Scale(0.5); // raise vehicle 0.5m above the vertical.
             initCsys.pos.Add(initLoc, initCsys.pos);
 
@@ -493,7 +495,7 @@ namespace ChronoDemo
             ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
             vis.SetHUDLocation(500, 20);
             vis.SetWindowTitle("OpenCRG Steering");
-            vis.SetChaseCamera(new ChVectorD(0.0, 0.0, 1.75), 10.0, 0.5);
+            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 1.75), 10.0, 0.5);
             vis.Initialize();
             vis.AddSkyBox();
             vis.AddLogo();
@@ -505,8 +507,8 @@ namespace ChronoDemo
             var target = new ChVisualShapeSphere(0.1);
             sentinel.SetColor(new ChColor(1, 0, 0));
             target.SetColor(new ChColor(0, 1, 0));
-            int sentinelID = vis.AddVisualModel(sentinel, new ChFrameD());
-            int targetID = vis.AddVisualModel(target, new ChFrameD());
+            int sentinelID = vis.AddVisualModel(sentinel, new ChFramed());
+            int targetID = vis.AddVisualModel(target, new ChFramed());
 
             // ---------------
             // Simulation loop
@@ -530,15 +532,15 @@ namespace ChronoDemo
                 DriverInputs driverInputs = driver.GetInputs();
 
                 // Update sentinel and target location markers for the path-follower controller.
-                vis.UpdateVisualModel(sentinelID, new ChFrameD(driver.GetSentinelLocation()));
-                vis.UpdateVisualModel(targetID, new ChFrameD(driver.GetTargetLocation()));
+                vis.UpdateVisualModel(sentinelID, new ChFramed(driver.GetSentinelLocation()));
+                vis.UpdateVisualModel(targetID, new ChFramed(driver.GetTargetLocation()));
 
                 // Render scene and output images
                 vis.BeginScene();
                 vis.Render();
 
                 // Draw the world reference frame at the sentinel location
-                vis.RenderFrame(new ChFrameD(driver.GetSentinelLocation()));
+                vis.RenderFrame(new ChFramed(driver.GetSentinelLocation()));
 
                 // Render scene and output images
                 if (outputImages && stepNumber % renderSteps == 0)

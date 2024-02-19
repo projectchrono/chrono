@@ -29,13 +29,16 @@ namespace ChronoDemo
 
         static void Main(string[] args)
         {
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
+
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
             chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
 
             // Create the vehicle system
             WheeledVehicle vehicle = new WheeledVehicle(GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"), ChContactMethod.SMC);
-            vehicle.Initialize(new ChCoordsysD(new ChVectorD(0, 0, 0.5), new ChQuaternionD(1, 0, 0, 0)));
+            vehicle.Initialize(new ChCoordsysd(new ChVector3d(0, 0, 0.5), new ChQuaterniond(1, 0, 0, 0)));
             vehicle.GetChassis().SetFixed(false);
             vehicle.SetChassisVisualizationType(VisualizationType.MESH);
             vehicle.SetChassisRearVisualizationType(VisualizationType.PRIMITIVES);
@@ -72,7 +75,7 @@ namespace ChronoDemo
             ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
 
             vis.SetWindowTitle("CSharp Vehicle Irrlicht Demo");
-            vis.SetChaseCamera(new ChVectorD(0.0, 0.0, 1.75), 3, 1.5);
+            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 1.75), 3, 1.5);
             vis.Initialize();
             
             vis.AddLightDirectional();

@@ -29,6 +29,9 @@ namespace ChronoDemo
 
         static void Main(string[] args)
         {
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
+
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
             chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
@@ -45,13 +48,13 @@ namespace ChronoDemo
             double render_step_size = 1.0 / 50;  // FPS = 50
 
             // Point on chassis tracked by the camera
-            ChVectorD trackPoint = new ChVectorD(0.0, 0.0, 1.75);
+            ChVector3d trackPoint = new ChVector3d(0.0, 0.0, 1.75);
             // Create and configure the Kraz truck
             Kraz truck = new Kraz();
 
             truck.SetChassisFixed(false);
             // To mimick c++, adjust this to variables, not hard coded coords
-            truck.SetInitPosition(new ChCoordsysD(new ChVectorD(0, 0, 0.5), new ChQuaternionD(1, 0, 0, 0)));
+            truck.SetInitPosition(new ChCoordsysd(new ChVector3d(0, 0, 0.5), new ChQuaterniond(1, 0, 0, 0)));
             truck.SetTireStepSize(tire_step_size);
             truck.SetInitFwdVel(0.0);
 
@@ -75,7 +78,7 @@ namespace ChronoDemo
 
             // Create the terrain
             RigidTerrain terrain = new RigidTerrain(truck.GetSystem());
-            var patch_mat = new ChMaterialSurfaceNSC();
+            var patch_mat = new ChContactMaterialNSC();
             patch_mat.SetFriction(0.9f);
             patch_mat.SetRestitution(0.01f);
             var patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, terrainLength, terrainWidth);
@@ -86,7 +89,7 @@ namespace ChronoDemo
             // Create the vehicle Irrlicht interface
             ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
             vis.SetWindowTitle("Semi-trailer truck :: Open Loop");
-            vis.SetChaseCamera(new ChVectorD(0.0, 0.0, 1.75), 6, 0.5);
+            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 1.75), 6, 0.5);
             vis.Initialize();
             vis.AddLightDirectional();
             vis.AddSkyBox();

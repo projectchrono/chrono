@@ -23,6 +23,8 @@ namespace ChronoDemo
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
 
             ChCollisionSystem.Type coll_type = ChCollisionSystem.Type.BULLET;
 
@@ -74,13 +76,13 @@ namespace ChronoDemo
 
             ball.SetIdentifier(ballId);
             ball.SetMass(mass);
-            // TODO: cannot use operator between double and ChVectorD
-            //ChVectorD onev = new ChVectorD(1, 1, 1);
+            // TODO: cannot use operator between double and ChVector3d
+            //ChVector3d onev = new ChVector3d(1, 1, 1);
             //ball.SetInertiaXX(0.4 * mass * radius * radius * onev);
             ball.SetPos(pos);
             ball.SetRot(rot);
             ball.SetPos_dt(init_vel);
-            // ball.SetWvel_par(new ChVectorD(0,0,3));
+            // ball.SetWvel_par(new ChVector3d(0,0,3));
             ball.SetBodyFixed(false);
 
             ChCollisionShapeSphere sphere_coll = new ChCollisionShapeSphere(material, radius);
@@ -137,7 +139,7 @@ namespace ChronoDemo
             {
                 vis.BeginScene();
                 vis.Render();
-                vis.RenderFrame(new ChFramed(chrono.CastToChBodyFrame(ball).GetCoord()), 1.2 * radius);
+                vis.RenderFrame(new ChFramed(chrono.CastToChBodyFrame(ball).GetCsys()), 1.2 * radius);
                 vis.EndScene();
 
                 while (time < out_time)

@@ -33,6 +33,9 @@ namespace ChronoDemo
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
+
             // TODO: correct CHRONO_VERSION call
             //Console.WriteLine(chrono.GetLog() + "Copyright (c) 2017 projectchrono.org\nChrono version: " + CHRONO_VERSION + "\n\n");
 
@@ -51,7 +54,7 @@ namespace ChronoDemo
             //------------------------------------------
 
             // Initial vehicle location and orientation
-            ChVectorD initLoc = new ChVectorD(-10, 0, 1);
+            ChVector3d initLoc = new ChVector3d(-10, 0, 1);
 
             // Create and configure the vehicle
             HMMWV_Reduced hmmwv = new HMMWV_Reduced();
@@ -61,7 +64,7 @@ namespace ChronoDemo
             //hmmwv.SetCollisionSystemType(ChCollisionSystem.Type.BULLET); // TODO:: Currently has issues with SWIG wrapping. BULLET is presumed. May need to revisit if multicore module is wrapped.
             // Configure vehicle specifics
             hmmwv.SetChassisFixed(false);
-            hmmwv.SetInitPosition(new ChCoordsysD(initLoc, chrono.QUNIT));
+            hmmwv.SetInitPosition(new ChCoordsysd(initLoc, chrono.QUNIT));
             hmmwv.SetEngineType(EngineModelType.SIMPLE);
             hmmwv.SetTransmissionType(TransmissionModelType.AUTOMATIC_SIMPLE_MAP);
             hmmwv.SetDriveType(DrivelineTypeWV.RWD);
@@ -135,7 +138,7 @@ namespace ChronoDemo
             // Create the vehicle Irrlicht interface
             ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
             vis.SetWindowTitle("Rigid Terrain Demo");
-            vis.SetChaseCamera(new ChVectorD(0.0, 0.0, 0.75), 6.0, 0.75);
+            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 0.75), 6.0, 0.75);
             vis.Initialize();
             vis.AddLightDirectional();
             vis.AddSkyBox();

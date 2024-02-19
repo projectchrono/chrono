@@ -31,6 +31,9 @@ namespace ChronoDemo
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
+
             // TODO: correct CHRONO_VERSION call
             // Console.WriteLine(chrono.GetLog() + "Copyright (c) 2017 projectchrono.org\nChrono version: " + CHRONO_VERSION + "\n\n");
 
@@ -53,16 +56,16 @@ namespace ChronoDemo
             //------------------------------------------
 
             // Point on chassis tracked by the camera
-            ChVectorD trackPoint = new ChVectorD(0.0, 0.0, 1.75);
+            ChVector3d trackPoint = new ChVector3d(0.0, 0.0, 1.75);
 
             // Initial vehicle location and orientation
-            ChVectorD initLoc = new ChVectorD(0, 0, 0.6);
-            ChQuaternionD initRot = new ChQuaternionD(1, 0, 0, 0);
+            ChVector3d initLoc = new ChVector3d(0, 0, 0.6);
+            ChQuaterniond initRot = new ChQuaterniond(1, 0, 0, 0);
 
             // Create and configure the Kraz truck
             Kraz truck = new Kraz();
             truck.SetChassisFixed(false);
-            truck.SetInitPosition(new ChCoordsysD(initLoc, initRot));
+            truck.SetInitPosition(new ChCoordsysd(initLoc, initRot));
             truck.SetTireStepSize(tire_step_size);
             truck.SetInitFwdVel(0.0);
 
@@ -81,14 +84,14 @@ namespace ChronoDemo
 
             // Create the terrain
             RigidTerrain terrain = new RigidTerrain(truck.GetSystem());
-            var patch_mat = new ChMaterialSurfaceSMC();
+            var patch_mat = new ChContactMaterialSMC();
             patch_mat.SetFriction(0.9f);
             patch_mat.SetRestitution(0.01f);
             patch_mat.SetYoungModulus(2e7f);
             patch_mat.SetPoissonRatio(0.3f);
             for (int i = 0; i < 3; i++)
             {
-                var patch = terrain.AddPatch(patch_mat, new ChCoordsysD(new ChVectorD(terrainLength * i, 0, 0), chrono.QUNIT), terrainLength, 5);
+                var patch = terrain.AddPatch(patch_mat, new ChCoordsysd(new ChVector3d(terrainLength * i, 0, 0), chrono.QUNIT), terrainLength, 5);
                 patch.SetColor(new ChColor(0.8f, 0.8f, 0.5f));
                 patch.SetTexture(GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
             }
@@ -97,7 +100,7 @@ namespace ChronoDemo
             // Create the vehicle Irrlicht interface
             ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
             vis.SetWindowTitle("Semi-trailer truck :: Follows Straight Line");
-            vis.SetChaseCamera(new ChVectorD(0.0, 0.0, 1.75), 6, 0.5);
+            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 1.75), 6, 0.5);
             vis.Initialize();
             vis.AddLightDirectional();
             vis.AddSkyBox();
@@ -105,7 +108,7 @@ namespace ChronoDemo
             vis.AttachVehicle(truck.GetTractor());
             
             // Create the straight path and the driver system
-            var path = StraightLinePath(new ChVectorD(-terrainLength / 2, 0, 0.5), new ChVectorD(10 * terrainLength / 2, 0, 0.5), 1);
+            var path = StraightLinePath(new ChVector3d(-terrainLength / 2, 0, 0.5), new ChVector3d(10 * terrainLength / 2, 0, 0.5), 1);
             ChPathFollowerDriver driver = new ChPathFollowerDriver(truck.GetTractor(), path, "my_path", 1000.0);
             driver.GetSteeringController().SetLookAheadDistance(5.0);
             driver.GetSteeringController().SetGains(0.5, 0, 0);
@@ -125,7 +128,7 @@ namespace ChronoDemo
             double last_speed = -1;
 
             // Record vehicle speed
-            ChFunction_Recorder speed_recorder = new ChFunction_Recorder();
+            ChFunctionRecorder speed_recorder = new ChFunctionRecorder();
 
             // Initialize simulation frame counter and simulation time
             int step_number = 0;
