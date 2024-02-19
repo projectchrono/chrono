@@ -184,7 +184,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     wheel->SetBodyFixed(false);
     auto wheel_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(cmaterial, trimesh, false, false, 0.005);
-    wheel->GetCollisionModel()->AddShape(wheel_shape);
+    wheel->AddCollisionShape(wheel_shape);
     wheel->SetCollide(false);
 
     // Add this body to the FSI system
