@@ -11,7 +11,7 @@
 // =============================================================================
 
 #include <cstdlib>
-
+
 #include "chrono/timestepper/ChStaticAnalysis.h"
 
 namespace chrono {
@@ -154,8 +154,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
             // Stopping test
             if ((R_norm < m_abstol) && (Qc_norm < m_abstol)) {
                 if (m_verbose) {
-                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations.\n"
-                              << std::endl;
+                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations.\n" << std::endl;
                 }
                 break;
             }
@@ -414,8 +413,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
             // Stopping test
             if ((R_norm < m_abstol) && (Qc_norm < m_abstol)) {
                 if (m_verbose) {
-                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations.\n"
-                              << std::endl;
+                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations.\n" << std::endl;
                 }
                 break;
             }
@@ -715,8 +713,7 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
                 // Stopping test
                 if ((R_norm < m_abstol) && (Qc_norm < m_abstol)) {
                     if (m_verbose) {
-                        std::cout << "+++   Newton procedure converged in " << i + 1 << " iterations\n"
-                                  << std::endl;
+                        std::cout << "+++   Newton procedure converged in " << i + 1 << " iterations\n" << std::endl;
                     }
                     break;
                 }
@@ -890,8 +887,7 @@ void ChStaticNonLinearRigidMotion::StaticAnalysis() {
             // Stopping test
             if ((R_norm < m_abstol) && (Qc_norm < m_abstol)) {
                 if (m_verbose) {
-                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations\n"
-                              << std::endl;
+                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations\n" << std::endl;
                 }
                 break;
             }

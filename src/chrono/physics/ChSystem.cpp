@@ -14,7 +14,7 @@
 
 #include <algorithm>
 #include <iomanip>
-#include <fstream>
+#include <fstream>
 
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #ifdef CHRONO_COLLISION
@@ -2247,6 +2247,5 @@ void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
     // Recompute statistics, offsets, etc.
     Setup();
 }
-
 
 }  // end namespace chrono

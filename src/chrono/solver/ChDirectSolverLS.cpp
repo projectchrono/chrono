@@ -13,7 +13,7 @@
 // =============================================================================
 
 #include <iomanip>
-
+
 #include "chrono/core/ChSparsityPatternLearner.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
