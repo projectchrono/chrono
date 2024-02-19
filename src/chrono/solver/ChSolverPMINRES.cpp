@@ -11,7 +11,8 @@
 // =============================================================================
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
-#include "chrono/solver/ChSolverPMINRES.h"
+
+#include "chrono/solver/ChSolverPMINRES.h"
 
 namespace chrono {
 

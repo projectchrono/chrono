@@ -16,7 +16,8 @@
 #define CHCOLOR_H
 
 #include "chrono/core/ChClassFactory.h"
-#include "chrono/core/ChVector3.h"
+#include "chrono/core/ChVector3.h"
+
 #include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
