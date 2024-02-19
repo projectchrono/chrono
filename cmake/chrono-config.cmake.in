@@ -617,8 +617,25 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         foreach(CS ${Chrono_CSHARP_VEHICLE_SOURCES})
           list(APPEND CHRONO_CSHARP_SOURCES "${Chrono_CSHARP_VEHICLE_DIR}/${CS}")
         endforeach()
-      endif()   
+      endif() 
 
+      if(Chrono_POSTPROCESS_REQUESTED AND Chrono_POSTPROCESS_AVAILABLE)
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_postprocess")
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_postprocess.dll")
+
+        set(Chrono_CSHARP_POSTPROCESS_DIR "${CHRONO_CSHARP_SOURCE_DIR}/postprocess")
+        file(GLOB Chrono_CSHARP_POSTPROCESS_SOURCES 
+             LIST_DIRECTORIES false 
+             RELATIVE "${Chrono_CSHARP_POSTPROCESS_DIR}" 
+             CONFIGURE_DEPENDS 
+             "${Chrono_CSHARP_POSTPROCESS_DIR}/*.cs")
+        FindDuplicates(Chrono_CSHARP_POSTPROCESS_DUPLICATES "${Chrono_CSHARP_CORE_SOURCES}"
+                                                            "${Chrono_CSHARP_POSTPROCESS_SOURCES}")
+        list(REMOVE_ITEM Chrono_CSHARP_POSTPROCESS_SOURCES ${Chrono_CSHARP_POSTPROCESS_DUPLICATES})
+        foreach(CS ${Chrono_CSHARP_POSTPROCESS_SOURCES})
+           list(APPEND CHRONO_CSHARP_SOURCES "${Chrono_CSHARP_POSTPROCESS_DIR}/${CS}")
+        endforeach()
+       endif()
     endif()
 
   endif()
@@ -677,7 +694,7 @@ if (IS_MULTI_CONFIG)
     if (CHRONO_MISSING_LIB_CONFIG_${config})
       MESSAGE(STATUS "Configuration ${config} will not work properly since some Chrono libraries are missing for this configuration:\n  missing: ${CHRONO_MISSING_LIB_CONFIG_${config}}")
     else()
-      message(STATUS "Chrono libraries for configuration ${config} have been succesfully found.")
+      message(STATUS "Chrono libraries for configuration ${config} have been successfully found.")
       foreach(onelib ${CHRONO_LIBRARIES_${config}})
         list(APPEND CHRONO_LIBRARIES "$<$<CONFIG:${config}>:${onelib}>")
       endforeach()
@@ -825,7 +842,7 @@ function(add_DLL_copy_command)
       # Add custom command to create the destination folder
       add_custom_command(
         TARGET COPY_DLLS PRE_BUILD
-        COMMENT "Creating DLL output directory ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}"
+        COMMENT "Creating DLL output directory ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}\n"
         COMMAND "$<$<CONFIG:${config}>:${CMAKE_COMMAND}>"
             "$<$<CONFIG:${config}>:-E>"
             "$<$<CONFIG:${config}>:make_directory>"
@@ -841,7 +858,7 @@ function(add_DLL_copy_command)
       foreach(DLL ${DLLS_${config}})
           add_custom_command(
               TARGET COPY_DLLS POST_BUILD
-              COMMENT "Copying Chrono DLL ${DLL} in ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}"  
+              COMMENT "Copying Chrono DLL ${DLL} in ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}\n"  
               COMMAND "$<$<CONFIG:${config}>:${CMAKE_COMMAND}>"
                   "$<$<CONFIG:${config}>:-E>"
                   "$<$<CONFIG:${config}>:copy_if_different>"
@@ -855,7 +872,7 @@ function(add_DLL_copy_command)
       foreach(DLL ${DEPENDENCY_DLLS})
           add_custom_command(
               TARGET COPY_DLLS POST_BUILD
-              COMMENT "Copying DLL dependency ${DLL} in ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}"
+              COMMENT "Copying DLL dependency ${DLL} in ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}\n"
               COMMAND "$<$<CONFIG:${config}>:${CMAKE_COMMAND}>"
               "$<$<CONFIG:${config}>:-E>"
               "$<$<CONFIG:${config}>:copy_if_different>"

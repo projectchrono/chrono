@@ -49,8 +49,6 @@
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsLoads.h"
 #include "chrono/physics/ChShaftsFreewheel.h"
-#include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChShaftsCouple.h"
@@ -60,12 +58,17 @@
 #include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/assets/ChVisualShapes.h"
+
+#include "chrono/fea/ChMesh.h"
+
 
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionSystem.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChVehicleJoint.h"
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
@@ -107,7 +110,6 @@
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
-#include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
@@ -129,6 +131,8 @@
 #include "Eigen/src/Core/util/Memory.h"
 
 using namespace chrono;
+using namespace chrono::geometry;
+using namespace chrono::fea;
 using namespace chrono::vehicle;
 
 using namespace chrono::vehicle::generic;
@@ -168,12 +172,6 @@ using namespace chrono::vehicle::m113;
 %include "python/cwstring.i"
 #endif
 
-%template(vector_int) std::vector<int>;
-%template(vector_double) std::vector<double>;
-%template(TerrainForces) std::vector<chrono::vehicle::TerrainForce>;
-%template(WheelStates) std::vector<chrono::vehicle::WheelState>;
-%template(ChWheelList) std::vector<std::shared_ptr<chrono::vehicle::ChWheel> > ;
-%template(ChAxleList) std::vector<std::shared_ptr<chrono::vehicle::ChAxle> > ;
 
 //
 // A- ENABLE SHARED POINTERS
@@ -197,16 +195,59 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChLinkMarkers)
 %shared_ptr(chrono::ChContactable)
 %shared_ptr(chrono::ChContactable_1vars<6>)
+%shared_ptr(chrono::fea::ChMesh)
+
 
 %shared_ptr(chrono::ChCollisionModel)
 %shared_ptr(chrono::ChCollisionSystem::BroadphaseCallback)
 %shared_ptr(chrono::ChCollisionSystem::NarrowphaseCallback)
+
+
+
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChClassFactory.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChVector3.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChQuaternion.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChCoordsys.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChFrame.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChFrameMoving.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChTimestepper.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChObject.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChPhysicsItem.i"  
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChSystem.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChAssembly.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChMatrix.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChBodyFrame.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChBody.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChBodyAuxRef.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChNodeXYZ.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChLinkBase.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChLinkLock.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChLinkTSDA.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChLinkRSDA.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChLoad.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChShaft.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChVisualShape.i"
+%import(module = "pychrono.core") "../../../chrono/geometry/ChTriangleMeshConnected.h"
+%import(module = "pychrono.core") "../../../chrono/assets/ChVisualShapeTriangleMesh.h"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChContactContainer.i"
+%import(module = "pychrono.core") "../../../chrono/motion_functions/ChFunction.h"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChContactMaterial.i"
+%import(module = "pychrono.core") "../../../chrono/fea/ChContinuumMaterial.h"
+%import(module = "pychrono.core") "../../../chrono/physics/ChPhysicsItem.h"
+%import(module = "pychrono.core") "../../../chrono/physics/ChNodeBase.h"
+%import(module = "pychrono.core") "../../../chrono/physics/ChBodyFrame.h"
+%import(module = "pychrono.core") "../../../chrono/physics/ChLinkBase.h"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChTexture.i"
+%import(module = "pychrono.core") "../../../chrono/fea/ChMesh.h"
+
 
 /*
 from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 
 If those classes are wrapped, their parents are marked as shared_ptr while they are not, SWIG can't handle them.
 Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the model namespaces
 */
+
+
 
 %shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 %shared_ptr(chrono::vehicle::ChPart)
@@ -217,6 +258,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChBrakeShafts)
 %shared_ptr(chrono::vehicle::BrakeSimple)
 %shared_ptr(chrono::vehicle::BrakeShafts)
+%shared_ptr(chrono::vehicle::ChVehicleJoint)
 %shared_ptr(chrono::vehicle::ChVehicle)
 %shared_ptr(chrono::vehicle::ChAxle)
 %shared_ptr(chrono::vehicle::ChWheeledVehicle)
@@ -224,9 +266,14 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::WheeledVehicle)
 %shared_ptr(chrono::vehicle::WheeledTrailer)
 
-#ifdef SWIGPYTHON
+// For the powertrain base class changes
+%shared_ptr(chrono::vehicle::ChEngine)
+%shared_ptr(chrono::vehicle::ChTransmission)
+%shared_ptr(chrono::vehicle::ChAutomaticTransmission)
+%shared_ptr(chrono::vehicle::ChManualTransmission) 
+
+// Expose for both python and csharp
 %shared_ptr(chrono::vehicle::ChVehicleVisualSystem)
-#endif
 
 %shared_ptr(chrono::vehicle::ChSuspensionTestRig)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
@@ -267,6 +314,14 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::NonlinearDamperTorque)
 %shared_ptr(chrono::vehicle::NonlinearSpringDamperTorque)
 
+// Templates after all shared pointers
+%template(vector_int) std::vector<int>;
+%template(vector_double) std::vector<double>;
+%template(TerrainForces) std::vector<chrono::vehicle::TerrainForce>;
+%template(WheelStates) std::vector<chrono::vehicle::WheelState>;
+%template(ChWheelList) std::vector<std::shared_ptr<chrono::vehicle::ChWheel> > ;
+%template(ChAxleList) std::vector<std::shared_ptr<chrono::vehicle::ChAxle> > ;
+
 //
 // B- INCLUDE HEADERS
 //
@@ -285,101 +340,105 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 //  mynamespace { class myclass; }
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
-%shared_ptr(chrono::ChVisualShape)
-%shared_ptr(chrono::ChVisualShapeFEA)
-%shared_ptr(chrono::ChVisualShapeModelFile)
-%shared_ptr(chrono::ChVisualShapeTriangleMesh)
-%shared_ptr(chrono::ChVisualShapeSphere)
-%shared_ptr(chrono::ChVisualShapeEllipsoid)
-%shared_ptr(chrono::ChVisualShapeBarrel)
-%shared_ptr(chrono::ChVisualShapeBox)
-%shared_ptr(chrono::ChVisualShapeCone)
-%shared_ptr(chrono::ChVisualShapeCylinder)
-%shared_ptr(chrono::ChVisualShapeCapsule)
-%shared_ptr(chrono::ChVisualShapeRoundedCylinder)
-%shared_ptr(chrono::ChVisualShapeRoundedBox)
-%shared_ptr(chrono::ChVisualShapePath)
-%shared_ptr(chrono::ChVisualShapeLine)
-%shared_ptr(chrono::ChVisualShapePointPoint)
-%shared_ptr(chrono::ChVisualShapeRotSpring)
-%shared_ptr(chrono::ChVisualShapeSegment)
-%shared_ptr(chrono::ChVisualShapeSpring)
-%shared_ptr(chrono::ChVisualShapeSurface)
-
-#ifdef SWIGCSHARP
-
-  %import  "chrono_swig/interface/core/ChClassFactory.i"
-  %import  "chrono_swig/interface/core/ChVector3.i"
-  %import  "chrono_swig/interface/core/ChQuaternion.i"
-  %import  "chrono_swig/interface/core/ChCoordsys.i"
-  %import  "chrono_swig/interface/core/ChFrame.i"
-  %import  "chrono_swig/interface/core/ChFrameMoving.i"
-  %import  "chrono_swig/interface/core/ChTimestepper.i"
-  %import  "chrono_swig/interface/core/ChObject.i"
-  %import  "chrono_swig/interface/core/ChPhysicsItem.i"
-  %import  "chrono_swig/interface/core/ChSystem.i"
-  %import  "chrono_swig/interface/core/ChAssembly.i"
-  %import  "chrono_swig/interface/core/ChMatrix.i"
-  %import  "chrono_swig/interface/core/ChBodyFrame.i"
-  %import  "chrono_swig/interface/core/ChBody.i"
-  %import  "chrono_swig/interface/core/ChBodyAuxRef.i"
-  %import  "chrono_swig/interface/core/ChNodeXYZ.i"
-  %import  "chrono_swig/interface/core/ChLinkBase.i"
-  %import  "chrono_swig/interface/core/ChLinkLock.i"
-  %import  "chrono_swig/interface/core/ChLinkTSDA.i"
-  %import  "chrono_swig/interface/core/ChLinkRSDA.i"
-  %import  "chrono_swig/interface/core/ChLoad.i"
-  %import  "chrono_swig/interface/core/ChShaft.i"
-  %import  "chrono_swig/interface/core/ChVisualShape.i"
-  %import  "chrono_swig/interface/core/ChContactContainer.i"
-  %import  "../../../chrono/motion_functions/ChFunction.h"
-  %import  "chrono_swig/interface/core/ChContactMaterial.i"
-  %import  "../../../chrono/fea/ChContinuumMaterial.h"
-  %import  "../../../chrono/physics/ChPhysicsItem.h"
-  %import  "../../../chrono/physics/ChNodeBase.h"
-  %import  "../../../chrono/physics/ChBodyFrame.h"
-  %import  "../../../chrono/physics/ChLinkBase.h"
-  %import  "chrono_swig/interface/core/ChTexture.i"
-  %import  "../../../chrono/assets/ChVisualShapeTriangleMesh.h"
-
-#endif  // ----- end CSHARP
+////%shared_ptr(chrono::ChVisualShape)
+////%shared_ptr(chrono::ChVisualShapeFEA)
+////%shared_ptr(chrono::ChVisualShapeModelFile)
+////%shared_ptr(chrono::ChVisualShapeTriangleMesh)
+////%shared_ptr(chrono::ChVisualShapeSphere)
+////%shared_ptr(chrono::ChVisualShapeEllipsoid)
+////%shared_ptr(chrono::ChVisualShapeBarrel)
+////%shared_ptr(chrono::ChVisualShapeBox)
+////%shared_ptr(chrono::ChVisualShapeCone)
+////%shared_ptr(chrono::ChVisualShapeCylinder)
+////%shared_ptr(chrono::ChVisualShapeCapsule)
+////%shared_ptr(chrono::ChVisualShapeRoundedCylinder)
+////%shared_ptr(chrono::ChVisualShapeRoundedBox)
+////%shared_ptr(chrono::ChVisualShapePath)
+////%shared_ptr(chrono::ChVisualShapeLine)
+////%shared_ptr(chrono::ChVisualShapePointPoint)
+////%shared_ptr(chrono::ChVisualShapeRotSpring)
+////%shared_ptr(chrono::ChVisualShapeSegment)
+////%shared_ptr(chrono::ChVisualShapeSpring)
+////%shared_ptr(chrono::ChVisualShapeSurface)
+////
+////#ifdef SWIGCSHARP
+////
+////  %import  "chrono_swig/interface/core/ChClassFactory.i"
+////  %import  "chrono_swig/interface/core/ChVector3.i"
+////  %import  "chrono_swig/interface/core/ChQuaternion.i"
+////  %import  "chrono_swig/interface/core/ChCoordsys.i"
+////  %import  "chrono_swig/interface/core/ChFrame.i"
+////  %import  "chrono_swig/interface/core/ChFrameMoving.i"
+////  %import  "chrono_swig/interface/core/ChTimestepper.i"
+////  %import  "chrono_swig/interface/core/ChObject.i"
+////  %import  "chrono_swig/interface/core/ChPhysicsItem.i"
+////  %import  "chrono_swig/interface/core/ChSystem.i"
+////  %import  "chrono_swig/interface/core/ChAssembly.i"
+////  %import  "chrono_swig/interface/core/ChMatrix.i"
+////  %import  "chrono_swig/interface/core/ChBodyFrame.i"
+////  %import  "chrono_swig/interface/core/ChBody.i"
+////  %import  "chrono_swig/interface/core/ChBodyAuxRef.i"
+////  %import  "chrono_swig/interface/core/ChNodeXYZ.i"
+////  %import  "chrono_swig/interface/core/ChLinkBase.i"
+////  %import  "chrono_swig/interface/core/ChLinkLock.i"
+////  %import  "chrono_swig/interface/core/ChLinkTSDA.i"
+////  %import  "chrono_swig/interface/core/ChLinkRSDA.i"
+////  %import  "chrono_swig/interface/core/ChLoad.i"
+////  %import  "chrono_swig/interface/core/ChShaft.i"
+////  %import  "chrono_swig/interface/core/ChVisualShape.i"
+////  %import  "chrono_swig/interface/core/ChContactContainer.i"
+////  %import  "../../../chrono/motion_functions/ChFunction.h"
+////  %import  "chrono_swig/interface/core/ChContactMaterial.i"
+////  %import  "../../../chrono/fea/ChContinuumMaterial.h"
+////  %import  "../../../chrono/physics/ChPhysicsItem.h"
+////  %import  "../../../chrono/physics/ChNodeBase.h"
+////  %import  "../../../chrono/physics/ChBodyFrame.h"
+////  %import  "../../../chrono/physics/ChLinkBase.h"
+////  %import  "chrono_swig/interface/core/ChTexture.i"
+////  %import  "../../../chrono/assets/ChVisualShapeTriangleMesh.h"
+////
+////#endif  // ----- end CSHARP
+////
+////#ifdef SWIGPYTHON
+////
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector3.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChQuaternion.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrameMoving.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTimestepper.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"  
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChAssembly.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChMatrix.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyAuxRef.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChNodeXYZ.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkBase.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkLock.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkTSDA.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkRSDA.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLoad.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChShaft.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactContainer.i"
+////  %import(module = "pychrono.core")  "../../../chrono/motion_functions/ChFunction.h"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
+////  %import(module = "pychrono.core")  "../../../chrono/fea/ChContinuumMaterial.h"
+////  %import(module = "pychrono.core")  "../../../chrono/physics/ChPhysicsItem.h"
+////  %import(module = "pychrono.core")  "../../../chrono/physics/ChNodeBase.h"
+////  %import(module = "pychrono.core")  "../../../chrono/physics/ChBodyFrame.h"
+////  %import(module = "pychrono.core")  "../../../chrono/physics/ChLinkBase.h"
+////  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTexture.i"
+////  %import(module = "pychrono.core")  "../../../chrono/assets/ChVisualShapeTriangleMesh.h"
+////  
+////
 
 #ifdef SWIGPYTHON
 
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector3.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChQuaternion.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrameMoving.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTimestepper.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"  
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChAssembly.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChMatrix.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyAuxRef.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChNodeXYZ.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkBase.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkLock.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkTSDA.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkRSDA.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLoad.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChShaft.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactContainer.i"
-  %import(module = "pychrono.core")  "../../../chrono/motion_functions/ChFunction.h"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
-  %import(module = "pychrono.core")  "../../../chrono/fea/ChContinuumMaterial.h"
-  %import(module = "pychrono.core")  "../../../chrono/physics/ChPhysicsItem.h"
-  %import(module = "pychrono.core")  "../../../chrono/physics/ChNodeBase.h"
-  %import(module = "pychrono.core")  "../../../chrono/physics/ChBodyFrame.h"
-  %import(module = "pychrono.core")  "../../../chrono/physics/ChLinkBase.h"
-  %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTexture.i"
-  %import(module = "pychrono.core")  "../../../chrono/assets/ChVisualShapeTriangleMesh.h"
-  
   #ifdef CHRONO_IRRLICHT
     #define ChApiIrr 
     #define IRRLICHT_API
@@ -403,8 +462,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../../chrono_vehicle/ChVehicleModelData.h"
 %include "../../../chrono_vehicle/ChPart.h"
 %include "../../../chrono_vehicle/ChWorldFrame.h"
-%include "ChPowertrain.i"
 %include "ChChassis.i"
+%include "ChPowertrain.i"
 %include "../../../chrono_vehicle/ChVehicle.h"
 %include "ChDriver.i"
 %include "ChTerrain.i"
@@ -420,6 +479,12 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "ChSubchassis.i"
 %include "ChSuspension.i"
 %include "ChDriveline.i"
+
+// Changes for the powertrain modifications
+%include "ChEngine.i"
+%include "ChTransmission.i"
+
+%include "../../../chrono_vehicle/ChVehicleJoint.h"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
@@ -451,6 +516,14 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %include "vehicleUtils.i"
 
+#ifdef SWIGCSHARP
+#ifdef CHRONO_IRRLICHT
+// Place Irrlicht after everything else so SWIG is aware of how to translate
+// This interface file invokes Irrlicht library and therefore Visual Studio Linker dependencies need specifying
+  %include "ChVehicleVisualSystemIrrlicht.i"
+#endif
+#endif
+
 //
 // C- DOWNCASTING OF SHARED POINTERS
 //
@@ -471,19 +544,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidThreeLinkAxle)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSingleWishbone)
 
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MacPhersonStrut)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, LeafspringAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MultiLink)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SemiTrailingArm)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, DoubleWishbone)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, DoubleWishboneReduced)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, HendricksonPRIMAXX)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ThreeLinkIRS)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ToeBarLeafspringAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidBellcrankThreeLinkAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidThreeLinkAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SingleWishbone)
 
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArm)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArmShafts)

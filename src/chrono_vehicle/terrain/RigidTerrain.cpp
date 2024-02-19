@@ -186,8 +186,11 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     AddPatch(patch, position, material);
     patch->m_visualize = visualization;
 
+    // In a Y-Up worldframe, the width is mapped across the z-axis and thickness along the y-axis
+    bool is_y_up = (ChWorldFrame::Vertical() == ChVector3d(0, 1, 0));
+
     // Create the collision model (one or more boxes) attached to the patch body
-    if (tiled) {
+    if (tiled && !is_y_up) {
         int nX = (int)std::ceil(length / max_tile_size);
         int nY = (int)std::ceil(width / max_tile_size);
         double sizeX1 = length / nX;
@@ -201,21 +204,42 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
                 patch->m_body->AddCollisionShape(ct_shape, ChFrame<>(loc, QUNIT));
             }
         }
-    } else {
-        auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(material, length, width, thickness);
-        ChVector3d loc(0, 0, -0.5 * thickness);
+    } else if (tiled && is_y_up) {  // tiling across the z-x plane for a y-up world
+        int nX = (int)std::ceil(length / max_tile_size);
+        int nZ = (int)std::ceil(width / max_tile_size);
+        double sizeX1 = length / nX;
+        double sizeZ1 = width / nZ;
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(material, sizeX1, thickness, sizeZ1);
+        for (int ix = 0; ix < nX; ix++) {
+            for (int iz = 0; iz < nZ; iz++) {
+                ChVector3d loc((sizeX1 - length) / 2 + ix * sizeX1,  //
+                               -0.5 * thickness,                     // thickness is along the y-axis
+                               (sizeZ1 - width) / 2 + iz * sizeZ1);  // map the width value across the z-axis
+                patch->m_body->AddCollisionShape(ct_shape, ChFrame<>(loc, QUNIT));
+            }
+        }
+    } else {  // non-tiled terrain creation of a single collision box and centre based on worldframe detection
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(material,                        //
+                                                                       length,                          // x
+                                                                       (is_y_up ? thickness : width),   // y
+                                                                       (is_y_up ? width : thickness));  // z
+        ChVector3d loc(0, (is_y_up ? (-0.5 * thickness) : 0),
+                       (is_y_up ? 0 : (-0.5 * thickness)));  // centralise based on thickness along y-up or z-up world
         patch->m_body->AddCollisionShape(ct_shape, ChFrame<>(loc, QUNIT));
     }
 
     // Cache patch parameters
     patch->m_location = position.pos;
-    patch->m_normal = position.rot.GetAxisZ();
+    patch->m_normal = (is_y_up ? position.rot.GetAxisY() : position.rot.GetAxisZ());
     patch->m_hlength = length / 2;
     patch->m_hwidth = width / 2;
     patch->m_hthickness = thickness / 2;
     patch->m_radius = ChVector3d(length, width, thickness).Length() / 2;
     patch->m_type = PatchType::BOX;
-
+    patch->m_visual_offset = ChVector3d(0,
+                                        (is_y_up ? (-0.5 * thickness) : 0),   // Offset in Y for Y-up world
+                                        (is_y_up ? 0 : (-0.5 * thickness)));  // Offset in Z for Z-up world
+    patch->m_dim = ChVector3d(length, (is_y_up ? thickness : width), (is_y_up ? width : thickness));
     return patch;
 }
 
@@ -413,6 +437,428 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     return patch;
 }
 
+//----------------------------------------------------------------------------------------------
+// Create a 'heightmap' from a vector_ChVector group of points by weighted averaging of the nearest
+// the vectors within x,y grid with z height. Grid resolution can be increased or decreased and so
+// can the number of LEPP iterations and the factor of smoothing (dependent on grid resolution).
+// Acts in a way like a pixelated grid with smoothing. Grid x and y axis align with the standard
+// RHF world axis.
+
+std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChContactMaterial> material,
+                                                            const ChCoordsys<>& position,
+                                                            const std::vector<ChVector3d>& point_cloud,
+                                                            double length,
+                                                            double width,
+                                                            int unrefined_resolution,
+                                                            int heightmap_resolution,
+                                                            int max_refinements,
+                                                            double refine_angle_limit,
+                                                            double smoothing_factor,
+                                                            double max_edge_length,
+                                                            double sweep_sphere_radius,
+                                                            bool visualization) {
+    //---------------
+    // Initialisation
+    //---------------
+
+    auto patch = chrono_types::make_shared<MeshPatch>();
+    AddPatch(patch, position, material);
+    patch->m_visualize = visualization;
+    // Initialise the mesh
+    patch->m_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+
+    // Calculate coarse grid resolution. Ensure not less than heightmap resolution
+    const int coarse_grid_resolution = std::min(heightmap_resolution, unrefined_resolution);
+
+    // Note: typically this method works best with a 1:1 aspect ratio, but it can work with rectangular-type
+    // grid cells, and elongated triangles, however, it might run into trouble using refinemeshedges if the
+    // aspect ratio is too extreme.
+    //
+    // Adjusted cell sizes to fit within the terrain dimensions
+    const double coarse_cell_length = length / coarse_grid_resolution;
+    const double coarse_cell_width = width / coarse_grid_resolution;
+
+    // Calculate the number of vertices for the coarse
+    const int n_verts_across_down = coarse_grid_resolution + 1;
+    unsigned int n_verts = n_verts_across_down * n_verts_across_down;
+
+    // Resize vertices, normals, and UVs
+    patch->m_trimesh->getCoordsVertices().resize(n_verts);
+    patch->m_trimesh->getCoordsNormals().resize(n_verts);
+    patch->m_trimesh->getCoordsUV().resize(n_verts);
+
+    //---------------------
+    // Refinement variables
+    //---------------------
+
+    // Individual cell sizes for each grid
+    const double cell_length = length / heightmap_resolution;  // in the x
+    const double cell_width = width / heightmap_resolution;    // in the y
+
+    // initialisations for when calling RefineMeshEdges
+    std::vector<std::vector<double>*> aux_data_double;
+    std::vector<std::vector<int>*> aux_data_int;
+    std::vector<std::vector<bool>*> aux_data_bool;
+    std::vector<std::vector<ChVector3d>*> aux_data_vect;
+
+    // point cloud/grid variables
+    std::vector<std::vector<double>> height_map(heightmap_resolution, std::vector<double>(heightmap_resolution, 0.0));
+    std::vector<std::vector<int>> count_map(heightmap_resolution, std::vector<int>(heightmap_resolution, 0));
+    const double influence_distance = std::max(cell_length, cell_width);  // Set to the larger of cell size dimensions
+    std::vector<std::vector<double>> max_height_map(
+        heightmap_resolution, std::vector<double>(heightmap_resolution, std::numeric_limits<double>::lowest()));
+    std::vector<std::vector<double>> min_height_map(
+        heightmap_resolution, std::vector<double>(heightmap_resolution, std::numeric_limits<double>::max()));
+
+    // Refinement process
+    int current_iteration = 0;                       // what it says
+    max_refinements = std::max(0, max_refinements);  // Ensure iterations is clamped
+    bool execute_refine;                             // true or false if traignles have been marked for refinement
+    double vertical_flat_angle_threshold = 4;  // Dot product close to 0 to the vertical/horizontal world frame for
+                                               // nearly vertical triangle (for exclusion from refinement)
+    double flat_threshold =
+        std::cos(vertical_flat_angle_threshold * CH_C_DEG_TO_RAD);  // Convert angle thresholds to cos rad
+    double vertical_threshold =
+        std::cos((90 - vertical_flat_angle_threshold) * CH_C_DEG_TO_RAD);  // Convert angle thresholds to cos rad
+    ChVector3d vertical_vector(0, 0, 1);  // vertical vector for Z-up world frame (mesh processing is done within a z-up
+                                          // world and rotated at the end)
+    std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;  // map for winged edges checking (in normals)
+
+    // Smoothing / postprocessing parameters
+    double lambda = 0.63 * smoothing_factor;
+    double mu = -0.6300001 * smoothing_factor;  // the absolute of mu must always be greater than lambda
+    // Define the boundaries of the mesh
+    double boundary_min_x = -length / 2;
+    double boundary_max_x = length / 2;
+    double boundary_min_y = -width / 2;
+    double boundary_max_y = width / 2;
+    double edge_threshold = 1e-6;  // threshold distance from the boundary (2D), to not move on x-y in smoothing
+
+    // Patch parameters
+    double height_max = -std::numeric_limits<double>::infinity();
+    double height_min = std::numeric_limits<double>::infinity();
+    for (const auto& vec : point_cloud) {
+        double h = vec.z();
+        height_max = std::max(height_max, h);
+        height_min = std::min(height_min, h);
+    }
+
+    //--------------------------------------------------------
+    // Stage 1: Point cloud processing and grid initialisation
+    //--------------------------------------------------------
+
+    // Populate fine height map directly from point cloud.
+    // point cloud is entered in the sense of the x-y grid and z value of the vector is the height
+    for (const auto& point : point_cloud) {
+        // set the cell indices
+        int cell_origin_x = static_cast<int>((point.x() + length / 2) / cell_length);
+        int cell_origin_y = static_cast<int>((point.y() + width / 2) / cell_width);
+        // Update height_max and height_min
+        height_max = std::max(height_max, point.z());
+        height_min = std::min(height_min, point.z());
+        // run the 3x3 loop of neighbours to consider weighted averaging of heights
+        for (int dx = -1; dx <= 1; ++dx) {
+            for (int dy = -1; dy <= 1; ++dy) {
+                int nx = cell_origin_x + dx;
+                int ny = cell_origin_y + dy;
+                // keep within the bounds of the grid cells
+                if (nx >= 0 && nx < heightmap_resolution && ny >= 0 && ny < heightmap_resolution) {
+                    double cell_central_x = (nx + 0.5) * cell_length - length / 2;
+                    double cell_central_y = (ny + 0.5) * cell_width - width / 2;
+                    double dist_sq = (cell_central_x - point.x()) * (cell_central_x - point.x()) +
+                                     (cell_central_y - point.y()) * (cell_central_y - point.y());
+                    // check the distance and influence, add the count and record the max and min of this cell for
+                    // clamping later
+                    if (dist_sq < influence_distance * influence_distance) {
+                        height_map[nx][ny] += point.z();
+                        count_map[nx][ny]++;
+                        max_height_map[nx][ny] = std::max(max_height_map[nx][ny], point.z());
+                        min_height_map[nx][ny] = std::min(min_height_map[nx][ny], point.z());
+                    }
+                }
+            }
+        }
+    }
+
+    // Normalise, assign and clamp heights (ensure the averaged heights aren't excessively influencing magnitude beyond
+    // what's already max from point cloud)
+    for (int i = 0; i < heightmap_resolution; ++i) {
+        for (int j = 0; j < heightmap_resolution; ++j) {
+            if (count_map[i][j] > 0) {
+                height_map[i][j] /= count_map[i][j];
+                height_map[i][j] = std::clamp(height_map[i][j], min_height_map[i][j], max_height_map[i][j]);
+            }
+        }
+    }
+
+    // Initialise the coarse height map
+    // Iterate over the grid and assign heights to mesh vertices - heights are directly assigned from the cells of
+    // the height_map (rather than re-average). Bilinear height assignment is given in the refinement process
+    for (int i = 0; i < n_verts_across_down; ++i) {
+        for (int j = 0; j < n_verts_across_down; ++j) {
+            double x = i * coarse_cell_length - length / 2;
+            double y = j * coarse_cell_width - width / 2;
+
+            // Calculate the corresponding indices in the height map
+            // ensuring correct alignment with the height map
+            double relative_x = x + length / 2;  // position relative to heightmap's origin
+            double relative_y = y + width / 2;   // position relative to heightmap's origin
+            int cellX = static_cast<int>(relative_x / (length / heightmap_resolution));
+            int cellY = static_cast<int>(relative_y / (width / heightmap_resolution));
+
+            // Clamp to the bounds of the height map
+            cellX = std::clamp(cellX, 0, heightmap_resolution - 1);
+            cellY = std::clamp(cellY, 0, heightmap_resolution - 1);
+
+            // Apply the direct height from the height map and generate the vertex
+            double z = height_map[cellX][cellY];
+            patch->m_trimesh->getCoordsVertices()[i * n_verts_across_down + j] = ChVector3d(x, y, z);
+        }
+    }
+
+    // Generate alternating triangles for the coarse mesh
+    for (int i = 0; i < coarse_grid_resolution; ++i) {
+        for (int j = 0; j < coarse_grid_resolution; ++j) {
+            unsigned int v0 = i * n_verts_across_down + j;
+            unsigned int v1 = v0 + 1;
+            unsigned int v2 = v0 + n_verts_across_down;
+            unsigned int v3 = v2 + 1;
+            // Alternating triangles for the RHF - i.e. counter-clockwise vertices
+            if ((i + j) % 2 == 0) {
+                patch->m_trimesh->getIndicesVertexes().push_back(ChVector3i(v0, v2, v1));
+                patch->m_trimesh->getIndicesVertexes().push_back(ChVector3i(v1, v2, v3));
+            } else {
+                patch->m_trimesh->getIndicesVertexes().push_back(ChVector3i(v0, v2, v3));
+                patch->m_trimesh->getIndicesVertexes().push_back(ChVector3i(v0, v3, v1));
+            }
+        }
+    }
+
+    std::cout << "coarse triangles generated:" << patch->m_trimesh->getNumTriangles() << std::endl;
+
+    //--------------------------------------------------
+    // Stage 2: iterative refinement in a two stage pass
+    //--------------------------------------------------
+
+    std::cout << "Refinement loop commencing" << std::endl;
+
+    std::vector<int> marked_tris;  // Container for marked triangles
+    marked_tris.clear();           // clear the group prior to iteration
+
+    // ITERATIVE LOOP
+    // This makes use of the fine grid with normal-angle refinement
+    // Remember this is working on the mesh in a Zup context (regardless of the worldframe),
+    // and will be rotated to y-up later
+    while (current_iteration < max_refinements) {
+        execute_refine = false;
+
+        // Normal checking and clearing if near vertical or flat
+        auto& vertices = patch->m_trimesh->getCoordsVertices();  // get the vertices of the mesh
+        patch->m_trimesh->ComputeWingedEdges(winged_edges);      // compute the winged edge map
+
+        for (const auto& edge : winged_edges) {
+            int tri1_index = edge.second.first;
+            int tri2_index = edge.second.second;
+            // Skip if no adjacent triangle (boundary edge)
+            if (tri1_index == -1 || tri2_index == -1)
+                continue;
+            // get the vertices
+            const auto& tri1 = patch->m_trimesh->getIndicesVertexes()[tri1_index];
+            const auto& tri2 = patch->m_trimesh->getIndicesVertexes()[tri2_index];
+            // Calculate normals for each triangle
+            ChVector3d normal1 =
+                Vcross(vertices[tri1.y()] - vertices[tri1.x()], vertices[tri1.z()] - vertices[tri1.x()])
+                    .GetNormalized();
+            ChVector3d normal2 =
+                Vcross(vertices[tri2.y()] - vertices[tri2.x()], vertices[tri2.z()] - vertices[tri2.x()])
+                    .GetNormalized();
+
+            /// Triangle Exclusion checks:
+            // Check the dot product of the normals against the vertical and horizontal frame and skip if nearly
+            // vertical or nearly flat triangles look further up to note they are set for a parallel and perpendicular
+            // check against the vertical
+            if ((std::abs(normal1 ^ vertical_vector) < vertical_threshold &&
+                 std::abs(normal1 ^ vertical_vector) > flat_threshold) ||
+                (std::abs(normal2 ^ vertical_vector) < vertical_threshold &&
+                 std::abs(normal2 ^ vertical_vector) > flat_threshold)) {
+                continue;
+            }
+
+            // Calculate the angle between normals
+            double dot_product = Vdot(normal1, normal2);
+            double angle = std::acos(dot_product) * CH_C_RAD_TO_DEG;  // convert the angle
+            if (angle > refine_angle_limit) {                         // Mark both triangles for refinement
+                marked_tris.push_back(tri1_index);
+                marked_tris.push_back(tri2_index);
+                execute_refine = true;
+            }
+        }
+
+        // Re-sort and remove any duplicates from marked_tris
+        std::sort(marked_tris.begin(), marked_tris.end());
+        marked_tris.erase(std::unique(marked_tris.begin(), marked_tris.end()), marked_tris.end());
+
+        /// Refine all marked triangles and set heights
+        if (execute_refine) {  // Refine marked triangles
+            // use Chrono's LEPP refine mesh edges method to increase triangle resolution of marked triangles
+            patch->m_trimesh->RefineMeshEdges(marked_tris, max_edge_length, nullptr, nullptr, aux_data_double,
+                                              aux_data_int, aux_data_bool, aux_data_vect);
+
+            // set height of vertices with bilinear interpolation
+            for (auto& vertex : patch->m_trimesh->getCoordsVertices()) {
+                int cell_x = static_cast<int>((vertex.x() + length / 2) / cell_length);
+                int cell_y = static_cast<int>((vertex.y() + width / 2) / cell_width);
+
+                // Ensure cell indices are within bounds
+                cell_x = std::max(0, std::min(cell_x, heightmap_resolution - 1));
+                cell_y = std::max(0, std::min(cell_y, heightmap_resolution - 1));
+
+                // Calculate fractional parts for bilinear interpolation
+                double fx = (vertex.x() + length / 2) / cell_length - cell_x;
+                double fy = (vertex.y() + width / 2) / cell_width - cell_y;
+
+                // Ensure the next cell indices are also within bounds
+                int nextCellX = std::min(cell_x + 1, heightmap_resolution - 1);
+                int nextCellY = std::min(cell_y + 1, heightmap_resolution - 1);
+
+                // Apply bilinear interpolation
+                vertex.z() = height_map[cell_x][cell_y] * (1 - fx) * (1 - fy) +
+                             height_map[nextCellX][cell_y] * fx * (1 - fy) +
+                             height_map[cell_x][nextCellY] * (1 - fx) * fy + height_map[nextCellX][nextCellY] * fx * fy;
+            }
+        }  // End refinement
+
+        // Provide update to console
+        std::cout << "Iterative refinment number: " << current_iteration << std::endl;
+        std::cout << "Number of triangles refined: " << marked_tris.size() << std::endl;
+        ++current_iteration;  // counter
+    }
+
+    //---------------------------------------------------------------------------
+    // Mesh healing if necessary and post processing with Taubin smoothing method
+    //---------------------------------------------------------------------------
+
+    // Repair duplicate vertices
+    int merged_vertices = patch->m_trimesh->RepairDuplicateVertexes(1e-18);
+    // Print the number of merged vertices
+    if (merged_vertices > 0) {
+        std::cout << "Number of merged vertices: " << merged_vertices << std::endl;
+    }
+
+    /// Taubin smoothing approach, controllable with smoothing factor 0-1
+    // Note: Does not set height - this is done in the iterative loop
+    // Ensure latest values used
+    auto& vertices = patch->m_trimesh->getCoordsVertices();
+    auto& triangles = patch->m_trimesh->getIndicesVertexes();
+    n_verts = patch->m_trimesh->getNumVertices();  // update the vertices again
+    // Smoothing loop
+    if (smoothing_factor != 0) {  // skip if smoothing is zero
+        // Create an adjacency list
+        std::vector<std::unordered_set<int>> adjacency_list(n_verts);
+        for (const auto& triangle : triangles) {
+            for (int i = 0; i < 3; ++i) {
+                int vertex_index = triangle[i];
+                for (int j = 0; j < 3; ++j) {
+                    if (i != j) {
+                        adjacency_list[vertex_index].insert(triangle[j]);
+                    }
+                }
+            }
+        }
+        // push-pull smoothing
+        std::vector<ChVector3d> temp_smoothing_vertices(n_verts);  // up to date vector
+        // Iterations of smoothing loop
+        for (int iter = 0; iter < 10; ++iter) {  // number of iterations. 10 is usually enough
+            // Laplacian smoothing step
+            for (int i = 0; i < n_verts; ++i) {
+                // Check if its along the boundaries. We don't want to pull them in or push them out
+                bool is_edge_vertex = vertices[i].x() <= boundary_min_x + edge_threshold ||
+                                      vertices[i].x() >= boundary_max_x - edge_threshold ||
+                                      vertices[i].y() <= boundary_min_y + edge_threshold ||
+                                      vertices[i].y() >= boundary_max_y - edge_threshold;
+
+                ChVector3d laplacian_vector(0, 0, 0);
+                for (int adjVertex : adjacency_list[i]) {
+                    laplacian_vector += (vertices[adjVertex] - vertices[i]);  // consider adjacency
+                }
+                temp_smoothing_vertices[i] = vertices[i] + lambda * laplacian_vector / adjacency_list[i].size();
+                if (is_edge_vertex) {
+                    temp_smoothing_vertices[i].x() = vertices[i].x();  // keep original x value
+                    temp_smoothing_vertices[i].y() = vertices[i].y();  // keep original y coord
+                }
+            }
+            // run the inverse laplacian smoothing step
+            for (int i = 0; i < n_verts; ++i) {
+                bool is_edge_vertex =  // check and mark the boundary vertices
+                    vertices[i].x() <= boundary_min_x + edge_threshold ||
+                    vertices[i].x() >= boundary_max_x - edge_threshold ||
+                    vertices[i].y() <= boundary_min_y + edge_threshold ||
+                    vertices[i].y() >= boundary_max_y - edge_threshold;
+
+                ChVector3d laplacian_vector(0, 0, 0);
+                for (int adj_vertex : adjacency_list[i]) {
+                    laplacian_vector +=
+                        (temp_smoothing_vertices[adj_vertex] - temp_smoothing_vertices[i]);  // consider original
+                }
+                vertices[i] = temp_smoothing_vertices[i] + mu * laplacian_vector / adjacency_list[i].size();
+                if (is_edge_vertex) {
+                    vertices[i].x() = temp_smoothing_vertices[i].x();  // keep original x coord
+                    vertices[i].y() = temp_smoothing_vertices[i].y();  // keep original y coord
+                }
+            }
+        }
+        // clean up the lists
+        adjacency_list.clear();
+        temp_smoothing_vertices.clear();
+    }
+
+    // Clean up buffers & memory allocations and other structures used for refinement
+    for (auto& buffer : aux_data_double) {
+        buffer->clear();
+    }
+    for (auto& buffer : aux_data_int) {
+        buffer->clear();
+    }
+    for (auto& buffer : aux_data_bool) {
+        buffer->clear();
+    }
+    for (auto& buffer : aux_data_vect) {
+        buffer->clear();
+    }
+
+    height_map.clear();
+    count_map.clear();
+    max_height_map.clear();
+    min_height_map.clear();
+
+    // ---------------------------------------
+    // Final setup, collision body and caching
+    // ---------------------------------------
+
+    // Set colour of all vertices to white
+    for (auto& vertex_color : patch->m_trimesh->getCoordsColors()) {
+        vertex_color = ChColor(1, 1, 1);
+    }
+
+    // No UV mapping as terrain is simply a single colour
+
+    // Check if Y-Up world orientation and rotate mesh acccordingly
+    if (ChWorldFrame::Vertical() == ChVector3d(0, 1, 0)) {
+        patch->m_trimesh->Transform(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_C_PI_2));
+    }
+
+    // Build the connected mesh
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, patch->m_trimesh, true, false,
+                                                                            sweep_sphere_radius);
+    // Add collision shape
+    patch->m_body->AddCollisionShape(ct_shape);
+
+    patch->m_radius = ChVector3d(length, width, (height_max - height_min)).Length() / 2;
+    patch->m_type = PatchType::MESH;
+
+    return patch;
+}
+
 // -----------------------------------------------------------------------------
 // Functions to modify properties of a patch
 // -----------------------------------------------------------------------------
@@ -524,9 +970,9 @@ void RigidTerrain::Initialize() {
 void RigidTerrain::BoxPatch::Initialize() {
     if (m_visualize) {
         m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
-        auto box = chrono_types::make_shared<ChVisualShapeBox>(2 * m_hlength, 2 * m_hwidth, 2 * m_hthickness);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(m_dim);  // dimensions determined in AddPatch
         box->AddMaterial(m_vis_mat);
-        m_body->AddVisualShape(box, ChFrame<>(ChVector3d(0, 0, -m_hthickness)));
+        m_body->AddVisualShape(box, ChFrame<>(m_visual_offset));  // offset determined in AddPatch
     }
 }
 
@@ -645,7 +1091,14 @@ bool RigidTerrain::BoxPatch::FindPoint(const ChVector3d& loc, double& height, Ch
 
     // Check bounds
     ChVector3d Cl = m_body->TransformPointParentToLocal(C);
-    return std::abs(Cl.x()) <= m_hlength && std::abs(Cl.y()) <= m_hwidth;
+    // Determine which axes to use for bounds checking based on world orientation, making use of v declared above
+    if (v.Equals(ChVector3d(0, -1, 0))) {
+        // Y-up world: check bounds using X and Z axes
+        return std::abs(Cl.x()) <= m_hlength && std::abs(Cl.z()) <= m_hwidth;
+    } else {
+        // Z-up world: check bounds using X and Y axes
+        return std::abs(Cl.x()) <= m_hlength && std::abs(Cl.y()) <= m_hwidth;
+    }
 }
 
 bool RigidTerrain::MeshPatch::FindPoint(const ChVector3d& loc, double& height, ChVector3d& normal) const {

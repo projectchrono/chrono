@@ -447,7 +447,7 @@ using namespace chrono::fea;
 %include "../../../chrono/fea/ChContactSurfaceNodeCloud.h"
 %template(vector_ChNodeFEAbase) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAbase> >;
 %template(vector_ChElementBase) std::vector< std::shared_ptr<chrono::fea::ChElementBase> >;
-%include "../../../chrono/fea/ChMeshSurface.h"
+%import "../../../chrono/fea/ChMeshSurface.h" // should be already provided by ChModuleCore
 %include "../../../chrono/fea/ChMesh.h"
 %include "../../../chrono/fea/ChLinkDirFrame.h"
 %include "../../../chrono/fea/ChLinkPointFrame.h"

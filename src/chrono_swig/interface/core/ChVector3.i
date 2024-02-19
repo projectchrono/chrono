@@ -75,3 +75,18 @@
 %}
 
 #endif             // --------------------------------------------------------------------- PYTHON
+
+// Include global functions not directly accessible because they're defined outside the ChVector3 Class
+// TODO: add more. Testing vdot and vcross for now
+
+extern double Vdot(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
+extern chrono::ChVector3d Vcross(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
+
+%inline %{
+    double Vdot(const chrono::ChVector3d& va, const chrono::ChVector3d& vb) {
+        return chrono::Vdot(va, vb);
+    }
+    chrono::ChVector3d Vcross(const chrono::ChVector3d& va, const chrono::ChVector3d& vb) {
+        return chrono::Vcross(va, vb);
+    }
+%}
