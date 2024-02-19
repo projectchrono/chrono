@@ -18,6 +18,7 @@
 #pragma once
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 
 #include "chrono/core/ChVector3.h"
