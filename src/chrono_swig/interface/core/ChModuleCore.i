@@ -336,7 +336,6 @@ using namespace chrono::fea;
 %include "ChRandom.i"
 %include "ChTimer.i"
 %include "ChRealtimeStep.i"
-%include "ChTransform.i"
 
 // geometry/   classes
 %include "ChGeometry.i"

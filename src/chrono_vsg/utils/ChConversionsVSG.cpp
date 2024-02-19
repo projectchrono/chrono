@@ -55,7 +55,7 @@ vec4CH::vec4CH(const chrono::ChColor& col, float a) {
 
 dmat4CH::dmat4CH(const chrono::ChFrame<>& frame, const chrono::ChVector3d& scale) {
     const auto& v = frame.GetPos();
-    const auto& A = frame.GetA();
+    const auto& A = frame.GetRotMat();
 
     value[0].set(scale.x() * A(0), scale.x() * A(3), scale.x() * A(6), 0);
     value[1].set(scale.y() * A(1), scale.y() * A(4), scale.y() * A(7), 0);

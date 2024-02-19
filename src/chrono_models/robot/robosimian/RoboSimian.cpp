@@ -220,7 +220,7 @@ ChCoordsys<> calcJointFrame(const ChFrame<>& base, const ChVector3d& axis) {
     }
     ChMatrix33<> A;
     A.SetFromDirectionAxes(u, v, w);
-    ChMatrix33<> B = base.GetA() * A;
+    ChMatrix33<> B = base.GetRotMat() * A;
     return ChCoordsys<>(base.GetPos(), B.GetQuaternion());
 }
 

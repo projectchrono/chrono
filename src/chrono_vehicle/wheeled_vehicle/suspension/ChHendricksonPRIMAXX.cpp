@@ -98,7 +98,7 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Transform the location of the axle body COM to absolute frame.
     ChVector3d axleCOM_local = getAxlehousingCOM();
-    ChVector3d axleCOM = suspension_to_abs.TransformLocalToParent(axleCOM_local);
+    ChVector3d axleCOM = suspension_to_abs.TransformPointLocalToParent(axleCOM_local);
 
     // Calculate end points on the axle body, expressed in the absolute frame
     // (for visualization)
@@ -126,9 +126,9 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChChassis> chassis,
 
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector3d rel_pos = getLocation(static_cast<PointId>(i));
-        m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsL[i] = suspension_to_abs.TransformPointLocalToParent(rel_pos);
         rel_pos.y() = -rel_pos.y();
-        m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsR[i] = suspension_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
     for (int i = 0; i < NUM_DIRS; i++) {
@@ -140,7 +140,7 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create transverse beam body
     ChVector3d tbCOM_local = getTransversebeamCOM();
-    ChVector3d tbCOM = suspension_to_abs.TransformLocalToParent(tbCOM_local);
+    ChVector3d tbCOM = suspension_to_abs.TransformPointLocalToParent(tbCOM_local);
 
     m_transversebeam = chrono_types::make_shared<ChBody>();
     m_transversebeam->SetNameString(m_name + "_transversebeam");
@@ -383,10 +383,10 @@ void ChHendricksonPRIMAXX::UpdateInertiaProperties() {
     }
 
     // Express COM and inertia in subsystem reference frame
-    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
-    m_com.coord.rot = QUNIT;
+    m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.GetRot() = QUNIT;
 
-    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+    m_inertia = m_xform.GetRotMat().transpose() * composite.GetInertia() * m_xform.GetRotMat();
 }
 
 // -----------------------------------------------------------------------------

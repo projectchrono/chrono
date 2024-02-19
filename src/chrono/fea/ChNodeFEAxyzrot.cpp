@@ -73,10 +73,10 @@ void ChNodeFEAxyzrot::NodeIntStateGather(const unsigned int off_x,
                                          const unsigned int off_v,
                                          ChStateDelta& v,
                                          double& T) {
-    x.segment(off_x + 0, 3) = this->coord.pos.eigen();
-    x.segment(off_x + 3, 4) = this->coord.rot.eigen();
+    x.segment(off_x + 0, 3) = this->GetPos().eigen();
+    x.segment(off_x + 3, 4) = this->GetRot().eigen();
 
-    v.segment(off_v + 0, 3) = this->coord_dt.pos.eigen();
+    v.segment(off_v + 0, 3) = this->GetPos_dt().eigen();
     v.segment(off_v + 3, 3) = this->GetWvel_loc().eigen();
 }
 
@@ -85,13 +85,13 @@ void ChNodeFEAxyzrot::NodeIntStateScatter(const unsigned int off_x,
                                           const unsigned int off_v,
                                           const ChStateDelta& v,
                                           const double T) {
-    this->SetCoord(x.segment(off_x, 7));
+    this->SetCsys(x.segment(off_x, 7));
     this->SetPos_dt(v.segment(off_v, 3));
     this->SetWvel_loc(v.segment(off_v + 3, 3));
 }
 
 void ChNodeFEAxyzrot::NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    a.segment(off_a + 0, 3) = this->coord_dtdt.pos.eigen();
+    a.segment(off_a + 0, 3) = this->GetPos_dtdt().eigen();
     a.segment(off_a + 3, 3) = this->GetWacc_loc().eigen();
 }
 
@@ -196,12 +196,12 @@ void ChNodeFEAxyzrot::VariablesFbLoadForces(double factor) {
 
 void ChNodeFEAxyzrot::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variables.Get_qb().segment(0, 3) = this->GetCoord_dt().pos.eigen();
+    variables.Get_qb().segment(0, 3) = this->GetCsysDer().pos.eigen();
     variables.Get_qb().segment(3, 3) = this->GetWvel_loc().eigen();
 }
 
 void ChNodeFEAxyzrot::VariablesQbSetSpeed(double step) {
-    ChCoordsys<> old_coord_dt = this->GetCoord_dt();
+    ChCoordsys<> old_coord_dt = this->GetCsysDer();
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
     this->SetPos_dt(this->variables.Get_qb().segment(0, 3));
@@ -212,8 +212,8 @@ void ChNodeFEAxyzrot::VariablesQbSetSpeed(double step) {
 
     // Compute accel. by BDF (approximate by differentiation);
     if (step) {
-        this->SetPos_dtdt((this->GetCoord_dt().pos - old_coord_dt.pos) / step);
-        this->SetRot_dtdt((this->GetCoord_dt().rot - old_coord_dt.rot) / step);
+        this->SetPos_dtdt((this->GetCsysDer().pos - old_coord_dt.pos) / step);
+        this->SetRot_dtdt((this->GetCsysDer().rot - old_coord_dt.rot) / step);
     }
 }
 
@@ -237,7 +237,7 @@ void ChNodeFEAxyzrot::VariablesQbIncrementPosition(double step) {
     // ADVANCE ROTATION: rot' = [dt*wwel]%rot  (use quaternion for delta rotation)
     ChQuaternion<> mdeltarot;
     ChQuaternion<> moldrot = this->GetRot();
-    ChVector3d newwel_abs = this->Amatrix * newwel;
+    ChVector3d newwel_abs = this->GetRotMat() * newwel;
     double mangle = newwel_abs.Length() * step;
     newwel_abs.Normalize();
     mdeltarot.SetFromAngleAxis(mangle, newwel_abs);
@@ -261,8 +261,8 @@ void ChNodeFEAxyzrot::LoadableStateIncrement(const unsigned int off_x,
 }
 
 void ChNodeFEAxyzrot::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.segment(block_offset + 0, 3) = this->GetCoord().pos.eigen();
-    mD.segment(block_offset + 3, 4) = this->GetCoord().rot.eigen();
+    mD.segment(block_offset + 0, 3) = this->GetCsys().pos.eigen();
+    mD.segment(block_offset + 3, 4) = this->GetCsys().rot.eigen();
 }
 
 void ChNodeFEAxyzrot::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
@@ -289,7 +289,7 @@ void ChNodeFEAxyzrot::ComputeNF(
     if (state_x)
         nodecoord = state_x->segment(0, 7);  // the numerical jacobian algo might change state_x
     else
-        nodecoord = this->coord;
+        nodecoord = this->Csys;
 
     // compute Q components F,T, given current state of 'nodecoord'. Note T in Q is in local csys, F is an abs csys
     body_absF = absF;

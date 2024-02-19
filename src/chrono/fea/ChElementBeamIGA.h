@@ -123,8 +123,8 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
         mD.resize((int)this->nodes.size() * 7);
 
         for (int i = 0; i < nodes.size(); ++i) {
-            mD.segment(i * 7 + 0, 3) = nodes[i]->coord.pos.eigen();
-            mD.segment(i * 7 + 3, 4) = nodes[i]->coord.rot.eigen();
+            mD.segment(i * 7 + 0, 3) = nodes[i]->GetPos().eigen();
+            mD.segment(i * 7 + 3, 4) = nodes[i]->GetRot().eigen();
         }
     }
 
@@ -182,7 +182,7 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
 
         point = VNULL;
         for (int i = 0; i < nodes.size(); ++i) {
-            point += N(i) * nodes[i]->coord.pos;
+            point += N(i) * nodes[i]->GetPos();
         }
     }
 
@@ -198,17 +198,15 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
         int nspan = order;
 
         ChVectorDynamic<> N((int)nodes.size());
-
-        geometry::ChBasisToolsBspline::BasisEvaluate(this->order, nspan, u, knots,
-                                                     N);  ///< here return  in N
+        geometry::ChBasisToolsBspline::BasisEvaluate(this->order, nspan, u, knots, N);
 
         point = VNULL;
         for (int i = 0; i < nodes.size(); ++i) {
-            point += N(i) * nodes[i]->coord.pos;
+            point += N(i) * nodes[i]->GetPos();
         }
         rot = QNULL;
         for (int i = 0; i < nodes.size(); ++i) {
-            ChQuaternion<> myrot = nodes[i]->coord.rot;
+            ChQuaternion<> myrot = nodes[i]->GetRot();
             rot.e0() += N(i) * myrot.e0();
             rot.e1() += N(i) * myrot.e1();
             rot.e2() += N(i) * myrot.e2();

@@ -2200,9 +2200,9 @@ std::vector<ChVector3d> ChSystemFsi::GetParticleForces() const {
 
 thrust::device_vector<int> ChSystemFsi::FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size) {
     const ChVector3d& Pos = frame.GetPos();
-    ChVector3d Ax = frame.GetA().GetAxisX();
-    ChVector3d Ay = frame.GetA().GetAxisY();
-    ChVector3d Az = frame.GetA().GetAxisZ();
+    ChVector3d Ax = frame.GetRotMat().GetAxisX();
+    ChVector3d Ay = frame.GetRotMat().GetAxisY();
+    ChVector3d Az = frame.GetRotMat().GetAxisZ();
 
     auto hsize = 0.5 * mR3(size.x(), size.y(), size.z());
     auto pos = mR3(Pos.x(), Pos.y(), Pos.z());

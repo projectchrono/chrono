@@ -26,7 +26,7 @@ void ChBodyFrame::To_abs_forcetorque(const ChVector3d& force,
         resulttorque = Vcross(TransformDirectionLocalToParent(appl_point), resultforce);
     } else {
         resultforce = force;
-        resulttorque = Vcross(Vsub(appl_point, coord.pos), force);
+        resulttorque = Vcross(Vsub(appl_point, GetPos()), force);
     }
 }
 

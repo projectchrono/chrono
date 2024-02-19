@@ -520,7 +520,7 @@ void WriteVisualizationAssets(ChSystem* system,
             chrono::ChFrame<> frA_abs = *(linkR->GetMarker1()) >> *(linkR->GetBody1());
             chrono::ChFrame<> frB_abs = *(linkR->GetMarker2()) >> *(linkR->GetBody2());
 
-            csv << REVOLUTE << frA_abs.GetPos() << frA_abs.GetA().GetAxisZ() << std::endl;
+            csv << REVOLUTE << frA_abs.GetPos() << frA_abs.GetRotMat().GetAxisZ() << std::endl;
             l_count++;
         } else if (auto linkS = std::dynamic_pointer_cast<ChLinkLockSpherical>(ilink)) {
             chrono::ChFrame<> frA_abs = *(linkS->GetMarker1()) >> *(linkS->GetBody1());
@@ -532,19 +532,19 @@ void WriteVisualizationAssets(ChSystem* system,
             chrono::ChFrame<> frA_abs = *(linkP->GetMarker1()) >> *(linkP->GetBody1());
             chrono::ChFrame<> frB_abs = *(linkP->GetMarker2()) >> *(linkP->GetBody2());
 
-            csv << PRISMATIC << frA_abs.GetPos() << frA_abs.GetA().GetAxisZ() << std::endl;
+            csv << PRISMATIC << frA_abs.GetPos() << frA_abs.GetRotMat().GetAxisZ() << std::endl;
             l_count++;
         } else if (auto linkC = std::dynamic_pointer_cast<ChLinkLockCylindrical>(ilink)) {
             chrono::ChFrame<> frA_abs = *(linkC->GetMarker1()) >> *(linkC->GetBody1());
             chrono::ChFrame<> frB_abs = *(linkC->GetMarker2()) >> *(linkC->GetBody2());
 
-            csv << CYLINDRICAL << frA_abs.GetPos() << frA_abs.GetA().GetAxisZ() << std::endl;
+            csv << CYLINDRICAL << frA_abs.GetPos() << frA_abs.GetRotMat().GetAxisZ() << std::endl;
             l_count++;
         } else if (auto linkU = std::dynamic_pointer_cast<ChLinkUniversal>(ilink)) {
             chrono::ChFrame<> frA_abs = linkU->GetFrame1Abs();
             chrono::ChFrame<> frB_abs = linkU->GetFrame2Abs();
 
-            csv << UNIVERSAL << frA_abs.GetPos() << frA_abs.GetA().GetAxisX() << frB_abs.GetA().GetAxisY()
+            csv << UNIVERSAL << frA_abs.GetPos() << frA_abs.GetRotMat().GetAxisX() << frB_abs.GetRotMat().GetAxisY()
                 << std::endl;
             l_count++;
         } else if (auto linkT = std::dynamic_pointer_cast<ChLinkTSDA>(ilink)) {

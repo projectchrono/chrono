@@ -16,7 +16,6 @@
 #include <cstdlib>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/physics/ChSystem.h"
 

@@ -18,7 +18,7 @@
                     // not supported in Swig
 			chrono::ChVector3<double> operator>> (chrono::ChFrame<double>& mframe) const
 			{
-					return mframe.TransformLocalToParent(*$self);
+					return mframe.TransformPointLocalToParent(*$self);
 			}
 			
 		};

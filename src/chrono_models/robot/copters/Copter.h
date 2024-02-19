@@ -342,10 +342,10 @@ void Copter<nop>::UpdateAirData() {
 
 template <int nop>
 void Copter<nop>::RotateCopter(ChMatrix33<>& A) {
-    ChMatrix33<> mrot = this->GetChassis()->GetA() * A.transpose();
+    ChMatrix33<> mrot = this->GetChassis()->GetRotMat() * A.transpose();
     this->GetChassis()->SetRot(mrot);
     for (auto prop : this->GetProps()) {
-        ChMatrix33<> proprot = prop->GetA() * A.transpose();
+        ChMatrix33<> proprot = prop->GetRotMat() * A.transpose();
         prop->SetRot(proprot);
         ChVector3d deltap = A * (prop->GetPos() - this->GetChassis()->GetPos());
         prop->SetPos(prop->GetPos() + deltap);

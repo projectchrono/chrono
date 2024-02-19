@@ -15,7 +15,6 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChConveyor.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/collision/ChCollisionSystem.h"
@@ -283,8 +282,8 @@ void ChConveyor::Update(double mytime, bool update_assets) {
     }
 
     // keep the plate always at the same position of the main reference
-    conveyor_plate->SetCoord(conveyor_truss->GetCoord());
-    conveyor_plate->SetCoord_dt(conveyor_truss->GetCoord_dt());
+    conveyor_plate->SetCsys(conveyor_truss->GetCsys());
+    conveyor_plate->SetCsysDer(conveyor_truss->GetCsysDer());
     // keep the plate always at the same speed of the main reference, plus the conveyor speed on X local axis
     conveyor_plate->SetPos_dt(conveyor_truss->GetPos_dt() + (ChVector3d(conveyor_speed, 0, 0) >> (*conveyor_truss)));
 

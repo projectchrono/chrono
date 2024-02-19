@@ -16,7 +16,6 @@
 #include <algorithm>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChForce.h"
 #include "chrono/physics/ChMarker.h"
@@ -95,9 +94,9 @@ void ChBody::IntStateGather(const unsigned int off_x,  // offset in x state vect
                             ChStateDelta& v,           // state vector, speed part
                             double& T                  // time
 ) {
-    x.segment(off_x + 0, 3) = coord.pos.eigen();
-    x.segment(off_x + 3, 4) = coord.rot.eigen();
-    v.segment(off_v + 0, 3) = coord_dt.pos.eigen();
+    x.segment(off_x + 0, 3) = GetPos().eigen();
+    x.segment(off_x + 3, 4) = GetRot().eigen();
+    v.segment(off_v + 0, 3) = GetPos_dt().eigen();
     v.segment(off_v + 3, 3) = GetWvel_loc().eigen();
     T = GetChTime();
 }
@@ -109,7 +108,7 @@ void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vec
                              const double T,            // time
                              bool full_update           // perform complete update
 ) {
-    SetCoord(x.segment(off_x, 7));
+    SetCsys(x.segment(off_x, 7));
     SetPos_dt(v.segment(off_v + 0, 3));
     SetWvel_loc(v.segment(off_v + 3, 3));
     SetChTime(T);
@@ -117,7 +116,7 @@ void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vec
 }
 
 void ChBody::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    a.segment(off_a + 0, 3) = coord_dtdt.pos.eigen();
+    a.segment(off_a + 0, 3) = GetPos_dtdt().eigen();
     a.segment(off_a + 3, 3) = GetWacc_loc().eigen();
 }
 
@@ -192,11 +191,7 @@ void ChBody::IntLoadResidual_Mv(const unsigned int off,      // offset in R resi
     R.segment(off + 3, 3) += Iw.eigen();
 }
 
-void ChBody::IntLoadLumpedMass_Md(const unsigned int off,
-                                  ChVectorDynamic<>& Md,
-                                  double& err,
-                                  const double c
-) {
+void ChBody::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     Md(off + 0) += c * GetMass();
     Md(off + 1) += c * GetMass();
     Md(off + 2) += c * GetMass();
@@ -206,7 +201,6 @@ void ChBody::IntLoadLumpedMass_Md(const unsigned int off,
     // if there is off-diagonal inertia, add to error, as lumping can give inconsistent results
     err += GetInertia()(0, 1) + GetInertia()(0, 2) + GetInertia()(1, 2);
 }
-
 
 void ChBody::IntToDescriptor(const unsigned int off_v,
                              const ChStateDelta& v,
@@ -254,12 +248,12 @@ void ChBody::VariablesFbIncrementMq() {
 
 void ChBody::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variables.Get_qb().segment(0, 3) = GetCoord_dt().pos.eigen();
+    variables.Get_qb().segment(0, 3) = GetCsysDer().pos.eigen();
     variables.Get_qb().segment(3, 3) = GetWvel_loc().eigen();
 }
 
 void ChBody::VariablesQbSetSpeed(double step) {
-    ChCoordsys<> old_coord_dt = GetCoord_dt();
+    ChCoordsys<> old_coord_dt = GetCsysDer();
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
     SetPos_dt(variables.Get_qb().segment(0, 3));
@@ -273,8 +267,8 @@ void ChBody::VariablesQbSetSpeed(double step) {
 
     // Compute accel. by BDF (approximate by differentiation);
     if (step) {
-        SetPos_dtdt((GetCoord_dt().pos - old_coord_dt.pos) / step);
-        SetRot_dtdt((GetCoord_dt().rot - old_coord_dt.rot) / step);
+        SetPos_dtdt((GetCsysDer().pos - old_coord_dt.pos) / step);
+        SetRot_dtdt((GetCsysDer().rot - old_coord_dt.rot) / step);
     }
 }
 
@@ -294,7 +288,7 @@ void ChBody::VariablesQbIncrementPosition(double dt_step) {
     // ADVANCE ROTATION: rot' = [dt*wwel]%rot  (use quaternion for delta rotation)
     ChQuaternion<> mdeltarot;
     ChQuaternion<> moldrot = GetRot();
-    ChVector3d newwel_abs = Amatrix * newwel;
+    ChVector3d newwel_abs = GetRotMat() * newwel;
     double mangle = newwel_abs.Length() * dt_step;
     newwel_abs.Normalize();
     mdeltarot.SetFromAngleAxis(mangle, newwel_abs);
@@ -312,32 +306,32 @@ void ChBody::SetNoSpeedNoAcceleration() {
 ////
 void ChBody::ClampSpeed() {
     if (GetLimitSpeed()) {
-        double w = 2.0 * coord_dt.rot.Length();
+        double w = 2.0 * GetRot_dt().Length();
         if (w > max_wvel)
-            coord_dt.rot *= max_wvel / w;
+            GetRot_dt() *= max_wvel / w;
 
-        double v = coord_dt.pos.Length();
+        double v = GetPos_dt().Length();
         if (v > max_speed)
-            coord_dt.pos *= max_speed / v;
+            GetPos_dt() *= max_speed / v;
     }
 }
 
 //// Utilities for coordinate transformations
 
 ChVector3d ChBody::Point_World2Body(const ChVector3d& mpoint) {
-    return ChFrame<double>::TransformParentToLocal(mpoint);
+    return ChFrame<double>::TransformPointParentToLocal(mpoint);
 }
 
 ChVector3d ChBody::Point_Body2World(const ChVector3d& mpoint) {
-    return ChFrame<double>::TransformLocalToParent(mpoint);
+    return ChFrame<double>::TransformPointLocalToParent(mpoint);
 }
 
 ChVector3d ChBody::Dir_World2Body(const ChVector3d& dir) {
-    return Amatrix.transpose() * dir;
+    return Rmat.transpose() * dir;
 }
 
 ChVector3d ChBody::Dir_Body2World(const ChVector3d& dir) {
-    return Amatrix * dir;
+    return Rmat * dir;
 }
 
 ChVector3d ChBody::RelPoint_AbsSpeed(const ChVector3d& mrelpoint) {
@@ -389,7 +383,7 @@ ChVector3d ChBody::GetInertiaXY() const {
 
 void ChBody::ComputeQInertia(ChMatrix44<>& mQInertia) {
     // [Iq]=[G'][Ix][G]
-    ChGlMatrix34<> Gl(coord.rot);
+    ChGlMatrix34<> Gl(GetRot());
     mQInertia = Gl.transpose() * GetInertia() * Gl;
 }
 
@@ -432,7 +426,7 @@ bool ChBody::TrySleeping() {
             return false;
 
         // if not yet sleeping:
-        if ((coord_dt.pos.LengthInf() < sleep_minspeed) && (2.0 * coord_dt.rot.LengthInf() < sleep_minwvel)) {
+        if ((GetPos_dt().LengthInf() < sleep_minspeed) && (2.0 * GetRot_dt().LengthInf() < sleep_minwvel)) {
             if ((GetChTime() - sleep_starttime) > sleep_time) {
                 BFlagSet(BodyFlag::COULDSLEEP, true);  // mark as sleep candidate
                 return true;                           // could go to sleep!
@@ -748,8 +742,8 @@ geometry::ChAABB ChBody::GetTotalAABB() {
 }
 
 void ChBody::ContactableGetStateBlock_x(ChState& x) {
-    x.segment(0, 3) = GetCoord().pos.eigen();
-    x.segment(3, 4) = GetCoord().rot.eigen();
+    x.segment(0, 3) = GetCsys().pos.eigen();
+    x.segment(3, 4) = GetCsys().rot.eigen();
 }
 
 void ChBody::ContactableGetStateBlock_w(ChStateDelta& w) {
@@ -783,7 +777,7 @@ ChVector3d ChBody::GetContactPointSpeed(const ChVector3d& abs_point) {
 }
 
 ChCoordsys<> ChBody::GetCsysForCollisionModel() {
-    return ChCoordsys<>(GetFrame_REF_to_abs().coord);
+    return ChCoordsys<>(GetFrame_REF_to_abs().GetCsys());
 }
 
 void ChBody::ContactForceLoadResidual_F(const ChVector3d& F,
@@ -800,11 +794,11 @@ void ChBody::ContactForceLoadResidual_F(const ChVector3d& F,
 }
 
 void ChBody::ContactComputeQ(const ChVector3d& F,
-                               const ChVector3d& T,
-                               const ChVector3d& point,
-                               const ChState& state_x,
-                               ChVectorDynamic<>& Q,
-                               int offset) {
+                             const ChVector3d& T,
+                             const ChVector3d& point,
+                             const ChState& state_x,
+                             ChVectorDynamic<>& Q,
+                             int offset) {
     ChCoordsys<> csys(state_x.segment(0, 7));
     ChVector3d point_loc = csys.TransformPointParentToLocal(point);
     ChVector3d force_loc = csys.TransformDirectionParentToLocal(F);
@@ -829,7 +823,7 @@ void ChBody::ComputeJacobianForContactPart(const ChVector3d& abs_point,
     if (!second)
         Jx1 *= -1;
 
-    ChMatrix33<> Jr1 = contact_plane.transpose() * GetA() * Ps1;
+    ChMatrix33<> Jr1 = contact_plane.transpose() * GetRotMat() * Ps1;
     if (!second)
         Jr1 *= -1;
 
@@ -845,23 +839,23 @@ void ChBody::ComputeJacobianForContactPart(const ChVector3d& abs_point,
     // UNROLLED VERSION - FASTER
     ChVector3d p1 = Point_World2Body(abs_point);
     double temp00 =
-        Amatrix(0, 2) * contact_plane(0, 0) + Amatrix(1, 2) * contact_plane(1, 0) + Amatrix(2, 2) * contact_plane(2, 0);
+        Rmat(0, 2) * contact_plane(0, 0) + Rmat(1, 2) * contact_plane(1, 0) + Rmat(2, 2) * contact_plane(2, 0);
     double temp01 =
-        Amatrix(0, 2) * contact_plane(0, 1) + Amatrix(1, 2) * contact_plane(1, 1) + Amatrix(2, 2) * contact_plane(2, 1);
+        Rmat(0, 2) * contact_plane(0, 1) + Rmat(1, 2) * contact_plane(1, 1) + Rmat(2, 2) * contact_plane(2, 1);
     double temp02 =
-        Amatrix(0, 2) * contact_plane(0, 2) + Amatrix(1, 2) * contact_plane(1, 2) + Amatrix(2, 2) * contact_plane(2, 2);
+        Rmat(0, 2) * contact_plane(0, 2) + Rmat(1, 2) * contact_plane(1, 2) + Rmat(2, 2) * contact_plane(2, 2);
     double temp10 =
-        Amatrix(0, 1) * contact_plane(0, 0) + Amatrix(1, 1) * contact_plane(1, 0) + Amatrix(2, 1) * contact_plane(2, 0);
+        Rmat(0, 1) * contact_plane(0, 0) + Rmat(1, 1) * contact_plane(1, 0) + Rmat(2, 1) * contact_plane(2, 0);
     double temp11 =
-        Amatrix(0, 1) * contact_plane(0, 1) + Amatrix(1, 1) * contact_plane(1, 1) + Amatrix(2, 1) * contact_plane(2, 1);
+        Rmat(0, 1) * contact_plane(0, 1) + Rmat(1, 1) * contact_plane(1, 1) + Rmat(2, 1) * contact_plane(2, 1);
     double temp12 =
-        Amatrix(0, 1) * contact_plane(0, 2) + Amatrix(1, 1) * contact_plane(1, 2) + Amatrix(2, 1) * contact_plane(2, 2);
+        Rmat(0, 1) * contact_plane(0, 2) + Rmat(1, 1) * contact_plane(1, 2) + Rmat(2, 1) * contact_plane(2, 2);
     double temp20 =
-        Amatrix(0, 0) * contact_plane(0, 0) + Amatrix(1, 0) * contact_plane(1, 0) + Amatrix(2, 0) * contact_plane(2, 0);
+        Rmat(0, 0) * contact_plane(0, 0) + Rmat(1, 0) * contact_plane(1, 0) + Rmat(2, 0) * contact_plane(2, 0);
     double temp21 =
-        Amatrix(0, 0) * contact_plane(0, 1) + Amatrix(1, 0) * contact_plane(1, 1) + Amatrix(2, 0) * contact_plane(2, 1);
+        Rmat(0, 0) * contact_plane(0, 1) + Rmat(1, 0) * contact_plane(1, 1) + Rmat(2, 0) * contact_plane(2, 1);
     double temp22 =
-        Amatrix(0, 0) * contact_plane(0, 2) + Amatrix(1, 0) * contact_plane(1, 2) + Amatrix(2, 0) * contact_plane(2, 2);
+        Rmat(0, 0) * contact_plane(0, 2) + Rmat(1, 0) * contact_plane(1, 2) + Rmat(2, 0) * contact_plane(2, 2);
 
     // Jx1 =
     // [ c00, c10, c20]
@@ -922,7 +916,7 @@ void ChBody::ComputeJacobianForRollingContactPart(
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
     bool second) {
-    ChMatrix33<> Jr1 = contact_plane.transpose() * GetA();
+    ChMatrix33<> Jr1 = contact_plane.transpose() * GetRotMat();
     if (!second)
         Jr1 *= -1;
 
@@ -965,8 +959,8 @@ void ChBody::LoadableStateIncrement(const unsigned int off_x,
 }
 
 void ChBody::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.segment(block_offset + 0, 3) = GetCoord().pos.eigen();
-    mD.segment(block_offset + 3, 4) = GetCoord().rot.eigen();
+    mD.segment(block_offset + 0, 3) = GetCsys().pos.eigen();
+    mD.segment(block_offset + 3, 4) = GetCsys().rot.eigen();
 }
 
 void ChBody::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
@@ -993,7 +987,7 @@ void ChBody::ComputeNF(
     if (state_x)
         bodycoord = state_x->segment(0, 7);  // the numerical jacobian algo might change state_x
     else
-        bodycoord = coord;
+        bodycoord = Csys;
 
     // compute Q components F,T, given current state of body 'bodycoord'. Note T in Q is in local csys, F is an abs csys
     body_absF = absF;
@@ -1110,6 +1104,5 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(sleep_minwvel);
     marchive >> CHNVP(sleep_starttime);
 }
-
 
 }  // end namespace chrono

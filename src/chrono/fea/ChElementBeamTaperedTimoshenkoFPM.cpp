@@ -315,7 +315,7 @@ void ChElementBeamTaperedTimoshenkoFPM::SetupInitial(ChSystem* system) {
     ChMatrix33<> A0;
     ChVector3d mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
     ChVector3d myele =
-        (nodes[0]->GetX0().GetA().GetAxisY() + nodes[1]->GetX0().GetA().GetAxisY()).GetNormalized();
+        (nodes[0]->GetX0().GetRotMat().GetAxisY() + nodes[1]->GetX0().GetRotMat().GetAxisY()).GetNormalized();
     A0.SetFromAxisX(mXele, myele);
     q_element_ref_rot = A0.GetQuaternion();
 

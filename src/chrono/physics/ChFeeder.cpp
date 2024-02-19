@@ -15,7 +15,6 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChFeeder.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -92,7 +91,7 @@ void ChFeeder::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Q
                 if ((myfeeder->GetFeederObject().get() == contactobjA) || (myfeeder->GetFeederObject().get() == contactobjB)) {
 
                     // position of contact respect to the vibration mode reference, defining the screw motion 
-                    ChVector3d local_rad = myfeeder->reference.TransformParentToLocal(pB);
+                    ChVector3d local_rad = myfeeder->reference.TransformPointParentToLocal(pB);
                     // speed of the contact point, on the feeder (can be +/-), given the six values of the eigenvector screw motion
                     ChVector3d local_pseudovel = ChVector3d(myfeeder->v_x, myfeeder->v_y, myfeeder->v_z) +
                         Vcross(ChVector3d(myfeeder->w_x, myfeeder->w_y, myfeeder->w_z), local_rad);

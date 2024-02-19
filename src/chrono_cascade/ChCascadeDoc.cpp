@@ -429,7 +429,7 @@ void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Locat
     const ChVector3d& mpos = from_coord.GetPos();
     gp_Vec mtr(mpos.x(), mpos.y(), mpos.z());
 
-    const ChMatrix33<>& from_mat = from_coord.GetA();
+    const ChMatrix33<>& from_mat = from_coord.GetRotMat();
 
     gp_Trsf castrasf;
     castrasf.SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),

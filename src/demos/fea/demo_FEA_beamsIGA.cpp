@@ -292,7 +292,7 @@ void MakeAndRunDemo2(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     builderR.GetLastBeamNodes().front()->SetFixed(true);
 
     auto mbodywing = chrono_types::make_shared<ChBodyEasyBox>(0.01, 0.2, 0.05, 2000);
-    mbodywing->SetCoord(builderR.GetLastBeamNodes().back()->GetCoord());
+    mbodywing->SetCsys(builderR.GetLastBeamNodes().back()->GetCsys());
     sys.Add(mbodywing);
 
     auto myjoint = chrono_types::make_shared<ChLinkMateFix>();
@@ -517,7 +517,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     auto mbodyflywheel = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
                                                                        0.24, 0.05, 7800);    // R, h, density
-    mbodyflywheel->SetCoord(
+    mbodyflywheel->SetCsys(
         ChCoordsys<>(node_mid->GetPos() + ChVector3d(0, 0.05, 0),  // flywheel initial center (plus Y offset)
                      QuatFromAngleZ(CH_C_PI_2))  // flywheel initial alignment (rotate 90 deg so cylinder axis is on X)
     );

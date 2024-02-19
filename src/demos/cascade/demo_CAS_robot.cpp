@@ -162,10 +162,10 @@ int main(int argc, char* argv[]) {
 
             // also create a collision shape attached to the hand:
             auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.08, 0.08, 1000, true, true, mysurfmaterial);
-            mcube->SetCoord(ChCoordsys<>(ChVector3d(0.1, 0, 0)) >> body_hand->GetCoord());
+            mcube->SetCsys(ChCoordsys<>(ChVector3d(0.1, 0, 0)) >> body_hand->GetCsys());
             sys.Add(mcube);
             auto mcubelink = chrono_types::make_shared<ChLinkLockLock>();
-            mcubelink->Initialize(mcube, body_hand, mcube->GetCoord());
+            mcubelink->Initialize(mcube, body_hand, mcube->GetCsys());
             sys.Add(mcubelink);
 
         } else
@@ -210,10 +210,10 @@ int main(int argc, char* argv[]) {
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
     // Transform the abs coordinates of the marker because everything was rotated/moved by 'root_frame' :
-    frame_marker_base_turret %= root_frame;
+    frame_marker_base_turret >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link1(new ChLinkLockRevolute);
-    my_link1->Initialize(body_base, body_turret, frame_marker_base_turret.GetCoord());
+    my_link1->Initialize(body_base, body_turret, frame_marker_base_turret.GetCsys());
     sys.AddLink(my_link1);
 
     ChFrame<> frame_marker_turret_bicep;
@@ -221,10 +221,10 @@ int main(int argc, char* argv[]) {
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_bicep);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
-    frame_marker_turret_bicep %= root_frame;
+    frame_marker_turret_bicep >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link2(new ChLinkLockRevolute);
-    my_link2->Initialize(body_turret, body_bicep, frame_marker_turret_bicep.GetCoord());
+    my_link2->Initialize(body_turret, body_bicep, frame_marker_turret_bicep.GetCsys());
     sys.AddLink(my_link2);
 
     ChFrame<> frame_marker_bicep_elbow;
@@ -232,10 +232,10 @@ int main(int argc, char* argv[]) {
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_bicep_elbow);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
-    frame_marker_bicep_elbow %= root_frame;
+    frame_marker_bicep_elbow >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link3(new ChLinkLockRevolute);
-    my_link3->Initialize(body_bicep, body_elbow, frame_marker_bicep_elbow.GetCoord());
+    my_link3->Initialize(body_bicep, body_elbow, frame_marker_bicep_elbow.GetCsys());
     sys.AddLink(my_link3);
 
     ChFrame<> frame_marker_elbow_forearm;
@@ -243,10 +243,10 @@ int main(int argc, char* argv[]) {
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_elbow_forearm);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
-    frame_marker_elbow_forearm %= root_frame;
+    frame_marker_elbow_forearm >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link4(new ChLinkLockRevolute);
-    my_link4->Initialize(body_elbow, body_forearm, frame_marker_elbow_forearm.GetCoord());
+    my_link4->Initialize(body_elbow, body_forearm, frame_marker_elbow_forearm.GetCsys());
     sys.AddLink(my_link4);
 
     ChFrame<> frame_marker_forearm_wrist;
@@ -254,10 +254,10 @@ int main(int argc, char* argv[]) {
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_forearm_wrist);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
-    frame_marker_forearm_wrist %= root_frame;
+    frame_marker_forearm_wrist >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link5(new ChLinkLockRevolute);
-    my_link5->Initialize(body_forearm, body_wrist, frame_marker_forearm_wrist.GetCoord());
+    my_link5->Initialize(body_forearm, body_wrist, frame_marker_forearm_wrist.GetCsys());
     sys.AddLink(my_link5);
 
     ChFrame<> frame_marker_wrist_hand;
@@ -265,10 +265,10 @@ int main(int argc, char* argv[]) {
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_wrist_hand);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
-    frame_marker_wrist_hand %= root_frame;
+    frame_marker_wrist_hand >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link6(new ChLinkLockRevolute);
-    my_link6->Initialize(body_wrist, body_hand, frame_marker_wrist_hand.GetCoord());
+    my_link6->Initialize(body_wrist, body_hand, frame_marker_wrist_hand.GetCsys());
     sys.AddLink(my_link6);
 
     ChFrame<> frame_marker_turret_cylinder;
@@ -276,10 +276,10 @@ int main(int argc, char* argv[]) {
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_cylinder);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
-    frame_marker_turret_cylinder %= root_frame;
+    frame_marker_turret_cylinder >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link7(new ChLinkLockRevolute);
-    my_link7->Initialize(body_turret, body_cylinder, frame_marker_turret_cylinder.GetCoord());
+    my_link7->Initialize(body_turret, body_cylinder, frame_marker_turret_cylinder.GetCsys());
     sys.AddLink(my_link7);
 
     ChFrame<> frame_marker_cylinder_rod;
@@ -287,10 +287,10 @@ int main(int argc, char* argv[]) {
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_cylinder_rod);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
-    frame_marker_cylinder_rod %= root_frame;
+    frame_marker_cylinder_rod >>= root_frame;
 
     std::shared_ptr<ChLinkLockCylindrical> my_link8(new ChLinkLockCylindrical);
-    my_link8->Initialize(body_cylinder, body_rod, frame_marker_cylinder_rod.GetCoord());
+    my_link8->Initialize(body_cylinder, body_rod, frame_marker_cylinder_rod.GetCsys());
     sys.AddLink(my_link8);
 
     ChFrame<> frame_marker_rod_bicep;
@@ -298,10 +298,10 @@ int main(int argc, char* argv[]) {
         ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_rod_bicep);
     else
         std::cerr << "WARNING: Desired marker not found in document" << std::endl;
-    frame_marker_rod_bicep %= root_frame;
+    frame_marker_rod_bicep >>= root_frame;
 
     std::shared_ptr<ChLinkLockCylindrical> my_link9(new ChLinkLockCylindrical);
-    my_link9->Initialize(body_rod, body_bicep, frame_marker_rod_bicep.GetCoord());
+    my_link9->Initialize(body_rod, body_bicep, frame_marker_rod_bicep.GetCsys());
     sys.AddLink(my_link9);
 
     // Add a couple of markers for the 'lock' constraint between the hand and the
@@ -318,8 +318,8 @@ int main(int argc, char* argv[]) {
     rot_on_x.SetFromAngleX(CH_C_PI_2);
     ChFrame<> frame_marker_move = ChFrame<>(VNULL, rot_on_x) >> frame_marker_wrist_hand;
 
-    my_marker_hand->Impose_Abs_Coord(frame_marker_wrist_hand.GetCoord());
-    my_marker_move->Impose_Abs_Coord(frame_marker_move.GetCoord());
+    my_marker_hand->Impose_Abs_Coord(frame_marker_wrist_hand.GetCsys());
+    my_marker_move->Impose_Abs_Coord(frame_marker_move.GetCsys());
 
     std::shared_ptr<ChLinkLockLock> my_link_teacher(new ChLinkLockLock);
     my_link_teacher->Initialize(my_marker_hand, my_marker_move);

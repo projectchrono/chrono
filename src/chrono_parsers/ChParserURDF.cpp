@@ -508,7 +508,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                     revolute = chrono_types::make_shared<ChLinkMotorRotationTorque>();
                     break;
             }
-            joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d2, d3, d1));  // Chrono rot. motor axis along Z
+            joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono rot. motor axis along Z
             revolute->Initialize(parent, child, joint_frame);
             revolute->SetMotorFunction(actuation_fun);
             revolute->SetNameString(joint_name);
@@ -528,7 +528,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                     prismatic = chrono_types::make_shared<ChLinkMotorLinearForce>();
                     break;
             }
-            joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d1, d2, d3));  // Chrono lin. motor axis along X
+            joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d1, d2, d3));  // Chrono lin. motor axis along X
             prismatic->Initialize(parent, child, joint_frame);
             prismatic->SetMotorFunction(actuation_fun);
             prismatic->SetNameString(joint_name);
@@ -543,8 +543,8 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                 revolute->GetLimit_Rz().SetMin(joint->limits->lower);
                 revolute->GetLimit_Rz().SetMax(joint->limits->upper);
             }
-            joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d2, d3, d1));  // Chrono revolute axis along Z
-            revolute->Initialize(parent, child, joint_frame.GetCoord());
+            joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono revolute axis along Z
+            revolute->Initialize(parent, child, joint_frame.GetCsys());
             revolute->SetNameString(joint_name);
             return revolute;
         }
@@ -556,30 +556,30 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                 prismatic->GetLimit_Rz().SetMin(joint->limits->lower);
                 prismatic->GetLimit_Rz().SetMax(joint->limits->upper);
             }
-            joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d2, d3, d1));  // Chrono prismatic axis along Z
-            prismatic->Initialize(parent, child, joint_frame.GetCoord());
+            joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono prismatic axis along Z
+            prismatic->Initialize(parent, child, joint_frame.GetCsys());
             prismatic->SetNameString(joint_name);
             return prismatic;
         }
 
         if (joint_type == urdf::Joint::FLOATING) {
             auto free = chrono_types::make_shared<ChLinkLockFree>();
-            free->Initialize(parent, child, joint_frame.GetCoord());
+            free->Initialize(parent, child, joint_frame.GetCsys());
             free->SetNameString(joint_name);
             return free;
         }
 
         if (joint_type == urdf::Joint::PLANAR) {
             auto planar = chrono_types::make_shared<ChLinkLockPointPlane>();
-            joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d2, d3, d1));  // Chrono plane normal along Z
-            planar->Initialize(parent, child, joint_frame.GetCoord());
+            joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono plane normal along Z
+            planar->Initialize(parent, child, joint_frame.GetCsys());
             planar->SetNameString(joint_name);
             return planar;
         }
 
         if (joint_type == urdf::Joint::FIXED) {
             auto fixed = chrono_types::make_shared<ChLinkLockLock>();
-            fixed->Initialize(parent, child, joint_frame.GetCoord());
+            fixed->Initialize(parent, child, joint_frame.GetCsys());
             fixed->SetNameString(joint_name);
             return fixed;
         }

@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
 
     // Btw for periodic closed splines, the 1st contr point is not exactly the start of spline,
     // so better move the sample object exactly to beginning:
-    mmoved_2->SetPos(f_line->Get_p(0) >> impose_2->GetFrame2() >> impose_2->GetBody2()->GetCoord());
+    mmoved_2->SetPos(f_line->Get_p(0) >> impose_2->GetFrame2() >> impose_2->GetBody2()->GetCsys());
 
     //
     // EXAMPLE 3

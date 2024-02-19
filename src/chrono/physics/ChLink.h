@@ -64,7 +64,7 @@ class ChApi ChLink : public ChLinkBase {
 
     /// Get the link coordinate system in absolute reference. This represents the 'main' reference of the link: reaction
     /// forces and reaction torques are expressed in this coordinate system.
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return GetLinkRelativeCoords() >> Body2->GetCoord(); }
+    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return GetLinkRelativeCoords() >> Body2->GetCsys(); }
 
     /// Get reaction force, expressed in link coordinate system.
     virtual ChVector3d Get_react_force() override { return react_force; }

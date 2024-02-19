@@ -128,13 +128,13 @@ void ChHydraulicActuatorBase::Update(double time, bool update_assets) {
         ChVector3d force = f * dir;
 
         // Force and moment acting on body 1
-        auto atorque1 = Vcross(m_aloc1 - m_body1->coord.pos, force);         // applied torque (absolute frame)
+        auto atorque1 = Vcross(m_aloc1 - m_body1->GetPos(), force);          // applied torque (absolute frame)
         auto ltorque1 = m_body1->TransformDirectionParentToLocal(atorque1);  // applied torque (local frame)
         m_Qforce.segment(0, 3) = force.eigen();
         m_Qforce.segment(3, 3) = ltorque1.eigen();
 
         // Force and moment acting on body 2
-        auto atorque2 = Vcross(m_aloc2 - m_body2->coord.pos, -force);        // applied torque (absolute frame)
+        auto atorque2 = Vcross(m_aloc2 - m_body2->GetPos(), -force);         // applied torque (absolute frame)
         auto ltorque2 = m_body2->TransformDirectionParentToLocal(atorque2);  // applied torque (local frame)
         m_Qforce.segment(6, 3) = -force.eigen();
         m_Qforce.segment(9, 3) = ltorque2.eigen();

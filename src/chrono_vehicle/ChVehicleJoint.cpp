@@ -48,7 +48,7 @@ ChVector3d ChVehicleJoint::GetPos() const {
     if (m_joint.index() == 0) {
         return mpark::get<Link>(m_joint)->GetLinkAbsoluteCoords().pos;
     } else {
-        return mpark::get<Bushing>(m_joint)->GetAbsoluteFrameB().coord.pos;
+        return mpark::get<Bushing>(m_joint)->GetAbsoluteFrameB().GetPos();
     }
 }
 

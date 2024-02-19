@@ -267,7 +267,7 @@ ChVector3d ChChaseCamera::calcDeriv(const ChVector3d& loc) {
         uC2T = targetLoc - m_loc;
     else {
         ChQuaternion<> rot = QuatFromAngleAxis(m_angle, m_up);
-        uC2T = rot.Rotate(m_chassis->GetA().GetAxisX());
+        uC2T = rot.Rotate(m_chassis->GetRotMat().GetAxisX());
     }
 
     uC2T -= (uC2T ^ m_up) * m_up;  // zero out component in the vertical direction

@@ -399,9 +399,8 @@ int ChLinkPointTrifaceRot::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
 
     bool is_into;
     ChVector3d p_projected;
-    this->d =
-        utils::PointTriangleDistance(mnodeA->pos, mtriangle.mnodeB1->coord.pos, mtriangle.mnodeB2->coord.pos,
-                                                mtriangle.mnodeB3->coord.pos, s2, s3, is_into, p_projected);
+    this->d = utils::PointTriangleDistance(mnodeA->pos, mtriangle.mnodeB1->GetPos(), mtriangle.mnodeB2->GetPos(),
+                                           mtriangle.mnodeB3->GetPos(), s2, s3, is_into, p_projected);
 
     // double s1 = 1 - s2 - s3;
 
@@ -458,13 +457,13 @@ void ChLinkPointTrifaceRot::IntLoadConstraint_C(const unsigned int off_L,  // of
     // If an offset d is desired, along normal N, this becomes:
     //  C = A - s1*B1 - s2*B2 - s3*B3 - d*N
 
-    ChVector3d N = Vcross(mtriangle.mnodeB2->coord.pos - mtriangle.mnodeB1->coord.pos,
-                          mtriangle.mnodeB3->coord.pos - mtriangle.mnodeB1->coord.pos);
+    ChVector3d N = Vcross(mtriangle.mnodeB2->GetPos() - mtriangle.mnodeB1->GetPos(),
+                          mtriangle.mnodeB3->GetPos() - mtriangle.mnodeB1->GetPos());
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
-    ChVector3d res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->coord.pos - s2 * mtriangle.mnodeB2->coord.pos -
-                     s3 * mtriangle.mnodeB3->coord.pos - N * d;
+    ChVector3d res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->GetPos() - s2 * mtriangle.mnodeB2->GetPos() -
+                     s3 * mtriangle.mnodeB3->GetPos() - N * d;
 
     ChVector3d cres = res * c;
 
@@ -533,13 +532,13 @@ void ChLinkPointTrifaceRot::ConstraintsBiLoad_C(double factor, double recovery_c
     // If an offset d is desired, along normal N, this becomes:
     //  C = A - s1*B1 - s2*B2 - s3*B3 - d*N
 
-    ChVector3d N = Vcross(mtriangle.mnodeB2->coord.pos - mtriangle.mnodeB1->coord.pos,
-                          mtriangle.mnodeB3->coord.pos - mtriangle.mnodeB1->coord.pos);
+    ChVector3d N = Vcross(mtriangle.mnodeB2->GetPos() - mtriangle.mnodeB1->GetPos(),
+                          mtriangle.mnodeB3->GetPos() - mtriangle.mnodeB1->GetPos());
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
-    ChVector3d res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->coord.pos - s2 * mtriangle.mnodeB2->coord.pos -
-                     s3 * mtriangle.mnodeB3->coord.pos - N * d;
+    ChVector3d res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->GetPos() - s2 * mtriangle.mnodeB2->GetPos() -
+                     s3 * mtriangle.mnodeB3->GetPos() - N * d;
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
@@ -566,16 +565,16 @@ void ChLinkPointTrifaceRot::ConstraintsLoadJacobians() {
     ChMatrix33<> Jxb3;
 
     if (d != 0) {
-        double t2 = mtriangle.mnodeB1->coord.pos.x() - mtriangle.mnodeB2->coord.pos.x();
-        double t3 = mtriangle.mnodeB1->coord.pos.y() - mtriangle.mnodeB3->coord.pos.y();
+        double t2 = mtriangle.mnodeB1->GetPos().x() - mtriangle.mnodeB2->GetPos().x();
+        double t3 = mtriangle.mnodeB1->GetPos().y() - mtriangle.mnodeB3->GetPos().y();
         double t4 = t2 * t3;
-        double t5 = mtriangle.mnodeB1->coord.pos.y() - mtriangle.mnodeB2->coord.pos.y();
-        double t6 = mtriangle.mnodeB1->coord.pos.x() - mtriangle.mnodeB3->coord.pos.x();
+        double t5 = mtriangle.mnodeB1->GetPos().y() - mtriangle.mnodeB2->GetPos().y();
+        double t6 = mtriangle.mnodeB1->GetPos().x() - mtriangle.mnodeB3->GetPos().x();
         double t12 = t5 * t6;
         double t7 = t4 - t12;
-        double t8 = mtriangle.mnodeB1->coord.pos.z() - mtriangle.mnodeB3->coord.pos.z();
+        double t8 = mtriangle.mnodeB1->GetPos().z() - mtriangle.mnodeB3->GetPos().z();
         double t9 = t2 * t8;
-        double t10 = mtriangle.mnodeB1->coord.pos.z() - mtriangle.mnodeB2->coord.pos.z();
+        double t10 = mtriangle.mnodeB1->GetPos().z() - mtriangle.mnodeB2->GetPos().z();
         double t14 = t6 * t10;
         double t11 = t9 - t14;
         double t13 = std::abs(t7);
@@ -584,17 +583,17 @@ void ChLinkPointTrifaceRot::ConstraintsLoadJacobians() {
         double t22 = t3 * t10;
         double t17 = t16 - t22;
         double t18 = std::abs(t17);
-        double t19 = mtriangle.mnodeB2->coord.pos.z() - mtriangle.mnodeB3->coord.pos.z();
+        double t19 = mtriangle.mnodeB2->GetPos().z() - mtriangle.mnodeB3->GetPos().z();
         double t20 = std::pow(t13, 2);
         double t21 = std::pow(t15, 2);
         double t23 = std::pow(t18, 2);
         double t24 = t20 + t21 + t23;
         double t25 = mysgn(t7);
         double t26 = 1.0 / std::pow(t24, (3.0 / 2.0));
-        double t27 = mtriangle.mnodeB2->coord.pos.y() - mtriangle.mnodeB3->coord.pos.y();
+        double t27 = mtriangle.mnodeB2->GetPos().y() - mtriangle.mnodeB3->GetPos().y();
         double t28 = 1.0 / sqrt(t24);
         double t29 = mysgn(t11);
-        double t30 = mtriangle.mnodeB2->coord.pos.x() - mtriangle.mnodeB3->coord.pos.x();
+        double t30 = mtriangle.mnodeB2->GetPos().x() - mtriangle.mnodeB3->GetPos().x();
         double t31 = mysgn(t17);
         double t32 = d * t19 * t28;
         double t33 = t13 * t25 * t27 * 2.0;

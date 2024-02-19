@@ -18,7 +18,6 @@
 
 #include <cmath>
 
-#include "chrono/core/ChTransform.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChFrameMoving.h"
 #include "chrono/core/ChTimer.h"
@@ -57,19 +56,11 @@ TEST(CoordsTest, local_to_global) {
     cout << vG << " ..using quaternion rotation \n";
     check_vector(vG, vG_ref, ABS_ERR);
 
-    vG = ChTransform<>::TransformLocalToParent(vL, vtraslA, mrotA);
-    cout << vG << " ..using the ChTransform- vect and rot.matrix \n";
-    check_vector(vG, vG_ref, ABS_ERR);
-
-    vG = ChTransform<>::TransformLocalToParent(vL, vtraslA, qrotA);
-    cout << vG << " ..using the ChTransform- vect and quat \n";
-    check_vector(vG, vG_ref, ABS_ERR);
-
     vG = csysA.TransformLocalToParent(vL);
     cout << vG << " ..using a ChChCoordsys<> object \n";
     check_vector(vG, vG_ref, ABS_ERR);
 
-    vG = frameA.TransformLocalToParent(vL);
+    vG = frameA.TransformPointLocalToParent(vL);
     cout << vG << " ..using a ChFrame object function \n";
     check_vector(vG, vG_ref, ABS_ERR);
 
@@ -102,19 +93,11 @@ TEST(CoordsTest, global_to_local) {
     cout << vL << " ..inv, using quaternion rotation \n";
     check_vector(vL, vL_ref, ABS_ERR);
 
-    vL = ChTransform<>::TransformParentToLocal(vG, vtraslA, mrotA);
-    cout << vL << " ..inv, using the ChTransform- vect and rot.matrix \n";
-    check_vector(vL, vL_ref, ABS_ERR);
-
-    vL = ChTransform<>::TransformParentToLocal(vG, vtraslA, qrotA);
-    cout << vL << " ..inv, using the ChTransform- vect and quat \n";
-    check_vector(vL, vL_ref, ABS_ERR);
-
     vL = csysA.TransformParentToLocal(vG);
     cout << vL << " ..inv, using a ChChCoordsys<> object \n";
     check_vector(vL, vL_ref, ABS_ERR);
 
-    vL = frameA.TransformParentToLocal(vG);
+    vL = frameA.TransformPointParentToLocal(vG);
     cout << vL << " ..inv, using a ChFrame object function \n";
     check_vector(vL, vL_ref, ABS_ERR);
 

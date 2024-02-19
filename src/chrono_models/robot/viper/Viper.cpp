@@ -218,7 +218,7 @@ void ViperPart::Construct(ChSystem* system) {
     if (m_visualize) {
         auto vis_mesh_file = GetChronoDataFile("robot/viper/obj/" + m_mesh_name + ".obj");
         auto trimesh_vis = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);
-        trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+        trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
         trimesh_vis->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -232,7 +232,7 @@ void ViperPart::Construct(ChSystem* system) {
     if (m_collide) {
         auto col_mesh_file = GetChronoDataFile("robot/viper/col/" + m_mesh_name + ".obj");
         auto trimesh_col = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(col_mesh_file, false, false);
-        trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+        trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
         trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
         auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh_col, false, false, 0.005);
@@ -246,7 +246,7 @@ void ViperPart::Construct(ChSystem* system) {
 void ViperPart::CalcMassProperties(double density) {
     auto mesh_filename = GetChronoDataFile("robot/viper/col/" + m_mesh_name + ".obj");
     auto trimesh_col = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false, false);
-    trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+    trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
     trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
     double vol;

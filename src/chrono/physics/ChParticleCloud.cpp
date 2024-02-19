@@ -16,7 +16,6 @@
 #include <algorithm>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChContactMaterialNSC.h"
@@ -74,7 +73,7 @@ void ChAparticle::ContactableIncrementState(const ChState& x, const ChStateDelta
     // Increment rotation: rot' = delta*rot  (use quaternion for delta rotation)
     ChQuaternion<> mdeltarot;
     ChQuaternion<> moldrot(x.segment(3, 4));
-    ChVector3d newwel_abs = Amatrix * ChVector3d(dw.segment(3, 3));
+    ChVector3d newwel_abs = Rmat * ChVector3d(dw.segment(3, 3));
     double mangle = newwel_abs.Length();
     newwel_abs.Normalize();
     mdeltarot.SetFromAngleAxis(mangle, newwel_abs);
@@ -146,7 +145,7 @@ void ChAparticle::ComputeJacobianForContactPart(
         Jx1 *= -1;
 
     ChStarMatrix33<> Ps1(m_p1_loc);
-    ChMatrix33<> Jr1 = contact_plane.transpose() * GetA() * Ps1;
+    ChMatrix33<> Jr1 = contact_plane.transpose() * GetRotMat() * Ps1;
     if (second)
         Jr1 *= -1;
 
@@ -166,7 +165,7 @@ void ChAparticle::ComputeJacobianForRollingContactPart(
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
     bool second) {
-    ChMatrix33<> Jr1 = contact_plane.transpose() * this->GetA();
+    ChMatrix33<> Jr1 = contact_plane.transpose() * this->GetRotMat();
     if (!second)
         Jr1 *= -1;
 
@@ -304,7 +303,7 @@ void ChParticleCloud::ResizeNparticles(int newsize) {
 
 void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
     ChAparticle* newp = new ChAparticle;
-    newp->SetCoord(initial_state);
+    newp->SetCsys(initial_state);
 
     newp->SetContainer(this);
 
@@ -339,10 +338,10 @@ void ChParticleCloud::IntStateGather(const unsigned int off_x,  // offset in x s
                                      double& T                  // time
 ) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        x.segment(off_x + 7 * j + 0, 3) = particles[j]->coord.pos.eigen();
-        x.segment(off_x + 7 * j + 3, 4) = particles[j]->coord.rot.eigen();
+        x.segment(off_x + 7 * j + 0, 3) = particles[j]->GetPos().eigen();
+        x.segment(off_x + 7 * j + 3, 4) = particles[j]->GetRot().eigen();
 
-        v.segment(off_v + 6 * j + 0, 3) = particles[j]->coord_dt.pos.eigen();
+        v.segment(off_v + 6 * j + 0, 3) = particles[j]->GetPos_dt().eigen();
         v.segment(off_v + 6 * j + 3, 3) = particles[j]->GetWvel_loc().eigen();
 
         T = GetChTime();
@@ -357,7 +356,7 @@ void ChParticleCloud::IntStateScatter(const unsigned int off_x,  // offset in x 
                                       bool full_update           // perform complete update
 ) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j]->SetCoord(x.segment(off_x + 7 * j, 7));
+        particles[j]->SetCsys(x.segment(off_x + 7 * j, 7));
         particles[j]->SetPos_dt(v.segment(off_v + 6 * j, 3));
         particles[j]->SetWvel_loc(v.segment(off_v + 6 * j + 3, 3));
     }
@@ -367,7 +366,7 @@ void ChParticleCloud::IntStateScatter(const unsigned int off_x,  // offset in x 
 
 void ChParticleCloud::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        a.segment(off_a + 6 * j + 0, 3) = particles[j]->coord_dtdt.pos.eigen();
+        a.segment(off_a + 6 * j + 0, 3) = particles[j]->GetPos_dtdt().eigen();
         a.segment(off_a + 6 * j + 3, 3) = particles[j]->GetWacc_loc().eigen();
     }
 }
@@ -525,7 +524,7 @@ void ChParticleCloud::VariablesFbLoadForces(double factor) {
 void ChParticleCloud::VariablesQbLoadSpeed() {
     for (unsigned int j = 0; j < particles.size(); j++) {
         // set current speed in 'qb', it can be used by the solver when working in incremental mode
-        particles[j]->variables.Get_qb().segment(0, 3) = particles[j]->GetCoord_dt().pos.eigen();
+        particles[j]->variables.Get_qb().segment(0, 3) = particles[j]->GetCsysDer().pos.eigen();
         particles[j]->variables.Get_qb().segment(3, 3) = particles[j]->GetWvel_loc().eigen();
     }
 }
@@ -538,7 +537,7 @@ void ChParticleCloud::VariablesFbIncrementMq() {
 
 void ChParticleCloud::VariablesQbSetSpeed(double step) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        ChCoordsys<> old_coord_dt = particles[j]->GetCoord_dt();
+        ChCoordsys<> old_coord_dt = particles[j]->GetCsysDer();
 
         // from 'qb' vector, sets body speed, and updates auxiliary data
         particles[j]->SetPos_dt(particles[j]->variables.Get_qb().segment(0, 3));
@@ -549,8 +548,8 @@ void ChParticleCloud::VariablesQbSetSpeed(double step) {
 
         // Compute accel. by BDF (approximate by differentiation);
         if (step) {
-            particles[j]->SetPos_dtdt((particles[j]->GetCoord_dt().pos - old_coord_dt.pos) / step);
-            particles[j]->SetRot_dtdt((particles[j]->GetCoord_dt().rot - old_coord_dt.rot) / step);
+            particles[j]->SetPos_dtdt((particles[j]->GetCsysDer().pos - old_coord_dt.pos) / step);
+            particles[j]->SetRot_dtdt((particles[j]->GetCsysDer().rot - old_coord_dt.rot) / step);
         }
     }
 }
@@ -572,7 +571,7 @@ void ChParticleCloud::VariablesQbIncrementPosition(double dt_step) {
         // ADVANCE ROTATION: rot' = [dt*wwel]%rot  (use quaternion for delta rotation)
         ChQuaternion<> mdeltarot;
         ChQuaternion<> moldrot = particles[j]->GetRot();
-        ChVector3d newwel_abs = particles[j]->GetA() * newwel;
+        ChVector3d newwel_abs = particles[j]->GetRotMat() * newwel;
         double mangle = newwel_abs.Length() * dt_step;
         newwel_abs.Normalize();
         mdeltarot.SetFromAngleAxis(mangle, newwel_abs);

@@ -14,7 +14,6 @@
 
 #include <cstdio>
 
-#include "chrono/core/ChTransform.h"
 #include "chrono/geometry/ChRoundedBox.h"
 
 namespace chrono {

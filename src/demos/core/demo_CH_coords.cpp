@@ -18,7 +18,6 @@
 
 #include <cmath>
 
-#include "chrono/core/ChTransform.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChFrameMoving.h"
 #include "chrono/core/ChTimer.h"
@@ -31,13 +30,9 @@ int main(int argc, char* argv[]) {
 
     std::cout << "CHRONO demo about coordinate transformations:\n" << std::endl;
 
-    //
-    // Some methods to achieve coordinate transformations, and some
-    // examples of how to manipulate coordinates and frames, using Chrono features.
-    //
-    // You can use ChTransform or ChChCoordsys<> or ChFrame functions to transform points
-    // from/to local coordinates in 3D, in ascending complexity and capabilities.
-    //
+    // Some methods to achieve coordinate transformations, and some examples of how to manipulate coordinates and
+    // frames, using Chrono features.
+    // You can use ChChCoordsys or ChFrame functions to transform points from/to local coordinates in 3D.
 
     ChVector3d mvect2;  // resulting (transformed) vectors will go here
     ChVector3d mvect3;
@@ -78,14 +73,6 @@ int main(int argc, char* argv[]) {
     mvect2 = vtraslA + qrotA.Rotate(mvect1);
     std::cout << mvect2 << " ..using quaternion rotation" << std::endl;
 
-    // TRANSFORM USING THE ChTransform STATIC METHODS
-
-    mvect2 = ChTransform<>::TransformLocalToParent(mvect1, vtraslA, mrotA);
-    std::cout << mvect2 << " ..using the ChTransform- vect and rot.matrix" << std::endl;
-
-    mvect2 = ChTransform<>::TransformLocalToParent(mvect1, vtraslA, qrotA);
-    std::cout << mvect2 << " ..using the ChTransform- vect and quat" << std::endl;
-
     // TRANSFORM USING A ChCoordys OBJECT
 
     mvect2 = csysA.TransformLocalToParent(mvect1);
@@ -101,7 +88,7 @@ int main(int argc, char* argv[]) {
 
     ChFrame<> mframeA(vtraslA, qrotA);  // or ChFrame<> mframeA(csysA);
 
-    mvect2 = mframeA.TransformLocalToParent(mvect1);
+    mvect2 = mframeA.TransformPointLocalToParent(mvect1);
     std::cout << mvect2 << " ..using a ChFrame object function" << std::endl;
 
     mvect2 = mvect1 >> mframeA;
@@ -165,10 +152,10 @@ int main(int argc, char* argv[]) {
 
     // Test the  ">>" or "*" operators also for ChCoordsys:
     ChCoordsys<> c_0;
-    c_0 = f_3.GetCoord() >> f32.GetCoord() >> f21.GetCoord() >> f10.GetCoord();
+    c_0 = f_3.GetCsys() >> f32.GetCsys() >> f21.GetCsys() >> f10.GetCsys();
     std::cout << f_0 << " ..triple frame trsf. with ChCoordsys '>>' operator" << std::endl;
 
-    c_0 = f10.GetCoord() * f21.GetCoord() * f32.GetCoord() * f_3.GetCoord();
+    c_0 = f10.GetCsys() * f21.GetCsys() * f32.GetCsys() * f_3.GetCsys();
     std::cout << f_0 << " ..triple frame trsf. with ChCoordsys '*' operator" << std::endl;
 
     //
@@ -190,14 +177,6 @@ int main(int argc, char* argv[]) {
     mvect1 = qrotA.RotateBack(mvect2 - vtraslA);
     std::cout << mvect1 << " ..inv, using quaternion rotation" << std::endl;
 
-    // TRANSFORM USING THE ChTransform STATIC METHODS
-
-    mvect1 = ChTransform<>::TransformParentToLocal(mvect2, vtraslA, mrotA);
-    std::cout << mvect1 << " ..inv, using the ChTransform- vect and rot.matrix" << std::endl;
-
-    mvect1 = ChTransform<>::TransformParentToLocal(mvect2, vtraslA, qrotA);
-    std::cout << mvect1 << " ..inv, using the ChTransform- vect and quat" << std::endl;
-
     // TRANSFORM USING A ChCoordys OBJECT
 
     mvect1 = csysA.TransformParentToLocal(mvect2);
@@ -205,7 +184,7 @@ int main(int argc, char* argv[]) {
 
     // TRANSFORM USING A ChFrame OBJECT
 
-    mvect1 = mframeA.TransformParentToLocal(mvect2);
+    mvect1 = mframeA.TransformPointParentToLocal(mvect2);
     std::cout << mvect1 << " ..inv, using a ChFrame object function" << std::endl;
 
     mvect1 = mvect2 >> mframeA.GetInverse();

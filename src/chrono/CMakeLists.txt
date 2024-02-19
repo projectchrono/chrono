@@ -65,7 +65,6 @@ set(ChronoEngine_core_HEADERS
     core/ChRotation.h
     core/ChRealtimeStep.h
     core/ChTimer.h
-    core/ChTransform.h
     core/ChVector3.h
     core/ChVector2.h
     core/ChAlignedAllocator.h

@@ -216,8 +216,8 @@ void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEA
             ChVector3d p_projected;
 
             val = utils::PointTriangleDistance(
-                m_node->pos, mshell->GetNodeA()->GetCoord().pos, mshell->GetNodeB()->GetCoord().pos,
-                mshell->GetNodeC()->GetCoord().pos, u, v, is_into, p_projected);
+                m_node->pos, mshell->GetNodeA()->GetCsys().pos, mshell->GetNodeB()->GetCsys().pos,
+                mshell->GetNodeC()->GetCsys().pos, u, v, is_into, p_projected);
             val = fabs(val);
             w = 1 - u - v;
             if (!is_into)
@@ -231,8 +231,8 @@ void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEA
             }
 
             val = utils::PointTriangleDistance(
-                m_node->pos, mshell->GetNodeC()->GetCoord().pos, mshell->GetNodeD()->GetCoord().pos,
-                mshell->GetNodeA()->GetCoord().pos, u, v, is_into, p_projected);
+                m_node->pos, mshell->GetNodeC()->GetCsys().pos, mshell->GetNodeD()->GetCsys().pos,
+                mshell->GetNodeA()->GetCsys().pos, u, v, is_into, p_projected);
             val = fabs(val);
             w = 1 - u - v;
             if (!is_into)

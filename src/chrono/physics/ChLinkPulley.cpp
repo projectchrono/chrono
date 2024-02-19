@@ -74,7 +74,7 @@ ChVector3d ChLinkPulley::Get_shaft_dir1() {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
-        return absframe.GetA().GetAxisZ();
+        return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
@@ -83,7 +83,7 @@ ChVector3d ChLinkPulley::Get_shaft_dir2() {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
-        return absframe.GetA().GetAxisZ();
+        return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
@@ -119,8 +119,8 @@ void ChLinkPulley::UpdateTime(double mytime) {
     ChVector3d dcc_w = Vsub(Get_shaft_pos2(), Get_shaft_pos1());
 
     // compute actual rotation of the two wheels (relative to truss).
-    ChVector3d md1 = abs_shaft1.GetA().transpose() * dcc_w;
-    ChVector3d md2 = abs_shaft2.GetA().transpose() * dcc_w;
+    ChVector3d md1 = abs_shaft1.GetRotMat().transpose() * dcc_w;
+    ChVector3d md2 = abs_shaft2.GetRotMat().transpose() * dcc_w;
 
     double periodic_a1 = std::atan2(md1.y(), md1.x());
     double periodic_a2 = std::atan2(md2.y(), md2.x());

@@ -617,11 +617,11 @@ void ChParserOpenSim::initFunctionTable() {
         // Make a joint, depending on what it actually is
         if (type == std::string("PinJoint")) {
             auto revJoint = chrono_types::make_shared<ChLinkLockRevolute>();
-            revJoint->Initialize(parent, newBody, jointFrame.GetCoord());
+            revJoint->Initialize(parent, newBody, jointFrame.GetCsys());
             joint = revJoint;
         } else if (type == std::string("WeldJoint")) {
             auto weldJoint = chrono_types::make_shared<ChLinkLockLock>();
-            weldJoint->Initialize(parent, newBody, jointFrame.GetCoord());
+            weldJoint->Initialize(parent, newBody, jointFrame.GetCsys());
             joint = weldJoint;
         } else if (type == std::string("UniversalJoint")) {
             // Do some universal magic here
@@ -631,7 +631,7 @@ void ChParserOpenSim::initFunctionTable() {
         } else if (type == std::string("BallJoint")) {
             // Add a spherical joint
             auto spherJoint = chrono_types::make_shared<ChLinkLockSpherical>();
-            spherJoint->Initialize(parent, newBody, jointFrame.GetCoord());
+            spherJoint->Initialize(parent, newBody, jointFrame.GetCsys());
             joint = spherJoint;
         } else {
             standin = true;
@@ -639,7 +639,7 @@ void ChParserOpenSim::initFunctionTable() {
             std::cout << "Unknown Joint type " << type << " between " << parent->GetName() << " and "
                       << newBody->GetName() << " -- making spherical standin." << std::endl;
             auto customJoint = chrono_types::make_shared<ChLinkLockSpherical>();
-            customJoint->Initialize(parent, newBody, jointFrame.GetCoord());
+            customJoint->Initialize(parent, newBody, jointFrame.GetCsys());
             joint = customJoint;
         }
 

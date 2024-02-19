@@ -140,24 +140,24 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
         F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
         // Now 'F1_wrt_F2' contains the position/rotation of frame 1 respect to frame 2, in frame 2 coords.
 
-        ChMatrix33<> Jx1 = F2_W.GetA().transpose();
-        ChMatrix33<> Jx2 = -F2_W.GetA().transpose();
+        ChMatrix33<> Jx1 = F2_W.GetRotMat().transpose();
+        ChMatrix33<> Jx2 = -F2_W.GetRotMat().transpose();
 
-        ChMatrix33<> Jr1 = -F2_W.GetA().transpose() * Body1->GetA() * ChStarMatrix33<>(frame1.GetPos());
-        ChVector3d r12_B2 = Body2->GetA().transpose() * (F1_W.GetPos() - F2_W.GetPos());
-        ChMatrix33<> Jr2 = this->frame2.GetA().transpose() * ChStarMatrix33<>(frame2.GetPos() + r12_B2);
+        ChMatrix33<> Jr1 = -F2_W.GetRotMat().transpose() * Body1->GetRotMat() * ChStarMatrix33<>(frame1.GetPos());
+        ChVector3d r12_B2 = Body2->GetRotMat().transpose() * (F1_W.GetPos() - F2_W.GetPos());
+        ChMatrix33<> Jr2 = this->frame2.GetRotMat().transpose() * ChStarMatrix33<>(frame2.GetPos() + r12_B2);
 
         // Premultiply by Jw1 and Jw2 by P = 0.5 * [Fp(q_resid^*)]'.bottomRow(3) to get residual as imaginary part of a
         // quaternion. For small misalignment this effect is almost insignificant because P ~= [I33], but otherwise it
         // is needed (if you want to use the stabilization term - if not, you can live without).
         this->P = 0.5 * (ChMatrix33<>(F1_wrt_F2.GetRot().e0()) + ChStarMatrix33<>(F1_wrt_F2.GetRot().GetVector()));
 
-        ChMatrix33<> Jw1 = this->P.transpose() * F2_W.GetA().transpose() * Body1->GetA();
-        ChMatrix33<> Jw2 = -this->P.transpose() * F2_W.GetA().transpose() * Body2->GetA();
+        ChMatrix33<> Jw1 = this->P.transpose() * F2_W.GetRotMat().transpose() * Body1->GetRotMat();
+        ChMatrix33<> Jw2 = -this->P.transpose() * F2_W.GetRotMat().transpose() * Body2->GetRotMat();
 
         // Another equivalent expression:
-        // ChMatrix33<> Jw1 = this->P * F1_W.GetA().transpose() * Body1->GetA();
-        // ChMatrix33<> Jw2 = -this->P * F1_W.GetA().transpose() * Body2->GetA();
+        // ChMatrix33<> Jw1 = this->P * F1_W.GetRotMat().transpose() * Body1->GetRotMat();
+        // ChMatrix33<> Jw2 = -this->P * F1_W.GetRotMat().transpose() * Body2->GetRotMat();
 
         // The Jacobian matrix of constraint is:
         // Cq = [ Jx1,  Jr1,  Jx2,  Jr2 ]
@@ -325,14 +325,14 @@ void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double M
         return;
 
     if (this->Kmatr) {
-        ChMatrix33<> R_B1_W = Body1->GetA();
-        ChMatrix33<> R_B2_W = Body2->GetA();
-        // ChMatrix33<> R_F1_B1 = frame1.GetA();
-        // ChMatrix33<> R_F2_B2 = frame2.GetA();
+        ChMatrix33<> R_B1_W = Body1->GetRotMat();
+        ChMatrix33<> R_B2_W = Body2->GetRotMat();
+        // ChMatrix33<> R_F1_B1 = frame1.GetRotMat();
+        // ChMatrix33<> R_F2_B2 = frame2.GetRotMat();
         ChFrame<> F1_W = this->frame1 >> (*this->Body1);
         ChFrame<> F2_W = this->frame2 >> (*this->Body2);
-        ChMatrix33<> R_F1_W = F1_W.GetA();
-        ChMatrix33<> R_F2_W = F2_W.GetA();
+        ChMatrix33<> R_F1_W = F1_W.GetRotMat();
+        ChMatrix33<> R_F2_W = F2_W.GetRotMat();
         ChVector3d r12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
         ChFrame<> F1_wrt_F2;
         F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
@@ -477,7 +477,7 @@ void ChLinkMateGeneric::IntStateScatterReactions(const unsigned int off_L, const
     react_force = gamma_f;
     ChFrame<> F1_W = this->frame1 >> (*this->Body1);
     ChFrame<> F2_W = this->frame2 >> (*this->Body2);
-    ChVector3d r12_F2 = F2_W.GetA().transpose() * (F1_W.GetPos() - F2_W.GetPos());
+    ChVector3d r12_F2 = F2_W.GetRotMat().transpose() * (F1_W.GetPos() - F2_W.GetPos());
     react_torque = ChStarMatrix33<>(r12_F2) * gamma_f + this->P * gamma_m;
 }
 
@@ -657,7 +657,7 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
 
     ChFrame<> F1_W = this->frame1 >> (*this->Body1);
     ChFrame<> F2_W = this->frame2 >> (*this->Body2);
-    ChVector3d r12_F2 = F2_W.GetA().transpose() * (F1_W.GetPos() - F2_W.GetPos());
+    ChVector3d r12_F2 = F2_W.GetRotMat().transpose() * (F1_W.GetPos() - F2_W.GetPos());
     react_torque = ChStarMatrix33<>(r12_F2) * gamma_f + this->P * gamma_m;
 }
 

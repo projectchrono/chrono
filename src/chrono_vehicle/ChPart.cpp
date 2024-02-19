@@ -75,7 +75,7 @@ void ChPart::AddInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia) {
 
     // Shift inertia away from COM (parallel axis theorem)
     // Express inertia relative to global frame.
-    inertia += com_abs.GetA() * m_inertia * com_abs.GetA().transpose() +
+    inertia += com_abs.GetRotMat() * m_inertia * com_abs.GetRotMat().transpose() +
                GetMass() * utils::CompositeInertia::InertiaShiftMatrix(com_abs.GetPos());
 }
 
@@ -129,9 +129,9 @@ rapidjson::Value Frame2Val(const ChFrame<>& frame, rapidjson::Document::Allocato
     rapidjson::Value obj(rapidjson::kObjectType);
     obj.AddMember("pos", Vec2Val(frame.GetPos(), allocator), allocator);
     obj.AddMember("rot quat", Quat2Val(frame.GetRot(), allocator), allocator);
-    obj.AddMember("rot u", Vec2Val(frame.GetA().GetAxisX(), allocator), allocator);
-    obj.AddMember("rot v", Vec2Val(frame.GetA().GetAxisY(), allocator), allocator);
-    obj.AddMember("rot w", Vec2Val(frame.GetA().GetAxisZ(), allocator), allocator);
+    obj.AddMember("rot u", Vec2Val(frame.GetRotMat().GetAxisX(), allocator), allocator);
+    obj.AddMember("rot v", Vec2Val(frame.GetRotMat().GetAxisY(), allocator), allocator);
+    obj.AddMember("rot w", Vec2Val(frame.GetRotMat().GetAxisZ(), allocator), allocator);
     return obj;
 }
 
@@ -306,7 +306,7 @@ void ChPart::ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std
         obj.AddMember("id", marker->GetIdentifier(), allocator);
         obj.AddMember("body name", rapidjson::StringRef(marker->GetBody()->GetName()), allocator);
         obj.AddMember("body id", marker->GetBody()->GetIdentifier(), allocator);
-        obj.AddMember("relative coordinates", Csys2Val(marker->GetCoord(), allocator), allocator);
+        obj.AddMember("relative coordinates", Csys2Val(marker->GetCsys(), allocator), allocator);
         jsonArray.PushBack(obj, allocator);
     }
     jsonDocument.AddMember("markers", jsonArray, allocator);
@@ -358,7 +358,7 @@ void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument,
     rapidjson::Value jsonArray(rapidjson::kArrayType);
     for (auto spring : springs) {
         auto pos = spring->GetVisualModelFrame().GetPos();               // position in absolute frame
-        auto axis = spring->GetVisualModelFrame().GetA().GetAxisZ();  // axis in absolute frame
+        auto axis = spring->GetVisualModelFrame().GetRotMat().GetAxisZ();  // axis in absolute frame
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
         obj.AddMember("name", rapidjson::StringRef(spring->GetName()), allocator);

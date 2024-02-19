@@ -99,7 +99,7 @@ RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2d& d
 void RayCaster::Update() {
     m_points.clear();
 
-    ChVector3d dir = m_origin.GetA().GetAxisZ();
+    ChVector3d dir = m_origin.GetRotMat().GetAxisZ();
     int nx = static_cast<int>(std::round(m_dims.x() / m_spacing));
     int ny = static_cast<int>(std::round(m_dims.y() / m_spacing));
     for (int ix = 0; ix < nx; ix++) {

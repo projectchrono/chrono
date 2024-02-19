@@ -268,10 +268,10 @@ int main(int argc, char* argv[]) {
         sys.DoStepDynamics(time_step);
 
         std::cout << "Time t = " << sys.GetChTime() << "s \n";
-        printf("Body_1 position: %12.4e  %12.4e  %12.4e\n", Body_1->coord.pos.x(), Body_1->coord.pos.y(),
-               Body_1->coord.pos.z());
-        printf("Body_2 position: %12.4e  %12.4e  %12.4e\n", Body_2->coord.pos.x(), Body_2->coord.pos.y(),
-               Body_2->coord.pos.z());
+        printf("Body_1 position: %12.4e  %12.4e  %12.4e\n", Body_1->GetPos().x(), Body_1->GetPos().y(),
+               Body_1->GetPos().z());
+        printf("Body_2 position: %12.4e  %12.4e  %12.4e\n", Body_2->GetPos().x(), Body_2->GetPos().y(),
+               Body_2->GetPos().z());
         ChVector3d tip = Body_2->TransformPointLocalToParent(ChVector3d(0.25, 0, 0));
         printf("Body_2 tip:      %12.4e  %12.4e  %12.4e\n", tip.x(), tip.y(), tip.z());
 

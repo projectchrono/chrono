@@ -76,7 +76,7 @@ void ChLinkDirFrame::Update(double mytime, bool update_assets) {
 }
 
 ChVectorDynamic<> ChLinkDirFrame::GetConstraintViolation() const {
-    ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
+    ChMatrix33<> Arw = m_csys.rot >> m_body->GetRot();
     ChVector3d res = Arw.transpose() * m_node->GetD();
     ChVectorN<double, 2> C;
     C(0) = res.y();
@@ -86,7 +86,7 @@ ChVectorDynamic<> ChLinkDirFrame::GetConstraintViolation() const {
 
 ChVector3d ChLinkDirFrame::GetReactionOnBody() const {
     // Rotation matrices
-    ChMatrix33<> A(m_body->coord.rot);
+    ChMatrix33<> A(m_body->GetRot());
     ChMatrix33<> C(m_csys.rot);
 
     // (A^T*d)  and  ~(A^T*d)
@@ -136,7 +136,7 @@ void ChLinkDirFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in
     if (!IsActive())
         return;
 
-    ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
+    ChMatrix33<> Arw = m_csys.rot >> m_body->GetRot();
     ChVector3d cres = c * (Arw.transpose() * m_node->GetD());
 
     if (do_clamp) {
@@ -194,7 +194,7 @@ void ChLinkDirFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     // if (!IsActive())
     //	return;
 
-    ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
+    ChMatrix33<> Arw = m_csys.rot >> m_body->GetRot();
     ChVector3d res = Arw.transpose() * m_node->GetD();
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.y());
@@ -210,9 +210,9 @@ void ChLinkDirFrame::ConstraintsBiLoad_Ct(double factor) {
 
 void ChLinkDirFrame::ConstraintsLoadJacobians() {
     // compute jacobians
-    ChMatrix33<> Aow(m_body->coord.rot);
+    ChMatrix33<> Aow(m_body->GetRot());
     ChMatrix33<> Aro(m_csys.rot);
-    ChMatrix33<> Arw(m_csys.rot >> m_body->coord.rot);
+    ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
     ChVector3d Zo = Aow.transpose() * m_node->GetD();
 

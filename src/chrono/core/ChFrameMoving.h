@@ -19,60 +19,51 @@
 
 namespace chrono {
 
-/// Coordinate systems in 3D space.
-/// A 'frame' coordinate system has a translation and a rotation with respect to a 'parent' coordinate system, usually
-/// the absolute (world) coordinates.
-/// Differently from a simple ChCoordsys() object, ChFrame implements some optimizations because each ChFrame stores
-/// also a 3x3 rotation matrix, which can speed up coordinate transformations when a large amount of vectors must be
-/// transformed by the same coordinate frame.
+/// Representation of a moving 3D.
+/// A ChFrameMoving is a ChFrame that also keeps track of the frame velocity and acceleration.
 ///
-/// Sor additional details, see the @ref coordinate_transformations manual page.
+/// See @ref coordinate_transformations manual page.
 template <class Real = double>
 class ChFrameMoving : public ChFrame<Real> {
   public:
-    ChCoordsys<Real> coord_dt;    ///< Rotation and position speed, as vector+quaternion
-    ChCoordsys<Real> coord_dtdt;  ///< Rotation and position acceleration, as vector+quaternion
-
     /// Construct from pos and rot (as a quaternion)
     explicit ChFrameMoving(const ChVector3<Real>& mv = ChVector3<Real>(0, 0, 0),
                            const ChQuaternion<Real>& mq = ChQuaternion<Real>(1, 0, 0, 0))
         : ChFrame<Real>(mv, mq) {
-        coord_dt.rot = coord_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
+        Csys_dt.rot = Csys_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
     }
 
     /// Construct from pos and rotation (as a 3x3 matrix)
     ChFrameMoving(const ChVector3<Real>& mv, const ChMatrix33<Real>& ma) : ChFrame<Real>(mv, ma) {
-        coord_dt.rot = coord_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
+        Csys_dt.rot = Csys_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
     }
 
     /// Construct from a coordsys
     explicit ChFrameMoving(const ChCoordsys<Real>& mc) : ChFrame<Real>(mc) {
-        coord_dt.rot = coord_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
+        Csys_dt.rot = Csys_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
     }
 
     /// Construct from a frame
     explicit ChFrameMoving(const ChFrame<Real>& mc) : ChFrame<Real>(mc) {
-        coord_dt.rot = coord_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
+        Csys_dt.rot = Csys_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
     }
 
     /// Copy constructor, build from another moving frame
     ChFrameMoving(const ChFrameMoving<Real>& other)
-        : ChFrame<Real>(other), coord_dt(other.coord_dt), coord_dtdt(other.coord_dtdt) {}
+        : ChFrame<Real>(other), Csys_dt(other.Csys_dt), Csys_dtdt(other.Csys_dtdt) {}
 
     /// Destructor
     virtual ~ChFrameMoving() {}
 
-    //
     // OPERATORS OVERLOADING
-    //
 
     /// Assignment operator: copy from another moving frame
     ChFrameMoving<Real>& operator=(const ChFrameMoving<Real>& other) {
         if (&other == this)
             return *this;
         ChFrame<Real>::operator=(other);
-        coord_dt = other.coord_dt;
-        coord_dtdt = other.coord_dtdt;
+        Csys_dt = other.Csys_dt;
+        Csys_dtdt = other.Csys_dtdt;
         return *this;
     }
 
@@ -81,7 +72,7 @@ class ChFrameMoving : public ChFrame<Real> {
         if (&other == this)
             return *this;
         ChFrame<Real>::operator=(other);
-        coord_dt.rot = coord_dtdt.rot = QNULL;
+        Csys_dt.rot = Csys_dtdt.rot = QNULL;
         return *this;
     }
 
@@ -148,7 +139,7 @@ class ChFrameMoving : public ChFrame<Real> {
 
     /// Performs pre-multiplication of this frame by a vector D, to 'move' by a displacement D:
     ChFrameMoving<Real>& operator>>=(const ChVector3<Real>& D) {
-        this->coord.pos += D;
+        this->Csys.pos += D;
         return *this;
     }
     /// Performs pre-multiplication of this frame by a quaternion R, to 'rotate' it by R:
@@ -170,146 +161,132 @@ class ChFrameMoving : public ChFrame<Real> {
         return *this;
     }
 
-    //
-    // FUNCTIONS
-    //
-
     // GET-FUNCTIONS
 
-    /// Return both current rotation and translation speeds as
-    /// a coordsystem object, with vector and quaternion
-    ChCoordsys<Real>& GetCoord_dt() { return coord_dt; }
-    const ChCoordsys<Real>& GetCoord_dt() const { return coord_dt; }
+    /// Return both current rotation and translation velocities as a ChCoordsys object.
+    ChCoordsys<Real>& GetCsysDer() { return Csys_dt; }
+    const ChCoordsys<Real>& GetCsysDer() const { return Csys_dt; }
 
-    /// Return both current rotation and translation accelerations as
-    /// a coordsystem object, with vector and quaternion
-    ChCoordsys<Real>& GetCoord_dtdt() { return coord_dtdt; }
-    const ChCoordsys<Real>& GetCoord_dtdt() const { return coord_dtdt; }
+    /// Return both current rotation and translation accelerations as a ChCoordsys object.
+    ChCoordsys<Real>& GetCsysDer2() { return Csys_dtdt; }
+    const ChCoordsys<Real>& GetCsysDer2() const { return Csys_dtdt; }
 
-    /// Return the current speed as a 3d vector
-    ChVector3<Real>& GetPos_dt() { return coord_dt.pos; }
-    const ChVector3<Real>& GetPos_dt() const { return coord_dt.pos; }
+    /// Return the current linear velocity.
+    ChVector3<Real>& GetPos_dt() { return Csys_dt.pos; }
+    const ChVector3<Real>& GetPos_dt() const { return Csys_dt.pos; }
 
-    /// Return the current acceleration as a 3d vector
-    ChVector3<Real>& GetPos_dtdt() { return coord_dtdt.pos; }
-    const ChVector3<Real>& GetPos_dtdt() const { return coord_dtdt.pos; }
+    /// Return the current linear acceleration.
+    ChVector3<Real>& GetPos_dtdt() { return Csys_dtdt.pos; }
+    const ChVector3<Real>& GetPos_dtdt() const { return Csys_dtdt.pos; }
 
-    /// Return the current rotation speed as a quaternion
-    ChQuaternion<Real>& GetRot_dt() { return coord_dt.rot; }
-    const ChQuaternion<Real>& GetRot_dt() const { return coord_dt.rot; }
+    /// Return the current rotation velocity as a quaternion.
+    ChQuaternion<Real>& GetRot_dt() { return Csys_dt.rot; }
+    const ChQuaternion<Real>& GetRot_dt() const { return Csys_dt.rot; }
 
-    /// Return the current rotation acceleration as a quaternion
-    ChQuaternion<Real>& GetRot_dtdt() { return coord_dtdt.rot; }
-    const ChQuaternion<Real>& GetRot_dtdt() const { return coord_dtdt.rot; }
+    /// Return the current rotation acceleration as a quaternion.
+    ChQuaternion<Real>& GetRot_dtdt() { return Csys_dtdt.rot; }
+    const ChQuaternion<Real>& GetRot_dtdt() const { return Csys_dtdt.rot; }
 
-    /// Computes the actual angular speed (expressed in local coords)
+    /// Compute the angular velocity (expressed in local coords).
     ChVector3<Real> GetWvel_loc() const {
-        ChGlMatrix34<> Gl(this->coord.rot);
-        return Gl * coord_dt.rot;
+        ChGlMatrix34<> Gl(this->Csys.rot);
+        return Gl * Csys_dt.rot;
     }
 
-    /// Computes the actual angular speed (expressed in parent coords)
+    /// Compute the actual angular velocity (expressed in parent coords).
     ChVector3<Real> GetWvel_par() const {
-        ChGwMatrix34<> Gw(this->coord.rot);
-        return Gw * coord_dt.rot;
+        ChGwMatrix34<> Gw(this->Csys.rot);
+        return Gw * Csys_dt.rot;
     }
 
-    /// Computes the actual angular acceleration (expressed in local coords)
+    /// Compute the actual angular acceleration (expressed in local coords).
     ChVector3<Real> GetWacc_loc() const {
-        ChGlMatrix34<> Gl(this->coord.rot);
-        return Gl * coord_dtdt.rot;
+        ChGlMatrix34<> Gl(this->Csys.rot);
+        return Gl * Csys_dtdt.rot;
     }
 
-    /// Computes the actual angular acceleration (expressed in parent coords)
+    /// Compute the actual angular acceleration (expressed in parent coords).
     ChVector3<Real> GetWacc_par() const {
-        ChGwMatrix34<> Gw(this->coord.rot);
-        return Gw * coord_dtdt.rot;
+        ChGwMatrix34<> Gw(this->Csys.rot);
+        return Gw * Csys_dtdt.rot;
     }
 
     // SET-FUNCTIONS
 
-    /// Set both linear speed and rotation speed as a
-    /// single ChCoordsys derivative.
-    virtual void SetCoord_dt(const ChCoordsys<Real>& mcoord_dt) { coord_dt = mcoord_dt; }
+    /// Set both linear andd rotation velocities as a single ChCoordsys derivative.
+    virtual void SetCsysDer(const ChCoordsys<Real>& csys_dt) { Csys_dt = csys_dt; }
 
-    /// Set the linear speed
-    virtual void SetPos_dt(const ChVector3<Real>& mvel) { coord_dt.pos = mvel; }
+    /// Set the linear velocity.
+    virtual void SetPos_dt(const ChVector3<Real>& vel) { Csys_dt.pos = vel; }
 
-    /// Set the rotation speed as a quaternion.
-    /// Note: the quaternion must already satisfy  dot(q,q_dt)=0
-    virtual void SetRot_dt(const ChQuaternion<Real>& mrot_dt) { coord_dt.rot = mrot_dt; }
+    /// Set the rotation velocity as a quaternion derivative.
+    /// Note: the quaternion must satisfy  dot(q,q_dt)=0
+    virtual void SetRot_dt(const ChQuaternion<Real>& q_dt) { Csys_dt.rot = q_dt; }
 
-    /// Set the rotation speed from given angular speed
-    /// (expressed in local csys)
-    virtual void SetWvel_loc(const ChVector3<Real>& wl) {
-        coord_dt.rot.Cross(this->coord.rot, ChQuaternion<Real>(0, wl));
-        coord_dt.rot *= (Real)0.5;  // q_dt = 1/2 * q * (0,wl)
+    /// Set the rotation velocity from the given angular velocity (expressed in local coordinates).
+    virtual void SetWvel_loc(const ChVector3<Real>& w) {
+        Csys_dt.rot.Cross(this->Csys.rot, ChQuaternion<Real>(0, w));
+        Csys_dt.rot *= (Real)0.5;  // q_dt = 1/2 * q * (0,w)
     }
 
-    /// Set the rotation speed from given angular speed
-    /// (expressed in parent csys)
-    virtual void SetWvel_par(const ChVector3<Real>& wp) {
-        coord_dt.rot.Cross(ChQuaternion<Real>(0, wp), this->coord.rot);
-        coord_dt.rot *= (Real)0.5;  // q_dt = 1/2 * (0,wp) * q
+    /// Set the rotation velocity from given angular velocity (expressed in parent coordinates).
+    virtual void SetWvel_par(const ChVector3<Real>& w) {
+        Csys_dt.rot.Cross(ChQuaternion<Real>(0, w), this->Csys.rot);
+        Csys_dt.rot *= (Real)0.5;  // q_dt = 1/2 * (0,w) * q
     }
 
-    /// Set both linear acceleration and rotation acceleration as a
-    /// single ChCoordsys derivative.
-    virtual void SetCoord_dtdt(const ChCoordsys<Real>& mcoord_dtdt) { coord_dtdt = mcoord_dtdt; }
+    /// Set the linear and rotation accelerations as a single ChCoordsys derivative.
+    virtual void SetCsysDer2(const ChCoordsys<Real>& csys_dtdt) { Csys_dtdt = csys_dtdt; }
 
-    /// Set the linear acceleration
-    virtual void SetPos_dtdt(const ChVector3<Real>& macc) { coord_dtdt.pos = macc; }
+    /// Set the linear acceleration.
+    virtual void SetPos_dtdt(const ChVector3<Real>& acc) { Csys_dtdt.pos = acc; }
 
     /// Set the rotation acceleration as a quaternion derivative.
     /// Note: the quaternion must already satisfy  dot(q,q_dt)=0
-    virtual void SetRot_dtdt(const ChQuaternion<Real>& mrot_dtdt) { coord_dtdt.rot = mrot_dtdt; }
+    virtual void SetRot_dtdt(const ChQuaternion<Real>& q_dtdt) { Csys_dtdt.rot = q_dtdt; }
 
-    /// Set the rotation acceleration from given angular acceleration
-    /// (expressed in local csys)
-    /// Note: even when the local angular acceleration is zero, you are still encouraged to
-    /// call this method bacause q_dtdt might be nonzero due to nonzero q_dt in case of rotational motion.
-    virtual void SetWacc_loc(const ChVector3<Real>& al) {
-        // q_dtdt = q_dt * q' * q_dt + 1/2 * q * (0,al)
-        coord_dtdt.rot = (coord_dt.rot % this->coord.rot.GetConjugate() % coord_dt.rot) +
-                         (this->coord.rot % ChQuaternion<Real>(0, al) * (Real)0.5);
+    /// Set the rotation acceleration from given angular acceleration (expressed in local coordinates).
+    /// Note: even when the local angular acceleration is zero, this function should still be called because q_dtdt
+    /// might be nonzero due to nonzero q_dt (in case of rotational motion).
+    virtual void SetWacc_loc(const ChVector3<Real>& a) {
+        // q_dtdt = q_dt * q' * q_dt + 1/2 * q * (0,a)
+        Csys_dtdt.rot = (Csys_dt.rot % this->Csys.rot.GetConjugate() % Csys_dt.rot) +
+                        (this->Csys.rot % ChQuaternion<Real>(0, a) * (Real)0.5);
     }
 
-    /// Set the rotation speed from given angular speed
-    /// (expressed in parent csys)
-    virtual void SetWacc_par(const ChVector3<Real>& ap) {
-        // q_dtdt = q_dt * q' * q_dt + 1/2 * (0,ap) * q
-        coord_dtdt.rot = (coord_dt.rot % this->coord.rot.GetConjugate() % coord_dt.rot) +
-                         (ChQuaternion<Real>(0, ap) % this->coord.rot * (Real)0.5);
+    /// Set the rotation acceleration from given angular acceleration (expressed in parent coordinates).
+    virtual void SetWacc_par(const ChVector3<Real>& a) {
+        // q_dtdt = q_dt * q' * q_dt + 1/2 * (0,a) * q
+        Csys_dtdt.rot = (Csys_dt.rot % this->Csys.rot.GetConjugate() % Csys_dt.rot) +
+                        (ChQuaternion<Real>(0, a) % this->Csys.rot * (Real)0.5);
     }
 
-    /// Computes the time derivative of rotation matrix, mAdt.
-    void Compute_Adt(ChMatrix33<Real>& mA_dt) const {
+    /// Compute the time derivative of the rotation matrix.
+    void Compute_Adt(ChMatrix33<Real>& R_dt) const {
         //  [A_dt]=2[dFp/dt][Fm]'=2[Fp(q_dt)][Fm(q)]'
-        ChFpMatrix34<Real> Fpdt(coord_dt.rot);
-        ChFmMatrix34<Real> Fm(this->coord.rot);
-        mA_dt = 2 * Fpdt * Fm.transpose();
+        ChFpMatrix34<Real> Fpdt(Csys_dt.rot);
+        ChFmMatrix34<Real> Fm(this->Csys.rot);
+        R_dt = 2 * Fpdt * Fm.transpose();
     }
 
-    /// Computes the 2nd time derivative of rotation matrix, mAdtdt.
-    void Compute_Adtdt(ChMatrix33<Real>& mA_dtdt) {
+    /// Compute the second time derivative of the rotation matrix.
+    void Compute_Adtdt(ChMatrix33<Real>& R_dtdt) {
         //  [A_dtdt]=2[Fp(q_dtdt)][Fm(q)]'+2[Fp(q_dt)][Fm(q_dt)]'
-        ChFpMatrix34<> Fpdtdt(coord_dtdt.rot);
-        ChFmMatrix34<> Fm(this->coord.rot);
-        ChFpMatrix34<> Fpdt(coord_dt.rot);
-        ChFmMatrix34<> Fmdt(coord_dt.rot);
-        mA_dtdt = 2 * (Fpdtdt * Fm.transpose() + Fpdt * Fmdt.transpose());
+        ChFpMatrix34<> Fpdtdt(Csys_dtdt.rot);
+        ChFmMatrix34<> Fm(this->Csys.rot);
+        ChFpMatrix34<> Fpdt(Csys_dt.rot);
+        ChFmMatrix34<> Fmdt(Csys_dt.rot);
+        R_dtdt = 2 * (Fpdtdt * Fm.transpose() + Fpdt * Fmdt.transpose());
     }
 
-    /// Computes and returns an Adt matrix (-note: prefer using
-    /// Compute_Adt() directly for better performance)
+    /// Return the time derivative of the rotation matrix.
     ChMatrix33<Real> GetA_dt() {
         ChMatrix33<Real> res;
         Compute_Adt(res);
         return res;
     }
 
-    /// Computes and returns an Adt matrix (-note: prefer using
-    /// Compute_Adtdt() directly for better performance)
+    /// Return the second time derivative of the rotation matrix.
     ChMatrix33<Real> GetA_dtdt() {
         ChMatrix33<Real> res;
         Compute_Adtdt(res);
@@ -318,21 +295,25 @@ class ChFrameMoving : public ChFrame<Real> {
 
     // FUNCTIONS TO TRANSFORM THE FRAME ITSELF
 
-    /// Apply a transformation (rotation and translation) represented by
-    /// another ChFrameMoving T. This is equivalent to pre-multiply this frame
-    /// by the other frame T:   this'= T * this;  or this' = this >> T
-    void ConcatenatePreTransformation(const ChFrameMoving<Real>& T) {
+    /// Apply a transformation (rotation and translation) represented by another frame.
+    /// This is equivalent to pre-multiply this frame by the other frame F:
+    ///     this'= F * this
+    ///  or
+    ///     this' = this >> F
+    void ConcatenatePreTransformation(const ChFrameMoving<Real>& F) {
         ChFrameMoving<Real> res;
-        T.TransformLocalToParent(*this, res);
+        F.TransformLocalToParent(*this, res);
         *this = res;
     }
 
-    /// Apply a transformation (rotation and translation) represented by
-    /// another ChFrameMoving T in local coordinate. This is equivalent to
-    /// post-multiply this frame by the other frame T:   this'= this * T; or this' = T >> this
-    void ConcatenatePostTransformation(const ChFrameMoving<Real>& T) {
+    /// Apply a transformation (rotation and translation) represented by another frame F in local coordinate.
+    /// This is equivalent to post-multiply this frame by the other frame F:
+    ///    this'= this * F
+    ///  or
+    ///    this'= F >> this
+    void ConcatenatePostTransformation(const ChFrameMoving<Real>& F) {
         ChFrameMoving<Real> res;
-        this->TransformLocalToParent(T, res);
+        this->TransformLocalToParent(F, res);
         *this = res;
     }
 
@@ -341,16 +322,16 @@ class ChFrameMoving : public ChFrame<Real> {
     /// Given the position of a point in local frame coords, and
     /// assuming it is sticky to frame, return the speed in parent coords.
     ChVector3<Real> PointSpeedLocalToParent(const ChVector3<Real>& localpos) const {
-        return coord_dt.pos +
-               ((coord_dt.rot % ChQuaternion<Real>(0, localpos) % this->coord.rot.GetConjugate()).GetVector() * 2);
+        return Csys_dt.pos +
+               ((Csys_dt.rot % ChQuaternion<Real>(0, localpos) % this->Csys.rot.GetConjugate()).GetVector() * 2);
     }
 
     /// Given the position localpos of a point in the local reference frame, assuming
     /// that the point moves in the local reference frame with localspeed,
     /// return the speed in the parent reference frame.
     ChVector3<Real> PointSpeedLocalToParent(const ChVector3<Real>& localpos, const ChVector3<Real>& localspeed) const {
-        return coord_dt.pos + this->Amatrix * localspeed +
-               ((coord_dt.rot % ChQuaternion<Real>(0, localpos) % this->coord.rot.GetConjugate()).GetVector() * 2);
+        return Csys_dt.pos + this->Rmat * localspeed +
+               ((Csys_dt.rot % ChQuaternion<Real>(0, localpos) % this->Csys.rot.GetConjugate()).GetVector() * 2);
     }
 
     /// Given the position of a point in local frame coords, and
@@ -359,9 +340,9 @@ class ChFrameMoving : public ChFrame<Real> {
     /// A special occasion: when the local angular acceleration is zero, it's still necessary to call SetWacc_loc(VNULL)
     /// bacause the q_dtdt may be nonzero due to nonzero q_dt in case of rotational motion.
     ChVector3<Real> PointAccelerationLocalToParent(const ChVector3<Real>& localpos) const {
-        return coord_dtdt.pos +
-               ((coord_dtdt.rot % ChQuaternion<Real>(0, localpos) % this->coord.rot.GetConjugate()).GetVector() * 2) +
-               ((coord_dt.rot % ChQuaternion<Real>(0, localpos) % coord_dt.rot.GetConjugate()).GetVector() * 2);
+        return Csys_dtdt.pos +
+               ((Csys_dtdt.rot % ChQuaternion<Real>(0, localpos) % this->Csys.rot.GetConjugate()).GetVector() * 2) +
+               ((Csys_dt.rot % ChQuaternion<Real>(0, localpos) % Csys_dt.rot.GetConjugate()).GetVector() * 2);
     }
 
     /// Given the position of a point in local frame coords, and
@@ -370,10 +351,10 @@ class ChFrameMoving : public ChFrame<Real> {
     ChVector3<Real> PointAccelerationLocalToParent(const ChVector3<Real>& localpos,
                                                    const ChVector3<Real>& localspeed,
                                                    const ChVector3<Real>& localacc) const {
-        return coord_dtdt.pos + this->Amatrix * localacc +
-               ((coord_dtdt.rot % ChQuaternion<Real>(0, localpos) % this->coord.rot.GetConjugate()).GetVector() * 2) +
-               ((coord_dt.rot % ChQuaternion<Real>(0, localpos) % coord_dt.rot.GetConjugate()).GetVector() * 2) +
-               ((coord_dt.rot % ChQuaternion<Real>(0, localspeed) % this->coord.rot.GetConjugate()).GetVector() * 4);
+        return Csys_dtdt.pos + this->Rmat * localacc +
+               ((Csys_dtdt.rot % ChQuaternion<Real>(0, localpos) % this->Csys.rot.GetConjugate()).GetVector() * 2) +
+               ((Csys_dt.rot % ChQuaternion<Real>(0, localpos) % Csys_dt.rot.GetConjugate()).GetVector() * 2) +
+               ((Csys_dt.rot % ChQuaternion<Real>(0, localspeed) % this->Csys.rot.GetConjugate()).GetVector() * 4);
     }
 
     /// Given the position of a point in parent frame coords, and
@@ -381,10 +362,10 @@ class ChFrameMoving : public ChFrame<Real> {
     /// return the speed in local coords.
     ChVector3<Real> PointSpeedParentToLocal(const ChVector3<Real>& parentpos,
                                             const ChVector3<Real>& parentspeed) const {
-        ChVector3<Real> localpos = ChFrame<Real>::TransformParentToLocal(parentpos);
-        return this->Amatrix.transpose() *
-               (parentspeed - coord_dt.pos -
-                ((coord_dt.rot % ChQuaternion<Real>(0, localpos) % this->coord.rot.GetConjugate()).GetVector() * 2));
+        ChVector3<Real> localpos = ChFrame<Real>::TransformPointParentToLocal(parentpos);
+        return this->Rmat.transpose() *
+               (parentspeed - Csys_dt.pos -
+                ((Csys_dt.rot % ChQuaternion<Real>(0, localpos) % this->Csys.rot.GetConjugate()).GetVector() * 2));
     }
 
     /// Given the position of a point in parent frame coords, and
@@ -393,82 +374,74 @@ class ChFrameMoving : public ChFrame<Real> {
     ChVector3<Real> PointAccelerationParentToLocal(const ChVector3<Real>& parentpos,
                                                    const ChVector3<Real>& parentspeed,
                                                    const ChVector3<Real>& parentacc) const {
-        ChVector3<Real> localpos = ChFrame<Real>::TransformParentToLocal(parentpos);
+        ChVector3<Real> localpos = ChFrame<Real>::TransformPointParentToLocal(parentpos);
         ChVector3<Real> localspeed = PointSpeedParentToLocal(parentpos, parentspeed);
-        return this->Amatrix.transpose() *
-               (parentacc - coord_dtdt.pos -
-                (coord_dtdt.rot % ChQuaternion<Real>(0, localpos) % this->coord.rot.GetConjugate()).GetVector() * 2 -
-                (coord_dt.rot % ChQuaternion<Real>(0, localpos) % coord_dt.rot.GetConjugate()).GetVector() * 2 -
-                (coord_dt.rot % ChQuaternion<Real>(0, localspeed) % this->coord.rot.GetConjugate()).GetVector() * 4);
+        return this->Rmat.transpose() *
+               (parentacc - Csys_dtdt.pos -
+                (Csys_dtdt.rot % ChQuaternion<Real>(0, localpos) % this->Csys.rot.GetConjugate()).GetVector() * 2 -
+                (Csys_dt.rot % ChQuaternion<Real>(0, localpos) % Csys_dt.rot.GetConjugate()).GetVector() * 2 -
+                (Csys_dt.rot % ChQuaternion<Real>(0, localspeed) % this->Csys.rot.GetConjugate()).GetVector() * 4);
     }
 
-    /// This function transforms a frame from 'this' local coordinate
-    /// system to parent frame coordinate system, and also transforms the speed
-    /// and acceleration of the frame.
-    void TransformLocalToParent(
-        const ChFrameMoving<Real>& local,  ///< frame to transform, given in local frame coordinates
-        ChFrameMoving<Real>& parent        ///< transformed frame, in parent coordinates, will be stored here
+    /// Transform a frame from 'this' local coordinate system to parent frame coordinate system.
+    /// Also transform the speed and acceleration of the frame.
+    void TransformLocalToParent(const ChFrameMoving<Real>& local,  ///< frame to transform, given in local coordinates
+                                ChFrameMoving<Real>& parent        ///< transformed frame, in parent coordinates
     ) const {
         // pos & rot
         ChFrame<Real>::TransformLocalToParent(local, parent);
 
         // pos_dt
-        parent.coord_dt.pos = PointSpeedLocalToParent(local.coord.pos, local.coord_dt.pos);
+        parent.Csys_dt.pos = PointSpeedLocalToParent(local.Csys.pos, local.Csys_dt.pos);
 
         // pos_dtdt
-        parent.coord_dtdt.pos =
-            PointAccelerationLocalToParent(local.coord.pos, local.coord_dt.pos, local.coord_dtdt.pos);
+        parent.Csys_dtdt.pos = PointAccelerationLocalToParent(local.Csys.pos, local.Csys_dt.pos, local.Csys_dtdt.pos);
 
         // rot_dt
-        parent.coord_dt.rot = coord_dt.rot % local.coord.rot + this->coord.rot % local.coord_dt.rot;
+        parent.Csys_dt.rot = Csys_dt.rot % local.Csys.rot + this->Csys.rot % local.Csys_dt.rot;
 
         // rot_dtdt
-        parent.coord_dtdt.rot = coord_dtdt.rot % local.coord.rot + (coord_dt.rot % local.coord_dt.rot) * 2 +
-                                this->coord.rot % local.coord_dtdt.rot;
+        parent.Csys_dtdt.rot = Csys_dtdt.rot % local.Csys.rot + (Csys_dt.rot % local.Csys_dt.rot) * 2 +
+                               this->Csys.rot % local.Csys_dtdt.rot;
     }
 
-    /// This function transforms a frame from the parent coordinate
-    /// system to 'this' local frame coordinate system.
-    void TransformParentToLocal(
-        const ChFrameMoving<Real>& parent,  ///< frame to transform, given in parent coordinates
-        ChFrameMoving<Real>& local          ///< transformed frame, in local coordinates, will be stored here
+    /// Transform a frame from the parent coordinate system to 'this' local frame coordinate system.
+    /// Also transform the speed and acceleration of the frame.
+    void TransformParentToLocal(const ChFrameMoving<Real>& parent,  ///< frame to transform, given in parent coordinates
+                                ChFrameMoving<Real>& local          ///< transformed frame, in local coordinates
     ) const {
         // pos & rot
         ChFrame<Real>::TransformParentToLocal(parent, local);
 
         // pos_dt
-        local.coord_dt.pos = PointSpeedParentToLocal(parent.coord.pos, parent.coord_dt.pos);
+        local.Csys_dt.pos = PointSpeedParentToLocal(parent.Csys.pos, parent.Csys_dt.pos);
 
         // pos_dtdt
-        local.coord_dtdt.pos =
-            PointAccelerationParentToLocal(parent.coord.pos, parent.coord_dt.pos, parent.coord_dtdt.pos);
+        local.Csys_dtdt.pos = PointAccelerationParentToLocal(parent.Csys.pos, parent.Csys_dt.pos, parent.Csys_dtdt.pos);
 
         // rot_dt
-        local.coord_dt.rot = this->coord.rot.GetConjugate() % (parent.coord_dt.rot - coord_dt.rot % local.coord.rot);
+        local.Csys_dt.rot = this->Csys.rot.GetConjugate() % (parent.Csys_dt.rot - Csys_dt.rot % local.Csys.rot);
 
         // rot_dtdt
-        local.coord_dtdt.rot =
-            this->coord.rot.GetConjugate() %
-            (parent.coord_dtdt.rot - coord_dtdt.rot % local.coord.rot - (coord_dt.rot % local.coord_dt.rot) * 2);
+        local.Csys_dtdt.rot = this->Csys.rot.GetConjugate() % (parent.Csys_dtdt.rot - Csys_dtdt.rot % local.Csys.rot -
+                                                               (Csys_dt.rot % local.Csys_dt.rot) * 2);
     }
 
     // OTHER FUNCTIONS
 
-    /// Returns true if coordsys is identical to other coordsys
+    /// Returns true if this transform is identical to the other transform.
     bool Equals(const ChFrameMoving<Real>& other) const {
-        return this->coord.Equals(other.coord) && coord_dt.Equals(other.coord_dt) &&
-               coord_dtdt.Equals(other.coord_dtdt);
+        return this->Csys.Equals(other.Csys) && Csys_dt.Equals(other.Csys_dt) && Csys_dtdt.Equals(other.Csys_dtdt);
     }
 
-    /// Returns true if coordsys is equal to other coordsys, within a tolerance 'tol'
+    /// Returns true if this transform is equal to the other transform, within a tolerance 'tol'.
     bool Equals(const ChFrameMoving<Real>& other, Real tol) const {
-        return this->coord.Equals(other.coord, tol) && coord_dt.Equals(other.coord_dt, tol) &&
-               coord_dtdt.Equals(other.coord_dtdt, tol);
+        return this->Csys.Equals(other.Csys, tol) && Csys_dt.Equals(other.Csys_dt, tol) &&
+               Csys_dtdt.Equals(other.Csys_dtdt, tol);
     }
 
-    /// The transformation (also for speeds, accelerations) is
-    /// inverted in place.
-    /// That is if w=A*v, then A.Invert();v=A*w;
+    /// Invert in place.
+    /// If w=A*v, after A.Invert() we have v=A*w;
     virtual void Invert() override {
         ChFrameMoving<Real> tmp;
         ChFrameMoving<Real> unit;
@@ -476,6 +449,7 @@ class ChFrameMoving : public ChFrame<Real> {
         tmp.TransformParentToLocal(unit, *this);
     }
 
+    /// Return the inverse transform.
     ChFrameMoving<Real> GetInverse() const {
         ChFrameMoving<Real> tmp(*this);
         tmp.Invert();
@@ -490,8 +464,8 @@ class ChFrameMoving : public ChFrame<Real> {
         ChFrame<Real>::ArchiveOut(marchive);
 
         // serialize all member data
-        marchive << CHNVP(coord_dt);
-        marchive << CHNVP(coord_dtdt);
+        marchive << CHNVP(Csys_dt);
+        marchive << CHNVP(Csys_dtdt);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -503,19 +477,21 @@ class ChFrameMoving : public ChFrame<Real> {
         ChFrame<Real>::ArchiveIn(marchive);
 
         // stream in all member data
-        marchive >> CHNVP(coord_dt);
-        marchive >> CHNVP(coord_dtdt);
+        marchive >> CHNVP(Csys_dt);
+        marchive >> CHNVP(Csys_dtdt);
     }
+
+  protected:
+    ChCoordsys<Real> Csys_dt;    ///< rotation and position velocity, as vector + quaternion
+    ChCoordsys<Real> Csys_dtdt;  ///< rotation and position acceleration, as vector + quaternion
 };
 
 CH_CLASS_VERSION(ChFrameMoving<double>, 0)
 CH_CLASS_VERSION(ChFrameMoving<float>, 0)
 
-//
 // MIXED ARGUMENT OPERATORS
-//
 
-// Mixing with ChFrame :
+// Mixing with ChFrame
 
 /// The '*' operator that transforms a coordinate system of 'mixed' type:
 ///  frame_C = frame_A * frame_B;
@@ -569,7 +545,7 @@ ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChFrame<Real
 //   ChFrame = ChFrame >> ChFrameMoving
 // is not necessary, just falls back to ChFrame = ChFrame >> ChFrame , see ChFrame.h
 
-// Mixing with ChCoordsys :
+// Mixing with ChCoordsys
 
 /// The '*' operator that transforms a coordinate system of 'mixed' type:
 ///  frame_C = frame_A * frame_B;
@@ -611,7 +587,7 @@ ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChCoordsys<R
 //   ChCoordsys = ChFrameMoving * ChCoordsys
 // is not necessary, just falls back to ChCoordsys = ChFrame * ChCoordsys  , see ChFrame.h
 
-// Mixing with ChVector :
+// Mixing with ChVector
 
 /// The '*' operator that transforms 'mixed' types:
 ///  frame_C = vector_A * frame_B;
@@ -622,7 +598,7 @@ ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChCoordsys<R
 template <class Real>
 ChFrameMoving<Real> operator*(const ChVector3<Real>& Fa, const ChFrameMoving<Real>& Fb) {
     ChFrameMoving<Real> res(Fb);
-    res.coord.pos += Fa;
+    res.Csys.pos += Fa;
     return res;
 }
 
@@ -635,7 +611,7 @@ ChFrameMoving<Real> operator*(const ChVector3<Real>& Fa, const ChFrameMoving<Rea
 template <class Real>
 ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChVector3<Real>& Fb) {
     ChFrameMoving<Real> res(Fa);
-    res.coord.pos += Fb;
+    res.Csys.pos += Fb;
     return res;
 }
 
@@ -647,7 +623,7 @@ ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChVector3<Re
 //   ChVector = ChFrameMoving * ChVector
 // is not necessary, just falls back to ChVector = ChFrame * ChVector  , see ChFrame.h
 
-// Mixing with ChQuaternion :
+// Mixing with ChQuaternion
 
 /// The '*' operator that transforms 'mixed' types:
 ///  frame_C = quat_A * frame_B;

@@ -173,7 +173,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
         ChFrameMoving<> fr(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2));
         ChFrameMoving<> frabs = fr >> f3;
         auto link_roller = chrono_types::make_shared<ChLinkLockRevolute>();
-        link_roller->Initialize(roller, centralWheel, frabs.GetCoord());
+        link_roller->Initialize(roller, centralWheel, frabs.GetCsys());
         sys.AddLink(link_roller);
     }
 
@@ -214,8 +214,8 @@ int main(int argc, char* argv[]) {
     ChFrame<> ftot_wC = f0 >> f1 >> f2_wC;
 
     auto spindle_A = create_mecanum_wheel(sys,
-                                          ftot_wA.GetCoord().pos,  // wheel position
-                                          ftot_wA.GetCoord().rot,  // wheel alignment
+                                          ftot_wA.GetCsys().pos,  // wheel position
+                                          ftot_wA.GetCsys().rot,  // wheel alignment
                                           wheel_radius,            // wheel radius
                                           2.2,                     // wheel width
                                           8,                       // n. of rollers
@@ -230,8 +230,8 @@ int main(int argc, char* argv[]) {
     sys.AddLink(link_shaftA);
 
     auto spindle_B = create_mecanum_wheel(sys,
-                                          ftot_wB.GetCoord().pos,  // wheel position
-                                          ftot_wB.GetCoord().rot,  // wheel alignment
+                                          ftot_wB.GetCsys().pos,  // wheel position
+                                          ftot_wB.GetCsys().rot,  // wheel alignment
                                           wheel_radius,            // wheel radius
                                           2.2,                     // wheel width
                                           8,                       // n. of rollers
@@ -246,8 +246,8 @@ int main(int argc, char* argv[]) {
     sys.AddLink(link_shaftB);
 
     auto spindle_C = create_mecanum_wheel(sys,
-                                          ftot_wC.GetCoord().pos,  // wheel position
-                                          ftot_wC.GetCoord().rot,  // wheel alignment
+                                          ftot_wC.GetCsys().pos,  // wheel position
+                                          ftot_wC.GetCsys().rot,  // wheel alignment
                                           wheel_radius,            // wheel radius
                                           2.2,                     // wheel width
                                           8,                       // n. of rollers
@@ -317,18 +317,18 @@ int main(int argc, char* argv[]) {
         ChVector3d imposed_speed(STATIC_x_speed, 0, STATIC_z_speed);
         ChFrame<> roll_twist(ChVector3d(0, -wheel_radius, 0), QuatFromAngleY(-roller_angle));
 
-        ChFrame<> abs_roll_wA = roll_twist >> f2_wA >> ChFrame<>(platform->GetCoord());
+        ChFrame<> abs_roll_wA = roll_twist >> f2_wA >> ChFrame<>(platform->GetCsys());
         double wheel_A_rotspeed =
             (STATIC_rot_speed * platform_radius) +
-            ((abs_roll_wA.GetA().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
-        ChFrame<> abs_roll_wB = roll_twist >> f2_wB >> ChFrame<>(platform->GetCoord());
+            ((abs_roll_wA.GetRotMat().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
+        ChFrame<> abs_roll_wB = roll_twist >> f2_wB >> ChFrame<>(platform->GetCsys());
         double wheel_B_rotspeed =
             (STATIC_rot_speed * platform_radius) +
-            ((abs_roll_wB.GetA().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
-        ChFrame<> abs_roll_wC = roll_twist >> f2_wC >> ChFrame<>(platform->GetCoord());
+            ((abs_roll_wB.GetRotMat().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
+        ChFrame<> abs_roll_wC = roll_twist >> f2_wC >> ChFrame<>(platform->GetCsys());
         double wheel_C_rotspeed =
             (STATIC_rot_speed * platform_radius) +
-            ((abs_roll_wC.GetA().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
+            ((abs_roll_wC.GetRotMat().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
 
         if (auto fun = std::dynamic_pointer_cast<ChFunctionConst>(link_shaftA->GetSpeedFunction()))
             fun->Set_yconst(wheel_A_rotspeed);

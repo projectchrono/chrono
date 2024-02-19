@@ -210,17 +210,17 @@ class CH_SENSOR_API ChOptixGeometry {
     std::vector<ChFrame<double>> m_obj_body_frames_start;  ///< frame at time=start used for the geometry
     std::vector<ChFrame<double>> m_obj_body_frames_end;    ///< frame at time=end used for the geometry
     std::vector<ChFrame<double>> m_obj_asset_frames;       ///< constant frame used for the geometry
-    std::vector<ChVector3d> m_obj_scales;  ///< asset frame scales since ChFrame makes the Amatrix orthonormal
-    ChVector3f m_origin_offset;             ///< origin offset for the scene
+    std::vector<ChVector3d> m_obj_scales;                  ///< asset frame scales
+    ChVector3f m_origin_offset;                            ///< origin offset for the scene
 
-    std::vector<std::tuple<float, float, std::vector<ChFrame<double>>>>
-        m_obj_body_frames_start_tmps;  ///< need to potentially hold multiple starts and will move it to
-                                       ///< start under lock when the corresponding end has been packed
+    /// need to potentially hold multiple starts and will move it to
+    /// start under lock when the corresponding end has been packed
+    std::vector<std::tuple<float, float, std::vector<ChFrame<double>>>> m_obj_body_frames_start_tmps;
 
-    /// keep track of chrono meshes we've added and their corresponding mesh pool id for automatic instancing
+    /// keep track of chrono meshes and their corresponding mesh pool id for automatic instancing
     std::vector<std::tuple<CUdeviceptr, unsigned int>> m_known_meshes;
 
-    /// deformable mesh list <mesh shape, d_vertices, d_indices, gas id>
+    /// deformable mesh list [mesh shape, d_vertices, d_indices, gas id]
     std::vector<std::tuple<std::shared_ptr<ChVisualShapeTriangleMesh>, CUdeviceptr, CUdeviceptr, unsigned int>>
         m_deformable_meshes;
 

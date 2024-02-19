@@ -41,7 +41,7 @@ void ChLinkMotorRotationTorque::IntLoadResidual_F(const unsigned int off, ChVect
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    ChVector3d m_abs_torque = aframe2.GetA() * ChVector3d(0, 0, mT);
+    ChVector3d m_abs_torque = aframe2.GetRotMat() * ChVector3d(0, 0, mT);
 
     if (Body2->Variables().IsActive()) {
         R.segment(Body2->Variables().GetOffset() + 3, 3) -=
@@ -60,7 +60,7 @@ void ChLinkMotorRotationTorque::ConstraintsFbLoadForces(double factor) {
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    ChVector3d m_abs_torque = aframe2.GetA() * ChVector3d(0, 0, mT);
+    ChVector3d m_abs_torque = aframe2.GetRotMat() * ChVector3d(0, 0, mT);
 
     Body2->Variables().Get_fb().segment(3, 3) -= factor * Body2->TransformDirectionParentToLocal(m_abs_torque).eigen();
     Body1->Variables().Get_fb().segment(3, 3) += factor * Body1->TransformDirectionParentToLocal(m_abs_torque).eigen();

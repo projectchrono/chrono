@@ -270,7 +270,7 @@ void SprocketBandContactCB::OnCustomCollision(ChSystem* system) {
     ChVector3d locS_abs = m_sprocket->GetGearBody()->GetPos();
 
     // Sprocket "normal" (Y axis), expressed in global frame
-    ChVector3d dirS_abs = m_sprocket->GetGearBody()->GetA().GetAxisY();
+    ChVector3d dirS_abs = m_sprocket->GetGearBody()->GetRotMat().GetAxisY();
 
     // Loop over all track shoes in the associated track
     for (size_t is = 0; is < m_track->GetNumTrackShoes(); ++is) {

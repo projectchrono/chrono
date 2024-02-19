@@ -64,18 +64,18 @@ class ChApi ChLinkDistance : public ChLink {
     /// Set the 1st anchor endpoint for the distance (expressed in Body1 coordinate system)
     void SetEndPoint1Rel(const ChVector3d& mset) { pos1 = mset; }
     /// Get the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-    ChVector3d GetEndPoint1Abs() const { return ((ChFrame<double>*)Body1)->TransformLocalToParent(pos1); }
+    ChVector3d GetEndPoint1Abs() const { return ((ChFrame<double>*)Body1)->TransformPointLocalToParent(pos1); }
     /// Set the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-    void SetEndPoint1Abs(ChVector3d& mset) { pos1 = ((ChFrame<double>*)Body1)->TransformParentToLocal(mset); }
+    void SetEndPoint1Abs(ChVector3d& mset) { pos1 = ((ChFrame<double>*)Body1)->TransformPointParentToLocal(mset); }
 
     /// Get the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
     ChVector3d GetEndPoint2Rel() const { return pos2; }
     /// Set the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
     void SetEndPoint2Rel(const ChVector3d& mset) { pos2 = mset; }
     /// Get the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-    ChVector3d GetEndPoint2Abs() const { return ((ChFrame<double>*)Body2)->TransformLocalToParent(pos2); }
+    ChVector3d GetEndPoint2Abs() const { return ((ChFrame<double>*)Body2)->TransformPointLocalToParent(pos2); }
     /// Set the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-    void SetEndPoint2Abs(ChVector3d& mset) { pos2 = ((ChFrame<double>*)Body2)->TransformParentToLocal(mset); }
+    void SetEndPoint2Abs(ChVector3d& mset) { pos2 = ((ChFrame<double>*)Body2)->TransformPointParentToLocal(mset); }
 
     /// Set the imposed distance
     void SetImposedDistance(const double mset) { distance = mset; }

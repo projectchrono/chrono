@@ -20,8 +20,8 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunctionBSpline)
 
 ChFunctionBSpline::ChFunctionBSpline(int p,                             // order
-                                       const ChVectorDynamic<>& cpoints,  // conrol points
-                                       ChVectorDynamic<>* knots           // knot vector
+                                     const ChVectorDynamic<>& cpoints,  // conrol points
+                                     ChVectorDynamic<>* knots           // knot vector
 ) {
     if (p < 1)
         throw std::invalid_argument("ChFunctionBSpline::Setup_Data() requires order >= 1.");
@@ -29,8 +29,9 @@ ChFunctionBSpline::ChFunctionBSpline(int p,                             // order
     if (cpoints.size() < p + 1)
         throw std::invalid_argument("ChFunctionBSpline::Setup_Data() requires size(cpoints) >= order + 1.");
 
-    if (knots && (size_t)knots->size() != (cpoints.size() + p) + 1)
-        throw std::invalid_argument("ChFunctionBSpline::Setup_Data() requires size(knots) = size(cpoints) + order + 1.");
+    if (knots && knots->size() != (cpoints.size() + p) + 1)
+        throw std::invalid_argument(
+            "ChFunctionBSpline::Setup_Data() requires size(knots) = size(cpoints) + order + 1.");
 
     Setup_Data(p, cpoints, knots);
 }
@@ -49,8 +50,9 @@ ChFunctionBSpline::ChFunctionBSpline(
     if (x_interp.size() < p + 1)
         throw std::invalid_argument("ChFunctionBSpline::Setup_Data() requires size(cpoints) >= order + 1.");
 
-    if (knots && (size_t)knots->size() != (x_interp.size() + p) + 1)
-        throw std::invalid_argument("ChFunctionBSpline::Setup_Data() requires size(knots) = size(x_interp) + order + 1.");
+    if (knots && knots->size() != (x_interp.size() + p) + 1)
+        throw std::invalid_argument(
+            "ChFunctionBSpline::Setup_Data() requires size(knots) = size(x_interp) + order + 1.");
 
     Recompute_Constrained(p, x_interp, y_dN_interp, der_order, knots);
 }

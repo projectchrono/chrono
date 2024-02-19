@@ -247,7 +247,7 @@ void ChLoadBodyInertia::ComputeJacobian(ChState* state_x,       ///< state posit
     // would fail the default numerical differentiation in ComputeJacobian() for the M=dQ/da matrix, so 
     // we override ComputeJacobian and provide the analytical jacobians)
     auto mbody = std::dynamic_pointer_cast<ChBody>(this->loadable);
-    ChVector3d a_x = mbody->GetA().transpose() * mbody->GetPos_dtdt(); // local 
+    ChVector3d a_x = mbody->GetRotMat().transpose() * mbody->GetPos_dtdt(); // local 
     ChVector3d a_w = mbody->GetWacc_loc(); // local 
     
     ChStarMatrix33<> wtilde(v_w);  // [w~]
@@ -321,11 +321,11 @@ void ChLoadBodyBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     ChFrameMoving<> bodycoordA, bodycoordB;
     if (state_x) {
         // the numerical jacobian algo might change state_x
-        bodycoordA.SetCoord(state_x->segment(0, 7));
-        bodycoordB.SetCoord(state_x->segment(7, 7));
+        bodycoordA.SetCsys(state_x->segment(0, 7));
+        bodycoordB.SetCsys(state_x->segment(7, 7));
     } else {
-        bodycoordA.SetCoord(mbodyA->coord);
-        bodycoordB.SetCoord(mbodyB->coord);
+        bodycoordA.SetCsys(mbodyA->GetCsys());
+        bodycoordB.SetCsys(mbodyB->GetCsys());
     }
 
     if (state_w) {
@@ -335,8 +335,8 @@ void ChLoadBodyBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         bodycoordB.SetPos_dt(state_w->segment(6, 3));
         bodycoordB.SetWvel_loc(state_w->segment(9, 3));
     } else {
-        bodycoordA.SetCoord_dt(mbodyA->GetCoord_dt());
-        bodycoordB.SetCoord_dt(mbodyB->GetCoord_dt());
+        bodycoordA.SetCsysDer(mbodyA->GetCsysDer());
+        bodycoordB.SetCsysDer(mbodyB->GetCsysDer());
     }
 
     frame_Aw = ChFrameMoving<>(loc_application_A) >> bodycoordA;

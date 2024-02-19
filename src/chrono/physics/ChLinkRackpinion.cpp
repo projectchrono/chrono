@@ -49,7 +49,7 @@ ChVector3d ChLinkRackpinion::GetAbsPinionDir() {
     if (this->Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion, absframe);
-        return absframe.GetA().GetAxisZ();
+        return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
@@ -67,7 +67,7 @@ ChVector3d ChLinkRackpinion::GetAbsRackDir() {
     if (this->Body2) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, absframe);
-        return absframe.GetA().GetAxisZ();
+        return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
@@ -92,16 +92,16 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
     ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, abs_rack);
 
     ChVector3d abs_distpr = abs_pinion.GetPos() - abs_rack.GetPos();
-    ChVector3d abs_Dpin = abs_pinion.GetA().GetAxisZ();
+    ChVector3d abs_Dpin = abs_pinion.GetRotMat().GetAxisZ();
     ChVector3d abs_Dx;
     ChVector3d abs_Dy;
     ChVector3d abs_Dz;
     abs_Dpin.DirToDxDyDz(abs_Dz, abs_Dx, abs_Dy,
-                         abs_rack.GetA().GetAxisX());  // with z as pinion shaft and x as suggested rack X dir
+                         abs_rack.GetRotMat().GetAxisX());  // with z as pinion shaft and x as suggested rack X dir
 
     /*
     std::cout << "abs_distpr " << abs_distpr << std::endl;
-    std::cout << "abs_rack Xaxis()" << abs_rack.GetA()->GetAxisX() << std::endl;
+    std::cout << "abs_rack Xaxis()" << abs_rack.GetRotMat()->GetAxisX() << std::endl;
     std::cout << "abs_Dpin " << abs_Dpin << std::endl;
     std::cout << "abs_Dx " << abs_Dx << std::endl;
     */

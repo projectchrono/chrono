@@ -71,13 +71,13 @@ void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector3d rel_pos = getLocation(static_cast<PointId>(i));
-        m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsL[i] = suspension_to_abs.TransformPointLocalToParent(rel_pos);
         rel_pos.y() = -rel_pos.y();
-        m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsR[i] = suspension_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
     // Create the rigid axle and its connection to the chassis
-    ChVector3d axleCOM = suspension_to_abs.TransformLocalToParent(getAxleTubeCOM());
+    ChVector3d axleCOM = suspension_to_abs.TransformPointLocalToParent(getAxleTubeCOM());
     m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
@@ -86,7 +86,7 @@ void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
 
-    m_axlePinLoc = suspension_to_abs.TransformLocalToParent(getAxlePinLocation());
+    m_axlePinLoc = suspension_to_abs.TransformPointLocalToParent(getAxlePinLocation());
     ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
     ChCoordsys<> rev_csys(m_axlePinLoc, chassisRot * QuatFromAngleY(CH_C_PI_2));
     m_axlePin = chrono_types::make_shared<ChLinkLockRevolute>();
@@ -156,10 +156,10 @@ void ChRigidPinnedAxle::UpdateInertiaProperties() {
     composite.AddComponent(m_axleTube->GetFrame_COG_to_abs(), getAxleTubeMass(), ChMatrix33<>(getAxleTubeInertia()));
 
     // Express COM and inertia in subsystem reference frame
-    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
-    m_com.coord.rot = QUNIT;
+    m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.GetRot() = QUNIT;
 
-    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+    m_inertia = m_xform.GetRotMat().transpose() * composite.GetInertia() * m_xform.GetRotMat();
 }
 
 // -----------------------------------------------------------------------------

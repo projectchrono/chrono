@@ -32,7 +32,7 @@ matrix4CH::matrix4CH(const chrono::ChCoordsys<>& csys) : matrix4CH(chrono::ChFra
 
 matrix4CH::matrix4CH(const chrono::ChFrame<>& frame) {
     const auto& v = frame.GetPos();
-    const auto& A = frame.GetA();
+    const auto& A = frame.GetRotMat();
 
     //// RADU
     //// Is this actually correct?   ChMatrix33 is also stored row-major (even pre-Eigen)!
@@ -476,9 +476,9 @@ int drawAllCOGs(ChVisualSystemIrrlicht* vis, double scale) {
         const ChFrame<>& mframe_ref = body->GetFrame_REF_to_abs();
 
         ChVector3d p0 = mframe_cog.GetPos();
-        ChVector3d px = p0 + mframe_cog.GetA().GetAxisX() * 0.5 * scale;
-        ChVector3d py = p0 + mframe_cog.GetA().GetAxisY() * 0.5 * scale;
-        ChVector3d pz = p0 + mframe_cog.GetA().GetAxisZ() * 0.5 * scale;
+        ChVector3d px = p0 + mframe_cog.GetRotMat().GetAxisX() * 0.5 * scale;
+        ChVector3d py = p0 + mframe_cog.GetRotMat().GetAxisY() * 0.5 * scale;
+        ChVector3d pz = p0 + mframe_cog.GetRotMat().GetAxisZ() * 0.5 * scale;
 
         mcol = irr::video::SColor(70, 125, 0, 0);  // X red
         vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
@@ -488,9 +488,9 @@ int drawAllCOGs(ChVisualSystemIrrlicht* vis, double scale) {
         vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
 
         p0 = mframe_ref.GetPos();
-        px = p0 + mframe_ref.GetA().GetAxisX() * scale;
-        py = p0 + mframe_ref.GetA().GetAxisY() * scale;
-        pz = p0 + mframe_ref.GetA().GetAxisZ() * scale;
+        px = p0 + mframe_ref.GetRotMat().GetAxisX() * scale;
+        py = p0 + mframe_ref.GetRotMat().GetAxisY() * scale;
+        pz = p0 + mframe_ref.GetRotMat().GetAxisZ() * scale;
 
         mcol = irr::video::SColor(70, 255, 0, 0);  // X red
         vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
@@ -537,9 +537,9 @@ int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale) {
         irr::video::SColor mcol;
 
         ChVector3d p0 = frAabs.GetPos();
-        ChVector3d px = p0 + frAabs.GetA().GetAxisX() * 0.7 * scale;
-        ChVector3d py = p0 + frAabs.GetA().GetAxisY() * 0.7 * scale;
-        ChVector3d pz = p0 + frAabs.GetA().GetAxisZ() * 0.7 * scale;
+        ChVector3d px = p0 + frAabs.GetRotMat().GetAxisX() * 0.7 * scale;
+        ChVector3d py = p0 + frAabs.GetRotMat().GetAxisY() * 0.7 * scale;
+        ChVector3d pz = p0 + frAabs.GetRotMat().GetAxisZ() * 0.7 * scale;
 
         mcol = irr::video::SColor(70, 125, 0, 0);  // X red
         vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
@@ -549,9 +549,9 @@ int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale) {
         vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
 
         p0 = frBabs.GetPos();
-        px = p0 + frBabs.GetA().GetAxisX() * scale;
-        py = p0 + frBabs.GetA().GetAxisY() * scale;
-        pz = p0 + frBabs.GetA().GetAxisZ() * scale;
+        px = p0 + frBabs.GetRotMat().GetAxisX() * scale;
+        py = p0 + frBabs.GetRotMat().GetAxisY() * scale;
+        pz = p0 + frBabs.GetRotMat().GetAxisZ() * scale;
 
         mcol = irr::video::SColor(70, 255, 0, 0);  // X red
         vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);

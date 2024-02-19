@@ -64,8 +64,8 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 
     /// Get all the DOFs packed in a single vector (position part)
     virtual void ContactableGetStateBlock_x(ChState& x) override {
-        x.segment(0, 3) = GetCoord().pos.eigen();
-        x.segment(3, 4) = GetCoord().rot.eigen();
+        x.segment(0, 3) = GetCsys().pos.eigen();
+        x.segment(3, 4) = GetCsys().rot.eigen();
     }
 
     /// Get all the DOFs packed in a single vector (speed part)
@@ -92,7 +92,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the
     /// contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() override { return this->coord; }
+    virtual ChCoordsys<> GetCsysForCollisionModel() override { return this->Csys; }
 
     /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.

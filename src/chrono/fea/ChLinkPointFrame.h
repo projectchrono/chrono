@@ -148,7 +148,7 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     /// Set the attachment position, expressed in absolute coordinates.
     /// This function may be called only after initialization.
     void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) {
-        m_csys = m_body->coord.TransformParentToLocal(csys_abs);
+        m_csys = m_body->GetCsys().TransformParentToLocal(csys_abs);
     }
 
     /// Get the reaction force on the node, expressed in the link coordinate system.
@@ -316,7 +316,7 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
     /// Set the attachment position, expressed in absolute coordinates.
     /// This function may be called only after initialization.
     void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) {
-        m_csys = m_body->coord.TransformParentToLocal(csys_abs);
+        m_csys = m_body->GetCsys().TransformParentToLocal(csys_abs);
     }
 
     /// Get the reaction force on the node, expressed in the link coordinate system.

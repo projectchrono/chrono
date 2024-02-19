@@ -395,7 +395,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
         auto parentFrame = parentBody->GetFrame_REF_to_COG();
         ChQuaternion<> rot = Q_from_313_angles(marker.rot[0], marker.rot[1], marker.rot[2]);
         // Convert to aux frame instead of COG frame
-        ChCoordsys<> markerCoord = (parentFrame * ChFrame<>(loc, rot)).GetCoord();
+        ChCoordsys<> markerCoord = (parentFrame * ChFrame<>(loc, rot)).GetCsys();
         // Make new marker attached to body, without any initial motion
         auto ch_marker = chrono_types::make_shared<ChMarker>(marker_pair.first, parentBody.get(), markerCoord, ChCoordsys<>(),
                                                     ChCoordsys<>());
@@ -443,7 +443,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             // std::cout << "adding revolute joint " << joint_pair.first <<std::endl;
             auto ch_joint = chrono_types::make_shared<ChLinkLockRevolute>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()),
-                                 (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCoord());
+                                 (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCsys());
             new_joint = ch_joint;
         } else if (joint.type == std::string("SPHERICAL")) {
             // Make spherical
@@ -456,7 +456,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             // std::cout << "adding spherical joint " << joint_pair.first <<std::endl;
             auto ch_joint = chrono_types::make_shared<ChLinkLockSpherical>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()),
-                                 (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCoord());
+                                 (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCsys());
             new_joint = ch_joint;
         } else if (joint.type == std::string("HOOKE")) {
             // Make spherical
@@ -483,8 +483,8 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             // std::cout << "adding prismatic joint " << joint_pair.first <<std::endl;
             auto ch_joint = chrono_types::make_shared<ChLinkLockPrismatic>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()), true,
-                                 (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCoord(),
-                                 (body_J->GetFrame_REF_to_abs() * (*marker_J)).GetCoord());
+                                 (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCsys(),
+                                 (body_J->GetFrame_REF_to_abs() * (*marker_J)).GetCsys());
             new_joint = ch_joint;
         } else if (joint.type == std::string("CYLINDRICAL")) {
             // Make spherical
@@ -497,8 +497,8 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             // std::cout << "adding cylindrical joint " << joint_pair.first <<std::endl;
             auto ch_joint = chrono_types::make_shared<ChLinkLockCylindrical>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()), true,
-                                 (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCoord(),
-                                 (body_J->GetFrame_REF_to_abs() * (*marker_J)).GetCoord());
+                                 (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCsys(),
+                                 (body_J->GetFrame_REF_to_abs() * (*marker_J)).GetCsys());
             new_joint = ch_joint;
         } else if (joint.type == std::string("RACKPIN")) {
             // Make spherical
@@ -545,7 +545,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         assert(parentBody != nullptr);
                         auto cyl_pos = (parentBody->GetFrame_COG_to_REF() * (*cm_marker))
                                            .TransformPointLocalToParent(ChVector3d(0, 0, 0));
-                        auto cyl_rot = (parentBody->GetFrame_COG_to_REF() * (*cm_marker)).Amatrix;
+                        auto cyl_rot = (parentBody->GetFrame_COG_to_REF() * (*cm_marker)).GetRotMat();
                         parentBody->AddVisualShape(cylinder, ChFrame<>(cyl_pos, cyl_rot));
                     } else if (iter->second == std::string("RADIUS")) {
                         iter++;  // get radius
@@ -619,7 +619,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         auto box_pos = (parentBody->GetFrame_COG_to_REF() * (*cm_marker))
                                                         .TransformPointLocalToParent(ChVector3d(0, 0, 0));
 
-                        auto box_rot = (parentBody->GetFrame_COG_to_REF() * (*cm_marker)).Amatrix;
+                        auto box_rot = (parentBody->GetFrame_COG_to_REF() * (*cm_marker)).GetRotMat();
                         parentBody->AddVisualShape(box, ChFrame<>(box_pos, box_rot));
                     } else if (iter->second == std::string("X")) {
                         iter++;  // get length

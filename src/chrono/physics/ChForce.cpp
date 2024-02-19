@@ -244,7 +244,7 @@ void ChForce::UpdateState() {
             ChStarMatrix33<> Xpos(vrelpoint);
             ChVector3d VQtemp = Xpos.transpose() * relforce; // = [u]'[A]'F,w
 
-            ChGlMatrix34<> mGl(my_body->GetCoord().rot);
+            ChGlMatrix34<> mGl(my_body->GetCsys().rot);
             ChVectorN<double, 4> Qfrot = -mGl.transpose() * VQtemp.eigen(); // Q = - [Gl]'[u]'[A]'F,w
 
             Qf.segment(3, 4) = Qfrot;
@@ -258,7 +258,7 @@ void ChForce::UpdateState() {
             Qf(2) = 0;
 
             // rot.lagangian
-            ChGlMatrix34<> mGl(my_body->GetCoord().rot);
+            ChGlMatrix34<> mGl(my_body->GetCsys().rot);
             ChVectorN<double, 4> Qfrot = mGl.transpose() * relforce.eigen();
 
             Qf.segment(3, 4) = Qfrot;

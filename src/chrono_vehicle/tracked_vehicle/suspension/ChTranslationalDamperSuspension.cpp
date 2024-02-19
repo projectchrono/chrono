@@ -62,7 +62,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     // Create the trailing arm body. The reference frame of the arm body has its
     // x-axis aligned with the line between the arm-chassis connection point and
     // the arm-wheel connection point.
-    ChVector3d y_dir = susp_to_abs.GetA().GetAxisY();
+    ChVector3d y_dir = susp_to_abs.GetRotMat().GetAxisY();
     ChVector3d u = points[ARM_WHEEL] - points[ARM_CHASSIS];
     u.Normalize();
     ChVector3d w = Vcross(u, y_dir);
@@ -151,10 +151,10 @@ void ChTranslationalDamperSuspension::UpdateInertiaProperties() {
                            m_road_wheel->GetBody()->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
-    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
-    m_com.coord.rot = QUNIT;
+    m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.GetRot() = QUNIT;
 
-    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+    m_inertia = m_xform.GetRotMat().transpose() * composite.GetInertia() * m_xform.GetRotMat();
 }
 
 double ChTranslationalDamperSuspension::GetCarrierAngle() const {

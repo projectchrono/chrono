@@ -124,7 +124,7 @@ std::shared_ptr<ChLinkLockRevolute> AddRevoluteJoint(std::shared_ptr<ChBodyAuxRe
     ChFrame<> X_GC = X_GP * X_PC;                                       // global -> child
 
     auto joint = chrono_types::make_shared<ChLinkLockRevolute>();
-    joint->Initialize(body_1, body_2, ChCoordsys<>(X_GC.GetCoord().pos, X_GC.GetCoord().rot));
+    joint->Initialize(body_1, body_2, ChCoordsys<>(X_GC.GetCsys().pos, X_GC.GetCsys().rot));
     chassis->GetBody()->GetSystem()->AddLink(joint);
 
     return joint;
@@ -204,7 +204,7 @@ void CuriosityPart::Construct(ChSystem* system) {
     if (m_visualize) {
         auto vis_mesh_file = GetChronoDataFile("robot/curiosity/obj/" + m_mesh_name + ".obj");
         auto trimesh_vis = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);
-        trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+        trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
         trimesh_vis->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -219,7 +219,7 @@ void CuriosityPart::Construct(ChSystem* system) {
     if (m_collide) {
         auto col_mesh_file = GetChronoDataFile("robot/curiosity/col/" + m_mesh_name + ".obj");
         auto trimesh_col = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(col_mesh_file, false, false);
-        trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+        trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
         trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
         auto shape =
@@ -235,7 +235,7 @@ void CuriosityPart::Construct(ChSystem* system) {
 void CuriosityPart::CalcMassProperties(double density) {
     auto mesh_filename = GetChronoDataFile("robot/curiosity/col/" + m_mesh_name + ".obj");
     auto trimesh_col = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false, false);
-    trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+    trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
     trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
     double vol;

@@ -467,8 +467,8 @@ void ChContactTriangleXYZROT::ComputeJacobianForContactPart(const ChVector3d& ab
     double s2, s3;
     bool is_into;
     ChVector3d p_projected;
-    /*double dist =*/utils::PointTriangleDistance(abs_point, GetNode(0)->coord.pos, GetNode(1)->coord.pos,
-                                                  GetNode(2)->coord.pos, s2, s3, is_into, p_projected);
+    /*double dist =*/utils::PointTriangleDistance(abs_point, GetNode(0)->GetPos(), GetNode(1)->GetPos(),
+                                                  GetNode(2)->GetPos(), s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
 
     ChMatrix33<> Jx1 = contact_plane.transpose();
@@ -630,14 +630,14 @@ void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyzrot> node1,
     contact_triangle->SetContactSurface(this);
 
     auto tri_shape = chrono_types::make_shared<ChCollisionShapeMeshTriangle>(
-        m_material,                                               // contact material
-        &node1->coord.pos, &node2->coord.pos, &node3->coord.pos,  // face nodes
-        edge_node1 ? &edge_node1->coord.pos : &node1->coord.pos,  // edge node 1
-        edge_node2 ? &edge_node2->coord.pos : &node2->coord.pos,  // edge node 2
-        edge_node3 ? &edge_node3->coord.pos : &node3->coord.pos,  // edge node 3
-        owns_node1, owns_node2, owns_node3,                       // face owns nodes?
-        owns_edge1, owns_edge2, owns_edge3,                       // face owns edges?
-        sphere_swept                                              // thickness
+        m_material,                                             // contact material
+        &node1->GetPos(), &node2->GetPos(), &node3->GetPos(),   // face nodes
+        edge_node1 ? &edge_node1->GetPos() : &node1->GetPos(),  // edge node 1
+        edge_node2 ? &edge_node2->GetPos() : &node2->GetPos(),  // edge node 2
+        edge_node3 ? &edge_node3->GetPos() : &node3->GetPos(),  // edge node 3
+        owns_node1, owns_node2, owns_node3,                     // face owns nodes?
+        owns_edge1, owns_edge2, owns_edge3,                     // face owns edges?
+        sphere_swept                                            // thickness
     );
     contact_triangle->AddCollisionShape(tri_shape);
 

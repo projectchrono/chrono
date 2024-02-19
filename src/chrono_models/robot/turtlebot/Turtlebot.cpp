@@ -77,7 +77,7 @@ void AddRevoluteJoint(std::shared_ptr<ChBodyAuxRef> body_1,
     ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
 
     auto revo = chrono_types::make_shared<ChLinkLockRevolute>();
-    revo->Initialize(body_1, body_2, ChCoordsys<>(X_GC.GetCoord().pos, X_GC.GetCoord().rot));
+    revo->Initialize(body_1, body_2, ChCoordsys<>(X_GC.GetCsys().pos, X_GC.GetCsys().rot));
     system->AddLink(revo);
 }
 
@@ -94,7 +94,7 @@ void AddRevoluteJoint(std::shared_ptr<ChBodyEasyBox> body_1,
     ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
 
     auto revo = chrono_types::make_shared<ChLinkLockRevolute>();
-    revo->Initialize(body_1, body_2, ChCoordsys<>(X_GC.GetCoord().pos, X_GC.GetCoord().rot));
+    revo->Initialize(body_1, body_2, ChCoordsys<>(X_GC.GetCsys().pos, X_GC.GetCsys().rot));
     system->AddLink(revo);
 }
 
@@ -112,7 +112,7 @@ void AddLockJoint(std::shared_ptr<ChBodyAuxRef> body_1,
 
     // auto revo = chrono_types::make_shared<ChLinkLockRevolute>();
     auto revo = chrono_types::make_shared<ChLinkLockLock>();
-    revo->Initialize(body_1, body_2, ChCoordsys<>(X_GC.GetCoord().pos, X_GC.GetCoord().rot));
+    revo->Initialize(body_1, body_2, ChCoordsys<>(X_GC.GetCsys().pos, X_GC.GetCsys().rot));
     system->AddLink(revo);
 }
 
@@ -130,7 +130,7 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBody> body_
     ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
 
     auto motor_angle = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    motor_angle->Initialize(body_1, body_2, ChFrame<>(X_GC.GetCoord().pos, X_GC.GetCoord().rot));
+    motor_angle->Initialize(body_1, body_2, ChFrame<>(X_GC.GetCsys().pos, X_GC.GetCsys().rot));
     system->AddLink(motor_angle);
     motor_angle->SetSpeedFunction(speed_func);
     return motor_angle;

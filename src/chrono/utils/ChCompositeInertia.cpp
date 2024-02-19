@@ -51,7 +51,7 @@ void CompositeInertia::AddComponent(
     bool is_void                  // indicate if sub-component represents a material void
     ) {
     const ChVector3d& com = frame.GetPos();
-    const ChMatrix33<>& A = frame.GetA();
+    const ChMatrix33<>& A = frame.GetRotMat();
 
     double sign = is_void ? -1 : +1;
 

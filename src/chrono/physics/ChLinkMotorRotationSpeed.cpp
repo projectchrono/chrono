@@ -77,12 +77,12 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
         this->P = 0.5 * (ChMatrix33<>(aframe1rotating2.GetRot().e0()) +
                          ChStarMatrix33<>(aframe1rotating2.GetRot().GetVector()));
 
-        ChMatrix33<> Jw1 = this->P.transpose() * aframe2.GetA().transpose() * Body1->GetA();
-        ChMatrix33<> Jw2 = -this->P.transpose() * aframe2.GetA().transpose() * Body2->GetA();
+        ChMatrix33<> Jw1 = this->P.transpose() * aframe2.GetRotMat().transpose() * Body1->GetRotMat();
+        ChMatrix33<> Jw2 = -this->P.transpose() * aframe2.GetRotMat().transpose() * Body2->GetRotMat();
 
         // Another equivalent expression:
-        // ChMatrix33<> Jw1 = this->P * aframe1rotating.GetA().transpose() * Body1->GetA();
-        // ChMatrix33<> Jw2 = -this->P * aframe1rotating.GetA().transpose() * Body2->GetA();
+        // ChMatrix33<> Jw1 = this->P * aframe1rotating.GetRotMat().transpose() * Body1->GetRotMat();
+        // ChMatrix33<> Jw2 = -this->P * aframe1rotating.GetRotMat().transpose() * Body2->GetRotMat();
 
         int nc = 0;
 
@@ -127,14 +127,14 @@ void ChLinkMotorRotationSpeed::KRMmatricesLoad(double Kfactor, double Rfactor, d
         return;
 
     if (this->Kmatr) {
-        ChMatrix33<> R_B1_W = Body1->GetA();
-        ChMatrix33<> R_B2_W = Body2->GetA();
-        // ChMatrix33<> R_F1_B1 = frame1.GetA();
-        // ChMatrix33<> R_F2_B2 = frame2.GetA();
+        ChMatrix33<> R_B1_W = Body1->GetRotMat();
+        ChMatrix33<> R_B2_W = Body2->GetRotMat();
+        // ChMatrix33<> R_F1_B1 = frame1.GetRotMat();
+        // ChMatrix33<> R_F2_B2 = frame2.GetRotMat();
         ChFrame<> F1_W = this->frame1 >> (*this->Body1);
         ChFrame<> F2_W = this->frame2 >> (*this->Body2);
-        ChMatrix33<> R_F1_W = F1_W.GetA();
-        ChMatrix33<> R_F2_W = F2_W.GetA();
+        ChMatrix33<> R_F1_W = F1_W.GetRotMat();
+        ChMatrix33<> R_F2_W = F2_W.GetRotMat();
         ChVector3d P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
         // ChFrame<> F1_wrt_F2;
         // F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);

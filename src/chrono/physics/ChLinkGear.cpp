@@ -61,7 +61,7 @@ ChVector3d ChLinkGear::Get_shaft_dir1() const {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
-        return absframe.GetA().GetAxisZ();
+        return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
@@ -70,7 +70,7 @@ ChVector3d ChLinkGear::Get_shaft_dir2() const {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
-        return absframe.GetA().GetAxisZ();
+        return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
@@ -122,8 +122,8 @@ void ChLinkGear::UpdateTime(double mytime) {
     double dist = Vlength(vbdist);
 
     // compute actual rotation of the two wheels (relative to truss).
-    ChVector3d md1 = abs_shaft1.GetA().transpose() * (-vbdist);
-    ChVector3d md2 = abs_shaft2.GetA().transpose() * (-vbdist);
+    ChVector3d md1 = abs_shaft1.GetRotMat().transpose() * (-vbdist);
+    ChVector3d md2 = abs_shaft2.GetRotMat().transpose() * (-vbdist);
 
     double periodic_a1 = std::atan2(md1.y(), md1.x());
     double periodic_a2 = std::atan2(md2.y(), md2.x());
@@ -237,9 +237,9 @@ void ChLinkGear::UpdateTime(double mytime) {
         vrota.x() = vrota.y() = 0.0;
         vrota.z() = -m_delta;
         mrotma.SetFromCardanAnglesXYZ(vrota);  // rotate about Z of shaft to correct
-        mmark1 = abs_shaft1.GetA().transpose() * (mmark1 - Get_shaft_pos1());
+        mmark1 = abs_shaft1.GetRotMat().transpose() * (mmark1 - Get_shaft_pos1());
         mmark1 = mrotma * mmark1;
-        mmark1 = abs_shaft1.GetA() * mmark1 + Get_shaft_pos1();
+        mmark1 = abs_shaft1.GetRotMat() * mmark1 + Get_shaft_pos1();
     }
     // Move Shaft 1 along its direction if not aligned to wheel
     double offset = Vdot(Get_shaft_dir1(), (contact_pt - Get_shaft_pos1()));

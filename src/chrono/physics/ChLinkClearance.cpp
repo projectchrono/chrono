@@ -64,7 +64,7 @@ double ChLinkClearance::Get_axis_phase() {
         return 0;
     double mangle;
     ChVector3d maxis;
-    GetMarker2()->GetCoord().rot.GetAngleAxis(mangle, maxis);
+    GetMarker2()->GetCsys().rot.GetAngleAxis(mangle, maxis);
     if (maxis.z() < 0.0) {
         maxis = Vmul(maxis, -1.0);
         mangle = (2.0 * CH_C_PI) - mangle;
@@ -118,8 +118,8 @@ void ChLinkClearance::UpdateForces(double mytime) {
 
     if (mask.Constr_X().IsActive()) {
         ChVector3d temp = Get_contact_P_abs();
-        ChVector3d pb1 = ((ChFrame<double>*)Body1)->TransformParentToLocal(temp);
-        ChVector3d pb2 = ((ChFrame<double>*)Body2)->TransformParentToLocal(temp);
+        ChVector3d pb1 = ((ChFrame<double>*)Body1)->TransformPointParentToLocal(temp);
+        ChVector3d pb2 = ((ChFrame<double>*)Body2)->TransformPointParentToLocal(temp);
         ChVector3d m_V1_abs = Body1->PointSpeedLocalToParent(pb1);
         ChVector3d m_V2_abs = Body2->PointSpeedLocalToParent(pb2);
         contact_V_abs = Vsub(m_V1_abs, m_V2_abs);

@@ -66,7 +66,7 @@ ChAdaptiveSpeedController::~ChAdaptiveSpeedController() {
 }
 
 void ChAdaptiveSpeedController::Reset(const ChFrameMoving<>& ref_frame) {
-    m_speed = Vdot(ref_frame.GetPos_dt(), ref_frame.GetA().GetAxisX());
+    m_speed = Vdot(ref_frame.GetPos_dt(), ref_frame.GetRotMat().GetAxisX());
     m_err = 0;
     m_erri = 0;
     m_errd = 0;
@@ -80,7 +80,7 @@ double ChAdaptiveSpeedController::Advance(const ChFrameMoving<>& ref_frame,
                                           double time,
                                           double step) {
     // Current vehicle speed.
-    m_speed = Vdot(ref_frame.GetPos_dt(), ref_frame.GetA().GetAxisX());
+    m_speed = Vdot(ref_frame.GetPos_dt(), ref_frame.GetRotMat().GetAxisX());
 
     double desired_gap = target_speed / target_following_time;
     double distance = current_distance;

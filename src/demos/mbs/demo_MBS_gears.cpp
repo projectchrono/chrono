@@ -204,13 +204,13 @@ int main(int argc, char* argv[]) {
         // .. draw also some circle lines representing gears - just for aesthetical reasons
 
         tools::drawCircle(vis.get(), link_gearBC->Get_r2(),
-                          (link_gearBC->Get_local_shaft2() >> *link_gearBC->GetBody2()).GetCoord(), ChColor(1, 0, 0),
+                          (link_gearBC->Get_local_shaft2() >> *link_gearBC->GetBody2()).GetCsys(), ChColor(1, 0, 0),
                           50, true);
         tools::drawCircle(vis.get(), link_gearAD->Get_r1(),
-                          (link_gearAD->Get_local_shaft1() >> *link_gearAD->GetBody1()).GetCoord(), ChColor(1, 0, 0),
+                          (link_gearAD->Get_local_shaft1() >> *link_gearAD->GetBody1()).GetCsys(), ChColor(1, 0, 0),
                           30, true);
         tools::drawCircle(vis.get(), link_gearAD->Get_r2(),
-                          (link_gearAD->Get_local_shaft2() >> *link_gearAD->GetBody2()).GetCoord(), ChColor(1, 0, 0),
+                          (link_gearAD->Get_local_shaft2() >> *link_gearAD->GetBody2()).GetCsys(), ChColor(1, 0, 0),
                           30, true);
 
         tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAB->GetMarker2()->GetAbsCoord().pos, QUNIT));

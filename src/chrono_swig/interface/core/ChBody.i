@@ -11,7 +11,7 @@
 %csmethodmodifiers chrono::ChBody::SetRot "public"
 %csmethodmodifiers chrono::ChBody::GetPos "public"
 %csmethodmodifiers chrono::ChBody::GetRot "public"
-%csmethodmodifiers chrono::ChBody::GetA "public"
+%csmethodmodifiers chrono::ChBody::GetRotMat "public"
 %csmethodmodifiers chrono::ChBody::GetPhysicsItem "public"
 
 %csmethodmodifiers chrono::ChBody::SetPos_dt "public"
@@ -36,26 +36,26 @@
 %extend chrono::ChBody 
 {
 // Methods inherited from ChFrame
-void SetPos(const ChVector3<double>& p)      {$self->SetPos(p);}
+void SetPos(const ChVector3<double>& p)     {$self->SetPos(p);}
 void SetRot(const ChQuaternion<double>& q)  {$self->SetRot(q);}
 void SetRot(const ChMatrix33<double>& A)    {$self->SetRot(A);}
-const ChVector3<double>& GetPos() const      {return $self->GetPos();}
+const ChVector3<double>& GetPos() const     {return $self->GetPos();}
 const ChQuaternion<double>& GetRot() const  {return $self->GetRot();}
-const ChMatrix33<double>& GetA() const      {return $self->GetA();}
+const ChMatrix33<double>& GetRotMat() const {return $self->GetRotMat();}
 
 // Methods inherited from ChFrameMoving
-void SetPos_dt(const ChVector3<double>& pd)      {$self->SetPos_dt(pd);}
+void SetPos_dt(const ChVector3<double>& pd)     {$self->SetPos_dt(pd);}
 void SetRot_dt(const ChQuaternion<double>& qd)  {$self->SetRot_dt(qd);}
-void SetWvel_loc(const ChVector3<double>& wl)    {$self->SetWvel_loc(wl);}
-void SetWvel_par(const ChVector3<double>& wp)    {$self->SetWvel_par(wp);}
-const ChVector3<double>& GetPos_dt() const       {return $self->GetPos_dt();}
+void SetWvel_loc(const ChVector3<double>& wl)   {$self->SetWvel_loc(wl);}
+void SetWvel_par(const ChVector3<double>& wp)   {$self->SetWvel_par(wp);}
+const ChVector3<double>& GetPos_dt() const      {return $self->GetPos_dt();}
 const ChQuaternion<double>& GetRot_dt() const   {return $self->GetRot_dt();}
-ChVector3<double> GetWvel_loc() const            {return $self->GetWvel_loc();}
-ChVector3<double> GetWvel_par() const            {return $self->GetWvel_par();}
-const ChVector3<double>& GetPos_dtdt() const     {return $self->GetPos_dtdt();}
+ChVector3<double> GetWvel_loc() const           {return $self->GetWvel_loc();}
+ChVector3<double> GetWvel_par() const           {return $self->GetWvel_par();}
+const ChVector3<double>& GetPos_dtdt() const    {return $self->GetPos_dtdt();}
 const ChQuaternion<double>& GetRot_dtdt() const {return $self->GetRot_dtdt();}
-ChVector3<double> GetWacc_loc() const            {return $self->GetWacc_loc();}
-ChVector3<double> GetWacc_par() const            {return $self->GetWacc_par();}
+ChVector3<double> GetWacc_loc() const           {return $self->GetWacc_loc();}
+ChVector3<double> GetWacc_par() const           {return $self->GetWacc_par();}
 
 // Methods inherited from ChContactable
 void AddCollisionModel(std::shared_ptr<ChCollisionModel> model)                         {$self->AddCollisionModel(model);}

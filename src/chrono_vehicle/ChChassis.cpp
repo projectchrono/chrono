@@ -75,14 +75,14 @@ ChVector3d ChChassis::GetDriverPos() const {
 
 // Return the speed measured at the origin of the chassis reference frame.
 double ChChassis::GetSpeed() const {
-    const auto& x_dir = m_body->GetA().GetAxisX();
+    const auto& x_dir = m_body->GetRotMat().GetAxisX();
     const auto& vel = m_body->GetFrame_REF_to_abs().GetPos_dt();
     return Vdot(vel, x_dir);
 }
 
 // Return the speed measured at the chassis center of mass.
 double ChChassis::GetCOMSpeed() const {
-    const auto& x_dir = m_body->GetA().GetAxisX();
+    const auto& x_dir = m_body->GetRotMat().GetAxisX();
     const auto& vel = m_body->GetPos_dt();
     return Vdot(vel, x_dir);
 }
@@ -147,7 +147,7 @@ void ChChassis::AddMarker(const std::string& name, const ChCoordsys<>& pos) {
 
     // Note: marker local positions are assumed to be relative to the centroidal frame
     //       of the associated body.
-    auto pos_com = m_body->GetFrame_REF_to_COG().GetCoord().TransformLocalToParent(pos);
+    auto pos_com = m_body->GetFrame_REF_to_COG().GetCsys().TransformLocalToParent(pos);
 
     // Create the marker, attach it to the chassis body, add it to the list
     auto marker = chrono_types::make_shared<ChMarker>();

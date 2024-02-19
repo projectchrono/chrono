@@ -16,7 +16,6 @@
 #include <algorithm>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChIndexedParticles.h"
 #include "chrono/physics/ChSystem.h"
 

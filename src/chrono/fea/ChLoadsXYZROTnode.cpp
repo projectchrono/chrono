@@ -35,9 +35,9 @@ void ChLoadXYZROTnode::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     if (state_x) {
         // the numerical jacobian algo might change state_x
-        bodycoordA.SetCoord(state_x->segment(0, 7));
+        bodycoordA.SetCsys(state_x->segment(0, 7));
     } else {
-        bodycoordA.SetCoord(mnode->coord);
+        bodycoordA.SetCsys(mnode->GetCsys());
     }
 
     if (state_w) {
@@ -45,7 +45,7 @@ void ChLoadXYZROTnode::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         bodycoordA.SetPos_dt(state_w->segment(0, 3));
         bodycoordA.SetWvel_loc(state_w->segment(3, 3));
     } else {
-        bodycoordA.SetCoord_dt(mnode->GetCoord_dt());
+        bodycoordA.SetCsysDer(mnode->GetCsysDer());
     }
 
     ComputeForceTorque(bodycoordA, computed_abs_force, computed_abs_torque);
@@ -53,7 +53,7 @@ void ChLoadXYZROTnode::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     // Compute Q
     load_Q.segment(0, 3) = computed_abs_force.eigen();
     load_Q.segment(3, 3) =
-        (bodycoordA.coord.rot.RotateBack(computed_abs_torque)).eigen();  // because Q expect torque in local frame
+        (bodycoordA.GetRot().RotateBack(computed_abs_torque)).eigen();  // because Q expect torque in local frame
 }
 
 void ChLoadXYZROTnode::Update(double time) {
@@ -111,11 +111,11 @@ void ChLoadXYZROTnodeXYZROTnode::ComputeQ(ChState* state_x, ChStateDelta* state_
     ChFrameMoving<> bodycoordA, bodycoordB;
     if (state_x) {
         // the numerical jacobian algo might change state_x
-        bodycoordA.SetCoord(state_x->segment(0, 7));
-        bodycoordB.SetCoord(state_x->segment(7, 7));
+        bodycoordA.SetCsys(state_x->segment(0, 7));
+        bodycoordB.SetCsys(state_x->segment(7, 7));
     } else {
-        bodycoordA.SetCoord(mbodyA->coord);
-        bodycoordB.SetCoord(mbodyB->coord);
+        bodycoordA.SetCsys(mbodyA->GetCsys());
+        bodycoordB.SetCsys(mbodyB->GetCsys());
     }
 
     if (state_w) {
@@ -125,8 +125,8 @@ void ChLoadXYZROTnodeXYZROTnode::ComputeQ(ChState* state_x, ChStateDelta* state_
         bodycoordB.SetPos_dt(state_w->segment(6, 3));
         bodycoordB.SetWvel_loc(state_w->segment(9, 3));
     } else {
-        bodycoordA.SetCoord_dt(mbodyA->GetCoord_dt());
-        bodycoordB.SetCoord_dt(mbodyB->GetCoord_dt());
+        bodycoordA.SetCsysDer(mbodyA->GetCsysDer());
+        bodycoordB.SetCsysDer(mbodyB->GetCsysDer());
     }
 
     frame_Aw = ChFrameMoving<>(loc_application_A) >> bodycoordA;
@@ -334,11 +334,11 @@ void ChLoadXYZROTnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     ChFrameMoving<> bodycoordA, bodycoordB;
     if (state_x) {
         // the numerical jacobian algo might change state_x
-        bodycoordA.SetCoord(state_x->segment(0, 7));
-        bodycoordB.SetCoord(state_x->segment(7, 7));
+        bodycoordA.SetCsys(state_x->segment(0, 7));
+        bodycoordB.SetCsys(state_x->segment(7, 7));
     } else {
-        bodycoordA.SetCoord(mbodyA->coord);
-        bodycoordB.SetCoord(mbodyB->coord);
+        bodycoordA.SetCsys(mbodyA->GetCsys());
+        bodycoordB.SetCsys(mbodyB->GetCsys());
     }
 
     if (state_w) {
@@ -348,8 +348,8 @@ void ChLoadXYZROTnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         bodycoordB.SetPos_dt(state_w->segment(6, 3));
         bodycoordB.SetWvel_loc(state_w->segment(9, 3));
     } else {
-        bodycoordA.SetCoord_dt(mbodyA->GetCoord_dt());
-        bodycoordB.SetCoord_dt(mbodyB->GetCoord_dt());
+        bodycoordA.SetCsysDer(mbodyA->GetCsysDer());
+        bodycoordB.SetCsysDer(mbodyB->GetCsysDer());
     }
 
     frame_Aw = ChFrameMoving<>(loc_application_A) >> bodycoordA;

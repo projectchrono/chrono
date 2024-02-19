@@ -56,7 +56,7 @@ int ChLinkPointFrameGeneric::Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///
     constraint2.SetVariables(&(node->Variables()), &(body->Variables()));
     constraint3.SetVariables(&(node->Variables()), &(body->Variables()));
 
-    m_csys = m_body->GetCoord().TransformParentToLocal(csys_abs);
+    m_csys = m_body->GetCsys().TransformParentToLocal(csys_abs);
 
     return true;
 }

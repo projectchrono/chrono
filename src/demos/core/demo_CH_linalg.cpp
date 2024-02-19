@@ -18,7 +18,6 @@
 
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrixMBD.h"
-#include "chrono/core/ChTransform.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChRotation.h"
 
@@ -220,7 +219,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Semi-negate X:\n" << X << std::endl;
     }
 
-    std::cout << "\n=== Use of ChTransform ===\n" << std::endl;
+    std::cout << "\n=== Frame transformations ===\n" << std::endl;
     {
         chrono::ChVector3d vl(2, 3, 4);        // local point to transform
         chrono::ChVector3d t(5, 6, 7);         // translation of coord system
@@ -232,19 +231,14 @@ int main(int argc, char* argv[]) {
 
         // Perform the transformation: v = t + [R] * v'
         // NOTE: all the following ways will give the same result, so you can use them equivalently!
-        auto va1 = chrono::ChTransform<>::TransformLocalToParent(vl, t, R);
-        auto va2 = chrono::ChTransform<>::TransformLocalToParent(vl, t, q);
-        auto va3 = csys.TransformLocalToParent(vl);
-        auto va4 = t + R * vl;
-        std::cout << va2.Equals(va1, 1e-6) << " " << va3.Equals(va1, 1e-6) << " " << va4.Equals(va1, 1e-6) << std::endl;
+        auto va1 = csys.TransformLocalToParent(vl);
+        auto va2 = t + R * vl;
+        std::cout << va1.Equals(va2, 1e-6) << std::endl;
 
         // Inverse transformation
-        auto vl1 = chrono::ChTransform<>::TransformParentToLocal(va1, t, q);
-        auto vl2 = chrono::ChTransform<>::TransformParentToLocal(va1, t, R);
         auto vl3 = csys.TransformParentToLocal(va1);
         auto vl4 = R.transpose() * (va1 - t);
-        std::cout << vl1.Equals(vl, 1e-6) << " " << vl2.Equals(vl, 1e-6) << " " << vl3.Equals(vl, 1e-6) << " "
-                  << vl4.Equals(vl, 1e-6) << std::endl;
+        std::cout << vl3.Equals(vl, 1e-6) << " " << vl4.Equals(vl, 1e-6) << std::endl;
     }
 
     std::cout << "\n=== Linear systems ===\n" << std::endl;

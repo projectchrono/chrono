@@ -18,7 +18,6 @@
 
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrixMBD.h"
-#include "chrono/core/ChTransform.h"
 #include "chrono/core/ChRotation.h"
 
 #include "gtest/gtest.h"

@@ -153,8 +153,8 @@ void ChElementShellReissner4::UpdateNodalAndAveragePosAndOrientation() {
     T_avg.setZero();
     for (int i = 0; i < NUMNODES; i++) {
         xa[i] = this->m_nodes[i]->GetPos();
-        Tn[i] = this->m_nodes[i]->GetA() * iTa[i];
-        T_avg += this->m_nodes[i]->GetA() * iTa[i];  //***TODO*** use predicted rot?
+        Tn[i] = this->m_nodes[i]->GetRotMat() * iTa[i];
+        T_avg += this->m_nodes[i]->GetRotMat() * iTa[i];  //***TODO*** use predicted rot?
     }
     T_avg *= 0.25;
     T_overline = rotutils::Rot(rotutils::VecRot(T_avg));
@@ -198,7 +198,7 @@ void ChElementShellReissner4::ComputeInitialNodeOrientation() {
         t3 = t3 / t3.Length();
         t2 = Vcross(t3, t1);
         ChMatrix33<> t123(t1, t2, t3);
-        iTa[i] = m_nodes[i]->GetA().transpose() * t123;
+        iTa[i] = m_nodes[i]->GetRotMat().transpose() * t123;
     }
     for (int i = 0; i < NUMIP; i++) {
         iTa_i[i] = ChMatrix33<>(1);
@@ -574,12 +574,10 @@ void ChElementShellReissner4::SetupInitial(ChSystem* system) {
     }
 
     // compute initial sizes (just for auxiliary information)
-    m_lenX =
-        (0.5 * (GetNodeA()->coord.pos + GetNodeD()->coord.pos) - 0.5 * (GetNodeB()->coord.pos + GetNodeC()->coord.pos))
-            .Length();
-    m_lenY =
-        (0.5 * (GetNodeA()->coord.pos + GetNodeB()->coord.pos) - 0.5 * (GetNodeD()->coord.pos + GetNodeC()->coord.pos))
-            .Length();
+    m_lenX = (0.5 * (GetNodeA()->GetPos() + GetNodeD()->GetPos()) - 0.5 * (GetNodeB()->GetPos() + GetNodeC()->GetPos()))
+                 .Length();
+    m_lenY = (0.5 * (GetNodeA()->GetPos() + GetNodeB()->GetPos()) - 0.5 * (GetNodeD()->GetPos() + GetNodeC()->GetPos()))
+                 .Length();
 
     // Compute mass matrix
     ComputeMassMatrix();
@@ -669,7 +667,7 @@ void ChElementShellReissner4::ComputeMassMatrix() {
         // ang.vel in loc sys)
         // I' = A'* T * I * T' * A
         //    = Rot * I * Rot'
-        ChMatrix33<> Rot = m_nodes[n]->GetA().transpose() * T_i[igp];
+        ChMatrix33<> Rot = m_nodes[n]->GetRotMat().transpose() * T_i[igp];
         ChMatrix33<> Rot_I(Rot * box_inertia);
         ChMatrix33<> inertia_n;
         inertia_n = Rot_I * Rot.transpose();
@@ -721,14 +719,14 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
             block = T_i[i] * L_alpha_beta_i[i](n, 0);
             B_overline_i[i].block(0, 6 * n, 3, 3) = block.transpose();
             block = T_i[i].transpose() * myi_1_X * Phi_Delta_i_n_LI_i;
-            block = block * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            block = block * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
             B_overline_i[i].block(0, 3 + 6 * n, 3, 3) = block;
 
             // delta epsilon_tilde_2_i
             block = T_i[i] * L_alpha_beta_i[i](n, 1);
             B_overline_i[i].block(3, 6 * n, 3, 3) = block.transpose();
             block = T_i[i].transpose() * myi_2_X * Phi_Delta_i_n_LI_i;
-            block = block * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            block = block * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
             B_overline_i[i].block(3, 3 + 6 * n, 3, 3) = block;
 
             ChVector3d phi_tilde_1_i;
@@ -737,12 +735,12 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 
             // delta k_tilde_1_i
             block = T_i[i].transpose() * mk_1_X * Phi_Delta_i_n_LI_i + T_i[i].transpose() * Kappa_delta_i_1[i][n];
-            block = block * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            block = block * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
             B_overline_i[i].block(6, 3 + 6 * n, 3, 3) = block;
 
             // delta k_tilde_2_i
             block = T_i[i].transpose() * mk_2_X * Phi_Delta_i_n_LI_i + T_i[i].transpose() * Kappa_delta_i_2[i][n];
-            block = block * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            block = block * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
             B_overline_i[i].block(9, 3 + 6 * n, 3, 3) = block;
 
             // delta y_alpha_1
@@ -754,15 +752,15 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
             D_overline_i[i].block(3, 6 * n, 3, 3) = block;
 
             // delta k_1_i
-            block = Kappa_delta_i_1[i][n] * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            block = Kappa_delta_i_1[i][n] * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
             D_overline_i[i].block(6, 3 + 6 * n, 3, 3) = block;
 
             // delta k_2_i
-            block = Kappa_delta_i_2[i][n] * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            block = Kappa_delta_i_2[i][n] * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
             D_overline_i[i].block(9, 3 + 6 * n, 3, 3) = block;
 
             // phi_delta
-            block = Phi_Delta_i_n_LI_i * m_nodes[n]->GetA();  //***NEEDED because rotations are body-relative
+            block = Phi_Delta_i_n_LI_i * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
             D_overline_i[i].block(12, 3 + 6 * n, 3, 3) = block;
         }
     }
@@ -793,14 +791,14 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
             block = T_A[i].transpose() * L_alpha_beta_A[i](n, 0);
             B_overline_A.block(0, 6 * n, 3, 3) = block;
             block = T_A[i].transpose() * myA_1_X * Phi_Delta_A_n_LI_i;
-            block = block * this->m_nodes[n]->GetA();  //***NEEDED because in chrono rotations are body-relative
+            block = block * this->m_nodes[n]->GetRotMat();  //***NEEDED because in chrono rotations are body-relative
             B_overline_A.block(0, 3 + 6 * n, 3, 3) = block;
 
             // delta epsilon_tilde_2_A
             block = T_A[i].transpose() * L_alpha_beta_A[i](n, 1);
             B_overline_A.block(3, 6 * n, 3, 3) = block;
             block = T_A[i].transpose() * myA_2_X * Phi_Delta_A_n_LI_i;
-            block = block * this->m_nodes[n]->GetA();  //***NEEDED because in chrono rotations are body-relative
+            block = block * this->m_nodes[n]->GetRotMat();  //***NEEDED because in chrono rotations are body-relative
             B_overline_A.block(3, 3 + 6 * n, 3, 3) = block;
         }
 

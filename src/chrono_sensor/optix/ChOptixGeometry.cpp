@@ -609,11 +609,11 @@ void ChOptixGeometry::RebuildRootStructure() {
         // update the motion transforms
         const ChFrame<double> f_start = m_obj_body_frames_start[i] * m_obj_asset_frames[i];
         const ChVector3d pos_start = f_start.GetPos() - m_origin_offset;
-        const ChMatrix33<double> rot_mat_start = f_start.Amatrix;
+        const ChMatrix33<double> rot_mat_start = f_start.GetRotMat();
 
         const ChFrame<double> f_end = m_obj_body_frames_end[i] * m_obj_asset_frames[i];
         const ChVector3d pos_end = f_end.GetPos() - m_origin_offset;
-        const ChMatrix33<double> rot_mat_end = f_end.Amatrix;
+        const ChMatrix33<double> rot_mat_end = f_end.GetRotMat();
 
         m_motion_transforms[i].motionOptions.timeBegin = m_start_time;  // default at start, will be updated
         m_motion_transforms[i].motionOptions.timeEnd = m_end_time;      // default at start, will be updated

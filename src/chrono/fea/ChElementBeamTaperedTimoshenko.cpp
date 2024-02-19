@@ -918,7 +918,7 @@ void ChElementBeamTaperedTimoshenko::SetupInitial(ChSystem* system) {
     ChMatrix33<> A0;
     ChVector3d mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
     ChVector3d myele =
-        (nodes[0]->GetX0().GetA().GetAxisY() + nodes[1]->GetX0().GetA().GetAxisY()).GetNormalized();
+        (nodes[0]->GetX0().GetRotMat().GetAxisY() + nodes[1]->GetX0().GetRotMat().GetAxisY()).GetNormalized();
     A0.SetFromAxisX(mXele, myele);
     q_element_ref_rot = A0.GetQuaternion();
 
@@ -1065,13 +1065,13 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
             for (int i = 0; i < nodes.size(); ++i) {
                 int stride = i * 6;
                 // corotate the local damping and stiffness matrices (at once, already scaled) into absolute one
-                // H.block<3, 3>(stride,   stride  ) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0,0) *
-                // (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(0,0) is null by
+                // H.block<3, 3>(stride,   stride  ) += nodes[i]->GetRotMat() * KRi_loc.block<3, 3>(0,0) *
+                // (nodes[i]->GetRotMat().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(0,0) is null by
                 // construction
                 H.block<3, 3>(stride + 3, stride + 3) += KRi_loc.block<3, 3>(3, 3);
-                H.block<3, 3>(stride, stride + 3) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0, 3);
+                H.block<3, 3>(stride, stride + 3) += nodes[i]->GetRotMat() * KRi_loc.block<3, 3>(0, 3);
                 // H.block<3, 3>(stride+3, stride)   +=                    KRi_loc.block<3, 3>(3,0) *
-                // (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(3,0) is null by
+                // (nodes[i]->GetRotMat().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(3,0) is null by
                 // construction
             }
         }
@@ -1101,7 +1101,7 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
                 Mloc.block<3, 3>(stride, stride) += this->M.block<3, 3>(stride, stride) * node_multiplier_fact;
                 Mloc.block<3, 3>(stride + 3, stride + 3) +=
                     this->M.block<3, 3>(stride + 3, stride + 3) * node_multiplier_fact;
-                Mxw = nodes[i]->GetA() * this->M.block<3, 3>(stride, stride + 3) * node_multiplier_fact;
+                Mxw = nodes[i]->GetRotMat() * this->M.block<3, 3>(stride, stride + 3) * node_multiplier_fact;
                 Mloc.block<3, 3>(stride, stride + 3) += Mxw;
                 Mloc.block<3, 3>(stride + 3, stride) += Mxw.transpose();
             }
@@ -1195,7 +1195,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
             this->tapered_section->GetSectionB()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
         }
         ChQuaternion<> q_i(nodes[i]->GetRot());
-        Fi.segment(i * 6, 3) -= node_multiplier * (nodes[i]->GetA() * mFcent_i).eigen();
+        Fi.segment(i * 6, 3) -= node_multiplier * (nodes[i]->GetRotMat() * mFcent_i).eigen();
         Fi.segment(3 + i * 6, 3) -= node_multiplier * mTgyro_i.eigen();
     }
 
@@ -1309,7 +1309,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
                                                                             nodes[i]->GetWvel_loc());
             }
             ChQuaternion<> q_i(nodes[i]->GetRot());
-            Fi.segment(i * 6, 3) -= node_multiplier * (nodes[i]->GetA() * mFcent_i).eigen();
+            Fi.segment(i * 6, 3) -= node_multiplier * (nodes[i]->GetRotMat() * mFcent_i).eigen();
             Fi.segment(3 + i * 6, 3) -= node_multiplier * mTgyro_i.eigen();
         }
     }

@@ -52,8 +52,8 @@ void ChLinkRSDA::Initialize(std::shared_ptr<ChBody> body1, std::shared_ptr<ChBod
     Body1 = body1.get();
     Body2 = body2.get();
 
-    m_csys1 = Body1->GetCoord().TransformParentToLocal(csys);
-    m_csys2 = Body2->GetCoord().TransformParentToLocal(csys);
+    m_csys1 = Body1->GetCsys().TransformParentToLocal(csys);
+    m_csys2 = Body2->GetCsys().TransformParentToLocal(csys);
 
     CalcAngle();
     m_last_angle = m_angle;
@@ -73,8 +73,8 @@ void ChLinkRSDA::Initialize(std::shared_ptr<ChBody> body1,
         m_csys1 = csys1;
         m_csys2 = csys2;
     } else {
-        m_csys1 = Body1->GetCoord().TransformParentToLocal(csys1);
-        m_csys2 = Body2->GetCoord().TransformParentToLocal(csys2);
+        m_csys1 = Body1->GetCsys().TransformParentToLocal(csys1);
+        m_csys2 = Body2->GetCsys().TransformParentToLocal(csys2);
     }
 
     CalcAngle();
@@ -121,7 +121,7 @@ ChCoordsys<> ChLinkRSDA::GetLinkRelativeCoords() {
 }
 
 ChFrame<> ChLinkRSDA::GetVisualModelFrame(unsigned int nclone) {
-    return ChFrame<>(m_csys1 >> Body1->GetCoord());
+    return ChFrame<>(m_csys1 >> Body1->GetCsys());
 }
 
 // -----------------------------------------------------------------------------

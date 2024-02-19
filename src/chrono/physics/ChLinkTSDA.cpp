@@ -114,12 +114,12 @@ void ChLinkTSDA::ComputeQ(double time,                  // current time
 ) {
     // Extract states and state derivatives for the two connected bodies
     ChFrameMoving<> bframe1;
-    bframe1.SetCoord(state_x.segment(0, 7));
+    bframe1.SetCsys(state_x.segment(0, 7));
     bframe1.SetPos_dt(state_w.segment(0, 3));
     bframe1.SetWvel_loc(state_w.segment(3, 3));
 
     ChFrameMoving<> bframe2;
-    bframe2.SetCoord(state_x.segment(7, 7));
+    bframe2.SetCsys(state_x.segment(7, 7));
     bframe2.SetPos_dt(state_w.segment(6, 3));
     bframe2.SetWvel_loc(state_w.segment(9, 3));
 
@@ -148,13 +148,13 @@ void ChLinkTSDA::ComputeQ(double time,                  // current time
     ChVector3d Cforce = m_force * dir;
 
     // Load forcing terms acting on body1 (applied force is Cforce).
-    auto atorque1 = Vcross(m_aloc1 - bframe1.coord.pos, Cforce);        // applied torque (absolute frame)
+    auto atorque1 = Vcross(m_aloc1 - bframe1.GetPos(), Cforce);         // applied torque (absolute frame)
     auto ltorque1 = bframe1.TransformDirectionParentToLocal(atorque1);  // applied torque (local frame)
     Qforce.segment(0, 3) = Cforce.eigen();
     Qforce.segment(3, 3) = ltorque1.eigen();
 
     // Load forcing terms acting on body2 (applied force is -Cforce).
-    auto atorque2 = Vcross(m_aloc2 - bframe2.coord.pos, -Cforce);       // applied torque (absolute frame)
+    auto atorque2 = Vcross(m_aloc2 - bframe2.GetPos(), -Cforce);        // applied torque (absolute frame)
     auto ltorque2 = bframe2.TransformDirectionParentToLocal(atorque2);  // applied torque (local frame)
     Qforce.segment(6, 3) = -Cforce.eigen();
     Qforce.segment(9, 3) = ltorque2.eigen();

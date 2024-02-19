@@ -371,13 +371,13 @@ void ChTrackedVehicle::UpdateInertiaProperties() {
     m_tracks[1]->AddInertiaProperties(com, inertia);
 
     // 3. Express vehicle COM frame relative to vehicle reference frame
-    m_com.coord.pos = GetTransform().TransformPointParentToLocal(com / GetMass());
-    m_com.coord.rot = GetTransform().GetRot();
+    m_com.GetPos() = GetTransform().TransformPointParentToLocal(com / GetMass());
+    m_com.GetRot() = GetTransform().GetRot();
 
     // 4. Express inertia relative to vehicle COM frame
     //    Notes: - vehicle COM frame aligned with vehicle frame
     //           - 'com' still scaled by total mass here
-    const ChMatrix33<>& A = GetTransform().GetA();
+    const ChMatrix33<>& A = GetTransform().GetRotMat();
     m_inertia = A.transpose() * (inertia - utils::CompositeInertia::InertiaShiftMatrix(com)) * A;
 }
 

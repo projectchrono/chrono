@@ -83,7 +83,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Transform the location of the axle body COM to absolute frame.
     ChVector3d axleCOM_local = getAxleTubeCOM();
-    ChVector3d axleCOM = suspension_to_abs.TransformLocalToParent(axleCOM_local);
+    ChVector3d axleCOM = suspension_to_abs.TransformPointLocalToParent(axleCOM_local);
 
     // Calculate end points on the axle body, expressed in the absolute frame
     // (for visualization)
@@ -120,7 +120,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the panhard rod body
     ChVector3d panCom_local = 0.5 * (getLocation(PANHARD_A) + getLocation(PANHARD_C));
-    ChVector3d panCom = suspension_to_abs.TransformLocalToParent(panCom_local);
+    ChVector3d panCom = suspension_to_abs.TransformPointLocalToParent(panCom_local);
     m_panhardRod = chrono_types::make_shared<ChBody>();
     m_panhardRod->SetNameString(m_name + "_panhardRod");
     m_panhardRod->SetPos(panCom);
@@ -130,14 +130,14 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     chassis->GetBody()->GetSystem()->AddBody(m_panhardRod);
 
     // fix panhard rod body to the axleTube
-    ChVector3d panAxl = suspension_to_abs.TransformLocalToParent(getLocation(PANHARD_A));
+    ChVector3d panAxl = suspension_to_abs.TransformPointLocalToParent(getLocation(PANHARD_A));
     m_panhardRod2Axle = chrono_types::make_shared<ChLinkLockSpherical>();
     m_panhardRod2Axle->SetNameString(m_name + "_panhardRod2Axle");
     m_panhardRod2Axle->Initialize(m_panhardRod, m_axleTube, ChCoordsys<>(panAxl, QUNIT));
     chassis->GetBody()->GetSystem()->AddLink(m_panhardRod2Axle);
 
     // fix panhard rod body to the chassis body
-    ChVector3d panCh = suspension_to_abs.TransformLocalToParent(getLocation(PANHARD_C));
+    ChVector3d panCh = suspension_to_abs.TransformPointLocalToParent(getLocation(PANHARD_C));
     m_panhardRod2Chassis = chrono_types::make_shared<ChLinkLockSpherical>();
     m_panhardRod2Chassis->SetNameString(m_name + "_panhardRod2Chassis");
     m_panhardRod2Chassis->Initialize(m_panhardRod, chassis->GetBody(), ChCoordsys<>(panCh, QUNIT));
@@ -148,9 +148,9 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector3d rel_pos = getLocation(static_cast<PointId>(i));
-        m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsL[i] = suspension_to_abs.TransformPointLocalToParent(rel_pos);
         rel_pos.y() = -rel_pos.y();
-        m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsR[i] = suspension_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
     // Initialize left and right sides.
@@ -244,10 +244,10 @@ void ChPushPipeAxle::UpdateInertiaProperties() {
     composite.AddComponent(m_axleTube->GetFrame_COG_to_abs(), getAxleTubeMass(), ChMatrix33<>(getAxleInertia()));
 
     // Express COM and inertia in subsystem reference frame
-    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
-    m_com.coord.rot = QUNIT;
+    m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.GetRot() = QUNIT;
 
-    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+    m_inertia = m_xform.GetRotMat().transpose() * composite.GetInertia() * m_xform.GetRotMat();
 }
 
 // -----------------------------------------------------------------------------
