@@ -65,6 +65,9 @@ void ChFialaTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     // Initialize contact patch state variables to 0
     m_states.kappa = 0;
     m_states.alpha = 0;
+
+    m_states.brx = 0;
+    m_states.bry = 0;
 }
 
 void ChFialaTire::Synchronize(double time, const ChTerrain& terrain) {
@@ -118,6 +121,8 @@ void ChFialaTire::Synchronize(double time, const ChTerrain& terrain) {
         m_states.vsy = 0;
         m_states.omega = 0;
         m_states.abs_vt = 0;
+        m_states.brx = 0;
+        m_states.bry = 0;
         m_states.disc_normal = ChVector<>(0, 0, 0);
     }
 }
@@ -140,7 +145,6 @@ void ChFialaTire::Advance(double step) {
     //  m_states.kappa_l = 0;
     //  m_states.alpha_l = 0;
     //}
-
     const double vnum = 0.01;
 
     // smoothing interval for My
@@ -219,8 +223,39 @@ void ChFialaTire::Advance(double step) {
 
 void ChFialaTire::CombinedCoulombForces(double& fx, double& fy, double fz, double muscale) {
     ChVector2<> F;
-    F.x() = tanh(-2.0 * m_states.vsx) * fz * muscale;
-    F.y() = tanh(-2.0 * m_states.vsy) * fz * muscale;
+    /*
+     The Dahl Friction Model elastic tread blocks representated by a single bristle. At tire stand still it acts
+     like a spring which enables holding of a vehicle on a slope without creeping (hopefully). Damping terms
+     have been added to calm down the oscillations of the pure spring.
+
+     The time step h must be actually the same as for the vehicle system!
+
+     This model is experimental and needs some testing.
+
+     With bristle deformation z, Coulomb force fc, sliding velocity v and stiffness sigma we have this
+     differential equation:
+         dz/dt = v - sigma0*z*abs(v)/fc
+
+     When z is known, the friction force F can be calulated to:
+        F = sigma0 * z
+
+     For practical use some damping is needed, that leads to:
+        F = sigma0 * z + sigma1 * dz/dt
+
+     Longitudinal and lateral forces are calculated separately and then combined. For stand still a friction
+     circle is used.
+     */
+    double fc = fz * muscale;
+    double h = this->m_stepsize;
+    // Longitudinal Friction Force
+    double brx_dot = m_states.vsx - m_sigma0 * m_states.brx * fabs(m_states.vsx) / fc;  // dz/dt
+    F.x() = -(m_sigma0 * m_states.brx + m_sigma1 * brx_dot);
+    // Lateral Friction Force
+    double bry_dot = m_states.vsy - m_sigma0 * m_states.bry * fabs(m_states.vsy) / fc;  // dz/dt
+    F.y() = -(m_sigma0 * m_states.bry + m_sigma1 * bry_dot);
+    // Calculate the new ODE states (implicit Euler)
+    m_states.brx = (fc * m_states.brx + fc * h * m_states.vsx) / (fc + h * m_sigma0 * fabs(m_states.vsx));
+    m_states.bry = (fc * m_states.bry + fc * h * m_states.vsy) / (fc + h * m_sigma0 * fabs(m_states.vsy));
     if (F.Length() > fz * muscale) {
         F.Normalize();
         F *= fz * muscale;
@@ -239,7 +274,6 @@ void ChFialaTire::FialaPatchForces(double& fx, double& fy, double& mz, double ka
 
     // modify U due to local friction
     U *= m_mu / m_mu_0;
-
     // Longitudinal Force:
     if (std::abs(kappa) < S_critical) {
         fx = m_c_slip * kappa;

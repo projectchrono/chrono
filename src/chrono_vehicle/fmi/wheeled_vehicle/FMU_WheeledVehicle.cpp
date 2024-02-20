@@ -183,12 +183,15 @@ void FmuComponent::ConfigureSystem() {
 }
 
 void FmuComponent::SynchronizeVehicle(double time) {
-    // Apply tire forces (received from outside) to wheel bodies
+    // First, synchronize the vehicle system.
+    // ATTENTION: this version doe not apply tire forces to the vehicle wheels.
+    vehicle->Synchronize(time, driver_inputs);
+
+    // Second, apply tire forces (received from outside) to wheel bodies.
+    // ATTENTION: this must be done AFTER vehicle synchronization (which may empty wheel force accumulators).
     for (int iw = 0; iw < 4; iw++) {
         wheel_data[iw].wheel->Synchronize(wheel_data[iw].load);
     }
-
-    vehicle->Synchronize(time, driver_inputs);
 
     if (vis) {
 #ifdef CHRONO_IRRLICHT

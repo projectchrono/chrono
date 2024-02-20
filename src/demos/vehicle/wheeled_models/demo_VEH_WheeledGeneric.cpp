@@ -71,7 +71,7 @@ TireModelType tire_type = TireModelType::PAC02;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 0.5);
+ChVector<> initLoc(0, 0, 0.6);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -100,9 +100,8 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 // Simulation length (Povray only)
 double tend = 20.0;
 
-// Output directories (Povray only)
-const std::string out_dir = GetChronoOutputPath() + "GENERIC_VEHICLE";
-const std::string pov_dir = out_dir + "/POVRAY";
+// Enable debug logging
+bool debug_log = false;
 
 // =============================================================================
 
@@ -115,9 +114,15 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
     // and visualization mode for the various vehicle components.
-    Generic_Vehicle vehicle(false,                                                       //
-                            suspension_type, steering_type, driveline_type, brake_type,  //
-                            ChContactMethod::NSC);
+    Generic_Vehicle vehicle(false,            // fixed chassis
+                            suspension_type,  // front suspension type
+                            suspension_type,  // rear suspension type
+                            steering_type,    // sterring mechanism type
+                            driveline_type,   // driveline type
+                            brake_type,       // brake type
+                            false,            // use bodies to model tierods
+                            false             // include an antiroll bar
+    );
 
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
@@ -173,7 +178,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("HMMWV Demo");
+            vis_irr->SetWindowTitle("Generic Vehicle Demo");
             vis_irr->SetChaseCamera(trackPoint, 6.0, 0.5);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
@@ -198,7 +203,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("HMMWV Demo");
+            vis_vsg->SetWindowTitle("Generic Vehicle Demo");
             vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->SetChaseCamera(trackPoint, 8.0, 0.5);
             vis_vsg->SetWindowSize(ChVector2<int>(1200, 900));
@@ -232,11 +237,6 @@ int main(int argc, char* argv[]) {
 
     vehicle.EnableRealtime(true);
 
-#ifdef DEBUG_LOG
-    GetLog() << "\n\n============ System Configuration ============\n";
-    vehicle.LogHardpointLocations();
-#endif
-
     while (vis->Run()) {
         double time = vehicle.GetSystem()->GetChTime();
 
@@ -245,16 +245,15 @@ int main(int argc, char* argv[]) {
         vis->Render();
         vis->EndScene();
 
-#ifdef DEBUG_LOG
-        // Number of simulation steps between two output frames
-        int output_steps = (int)std::ceil(output_step_size / step_size);
+        if (debug_log) {
+            // Number of simulation steps between two output frames
+            int output_steps = (int)std::ceil(output_step_size / step_size);
 
-        if (step_number % output_steps == 0) {
-            GetLog() << "\n\n============ System Information ============\n";
-            GetLog() << "Time = " << time << "\n\n";
-            vehicle.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+            if (step_number % output_steps == 0) {
+                GetLog() << "Time = " << time << "\n\n";
+                vehicle.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+            }
         }
-#endif
 
         // Driver inputs
         DriverInputs driver_inputs = driver->GetInputs();

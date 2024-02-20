@@ -42,12 +42,26 @@ namespace generic {
 class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
   public:
     /// Create a generic vehicle with the specified types of subsystems.
-    Generic_Vehicle(const bool fixed,
-                    SuspensionTypeWV suspension_type,
+    Generic_Vehicle(bool fixed,
+                    SuspensionTypeWV suspension_type_front,
+                    SuspensionTypeWV suspension_type_rear,
                     SteeringTypeWV steering_type,
                     DrivelineTypeWV driveline_type,
                     BrakeType brake_type,
+                    bool use_tirerod_bodies = false,
+                    bool use_antiroll_bar = false,
                     ChContactMethod contactMethod = ChContactMethod::NSC);
+
+    /// Create a generic vehicle in the specified Chrono system.
+    Generic_Vehicle(ChSystem* system,
+                    bool fixed,
+                    SuspensionTypeWV suspension_type_front,
+                    SuspensionTypeWV suspension_type_rear,
+                    SteeringTypeWV steering_type,
+                    DrivelineTypeWV driveline_type,
+                    BrakeType brake_type,
+                    bool use_tirerod_bodies = false,
+                    bool use_antiroll_bar = false);
 
     ~Generic_Vehicle() {}
 
@@ -66,12 +80,18 @@ class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
     /// Utility function to create and initialize the powertrain system using the specified types.
     void CreateAndInitializePowertrain(EngineModelType engine_type, TransmissionModelType transmission_type);
 
-    // Log debugging information
-    void LogHardpointLocations();  /// suspension hardpoints at design
-    void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
+    /// Log debugging information (shock forces and lengths, constraints, etc.).
+    void DebugLog(int what);      
 
   private:
-    SuspensionTypeWV m_suspension_type;
+    std::shared_ptr<ChSuspension> ConstructSuspension(const std::string& name,
+                                                      SuspensionTypeWV type,
+                                                      bool front,
+                                                      bool use_tierod_bodies);
+    void ConstructVehicle(bool fixed, bool use_tirerod_bodies, bool use_antiroll_bar);
+
+    SuspensionTypeWV m_suspension_type_front;
+    SuspensionTypeWV m_suspension_type_rear;
     SteeringTypeWV m_steering_type;
     DrivelineTypeWV m_driveline_type;
     BrakeType m_brake_type;

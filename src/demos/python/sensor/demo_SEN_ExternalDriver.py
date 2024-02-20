@@ -254,7 +254,7 @@ tire_vis_type = veh.VisualizationType_MESH
 # Type of Engine (SHAFTS, SIMPLE)
 engine_model = veh.EngineModelType_SHAFTS
 # Type of transmission (SHAFTS, SIMPLE)
-transmission_model = veh.TransmissionModelType_SHAFTS
+transmission_model = veh.TransmissionModelType_AUTOMATIC_SHAFTS
 
 # Drive type (FWD, RWD, or AWD)
 drive_type = veh.DrivelineTypeWV_AWD
