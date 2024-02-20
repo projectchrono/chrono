@@ -112,6 +112,7 @@ using namespace gui;
 
 %shared_ptr(chrono::irrlicht::ChIrrNodeShape)
 %shared_ptr(chrono::irrlicht::ChIrrNodeModel)
+%shared_ptr(chrono::irrlicht::ChVisualSystemIrrlicht)
 
 //
 // B- INCLUDE HEADERS
