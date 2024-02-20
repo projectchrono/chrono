@@ -15,7 +15,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_vehicle/terrain/SCMTerrain.h"
-#ifdef SWIGCSHARP && HAVE_OPENCRG
+#if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
     #include "chrono_vehicle/terrain/CRGTerrain.h"
 #endif
 #include "chrono_thirdparty/rapidjson/document.h"
