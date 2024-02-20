@@ -110,7 +110,6 @@ using namespace gui;
 // is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
 // tree must be promoted to %shared_ptr too).
 
-// %shared_ptr(chrono::irrlicht::ChVisualSystemIrrlicht)                 //// RADU: REMOVE?
 %shared_ptr(chrono::irrlicht::ChIrrNodeShape)
 %shared_ptr(chrono::irrlicht::ChIrrNodeModel)
 
@@ -143,7 +142,6 @@ using namespace gui;
 // %import(module="pychrono.core") "../../../chrono/motion_functions/ChFunction.h"
 // %import(module="pychrono.core") "chrono_swig/interface/core/ChFunction.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChPhysicsItem.i"
-// %import(module = "pychrono.core") "chrono_swig/interface/core/ChVisualSystem.i"             //// RADU: REMOVE?
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVisualMaterial.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVisualShape.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVisualModel.i"
