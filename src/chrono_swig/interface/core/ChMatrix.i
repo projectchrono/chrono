@@ -163,95 +163,104 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 
 %template(ChVectorDynamicD) chrono::ChVectorDynamic<double>;
 
-#ifdef SWIGPYCHRONO //------------------------------Python
-%extend chrono::ChVectorDynamic<double>{
-		public:
-			double __getitem__(int i) {
-				return (*$self)(i,1);
-				}
-			void __setitem__(int i, double v) {
-				(*$self)(i, 1) = v;
-				}
-
-			const int Size() {
-				const int r = $self->rows();
-				return r;
-				}
-			void GetVectorData(double* p, int len) {
-				for (int i = 0; i < len; i++){
-					p[i] =  (double)(*$self)(i, 1);
-						}
-				}
-			void SetVect(int numel, double* q){
-				($self)->resize(numel);
-				for (int i = 0; i < numel; i++){
-					(*$self)(i, 1) = q[i];
-						}
-				}
-		};
-#endif // -----------------------------------------Python
-
-#ifdef SWIGCSHARP //------------------------------CSharp
+// #ifdef SWIGPYCHRONO //------------------------------Python
 %extend chrono::ChVectorDynamic<double>{
 		public:
 			double GetItem(int i) {
-				return (*$self)(i,1);
-				}
+				return (*$self)(i);
+			}
+
 			void SetItem(int i, double v) {
-				(*$self)(i, 1) = v;
-				}
+				(*$self)(i) = v;
+			}
 
 			const int Size() {
 				const int r = $self->rows();
 				return r;
-				}
+			}
+
 			void GetVectorData(double* p, int len) {
 				for (int i = 0; i < len; i++){
-					p[i] =  (double)(*$self)(i, 1);
-						}
+					p[i] =  (double)(*$self)(i);
 				}
+			}
+
 			void SetVect(int numel, double* q){
 				($self)->resize(numel);
 				for (int i = 0; i < numel; i++){
-					(*$self)(i, 1) = q[i];
-						}
+					(*$self)(i) = q[i];
 				}
+			}
 		};
-#endif // -----------------------------------------Csharp
+// #endif // -----------------------------------------Python
+
+// #ifdef SWIGCSHARP //------------------------------CSharp
+// %extend chrono::ChVectorDynamic<double>{
+// 		public:
+// 			double GetItem(int i) {
+// 				return (*$self)(i);
+// 			}
+
+// 			void SetItem(int i, double v) {
+// 				(*$self)(i) = v;
+// 			}
+
+// 			const int Size() {
+// 				const int r = $self->rows();
+// 				return r;
+// 			}
+
+// 			void GetVectorData(double* p, int len) {
+// 				for (int i = 0; i < len; i++){
+// 					p[i] =  (double)(*$self)(i);
+// 				}
+// 			}
+
+// 			void SetVect(int numel, double* q){
+// 				($self)->resize(numel);
+// 				for (int i = 0; i < numel; i++){
+// 					(*$self)(i) = q[i];
+// 				}
+// 			}
+// 		};
+// #endif // -----------------------------------------Csharp
 
 %template(ChVectorDynamicI) chrono::ChVectorDynamic<int>;
 
 %extend chrono::ChVectorDynamic<int>{
 		public:
-			int __getitem__(int i) {
-				return (*$self)(i,1);
-				}
-			void __setitem__(int i, int v) {
-				(*$self)(i, 1) = v;
-				}
+			int SetItem(int i) {
+				return (*$self)(i);
+			}
+
+			void GetItem(int i, int v) {
+				(*$self)(i) = v;
+			}
 
 			const int Size() {
 				const int r = $self->rows();
 				return r;
-				}
+			}
+
 			void GetVectorData(int* p, int len) {
 				for (int i = 0; i < len; i++){
-					p[i] =  (int)(*$self)(i, 1);
-						}
+					p[i] =  (int)(*$self)(i);
 				}
+			}
+
 			void SetVect(int numel, int* q){
 				($self)->resize(numel);
 				for (int i = 0; i < numel; i++){
-					(*$self)(i, 1) = q[i];
-						}
+					(*$self)(i) = q[i];
 				}
+			}
 		};
 
 
 %extend chrono::ChMatrixDynamic<double>{
 		public:
-					// these functions are also argument-templated, so we need to specify the types
-					// ***SWIG template mechanism does not work here for operator() ***
+			// these functions are also argument-templated, so we need to specify the types
+			// ***SWIG template mechanism does not work here for operator() ***
 			//%template(operator+) operator+<double>;
 			//%template(operator-) operator-<double>;
 			//%template(operator*) operator*<double>;
@@ -262,21 +271,23 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 			ChMatrixDynamic<double> operator*(const ChMatrix<double>& matbis) 
 						{ return $self->operator*(matbis);};*/
 
-			double getitem(int i, int j) {
+			double GetItem(int i, int j) {
 				return (*$self)(i, j);
-				}
+			}
 
-			void setitem(int i, int j, double v) {
+			void SetItem(int i, int j, double v) {
 				(*$self)(i, j) = v;
-				}
+			}
+
 			const int GetRows() {
 				const int r = $self->rows();
 				return r;
-				}
+			}
+
 			const int GetColumns() {
 				const int c = $self->cols();
 				return c;
-				}
+			}
 
 			void GetMatrixData(double* p, int len) {
 				int r = $self->rows();
@@ -336,7 +347,7 @@ def __matr_setitem(self,index,vals):
         raise NameError('Bad row. Setting value at [{0},{1}] in a {2}x{3} matrix'.format(row,col,self.GetRows(),self.GetColumns()))
     if col>=self.GetColumns() or col <0:
         raise NameError('Bad column. Setting value at [{0},{1}] in a {2}x{3} matrix'.format(row,col,self.GetRows(),self.GetColumns()))
-    self.setitem(index[0],index[1],vals)
+    self.SetItem(index[0],index[1],vals)
 
 def __matr_getitem(self,index):
     row = index[0];
@@ -345,7 +356,7 @@ def __matr_getitem(self,index):
         raise NameError('Bad row. Getting value at [{0},{1}] in a {2}x{3} matrix'.format(row,col,self.GetRows(),self.GetColumns()))
     if col>=self.GetColumns() or col <0:
         raise NameError('Bad column. Getting value at [{0},{1}] in a {2}x{3} matrix'.format(row,col,self.GetRows(),self.GetColumns()))
-    return self.getitem(index[0],index[1])
+    return self.GetItem(index[0],index[1])
 
 setattr(ChMatrixDynamicD, "__getitem__", __matr_getitem)
 setattr(ChMatrixDynamicD, "__setitem__", __matr_setitem)
