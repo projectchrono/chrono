@@ -1,0 +1,46 @@
+{
+  "Name": "Pitman Arm Steering",
+  "Type": "Steering",
+  "Template": "PitmanArm",
+
+  "Vehicle-Frame Inertia": false,
+
+  "Steering Link": {
+    "Mass": 3.681,
+    "COM": [ 0.129, 0, 0 ],
+    "Moments of Inertia": [ 0.252, 0.00233, 0.254 ],
+    "Products of Inertia": [ 0, 0, 0 ],
+    "Radius": 0.03
+  },
+
+  "Pitman Arm": {
+    "Mass": 1.605,
+    "COM": [ 0.064, 0.249, 0 ],
+    "Moments of Inertia": [ 0.00638, 0.00756, 0.00150 ],
+    "Products of Inertia": [ 0, 0, 0 ],
+    "Radius": 0.02
+  },
+
+  "Revolute Joint": {
+    "Location": [ 0, 0.249, 0 ],
+    "Direction": [ 0, 0, 1 ],
+    "Maximum Angle (deg)": 30
+  },
+
+  "Universal Joint": {
+    "Location": [ 0.129, 0.249, 0 ],
+    "Direction Arm": [ 0, 0, 1 ],
+    "Direction Link": [ 1, 0, 0 ]
+  },
+
+  "Revolute-Spherical Joint": {
+    "Location Chassis": [ 0, -0.325, 0 ],
+    "Location Link": [ 0.129, -0.325, 0 ],
+    "Direction": [ 0, 0, 1 ]
+  },
+
+  "Tierod Locations": {
+    "Pitman Side": [ 0.195, 0.448, 0.035 ],
+    "Idler Side": [ 0.195, -0.448, 0.035 ]
+  }
+}

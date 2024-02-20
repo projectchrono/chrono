@@ -23,6 +23,7 @@
 #include <algorithm>
 
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "FMU_WheeledVehicle.h"
@@ -30,10 +31,16 @@
 using namespace chrono;
 using namespace chrono::vehicle;
 
-FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
-    : FmuChronoComponentBase(_instanceName, _fmuType, _fmuGUID) {
+FmuComponent::FmuComponent(fmi2String instanceName,
+                           fmi2Type fmuType,
+                           fmi2String fmuGUID,
+                           fmi2String fmuResourceLocation,
+                           const fmi2CallbackFunctions* functions,
+                           fmi2Boolean visible,
+                           fmi2Boolean loggingOn)
+    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn) {
     // Initialize FMU type
-    initializeType(_fmuType);
+    initializeType(fmuType);
 
     // Set initial/default values for FMU variables
     g_acc = {0, 0, -9.8};
@@ -44,6 +51,13 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     system_SMC = 1;
     vis = 0;
     step_size = 1e-3;
+
+    // Get default JSON files from the FMU resources directory
+    auto resources_dir = std::string(fmuResourceLocation).erase(0, 8);
+    data_path = resources_dir + "/";
+    vehicle_JSON = resources_dir + "/Vehicle.json";
+    engine_JSON = resources_dir + "/EngineShafts.json";
+    transmission_JSON = resources_dir + "/AutomaticTransmissionShafts.json";
 
     // Set wheel identifier strings
     wheel_data[0].identifier = "FL";
@@ -56,6 +70,9 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
 
     // Set FIXED PARAMETERS for this FMU
+    AddFmuVariable(&data_path, "data_path", FmuVariable::Type::String, "1", "vehicle data path",  //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);   //
+
     AddFmuVariable(&vehicle_JSON, "vehicle_JSON", FmuVariable::Type::String, "1", "vehicle JSON",                 //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);                   //
     AddFmuVariable(&engine_JSON, "engine_JSON", FmuVariable::Type::String, "1", "engine JSON",                    //
@@ -113,19 +130,22 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     }
 
     // Specify functions to process input variables (at beginning of step)
-    preStepCallbacks.push_back([this]() { this->SynchronizeVehicle(this->GetTime()); });
+    m_preStepCallbacks.push_back([this]() { this->SynchronizeVehicle(this->GetTime()); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    postStepCallbacks.push_back([this]() { this->CalculateVehicleOutputs(); });
+    m_postStepCallbacks.push_back([this]() { this->CalculateVehicleOutputs(); });
 }
 
 void FmuComponent::CreateVehicle() {
     std::cout << "Create vehicle FMU" << std::endl;
+    std::cout << " Data path:         " << data_path << std::endl;    
     std::cout << " Vehicle JSON:      " << vehicle_JSON << std::endl;
     std::cout << " Engine JSON:       " << engine_JSON << std::endl;
     std::cout << " Transmission JSON: " << transmission_JSON << std::endl;
     std::cout << " Initial location:  " << init_loc << std::endl;
     std::cout << " Initial yaw:       " << init_yaw << std::endl;
+
+    vehicle::SetDataPath(data_path);
 
     // Create the vehicle system
     vehicle = chrono_types::make_shared<WheeledVehicle>(vehicle_JSON,
@@ -248,8 +268,8 @@ void FmuComponent::_exitInitializationMode() {
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                  fmi2Real communicationStepSize,
                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
-    while (time < currentCommunicationPoint + communicationStepSize) {
-        fmi2Real h = std::min((currentCommunicationPoint + communicationStepSize - time),
+    while (m_time < currentCommunicationPoint + communicationStepSize) {
+        fmi2Real h = std::min((currentCommunicationPoint + communicationStepSize - m_time),
                               std::min(communicationStepSize, step_size));
         vehicle->Advance(h);
 
@@ -267,9 +287,9 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
 #endif
         }
 
-        ////sendToLog("time: " + std::to_string(time) + "\n", fmi2Status::fmi2OK, "logAll");
+        ////sendToLog("time: " + std::to_string(m_time) + "\n", fmi2Status::fmi2OK, "logAll");
 
-        time = time + h;
+        m_time += h;
     }
 
     return fmi2Status::fmi2OK;

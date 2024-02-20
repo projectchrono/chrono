@@ -32,10 +32,16 @@
 using namespace chrono;
 using namespace chrono::vehicle;
 
-FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
-    : FmuChronoComponentBase(_instanceName, _fmuType, _fmuGUID) {
+FmuComponent::FmuComponent(fmi2String instanceName,
+                           fmi2Type fmuType,
+                           fmi2String fmuGUID,
+                           fmi2String fmuResourceLocation,
+                           const fmi2CallbackFunctions* functions,
+                           fmi2Boolean visible,
+                           fmi2Boolean loggingOn)
+    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn) {
     // Initialize FMU type
-    initializeType(_fmuType);
+    initializeType(fmuType);
 
     // Set initial/default values for FMU variables
     steering = 0;
@@ -59,6 +65,10 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
 
     init_loc = VNULL;
     init_yaw = 0;
+
+    // Get default path file from FMU resources
+    auto resources_dir = std::string(fmuResourceLocation).erase(0, 8);
+    path_file = resources_dir + "/ISO_double_lane_change.txt";
 
     // Set configuration flags for this FMU
     AddFmuVariable(&vis, "vis", FmuVariable::Type::Boolean, "1", "enable visualization",         //
@@ -119,10 +129,10 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
 
     // Specify functions to process input variables (at beginning of step)
-    preStepCallbacks.push_back([this]() { this->SynchronizeDriver(this->GetTime()); });
+    m_preStepCallbacks.push_back([this]() { this->SynchronizeDriver(this->GetTime()); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    postStepCallbacks.push_back([this]() { this->CalculateDriverOutputs(); });
+    m_postStepCallbacks.push_back([this]() { this->CalculateDriverOutputs(); });
 }
 
 void FmuComponent::CreateDriver() {
@@ -165,7 +175,7 @@ void FmuComponent::CreateDriver() {
 
 void FmuComponent::SynchronizeDriver(double time) {
     // Set the rotation matrix of the reference frame
-    ref_frame.GetA().SetFromQuaternion(ref_frame.GetRot());
+    ref_frame.GetRotMat().SetFromQuaternion(ref_frame.GetRot());
 }
 
 void FmuComponent::CalculateDriverOutputs() {
@@ -223,12 +233,12 @@ void FmuComponent::_exitInitializationMode() {
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                  fmi2Real communicationStepSize,
                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
-    while (time < currentCommunicationPoint + communicationStepSize) {
-        fmi2Real h = std::min((currentCommunicationPoint + communicationStepSize - time),
+    while (m_time < currentCommunicationPoint + communicationStepSize) {
+        fmi2Real h = std::min((currentCommunicationPoint + communicationStepSize - m_time),
                               std::min(communicationStepSize, step_size));
 
         // Set the throttle and braking values based on the output from the speed controller.
-        double out_speed = speedPID->Advance(ref_frame, target_speed, time, h);
+        double out_speed = speedPID->Advance(ref_frame, target_speed, m_time, h);
         ChClampValue(out_speed, -1.0, 1.0);
 
         if (out_speed > 0) {
@@ -246,7 +256,7 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
         }
 
         // Set the steering value based on the output from the steering controller.
-        double out_steering = steeringPID->Advance(ref_frame, time, h);
+        double out_steering = steeringPID->Advance(ref_frame, m_time, h);
         ChClampValue(out_steering, -1.0, 1.0);
         steering = out_steering;
 
@@ -256,7 +266,7 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
             sys.Update(true);
 
             // Update camera position
-            auto x_dir = ref_frame.GetA().GetAxisX();
+            auto x_dir = ref_frame.GetRotMat().GetAxisX();
             auto camera_target = ref_frame.GetPos();
             auto camera_pos = camera_target - 2.0 * x_dir + ChVector3d(0, 0, 0.5);
             vis_sys->UpdateCamera(camera_pos, camera_target);
@@ -274,9 +284,9 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
             vis_sys->EndScene();
 #endif
         }
-        ////sendToLog("time: " + std::to_string(time) + "\n", fmi2Status::fmi2OK, "logAll");
+        ////sendToLog("time: " + std::to_string(m_time) + "\n", fmi2Status::fmi2OK, "logAll");
 
-        time = time + h;
+        m_time += h;
     }
 
     return fmi2Status::fmi2OK;

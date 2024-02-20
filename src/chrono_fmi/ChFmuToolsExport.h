@@ -36,8 +36,32 @@ namespace chrono {
 /// Extension of FmuComponentBase class for Chrono FMUs.
 class FmuChronoComponentBase : public FmuComponentBase {
   public:
-    FmuChronoComponentBase(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
-        : FmuComponentBase(_instanceName, _fmuType, _fmuGUID) {}
+    FmuChronoComponentBase(fmi2String instanceName,
+                           fmi2Type fmuType,
+                           fmi2String fmuGUID,
+                           fmi2String fmuResourceLocation,
+                           const fmi2CallbackFunctions* functions,
+                           fmi2Boolean visible,
+                           fmi2Boolean loggingOn)
+        : FmuComponentBase(
+              instanceName,
+              fmuType,
+              fmuGUID,
+              fmuResourceLocation,
+              functions,
+              visible,
+              loggingOn,
+              {{"logEvents", true},
+               {"logSingularLinearSystems", true},
+               {"logNonlinearSystems", true},
+               {"logStatusWarning", true},
+               {"logStatusError", true},
+               {"logStatusPending", true},
+               {"logDynamicStateSelection", true},
+               {"logStatusDiscard", true},
+               {"logStatusFatal", true},
+               {"logAll", true}},
+              {"logStatusWarning", "logStatusDiscard", "logStatusError", "logStatusFatal", "logStatusPending"}) {}
     virtual ~FmuChronoComponentBase() {}
 
     /// Add FMU variables corresponding to the specified ChVector3d.
@@ -94,7 +118,7 @@ class FmuChronoComponentBase : public FmuComponentBase {
                              const std::string& description,
                              FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
                              FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
-        AddFmuCsysVariable(s.GetCoord(), name, unit_name, description, causality, variability);
+        AddFmuCsysVariable(s.GetCsys(), name, unit_name, description, causality, variability);
     }
 
     /// Add FMU variables corresponding to the specified ChFrameMoving.
@@ -109,7 +133,7 @@ class FmuChronoComponentBase : public FmuComponentBase {
         const std::string& description,
         FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
         FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
-        AddFmuCsysVariable(s.GetCoord(), name, unit_name, description, causality, variability);
+        AddFmuCsysVariable(s.GetCsys(), name, unit_name, description, causality, variability);
         AddFmuVecVariable(s.GetPos_dt(), name + ".pos_dt", unit_name_dt, description + " position derivative",
                           causality, variability);
         AddFmuQuatVariable(s.GetRot_dt(), name + ".rot_dt", "1", description + " orientation derivative", causality,

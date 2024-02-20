@@ -27,13 +27,23 @@
 using namespace chrono;
 using namespace chrono::vehicle;
 
-FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
-    : FmuChronoComponentBase(_instanceName, _fmuType, _fmuGUID) {
+FmuComponent::FmuComponent(fmi2String instanceName,
+                           fmi2Type fmuType,
+                           fmi2String fmuGUID,
+                           fmi2String fmuResourceLocation,
+                           const fmi2CallbackFunctions* functions,
+                           fmi2Boolean visible,
+                           fmi2Boolean loggingOn)
+    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn) {
     // Initialize FMU type
-    initializeType(_fmuType);
+    initializeType(fmuType);
 
     // Set initial/default values for FMU variables
     step_size = 1e-3;
+
+    // Get default JSON file from FMU resources
+    auto resources_dir = std::string(fmuResourceLocation).erase(0, 8);
+    tire_JSON = resources_dir + "/TMeasyTire.json";
 
     // Set FIXED PARAMETERS for this FMU
     AddFmuVariable(&tire_JSON, "tire_JSON", FmuVariable::Type::String, "1", "tire JSON",         //
@@ -73,10 +83,10 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);             //
 
     // Specify functions to process input variables (at beginning of step)
-    preStepCallbacks.push_back([this]() { this->SynchronizeTire(this->GetTime()); });
+    m_preStepCallbacks.push_back([this]() { this->SynchronizeTire(this->GetTime()); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    postStepCallbacks.push_back([this]() { this->CalculateTireOutputs(); });
+    m_postStepCallbacks.push_back([this]() { this->CalculateTireOutputs(); });
 }
 
 class DummyWheel : public ChWheel {
@@ -150,15 +160,15 @@ void FmuComponent::_exitInitializationMode() {
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                  fmi2Real communicationStepSize,
                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
-    while (time < currentCommunicationPoint + communicationStepSize) {
-        fmi2Real h = std::min((currentCommunicationPoint + communicationStepSize - time),
+    while (m_time < currentCommunicationPoint + communicationStepSize) {
+        fmi2Real h = std::min((currentCommunicationPoint + communicationStepSize - m_time),
                               std::min(communicationStepSize, step_size));
 
         tire->Advance(h);
 
-        ////sendToLog("time: " + std::to_string(time) + "\n", fmi2Status::fmi2OK, "logAll");
+        ////sendToLog("time: " + std::to_string(m_time) + "\n", fmi2Status::fmi2OK, "logAll");
 
-        time = time + h;
+        m_time += h;
     }
 
     return fmi2Status::fmi2OK;

@@ -2,6 +2,7 @@ set(COMPONENT_NAME "FMU_WheeledVehicle")
 set(COMPONENT_SOURCES FMU_WheeledVehicle.h FMU_WheeledVehicle.cpp)
 set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle ChronoEngine_irrlicht ChronoEngine_vehicle_irrlicht)
 set(COMPONENT_DLL_DEPENDENCIES ${CH_IRRLICHT_DLL})
+set(COMPONENT_RESOURCES_DIR ${CMAKE_SOURCE_DIR}/data/vehicle/fmi/wheeled_vehicle)
 set(FMU_HOST_SOURCES FmuHost.cpp)
 
 #--------------------------------------------------------------
@@ -25,6 +26,7 @@ endif()
 message(STATUS "   FetchContent(fmu_tools)")
 
 set(FMU_MODEL_IDENTIFIER ${COMPONENT_NAME} CACHE INTERNAL "")
+set(FMU_RESOURCES_DIRECTORY ${COMPONENT_RESOURCES_DIR} CACHE INTERNAL "")
 set(BUILD_FMU_HOST OFF CACHE INTERNAL "")
 set(USE_EXTERNAL_FMU_COMPONENT_SOURCES ON CACHE INTERNAL "")
 set(USE_CUSTOM_TYPESPLATFORM OFF CACHE INTERNAL "")

@@ -33,8 +33,8 @@ using namespace chrono;
 
 // -----------------------------------------------------------------------------
 
-std::string actuator_unpack_directory = ACTUATOR_FMU_DIRECTORY + std::string("/.") + ACTUATOR_FMU_MODEL_IDENTIFIER;
-std::string crane_unpack_directory = CRANE_FMU_DIRECTORY + std::string("/.") + CRANE_FMU_MODEL_IDENTIFIER;
+std::string actuator_unpack_directory = ACTUATOR_FMU_DIRECTORY + std::string("/tmp_unpack/");
+std::string crane_unpack_directory = CRANE_FMU_DIRECTORY + std::string("/tmp_unpack/");
 
 // -----------------------------------------------------------------------------
 
@@ -45,8 +45,6 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
     try {
         crane_fmu.Load(CRANE_FMU_FILENAME, crane_unpack_directory);
         // crane_fmu.Load(CRANE_FMU_FILENAME); // will go in TEMP/_fmu_temp
-        crane_fmu.BuildVariablesTree();
-        crane_fmu.BuildVisualizersList(&crane_fmu.tree_variables);
     } catch (std::exception& e) {
         throw e;
     }
@@ -87,8 +85,6 @@ void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
     try {
         actuator_fmu.Load(ACTUATOR_FMU_FILENAME, actuator_unpack_directory);
         // actuator_fmu.Load(ACTUATOR_FMU_FILENAME); // will go in TEMP/_fmu_temp
-        actuator_fmu.BuildVariablesTree();
-        actuator_fmu.BuildVisualizersList(&actuator_fmu.tree_variables);
     } catch (std::exception& e) {
         throw e;
     }

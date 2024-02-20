@@ -25,10 +25,16 @@
 
 using namespace chrono;
 
-FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
-    : FmuChronoComponentBase(_instanceName, _fmuType, _fmuGUID) {
+FmuComponent::FmuComponent(fmi2String instanceName,
+                           fmi2Type fmuType,
+                           fmi2String fmuGUID,
+                           fmi2String fmuResourceLocation,
+                           const fmi2CallbackFunctions* functions,
+                           fmi2Boolean visible,
+                           fmi2Boolean loggingOn)
+    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn) {
     // Initialize FMU type
-    initializeType(_fmuType);
+    initializeType(fmuType);
 
     // Set initial values for FMU input variables
     F = 0;
@@ -138,10 +144,10 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     CalculateActuatorLength();
 
     // Specify functions to process input variables (at beginning of step)
-    preStepCallbacks.push_back([this]() { this->ProcessActuatorForce(); });
+    m_preStepCallbacks.push_back([this]() { this->ProcessActuatorForce(); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    postStepCallbacks.push_back([this]() { this->CalculateActuatorLength(); });
+    m_postStepCallbacks.push_back([this]() { this->CalculateActuatorLength(); });
 }
 
 void FmuComponent::ProcessActuatorForce() {
@@ -201,9 +207,9 @@ void FmuComponent::_exitInitializationMode() {
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                  fmi2Real communicationStepSize,
                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
-    while (time < currentCommunicationPoint + communicationStepSize) {
-        fmi2Real step_size = std::min((currentCommunicationPoint + communicationStepSize - time),
-                                      std::min(communicationStepSize, stepSize));
+    while (m_time < currentCommunicationPoint + communicationStepSize) {
+        fmi2Real step_size = std::min((currentCommunicationPoint + communicationStepSize - m_time),
+                                      std::min(communicationStepSize, m_stepSize));
 
         if (vis) {
 #ifdef CHRONO_IRRLICHT
@@ -215,9 +221,9 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
         }
 
         sys.DoStepDynamics(step_size);
-        sendToLog("time: " + std::to_string(time) + "\n", fmi2Status::fmi2OK, "logAll");
+        sendToLog("time: " + std::to_string(m_time) + "\n", fmi2Status::fmi2OK, "logAll");
 
-        time = time + step_size;
+        m_time += step_size;
     }
 
     return fmi2Status::fmi2OK;

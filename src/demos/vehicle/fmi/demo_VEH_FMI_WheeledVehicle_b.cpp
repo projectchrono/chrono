@@ -48,9 +48,12 @@ std::string VEHICLE_FMU_FILENAME = VEHICLE_FMU_DIR + VEHICLE_FMU_MODEL_IDENTIFIE
 std::string TIRE_FMU_FILENAME = TIRE_FMU_DIR + TIRE_FMU_MODEL_IDENTIFIER + std::string(".fmu");
 std::string DRIVER_FMU_FILENAME = DRIVER_FMU_DIR + DRIVER_FMU_MODEL_IDENTIFIER + std::string(".fmu");
 
-std::string VEHICLE_UNPACK_DIR = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_") + VEHICLE_FMU_MODEL_IDENTIFIER;
-std::string TIRE_UNPACK_DIR = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_") + TIRE_FMU_MODEL_IDENTIFIER;
-std::string DRIVER_UNPACK_DIR = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_") + DRIVER_FMU_MODEL_IDENTIFIER;
+std::string VEHICLE_UNPACK_DIR =
+    CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_") + VEHICLE_FMU_MODEL_IDENTIFIER + std::string("/");
+std::string TIRE_UNPACK_DIR =
+    CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_") + TIRE_FMU_MODEL_IDENTIFIER + std::string("/");
+std::string DRIVER_UNPACK_DIR =
+    CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_") + DRIVER_FMU_MODEL_IDENTIFIER + std::string("/");
 
 // -----------------------------------------------------------------------------
 
@@ -61,8 +64,6 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
                       const std::vector<std::string>& logCategories) {
     try {
         vehicle_fmu.Load(VEHICLE_FMU_FILENAME, VEHICLE_UNPACK_DIR);
-        vehicle_fmu.BuildVariablesTree();
-        vehicle_fmu.BuildVisualizersList(&vehicle_fmu.tree_variables);
     } catch (std::exception& e) {
         throw e;
     }
@@ -80,11 +81,13 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
                                 start_time,             // start time
                                 fmi2False, stop_time);  // use stop time
 
-    // Set fixed parameters
+    // Set fixed parameters - use vehicle JSON files from the Chrono::Vehicle data directory
+    std::string data_path = "../data/vehicle/";
     std::string vehicle_JSON = vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
     std::string engine_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
     std::string transmission_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
 
+    vehicle_fmu.SetVariable("data_path", data_path);
     vehicle_fmu.SetVariable("vehicle_JSON", vehicle_JSON);
     vehicle_fmu.SetVariable("engine_JSON", engine_JSON);
     vehicle_fmu.SetVariable("transmission_JSON", transmission_JSON);
@@ -103,8 +106,6 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
                      const std::vector<std::string>& logCategories) {
     try {
         driver_fmu.Load(DRIVER_FMU_FILENAME, DRIVER_UNPACK_DIR);
-        driver_fmu.BuildVariablesTree();
-        driver_fmu.BuildVisualizersList(&driver_fmu.tree_variables);
     } catch (std::exception& e) {
         throw e;
     }
@@ -143,8 +144,6 @@ void CreateTireFMU(FmuChronoUnit& tire_fmu,
                    const std::vector<std::string>& logCategories) {
     try {
         tire_fmu.Load(TIRE_FMU_FILENAME, TIRE_UNPACK_DIR);
-        tire_fmu.BuildVariablesTree();
-        tire_fmu.BuildVisualizersList(&tire_fmu.tree_variables);
     } catch (std::exception& e) {
         throw e;
     }
