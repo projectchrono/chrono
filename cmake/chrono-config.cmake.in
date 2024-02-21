@@ -194,6 +194,9 @@ if(Chrono_VEHICLE_REQUESTED AND Chrono_VEHICLE_AVAILABLE)
   if(Chrono_FSI_AVAILABLE)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};FSI")
   endif()
+  if(Chrono_MULTICORE_AVAILABLE)
+    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Multicore")
+  endif()
 endif()
 
 if(Chrono_VEHICLECOSIM_REQUESTED AND Chrono_VEHICLECOSIM_AVAILABLE)
@@ -405,6 +408,18 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fsi")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsi.dll")
+
+        # ATTENTION: This is a temporary hack!
+        # We only add to the list of DLLs, when we should fully configure the OpenGL and VSG modules.
+        # However, full configuration of the OpenGL module leads to problems when using in a C# project (because of FindThreads).
+        # This is done only to allow building vehicle C# demos, in case the FSI module was also enabled in Chrono.
+
+        if (Chrono_OPENGL_AVAILABLE)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
+        endif()
+        if (Chrono_VSG_AVAILABLE)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vsg.dll")
+        endif()
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "SENSOR")
