@@ -297,10 +297,14 @@ endif()
 
 if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
 
-    if (ENABLE_MODULE_IRRLICHT)
+  if (ENABLE_MODULE_IRRLICHT)
      #Append the CHRONO_IRRLICHT flag, for vehicle visual irrlicht
      set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
-    endif()
+  endif()
+
+  if (HAVE_OPENCRG)
+     set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DHAVE_OPENCRG")
+  endif()
 
   message(STATUS "...add CSharp VEHICLE module")
   

@@ -51,7 +51,7 @@
 %shared_ptr(chrono::vehicle::SCMTerrain)
 %shared_ptr(chrono::vehicle::SCMTerrain::SoilParametersCallback)
 
-#ifdef SWIGCSHARP && HAVE_OPENCRG
+#if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
 %shared_ptr(chrono::vehicle::CRGTerrain)
 #endif
 
@@ -69,6 +69,6 @@
 %pointer_functions(double, doublep)
 %include "../../../chrono_vehicle/terrain/SCMTerrain.h"
 
-#ifdef SWIGCSHARP && HAVE_OPENCRG
+#if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
 %include "../../../chrono_vehicle/terrain/CRGTerrain.h"
 #endif
