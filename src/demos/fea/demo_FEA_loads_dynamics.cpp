@@ -88,19 +88,19 @@ int main(int argc, char* argv[]) {
     mesh->AddNode(nodeB);
 
     // Create beam section & material
-    auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
+    auto beam_section = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
     double beam_wy = 0.1;
     double beam_wz = 0.2;
-    msection->SetAsRectangularSection(beam_wy, beam_wz);
-    msection->SetYoungModulus(0.01e9);
-    msection->SetGshearModulus(0.01e9 * 0.3);
-    msection->SetBeamRaleyghDamping(0.200);
-    msection->SetDensity(1500);
+    beam_section->SetAsRectangularSection(beam_wy, beam_wz);
+    beam_section->SetYoungModulus(0.01e9);
+    beam_section->SetGshearModulus(0.01e9 * 0.3);
+    beam_section->SetBeamRaleyghDamping(0.200);
+    beam_section->SetDensity(1500);
 
     // Create an Eulero-Bernoulli beam with a single element
     auto elementA = chrono_types::make_shared<ChElementBeamEuler>();
     elementA->SetNodes(nodeA, nodeB);
-    elementA->SetSection(msection);
+    elementA->SetSection(beam_section);
     mesh->AddElement(elementA);
 
     // Create the ground body
@@ -120,18 +120,18 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------------------------
 
     // Create the load container
-    auto loadcontainer = chrono_types::make_shared<ChLoadContainer>();
-    sys.Add(loadcontainer);
+    auto load_container = chrono_types::make_shared<ChLoadContainer>();
+    sys.Add(load_container);
 
     switch (load_option) {
         case 1: {
             // Add a vertical load to the end of the beam element
             std::cout << "   Vertical load acting on end node.\n" << std::endl;
 
-            auto mwrench = chrono_types::make_shared<ChLoadBeamWrench>(elementA);
-            mwrench->loader.SetApplication(1.0);  // in -1..+1 range, -1: end A, 0: mid, +1: end B
-            mwrench->loader.SetForce(ChVector3d(0, 200, 0));
-            loadcontainer->Add(mwrench);  // do not forget to add the load to the load container.
+            auto wrench_load = chrono_types::make_shared<ChLoadBeamWrench>(elementA);
+            wrench_load->loader.SetApplication(1.0);  // in -1..+1 range, -1: end A, 0: mid, +1: end B
+            wrench_load->loader.SetForce(ChVector3d(0, 200, 0));
+            load_container->Add(wrench_load);
 
             break;
         }  // end option 1
@@ -140,9 +140,9 @@ int main(int argc, char* argv[]) {
             // Add a distributed load along the beam element:
             std::cout << "   Distributed load along beam element.\n" << std::endl;
 
-            auto mwrenchdis = chrono_types::make_shared<ChLoadBeamWrenchDistributed>(elementA);
-            mwrenchdis->loader.SetForcePerUnit(ChVector3d(0, 400.0, 0));  // load per unit length
-            loadcontainer->Add(mwrenchdis);
+            auto distr_wrench_load = chrono_types::make_shared<ChLoadBeamWrenchDistributed>(elementA);
+            distr_wrench_load->loader.SetForcePerUnit(ChVector3d(0, 400.0, 0));  // load per unit length
+            load_container->Add(distr_wrench_load);
 
             break;
         }  // end option 2
@@ -151,11 +151,11 @@ int main(int argc, char* argv[]) {
             // Add gravity (constant volumetric load)
             std::cout << "   Gravity load (constant volumetric load).\n" << std::endl;
 
-            auto mgravity = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(elementA);
-            loadcontainer->Add(mgravity);
+            auto gravity_load = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(elementA);
+            load_container->Add(gravity_load);
 
-            // note that by default all solid elements in the mesh will already
-            // get gravitational force, if you want to bypass this automatic gravity, do:
+            // By default, all solid elements in the mesh will already get gravitational force.
+            // To bypass this automatic gravity, set:
             mesh->SetAutomaticGravity(false);
 
             break;
@@ -174,17 +174,17 @@ int main(int argc, char* argv[]) {
             class MyLoaderTriangular : public ChLoaderUdistributed {
               public:
                 // Useful: a constructor that also sets ChLoadable
-                MyLoaderTriangular(std::shared_ptr<ChLoadableU> mloadable) : ChLoaderUdistributed(mloadable){};
+                MyLoaderTriangular(std::shared_ptr<ChLoadableU> loadable) : ChLoaderUdistributed(loadable){};
 
                 // Compute F=F(u)
                 // This is the function that you have to implement. It should return the
                 // load at U. For Eulero beams, loads are expected as 6-rows vectors, containing
                 // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
                 virtual void ComputeF(
-                    const double U,              ///< parametric coordinate in line
-                    ChVectorDynamic<>& F,        ///< Result F vector here, size must be = n.field coords.of loadable
-                    ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
-                    ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
+                    const double U,              // parametric coordinate in line
+                    ChVectorDynamic<>& F,        // Result F vector here, size must be = n.field coords.of loadable
+                    ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate F
+                    ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate F
                 ) {
                     double Fy_max = 1000;
                     F.segment(0, 3) = ChVector3d(0, ((1 + U) / 2) * Fy_max, 0).eigen();  // load, force part
@@ -195,12 +195,9 @@ int main(int argc, char* argv[]) {
                 virtual int GetIntegrationPointsU() { return 1; }
             };
 
-            // Create the load (and handle it with a shared pointer).
-            // The ChLoad is a 'container' for your ChLoader.
-            // It is created using templates, that is instancing a ChLoad<a_loader_class>()
-
-            std::shared_ptr<ChLoad<MyLoaderTriangular>> mloadtri(new ChLoad<MyLoaderTriangular>(elementA));
-            loadcontainer->Add(mloadtri);  // do not forget to add the load to the load container.
+            // Create the load
+            std::shared_ptr<ChLoad<MyLoaderTriangular>> tri_load(new ChLoad<MyLoaderTriangular>(elementA));
+            load_container->Add(tri_load);
 
             break;
         }  // end option 4
@@ -216,7 +213,7 @@ int main(int argc, char* argv[]) {
 
             class MyLoaderPointStiff : public ChLoaderUVWatomic {
               public:
-                MyLoaderPointStiff(std::shared_ptr<ChLoadableUVW> mloadable) : ChLoaderUVWatomic(mloadable, 0, 0, 0) {}
+                MyLoaderPointStiff(std::shared_ptr<ChLoadableUVW> loadable) : ChLoaderUVWatomic(loadable, 0, 0, 0) {}
 
                 // Compute F=F(u)
                 // This is the function that you have to implement. It should return the F load at U,V,W.
@@ -256,14 +253,14 @@ int main(int argc, char* argv[]) {
                     F(2) = 0;                                                             // Fz component of force
                 }
 
-                // Remember to set this as stiff, to enable the jacobians
+                // Set this as stiff, to enable the Jacobians
                 virtual bool IsStiff() { return true; }
             };
 
             // Instance a ChLoad object, applying to a node, and passing a ChLoader as a template
             // (in this case the ChLoader-inherited class is our MyLoaderPointStiff), and add to container:
-            std::shared_ptr<ChLoad<MyLoaderPointStiff>> mloadstiff(new ChLoad<MyLoaderPointStiff>(nodeC));
-            loadcontainer->Add(mloadstiff);
+            std::shared_ptr<ChLoad<MyLoaderPointStiff>> stiff_load(new ChLoad<MyLoaderPointStiff>(nodeC));
+            load_container->Add(stiff_load);
 
             break;
         }  // end option 5
@@ -281,7 +278,7 @@ int main(int argc, char* argv[]) {
 
             class MyLoadCustom : public ChLoadCustom {
               public:
-                MyLoadCustom(std::shared_ptr<ChLoadableUVW> mloadable) : ChLoadCustom(mloadable){};
+                MyLoadCustom(std::shared_ptr<ChLoadableUVW> loadable) : ChLoadCustom(loadable) {}
 
                 /// "Virtual" copy constructor (covariant return type).
                 virtual MyLoadCustom* Clone() const override { return new MyLoadCustom(*this); }
@@ -291,8 +288,8 @@ int main(int argc, char* argv[]) {
                 // (i.e.the force in generalized lagrangian coordinates).
                 // For ChNodeFEAxyz, Q loads are expected as 3-rows vectors, containing absolute force x,y,z.
                 // As this is a stiff force field, dependency from state_x and state_y must be considered.
-                virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
-                                      ChStateDelta* state_w  ///< state speed to evaluate Q
+                virtual void ComputeQ(ChState* state_x,      // state position to evaluate Q
+                                      ChStateDelta* state_w  // state speed to evaluate Q
                                       ) override {
                     ChVector3d node_pos;
                     ChVector3d node_vel;
@@ -304,7 +301,7 @@ int main(int argc, char* argv[]) {
                         node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos_dt();
                     }
                     // Just implement a simple force+spring+damper in xy plane,
-                    // for spring&damper connected to absolute reference:
+                    // for spring & damper connected to absolute reference
                     double Kx = 100;
                     double Ky = 400;
                     double Dx = 0.6;
@@ -320,27 +317,26 @@ int main(int argc, char* argv[]) {
                     this->load_Q(2) = 0;
                 }
 
-                // OPTIONAL: if you want to provide an analytical jacobian, that might avoid the lengthy and approximate
-                // default numerical jacobian, just implement the following:
-                virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
-                                             ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                             ChMatrixRef mK,         ///< result dQ/dx
-                                             ChMatrixRef mR,         ///< result dQ/dv
-                                             ChMatrixRef mM          ///< result dQ/da
+                // To provide an analytical Jacobian, implement the following:
+                virtual void ComputeJacobian(ChState* state_x,       // state position to evaluate jacobians
+                                             ChStateDelta* state_w,  // state speed to evaluate jacobians
+                                             ChMatrixRef K,          // result dQ/dx
+                                             ChMatrixRef R,          // result dQ/dv
+                                             ChMatrixRef M           // result dQ/da
                                              ) override {
-                    mK(0, 0) = 100;
-                    mK(1, 1) = 400;
-                    mR(0, 0) = 0.6;
-                    mR(1, 1) = 0.9;
+                    K(0, 0) = 100;
+                    K(1, 1) = 400;
+                    R(0, 0) = 0.6;
+                    R(1, 1) = 0.9;
                 }
 
-                // Remember to set this as stiff, to enable the jacobians
+                // Set this as stiff, to enable the Jacobians
                 virtual bool IsStiff() override { return true; }
             };
 
             // Instance load object, applying to a node, as in previous example, and add to container:
-            auto mloadcustom = chrono_types::make_shared<MyLoadCustom>(nodeD);
-            loadcontainer->Add(mloadcustom);
+            auto custom_load = chrono_types::make_shared<MyLoadCustom>(nodeD);
+            load_container->Add(custom_load);
 
             break;
         }  // end option 6
@@ -362,8 +358,8 @@ int main(int argc, char* argv[]) {
 
             class MyLoadCustomMultiple : public ChLoadCustomMultiple {
               public:
-                MyLoadCustomMultiple(std::vector<std::shared_ptr<ChLoadable>>& mloadables)
-                    : ChLoadCustomMultiple(mloadables){};
+                MyLoadCustomMultiple(std::vector<std::shared_ptr<ChLoadable>>& loadables)
+                    : ChLoadCustomMultiple(loadables) {}
 
                 /// "Virtual" copy constructor (covariant return type).
                 virtual MyLoadCustomMultiple* Clone() const override { return new MyLoadCustomMultiple(*this); }
@@ -375,8 +371,8 @@ int main(int argc, char* argv[]) {
                 // all the vectors (load_Q, state_x, state_w) are split in the same order that the loadable objects
                 // are added to MyLoadCustomMultiple; in this case for instance Q={Efx,Efy,Efz,Ffx,Ffy,Ffz}.
                 // As this is a stiff force field, dependency from state_x and state_y must be considered.
-                virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
-                                      ChStateDelta* state_w  ///< state speed to evaluate Q
+                virtual void ComputeQ(ChState* state_x,      // state position to evaluate Q
+                                      ChStateDelta* state_w  // state speed to evaluate Q
                                       ) override {
                     ChVector3d Enode_pos;
                     ChVector3d Enode_vel;
@@ -422,20 +418,18 @@ int main(int argc, char* argv[]) {
                     this->load_Q(5) = spring2.z();                // Fz component of force on 2nd node
                 }
 
-                // OPTIONAL: if you want to provide an analytical jacobian, just implement the following:
-                //   virtual void ComputeJacobian(...)
-
-                // Remember to set this as stiff, to enable the jacobians
+                // Set this as stiff, to enable the Jacobians
                 virtual bool IsStiff() override { return true; }
             };
 
             // Instance load object. This require a list of ChLoadable objects
             // (these are our two nodes, pay attention to the sequence order), and add to container.
-            std::vector<std::shared_ptr<ChLoadable>> mnodelist;
-            mnodelist.push_back(nodeE);
-            mnodelist.push_back(nodeF);
-            auto mloadcustommultiple = chrono_types::make_shared<MyLoadCustomMultiple>(mnodelist);
-            ////loadcontainer->Add(mloadcustommultiple);
+            std::vector<std::shared_ptr<ChLoadable>> node_list;
+            node_list.push_back(nodeE);
+            node_list.push_back(nodeF);
+
+            auto custom_load = chrono_types::make_shared<MyLoadCustomMultiple>(node_list);
+            ////load_container->Add(custom_load);
 
             break;
         }  // end option 7
@@ -446,20 +440,20 @@ int main(int argc, char* argv[]) {
     // Set visualization of the FEM mesh.
     // -----------------------------------------------------------------
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
-    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    mvisualizebeamA->SetColorscaleMinMax(-400, 200);
-    mvisualizebeamA->SetSmoothFaces(true);
-    mvisualizebeamA->SetWireframe(false);
-    mesh->AddVisualShapeFEA(mvisualizebeamA);
+    auto beam_visA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    beam_visA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
+    beam_visA->SetColorscaleMinMax(-400, 200);
+    beam_visA->SetSmoothFaces(true);
+    beam_visA->SetWireframe(false);
+    mesh->AddVisualShapeFEA(beam_visA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
-    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizebeamC->SetSymbolsThickness(0.006);
-    mvisualizebeamC->SetSymbolsScale(0.01);
-    mvisualizebeamC->SetZbufferHide(false);
-    mesh->AddVisualShapeFEA(mvisualizebeamC);
+    auto beam_visB = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    beam_visB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    beam_visB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    beam_visB->SetSymbolsThickness(0.006);
+    beam_visB->SetSymbolsScale(0.01);
+    beam_visB->SetZbufferHide(false);
+    mesh->AddVisualShapeFEA(beam_visB);
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -531,12 +525,12 @@ int main(int argc, char* argv[]) {
     }
 
     std::string gplfilename = out_dir + "/beam_loads.gpl";
-    postprocess::ChGnuPlot mplot(gplfilename.c_str());
-    mplot.SetGrid(false, 1, ChColor(0.8f, 0.8f, 0.8f));
-    mplot.SetLabelX("X");
-    mplot.SetLabelY("Y");
-    mplot.SetCommand("set title 'Free node trajectory'");
-    mplot.Plot(rec, "", " with lines lt -1 lc rgb'#00AAEE' ");
+    postprocess::ChGnuPlot gnu_plot(gplfilename.c_str());
+    gnu_plot.SetGrid(false, 1, ChColor(0.8f, 0.8f, 0.8f));
+    gnu_plot.SetLabelX("X");
+    gnu_plot.SetLabelY("Y");
+    gnu_plot.SetCommand("set title 'Free node trajectory'");
+    gnu_plot.Plot(rec, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
     return 0;
 }
