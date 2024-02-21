@@ -19,9 +19,15 @@
 
 using namespace chrono;
 
-FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
-    : FmuChronoComponentBase(_instanceName, _fmuType, _fmuGUID) {
-    initializeType(_fmuType);
+FmuComponent::FmuComponent(fmi2String instanceName,
+                           fmi2Type fmuType,
+                           fmi2String fmuGUID,
+                           fmi2String fmuResourceLocation,
+                           const fmi2CallbackFunctions* functions,
+                           fmi2Boolean visible,
+                           fmi2Boolean loggingOn)
+    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn) {
+    initializeType(fmuType);
 
     SetChronoDataPath(CHRONO_DATA_DIR);
 
@@ -80,9 +86,9 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     vis->AddTypicalLights();
 #endif
 
-    postStepCallbacks.push_back([this]() { x_tt = this->sys.SearchBodyID(10)->GetPos_dtdt().x(); });
-    postStepCallbacks.push_back([this]() { x_t = this->sys.SearchBodyID(10)->GetPos_dt().x(); });
-    postStepCallbacks.push_back([this]() { x = this->sys.SearchBodyID(10)->GetPos().x(); });
+    m_postStepCallbacks.push_back([this]() { x_tt = this->sys.SearchBodyID(10)->GetPos_dtdt().x(); });
+    m_postStepCallbacks.push_back([this]() { x_t = this->sys.SearchBodyID(10)->GetPos_dt().x(); });
+    m_postStepCallbacks.push_back([this]() { x = this->sys.SearchBodyID(10)->GetPos().x(); });
 };
 
 void FmuComponent::_preModelDescriptionExport() {
@@ -100,9 +106,9 @@ void FmuComponent::_exitInitializationMode() {
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                  fmi2Real communicationStepSize,
                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
-    while (time < currentCommunicationPoint + communicationStepSize) {
-        fmi2Real _stepSize = std::min((currentCommunicationPoint + communicationStepSize - time),
-                                      std::min(communicationStepSize, stepSize));
+    while (m_time < currentCommunicationPoint + communicationStepSize) {
+        fmi2Real step_size = std::min((currentCommunicationPoint + communicationStepSize - m_time),
+                                      std::min(communicationStepSize, m_stepSize));
 
 #ifdef CHRONO_IRRLICHT
         if (vis) {
@@ -113,14 +119,14 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
         }
 #endif
 
-        sys.DoStepDynamics(_stepSize);
-        sendToLog("Step at time: " + std::to_string(time) + " with timestep: " + std::to_string(_stepSize) +
+        sys.DoStepDynamics(step_size);
+        sendToLog("Step at time: " + std::to_string(m_time) + " with timestep: " + std::to_string(step_size) +
                       "ms succeeded.\n",
                   fmi2Status::fmi2OK, "logAll");
 
-        time = time + _stepSize;
+        m_time += step_size;
 
-        realtime_timer.Spin(_stepSize);
+        realtime_timer.Spin(step_size);
     }
 
     return fmi2Status::fmi2OK;
