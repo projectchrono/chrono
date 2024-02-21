@@ -19,6 +19,7 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 %}
 
+%shared_ptr(chrono::irrlicht::ChVisualSystemIrrlicht)
 
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVisualSystem.i"
 

@@ -53,12 +53,14 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     ChVisualSystemIrrlicht();
 
     /// Auto-initialized run-time visualization system, with default settings.
-    ChVisualSystemIrrlicht(ChSystem* sys, const ChVector3d& camera_pos = ChVector3d(2, 2, 2), const ChVector3d& camera_targ = ChVector3d(0, 0, 0));
+    ChVisualSystemIrrlicht(ChSystem* sys,
+                           const ChVector3d& camera_pos = ChVector3d(2, 2, 2),
+                           const ChVector3d& camera_targ = ChVector3d(0, 0, 0));
 
     virtual ~ChVisualSystemIrrlicht();
 
     /// Attach another Chrono system to the run-time visualization system.
-    /// Currently only the first associated Chrono system is rendered. 
+    /// Currently only the first associated Chrono system is rendered.
     virtual void AttachSystem(ChSystem* sys) override;
 
     /// Enable/disable antialias (default true).
@@ -148,12 +150,12 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void AddSkyBox(const std::string& texture_dir = GetChronoDataFile("skybox/"));
 
     /// Add a directional light to the scene.
-    /// Has no effect, unles called after Initialize().
+    /// Has no effect, unless called after Initialize().
     /// Light direction is defined by:
     /// - elevation (deg) between 0 (at the horizon) and 90 (above)
     /// - azimuth (deg) between 0 and 360, with 0 = South (-X), 90 = East (-Y), 180 = North (+X), 270 = West (+Y)
     irr::scene::ILightSceneNode* AddLightDirectional(double elevation = 60,                         ///< light elevation
-                                                     double azimuth = 60,                            ///< light azimuth
+                                                     double azimuth = 60,                           ///< light azimuth
                                                      ChColor ambient = ChColor(0.5f, 0.5f, 0.5f),   ///< ambient color
                                                      ChColor specular = ChColor(0.2f, 0.2f, 0.2f),  ///< specular color
                                                      ChColor diffuse = ChColor(1.0f, 1.0f, 1.0f)    ///< diffuse color
@@ -326,7 +328,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     irr::SIrrlichtCreationParameters GetCreationParameters() const { return m_device_params; }
 
     /// Set device creation parameters.
-    void SetCreationParameters(const irr::SIrrlichtCreationParameters& device_params) { m_device_params = device_params; }
+    void SetCreationParameters(const irr::SIrrlichtCreationParameters& device_params) {
+        m_device_params = device_params;
+    }
 
   private:
     /// Irrlicht scene node for a visual model not associated with a physics item.
