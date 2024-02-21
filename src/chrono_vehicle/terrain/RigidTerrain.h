@@ -87,6 +87,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         bool m_visualize;
         std::shared_ptr<ChVisualMaterial> m_vis_mat;
 
+        bool m_Yup;
+
         friend class RigidTerrain;
     };
 
@@ -102,11 +104,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     ~RigidTerrain();
 
-
     /// Add a terrain patch represented by a rigid box.
     /// The patch is constructed such that the center of its top surface (the "driving" surface) is in the x-y plane of
     /// the specified coordinate system. If tiled = true, multiple side-by-side boxes are used.
-    /// Detection of the ChWorldFrame.Vertical adjusts the terrain boxes to the z-x plane to suit a Y-Up world
     std::shared_ptr<Patch> AddPatch(
         std::shared_ptr<ChContactMaterial> material,  ///< [in] contact material
         const ChCoordsys<>& position,                 ///< [in] patch location and orientation
@@ -128,7 +128,6 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         double sweep_sphere_radius = 0,               ///< [in] radius of sweep sphere
         bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
-    
 
     /// Add a terrain patch represented by a heightmap image.
     /// If the image has an explicit gray channel, that value is used as an encoding of height. Otherwise, RGB values
@@ -228,16 +227,21 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Collision is disabled with all other objects in this family.
     void SetCollisionFamily(int family) { m_collision_family = family; }
 
+    /// Embed in a system with Y up global reference frame (default: false).
+    /// This facilitates use in an external tool (e.g., Unity) with a Y up global frame.
+    /// ATTENTION:
+    /// - Do not enable this when used within Chrono, even if ChWorldFrame is set with Y up.
+    /// - If needed, this function must be called before adding or loading any terrain patches.
+    void EnableYupWorld() { m_Yup = true; }
+
   private:
     /// Patch represented as a box domain.
     struct CH_VEHICLE_API BoxPatch : public Patch {
-        ChVector3d m_location;      ///< center of top surface
-        ChVector3d m_normal;        ///< outward normal of the top surface
-        double m_hlength;           ///< patch half-length
-        double m_hwidth;            ///< patch half-width
-        double m_hthickness;        ///< patch half-thickness
-        ChVector3d m_visual_offset; ///< visual offset for alignment in different world orientations
-        ChVector3d m_dim;           ///< dimensions to cache for visual box
+        ChVector3d m_location;  ///< center of top surface
+        ChVector3d m_normal;    ///< outward normal of the top surface
+        double m_hlength;       ///< patch half-length
+        double m_hwidth;        ///< patch half-width
+        double m_hthickness;    ///< patch half-thickness
         virtual void Initialize() override;
         virtual bool FindPoint(const ChVector3d& loc, double& height, ChVector3d& normal) const override;
     };
@@ -265,6 +269,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     void LoadPatch(const rapidjson::Value& a);
 
     int m_collision_family;
+
+    bool m_Yup;
 };
 
 /// @} vehicle_terrain

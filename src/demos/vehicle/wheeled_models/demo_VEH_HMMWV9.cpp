@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("HMMWV-9 Demo");
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             vis_vsg->SetChaseCamera(trackPoint, 6.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
             vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);

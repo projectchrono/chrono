@@ -50,7 +50,8 @@ RigidTerrain::RigidTerrain(ChSystem* system)
       m_num_patches(0),
       m_use_friction_functor(false),
       m_contact_callback(nullptr),
-      m_collision_family(14) {}
+      m_collision_family(14),
+      m_Yup(false) {}
 
 // -----------------------------------------------------------------------------
 // Constructor from JSON file
@@ -60,7 +61,8 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
       m_num_patches(0),
       m_use_friction_functor(false),
       m_contact_callback(nullptr),
-      m_collision_family(14) {
+      m_collision_family(14),
+      m_Yup(false) {
     // Open and parse the input file
     Document d;
     ReadFileJSON(filename, d);
@@ -144,7 +146,12 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
             }
             patch->SetTexture(vehicle::GetDataFile(tex_file), sx, sy);
         }
+        patch->m_visualize = true;
+    } else {
+        patch->m_visualize = false;
     }
+
+    patch->m_Yup = m_Yup;
 }
 
 // -----------------------------------------------------------------------------
@@ -185,12 +192,10 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     auto patch = chrono_types::make_shared<BoxPatch>();
     AddPatch(patch, position, material);
     patch->m_visualize = visualization;
-
-    // In a Y-Up worldframe, the width is mapped across the z-axis and thickness along the y-axis
-    bool is_y_up = (ChWorldFrame::Vertical() == ChVector3d(0, 1, 0));
+    patch->m_Yup = m_Yup;
 
     // Create the collision model (one or more boxes) attached to the patch body
-    if (tiled && !is_y_up) {
+    if (tiled && !m_Yup) {
         int nX = (int)std::ceil(length / max_tile_size);
         int nY = (int)std::ceil(width / max_tile_size);
         double sizeX1 = length / nX;
@@ -204,7 +209,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
                 patch->m_body->AddCollisionShape(ct_shape, ChFrame<>(loc, QUNIT));
             }
         }
-    } else if (tiled && is_y_up) {  // tiling across the z-x plane for a y-up world
+    } else if (tiled && m_Yup) {  // tiling across the z-x plane for a y-up world
         int nX = (int)std::ceil(length / max_tile_size);
         int nZ = (int)std::ceil(width / max_tile_size);
         double sizeX1 = length / nX;
@@ -219,27 +224,24 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
             }
         }
     } else {  // non-tiled terrain creation of a single collision box and centre based on worldframe detection
-        auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(material,                        //
-                                                                       length,                          // x
-                                                                       (is_y_up ? thickness : width),   // y
-                                                                       (is_y_up ? width : thickness));  // z
-        ChVector3d loc(0, (is_y_up ? (-0.5 * thickness) : 0),
-                       (is_y_up ? 0 : (-0.5 * thickness)));  // centralise based on thickness along y-up or z-up world
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(material,                      //
+                                                                       length,                        // x
+                                                                       (m_Yup ? thickness : width),   // y
+                                                                       (m_Yup ? width : thickness));  // z
+        ChVector3d loc(0, (m_Yup ? (-0.5 * thickness) : 0),
+                       (m_Yup ? 0 : (-0.5 * thickness)));  // centralise based on thickness along y-up or z-up world
         patch->m_body->AddCollisionShape(ct_shape, ChFrame<>(loc, QUNIT));
     }
 
     // Cache patch parameters
     patch->m_location = position.pos;
-    patch->m_normal = (is_y_up ? position.rot.GetAxisY() : position.rot.GetAxisZ());
+    patch->m_normal = (m_Yup ? position.rot.GetAxisY() : position.rot.GetAxisZ());
     patch->m_hlength = length / 2;
     patch->m_hwidth = width / 2;
     patch->m_hthickness = thickness / 2;
     patch->m_radius = ChVector3d(length, width, thickness).Length() / 2;
     patch->m_type = PatchType::BOX;
-    patch->m_visual_offset = ChVector3d(0,
-                                        (is_y_up ? (-0.5 * thickness) : 0),   // Offset in Y for Y-up world
-                                        (is_y_up ? 0 : (-0.5 * thickness)));  // Offset in Z for Z-up world
-    patch->m_dim = ChVector3d(length, (is_y_up ? thickness : width), (is_y_up ? width : thickness));
+
     return patch;
 }
 
@@ -254,6 +256,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     auto patch = chrono_types::make_shared<MeshPatch>();
     AddPatch(patch, position, material);
     patch->m_visualize = visualization;
+    patch->m_Yup = m_Yup;
 
     // Load mesh from file
     patch->m_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_file, true, true);
@@ -301,6 +304,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     auto patch = chrono_types::make_shared<MeshPatch>();
     AddPatch(patch, position, material);
     patch->m_visualize = visualization;
+    patch->m_Yup = m_Yup;
 
     // Read the image file (request only 1 channel) and extract number of pixels
     STB hmap;
@@ -438,9 +442,9 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
 }
 
 //----------------------------------------------------------------------------------------------
-// Create a 'heightmap' from a vector_ChVector group of points by weighted averaging of the nearest
-// the vectors within x,y grid with z height. Grid resolution can be increased or decreased and so
-// can the number of LEPP iterations and the factor of smoothing (dependent on grid resolution).
+// Create a 'heightmap' from a group of points by weighted averaging of the nearest the vectors
+// within x,y grid with z height. Grid resolution can be increased or decreased and so can the
+// number of LEPP iterations and the factor of smoothing (dependent on grid resolution).
 // Acts in a way like a pixelated grid with smoothing. Grid x and y axis align with the standard
 // RHF world axis.
 
@@ -464,6 +468,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     auto patch = chrono_types::make_shared<MeshPatch>();
     AddPatch(patch, position, material);
     patch->m_visualize = visualization;
+    patch->m_Yup = m_Yup;
+
     // Initialise the mesh
     patch->m_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
 
@@ -863,7 +869,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
 // Functions to modify properties of a patch
 // -----------------------------------------------------------------------------
 
-RigidTerrain::Patch::Patch() : m_friction(0.8f), m_visualize(true) {
+RigidTerrain::Patch::Patch() : m_friction(0.8f), m_visualize(true), m_Yup(false) {
     m_vis_mat = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
 }
 
@@ -970,9 +976,9 @@ void RigidTerrain::Initialize() {
 void RigidTerrain::BoxPatch::Initialize() {
     if (m_visualize) {
         m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
-        auto box = chrono_types::make_shared<ChVisualShapeBox>(m_dim);  // dimensions determined in AddPatch
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(2 * m_hlength, 2 * m_hwidth, 2 * m_hthickness);
         box->AddMaterial(m_vis_mat);
-        m_body->AddVisualShape(box, ChFrame<>(m_visual_offset));  // offset determined in AddPatch
+        m_body->AddVisualShape(box, ChFrame<>(ChVector3d(0, 0, -m_hthickness)));
     }
 }
 
@@ -1091,14 +1097,9 @@ bool RigidTerrain::BoxPatch::FindPoint(const ChVector3d& loc, double& height, Ch
 
     // Check bounds
     ChVector3d Cl = m_body->TransformPointParentToLocal(C);
-    // Determine which axes to use for bounds checking based on world orientation, making use of v declared above
-    if (v.Equals(ChVector3d(0, -1, 0))) {
-        // Y-up world: check bounds using X and Z axes
+    if (m_Yup)
         return std::abs(Cl.x()) <= m_hlength && std::abs(Cl.z()) <= m_hwidth;
-    } else {
-        // Z-up world: check bounds using X and Y axes
-        return std::abs(Cl.x()) <= m_hlength && std::abs(Cl.y()) <= m_hwidth;
-    }
+    return std::abs(Cl.x()) <= m_hlength && std::abs(Cl.y()) <= m_hwidth;
 }
 
 bool RigidTerrain::MeshPatch::FindPoint(const ChVector3d& loc, double& height, ChVector3d& normal) const {

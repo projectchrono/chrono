@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     vis->SetCameraVertical(CameraVerticalDir::Y);
     vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
-    vis->AddLightDirectional();
+    vis->AddLightDirectional(-60, 300);
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AddGrid(1.0, 1.0, 20, 20, ChCoordsys<>(ChVector3d(0, 0.01, 0), ChWorldFrame::Quaternion()), ChColor(1, 0, 0));
