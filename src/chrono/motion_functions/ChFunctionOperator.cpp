@@ -12,57 +12,57 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/motion_functions/ChFunctionOperation.h"
+#include "chrono/motion_functions/ChFunctionOperator.h"
 
 namespace chrono {
 
 // Register into the object m_first_functory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChFunctionOperation)
+CH_FACTORY_REGISTER(ChFunctionOperator)
 
-ChFunctionOperation::ChFunctionOperation() {
-    m_op_type = ChFunctionOperation::ADD;
+ChFunctionOperator::ChFunctionOperator() {
+    m_op_type = ChFunctionOperator::ADD;
     m_first_fun = chrono_types::make_shared<ChFunctionConst>();
     m_second_fun = chrono_types::make_shared<ChFunctionConst>();
 }
 
-ChFunctionOperation::ChFunctionOperation(const ChFunctionOperation& other) {
+ChFunctionOperator::ChFunctionOperator(const ChFunctionOperator& other) {
     m_op_type = other.m_op_type;
     m_first_fun = std::shared_ptr<ChFunction>(other.m_first_fun->Clone());
     m_second_fun = std::shared_ptr<ChFunction>(other.m_second_fun->Clone());
 }
 
-double ChFunctionOperation::GetVal(double x) const {
+double ChFunctionOperator::GetVal(double x) const {
     double res;
 
     switch (m_op_type) {
-        case ChFunctionOperation::ADD:
+        case ChFunctionOperator::ADD:
             res = m_first_fun->GetVal(x) + m_second_fun->GetVal(x);
             break;
-        case ChFunctionOperation::SUB:
+        case ChFunctionOperator::SUB:
             res = m_first_fun->GetVal(x) - m_second_fun->GetVal(x);
             break;
-        case ChFunctionOperation::MUL:
+        case ChFunctionOperator::MUL:
             res = m_first_fun->GetVal(x) * m_second_fun->GetVal(x);
             break;
-        case ChFunctionOperation::DIV:
+        case ChFunctionOperator::DIV:
             res = m_first_fun->GetVal(x) / m_second_fun->GetVal(x);
             break;
-        case ChFunctionOperation::POW:
+        case ChFunctionOperator::POW:
             res = pow(m_first_fun->GetVal(x), m_second_fun->GetVal(x));
             break;
-        case ChFunctionOperation::MAX:
+        case ChFunctionOperator::MAX:
             res = std::max(m_first_fun->GetVal(x), m_second_fun->GetVal(x));
             break;
-        case ChFunctionOperation::MIN:
+        case ChFunctionOperator::MIN:
             res = std::min(m_first_fun->GetVal(x), m_second_fun->GetVal(x));
             break;
-        case ChFunctionOperation::MODULO:
+        case ChFunctionOperator::MODULO:
             res = fmod(m_first_fun->GetVal(x), m_second_fun->GetVal(x));
             break;
-        case ChFunctionOperation::FABS:
+        case ChFunctionOperator::FABS:
             res = fabs(m_first_fun->GetVal(x));
             break;
-        case ChFunctionOperation::FUNCT:
+        case ChFunctionOperator::FUNCT:
             res = m_first_fun->GetVal(m_second_fun->GetVal(x));
             break;
         default:
@@ -72,9 +72,9 @@ double ChFunctionOperation::GetVal(double x) const {
     return res;
 }
 
-void ChFunctionOperation::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionOperator::ArchiveOut(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChFunctionOperation>();
+    marchive.VersionWrite<ChFunctionOperator>();
     // serialize parent class
     ChFunction::ArchiveOut(marchive);
     // serialize all member data:
@@ -84,9 +84,9 @@ void ChFunctionOperation::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(mmapper(m_op_type), "operation_type");
 }
 
-void ChFunctionOperation::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionOperator::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/marchive.VersionRead<ChFunctionOperation>();
+    /*int version =*/marchive.VersionRead<ChFunctionOperator>();
     // deserialize parent class
     ChFunction::ArchiveIn(marchive);
     // stream in all member data:

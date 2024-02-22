@@ -37,13 +37,13 @@ class ChFunction_Type_enum_mapper : public ChFunction {
     CH_ENUM_VAL(Type::CONSTJERK);
     CH_ENUM_VAL(Type::CUSTOM);
     CH_ENUM_VAL(Type::CYCLOIDAL);
-    CH_ENUM_VAL(Type::DERIVE);
+    CH_ENUM_VAL(Type::DERIVATIVE);
     CH_ENUM_VAL(Type::FILLET3);
-    CH_ENUM_VAL(Type::INTEGRATE);
+    CH_ENUM_VAL(Type::INTEGRAL);
     CH_ENUM_VAL(Type::INTERP);
     CH_ENUM_VAL(Type::LAMBDA);
     CH_ENUM_VAL(Type::MIRROR);
-    CH_ENUM_VAL(Type::OPERATION);
+    CH_ENUM_VAL(Type::OPERATOR);
     CH_ENUM_VAL(Type::POLY);
     CH_ENUM_VAL(Type::POLY23);
     CH_ENUM_VAL(Type::POLY345);

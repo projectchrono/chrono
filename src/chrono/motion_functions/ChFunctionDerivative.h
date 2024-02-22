@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHFUNCT_DERIVE_H
-#define CHFUNCT_DERIVE_H
+#ifndef CHFUNCT_DERIVATIVE_H
+#define CHFUNCT_DERIVATIVE_H
 
 #include "chrono/motion_functions/ChFunctionBase.h"
 #include "chrono/motion_functions/ChFunctionConst.h"
@@ -27,20 +27,20 @@ namespace chrono {
 ///
 /// Uses a numerical differentiation method to compute the derivative
 /// of a generic function.
-class ChApi ChFunctionDerive : public ChFunction {
+class ChApi ChFunctionDerivative : public ChFunction {
   private:
     std::shared_ptr<ChFunction> m_operand_fun;
     int m_der_order;  ///< derivative order
 
   public:
-    ChFunctionDerive() : m_der_order(1) {}
-    ChFunctionDerive(const ChFunctionDerive& other);
-    ~ChFunctionDerive() {}
+    ChFunctionDerivative() : m_der_order(1) {}
+    ChFunctionDerivative(const ChFunctionDerivative& other);
+    ~ChFunctionDerivative() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChFunctionDerive* Clone() const override { return new ChFunctionDerive(*this); }
+    virtual ChFunctionDerivative* Clone() const override { return new ChFunctionDerivative(*this); }
 
-    virtual Type GetType() const override { return ChFunction::Type::DERIVE; }
+    virtual Type GetType() const override { return ChFunction::Type::DERIVATIVE; }
 
     /// Get function output at \a x.
     virtual double GetVal(double x) const override;
@@ -66,7 +66,7 @@ class ChApi ChFunctionDerive : public ChFunction {
 
 /// @} chrono_functions
 
-CH_CLASS_VERSION(ChFunctionDerive, 0)
+CH_CLASS_VERSION(ChFunctionDerivative, 0)
 
 }  // namespace chrono
 

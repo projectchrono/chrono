@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban, Dario Mangoni
 // =============================================================================
 
-#ifndef CHFUNCT_TABLE_H
-#define CHFUNCT_TABLE_H
+#ifndef CHFUNCT_INTERP_H
+#define CHFUNCT_INTERP_H
 
 #include <iterator>
 #include <map>

@@ -1064,12 +1064,12 @@ set(ChronoEngine_functions_SOURCES
     motion_functions/ChFunctionConst.cpp
     motion_functions/ChFunctionConstAcc.cpp
     motion_functions/ChFunctionConstJerk.cpp
-    motion_functions/ChFunctionDerive.cpp
+    motion_functions/ChFunctionDerivative.cpp
     motion_functions/ChFunctionFillet3.cpp
-    motion_functions/ChFunctionIntegrate.cpp
+    motion_functions/ChFunctionIntegral.cpp
     motion_functions/ChFunctionInterp.cpp
     motion_functions/ChFunctionMirror.cpp
-    motion_functions/ChFunctionOperation.cpp
+    motion_functions/ChFunctionOperator.cpp
     motion_functions/ChFunctionPoly.cpp
     motion_functions/ChFunctionPoly23.cpp
     motion_functions/ChFunctionPoly345.cpp
@@ -1099,13 +1099,13 @@ set(ChronoEngine_functions_HEADERS
     motion_functions/ChFunctionConst.h
     motion_functions/ChFunctionConstAcc.h
     motion_functions/ChFunctionConstJerk.h
-    motion_functions/ChFunctionDerive.h
+    motion_functions/ChFunctionDerivative.h
     motion_functions/ChFunctionFillet3.h
-    motion_functions/ChFunctionIntegrate.h
+    motion_functions/ChFunctionIntegral.h
     motion_functions/ChFunctionInterp.h
     motion_functions/ChFunctionLambda.h
     motion_functions/ChFunctionMirror.h
-    motion_functions/ChFunctionOperation.h
+    motion_functions/ChFunctionOperator.h
     motion_functions/ChFunctionPoly.h
     motion_functions/ChFunctionPoly23.h
     motion_functions/ChFunctionPoly345.h

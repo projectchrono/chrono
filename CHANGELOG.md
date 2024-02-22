@@ -127,13 +127,14 @@ Note that this represents a major public API change and we expect most user code
 | ChFunction_ConstAcc.h               | rename: ChFunctionConstAcc.h              |
 | ChFunction_DoubleS.h                | rename: ChFunctionConstJerk.h             |
 | ChFunction_Cycloidal.h              | rename: ChFunctionCycloidal.h             |
-| ChFunction_Derive.h                 | rename: ChFunctionDerive.h                |
+| ChFunction_Derive.h                 | rename: ChFunctionDerivative.h            |
 | ChFunction_Fillet3.h                | rename: ChFunctionFillet3.h               |
-| ChFunction_Integrate.h              | rename: ChFunctionIntegrate.h             |
+| ChFunction_Integrate.h              | rename: ChFunctionIntegral.h              |
+| ChFunction_Lambda.h                 | rename: ChFunctionLambda.h                |
 | ChFunction_Mirror.h                 | rename: ChFunctionMirror.h                |
 | ChFunction_Mocap.h                  | remove                                    |
 | ChFunction_Noise.h                  | remove                                    |
-| ChFunction_Operation.h              | rename: ChFunctionOperation.h             |
+| ChFunction_Operation.h              | rename: ChFunctionOperator.h              |
 | ChFunction_Oscilloscope.h           | remove                                    |
 | ChFunction_Poly345.h                | rename: ChFunctionPoly345.h               |
 | ChFunction_Poly.h                   | rename: ChFunctionPoly.h                  |
@@ -160,6 +161,8 @@ Note that this represents a major public API change and we expect most user code
 
 | Class                             | Function                      | Action                                           |
 | :-------------------------------- | :--------------------------   | :----------------------------------------------- |
+| -                                 | make_ChFunctionLambda         | remove                                           |
+| -                                 | make_shared_ChFunctionLambda  | remove                                           |
 | -                                 | ChAtan2                       | remove                                           |
 | -                                 | ChClamp                       | relocate to utils/ChUtils.h                      |
 | -                                 | ChClampValue                  | relocate to utils/ChUtils.h                      |
@@ -222,7 +225,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Set_aw                        | rename: SetSecondAccelerationStart               |
 |                                   | Set_end                       | rename: SetDuration                              |
 |                                   | Set_h                         | rename: SetDisplacement                          |
-| ChFunction_Derive                 |                               | rename: ChFunctionDerive                         |
+| ChFunction_Derive                 |                               | rename: ChFunctionDerivative                     |
 |                                   | Get_order                     | rename: GetOrder                                 |
 |                                   | Set_fa                        | rename: SetOperandFunction                       |
 |                                   | Get_fa                        | rename: GetOperandFunction                       |
@@ -237,7 +240,6 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Set_h                         | rename: SetHeight                                |
 |                                   | Get_end                       | rename: GetWidth                                 |
 |                                   | Get_h                         | rename: GetHeight                                |
-| ChFunction_Derive                 |                               | rename: ChFunctionDerive                         |
 | ChFunction_Fillet3                |                               | rename: ChFunctionFillet3                        |
 |                                   | Get_dy1                       | rename: GetStartDer                              |
 |                                   | Get_dy2                       | rename: GetEndDer                                |
@@ -248,22 +250,23 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Set_y1                        | rename: SetStartVal                              |
 |                                   | Set_y2                        | rename: SetEndVal                                |
 |                                   | SetupCoefficients             | rename: Setup                                    |
-| ChFunction_Integrate              |                               | rename: ChFunctionIntegrate                      |
+| ChFunction_Integrate              |                               | rename: ChFunctionIntegral                       |
 |                                   | ComputeIntegral               | rename: Setup                                    |
-|                                   | Get_C_start                   | rename: GetOffset                                |
+|                                   | Get_C_start                   | rename: GetOffsetVal                             |
 |                                   | Get_num_samples               | rename: GetNumSamples                            |
 |                                   | Get_x_end                     | rename: GetStart                                 |
 |                                   | Get_x_start                   | rename: GetEnd                                   |
-|                                   | Set_C_start                   | rename: SetOffset                                |
+|                                   | Set_C_start                   | rename: SetOffsetVal                             |
 |                                   | Set_num_samples               | rename: SetNumSamples                            |
 |                                   | Set_x_end                     | rename: SetEnd                                   |
 |                                   | Set_x_start                   | rename: SetStart                                 |
+| ChFunction_Lambda                 |                               | rename: ChFunctionLambda                         |
 | ChFunction_Mirror                 |                               | rename: ChFunctionMirror                         |
 |                                   | Get_mirror_axis               | rename: GetMirrorAxis                            |  
 |                                   | Set_mirror_axis               | rename: SetMirrorAxis                            |  
 | ChFunction_Mocap                  |                               | remove                                           |
 | ChFunction_Noise                  |                               | remove                                           |
-| ChFunction_Operation              |                               | rename: ChFunctionOperation                      |
+| ChFunction_Operation              |                               | rename: ChFunctionOperator                       |
 |                                   | Get_fa                        | rename: GetFirstOperandFunction                  |
 |                                   | Get_fb                        | rename: GetSecondOperandFunction                 |
 |                                   | Get_optype                    | rename: GetOperationType                         |

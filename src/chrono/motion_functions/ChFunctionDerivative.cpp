@@ -12,26 +12,26 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/motion_functions/ChFunctionDerive.h"
+#include "chrono/motion_functions/ChFunctionDerivative.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-CH_FACTORY_REGISTER(ChFunctionDerive)
+CH_FACTORY_REGISTER(ChFunctionDerivative)
 
-ChFunctionDerive::ChFunctionDerive(const ChFunctionDerive& other) {
+ChFunctionDerivative::ChFunctionDerivative(const ChFunctionDerivative& other) {
     m_der_order = other.m_der_order;
     m_operand_fun = std::shared_ptr<ChFunction>(other.m_operand_fun->Clone());
 }
 
-double ChFunctionDerive::GetVal(double x) const {
+double ChFunctionDerivative::GetVal(double x) const {
     return m_operand_fun->GetDer(x);
 }
 
-void ChFunctionDerive::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionDerivative::ArchiveOut(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChFunctionDerive>();
+    marchive.VersionWrite<ChFunctionDerivative>();
     // serialize parent class
     ChFunction::ArchiveOut(marchive);
     // serialize all member data:
@@ -39,9 +39,9 @@ void ChFunctionDerive::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(m_der_order);
 }
 
-void ChFunctionDerive::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionDerivative::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionDerive>();
+    /*int version =*/ marchive.VersionRead<ChFunctionDerivative>();
     // deserialize parent class
     ChFunction::ArchiveIn(marchive);
     // stream in all member data:

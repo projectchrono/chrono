@@ -285,7 +285,7 @@ my_functA = chrono.ChFunctionSine(0,1.4,0.06)
 my_functA.thisown = 0
 my_functB = chrono.ChFunctionSine(0,0.1,1)
 my_functB.thisown = 0
-my_funct = chrono.ChFunctionOperation()
+my_funct = chrono.ChFunctionOperator()
 my_funct.Set_fa(my_functA)
 my_funct.Set_fb(my_functB)
 my_funct.Set_optype(chrono.ChOP_MUL)

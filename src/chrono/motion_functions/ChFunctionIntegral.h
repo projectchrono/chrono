@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHFUNCT_INTEGRATE_H
-#define CHFUNCT_INTEGRATE_H
+#ifndef CHFUNCT_INTEGRAL_H
+#define CHFUNCT_INTEGRAL_H
 
 #include "chrono/motion_functions/ChFunctionBase.h"
 
@@ -26,7 +26,7 @@ namespace chrono {
 /// `y(x) = offset + \int{f(x) dx}_{x_start}^{x_end}`.
 /// The integration interval can be specified as well as the order of integration.
 /// Uses a numerical quadrature method to compute the definite integral.
-class ChApi ChFunctionIntegrate : public ChFunction {
+class ChApi ChFunctionIntegral : public ChFunction {
   private:
     std::shared_ptr<ChFunction> m_integrand_fun;
     int m_integration_order;  ///< integration order
@@ -37,14 +37,14 @@ class ChApi ChFunctionIntegrate : public ChFunction {
     ChArray<> m_cumintegral;  ///< precomputed integral values
 
   public:
-    ChFunctionIntegrate();
-    ChFunctionIntegrate(const ChFunctionIntegrate& other);
-    ~ChFunctionIntegrate() {}
+    ChFunctionIntegral();
+    ChFunctionIntegral(const ChFunctionIntegral& other);
+    ~ChFunctionIntegral() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChFunctionIntegrate* Clone() const override { return new ChFunctionIntegrate(*this); }
+    virtual ChFunctionIntegral* Clone() const override { return new ChFunctionIntegral(*this); }
 
-    virtual Type GetType() const override { return ChFunction::Type::INTEGRATE; }
+    virtual Type GetType() const override { return ChFunction::Type::INTEGRAL; }
 
     virtual double GetVal(double x) const override;
 
@@ -65,10 +65,10 @@ class ChApi ChFunctionIntegrate : public ChFunction {
     int GetNumSamples() const { return m_num_samples; }
 
     /// Set the initial value of the integral.
-    void SetOffset(double offset) { m_offset = offset; }
+    void SetOffsetVal(double offset) { m_offset = offset; }
 
     /// Get the initial value of the integral.
-    double GetOffset() const { return m_offset; }
+    double GetOffsetVal() const { return m_offset; }
 
     /// Set the integration interval.
     void SetInterval(double xstart, double xend);
@@ -100,7 +100,7 @@ class ChApi ChFunctionIntegrate : public ChFunction {
 
 /// @} chrono_functions
 
-CH_CLASS_VERSION(ChFunctionIntegrate, 0)
+CH_CLASS_VERSION(ChFunctionIntegral, 0)
 
 }  // end namespace chrono
 

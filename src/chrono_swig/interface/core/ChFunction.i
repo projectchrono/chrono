@@ -5,11 +5,11 @@
 #include "chrono/motion_functions/ChFunctionConstAcc.h"
 #include "chrono/motion_functions/ChFunctionConstJerk.h"
 #include "chrono/motion_functions/ChFunctionCycloidal.h"
-#include "chrono/motion_functions/ChFunctionDerive.h"
+#include "chrono/motion_functions/ChFunctionDerivative.h"
 #include "chrono/motion_functions/ChFunctionFillet3.h"
-#include "chrono/motion_functions/ChFunctionIntegrate.h"
+#include "chrono/motion_functions/ChFunctionIntegral.h"
 #include "chrono/motion_functions/ChFunctionMirror.h"
-#include "chrono/motion_functions/ChFunctionOperation.h"
+#include "chrono/motion_functions/ChFunctionOperator.h"
 #include "chrono/motion_functions/ChFunctionPoly.h"
 #include "chrono/motion_functions/ChFunctionPoly345.h"
 #include "chrono/motion_functions/ChFunctionRamp.h"
@@ -50,16 +50,16 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionConstJerk, 0 |  0 );
 		else if ( typeid(*out)==typeid(chrono::ChFunctionCycloidal) )
 			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionCycloidal, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunctionDerive) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionDerive, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionDerivative) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionDerivative, 0 |  0 );
 		else if ( typeid(*out)==typeid(chrono::ChFunctionFillet3) )
 			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionFillet3, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunctionIntegrate) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionIntegrate, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionIntegral) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionIntegral, 0 |  0 );
 		else if ( typeid(*out)==typeid(chrono::ChFunctionMirror) )
 			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionMirror, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunctionOperation) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionOperation, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionOperator) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionOperator, 0 |  0 );
 		else if ( typeid(*out)==typeid(chrono::ChFunctionPoly) )
 			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionPoly, 0 |  0 );
 		else if ( typeid(*out)==typeid(chrono::ChFunctionPoly23) )
@@ -95,11 +95,11 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %shared_ptr(chrono::ChFunctionConstAcc)
 %shared_ptr(chrono::ChFunctionConstJerk)
 %shared_ptr(chrono::ChFunctionCycloidal)
-%shared_ptr(chrono::ChFunctionDerive)
+%shared_ptr(chrono::ChFunctionDerivative)
 %shared_ptr(chrono::ChFunctionFillet3)
-%shared_ptr(chrono::ChFunctionIntegrate)
+%shared_ptr(chrono::ChFunctionIntegral)
 %shared_ptr(chrono::ChFunctionMirror)
-%shared_ptr(chrono::ChFunctionOperation)
+%shared_ptr(chrono::ChFunctionOperator)
 %shared_ptr(chrono::ChFunctionPoly)
 %shared_ptr(chrono::ChFunctionPoly345)
 %shared_ptr(chrono::ChFunctionRamp)
@@ -153,12 +153,12 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %include "../../../chrono/motion_functions/ChFunctionConstAcc.h"
 %include "../../../chrono/motion_functions/ChFunctionConstJerk.h"
 %include "../../../chrono/motion_functions/ChFunctionCycloidal.h"
-%include "../../../chrono/motion_functions/ChFunctionDerive.h"
+%include "../../../chrono/motion_functions/ChFunctionDerivative.h"
 %include "../../../chrono/motion_functions/ChFunctionFillet3.h"
-%include "../../../chrono/motion_functions/ChFunctionIntegrate.h"
+%include "../../../chrono/motion_functions/ChFunctionIntegral.h"
 %include "../../../chrono/motion_functions/ChFunctionInterp.h"
 %include "../../../chrono/motion_functions/ChFunctionMirror.h"
-%include "../../../chrono/motion_functions/ChFunctionOperation.h"
+%include "../../../chrono/motion_functions/ChFunctionOperator.h"
 %include "../../../chrono/motion_functions/ChFunctionPoly.h"
 %include "../../../chrono/motion_functions/ChFunctionPoly23.h"
 %include "../../../chrono/motion_functions/ChFunctionPoly345.h"
@@ -193,11 +193,11 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionConstAcc)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionConstJerk)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionCycloidal)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionDerive)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionDerivative)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionFillet3)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionIntegrate)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionIntegral)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionMirror)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionOperation)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionOperator)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionPoly)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionPoly345)
 %DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionRamp)

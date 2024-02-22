@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHFUNCT_OPERATION_H
-#define CHFUNCT_OPERATION_H
+#ifndef CHFUNCT_OPERATOR_H
+#define CHFUNCT_OPERATOR_H
 
 #include "chrono/motion_functions/ChFunctionBase.h"
 #include "chrono/motion_functions/ChFunctionConst.h"
@@ -26,11 +26,11 @@ namespace chrono {
 /// Operation between functions:
 ///
 /// Math operation between two operand functions
-class ChApi ChFunctionOperation : public ChFunction {
+class ChApi ChFunctionOperator : public ChFunction {
   public:
-    ChFunctionOperation();
-    ChFunctionOperation(const ChFunctionOperation& other);
-    ~ChFunctionOperation() {}
+    ChFunctionOperator();
+    ChFunctionOperator(const ChFunctionOperator& other);
+    ~ChFunctionOperator() {}
 
     /// Type of operation.
     enum eChOperation {
@@ -47,9 +47,9 @@ class ChApi ChFunctionOperation : public ChFunction {
     };
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChFunctionOperation* Clone() const override { return new ChFunctionOperation(*this); }
+    virtual ChFunctionOperator* Clone() const override { return new ChFunctionOperator(*this); }
 
-    virtual Type GetType() const override { return ChFunction::Type::OPERATION; }
+    virtual Type GetType() const override { return ChFunction::Type::OPERATOR; }
 
     virtual double GetVal(double x) const override;
 
@@ -100,7 +100,7 @@ class ChApi ChFunctionOperation : public ChFunction {
 
 /// @} chrono_functions
 
-CH_CLASS_VERSION(ChFunctionOperation, 0)
+CH_CLASS_VERSION(ChFunctionOperator, 0)
 
 }  // end namespace chrono
 

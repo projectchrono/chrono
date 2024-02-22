@@ -45,7 +45,6 @@
 %include <std_shared_ptr.i>
 
 
-
 // Include C++ headers this way...
 
 %{
@@ -156,11 +155,11 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFunctionConst)
 %shared_ptr(chrono::ChFunctionConstAcc)
 %shared_ptr(chrono::ChFunctionCycloidal)
-%shared_ptr(chrono::ChFunctionDerive)
+%shared_ptr(chrono::ChFunctionDerivative)
 %shared_ptr(chrono::ChFunctionFillet3)
-%shared_ptr(chrono::ChFunctionIntegrate)
+%shared_ptr(chrono::ChFunctionIntegral)
 %shared_ptr(chrono::ChFunctionMirror)
-%shared_ptr(chrono::ChFunctionOperation)
+%shared_ptr(chrono::ChFunctionOperator)
 %shared_ptr(chrono::ChFunctionPoly)
 %shared_ptr(chrono::ChFunctionPoly345)
 %shared_ptr(chrono::ChFunctionRamp)
