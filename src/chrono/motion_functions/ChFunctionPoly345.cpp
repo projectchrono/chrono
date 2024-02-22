@@ -72,7 +72,7 @@ double ChFunctionPoly345::GetDer3(double x) const {
     return ret;
 }
 
-inline void ChFunctionPoly345::SetWidth(double width) {
+void ChFunctionPoly345::SetWidth(double width) {
     if (width <= 0)
         throw std::invalid_argument("Invalid width. Must be positive.");
     m_width = width;
