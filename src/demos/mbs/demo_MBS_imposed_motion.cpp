@@ -74,13 +74,12 @@ int main(int argc, char* argv[]) {
     // Create a position function p(t) from three x,y,z distinct ChFunction objects,
     // in this case two sine functions on y and z, whereas x remains constant 0 by default.
     auto f_xyz = chrono_types::make_shared<ChFunctionPositionXYZFunctions>();
-    f_xyz->SetFunctionY(chrono_types::make_shared<ChFunctionSine>(0, 0.5, 0.5));
-    f_xyz->SetFunctionZ(chrono_types::make_shared<ChFunctionSine>(0, 0.5, 0.5));  // phase freq ampl
+    f_xyz->SetFunctionY(chrono_types::make_shared<ChFunctionSine>(0.5, 0.5));
+    f_xyz->SetFunctionZ(chrono_types::make_shared<ChFunctionSine>(0.5, 0.5));  // phase freq ampl
 
     // Create a rotation function q(t) from a angle(time) rotation with fixed axis:
     auto f_rot_axis = chrono_types::make_shared<ChFunctionRotationAxis>();
-    f_rot_axis->SetFunctionAngle(
-        chrono_types::make_shared<ChFunctionSine>(0, 0.15, chrono::CH_C_PI));  // phase freq ampl
+    f_rot_axis->SetFunctionAngle(chrono_types::make_shared<ChFunctionSine>(chrono::CH_C_PI, 0.15));  // phase freq ampl
     f_rot_axis->SetAxis(ChVector3d(1, 1, 1).GetNormalized());
 
     // Create the constraint to impose motion and rotation.
@@ -214,8 +213,8 @@ int main(int argc, char* argv[]) {
     // Create the rotation function: use 3 distinct A,B,C functions of time to set Euler or Cardan angles
     auto f_abc_angles = chrono_types::make_shared<ChFunctionRotationABCFunctions>();
     f_abc_angles->SetRotationRepresentation(RotRepresentation::CARDAN_ANGLES_XYZ);
-    f_abc_angles->SetFunctionAngleA(chrono_types::make_shared<ChFunctionSine>(0, 2, 0.3));  // phase freq ampl
-    f_abc_angles->SetFunctionAngleB(chrono_types::make_shared<ChFunctionRamp>(0, 0.2));     // a0, da/dt
+    f_abc_angles->SetFunctionAngleA(chrono_types::make_shared<ChFunctionSine>(0.3, 2));  // phase freq ampl
+    f_abc_angles->SetFunctionAngleB(chrono_types::make_shared<ChFunctionRamp>(0, 0.2));  // a0, da/dt
 
     // Create the constraint to impose motion and rotation:
     auto impose_4 = chrono_types::make_shared<ChLinkMotionImposed>();

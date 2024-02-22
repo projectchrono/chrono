@@ -828,7 +828,7 @@ my_functsequence->InsertFunct(my_funcsigma2, 0.3, 1.0, true); // fx, duration, w
 my_functsequence->InsertFunct(my_funcpause2, 0.2, 1.0, true); // fx, duration, weight, enforce C0 continuity
 auto my_functangle = chrono_types::make_shared<ChFunctionRepeat>();
 my_functangle->SetRepeatedFunction(my_functsequence);
-my_functangle->Set_window_length(0.5+0.2+0.3+0.2);
+my_functangle->SetSliceWidth(0.5+0.2+0.3+0.2);
 my_driveli->SetAngleFunction(my_functangle); 
 
 // Create the RACKPINION. 

@@ -152,10 +152,8 @@ void ExampleA2(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     sys.Add(rotmotor2);
 
     // Create a ChFunction to be used for the ChLinkMotorRotationAngle
-    auto msineangle = chrono_types::make_shared<ChFunctionSine>(0,       // phase [rad]
-                                                                 0.05,    // frequency [Hz]
-                                                                 CH_C_PI  // amplitude [rad]
-    );
+    auto msineangle = chrono_types::make_shared<ChFunctionSine>(CH_C_PI,  // phase [rad]
+                                                                0.05);
     // Let the motor use this motion function as a motion profile:
     rotmotor2->SetAngleFunction(msineangle);
 }
@@ -188,10 +186,7 @@ void ExampleA3(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     sys.Add(rotmotor3);
 
     // The torque(time) function:
-    auto mtorquetime = chrono_types::make_shared<ChFunctionSine>(0,   // phase [rad]
-                                                                  2,   // frequency [Hz]
-                                                                  160  // amplitude [Nm]
-    );
+    auto mtorquetime = chrono_types::make_shared<ChFunctionSine>(160, 2);
 
     // Let the motor use this motion function as a motion profile:
     rotmotor3->SetTorqueFunction(mtorquetime);
@@ -292,10 +287,7 @@ void ExampleB1(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     sys.Add(motor1);
 
     // Create a ChFunction to be used for the ChLinkMotorLinearPosition
-    auto msine = chrono_types::make_shared<ChFunctionSine>(0,    // phase
-                                                            0.5,  // frequency
-                                                            1.4   // amplitude
-    );
+    auto msine = chrono_types::make_shared<ChFunctionSine>(1.4, 0.5);
     // Let the motor use this motion function:
     motor1->SetMotionFunction(msine);
 }
@@ -336,10 +328,7 @@ void ExampleB2(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     sys.Add(motor2);
 
     // Create a ChFunction to be used for the ChLinkMotorLinearSpeed
-    auto msp = chrono_types::make_shared<ChFunctionSine>(CH_C_PI_2,            // phase
-                                                          0.5,                  // frequency
-                                                          1.6 * 0.5 * CH_C_2PI  // amplitude
-    );
+    auto msp = chrono_types::make_shared<ChFunctionSine>(1.6 * 0.5 * CH_C_2PI, 0.5, CH_C_PI_2);
     // Let the motor use this motion function:
     motor2->SetSpeedFunction(msp);
 
@@ -401,11 +390,8 @@ void ExampleB3(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // Alternative: just for fun, use a sine harmonic whose max force is F=M*A, where
     // M is the mass of the slider, A is the max acceleration of the previous examples,
     // so finally the motion should be quite the same - but without feedback, if hits a disturb, it goes crazy:
-    auto mF2 =
-        chrono_types::make_shared<ChFunctionSine>(0,                                                 // phase
-                                                   0.5,                                               // frequency
-                                                   slider3->GetMass() * 1.6 * pow(0.5 * CH_C_2PI, 2)  // amplitude
-        );
+    auto mF2 = chrono_types::make_shared<ChFunctionSine>(slider3->GetMass() * 1.6 * pow(0.5 * CH_C_2PI, 2),  // phase
+                                                         0.5);
     // motor3->SetForceFunction(mF2); // uncomment to test this
 }
 

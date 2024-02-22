@@ -92,7 +92,7 @@ sys.AddLink(prismatic2)
 freq = 1
 ampl = 4
 omg = 2 * chrono.CH_C_PI * freq
-mod = chrono.ChFunctionSine(0, freq, ampl)
+mod = chrono.ChFunctionSine(ampl, freq)
 
 # Actuate first slider using a link force
 prismatic1.GetForce_Z().SetActive(True)

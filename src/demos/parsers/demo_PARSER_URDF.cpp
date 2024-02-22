@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     parser.GetRootChBody()->SetBodyFixed(true);
 
     // Example: Change actuation function for a particular joint
-    auto sfun = chrono_types::make_shared<ChFunctionSine>(0, 0.2, 1.0);
+    auto sfun = chrono_types::make_shared<ChFunctionSine>(1.0, 0.2);
     parser.SetMotorFunction("head_swivel", sfun);  // hardcoded for R2D2 model
 
     // Create the visualization window

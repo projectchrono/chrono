@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     double freq = 1;
     double ampl = 4;
     ////double omg = 2 * CH_C_PI * freq;
-    auto mod = chrono_types::make_shared<ChFunctionSine>(0.0, freq, ampl);
+    auto mod = chrono_types::make_shared<ChFunctionSine>(ampl, freq);
 
     // Actuate first slider using a link force
     prismatic1->GetForce_Z().SetActive(true);

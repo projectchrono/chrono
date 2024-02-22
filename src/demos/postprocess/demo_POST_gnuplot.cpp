@@ -20,7 +20,6 @@
 
 #include "chrono/core/ChGlobal.h"
 #include "chrono/functions/ChFunctionInterp.h"
-#include "chrono/functions/ChFunctionSine.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
 

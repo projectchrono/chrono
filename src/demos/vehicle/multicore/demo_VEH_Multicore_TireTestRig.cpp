@@ -120,7 +120,7 @@ int main() {
     // Scenario: prescribe all motion functions
     ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.2));
     ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10.0));
-    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(0, 0.6, 0.2));
+    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(0.2, 0.6));
 
     // Scenario: specified longitudinal slip
     ////rig.SetConstantLongitudinalSlip(0.2, 0.1);

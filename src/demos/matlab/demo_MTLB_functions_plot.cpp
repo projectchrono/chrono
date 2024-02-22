@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
         ChFunctionRamp f_ramp;
 
         f_ramp.SetAngularCoeff(0.1);  // set angular coefficient;
-        f_ramp.SetStartVal(0.4);   // set y value for x=0;
+        f_ramp.SetStartVal(0.4);      // set y value for x=0;
 
         // Evaluate y=f(x) function at a given x value, using GetVal() :
         double y = f_ramp.GetVal(10);
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
 
         ChFunctionSine f_sine;
 
-        f_sine.SetAmplitude(2);     // set amplitude;
+        f_sine.SetAmplitude(2);    // set amplitude;
         f_sine.SetFrequency(0.9);  // set frequency;
 
         // Evaluate y=f(x) function along 100 x points:

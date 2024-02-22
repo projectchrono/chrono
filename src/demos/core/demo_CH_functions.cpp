@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     ChFunctionRamp f_ramp;
 
     f_ramp.SetAngularCoeff(0.1);  // set angular coefficient;
-    f_ramp.SetStartVal(0.4);   // set y value for x=0;
+    f_ramp.SetStartVal(0.4);      // set y value for x=0;
 
     // Evaluate y=f(x) function at a given x value, using GetVal() :
     double y_ramp = f_ramp.GetVal(10);
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
 
     ChFunctionSine f_sine;
 
-    f_sine.SetAmplitude(2);     // set amplitude;
+    f_sine.SetAmplitude(2);    // set amplitude;
     f_sine.SetFrequency(1.5);  // set frequency;
 
     std::ofstream file_f_sine(out_dir + "/f_sine_out.dat");
@@ -115,18 +115,18 @@ int main(int argc, char* argv[]) {
     ChFunctionSequence f_sequence;
 
     auto f_constacc1 = chrono_types::make_shared<ChFunctionConstAcc>();
-    f_constacc1->SetDuration(0.5);  // length of ramp
-    f_constacc1->SetDisplacement(0.3);    // height of ramp
+    f_constacc1->SetDuration(0.5);      // length of ramp
+    f_constacc1->SetDisplacement(0.3);  // height of ramp
     f_sequence.InsertFunct(f_constacc1, 0.5, 1, false, false, false, 0);
 
     auto f_const = chrono_types::make_shared<ChFunctionConst>();
     f_sequence.InsertFunct(f_const, 0.4, 1, true, false, false, -1);
 
     auto f_constacc2 = chrono_types::make_shared<ChFunctionConstAcc>();
-    f_constacc2->SetDuration(0.6);  // length of ramp
-    f_constacc2->SetFirstAccelerationEnd(0.3);   // acceleration ends after 30% length
-    f_constacc2->SetSecondAccelerationStart(0.7);   // deceleration starts after 70% length
-    f_constacc2->SetDisplacement(-0.2);   // height of ramp
+    f_constacc2->SetDuration(0.6);                 // length of ramp
+    f_constacc2->SetFirstAccelerationEnd(0.3);     // acceleration ends after 30% length
+    f_constacc2->SetSecondAccelerationStart(0.7);  // deceleration starts after 70% length
+    f_constacc2->SetDisplacement(-0.2);            // height of ramp
     f_sequence.InsertFunct(f_constacc2, 0.6, 1, true, false, false, -1);
 
     f_sequence.Setup();
