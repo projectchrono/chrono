@@ -325,11 +325,11 @@ void ChLinkPointFrameGeneric::ConstraintsFetch_react(double factor) {
 
 // FILE I/O
 
-void ChLinkPointFrameGeneric::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkPointFrameGeneric::ArchiveOut(ChArchiveOut& archive_out) {
     //// TODO
 }
 
-void ChLinkPointFrameGeneric::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkPointFrameGeneric::ArchiveIn(ChArchiveIn& archive_in) {
     //// TODO
 }
 
@@ -543,11 +543,11 @@ void ChLinkPointFrame::ConstraintsFetch_react(double factor) {
 
 // FILE I/O
 
-void ChLinkPointFrame::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkPointFrame::ArchiveOut(ChArchiveOut& archive_out) {
     //// TODO
 }
 
-void ChLinkPointFrame::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkPointFrame::ArchiveIn(ChArchiveIn& archive_in) {
     //// TODO
 }
 

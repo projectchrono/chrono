@@ -82,10 +82,10 @@ class ChApi ChContactMaterial {
     float GetRestitution() const { return restitution; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
     /// Construct and return a contact material of the specified type with default properties.
     static std::shared_ptr<ChContactMaterial> DefaultMaterial(ChContactMethod contact_method);
@@ -128,10 +128,10 @@ class ChApi ChContactMaterialData {
     std::shared_ptr<ChContactMaterial> CreateMaterial(ChContactMethod contact_method) const;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 };
 
 CH_CLASS_VERSION(ChContactMaterialData, 0)
@@ -142,10 +142,10 @@ class ChApi ChContactMaterialComposite {
     virtual ~ChContactMaterialComposite() {}
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 };
 
 CH_CLASS_VERSION(ChContactMaterialComposite, 0)
@@ -169,10 +169,10 @@ class ChApi ChContactMaterialCompositionStrategy {
     virtual float CombineDampingCoefficient(float a1, float a2) const { return (a1 + a2) / 2; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 };
 
 CH_CLASS_VERSION(ChContactMaterialCompositionStrategy, 0)

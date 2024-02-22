@@ -1852,66 +1852,66 @@ void ChModalAssembly::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfa
 //  STREAMING - FILE HANDLING
 
 
-void ChModalAssembly::ArchiveOut(ChArchiveOut& marchive) {
+void ChModalAssembly::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChModalAssembly>();
+    archive_out.VersionWrite<ChModalAssembly>();
 
     // serialize parent class
-    ChAssembly::ArchiveOut(marchive);
+    ChAssembly::ArchiveOut(archive_out);
 
     // serialize all member data:
 
-    marchive << CHNVP(internal_bodylist, "internal_bodies");
-    marchive << CHNVP(internal_linklist, "internal_links");
-    marchive << CHNVP(internal_meshlist, "internal_meshes");
-    marchive << CHNVP(internal_otherphysicslist, "internal_other_physics_items");
-    marchive << CHNVP(is_modal, "is_modal");
-    marchive << CHNVP(modal_q, "modal_q");
-    marchive << CHNVP(modal_q_dt, "modal_q_dt");
-    marchive << CHNVP(modal_q_dtdt, "modal_q_dtdt");
-    marchive << CHNVP(custom_F_modal, "custom_F_modal");
-    marchive << CHNVP(custom_F_full, "custom_F_full");
-    marchive << CHNVP(internal_nodes_update, "internal_nodes_update");
+    archive_out << CHNVP(internal_bodylist, "internal_bodies");
+    archive_out << CHNVP(internal_linklist, "internal_links");
+    archive_out << CHNVP(internal_meshlist, "internal_meshes");
+    archive_out << CHNVP(internal_otherphysicslist, "internal_other_physics_items");
+    archive_out << CHNVP(is_modal, "is_modal");
+    archive_out << CHNVP(modal_q, "modal_q");
+    archive_out << CHNVP(modal_q_dt, "modal_q_dt");
+    archive_out << CHNVP(modal_q_dtdt, "modal_q_dtdt");
+    archive_out << CHNVP(custom_F_modal, "custom_F_modal");
+    archive_out << CHNVP(custom_F_full, "custom_F_full");
+    archive_out << CHNVP(internal_nodes_update, "internal_nodes_update");
 }
 
-void ChModalAssembly::ArchiveIn(ChArchiveIn& marchive) {
+void ChModalAssembly::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChModalAssembly>();
+    /*int version =*/ archive_in.VersionRead<ChModalAssembly>();
 
     // deserialize parent class
-    ChAssembly::ArchiveIn(marchive);
+    ChAssembly::ArchiveIn(archive_in);
 
     // stream in all member data:
     
     // trick needed because the "AddIntenal...()" functions are required
     std::vector<std::shared_ptr<ChBody>> tempbodies;
-    marchive >> CHNVP(tempbodies, "internal_bodies");
+    archive_in >> CHNVP(tempbodies, "internal_bodies");
     RemoveAllBodies();
     for (auto& body : tempbodies) 
         AddInternalBody(body);
     std::vector<std::shared_ptr<ChLink>> templinks;
-    marchive >> CHNVP(templinks, "internal_links");
+    archive_in >> CHNVP(templinks, "internal_links");
     RemoveAllLinks();
     for (auto& link : templinks) 
         AddInternalLink(link);
     std::vector<std::shared_ptr<ChMesh>> tempmeshes;
-    marchive >> CHNVP(tempmeshes, "internal_mesh");
+    archive_in >> CHNVP(tempmeshes, "internal_mesh");
     RemoveAllMeshes();
     for (auto& mesh : tempmeshes) 
         AddInternalMesh(mesh);
     std::vector<std::shared_ptr<ChPhysicsItem>> tempotherphysics;
-    marchive >> CHNVP(tempotherphysics, "internal_other_physics_items");
+    archive_in >> CHNVP(tempotherphysics, "internal_other_physics_items");
     RemoveAllOtherPhysicsItems();
     for (auto& mphys : tempotherphysics) 
         AddInternalOtherPhysicsItem(mphys);
 
-    marchive >> CHNVP(is_modal, "is_modal");
-    marchive >> CHNVP(modal_q, "modal_q");
-    marchive >> CHNVP(modal_q_dt, "modal_q_dt");
-    marchive >> CHNVP(modal_q_dtdt, "modal_q_dtdt");
-    marchive >> CHNVP(custom_F_modal, "custom_F_modal");
-    marchive >> CHNVP(custom_F_full, "custom_F_full");
-    marchive >> CHNVP(internal_nodes_update, "internal_nodes_update");
+    archive_in >> CHNVP(is_modal, "is_modal");
+    archive_in >> CHNVP(modal_q, "modal_q");
+    archive_in >> CHNVP(modal_q_dt, "modal_q_dt");
+    archive_in >> CHNVP(modal_q_dtdt, "modal_q_dtdt");
+    archive_in >> CHNVP(custom_F_modal, "custom_F_modal");
+    archive_in >> CHNVP(custom_F_full, "custom_F_full");
+    archive_in >> CHNVP(internal_nodes_update, "internal_nodes_update");
 
     // Recompute statistics, offsets, etc.
     Setup();

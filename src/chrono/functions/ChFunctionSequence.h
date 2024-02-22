@@ -52,10 +52,10 @@ class ChApi ChFseqNode {
     ~ChFseqNode() {}
 
     /// Method to allow serialization of transient data to archives.
-    void ArchiveOut(ChArchiveOut& marchive);
+    void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    void ArchiveIn(ChArchiveIn& marchive);
+    void ArchiveIn(ChArchiveIn& archive_in);
 };
 
 CH_CLASS_VERSION(ChFseqNode, 0)
@@ -141,10 +141,10 @@ class ChApi ChFunctionSequence : public ChFunction {
     virtual double GetWeight(double x) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 /// @} chrono_functions

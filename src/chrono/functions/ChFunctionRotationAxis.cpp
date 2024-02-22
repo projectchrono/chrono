@@ -47,24 +47,24 @@ ChVector3d ChFunctionRotationAxis::Get_a_loc(double s) const {
     return this->fangle->GetDer2(s) * this->axis;
 }
 
-void ChFunctionRotationAxis::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionRotationAxis::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionRotationAxis>();
+    archive_out.VersionWrite<ChFunctionRotationAxis>();
     // serialize parent class
-    ChFunctionRotation::ArchiveOut(marchive);
+    ChFunctionRotation::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(fangle);
-    marchive << CHNVP(axis);
+    archive_out << CHNVP(fangle);
+    archive_out << CHNVP(axis);
 }
 
-void ChFunctionRotationAxis::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionRotationAxis::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChFunctionRotationAxis>();
+    /*int version =*/archive_in.VersionRead<ChFunctionRotationAxis>();
     // deserialize parent class
-    ChFunctionRotation::ArchiveIn(marchive);
+    ChFunctionRotation::ArchiveIn(archive_in);
     // deserialize all member data:
-    marchive >> CHNVP(fangle);
-    marchive >> CHNVP(axis);
+    archive_in >> CHNVP(fangle);
+    archive_in >> CHNVP(axis);
 }
 
 }  // end namespace chrono

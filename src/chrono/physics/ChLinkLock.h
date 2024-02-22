@@ -160,10 +160,10 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     virtual void Update(double mytime, bool update_assets = true) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
     /// Type of link-lock
@@ -336,10 +336,10 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     const ChCoordsysd& GetRelC_dtdt() const { return relC_dtdt; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
     std::shared_ptr<ChFunction> motion_X;     ///< user imposed motion for X coord, marker relative

@@ -86,26 +86,26 @@ class myEmployee {
     // NOTE!!!In order to allow serialization with Chrono approach,
     // at least implement these two functions, with the exact names
     // ArchiveIn() and ArchiveOut():
-    virtual void ArchiveOut(ChArchiveOut& marchive)  // ##### for Chrono serialization
+    virtual void ArchiveOut(ChArchiveOut& archive_out)  // ##### for Chrono serialization
     {
         // suggested: use versioning
-        marchive.VersionWrite<myEmployee>();
+        archive_out.VersionWrite<myEmployee>();
         // stream out all member data
-        marchive << CHNVP(age);
-        marchive << CHNVP(wages);
+        archive_out << CHNVP(age);
+        archive_out << CHNVP(wages);
         myEnum_mapper enum_map;
-        marchive << CHNVP(enum_map(body),
+        archive_out << CHNVP(enum_map(body),
                           "body");  // note: CHNVP macro can override names used when streaming to ascii..
     }
-    virtual void ArchiveIn(ChArchiveIn& marchive)  // for Chrono serialization
+    virtual void ArchiveIn(ChArchiveIn& archive_in)  // for Chrono serialization
     {
         // suggested: use versioning
-        /*int version =*/marchive.VersionRead<myEmployee>();
+        /*int version =*/archive_in.VersionRead<myEmployee>();
         // stream in all member data
-        marchive >> CHNVP(age);
-        marchive >> CHNVP(wages);
+        archive_in >> CHNVP(age);
+        archive_in >> CHNVP(wages);
         myEnum_mapper enum_map;
-        marchive >> CHNVP(enum_map(body), "body");
+        archive_in >> CHNVP(enum_map(body), "body");
     }
 
     // Optional: implement ArchiveContainerName()  so that, when supported as in JSON,
@@ -133,28 +133,28 @@ class myEmployeeBoss : public myEmployee {
 
     // MEMBER FUNCTIONS FOR BINARY I/O
 
-    virtual void ArchiveOut(ChArchiveOut& marchive)  // ##### for Chrono serialization
+    virtual void ArchiveOut(ChArchiveOut& archive_out)  // ##### for Chrono serialization
     {
         // suggested: use versioning
-        marchive.VersionWrite<myEmployeeBoss>();
+        archive_out.VersionWrite<myEmployeeBoss>();
         // remember to serialize the parent class data too!!!
-        myEmployee::ArchiveOut(marchive);
+        myEmployee::ArchiveOut(archive_out);
 
         // stream out member data
-        marchive << CHNVP(is_dumb);
-        marchive << CHNVP(slave);  // this added only from version >1
+        archive_out << CHNVP(is_dumb);
+        archive_out << CHNVP(slave);  // this added only from version >1
     }
-    virtual void ArchiveIn(ChArchiveIn& marchive)  // for Chrono serialization
+    virtual void ArchiveIn(ChArchiveIn& archive_in)  // for Chrono serialization
     {
         // suggested: use versioning
-        int version = marchive.VersionRead<myEmployeeBoss>();
+        int version = archive_in.VersionRead<myEmployeeBoss>();
         // remember to deserialize the parent class data too!!!
-        myEmployee::ArchiveIn(marchive);
+        myEmployee::ArchiveIn(archive_in);
 
         // stream in member data
-        marchive >> CHNVP(is_dumb);
+        archive_in >> CHNVP(is_dumb);
         if (version > 1) {
-            marchive >> CHNVP(slave);  // this added only from version >1
+            archive_in >> CHNVP(slave);  // this added only from version >1
         }
     }
 };
@@ -181,41 +181,41 @@ class myEmployeeCustomConstructor : public myEmployee {
 
     // MEMBER FUNCTIONS FOR BINARY I/O
 
-    virtual void ArchiveOut(ChArchiveOut& marchive)  // for Chrono serialization
+    virtual void ArchiveOut(ChArchiveOut& archive_out)  // for Chrono serialization
     {
         // suggested: use versioning
-        marchive.VersionWrite<myEmployeeCustomConstructor>();
+        archive_out.VersionWrite<myEmployeeCustomConstructor>();
         // remember to serialize the parent class data too!!!
-        myEmployee::ArchiveOut(marchive);
+        myEmployee::ArchiveOut(archive_out);
         // stream out member data (except data used in constructor, already saved in ArchiveOutConstructor)
-        marchive << CHNVP(legs);
+        archive_out << CHNVP(legs);
     }
-    virtual void ArchiveIn(ChArchiveIn& marchive)  // for Chrono serialization
+    virtual void ArchiveIn(ChArchiveIn& archive_in)  // for Chrono serialization
     {
         // suggested: use versioning
-        /*int version =*/marchive.VersionRead<myEmployeeCustomConstructor>();
+        /*int version =*/archive_in.VersionRead<myEmployeeCustomConstructor>();
         // remember to deserialize the parent class data too!!!
-        myEmployee::ArchiveIn(marchive);
+        myEmployee::ArchiveIn(archive_in);
         // stream in member data (except data used in constructor, already saved in ArchiveOutConstructor)
-        marchive >> CHNVP(legs);
+        archive_in >> CHNVP(legs);
     }
 
     // Add a  ArchiveOutConstructor  function to deserialize the parameters
     // of the non-default constructor!!!
-    virtual void ArchiveOutConstructor(ChArchiveOut& marchive) {
+    virtual void ArchiveOutConstructor(ChArchiveOut& archive_out) {
         // suggested: use versioning
-        marchive.VersionWrite<myEmployeeCustomConstructor>();
+        archive_out.VersionWrite<myEmployeeCustomConstructor>();
 
         // serialize the parameters of the constructor:
-        marchive << CHNVP(latitude);
-        marchive << CHNVP(kids);
+        archive_out << CHNVP(latitude);
+        archive_out << CHNVP(kids);
     }
 
     // Add a  ArchiveInConstructor  static function to deserialize the parameters
     // of the non-default constructor!!!
-    static void* ArchiveInConstructor(ChArchiveIn& marchive) {
+    static void* ArchiveInConstructor(ChArchiveIn& archive_in) {
         // suggested: use versioning
-        /*int version =*/marchive.VersionRead<myEmployeeCustomConstructor>();
+        /*int version =*/archive_in.VersionRead<myEmployeeCustomConstructor>();
 
         // 1) Deserialize the parameters of the constructor:
         // you need some auxiliary variables because this method is static
@@ -224,8 +224,8 @@ class myEmployeeCustomConstructor : public myEmployee {
         // variables of your class, or use  CHNVP(..., "myname") tags.
         double latitude;
         int kids;
-        marchive >> CHNVP(latitude);
-        marchive >> CHNVP(kids);
+        archive_in >> CHNVP(latitude);
+        archive_in >> CHNVP(kids);
 
         // 2) Important!!! Finally you MUST return an object of this class,
         // constructed with the parameters that you just deserialized:
@@ -236,7 +236,7 @@ class myEmployeeCustomConstructor : public myEmployee {
 CH_FACTORY_REGISTER(myEmployeeCustomConstructor)  //  for advanced serialization
 
 // Example on how to serialize OUT some data:
-void my_serialization_example(ChArchiveOut& marchive) {
+void my_serialization_example(ChArchiveOut& archive_out) {
     // All basic primitives (strings, int,etc.), plus and objects that has
     // an ArchiveOut() function defined can be serialized in archives.
 
@@ -265,26 +265,26 @@ void my_serialization_example(ChArchiveOut& marchive) {
     ChVector3d m_vect(0.5, 0.6, 0.7);
     ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);
 
-    marchive << CHNVP(m_double, "custom_double");  // store data n.1
-    marchive << CHNVP(m_int);                      // store data n.2
-    marchive << CHNVP(m_array);                    // store data n.3
-    marchive << CHNVP(m_text);                     // store data n....
-    marchive << CHNVP(m_string);
-    marchive << CHNVP(m_stlvector);
-    marchive << CHNVP(m_stllist);
-    marchive << CHNVP(m_stlpair);
-    marchive << CHNVP(m_stlunorderedmap);
-    marchive << CHNVP(m_matr_dyn);
-    marchive << CHNVP(m_matr_NM);
-    marchive << CHNVP(m_vect);
-    marchive << CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);
+    archive_out << CHNVP(m_double, "custom_double");  // store data n.1
+    archive_out << CHNVP(m_int);                      // store data n.2
+    archive_out << CHNVP(m_array);                    // store data n.3
+    archive_out << CHNVP(m_text);                     // store data n....
+    archive_out << CHNVP(m_string);
+    archive_out << CHNVP(m_stlvector);
+    archive_out << CHNVP(m_stllist);
+    archive_out << CHNVP(m_stlpair);
+    archive_out << CHNVP(m_stlunorderedmap);
+    archive_out << CHNVP(m_matr_dyn);
+    archive_out << CHNVP(m_matr_NM);
+    archive_out << CHNVP(m_vect);
+    archive_out << CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);
 
     // Also store a c++ object
     // In order to use this feature, the classes must implement
     // ArchiveIn and ArchiveOut functions.
     myEmployeeBoss m_boss(53, 12000.34, true);
     m_boss.body = FAT;
-    marchive << CHNVP(m_boss);
+    archive_out << CHNVP(m_boss);
 
     // Also store a c++ objects referenced by pointer(s).
     // One could have multiple pointers to the same object:
@@ -292,12 +292,12 @@ void my_serialization_example(ChArchiveOut& marchive) {
     // In order to use this feature, the classes must implement
     // ArchiveIn and ArchiveOut functions.
     ChVector3d* a_vect = new ChVector3d(1, 2, 3);
-    marchive << CHNVP(a_vect);
+    archive_out << CHNVP(a_vect);
     delete a_vect;
 
     // Null pointers can be serialized. They will be deserialized as null.
     ChVector3d* a_null_ptr = 0;
-    marchive << CHNVP(a_null_ptr);
+    archive_out << CHNVP(a_null_ptr);
 
     // Also store c++ objects referenced by pointer, using the
     // class abstraction (class factory) mechanism, so that it
@@ -307,33 +307,33 @@ void my_serialization_example(ChArchiveOut& marchive) {
     // and must implement ArchiveIn() and ArchiveOut().
     myEmployeeBoss* a_boss = new myEmployeeBoss(64, 22356, false);
     a_boss->slave.age = 24;
-    marchive << CHNVP(a_boss);  //  object was referenced by pointer.
+    archive_out << CHNVP(a_boss);  //  object was referenced by pointer.
 
     // If another pointer shares the same object instance, you can serialize
     // it too without worrying, because the serialization system will save only
     // the first copy and following copies will just use references.
 
     myEmployeeBoss* a_boss2 = a_boss;
-    marchive << CHNVP(a_boss2);  //  object was referenced by pointer.
+    archive_out << CHNVP(a_boss2);  //  object was referenced by pointer.
 
     // Also store c++ objects referenced by shared pointers.
     // If classes of pointed objects used CH_FACTORY_REGISTER, class abstraction
     // will be automatically used.
     auto s_boss = chrono_types::make_shared<myEmployeeBoss>();
-    marchive << CHNVP(s_boss);  //  object was referenced by shared pointer.
+    archive_out << CHNVP(s_boss);  //  object was referenced by shared pointer.
 
     // Serialize a shared pointer pointing to the same shared resource of s_boss.
     // Note, base class works fine too, as polymorphic object.
     std::shared_ptr<myEmployee> s_boss_b(s_boss);
-    marchive << CHNVP(s_boss_b);
+    archive_out << CHNVP(s_boss_b);
 
     // Serialize null shared pointer
     std::shared_ptr<myEmployeeBoss> null_boss;
-    marchive << CHNVP(null_boss);
+    archive_out << CHNVP(null_boss);
 
     // Serialize an object with non-default constructor:
     myEmployeeCustomConstructor* mcustomconstr = new myEmployeeCustomConstructor(3, 40);
-    marchive << CHNVP(mcustomconstr);
+    archive_out << CHNVP(mcustomconstr);
 
     // Serialize an object where some pointers are un-linked as external, marking them with unique IDs
     std::vector<ChVector3d*> vect_of_pointers;
@@ -342,14 +342,14 @@ void my_serialization_example(ChArchiveOut& marchive) {
     vect_of_pointers.push_back(mvp1);
     vect_of_pointers.push_back(mvp2);
     // define that some object should not be serialized, but rather marked with ID for later rebinding
-    marchive.UnbindExternalPointer(mvp1, 1001);  // use unique identifier > 0
-    marchive << CHNVP(vect_of_pointers);
+    archive_out.UnbindExternalPointer(mvp1, 1001);  // use unique identifier > 0
+    archive_out << CHNVP(vect_of_pointers);
 
     delete a_boss;
 }
 
 // Example on how to deserialize IN some data:
-void my_deserialization_example(ChArchiveIn& marchive) {
+void my_deserialization_example(ChArchiveIn& archive_in) {
     // Read from persistent binary file to transient data
     double m_double;
     int m_int;
@@ -368,69 +368,69 @@ void my_deserialization_example(ChArchiveIn& marchive) {
     ChVector3d* a_vect;
     ChVector3d* a_null_ptr;
 
-    marchive >> CHNVP(m_double, "custom_double");  // deserialize data n.1
-    marchive >> CHNVP(m_int);                      // deserialize data n.2
-    marchive >> CHNVP(m_array);                    // deserialize data n.3
-    marchive >> CHNVP(m_text);                     // deserialize data n...
-    marchive >> CHNVP(m_string);
-    marchive >> CHNVP(m_stlvector);
-    marchive >> CHNVP(m_stllist);
-    marchive >> CHNVP(m_stlpair);
-    marchive >> CHNVP(m_stlunorderedmap);
-    marchive >> CHNVP(m_matr_dyn);
-    marchive >> CHNVP(m_matr_NM);
-    marchive >> CHNVP(m_vect);
-    marchive >> CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);
+    archive_in >> CHNVP(m_double, "custom_double");  // deserialize data n.1
+    archive_in >> CHNVP(m_int);                      // deserialize data n.2
+    archive_in >> CHNVP(m_array);                    // deserialize data n.3
+    archive_in >> CHNVP(m_text);                     // deserialize data n...
+    archive_in >> CHNVP(m_string);
+    archive_in >> CHNVP(m_stlvector);
+    archive_in >> CHNVP(m_stllist);
+    archive_in >> CHNVP(m_stlpair);
+    archive_in >> CHNVP(m_stlunorderedmap);
+    archive_in >> CHNVP(m_matr_dyn);
+    archive_in >> CHNVP(m_matr_NM);
+    archive_in >> CHNVP(m_vect);
+    archive_in >> CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);
 
     // Also deserialize the C++ object
-    marchive >> CHNVP(m_boss);
+    archive_in >> CHNVP(m_boss);
 
     // Also deserialize the C++ pointer: an object will be created!
-    marchive >> CHNVP(a_vect);
+    archive_in >> CHNVP(a_vect);
 
     // Also deserialize the null C++ pointer: no object is created, and pointer set as null.
-    marchive >> CHNVP(a_null_ptr);
+    archive_in >> CHNVP(a_null_ptr);
 
     // Also retrieve c++ objects, referenced by a base class pointer, using the
     // class abstraction (class factory) mechanism, so that it
     // can be loaded even if we do not know if it was an object of
     // the base class 'myEmployee' or the specialized 'myEmployeeBoss' class.
     myEmployee* a_boss = 0;
-    marchive >> CHNVP(a_boss);  // object will be created
+    archive_in >> CHNVP(a_boss);  // object will be created
 
     // Since the two pointers a_boss and a_boss2 were serialized when pointing to
     // the same object instance, now the following will Not create another copy but will
     // automatically point to the same object of a_boss.
     myEmployee* a_boss2 = 0;
-    marchive >> CHNVP(a_boss2);
+    archive_in >> CHNVP(a_boss2);
 
     // Deserialize c++ objects referenced by shared pointers.
     // If classes of pointed objects used CH_FACTORY_REGISTER, class abstraction
     // will be automatically used.
     std::shared_ptr<myEmployeeBoss> s_boss(0);
-    marchive >> CHNVP(s_boss);
+    archive_in >> CHNVP(s_boss);
 
     // Deserialize a shared pointer pointing to the same resource of s_boss.
     // Since the two pointers s_boss and s_boss_b were serialized when pointing to
     // the same object instance, do not create new, but just point to the same of s_boss.
     // Also, the shared pointer reference count is increased automatically.
     std::shared_ptr<myEmployeeBoss> s_boss_b(0);
-    marchive >> CHNVP(s_boss_b);
+    archive_in >> CHNVP(s_boss_b);
 
     // Deserialize a null shared pointer
     std::shared_ptr<myEmployeeBoss> null_boss(0);
-    marchive >> CHNVP(null_boss);
+    archive_in >> CHNVP(null_boss);
 
     // Deserialize an object with non-default constructor:
     myEmployeeCustomConstructor* mcustomconstr = 0;
-    marchive >> CHNVP(mcustomconstr);
+    archive_in >> CHNVP(mcustomconstr);
 
     // Deserialize an object where some pointers are re-linked from external pre-existing objects,
     // marking them with unique IDs. Assume a ChVector3 is already here.
     std::vector<ChVector3d*> vect_of_pointers;
     ChVector3d* mvp1 = new ChVector3d(5, 6, 7);
-    marchive.RebindExternalPointer(mvp1, 1001);  // use unique identifier > 0
-    marchive >> CHNVP(vect_of_pointers);
+    archive_in.RebindExternalPointer(mvp1, 1001);  // use unique identifier > 0
+    archive_in >> CHNVP(vect_of_pointers);
 
     // Just for safety, log some of the restored data:
     auto& streamConsole = std::cout;
@@ -494,7 +494,7 @@ void my_deserialization_example(ChArchiveIn& marchive) {
 
 // Example on how to serialize OUT complex Chrono data:
 // we will serialize a ChSystem including its children objects (bodies, links etc.)
-void my_system_serialization_example(ChArchiveOut& marchive) {
+void my_system_serialization_example(ChArchiveOut& archive_out) {
     // ..create a system:
     ChSystemNSC sys;
 
@@ -517,17 +517,17 @@ void my_system_serialization_example(ChArchiveOut& marchive) {
 
     // Serialize all the physical system (including bodies, links etc.),
     // it takes just a single line:
-    marchive << CHNVP(sys);
+    archive_out << CHNVP(sys);
 }
 
 // Example on how to serialize IN complex Chrono data:
 // we will deserialize a ChSystem including its children objects (bodies, links etc.)
-void my_system_deserialization_example(ChArchiveIn& marchive) {
+void my_system_deserialization_example(ChArchiveIn& archive_in) {
     ChSystemNSC sys;
 
     // deserialize all the physical system (including bodies, links etc.),
     // it takes just a single line:
-    marchive >> CHNVP(sys);
+    archive_in >> CHNVP(sys);
 }
 
 // Example on how to use reflection (c++ introspection) to explore the properties exposed
@@ -642,9 +642,9 @@ int main(int argc, char* argv[]) {
         std::ofstream mfileo(out_dir + "/foo_archive.txt");
 
         // Create an ASCII archive object, for dumping C++ objects into a readable file
-        ChOutputASCII marchiveout(mfileo);
+        ChOutputASCII archive_out(mfileo);
 
-        my_serialization_example(marchiveout);
+        my_serialization_example(archive_out);
     }
 
     // Example: SERIALIZE TO/FROM BINARY:
@@ -652,18 +652,18 @@ int main(int argc, char* argv[]) {
         std::ofstream mfileo(out_dir + "/foo_archive.dat", std::ios::binary);
 
         // Use a binary archive object to serialize C++ objects into the binary file
-        ChArchiveOutBinary marchiveout(mfileo);
+        ChArchiveOutBinary archive_out(mfileo);
 
-        my_serialization_example(marchiveout);
+        my_serialization_example(archive_out);
     }
 
     {
         std::ifstream mfilei(out_dir + "/foo_archive.dat", std::ios::binary);
 
         // Use a binary archive object to deserialize C++ objects from the binary file
-        ChArchiveInBinary marchivein(mfilei);
+        ChArchiveInBinary archive_in(mfilei);
 
-        my_deserialization_example(marchivein);
+        my_deserialization_example(archive_in);
     }
 
     // Example: SERIALIZE TO/FROM JSON:
@@ -671,18 +671,18 @@ int main(int argc, char* argv[]) {
         std::ofstream mfileo(out_dir + "/foo_archive.json");
 
         // Use a JSON archive object to serialize C++ objects into the file
-        ChArchiveOutJSON marchiveout(mfileo);
+        ChArchiveOutJSON archive_out(mfileo);
 
-        my_serialization_example(marchiveout);
+        my_serialization_example(archive_out);
     }
 
     {
         std::ifstream mfilei(out_dir + "/foo_archive.json");
 
         // Use a JSON archive object to deserialize C++ objects from the file
-        ChArchiveInJSON marchivein(mfilei);
+        ChArchiveInJSON archive_in(mfilei);
 
-        my_deserialization_example(marchivein);
+        my_deserialization_example(archive_in);
     }
 
     // Example: SERIALIZE TO/FROM XML
@@ -690,18 +690,18 @@ int main(int argc, char* argv[]) {
         std::ofstream mfileo(out_dir + "/foo_archive.xml");
 
         // Use a XML archive object to serialize C++ objects into the file
-        ChArchiveOutXML marchiveout(mfileo);
+        ChArchiveOutXML archive_out(mfileo);
 
-        my_serialization_example(marchiveout);
+        my_serialization_example(archive_out);
     }
 
     {
         std::ifstream mfilei(out_dir + "/foo_archive.xml");
 
         // Use a XML archive object to deserialize C++ objects from the file
-        ChArchiveInXML marchivein(mfilei);
+        ChArchiveInXML archive_in(mfilei);
 
-        my_deserialization_example(marchivein);
+        my_deserialization_example(archive_in);
     }
 
     std::cout << "Serialization test ended with success.\n" << std::endl;
@@ -711,18 +711,18 @@ int main(int argc, char* argv[]) {
         std::ofstream mfileo(out_dir + "/chsystem_archive.json");
 
         // Use a JSON archive object to serialize C++ objects into the file
-        ChArchiveOutJSON marchiveout(mfileo);
+        ChArchiveOutJSON archive_out(mfileo);
 
-        my_system_serialization_example(marchiveout);
+        my_system_serialization_example(archive_out);
     }
 
     {
         std::ifstream mfilei(out_dir + "/chsystem_archive.json");
 
         // Use a JSON archive object to deserialize C++ objects from the file
-        ChArchiveInJSON marchivein(mfilei);
+        ChArchiveInJSON archive_in(mfilei);
 
-        my_system_deserialization_example(marchivein);
+        my_system_deserialization_example(archive_in);
     }
 
     std::cout << "Serialization of ChSystem ended with success.\n" << std::endl;

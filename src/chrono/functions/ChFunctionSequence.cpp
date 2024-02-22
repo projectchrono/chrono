@@ -59,40 +59,40 @@ void ChFseqNode::SetDuration(double mdur) {
     t_end = t_start + duration;
 }
 
-void ChFseqNode::ArchiveOut(ChArchiveOut& marchive) {
+void ChFseqNode::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFseqNode>();
+    archive_out.VersionWrite<ChFseqNode>();
 
     // serialize all member data:
-    marchive << CHNVP(fx);
-    marchive << CHNVP(duration);
-    marchive << CHNVP(weight);
-    marchive << CHNVP(t_start);
-    marchive << CHNVP(t_end);
-    marchive << CHNVP(Iy);
-    marchive << CHNVP(Iydt);
-    marchive << CHNVP(Iydtdt);
-    marchive << CHNVP(y_cont);
-    marchive << CHNVP(ydt_cont);
-    marchive << CHNVP(ydtdt_cont);
+    archive_out << CHNVP(fx);
+    archive_out << CHNVP(duration);
+    archive_out << CHNVP(weight);
+    archive_out << CHNVP(t_start);
+    archive_out << CHNVP(t_end);
+    archive_out << CHNVP(Iy);
+    archive_out << CHNVP(Iydt);
+    archive_out << CHNVP(Iydtdt);
+    archive_out << CHNVP(y_cont);
+    archive_out << CHNVP(ydt_cont);
+    archive_out << CHNVP(ydtdt_cont);
 }
 
-void ChFseqNode::ArchiveIn(ChArchiveIn& marchive) {
+void ChFseqNode::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFseqNode>();
+    /*int version =*/ archive_in.VersionRead<ChFseqNode>();
 
     // stream in all member data:
-    marchive >> CHNVP(fx);
-    marchive >> CHNVP(duration);
-    marchive >> CHNVP(weight);
-    marchive >> CHNVP(t_start);
-    marchive >> CHNVP(t_end);
-    marchive >> CHNVP(Iy);
-    marchive >> CHNVP(Iydt);
-    marchive >> CHNVP(Iydtdt);
-    marchive >> CHNVP(y_cont);
-    marchive >> CHNVP(ydt_cont);
-    marchive >> CHNVP(ydtdt_cont);
+    archive_in >> CHNVP(fx);
+    archive_in >> CHNVP(duration);
+    archive_in >> CHNVP(weight);
+    archive_in >> CHNVP(t_start);
+    archive_in >> CHNVP(t_end);
+    archive_in >> CHNVP(Iy);
+    archive_in >> CHNVP(Iydt);
+    archive_in >> CHNVP(Iydtdt);
+    archive_in >> CHNVP(y_cont);
+    archive_in >> CHNVP(ydt_cont);
+    archive_in >> CHNVP(ydtdt_cont);
 }
 
 // -------------------------------------------------------------------------------------
@@ -295,24 +295,24 @@ double ChFunctionSequence::GetWeight(double x) const {
     return res;
 }
 
-void ChFunctionSequence::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionSequence::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionSequence>();
+    archive_out.VersionWrite<ChFunctionSequence>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(start);
-    marchive << CHNVP(functions);
+    archive_out << CHNVP(start);
+    archive_out << CHNVP(functions);
 }
 
-void ChFunctionSequence::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionSequence::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionSequence>();
+    /*int version =*/ archive_in.VersionRead<ChFunctionSequence>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(start);
-    marchive >> CHNVP(functions);
+    archive_in >> CHNVP(start);
+    archive_in >> CHNVP(functions);
 }
 
 }  // end namespace chrono

@@ -78,24 +78,24 @@ void ChFunctionPoly345::SetWidth(double width) {
     m_width = width;
 }
 
-void ChFunctionPoly345::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionPoly345::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionPoly345>();
+    archive_out.VersionWrite<ChFunctionPoly345>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_height);
-    marchive << CHNVP(m_width);
+    archive_out << CHNVP(m_height);
+    archive_out << CHNVP(m_width);
 }
 
-void ChFunctionPoly345::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionPoly345::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionPoly345>();
+    /*int version =*/ archive_in.VersionRead<ChFunctionPoly345>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_height);
-    marchive >> CHNVP(m_width);
+    archive_in >> CHNVP(m_height);
+    archive_in >> CHNVP(m_width);
 }
 
 }  // end namespace chrono

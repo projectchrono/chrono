@@ -108,20 +108,20 @@ ChVector3d ChLinkBushing::GetTorque() const {
     return torque;
 }
 
-void ChLinkBushing::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkBushing::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkBushing>();
+    archive_out.VersionWrite<ChLinkBushing>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOut(marchive);
+    ChLinkLock::ArchiveOut(archive_out);
 }
 
-void ChLinkBushing::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkBushing::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    marchive.VersionRead<ChLinkBushing>();
+    archive_in.VersionRead<ChLinkBushing>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIn(marchive);
+    ChLinkLock::ArchiveIn(archive_in);
 }
 
 }  // end namespace chrono

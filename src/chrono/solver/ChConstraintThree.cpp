@@ -39,23 +39,23 @@ ChConstraintThree& ChConstraintThree::operator=(const ChConstraintThree& other) 
     return *this;
 }
 
-void ChConstraintThree::ArchiveOut(ChArchiveOut& marchive) {
+void ChConstraintThree::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChConstraintThree>();
+    archive_out.VersionWrite<ChConstraintThree>();
 
     // serialize the parent class data too
-    ChConstraint::ArchiveOut(marchive);
+    ChConstraint::ArchiveOut(archive_out);
 
     // serialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (pointers to variables must be rebound in run-time.)
 }
 
-void ChConstraintThree::ArchiveIn(ChArchiveIn& marchive) {
+void ChConstraintThree::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChConstraintThree>();
+    /*int version =*/ archive_in.VersionRead<ChConstraintThree>();
 
     // deserialize the parent class data too
-    ChConstraint::ArchiveIn(marchive);
+    ChConstraint::ArchiveIn(archive_in);
 
     // stream in all member data:
     // NOTHING INTERESTING TO SERIALIZE (pointers to variables must be rebound in run-time.)

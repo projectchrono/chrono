@@ -302,30 +302,30 @@ void ChNodeFEAxyzrot::ComputeNF(
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzrot::ArchiveOut(ChArchiveOut& marchive) {
+void ChNodeFEAxyzrot::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChNodeFEAxyzrot>();
+    archive_out.VersionWrite<ChNodeFEAxyzrot>();
     // serialize parent class
-    ChNodeFEAbase::ArchiveOut(marchive);
+    ChNodeFEAbase::ArchiveOut(archive_out);
     // serialize parent class
-    ChBodyFrame::ArchiveOut(marchive);
+    ChBodyFrame::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(X0);
-    marchive << CHNVP(Force);
-    marchive << CHNVP(Torque);
+    archive_out << CHNVP(X0);
+    archive_out << CHNVP(Force);
+    archive_out << CHNVP(Torque);
 }
 
-void ChNodeFEAxyzrot::ArchiveIn(ChArchiveIn& marchive) {
+void ChNodeFEAxyzrot::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChNodeFEAxyzrot>();
+    /*int version =*/ archive_in.VersionRead<ChNodeFEAxyzrot>();
     // deserialize parent class
-    ChNodeFEAbase::ArchiveIn(marchive);
+    ChNodeFEAbase::ArchiveIn(archive_in);
     // serialize parent class
-    ChBodyFrame::ArchiveIn(marchive);
+    ChBodyFrame::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(X0);
-    marchive >> CHNVP(Force);
-    marchive >> CHNVP(Torque);
+    archive_in >> CHNVP(X0);
+    archive_in >> CHNVP(Force);
+    archive_in >> CHNVP(Torque);
 }
 
 }  // end namespace fea

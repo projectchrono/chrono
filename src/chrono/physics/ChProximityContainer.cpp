@@ -24,19 +24,19 @@ ChProximityContainer::ChProximityContainer(const ChProximityContainer& other) : 
     report_proximity_callback = other.report_proximity_callback;
 }
 
-void ChProximityContainer::ArchiveOut(ChArchiveOut& marchive) {
+void ChProximityContainer::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite(1);
+    archive_out.VersionWrite(1);
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
     // serialize all member data:
 }
 
-void ChProximityContainer::ArchiveIn(ChArchiveIn& marchive) {
+void ChProximityContainer::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead();
+    /*int version =*/ archive_in.VersionRead();
     // deserialize parent class
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
     // stream in all member data:
 }
 

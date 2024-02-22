@@ -331,8 +331,8 @@ TEST(ChArchiveJSON, Pendulum) {
         system.Add(moving_body);
 
         std::ofstream mfileo("ChArchiveJSON_Pendulum.json");
-        ChArchiveOutJSON marchiveout(mfileo);
-        marchiveout << CHNVP(system);
+        ChArchiveOutJSON archive_out(mfileo);
+        archive_out << CHNVP(system);
 
         // Simulation loop
         for (int step = 0; step < step_num; ++step) {
@@ -346,11 +346,11 @@ TEST(ChArchiveJSON, Pendulum) {
     }
 
     std::ifstream mfilei("ChArchiveJSON_Pendulum.json");
-    ChArchiveInJSON marchivein(mfilei);
-    marchivein.TryTolerateMissingTokens(true);
+    ChArchiveInJSON archive_in(mfilei);
+    archive_in.TryTolerateMissingTokens(true);
 
     ChSystemNSC system;
-    marchivein >> CHNVP(system);
+    archive_in >> CHNVP(system);
 
     // Simulation loop
     for (int step = 0; step < step_num; ++step) {
@@ -411,17 +411,17 @@ TEST(ChArchiveJSON, Solver) {
         // std::cout << "solverBase_ptr : " << solverBase_ptr << std::endl;
 
         std::ofstream mfileo(outputfile + ".json");
-        ChArchiveOutJSON marchiveout(mfileo);
+        ChArchiveOutJSON archive_out(mfileo);
 
-        marchiveout << CHNVP(solverBase_ptr);
+        archive_out << CHNVP(solverBase_ptr);
 
         delete solverPSOR_ptr;
     }
 
     std::ifstream mfilei(outputfile + ".json");
-    ChArchiveInJSON marchivein(mfilei);
+    ChArchiveInJSON archive_in(mfilei);
     ChSolver* solverBase_ptr;
-    marchivein >> CHNVP(solverBase_ptr);
+    archive_in >> CHNVP(solverBase_ptr);
 
     ChSolverPSOR* solverPSOR_ptr = dynamic_cast<ChSolverPSOR*>(solverBase_ptr);
 
@@ -434,23 +434,23 @@ TEST(ChArchiveJSON, nullpointers) {
 
     {
         std::ofstream mfileo(outputfile + ".json");
-        ChArchiveOutJSON marchiveout(mfileo);
+        ChArchiveOutJSON archive_out(mfileo);
 
         ChVector3d* chvector_nullptr = nullptr;
-        marchiveout << CHNVP(chvector_nullptr);
+        archive_out << CHNVP(chvector_nullptr);
 
         ChSolver* chsolver_nullptr = nullptr;
-        marchiveout << CHNVP(chsolver_nullptr);
+        archive_out << CHNVP(chsolver_nullptr);
     }
 
     std::ifstream mfilei(outputfile + ".json");
-    ChArchiveInJSON marchivein(mfilei);
+    ChArchiveInJSON archive_in(mfilei);
 
     ChVector3d* chvector_nullptr;
     ChSolver* chsolver_nullptr;
 
-    marchivein >> CHNVP(chvector_nullptr);
-    marchivein >> CHNVP(chsolver_nullptr);
+    archive_in >> CHNVP(chvector_nullptr);
+    archive_in >> CHNVP(chsolver_nullptr);
 
     ASSERT_EQ(chvector_nullptr, nullptr);
     ASSERT_EQ(chsolver_nullptr, nullptr);
@@ -516,8 +516,8 @@ TEST(ChArchiveJSON, nullpointers) {
 //         system.Add(clutchBD);
 //
 //         std::ofstream mfileo("ChArchiveJSON_shafts_out.json");
-//         ChArchiveOutJSON marchiveout(mfileo);
-//         marchiveout << CHNVP(system);
+//         ChArchiveOutJSON archive_out(mfileo);
+//         archive_out << CHNVP(system);
 //
 //
 //         system.Update();
@@ -532,9 +532,9 @@ TEST(ChArchiveJSON, nullpointers) {
 //     }
 //
 //     std::ifstream mfilei("ChArchiveJSON_shafts_out.json");
-//     ChArchiveInJSON marchivein(mfilei);
+//     ChArchiveInJSON archive_in(mfilei);
 //     ChSystemNSC system;
-//     marchivein >> CHNVP(system);
+//     archive_in >> CHNVP(system);
 //
 //
 //     // Simulation loop
@@ -564,14 +564,14 @@ TEST(ChArchiveJSON, ChVectorDynamicTest) {
         myVect_before = myVect;
 
         std::ofstream mfileo(outputfile);
-        ChArchiveOutJSON marchiveout(mfileo);
-        marchiveout << CHNVP(myVect);
+        ChArchiveOutJSON archive_out(mfileo);
+        archive_out << CHNVP(myVect);
     }
 
     std::ifstream mfilei(outputfile);
-    ChArchiveInJSON marchivein(mfilei);
+    ChArchiveInJSON archive_in(mfilei);
     ChVectorDynamic<> myVect;
-    marchivein >> CHNVP(myVect);
+    archive_in >> CHNVP(myVect);
 
     ASSERT_DOUBLE_EQ(myVect_before.x(), myVect.x());
     ASSERT_DOUBLE_EQ(myVect_before.y(), myVect.y());

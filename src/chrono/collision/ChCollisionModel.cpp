@@ -187,30 +187,30 @@ void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChContactMaterial> m
         shape.first->m_material = mat;
 }
 
-void ChCollisionModel::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionModel::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionModel>();
+    archive_out.VersionWrite<ChCollisionModel>();
 
     // serialize all member data:
-    marchive << CHNVP(model_envelope);
-    marchive << CHNVP(model_safe_margin);
-    marchive << CHNVP(family_group);
-    marchive << CHNVP(family_mask);
-    marchive << CHNVP(m_shape_instances);
-    marchive << CHNVP(contactable);
+    archive_out << CHNVP(model_envelope);
+    archive_out << CHNVP(model_safe_margin);
+    archive_out << CHNVP(family_group);
+    archive_out << CHNVP(family_mask);
+    archive_out << CHNVP(m_shape_instances);
+    archive_out << CHNVP(contactable);
 }
 
-void ChCollisionModel::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionModel::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionModel>();
+    /*int version =*/archive_in.VersionRead<ChCollisionModel>();
 
     // stream in all member data:
-    marchive >> CHNVP(model_envelope);
-    marchive >> CHNVP(model_safe_margin);
-    marchive >> CHNVP(family_group);
-    marchive >> CHNVP(family_mask);
-    marchive >> CHNVP(m_shape_instances);
-    marchive >> CHNVP(contactable);
+    archive_in >> CHNVP(model_envelope);
+    archive_in >> CHNVP(model_safe_margin);
+    archive_in >> CHNVP(family_group);
+    archive_in >> CHNVP(family_mask);
+    archive_in >> CHNVP(m_shape_instances);
+    archive_in >> CHNVP(contactable);
 }
 
 // -----------------------------------------------------------------------------

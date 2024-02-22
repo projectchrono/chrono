@@ -850,18 +850,18 @@ void ChCollisionSystemMulticore::VisualizeContacts() {
     }
 }
 
-void ChCollisionSystemMulticore::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionSystemMulticore::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionSystemMulticore>();
+    archive_out.VersionWrite<ChCollisionSystemMulticore>();
     // serialize parent class
-    ChCollisionSystem::ArchiveOut(marchive);
+    ChCollisionSystem::ArchiveOut(archive_out);
 }
 
-void ChCollisionSystemMulticore::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionSystemMulticore::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionSystemMulticore>();
+    /*int version =*/archive_in.VersionRead<ChCollisionSystemMulticore>();
     // deserialize parent class
-    ChCollisionSystem::ArchiveIn(marchive);
+    ChCollisionSystem::ArchiveIn(archive_in);
 }
 
 }  // end namespace chrono

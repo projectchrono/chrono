@@ -268,29 +268,29 @@ void ChLinkMotionImposed::ConstraintsBiLoad_Ct(double factor) {
     }
 }
 
-void ChLinkMotionImposed::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotionImposed::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotionImposed>();
+    archive_out.VersionWrite<ChLinkMotionImposed>();
 
     // serialize parent class
-    ChLinkMateGeneric::ArchiveOut(marchive);
+    ChLinkMateGeneric::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(position_function);
-	marchive << CHNVP(rotation_function);
+    archive_out << CHNVP(position_function);
+	archive_out << CHNVP(rotation_function);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotionImposed::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotionImposed::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotionImposed>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMotionImposed>();
 
     // deserialize parent class
-    ChLinkMateGeneric::ArchiveIn(marchive);
+    ChLinkMateGeneric::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(position_function);
-	marchive >> CHNVP(rotation_function);
+    archive_in >> CHNVP(position_function);
+	archive_in >> CHNVP(rotation_function);
 }
 
 }  // end namespace chrono

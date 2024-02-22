@@ -350,26 +350,26 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
-void ChSolverBB::ArchiveOut(ChArchiveOut& marchive) {
+void ChSolverBB::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSolverBB>();
+    archive_out.VersionWrite<ChSolverBB>();
     // serialize parent class
-    ChIterativeSolverVI::ArchiveOut(marchive);
+    ChIterativeSolverVI::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(n_armijo);
-    marchive << CHNVP(max_armijo_backtrace);
-    marchive << CHNVP(m_use_precond);
+    archive_out << CHNVP(n_armijo);
+    archive_out << CHNVP(max_armijo_backtrace);
+    archive_out << CHNVP(m_use_precond);
 }
 
-void ChSolverBB::ArchiveIn(ChArchiveIn& marchive) {
+void ChSolverBB::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChSolverBB>();
+    /*int version =*/archive_in.VersionRead<ChSolverBB>();
     // deserialize parent class
-    ChIterativeSolverVI::ArchiveIn(marchive);
+    ChIterativeSolverVI::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(n_armijo);
-    marchive >> CHNVP(max_armijo_backtrace);
-    marchive >> CHNVP(m_use_precond);
+    archive_in >> CHNVP(n_armijo);
+    archive_in >> CHNVP(max_armijo_backtrace);
+    archive_in >> CHNVP(m_use_precond);
 }
 
 }  // end namespace chrono

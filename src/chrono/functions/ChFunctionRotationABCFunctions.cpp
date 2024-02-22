@@ -69,32 +69,32 @@ class ChFunctionRotationABCFunctions_RotRep_enum_mapper : public ChFunctionRotat
     CH_ENUM_MAPPER_END(ChRotationRepresentation);
 };
 
-void ChFunctionRotationABCFunctions::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionRotationABCFunctions::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionRotationABCFunctions>();
+    archive_out.VersionWrite<ChFunctionRotationABCFunctions>();
 
-    ChFunctionRotation::ArchiveOut(marchive);
+    ChFunctionRotation::ArchiveOut(archive_out);
 
-    marchive << CHNVP(angleA);
-    marchive << CHNVP(angleB);
-    marchive << CHNVP(angleC);
+    archive_out << CHNVP(angleA);
+    archive_out << CHNVP(angleB);
+    archive_out << CHNVP(angleC);
 
     ChFunctionRotationABCFunctions_RotRep_enum_mapper::ChRotationRepresentation_mapper setmapper;
-    marchive << CHNVP(setmapper(angleset), "angle_set");
+    archive_out << CHNVP(setmapper(angleset), "angle_set");
 }
 
-void ChFunctionRotationABCFunctions::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionRotationABCFunctions::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChFunctionRotationABCFunctions>();
+    /*int version =*/archive_in.VersionRead<ChFunctionRotationABCFunctions>();
 
-    ChFunctionRotation::ArchiveIn(marchive);
+    ChFunctionRotation::ArchiveIn(archive_in);
 
-    marchive >> CHNVP(angleA);
-    marchive >> CHNVP(angleB);
-    marchive >> CHNVP(angleC);
+    archive_in >> CHNVP(angleA);
+    archive_in >> CHNVP(angleB);
+    archive_in >> CHNVP(angleC);
 
     ChFunctionRotationABCFunctions_RotRep_enum_mapper::ChRotationRepresentation_mapper setmapper;
-    marchive >> CHNVP(setmapper(angleset), "angle_set");
+    archive_in >> CHNVP(setmapper(angleset), "angle_set");
 }
 
 }  // end namespace chrono

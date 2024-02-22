@@ -179,32 +179,32 @@ ChPhysicsItem* ChAparticle::GetPhysicsItem() {
     return container;
 }
 
-void ChAparticle::ArchiveOut(ChArchiveOut& marchive) {
+void ChAparticle::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChAparticle>();
+    archive_out.VersionWrite<ChAparticle>();
 
     // serialize parent class
-    ChParticleBase::ArchiveOut(marchive);
+    ChParticleBase::ArchiveOut(archive_out);
 
     // serialize all member data:
-    // marchive << CHNVP(container);
-    marchive << CHNVP(collision_model);
-    marchive << CHNVP(UserForce);
-    marchive << CHNVP(UserTorque);
+    // archive_out << CHNVP(container);
+    archive_out << CHNVP(collision_model);
+    archive_out << CHNVP(UserForce);
+    archive_out << CHNVP(UserTorque);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChAparticle::ArchiveIn(ChArchiveIn& marchive) {
+void ChAparticle::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChAparticle>();
+    /*int version =*/archive_in.VersionRead<ChAparticle>();
 
     // deserialize parent class:
-    ChParticleBase::ArchiveIn(marchive);
+    ChParticleBase::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(collision_model);
-    marchive >> CHNVP(UserForce);
-    marchive >> CHNVP(UserTorque);
+    archive_in >> CHNVP(collision_model);
+    archive_in >> CHNVP(UserForce);
+    archive_in >> CHNVP(UserTorque);
 }
 
 // -----------------------------------------------------------------------------
@@ -712,46 +712,46 @@ void ChParticleCloud::SyncCollisionModels() {
         particle->GetCollisionModel()->SyncPosition();
 }
 
-void ChParticleCloud::ArchiveOut(ChArchiveOut& marchive) {
+void ChParticleCloud::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChParticleCloud>();
+    archive_out.VersionWrite<ChParticleCloud>();
 
     // serialize parent class
-    ChIndexedParticles::ArchiveOut(marchive);
+    ChIndexedParticles::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(particles);
-    // marchive << CHNVP(particle_mass); //***TODO***
-    marchive << CHNVP(particle_collision_model);
-    marchive << CHNVP(collide);
-    marchive << CHNVP(limit_speed);
-    marchive << CHNVP(max_speed);
-    marchive << CHNVP(max_wvel);
-    marchive << CHNVP(sleep_time);
-    marchive << CHNVP(sleep_minspeed);
-    marchive << CHNVP(sleep_minwvel);
-    marchive << CHNVP(sleep_starttime);
+    archive_out << CHNVP(particles);
+    // archive_out << CHNVP(particle_mass); //***TODO***
+    archive_out << CHNVP(particle_collision_model);
+    archive_out << CHNVP(collide);
+    archive_out << CHNVP(limit_speed);
+    archive_out << CHNVP(max_speed);
+    archive_out << CHNVP(max_wvel);
+    archive_out << CHNVP(sleep_time);
+    archive_out << CHNVP(sleep_minspeed);
+    archive_out << CHNVP(sleep_minwvel);
+    archive_out << CHNVP(sleep_starttime);
 }
 
-void ChParticleCloud::ArchiveIn(ChArchiveIn& marchive) {
+void ChParticleCloud::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChParticleCloud>();
+    /*int version =*/archive_in.VersionRead<ChParticleCloud>();
 
     // deserialize parent class:
-    ChIndexedParticles::ArchiveIn(marchive);
+    ChIndexedParticles::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(particles);
-    // marchive >> CHNVP(particle_mass); //***TODO***
-    marchive >> CHNVP(particle_collision_model);
-    marchive >> CHNVP(collide);
-    marchive >> CHNVP(limit_speed);
-    marchive >> CHNVP(max_speed);
-    marchive >> CHNVP(max_wvel);
-    marchive >> CHNVP(sleep_time);
-    marchive >> CHNVP(sleep_minspeed);
-    marchive >> CHNVP(sleep_minwvel);
-    marchive >> CHNVP(sleep_starttime);
+    archive_in >> CHNVP(particles);
+    // archive_in >> CHNVP(particle_mass); //***TODO***
+    archive_in >> CHNVP(particle_collision_model);
+    archive_in >> CHNVP(collide);
+    archive_in >> CHNVP(limit_speed);
+    archive_in >> CHNVP(max_speed);
+    archive_in >> CHNVP(max_wvel);
+    archive_in >> CHNVP(sleep_time);
+    archive_in >> CHNVP(sleep_minspeed);
+    archive_in >> CHNVP(sleep_minwvel);
+    archive_in >> CHNVP(sleep_starttime);
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->SetContainer(this);

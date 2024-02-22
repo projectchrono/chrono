@@ -352,11 +352,11 @@ void ChLinkPointTriface::ConstraintsFetch_react(double factor) {
 
 // FILE I/O
 
-void ChLinkPointTriface::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkPointTriface::ArchiveOut(ChArchiveOut& archive_out) {
     //// TODO
 }
 
-void ChLinkPointTriface::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkPointTriface::ArchiveIn(ChArchiveIn& archive_in) {
     //// TODO
 }
 
@@ -693,11 +693,11 @@ void ChLinkPointTrifaceRot::ConstraintsFetch_react(double factor) {
 
 // FILE I/O
 
-void ChLinkPointTrifaceRot::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkPointTrifaceRot::ArchiveOut(ChArchiveOut& archive_out) {
     //// TODO
 }
 
-void ChLinkPointTrifaceRot::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkPointTrifaceRot::ArchiveIn(ChArchiveIn& archive_in) {
     //// TODO
 }
 

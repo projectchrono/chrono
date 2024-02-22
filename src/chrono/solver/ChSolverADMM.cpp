@@ -901,42 +901,42 @@ class ChSolverADMM_StepType_enum_mapper : public ChSolverADMM {
     CH_ENUM_MAPPER_END(AdmmStepType);
 };
 
-void ChSolverADMM::ArchiveOut(ChArchiveOut& marchive) {
+void ChSolverADMM::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSolverADMM>();
+    archive_out.VersionWrite<ChSolverADMM>();
     // serialize parent class
-    ChIterativeSolverVI::ArchiveOut(marchive);
+    ChIterativeSolverVI::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(precond);
-    marchive << CHNVP(rho);
-    marchive << CHNVP(rho_b);
-    marchive << CHNVP(sigma);
-    marchive << CHNVP(stepadjust_each);
-    marchive << CHNVP(stepadjust_threshold);
-    marchive << CHNVP(stepadjust_maxfactor);
-    marchive << CHNVP(tol_prim);
-    marchive << CHNVP(tol_dual);
+    archive_out << CHNVP(precond);
+    archive_out << CHNVP(rho);
+    archive_out << CHNVP(rho_b);
+    archive_out << CHNVP(sigma);
+    archive_out << CHNVP(stepadjust_each);
+    archive_out << CHNVP(stepadjust_threshold);
+    archive_out << CHNVP(stepadjust_maxfactor);
+    archive_out << CHNVP(tol_prim);
+    archive_out << CHNVP(tol_dual);
     ChSolverADMM_StepType_enum_mapper::AdmmStepType_mapper mmapper;
-    marchive << CHNVP(mmapper(this->stepadjust_type), "stepadjust_type");
+    archive_out << CHNVP(mmapper(this->stepadjust_type), "stepadjust_type");
 }
 
-void ChSolverADMM::ArchiveIn(ChArchiveIn& marchive) {
+void ChSolverADMM::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSolverADMM>();
+    /*int version =*/ archive_in.VersionRead<ChSolverADMM>();
     // deserialize parent class
-    ChIterativeSolverVI::ArchiveIn(marchive);
+    ChIterativeSolverVI::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(precond);
-    marchive >> CHNVP(rho);
-    marchive >> CHNVP(rho_b);
-    marchive >> CHNVP(sigma);
-    marchive >> CHNVP(stepadjust_each);
-    marchive >> CHNVP(stepadjust_threshold);
-    marchive >> CHNVP(stepadjust_maxfactor);
-    marchive >> CHNVP(tol_prim);
-    marchive >> CHNVP(tol_dual);
+    archive_in >> CHNVP(precond);
+    archive_in >> CHNVP(rho);
+    archive_in >> CHNVP(rho_b);
+    archive_in >> CHNVP(sigma);
+    archive_in >> CHNVP(stepadjust_each);
+    archive_in >> CHNVP(stepadjust_threshold);
+    archive_in >> CHNVP(stepadjust_maxfactor);
+    archive_in >> CHNVP(tol_prim);
+    archive_in >> CHNVP(tol_dual);
     ChSolverADMM_StepType_enum_mapper::AdmmStepType_mapper mmapper;
-    marchive >> CHNVP(mmapper(this->stepadjust_type), "stepadjust_type");
+    archive_in >> CHNVP(mmapper(this->stepadjust_type), "stepadjust_type");
 }
 
 }  // end namespace chrono

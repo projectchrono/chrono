@@ -240,32 +240,32 @@ void ChDirectSolverLS::WriteVector(const std::string& filename, const ChVectorDy
 
 // ---------------------------------------------------------------------------
 
-void ChDirectSolverLS::ArchiveOut(ChArchiveOut& marchive) {
+void ChDirectSolverLS::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChDirectSolverLS>();
+    archive_out.VersionWrite<ChDirectSolverLS>();
 
     // serialize parent class
-    ChSolver::ArchiveOut(marchive);
+    ChSolver::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(m_lock);
-    marchive << CHNVP(m_use_learner);
-    marchive << CHNVP(m_use_perm);
-    marchive << CHNVP(m_use_rhs_sparsity);
+    archive_out << CHNVP(m_lock);
+    archive_out << CHNVP(m_use_learner);
+    archive_out << CHNVP(m_use_perm);
+    archive_out << CHNVP(m_use_rhs_sparsity);
 }
 
-void ChDirectSolverLS::ArchiveIn(ChArchiveIn& marchive) {
+void ChDirectSolverLS::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChDirectSolverLS>();
+    /*int version =*/archive_in.VersionRead<ChDirectSolverLS>();
 
     // deserialize parent class
-    ChSolver::ArchiveIn(marchive);
+    ChSolver::ArchiveIn(archive_in);
 
     // stream in all member data:
-    marchive >> CHNVP(m_lock);
-    marchive >> CHNVP(m_use_learner);
-    marchive >> CHNVP(m_use_perm);
-    marchive >> CHNVP(m_use_rhs_sparsity);
+    archive_in >> CHNVP(m_lock);
+    archive_in >> CHNVP(m_use_learner);
+    archive_in >> CHNVP(m_use_perm);
+    archive_in >> CHNVP(m_use_rhs_sparsity);
 }
 
 // ---------------------------------------------------------------------------

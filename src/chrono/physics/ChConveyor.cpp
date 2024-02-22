@@ -320,33 +320,33 @@ void ChConveyor::SyncCollisionModels() {
 
 // FILE I/O
 
-void ChConveyor::ArchiveOut(ChArchiveOut& marchive) {
+void ChConveyor::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChConveyor>();
+    archive_out.VersionWrite<ChConveyor>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(conveyor_speed);
-    marchive << CHNVP(conveyor_truss);
-    marchive << CHNVP(conveyor_plate);
-    marchive << CHNVP(internal_link);
+    archive_out << CHNVP(conveyor_speed);
+    archive_out << CHNVP(conveyor_truss);
+    archive_out << CHNVP(conveyor_plate);
+    archive_out << CHNVP(internal_link);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChConveyor::ArchiveIn(ChArchiveIn& marchive) {
+void ChConveyor::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChConveyor>();
+    /*int version =*/archive_in.VersionRead<ChConveyor>();
 
     // deserialize parent class
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // stream in all member data:
-    marchive >> CHNVP(conveyor_speed);
-    marchive >> CHNVP(conveyor_truss);
-    marchive >> CHNVP(conveyor_plate);
-    marchive >> CHNVP(internal_link);
+    archive_in >> CHNVP(conveyor_speed);
+    archive_in >> CHNVP(conveyor_truss);
+    archive_in >> CHNVP(conveyor_plate);
+    archive_in >> CHNVP(internal_link);
 }
 
 }  // end namespace chrono

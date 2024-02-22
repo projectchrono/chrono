@@ -133,15 +133,15 @@ double ChFunction::GetIntegral(double xmin, double xmax, double sampling_step, i
     return mret;
 }
 
-void ChFunction::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunction::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunction>();
+    archive_out.VersionWrite<ChFunction>();
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChFunction::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunction::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChFunction>();
+    /*int version =*/archive_in.VersionRead<ChFunction>();
 }
 
 int ChFunction::OutputToASCIIFile(std::ostream& outfile, double xmin, double xmax, int samples, char delimiter) {

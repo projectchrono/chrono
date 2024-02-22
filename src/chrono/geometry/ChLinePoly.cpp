@@ -90,24 +90,24 @@ double ChLinePoly::Length(int sampling) const {
     return ChLine::Length(1);
 }
 
-void ChLinePoly::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinePoly::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinePoly>();
+    archive_out.VersionWrite<ChLinePoly>();
     // serialize parent class
-    ChLine::ArchiveOut(marchive);
+    ChLine::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(points);
-    marchive << CHNVP(degree);
+    archive_out << CHNVP(points);
+    archive_out << CHNVP(degree);
 }
 
-void ChLinePoly::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinePoly::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinePoly>();
+    /*int version =*/ archive_in.VersionRead<ChLinePoly>();
     // deserialize parent class
-    ChLine::ArchiveIn(marchive);
+    ChLine::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(points);
-    marchive >> CHNVP(degree);
+    archive_in >> CHNVP(points);
+    archive_in >> CHNVP(degree);
 }
 
 

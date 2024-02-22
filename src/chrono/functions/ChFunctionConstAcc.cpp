@@ -151,28 +151,28 @@ double ChFunctionConstAcc::GetVelocityCoefficient() const {
     return 2 * (m_duration) / (m_duration - m_accel1_end * m_duration + m_accel2_start * m_duration);
 }
 
-void ChFunctionConstAcc::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionConstAcc::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionConstAcc>();
+    archive_out.VersionWrite<ChFunctionConstAcc>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_displacement);
-    marchive << CHNVP(m_duration);
-    marchive << CHNVP(m_accel2_start);
-    marchive << CHNVP(m_accel1_end);
+    archive_out << CHNVP(m_displacement);
+    archive_out << CHNVP(m_duration);
+    archive_out << CHNVP(m_accel2_start);
+    archive_out << CHNVP(m_accel1_end);
 }
 
-void ChFunctionConstAcc::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionConstAcc::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChFunctionConstAcc>();
+    /*int version =*/archive_in.VersionRead<ChFunctionConstAcc>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_displacement);
-    marchive >> CHNVP(m_duration);
-    marchive >> CHNVP(m_accel2_start);
-    marchive >> CHNVP(m_accel1_end);
+    archive_in >> CHNVP(m_displacement);
+    archive_in >> CHNVP(m_duration);
+    archive_in >> CHNVP(m_accel2_start);
+    archive_in >> CHNVP(m_accel1_end);
 }
 
 }  // end namespace chrono

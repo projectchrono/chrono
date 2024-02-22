@@ -323,29 +323,29 @@ void ChLinkMotorRotationSpeed::VariablesQbSetSpeed(double step) {
     // Compute accel. by BDF (approximate by differentiation); not needed
 }
 
-void ChLinkMotorRotationSpeed::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorRotationSpeed::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorRotationSpeed>();
+    archive_out.VersionWrite<ChLinkMotorRotationSpeed>();
 
     // serialize parent class
-    ChLinkMotorRotation::ArchiveOut(marchive);
+    ChLinkMotorRotation::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(rot_offset);
-    marchive << CHNVP(avoid_angle_drift);
+    archive_out << CHNVP(rot_offset);
+    archive_out << CHNVP(avoid_angle_drift);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorRotationSpeed::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorRotationSpeed::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorRotationSpeed>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMotorRotationSpeed>();
 
     // deserialize parent class
-    ChLinkMotorRotation::ArchiveIn(marchive);
+    ChLinkMotorRotation::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(rot_offset);
-    marchive >> CHNVP(avoid_angle_drift);
+    archive_in >> CHNVP(rot_offset);
+    archive_in >> CHNVP(avoid_angle_drift);
 }
 
 }  // end namespace chrono

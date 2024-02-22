@@ -68,12 +68,12 @@ void ChBodyEasySphere::SetupBody(double radius,
     }
 }
 
-void ChBodyEasySphere::ArchiveOutConstructor(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChBodyEasySphere>();
+void ChBodyEasySphere::ArchiveOutConstructor(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChBodyEasySphere>();
 }
 
-void* ChBodyEasySphere::ArchiveInConstructor(ChArchiveIn& marchive) {
-    /*int version =*/marchive.VersionRead<ChBodyEasySphere>();
+void* ChBodyEasySphere::ArchiveInConstructor(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChBodyEasySphere>();
 
     ChBodyEasySphere* new_obj = new ChBodyEasySphere();
 
@@ -123,12 +123,12 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector3d axes,
     }
 }
 
-void ChBodyEasyEllipsoid::ArchiveOutConstructor(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChBodyEasyEllipsoid>();
+void ChBodyEasyEllipsoid::ArchiveOutConstructor(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChBodyEasyEllipsoid>();
 }
 
-void* ChBodyEasyEllipsoid::ArchiveInConstructor(ChArchiveIn& marchive) {
-    /*int version =*/marchive.VersionRead<ChBodyEasyEllipsoid>();
+void* ChBodyEasyEllipsoid::ArchiveInConstructor(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChBodyEasyEllipsoid>();
 
     ChBodyEasyEllipsoid* new_obj = new ChBodyEasyEllipsoid();
 
@@ -201,12 +201,12 @@ void ChBodyEasyCylinder::SetupBody(ChAxis direction,
     }
 }
 
-void ChBodyEasyCylinder::ArchiveOutConstructor(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChBodyEasyCylinder>();
+void ChBodyEasyCylinder::ArchiveOutConstructor(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChBodyEasyCylinder>();
 }
 
-void* ChBodyEasyCylinder::ArchiveInConstructor(ChArchiveIn& marchive) {
-    /*int version =*/marchive.VersionRead<ChBodyEasyCylinder>();
+void* ChBodyEasyCylinder::ArchiveInConstructor(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChBodyEasyCylinder>();
 
     ChBodyEasyCylinder* new_obj = new ChBodyEasyCylinder();
 
@@ -263,16 +263,16 @@ void ChBodyEasyBox::SetupBody(double Xsize,
     }
 }
 
-void ChBodyEasyBox::ArchiveOutConstructor(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChBodyEasyBox>();
+void ChBodyEasyBox::ArchiveOutConstructor(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChBodyEasyBox>();
 
     // ChBodyEasy do not hold any variables; only parent classes have.
     // by archiving the ChVariables, ChVisualModel and ChCollisionModel
     // all the properties will be retrieved
 }
 
-void* ChBodyEasyBox::ArchiveInConstructor(ChArchiveIn& marchive) {
-    /*int version =*/marchive.VersionRead<ChBodyEasyBox>();
+void* ChBodyEasyBox::ArchiveInConstructor(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChBodyEasyBox>();
 
     ChBodyEasyBox* new_obj = new ChBodyEasyBox();
 
@@ -343,17 +343,17 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector3d>& points,
     m_mesh = vshape->GetMesh();
 }
 
-void ChBodyEasyConvexHull::ArchiveOutConstructor(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChBodyEasyConvexHull>();
+void ChBodyEasyConvexHull::ArchiveOutConstructor(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChBodyEasyConvexHull>();
 
-    marchive << CHNVP(m_mesh);
+    archive_out << CHNVP(m_mesh);
 }
 
-void* ChBodyEasyConvexHull::ArchiveInConstructor(ChArchiveIn& marchive) {
-    /*int version =*/marchive.VersionRead<ChBodyEasyConvexHull>();
+void* ChBodyEasyConvexHull::ArchiveInConstructor(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChBodyEasyConvexHull>();
 
     std::shared_ptr<ChTriangleMeshConnected> mesh;
-    marchive >> CHNVP(mesh);
+    archive_in >> CHNVP(mesh);
 
     ChBodyEasyConvexHull* new_obj = new ChBodyEasyConvexHull(mesh);
 
@@ -430,17 +430,17 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector3d>& points,
     m_mesh = vshape->GetMesh();
 }
 
-void ChBodyEasyConvexHullAuxRef::ArchiveOutConstructor(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChBodyEasyConvexHullAuxRef>();
+void ChBodyEasyConvexHullAuxRef::ArchiveOutConstructor(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChBodyEasyConvexHullAuxRef>();
 
-    marchive << CHNVP(m_mesh);
+    archive_out << CHNVP(m_mesh);
 }
 
-void* ChBodyEasyConvexHullAuxRef::ArchiveInConstructor(ChArchiveIn& marchive) {
-    /*int version =*/marchive.VersionRead<ChBodyEasyConvexHullAuxRef>();
+void* ChBodyEasyConvexHullAuxRef::ArchiveInConstructor(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChBodyEasyConvexHullAuxRef>();
 
     std::shared_ptr<ChTriangleMeshConnected> mesh;
-    marchive >> CHNVP(mesh);
+    archive_in >> CHNVP(mesh);
 
     ChBodyEasyConvexHullAuxRef* new_obj = new ChBodyEasyConvexHullAuxRef(mesh);
 
@@ -537,16 +537,16 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<ChTriangleMeshConnected> trimesh,
     }
 }
 
-void ChBodyEasyMesh::ArchiveOutConstructor(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChBodyEasyMesh>();
+void ChBodyEasyMesh::ArchiveOutConstructor(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChBodyEasyMesh>();
 
     // ChBodyEasy do not hold any variables; only parent classes have.
     // by archiving the ChVariables, ChVisualModel and ChCollisionModel
     // all the properties will be retrieved
 }
 
-void* ChBodyEasyMesh::ArchiveInConstructor(ChArchiveIn& marchive) {
-    /*int version =*/marchive.VersionRead<ChBodyEasyMesh>();
+void* ChBodyEasyMesh::ArchiveInConstructor(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChBodyEasyMesh>();
 
     ChBodyEasyMesh* new_obj = new ChBodyEasyMesh();
 
@@ -638,16 +638,16 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector3d>& positions,
     }
 }
 
-void ChBodyEasyClusterOfSpheres::ArchiveOutConstructor(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChBodyEasyClusterOfSpheres>();
+void ChBodyEasyClusterOfSpheres::ArchiveOutConstructor(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChBodyEasyClusterOfSpheres>();
 
     // ChBodyEasy do not hold any variables; only parent classes have.
     // by archiving the ChVariables, ChVisualModel and ChCollisionModel
     // all the properties will be retrieved
 }
 
-void* ChBodyEasyClusterOfSpheres::ArchiveInConstructor(ChArchiveIn& marchive) {
-    /*int version =*/marchive.VersionRead<ChBodyEasyClusterOfSpheres>();
+void* ChBodyEasyClusterOfSpheres::ArchiveInConstructor(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChBodyEasyClusterOfSpheres>();
 
     ChBodyEasyClusterOfSpheres* new_obj = new ChBodyEasyClusterOfSpheres();
 

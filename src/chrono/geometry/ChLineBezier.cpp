@@ -61,22 +61,22 @@ ChVector3d ChLineBezier::Evaluate(double parU) const {
     return m_path->eval(i, t);
 }
 
-void ChLineBezier::ArchiveOut(ChArchiveOut& marchive) {
+void ChLineBezier::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLineBezier>();
+    archive_out.VersionWrite<ChLineBezier>();
     // serialize parent class
-    ChLine::ArchiveOut(marchive);
+    ChLine::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_path);
+    archive_out << CHNVP(m_path);
 }
 
-void ChLineBezier::ArchiveIn(ChArchiveIn& marchive) {
+void ChLineBezier::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChLineBezier>();
+    /*int version =*/ archive_in.VersionRead<ChLineBezier>();
     // deserialize parent class
-    ChLine::ArchiveIn(marchive);
+    ChLine::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_path);
+    archive_in >> CHNVP(m_path);
 }
 
 }  // end of namespace chrono

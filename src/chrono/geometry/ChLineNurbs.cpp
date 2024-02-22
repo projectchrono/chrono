@@ -111,28 +111,28 @@ void ChLineNurbs::Setup(
         this->weights.setConstant(n, 1.0);
 }
 
-void ChLineNurbs::ArchiveOut(ChArchiveOut& marchive) {
+void ChLineNurbs::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLineNurbs>();
+    archive_out.VersionWrite<ChLineNurbs>();
     // serialize parent class
-    ChLine::ArchiveOut(marchive);
+    ChLine::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(points);
-    ////marchive << CHNVP(weights); //**TODO MATRIX DESERIALIZATION
-    ////marchive << CHNVP(knots); //**TODO MATRIX DESERIALIZATION
-    marchive << CHNVP(p);
+    archive_out << CHNVP(points);
+    ////archive_out << CHNVP(weights); //**TODO MATRIX DESERIALIZATION
+    ////archive_out << CHNVP(knots); //**TODO MATRIX DESERIALIZATION
+    archive_out << CHNVP(p);
 }
 
-void ChLineNurbs::ArchiveIn(ChArchiveIn& marchive) {
+void ChLineNurbs::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLineNurbs>();
+    /*int version =*/ archive_in.VersionRead<ChLineNurbs>();
     // deserialize parent class
-    ChLine::ArchiveIn(marchive);
+    ChLine::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(points);
-    ////marchive >> CHNVP(weights); //**TODO MATRIX DESERIALIZATION
-    ////marchive >> CHNVP(knots); //**TODO MATRIX DESERIALIZATION
-    marchive >> CHNVP(p);
+    archive_in >> CHNVP(points);
+    ////archive_in >> CHNVP(weights); //**TODO MATRIX DESERIALIZATION
+    ////archive_in >> CHNVP(knots); //**TODO MATRIX DESERIALIZATION
+    archive_in >> CHNVP(p);
 }
 
 

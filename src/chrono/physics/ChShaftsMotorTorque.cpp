@@ -64,27 +64,27 @@ void ChShaftsMotorTorque::VariablesFbLoadForces(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsMotorTorque::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsMotorTorque::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsMotorTorque>();
+    archive_out.VersionWrite<ChShaftsMotorTorque>();
 
     // serialize parent class
-    ChShaftsMotorBase::ArchiveOut(marchive);
+    ChShaftsMotorBase::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(f_torque);
+    archive_out << CHNVP(f_torque);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsMotorTorque::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsMotorTorque::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsMotorTorque>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsMotorTorque>();
 
     // deserialize parent class:
-    ChShaftsMotorBase::ArchiveIn(marchive);
+    ChShaftsMotorBase::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(f_torque);
+    archive_in >> CHNVP(f_torque);
 }
 
 

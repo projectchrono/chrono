@@ -70,22 +70,22 @@ std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> ChCollisionShapeConvexH
     return hulls;
 }
 
-void ChCollisionShapeConvexHull::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeConvexHull::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeConvexHull>();
+    archive_out.VersionWrite<ChCollisionShapeConvexHull>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(points);
+    archive_out << CHNVP(points);
 }
 
-void ChCollisionShapeConvexHull::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeConvexHull::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeConvexHull>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeConvexHull>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(points);
+    archive_in >> CHNVP(points);
 }
 
 }  // end namespace chrono

@@ -34,22 +34,22 @@ ChCollisionShapeCylinder::ChCollisionShapeCylinder(std::shared_ptr<ChContactMate
                                                    const ChCylinder& cyl)
     : ChCollisionShape(Type::CYLINDER, material), gcylinder(cyl) {}
 
-void ChCollisionShapeCylinder::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeCylinder::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeCylinder>();
+    archive_out.VersionWrite<ChCollisionShapeCylinder>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gcylinder);
+    archive_out << CHNVP(gcylinder);
 }
 
-void ChCollisionShapeCylinder::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeCylinder::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeCylinder>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeCylinder>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gcylinder);
+    archive_in >> CHNVP(gcylinder);
 }
 
 }  // end namespace chrono

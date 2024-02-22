@@ -117,27 +117,27 @@ void ChLinkPointSpline::UpdateTime(double time) {
     }
 }
 
-void ChLinkPointSpline::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkPointSpline::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkPointSpline>();
+    archive_out.VersionWrite<ChLinkPointSpline>();
 
     // serialize parent class
-    ChLinkLockLock::ArchiveOut(marchive);
+    ChLinkLockLock::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(trajectory_line);
+    archive_out << CHNVP(trajectory_line);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkPointSpline::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkPointSpline::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkPointSpline>();
+    /*int version =*/ archive_in.VersionRead<ChLinkPointSpline>();
 
     // deserialize parent class
-    ChLinkLockLock::ArchiveIn(marchive);
+    ChLinkLockLock::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(trajectory_line);
+    archive_in >> CHNVP(trajectory_line);
 }
 
 }  // end namespace chrono

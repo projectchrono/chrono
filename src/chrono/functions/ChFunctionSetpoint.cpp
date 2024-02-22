@@ -31,26 +31,26 @@ void ChFunctionSetpoint::SetSetpoint(double setpoint, double x) {
     last_Y_dx = Y_dx;
 }
 
-void ChFunctionSetpoint::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionSetpoint::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionSetpoint>();
+    archive_out.VersionWrite<ChFunctionSetpoint>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(Y);
-    marchive << CHNVP(Y_dx);
-    marchive << CHNVP(Y_dxdx);
+    archive_out << CHNVP(Y);
+    archive_out << CHNVP(Y_dx);
+    archive_out << CHNVP(Y_dxdx);
 }
 
-void ChFunctionSetpoint::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionSetpoint::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionSetpoint>();
+    /*int version =*/ archive_in.VersionRead<ChFunctionSetpoint>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(Y);
-    marchive >> CHNVP(Y_dx);
-    marchive >> CHNVP(Y_dxdx);
+    archive_in >> CHNVP(Y);
+    archive_in >> CHNVP(Y_dx);
+    archive_in >> CHNVP(Y_dxdx);
 }
 
 }  // end namespace chrono

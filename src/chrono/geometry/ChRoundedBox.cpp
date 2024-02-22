@@ -104,27 +104,27 @@ double ChRoundedBox::GetBoundingSphereRadius() const {
 
 // -----------------------------------------------------------------------------
 
-void ChRoundedBox::ArchiveOut(ChArchiveOut& marchive) {
+void ChRoundedBox::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChRoundedBox>();
+    archive_out.VersionWrite<ChRoundedBox>();
     // serialize parent class
-    ChVolume::ArchiveOut(marchive);
+    ChVolume::ArchiveOut(archive_out);
     // serialize all member data:
     ChVector3d lengths = GetLengths();
-    marchive << CHNVP(lengths);
-    marchive << CHNVP(srad);
+    archive_out << CHNVP(lengths);
+    archive_out << CHNVP(srad);
 }
 
-void ChRoundedBox::ArchiveIn(ChArchiveIn& marchive) {
+void ChRoundedBox::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChRoundedBox>();
+    /*int version =*/archive_in.VersionRead<ChRoundedBox>();
     // deserialize parent class
-    ChVolume::ArchiveIn(marchive);
+    ChVolume::ArchiveIn(archive_in);
     // stream in all member data:
     ChVector3d lengths;
-    marchive >> CHNVP(lengths);
+    archive_in >> CHNVP(lengths);
     SetLengths(lengths);
-    marchive >> CHNVP(srad);
+    archive_in >> CHNVP(srad);
 }
 
 

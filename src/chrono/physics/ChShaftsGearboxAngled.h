@@ -33,7 +33,7 @@ class ChBodyFrame;
 ///  transmits the reaction of the gearbox to a 3D body that acts as the
 ///  support truss.
 ///  A typical example is the case of a gearbox with bevel gears,
-///  where input shaft and output shaft are at 90°.
+///  where input shaft and output shaft are at 90ï¿½.
 ///  Note that the more basic ChShaftsGear can do the same, except
 ///  that it does not provide a way to transmit reaction
 ///  to a truss body.
@@ -172,10 +172,10 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChShaftsGearboxAngled,0)

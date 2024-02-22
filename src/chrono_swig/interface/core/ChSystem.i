@@ -3,8 +3,8 @@
 // Allow serialization of System without wrapping of ChArchive
 void SerializeToJSON(std::string path) {
   std::ofstream mfileo(path.c_str());
-  chrono::ChArchiveOutJSON marchiveout(mfileo);
-  marchiveout << chrono::CHNVP(*$self, "sys");
+  chrono::ChArchiveOutJSON archive_out(mfileo);
+  archive_out << chrono::CHNVP(*$self, "sys");
 }
 
 }

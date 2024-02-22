@@ -139,41 +139,41 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
     ((ChFrame<double>*)Body2)->TransformParentToLocal(abs_contact, this->frame2);
 }
 
-void ChLinkRackpinion::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkRackpinion::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkRackpinion>();
+    archive_out.VersionWrite<ChLinkRackpinion>();
 
     // serialize parent class
-    ChLinkMateGeneric::ArchiveOut(marchive);
+    ChLinkMateGeneric::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(R);
-    marchive << CHNVP(alpha);
-    marchive << CHNVP(beta);
-    marchive << CHNVP(phase);
-    marchive << CHNVP(checkphase);
-    marchive << CHNVP(a1);
-    marchive << CHNVP(local_pinion);
-    marchive << CHNVP(local_rack);
+    archive_out << CHNVP(R);
+    archive_out << CHNVP(alpha);
+    archive_out << CHNVP(beta);
+    archive_out << CHNVP(phase);
+    archive_out << CHNVP(checkphase);
+    archive_out << CHNVP(a1);
+    archive_out << CHNVP(local_pinion);
+    archive_out << CHNVP(local_rack);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRackpinion::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkRackpinion::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkRackpinion>();
+    /*int version =*/ archive_in.VersionRead<ChLinkRackpinion>();
 
     // deserialize parent class
-    ChLinkMateGeneric::ArchiveIn(marchive);
+    ChLinkMateGeneric::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(R);
-    marchive >> CHNVP(alpha);
-    marchive >> CHNVP(beta);
-    marchive >> CHNVP(phase);
-    marchive >> CHNVP(checkphase);
-    marchive >> CHNVP(a1);
-    marchive >> CHNVP(local_pinion);
-    marchive >> CHNVP(local_rack);
+    archive_in >> CHNVP(R);
+    archive_in >> CHNVP(alpha);
+    archive_in >> CHNVP(beta);
+    archive_in >> CHNVP(phase);
+    archive_in >> CHNVP(checkphase);
+    archive_in >> CHNVP(a1);
+    archive_in >> CHNVP(local_pinion);
+    archive_in >> CHNVP(local_rack);
 }
 
 }  // end namespace chrono

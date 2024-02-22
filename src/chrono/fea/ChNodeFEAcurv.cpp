@@ -248,40 +248,40 @@ void ChNodeFEAcurv::VariablesQbIncrementPosition(double step) {
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAcurv::ArchiveOut(ChArchiveOut& marchive) {
+void ChNodeFEAcurv::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChNodeFEAcurv>();
+    archive_out.VersionWrite<ChNodeFEAcurv>();
     // serialize parent class
-    ChNodeFEAbase::ArchiveOut(marchive);
+    ChNodeFEAbase::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(m_rxx);
-    marchive << CHNVP(m_ryy);
-    marchive << CHNVP(m_rzz);
-    marchive << CHNVP(m_rxx_dt);
-    marchive << CHNVP(m_ryy_dt);
-    marchive << CHNVP(m_rzz_dt);
-    marchive << CHNVP(m_rxx_dtdt);
-    marchive << CHNVP(m_ryy_dtdt);
-    marchive << CHNVP(m_rzz_dtdt);
+    archive_out << CHNVP(m_rxx);
+    archive_out << CHNVP(m_ryy);
+    archive_out << CHNVP(m_rzz);
+    archive_out << CHNVP(m_rxx_dt);
+    archive_out << CHNVP(m_ryy_dt);
+    archive_out << CHNVP(m_rzz_dt);
+    archive_out << CHNVP(m_rxx_dtdt);
+    archive_out << CHNVP(m_ryy_dtdt);
+    archive_out << CHNVP(m_rzz_dtdt);
 }
 
-void ChNodeFEAcurv::ArchiveIn(ChArchiveIn& marchive) {
+void ChNodeFEAcurv::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChNodeFEAcurv>();
+    /*int version =*/ archive_in.VersionRead<ChNodeFEAcurv>();
     // deserialize parent class
-    ChNodeFEAbase::ArchiveIn(marchive);
+    ChNodeFEAbase::ArchiveIn(archive_in);
 
     // stream in all member data:
-    marchive >> CHNVP(m_rxx);
-    marchive >> CHNVP(m_ryy);
-    marchive >> CHNVP(m_rzz);
-    marchive >> CHNVP(m_rxx_dt);
-    marchive >> CHNVP(m_ryy_dt);
-    marchive >> CHNVP(m_rzz_dt);
-    marchive >> CHNVP(m_rxx_dtdt);
-    marchive >> CHNVP(m_ryy_dtdt);
-    marchive >> CHNVP(m_rzz_dtdt);
+    archive_in >> CHNVP(m_rxx);
+    archive_in >> CHNVP(m_ryy);
+    archive_in >> CHNVP(m_rzz);
+    archive_in >> CHNVP(m_rxx_dt);
+    archive_in >> CHNVP(m_ryy_dt);
+    archive_in >> CHNVP(m_rzz_dt);
+    archive_in >> CHNVP(m_rxx_dtdt);
+    archive_in >> CHNVP(m_ryy_dtdt);
+    archive_in >> CHNVP(m_rzz_dtdt);
 }
 
 }  // end namespace fea

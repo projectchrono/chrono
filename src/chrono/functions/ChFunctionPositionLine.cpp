@@ -69,24 +69,24 @@ ChVector3d ChFunctionPositionLine::Get_p_dsds(double s) const {
     return (resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2));
 }
 
-void ChFunctionPositionLine::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionPositionLine::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionPosition>();
+    archive_out.VersionWrite<ChFunctionPosition>();
     // serialize parent class
-    ChFunctionPosition::ArchiveOut(marchive);
+    ChFunctionPosition::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(trajectory_line);
-    marchive << CHNVP(space_fx);
+    archive_out << CHNVP(trajectory_line);
+    archive_out << CHNVP(space_fx);
 }
 
-void ChFunctionPositionLine::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionPositionLine::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChFunctionPositionLine>();
+    /*int version =*/archive_in.VersionRead<ChFunctionPositionLine>();
     // deserialize parent class
-    ChFunctionPosition::ArchiveIn(marchive);
+    ChFunctionPosition::ArchiveIn(archive_in);
     // deserialize all member data:
-    marchive >> CHNVP(trajectory_line);
-    marchive >> CHNVP(space_fx);
+    archive_in >> CHNVP(trajectory_line);
+    archive_in >> CHNVP(space_fx);
 }
 
 }  // end namespace chrono

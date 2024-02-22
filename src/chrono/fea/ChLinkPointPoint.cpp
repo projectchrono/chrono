@@ -195,11 +195,11 @@ void ChLinkPointPoint::ConstraintsFetch_react(double factor) {
 
 // FILE I/O
 
-void ChLinkPointPoint::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkPointPoint::ArchiveOut(ChArchiveOut& archive_out) {
     //// TODO
 }
 
-void ChLinkPointPoint::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkPointPoint::ArchiveIn(ChArchiveIn& archive_in) {
     //// TODO
 }
 

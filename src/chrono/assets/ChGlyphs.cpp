@@ -238,30 +238,30 @@ void ChGlyphs::SetGlyphTensor(unsigned int id, ChVector3d mpoint, ChQuaternion<>
     (*this->eigenvalues)[id] = meigenvalues;
 }
 
-void ChGlyphs::ArchiveOut(ChArchiveOut& marchive) {
+void ChGlyphs::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChGlyphs>();
+    archive_out.VersionWrite<ChGlyphs>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(points);
+    archive_out << CHNVP(points);
     eCh_GlyphType_mapper mmapper;
-    marchive << CHNVP(mmapper(draw_mode), "draw_mode");
-    marchive << CHNVP(zbuffer_hide);
-    marchive << CHNVP(m_properties);
+    archive_out << CHNVP(mmapper(draw_mode), "draw_mode");
+    archive_out << CHNVP(zbuffer_hide);
+    archive_out << CHNVP(m_properties);
 }
 
-void ChGlyphs::ArchiveIn(ChArchiveIn& marchive) {
+void ChGlyphs::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChGlyphs>();
+    /*int version =*/ archive_in.VersionRead<ChGlyphs>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(points);
+    archive_in >> CHNVP(points);
     eCh_GlyphType_mapper mmapper;
-    marchive >> CHNVP(mmapper(draw_mode), "draw_mode");
-    marchive >> CHNVP(zbuffer_hide);
-    marchive >> CHNVP(m_properties);
+    archive_in >> CHNVP(mmapper(draw_mode), "draw_mode");
+    archive_in >> CHNVP(zbuffer_hide);
+    archive_in >> CHNVP(m_properties);
 }
 
 }  // end namespace chrono

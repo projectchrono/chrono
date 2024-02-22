@@ -50,29 +50,29 @@ double ChShaftsThermalEngine::ComputeTorque() {
     return modulated_T;
 }
 
-void ChShaftsThermalEngine::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsThermalEngine::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsThermalEngine>();
+    archive_out.VersionWrite<ChShaftsThermalEngine>();
 
     // serialize parent class
-    ChShaftsTorqueBase::ArchiveOut(marchive);
+    ChShaftsTorqueBase::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(Tw);
-    marchive << CHNVP(throttle);
+    archive_out << CHNVP(Tw);
+    archive_out << CHNVP(throttle);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsThermalEngine::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsThermalEngine::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsThermalEngine>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsThermalEngine>();
 
     // deserialize parent class:
-    ChShaftsTorqueBase::ArchiveIn(marchive);
+    ChShaftsTorqueBase::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(Tw);
-    marchive >> CHNVP(throttle);
+    archive_in >> CHNVP(Tw);
+    archive_in >> CHNVP(throttle);
 }
 
 }  // end namespace chrono

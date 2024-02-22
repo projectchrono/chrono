@@ -188,24 +188,24 @@ void ChFunctionBSpline::ApplyInterpolationConstraints(
     Setup(m_p, cpoints_constr, knots);
 }
 
-void ChFunctionBSpline::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionBSpline::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_p);
-    marchive << CHNVP(m_cpoints);
-    marchive << CHNVP(m_knots);
-    marchive << CHNVP(m_n);
+    archive_out << CHNVP(m_p);
+    archive_out << CHNVP(m_cpoints);
+    archive_out << CHNVP(m_knots);
+    archive_out << CHNVP(m_n);
 }
 
-void ChFunctionBSpline::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionBSpline::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_p);
-    marchive >> CHNVP(m_cpoints);
-    marchive >> CHNVP(m_knots);
-    marchive >> CHNVP(m_n);
+    archive_in >> CHNVP(m_p);
+    archive_in >> CHNVP(m_cpoints);
+    archive_in >> CHNVP(m_knots);
+    archive_in >> CHNVP(m_n);
 }
 
 }  // end namespace chrono

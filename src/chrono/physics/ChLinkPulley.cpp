@@ -155,7 +155,7 @@ void ChLinkPulley::UpdateTime(double mytime) {
         if (m_delta > CH_C_PI)
             m_delta -= (CH_C_2PI);  // range -180..+180 is better than 0...360
         if (m_delta > (CH_C_PI / 4.0))
-            m_delta = (CH_C_PI / 4.0);  // phase correction only in +/- 45°
+            m_delta = (CH_C_PI / 4.0);  // phase correction only in +/- 45ï¿½
         if (m_delta < -(CH_C_PI / 4.0))
             m_delta = -(CH_C_PI / 4.0);
         //***TODO***
@@ -215,43 +215,43 @@ void ChLinkPulley::UpdateTime(double mytime) {
     deltaC_dtdt.rot = QNULL;
 }
 
-void ChLinkPulley::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkPulley::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkPulley>();
+    archive_out.VersionWrite<ChLinkPulley>();
 
     // serialize parent class
-    ChLinkLockLock::ArchiveOut(marchive);
+    ChLinkLockLock::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(tau);
-    marchive << CHNVP(phase);
-    marchive << CHNVP(checkphase);
-    marchive << CHNVP(a1);
-    marchive << CHNVP(a2);
-    marchive << CHNVP(r1);
-    marchive << CHNVP(r2);
-    marchive << CHNVP(local_shaft1);
-    marchive << CHNVP(local_shaft2);
+    archive_out << CHNVP(tau);
+    archive_out << CHNVP(phase);
+    archive_out << CHNVP(checkphase);
+    archive_out << CHNVP(a1);
+    archive_out << CHNVP(a2);
+    archive_out << CHNVP(r1);
+    archive_out << CHNVP(r2);
+    archive_out << CHNVP(local_shaft1);
+    archive_out << CHNVP(local_shaft2);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkPulley::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkPulley::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChLinkPulley>();
+    /*int version =*/archive_in.VersionRead<ChLinkPulley>();
 
     // deserialize parent class
-    ChLinkLockLock::ArchiveIn(marchive);
+    ChLinkLockLock::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(tau);
-    marchive >> CHNVP(phase);
-    marchive >> CHNVP(checkphase);
-    marchive >> CHNVP(a1);
-    marchive >> CHNVP(a2);
-    marchive >> CHNVP(r1);
-    marchive >> CHNVP(r2);
-    marchive >> CHNVP(local_shaft1);
-    marchive >> CHNVP(local_shaft2);
+    archive_in >> CHNVP(tau);
+    archive_in >> CHNVP(phase);
+    archive_in >> CHNVP(checkphase);
+    archive_in >> CHNVP(a1);
+    archive_in >> CHNVP(a2);
+    archive_in >> CHNVP(r1);
+    archive_in >> CHNVP(r2);
+    archive_in >> CHNVP(local_shaft1);
+    archive_in >> CHNVP(local_shaft2);
 }
 
 }  // end namespace chrono

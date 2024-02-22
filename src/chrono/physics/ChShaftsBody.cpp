@@ -159,31 +159,31 @@ void ChShaftsBody::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsBody::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsBody::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsBody>();
+    archive_out.VersionWrite<ChShaftsBody>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(shaft_dir);
-    marchive << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    marchive << CHNVP(body); //***TODO*** serialize, with shared ptr
+    archive_out << CHNVP(shaft_dir);
+    archive_out << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
+    archive_out << CHNVP(body); //***TODO*** serialize, with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsBody::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsBody::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsBody>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsBody>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(shaft_dir);
-    marchive >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    marchive >> CHNVP(body); //***TODO*** serialize, with shared ptr
+    archive_in >> CHNVP(shaft_dir);
+    archive_in >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
+    archive_in >> CHNVP(body); //***TODO*** serialize, with shared ptr
     constraint.SetVariables(&shaft->Variables(), &body->Variables());
 }
 
@@ -336,34 +336,34 @@ void ChShaftsBodyTranslation::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsBodyTranslation::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsBodyTranslation::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsBody>();
+    archive_out.VersionWrite<ChShaftsBody>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(shaft_dir);
-    marchive << CHNVP(shaft_pos);
-    marchive << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    marchive << CHNVP(body); //***TODO*** serialize, with shared ptr
+    archive_out << CHNVP(shaft_dir);
+    archive_out << CHNVP(shaft_pos);
+    archive_out << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
+    archive_out << CHNVP(body); //***TODO*** serialize, with shared ptr
 
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsBodyTranslation::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsBodyTranslation::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsBody>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsBody>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(shaft_dir);
-    marchive >> CHNVP(shaft_pos);
-    marchive >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    marchive >> CHNVP(body); //***TODO*** serialize, with shared ptr
+    archive_in >> CHNVP(shaft_dir);
+    archive_in >> CHNVP(shaft_pos);
+    archive_in >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
+    archive_in >> CHNVP(body); //***TODO*** serialize, with shared ptr
     constraint.SetVariables(&shaft->Variables(), &body->Variables());
 
 }

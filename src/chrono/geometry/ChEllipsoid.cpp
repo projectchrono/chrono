@@ -71,22 +71,22 @@ double ChEllipsoid::GetBoundingSphereRadius() const {
 
 // -----------------------------------------------------------------------------
 
-void ChEllipsoid::ArchiveOut(ChArchiveOut& marchive) {
+void ChEllipsoid::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChEllipsoid>();
+    archive_out.VersionWrite<ChEllipsoid>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(rad);
+    archive_out << CHNVP(rad);
 }
 
-void ChEllipsoid::ArchiveIn(ChArchiveIn& marchive) {
+void ChEllipsoid::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChEllipsoid>();
+    /*int version =*/archive_in.VersionRead<ChEllipsoid>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(rad);
+    archive_in >> CHNVP(rad);
 }
 
 

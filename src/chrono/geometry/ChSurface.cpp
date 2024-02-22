@@ -58,22 +58,22 @@ ChVector3d ChSurface::GetNormal(double parU, double parV) const {
     return Vnorm(Vcross((Vu - V0), (Vv - V0)));
 }
 
-void ChSurface::ArchiveOut(ChArchiveOut& marchive) {
+void ChSurface::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSurface>();
+    archive_out.VersionWrite<ChSurface>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
-    // marchive << CHNVP(closed);
+    // archive_out << CHNVP(closed);
 }
 
-void ChSurface::ArchiveIn(ChArchiveIn& marchive) {
+void ChSurface::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSurface>();
+    /*int version =*/ archive_in.VersionRead<ChSurface>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
-    // marchive >> CHNVP(closed);
+    // archive_in >> CHNVP(closed);
 }
 
 

@@ -149,10 +149,10 @@ class ChApi ChFunction {
     double operator()(double arg) const { return GetVal(arg); }
 
     /// Method to allow serialization of transient data to archives
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   protected:
     double m_der_perturbation;  ///< perturbation value used for numerical differentiation

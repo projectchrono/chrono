@@ -90,23 +90,23 @@ void ChLinkMotorLinear::Update(double mytime, bool update_assets) {
     this->mpos_dtdt = aframe12.GetPos_dtdt().x();
 }
 
-void ChLinkMotorLinear::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorLinear::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorLinear>();
+    archive_out.VersionWrite<ChLinkMotorLinear>();
 
     // serialize parent class
-    ChLinkMotor::ArchiveOut(marchive);
+    ChLinkMotor::ArchiveOut(archive_out);
 
     // serialize all member data:
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorLinear::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorLinear::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorLinear>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMotorLinear>();
 
     // deserialize parent class
-    ChLinkMotor::ArchiveIn(marchive);
+    ChLinkMotor::ArchiveIn(archive_in);
 
     // deserialize all member data:
 }

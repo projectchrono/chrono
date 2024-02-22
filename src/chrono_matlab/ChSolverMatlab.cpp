@@ -62,22 +62,22 @@ double ChSolverMatlab::Solve(ChSystemDescriptor& sysd) {
     return 0;
 }
 
-void ChSolverMatlab::ArchiveOut(ChArchiveOut& marchive) {
+void ChSolverMatlab::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSolverMatlab>();
+    archive_out.VersionWrite<ChSolverMatlab>();
     // serialize parent class
-    ChSolver::ArchiveOut(marchive);
+    ChSolver::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(mengine);
+    archive_out << CHNVP(mengine);
 }
 
-void ChSolverMatlab::ArchiveIn(ChArchiveIn& marchive) {
+void ChSolverMatlab::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSolverMatlab>();
+    /*int version =*/ archive_in.VersionRead<ChSolverMatlab>();
     // deserialize parent class
-    ChSolver::ArchiveIn(marchive);
+    ChSolver::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(mengine);
+    archive_in >> CHNVP(mengine);
 }
 
 }  // end namespace chrono

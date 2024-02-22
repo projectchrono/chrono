@@ -84,32 +84,32 @@ CH_ENUM_VAL(eChConstraintMode::CONSTRAINT_UNILATERAL);
 CH_ENUM_MAPPER_END(eChConstraintMode);
 //};
 
-void ChConstraint::ArchiveOut(ChArchiveOut& marchive) {
+void ChConstraint::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChConstraint>();
+    archive_out.VersionWrite<ChConstraint>();
 
     // serialize all member data:
-    marchive << CHNVP(cfm_i);
-    marchive << CHNVP(valid);
-    marchive << CHNVP(disabled);
-    marchive << CHNVP(redundant);
-    marchive << CHNVP(broken);
+    archive_out << CHNVP(cfm_i);
+    archive_out << CHNVP(valid);
+    archive_out << CHNVP(disabled);
+    archive_out << CHNVP(redundant);
+    archive_out << CHNVP(broken);
     eChConstraintMode_mapper typemapper;
-    marchive << CHNVP(typemapper(this->mode), "mode");
+    archive_out << CHNVP(typemapper(this->mode), "mode");
 }
 
-void ChConstraint::ArchiveIn(ChArchiveIn& marchive) {
+void ChConstraint::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChConstraint>();
+    /*int version =*/ archive_in.VersionRead<ChConstraint>();
 
     // stream in all member data:
-    marchive >> CHNVP(cfm_i);
-    marchive >> CHNVP(valid);
-    marchive >> CHNVP(disabled);
-    marchive >> CHNVP(redundant);
-    marchive >> CHNVP(broken);
+    archive_in >> CHNVP(cfm_i);
+    archive_in >> CHNVP(valid);
+    archive_in >> CHNVP(disabled);
+    archive_in >> CHNVP(redundant);
+    archive_in >> CHNVP(broken);
     eChConstraintMode_mapper typemapper;
-    marchive >> CHNVP(typemapper(this->mode), "mode");
+    archive_in >> CHNVP(typemapper(this->mode), "mode");
     UpdateActiveFlag();
 
 }

@@ -470,39 +470,39 @@ void ChLinkMotorLinearDriveline::VariablesQbIncrementPosition(double step) {
 
 
 
-void ChLinkMotorLinearDriveline::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorLinearDriveline::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorLinearDriveline>();
+    archive_out.VersionWrite<ChLinkMotorLinearDriveline>();
 
     // serialize parent class
-    ChLinkMotorLinear::ArchiveOut(marchive);
+    ChLinkMotorLinear::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(innershaft1lin);
-    marchive << CHNVP(innershaft2lin);
-    marchive << CHNVP(innershaft2rot);
-    marchive << CHNVP(innerconstraint1lin);
-    marchive << CHNVP(innerconstraint2lin);
-    marchive << CHNVP(innerconstraint2rot);
-    marchive << CHNVP(shaft2_rotation_dir);
+    archive_out << CHNVP(innershaft1lin);
+    archive_out << CHNVP(innershaft2lin);
+    archive_out << CHNVP(innershaft2rot);
+    archive_out << CHNVP(innerconstraint1lin);
+    archive_out << CHNVP(innerconstraint2lin);
+    archive_out << CHNVP(innerconstraint2rot);
+    archive_out << CHNVP(shaft2_rotation_dir);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorLinearDriveline::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorLinearDriveline::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorLinearDriveline>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMotorLinearDriveline>();
 
     // deserialize parent class
-    ChLinkMotorLinear::ArchiveIn(marchive);
+    ChLinkMotorLinear::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(innershaft1lin);
-    marchive >> CHNVP(innershaft2lin);
-    marchive >> CHNVP(innershaft2rot);
-    marchive >> CHNVP(innerconstraint1lin);
-    marchive >> CHNVP(innerconstraint2lin);
-    marchive >> CHNVP(innerconstraint2rot);
-    marchive >> CHNVP(shaft2_rotation_dir);
+    archive_in >> CHNVP(innershaft1lin);
+    archive_in >> CHNVP(innershaft2lin);
+    archive_in >> CHNVP(innershaft2rot);
+    archive_in >> CHNVP(innerconstraint1lin);
+    archive_in >> CHNVP(innerconstraint2lin);
+    archive_in >> CHNVP(innerconstraint2rot);
+    archive_in >> CHNVP(shaft2_rotation_dir);
 }
 
 

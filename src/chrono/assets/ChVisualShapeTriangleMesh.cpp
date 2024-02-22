@@ -132,30 +132,30 @@ void ChVisualShapeTriangleMesh::SetMesh(std::shared_ptr<ChTriangleMeshConnected>
     }
 }
 
-void ChVisualShapeTriangleMesh::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeTriangleMesh::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeTriangleMesh>();
+    archive_out.VersionWrite<ChVisualShapeTriangleMesh>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(trimesh);
-    marchive << CHNVP(wireframe);
-    marchive << CHNVP(backface_cull);
-    marchive << CHNVP(name);
-    marchive << CHNVP(scale);
+    archive_out << CHNVP(trimesh);
+    archive_out << CHNVP(wireframe);
+    archive_out << CHNVP(backface_cull);
+    archive_out << CHNVP(name);
+    archive_out << CHNVP(scale);
 }
 
-void ChVisualShapeTriangleMesh::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeTriangleMesh::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChVisualShapeTriangleMesh>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeTriangleMesh>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(trimesh);
-    marchive >> CHNVP(wireframe);
-    marchive >> CHNVP(backface_cull);
-    marchive >> CHNVP(name);
-    marchive >> CHNVP(scale);
+    archive_in >> CHNVP(trimesh);
+    archive_in >> CHNVP(wireframe);
+    archive_in >> CHNVP(backface_cull);
+    archive_in >> CHNVP(name);
+    archive_in >> CHNVP(scale);
 }
 
 }  // end namespace chrono

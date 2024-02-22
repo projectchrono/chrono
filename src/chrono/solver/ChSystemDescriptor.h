@@ -350,17 +350,17 @@ class ChApi ChSystemDescriptor {
     virtual void WriteMatrixSpmv(const std::string& path, const std::string& prefix);
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) {
+    virtual void ArchiveOut(ChArchiveOut& archive_out) {
         // version number
-        marchive.VersionWrite<ChSystemDescriptor>();
+        archive_out.VersionWrite<ChSystemDescriptor>();
         // serialize parent class
         // serialize all member data:
     }
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) {
+    virtual void ArchiveIn(ChArchiveIn& archive_in) {
         // version number
-        /*int version =*/ marchive.VersionRead<ChSystemDescriptor>();
+        /*int version =*/ archive_in.VersionRead<ChSystemDescriptor>();
         // deserialize parent class
         // stream in all member data:
     }

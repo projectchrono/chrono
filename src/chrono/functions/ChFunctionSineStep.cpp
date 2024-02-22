@@ -82,20 +82,20 @@ double ChFunctionSineStep::GetDer2(double x) const {
     return ydd;
 }
 
-void ChFunctionSineStep::ArchiveOut(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChFunctionSineStep>();
-    ChFunction::ArchiveOut(marchive);
-    marchive << CHNVP(m_p1);
-    marchive << CHNVP(m_p2);
-    marchive << CHNVP(m_dp);
+void ChFunctionSineStep::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChFunctionSineStep>();
+    ChFunction::ArchiveOut(archive_out);
+    archive_out << CHNVP(m_p1);
+    archive_out << CHNVP(m_p2);
+    archive_out << CHNVP(m_dp);
 }
 
-void ChFunctionSineStep::ArchiveIn(ChArchiveIn& marchive) {
-    /*int version =*/marchive.VersionRead<ChFunctionSineStep>();
-    ChFunction::ArchiveIn(marchive);
-    marchive >> CHNVP(m_p1);
-    marchive >> CHNVP(m_p2);
-    marchive >> CHNVP(m_dp);
+void ChFunctionSineStep::ArchiveIn(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChFunctionSineStep>();
+    ChFunction::ArchiveIn(archive_in);
+    archive_in >> CHNVP(m_p1);
+    archive_in >> CHNVP(m_p2);
+    archive_in >> CHNVP(m_dp);
 }
 
 double ChFunctionSineStep::Eval(double x, double x1, double y1, double x2, double y2) {

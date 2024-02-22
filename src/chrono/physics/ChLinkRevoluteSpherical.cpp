@@ -414,33 +414,33 @@ ChVector3d ChLinkRevoluteSpherical::Get_react_torque_body2() {
     return VNULL;
 }
 
-void ChLinkRevoluteSpherical::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkRevoluteSpherical::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkRevoluteSpherical>();
+    archive_out.VersionWrite<ChLinkRevoluteSpherical>();
 
     // serialize parent class
-    ChLink::ArchiveOut(marchive);
+    ChLink::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(m_pos1);
-    marchive << CHNVP(m_pos2);
-    marchive << CHNVP(m_dir1);
-    marchive << CHNVP(m_dist);
+    archive_out << CHNVP(m_pos1);
+    archive_out << CHNVP(m_pos2);
+    archive_out << CHNVP(m_dir1);
+    archive_out << CHNVP(m_dist);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRevoluteSpherical::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkRevoluteSpherical::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkRevoluteSpherical>();
+    /*int version =*/ archive_in.VersionRead<ChLinkRevoluteSpherical>();
 
     // deserialize parent class
-    ChLink::ArchiveIn(marchive);
+    ChLink::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(m_pos1);
-    marchive >> CHNVP(m_pos2);
-    marchive >> CHNVP(m_dir1);
-    marchive >> CHNVP(m_dist);
+    archive_in >> CHNVP(m_pos1);
+    archive_in >> CHNVP(m_pos2);
+    archive_in >> CHNVP(m_dir1);
+    archive_in >> CHNVP(m_dist);
 }
 
 }  // end namespace chrono

@@ -37,26 +37,26 @@ double ChFunctionSine::GetDer2(double x) const {
     return m_ampl * -m_angular_rate * m_angular_rate * (sin(m_phase + m_angular_rate * x));
 }
 
-void ChFunctionSine::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionSine::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionSine>();
+    archive_out.VersionWrite<ChFunctionSine>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_ampl);
-    marchive << CHNVP(m_phase);
-    marchive << CHNVP(m_angular_rate);
+    archive_out << CHNVP(m_ampl);
+    archive_out << CHNVP(m_phase);
+    archive_out << CHNVP(m_angular_rate);
 }
 
-void ChFunctionSine::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionSine::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChFunctionSine>();
+    /*int version =*/archive_in.VersionRead<ChFunctionSine>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_ampl);
-    marchive >> CHNVP(m_phase);
-    marchive >> CHNVP(m_angular_rate);
+    archive_in >> CHNVP(m_ampl);
+    archive_in >> CHNVP(m_phase);
+    archive_in >> CHNVP(m_angular_rate);
 }
 
 }  // end namespace chrono

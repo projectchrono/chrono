@@ -238,40 +238,40 @@ void ChLinkDistance::ConstraintsFetch_react(double factor) {
     react_torque = VNULL;
 }
 
-void ChLinkDistance::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkDistance::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkDistance>();
+    archive_out.VersionWrite<ChLinkDistance>();
 
     // serialize parent class
-    ChLink::ArchiveOut(marchive);
+    ChLink::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(distance);
-    marchive << CHNVP(pos1);
-    marchive << CHNVP(pos2);
+    archive_out << CHNVP(distance);
+    archive_out << CHNVP(pos1);
+    archive_out << CHNVP(pos2);
 
     ChLinkDistance_Mode_enum_mapper::Mode_mapper typemapper;
-    marchive << CHNVP(typemapper(mode), "ChLinkDistance__Mode");
+    archive_out << CHNVP(typemapper(mode), "ChLinkDistance__Mode");
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkDistance::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkDistance::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChLinkDistance>();
+    /*int version =*/archive_in.VersionRead<ChLinkDistance>();
 
     // deserialize parent class
-    ChLink::ArchiveIn(marchive);
+    ChLink::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(distance);
-    marchive >> CHNVP(pos1);
-    marchive >> CHNVP(pos2);
+    archive_in >> CHNVP(distance);
+    archive_in >> CHNVP(pos1);
+    archive_in >> CHNVP(pos2);
 
     Cx.SetVariables(&Body1->Variables(), &Body2->Variables());
 
     ChLinkDistance_Mode_enum_mapper::Mode_mapper typemapper;
     Mode mode_temp;
-    marchive >> CHNVP(typemapper(mode_temp), "ChLinkDistance__Mode");
+    archive_in >> CHNVP(typemapper(mode_temp), "ChLinkDistance__Mode");
     SetMode(mode_temp);
 }
 

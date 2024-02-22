@@ -116,31 +116,31 @@ void ChLinkBrake::UpdateForces(double mytime) {
         must_stick = false;
 }
 
-void ChLinkBrake::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkBrake::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkBrake>();
+    archive_out.VersionWrite<ChLinkBrake>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOut(marchive);
+    ChLinkLock::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(brake_torque);
-    marchive << CHNVP(stick_ratio);
-    marchive << CHNVP(brake_mode);
+    archive_out << CHNVP(brake_torque);
+    archive_out << CHNVP(stick_ratio);
+    archive_out << CHNVP(brake_mode);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkBrake::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkBrake::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChLinkBrake>();
+    /*int version =*/archive_in.VersionRead<ChLinkBrake>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIn(marchive);
+    ChLinkLock::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(brake_torque);
-    marchive >> CHNVP(stick_ratio);
-    marchive >> CHNVP(brake_mode);
+    archive_in >> CHNVP(brake_torque);
+    archive_in >> CHNVP(stick_ratio);
+    archive_in >> CHNVP(brake_mode);
 }
 
 }  // end namespace chrono

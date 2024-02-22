@@ -31,22 +31,22 @@ ChCollisionShapeSphere::ChCollisionShapeSphere(std::shared_ptr<ChContactMaterial
                                                const ChSphere& sphere)
     : ChCollisionShape(Type::SPHERE, material), gsphere(sphere) {}
 
-void ChCollisionShapeSphere::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeSphere::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeSphere>();
+    archive_out.VersionWrite<ChCollisionShapeSphere>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gsphere);
+    archive_out << CHNVP(gsphere);
 }
 
-void ChCollisionShapeSphere::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeSphere::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeSphere>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeSphere>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gsphere);
+    archive_in >> CHNVP(gsphere);
 }
 
 }  // end namespace chrono

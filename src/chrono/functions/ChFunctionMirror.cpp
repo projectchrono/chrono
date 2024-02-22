@@ -34,24 +34,24 @@ double ChFunctionMirror::GetVal(double x) const {
     return m_operand_fun->GetVal(2 * this->m_mirror_axis - x);
 }
 
-void ChFunctionMirror::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionMirror::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionMirror>();
+    archive_out.VersionWrite<ChFunctionMirror>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_operand_fun);
-    marchive << CHNVP(m_mirror_axis);
+    archive_out << CHNVP(m_operand_fun);
+    archive_out << CHNVP(m_mirror_axis);
 }
 
-void ChFunctionMirror::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionMirror::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChFunctionMirror>();
+    /*int version =*/archive_in.VersionRead<ChFunctionMirror>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_operand_fun);
-    marchive >> CHNVP(m_mirror_axis);
+    archive_in >> CHNVP(m_operand_fun);
+    archive_in >> CHNVP(m_mirror_axis);
 }
 
 }  // end namespace chrono

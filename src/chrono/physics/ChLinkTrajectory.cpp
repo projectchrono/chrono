@@ -100,30 +100,30 @@ void ChLinkTrajectory::Initialize(std::shared_ptr<ChBody> mbody1,
     this->Set_trajectory_line(mline);
 }
 
-void ChLinkTrajectory::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkTrajectory::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkTrajectory>();
+    archive_out.VersionWrite<ChLinkTrajectory>();
 
     // serialize parent class
-    ChLinkLockLock::ArchiveOut(marchive);
+    ChLinkLockLock::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(space_fx);
-    marchive << CHNVP(trajectory_line);
-    marchive << CHNVP(modulo_s);
+    archive_out << CHNVP(space_fx);
+    archive_out << CHNVP(trajectory_line);
+    archive_out << CHNVP(modulo_s);
 }
 
-void ChLinkTrajectory::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkTrajectory::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkTrajectory>();
+    /*int version =*/ archive_in.VersionRead<ChLinkTrajectory>();
 
     // deserialize parent class
-    ChLinkLockLock::ArchiveIn(marchive);
+    ChLinkLockLock::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(space_fx);
-    marchive >> CHNVP(trajectory_line);
-    marchive >> CHNVP(modulo_s);
+    archive_in >> CHNVP(space_fx);
+    archive_in >> CHNVP(trajectory_line);
+    archive_in >> CHNVP(modulo_s);
 }
 
 }  // end namespace chrono

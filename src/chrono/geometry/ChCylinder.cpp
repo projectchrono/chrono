@@ -71,24 +71,24 @@ double ChCylinder::GetBoundingSphereRadius() const {
 
 // -----------------------------------------------------------------------------
 
-void ChCylinder::ArchiveOut(ChArchiveOut& marchive) {
+void ChCylinder::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCylinder>();
+    archive_out.VersionWrite<ChCylinder>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(r);
-    marchive << CHNVP(h);
+    archive_out << CHNVP(r);
+    archive_out << CHNVP(h);
 }
 
-void ChCylinder::ArchiveIn(ChArchiveIn& marchive) {
+void ChCylinder::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCylinder>();
+    /*int version =*/archive_in.VersionRead<ChCylinder>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(r);
-    marchive >> CHNVP(h);
+    archive_in >> CHNVP(r);
+    archive_in >> CHNVP(h);
 }
 
 

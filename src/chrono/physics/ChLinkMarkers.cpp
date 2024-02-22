@@ -391,29 +391,29 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
     }
 }
 
-void ChLinkMarkers::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMarkers::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMarkers>();
+    archive_out.VersionWrite<ChLinkMarkers>();
 
     // serialize parent class
-    ChLink::ArchiveOut(marchive);
+    ChLink::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(marker1);
-    marchive << CHNVP(marker2);
+    archive_out << CHNVP(marker1);
+    archive_out << CHNVP(marker2);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMarkers::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMarkers::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMarkers>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMarkers>();
 
     // deserialize parent class
-    ChLink::ArchiveIn(marchive);
+    ChLink::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(marker1);
-    marchive >> CHNVP(marker2);
+    archive_in >> CHNVP(marker1);
+    archive_in >> CHNVP(marker2);
 }
 
 }  // end namespace chrono

@@ -22,23 +22,23 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkMate)
 
-void ChLinkMate::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMate::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMate>();
+    archive_out.VersionWrite<ChLinkMate>();
 
     // serialize parent class
-    ChLink::ArchiveOut(marchive);
+    ChLink::ArchiveOut(archive_out);
 
     // serialize all member data:
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMate::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMate::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMate>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMate>();
 
     // deserialize parent class
-    ChLink::ArchiveIn(marchive);
+    ChLink::ArchiveIn(archive_in);
 
     // deserialize all member data:
 }
@@ -661,42 +661,42 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
     react_torque = ChStarMatrix33<>(r12_F2) * gamma_f + this->P * gamma_m;
 }
 
-void ChLinkMateGeneric::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMateGeneric::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMateGeneric>();
+    archive_out.VersionWrite<ChLinkMateGeneric>();
 
     // serialize parent class
-    ChLinkMate::ArchiveOut(marchive);
+    ChLinkMate::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(frame1);
-    marchive << CHNVP(frame2);
-    marchive << CHNVP(c_x);
-    marchive << CHNVP(c_y);
-    marchive << CHNVP(c_z);
-    marchive << CHNVP(c_rx);
-    marchive << CHNVP(c_ry);
-    marchive << CHNVP(c_rz);
+    archive_out << CHNVP(frame1);
+    archive_out << CHNVP(frame2);
+    archive_out << CHNVP(c_x);
+    archive_out << CHNVP(c_y);
+    archive_out << CHNVP(c_z);
+    archive_out << CHNVP(c_rx);
+    archive_out << CHNVP(c_ry);
+    archive_out << CHNVP(c_rz);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMateGeneric::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMateGeneric::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMateGeneric>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMateGeneric>();
 
     // deserialize parent class
-    ChLinkMate::ArchiveIn(marchive);
+    ChLinkMate::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(frame1);
-    marchive >> CHNVP(frame2);
+    archive_in >> CHNVP(frame1);
+    archive_in >> CHNVP(frame2);
 
-    bool c_x_success = marchive.in(CHNVP(c_x));
-    bool c_y_success = marchive.in(CHNVP(c_y));
-    bool c_z_success = marchive.in(CHNVP(c_z));
-    bool c_rx_success = marchive.in(CHNVP(c_rx));
-    bool c_ry_success = marchive.in(CHNVP(c_ry));
-    bool c_rz_success = marchive.in(CHNVP(c_rz));
+    bool c_x_success = archive_in.in(CHNVP(c_x));
+    bool c_y_success = archive_in.in(CHNVP(c_y));
+    bool c_z_success = archive_in.in(CHNVP(c_z));
+    bool c_rx_success = archive_in.in(CHNVP(c_rx));
+    bool c_ry_success = archive_in.in(CHNVP(c_ry));
+    bool c_rz_success = archive_in.in(CHNVP(c_rz));
     if (c_x_success && c_y_success && c_z_success && c_rx_success && c_ry_success && c_rz_success)
         this->SetConstrainedCoords(c_x, c_y, c_z, c_rx, c_ry, c_rz);  // takes care of mask
 
@@ -752,29 +752,29 @@ void ChLinkMatePlane::Update(double mtime, bool update_assets) {
     C(0) -= separation;  // for this mate, C = {Cx, Cry, Crz}
 }
 
-void ChLinkMatePlane::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMatePlane::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMatePlane>();
+    archive_out.VersionWrite<ChLinkMatePlane>();
 
     // serialize parent class
-    ChLinkMateGeneric::ArchiveOut(marchive);
+    ChLinkMateGeneric::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(flipped);
-    marchive << CHNVP(separation);
+    archive_out << CHNVP(flipped);
+    archive_out << CHNVP(separation);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMatePlane::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMatePlane::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMatePlane>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMatePlane>();
 
     // deserialize parent class
-    ChLinkMateGeneric::ArchiveIn(marchive);
+    ChLinkMateGeneric::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(separation);
-    marchive >> CHNVP(flipped);
+    archive_in >> CHNVP(separation);
+    archive_in >> CHNVP(flipped);
 
 }
 
@@ -817,26 +817,26 @@ void ChLinkMateCoaxial::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
     ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1_reversed, mnorm2);
 }
 
-void ChLinkMateCoaxial::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMateCoaxial::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMateCoaxial>();
+    archive_out.VersionWrite<ChLinkMateCoaxial>();
 
     // serialize parent class
-    ChLinkMateGeneric::ArchiveOut(marchive);
+    ChLinkMateGeneric::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(flipped);
+    archive_out << CHNVP(flipped);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMateCoaxial::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMateCoaxial::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMateCoaxial>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMateCoaxial>();
 
     // deserialize parent class
-    ChLinkMateGeneric::ArchiveIn(marchive);
+    ChLinkMateGeneric::ArchiveIn(archive_in);
 
-    marchive >> CHNVP(flipped);
+    archive_in >> CHNVP(flipped);
 }
 
 // -----------------------------------------------------------------------------
@@ -905,26 +905,26 @@ double ChLinkMateRevolute::GetRelativeAngle_dtdt() {
     return acc12_W;
 }
 
-void ChLinkMateRevolute::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMateRevolute::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMateRevolute>();
+    archive_out.VersionWrite<ChLinkMateRevolute>();
 
     // serialize parent class
-    ChLinkMateGeneric::ArchiveOut(marchive);
+    ChLinkMateGeneric::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(flipped);
+    archive_out << CHNVP(flipped);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMateRevolute::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMateRevolute::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChLinkMateRevolute>();
+    /*int version =*/archive_in.VersionRead<ChLinkMateRevolute>();
 
     // deserialize parent class
-    ChLinkMateGeneric::ArchiveIn(marchive);
+    ChLinkMateGeneric::ArchiveIn(archive_in);
 
-    marchive >> CHNVP(flipped);
+    archive_in >> CHNVP(flipped);
 
 }
 
@@ -988,26 +988,26 @@ double ChLinkMatePrismatic::GetRelativePos_dtdt() {
     return acc12_W.x(); // NB: assumes translation along x
 }
 
-void ChLinkMatePrismatic::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMatePrismatic::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMatePrismatic>();
+    archive_out.VersionWrite<ChLinkMatePrismatic>();
 
     // serialize parent class
-    ChLinkMateGeneric::ArchiveOut(marchive);
+    ChLinkMateGeneric::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(flipped);
+    archive_out << CHNVP(flipped);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMatePrismatic::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMatePrismatic::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChLinkMatePrismatic>();
+    /*int version =*/archive_in.VersionRead<ChLinkMatePrismatic>();
 
     // deserialize parent class
-    ChLinkMateGeneric::ArchiveIn(marchive);
+    ChLinkMateGeneric::ArchiveIn(archive_in);
 
-    marchive >> CHNVP(flipped);
+    archive_in >> CHNVP(flipped);
 }
 
 // -----------------------------------------------------------------------------
@@ -1051,27 +1051,27 @@ void ChLinkMateXdistance::Update(double mtime, bool update_assets) {
     C(0) -= distance;  // for this mate, C = {Cx}
 }
 
-void ChLinkMateXdistance::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMateXdistance::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMateXdistance>();
+    archive_out.VersionWrite<ChLinkMateXdistance>();
 
     // serialize parent class
-    ChLinkMateGeneric::ArchiveOut(marchive);
+    ChLinkMateGeneric::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(distance);
+    archive_out << CHNVP(distance);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMateXdistance::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMateXdistance::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMateXdistance>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMateXdistance>();
 
     // deserialize parent class
-    ChLinkMateGeneric::ArchiveIn(marchive);
+    ChLinkMateGeneric::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(distance);
+    archive_in >> CHNVP(distance);
 
 }
 
@@ -1114,27 +1114,27 @@ void ChLinkMateParallel::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
     ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1_reversed, mnorm2);
 }
 
-void ChLinkMateParallel::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMateParallel::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMateParallel>();
+    archive_out.VersionWrite<ChLinkMateParallel>();
 
     // serialize parent class
-    ChLinkMateGeneric::ArchiveOut(marchive);
+    ChLinkMateGeneric::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(flipped);
+    archive_out << CHNVP(flipped);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMateParallel::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMateParallel::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMateParallel>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMateParallel>();
 
     // deserialize parent class
-    ChLinkMateGeneric::ArchiveIn(marchive);
+    ChLinkMateGeneric::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(flipped);
+    archive_in >> CHNVP(flipped);
 }
 
 // -----------------------------------------------------------------------------
@@ -1232,29 +1232,29 @@ void ChLinkMateOrthogonal::Update(double mtime, bool update_assets) {
     ChLinkMateGeneric::Update(mtime, update_assets);
 }
 
-void ChLinkMateOrthogonal::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMateOrthogonal::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMateOrthogonal>();
+    archive_out.VersionWrite<ChLinkMateOrthogonal>();
 
     // serialize parent class
-    ChLinkMateGeneric::ArchiveOut(marchive);
+    ChLinkMateGeneric::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(reldir1);
-    marchive << CHNVP(reldir2);
+    archive_out << CHNVP(reldir1);
+    archive_out << CHNVP(reldir2);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMateOrthogonal::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMateOrthogonal::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMateOrthogonal>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMateOrthogonal>();
 
     // deserialize parent class
-    ChLinkMateGeneric::ArchiveIn(marchive);
+    ChLinkMateGeneric::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(reldir1);
-    marchive >> CHNVP(reldir2);
+    archive_in >> CHNVP(reldir1);
+    archive_in >> CHNVP(reldir2);
 }
 
 

@@ -72,20 +72,20 @@ void ChFunctionCycloidal::SetWidth(double width) {
     m_width = width;
 }
 
-void ChFunctionCycloidal::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionCycloidal::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_height);
-    marchive << CHNVP(m_width);
+    archive_out << CHNVP(m_height);
+    archive_out << CHNVP(m_width);
 }
 
-void ChFunctionCycloidal::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionCycloidal::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_height);
-    marchive >> CHNVP(m_width);
+    archive_in >> CHNVP(m_height);
+    archive_in >> CHNVP(m_width);
 }
 
 }  // namespace chrono

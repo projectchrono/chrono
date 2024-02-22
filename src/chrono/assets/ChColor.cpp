@@ -142,24 +142,24 @@ ChColor ChColor::ComputeFalseColor(double v, double vmin, double vmax, bool out_
     return c;
 }
 
-void ChColor::ArchiveOut(ChArchiveOut& marchive) {
+void ChColor::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChColor>();
+    archive_out.VersionWrite<ChColor>();
 
     // serialize all member data:
-    marchive << CHNVP(R);
-    marchive << CHNVP(G);
-    marchive << CHNVP(B);
+    archive_out << CHNVP(R);
+    archive_out << CHNVP(G);
+    archive_out << CHNVP(B);
 }
 
-void ChColor::ArchiveIn(ChArchiveIn& marchive) {
+void ChColor::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChColor>();
+    /*int version =*/archive_in.VersionRead<ChColor>();
 
     // stream in all member data:
-    marchive >> CHNVP(R);
-    marchive >> CHNVP(G);
-    marchive >> CHNVP(B);
+    archive_in >> CHNVP(R);
+    archive_in >> CHNVP(G);
+    archive_in >> CHNVP(B);
 }
 
 }  // end namespace chrono

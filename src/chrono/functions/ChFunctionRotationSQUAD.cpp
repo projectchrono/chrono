@@ -203,31 +203,31 @@ void ChFunctionRotationSQUAD::SetClosed(bool mc) {
 }
 
 
-void ChFunctionRotationSQUAD::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionRotationSQUAD::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionRotationSQUAD>();
+    archive_out.VersionWrite<ChFunctionRotationSQUAD>();
 	// serialize parent class
-    ChFunctionRotation::ArchiveOut(marchive);
+    ChFunctionRotation::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(rotations);
-    ////marchive << CHNVP(knots);  //**TODO MATRIX DESERIALIZATION
-    marchive << CHNVP(p);
-	marchive << CHNVP(space_fx);
-	marchive << CHNVP(closed);
+    archive_out << CHNVP(rotations);
+    ////archive_out << CHNVP(knots);  //**TODO MATRIX DESERIALIZATION
+    archive_out << CHNVP(p);
+	archive_out << CHNVP(space_fx);
+	archive_out << CHNVP(closed);
 
 }
 
-void ChFunctionRotationSQUAD::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionRotationSQUAD::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionRotationSQUAD>();
+    /*int version =*/ archive_in.VersionRead<ChFunctionRotationSQUAD>();
 	// deserialize parent class
-    ChFunctionRotation::ArchiveIn(marchive);
+    ChFunctionRotation::ArchiveIn(archive_in);
     // deserialize all member data:
-    marchive >> CHNVP(rotations);
-    ////marchive >> CHNVP(knots);  //**TODO MATRIX DESERIALIZATION
-    marchive >> CHNVP(p);
-	marchive >> CHNVP(space_fx);
-	marchive >> CHNVP(closed);
+    archive_in >> CHNVP(rotations);
+    ////archive_in >> CHNVP(knots);  //**TODO MATRIX DESERIALIZATION
+    archive_in >> CHNVP(p);
+	archive_in >> CHNVP(space_fx);
+	archive_in >> CHNVP(closed);
 }
 
 

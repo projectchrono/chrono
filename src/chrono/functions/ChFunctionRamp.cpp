@@ -24,24 +24,24 @@ ChFunctionRamp::ChFunctionRamp(const ChFunctionRamp& other) {
     m_ang_coeff = other.m_ang_coeff;
 }
 
-void ChFunctionRamp::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionRamp::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionRamp>();
+    archive_out.VersionWrite<ChFunctionRamp>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_y0);
-    marchive << CHNVP(m_ang_coeff);
+    archive_out << CHNVP(m_y0);
+    archive_out << CHNVP(m_ang_coeff);
 }
 
-void ChFunctionRamp::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionRamp::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionRamp>();
+    /*int version =*/ archive_in.VersionRead<ChFunctionRamp>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_y0);
-    marchive >> CHNVP(m_ang_coeff);
+    archive_in >> CHNVP(m_y0);
+    archive_in >> CHNVP(m_ang_coeff);
 }
 
 }  // end namespace chrono

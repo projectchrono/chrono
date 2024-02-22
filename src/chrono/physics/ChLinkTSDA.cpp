@@ -486,26 +486,26 @@ void ChLinkTSDA::ConstraintsFbLoadForces(double factor) {
 
 // -----------------------------------------------------------------------------
 
-void ChLinkTSDA::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkTSDA::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkTSDA>();
+    archive_out.VersionWrite<ChLinkTSDA>();
 
     // serialize parent class
-    ChLink::ArchiveOut(marchive);
+    ChLink::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(m_rest_length);
+    archive_out << CHNVP(m_rest_length);
 }
 
-void ChLinkTSDA::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkTSDA::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkTSDA>();
+    /*int version =*/ archive_in.VersionRead<ChLinkTSDA>();
 
     // deserialize parent class
-    ChLink::ArchiveIn(marchive);
+    ChLink::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(m_rest_length);
+    archive_in >> CHNVP(m_rest_length);
 }
 
 }  // end namespace chrono

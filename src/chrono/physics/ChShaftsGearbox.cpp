@@ -169,39 +169,39 @@ void ChShaftsGearbox::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsGearbox::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsGearbox::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsGearbox>();
+    archive_out.VersionWrite<ChShaftsGearbox>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(r1);
-    marchive << CHNVP(r2);
-    marchive << CHNVP(r3);
-    marchive << CHNVP(shaft_dir);
-    marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    marchive << CHNVP(body); //***TODO*** serialize with shared ptr
+    archive_out << CHNVP(r1);
+    archive_out << CHNVP(r2);
+    archive_out << CHNVP(r3);
+    archive_out << CHNVP(shaft_dir);
+    archive_out << CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    archive_out << CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    archive_out << CHNVP(body); //***TODO*** serialize with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsGearbox::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsGearbox::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsGearbox>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsGearbox>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(r1);
-    marchive >> CHNVP(r2);
-    marchive >> CHNVP(r3);
-    marchive >> CHNVP(shaft_dir);
-    marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    marchive >> CHNVP(body); //***TODO*** serialize with shared ptr
+    archive_in >> CHNVP(r1);
+    archive_in >> CHNVP(r2);
+    archive_in >> CHNVP(r3);
+    archive_in >> CHNVP(shaft_dir);
+    archive_in >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    archive_in >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    archive_in >> CHNVP(body); //***TODO*** serialize with shared ptr
     constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables(), &body->Variables());
 
 }

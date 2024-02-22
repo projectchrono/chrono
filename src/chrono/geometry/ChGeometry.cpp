@@ -63,20 +63,20 @@ double ChGeometry::GetBoundingSphereRadius() const {
     return bbox.Size().Length() / 2;
 }
 
-void ChGeometry::ArchiveOut(ChArchiveOut& marchive) {
+void ChGeometry::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChGeometry>();
+    archive_out.VersionWrite<ChGeometry>();
     ChGeometry_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
-    marchive << CHNVP(typemapper(type), "ChGeometry__Type");
+    archive_out << CHNVP(typemapper(type), "ChGeometry__Type");
 }
 
-void ChGeometry::ArchiveIn(ChArchiveIn& marchive) {
+void ChGeometry::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChGeometry>();
+    /*int version =*/ archive_in.VersionRead<ChGeometry>();
     ChGeometry_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
-    marchive >> CHNVP(typemapper(type), "ChGeometry__Type");
+    archive_in >> CHNVP(typemapper(type), "ChGeometry__Type");
 }
 
 // -----------------------------------------------------------------------------

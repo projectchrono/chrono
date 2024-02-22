@@ -44,32 +44,32 @@ void ChLink::Update(bool update_assets) {
     Update(ChTime, update_assets);  // use the same time
 }
 
-void ChLink::ArchiveOut(ChArchiveOut& marchive) {
+void ChLink::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLink>();
+    archive_out.VersionWrite<ChLink>();
 
     // serialize parent class
-    ChLinkBase::ArchiveOut(marchive);
+    ChLinkBase::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(Body1);
-    marchive << CHNVP(Body2);
-    //marchive << CHNVP(react_force);
-    //marchive << CHNVP(react_torque);
+    archive_out << CHNVP(Body1);
+    archive_out << CHNVP(Body2);
+    //archive_out << CHNVP(react_force);
+    //archive_out << CHNVP(react_torque);
 }
 
-void ChLink::ArchiveIn(ChArchiveIn& marchive) {
+void ChLink::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLink>();
+    /*int version =*/ archive_in.VersionRead<ChLink>();
 
     // deserialize parent class
-    ChLinkBase::ArchiveIn(marchive);
+    ChLinkBase::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(Body1);
-    marchive >> CHNVP(Body2);
-    //marchive >> CHNVP(react_force);
-    //marchive >> CHNVP(react_torque);
+    archive_in >> CHNVP(Body1);
+    archive_in >> CHNVP(Body2);
+    //archive_in >> CHNVP(react_force);
+    //archive_in >> CHNVP(react_torque);
 }
 
 }  // end namespace chrono

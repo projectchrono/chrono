@@ -54,20 +54,20 @@ ChCollisionShapeMeshTriangle::ChCollisionShapeMeshTriangle(
     this->sradius = sphere_radius;
 }
 
-void ChCollisionShapeMeshTriangle::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeMeshTriangle::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeMeshTriangle>();
+    archive_out.VersionWrite<ChCollisionShapeMeshTriangle>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
     //// TODO
 }
 
-void ChCollisionShapeMeshTriangle::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeMeshTriangle::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeMeshTriangle>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeMeshTriangle>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
     //// TODO
 }

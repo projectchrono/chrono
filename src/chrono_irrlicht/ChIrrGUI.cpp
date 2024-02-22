@@ -62,15 +62,15 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
             case irr::KEY_F8: {
                 std::cout << "Saving system in JSON format to dump.json file \n";
                 std::ofstream mfileo("dump.json");
-                ChArchiveOutJSON marchiveout(mfileo);
-                marchiveout.SetUseVersions(false);
-                marchiveout << CHNVP(m_gui->m_system, "System");
+                ChArchiveOutJSON archive_out(mfileo);
+                archive_out.SetUseVersions(false);
+                archive_out << CHNVP(m_gui->m_system, "System");
 
                 std::cout << "Saving system in ASCII format to dump.txt file \n";
                 std::ofstream mfileo2("dump.txt");
-                ChOutputASCII marchiveout2(mfileo2);
-                marchiveout2.SetUseVersions(false);
-                marchiveout2 << CHNVP(m_gui->m_system, "System");
+                ChOutputASCII archive_out2(mfileo2);
+                archive_out2.SetUseVersions(false);
+                archive_out2 << CHNVP(m_gui->m_system, "System");
 
                 return true;
             }

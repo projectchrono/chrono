@@ -408,33 +408,33 @@ void ChLinkMotorRotationDriveline::VariablesQbIncrementPosition(double step) {
 
 
 
-void ChLinkMotorRotationDriveline::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorRotationDriveline::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorRotationDriveline>();
+    archive_out.VersionWrite<ChLinkMotorRotationDriveline>();
 
     // serialize parent class
-    ChLinkMotorRotation::ArchiveOut(marchive);
+    ChLinkMotorRotation::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(innershaft1);
-    marchive << CHNVP(innershaft2);
-    marchive << CHNVP(innerconstraint1);
-    marchive << CHNVP(innerconstraint2);
+    archive_out << CHNVP(innershaft1);
+    archive_out << CHNVP(innershaft2);
+    archive_out << CHNVP(innerconstraint1);
+    archive_out << CHNVP(innerconstraint2);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorRotationDriveline::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorRotationDriveline::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorRotationDriveline>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMotorRotationDriveline>();
 
     // deserialize parent class
-    ChLinkMotorRotation::ArchiveIn(marchive);
+    ChLinkMotorRotation::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(innershaft1);
-    marchive >> CHNVP(innershaft2);
-    marchive >> CHNVP(innerconstraint1);
-    marchive >> CHNVP(innerconstraint2);
+    archive_in >> CHNVP(innershaft1);
+    archive_in >> CHNVP(innershaft2);
+    archive_in >> CHNVP(innerconstraint1);
+    archive_in >> CHNVP(innerconstraint2);
 }
 
 

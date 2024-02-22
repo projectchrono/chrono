@@ -23,26 +23,26 @@ ChVisualShapeLine::ChVisualShapeLine() : npoints(200), thickness(10.0) {
 
 ChVisualShapeLine::ChVisualShapeLine(std::shared_ptr<ChLine>& mline) : npoints(200), thickness(10.0), gline(mline) {}
 
-void ChVisualShapeLine::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeLine::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeLine>();
+    archive_out.VersionWrite<ChVisualShapeLine>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gline);
-    marchive << CHNVP(npoints);
-    marchive << CHNVP(thickness);
+    archive_out << CHNVP(gline);
+    archive_out << CHNVP(npoints);
+    archive_out << CHNVP(thickness);
 }
 
-void ChVisualShapeLine::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeLine::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVisualShapeLine>();
+    /*int version =*/ archive_in.VersionRead<ChVisualShapeLine>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gline);
-    marchive >> CHNVP(npoints);
-    marchive >> CHNVP(thickness);
+    archive_in >> CHNVP(gline);
+    archive_in >> CHNVP(npoints);
+    archive_in >> CHNVP(thickness);
 }
 
 }  // end namespace chrono

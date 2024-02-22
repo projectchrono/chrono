@@ -47,12 +47,9 @@ class ChApi ChProperty {
     virtual void SetSize(const size_t msize) = 0;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
-
+    virtual void ArchiveOut(ChArchiveOut& archive_out) { archive_out << CHNVP(name); };
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
-
-    std::string name;  ///< name of this property
+    virtual void ArchiveIn(ChArchiveIn& archive_in) {  archive_in >> CHNVP(name); };
 };
 
 /// Templated property: a generic array of items of type T.
@@ -76,18 +73,18 @@ class ChApi ChPropertyT : public ChProperty {
 
     void SetSize(const size_t msize) override { return data.resize(msize); }
 
-    virtual void ArchiveOut(ChArchiveOut& marchive) override {
-        ChProperty::ArchiveOut(marchive);
-        marchive << CHNVP(data);
-        marchive << CHNVP(min);
-        marchive << CHNVP(max);
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override {
+        ChProperty::ArchiveOut(archive_out);
+        archive_out << CHNVP(data);
+        archive_out << CHNVP(min);
+        archive_out << CHNVP(max);
     }
 
-    virtual void ArchiveIn(ChArchiveIn& marchive) override {
-        ChProperty::ArchiveIn(marchive);
-        marchive >> CHNVP(data);
-        marchive >> CHNVP(min);
-        marchive >> CHNVP(max);
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override {
+        ChProperty::ArchiveIn(archive_in);
+        archive_in >> CHNVP(data);
+        archive_in >> CHNVP(min);
+        archive_in >> CHNVP(max);
     }
 
     // min-max values that can be used to store info on desired falsecolor scale

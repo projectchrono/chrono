@@ -232,29 +232,29 @@ void ChLinkRSDA::ConstraintsFbLoadForces(double factor) {
     Body2->Variables().Get_fb().segment(3, 3) += factor * Body2->TransformDirectionParentToLocal(torque).eigen();
 }
 
-void ChLinkRSDA::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkRSDA::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkRSDA>();
+    archive_out.VersionWrite<ChLinkRSDA>();
 
     // serialize parent class
-    ChLink::ArchiveOut(marchive);
+    ChLink::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(m_csys1);
-    marchive << CHNVP(m_csys2);
+    archive_out << CHNVP(m_csys1);
+    archive_out << CHNVP(m_csys2);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRSDA::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkRSDA::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChLinkRSDA>();
+    /*int version =*/archive_in.VersionRead<ChLinkRSDA>();
 
     // deserialize parent class
-    ChLink::ArchiveIn(marchive);
+    ChLink::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(m_csys1);
-    marchive >> CHNVP(m_csys2);
+    archive_in >> CHNVP(m_csys1);
+    archive_in >> CHNVP(m_csys2);
 }
 
 }  // end namespace chrono

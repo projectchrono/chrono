@@ -35,22 +35,22 @@ ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const ChEllipsoid& ellipsoid) : g
     SetMutable(false);
 }
 
-void ChVisualShapeEllipsoid::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeEllipsoid::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeEllipsoid>();
+    archive_out.VersionWrite<ChVisualShapeEllipsoid>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gellipsoid);
+    archive_out << CHNVP(gellipsoid);
 }
 
-void ChVisualShapeEllipsoid::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeEllipsoid::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChVisualShapeEllipsoid>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeEllipsoid>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gellipsoid);
+    archive_in >> CHNVP(gellipsoid);
 }
 
 }  // end namespace chrono

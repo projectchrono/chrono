@@ -400,50 +400,50 @@ void ChFunctionConstJerk::GetReachedLimits(double& vlim, double& alim_a, double&
     alim_d = m_amin_reached;
 }
 
-void ChFunctionConstJerk::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionConstJerk::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_q0);
-    marchive << CHNVP(m_q1);
-    marchive << CHNVP(m_v0);
-    marchive << CHNVP(m_v1);
-    marchive << CHNVP(m_vmax_lim);
-    marchive << CHNVP(m_amax_lim);
-    marchive << CHNVP(m_jmax_lim);
-    marchive << CHNVP(m_Ta);
-    marchive << CHNVP(m_Tv);
-    marchive << CHNVP(m_Td);
-    marchive << CHNVP(m_Tj1);
-    marchive << CHNVP(m_Tj2);
-    marchive << CHNVP(m_T);
-    marchive << CHNVP(m_amax_reached);
-    marchive << CHNVP(m_amin_reached);
-    marchive << CHNVP(m_vmax_reached);
-    marchive << CHNVP(m_sign);
+    archive_out << CHNVP(m_q0);
+    archive_out << CHNVP(m_q1);
+    archive_out << CHNVP(m_v0);
+    archive_out << CHNVP(m_v1);
+    archive_out << CHNVP(m_vmax_lim);
+    archive_out << CHNVP(m_amax_lim);
+    archive_out << CHNVP(m_jmax_lim);
+    archive_out << CHNVP(m_Ta);
+    archive_out << CHNVP(m_Tv);
+    archive_out << CHNVP(m_Td);
+    archive_out << CHNVP(m_Tj1);
+    archive_out << CHNVP(m_Tj2);
+    archive_out << CHNVP(m_T);
+    archive_out << CHNVP(m_amax_reached);
+    archive_out << CHNVP(m_amin_reached);
+    archive_out << CHNVP(m_vmax_reached);
+    archive_out << CHNVP(m_sign);
 }
 
-void ChFunctionConstJerk::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionConstJerk::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_q0);
-    marchive >> CHNVP(m_q1);
-    marchive >> CHNVP(m_v0);
-    marchive >> CHNVP(m_v1);
-    marchive >> CHNVP(m_vmax_lim);
-    marchive >> CHNVP(m_amax_lim);
-    marchive >> CHNVP(m_jmax_lim);
-    marchive >> CHNVP(m_Ta);
-    marchive >> CHNVP(m_Tv);
-    marchive >> CHNVP(m_Td);
-    marchive >> CHNVP(m_Tj1);
-    marchive >> CHNVP(m_Tj2);
-    marchive >> CHNVP(m_T);
-    marchive >> CHNVP(m_amax_reached);
-    marchive >> CHNVP(m_amin_reached);
-    marchive >> CHNVP(m_vmax_reached);
-    marchive >> CHNVP(m_sign);
+    archive_in >> CHNVP(m_q0);
+    archive_in >> CHNVP(m_q1);
+    archive_in >> CHNVP(m_v0);
+    archive_in >> CHNVP(m_v1);
+    archive_in >> CHNVP(m_vmax_lim);
+    archive_in >> CHNVP(m_amax_lim);
+    archive_in >> CHNVP(m_jmax_lim);
+    archive_in >> CHNVP(m_Ta);
+    archive_in >> CHNVP(m_Tv);
+    archive_in >> CHNVP(m_Td);
+    archive_in >> CHNVP(m_Tj1);
+    archive_in >> CHNVP(m_Tj2);
+    archive_in >> CHNVP(m_T);
+    archive_in >> CHNVP(m_amax_reached);
+    archive_in >> CHNVP(m_amin_reached);
+    archive_in >> CHNVP(m_vmax_reached);
+    archive_in >> CHNVP(m_sign);
 }
 
 }  // end namespace chrono

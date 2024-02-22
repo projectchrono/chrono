@@ -37,29 +37,29 @@ double ChShaftsTorsionSpring::ComputeTorque() {
 
 // FILE I/O
 
-void ChShaftsTorsionSpring::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsTorsionSpring::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsTorsionSpring>();
+    archive_out.VersionWrite<ChShaftsTorsionSpring>();
 
     // serialize parent class
-    ChShaftsTorqueBase::ArchiveOut(marchive);
+    ChShaftsTorqueBase::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(stiffness);
-    marchive << CHNVP(damping);
+    archive_out << CHNVP(stiffness);
+    archive_out << CHNVP(damping);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsTorsionSpring::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsTorsionSpring::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsTorsionSpring>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsTorsionSpring>();
 
     // deserialize parent class:
-    ChShaftsTorqueBase::ArchiveIn(marchive);
+    ChShaftsTorqueBase::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(stiffness);
-    marchive >> CHNVP(damping);
+    archive_in >> CHNVP(stiffness);
+    archive_in >> CHNVP(damping);
 }
 
 }  // end namespace chrono

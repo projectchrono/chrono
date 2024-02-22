@@ -45,14 +45,14 @@ ChVector3d ChFunctionRotation::Get_a_loc(double s) const {
     return Gl * qdtdt;
 }
 
-void ChFunctionRotation::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionRotation::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionRotation>();
+    archive_out.VersionWrite<ChFunctionRotation>();
 }
 
-void ChFunctionRotation::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionRotation::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChFunctionRotation>();
+    /*int version =*/archive_in.VersionRead<ChFunctionRotation>();
 }
 
 }  // end namespace chrono

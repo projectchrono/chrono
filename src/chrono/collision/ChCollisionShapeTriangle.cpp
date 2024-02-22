@@ -34,22 +34,22 @@ ChCollisionShapeTriangle::ChCollisionShapeTriangle(std::shared_ptr<ChContactMate
                                                    const ChTriangle& triangle)
     : ChCollisionShape(Type::TRIANGLE, material), gtriangle(triangle) {}
 
-void ChCollisionShapeTriangle::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeTriangle::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeTriangle>();
+    archive_out.VersionWrite<ChCollisionShapeTriangle>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gtriangle);
+    archive_out << CHNVP(gtriangle);
 }
 
-void ChCollisionShapeTriangle::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeTriangle::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeTriangle>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeTriangle>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gtriangle);
+    archive_in >> CHNVP(gtriangle);
 }
 
 }  // end namespace chrono

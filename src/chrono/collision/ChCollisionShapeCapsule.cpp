@@ -34,23 +34,23 @@ ChCollisionShapeCapsule::ChCollisionShapeCapsule(std::shared_ptr<ChContactMateri
                                                  const ChCapsule& cap)
     : ChCollisionShape(Type::CAPSULE, material), gcapsule(cap) {}
 
-void ChCollisionShapeCapsule::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeCapsule::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeCapsule>();
+    archive_out.VersionWrite<ChCollisionShapeCapsule>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gcapsule);
+    archive_out << CHNVP(gcapsule);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChCollisionShapeCapsule::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeCapsule::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeCapsule>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeCapsule>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gcapsule);
+    archive_in >> CHNVP(gcapsule);
 }
 
 }  // end namespace chrono

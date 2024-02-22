@@ -90,32 +90,32 @@ double ChFunctionIntegral::GetVal(double x) const {
     return (weightA * (m_cumintegral(i_a)) + weightB * (m_cumintegral(i_b)));
 }
 
-void ChFunctionIntegral::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionIntegral::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionIntegral>();
+    archive_out.VersionWrite<ChFunctionIntegral>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_integrand_fun);
-    marchive << CHNVP(m_integration_order);
-    marchive << CHNVP(m_offset);
-    marchive << CHNVP(m_x_start);
-    marchive << CHNVP(m_x_end);
-    marchive << CHNVP(m_num_samples);
+    archive_out << CHNVP(m_integrand_fun);
+    archive_out << CHNVP(m_integration_order);
+    archive_out << CHNVP(m_offset);
+    archive_out << CHNVP(m_x_start);
+    archive_out << CHNVP(m_x_end);
+    archive_out << CHNVP(m_num_samples);
 }
 
-void ChFunctionIntegral::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionIntegral::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChFunctionIntegral>();
+    /*int version =*/archive_in.VersionRead<ChFunctionIntegral>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_integrand_fun);
-    marchive >> CHNVP(m_integration_order);
-    marchive >> CHNVP(m_offset);
-    marchive >> CHNVP(m_x_start);
-    marchive >> CHNVP(m_x_end);
-    marchive >> CHNVP(m_num_samples);
+    archive_in >> CHNVP(m_integrand_fun);
+    archive_in >> CHNVP(m_integration_order);
+    archive_in >> CHNVP(m_offset);
+    archive_in >> CHNVP(m_x_start);
+    archive_in >> CHNVP(m_x_end);
+    archive_in >> CHNVP(m_num_samples);
     m_cumintegral.setZero(m_num_samples);
     Setup();
 }

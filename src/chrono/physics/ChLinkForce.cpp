@@ -59,32 +59,32 @@ double ChLinkForce::GetForce(double x, double x_dt, double t) const {
     return m_F * m_F_modul->GetVal(t) - (m_K * m_K_modul->GetVal(x)) * x - (m_R * m_R_modul->GetVal(x)) * x_dt;
 }
 
-void ChLinkForce::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkForce::ArchiveOut(ChArchiveOut& archive_out) {
     // class version number
-    marchive.VersionWrite<ChLinkForce>();
+    archive_out.VersionWrite<ChLinkForce>();
 
     // stream out all member data
-    marchive << CHNVP(m_active);
-    marchive << CHNVP(m_F);
-    marchive << CHNVP(m_F_modul);
-    marchive << CHNVP(m_K);
-    marchive << CHNVP(m_K_modul);
-    marchive << CHNVP(m_R);
-    marchive << CHNVP(m_R_modul);
+    archive_out << CHNVP(m_active);
+    archive_out << CHNVP(m_F);
+    archive_out << CHNVP(m_F_modul);
+    archive_out << CHNVP(m_K);
+    archive_out << CHNVP(m_K_modul);
+    archive_out << CHNVP(m_R);
+    archive_out << CHNVP(m_R_modul);
 }
 
-void ChLinkForce::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkForce::ArchiveIn(ChArchiveIn& archive_in) {
     // class version number
-    /*int version =*/ marchive.VersionRead<ChLinkForce>();
+    /*int version =*/ archive_in.VersionRead<ChLinkForce>();
 
     // stream in all member data
-    marchive >> CHNVP(m_active);
-    marchive >> CHNVP(m_F);
-    marchive >> CHNVP(m_F_modul);
-    marchive >> CHNVP(m_K);
-    marchive >> CHNVP(m_K_modul);
-    marchive >> CHNVP(m_R);
-    marchive >> CHNVP(m_R_modul);
+    archive_in >> CHNVP(m_active);
+    archive_in >> CHNVP(m_F);
+    archive_in >> CHNVP(m_F_modul);
+    archive_in >> CHNVP(m_K);
+    archive_in >> CHNVP(m_K_modul);
+    archive_in >> CHNVP(m_R);
+    archive_in >> CHNVP(m_R_modul);
 }
 
 }  // end namespace chrono

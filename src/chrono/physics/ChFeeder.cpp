@@ -146,41 +146,41 @@ void ChFeeder::Update(double mytime, bool update_assets) {
 
 // FILE I/O
 
-void ChFeeder::ArchiveOut(ChArchiveOut& marchive) {
+void ChFeeder::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFeeder>();
+    archive_out.VersionWrite<ChFeeder>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    //marchive << CHNVP(feeder);
-    marchive << CHNVP(reference);
-    marchive << CHNVP(v_x);
-    marchive << CHNVP(v_y);
-    marchive << CHNVP(v_z);
-    marchive << CHNVP(w_x);
-    marchive << CHNVP(w_y);
-    marchive << CHNVP(w_z);
+    //archive_out << CHNVP(feeder);
+    archive_out << CHNVP(reference);
+    archive_out << CHNVP(v_x);
+    archive_out << CHNVP(v_y);
+    archive_out << CHNVP(v_z);
+    archive_out << CHNVP(w_x);
+    archive_out << CHNVP(w_y);
+    archive_out << CHNVP(w_z);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChFeeder::ArchiveIn(ChArchiveIn& marchive) {
+void ChFeeder::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFeeder>();
+    /*int version =*/ archive_in.VersionRead<ChFeeder>();
 
     // deserialize parent class
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // stream in all member data:
-    //marchive >> CHNVP(feeder);
-    marchive >> CHNVP(reference);
-    marchive >> CHNVP(v_x);
-    marchive >> CHNVP(v_y);
-    marchive >> CHNVP(v_z);
-    marchive >> CHNVP(w_x);
-    marchive >> CHNVP(w_y);
-    marchive >> CHNVP(w_z);
+    //archive_in >> CHNVP(feeder);
+    archive_in >> CHNVP(reference);
+    archive_in >> CHNVP(v_x);
+    archive_in >> CHNVP(v_y);
+    archive_in >> CHNVP(v_z);
+    archive_in >> CHNVP(w_x);
+    archive_in >> CHNVP(w_y);
+    archive_in >> CHNVP(w_z);
 }
 
 

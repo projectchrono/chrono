@@ -33,28 +33,28 @@ ChCollisionShapeTriangleMesh::ChCollisionShapeTriangleMesh(std::shared_ptr<ChCon
     this->radius = radius;
 }
 
-void ChCollisionShapeTriangleMesh::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeTriangleMesh::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeTriangleMesh>();
+    archive_out.VersionWrite<ChCollisionShapeTriangleMesh>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(trimesh);
-    marchive << CHNVP(is_static);
-    marchive << CHNVP(is_convex);
-    marchive << CHNVP(radius);
+    archive_out << CHNVP(trimesh);
+    archive_out << CHNVP(is_static);
+    archive_out << CHNVP(is_convex);
+    archive_out << CHNVP(radius);
 }
 
-void ChCollisionShapeTriangleMesh::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeTriangleMesh::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeTriangleMesh>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeTriangleMesh>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(trimesh);
-    marchive >> CHNVP(is_static);
-    marchive >> CHNVP(is_convex);
-    marchive >> CHNVP(radius);
+    archive_in >> CHNVP(trimesh);
+    archive_in >> CHNVP(is_static);
+    archive_in >> CHNVP(is_convex);
+    archive_in >> CHNVP(radius);
 }
 
 }  // end namespace chrono

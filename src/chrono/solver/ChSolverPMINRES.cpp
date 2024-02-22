@@ -489,26 +489,26 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     return r_proj_resid;
 }
 
-void ChSolverPMINRES::ArchiveOut(ChArchiveOut& marchive) {
+void ChSolverPMINRES::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSolverPMINRES>();
+    archive_out.VersionWrite<ChSolverPMINRES>();
     // serialize parent class
-    ChIterativeSolverVI::ArchiveOut(marchive);
+    ChIterativeSolverVI::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(grad_diffstep);
-    marchive << CHNVP(rel_tolerance);
-    marchive << CHNVP(m_use_precond);
+    archive_out << CHNVP(grad_diffstep);
+    archive_out << CHNVP(rel_tolerance);
+    archive_out << CHNVP(m_use_precond);
 }
 
-void ChSolverPMINRES::ArchiveIn(ChArchiveIn& marchive) {
+void ChSolverPMINRES::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChSolverPMINRES>();
+    /*int version =*/archive_in.VersionRead<ChSolverPMINRES>();
     // deserialize parent class
-    ChIterativeSolverVI::ArchiveIn(marchive);
+    ChIterativeSolverVI::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(grad_diffstep);
-    marchive >> CHNVP(rel_tolerance);
-    marchive >> CHNVP(m_use_precond);
+    archive_in >> CHNVP(grad_diffstep);
+    archive_in >> CHNVP(rel_tolerance);
+    archive_in >> CHNVP(m_use_precond);
 }
 
 }  // end namespace chrono

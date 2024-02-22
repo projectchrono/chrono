@@ -83,22 +83,22 @@ void ChTriangleMeshSoup::Transform(const ChVector3d displ, const ChMatrix33<> ro
     }
 }
 
-void ChTriangleMeshSoup::ArchiveOut(ChArchiveOut& marchive) {
+void ChTriangleMeshSoup::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChTriangleMeshSoup>();
+    archive_out.VersionWrite<ChTriangleMeshSoup>();
     // serialize parent class
-    ChTriangleMesh::ArchiveOut(marchive);
+    ChTriangleMesh::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_triangles);
+    archive_out << CHNVP(m_triangles);
 }
 
-void ChTriangleMeshSoup::ArchiveIn(ChArchiveIn& marchive) {
+void ChTriangleMeshSoup::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChTriangleMeshSoup>();
+    /*int version =*/ archive_in.VersionRead<ChTriangleMeshSoup>();
     // deserialize parent class
-    ChTriangleMesh::ArchiveIn(marchive);
+    ChTriangleMesh::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_triangles);
+    archive_in >> CHNVP(m_triangles);
 }
 
 

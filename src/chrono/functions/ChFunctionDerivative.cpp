@@ -29,24 +29,24 @@ double ChFunctionDerivative::GetVal(double x) const {
     return m_operand_fun->GetDer(x);
 }
 
-void ChFunctionDerivative::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionDerivative::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionDerivative>();
+    archive_out.VersionWrite<ChFunctionDerivative>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_operand_fun);
-    marchive << CHNVP(m_der_order);
+    archive_out << CHNVP(m_operand_fun);
+    archive_out << CHNVP(m_der_order);
 }
 
-void ChFunctionDerivative::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionDerivative::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionDerivative>();
+    /*int version =*/ archive_in.VersionRead<ChFunctionDerivative>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_operand_fun);
-    marchive >> CHNVP(m_der_order);
+    archive_in >> CHNVP(m_operand_fun);
+    archive_in >> CHNVP(m_der_order);
 }
 
 }  // end namespace chrono

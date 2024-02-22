@@ -160,10 +160,10 @@ class ChApi ChCollisionModel {
     ChAABB GetBoundingBox() const;
 
     /// Method to allow serialization of transient data to archives.
-    void ArchiveOut(ChArchiveOut& marchive);
+    void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    void ArchiveIn(ChArchiveIn& marchive);
+    void ArchiveIn(ChArchiveIn& archive_in);
 
     /// Return the number of collision shapes in this model.
     int GetNumShapes() const { return (int)m_shape_instances.size(); }

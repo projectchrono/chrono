@@ -58,10 +58,10 @@ class ChApi ChColor {
     static ChColor ComputeFalseColor(double v, double vmin, double vmax, bool out_of_range_as_bw = false);
 
     /// Method to allow serialization of transient data to archives.
-    void ArchiveOut(ChArchiveOut& marchive);
+    void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    void ArchiveIn(ChArchiveIn& marchive);
+    void ArchiveIn(ChArchiveIn& archive_in);
 };
 
 /// @} chrono_assets

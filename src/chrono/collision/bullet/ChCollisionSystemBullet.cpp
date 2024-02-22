@@ -468,18 +468,18 @@ void ChCollisionSystemBullet::Visualize(int flags) {
     bt_collision_world->debugDrawWorld();
 }
 
-void ChCollisionSystemBullet::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionSystemBullet::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionSystemBullet>();
+    archive_out.VersionWrite<ChCollisionSystemBullet>();
     // serialize parent class
-    ChCollisionSystem::ArchiveOut(marchive);
+    ChCollisionSystem::ArchiveOut(archive_out);
 }
 
-void ChCollisionSystemBullet::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionSystemBullet::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionSystemBullet>();
+    /*int version =*/archive_in.VersionRead<ChCollisionSystemBullet>();
     // deserialize parent class
-    ChCollisionSystem::ArchiveIn(marchive);
+    ChCollisionSystem::ArchiveIn(archive_in);
 }
 
 }  // end namespace chrono

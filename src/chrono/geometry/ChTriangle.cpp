@@ -109,26 +109,26 @@ void ChTriangle::SetPoints(const ChVector3d& P1, const ChVector3d& P2, const ChV
     p3 = P3;
 }
 
-void ChTriangle::ArchiveOut(ChArchiveOut& marchive) {
+void ChTriangle::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChTriangle>();
+    archive_out.VersionWrite<ChTriangle>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(p1);
-    marchive << CHNVP(p2);
-    marchive << CHNVP(p3);
+    archive_out << CHNVP(p1);
+    archive_out << CHNVP(p2);
+    archive_out << CHNVP(p3);
 }
 
-void ChTriangle::ArchiveIn(ChArchiveIn& marchive) {
+void ChTriangle::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChTriangle>();
+    /*int version =*/archive_in.VersionRead<ChTriangle>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(p1);
-    marchive >> CHNVP(p2);
-    marchive >> CHNVP(p3);
+    archive_in >> CHNVP(p1);
+    archive_in >> CHNVP(p2);
+    archive_in >> CHNVP(p3);
 }
 
 

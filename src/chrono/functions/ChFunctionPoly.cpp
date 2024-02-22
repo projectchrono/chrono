@@ -51,22 +51,22 @@ double ChFunctionPoly::GetDer2(double x) const {
     return total;
 }
 
-void ChFunctionPoly::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionPoly::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionPoly>();
+    archive_out.VersionWrite<ChFunctionPoly>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_coeffs);
+    archive_out << CHNVP(m_coeffs);
 }
 
-void ChFunctionPoly::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionPoly::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionPoly>();
+    /*int version =*/ archive_in.VersionRead<ChFunctionPoly>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_coeffs);
+    archive_in >> CHNVP(m_coeffs);
 }
 
 }  // end namespace chrono

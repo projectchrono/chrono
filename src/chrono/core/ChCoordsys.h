@@ -270,21 +270,21 @@ class ChCoordsys {
     //
 
     /// Method to allow serialization of transient data in archives.
-    void ArchiveOut(ChArchiveOut& marchive) {
+    void ArchiveOut(ChArchiveOut& archive_out) {
         // suggested: use versioning
-        marchive.VersionWrite<ChCoordsys<double>>();
+        archive_out.VersionWrite<ChCoordsys<double>>();
         // stream out all member data
-        marchive << CHNVP(pos);
-        marchive << CHNVP(rot);
+        archive_out << CHNVP(pos);
+        archive_out << CHNVP(rot);
     }
 
     /// Method to allow de-serialization of transient data from archives.
-    void ArchiveIn(ChArchiveIn& marchive) {
+    void ArchiveIn(ChArchiveIn& archive_in) {
         // suggested: use versioning
-        /*int version =*/marchive.VersionRead<ChCoordsys<double>>();
+        /*int version =*/archive_in.VersionRead<ChCoordsys<double>>();
         // stream in all member data
-        marchive >> CHNVP(pos);
-        marchive >> CHNVP(rot);
+        archive_in >> CHNVP(pos);
+        archive_in >> CHNVP(rot);
     }
 };
 

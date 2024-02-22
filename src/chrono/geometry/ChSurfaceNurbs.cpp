@@ -123,32 +123,32 @@ void ChSurfaceNurbs::Setup(
         this->weights.setConstant(n_u, n_v, 1.0);
 }
 
-void ChSurfaceNurbs::ArchiveOut(ChArchiveOut& marchive) {
+void ChSurfaceNurbs::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSurfaceNurbs>();
+    archive_out.VersionWrite<ChSurfaceNurbs>();
     // serialize parent class
-    ChSurface::ArchiveOut(marchive);
+    ChSurface::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(points);
-    marchive << CHNVP(weights);
-    marchive << CHNVP(knots_u);
-    marchive << CHNVP(knots_v);
-    marchive << CHNVP(p_u);
-    marchive << CHNVP(p_v);
+    archive_out << CHNVP(points);
+    archive_out << CHNVP(weights);
+    archive_out << CHNVP(knots_u);
+    archive_out << CHNVP(knots_v);
+    archive_out << CHNVP(p_u);
+    archive_out << CHNVP(p_v);
 }
 
-void ChSurfaceNurbs::ArchiveIn(ChArchiveIn& marchive) {
+void ChSurfaceNurbs::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSurfaceNurbs>();
+    /*int version =*/ archive_in.VersionRead<ChSurfaceNurbs>();
     // deserialize parent class
-    ChSurface::ArchiveIn(marchive);
+    ChSurface::ArchiveIn(archive_in);
     // stream in all member data:
-    ////marchive >> CHNVP(points);
-    ////marchive >> CHNVP(weights);
-    ////marchive >> CHNVP(knots_u);
-    ////marchive >> CHNVP(knots_v);
-    marchive >> CHNVP(p_u);
-    marchive >> CHNVP(p_v);
+    ////archive_in >> CHNVP(points);
+    ////archive_in >> CHNVP(weights);
+    ////archive_in >> CHNVP(knots_u);
+    ////archive_in >> CHNVP(knots_v);
+    archive_in >> CHNVP(p_u);
+    archive_in >> CHNVP(p_v);
 }
 
 

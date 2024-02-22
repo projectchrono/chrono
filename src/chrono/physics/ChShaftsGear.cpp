@@ -147,33 +147,33 @@ void ChShaftsGear::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsGear::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsGear::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsGear>();
+    archive_out.VersionWrite<ChShaftsGear>();
 
     // serialize parent class
-    ChShaftsCouple::ArchiveOut(marchive);
+    ChShaftsCouple::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(ratio);
-    marchive << CHNVP(avoid_phase_drift);
-    marchive << CHNVP(phase1);
-    marchive << CHNVP(phase2);
+    archive_out << CHNVP(ratio);
+    archive_out << CHNVP(avoid_phase_drift);
+    archive_out << CHNVP(phase1);
+    archive_out << CHNVP(phase2);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsGear::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsGear::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsGear>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsGear>();
 
     // deserialize parent class:
-    ChShaftsCouple::ArchiveIn(marchive);
+    ChShaftsCouple::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(ratio);
-    marchive >> CHNVP(avoid_phase_drift);
-    marchive >> CHNVP(phase1);
-    marchive >> CHNVP(phase2);
+    archive_in >> CHNVP(ratio);
+    archive_in >> CHNVP(avoid_phase_drift);
+    archive_in >> CHNVP(phase1);
+    archive_in >> CHNVP(phase2);
     constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables());
 }
 

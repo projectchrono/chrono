@@ -37,24 +37,24 @@ ChVector3d ChLineSegment::Evaluate(double parU) const {
     return pA * (1 - parU) + pB * parU;
 }
 
-void ChLineSegment::ArchiveOut(ChArchiveOut& marchive) {
+void ChLineSegment::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLineSegment>();
+    archive_out.VersionWrite<ChLineSegment>();
     // serialize parent class
-    ChLine::ArchiveOut(marchive);
+    ChLine::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(pA);
-    marchive << CHNVP(pB);
+    archive_out << CHNVP(pA);
+    archive_out << CHNVP(pB);
 }
 
-void ChLineSegment::ArchiveIn(ChArchiveIn& marchive) {
+void ChLineSegment::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLineSegment>();
+    /*int version =*/ archive_in.VersionRead<ChLineSegment>();
     // deserialize parent class
-    ChLine::ArchiveIn(marchive);
+    ChLine::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(pA);
-    marchive >> CHNVP(pB);
+    archive_in >> CHNVP(pA);
+    archive_in >> CHNVP(pB);
 }
 
 

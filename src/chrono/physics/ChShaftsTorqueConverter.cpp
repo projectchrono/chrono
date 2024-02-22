@@ -164,35 +164,35 @@ void ChShaftsTorqueConverter::VariablesFbLoadForces(double factor) {
 
 // FILE I/O
 
-void ChShaftsTorqueConverter::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsTorqueConverter::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsTorqueConverter>();
+    archive_out.VersionWrite<ChShaftsTorqueConverter>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(K);
-    marchive << CHNVP(T);
-    marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    marchive << CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
+    archive_out << CHNVP(K);
+    archive_out << CHNVP(T);
+    archive_out << CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    archive_out << CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    archive_out << CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsTorqueConverter::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsTorqueConverter::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsTorqueConverter>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsTorqueConverter>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(K);
-    marchive >> CHNVP(T);
-    marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    marchive >> CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
+    archive_in >> CHNVP(K);
+    archive_in >> CHNVP(T);
+    archive_in >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    archive_in >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    archive_in >> CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
 
 }
 

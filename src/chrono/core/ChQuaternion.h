@@ -391,10 +391,10 @@ class ChQuaternion {
     // SERIALIZATION
 
     /// Method to allow serialization of transient m_data to archives.
-    void ArchiveOut(ChArchiveOut& marchive);
+    void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient m_data from archives.
-    void ArchiveIn(ChArchiveIn& marchive);
+    void ArchiveIn(ChArchiveIn& archive_in);
 
   private:
     Real m_data[4];  ///< quaternion data (e0, e1, e2, e3)
@@ -1253,25 +1253,25 @@ inline void ChQuaternion<Real>::SetDer2FromAngleAxis(const ChQuaternion<Real>& q
 // Streaming operations
 
 template <class Real>
-inline void ChQuaternion<Real>::ArchiveOut(ChArchiveOut& marchive) {
+inline void ChQuaternion<Real>::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChQuaterniond>();  // must use specialized template (any)
+    archive_out.VersionWrite<ChQuaterniond>();  // must use specialized template (any)
     // stream out all member m_data
-    marchive << CHNVP(m_data[0], "e0");
-    marchive << CHNVP(m_data[1], "e1");
-    marchive << CHNVP(m_data[2], "e2");
-    marchive << CHNVP(m_data[3], "e3");
+    archive_out << CHNVP(m_data[0], "e0");
+    archive_out << CHNVP(m_data[1], "e1");
+    archive_out << CHNVP(m_data[2], "e2");
+    archive_out << CHNVP(m_data[3], "e3");
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::ArchiveIn(ChArchiveIn& marchive) {
+inline void ChQuaternion<Real>::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChQuaterniond>();  // must use specialized template (any)
+    /*int version =*/archive_in.VersionRead<ChQuaterniond>();  // must use specialized template (any)
     // stream in all member m_data
-    marchive >> CHNVP(m_data[0], "e0");
-    marchive >> CHNVP(m_data[1], "e1");
-    marchive >> CHNVP(m_data[2], "e2");
-    marchive >> CHNVP(m_data[3], "e3");
+    archive_in >> CHNVP(m_data[0], "e0");
+    archive_in >> CHNVP(m_data[1], "e1");
+    archive_in >> CHNVP(m_data[2], "e2");
+    archive_in >> CHNVP(m_data[3], "e3");
 }
 
 }  // end namespace chrono

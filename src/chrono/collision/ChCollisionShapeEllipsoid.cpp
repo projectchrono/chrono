@@ -40,22 +40,22 @@ ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMa
                                                      const ChEllipsoid& ellipsoid)
     : ChCollisionShape(Type::ELLIPSOID, material), gellipsoid(ellipsoid) {}
 
-void ChCollisionShapeEllipsoid::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeEllipsoid::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeEllipsoid>();
+    archive_out.VersionWrite<ChCollisionShapeEllipsoid>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gellipsoid);
+    archive_out << CHNVP(gellipsoid);
 }
 
-void ChCollisionShapeEllipsoid::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeEllipsoid::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeEllipsoid>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeEllipsoid>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gellipsoid);
+    archive_in >> CHNVP(gellipsoid);
 }
 
 }  // end namespace chrono

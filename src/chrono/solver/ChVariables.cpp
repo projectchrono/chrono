@@ -44,22 +44,22 @@ ChVariables& ChVariables::operator=(const ChVariables& other) {
 }
 
 
-void ChVariables::ArchiveOut(ChArchiveOut& marchive) {
+void ChVariables::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVariables>();
+    archive_out.VersionWrite<ChVariables>();
     // serialize all member data:
-    marchive << CHNVP(ndof);
-    marchive << CHNVP(disabled);
-    marchive << CHNVP(offset); // TODO: check_if_serialize_needed
+    archive_out << CHNVP(ndof);
+    archive_out << CHNVP(disabled);
+    archive_out << CHNVP(offset); // TODO: check_if_serialize_needed
 }
 
-void ChVariables::ArchiveIn(ChArchiveIn& marchive) {
+void ChVariables::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVariables>();
+    /*int version =*/ archive_in.VersionRead<ChVariables>();
     // stream in all member data:
-    marchive >> CHNVP(ndof);
-    marchive >> CHNVP(disabled);
-    marchive >> CHNVP(offset); // TODO: check_if_serialize_needed
+    archive_in >> CHNVP(ndof);
+    archive_in >> CHNVP(disabled);
+    archive_in >> CHNVP(offset); // TODO: check_if_serialize_needed
 }
 
 

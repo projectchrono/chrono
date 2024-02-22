@@ -99,30 +99,30 @@ void ChFunctionFillet3::Setup() {
     c4 = mx(3, 0);
 }
 
-void ChFunctionFillet3::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionFillet3::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionFillet3>();
+    archive_out.VersionWrite<ChFunctionFillet3>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_width);
-    marchive << CHNVP(m_val_start);
-    marchive << CHNVP(m_val_end);
-    marchive << CHNVP(m_der_start);
-    marchive << CHNVP(m_der_end);
+    archive_out << CHNVP(m_width);
+    archive_out << CHNVP(m_val_start);
+    archive_out << CHNVP(m_val_end);
+    archive_out << CHNVP(m_der_start);
+    archive_out << CHNVP(m_der_end);
 }
 
-void ChFunctionFillet3::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionFillet3::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChFunctionFillet3>();
+    /*int version =*/archive_in.VersionRead<ChFunctionFillet3>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_width);
-    marchive >> CHNVP(m_val_start);
-    marchive >> CHNVP(m_val_end);
-    marchive >> CHNVP(m_der_start);
-    marchive >> CHNVP(m_der_end);
+    archive_in >> CHNVP(m_width);
+    archive_in >> CHNVP(m_val_start);
+    archive_in >> CHNVP(m_val_end);
+    archive_in >> CHNVP(m_der_start);
+    archive_in >> CHNVP(m_der_end);
     Setup();
 }
 

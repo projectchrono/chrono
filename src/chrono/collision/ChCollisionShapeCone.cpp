@@ -31,22 +31,22 @@ ChCollisionShapeCone::ChCollisionShapeCone(std::shared_ptr<ChContactMaterial> ma
 ChCollisionShapeCone::ChCollisionShapeCone(std::shared_ptr<ChContactMaterial> material, const ChCone& cone)
     : ChCollisionShape(Type::CONE, material), gcone(cone) {}
 
-void ChCollisionShapeCone::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeCone::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeCone>();
+    archive_out.VersionWrite<ChCollisionShapeCone>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gcone);
+    archive_out << CHNVP(gcone);
 }
 
-void ChCollisionShapeCone::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeCone::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeCone>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeCone>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gcone);
+    archive_in >> CHNVP(gcone);
 }
 
 }  // end namespace chrono

@@ -48,28 +48,28 @@ void ChContactMaterial::SetFriction(float val) {
     SetSlidingFriction(val);
 }
 
-void ChContactMaterial::ArchiveOut(ChArchiveOut& marchive) {
+void ChContactMaterial::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContactMaterial>();
+    archive_out.VersionWrite<ChContactMaterial>();
 
     // serialize all member data:
-    marchive << CHNVP(static_friction);
-    marchive << CHNVP(sliding_friction);
-    marchive << CHNVP(rolling_friction);
-    marchive << CHNVP(spinning_friction);
-    marchive << CHNVP(restitution);
+    archive_out << CHNVP(static_friction);
+    archive_out << CHNVP(sliding_friction);
+    archive_out << CHNVP(rolling_friction);
+    archive_out << CHNVP(spinning_friction);
+    archive_out << CHNVP(restitution);
 }
 
-void ChContactMaterial::ArchiveIn(ChArchiveIn& marchive) {
+void ChContactMaterial::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContactMaterial>();
+    /*int version =*/ archive_in.VersionRead<ChContactMaterial>();
 
     // stream in all member data:
-    marchive >> CHNVP(static_friction);
-    marchive >> CHNVP(sliding_friction);
-    marchive >> CHNVP(rolling_friction);
-    marchive >> CHNVP(spinning_friction);
-    marchive >> CHNVP(restitution);
+    archive_in >> CHNVP(static_friction);
+    archive_in >> CHNVP(sliding_friction);
+    archive_in >> CHNVP(rolling_friction);
+    archive_in >> CHNVP(spinning_friction);
+    archive_in >> CHNVP(restitution);
 }
 
 std::shared_ptr<ChContactMaterial> ChContactMaterial::DefaultMaterial(ChContactMethod contact_method) {
@@ -120,49 +120,49 @@ std::shared_ptr<ChContactMaterial> ChContactMaterialData::CreateMaterial(ChConta
     }
 }
 
-void ChContactMaterialData::ArchiveOut(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChContactMaterialData>();
+void ChContactMaterialData::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChContactMaterialData>();
 
-    marchive << CHNVP(mu);
-    marchive << CHNVP(cr);
-    marchive << CHNVP(Y);
-    marchive << CHNVP(nu);
-    marchive << CHNVP(kn);
-    marchive << CHNVP(gn);
-    marchive << CHNVP(kt);
-    marchive << CHNVP(gt);
+    archive_out << CHNVP(mu);
+    archive_out << CHNVP(cr);
+    archive_out << CHNVP(Y);
+    archive_out << CHNVP(nu);
+    archive_out << CHNVP(kn);
+    archive_out << CHNVP(gn);
+    archive_out << CHNVP(kt);
+    archive_out << CHNVP(gt);
 }
 
-void ChContactMaterialData::ArchiveIn(ChArchiveIn& marchive) {
-    marchive.VersionRead<ChContactMaterialData>();
+void ChContactMaterialData::ArchiveIn(ChArchiveIn& archive_in) {
+    archive_in.VersionRead<ChContactMaterialData>();
 
-    marchive >> CHNVP(mu);
-    marchive >> CHNVP(cr);
-    marchive >> CHNVP(Y);
-    marchive >> CHNVP(nu);
-    marchive >> CHNVP(kn);
-    marchive >> CHNVP(gn);
-    marchive >> CHNVP(kt);
-    marchive >> CHNVP(gt);
-}
-
-
-
-void ChContactMaterialComposite::ArchiveOut(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChContactMaterialComposite>();
-}
-
-void ChContactMaterialComposite::ArchiveIn(ChArchiveIn& marchive) {
-    marchive.VersionRead<ChContactMaterialComposite>();
+    archive_in >> CHNVP(mu);
+    archive_in >> CHNVP(cr);
+    archive_in >> CHNVP(Y);
+    archive_in >> CHNVP(nu);
+    archive_in >> CHNVP(kn);
+    archive_in >> CHNVP(gn);
+    archive_in >> CHNVP(kt);
+    archive_in >> CHNVP(gt);
 }
 
 
-void ChContactMaterialCompositionStrategy::ArchiveOut(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChContactMaterialCompositionStrategy>();
+
+void ChContactMaterialComposite::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChContactMaterialComposite>();
 }
 
-void ChContactMaterialCompositionStrategy::ArchiveIn(ChArchiveIn& marchive) {
-    marchive.VersionRead<ChContactMaterialCompositionStrategy>();
+void ChContactMaterialComposite::ArchiveIn(ChArchiveIn& archive_in) {
+    archive_in.VersionRead<ChContactMaterialComposite>();
+}
+
+
+void ChContactMaterialCompositionStrategy::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChContactMaterialCompositionStrategy>();
+}
+
+void ChContactMaterialCompositionStrategy::ArchiveIn(ChArchiveIn& archive_in) {
+    archive_in.VersionRead<ChContactMaterialCompositionStrategy>();
 }
 
 }  // end namespace chrono

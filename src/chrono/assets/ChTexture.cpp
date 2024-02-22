@@ -36,20 +36,20 @@ void ChTexture::SetScale(const ChVector2f& scale) {
     m_scale = scale;
 }
 
-void ChTexture::ArchiveOut(ChArchiveOut& marchive) {
+void ChTexture::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChTexture>();
+    archive_out.VersionWrite<ChTexture>();
     // serialize all member data:
-    marchive << CHNVP(m_filename);
-    marchive << CHNVP(m_scale);
+    archive_out << CHNVP(m_filename);
+    archive_out << CHNVP(m_scale);
 }
 
-void ChTexture::ArchiveIn(ChArchiveIn& marchive) {
+void ChTexture::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChTexture>();
+    /*int version =*/archive_in.VersionRead<ChTexture>();
     // stream in all member data:
-    marchive >> CHNVP(m_filename);
-    marchive >> CHNVP(m_scale);
+    archive_in >> CHNVP(m_filename);
+    archive_in >> CHNVP(m_scale);
 }
 
 }  // end namespace chrono

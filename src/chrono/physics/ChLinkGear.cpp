@@ -230,7 +230,7 @@ void ChLinkGear::UpdateTime(double mytime) {
         if (m_delta > CH_C_PI)
             m_delta -= (CH_C_2PI);  // range -180..+180 is better than 0...360
         if (m_delta > (CH_C_PI / 4.0))
-            m_delta = (CH_C_PI / 4.0);  // phase correction only in +/- 45°
+            m_delta = (CH_C_PI / 4.0);  // phase correction only in +/- 45ï¿½
         if (m_delta < -(CH_C_PI / 4.0))
             m_delta = -(CH_C_PI / 4.0);
 
@@ -261,49 +261,49 @@ void ChLinkGear::UpdateTime(double mytime) {
     marker2->Impose_Abs_Coord(newmarkpos);  // move marker2 into teeth position
 }
 
-void ChLinkGear::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkGear::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkGear>();
+    archive_out.VersionWrite<ChLinkGear>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOut(marchive);
+    ChLinkLock::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(tau);
-    marchive << CHNVP(alpha);
-    marchive << CHNVP(beta);
-    marchive << CHNVP(phase);
-    marchive << CHNVP(checkphase);
-    marchive << CHNVP(epicyclic);
-    marchive << CHNVP(a1);
-    marchive << CHNVP(a2);
-    marchive << CHNVP(r1);
-    marchive << CHNVP(r2);
-    marchive << CHNVP(local_shaft1);
-    marchive << CHNVP(local_shaft2);
+    archive_out << CHNVP(tau);
+    archive_out << CHNVP(alpha);
+    archive_out << CHNVP(beta);
+    archive_out << CHNVP(phase);
+    archive_out << CHNVP(checkphase);
+    archive_out << CHNVP(epicyclic);
+    archive_out << CHNVP(a1);
+    archive_out << CHNVP(a2);
+    archive_out << CHNVP(r1);
+    archive_out << CHNVP(r2);
+    archive_out << CHNVP(local_shaft1);
+    archive_out << CHNVP(local_shaft2);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkGear::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkGear::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkGear>();
+    /*int version =*/ archive_in.VersionRead<ChLinkGear>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIn(marchive);
+    ChLinkLock::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(tau);
-    marchive >> CHNVP(alpha);
-    marchive >> CHNVP(beta);
-    marchive >> CHNVP(phase);
-    marchive >> CHNVP(checkphase);
-    marchive >> CHNVP(epicyclic);
-    marchive >> CHNVP(a1);
-    marchive >> CHNVP(a2);
-    marchive >> CHNVP(r1);
-    marchive >> CHNVP(r2);
-    marchive >> CHNVP(local_shaft1);
-    marchive >> CHNVP(local_shaft2);
+    archive_in >> CHNVP(tau);
+    archive_in >> CHNVP(alpha);
+    archive_in >> CHNVP(beta);
+    archive_in >> CHNVP(phase);
+    archive_in >> CHNVP(checkphase);
+    archive_in >> CHNVP(epicyclic);
+    archive_in >> CHNVP(a1);
+    archive_in >> CHNVP(a2);
+    archive_in >> CHNVP(r1);
+    archive_in >> CHNVP(r2);
+    archive_in >> CHNVP(local_shaft1);
+    archive_in >> CHNVP(local_shaft2);
 
     mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
     BuildLink();

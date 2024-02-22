@@ -1233,44 +1233,44 @@ const std::vector<ChVector3d>& ChTriangleMeshConnected::getAverageNormals() {
     return m_tmp_vectors;
 }
 
-void ChTriangleMeshConnected::ArchiveOut(ChArchiveOut& marchive) {
+void ChTriangleMeshConnected::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChTriangleMeshConnected>();
+    archive_out.VersionWrite<ChTriangleMeshConnected>();
     // serialize parent class
-    ChTriangleMesh::ArchiveOut(marchive);
+    ChTriangleMesh::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_vertices);
-    marchive << CHNVP(m_normals);
-    marchive << CHNVP(m_UV);
-    marchive << CHNVP(m_colors);
-    marchive << CHNVP(m_face_v_indices);
-    marchive << CHNVP(m_face_n_indices);
-    marchive << CHNVP(m_face_uv_indices);
-    marchive << CHNVP(m_face_col_indices);
-    marchive << CHNVP(m_face_mat_indices);
-    marchive << CHNVP(m_filename);
-    marchive << CHNVP(m_properties_per_vertex);
-    marchive << CHNVP(m_properties_per_face);
+    archive_out << CHNVP(m_vertices);
+    archive_out << CHNVP(m_normals);
+    archive_out << CHNVP(m_UV);
+    archive_out << CHNVP(m_colors);
+    archive_out << CHNVP(m_face_v_indices);
+    archive_out << CHNVP(m_face_n_indices);
+    archive_out << CHNVP(m_face_uv_indices);
+    archive_out << CHNVP(m_face_col_indices);
+    archive_out << CHNVP(m_face_mat_indices);
+    archive_out << CHNVP(m_filename);
+    archive_out << CHNVP(m_properties_per_vertex);
+    archive_out << CHNVP(m_properties_per_face);
 }
 
-void ChTriangleMeshConnected::ArchiveIn(ChArchiveIn& marchive) {
+void ChTriangleMeshConnected::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChTriangleMeshConnected>();
+    /*int version =*/archive_in.VersionRead<ChTriangleMeshConnected>();
     // deserialize parent class
-    ChTriangleMesh::ArchiveIn(marchive);
+    ChTriangleMesh::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_vertices);
-    marchive >> CHNVP(m_normals);
-    marchive >> CHNVP(m_UV);
-    marchive >> CHNVP(m_colors);
-    marchive >> CHNVP(m_face_v_indices);
-    marchive >> CHNVP(m_face_n_indices);
-    marchive >> CHNVP(m_face_uv_indices);
-    marchive >> CHNVP(m_face_col_indices);
-    marchive >> CHNVP(m_face_mat_indices);
-    marchive >> CHNVP(m_filename);
-    marchive >> CHNVP(m_properties_per_vertex);
-    marchive >> CHNVP(m_properties_per_face);
+    archive_in >> CHNVP(m_vertices);
+    archive_in >> CHNVP(m_normals);
+    archive_in >> CHNVP(m_UV);
+    archive_in >> CHNVP(m_colors);
+    archive_in >> CHNVP(m_face_v_indices);
+    archive_in >> CHNVP(m_face_n_indices);
+    archive_in >> CHNVP(m_face_uv_indices);
+    archive_in >> CHNVP(m_face_col_indices);
+    archive_in >> CHNVP(m_face_mat_indices);
+    archive_in >> CHNVP(m_filename);
+    archive_in >> CHNVP(m_properties_per_vertex);
+    archive_in >> CHNVP(m_properties_per_face);
 }
 
 

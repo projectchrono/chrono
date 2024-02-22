@@ -106,30 +106,30 @@ ChVector3d ChFunctionRotationSetpoint::Get_a_loc(double s) const {
     return A;
 }
 
-void ChFunctionRotationSetpoint::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionRotationSetpoint::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionRotationSetpoint>();
+    archive_out.VersionWrite<ChFunctionRotationSetpoint>();
     // serialize parent class
-    ChFunctionRotation::ArchiveOut(marchive);
+    ChFunctionRotation::ArchiveOut(archive_out);
     // serialize all member data:
     eChSetpointMode_mapper mmapper;
-    marchive << CHNVP(mmapper(mode), "mode");
-    marchive << CHNVP(Q);
-    marchive << CHNVP(W);
-    marchive << CHNVP(A);
+    archive_out << CHNVP(mmapper(mode), "mode");
+    archive_out << CHNVP(Q);
+    archive_out << CHNVP(W);
+    archive_out << CHNVP(A);
 }
 
-void ChFunctionRotationSetpoint::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionRotationSetpoint::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionRotationSetpoint>();
+    /*int version =*/ archive_in.VersionRead<ChFunctionRotationSetpoint>();
     // deserialize parent class
-    ChFunctionRotation::ArchiveIn(marchive);
+    ChFunctionRotation::ArchiveIn(archive_in);
     // deserialize all member data:
     eChSetpointMode_mapper mmapper;
-    marchive >> CHNVP(mmapper(mode), "mode");
-    marchive >> CHNVP(Q);
-    marchive >> CHNVP(W);
-    marchive >> CHNVP(A);
+    archive_in >> CHNVP(mmapper(mode), "mode");
+    archive_in >> CHNVP(Q);
+    archive_in >> CHNVP(W);
+    archive_in >> CHNVP(A);
 }
 
 }  // end namespace chrono

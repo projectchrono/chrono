@@ -60,26 +60,26 @@ double ChFunctionPoly23::GetDer2(double x) const {
     return ret;
 }
 
-void ChFunctionPoly23::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionPoly23::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionPoly23>();
+    archive_out.VersionWrite<ChFunctionPoly23>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_ampl);
-    marchive << CHNVP(m_x_start);
-    marchive << CHNVP(m_x_end);
+    archive_out << CHNVP(m_ampl);
+    archive_out << CHNVP(m_x_start);
+    archive_out << CHNVP(m_x_end);
 }
 
-void ChFunctionPoly23::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionPoly23::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionPoly23>();
+    /*int version =*/ archive_in.VersionRead<ChFunctionPoly23>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_ampl);
-    marchive >> CHNVP(m_x_start);
-    marchive >> CHNVP(m_x_end);
+    archive_in >> CHNVP(m_ampl);
+    archive_in >> CHNVP(m_x_start);
+    archive_in >> CHNVP(m_x_end);
 }
 
 }  // m_x_end namespace chrono

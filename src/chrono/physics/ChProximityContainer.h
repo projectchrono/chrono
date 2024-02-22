@@ -96,10 +96,10 @@ class ChApi ChProximityContainer : public ChPhysicsItem {
     virtual void ReportAllProximities(ReportProximityCallback* mcallback) = 0;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   protected:
     AddProximityCallback* add_proximity_callback;

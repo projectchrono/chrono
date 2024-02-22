@@ -192,16 +192,16 @@ int ChLinkMask::SetAllBroken(bool mdis) {
     return cnt;
 }
 
-void ChLinkMask::ArchiveOut(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChLinkMask>();
+void ChLinkMask::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChLinkMask>();
 
-    marchive << CHNVP(constraints);
+    archive_out << CHNVP(constraints);
 }
 
-void ChLinkMask::ArchiveIn(ChArchiveIn& marchive) {
-    /*int version =*/ marchive.VersionRead<ChLinkMask>();
+void ChLinkMask::ArchiveIn(ChArchiveIn& archive_in) {
+    /*int version =*/ archive_in.VersionRead<ChLinkMask>();
 
-    marchive >> CHNVP(constraints);
+    archive_in >> CHNVP(constraints);
 
 }
 
@@ -258,14 +258,14 @@ void ChLinkMaskLF::SetLockMask(bool x, bool y, bool z, bool e0, bool e1, bool e2
         Constr_E3().SetMode(CONSTRAINT_FREE);
 }
 
-void ChLinkMaskLF::ArchiveOut(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChLinkMaskLF>();
-    ChLinkMask::ArchiveOut(marchive);
+void ChLinkMaskLF::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChLinkMaskLF>();
+    ChLinkMask::ArchiveOut(archive_out);
 }
 
-void ChLinkMaskLF::ArchiveIn(ChArchiveIn& marchive) {
-    /*int version =*/ marchive.VersionRead<ChLinkMaskLF>();
-    ChLinkMask::ArchiveIn(marchive);
+void ChLinkMaskLF::ArchiveIn(ChArchiveIn& archive_in) {
+    /*int version =*/ archive_in.VersionRead<ChLinkMaskLF>();
+    ChLinkMask::ArchiveIn(archive_in);
 }
 
 

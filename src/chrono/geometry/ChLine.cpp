@@ -261,24 +261,24 @@ double ChLine::Length(int sampling) const {
 }
 
 
-void ChLine::ArchiveOut(ChArchiveOut& marchive) {
+void ChLine::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLine>();
+    archive_out.VersionWrite<ChLine>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(closed);
-    marchive << CHNVP(complexityU);
+    archive_out << CHNVP(closed);
+    archive_out << CHNVP(complexityU);
 }
 
-void ChLine::ArchiveIn(ChArchiveIn& marchive) {
+void ChLine::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLine>();
+    /*int version =*/ archive_in.VersionRead<ChLine>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(closed);
-    marchive >> CHNVP(complexityU);
+    archive_in >> CHNVP(closed);
+    archive_in >> CHNVP(complexityU);
 }
 
 

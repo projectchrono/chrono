@@ -403,29 +403,29 @@ void ChLinkUniversal::ConstraintsFetch_react(double factor) {
     react_torque = m_frame2.GetRotMat().transpose() * (-T2);
 }
 
-void ChLinkUniversal::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkUniversal::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkUniversal>();
+    archive_out.VersionWrite<ChLinkUniversal>();
 
     // serialize parent class
-    ChLink::ArchiveOut(marchive);
+    ChLink::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(m_frame1);
-    marchive << CHNVP(m_frame2);
+    archive_out << CHNVP(m_frame1);
+    archive_out << CHNVP(m_frame2);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkUniversal::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkUniversal::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkUniversal>();
+    /*int version =*/ archive_in.VersionRead<ChLinkUniversal>();
 
     // deserialize parent class
-    ChLink::ArchiveIn(marchive);
+    ChLink::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(m_frame1);
-    marchive >> CHNVP(m_frame2);
+    archive_in >> CHNVP(m_frame1);
+    archive_in >> CHNVP(m_frame2);
 }
 
 }  // end namespace chrono

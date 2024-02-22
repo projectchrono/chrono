@@ -1552,28 +1552,28 @@ void ChAssembly::ShowHierarchy(std::ostream& outstream, int level) const {
     outstream << std::endl;
 }
 
-void ChAssembly::ArchiveOut(ChArchiveOut& marchive) {
+void ChAssembly::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChAssembly>();
+    archive_out.VersionWrite<ChAssembly>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
 
-    marchive << CHNVP(bodylist, "bodies");
-    marchive << CHNVP(shaftlist, "shafts");
-    marchive << CHNVP(linklist, "links");
-    marchive << CHNVP(meshlist, "meshes");
-    marchive << CHNVP(otherphysicslist, "other_physics_items");
+    archive_out << CHNVP(bodylist, "bodies");
+    archive_out << CHNVP(shaftlist, "shafts");
+    archive_out << CHNVP(linklist, "links");
+    archive_out << CHNVP(meshlist, "meshes");
+    archive_out << CHNVP(otherphysicslist, "other_physics_items");
 }
 
-void ChAssembly::ArchiveIn(ChArchiveIn& marchive) {
+void ChAssembly::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChAssembly>();
+    /*int version =*/archive_in.VersionRead<ChAssembly>();
 
     // deserialize parent class
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // stream in all member data:
     std::vector<std::shared_ptr<ChBody>> tempbodies;
@@ -1581,11 +1581,11 @@ void ChAssembly::ArchiveIn(ChArchiveIn& marchive) {
     std::vector<std::shared_ptr<ChLinkBase>> templinks;
     std::vector<std::shared_ptr<ChMesh>> tempmeshes;
     std::vector<std::shared_ptr<ChPhysicsItem>> tempitems;
-    marchive >> CHNVP(tempbodies, "bodies");
-    marchive >> CHNVP(tempshafts, "shafts");
-    marchive >> CHNVP(templinks, "links");
-    marchive >> CHNVP(tempmeshes, "meshes");
-    marchive >> CHNVP(tempitems, "other_physics_items");
+    archive_in >> CHNVP(tempbodies, "bodies");
+    archive_in >> CHNVP(tempshafts, "shafts");
+    archive_in >> CHNVP(templinks, "links");
+    archive_in >> CHNVP(tempmeshes, "meshes");
+    archive_in >> CHNVP(tempitems, "other_physics_items");
     // trick needed because the "Add...()" functions are required
     RemoveAllBodies();
     for (auto& body : tempbodies) {

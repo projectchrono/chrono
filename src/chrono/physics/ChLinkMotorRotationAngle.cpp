@@ -193,27 +193,27 @@ void ChLinkMotorRotationAngle::ConstraintsBiLoad_Ct(double factor) {
     }
 }
 
-void ChLinkMotorRotationAngle::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorRotationAngle::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorRotationAngle>();
+    archive_out.VersionWrite<ChLinkMotorRotationAngle>();
 
     // serialize parent class
-    ChLinkMotorRotation::ArchiveOut(marchive);
+    ChLinkMotorRotation::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(rot_offset);
+    archive_out << CHNVP(rot_offset);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorRotationAngle::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorRotationAngle::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorRotationAngle>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMotorRotationAngle>();
 
     // deserialize parent class
-    ChLinkMotorRotation::ArchiveIn(marchive);
+    ChLinkMotorRotation::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(rot_offset);
+    archive_in >> CHNVP(rot_offset);
 }
 
 }  // end namespace chrono

@@ -38,22 +38,22 @@ ChVisualShapeBox::ChVisualShapeBox(const ChBox& box) : gbox(box) {
     SetMutable(false);
 }
 
-void ChVisualShapeBox::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeBox::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeBox>();
+    archive_out.VersionWrite<ChVisualShapeBox>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gbox);
+    archive_out << CHNVP(gbox);
 }
 
-void ChVisualShapeBox::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeBox::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChVisualShapeBox>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeBox>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gbox);
+    archive_in >> CHNVP(gbox);
 }
 
 }  // end namespace chrono

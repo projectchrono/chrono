@@ -2175,71 +2175,71 @@ bool ChSystem::DoFullAssembly() {
 // -----------------------------------------------------------------------------
 //  STREAMING - FILE HANDLING
 
-void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
+void ChSystem::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSystem>();
+    archive_out.VersionWrite<ChSystem>();
 
     // serialize underlying assembly
-    marchive << CHNVP(assembly);
+    archive_out << CHNVP(assembly);
 
     // serialize all member data:
 
-    // marchive >> CHNVP(contact_container); // created by the constructor
+    // archive_in >> CHNVP(contact_container); // created by the constructor
 
-    marchive << CHNVP(G_acc);
-    marchive << CHNVP(ch_time);
-    marchive << CHNVP(step);
-    marchive << CHNVP(stepcount);
-    marchive << CHNVP(write_matrix);
+    archive_out << CHNVP(G_acc);
+    archive_out << CHNVP(ch_time);
+    archive_out << CHNVP(step);
+    archive_out << CHNVP(stepcount);
+    archive_out << CHNVP(write_matrix);
 
-    marchive << CHNVP(tol_force);
-    marchive << CHNVP(maxiter);
-    marchive << CHNVP(use_sleeping);
+    archive_out << CHNVP(tol_force);
+    archive_out << CHNVP(maxiter);
+    archive_out << CHNVP(use_sleeping);
 
-    marchive << CHNVP(descriptor);
-    marchive << CHNVP(solver);
+    archive_out << CHNVP(descriptor);
+    archive_out << CHNVP(solver);
 
-    marchive << CHNVP(min_bounce_speed);
-    marchive << CHNVP(max_penetration_recovery_speed);
+    archive_out << CHNVP(min_bounce_speed);
+    archive_out << CHNVP(max_penetration_recovery_speed);
 
-    marchive << CHNVP(composition_strategy);
+    archive_out << CHNVP(composition_strategy);
 
-    // marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
+    // archive_out << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
 
     //***TODO*** complete...
 }
 
 // Method to allow de serialization of transient data from archives.
-void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
+void ChSystem::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChSystem>();
+    /*int version =*/archive_in.VersionRead<ChSystem>();
 
     // deserialize unerlying assembly
-    marchive >> CHNVP(assembly);
+    archive_in >> CHNVP(assembly);
 
     // stream in all member data:
 
-    // marchive >> CHNVP(contact_container); // created by the constructor
+    // archive_in >> CHNVP(contact_container); // created by the constructor
 
-    marchive >> CHNVP(G_acc);
-    marchive >> CHNVP(ch_time);
-    marchive >> CHNVP(step);
-    marchive >> CHNVP(stepcount);
-    marchive >> CHNVP(write_matrix);
+    archive_in >> CHNVP(G_acc);
+    archive_in >> CHNVP(ch_time);
+    archive_in >> CHNVP(step);
+    archive_in >> CHNVP(stepcount);
+    archive_in >> CHNVP(write_matrix);
 
-    marchive >> CHNVP(tol_force);
-    marchive >> CHNVP(maxiter);
-    marchive >> CHNVP(use_sleeping);
+    archive_in >> CHNVP(tol_force);
+    archive_in >> CHNVP(maxiter);
+    archive_in >> CHNVP(use_sleeping);
 
-    marchive >> CHNVP(descriptor);
-    marchive >> CHNVP(solver);
+    archive_in >> CHNVP(descriptor);
+    archive_in >> CHNVP(solver);
 
-    marchive >> CHNVP(min_bounce_speed);
-    marchive >> CHNVP(max_penetration_recovery_speed);
+    archive_in >> CHNVP(min_bounce_speed);
+    archive_in >> CHNVP(max_penetration_recovery_speed);
 
-    marchive >> CHNVP(composition_strategy);
+    archive_in >> CHNVP(composition_strategy);
 
-    // marchive >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
+    // archive_in >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
     // timestepper->SetIntegrable(this);
 
     //***TODO*** complete...

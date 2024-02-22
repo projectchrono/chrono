@@ -44,22 +44,22 @@ ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChContact
                                                        const ChRoundedBox& box)
     : ChCollisionShape(Type::ROUNDEDBOX, material), gbox(box) {}
 
-void ChCollisionShapeRoundedBox::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeRoundedBox::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeRoundedBox>();
+    archive_out.VersionWrite<ChCollisionShapeRoundedBox>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gbox);
+    archive_out << CHNVP(gbox);
 }
 
-void ChCollisionShapeRoundedBox::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeRoundedBox::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeRoundedBox>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeRoundedBox>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gbox);
+    archive_in >> CHNVP(gbox);
 }
 
 }  // end namespace chrono

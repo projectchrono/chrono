@@ -55,14 +55,14 @@ void ChFunctionPosition::Estimate_boundingbox(ChVector3d& pmin, ChVector3d& pmax
 }
 
 
-void ChFunctionPosition::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionPosition::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionPosition>();
+    archive_out.VersionWrite<ChFunctionPosition>();
 }
 
-void ChFunctionPosition::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionPosition::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionPosition>();
+    /*int version =*/ archive_in.VersionRead<ChFunctionPosition>();
 }
 
 

@@ -29,24 +29,24 @@ ChCollisionShapeArc2D::ChCollisionShapeArc2D(std::shared_ptr<ChContactMaterial> 
     this->radius = radius;
 }
 
-void ChCollisionShapeArc2D::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeArc2D::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeArc2D>();
+    archive_out.VersionWrite<ChCollisionShapeArc2D>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(garc);
-    marchive << CHNVP(radius);
+    archive_out << CHNVP(garc);
+    archive_out << CHNVP(radius);
 }
 
-void ChCollisionShapeArc2D::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeArc2D::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeArc2D>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeArc2D>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(garc);
-    marchive >> CHNVP(radius);
+    archive_in >> CHNVP(garc);
+    archive_in >> CHNVP(radius);
 }
 
 }  // end namespace chrono

@@ -72,28 +72,28 @@ double ChFunctionOperator::GetVal(double x) const {
     return res;
 }
 
-void ChFunctionOperator::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionOperator::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionOperator>();
+    archive_out.VersionWrite<ChFunctionOperator>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_first_fun);
-    marchive << CHNVP(m_second_fun);
+    archive_out << CHNVP(m_first_fun);
+    archive_out << CHNVP(m_second_fun);
     eChOperation_mapper mmapper;
-    marchive << CHNVP(mmapper(m_op_type), "operation_type");
+    archive_out << CHNVP(mmapper(m_op_type), "operation_type");
 }
 
-void ChFunctionOperator::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionOperator::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChFunctionOperator>();
+    /*int version =*/archive_in.VersionRead<ChFunctionOperator>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_first_fun);
-    marchive >> CHNVP(m_second_fun);
+    archive_in >> CHNVP(m_first_fun);
+    archive_in >> CHNVP(m_second_fun);
     eChOperation_mapper mmapper;
-    marchive >> CHNVP(mmapper(m_op_type), "operation_type");
+    archive_in >> CHNVP(mmapper(m_op_type), "operation_type");
 }
 
 }  // end namespace chrono

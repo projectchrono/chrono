@@ -113,27 +113,27 @@ void ChLinkScrew::UpdateState() {
     Ct(2) = scr_Ct;
 }
 
-void ChLinkScrew::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkScrew::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkScrew>();
+    archive_out.VersionWrite<ChLinkScrew>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOut(marchive);
+    ChLinkLock::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(tau);
+    archive_out << CHNVP(tau);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkScrew::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkScrew::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkScrew>();
+    /*int version =*/ archive_in.VersionRead<ChLinkScrew>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIn(marchive);
+    ChLinkLock::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(tau);
+    archive_in >> CHNVP(tau);
 }
 
 }  // end namespace chrono

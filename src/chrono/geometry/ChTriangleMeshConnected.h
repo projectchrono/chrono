@@ -206,7 +206,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// tends to produce triangles with bounded angles even if starting from skewed/skinny
     /// triangles in the coarse mesh.
     /// Based on "Multithread parallelization of Lepp-bisection algorithms"
-    ///    M.-C. Rivara et al., Applied Numerical Mathematics 62 (2012) 473–488
+    ///    M.-C. Rivara et al., Applied Numerical Mathematics 62 (2012) 473ï¿½488
     /// The auxiliary buffers are used for refinement and assumed to be indexed like the vertex buffer.
     void RefineMeshEdges(
         std::vector<int>& marked_tris,     ///< indexes of triangles to refine (also surrounding triangles might be
@@ -233,10 +233,10 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     static ChAABB GetBoundingBox(std::vector<ChVector3d> vertices);
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   public:
     std::vector<ChVector3d> m_vertices;

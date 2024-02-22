@@ -35,20 +35,20 @@ std::shared_ptr<ChCollisionModel> ChContactable::GetCollisionModel() const {
     return collision_model;
 }
 
-void ChContactable::ArchiveOut(ChArchiveOut& marchive) {
+void ChContactable::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContactable>();
+    archive_out.VersionWrite<ChContactable>();
 
     // serialize parent class
-    // marchive << CHNVP(m_data); // cannot serialize as it is
+    // archive_out << CHNVP(m_data); // cannot serialize as it is
 }
 
-void ChContactable::ArchiveIn(ChArchiveIn& marchive) {
+void ChContactable::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChContactable>();
+    /*int version =*/archive_in.VersionRead<ChContactable>();
 
     // deserialize parent class
-    // marchive >> CHNVP(m_data);  // cannot serialize as it is
+    // archive_in >> CHNVP(m_data);  // cannot serialize as it is
 }
 
 }  // end namespace chrono

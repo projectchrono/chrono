@@ -1854,82 +1854,82 @@ class ChLinkLock_LinkType_enum_mapper : public ChLinkLock {
     CH_ENUM_MAPPER_END(LinkType);
 };
 
-void ChLinkLock::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkLock::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkLock>();
+    archive_out.VersionWrite<ChLinkLock>();
 
     // serialize parent class
-    ChLinkMarkers::ArchiveOut(marchive);
+    ChLinkMarkers::ArchiveOut(archive_out);
 
     // serialize all member data
     ChLinkLock_LinkType_enum_mapper::LinkType_mapper typemapper;
-    marchive << CHNVP(typemapper(type), "link_type");
+    archive_out << CHNVP(typemapper(type), "link_type");
 
-    marchive << CHNVP(mask);  //// TODO: needed?
+    archive_out << CHNVP(mask);  //// TODO: needed?
 
-    marchive << CHNVP(d_restlength);
+    archive_out << CHNVP(d_restlength);
 
-    marchive << CHNVP(force_D.get(), "force_D_ptr");
+    archive_out << CHNVP(force_D.get(), "force_D_ptr");
 
-    ////marchive << CHNVP(force_D);
-    ////marchive << CHNVP(force_R);
-    ////marchive << CHNVP(force_X);
-    ////marchive << CHNVP(force_Y);
-    ////marchive << CHNVP(force_Z);
-    ////marchive << CHNVP(force_Rx);
-    ////marchive << CHNVP(force_Ry);
-    ////marchive << CHNVP(force_Rz);
+    ////archive_out << CHNVP(force_D);
+    ////archive_out << CHNVP(force_R);
+    ////archive_out << CHNVP(force_X);
+    ////archive_out << CHNVP(force_Y);
+    ////archive_out << CHNVP(force_Z);
+    ////archive_out << CHNVP(force_Rx);
+    ////archive_out << CHNVP(force_Ry);
+    ////archive_out << CHNVP(force_Rz);
 
-    ////marchive << CHNVP(limit_X);
-    ////marchive << CHNVP(limit_Y);
-    ////marchive << CHNVP(limit_Z);
-    ////marchive << CHNVP(limit_Rx);
-    ////marchive << CHNVP(limit_Ry);
-    ////marchive << CHNVP(limit_Rz);
-    ////marchive << CHNVP(limit_Rp);
-    ////marchive << CHNVP(limit_D);
+    ////archive_out << CHNVP(limit_X);
+    ////archive_out << CHNVP(limit_Y);
+    ////archive_out << CHNVP(limit_Z);
+    ////archive_out << CHNVP(limit_Rx);
+    ////archive_out << CHNVP(limit_Ry);
+    ////archive_out << CHNVP(limit_Rz);
+    ////archive_out << CHNVP(limit_Rp);
+    ////archive_out << CHNVP(limit_D);
 }
 
-void ChLinkLock::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkLock::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChLinkLock>();
+    /*int version =*/archive_in.VersionRead<ChLinkLock>();
 
     // deserialize parent class
-    ChLinkMarkers::ArchiveIn(marchive);
+    ChLinkMarkers::ArchiveIn(archive_in);
 
     // deserialize all member data
     ChLinkLock_LinkType_enum_mapper::LinkType_mapper typemapper;
     LinkType link_type;
-    marchive >> CHNVP(typemapper(link_type), "link_type");
+    archive_in >> CHNVP(typemapper(link_type), "link_type");
     ChangeLinkType(link_type);
 
     ////if (mask) delete (mask);
-    marchive >> CHNVP(mask);  //// TODO: needed?
+    archive_in >> CHNVP(mask);  //// TODO: needed?
 
-    marchive >> CHNVP(d_restlength);
+    archive_in >> CHNVP(d_restlength);
 
     {
         ChLinkForce* force_D_ptr;
-        marchive >> CHNVP(force_D_ptr);
+        archive_in >> CHNVP(force_D_ptr);
         force_D.reset(force_D_ptr);
     }
-    ////marchive >> CHNVP(force_D);
-    ////marchive >> CHNVP(force_R);
-    ////marchive >> CHNVP(force_X);
-    ////marchive >> CHNVP(force_Y);
-    ////marchive >> CHNVP(force_Z);
-    ////marchive >> CHNVP(force_Rx);
-    ////marchive >> CHNVP(force_Ry);
-    ////marchive >> CHNVP(force_Rz);
+    ////archive_in >> CHNVP(force_D);
+    ////archive_in >> CHNVP(force_R);
+    ////archive_in >> CHNVP(force_X);
+    ////archive_in >> CHNVP(force_Y);
+    ////archive_in >> CHNVP(force_Z);
+    ////archive_in >> CHNVP(force_Rx);
+    ////archive_in >> CHNVP(force_Ry);
+    ////archive_in >> CHNVP(force_Rz);
 
-    ////marchive >> CHNVP(limit_X);
-    ////marchive >> CHNVP(limit_Y);
-    ////marchive >> CHNVP(limit_Z);
-    ////marchive >> CHNVP(limit_Rx);
-    ////marchive >> CHNVP(limit_Ry);
-    ////marchive >> CHNVP(limit_Rz);
-    ////marchive >> CHNVP(limit_Rp);
-    ////marchive >> CHNVP(limit_D);
+    ////archive_in >> CHNVP(limit_X);
+    ////archive_in >> CHNVP(limit_Y);
+    ////archive_in >> CHNVP(limit_Z);
+    ////archive_in >> CHNVP(limit_Rx);
+    ////archive_in >> CHNVP(limit_Ry);
+    ////archive_in >> CHNVP(limit_Rz);
+    ////archive_in >> CHNVP(limit_Rp);
+    ////archive_in >> CHNVP(limit_D);
 
     mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
 
@@ -2436,88 +2436,88 @@ class ChLinkLockLock_RotRep_enum_mapper : public ChLinkLockLock {
     CH_ENUM_MAPPER_END(ChRotationRepresentation);
 };
 
-void ChLinkLockLock::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkLockLock::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkLockLock>();
+    archive_out.VersionWrite<ChLinkLockLock>();
 
     // serialize parent class
-    ChLinkMarkers::ArchiveOut(marchive);
+    ChLinkMarkers::ArchiveOut(archive_out);
 
     // serialize all member data
-    ////marchive << CHNVP(mask); //// TODO: needed?
+    ////archive_out << CHNVP(mask); //// TODO: needed?
 
-    marchive << CHNVP(d_restlength);
+    archive_out << CHNVP(d_restlength);
 
-    ////marchive << CHNVP(force_D);
-    ////marchive << CHNVP(force_R);
-    ////marchive << CHNVP(force_X);
-    ////marchive << CHNVP(force_Y);
-    ////marchive << CHNVP(force_Z);
-    ////marchive << CHNVP(force_Rx);
-    ////marchive << CHNVP(force_Ry);
-    ////marchive << CHNVP(force_Rz);
+    ////archive_out << CHNVP(force_D);
+    ////archive_out << CHNVP(force_R);
+    ////archive_out << CHNVP(force_X);
+    ////archive_out << CHNVP(force_Y);
+    ////archive_out << CHNVP(force_Z);
+    ////archive_out << CHNVP(force_Rx);
+    ////archive_out << CHNVP(force_Ry);
+    ////archive_out << CHNVP(force_Rz);
 
-    ////marchive << CHNVP(limit_X);
-    ////marchive << CHNVP(limit_Y);
-    ////marchive << CHNVP(limit_Z);
-    ////marchive << CHNVP(limit_Rx);
-    ////marchive << CHNVP(limit_Ry);
-    ////marchive << CHNVP(limit_Rz);
-    ////marchive << CHNVP(limit_Rp);
-    ////marchive << CHNVP(limit_D);
+    ////archive_out << CHNVP(limit_X);
+    ////archive_out << CHNVP(limit_Y);
+    ////archive_out << CHNVP(limit_Z);
+    ////archive_out << CHNVP(limit_Rx);
+    ////archive_out << CHNVP(limit_Ry);
+    ////archive_out << CHNVP(limit_Rz);
+    ////archive_out << CHNVP(limit_Rp);
+    ////archive_out << CHNVP(limit_D);
 
-    marchive << CHNVP(motion_X);
-    marchive << CHNVP(motion_Y);
-    marchive << CHNVP(motion_Z);
-    marchive << CHNVP(motion_ang);
-    marchive << CHNVP(motion_ang2);
-    marchive << CHNVP(motion_ang3);
-    marchive << CHNVP(motion_axis);
+    archive_out << CHNVP(motion_X);
+    archive_out << CHNVP(motion_Y);
+    archive_out << CHNVP(motion_Z);
+    archive_out << CHNVP(motion_ang);
+    archive_out << CHNVP(motion_ang2);
+    archive_out << CHNVP(motion_ang3);
+    archive_out << CHNVP(motion_axis);
 
     ChLinkLockLock_RotRep_enum_mapper::ChRotationRepresentation_mapper setmapper;
-    marchive << CHNVP(setmapper(angleset), "angle_set");
+    archive_out << CHNVP(setmapper(angleset), "angle_set");
 }
 
-void ChLinkLockLock::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkLockLock::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChLinkLockLock>();
+    /*int version =*/archive_in.VersionRead<ChLinkLockLock>();
 
     // deserialize parent class
-    ChLinkMarkers::ArchiveIn(marchive);
+    ChLinkMarkers::ArchiveIn(archive_in);
 
     // deserialize all member data
-    ////if (mask) delete (mask); marchive >> CHNVP(mask); //// TODO: needed?
+    ////if (mask) delete (mask); archive_in >> CHNVP(mask); //// TODO: needed?
 
-    marchive >> CHNVP(d_restlength);
+    archive_in >> CHNVP(d_restlength);
 
-    ////marchive >> CHNVP(force_D);
-    ////marchive >> CHNVP(force_R);
-    ////marchive >> CHNVP(force_X);
-    ////marchive >> CHNVP(force_Y);
-    ////marchive >> CHNVP(force_Z);
-    ////marchive >> CHNVP(force_Rx);
-    ////marchive >> CHNVP(force_Ry);
-    ////marchive >> CHNVP(force_Rz);
+    ////archive_in >> CHNVP(force_D);
+    ////archive_in >> CHNVP(force_R);
+    ////archive_in >> CHNVP(force_X);
+    ////archive_in >> CHNVP(force_Y);
+    ////archive_in >> CHNVP(force_Z);
+    ////archive_in >> CHNVP(force_Rx);
+    ////archive_in >> CHNVP(force_Ry);
+    ////archive_in >> CHNVP(force_Rz);
 
-    ////marchive >> CHNVP(limit_X);
-    ////marchive >> CHNVP(limit_Y);
-    ////marchive >> CHNVP(limit_Z);
-    ////marchive >> CHNVP(limit_Rx);
-    ////marchive >> CHNVP(limit_Ry);
-    ////marchive >> CHNVP(limit_Rz);
-    ////marchive >> CHNVP(limit_Rp);
-    ////marchive >> CHNVP(limit_D);
+    ////archive_in >> CHNVP(limit_X);
+    ////archive_in >> CHNVP(limit_Y);
+    ////archive_in >> CHNVP(limit_Z);
+    ////archive_in >> CHNVP(limit_Rx);
+    ////archive_in >> CHNVP(limit_Ry);
+    ////archive_in >> CHNVP(limit_Rz);
+    ////archive_in >> CHNVP(limit_Rp);
+    ////archive_in >> CHNVP(limit_D);
 
-    marchive >> CHNVP(motion_X);
-    marchive >> CHNVP(motion_Y);
-    marchive >> CHNVP(motion_Z);
-    marchive >> CHNVP(motion_ang);
-    marchive >> CHNVP(motion_ang2);
-    marchive >> CHNVP(motion_ang3);
-    marchive >> CHNVP(motion_axis);
+    archive_in >> CHNVP(motion_X);
+    archive_in >> CHNVP(motion_Y);
+    archive_in >> CHNVP(motion_Z);
+    archive_in >> CHNVP(motion_ang);
+    archive_in >> CHNVP(motion_ang2);
+    archive_in >> CHNVP(motion_ang3);
+    archive_in >> CHNVP(motion_axis);
 
     ChLinkLockLock_RotRep_enum_mapper::ChRotationRepresentation_mapper setmapper;
-    marchive >> CHNVP(setmapper(angleset), "angle_set");
+    archive_in >> CHNVP(setmapper(angleset), "angle_set");
 }
 
 // =======================================================================================

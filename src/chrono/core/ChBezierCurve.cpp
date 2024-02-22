@@ -554,34 +554,34 @@ ChVector3d ChBezierCurve::calcClosestPoint(const ChVector3d& loc, size_t i, doub
 
 // -----------------------------------------------------------------------------
 
-void ChBezierCurve::ArchiveOut(ChArchiveOut& marchive)
+void ChBezierCurve::ArchiveOut(ChArchiveOut& archive_out)
 {
     // version number
-    marchive.VersionWrite<ChBezierCurve>();
+    archive_out.VersionWrite<ChBezierCurve>();
 
     // serialize all member data:
-    marchive << CHNVP(m_points);
-    marchive << CHNVP(m_inCV);
-    marchive << CHNVP(m_outCV);
-    marchive << CHNVP(m_maxNumIters);
-    marchive << CHNVP(m_sqrDistTol);
-    marchive << CHNVP(m_cosAngleTol);
-    marchive << CHNVP(m_paramTol);
+    archive_out << CHNVP(m_points);
+    archive_out << CHNVP(m_inCV);
+    archive_out << CHNVP(m_outCV);
+    archive_out << CHNVP(m_maxNumIters);
+    archive_out << CHNVP(m_sqrDistTol);
+    archive_out << CHNVP(m_cosAngleTol);
+    archive_out << CHNVP(m_paramTol);
 }
 
-void ChBezierCurve::ArchiveIn(ChArchiveIn& marchive)
+void ChBezierCurve::ArchiveIn(ChArchiveIn& archive_in)
 {
     // version number
-    /*int version =*/ marchive.VersionRead<ChBezierCurve>();
+    /*int version =*/ archive_in.VersionRead<ChBezierCurve>();
 
     // stream in all member data:
-    marchive >> CHNVP(m_points);
-    marchive >> CHNVP(m_inCV);
-    marchive >> CHNVP(m_outCV);
-    marchive >> CHNVP(m_maxNumIters);
-    marchive >> CHNVP(m_sqrDistTol);
-    marchive >> CHNVP(m_cosAngleTol);
-    marchive >> CHNVP(m_paramTol);
+    archive_in >> CHNVP(m_points);
+    archive_in >> CHNVP(m_inCV);
+    archive_in >> CHNVP(m_outCV);
+    archive_in >> CHNVP(m_maxNumIters);
+    archive_in >> CHNVP(m_sqrDistTol);
+    archive_in >> CHNVP(m_cosAngleTol);
+    archive_in >> CHNVP(m_paramTol);
 }
 
 // -----------------------------------------------------------------------------

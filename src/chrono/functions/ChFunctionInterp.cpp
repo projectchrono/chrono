@@ -126,24 +126,24 @@ double ChFunctionInterp::GetDer2(double x) const {
     return ChFunction::GetDer2(x);
 }
 
-void ChFunctionInterp::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunctionInterp::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChFunctionInterp>();
+    archive_out.VersionWrite<ChFunctionInterp>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive_out);
     // serialize all member data: copy to vector and store
-    marchive << CHNVP(m_table);
-    marchive << CHNVP(m_extrapolate);
+    archive_out << CHNVP(m_table);
+    archive_out << CHNVP(m_extrapolate);
 }
 
-void ChFunctionInterp::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunctionInterp::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChFunctionInterp>();
+    /*int version =*/archive_in.VersionRead<ChFunctionInterp>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive_in);
     // stream in all member data: load vector of points and copy to list
-    marchive >> CHNVP(m_table);
-    marchive >> CHNVP(m_extrapolate);
+    archive_in >> CHNVP(m_table);
+    archive_in >> CHNVP(m_extrapolate);
 
     m_last_greater = m_table.end();
 }

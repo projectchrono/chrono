@@ -122,8 +122,8 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
 
     // SERIALIZATION
 
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     ChVariablesGeneric variables;  /// solver proxy: variable with scalar field P

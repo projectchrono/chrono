@@ -296,45 +296,45 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
 
 //  FILE I/O
 
-void ChMarker::ArchiveOut(ChArchiveOut& marchive) {
+void ChMarker::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChMarker>();
+    archive_out.VersionWrite<ChMarker>();
 
     // serialize parent class
-    ChObj::ArchiveOut(marchive);
+    ChObj::ArchiveOut(archive_out);
     // serialize parent class
-    ChFrameMoving<double>::ArchiveOut(marchive);
+    ChFrameMoving<double>::ArchiveOut(archive_out);
 
     // serialize all member data:
     eChMarkerMotion_mapper mmapper;
-    marchive << CHNVP(mmapper(motion_type), "motion_type");
-    marchive << CHNVP(motion_X);
-    marchive << CHNVP(motion_Y);
-    marchive << CHNVP(motion_Z);
-    marchive << CHNVP(motion_ang);
-    marchive << CHNVP(motion_axis);
-    marchive << CHNVP(Body);
+    archive_out << CHNVP(mmapper(motion_type), "motion_type");
+    archive_out << CHNVP(motion_X);
+    archive_out << CHNVP(motion_Y);
+    archive_out << CHNVP(motion_Z);
+    archive_out << CHNVP(motion_ang);
+    archive_out << CHNVP(motion_axis);
+    archive_out << CHNVP(Body);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChMarker::ArchiveIn(ChArchiveIn& marchive) {
+void ChMarker::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChMarker>();
+    /*int version =*/archive_in.VersionRead<ChMarker>();
 
     // deserialize parent class
-    ChObj::ArchiveIn(marchive);
+    ChObj::ArchiveIn(archive_in);
     // deserialize parent class
-    ChFrameMoving<double>::ArchiveIn(marchive);
+    ChFrameMoving<double>::ArchiveIn(archive_in);
 
     // stream in all member data:
     eChMarkerMotion_mapper mmapper;
-    marchive >> CHNVP(mmapper(motion_type), "motion_type");
-    marchive >> CHNVP(motion_X);
-    marchive >> CHNVP(motion_Y);
-    marchive >> CHNVP(motion_Z);
-    marchive >> CHNVP(motion_ang);
-    marchive >> CHNVP(motion_axis);
-    marchive >> CHNVP(Body);
+    archive_in >> CHNVP(mmapper(motion_type), "motion_type");
+    archive_in >> CHNVP(motion_X);
+    archive_in >> CHNVP(motion_Y);
+    archive_in >> CHNVP(motion_Z);
+    archive_in >> CHNVP(motion_ang);
+    archive_in >> CHNVP(motion_axis);
+    archive_in >> CHNVP(Body);
 
     UpdateState();                          // updates the ChMarker::abs_frame first
     Impose_Abs_Coord(this->GetAbsCoord());  // from ChMarker::abs_frame update ChMarker::rest_coord and ChFrame::coord

@@ -560,37 +560,37 @@ ChVector3d ChLinkRevoluteTranslational::Get_react_torque_body2() {
     return VNULL;
 }
 
-void ChLinkRevoluteTranslational::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkRevoluteTranslational::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkRevoluteTranslational>();
+    archive_out.VersionWrite<ChLinkRevoluteTranslational>();
 
     // serialize parent class
-    ChLink::ArchiveOut(marchive);
+    ChLink::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(m_p1);
-    marchive << CHNVP(m_p2);
-    marchive << CHNVP(m_z1);
-    marchive << CHNVP(m_x2);
-    marchive << CHNVP(m_y2);
-    marchive << CHNVP(m_dist);
+    archive_out << CHNVP(m_p1);
+    archive_out << CHNVP(m_p2);
+    archive_out << CHNVP(m_z1);
+    archive_out << CHNVP(m_x2);
+    archive_out << CHNVP(m_y2);
+    archive_out << CHNVP(m_dist);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRevoluteTranslational::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkRevoluteTranslational::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkRevoluteTranslational>();
+    /*int version =*/ archive_in.VersionRead<ChLinkRevoluteTranslational>();
 
     // deserialize parent class
-    ChLink::ArchiveIn(marchive);
+    ChLink::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(m_p1);
-    marchive >> CHNVP(m_p2);
-    marchive >> CHNVP(m_z1);
-    marchive >> CHNVP(m_x2);
-    marchive >> CHNVP(m_y2);
-    marchive >> CHNVP(m_dist);
+    archive_in >> CHNVP(m_p1);
+    archive_in >> CHNVP(m_p2);
+    archive_in >> CHNVP(m_z1);
+    archive_in >> CHNVP(m_x2);
+    archive_in >> CHNVP(m_y2);
+    archive_in >> CHNVP(m_dist);
 }
 
 }  // end namespace chrono

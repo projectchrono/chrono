@@ -49,42 +49,42 @@ ChContactMaterialSMC::ChContactMaterialSMC(const ChContactMaterialSMC& other) : 
     gt = other.gt;
 }
 
-void ChContactMaterialSMC::ArchiveOut(ChArchiveOut& marchive) {
+void ChContactMaterialSMC::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContactMaterialSMC>();
+    archive_out.VersionWrite<ChContactMaterialSMC>();
 
     // serialize parent class
-    ChContactMaterial::ArchiveOut(marchive);
+    ChContactMaterial::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(young_modulus);
-    marchive << CHNVP(poisson_ratio);
-    marchive << CHNVP(constant_adhesion);
-    marchive << CHNVP(adhesionMultDMT);
-    marchive << CHNVP(adhesionSPerko);
-    marchive << CHNVP(kn);
-    marchive << CHNVP(kt);
-    marchive << CHNVP(gn);
-    marchive << CHNVP(gt);
+    archive_out << CHNVP(young_modulus);
+    archive_out << CHNVP(poisson_ratio);
+    archive_out << CHNVP(constant_adhesion);
+    archive_out << CHNVP(adhesionMultDMT);
+    archive_out << CHNVP(adhesionSPerko);
+    archive_out << CHNVP(kn);
+    archive_out << CHNVP(kt);
+    archive_out << CHNVP(gn);
+    archive_out << CHNVP(gt);
 }
 
-void ChContactMaterialSMC::ArchiveIn(ChArchiveIn& marchive) {
+void ChContactMaterialSMC::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChContactMaterialSMC>();
+    /*int version =*/archive_in.VersionRead<ChContactMaterialSMC>();
 
     // deserialize parent class
-    ChContactMaterial::ArchiveIn(marchive);
+    ChContactMaterial::ArchiveIn(archive_in);
 
     // stream in all member data:
-    marchive >> CHNVP(young_modulus);
-    marchive >> CHNVP(poisson_ratio);
-    marchive >> CHNVP(constant_adhesion);
-    marchive >> CHNVP(adhesionMultDMT);
-    marchive >> CHNVP(adhesionSPerko);
-    marchive >> CHNVP(kn);
-    marchive >> CHNVP(kt);
-    marchive >> CHNVP(gn);
-    marchive >> CHNVP(gt);
+    archive_in >> CHNVP(young_modulus);
+    archive_in >> CHNVP(poisson_ratio);
+    archive_in >> CHNVP(constant_adhesion);
+    archive_in >> CHNVP(adhesionMultDMT);
+    archive_in >> CHNVP(adhesionSPerko);
+    archive_in >> CHNVP(kn);
+    archive_in >> CHNVP(kt);
+    archive_in >> CHNVP(gn);
+    archive_in >> CHNVP(gt);
 }
 
 // -----------------------------------------------------------------------------

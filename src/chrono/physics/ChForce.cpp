@@ -274,66 +274,66 @@ void ChForce::Update(double mytime) {
 
 // File  I/O
 
-void ChForce::ArchiveOut(ChArchiveOut& marchive) {
+void ChForce::ArchiveOut(ChArchiveOut& archive_out) {
     // class version number
-    marchive.VersionWrite<ChForce>();
+    archive_out.VersionWrite<ChForce>();
 
     // serialize parent class too
-    ChObj::ArchiveOut(marchive);
+    ChObj::ArchiveOut(archive_out);
 
     // stream out all member data
 
     ForceType_mapper ftypemapper;
-    marchive << CHNVP(ftypemapper(mode), "force_type");
+    archive_out << CHNVP(ftypemapper(mode), "force_type");
     ReferenceFrame_mapper refmapper;
-    marchive << CHNVP(refmapper(frame), "reference_frame_type");
+    archive_out << CHNVP(refmapper(frame), "reference_frame_type");
     AlignmentFrame_mapper alignmapper;
-    marchive << CHNVP(alignmapper(align), "alignment_frame_type");
+    archive_out << CHNVP(alignmapper(align), "alignment_frame_type");
 
-    marchive << CHNVP(vrelpoint);
-    marchive << CHNVP(vpoint);
-    marchive << CHNVP(move_x);
-    marchive << CHNVP(move_y);
-    marchive << CHNVP(move_z);
-    marchive << CHNVP(restpos);
-    marchive << CHNVP(f_x);
-    marchive << CHNVP(f_y);
-    marchive << CHNVP(f_z);
-    marchive << CHNVP(mforce);
-    marchive << CHNVP(modula, "f_time");
-    marchive << CHNVP(vreldir);
-    marchive << CHNVP(vdir);
+    archive_out << CHNVP(vrelpoint);
+    archive_out << CHNVP(vpoint);
+    archive_out << CHNVP(move_x);
+    archive_out << CHNVP(move_y);
+    archive_out << CHNVP(move_z);
+    archive_out << CHNVP(restpos);
+    archive_out << CHNVP(f_x);
+    archive_out << CHNVP(f_y);
+    archive_out << CHNVP(f_z);
+    archive_out << CHNVP(mforce);
+    archive_out << CHNVP(modula, "f_time");
+    archive_out << CHNVP(vreldir);
+    archive_out << CHNVP(vdir);
 }
 
-void ChForce::ArchiveIn(ChArchiveIn& marchive) {
+void ChForce::ArchiveIn(ChArchiveIn& archive_in) {
     // class version number
-    /*int version =*/ marchive.VersionRead<ChForce>();
+    /*int version =*/ archive_in.VersionRead<ChForce>();
 
     // deserialize parent class too
-    ChObj::ArchiveIn(marchive);
+    ChObj::ArchiveIn(archive_in);
 
     // stream in all member data
 
     ForceType_mapper ftypemapper;
-    marchive >> CHNVP(ftypemapper(mode), "force_type");
+    archive_in >> CHNVP(ftypemapper(mode), "force_type");
     ReferenceFrame_mapper refmapper;
-    marchive >> CHNVP(refmapper(frame), "reference_frame_type");
+    archive_in >> CHNVP(refmapper(frame), "reference_frame_type");
     AlignmentFrame_mapper alignmapper;
-    marchive >> CHNVP(alignmapper(align), "alignment_frame_type");
+    archive_in >> CHNVP(alignmapper(align), "alignment_frame_type");
 
-    marchive >> CHNVP(vrelpoint);
-    marchive >> CHNVP(vpoint);
-    marchive >> CHNVP(move_x);
-    marchive >> CHNVP(move_y);
-    marchive >> CHNVP(move_z);
-    marchive >> CHNVP(restpos);
-    marchive >> CHNVP(f_x);
-    marchive >> CHNVP(f_y);
-    marchive >> CHNVP(f_z);
-    marchive >> CHNVP(mforce);
-    marchive >> CHNVP(modula, "f_time");
-    marchive >> CHNVP(vreldir);
-    marchive >> CHNVP(vdir);
+    archive_in >> CHNVP(vrelpoint);
+    archive_in >> CHNVP(vpoint);
+    archive_in >> CHNVP(move_x);
+    archive_in >> CHNVP(move_y);
+    archive_in >> CHNVP(move_z);
+    archive_in >> CHNVP(restpos);
+    archive_in >> CHNVP(f_x);
+    archive_in >> CHNVP(f_y);
+    archive_in >> CHNVP(f_z);
+    archive_in >> CHNVP(mforce);
+    archive_in >> CHNVP(modula, "f_time");
+    archive_in >> CHNVP(vreldir);
+    archive_in >> CHNVP(vdir);
 }
 
 }  // end namespace chrono

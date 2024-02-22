@@ -83,11 +83,11 @@ void ChLoadContainer::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfa
     }
 }
 
-void ChLoadContainer::ArchiveOut(ChArchiveOut& marchive) {
+void ChLoadContainer::ArchiveOut(ChArchiveOut& archive_out) {
     //***TODO***
 }
 
-void ChLoadContainer::ArchiveIn(ChArchiveIn& marchive) {
+void ChLoadContainer::ArchiveIn(ChArchiveIn& archive_in) {
     //***TODO***
 }
 

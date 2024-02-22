@@ -1000,80 +1000,80 @@ void ChBody::ComputeNF(
 // ---------------------------------------------------------------------------
 // FILE I/O
 
-void ChBody::ArchiveOut(ChArchiveOut& marchive) {
+void ChBody::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChBody>();
+    archive_out.VersionWrite<ChBody>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
     // serialize parent class
-    ChBodyFrame::ArchiveOut(marchive);
+    ChBodyFrame::ArchiveOut(archive_out);
 
     // serialize all member data:
 
-    marchive << CHNVP(fixed);
-    marchive << CHNVP(collide);
+    archive_out << CHNVP(fixed);
+    archive_out << CHNVP(collide);
 
-    marchive << CHNVP(bflags);
+    archive_out << CHNVP(bflags);
     bool mflag;  // more readable flag output in case of ASCII in/out
     mflag = BFlagGet(BodyFlag::LIMITSPEED);
-    marchive << CHNVP(mflag, "limit_speed");
+    archive_out << CHNVP(mflag, "limit_speed");
     mflag = BFlagGet(BodyFlag::NOGYROTORQUE);
-    marchive << CHNVP(mflag, "no_gyro_torque");
+    archive_out << CHNVP(mflag, "no_gyro_torque");
     mflag = BFlagGet(BodyFlag::USESLEEPING);
-    marchive << CHNVP(mflag, "use_sleeping");
+    archive_out << CHNVP(mflag, "use_sleeping");
     mflag = BFlagGet(BodyFlag::SLEEPING);
-    marchive << CHNVP(mflag, "is_sleeping");
+    archive_out << CHNVP(mflag, "is_sleeping");
 
-    marchive << CHNVP(marklist, "markers");
-    marchive << CHNVP(forcelist, "forces");
+    archive_out << CHNVP(marklist, "markers");
+    archive_out << CHNVP(forcelist, "forces");
 
-    marchive << CHNVP(body_id);
-    marchive << CHNVP(collision_model);
-    marchive << CHNVP(gyro);
-    marchive << CHNVP(Xforce);
-    marchive << CHNVP(Xtorque);
-    // marchive << CHNVP(Force_acc); // not useful in serialization
-    // marchive << CHNVP(Torque_acc);// not useful in serialization
-    marchive << CHNVP(variables);
-    marchive << CHNVP(max_speed);
-    marchive << CHNVP(max_wvel);
-    marchive << CHNVP(sleep_time);
-    marchive << CHNVP(sleep_minspeed);
-    marchive << CHNVP(sleep_minwvel);
-    marchive << CHNVP(sleep_starttime);
+    archive_out << CHNVP(body_id);
+    archive_out << CHNVP(collision_model);
+    archive_out << CHNVP(gyro);
+    archive_out << CHNVP(Xforce);
+    archive_out << CHNVP(Xtorque);
+    // archive_out << CHNVP(Force_acc); // not useful in serialization
+    // archive_out << CHNVP(Torque_acc);// not useful in serialization
+    archive_out << CHNVP(variables);
+    archive_out << CHNVP(max_speed);
+    archive_out << CHNVP(max_wvel);
+    archive_out << CHNVP(sleep_time);
+    archive_out << CHNVP(sleep_minspeed);
+    archive_out << CHNVP(sleep_minwvel);
+    archive_out << CHNVP(sleep_starttime);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChBody::ArchiveIn(ChArchiveIn& marchive) {
+void ChBody::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChBody>();
+    /*int version =*/archive_in.VersionRead<ChBody>();
 
     // deserialize parent class
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
     // deserialize parent class
-    ChBodyFrame::ArchiveIn(marchive);
+    ChBodyFrame::ArchiveIn(archive_in);
 
     // stream in all member data:
 
-    marchive >> CHNVP(fixed);
-    marchive >> CHNVP(collide);
+    archive_in >> CHNVP(fixed);
+    archive_in >> CHNVP(collide);
 
-    marchive >> CHNVP(bflags);
+    archive_in >> CHNVP(bflags);
     bool mflag;  // more readable flag output in case of ASCII in/out
-    if (marchive.in(CHNVP(mflag, "limit_speed")))
+    if (archive_in.in(CHNVP(mflag, "limit_speed")))
         BFlagSet(BodyFlag::LIMITSPEED, mflag);
-    if (marchive.in(CHNVP(mflag, "no_gyro_torque")))
+    if (archive_in.in(CHNVP(mflag, "no_gyro_torque")))
         BFlagSet(BodyFlag::NOGYROTORQUE, mflag);
-    if (marchive.in(CHNVP(mflag, "use_sleeping")))
+    if (archive_in.in(CHNVP(mflag, "use_sleeping")))
         BFlagSet(BodyFlag::USESLEEPING, mflag);
-    if (marchive.in(CHNVP(mflag, "is_sleeping")))
+    if (archive_in.in(CHNVP(mflag, "is_sleeping")))
         BFlagSet(BodyFlag::SLEEPING, mflag);
 
     std::vector<std::shared_ptr<ChMarker>> tempmarkers;
     std::vector<std::shared_ptr<ChForce>> tempforces;
-    marchive >> CHNVP(tempmarkers, "markers");
-    marchive >> CHNVP(tempforces, "forces");
+    archive_in >> CHNVP(tempmarkers, "markers");
+    archive_in >> CHNVP(tempforces, "forces");
     // trick needed because the "Add...() functions are required
     RemoveAllMarkers();
     for (auto& i : tempmarkers) {
@@ -1084,25 +1084,23 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
         AddForce(i);
     }
 
-    marchive >> CHNVP(body_id);
+    archive_in >> CHNVP(body_id);
 
     std::shared_ptr<ChCollisionModel> collision_model_temp;  ///< pointer to the collision model
-    marchive >> CHNVP(collision_model_temp, "collision_model");
+    archive_in >> CHNVP(collision_model_temp, "collision_model");
     if (collision_model_temp)
         AddCollisionModel(collision_model_temp);
 
-    marchive >> CHNVP(gyro);
-    marchive >> CHNVP(Xforce);
-    marchive >> CHNVP(Xtorque);
-    // marchive << CHNVP(Force_acc); // not useful in serialization
-    // marchive << CHNVP(Torque_acc);// not useful in serialization
-    marchive >> CHNVP(variables);
-    marchive >> CHNVP(max_speed);
-    marchive >> CHNVP(max_wvel);
-    marchive >> CHNVP(sleep_time);
-    marchive >> CHNVP(sleep_minspeed);
-    marchive >> CHNVP(sleep_minwvel);
-    marchive >> CHNVP(sleep_starttime);
+    archive_in >> CHNVP(gyro);
+    archive_in >> CHNVP(Xforce);
+    archive_in >> CHNVP(Xtorque);
+    archive_in >> CHNVP(variables);
+    archive_in >> CHNVP(max_speed);
+    archive_in >> CHNVP(max_wvel);
+    archive_in >> CHNVP(sleep_time);
+    archive_in >> CHNVP(sleep_minspeed);
+    archive_in >> CHNVP(sleep_minwvel);
+    archive_in >> CHNVP(sleep_starttime);
 }
 
 }  // end namespace chrono

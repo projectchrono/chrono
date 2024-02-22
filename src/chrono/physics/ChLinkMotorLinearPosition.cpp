@@ -60,27 +60,27 @@ void ChLinkMotorLinearPosition::ConstraintsBiLoad_Ct(double factor) {
     }
 }
 
-void ChLinkMotorLinearPosition::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorLinearPosition::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorLinearPosition>();
+    archive_out.VersionWrite<ChLinkMotorLinearPosition>();
 
     // serialize parent class
-    ChLinkMotorLinear::ArchiveOut(marchive);
+    ChLinkMotorLinear::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(pos_offset);
+    archive_out << CHNVP(pos_offset);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorLinearPosition::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorLinearPosition::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorLinearPosition>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMotorLinearPosition>();
 
     // deserialize parent class
-    ChLinkMotorLinear::ArchiveIn(marchive);
+    ChLinkMotorLinear::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(pos_offset);
+    archive_in >> CHNVP(pos_offset);
 }
 
 }  // end namespace chrono

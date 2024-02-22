@@ -141,26 +141,26 @@ double ChLinePath::GetContinuityMaxError() const {
     return maxerr;
 }
 
-void ChLinePath::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinePath::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinePath>();
+    archive_out.VersionWrite<ChLinePath>();
     // serialize parent class
-    ChLine::ArchiveOut(marchive);
+    ChLine::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(lines);
-    marchive << CHNVP(end_times);
-    marchive << CHNVP(durations);
+    archive_out << CHNVP(lines);
+    archive_out << CHNVP(end_times);
+    archive_out << CHNVP(durations);
 }
 
-void ChLinePath::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinePath::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinePath>();
+    /*int version =*/ archive_in.VersionRead<ChLinePath>();
     // deserialize parent class
-    ChLine::ArchiveIn(marchive);
+    ChLine::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(lines);
-    marchive >> CHNVP(end_times);
-    marchive >> CHNVP(durations);
+    archive_in >> CHNVP(lines);
+    archive_in >> CHNVP(end_times);
+    archive_in >> CHNVP(durations);
 }
 
 

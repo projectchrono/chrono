@@ -88,23 +88,23 @@ void ChLinkMotorLinearForce::ConstraintsFbLoadForces(double factor) {
     Body1->Variables().Get_fb().segment(3, 3) += factor * Body1->TransformDirectionParentToLocal(mbody_torque).eigen();
 }
 
-void ChLinkMotorLinearForce::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorLinearForce::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorLinearForce>();
+    archive_out.VersionWrite<ChLinkMotorLinearForce>();
 
     // serialize parent class
-    ChLinkMotorLinear::ArchiveOut(marchive);
+    ChLinkMotorLinear::ArchiveOut(archive_out);
 
     // serialize all member data:
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorLinearForce::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorLinearForce::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorLinearForce>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMotorLinearForce>();
 
     // deserialize parent class
-    ChLinkMotorLinear::ArchiveIn(marchive);
+    ChLinkMotorLinear::ArchiveIn(archive_in);
 
     // deserialize all member data:
 }

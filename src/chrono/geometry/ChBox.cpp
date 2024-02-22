@@ -99,24 +99,24 @@ double ChBox::GetBoundingSphereRadius() const {
 
 // -----------------------------------------------------------------------------
 
-void ChBox::ArchiveOut(ChArchiveOut& marchive) {
+void ChBox::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChBox>();
+    archive_out.VersionWrite<ChBox>();
     // serialize parent class
-    ChVolume::ArchiveOut(marchive);
+    ChVolume::ArchiveOut(archive_out);
     // serialize all member data:
     ChVector3d lengths = GetLengths();
-    marchive << CHNVP(lengths);
+    archive_out << CHNVP(lengths);
 }
 
-void ChBox::ArchiveIn(ChArchiveIn& marchive) {
+void ChBox::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChBox>();
+    /*int version =*/archive_in.VersionRead<ChBox>();
     // deserialize parent class
-    ChVolume::ArchiveIn(marchive);
+    ChVolume::ArchiveIn(archive_in);
     // stream in all member data:
     ChVector3d lengths;
-    marchive >> CHNVP(lengths);
+    archive_in >> CHNVP(lengths);
     SetLengths(lengths);
 }
 
