@@ -29,7 +29,7 @@
 #include <cmath>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/motion_functions/ChFunctionSineStep.h"
+#include "chrono/functions/ChFunctionSineStep.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 

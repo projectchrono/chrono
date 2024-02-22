@@ -19,7 +19,7 @@
 #include <cmath>
 
 #include "chrono/core/ChFrame.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 
 namespace chrono {
 

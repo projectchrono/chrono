@@ -23,8 +23,8 @@
 #include <valarray>
 #include <vector>
 
-#include "chrono/motion_functions/ChFunctionInterp.h"
-#include "chrono/motion_functions/ChFunctionSineStep.h"
+#include "chrono/functions/ChFunctionInterp.h"
+#include "chrono/functions/ChFunctionSineStep.h"
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChVector3.h"
 

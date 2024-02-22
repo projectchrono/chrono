@@ -21,8 +21,8 @@
 
 #include "chrono/core/ChMatrix.h"
 #include "chrono/assets/ChColor.h"
-#include "chrono/motion_functions/ChFunctionBase.h"
-#include "chrono/motion_functions/ChFunctionInterp.h"
+#include "chrono/functions/ChFunctionBase.h"
+#include "chrono/functions/ChFunctionInterp.h"
 
 #include "chrono_postprocess/ChApiPostProcess.h"
 

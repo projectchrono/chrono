@@ -24,7 +24,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChEngine.h"
 
-#include "chrono/motion_functions/ChFunctionInterp.h"
+#include "chrono/functions/ChFunctionInterp.h"
 
 namespace chrono {
 namespace vehicle {

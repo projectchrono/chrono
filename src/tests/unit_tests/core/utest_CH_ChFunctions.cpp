@@ -18,8 +18,8 @@
 #include <cmath>
 
 #include "gtest/gtest.h"
-#include "chrono/motion_functions/ChFunctionLambda.h"
-#include "chrono/motion_functions/ChFunctionInterp.h"
+#include "chrono/functions/ChFunctionLambda.h"
+#include "chrono/functions/ChFunctionInterp.h"
 #include "chrono/utils/ChConstants.h"
 
 using namespace chrono;

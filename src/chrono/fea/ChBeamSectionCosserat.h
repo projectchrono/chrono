@@ -17,7 +17,7 @@
 
 #include "chrono/core/ChVector2.h"
 #include "chrono/fea/ChBeamSection.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 
 namespace chrono {
 namespace fea {

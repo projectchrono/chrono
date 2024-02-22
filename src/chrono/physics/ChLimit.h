@@ -16,7 +16,7 @@
 #define CHLINKLIMIT_H
 
 #include "chrono/core/ChFrame.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {

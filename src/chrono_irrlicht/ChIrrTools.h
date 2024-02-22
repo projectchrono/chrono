@@ -21,7 +21,7 @@
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/motion_functions/ChFunctionBase.h"
+#include "chrono/functions/ChFunctionBase.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"

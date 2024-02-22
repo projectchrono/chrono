@@ -15,7 +15,7 @@
 #ifndef CHSHAFTSTORQUECONVERTER_H
 #define CHSHAFTSTORQUECONVERTER_H
 
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/physics/ChShaftsCouple.h"
 
 namespace chrono {

@@ -22,7 +22,7 @@
 #include <string>
 
 #include "chrono_vehicle/driver/ChAIDriver.h"
-#include "chrono/motion_functions/ChFunctionInterp.h"
+#include "chrono/functions/ChFunctionInterp.h"
 
 namespace chrono {
 namespace vehicle {

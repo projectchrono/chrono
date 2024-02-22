@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/motion_functions/ChFunctionSine.h"
+#include "chrono/functions/ChFunctionSine.h"
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono/assets/ChVisualSystem.h"

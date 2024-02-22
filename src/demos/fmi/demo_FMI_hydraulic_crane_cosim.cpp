@@ -18,7 +18,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #ifdef CHRONO_POSTPROCESS

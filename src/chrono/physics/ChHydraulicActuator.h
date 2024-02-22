@@ -30,7 +30,7 @@
 #include "chrono/physics/ChExternalDynamics.h"
 #include "chrono/physics/ChHydraulicCircuit.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 
 namespace chrono {
 

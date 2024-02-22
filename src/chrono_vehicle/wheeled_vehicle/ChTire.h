@@ -26,7 +26,7 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/motion_functions/ChFunctionInterp.h"
+#include "chrono/functions/ChFunctionInterp.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChTerrain.h"

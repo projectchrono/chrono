@@ -16,7 +16,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChHydraulicActuator.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 
 // #define FMI2_FUNCTION_PREFIX MyModel_
 #include "chrono_fmi/ChFmuToolsExport.h"

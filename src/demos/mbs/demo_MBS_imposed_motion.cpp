@@ -27,14 +27,14 @@
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
-#include "chrono/motion_functions/ChFunctionPositionLine.h"
-#include "chrono/motion_functions/ChFunctionPositionXYZFunctions.h"
-#include "chrono/motion_functions/ChFunctionPositionSetpoint.h"
-#include "chrono/motion_functions/ChFunctionRotationBSpline.h"
-#include "chrono/motion_functions/ChFunctionRotationABCFunctions.h"
-#include "chrono/motion_functions/ChFunctionRotationSetpoint.h"
-#include "chrono/motion_functions/ChFunctionRotationAxis.h"
-#include "chrono/motion_functions/ChFunctionRotationSQUAD.h"
+#include "chrono/functions/ChFunctionPositionLine.h"
+#include "chrono/functions/ChFunctionPositionXYZFunctions.h"
+#include "chrono/functions/ChFunctionPositionSetpoint.h"
+#include "chrono/functions/ChFunctionRotationBSpline.h"
+#include "chrono/functions/ChFunctionRotationABCFunctions.h"
+#include "chrono/functions/ChFunctionRotationSetpoint.h"
+#include "chrono/functions/ChFunctionRotationAxis.h"
+#include "chrono/functions/ChFunctionRotationSQUAD.h"
 
 #include "chrono/physics/ChLinkMotionImposed.h"
 

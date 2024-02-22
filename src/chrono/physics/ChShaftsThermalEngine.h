@@ -15,7 +15,7 @@
 #ifndef CHSHAFTHERMALENGINE_H
 #define CHSHAFTHERMALENGINE_H
 
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/physics/ChShaftsTorqueBase.h"
 
 namespace chrono {

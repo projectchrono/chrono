@@ -20,7 +20,7 @@
 
 #include "chrono/core/ChFrameMoving.h"
 #include "chrono/core/ChFrame.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/physics/ChObject.h"
 
 namespace chrono {

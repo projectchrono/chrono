@@ -351,7 +351,7 @@ using namespace chrono::fea;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTensors.i"
 // Put this 'director' feature _before_ class wrapping declaration.
 %feature("director") chrono::ChFunction;
-%import(module = "pychrono.core")  "../../../chrono/motion_functions/ChFunction.h"
+%import(module = "pychrono.core")  "../../../chrono/functions/ChFunction.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChPhysicsItem.h"

@@ -13,8 +13,8 @@
 // =============================================================================
 
 #include "chrono/physics/ChLinkMotionImposed.h"
-#include "chrono/motion_functions/ChFunctionRotationABCFunctions.h"
-#include "chrono/motion_functions/ChFunctionPositionXYZFunctions.h"
+#include "chrono/functions/ChFunctionRotationABCFunctions.h"
+#include "chrono/functions/ChFunctionPositionXYZFunctions.h"
 
 namespace chrono {
 

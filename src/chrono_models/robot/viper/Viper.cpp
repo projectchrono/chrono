@@ -35,7 +35,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-#include "chrono/motion_functions/ChFunctionSetpoint.h"
+#include "chrono/functions/ChFunctionSetpoint.h"
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"

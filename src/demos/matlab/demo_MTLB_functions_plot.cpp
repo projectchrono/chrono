@@ -15,7 +15,7 @@
 // and calling Matlab from Chrono (in particular, using Matlab to plot data)
 // =============================================================================
 
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono_matlab/ChMatlabEngine.h"
 
 // Use the namespace of Chrono

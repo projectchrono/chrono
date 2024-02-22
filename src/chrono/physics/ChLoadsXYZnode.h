@@ -25,7 +25,7 @@
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 
 namespace chrono {
 

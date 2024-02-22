@@ -25,7 +25,7 @@
 #include <random>
 #include <cmath>
 
-#include "chrono/motion_functions/ChFunctionSineStep.h"
+#include "chrono/functions/ChFunctionSineStep.h"
 
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/geometry/ChLineSegment.h"

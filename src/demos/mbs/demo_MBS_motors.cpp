@@ -32,7 +32,7 @@
 #include "chrono/physics/ChShaftsGear.h"
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/motion_functions/ChFunctionSine.h"
+#include "chrono/functions/ChFunctionSine.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 

@@ -18,7 +18,7 @@
 #include "chrono/physics/ChShaftsMotor.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"
 #include "chrono/solver/ChVariablesGeneric.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 
 namespace chrono {
 

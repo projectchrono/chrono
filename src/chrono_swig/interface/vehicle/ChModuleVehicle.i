@@ -229,7 +229,7 @@ using namespace chrono::vehicle::m113;
 %import(module = "pychrono.core") "../../../chrono/geometry/ChTriangleMeshConnected.h"
 %import(module = "pychrono.core") "../../../chrono/assets/ChVisualShapeTriangleMesh.h"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChContactContainer.i"
-%import(module = "pychrono.core") "../../../chrono/motion_functions/ChFunction.h"
+%import(module = "pychrono.core") "../../../chrono/functions/ChFunction.h"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChContactMaterial.i"
 %import(module = "pychrono.core") "../../../chrono/fea/ChContinuumMaterial.h"
 %import(module = "pychrono.core") "../../../chrono/physics/ChPhysicsItem.h"

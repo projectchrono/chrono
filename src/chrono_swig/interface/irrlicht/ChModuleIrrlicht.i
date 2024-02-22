@@ -140,7 +140,7 @@ using namespace gui;
 %import(module="pychrono.core") "chrono_swig/interface/core/ChMatrix.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChCoordsys.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChFrame.i"
-// %import(module="pychrono.core") "../../../chrono/motion_functions/ChFunction.h"
+// %import(module="pychrono.core") "../../../chrono/functions/ChFunction.h"
 // %import(module="pychrono.core") "chrono_swig/interface/core/ChFunction.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChPhysicsItem.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVisualMaterial.i"

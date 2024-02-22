@@ -23,7 +23,7 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtils.h"
 
-#include "chrono/motion_functions/ChFunctionSetpoint.h"
+#include "chrono/functions/ChFunctionSetpoint.h"
 
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
