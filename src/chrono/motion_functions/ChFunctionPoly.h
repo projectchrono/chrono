@@ -22,13 +22,11 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// POLYNOMIAL FUNCTION:
-/// `y = a + bx + cx^2 + dx^3 + ...`
+/// Polynomial function.
+/// `y = a + b*x + c*x^2 + d*x^3 + ...`
 class ChApi ChFunctionPoly : public ChFunction {
   private:
-    static const int POLY_COEFF_ARRAY = 6;
-    double coeff[POLY_COEFF_ARRAY];  ///< vector of coefficients
-    int order;                       ///< 0= const, 1= linear, etc...
+    std::vector<double> m_coeffs;
 
   public:
     ChFunctionPoly();
@@ -38,33 +36,29 @@ class ChApi ChFunctionPoly : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionPoly* Clone() const override { return new ChFunctionPoly(*this); }
 
-    virtual FunctionType Get_Type() const override { return FUNCT_POLY; }
-    virtual double Get_y(double x) const override;
-    virtual double Get_y_dx(double x) const override;
-    virtual double Get_y_dxdx(double x) const override;
+    virtual Type GetType() const override { return ChFunction::Type::POLY; }
+    virtual double GetVal(double x) const override;
+    virtual double GetDer(double x) const override;
+    virtual double GetDer2(double x) const override;
 
-    void Set_coeff(double m_coeff, int m_ind) {
-        if (m_ind >= POLY_COEFF_ARRAY) {
-            return;
-        }
-        coeff[m_ind] = m_coeff;
+    /// Set the polynomial coefficients.
+    /// The order of the polynome is equal to the size of the provided vector of coefficients
+    void SetCoefficients(const std::vector<double>& coeffs) {
+        if (coeffs.size() < 1)
+            throw std::invalid_argument("ChFunctionPoly::SetCoefficients: coefficients vector should have at least one element.");
+
+        m_coeffs = coeffs;
     }
 
-    void Set_order(int m_order) {
-        if (m_order >= POLY_COEFF_ARRAY) {
-            m_order = (POLY_COEFF_ARRAY - 1);
-        }
-        order = m_order;
-    }
+    /// Get the polynomial coefficients.
+    std::vector<double> GetCoefficients() const { return m_coeffs; }
 
-    double Get_coeff(int m_ind) const {
-        if (m_ind >= POLY_COEFF_ARRAY) {
-            return 0;
-        }
-        return coeff[m_ind];
-    }
+    /// Get the order of the polynomial.
+    /// This equals the number of coefficients.
+    size_t GetOrder() const { return m_coeffs.size(); }
 
-    int Get_order() const { return order; }
+    /// Get the degree of the polynomial.
+    size_t GetDegree() const { return m_coeffs.size() - 1; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

@@ -80,7 +80,7 @@ v2 = chrono.ChVector3d(1, 3, -1)
 v3 = chrono.ChVector3d(1, 3, -2)
 v4 = chrono.ChVector3d(1, 4, -2)
 controlpoints = chrono.vector_ChVector3d([v1, v2, v3, v4])
-nurbs.SetupData(3, controlpoints)
+nurbs.Setup(3, controlpoints)
 
 nurbsasset = chrono.ChVisualShapeLine()
 nurbsasset.SetLineGeometry(nurbs)
@@ -102,7 +102,7 @@ floor.AddVisualShape(nurbsasset)
 #surfpoints.SetMatr(mlist)
 #
 #msurf = chrono.ChSurfaceNurbs()
-#msurf.SetupData(3, 1, surfpoints)
+#msurf.Setup(3, 1, surfpoints)
 #
 #msurfasset = chrono.ChVisualShapeSurface()
 #msurfasset.Pos = chrono.ChVector3d(3, -1, 3)

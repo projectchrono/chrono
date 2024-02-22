@@ -30,7 +30,7 @@ double M113_EngineSimpleMap::GetMaxEngineSpeed() {
     return 3000 * rpm2rads;
 }
 
-void M113_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionRecorder& map0, ChFunctionRecorder& mapF) {
+void M113_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     const double lbft2Nm = 1.0 / 0.73756;
     
     map0.AddPoint(-100 * rpm2rads, 0 * lbft2Nm);  // to start engine

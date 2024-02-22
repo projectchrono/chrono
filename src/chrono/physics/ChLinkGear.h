@@ -78,7 +78,7 @@ class ChApi ChLinkGear : public ChLinkLock {
     /// Get the initial phase of rotation of gear A respect to gear B
     double Get_phase() const { return phase; }
     /// Set the initial phase of rotation of gear A respect to gear B
-    void Set_phase(double mset) { phase = mset; }
+    void SetPhase(double mset) { phase = mset; }
 
     /// If true, the bigger wheel has inner (internal) teeth
     bool Get_epicyclic() const { return epicyclic; }

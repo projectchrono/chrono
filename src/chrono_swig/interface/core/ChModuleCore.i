@@ -151,7 +151,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChVisualMaterial)
 %shared_ptr(chrono::ChVisualSystem)
 
-%shared_ptr(chrono::ChFunction)  
+%shared_ptr(chrono::ChFunction)
 %shared_ptr(chrono::ChFunctionBSpline)
 %shared_ptr(chrono::ChFunctionConst)
 %shared_ptr(chrono::ChFunctionConstAcc)
@@ -160,17 +160,14 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFunctionFillet3)
 %shared_ptr(chrono::ChFunctionIntegrate)
 %shared_ptr(chrono::ChFunctionMirror)
-%shared_ptr(chrono::ChFunctionMocap)
-%shared_ptr(chrono::ChFunctionNoise)
 %shared_ptr(chrono::ChFunctionOperation)
-%shared_ptr(chrono::ChFunctionOscilloscope)
 %shared_ptr(chrono::ChFunctionPoly)
 %shared_ptr(chrono::ChFunctionPoly345)
 %shared_ptr(chrono::ChFunctionRamp)
-%shared_ptr(chrono::ChFunctionRecorder)
+%shared_ptr(chrono::ChFunctionInterp)
 %shared_ptr(chrono::ChFunctionRepeat)
 %shared_ptr(chrono::ChFunctionSequence)
-%shared_ptr(chrono::ChFunctionSigma)
+%shared_ptr(chrono::ChFunctionPoly23)
 %shared_ptr(chrono::ChFunctionSine)
 %shared_ptr(chrono::ChFunctionSineStep)
 %shared_ptr(chrono::ChFunctionSetpoint)
@@ -346,7 +343,6 @@ using namespace chrono::fea;
 %include "ChGeometry.i"
 
 
-%include "../../../chrono/fea/ChMesh.h"
 
 
 //collision classes
@@ -363,8 +359,11 @@ using namespace chrono::fea;
 %include "../../../chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
 
-// motion_functions/   classes
+// functions/   classes
 %include "ChFunction.i"
+
+%include "../../../chrono/fea/ChMesh.h"
+
 
 // assets
 %include "ChColor.i"

@@ -40,7 +40,7 @@ class CH_VEHICLE_API Pac89Tire : public ChPac89Tire {
 
     virtual double GetNormalStiffnessForce(double depth) const override {
         if (m_has_vert_table) {
-            return m_vert_map.Get_y(depth);
+            return m_vert_map.GetVal(depth);
         } else {
             return m_normalStiffness * depth;
         }
@@ -68,7 +68,7 @@ class CH_VEHICLE_API Pac89Tire : public ChPac89Tire {
     ChVector3d m_inertia;
     bool m_has_mesh;
     bool m_has_vert_table;
-    ChFunctionRecorder m_vert_map;
+    ChFunctionInterp m_vert_map;
 
     double m_visualization_width;
     std::string m_meshFile_left;

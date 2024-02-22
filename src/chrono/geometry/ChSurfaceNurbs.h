@@ -110,7 +110,7 @@ class ChApi ChSurfaceNurbs : public ChSurface {
     /// Initial easy setup from a given array of control points. Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
     /// If the weights are not provided, a constant weight vector is made.
-    virtual void SetupData(int morder_u,  ///< order pu: 1= linear, 2=quadratic, etc.
+    virtual void Setup(int morder_u,  ///< order pu: 1= linear, 2=quadratic, etc.
                            int morder_v,  ///< order pv: 1= linear, 2=quadratic, etc.
                            ChMatrixDynamic<ChVector3d >&
                                mpoints,  ///< control points, size nuxnv. Required: at least nu >= pu+1, same for v

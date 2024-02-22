@@ -126,13 +126,13 @@ See @ref chrono::ChFunction for API details and a list of subclasses.
 ~~~{.cpp}
 	ChFunctionRamp f_ramp;
 
-	f_ramp.Set_ang(0.1);	// set angular coefficient;
+	f_ramp.SetAngularCoeff(0.1);	// set angular coefficient;
 	f_ramp.Set_y0(0.4);		// set y value for x=0;
 
-	// Evaluate y=f(x) function at a given x value, using Get_y() :
-	double y	= f_ramp.Get_y(10);
-	// Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
-	double ydx	= f_ramp.Get_y_dx(10);
+	// Evaluate y=f(x) function at a given x value, using GetVal() :
+	double y	= f_ramp.GetVal(10);
+	// Evaluate derivative df(x)/dx at a given x value, using GetDer() :
+	double ydx	= f_ramp.GetDer(10);
 
 	std::cout << "   ChFunctionRamp at x=0: y=" << y << "  dy/dx=" << ydx << std::endl;
 ~~~
@@ -155,9 +155,9 @@ Save values of a sine ChFunction  into a file.
 	for (int i=0; i<100; i++)
 	{
 		double x = (double)i/50.0;
-		double y = f_sine.Get_y(x);
-		double ydx = f_sine.Get_y_dx(x);
-		double ydxdx = f_sine.Get_y_dxdx(x);
+		double y = f_sine.GetVal(x);
+		double ydx = f_sine.GetDer(x);
+		double ydxdx = f_sine.GetDer2(x);
 		file_f_sine << x << " " << y << " " << ydx << " " << ydxdx << std::endl;
 	}	
 ~~~
@@ -185,7 +185,7 @@ class ChFunctionMyTest : public ChFunction
 {
 public:
 	ChFunction* new_Duplicate() {return new ChFunctionMyTest;} 
-	double Get_y(double x) {return cos(x);} // just for test: simple cosine
+	double GetVal(double x) {return cos(x);} // just for test: simple cosine
 };
 
 ChFunctionMyTest f_test;
@@ -197,9 +197,9 @@ std::ofstream file_f_test ("f_test_out.dat");
 for (int i=0; i<100; i++)
 {
 	double x = (double)i/50.0;
-	double y = f_test.Get_y(x);
-	double ydx = f_test.Get_y_dx(x);
-	double ydxdx = f_test.Get_y_dxdx(x);
+	double y = f_test.GetVal(x);
+	double ydx = f_test.GetDer(x);
+	double ydxdx = f_test.GetDer2(x);
 	file_f_test << x << " " << y << " " << ydx << " " << ydxdx << std::endl;
 }
 ~~~

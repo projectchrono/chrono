@@ -13,27 +13,24 @@
 #ifndef CHFUNCT_H
 #define CHFUNCT_H
 
-#include "chrono/motion_functions/ChFunctionConst.h"
 #include "chrono/motion_functions/ChFunctionBSpline.h"
+#include "chrono/motion_functions/ChFunctionConst.h"
 #include "chrono/motion_functions/ChFunctionConstAcc.h"
 #include "chrono/motion_functions/ChFunctionConstJerk.h"
 #include "chrono/motion_functions/ChFunctionCycloidal.h"
 #include "chrono/motion_functions/ChFunctionDerive.h"
 #include "chrono/motion_functions/ChFunctionFillet3.h"
 #include "chrono/motion_functions/ChFunctionIntegrate.h"
+#include "chrono/motion_functions/ChFunctionInterp.h"
 #include "chrono/motion_functions/ChFunctionMirror.h"
-#include "chrono/motion_functions/ChFunctionMocap.h"
-#include "chrono/motion_functions/ChFunctionNoise.h"
 #include "chrono/motion_functions/ChFunctionOperation.h"
-#include "chrono/motion_functions/ChFunctionOscilloscope.h"
-#include "chrono/motion_functions/ChFunctionPoly345.h"
 #include "chrono/motion_functions/ChFunctionPoly.h"
+#include "chrono/motion_functions/ChFunctionPoly23.h"
+#include "chrono/motion_functions/ChFunctionPoly345.h"
 #include "chrono/motion_functions/ChFunctionRamp.h"
-#include "chrono/motion_functions/ChFunctionRecorder.h"
 #include "chrono/motion_functions/ChFunctionRepeat.h"
 #include "chrono/motion_functions/ChFunctionSequence.h"
-#include "chrono/motion_functions/ChFunctionSigma.h"
-#include "chrono/motion_functions/ChFunctionSine.h"
 #include "chrono/motion_functions/ChFunctionSetpoint.h"
+#include "chrono/motion_functions/ChFunctionSine.h"
 
 #endif

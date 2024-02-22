@@ -331,11 +331,11 @@ int main(int argc, char* argv[]) {
             ((abs_roll_wC.GetRotMat().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
 
         if (auto fun = std::dynamic_pointer_cast<ChFunctionConst>(link_shaftA->GetSpeedFunction()))
-            fun->Set_yconst(wheel_A_rotspeed);
+            fun->SetConstant(wheel_A_rotspeed);
         if (auto fun = std::dynamic_pointer_cast<ChFunctionConst>(link_shaftB->GetSpeedFunction()))
-            fun->Set_yconst(wheel_B_rotspeed);
+            fun->SetConstant(wheel_B_rotspeed);
         if (auto fun = std::dynamic_pointer_cast<ChFunctionConst>(link_shaftC->GetSpeedFunction()))
-            fun->Set_yconst(wheel_C_rotspeed);
+            fun->SetConstant(wheel_C_rotspeed);
 
         realtime_timer.Spin(timestep);
     }

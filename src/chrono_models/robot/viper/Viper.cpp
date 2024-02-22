@@ -669,8 +669,8 @@ void Viper::Update() {
         ChClampValue(steering, -m_max_steer_angle, +m_max_steer_angle);
 
         // Set motor functions
-        m_steer_motor_funcs[i]->Set_yconst(steering);
-        m_lift_motor_funcs[i]->Set_yconst(lifting);
+        m_steer_motor_funcs[i]->SetConstant(steering);
+        m_lift_motor_funcs[i]->SetConstant(lifting);
         if (m_driver->GetDriveMotorType() == ViperDriver::DriveMotorType::SPEED)
             m_drive_motor_funcs[i]->SetSetpoint(driving, time);
     }

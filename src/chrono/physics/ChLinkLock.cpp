@@ -2138,23 +2138,23 @@ void ChLinkLockLock::UpdateTime(double time) {
 
     // Update motion position/speed/acceleration by motion laws
     // as expressed by specific link CH functions
-    deltaC.pos.x() = motion_X->Get_y(time);
-    deltaC_dt.pos.x() = motion_X->Get_y_dx(time);
-    deltaC_dtdt.pos.x() = motion_X->Get_y_dxdx(time);
+    deltaC.pos.x() = motion_X->GetVal(time);
+    deltaC_dt.pos.x() = motion_X->GetDer(time);
+    deltaC_dtdt.pos.x() = motion_X->GetDer2(time);
 
-    deltaC.pos.y() = motion_Y->Get_y(time);
-    deltaC_dt.pos.y() = motion_Y->Get_y_dx(time);
-    deltaC_dtdt.pos.y() = motion_Y->Get_y_dxdx(time);
+    deltaC.pos.y() = motion_Y->GetVal(time);
+    deltaC_dt.pos.y() = motion_Y->GetDer(time);
+    deltaC_dtdt.pos.y() = motion_Y->GetDer2(time);
 
-    deltaC.pos.z() = motion_Z->Get_y(time);
-    deltaC_dt.pos.z() = motion_Z->Get_y_dx(time);
-    deltaC_dtdt.pos.z() = motion_Z->Get_y_dxdx(time);
+    deltaC.pos.z() = motion_Z->GetVal(time);
+    deltaC_dt.pos.z() = motion_Z->GetDer(time);
+    deltaC_dtdt.pos.z() = motion_Z->GetDer2(time);
 
     switch (angleset) {
         case RotRepresentation::ANGLE_AXIS:
-            ang = motion_ang->Get_y(time);
-            ang_dt = motion_ang->Get_y_dx(time);
-            ang_dtdt = motion_ang->Get_y_dxdx(time);
+            ang = motion_ang->GetVal(time);
+            ang_dt = motion_ang->GetDer(time);
+            ang_dtdt = motion_ang->GetDer2(time);
 
             if ((ang != 0) || (ang_dt != 0) || (ang_dtdt != 0)) {
                 deltaC.rot = QuatFromAngleAxis(ang, motion_axis);
@@ -2171,15 +2171,15 @@ void ChLinkLockLock::UpdateTime(double time) {
         case RotRepresentation::CARDAN_ANGLES_ZYX:
         case RotRepresentation::CARDAN_ANGLES_XYZ: {
             ChVector3d vangles, vangles_dt, vangles_dtdt;
-            vangles.x() = motion_ang->Get_y(time);
-            vangles.y() = motion_ang2->Get_y(time);
-            vangles.z() = motion_ang3->Get_y(time);
-            vangles_dt.x() = motion_ang->Get_y_dx(time);
-            vangles_dt.y() = motion_ang2->Get_y_dx(time);
-            vangles_dt.z() = motion_ang3->Get_y_dx(time);
-            vangles_dtdt.x() = motion_ang->Get_y_dxdx(time);
-            vangles_dtdt.y() = motion_ang2->Get_y_dxdx(time);
-            vangles_dtdt.z() = motion_ang3->Get_y_dxdx(time);
+            vangles.x() = motion_ang->GetVal(time);
+            vangles.y() = motion_ang2->GetVal(time);
+            vangles.z() = motion_ang3->GetVal(time);
+            vangles_dt.x() = motion_ang->GetDer(time);
+            vangles_dt.y() = motion_ang2->GetDer(time);
+            vangles_dt.z() = motion_ang3->GetDer(time);
+            vangles_dtdt.x() = motion_ang->GetDer2(time);
+            vangles_dtdt.y() = motion_ang2->GetDer2(time);
+            vangles_dtdt.z() = motion_ang3->GetDer2(time);
             deltaC.rot = QuatFromAngleSet({angleset, vangles});
             deltaC_dt.rot = QuatDerFromAngleSet({angleset, vangles_dt}, deltaC.rot);
             deltaC_dtdt.rot = QuatDer2FromAngleSet({angleset, vangles_dtdt}, deltaC.rot);

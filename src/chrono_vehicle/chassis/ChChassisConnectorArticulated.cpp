@@ -49,7 +49,7 @@ void ChChassisConnectorArticulated::Initialize(std::shared_ptr<ChChassis> front,
 
 void ChChassisConnectorArticulated::Synchronize(double time, const DriverInputs& driver_inputs) {
     auto fun = std::static_pointer_cast<ChFunctionConst>(m_motor->GetAngleFunction());
-    fun->Set_yconst(-GetMaxSteeringAngle() * driver_inputs.m_steering);
+    fun->SetConstant(-GetMaxSteeringAngle() * driver_inputs.m_steering);
 }
 
 }  // end namespace vehicle

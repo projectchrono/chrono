@@ -15,147 +15,138 @@
 #ifndef CHFUNCT_BASE_H
 #define CHFUNCT_BASE_H
 
-#include <memory.h>
-#include <cfloat>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <list>
-
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChFrame.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 
 /// @addtogroup chrono_functions
 /// @{
 
-/// Interface base class for scalar functions of the type:  `y= f(x)`
+/// Interface base class for scalar functions.
 ///
-/// The ChFunction class defines the base class for all Chrono
-/// functions of type y = f(x), that is scalar functions of an
-/// input variable x (usually, the time). ChFunctions are often
-/// used to set time-dependent properties, for example to set
-/// motion laws in linear actuators, engines, etc.
-/// This base class just represent a constant function of
-/// the type y = C. Inherited classes must override at least the
-/// Get_y() method, in order to represent more complex functions.
-
+/// Base class for all Chrono scalar functions.
+/// The ::GetVal() and ::Clone() methods must be implemented by derived classes.
 class ChApi ChFunction {
   public:
     /// Enumeration of function types.
-    enum FunctionType {
-        FUNCT_CUSTOM,
-        FUNCT_CONST,
-        FUNCT_CONSTACC,
-        FUNCT_DERIVE,
-        FUNCT_FILLET3,
-        FUNCT_INTEGRATE,
-        FUNCT_MATLAB,
-        FUNCT_MIRROR,
-        FUNCT_MOCAP,
-        FUNCT_NOISE,
-        FUNCT_OPERATION,
-        FUNCT_OSCILLOSCOPE,
-        FUNCT_POLY,
-        FUNCT_POLY345,
-        FUNCT_RAMP,
-        FUNCT_RECORDER,
-        FUNCT_REPEAT,
-        FUNCT_SEQUENCE,
-        FUNCT_SIGMA,
-        FUNCT_SINE,
-        FUNCT_SINE_STEP,
-        FUNCT_LAMBDA,
-        FUNCT_CYCLOIDAL,
-        FUNCT_BSPLINE,
-        FUNCT_CONSTJERK
+    enum class Type {
+        BSPLINE,
+        CONSTANT,
+        CONSTACC,
+        CONSTJERK,
+        CUSTOM,
+        CYCLOIDAL,
+        DERIVE,
+        FILLET3,
+        INTEGRATE,
+        INTERP,
+        LAMBDA,
+        MIRROR,
+        OPERATION,
+        POLY,
+        POLY23,
+        POLY345,
+        RAMP,
+        REPEAT,
+        SEQUENCE,
+        SINE,
+        SINE_STEP
     };
 
-  public:
-    ChFunction() {}
+    ChFunction() : m_der_perturbation(1e-7) {}
+
     ChFunction(const ChFunction& other) {}
+
     virtual ~ChFunction() {}
 
     /// "Virtual" copy constructor.
     virtual ChFunction* Clone() const = 0;
 
     /// Return the unique function type identifier.
-    virtual FunctionType Get_Type() const { return FUNCT_CUSTOM; }
+    virtual Type GetType() const { return ChFunction::Type::CUSTOM; }
 
-    // THE MOST IMPORTANT MEMBER FUNCTIONS
-    // At least Get_y() should be overridden by derived classes.
+    /// Return the function output for input \a x.
+    /// Must be overridden by specialized classes.
+    virtual double GetVal(double x) const = 0;
 
-    /// Return the y value of the function, at position x.
-    virtual double Get_y(double x) const = 0;
+    /// Return the first derivative of the function.
+    /// Default implementation computes a numerical differentiation.
+    /// Inherited classes may override this method with a more efficient implementation (e.g. analytical solution).
+    virtual double GetDer(double x) const;
 
-    /// Return the dy/dx derivative of the function, at position x.
-    /// Note that inherited classes may also avoid overriding this method,
-    /// because this base method already provide a general-purpose numerical differentiation
-    /// to get dy/dx only from the Get_y() function. (however, if the analytical derivative
-    /// is known, it may be better to implement a custom method).
-    virtual double Get_y_dx(double x) const;
+    /// Return the second derivative of the function.
+    /// Default implementation computes a numerical differentiation.
+    /// Inherited classes may override this method with a more efficient implementation (e.g. analytical solution).
+    virtual double GetDer2(double x) const;
 
-    /// Return the ddy/dxdx double derivative of the function, at position x.
-    /// Note that inherited classes may also avoid overriding this method,
-    /// because this base method already provide a general-purpose numerical differentiation
-    /// to get ddy/dxdx only from the Get_y() function. (however, if the analytical derivative
-    /// is known, it may be better to implement a custom method).
-    virtual double Get_y_dxdx(double x) const;
+    /// Return the third derivative of the function.
+    /// Default implementation computes a numerical differentiation.
+    /// Inherited classes may override this method with a more efficient implementation (e.g. analytical solution).
+    virtual double GetDer3(double x) const;
 
-    /// Return the dddy/dxdxdx triple derivative of the function, at position x.
-    /// Note that inherited classes may also avoid overriding this method,
-    /// because this base method already provide a general-purpose numerical differentiation
-    /// to get dddy/dxdxdx only from the Get_y() function. (however, if the analytical derivative
-    /// is known, it may be better to implement a custom method).
-    virtual double Get_y_dxdxdx(double x) const;
+    /// Return the Nth derivative of the function (up to 3rd derivative).
+    /// Alias for other GetDerX functions.
+    virtual double GetDerN(double x, int der_order) const;
 
     /// Return the weight of the function (useful for
     /// applications where you need to mix different weighted ChFunctions)
-    virtual double Get_weight(double x) const { return 1.0; }
-
-    /// Return an estimate of the range of the function argument.
-    virtual void Estimate_x_range(double& xmin, double& xmax) const;
-
-    /// Return an estimate of the range of the function value.
-    virtual void Estimate_y_range(double xmin, double xmax, double& ymin, double& ymax, int derivate) const;
-
-    /// Return the function derivative of specified order at the given point.
-    /// Note that only order = 0, 1, 2, or 3 is supported.
-    virtual double Get_y_dN(double x, int derivate) const;
+    virtual double GetWeight(double x) const { return 1.0; }
 
     /// Update could be implemented by children classes, ex. to launch callbacks
     virtual void Update(double x) {}
 
-    //
-    // Some analysis functions. If derivate=0, they are applied on y(x), if derivate =1, on dy/dx, etc.
-    //
+    /// Estimate the maximum of the function (or its \a der_order derivative) in the range [\a xmin, \a xmax], using
+    /// sampling method.
+    virtual double GetMax(double xmin, double xmax, double sampling_step, int der_order) const;
 
-    /// Compute the maximum of y(x) in a range xmin-xmax, using a sampling method.
-    virtual double Compute_max(double xmin, double xmax, double sampling_step, int derivate) const;
-    /// Compute the minimum of y(x) in a range xmin-xmax, using a sampling method.
-    virtual double Compute_min(double xmin, double xmax, double sampling_step, int derivate) const;
-    /// Compute the mean value of y(x) in a range xmin-xmax, using a sampling method.
-    virtual double Compute_mean(double xmin, double xmax, double sampling_step, int derivate) const;
-    /// Compute the square mean val. of y(x) in a range xmin-xmax, using sampling.
-    virtual double Compute_sqrmean(double xmin, double xmax, double sampling_step, int derivate) const;
-    /// Compute the integral of y(x) in a range xmin-xmax, using a sampling method.
-    virtual double Compute_int(double xmin, double xmax, double sampling_step, int derivate) const;
-    /// Computes the positive acceleration coefficient (inherited classes should customize this).
-    virtual double Get_Ca_pos() const { return 0; }
-    /// Compute the positive acceleration coefficient (inherited classes should customize this).
-    virtual double Get_Ca_neg() const { return 0; }
-    /// Compute the speed coefficient (inherited classes must customize this).
-    virtual double Get_Cv() const { return 0; }
+    /// Estimate the minimum of the function (or its \a der_order derivative) in the range [\a xmin, \a xmax], using
+    /// sampling method.
+    virtual double GetMin(double xmin, double xmax, double sampling_step, int der_order) const;
 
-    // If the function has some handles (mouse-sensible markers on screen), implement these functions
+    /// Estimate the mean of the function (or its \a der_order derivative) in the range [\a xmin, \a xmax], using
+    /// sampling method.
+    virtual double GetMean(double xmin, double xmax, double sampling_step, int der_order) const;
 
-    /// Return the number of handles of the function
-    virtual int HandleNumber() const { return 0; }
+    /// Estimate the squared mean of the function (or its \a der_order derivative) in the range [\a xmin, \a xmax],
+    /// using sampling method.
+    virtual double GetSquaredMean(double xmin, double xmax, double sampling_step, int der_order) const;
 
-    /// Get the x and y position of handle, given identifier.
-    /// If set mode, x and y values are stored. Return false if handle not found.
-    virtual bool HandleAccess(int handle_id, double mx, double my, bool set_mode) { return true; }
+    /// Estimate the integral of the function (or its \a der_order derivative) over the range [\a xmin, \a xmax], using
+    /// sampling method.
+    virtual double GetIntegral(double xmin, double xmax, double sampling_step, int der_order) const;
+
+    /// Computes the positive acceleration coefficient (inherited classes should override this).
+    virtual double GetPositiveAccelerationCoeff() const { return 0.0; }
+
+    /// Compute the negative acceleration coefficient (inherited classes should override this).
+    virtual double GetNegativeAccelerationCoeff() const { return 0.0; }
+
+    /// Compute the velocity coefficient (inherited classes must override this).
+    virtual double GetVelocityCoefficient() const { return 0.0; }
+
+    /// Store X-Y pairs to an ASCII File.
+    /// Values are separated by \a delimiter (default=',').
+    /// The function is sampled \a samples times, from \a xmin to \a xmax.
+    virtual int OutputToASCIIFile(std::ostream& file,
+                                  double xmin = 0,
+                                  double xmax = 1,
+                                  int samples = 200,
+                                  char delimiter = ',');
+
+    /// Sample function on given interval [\a xmin, \a xmax], up to \a derN derivative (0 being the function ouput
+    /// itself). Store interval x=[xmin:step:xmax] and function evaluations as columns into matrix.
+    virtual ChMatrixDynamic<> SampleUpToDerN(double xmin, double xmax, double step, int derN = 0);
+
+    /// Set the perturbation value used for numerical differentiation (default: 1e-7).
+    void SetNumericDiffPerturbation(double pert) { m_der_perturbation = pert; }
+
+    /// Get the perturbation value used for numerical differentiation.
+    double GetNumericDiffPerturbation() const { return m_der_perturbation; }
+
+    /// Alias operator of the GetVal function
+    double operator()(double arg) const { return GetVal(arg); }
 
     /// Method to allow serialization of transient data to archives
     virtual void ArchiveOut(ChArchiveOut& marchive);
@@ -163,19 +154,13 @@ class ChApi ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive);
 
-    /// Save function as X-Y pairs separated by space, with CR at each pair, into an ASCII file.
-    /// The output file can be later loaded into Excel, GnuPlot or other tools.
-    /// The function is 'sampled' for nsteps times, from xmin to xmax.
-    virtual int FileAsciiPairsSave(std::ostream& file, double xmin = 0, double xmax = 1, int msamples = 200);
-
-    /// Sample function on entire interval, up to Nth derivative (der = 0: y, 1: y_dx, 2: y_dxdx, 3: y_dxdxdx).
-    /// Store interval x=[xmin:step:xmax] and function evaluations as columns into (resized) matrix.
-    virtual void EvaluateIntervaldN(ChMatrixDynamic<>& data, double xmin, double xmax, double step, int der = 0);
+  protected:
+    double m_der_perturbation;  ///< perturbation value used for numerical differentiation
 };
 
 /// @} chrono_functions
 
-CH_CLASS_VERSION(ChFunction, 0)
+ CH_CLASS_VERSION(ChFunction, 0)
 
 }  // end namespace chrono
 

@@ -223,7 +223,7 @@ void ExampleA4(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // We could use pre-defined ChFunction classes like sine, constant, ramp, etc.,
     // but in this example we show how to implement a custom function: a
     // torque(speed) function that represents a three-phase electric induction motor.
-    // Just inherit from ChFunction and implement Get_y() so that it returns different
+    // Just inherit from ChFunction and implement GetVal() so that it returns different
     // values (regrdless of time x) depending only on the slip speed of the motor:
     class MyTorqueCurve : public ChFunction {
       public:
@@ -236,7 +236,7 @@ void ExampleA4(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
 
         virtual MyTorqueCurve* Clone() const override { return new MyTorqueCurve(*this); }
 
-        virtual double Get_y(double x) const override {
+        virtual double GetVal(double x) const override {
             // The three-phase torque(speed) model
             double w = mymotor->GetMotorRot_dt();
             double s = (ns - w) / ns;  // slip
@@ -432,7 +432,7 @@ void ExampleB4(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     sys.Add(motor4);
 
     // Create a ChFunction that computes F by a user-defined algorithm, as a callback.
-    // One quick option would be to inherit from the ChFunction base class, and implement the Get_y()
+    // One quick option would be to inherit from the ChFunction base class, and implement the GetVal()
     // function by putting the code you wish, as explained in demo_CH_functions.cpp. However this has some
     // limitations. A more powerful approach is to inherit from ChFunctionSetpointCallback, that automatically
     // computes the derivatives, if needed, by BDF etc. Therefore:
@@ -441,7 +441,7 @@ void ExampleB4(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
 
     class MyForceClass : public ChFunctionSetpointCallback {
       public:
-        // Here some specific data to be used in Get_y(),
+        // Here some specific data to be used in GetVal(),
         // add whatever you need, ex:
         double setpoint_position_sine_amplitude;
         double setpoint_position_sine_freq;

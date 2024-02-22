@@ -679,14 +679,14 @@ void Curiosity::Update() {
         double steering = m_driver->steer_angles[i];
         // Enforce maximum steering angle
         ChClampValue(steering, -max_steer_angle, +max_steer_angle);
-        m_rocker_motor_funcs[i]->Set_yconst(steering);
+        m_rocker_motor_funcs[i]->SetConstant(steering);
     }
 
     for (int i = 0; i < 2; i++) {
         double steering = m_driver->steer_angles[i + 2];
         // Enforce maximum steering angle
         ChClampValue(steering, -max_steer_angle, +max_steer_angle);
-        m_bogie_motor_funcs[i]->Set_yconst(steering);
+        m_bogie_motor_funcs[i]->SetConstant(steering);
     }
 }
 

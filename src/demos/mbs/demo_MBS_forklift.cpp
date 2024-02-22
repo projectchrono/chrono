@@ -315,42 +315,42 @@ class MyEventReceiver : public IEventReceiver {
                 case irr::KEY_KEY_Q:
                     if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(
                             forklift->link_steer_engineB->GetAngleFunction()))
-                        mfun->Set_yconst(+0.3 + mfun->Get_yconst());
+                        mfun->SetConstant(+0.3 + mfun->GetConstant());
                     return true;
                 case irr::KEY_KEY_W:
                     if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(
                             forklift->link_steer_engineB->GetAngleFunction()))
-                        mfun->Set_yconst(-0.3 + mfun->Get_yconst());
+                        mfun->SetConstant(-0.3 + mfun->GetConstant());
                     return true;
                 case irr::KEY_KEY_A:
                     if (auto mfun =
                             std::dynamic_pointer_cast<ChFunctionConst>(forklift->link_engineB->GetSpeedFunction()))
-                        mfun->Set_yconst(0.5 + mfun->Get_yconst());
+                        mfun->SetConstant(0.5 + mfun->GetConstant());
                     return true;
                 case irr::KEY_KEY_Z:
                     if (auto mfun =
                             std::dynamic_pointer_cast<ChFunctionConst>(forklift->link_engineB->GetSpeedFunction()))
-                        mfun->Set_yconst(-0.5 + mfun->Get_yconst());
+                        mfun->SetConstant(-0.5 + mfun->GetConstant());
                     return true;
                 case irr::KEY_KEY_S:
                     if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(
                             forklift->link_actuatorFork->GetActuatorFunction()))
-                        mfun->Set_yconst(0.05 + mfun->Get_yconst());
+                        mfun->SetConstant(0.05 + mfun->GetConstant());
                     return true;
                 case irr::KEY_KEY_X:
                     if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(
                             forklift->link_actuatorFork->GetActuatorFunction()))
-                        mfun->Set_yconst(-0.05 + mfun->Get_yconst());
+                        mfun->SetConstant(-0.05 + mfun->GetConstant());
                     return true;
                 case irr::KEY_KEY_D:
                     if (auto mfun =
                             std::dynamic_pointer_cast<ChFunctionConst>(forklift->link_engineArm->GetAngleFunction()))
-                        mfun->Set_yconst(0.005 + mfun->Get_yconst());
+                        mfun->SetConstant(0.005 + mfun->GetConstant());
                     return true;
                 case irr::KEY_KEY_C:
                     if (auto mfun =
                             std::dynamic_pointer_cast<ChFunctionConst>(forklift->link_engineArm->GetAngleFunction()))
-                        mfun->Set_yconst(-0.005 + mfun->Get_yconst());
+                        mfun->SetConstant(-0.005 + mfun->GetConstant());
                     return true;
                 default:
                     break;

@@ -196,8 +196,8 @@ double ChLinkLimit::GetForce(double x, double x_dt) const {
         if (cush_coord_norm > 1)
             cush_coord_norm = 1;  // clip cushion forces at stopper limit
 
-        force = cush_coord * m_Kmin * m_Kmin_modul->Get_y(cush_coord_norm);
-        force += (-x_dt) * m_Rmin * m_Rmin_modul->Get_y(cush_coord_norm);
+        force = cush_coord * m_Kmin * m_Kmin_modul->GetVal(cush_coord_norm);
+        force += (-x_dt) * m_Rmin * m_Rmin_modul->GetVal(cush_coord_norm);
         if (force < 0) {
             force = 0;
         }  // damping could cause neg force while going away,
@@ -217,8 +217,8 @@ double ChLinkLimit::GetForce(double x, double x_dt) const {
         if (cush_coord_norm > 1)
             cush_coord_norm = 1;  // clip cushion forces at stopper limit
 
-        force = (-cush_coord) * m_Kmax * m_Kmax_modul->Get_y(cush_coord_norm);
-        force += (-x_dt) * m_Rmax * m_Rmax_modul->Get_y(cush_coord_norm);
+        force = (-cush_coord) * m_Kmax * m_Kmax_modul->GetVal(cush_coord_norm);
+        force += (-x_dt) * m_Rmax * m_Rmax_modul->GetVal(cush_coord_norm);
         if (force > 0) {
             force = 0;
         }  // damping could cause pos force while going away,
@@ -231,7 +231,7 @@ double ChLinkLimit::GetForce(double x, double x_dt) const {
 double ChLinkLimit::GetMaxPolarAngle(double pol_ang) const {
     if (!m_polarMax_funct)
         return 0.001;
-    return m_polarMax_funct->Get_y(pol_ang);
+    return m_polarMax_funct->GetVal(pol_ang);
 }
 
 // The same, but for conical limits, in polar coordinates
@@ -252,7 +252,7 @@ double ChLinkLimit::GetPolarForce(double x, double x_dt, double pol_ang) const {
         max_val = 999999999;
     }
 
-    ang_max = m_polarMax_funct->Get_y(pol_ang);
+    ang_max = m_polarMax_funct->GetVal(pol_ang);
 
     if (x < max_val && x > ang_max - m_maxCushion) {
         cushion_thick = m_maxCushion;
@@ -270,8 +270,8 @@ double ChLinkLimit::GetPolarForce(double x, double x_dt, double pol_ang) const {
         if (cush_coord_norm > 1)
             cush_coord_norm = 1;
 
-        force = (-cush_coord) * m_Kmax * m_Kmax_modul->Get_y(cush_coord_norm);
-        force += (-x_dt) * m_Rmax * m_Rmax_modul->Get_y(cush_coord_norm);
+        force = (-cush_coord) * m_Kmax * m_Kmax_modul->GetVal(cush_coord_norm);
+        force += (-x_dt) * m_Rmax * m_Rmax_modul->GetVal(cush_coord_norm);
 
         // damping could cause pos force while going away,
         // so, since the limit is not "sticky", clip force sign.

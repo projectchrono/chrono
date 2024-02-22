@@ -1057,89 +1057,80 @@ source_group(timestepper FILES
 
 # Motion functions group
 
-set(ChronoEngine_motion_functions_SOURCES
-    motion_functions/ChFunctionBase.cpp
+set(ChronoEngine_functions_SOURCES
 	motion_functions/ChFunctionBSpline.cpp
+	motion_functions/ChFunctionCycloidal.cpp
+    motion_functions/ChFunctionBase.cpp
     motion_functions/ChFunctionConst.cpp
     motion_functions/ChFunctionConstAcc.cpp
     motion_functions/ChFunctionConstJerk.cpp
-	motion_functions/ChFunctionCycloidal.cpp
     motion_functions/ChFunctionDerive.cpp
     motion_functions/ChFunctionFillet3.cpp
     motion_functions/ChFunctionIntegrate.cpp
+    motion_functions/ChFunctionInterp.cpp
     motion_functions/ChFunctionMirror.cpp
-    motion_functions/ChFunctionMocap.cpp
-    motion_functions/ChFunctionNoise.cpp
     motion_functions/ChFunctionOperation.cpp
-    motion_functions/ChFunctionOscilloscope.cpp
-    motion_functions/ChFunctionPoly345.cpp
     motion_functions/ChFunctionPoly.cpp
-    motion_functions/ChFunctionRamp.cpp
-    motion_functions/ChFunctionRecorder.cpp
-    motion_functions/ChFunctionRepeat.cpp
-    motion_functions/ChFunctionSequence.cpp
-    motion_functions/ChFunctionSigma.cpp
-    motion_functions/ChFunctionSine.cpp
-    motion_functions/ChFunctionSineStep.cpp
-    motion_functions/ChFunctionSetpoint.cpp
+    motion_functions/ChFunctionPoly23.cpp
+    motion_functions/ChFunctionPoly345.cpp
     motion_functions/ChFunctionPosition.cpp
-    motion_functions/ChFunctionPositionXYZFunctions.cpp
     motion_functions/ChFunctionPositionLine.cpp
     motion_functions/ChFunctionPositionSetpoint.cpp
+    motion_functions/ChFunctionPositionXYZFunctions.cpp
+    motion_functions/ChFunctionRamp.cpp
+    motion_functions/ChFunctionRepeat.cpp
     motion_functions/ChFunctionRotation.cpp
-    motion_functions/ChFunctionRotationAxis.cpp
     motion_functions/ChFunctionRotationABCFunctions.cpp
-    motion_functions/ChFunctionRotationSetpoint.cpp
+    motion_functions/ChFunctionRotationAxis.cpp
     motion_functions/ChFunctionRotationBSpline.cpp
+    motion_functions/ChFunctionRotationSetpoint.cpp
     motion_functions/ChFunctionRotationSQUAD.cpp
+    motion_functions/ChFunctionSequence.cpp
+    motion_functions/ChFunctionSetpoint.cpp
+    motion_functions/ChFunctionSine.cpp
+    motion_functions/ChFunctionSineStep.cpp
     )
 
-set(ChronoEngine_motion_functions_HEADERS
+set(ChronoEngine_functions_HEADERS
+	motion_functions/ChFunctionBSpline.h
+	motion_functions/ChFunctionCycloidal.h
     motion_functions/ChFunction.h
     motion_functions/ChFunctionBase.h
-	motion_functions/ChFunctionBSpline.h
     motion_functions/ChFunctionConst.h
     motion_functions/ChFunctionConstAcc.h
     motion_functions/ChFunctionConstJerk.h
-	motion_functions/ChFunctionCycloidal.h
     motion_functions/ChFunctionDerive.h
     motion_functions/ChFunctionFillet3.h
     motion_functions/ChFunctionIntegrate.h
+    motion_functions/ChFunctionInterp.h
+    motion_functions/ChFunctionLambda.h
     motion_functions/ChFunctionMirror.h
-    motion_functions/ChFunctionMocap.h
-    motion_functions/ChFunctionNoise.h
     motion_functions/ChFunctionOperation.h
-    motion_functions/ChFunctionOscilloscope.h
-    motion_functions/ChFunctionPoly345.h
     motion_functions/ChFunctionPoly.h
-    motion_functions/ChFunctionRamp.h
-    motion_functions/ChFunctionRecorder.h
-    motion_functions/ChFunctionRepeat.h
-    motion_functions/ChFunctionSequence.h
-    motion_functions/ChFunctionSigma.h
-    motion_functions/ChFunctionSine.h
-    motion_functions/ChFunctionSineStep.h
-    motion_functions/ChFunctionSetpoint.h
+    motion_functions/ChFunctionPoly23.h
+    motion_functions/ChFunctionPoly345.h
     motion_functions/ChFunctionPosition.h
-    motion_functions/ChFunctionPositionXYZFunctions.h
     motion_functions/ChFunctionPositionLine.h
     motion_functions/ChFunctionPositionSetpoint.h
+    motion_functions/ChFunctionPositionXYZFunctions.h
+    motion_functions/ChFunctionRamp.h
+    motion_functions/ChFunctionRepeat.h
     motion_functions/ChFunctionRotation.h
-    motion_functions/ChFunctionRotationAxis.h
     motion_functions/ChFunctionRotationABCFunctions.h
-    motion_functions/ChFunctionRotationSetpoint.h
+    motion_functions/ChFunctionRotationAxis.h
     motion_functions/ChFunctionRotationBSpline.h
+    motion_functions/ChFunctionRotationSetpoint.h
     motion_functions/ChFunctionRotationSQUAD.h
+    motion_functions/ChFunctionSequence.h
+    motion_functions/ChFunctionSetpoint.h
+    motion_functions/ChFunctionSine.h
+    motion_functions/ChFunctionSineStep.h
     )
 
-if(CH_CXX14)
-  set(ChronoEngine_motion_functions_HEADERS ${ChronoEngine_motion_functions_HEADERS}
-      motion_functions/ChFunctionLambda.h)
-endif()
 
 source_group(motion_functions FILES
-    ${ChronoEngine_motion_functions_SOURCES}
-    ${ChronoEngine_motion_functions_HEADERS})
+    ${ChronoEngine_functions_SOURCES}
+    ${ChronoEngine_functions_HEADERS})
 
 # Solver group
 
@@ -1358,8 +1349,8 @@ set(ChronoEngine_FILES
     ${ChronoEngine_particlefactory_HEADERS}
     ${ChronoEngine_timestepper_SOURCES}
     ${ChronoEngine_timestepper_HEADERS}
-    ${ChronoEngine_motion_functions_SOURCES}
-    ${ChronoEngine_motion_functions_HEADERS}
+    ${ChronoEngine_functions_SOURCES}
+    ${ChronoEngine_functions_HEADERS}
     ${ChronoEngine_collision_multicore_SOURCES}
     ${ChronoEngine_collision_bullet_SOURCES}
     ${ChronoEngine_collision_gimpact_SOURCES}

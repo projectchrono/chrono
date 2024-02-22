@@ -166,14 +166,14 @@ class BaseFunction {
 class LinSpeedFunction : public BaseFunction, public ChFunction {
   public:
     LinSpeedFunction(double speed) : BaseFunction(speed) {}
-    virtual double Get_y(double t) const override { return calc(t); }
+    virtual double GetVal(double t) const override { return calc(t); }
     virtual LinSpeedFunction* Clone() const override { return new LinSpeedFunction(*this); }
 };
 
 class RotSpeedFunction : public BaseFunction, public ChFunction {
   public:
     RotSpeedFunction(double slip, double speed, double radius) : BaseFunction(speed), m_slip(slip), m_radius(radius) {}
-    virtual double Get_y(double t) const override {
+    virtual double GetVal(double t) const override {
         double v = calc(t);
         return (1 + m_slip) * v / m_radius;
     }
@@ -200,10 +200,10 @@ void ChTireTestRig::Initialize(Mode mode) {
         DelayedFun() : m_fun(nullptr), m_delay(0) {}
         DelayedFun(std::shared_ptr<ChFunction> fun, double delay) : m_fun(fun), m_delay(delay) {}
         virtual DelayedFun* Clone() const override { return new DelayedFun(); }
-        virtual double Get_y(double x) const override {
+        virtual double GetVal(double x) const override {
             if (x < m_delay)
                 return 0;
-            return m_fun->Get_y(x - m_delay);
+            return m_fun->GetVal(x - m_delay);
         }
         std::shared_ptr<ChFunction> m_fun;
         double m_delay;

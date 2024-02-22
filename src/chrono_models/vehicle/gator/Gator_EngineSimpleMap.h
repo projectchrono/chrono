@@ -36,8 +36,8 @@ class CH_MODELS_API Gator_EngineSimpleMap : public ChEngineSimpleMap {
   public:
     Gator_EngineSimpleMap(const std::string& name);
     double GetMaxEngineSpeed() override;
-    void SetEngineTorqueMaps(ChFunctionRecorder& map0,  ///< [out] engine map at zero throttle
-                             ChFunctionRecorder& mapF   ///< [out] engine map at full throttle
+    void SetEngineTorqueMaps(ChFunctionInterp& map0,  ///< [out] engine map at zero throttle
+                             ChFunctionInterp& mapF   ///< [out] engine map at full throttle
                              ) override;
 };
 

@@ -33,7 +33,7 @@ double UAZBUS_EngineSimpleMap::GetMaxEngineSpeed() {
     return 3900 * rpm2rads;
 }
 
-void UAZBUS_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionRecorder& map0, ChFunctionRecorder& mapF) {
+void UAZBUS_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     map0.AddPoint(-10.0, 0.0);
     map0.AddPoint(10.0, 0.0);
     map0.AddPoint(rpm2rads * 7.3654652540894313e+02, -10.0);

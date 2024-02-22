@@ -56,7 +56,7 @@ void ChShaftsMotorAngle::Update(double mytime, bool update_assets) {
 
     // Update class data
     this->f_rot->Update(mytime); // call callbacks if any
-    violation = GetMotorRot() - f_rot->Get_y(mytime) - rot_offset;
+    violation = GetMotorRot() - f_rot->GetVal(mytime) - rot_offset;
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
@@ -83,7 +83,7 @@ void ChShaftsMotorAngle::IntLoadConstraint_C(const unsigned int off_L,  // offse
                                         bool do_clamp,             // apply clamping to c*C?
                                         double recovery_clamp      // value for min/max clamping of c*C
                                         ) {
-    double res = c * (GetMotorRot()  - this->f_rot->Get_y(this->GetChTime()) - this->rot_offset);
+    double res = c * (GetMotorRot()  - this->f_rot->GetVal(this->GetChTime()) - this->rot_offset);
 
     if (do_clamp) {
         res = std::min(std::max(res, -recovery_clamp), recovery_clamp);
@@ -95,7 +95,7 @@ void ChShaftsMotorAngle::IntLoadConstraint_Ct(const unsigned int off_L,  // offs
                                          ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
                                          const double c             // a scaling factor
                                          ) {
-    double ct = - this->f_rot->Get_y_dx(this->GetChTime());
+    double ct = - this->f_rot->GetDer(this->GetChTime());
     Qc(off_L) += c * ct;
 }
 
@@ -130,14 +130,14 @@ void ChShaftsMotorAngle::ConstraintsBiReset() {
 
 void ChShaftsMotorAngle::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
 
-    double res = factor * (GetMotorRot()  - this->f_rot->Get_y(this->GetChTime()) - this->rot_offset);
+    double res = factor * (GetMotorRot()  - this->f_rot->GetVal(this->GetChTime()) - this->rot_offset);
 
     constraint.Set_b_i(constraint.Get_b_i() + factor * res);
 }
 
 void ChShaftsMotorAngle::ConstraintsBiLoad_Ct(double factor) {
 
-    double ct = - this->f_rot->Get_y_dx(this->GetChTime());
+    double ct = - this->f_rot->GetDer(this->GetChTime());
     constraint.Set_b_i(constraint.Get_b_i() + factor * ct);
 }
 

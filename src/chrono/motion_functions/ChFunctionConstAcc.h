@@ -22,79 +22,77 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Constant acceleration function:
+/// Constant acceleration function.
 ///
-///   h = height, amount of displacement
-///   end = duration of motion,
-///   av  = fraction of 1st acceleration end  (0..1)
-///   aw  = fraction of 2nd acceleration start (0..1) , with aw>av;
+/// The function consists of three segments:
+/// - constant acceleration (+acc): 0.0 <= x/duration < acceleration1_end
+/// - constant velocity: acceleration1_end <= x/duration < acceleration2_start
+/// - constant deceleration (-acc): acceleration2_start <= x/duration <= 1.0
+///
+/// End of the first acceleration and start of the second acceleration are specified as fractions of the total duration.
+///
+/// The function takes care of computing the acceleration 'acc' so to achieve the desired final displacement in the
+/// given duration.
 class ChApi ChFunctionConstAcc : public ChFunction {
   private:
-    double h;
-    double av;
-    double aw;
-    double end;
+    double m_displacement;
+    double m_accel1_end;
+    double m_accel2_start;
+    double m_duration;
 
   public:
-    ChFunctionConstAcc() : h(1), av(0.5), aw(0.5), end(1) {}
-    ChFunctionConstAcc(double m_h, double m_av, double m_aw, double m_end);
+    ChFunctionConstAcc();
+    ChFunctionConstAcc(double displacement, double acceleration1_end, double acceleration2_start, double duration);
     ChFunctionConstAcc(const ChFunctionConstAcc& other);
     ~ChFunctionConstAcc() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionConstAcc* Clone() const override { return new ChFunctionConstAcc(*this); }
 
-    virtual FunctionType Get_Type() const override { return FUNCT_CONSTACC; }
+    virtual Type GetType() const override { return ChFunction::Type::CONSTACC; }
 
-    virtual double Get_y(double x) const override;
-    virtual double Get_y_dx(double x) const override;
-    virtual double Get_y_dxdx(double x) const override;
+    virtual double GetVal(double x) const override;
+    virtual double GetDer(double x) const override;
+    virtual double GetDer2(double x) const override;
 
-    void Set_end(double m_end) {
-        if (m_end < 0)
-            m_end = 0;
-        end = m_end;
-    }
+    /// Set duration of the double acceleration.
+    void SetDuration(double duration);
 
-    void Set_av(double m_av) {
-        if (m_av < 0)
-            m_av = 0;
-        if (m_av > 1)
-            m_av = 1;
-        av = m_av;
-        if (av > aw)
-            av = aw;
-    }
-    void Set_aw(double m_aw) {
-        if (m_aw < 0)
-            m_aw = 0;
-        if (m_aw > 1)
-            m_aw = 1;
-        aw = m_aw;
-        if (aw < av)
-            aw = av;
-    }
-    void Set_h(double m_h) { h = m_h; }
-    void Set_avw(double m_av, double m_aw) {
-        av = 0;
-        aw = 1;
-        Set_av(m_av);
-        Set_aw(m_aw);
-    }
+    /// Set the end of the first acceleration ramp, as a fraction of the total duration [0, 1)
+    /// Must be less than the start of the second acceleration ramp.
+    void SetFirstAccelerationEnd(double acceleration1_end);
 
-    double Get_end() const { return end; }
-    double Get_av() const { return av; }
-    double Get_aw() const { return aw; }
-    double Get_h() const { return h; }
+    /// Set the start of the second acceleration ramp, as a fraction of the total duration [0, 1)
+    /// Must be greater than the end of the first acceleration ramp.
+    void SetSecondAccelerationStart(double acceleration2_start);
 
-    virtual double Get_Ca_pos() const override;
-    virtual double Get_Ca_neg() const override;
-    virtual double Get_Cv() const override;
+    /// Set the desired displacement.
+    /// The function will compute the accelerations so to achieve this displacement in the given duration.
+    void SetDisplacement(double displacement) { m_displacement = displacement; }
 
-    virtual void Estimate_x_range(double& xmin, double& xmax) const override {
-        xmin = 0.0;
-        xmax = end;
-    }
+    /// Set the end of the first acceleration ramp and the start of the second acceleration ramp.
+    void SetAccelerationPoints(double acceleration1_end, double acceleration2_start);
+
+    /// Get the duration of the double acceleration.
+    double GetDuration() const { return m_duration; }
+
+    /// Get the end of the first acceleration ramp, as a fraction of the total duration.
+    double GetFirstAccelerationEnd() const { return m_accel1_end; }
+
+    /// Get the start of the second acceleration ramp, as a fraction of the total duration.
+    double GetSecondAccelerationStart() const { return m_accel2_start; }
+
+    /// Get the desired displacement.
+    double GetDisplacement() const { return m_displacement; }
+
+    /// Get the positive acceleration coefficient.
+    virtual double GetPositiveAccelerationCoeff() const override;
+
+    /// Get the negative acceleration coefficient.
+    virtual double GetNegativeAccelerationCoeff() const override;
+
+    /// Get the velocity coefficient.
+    virtual double GetVelocityCoefficient() const override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

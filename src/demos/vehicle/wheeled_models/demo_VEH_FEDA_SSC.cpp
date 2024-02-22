@@ -151,7 +151,7 @@ double t_end = t_hold + t_acc + 60.0;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
-    ChFunctionRecorder steeringGear;
+    ChFunctionInterp steeringGear;
     steeringGear.AddPoint(-1.0, -648.0);
     steeringGear.AddPoint(0.0, 0.0);
     steeringGear.AddPoint(1.0, 648.0);
@@ -404,7 +404,7 @@ int main(int argc, char* argv[]) {
         double real_throttle = driver.GetThrottle();
 
         if (time >= t_hold)
-            ssc_csv << time << steeringGear.Get_y(driver.GetSteering()) << real_speed << real_accy2 << std::endl;
+            ssc_csv << time << steeringGear.GetVal(driver.GetSteering()) << real_speed << real_accy2 << std::endl;
 
         if (time > t_hold) {
             // Increase speed

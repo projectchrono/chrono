@@ -27,7 +27,7 @@ namespace chrono {
 		ChFunctionRotationSQUAD::ChFunctionRotationSQUAD() {
 		const std::vector<ChQuaternion<> > mrotations = { QUNIT, QUNIT };
 		this->closed = false;
-		this->SetupData(mrotations);
+		this->Setup(mrotations);
 
 		// default s(t) function. User will provide better fx.
 		space_fx = chrono_types::make_shared<ChFunctionRamp>(0, 1.);
@@ -38,7 +38,7 @@ namespace chrono {
 		ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 	) {
 		this->closed = false;
-		this->SetupData(mrotations, mknots);
+		this->Setup(mrotations, mknots);
 
 		// default s(t) function. User will provide better fx.
 		space_fx = chrono_types::make_shared<ChFunctionRamp>(0, 1.);
@@ -56,15 +56,15 @@ namespace chrono {
 
 	}
 
-	void ChFunctionRotationSQUAD::SetupData(
+	void ChFunctionRotationSQUAD::Setup(
 		const std::vector<ChQuaternion<> >& mrotations,  ///< rotation control points, size n. Required: at least n >= p+1
 		ChVectorDynamic<>* mknots           ///< knots, as many as control points. If not provided, initialized to uniform.
 	) {
 		if (mrotations.size() < 2)
-			throw std::invalid_argument("ChFunctionRotationSQUAD::SetupData requires at least 2control points.");
+			throw std::invalid_argument("ChFunctionRotationSQUAD::Setup requires at least 2control points.");
 
 		if (mknots && (size_t)mknots->size() != mrotations.size())
-			throw std::invalid_argument("ChFunctionRotationSQUAD::SetupData: knots must be as many as control points");
+			throw std::invalid_argument("ChFunctionRotationSQUAD::Setup: knots must be as many as control points");
 
 		this->rotations = mrotations;
 		auto n = (int)rotations.size();
@@ -108,7 +108,7 @@ ChQuaternion<> QUADRANGLE(const ChQuaternion<>& q0, const ChQuaternion<>& q1, co
 
 ChQuaternion<> ChFunctionRotationSQUAD::Get_q(double s) const {
 	
-	double fs = space_fx->Get_y(s);
+	double fs = space_fx->GetVal(s);
 
 	double mU;
 	if (this->closed)

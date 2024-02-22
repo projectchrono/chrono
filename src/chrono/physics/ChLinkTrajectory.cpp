@@ -57,9 +57,9 @@ void ChLinkTrajectory::UpdateTime(double time) {
     ChTime = time;
 
     double tstep = FD_STEP_HIGH;
-    double tr_time = space_fx->Get_y(time);
-    double tr_timeB = space_fx->Get_y(time + tstep);
-    double tr_timeA = space_fx->Get_y(time - tstep);
+    double tr_time = space_fx->GetVal(time);
+    double tr_timeB = space_fx->GetVal(time + tstep);
+    double tr_timeA = space_fx->GetVal(time - tstep);
 
     if (trajectory_line) {
         if (modulo_s) {

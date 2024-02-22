@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
       public:
         virtual ChFunctionMyFun* Clone() const override { return new ChFunctionMyFun(); }
 
-        virtual double Get_y(double x) const override {
+        virtual double GetVal(double x) const override {
             if (x > 0.4)
                 return CH_C_PI;
             else

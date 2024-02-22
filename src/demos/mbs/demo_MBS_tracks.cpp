@@ -487,7 +487,7 @@ class MyEventReceiver : public IEventReceiver {
                         double newthrottle = ((double)(pos)-50) / 50.0;
                         this->mtank->throttleR = newthrottle;
                         auto mfun = std::static_pointer_cast<ChFunctionConst>(mtank->link_motorRB->GetSpeedFunction());
-                        mfun->Set_yconst(newthrottle * 6);
+                        mfun->SetConstant(newthrottle * 6);
                         return true;
                     }
                     if (id == 102) {  // id of 'throttleL' slider..
@@ -495,7 +495,7 @@ class MyEventReceiver : public IEventReceiver {
                         double newthrottle = ((double)(pos)-50) / 50.0;
                         this->mtank->throttleL = newthrottle;
                         auto mfun = std::static_pointer_cast<ChFunctionConst>(mtank->link_motorLB->GetSpeedFunction());
-                        mfun->Set_yconst(newthrottle * 6);
+                        mfun->SetConstant(newthrottle * 6);
                         return true;
                     }
                     break;

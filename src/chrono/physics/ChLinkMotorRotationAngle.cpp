@@ -47,7 +47,7 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
         //aframe2.TransformParentToLocal(aframe1, aframe12);
 
         double aux_rotation;
-        aux_rotation = m_func->Get_y(mytime) + rot_offset;
+        aux_rotation = m_func->GetVal(mytime) + rot_offset;
 
         ChFrame<> aframe1rotating;
         aframe1rotating.SetPos(aframe1.GetPos()); // for safe
@@ -175,7 +175,7 @@ void ChLinkMotorRotationAngle::KRMmatricesLoad(double Kfactor, double Rfactor, d
 }
 
 void ChLinkMotorRotationAngle::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
-    double mCt = -0.5 * m_func->Get_y_dx(this->GetChTime());
+    double mCt = -0.5 * m_func->GetDer(this->GetChTime());
     int ncrz = mask.nconstr - 1;
     if (mask.Constr_N(ncrz).IsActive()) {
         Qc(off_L + ncrz) += c * mCt;
@@ -186,7 +186,7 @@ void ChLinkMotorRotationAngle::ConstraintsBiLoad_Ct(double factor) {
     if (!this->IsActive())
         return;
 
-    double mCt = -0.5 * m_func->Get_y_dx(this->GetChTime());
+    double mCt = -0.5 * m_func->GetDer(this->GetChTime());
     int ncrz = mask.nconstr - 1;
     if (mask.Constr_N(ncrz).IsActive()) {
         mask.Constr_N(ncrz).Set_b_i(mask.Constr_N(ncrz).Get_b_i() + factor * mCt);

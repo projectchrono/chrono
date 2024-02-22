@@ -332,9 +332,9 @@ int main() {
 #endif
 
     // Perform the simulation
-    ChFunctionRecorder long_slip;
-    ChFunctionRecorder slip_angle;
-    ChFunctionRecorder camber_angle;
+    ChFunctionInterp long_slip;
+    ChFunctionInterp slip_angle;
+    ChFunctionInterp camber_angle;
 
     double time_offset = 0.5;
 

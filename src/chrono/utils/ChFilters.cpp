@@ -21,6 +21,8 @@
 #include "chrono/core/ChMatrix.h"
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChConstants.h"
+
 
 namespace chrono {
 namespace utils {
@@ -859,7 +861,7 @@ void ChISO2631_Vibration_SeatCushionLogger::Config(double step) {
 
 void ChISO2631_Vibration_SeatCushionLogger::AddData(double speed, double acc_x, double acc_y, double acc_z) {
     const double meter_to_ft = 3.280839895;
-    double startFactor = m_sinestep->Get_y(m_logging_time);
+    double startFactor = m_sinestep->GetVal(m_logging_time);
 
     m_data_speed.push_back(speed);
 
@@ -1133,7 +1135,7 @@ ChISO2631_Shock_SeatCushionLogger::ChISO2631_Shock_SeatCushionLogger(double step
 }
 
 void ChISO2631_Shock_SeatCushionLogger::AddData(double ax, double ay, double az) {
-    double startFactor = m_sinestep->Get_y(m_logging_time);
+    double startFactor = m_sinestep->GetVal(m_logging_time);
 
     // speed of a vehicle changes very much during obstacle crossing, we take the first value as significant
     // instead of an average value
@@ -1173,9 +1175,9 @@ double ChISO2631_Shock_SeatCushionLogger::GetSe() {
 
     for (size_t i = 0; i < nInDat; i++) {
         double t = m_step * i;
-        m_inp_x[i] = m_raw_inp_x.Get_y(t);
-        m_inp_y[i] = m_raw_inp_y.Get_y(t);
-        m_inp_z[i] = m_raw_inp_z.Get_y(t);
+        m_inp_x[i] = m_raw_inp_x.GetVal(t);
+        m_inp_y[i] = m_raw_inp_y.GetVal(t);
+        m_inp_z[i] = m_raw_inp_z.GetVal(t);
     }
 
     m_out_x.resize(nInDat);
@@ -1204,7 +1206,7 @@ double ChISO2631_Shock_SeatCushionLogger::GetLegacyAz() {
     std::vector<double> legacy_az;
     for (size_t i = 0; i < nInDat; i++) {
         double t = m_step_inp * i;
-        legacy_az.push_back(m_legacy_lpz.Filter(m_raw_inp_z.Get_y(t) * to_g));
+        legacy_az.push_back(m_legacy_lpz.Filter(m_raw_inp_z.GetVal(t) * to_g));
         if (legacy_az[i] > az_max) {
             az_max = legacy_az[i];
         }

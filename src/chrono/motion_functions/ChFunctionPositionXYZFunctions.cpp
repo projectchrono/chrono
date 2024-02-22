@@ -46,23 +46,23 @@ ChFunctionPositionXYZFunctions::~ChFunctionPositionXYZFunctions() {
 
 ChVector3d ChFunctionPositionXYZFunctions::Get_p(double s) const {
 	return ChVector3d(
-		px->Get_y(s), 
-		py->Get_y(s), 
-		pz->Get_y(s));
+		px->GetVal(s), 
+		py->GetVal(s), 
+		pz->GetVal(s));
 }
 
 ChVector3d ChFunctionPositionXYZFunctions::Get_p_ds(double s) const {
 	return ChVector3d(
-		px->Get_y_dx(s), 
-		py->Get_y_dx(s), 
-		pz->Get_y_dx(s));
+		px->GetDer(s), 
+		py->GetDer(s), 
+		pz->GetDer(s));
 }
 
 ChVector3d ChFunctionPositionXYZFunctions::Get_p_dsds(double s) const {
 	return ChVector3d(
-		px->Get_y_dxdx(s), 
-		py->Get_y_dxdx(s), 
-		pz->Get_y_dxdx(s));
+		px->GetDer2(s), 
+		py->GetDer2(s), 
+		pz->GetDer2(s));
 }
 
 void ChFunctionPositionXYZFunctions::Estimate_s_domain(double& smin, double& smax) const {

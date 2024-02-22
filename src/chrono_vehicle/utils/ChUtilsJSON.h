@@ -25,7 +25,7 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector3.h"
 
-#include "chrono/motion_functions/ChFunctionRecorder.h"
+#include "chrono/motion_functions/ChFunctionInterp.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
@@ -173,7 +173,7 @@ class CH_VEHICLE_API ChMapData {
 
     /// Set the map data to the specified recorder function.
     /// The map data is scaled by the specified factors.
-    void Set(ChFunctionRecorder& map, double x_factor = 1, double y_factor = 1) const;
+    void Set(ChFunctionInterp& map, double x_factor = 1, double y_factor = 1) const;
 
     /// Set the map data to the specified vector of pairs.
     /// The map data is scaled by the specified factors.

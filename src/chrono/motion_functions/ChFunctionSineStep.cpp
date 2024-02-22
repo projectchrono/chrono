@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/motion_functions/ChFunctionSineStep.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
 
@@ -30,19 +31,19 @@ ChFunctionSineStep::ChFunctionSineStep(const ChFunctionSineStep& other) {
     m_dp = other.m_dp;
 }
 
-void ChFunctionSineStep::SetP1(const ChVector2d& p1) {
+void ChFunctionSineStep::SetFirstPoint(const ChVector2d& p1) {
     m_p1 = p1;
     assert(m_p1.x() != m_p2.x());
     m_dp = m_p2 - m_p1;
 }
 
-void ChFunctionSineStep::SetP2(const ChVector2d& p2) {
+void ChFunctionSineStep::SetSecondPoint(const ChVector2d& p2) {
     m_p2 = p2;
     assert(m_p1.x() != m_p2.x());
     m_dp = m_p2 - m_p1;
 }
 
-double ChFunctionSineStep::Get_y(double x) const {
+double ChFunctionSineStep::GetVal(double x) const {
     if (x <= m_p1.x())
         return m_p1.y();
 
@@ -55,7 +56,7 @@ double ChFunctionSineStep::Get_y(double x) const {
     return y;
 }
 
-double ChFunctionSineStep::Get_y_dx(double x) const {
+double ChFunctionSineStep::GetDer(double x) const {
     if (x <= m_p1.x())
         return 0;
 
@@ -68,7 +69,7 @@ double ChFunctionSineStep::Get_y_dx(double x) const {
     return yd;
 }
 
-double ChFunctionSineStep::Get_y_dxdx(double x) const {
+double ChFunctionSineStep::GetDer2(double x) const {
     if (x <= m_p1.x())
         return 0;
 

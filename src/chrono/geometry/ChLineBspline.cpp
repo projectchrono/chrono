@@ -23,7 +23,7 @@ CH_FACTORY_REGISTER(ChLineBspline)
 ChLineBspline::ChLineBspline() {
     const std::vector<ChVector3d > mpoints = {ChVector3d(-1, 0, 0), ChVector3d(1, 0, 0)};
 	this->closed = false;
-    this->SetupData(1, mpoints);
+    this->Setup(1, mpoints);
 }
 
 ChLineBspline::ChLineBspline(
@@ -32,7 +32,7 @@ ChLineBspline::ChLineBspline(
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
 	this->closed = false;
-    this->SetupData(morder, mpoints, mknots);
+    this->Setup(morder, mpoints, mknots);
 }
 
 ChLineBspline::ChLineBspline(const ChLineBspline& source) : ChLine(source) {
@@ -88,19 +88,19 @@ ChVector3d ChLineBspline::GetTangent(double parU) const {
     return dir;
 }
 
-void ChLineBspline::SetupData(
+void ChLineBspline::Setup(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
     const std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     if (morder < 1)
-        throw std::invalid_argument("ChLineBspline::SetupData requires order >= 1.");
+        throw std::invalid_argument("ChLineBspline::Setup requires order >= 1.");
 
     if (mpoints.size() < morder + 1)
-        throw std::invalid_argument("ChLineBspline::SetupData requires at least order+1 control points.");
+        throw std::invalid_argument("ChLineBspline::Setup requires at least order+1 control points.");
 
     if (mknots && (size_t)mknots->size() != (mpoints.size() + morder + 1))
-        throw std::invalid_argument("ChLineBspline::SetupData: knots must have size=n_points+order+1");
+        throw std::invalid_argument("ChLineBspline::Setup: knots must have size=n_points+order+1");
 
     this->p = morder;
     this->points = mpoints;

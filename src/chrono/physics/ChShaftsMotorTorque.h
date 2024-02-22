@@ -54,7 +54,7 @@ class ChApi ChShaftsMotorTorque : public ChShaftsMotorBase {
     std::shared_ptr<ChFunction> GetTorqueFunction() { return f_torque; }
 
     /// Get the current actuator reaction torque [Nm]
-    virtual double GetMotorTorque() const override { return this->f_torque->Get_y(this->GetChTime()); }
+    virtual double GetMotorTorque() const override { return this->f_torque->GetVal(this->GetChTime()); }
 
     /// Update all auxiliary data
     virtual void Update(double mytime, bool update_assets = true) override;

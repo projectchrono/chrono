@@ -343,8 +343,8 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
                                             std::vector<double>& constraint_violations,
                                             ChVector3d& arm_angular_vel) const {
     auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_shaft_motor->GetAngleFunction());
-    motor_input = fun->Get_y(time);
-    motor_input_der = fun->Get_y_dx(time);
+    motor_input = fun->GetVal(time);
+    motor_input_der = fun->GetDer(time);
 
     shaft_angles.push_back(m_shaft_C->GetPos());
     shaft_angles.push_back(m_shaft_C1->GetPos());

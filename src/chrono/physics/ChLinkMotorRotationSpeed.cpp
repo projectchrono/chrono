@@ -191,7 +191,7 @@ void ChLinkMotorRotationSpeed::KRMmatricesLoad(double Kfactor, double Rfactor, d
 }
 
 void ChLinkMotorRotationSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
-    double mCt = -0.5 * m_func->Get_y(this->GetChTime());
+    double mCt = -0.5 * m_func->GetVal(this->GetChTime());
 
     int ncrz = mask.nconstr - 1;
     if (mask.Constr_N(ncrz).IsActive()) {
@@ -203,7 +203,7 @@ void ChLinkMotorRotationSpeed::ConstraintsBiLoad_Ct(double factor) {
     if (!this->IsActive())
         return;
 
-    double mCt = -0.5 * m_func->Get_y(this->GetChTime());
+    double mCt = -0.5 * m_func->GetVal(this->GetChTime());
     int ncrz = mask.nconstr - 1;
     if (mask.Constr_N(ncrz).IsActive()) {
         mask.Constr_N(ncrz).Set_b_i(mask.Constr_N(ncrz).Get_b_i() + factor * mCt);
@@ -248,7 +248,7 @@ void ChLinkMotorRotationSpeed::IntLoadResidual_F(const unsigned int off,  // off
                                                  ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                                  const double c           // a scaling factor
 ) {
-    double imposed_speed = m_func->Get_y(this->GetChTime());
+    double imposed_speed = m_func->GetVal(this->GetChTime());
     R(off) += imposed_speed * c;
 }
 
@@ -303,7 +303,7 @@ void ChLinkMotorRotationSpeed::VariablesFbReset() {
 }
 
 void ChLinkMotorRotationSpeed::VariablesFbLoadForces(double factor) {
-    double imposed_speed = m_func->Get_y(this->GetChTime());
+    double imposed_speed = m_func->GetVal(this->GetChTime());
     variable.Get_fb()(0) += imposed_speed * factor;
 }
 

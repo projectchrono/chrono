@@ -16,6 +16,8 @@
 
 #include "chrono/fea/ChBeamSectionCosserat.h"
 #include "chrono/core/ChMatrixMBD.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChMatrix33.h"
 
 #include "chrono/utils/ChUtils.h"
 
@@ -590,8 +592,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
 
     // axial direction
     {
-        double strain_yeld_x = this->n_yeld_x->Get_y(mydata->p_strain_acc_e.x());     //<<<< sigma_y(p_strain_acc)
-        double eta_x = stress_n.x() - this->n_beta_x->Get_y(mydata->p_strain_e.x());  //<<<< beta(p_strain_e)
+        double strain_yeld_x = this->n_yeld_x->GetVal(mydata->p_strain_acc_e.x());     //<<<< sigma_y(p_strain_acc)
+        double eta_x = stress_n.x() - this->n_beta_x->GetVal(mydata->p_strain_e.x());  //<<<< beta(p_strain_e)
         double Fyeld_x = fabs(eta_x) - strain_yeld_x;                                 //<<<<  Phi(sigma,p_strain_acc)
 
         if (Fyeld_x > 0) {
@@ -602,8 +604,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
             int iters = 0;
             while ((Fyeld_x > this->nr_yeld_tolerance) && (iters < this->nr_yeld_maxiters)) {
                 double E_x = stress_n.x() / e_strain_e_new.x();  // instead of costly evaluation of Km, =dstress/dstrain
-                double H = this->n_beta_x->Get_y_dx(mydata->p_strain_e.x()) +
-                           this->n_yeld_x->Get_y_dx(mydata->p_strain_acc_e.x());  //<<<<  H = dyeld/dplasticflow
+                double H = this->n_beta_x->GetDer(mydata->p_strain_e.x()) +
+                           this->n_yeld_x->GetDer(mydata->p_strain_acc_e.x());  //<<<<  H = dyeld/dplasticflow
                 Dgamma -= Fyeld_x / (-E_x - H);
                 double dDgamma = Dgamma - Dgamma_old;
                 Dgamma_old = Dgamma;
@@ -612,8 +614,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
                 mydata_new->p_strain_e.x() += dDgamma * chrono::ChSignum(stress_n.x());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_x = this->n_yeld_x->Get_y(mydata_new->p_strain_acc_e.x());     //<<<< sigma_y(p_strain_acc)
-                eta_x = stress_n.x() - this->n_beta_x->Get_y(mydata_new->p_strain_e.x());  //<<<< beta(p_strain_acc)
+                strain_yeld_x = this->n_yeld_x->GetVal(mydata_new->p_strain_acc_e.x());     //<<<< sigma_y(p_strain_acc)
+                eta_x = stress_n.x() - this->n_beta_x->GetVal(mydata_new->p_strain_e.x());  //<<<< beta(p_strain_acc)
                 Fyeld_x = fabs(eta_x) - strain_yeld_x;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -623,8 +625,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
 
     // shear direction
     {
-        double strain_yeld_y = this->n_yeld_y->Get_y(mydata->p_strain_acc_e.y());
-        double eta_y = stress_n.y() - this->n_beta_y->Get_y(mydata->p_strain_e.y());
+        double strain_yeld_y = this->n_yeld_y->GetVal(mydata->p_strain_acc_e.y());
+        double eta_y = stress_n.y() - this->n_beta_y->GetVal(mydata->p_strain_e.y());
         double Fyeld_y = fabs(eta_y) - strain_yeld_y;  //<<<<  Phi(sigma,p_strain_acc)
 
         if (Fyeld_y < 0) {
@@ -635,8 +637,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
             int iters = 0;
             while ((Fyeld_y > this->nr_yeld_tolerance) && (iters < this->nr_yeld_maxiters)) {
                 double E_y = stress_n.y() / e_strain_e_new.y();  // instead of costly evaluation of Km, =dstress/dstrain
-                double H = this->n_beta_y->Get_y_dx(mydata->p_strain_e.y()) +
-                           this->n_yeld_y->Get_y_dx(mydata->p_strain_acc_e.y());  //<<<<  H = dyeld/dplasticflow
+                double H = this->n_beta_y->GetDer(mydata->p_strain_e.y()) +
+                           this->n_yeld_y->GetDer(mydata->p_strain_acc_e.y());  //<<<<  H = dyeld/dplasticflow
                 Dgamma -= Fyeld_y / (-E_y - H);
                 double dDgamma = Dgamma - Dgamma_old;
                 Dgamma_old = Dgamma;
@@ -645,8 +647,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
                 mydata_new->p_strain_e.y() += dDgamma * chrono::ChSignum(stress_n.y());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_y = this->n_yeld_y->Get_y(mydata_new->p_strain_acc_e.y());     //<<<< sigma_y(p_strain_acc)
-                eta_y = stress_n.y() - this->n_beta_y->Get_y(mydata_new->p_strain_e.y());  //<<<< beta(p_strain_acc)
+                strain_yeld_y = this->n_yeld_y->GetVal(mydata_new->p_strain_acc_e.y());     //<<<< sigma_y(p_strain_acc)
+                eta_y = stress_n.y() - this->n_beta_y->GetVal(mydata_new->p_strain_e.y());  //<<<< beta(p_strain_acc)
                 Fyeld_y = fabs(eta_y) - strain_yeld_y;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -656,8 +658,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
 
     // shear direction
     {
-        double strain_yeld_z = this->n_yeld_z->Get_y(mydata->p_strain_acc_e.z());
-        double eta_z = stress_n.z() - this->n_beta_z->Get_y(mydata->p_strain_e.z());
+        double strain_yeld_z = this->n_yeld_z->GetVal(mydata->p_strain_acc_e.z());
+        double eta_z = stress_n.z() - this->n_beta_z->GetVal(mydata->p_strain_e.z());
         double Fyeld_z = fabs(eta_z) - strain_yeld_z;  //<<<<  Phi(sigma,p_strain_acc)
 
         if (Fyeld_z > 0) {
@@ -668,8 +670,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
             int iters = 0;
             while ((Fyeld_z > this->nr_yeld_tolerance) && (iters < this->nr_yeld_maxiters)) {
                 double E_z = stress_n.z() / e_strain_e_new.z();  // instead of costly evaluation of Km, =dstress/dstrain
-                double H = this->n_beta_z->Get_y_dx(mydata->p_strain_e.z()) +
-                           this->n_yeld_z->Get_y_dx(mydata->p_strain_acc_e.z());  //<<<<  H = dyeld/dplasticflow
+                double H = this->n_beta_z->GetDer(mydata->p_strain_e.z()) +
+                           this->n_yeld_z->GetDer(mydata->p_strain_acc_e.z());  //<<<<  H = dyeld/dplasticflow
                 Dgamma -= Fyeld_z / (-E_z - H);
                 double dDgamma = Dgamma - Dgamma_old;
                 Dgamma_old = Dgamma;
@@ -678,8 +680,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
                 mydata_new->p_strain_e.z() += dDgamma * chrono::ChSignum(stress_n.z());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_z = this->n_yeld_z->Get_y(mydata_new->p_strain_acc_e.z());     //<<<< sigma_y(p_strain_acc)
-                eta_z = stress_n.z() - this->n_beta_z->Get_y(mydata_new->p_strain_e.z());  //<<<< beta(p_strain_acc)
+                strain_yeld_z = this->n_yeld_z->GetVal(mydata_new->p_strain_acc_e.z());     //<<<< sigma_y(p_strain_acc)
+                eta_z = stress_n.z() - this->n_beta_z->GetVal(mydata_new->p_strain_e.z());  //<<<< beta(p_strain_acc)
                 Fyeld_z = fabs(eta_z) - strain_yeld_z;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -689,8 +691,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
 
     // torsion direction
     {
-        double strain_yeld_Mx = this->n_yeld_Mx->Get_y(mydata->p_strain_acc_k.x());
-        double eta_Mx = stress_m.x() - this->n_beta_Mx->Get_y(mydata->p_strain_k.x());
+        double strain_yeld_Mx = this->n_yeld_Mx->GetVal(mydata->p_strain_acc_k.x());
+        double eta_Mx = stress_m.x() - this->n_beta_Mx->GetVal(mydata->p_strain_k.x());
         double Fyeld_Mx = fabs(eta_Mx) - strain_yeld_Mx;
 
         if (Fyeld_Mx > 0) {
@@ -702,8 +704,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
             while ((Fyeld_Mx > this->nr_yeld_tolerance) && (iters < this->nr_yeld_maxiters)) {
                 double E_Mx = stress_m.x() / e_strain_k_new.x();  // instead of costly evaluation of Km,
                                                                   // =dstress/dstrain
-                double H = this->n_beta_Mx->Get_y_dx(mydata->p_strain_k.x()) +
-                           this->n_yeld_Mx->Get_y_dx(mydata->p_strain_acc_k.x());  //<<<<  H = dyeld/dplasticflow
+                double H = this->n_beta_Mx->GetDer(mydata->p_strain_k.x()) +
+                           this->n_yeld_Mx->GetDer(mydata->p_strain_acc_k.x());  //<<<<  H = dyeld/dplasticflow
                 Dgamma -= Fyeld_Mx / (-E_Mx - H);
                 double dDgamma = Dgamma - Dgamma_old;
                 Dgamma_old = Dgamma;
@@ -712,8 +714,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
                 mydata_new->p_strain_k.x() += dDgamma * chrono::ChSignum(stress_m.x());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_Mx = this->n_yeld_Mx->Get_y(mydata_new->p_strain_acc_k.x());  //<<<< sigma_y(p_strain_acc)
-                eta_Mx = stress_m.x() - this->n_beta_Mx->Get_y(mydata_new->p_strain_k.x());  //<<<< beta(p_strain_acc)
+                strain_yeld_Mx = this->n_yeld_Mx->GetVal(mydata_new->p_strain_acc_k.x());  //<<<< sigma_y(p_strain_acc)
+                eta_Mx = stress_m.x() - this->n_beta_Mx->GetVal(mydata_new->p_strain_k.x());  //<<<< beta(p_strain_acc)
                 Fyeld_Mx = fabs(eta_Mx) - strain_yeld_Mx;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -723,8 +725,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
 
     // bending y direction
     {
-        double strain_yeld_My = this->n_yeld_My->Get_y(mydata->p_strain_acc_k.y());
-        double eta_My = stress_m.y() - this->n_beta_My->Get_y(mydata->p_strain_k.y());
+        double strain_yeld_My = this->n_yeld_My->GetVal(mydata->p_strain_acc_k.y());
+        double eta_My = stress_m.y() - this->n_beta_My->GetVal(mydata->p_strain_k.y());
         double Fyeld_My = fabs(eta_My) - strain_yeld_My;
 
         if (Fyeld_My > 0) {
@@ -736,8 +738,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
             while ((Fyeld_My > this->nr_yeld_tolerance) && (iters < this->nr_yeld_maxiters)) {
                 double E_My = stress_m.y() / e_strain_k_new.y();  // instead of costly evaluation of Km,
                                                                   // =dstress/dstrain
-                double H = this->n_beta_My->Get_y_dx(mydata->p_strain_k.y()) +
-                           this->n_yeld_My->Get_y_dx(mydata->p_strain_acc_k.y());  //<<<<  H = dyeld/dplasticflow
+                double H = this->n_beta_My->GetDer(mydata->p_strain_k.y()) +
+                           this->n_yeld_My->GetDer(mydata->p_strain_acc_k.y());  //<<<<  H = dyeld/dplasticflow
                 Dgamma -= Fyeld_My / (-E_My - H);
                 double dDgamma = Dgamma - Dgamma_old;
                 Dgamma_old = Dgamma;
@@ -746,8 +748,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
                 mydata_new->p_strain_k.y() += dDgamma * chrono::ChSignum(stress_m.y());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_My = this->n_yeld_My->Get_y(mydata_new->p_strain_acc_k.y());  //<<<< sigma_y(p_strain_acc)
-                eta_My = stress_m.y() - this->n_beta_My->Get_y(mydata_new->p_strain_k.y());  //<<<< beta(p_strain_acc)
+                strain_yeld_My = this->n_yeld_My->GetVal(mydata_new->p_strain_acc_k.y());  //<<<< sigma_y(p_strain_acc)
+                eta_My = stress_m.y() - this->n_beta_My->GetVal(mydata_new->p_strain_k.y());  //<<<< beta(p_strain_acc)
                 Fyeld_My = fabs(eta_My) - strain_yeld_My;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -757,8 +759,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
 
     // bending z direction
     {
-        double strain_yeld_Mz = this->n_yeld_Mz->Get_y(mydata->p_strain_acc_k.z());
-        double eta_Mz = stress_m.z() - this->n_beta_Mz->Get_y(mydata->p_strain_k.z());
+        double strain_yeld_Mz = this->n_yeld_Mz->GetVal(mydata->p_strain_acc_k.z());
+        double eta_Mz = stress_m.z() - this->n_beta_Mz->GetVal(mydata->p_strain_k.z());
         double Fyeld_Mz = fabs(eta_Mz) - strain_yeld_Mz;
 
         if (Fyeld_Mz > 0) {
@@ -770,8 +772,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
             while ((Fyeld_Mz > this->nr_yeld_tolerance) && (iters < this->nr_yeld_maxiters)) {
                 double E_Mz = stress_m.z() / e_strain_k_new.z();  // instead of costly evaluation of Km,
                                                                   // =dstress/dstrain
-                double H = this->n_beta_Mz->Get_y_dx(mydata->p_strain_k.z()) +
-                           this->n_yeld_Mz->Get_y_dx(mydata->p_strain_acc_k.z());  //<<<<  H = dyeld/dplasticflow
+                double H = this->n_beta_Mz->GetDer(mydata->p_strain_k.z()) +
+                           this->n_yeld_Mz->GetDer(mydata->p_strain_acc_k.z());  //<<<<  H = dyeld/dplasticflow
                 Dgamma -= Fyeld_Mz / (-E_Mz - H);
                 double dDgamma = Dgamma - Dgamma_old;
                 Dgamma_old = Dgamma;
@@ -780,8 +782,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
                 mydata_new->p_strain_k.z() += dDgamma * chrono::ChSignum(stress_m.z());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_Mz = this->n_yeld_Mz->Get_y(mydata_new->p_strain_acc_k.z());  //<<<< sigma_y(p_strain_acc)
-                eta_Mz = stress_m.z() - this->n_beta_Mz->Get_y(mydata_new->p_strain_k.z());  //<<<< beta(p_strain_acc)
+                strain_yeld_Mz = this->n_yeld_Mz->GetVal(mydata_new->p_strain_acc_k.z());  //<<<< sigma_y(p_strain_acc)
+                eta_Mz = stress_m.z() - this->n_beta_Mz->GetVal(mydata_new->p_strain_k.z());  //<<<< beta(p_strain_acc)
                 Fyeld_Mz = fabs(eta_Mz) - strain_yeld_Mz;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;

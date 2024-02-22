@@ -20,64 +20,74 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunctionIntegrate)
 
-ChFunctionIntegrate::ChFunctionIntegrate() : order(1), C_start(0), x_start(0), x_end(1), num_samples(2000) {
-    fa = chrono_types::make_shared<ChFunctionConst>();  // default
-    array_x.resize(num_samples);
+ChFunctionIntegrate::ChFunctionIntegrate()
+    : m_integration_order(1), m_offset(0), m_x_start(0), m_x_end(1), m_num_samples(2000) {
+    m_integrand_fun = chrono_types::make_shared<ChFunctionConst>();  // default
+    m_cumintegral.resize(m_num_samples);
 }
 
 ChFunctionIntegrate::ChFunctionIntegrate(const ChFunctionIntegrate& other) {
-    fa = std::shared_ptr<ChFunction>(other.fa->Clone());
-    order = other.order;
-    C_start = other.C_start;
-    x_start = other.x_start;
-    x_end = other.x_end;
-    num_samples = other.num_samples;
-    array_x = other.array_x;
+    m_integrand_fun = std::shared_ptr<ChFunction>(other.m_integrand_fun->Clone());
+    m_integration_order = other.m_integration_order;
+    m_offset = other.m_offset;
+    m_x_start = other.m_x_start;
+    m_x_end = other.m_x_end;
+    m_num_samples = other.m_num_samples;
+    m_cumintegral = other.m_cumintegral;
 }
 
-void ChFunctionIntegrate::ComputeIntegral() {
-    double mstep = (x_end - x_start) / ((double)(num_samples - 1));
+void ChFunctionIntegrate::Setup() {
+    double mstep = (m_x_end - m_x_start) / ((double)(m_num_samples - 1));
     double x_a, x_b, y_a, y_b, F_b;
 
-    double F_sum = this->Get_C_start();
+    double F_sum = this->GetOffset();
 
-    array_x(0) = this->Get_C_start();
+    m_cumintegral(0) = this->GetOffset();
 
-    for (int i = 1; i < this->num_samples; i++) {
-        x_b = x_start + ((double)i) * (mstep);
+    for (int i = 1; i < this->m_num_samples; i++) {
+        x_b = m_x_start + ((double)i) * (mstep);
         x_a = x_b - mstep;
-        y_a = this->fa->Get_y(x_a);
-        y_b = this->fa->Get_y(x_b);
+        y_a = this->m_integrand_fun->GetVal(x_a);
+        y_b = this->m_integrand_fun->GetVal(x_b);
         // trapezoidal rule..
         F_b = F_sum + mstep * (y_a + y_b) * 0.5;
-        array_x(i) = F_b;
+        m_cumintegral(i) = F_b;
         F_sum = F_b;
     }
 }
 
-double ChFunctionIntegrate::Get_y(double x) const {
-    if ((x < x_start) || (x > x_end))
+void ChFunctionIntegrate::SetNumSamples(int m_samples) {
+    m_num_samples = m_samples;
+    m_cumintegral.setZero(m_num_samples, 1);
+}
+
+void ChFunctionIntegrate::SetInterval(double xstart, double xend) {
+    if (xend < xstart)
+        throw std::invalid_argument("Invalid integration limits");
+
+    m_x_start = xstart;
+    m_x_end = xend;
+}
+
+double ChFunctionIntegrate::GetVal(double x) const {
+    if ((x < m_x_start) || (x > m_x_end))
         return 0.0;
+
     int i_a, i_b;
-    double position = (double)(num_samples - 1) * ((x - x_start) / (x_end - x_start));
+    double position = (double)(m_num_samples - 1) * ((x - m_x_start) / (m_x_end - m_x_start));
     i_a = (int)(floor(position));
     i_b = i_a + 1;
 
-    if (i_b > num_samples - 1)
-        return array_x(num_samples - 1);
+    if (i_b > m_num_samples - 1)
+        return m_cumintegral(m_num_samples - 1);
 
     if (i_a < 0)
-        return array_x(0);
+        return m_cumintegral(0);
 
     double weightB = position - (double)i_a;
     double weightA = 1 - weightB;
 
-    return (weightA * (array_x(i_a)) + weightB * (array_x(i_b)));
-}
-
-void ChFunctionIntegrate::Estimate_x_range(double& xmin, double& xmax) const {
-    xmin = x_start;
-    xmax = x_end;
+    return (weightA * (m_cumintegral(i_a)) + weightB * (m_cumintegral(i_b)));
 }
 
 void ChFunctionIntegrate::ArchiveOut(ChArchiveOut& marchive) {
@@ -86,28 +96,28 @@ void ChFunctionIntegrate::ArchiveOut(ChArchiveOut& marchive) {
     // serialize parent class
     ChFunction::ArchiveOut(marchive);
     // serialize all member data:
-    marchive << CHNVP(fa);
-    marchive << CHNVP(order);
-    marchive << CHNVP(C_start);
-    marchive << CHNVP(x_start);
-    marchive << CHNVP(x_end);
-    marchive << CHNVP(num_samples);
+    marchive << CHNVP(m_integrand_fun);
+    marchive << CHNVP(m_integration_order);
+    marchive << CHNVP(m_offset);
+    marchive << CHNVP(m_x_start);
+    marchive << CHNVP(m_x_end);
+    marchive << CHNVP(m_num_samples);
 }
 
 void ChFunctionIntegrate::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionIntegrate>();
+    /*int version =*/marchive.VersionRead<ChFunctionIntegrate>();
     // deserialize parent class
     ChFunction::ArchiveIn(marchive);
     // stream in all member data:
-    marchive >> CHNVP(fa);
-    marchive >> CHNVP(order);
-    marchive >> CHNVP(C_start);
-    marchive >> CHNVP(x_start);
-    marchive >> CHNVP(x_end);
-    marchive >> CHNVP(num_samples);
-    array_x.setZero(num_samples);
-    ComputeIntegral();
+    marchive >> CHNVP(m_integrand_fun);
+    marchive >> CHNVP(m_integration_order);
+    marchive >> CHNVP(m_offset);
+    marchive >> CHNVP(m_x_start);
+    marchive >> CHNVP(m_x_end);
+    marchive >> CHNVP(m_num_samples);
+    m_cumintegral.setZero(m_num_samples);
+    Setup();
 }
 
 }  // end namespace chrono

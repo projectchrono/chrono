@@ -329,16 +329,16 @@ int main(int argc, char* argv[]) {
     utils::ChFilterD ang_diff(step_size);
 
     // Record vehicle speed
-    ChFunctionRecorder speed_recorder;
+    ChFunctionInterp speed_recorder;
 
     // Record lateral vehicle acceleration
-    ChFunctionRecorder accel_recorder;
+    ChFunctionInterp accel_recorder;
 
     // Record lateral vehicle steering wheel angle
-    ChFunctionRecorder steer_recorder;
+    ChFunctionInterp steer_recorder;
 
     // Record lateral vehicle steering wheel angular speed
-    ChFunctionRecorder angspeed_recorder;
+    ChFunctionInterp angspeed_recorder;
 
     // Initialize simulation frame counter and simulation time
     int step_number = 0;

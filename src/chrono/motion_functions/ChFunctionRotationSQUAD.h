@@ -70,7 +70,7 @@ class ChApi ChFunctionRotationSQUAD : public ChFunctionRotation {
 
     /// Initial easy setup from a given array of rotations (quaternion control points). Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
-    virtual void SetupData(
+    virtual void Setup(
         const std::vector<ChQuaternion<> >& mrotations,  ///< rotations, to interpolate. Required: at least n = 2.
         ChVectorDynamic<>* mknots = 0  ///< knots, as many as control points. If not provided, initialized to uniform.
     );

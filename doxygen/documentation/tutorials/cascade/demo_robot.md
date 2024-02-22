@@ -548,7 +548,7 @@ Set motions for Z and Y coordinates of the 'my_link_teacher' marker, so that the
 	motlaw_z_seq->InsertFunct(motlaw_z3, 1,  1, true);
 	motlaw_z_seq->InsertFunct(motlaw_z4, 1,  1, true);
 	ChFunctionRepeat* motlaw_z = new ChFunctionRepeat();
-	motlaw_z->Set_fa(motlaw_z_seq);
+	motlaw_z->SetRepeatedFunction(motlaw_z_seq);
 	motlaw_z->Set_window_length(4);
 
 	ChFunctionConst*	 motlaw_y1 = new ChFunctionConst();
@@ -565,7 +565,7 @@ Set motions for Z and Y coordinates of the 'my_link_teacher' marker, so that the
 	motlaw_y_seq->InsertFunct(motlaw_y3, 1,  1, true);
 	motlaw_y_seq->InsertFunct(motlaw_y4, 1,  1, true);
 	ChFunctionRepeat* motlaw_y = new ChFunctionRepeat();
-	motlaw_y->Set_fa(motlaw_y_seq);
+	motlaw_y->SetRepeatedFunction(motlaw_y_seq);
 	motlaw_y->Set_window_length(4);
 
 	my_marker_move->SetMotion_Z(motlaw_z);

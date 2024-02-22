@@ -44,7 +44,7 @@ class DistanceIdlerFunction : public ChFunction {
 
     virtual DistanceIdlerFunction* Clone() const override { return new DistanceIdlerFunction(*this); }
 
-    virtual double Get_y(double x) const override {
+    virtual double GetVal(double x) const override {
         if (x < m_time)
             return m_init_val + (m_final_val - m_init_val) * (x / m_time);
         return m_final_val;

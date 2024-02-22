@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         sys.DoStepDynamics(t_step);
-        auto Uref = actuation->Get_y(t);
+        auto Uref = actuation->GetVal(t);
         auto U = actuator->GetValvePosition();
         auto p = actuator->GetCylinderPressures();
         auto F = actuator->GetActuatorForce();

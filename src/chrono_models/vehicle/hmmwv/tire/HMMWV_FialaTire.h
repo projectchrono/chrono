@@ -50,7 +50,7 @@ class CH_MODELS_API HMMWV_FialaTire : public ChFialaTire {
     virtual void RemoveVisualizationAssets() override final;
 
   private:
-    ChFunctionRecorder m_vert_map;
+    ChFunctionInterp m_vert_map;
     double m_max_depth;
     double m_max_val;
     double m_slope;

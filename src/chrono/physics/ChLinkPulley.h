@@ -74,7 +74,7 @@ class ChApi ChLinkPulley : public ChLinkLockLock {
     /// Get the initial phase of rotation of pulley A.
     double Get_phase() const { return phase; }
     /// Set the initial phase of rotation of pulley A.
-    void Set_phase(double mset) { phase = mset; }
+    void SetPhase(double mset) { phase = mset; }
 
     /// If true, enforce check on exact phase between pulleys
     /// (otherwise after many simulation steps the phasing

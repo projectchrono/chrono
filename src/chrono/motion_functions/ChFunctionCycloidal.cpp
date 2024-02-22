@@ -13,85 +13,79 @@
 // =============================================================================
 
 #include "chrono/motion_functions/ChFunctionCycloidal.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunctionCycloidal)
 
-ChFunctionCycloidal::ChFunctionCycloidal(double m_h, double m_end)
-    : h(m_h)
-{
-    Set_end(m_end);
+ChFunctionCycloidal::ChFunctionCycloidal(double height, double width) : m_height(height) {
+    SetWidth(width);
 }
 
 ChFunctionCycloidal::ChFunctionCycloidal(const ChFunctionCycloidal& other) {
-    h = other.h;
-    end = other.end;
+    m_height = other.m_height;
+    m_width = other.m_width;
 }
 
-double ChFunctionCycloidal::Get_y(double x) const {
+double ChFunctionCycloidal::GetVal(double x) const {
     if (x <= 0)
         return 0;
-    else if (x >= end)
-        return h;
-    double ret = h * (x / end - 1. / CH_C_2PI * sin(CH_C_2PI * x / end));
+    else if (x >= m_width)
+        return m_height;
+    double ret = m_height * (x / m_width - sin(CH_C_2PI * x / m_width) / CH_C_2PI);
     return ret;
 }
 
-double ChFunctionCycloidal::Get_y_dx(double x) const {
+double ChFunctionCycloidal::GetDer(double x) const {
     if (x <= 0)
         return 0;
-    else if (x >= end)
+    else if (x >= m_width)
         return 0;
-    double ret = h / end * (1 - cos(CH_C_2PI * x / end));
+    double ret = m_height / m_width * (1 - cos(CH_C_2PI * x / m_width));
     return ret;
 }
 
-double ChFunctionCycloidal::Get_y_dxdx(double x) const {
+double ChFunctionCycloidal::GetDer2(double x) const {
     if (x <= 0)
         return 0;
-    else if (x >= end)
+    else if (x >= m_width)
         return 0;
-    double ret = CH_C_2PI * h / end / end * sin(CH_C_2PI * x / end);
+    double ret = CH_C_2PI * m_height / m_width / m_width * sin(CH_C_2PI * x / m_width);
     return ret;
 }
 
-double ChFunctionCycloidal::Get_y_dxdxdx(double x) const {
+double ChFunctionCycloidal::GetDer3(double x) const {
     if (x <= 0)
         return 0;
-    else if (x >= end)
+    else if (x >= m_width)
         return 0;
-    double ret = pow(CH_C_2PI, 2) * h / pow(end, 3) * cos(CH_C_2PI * x / end);
+    double ret = pow(CH_C_2PI, 2) * m_height / pow(m_width, 3) * cos(CH_C_2PI * x / m_width);
     return ret;
 }
 
-void ChFunctionCycloidal::Set_end(double m_end) {
-    if (m_end < 0)
-        m_end = 0;
-    end = m_end;
-}
+void ChFunctionCycloidal::SetWidth(double width) {
+    if (width <= 0)
+        throw std::invalid_argument("Width must be positive.");
 
-
-void ChFunctionCycloidal::Estimate_x_range(double& xmin, double& xmax) const {
-    xmin = 0.0;
-    xmax = end;
+    m_width = width;
 }
 
 void ChFunctionCycloidal::ArchiveOut(ChArchiveOut& marchive) {
     // serialize parent class
     ChFunction::ArchiveOut(marchive);
     // serialize all member data:
-    marchive << CHNVP(h);
-    marchive << CHNVP(end);
+    marchive << CHNVP(m_height);
+    marchive << CHNVP(m_width);
 }
 
 void ChFunctionCycloidal::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChFunction::ArchiveIn(marchive);
     // stream in all member data:
-    marchive >> CHNVP(h);
-    marchive >> CHNVP(end);
+    marchive >> CHNVP(m_height);
+    marchive >> CHNVP(m_width);
 }
 
-}  // end namespace chrono
+}  // namespace chrono

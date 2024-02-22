@@ -234,7 +234,7 @@ class Actuator {
         double time = m_sys.GetChTime();
 
         Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-        auto Uref = m_actuation->Get_y(time);
+        auto Uref = m_actuation->GetVal(time);
         auto U = m_actuator->GetValvePosition();
         auto p = m_actuator->GetCylinderPressures();
         auto F = m_actuator->GetActuatorForce();
@@ -355,7 +355,7 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         // Apply actuation
-        double Uref = actuation->Get_y(t);
+        double Uref = actuation->GetVal(t);
         actuator.SetActuation(t, Uref);
 
         // Exchange information between systems

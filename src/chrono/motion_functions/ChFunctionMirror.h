@@ -23,12 +23,14 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Mirror function:   `y = __/\__`
+/// Mirror function.
+///
+/// `y(x - x_axis) = y(x + x_axis)`
 /// Mirrors a function about a vertical axis.
 class ChApi ChFunctionMirror : public ChFunction {
   private:
-    std::shared_ptr<ChFunction> fa;
-    double mirror_axis;  ///< symmetry axis position on x
+    std::shared_ptr<ChFunction> m_operand_fun;
+    double m_mirror_axis;  ///< symmetry axis position on x
 
   public:
     ChFunctionMirror();
@@ -38,17 +40,18 @@ class ChApi ChFunctionMirror : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionMirror* Clone() const override { return new ChFunctionMirror(*this); }
 
-    virtual FunctionType Get_Type() const override { return FUNCT_MIRROR; }
+    virtual Type GetType() const override { return ChFunction::Type::MIRROR; }
 
-    virtual double Get_y(double x) const override;
+    virtual double GetVal(double x) const override;
 
-    void Set_mirror_axis(double m_axis) { mirror_axis = m_axis; }
-    double Get_mirror_axis() { return mirror_axis; }
+    /// Set the symmetry axis position on x.
+    void SetMirrorAxis(double axis) { m_mirror_axis = axis; }
 
-    void Set_fa(std::shared_ptr<ChFunction> m_fa) { fa = m_fa; }
-    std::shared_ptr<ChFunction> Get_fa() { return fa; }
+    /// Get the symmetry axis position on x.
+    double GetMirrorAxis() { return m_mirror_axis; }
 
-    virtual void Estimate_x_range(double& xmin, double& xmax) const override;
+    void SetOperandFunction(std::shared_ptr<ChFunction> operand_fun) { m_operand_fun = operand_fun; }
+    std::shared_ptr<ChFunction> GetOperandFunction() { return m_operand_fun; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

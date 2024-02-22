@@ -426,7 +426,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    ChFunctionRecorder powRec;
+    ChFunctionInterp powRec;
 
     std::string datafile = out_dir + "/test_gnuplot_data.dat";
     std::ofstream mdatafile(datafile.c_str());
@@ -465,7 +465,7 @@ int main(int argc, char* argv[]) {
         powRec.Estimate_x_range(a, b);
         cout << "Speed 6W above " << b << " mph\n";
     } else {
-        double speed_6W = powRec.Get_y(6.0);
+        double speed_6W = powRec.GetVal(6.0);
         cout << "Speed 6W = " << speed_6W << " mph\n";
     }
     return 0;

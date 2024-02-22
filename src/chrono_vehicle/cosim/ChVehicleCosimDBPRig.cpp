@@ -42,7 +42,7 @@ class ConstantFunction : public chrono::ChFunction {
         return new ConstantFunction(m_time_delay, m_time_ramp, m_max_value);
     }
 
-    virtual double Get_y(double t) const override {
+    virtual double GetVal(double t) const override {
         if (t <= m_time_delay)
             return 0;
 
@@ -53,14 +53,14 @@ class ConstantFunction : public chrono::ChFunction {
         return m_max_value;
     }
 
-    virtual double Get_y_dx(double t) const override {
+    virtual double GetDer(double t) const override {
         if (t > m_time_delay && t <= m_time_delay + m_time_ramp)
             return m_max_value / m_time_ramp;
 
         return 0;
     }
 
-    virtual double Get_y_dxdx(double t) const override { return 0; }
+    virtual double GetDer2(double t) const override { return 0; }
 
   private:
     double m_time_delay;
@@ -74,19 +74,19 @@ class RampFunction : public chrono::ChFunction {
     RampFunction(double rate, double time_delay = 0) : m_rate(rate), m_time_delay(time_delay) {}
     virtual RampFunction* Clone() const override { return new RampFunction(m_rate, m_time_delay); }
 
-    virtual double Get_y(double t) const override {
+    virtual double GetVal(double t) const override {
         if (t <= m_time_delay)
             return 0;
         return m_rate * (t - m_time_delay);
     }
 
-    virtual double Get_y_dx(double t) const override {
+    virtual double GetDer(double t) const override {
         if (t > m_time_delay)
             return m_rate;
         return 0;
     }
 
-    virtual double Get_y_dxdx(double t) const override { return 0; }
+    virtual double GetDer2(double t) const override { return 0; }
 
   private:
     double m_rate;

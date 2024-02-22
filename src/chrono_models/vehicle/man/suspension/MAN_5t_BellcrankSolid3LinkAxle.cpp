@@ -81,7 +81,7 @@ class MAN_5t_SpringForceFront : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunctionRecorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 MAN_5t_SpringForceFront::MAN_5t_SpringForceFront(double spring_constant1,
@@ -125,7 +125,7 @@ double MAN_5t_SpringForceFront::evaluate(double time,
     }
 
     force = defl_spring * m_spring_constant1 + defl_spring * std::abs(defl_spring) * m_spring_constant2 +
-            m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+            m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }

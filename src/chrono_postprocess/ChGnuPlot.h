@@ -22,8 +22,7 @@
 #include "chrono/core/ChMatrix.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/motion_functions/ChFunctionBase.h"
-#include "chrono/motion_functions/ChFunctionRecorder.h"
-#include "chrono/motion_functions/ChFunctionOscilloscope.h"
+#include "chrono/motion_functions/ChFunctionInterp.h"
 
 #include "chrono_postprocess/ChApiPostProcess.h"
 
@@ -143,17 +142,17 @@ class ChGnuPlot {
         Plot(x, y, title, customsettings);
     }
 
-    /// Plot 2D (x,y) data from a ChFunctionRecorder
-    void Plot(ChFunctionRecorder& recorder,
+    /// Plot 2D (x,y) data from a ChFunctionInterp
+    void Plot(ChFunctionInterp& fun_table,
               const std::string& title = "",
               const std::string& customsettings = " with lines ") {
-        ChVectorDynamic<> x(recorder.GetPoints().size());
-        ChVectorDynamic<> y(recorder.GetPoints().size());
+        ChVectorDynamic<> x(fun_table.GetTable().size());
+        ChVectorDynamic<> y(fun_table.GetTable().size());
 
         int i = 0;
-        for (auto iter = recorder.GetPoints().begin(); iter != recorder.GetPoints().end(); ++iter) {
-            x(i) = iter->x;
-            y(i) = iter->y;
+        for (auto iter = fun_table.GetTable().begin(); iter != fun_table.GetTable().end(); ++iter) {
+            x(i) = iter->first;
+            y(i) = iter->second;
             ++i;
         }
         Plot(x, y, title, customsettings);
@@ -180,31 +179,9 @@ class ChGnuPlot {
         Plot(x, y, title, customsettings);
     }
 
-    /// Plot 2D (x,y) data from a ChFunctionOscilloscope.
-    void Plot(ChFunctionOscilloscope& recorder,
-              const std::string& title = "",
-              const std::string& customsettings = " with lines ") {
-        ChVectorDynamic<> x(recorder.GetPointList().size());
-        ChVectorDynamic<> y(recorder.GetPointList().size());
-
-        double xmin, xmax;
-        recorder.Estimate_x_range(xmin, xmax);
-        double x_crt = xmin;
-        int i = 0;
-        std::list<double>::iterator iter = recorder.GetPointList().begin();
-        while (iter != recorder.GetPointList().end()) {
-            x(i) = x_crt;
-            y(i) = (*iter);
-            x_crt += recorder.Get_dx();
-            ++iter;
-            ++i;
-        }
-        Plot(x, y, title, customsettings);
-    }
-
     /// Plot 2D (x,y) data from a generic ChFunction.
-    /// Note that if the ChFunction is of type ChFunctionOscilloscope or ChFunctionRecorder, there
-    /// are specific Plot() functions that can leverage their point-like nature in a better way.
+    /// Note that if the ChFunction is of type ChFunctionInterp there
+    /// is a specific Plot() function
     void Plot(ChFunction& funct,
               double xmin,
               double xmax,
@@ -218,7 +195,7 @@ class ChGnuPlot {
         double x_crt = xmin;
         for (int i = 0; i < samples; ++i) {
             x(i) = x_crt;
-            y(i) = funct.Get_y(x_crt);
+            y(i) = funct.GetVal(x_crt);
             x_crt += dx;
         }
         Plot(x, y, title, customsettings);
@@ -240,13 +217,13 @@ class ChGnuPlot {
         for (int i = 0; i < samples; ++i) {
             x(i) = x_crt;
             if (der_order == 0)
-                y(i) = funct.Get_y(x_crt);
+                y(i) = funct.GetVal(x_crt);
             else if (der_order == 1)
-                y(i) = funct.Get_y_dx(x_crt);
+                y(i) = funct.GetDer(x_crt);
             else if (der_order == 2)
-                y(i) = funct.Get_y_dxdx(x_crt);
+                y(i) = funct.GetDer2(x_crt);
             else if (der_order == 3)
-                y(i) = funct.Get_y_dxdxdx(x_crt);
+                y(i) = funct.GetDer3(x_crt);
             else
                 y(i) = 0;
             x_crt += dx;

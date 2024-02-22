@@ -116,10 +116,10 @@ void ChShaftsTorqueConverter::Update(double mytime, bool update_assets) {
     }
 
     // Compute actual capacity factor
-    double mK = K->Get_y(mR);
+    double mK = K->GetVal(mR);
 
     // Compute actual torque factor
-    double mT = T->Get_y(mR);
+    double mT = T->GetVal(mR);
 
     // compute input torque (with minus sign because applied TO input thaft)
     torque_in = -pow((shaft1->GetPos_dt() / mK), 2);

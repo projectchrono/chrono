@@ -77,7 +77,7 @@ void ChEngineShafts::Initialize(std::shared_ptr<ChChassis> chassis) {
     sys->Add(m_engine);
 
     // The thermal engine requires a torque curve
-    auto mTw = chrono_types::make_shared<ChFunctionRecorder>();
+    auto mTw = chrono_types::make_shared<ChFunctionInterp>();
     SetEngineTorqueMap(mTw);
     m_engine->SetTorqueCurve(mTw);
 
@@ -88,7 +88,7 @@ void ChEngineShafts::Initialize(std::shared_ptr<ChChassis> chassis) {
     sys->Add(m_engine_losses);
 
     // The engine brake model requires a torque curve
-    auto mTw_losses = chrono_types::make_shared<ChFunctionRecorder>();
+    auto mTw_losses = chrono_types::make_shared<ChFunctionInterp>();
     SetEngineLossesMap(mTw_losses);
     m_engine_losses->SetTorqueCurve(mTw_losses);
 }

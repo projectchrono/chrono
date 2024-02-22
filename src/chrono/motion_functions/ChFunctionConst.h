@@ -22,38 +22,43 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Constant function:  `y = C`
+/// Function returnin a constant value.
 class ChApi ChFunctionConst : public ChFunction {
-
-  private:
-    double C;
-
   public:
-    ChFunctionConst() { C = 0; }
-    ChFunctionConst(double y_constant) { C = y_constant; }
-    ChFunctionConst(const ChFunctionConst& other) { C = other.C; }
+    ChFunctionConst() : m_constant(0) { }
+    ChFunctionConst(double y_constant) : m_constant(y_constant) {}
+    ChFunctionConst(const ChFunctionConst& other) { m_constant = other.m_constant; }
     virtual ~ChFunctionConst() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionConst* Clone() const override { return new ChFunctionConst(*this); }
 
-    /// Returns the y value of the function, at position x.
-    virtual FunctionType Get_Type() const override { return FUNCT_CONST; }
+    /// Returns the function type.
+    virtual Type GetType() const override { return ChFunction::Type::CONSTANT; }
 
-    virtual double Get_y(double x) const override { return C; }
-    virtual double Get_y_dx(double x) const override { return 0; }
-    virtual double Get_y_dxdx(double x) const override { return 0; }
+    /// Returns the function value at \a x (constant in this case).
+    virtual double GetVal(double x) const override { return m_constant; }
 
-    /// Set the constant C for the function, y=C.
-    void Set_yconst(double y_constant) { C = y_constant; }
-    /// Get the constant C for the function, y=C.
-    double Get_yconst() { return C; }
+    /// Returns the function first derivative (i.e. 0)
+    virtual double GetDer(double x) const override { return 0; }
+
+    /// Returns the function second derivative (i.e. 0)
+    virtual double GetDer2(double x) const override { return 0; }
+
+    /// Set the constant value of the function.
+    void SetConstant(double y_constant) { m_constant = y_constant; }
+
+    /// Get the constant value of the function
+    double GetConstant() const { return m_constant; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
+
+  private:
+    double m_constant;
 };
 
 /// @} chrono_functions

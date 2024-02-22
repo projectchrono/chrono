@@ -102,11 +102,11 @@ class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChAutomaticTransmiss
 
     /// Set the capacity factor map.
     /// Specify the capacity factor as a function of the speed ratio.
-    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionRecorder>& map) = 0;
+    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionInterp>& map) = 0;
 
     /// Set the torque ratio map.
     /// Specify torque ratio as a function of the speed ratio.
-    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunctionRecorder>& map) = 0;
+    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunctionInterp>& map) = 0;
 
   private:
     /// Initialize this transmission system by attaching it to an existing vehicle chassis and connecting the provided

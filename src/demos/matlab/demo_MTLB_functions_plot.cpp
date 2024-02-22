@@ -44,13 +44,13 @@ int main(int argc, char* argv[]) {
 
         ChFunctionRamp f_ramp;
 
-        f_ramp.Set_ang(0.1);  // set angular coefficient;
-        f_ramp.Set_y0(0.4);   // set y value for x=0;
+        f_ramp.SetAngularCoeff(0.1);  // set angular coefficient;
+        f_ramp.SetStartVal(0.4);   // set y value for x=0;
 
-        // Evaluate y=f(x) function at a given x value, using Get_y() :
-        double y = f_ramp.Get_y(10);
-        // Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
-        double ydx = f_ramp.Get_y_dx(10);
+        // Evaluate y=f(x) function at a given x value, using GetVal() :
+        double y = f_ramp.GetVal(10);
+        // Evaluate derivative df(x)/dx at a given x value, using GetDer() :
+        double ydx = f_ramp.GetDer(10);
 
         std::cout << "   ChFunctionRamp at x=0: y=" << y << "  dy/dx=" << ydx << "\n\n";
 
@@ -62,8 +62,8 @@ int main(int argc, char* argv[]) {
 
         ChFunctionSine f_sine;
 
-        f_sine.Set_amp(2);     // set amplitude;
-        f_sine.Set_freq(0.9);  // set frequency;
+        f_sine.SetAmplitude(2);     // set amplitude;
+        f_sine.SetFrequency(0.9);  // set frequency;
 
         // Evaluate y=f(x) function along 100 x points:
         ChMatrixDynamic<> x_array(100, 1);
@@ -73,9 +73,9 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < 100; i++) {
             double x = (double)i / 50.0;
             x_array(i) = x;
-            y_array(i) = f_sine.Get_y(x);
-            ydx_array(i) = f_sine.Get_y_dx(x);
-            ydxdx_array(i) = f_sine.Get_y_dxdx(x);
+            y_array(i) = f_sine.GetVal(x);
+            ydx_array(i) = f_sine.GetDer(x);
+            ydxdx_array(i) = f_sine.GetDer2(x);
         }
 
         // Send resulting vectors of values to Matlab

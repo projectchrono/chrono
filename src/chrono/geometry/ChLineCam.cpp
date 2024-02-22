@@ -99,9 +99,9 @@ ChVector3d ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
         }
     }
 
-    y = sign * law->Get_y(fxalpha);
-    ydx = signdx * law->Get_y_dx(fxalpha);
-    ydxdx = signdxdx * law->Get_y_dxdx(fxalpha);
+    y = sign * law->GetVal(fxalpha);
+    ydx = signdx * law->GetDer(fxalpha);
+    ydxdx = signdxdx * law->GetDer2(fxalpha);
 
     switch (this->type) {
         case CAM_TYPE_SLIDEFOLLOWER:

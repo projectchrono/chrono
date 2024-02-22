@@ -56,7 +56,7 @@ class TrackedVehicleDBPDriver : public ChDriver {
         m_steering = 0;
         m_braking = 0;
 
-        double ang_speed = m_func->Get_y(time);
+        double ang_speed = m_func->GetVal(time);
         m_vehicle->GetTrackAssembly(VehicleSide::LEFT)->GetSprocket()->GetAxle()->SetPos_dt(ang_speed);
         m_vehicle->GetTrackAssembly(VehicleSide::RIGHT)->GetSprocket()->GetAxle()->SetPos_dt(ang_speed);
     }

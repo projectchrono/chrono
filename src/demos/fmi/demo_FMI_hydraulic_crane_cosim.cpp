@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
         actuator_fmu.SetVariable("sd", sd, FmuVariable::Type::Real);
 
         // ----------- Actuator input signal -> [actuator]
-        fmi2Real Uref = actuation->Get_y(time);
+        fmi2Real Uref = actuation->GetVal(time);
         actuator_fmu.SetVariable("Uref", Uref, FmuVariable::Type::Real);
 
         // ----------- Current actuator state information

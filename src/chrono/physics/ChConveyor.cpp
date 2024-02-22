@@ -289,9 +289,9 @@ void ChConveyor::Update(double mytime, bool update_assets) {
 
     conveyor_plate->Update(mytime, update_assets);
 
-    std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotion_X())->Set_ang(-conveyor_speed);
+    std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotion_X())->SetAngularCoeff(-conveyor_speed);
     // always zero pos. offset (trick):
-    std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotion_X())->Set_y0(+conveyor_speed * GetChTime());
+    std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotion_X())->SetStartVal(+conveyor_speed * GetChTime());
 
     internal_link->Update(mytime, update_assets);
 }

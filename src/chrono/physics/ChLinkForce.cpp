@@ -38,25 +38,25 @@ ChLinkForce::ChLinkForce(const ChLinkForce& other) {
 double ChLinkForce::GetKcurrent(double x, double x_dt, double t) const {
     if (!m_active)
         return 0;
-    return m_K * m_K_modul->Get_y(x);
+    return m_K * m_K_modul->GetVal(x);
 }
 
 double ChLinkForce::GetRcurrent(double x, double x_dt, double t) const {
     if (!m_active)
         return 0;
-    return m_R * m_R_modul->Get_y(x);
+    return m_R * m_R_modul->GetVal(x);
 }
 
 double ChLinkForce::GetFcurrent(double x, double x_dt, double t) const {
     if (!m_active)
         return 0;
-    return m_F * m_F_modul->Get_y(t);
+    return m_F * m_F_modul->GetVal(t);
 }
 
 double ChLinkForce::GetForce(double x, double x_dt, double t) const {
     if (!m_active)
         return 0;
-    return m_F * m_F_modul->Get_y(t) - (m_K * m_K_modul->Get_y(x)) * x - (m_R * m_R_modul->Get_y(x)) * x_dt;
+    return m_F * m_F_modul->GetVal(t) - (m_K * m_K_modul->GetVal(x)) * x - (m_R * m_R_modul->GetVal(x)) * x_dt;
 }
 
 void ChLinkForce::ArchiveOut(ChArchiveOut& marchive) {

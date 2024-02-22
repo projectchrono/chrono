@@ -20,68 +20,75 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunctionFillet3)
 
 ChFunctionFillet3::ChFunctionFillet3(const ChFunctionFillet3& other) {
-    end = other.end;
-    y1 = other.y1;
-    y2 = other.y2;
-    dy1 = other.dy1;
-    dy2 = other.dy2;
+    m_width = other.m_width;
+    m_val_start = other.m_val_start;
+    m_val_end = other.m_val_end;
+    m_der_start = other.m_der_start;
+    m_der_end = other.m_der_end;
     c1 = other.c1;
     c2 = other.c2;
     c3 = other.c3;
     c4 = other.c4;
 }
 
-double ChFunctionFillet3::Get_y(double x) const {
+double ChFunctionFillet3::GetVal(double x) const {
     double ret = 0;
     if (x <= 0)
-        return y1;
-    if (x >= end)
-        return y2;
+        return m_val_start;
+    if (x >= m_width)
+        return m_val_end;
     ret = c1 * pow(x, 3) + c2 * pow(x, 2) + c3 * x + c4;
     return ret;
 }
 
-double ChFunctionFillet3::Get_y_dx(double x) const {
+double ChFunctionFillet3::GetDer(double x) const {
     double ret = 0;
     if (x <= 0)
         return 0;
-    if (x >= end)
+    if (x >= m_width)
         return 0;
     ret = 3 * c1 * pow(x, 2) + 2 * c2 * x + c3;
     return ret;
 }
 
-double ChFunctionFillet3::Get_y_dxdx(double x) const {
+double ChFunctionFillet3::GetDer2(double x) const {
     double ret = 0;
     if (x <= 0)
         return 0;
-    if (x >= end)
+    if (x >= m_width)
         return 0;
     ret = 6 * c1 * x + 2 * c2;
     return ret;
 }
 
-void ChFunctionFillet3::SetupCoefficients() {
+inline void ChFunctionFillet3::SetWidth(double width) {
+    if (width < 0)
+        throw std::invalid_argument("Width cannot be negative");
+
+    m_width = width;
+}
+
+void ChFunctionFillet3::Setup() {
     ChMatrixDynamic<> ma(4, 4);
     ChMatrixDynamic<> mb(4, 1);
     ChMatrixDynamic<> mx(4, 1);
 
-    mb(0, 0) = y1;
-    mb(1, 0) = y2;
-    mb(2, 0) = dy1;
-    mb(3, 0) = dy2;
+    mb(0, 0) = m_val_start;
+    mb(1, 0) = m_val_end;
+    mb(2, 0) = m_der_start;
+    mb(3, 0) = m_der_end;
 
     ma(0, 3) = 1.0;
 
-    ma(1, 0) = pow(end, 3);
-    ma(1, 1) = pow(end, 2);
-    ma(1, 2) = end;
+    ma(1, 0) = pow(m_width, 3);
+    ma(1, 1) = pow(m_width, 2);
+    ma(1, 2) = m_width;
     ma(1, 3) = 1.0;
 
     ma(2, 2) = 1.0;
 
-    ma(3, 0) = 3 * pow(end, 2);
-    ma(3, 1) = 2 * end;
+    ma(3, 0) = 3 * pow(m_width, 2);
+    ma(3, 1) = 2 * m_width;
     ma(3, 2) = 1.0;
 
     mx = ma.colPivHouseholderQr().solve(mb);
@@ -98,25 +105,25 @@ void ChFunctionFillet3::ArchiveOut(ChArchiveOut& marchive) {
     // serialize parent class
     ChFunction::ArchiveOut(marchive);
     // serialize all member data:
-    marchive << CHNVP(end);
-    marchive << CHNVP(y1);
-    marchive << CHNVP(y2);
-    marchive << CHNVP(dy1);
-    marchive << CHNVP(dy2);
+    marchive << CHNVP(m_width);
+    marchive << CHNVP(m_val_start);
+    marchive << CHNVP(m_val_end);
+    marchive << CHNVP(m_der_start);
+    marchive << CHNVP(m_der_end);
 }
 
 void ChFunctionFillet3::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionFillet3>();
+    /*int version =*/marchive.VersionRead<ChFunctionFillet3>();
     // deserialize parent class
     ChFunction::ArchiveIn(marchive);
     // stream in all member data:
-    marchive >> CHNVP(end);
-    marchive >> CHNVP(y1);
-    marchive >> CHNVP(y2);
-    marchive >> CHNVP(dy1);
-    marchive >> CHNVP(dy2);
-    SetupCoefficients();
+    marchive >> CHNVP(m_width);
+    marchive >> CHNVP(m_val_start);
+    marchive >> CHNVP(m_val_end);
+    marchive >> CHNVP(m_der_start);
+    marchive >> CHNVP(m_der_end);
+    Setup();
 }
 
-}  // end namespace chrono
+}  // namespace chrono

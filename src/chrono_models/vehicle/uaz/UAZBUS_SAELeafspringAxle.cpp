@@ -90,7 +90,7 @@ class UAZBUS_AuxSpringForceRear : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunctionRecorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 UAZBUS_AuxSpringForceRear::UAZBUS_AuxSpringForceRear(double spring_constant, double min_length, double max_length)
@@ -127,7 +127,7 @@ double UAZBUS_AuxSpringForceRear::evaluate(double time,
         defl_rebound = length - m_max_length;
     }
 
-    force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+    force = defl_spring * m_spring_constant + m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }

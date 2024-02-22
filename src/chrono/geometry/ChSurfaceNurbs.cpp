@@ -26,7 +26,7 @@ ChSurfaceNurbs::ChSurfaceNurbs() {
     mpoints(1, 0) = ChVector3d(1, -1, 0);
     mpoints(0, 1) = ChVector3d(-1, 1, 0);
     mpoints(1, 1) = ChVector3d(1, 1, 0);
-    this->SetupData(1, 1, mpoints);
+    this->Setup(1, 1, mpoints);
 }
 
 ChSurfaceNurbs::ChSurfaceNurbs(
@@ -37,7 +37,7 @@ ChSurfaceNurbs::ChSurfaceNurbs(
     ChVectorDynamic<>* mknots_v,  // knots, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
     ChMatrixDynamic<>* weights    // weights, size nuxnv. If not provided, all weights as 1.
 ) {
-    this->SetupData(morder_u, morder_v, mpoints, mknots_u, mknots_v, weights);
+    this->Setup(morder_u, morder_v, mpoints, mknots_u, mknots_v, weights);
 }
 
 ChSurfaceNurbs::ChSurfaceNurbs(const ChSurfaceNurbs& source) : ChSurface(source) {
@@ -71,7 +71,7 @@ ChVector3d ChSurfaceNurbs::Evaluate(double parU, double parV) const {
     return pos;
 }
 
-void ChSurfaceNurbs::SetupData(
+void ChSurfaceNurbs::Setup(
     int morder_u,                          // order pu: 1= linear, 2=quadratic, etc.
     int morder_v,                          // order pv: 1= linear, 2=quadratic, etc.
     ChMatrixDynamic<ChVector3d>& mpoints,  // control points, size nuxnv. Required: at least nu >= pu+1, same for v
@@ -80,23 +80,23 @@ void ChSurfaceNurbs::SetupData(
     ChMatrixDynamic<>* weights    // weights, size nuxnv. If not provided, all weights as 1.
 ) {
     if (morder_u < 1)
-        throw std::invalid_argument("ChSurfaceNurbs::SetupData requires u order >= 1.");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup requires u order >= 1.");
 
     if (morder_v < 1)
-        throw std::invalid_argument("ChSurfaceNurbs::SetupData requires v order >= 1.");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup requires v order >= 1.");
 
     if (mpoints.rows() < morder_u + 1)
-        throw std::invalid_argument("ChSurfaceNurbs::SetupData requires at least (order_u+1)x(order_v+1) control points.");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup requires at least (order_u+1)x(order_v+1) control points.");
     if (mpoints.cols() < morder_v + 1)
-        throw std::invalid_argument("ChSurfaceNurbs::SetupData requires at least (order_u+1)x(order_v+1) control points.");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup requires at least (order_u+1)x(order_v+1) control points.");
 
     if (mknots_u && mknots_u->size() != (mpoints.rows() + morder_u + 1))
-        throw std::invalid_argument("ChSurfaceNurbs::SetupData: knots_u must have size=n_points_u+order_u+1");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup: knots_u must have size=n_points_u+order_u+1");
     if (mknots_v && mknots_v->size() != (mpoints.cols() + morder_v + 1))
-        throw std::invalid_argument("ChSurfaceNurbs::SetupData: knots_v must have size=n_points_v+order_v+1");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup: knots_v must have size=n_points_v+order_v+1");
 
     if (weights && (weights->rows() != mpoints.rows() || weights->cols() != mpoints.cols()))
-        throw std::invalid_argument("ChSurfaceNurbs::SetupData: weights matrix must have size as point matrix");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup: weights matrix must have size as point matrix");
 
     this->p_u = morder_u;
     this->p_v = morder_v;

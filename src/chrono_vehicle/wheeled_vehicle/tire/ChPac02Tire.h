@@ -123,7 +123,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     // returns false, if section could not be found
     bool FindSectionStart(const std::string& sectName, FILE* fp);
 
-    ChFunctionRecorder m_bott_map;
+    ChFunctionInterp m_bott_map;
 
     /// Set the parameters in the Pac02 model.
     virtual void SetMFParams() = 0;

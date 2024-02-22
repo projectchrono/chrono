@@ -50,7 +50,7 @@ void ChFunctionRotationABCFunctions::SetAngleset(const RotRepresentation rot_rep
 }
 
 ChQuaternion<> ChFunctionRotationABCFunctions::Get_q(double s) const {
-    return QuatFromAngleSet({angleset, ChVector3d(angleA->Get_y(s), angleB->Get_y(s), angleC->Get_y(s))});
+    return QuatFromAngleSet({angleset, ChVector3d(angleA->GetVal(s), angleB->GetVal(s), angleC->GetVal(s))});
 }
 
 // To avoid putting the following mapper macro inside the class definition,

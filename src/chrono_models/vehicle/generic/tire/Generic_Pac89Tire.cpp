@@ -141,7 +141,7 @@ double Generic_Pac89Tire::GetNormalStiffnessForce(double depth) const {
                 normalforcetabel[int(std::floor(position) + 1)] * scale);
     }
     */
-    return m_vert_map.Get_y(depth);
+    return m_vert_map.GetVal(depth);
 }
 
 // -----------------------------------------------------------------------------

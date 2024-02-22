@@ -40,11 +40,11 @@ void ChLinkMotorLinearPosition::Update(double mytime, bool update_assets) {
     // Add the time-dependent term in residual C as
     //   C = d_error - d_setpoint - d_offset
     // with d_error = x_pos_A- x_pos_B, and d_setpoint = x(t)
-    C(0) = this->mpos - m_func->Get_y(mytime) - this->pos_offset;
+    C(0) = this->mpos - m_func->GetVal(mytime) - this->pos_offset;
 }
 
 void ChLinkMotorLinearPosition::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
-    double mCt = -m_func->Get_y_dx(this->GetChTime());
+    double mCt = -m_func->GetDer(this->GetChTime());
     if (mask.Constr_N(0).IsActive()) {
         Qc(off_L + 0) += c * mCt;
     }
@@ -54,7 +54,7 @@ void ChLinkMotorLinearPosition::ConstraintsBiLoad_Ct(double factor) {
     if (!this->IsActive())
         return;
 
-    double mCt = -m_func->Get_y_dx(this->GetChTime());
+    double mCt = -m_func->GetDer(this->GetChTime());
     if (mask.Constr_N(0).IsActive()) {
         mask.Constr_N(0).Set_b_i(mask.Constr_N(0).Get_b_i() + factor * mCt);
     }

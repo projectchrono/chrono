@@ -178,7 +178,7 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
         }
 
         force = m_airSpringF0 * pow(m_hf0, m_kappa) / pow(m_hf0 - defl_spring, m_kappa) + defl_spring * m_k +
-                m_coilSpringF0 + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
+                m_coilSpringF0 + m_bump.GetVal(defl_bump) - m_rebound.GetVal(defl_rebound);
         // std::cout << "d =" << defl_spring << " m\n";
         return force;
     }
@@ -197,8 +197,8 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
     double m_hf0;          // value to ease the calculation [m]
     double m_airSpringF0;  // gas force at design position [N]
 
-    ChFunctionRecorder m_bump;
-    ChFunctionRecorder m_rebound;
+    ChFunctionInterp m_bump;
+    ChFunctionInterp m_rebound;
 };
 
 // -----------------------------------------------------------------------------
@@ -284,8 +284,8 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
         double force_hf, force_lf;
         if (m_use_damper_tables) {
             // use lookup tables
-            force_hf = m_hf_damper_table.Get_y(vel);
-            force_lf = m_lf_damper_table.Get_y(vel_min);
+            force_hf = m_hf_damper_table.GetVal(vel);
+            force_lf = m_lf_damper_table.GetVal(vel_min);
         } else {
             // use continuous funktions (derived from the tables)
             force_hf = HF_DamperForce(vel);
@@ -307,8 +307,8 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
 
   private:
     bool m_use_damper_tables;
-    ChFunctionRecorder m_hf_damper_table;
-    ChFunctionRecorder m_lf_damper_table;
+    ChFunctionInterp m_hf_damper_table;
+    ChFunctionInterp m_lf_damper_table;
     // these functions shouldn't better not be used, only for testing
     // there are to few data available to make a meaningful
     // curve fit

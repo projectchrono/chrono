@@ -1369,8 +1369,8 @@ void RS_Limb::GetMotorActuations(std::array<double, 8>& angles, std::array<doubl
     for (int i = 0; i < 8; i++) {
         auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_motors[motor_names[i]]->GetMotorFunction());
         // Note: the time passed as argument here does not matter for a ChfunctionSetpoint
-        angles[i] = fun->Get_y(0);
-        speeds[i] = fun->Get_y_dx(0);
+        angles[i] = fun->GetVal(0);
+        speeds[i] = fun->GetDer(0);
     }
 }
 

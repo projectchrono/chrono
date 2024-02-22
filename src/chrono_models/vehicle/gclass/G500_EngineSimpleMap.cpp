@@ -33,7 +33,7 @@ double G500_EngineSimpleMap::GetMaxEngineSpeed() {
     return 5900 * rpm2rads;
 }
 
-void G500_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionRecorder& map0, ChFunctionRecorder& mapF) {
+void G500_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     // Mercedes 4.0 litre V8 (M 176) 310kW
     map0.AddPoint(-10.0, 0.0);
     map0.AddPoint(10.0, 0.0);

@@ -492,7 +492,7 @@ int main(int argc, char* argv[]) {
     ////}
 
     // Simulation loop
-    ChFunctionRecorder rec;
+    ChFunctionInterp rec;
 
     while (vis->Run()) {
         vis->BeginScene();

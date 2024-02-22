@@ -1062,7 +1062,7 @@ void TurtleBot::Initialize() {
 }
 
 void TurtleBot::SetMotorSpeed(double rad_speed, WheelID id) {
-    m_motors_func[id]->Set_yconst(rad_speed);
+    m_motors_func[id]->SetConstant(rad_speed);
 }
 
 ChVector3d TurtleBot::GetActiveWheelSpeed(WheelID id) {

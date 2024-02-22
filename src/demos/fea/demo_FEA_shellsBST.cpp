@@ -74,8 +74,8 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChNodeFEAxyz> nodePlotB;
     std::vector<std::shared_ptr<ChNodeFEAxyz>> nodesLoad;
 
-    ChFunctionRecorder ref_X;
-    ChFunctionRecorder ref_Y;
+    ChFunctionInterp ref_X;
+    ChFunctionInterp ref_Y;
 
     ChVector3d load_force;
 
@@ -370,8 +370,8 @@ int main(int argc, char* argv[]) {
     sys.Setup();
     sys.Update();
 
-    ChFunctionRecorder rec_X;
-    ChFunctionRecorder rec_Y;
+    ChFunctionInterp rec_X;
+    ChFunctionInterp rec_Y;
 
     while (vsys->Run()) {
         vsys->BeginScene();

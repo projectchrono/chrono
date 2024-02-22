@@ -56,12 +56,12 @@ mmoved_1.SetPos(chrono.ChVector3d(-0.5, 0, 0))
 # Create a position function p(t) from three x,y,z distinct ChFunction objects,
 # in this case two sine functions on y and z, whereas x remains constant 0 by default.
 f_xyz = chrono.ChFunctionPositionXYZFunctions()
-f_xyz.SetFunctionY(chrono.ChFunctionSine(0, 0.5, 0.5))
-f_xyz.SetFunctionZ(chrono.ChFunctionSine(0, 0.5, 0.5))
+f_xyz.SetFunctionY(chrono.ChFunctionSine(0.5, 0.5))
+f_xyz.SetFunctionZ(chrono.ChFunctionSine(0.5, 0.5))
 
 # Create a rotation function q(t) from a angle(time) rotation with fixed axis:
 f_rot_axis = chrono.ChFunctionRotationAxis()
-f_rot_axis.SetFunctionAngle(chrono.ChFunctionSine(0, 0.15, chrono.CH_C_PI))
+f_rot_axis.SetFunctionAngle(chrono.ChFunctionSine(chrono.CH_C_PI, 0.15))
 f_rot_axis.SetAxis(chrono.ChVector3d(1, 1, 1).GetNormalized())
 
 # Create the constraint to impose motion and rotation.
@@ -172,7 +172,7 @@ mmoved_4.SetPos(chrono.ChVector3d(2.5, 0, 0))
 
 f_abc_angles = chrono.ChFunctionRotationABCFunctions()
 f_abc_angles.SetAngleset(chrono.RotRepresentation_CARDAN_ANGLES_XYZ)
-f_abc_angles.SetFunctionAngleA(chrono.ChFunctionSine(0, 2, 0.3))
+f_abc_angles.SetFunctionAngleA(chrono.ChFunctionSine(0.3, 2))
 f_abc_angles.SetFunctionAngleB(chrono.ChFunctionRamp(0, 0.2))
 
 impose_4 = chrono.ChLinkMotionImposed()

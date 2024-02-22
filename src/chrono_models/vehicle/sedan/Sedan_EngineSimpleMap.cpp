@@ -26,7 +26,7 @@ double Sedan_EngineSimpleMap::GetMaxEngineSpeed() {
     return 6500 * rpm2rads;
 }
 
-void Sedan_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionRecorder& map0, ChFunctionRecorder& mapF) {
+void Sedan_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     map0.AddPoint(-10.0, 0.0);
     map0.AddPoint(10.0, 0.0);
     map0.AddPoint(rpm2rads * 1000, -10.0);

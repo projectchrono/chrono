@@ -90,7 +90,7 @@ double HMMWV_FialaTire::GetNormalStiffnessForce(double depth) const {
     }
 
     // Return interpolated data
-    return m_vert_map.Get_y(depth);
+    return m_vert_map.GetVal(depth);
 }
 
 double HMMWV_FialaTire::GetNormalDampingForce(double depth, double velocity) const {

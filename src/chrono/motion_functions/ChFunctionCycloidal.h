@@ -22,14 +22,16 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Ramp function, as cycloidal:
-///   - h   = height, amount of displacement
-///   - end = duration of motion
+/// Cycloidal step function.
+///     `y = h * (x/w - sin(2*pi * x/w)/2*pi)`
+/// where:
+/// - `h` is the height of the step
+/// - `w` is the width of the step
 class ChApi ChFunctionCycloidal : public ChFunction {
-public:
-    ChFunctionCycloidal() : h(1), end(1) {}
+  public:
+    ChFunctionCycloidal() : m_height(1), m_width(1) {}
 
-    ChFunctionCycloidal(double m_h, double m_end);
+    ChFunctionCycloidal(double height, double width);
 
     ChFunctionCycloidal(const ChFunctionCycloidal& other);
 
@@ -38,25 +40,23 @@ public:
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionCycloidal* Clone() const override { return new ChFunctionCycloidal(*this); }
 
-    virtual FunctionType Get_Type() const override { return FUNCT_CYCLOIDAL; }
+    virtual Type GetType() const override { return ChFunction::Type::CYCLOIDAL; }
 
-    virtual double Get_y(double x) const override;
+    virtual double GetVal(double x) const override;
 
-    virtual double Get_y_dx(double x) const override;
+    virtual double GetDer(double x) const override;
 
-    virtual double Get_y_dxdx(double x) const override;
+    virtual double GetDer2(double x) const override;
 
-    virtual double Get_y_dxdxdx(double x) const override;
+    virtual double GetDer3(double x) const override;
 
-    void Set_end(double m_end);
+    void SetWidth(double width);
 
-    void Set_h(double m_h) { h = m_h; }
+    double GetWidth() const { return m_width; }
 
-    double Get_end() const { return end; }
+    void SetHeight(double height) { m_height = height; }
 
-    double Get_h() const { return h; }
-
-    virtual void Estimate_x_range(double& xmin, double& xmax) const override;
+    double GetHeight() const { return m_height; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -64,9 +64,9 @@ public:
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
-private:
-    double h;   ///< total amount of displacement
-    double end; ///< duration of motion
+  private:
+    double m_height;  ///< final height of the step
+    double m_width;   ///< width of the step
 };
 
 /// @} chrono_functions

@@ -1254,7 +1254,7 @@ void ChMapData::Read(const rapidjson::Value& a) {
     }
 }
 
-void ChMapData::Set(ChFunctionRecorder& map, double x_factor, double y_factor) const {
+void ChMapData::Set(ChFunctionInterp& map, double x_factor, double y_factor) const {
     for (unsigned int i = 0; i < m_n; i++) {
         map.AddPoint(x_factor * m_x[i], y_factor * m_y[i]);
     }

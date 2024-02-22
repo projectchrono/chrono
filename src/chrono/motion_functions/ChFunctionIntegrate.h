@@ -22,18 +22,19 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Integral of a function: `y = int{ f(x) dx`
-///
+/// Integral of a function.
+/// `y(x) = offset + \int{f(x) dx}_{x_start}^{x_end}`.
+/// The integration interval can be specified as well as the order of integration.
 /// Uses a numerical quadrature method to compute the definite integral.
 class ChApi ChFunctionIntegrate : public ChFunction {
   private:
-    std::shared_ptr<ChFunction> fa;
-    int order;  // 1= Integrate one time, 2= two times, etc.
-    double C_start;
-    double x_start;
-    double x_end;
-    int num_samples;
-    ChArray<> array_x;
+    std::shared_ptr<ChFunction> m_integrand_fun;
+    int m_integration_order;  ///< integration order
+    double m_offset;          ///< initial value of the integral at x=m_x_start
+    double m_x_start;          ///< start of integration interval
+    double m_x_end;            ///< end of integration interval
+    int m_num_samples;          ///< number of samples for the numerical quadrature
+    ChArray<> m_cumintegral;  ///< precomputed integral values
 
   public:
     ChFunctionIntegrate();
@@ -43,48 +44,52 @@ class ChApi ChFunctionIntegrate : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionIntegrate* Clone() const override { return new ChFunctionIntegrate(*this); }
 
-    virtual FunctionType Get_Type() const override { return FUNCT_INTEGRATE; }
+    virtual Type GetType() const override { return ChFunction::Type::INTEGRATE; }
 
-    virtual double Get_y(double x) const override;
+    virtual double GetVal(double x) const override;
 
-    void ComputeIntegral();
+    /// Precompute the integral values.
+    /// Need to be called after the settings are changed.
+    void Setup();
 
-    void Set_order(int m_order) { order = m_order; }
-    int Get_order() const { return order; }
+    /// Set the order of integration.
+    void SetOrder(int int_order) { m_integration_order = int_order; }
 
-    void Set_num_samples(int m_samples) {
-        num_samples = m_samples;
-        array_x.setZero(num_samples, 1);
-        ComputeIntegral();
-    }
-    int Get_num_samples() const { return num_samples; }
+    /// Get the order of integration.
+    int GetOrder() const { return m_integration_order; }
 
-    void Set_C_start(double m_val) {
-        C_start = m_val;
-        ComputeIntegral();
-    }
-    double Get_C_start() const { return C_start; }
+    /// Set the number of samples used for the numerical quadrature.
+    void SetNumSamples(int m_samples);
 
-    void Set_x_start(double m_val) {
-        x_start = m_val;
-        ComputeIntegral();
-    }
-    double Get_x_start() const { return x_start; }
+    /// Get the number of samples used for the numerical quadrature.
+    int GetNumSamples() const { return m_num_samples; }
 
-    void Set_x_end(double m_val) {
-        x_end = m_val;
-        ComputeIntegral();
-    }
-    double Get_x_end() const { return x_end; }
+    /// Set the initial value of the integral.
+    void SetOffset(double offset) { m_offset = offset; }
 
-    /// Set the function to be integrated
-    void Set_fa(std::shared_ptr<ChFunction> m_fa) {
-        fa = m_fa;
-        ComputeIntegral();
-    }
-    std::shared_ptr<ChFunction> Get_fa() const { return fa; }
+    /// Get the initial value of the integral.
+    double GetOffset() const { return m_offset; }
 
-    virtual void Estimate_x_range(double& xmin, double& xmax) const override;
+    /// Set the integration interval.
+    void SetInterval(double xstart, double xend);
+
+    /// Set the integration interval starting point.
+    void SetStart(double x_start) { m_x_start = x_start; }
+
+    /// Set the integration interval ending point.
+    void SetEnd(double x_end) { m_x_end = x_end; }
+
+    /// Get the integration interval starting point.
+    double GetStart() const { return m_x_start; }
+
+    /// Get the integration interval ending point.
+    double GetEnd() const { return m_x_end; }
+
+    /// Set the function to be integrated.
+    void SetIntegrandFunction(std::shared_ptr<ChFunction> integrand_fun) { m_integrand_fun = integrand_fun; }
+
+    /// Get the function to be integrated.
+    std::shared_ptr<ChFunction> GetIntegrandFunction() const { return m_integrand_fun; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

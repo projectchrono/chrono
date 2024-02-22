@@ -66,7 +66,7 @@ class MyEventReceiver : public IEventReceiver {
                         double newspeed = 10 * (double)pos / 100.0;
                         // set the speed into motor object
                         if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(mmotor->GetSpeedFunction()))
-                            mfun->Set_yconst(newspeed);
+                            mfun->SetConstant(newspeed);
                         // show speed as formatted text in interface screen
                         char message[50];
                         snprintf(message, sizeof(message), "Motor speed: %g [rad/s]", newspeed);

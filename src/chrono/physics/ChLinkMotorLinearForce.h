@@ -44,7 +44,7 @@ class ChApi ChLinkMotorLinearForce : public ChLinkMotorLinear {
     std::shared_ptr<ChFunction> GetForceFunction() const { return GetMotorFunction(); }
 
     /// Get the current actuator reaction force.
-    virtual double GetMotorForce() const override { return m_func->Get_y(GetChTime()); }
+    virtual double GetMotorForce() const override { return m_func->GetVal(GetChTime()); }
 
     void Update(double mytime, bool update_assets) override;
 

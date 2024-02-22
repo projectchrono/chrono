@@ -132,7 +132,7 @@ using namespace chrono::copter;
 %shared_ptr(chrono::ChNodeXYZ) 
 %shared_ptr(chrono::ChVisualShapeTriangleMesh)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
-%shared_ptr(chrono::ChFunctionRecorder)
+%shared_ptr(chrono::ChFunctionInterp)
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 

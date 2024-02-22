@@ -37,7 +37,7 @@ void ChLinkMotorRotationTorque::Update(double mytime, bool update_assets) {
 
 void ChLinkMotorRotationTorque::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     // compute instant torque
-    double mT = m_func->Get_y(this->GetChTime());
+    double mT = m_func->GetVal(this->GetChTime());
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
@@ -56,7 +56,7 @@ void ChLinkMotorRotationTorque::IntLoadResidual_F(const unsigned int off, ChVect
 
 void ChLinkMotorRotationTorque::ConstraintsFbLoadForces(double factor) {
     // compute instant torque
-    double mT = m_func->Get_y(this->GetChTime());
+    double mT = m_func->GetVal(this->GetChTime());
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);

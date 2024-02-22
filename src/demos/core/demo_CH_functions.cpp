@@ -43,13 +43,13 @@ int main(int argc, char* argv[]) {
 
     ChFunctionRamp f_ramp;
 
-    f_ramp.Set_ang(0.1);  // set angular coefficient;
-    f_ramp.Set_y0(0.4);   // set y value for x=0;
+    f_ramp.SetAngularCoeff(0.1);  // set angular coefficient;
+    f_ramp.SetStartVal(0.4);   // set y value for x=0;
 
-    // Evaluate y=f(x) function at a given x value, using Get_y() :
-    double y_ramp = f_ramp.Get_y(10);
-    // Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
-    double ydx_ramp = f_ramp.Get_y_dx(10);
+    // Evaluate y=f(x) function at a given x value, using GetVal() :
+    double y_ramp = f_ramp.GetVal(10);
+    // Evaluate derivative df(x)/dx at a given x value, using GetDer() :
+    double ydx_ramp = f_ramp.GetDer(10);
 
     std::cout << "   ChFunctionRamp at x=0: y=" << y_ramp << "  dy/dx=" << ydx_ramp << "\n\n";
 
@@ -61,8 +61,8 @@ int main(int argc, char* argv[]) {
 
     ChFunctionSine f_sine;
 
-    f_sine.Set_amp(2);     // set amplitude;
-    f_sine.Set_freq(1.5);  // set frequency;
+    f_sine.SetAmplitude(2);     // set amplitude;
+    f_sine.SetFrequency(1.5);  // set frequency;
 
     std::ofstream file_f_sine(out_dir + "/f_sine_out.dat");
 
@@ -70,9 +70,9 @@ int main(int argc, char* argv[]) {
     // and save to file (later it can be loaded, for example, in Matlab using the 'load()' command)
     for (int i = 0; i < 100; i++) {
         double x = (double)i / 50.0;
-        double y = f_sine.Get_y(x);
-        double ydx = f_sine.Get_y_dx(x);
-        double ydxdx = f_sine.Get_y_dxdx(x);
+        double y = f_sine.GetVal(x);
+        double ydx = f_sine.GetDer(x);
+        double ydxdx = f_sine.GetDer2(x);
         file_f_sine << x << " " << y << " " << ydx << " " << ydxdx << "\n";
     }
 
@@ -84,17 +84,12 @@ int main(int argc, char* argv[]) {
 
     // The following class will be used as an example of how
     // how you can create custom functions based on the ChFunction interface.
-    // There is at least one mandatory member function to implement:  Get_y().
-    // [Note that the base class implements a default computation of derivatives
-    // Get_ydx() and Get_ydxdx() by using a numerical differentiation, however
-    // if you know the analytical expression of derivatives, you can override
-    // the base Get_ydx() and Get_ydxdx() too, for higher precision.]
 
     class ChFunctionMyTest : public ChFunction {
       public:
         virtual ChFunctionMyTest* Clone() const override { return new ChFunctionMyTest(); }
 
-        virtual double Get_y(double x) const override { return cos(x); }  // just for test: simple cosine
+        virtual double GetVal(double x) const override { return cos(x); }  // just for test: simple cosine
     };
 
     ChFunctionMyTest f_test;
@@ -105,9 +100,9 @@ int main(int argc, char* argv[]) {
     // and save to file (later it can be loaded, for example, in Matlab using the 'load()' command)
     for (int i = 0; i < 100; i++) {
         double x = (double)i / 50.0;
-        double y = f_test.Get_y(x);
-        double ydx = f_test.Get_y_dx(x);
-        double ydxdx = f_test.Get_y_dxdx(x);
+        double y = f_test.GetVal(x);
+        double ydx = f_test.GetDer(x);
+        double ydxdx = f_test.GetDer2(x);
         file_f_test << x << " " << y << " " << ydx << " " << ydxdx << "\n";
     }
 
@@ -120,18 +115,18 @@ int main(int argc, char* argv[]) {
     ChFunctionSequence f_sequence;
 
     auto f_constacc1 = chrono_types::make_shared<ChFunctionConstAcc>();
-    f_constacc1->Set_end(0.5);  // length of ramp
-    f_constacc1->Set_h(0.3);    // height of ramp
+    f_constacc1->SetDuration(0.5);  // length of ramp
+    f_constacc1->SetDisplacement(0.3);    // height of ramp
     f_sequence.InsertFunct(f_constacc1, 0.5, 1, false, false, false, 0);
 
     auto f_const = chrono_types::make_shared<ChFunctionConst>();
     f_sequence.InsertFunct(f_const, 0.4, 1, true, false, false, -1);
 
     auto f_constacc2 = chrono_types::make_shared<ChFunctionConstAcc>();
-    f_constacc2->Set_end(0.6);  // length of ramp
-    f_constacc2->Set_av(0.3);   // acceleration ends after 30% length
-    f_constacc2->Set_aw(0.7);   // deceleration starts after 70% length
-    f_constacc2->Set_h(-0.2);   // height of ramp
+    f_constacc2->SetDuration(0.6);  // length of ramp
+    f_constacc2->SetFirstAccelerationEnd(0.3);   // acceleration ends after 30% length
+    f_constacc2->SetSecondAccelerationStart(0.7);   // deceleration starts after 70% length
+    f_constacc2->SetDisplacement(-0.2);   // height of ramp
     f_sequence.InsertFunct(f_constacc2, 0.6, 1, true, false, false, -1);
 
     f_sequence.Setup();
@@ -142,9 +137,9 @@ int main(int argc, char* argv[]) {
     // and save to file (later it can be loaded, for example, in Matlab using the 'load()' command)
     for (int i = 0; i < 100; i++) {
         double x = (double)i / 50.0;
-        double y = f_sequence.Get_y(x);
-        double ydx = f_sequence.Get_y_dx(x);
-        double ydxdx = f_sequence.Get_y_dxdx(x);
+        double y = f_sequence.GetVal(x);
+        double ydx = f_sequence.GetDer(x);
+        double ydxdx = f_sequence.GetDer2(x);
         file_f_sequence << x << " " << y << " " << ydx << " " << ydxdx << "\n";
     }
 
@@ -155,11 +150,11 @@ int main(int argc, char* argv[]) {
     std::cout << "==== Test 5...\n\n";
 
     auto f_part1 = chrono_types::make_shared<ChFunctionRamp>();
-    f_part1->Set_ang(.50);
+    f_part1->SetAngularCoeff(.50);
     auto f_part2 = chrono_types::make_shared<ChFunctionConst>();
-    f_part2->Set_yconst(1.0);
+    f_part2->SetConstant(1.0);
     auto f_part3 = chrono_types::make_shared<ChFunctionRamp>();
-    f_part3->Set_ang(-.50);
+    f_part3->SetAngularCoeff(-.50);
 
     auto f_seq = chrono_types::make_shared<ChFunctionSequence>();
     f_seq->InsertFunct(f_part1, 1.0, 1, true);
@@ -167,16 +162,16 @@ int main(int argc, char* argv[]) {
     f_seq->InsertFunct(f_part3, 1.0, 1., true);
 
     auto f_rep_seq = chrono_types::make_shared<ChFunctionRepeat>(f_seq);
-    f_rep_seq->Set_window_length(3.0);
-    f_rep_seq->Set_window_start(0.0);
-    f_rep_seq->Set_window_phase(3.0);
+    f_rep_seq->SetSliceWidth(3.0);
+    f_rep_seq->SetSliceStart(0.0);
+    f_rep_seq->SetSliceShift(3.0);
 
     std::ofstream file_f_repeat(out_dir + "/f_repeat_out.dat");
     for (int i = 0; i < 1000; i++) {
         double x = (double)i / 50.0;
-        double y = f_rep_seq->Get_y(x);
-        double ydx = f_rep_seq->Get_y_dx(x);
-        double ydxdx = f_rep_seq->Get_y_dxdx(x);
+        double y = f_rep_seq->GetVal(x);
+        double ydx = f_rep_seq->GetDer(x);
+        double ydxdx = f_rep_seq->GetDer2(x);
         file_f_repeat << x << " " << y << " " << ydx << " " << ydxdx << "\n";
     }
 

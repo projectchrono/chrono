@@ -22,49 +22,45 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Ramp function, as a 3-4-5 polynomial:
-///
-///   - h   = height, amount of displacement
-///   - end = duration of motion,
+/// Polynomial step function
+///     `y = h * (10*(x/w)^3 - 15*(x/w)^4 + 6*(x/w)^5)`
+/// where:
+/// - `w` is the ramp width
+/// - `h` is the ramp height
+/// 
+/// First and second derivatives at the start and end points are zero.
 class ChApi ChFunctionPoly345 : public ChFunction {
   private:
-    double h;
-    double end;
+    double m_height;
+    double m_width;
 
   public:
-    ChFunctionPoly345() : h(1), end(1) {}
-    ChFunctionPoly345(double m_h, double m_end);
+    ChFunctionPoly345() : m_height(1), m_width(1) {}
+    ChFunctionPoly345(double height, double width);
     ChFunctionPoly345(const ChFunctionPoly345& other);
     ~ChFunctionPoly345() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionPoly345* Clone() const override { return new ChFunctionPoly345(*this); }
 
-    virtual FunctionType Get_Type() const override { return FUNCT_POLY345; }
+    virtual Type GetType() const override { return ChFunction::Type::POLY345; }
 
-    virtual double Get_y(double x) const override;
-    virtual double Get_y_dx(double x) const override;
-    virtual double Get_y_dxdx(double x) const override;
-    virtual double Get_y_dxdxdx(double x) const override;
+    virtual double GetVal(double x) const override;
+    virtual double GetDer(double x) const override;
+    virtual double GetDer2(double x) const override;
+    virtual double GetDer3(double x) const override;
 
-    void Set_end(double m_end) {
-        if (m_end < 0)
-            m_end = 0;
-        end = m_end;
-    }
-    void Set_h(double m_h) { h = m_h; }
+    void SetWidth(double width);
 
-    double Get_end() const { return end; }
-    double Get_h() const { return h; }
+    double GetWidth() const { return m_width; }
 
-    virtual double Get_Ca_pos() const override { return 5.8; }
-    virtual double Get_Ca_neg() const override { return 5.8; }
-    virtual double Get_Cv() const override { return 1.9; }
+    void SetHeight(double height) { m_height = height; }
 
-    virtual void Estimate_x_range(double& xmin, double& xmax) const override {
-        xmin = 0.0;
-        xmax = end;
-    }
+    double GetHeight() const { return m_height; }
+
+    virtual double GetPositiveAccelerationCoeff() const override { return 5.8; }
+    virtual double GetNegativeAccelerationCoeff() const override { return 5.8; }
+    virtual double GetVelocityCoefficient() const override { return 1.9; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

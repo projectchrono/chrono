@@ -83,11 +83,11 @@ void ChForce::SetVpoint(ChVector3d mypoint) {
     // computes initial rest position.
     ChVector3d displace = VNULL;
     if (move_x)
-        displace.x() = move_x->Get_y(ChTime);
+        displace.x() = move_x->GetVal(ChTime);
     if (move_y)
-        displace.y() = move_y->Get_y(ChTime);
+        displace.y() = move_y->GetVal(ChTime);
     if (move_z)
-        displace.z() = move_z->Get_y(ChTime);
+        displace.z() = move_z->GetVal(ChTime);
 
     switch (frame) {
         case WORLD:
@@ -108,11 +108,11 @@ void ChForce::SetVrelpoint(ChVector3d myrelpoint) {
     // computes initial rest position.
     ChVector3d displace = VNULL;
     if (move_x)
-        displace.x() = move_x->Get_y(ChTime);
+        displace.x() = move_x->GetVal(ChTime);
     if (move_y)
-        displace.y() = move_y->Get_y(ChTime);
+        displace.y() = move_y->GetVal(ChTime);
     if (move_z)
-        displace.z() = move_z->Get_y(ChTime);
+        displace.z() = move_z->GetVal(ChTime);
 
     switch (frame) {
         case WORLD:
@@ -184,11 +184,11 @@ void ChForce::UpdateState() {
 
     vmotion = VNULL;
     if (move_x)
-        vmotion.x() = move_x->Get_y(ChTime);
+        vmotion.x() = move_x->GetVal(ChTime);
     if (move_y)
-        vmotion.y() = move_y->Get_y(ChTime);
+        vmotion.y() = move_y->GetVal(ChTime);
     if (move_z)
-        vmotion.z() = move_z->Get_y(ChTime);
+        vmotion.z() = move_z->GetVal(ChTime);
 
     switch (frame) {
         case WORLD:
@@ -203,16 +203,16 @@ void ChForce::UpdateState() {
 
     // ====== Update the fm force vector and add fv
 
-    modforce = mforce * modula->Get_y(ChTime);
+    modforce = mforce * modula->GetVal(ChTime);
 
     vectforce = VNULL;
     xyzforce = VNULL;
     if (f_x)
-        xyzforce.x() = f_x->Get_y(ChTime);
+        xyzforce.x() = f_x->GetVal(ChTime);
     if (f_y)
-        xyzforce.y() = f_y->Get_y(ChTime);
+        xyzforce.y() = f_y->GetVal(ChTime);
     if (f_z)
-        xyzforce.z() = f_z->Get_y(ChTime);
+        xyzforce.z() = f_z->GetVal(ChTime);
 
     switch (align) {
         case WORLD_DIR:

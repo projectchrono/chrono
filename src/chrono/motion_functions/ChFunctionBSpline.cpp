@@ -24,16 +24,16 @@ ChFunctionBSpline::ChFunctionBSpline(int p,                             // order
                                      ChVectorDynamic<>* knots           // knot vector
 ) {
     if (p < 1)
-        throw std::invalid_argument("ChFunctionBSpline::Setup_Data() requires order >= 1.");
+        throw std::invalid_argument("ChFunctionBSpline::Setup() requires order >= 1.");
 
     if (cpoints.size() < p + 1)
-        throw std::invalid_argument("ChFunctionBSpline::Setup_Data() requires size(cpoints) >= order + 1.");
+        throw std::invalid_argument("ChFunctionBSpline::Setup() requires size(cpoints) >= order + 1.");
 
     if (knots && knots->size() != (cpoints.size() + p) + 1)
         throw std::invalid_argument(
-            "ChFunctionBSpline::Setup_Data() requires size(knots) = size(cpoints) + order + 1.");
+            "ChFunctionBSpline::Setup() requires size(knots) = size(cpoints) + order + 1.");
 
-    Setup_Data(p, cpoints, knots);
+    Setup(p, cpoints, knots);
 }
 
 ChFunctionBSpline::ChFunctionBSpline(
@@ -45,16 +45,16 @@ ChFunctionBSpline::ChFunctionBSpline(
     ChVectorDynamic<>* knots  // knot vector
 ) {
     if (p < 1)
-        throw std::invalid_argument("ChFunctionBSpline::Setup_Data() requires order >= 1.");
+        throw std::invalid_argument("ChFunctionBSpline::Setup() requires order >= 1.");
 
     if (x_interp.size() < p + 1)
-        throw std::invalid_argument("ChFunctionBSpline::Setup_Data() requires size(cpoints) >= order + 1.");
+        throw std::invalid_argument("ChFunctionBSpline::Setup() requires size(cpoints) >= order + 1.");
 
     if (knots && knots->size() != (x_interp.size() + p) + 1)
         throw std::invalid_argument(
-            "ChFunctionBSpline::Setup_Data() requires size(knots) = size(x_interp) + order + 1.");
+            "ChFunctionBSpline::Setup() requires size(knots) = size(x_interp) + order + 1.");
 
-    Recompute_Constrained(p, x_interp, y_dN_interp, der_order, knots);
+    ApplyInterpolationConstraints(p, x_interp, y_dN_interp, der_order, knots);
 }
 
 ChFunctionBSpline::ChFunctionBSpline(const ChFunctionBSpline& other) {
@@ -65,7 +65,7 @@ ChFunctionBSpline::ChFunctionBSpline(const ChFunctionBSpline& other) {
     m_basis_tool = other.m_basis_tool;
 }
 
-void ChFunctionBSpline::Setup_Data(int p, ChVectorDynamic<> cpoints, ChVectorDynamic<>* knots) {
+void ChFunctionBSpline::Setup(int p, ChVectorDynamic<> cpoints, ChVectorDynamic<>* knots) {
     m_p = p;                     // order
     m_cpoints = cpoints;         // control points
     m_n = cpoints.size() + m_p;  // number of knots
@@ -80,7 +80,7 @@ void ChFunctionBSpline::Setup_Data(int p, ChVectorDynamic<> cpoints, ChVectorDyn
     }
 }
 
-ChVectorDynamic<> ChFunctionBSpline::Get_Control_Points_Abscissae() const {
+ChVectorDynamic<> ChFunctionBSpline::GetControlPointsAbscissae() const {
     int m = m_cpoints.size();  // number of control points
     ChVectorDynamic<> cpoints_x(m);
     cpoints_x.setZero();
@@ -93,7 +93,7 @@ ChVectorDynamic<> ChFunctionBSpline::Get_Control_Points_Abscissae() const {
     return cpoints_x;
 }
 
-double ChFunctionBSpline::Get_y(double x) const {
+double ChFunctionBSpline::GetVal(double x) const {
     double y = 0;
     int spanU = m_basis_tool->FindSpan(m_p, x, m_knots);
     ChVectorDynamic<> N(m_p + 1);
@@ -104,7 +104,7 @@ double ChFunctionBSpline::Get_y(double x) const {
     return y;
 }
 
-double ChFunctionBSpline::Get_y_dx(double x) const {
+double ChFunctionBSpline::GetDer(double x) const {
     double yd = 0;
     int spanU = m_basis_tool->FindSpan(m_p, x, m_knots);
     ChMatrixDynamic<> DN(2, m_p + 1);
@@ -115,7 +115,7 @@ double ChFunctionBSpline::Get_y_dx(double x) const {
     return yd;
 }
 
-double ChFunctionBSpline::Get_y_dxdx(double x) const {
+double ChFunctionBSpline::GetDer2(double x) const {
     double ydd = 0;
     int spanU = m_basis_tool->FindSpan(m_p, x, m_knots);
     ChMatrixDynamic<> DN(3, m_p + 1);
@@ -126,7 +126,7 @@ double ChFunctionBSpline::Get_y_dxdx(double x) const {
     return ydd;
 }
 
-double ChFunctionBSpline::Get_y_dxdxdx(double x) const {
+double ChFunctionBSpline::GetDer3(double x) const {
     double yddd = 0;
     int spanU = m_basis_tool->FindSpan(m_p, x, m_knots);
     ChMatrixDynamic<> DN(4, m_p + 1);
@@ -137,7 +137,7 @@ double ChFunctionBSpline::Get_y_dxdxdx(double x) const {
     return yddd;
 }
 
-void ChFunctionBSpline::Recompute_Constrained(
+void ChFunctionBSpline::ApplyInterpolationConstraints(
     int p,                                 // order
     const ChVectorDynamic<>& x_interp,     // parameters (eg. times) at which perform interpolation
     const ChVectorDynamic<>& y_dN_interp,  // output value to interpolate, Nth derivative: y(x)^(Nth)
@@ -147,11 +147,11 @@ void ChFunctionBSpline::Recompute_Constrained(
 ) {
     if (x_interp.size() != y_dN_interp.size() || x_interp.size() != der_order.size())
         throw std::invalid_argument(
-            "ChFunctionBSpline::Recompute_Constrained() requires size(x_interp) == size(y_dN_interp) == "
+            "ChFunctionBSpline::ApplyInterpolationConstraints() requires size(x_interp) == size(y_dN_interp) == "
             "size(der_order).");
 
     // Initial update of bspline to new data
-    Setup_Data(p, x_interp, knots);
+    Setup(p, x_interp, knots);
 
     int Ncpoints = x_interp.size();  // number of total control points
 
@@ -185,7 +185,7 @@ void ChFunctionBSpline::Recompute_Constrained(
 
     // Control points solution & final bspline update
     ChVectorDynamic<> cpoints_constr = A.householderQr().solve(y_dN_interp);
-    Setup_Data(m_p, cpoints_constr, knots);
+    Setup(m_p, cpoints_constr, knots);
 }
 
 void ChFunctionBSpline::ArchiveOut(ChArchiveOut& marchive) {

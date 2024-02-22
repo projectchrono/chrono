@@ -49,7 +49,7 @@ void EngineSimpleMap::Create(const rapidjson::Document& d) {
     m_engine_map_zero.Read(d["Map Zero Throttle"]);
 }
 
-void EngineSimpleMap::SetEngineTorqueMaps(ChFunctionRecorder& map0, ChFunctionRecorder& mapF) {
+void EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     m_engine_map_zero.Set(map0, CH_C_RPM_TO_RPS, 1.0);
     m_engine_map_full.Set(mapF, CH_C_RPM_TO_RPS, 1.0);
 }

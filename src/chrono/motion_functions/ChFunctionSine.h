@@ -16,6 +16,8 @@
 #define CHFUNCT_SINE_H
 
 #include "chrono/motion_functions/ChFunctionBase.h"
+#include "chrono/utils/ChConstants.h"
+
 
 namespace chrono {
 
@@ -23,45 +25,44 @@ namespace chrono {
 /// @{
 
 /// Sine function
-/// y = sin (phase + w*x )` where w=2*PI*freq
+/// y = A*sin(2*PI*f + phase)`
 class ChApi ChFunctionSine : public ChFunction {
   private:
-    double amp;
-    double phase;
-    double freq;
-    double w;
+    double m_ampl;
+    double m_phase;
+    double m_angular_rate;  ///< internal value, w=2*PI*freq
 
   public:
-    ChFunctionSine() : amp(1), phase(0), freq(1), w(2 * CH_C_PI) {}
-    ChFunctionSine(double m_phase, double m_freq, double m_amp)
-        : amp(m_amp), phase(m_phase), freq(m_freq), w(2 * CH_C_PI * m_freq) {}
+    ChFunctionSine() : m_ampl(1.0), m_phase(0.0), m_angular_rate(0.0) {}
+    ChFunctionSine(double ampl, double freq, double phase = 0)
+        : m_ampl(ampl), m_phase(phase), m_angular_rate(2.0 * CH_C_PI * freq) {}
     ChFunctionSine(const ChFunctionSine& other);
     ~ChFunctionSine() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionSine* Clone() const override { return new ChFunctionSine(*this); }
 
-    virtual FunctionType Get_Type() const override { return FUNCT_SINE; }
+    virtual Type GetType() const override { return ChFunction::Type::SINE; }
 
-    virtual double Get_y(double x) const override;
-    virtual double Get_y_dx(double x) const override;
-    virtual double Get_y_dxdx(double x) const override;
+    virtual double GetVal(double x) const override;
+    virtual double GetDer(double x) const override;
+    virtual double GetDer2(double x) const override;
 
-    void Set_phase(double m_phase) { phase = m_phase; };
-    void Set_freq(double m_freq) {
-        freq = m_freq;
-        w = 2 * CH_C_PI * freq;
-    }
-    void Set_w(double m_w) {
-        w = m_w;
-        freq = w / (2 * CH_C_PI);
-    }
-    void Set_amp(double m_amp) { amp = m_amp; }
+    void SetPhase(double phase) { m_phase = phase; };
 
-    double Get_phase() const { return phase; }
-    double Get_freq() const { return freq; }
-    double Get_w() const { return w; }
-    double Get_amp() const { return amp; }
+    void SetFrequency(double freq) { m_angular_rate = 2.0 * CH_C_PI * freq; }
+
+    void SetAngularRate(double ang_rate) { m_angular_rate = ang_rate; }
+
+    void SetAmplitude(double ampl) { m_ampl = ampl; }
+
+    double GetPhase() const { return m_phase; }
+
+    double GetFrequency() const { return m_angular_rate / 2.0 / CH_C_PI; }
+
+    double GetAngularRate() const { return m_angular_rate; }
+
+    double GetAmplitude() const { return m_ampl; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

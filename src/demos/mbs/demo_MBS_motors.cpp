@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
     // We could use pre-defined ChFunction classes like sine, constant, ramp, etc.,
     // but in this example we show how to implement a custom function: a
     // torque(speed) function that represents a three-phase electric induction motor.
-    // Just inherit from ChFunction and implement Get_y() so that it returns different
+    // Just inherit from ChFunction and implement GetVal() so that it returns different
     // values (regrdless of time x) depending only on the slip speed of the motor:
     class MyTorqueCurve : public ChFunction {
       public:
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
 
         virtual MyTorqueCurve* Clone() const override { return new MyTorqueCurve(*this); }
 
-        virtual double Get_y(double x) const override {
+        virtual double GetVal(double x) const override {
             // The three-phase torque(speed) model
             double w = mymotor->GetMotorRot_dt();
             double s = (ns - w) / ns;  // slip
@@ -552,7 +552,7 @@ int main(int argc, char* argv[]) {
     sys.Add(motor4);
 
     // Create a ChFunction that computes F by a user-defined algorithm, as a callback.
-    // One quick option would be to inherit from the ChFunction base class, and implement the Get_y()
+    // One quick option would be to inherit from the ChFunction base class, and implement the GetVal()
     // function by putting the code you wish, as explained in demo_CH_functions.cpp. However this has some
     // limitations. A more powerful approach is to inherit from ChFunctionSetpointCallback, that automatically
     // computes the derivatives, if needed, by BDF etc. Therefore:
@@ -561,7 +561,7 @@ int main(int argc, char* argv[]) {
 
     class MyForceClass : public ChFunctionSetpointCallback {
       public:
-        // Here some specific data to be used in Get_y(),
+        // Here some specific data to be used in GetVal(),
         // add whatever you need, ex:
         double setpoint_position_sine_amplitude;
         double setpoint_position_sine_freq;
@@ -700,16 +700,16 @@ int main(int argc, char* argv[]) {
     // but here we'll rather do a back-forth motion, made with a repetition of a sequence of 4 basic functions:
 
     auto my_functsequence = chrono_types::make_shared<ChFunctionSequence>();
-    auto my_funcsigma1 = chrono_types::make_shared<ChFunctionSigma>(180, 0, 0.5);  // diplacement, t_start, t_end
+    auto my_funcsigma1 = chrono_types::make_shared<ChFunctionPoly23>(180, 0, 0.5);  // diplacement, t_start, t_end
     auto my_funcpause1 = chrono_types::make_shared<ChFunctionConst>(0);
-    auto my_funcsigma2 = chrono_types::make_shared<ChFunctionSigma>(-180, 0, 0.3);  // diplacement, t_start, t_end
+    auto my_funcsigma2 = chrono_types::make_shared<ChFunctionPoly23>(-180, 0, 0.3);  // diplacement, t_start, t_end
     auto my_funcpause2 = chrono_types::make_shared<ChFunctionConst>(0);
     my_functsequence->InsertFunct(my_funcsigma1, 0.5, 1.0, true);  // fx, duration, weight, enforce C0 continuity
     my_functsequence->InsertFunct(my_funcpause1, 0.2, 1.0, true);  // fx, duration, weight, enforce C0 continuity
     my_functsequence->InsertFunct(my_funcsigma2, 0.3, 1.0, true);  // fx, duration, weight, enforce C0 continuity
     my_functsequence->InsertFunct(my_funcpause2, 0.2, 1.0, true);  // fx, duration, weight, enforce C0 continuity
     auto my_functangle = chrono_types::make_shared<ChFunctionRepeat>(my_functsequence);
-    my_functangle->Set_window_length(0.5 + 0.2 + 0.3 + 0.2);
+    my_functangle->SetSliceWidth(0.5 + 0.2 + 0.3 + 0.2);
     my_driveli->SetAngleFunction(my_functangle);
 
     // Create the RACKPINION.
@@ -749,7 +749,7 @@ int main(int argc, char* argv[]) {
     // position by setting a value from some computation.
     //  Well: here one might be tempted to do  motor6->SetMotionFunction(myconst); where
     // myconst is a ChFunctionConst object where you would continuously change the value
-    // of the constant by doing  myconst->Set_yconst() in the while{...} loop; this would
+    // of the constant by doing  myconst->SetConstant() in the while{...} loop; this would
     // work somehow but it would miss the derivative of the function, something that is used
     // in the guts of ChLinkMotorLinearPosition. To overcome this, we'll use a  ChFunctionSetpoint
     // function, that is able to guess the derivative of the changing setpoint by doing numerical

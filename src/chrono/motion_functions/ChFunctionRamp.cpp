@@ -20,8 +20,8 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunctionRamp)
 
 ChFunctionRamp::ChFunctionRamp(const ChFunctionRamp& other) {
-    y0 = other.y0;
-    ang = other.ang;
+    m_y0 = other.m_y0;
+    m_ang_coeff = other.m_ang_coeff;
 }
 
 void ChFunctionRamp::ArchiveOut(ChArchiveOut& marchive) {
@@ -30,8 +30,8 @@ void ChFunctionRamp::ArchiveOut(ChArchiveOut& marchive) {
     // serialize parent class
     ChFunction::ArchiveOut(marchive);
     // serialize all member data:
-    marchive << CHNVP(y0);
-    marchive << CHNVP(ang);
+    marchive << CHNVP(m_y0);
+    marchive << CHNVP(m_ang_coeff);
 }
 
 void ChFunctionRamp::ArchiveIn(ChArchiveIn& marchive) {
@@ -40,8 +40,8 @@ void ChFunctionRamp::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChFunction::ArchiveIn(marchive);
     // stream in all member data:
-    marchive >> CHNVP(y0);
-    marchive >> CHNVP(ang);
+    marchive >> CHNVP(m_y0);
+    marchive >> CHNVP(m_ang_coeff);
 }
 
 }  // end namespace chrono

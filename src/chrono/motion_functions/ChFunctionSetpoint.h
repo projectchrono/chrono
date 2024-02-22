@@ -24,7 +24,7 @@ namespace chrono {
 
 /// Function that returns Y from an externally-provided value,
 /// as a ZOH (zero order hold) block. This means that the Y value
-/// does NOT change if you call Get_y(double x) with different values
+/// does NOT change if you call GetVal(double x) with different values
 /// of x, unless you keep the setpoint Y updated via multiple
 /// calls to SetSetpoint(), for example calling SetSetpoint()
 /// at each timestep in the simulation loop.
@@ -63,9 +63,9 @@ class ChApi ChFunctionSetpoint : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionSetpoint* Clone() const override { return new ChFunctionSetpoint(*this); }
 
-    virtual double Get_y(double x) const override { return Y; }
-    virtual double Get_y_dx(double x) const override { return Y_dx; }
-    virtual double Get_y_dxdx(double x) const override { return Y_dxdx; }
+    virtual double GetVal(double x) const override { return Y; }
+    virtual double GetDer(double x) const override { return Y_dx; }
+    virtual double GetDer2(double x) const override { return Y_dxdx; }
 
     /// Set the setpoint, and compute its derivatives (speed, acceleration) automatically
     /// by backward differentiation (only if x is called at increasing small steps).
@@ -97,7 +97,7 @@ CH_CLASS_VERSION(ChFunctionSetpoint, 0)
 
 /// Interface for functions that uses a callback to return a Y value,
 /// as a ZOH (zero order hold) block. This means that the Y value
-/// does NOT change if you call Get_y(double x) with different values
+/// does NOT change if you call GetVal(double x) with different values
 /// of x, unless you keep the setpoint Y updated via multiple
 /// callback calls.
 /// Also first two derivatives (speed, accel.) will persist until

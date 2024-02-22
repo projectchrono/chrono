@@ -53,7 +53,7 @@ class CH_VEHICLE_API FialaTire : public ChFialaTire {
     virtual void Create(const rapidjson::Document& d) override;
 
     bool m_has_vert_table;
-    ChFunctionRecorder m_vert_map;
+    ChFunctionInterp m_vert_map;
     double m_max_depth;
     double m_max_val;
     double m_slope;

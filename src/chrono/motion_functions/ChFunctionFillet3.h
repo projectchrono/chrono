@@ -22,76 +22,68 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Cubic fillet function (cubic poly with C0 C1 boundary conditions).
-///
-///  - y1 = y at the beginning
-///  - dy1 = y' at the beginning
-///  - y2 = y at the end
-///  - dy2 = y' at the end
+/// Cubic fillet function.
+/// Cubic polynomial `y(x)` that smoothly connects two points with given start and end derivatives.
+/// - `y(0)`     = ::GetStartVal()
+/// - `y(width)` = ::GetEndVal()
+/// - `der(y)(0)` = ::GetStartDer()
+/// - `der(y)(width)` = ::GetEndDer()
 class ChApi ChFunctionFillet3 : public ChFunction {
   private:
-    double end;
-    double y1;
-    double y2;
-    double dy1;
-    double dy2;
+    double m_width;      ///< width of the fillet
+    double m_val_start;  ///< value at x=0
+    double m_val_end;    ///< value at x=duration
+    double m_der_start;  ///< derivative at x=0
+    double m_der_end;    ///< derivative at x=m_width
 
     double c1, c2, c3, c4;  // used internally...
 
   public:
-    ChFunctionFillet3() : end(1), y1(0), y2(0), dy1(0), dy2(0), c1(0), c2(0), c3(0), c4(0) {}
+    ChFunctionFillet3()
+        : m_width(1), m_val_start(0), m_val_end(0), m_der_start(0), m_der_end(0), c1(0), c2(0), c3(0), c4(0) {}
     ChFunctionFillet3(const ChFunctionFillet3& other);
     ~ChFunctionFillet3() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionFillet3* Clone() const override { return new ChFunctionFillet3(*this); }
 
-    virtual FunctionType Get_Type() const override { return FUNCT_FILLET3; }
+    virtual Type GetType() const override { return ChFunction::Type::FILLET3; }
 
-    virtual double Get_y(double x) const override;
-    virtual double Get_y_dx(double x) const override;
-    virtual double Get_y_dxdx(double x) const override;
+    virtual double GetVal(double x) const override;
+    virtual double GetDer(double x) const override;
+    virtual double GetDer2(double x) const override;
 
-    void Set_end(double m_end) {
-        if (m_end < 0)
-            m_end = 0;
-        end = m_end;
-        SetupCoefficients();
-    }
+    void SetWidth(double width);
 
-    double Get_end() { return end; }
+    double GetWidth() { return m_width; }
 
-    void SetupCoefficients();
+    /// Setup the function after parameter changes.
+    /// This must be called by the user after the parameters are changed.
+    void Setup();
 
-    void Set_y1(double my1) {
-        y1 = my1;
-        SetupCoefficients();
-    }
+    /// Set the initial value of the function
+    void SetStartVal(double val_start) { m_val_start = val_start; }
 
-    void Set_y2(double my2) {
-        y2 = my2;
-        SetupCoefficients();
-    }
+    /// Set the end value of the function
+    void SetEndVal(double val_end) { m_val_end = val_end; }
 
-    void Set_dy1(double mdy1) {
-        dy1 = mdy1;
-        SetupCoefficients();
-    }
+    /// Set the initial derivative of the function
+    void SetStartDer(double der_start) { m_der_start = der_start; }
 
-    void Set_dy2(double mdy2) {
-        dy2 = mdy2;
-        SetupCoefficients();
-    }
+    /// Set the end derivative of the function
+    void SetEndDer(double der_end) { m_der_end = der_end; }
 
-    double Get_y1() { return y1; }
-    double Get_y2() { return y2; }
-    double Get_dy1() { return dy1; }
-    double Get_dy2() { return dy2; }
+    /// Get the initial value of the function
+    double GetStartValue() { return m_val_start; }
 
-    virtual void Estimate_x_range(double& xmin, double& xmax) const override {
-        xmin = 0.0;
-        xmax = end;
-    }
+    /// Get the end value of the function
+    double GetEndVal() { return m_val_end; }
+
+    /// Get the initial derivative of the function
+    double GetStartDer() { return m_der_start; }
+
+    /// Get the end derivative of the function
+    double GetEndDer() { return m_der_end; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

@@ -43,7 +43,7 @@ bodyB.AddCollisionShape(chrono.ChCollisionShapeBox(material,1,1,1))
 bodyB.SetCollide(True)
 
 markerB = chrono.ChMarker()
-my_funct = chrono.ChFunctionSine(0,0.5,3)
+my_funct = chrono.ChFunctionSine(3.0,0.5)
 markerB.SetMotion_X(my_funct)
 markerB.SetPos(chrono.ChVector3d(1,2,3))
 bodyB.AddMarker(markerB)

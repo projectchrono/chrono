@@ -21,16 +21,12 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunctionDerive)
 
 ChFunctionDerive::ChFunctionDerive(const ChFunctionDerive& other) {
-    order = other.order;
-    fa = std::shared_ptr<ChFunction>(other.fa->Clone());
+    m_der_order = other.m_der_order;
+    m_operand_fun = std::shared_ptr<ChFunction>(other.m_operand_fun->Clone());
 }
 
-double ChFunctionDerive::Get_y(double x) const {
-    return fa->Get_y_dx(x);
-}
-
-void ChFunctionDerive::Estimate_x_range(double& xmin, double& xmax) const {
-    fa->Estimate_x_range(xmin, xmax);
+double ChFunctionDerive::GetVal(double x) const {
+    return m_operand_fun->GetDer(x);
 }
 
 void ChFunctionDerive::ArchiveOut(ChArchiveOut& marchive) {
@@ -39,8 +35,8 @@ void ChFunctionDerive::ArchiveOut(ChArchiveOut& marchive) {
     // serialize parent class
     ChFunction::ArchiveOut(marchive);
     // serialize all member data:
-    marchive << CHNVP(fa);
-    marchive << CHNVP(order);
+    marchive << CHNVP(m_operand_fun);
+    marchive << CHNVP(m_der_order);
 }
 
 void ChFunctionDerive::ArchiveIn(ChArchiveIn& marchive) {
@@ -49,8 +45,8 @@ void ChFunctionDerive::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChFunction::ArchiveIn(marchive);
     // stream in all member data:
-    marchive >> CHNVP(fa);
-    marchive >> CHNVP(order);
+    marchive >> CHNVP(m_operand_fun);
+    marchive >> CHNVP(m_der_order);
 }
 
 }  // end namespace chrono

@@ -19,23 +19,19 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunctionMirror)
 
-ChFunctionMirror::ChFunctionMirror() : mirror_axis(0) {
-    fa = chrono_types::make_shared<ChFunctionConst>();
+ChFunctionMirror::ChFunctionMirror() : m_mirror_axis(0) {
+    m_operand_fun = chrono_types::make_shared<ChFunctionConst>();
 }
 
 ChFunctionMirror::ChFunctionMirror(const ChFunctionMirror& other) {
-    mirror_axis = other.mirror_axis;
-    fa = std::shared_ptr<ChFunction>(other.fa->Clone());
+    m_mirror_axis = other.m_mirror_axis;
+    m_operand_fun = std::shared_ptr<ChFunction>(other.m_operand_fun->Clone());
 }
 
-double ChFunctionMirror::Get_y(double x) const {
-    if (x <= this->mirror_axis)
-        return fa->Get_y(x);
-    return fa->Get_y(2 * this->mirror_axis - x);
-}
-
-void ChFunctionMirror::Estimate_x_range(double& xmin, double& xmax) const {
-    fa->Estimate_x_range(xmin, xmax);
+double ChFunctionMirror::GetVal(double x) const {
+    if (x <= this->m_mirror_axis)
+        return m_operand_fun->GetVal(x);
+    return m_operand_fun->GetVal(2 * this->m_mirror_axis - x);
 }
 
 void ChFunctionMirror::ArchiveOut(ChArchiveOut& marchive) {
@@ -44,18 +40,18 @@ void ChFunctionMirror::ArchiveOut(ChArchiveOut& marchive) {
     // serialize parent class
     ChFunction::ArchiveOut(marchive);
     // serialize all member data:
-    marchive << CHNVP(fa);
-    marchive << CHNVP(mirror_axis);
+    marchive << CHNVP(m_operand_fun);
+    marchive << CHNVP(m_mirror_axis);
 }
 
 void ChFunctionMirror::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionMirror>();
+    /*int version =*/marchive.VersionRead<ChFunctionMirror>();
     // deserialize parent class
     ChFunction::ArchiveIn(marchive);
     // stream in all member data:
-    marchive >> CHNVP(fa);
-    marchive >> CHNVP(mirror_axis);
+    marchive >> CHNVP(m_operand_fun);
+    marchive >> CHNVP(m_mirror_axis);
 }
 
 }  // end namespace chrono

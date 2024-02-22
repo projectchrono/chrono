@@ -176,8 +176,7 @@ on embedded data, without needing to save a .dat file.
 One can use, for instance:
 - a pair of x,y vectors (use @ref chrono::ChVectorDynamic column matrices),
 - @ref chrono::ChFunction y(x) objects,
-- @ref chrono::ChFunctionRecorder and @ref chrono::ChFunctionOscilloscope objects, that 
-  are optimized for recording xy pairs,
+- @ref chrono::ChFunctionInterp
 - columns from a @ref chrono::ChMatrixDynamic, etc.
 
 The data values will be saved _embedded_ in the .gpl file.
@@ -197,8 +196,8 @@ for (int i=0; i<100; ++i)
 	mx(i)=x;
 	my(i)=y;
 }
-// ..or create demo data in a ChFunctionRecorder
-ChFunctionRecorder mfun;
+// ..or create demo data in a ChFunctionInterp
+ChFunctionInterp mfun;
 for (int i=0; i<100; ++i)
 {
 	double x = ((double)i/100.0)*12;
@@ -223,7 +222,7 @@ Note the Plot() shortcuts.
 ChGnuPlot mplot("__tmp_gnuplot_4.gpl");
 mplot.SetGrid();
 mplot.Plot(mx,my, "from x,y ChVectorDynamic",  " every 5 pt 1 ps 0.5");
-mplot.Plot(mfun,  "from ChFunctionRecorder",  " with lines lt -1 lc rgb'#00AAEE' ");
+mplot.Plot(mfun,  "from ChFunctionInterp",  " with lines lt -1 lc rgb'#00AAEE' ");
 mplot.Plot(matr,   2,6, "from ChMatrix", " with lines lt 5");
 ~~~
 

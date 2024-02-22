@@ -28,7 +28,7 @@ const double HMMWV_EngineShafts::m_motorshaft_inertia = 1.1;
 
 HMMWV_EngineShafts::HMMWV_EngineShafts(const std::string& name) : ChEngineShafts(name, ChVector3d(1, 0, 0)) {}
 
-void HMMWV_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionRecorder>& map) {
+void HMMWV_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& map) {
     double rpm_to_radsec = CH_C_2PI / 60.;
 
     map->AddPoint(-100 * rpm_to_radsec, 300);  // to start engine
@@ -53,7 +53,7 @@ void HMMWV_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionRecorder>&
     map->AddPoint(2700 * rpm_to_radsec, -400);  // fading out of engine torque
 }
 
-void HMMWV_EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunctionRecorder>& map) {
+void HMMWV_EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunctionInterp>& map) {
     double rpm_to_radsec = CH_C_2PI / 60.;
 
     map->AddPoint(-50 * rpm_to_radsec, 30);  // it should never work in negative direction, anyway..

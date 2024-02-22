@@ -80,7 +80,7 @@ void ChLoadXYZROTnodeForceAbsolute::ComputeForceTorque(const ChFrameMoving<>& no
 
 void ChLoadXYZROTnodeForceAbsolute::Update(double time) {
     m_modulation->Update(time);
-    m_scale = m_modulation->Get_y(time);
+    m_scale = m_modulation->GetVal(time);
     ChLoadXYZROTnode::Update(time);
 }
 

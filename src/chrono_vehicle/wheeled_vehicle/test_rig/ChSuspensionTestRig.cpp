@@ -779,8 +779,8 @@ void ChSuspensionTestRigPlatform::UpdateActuators(std::vector<double> displ_left
 
 double ChSuspensionTestRigPlatform::GetActuatorDisp(int axle, VehicleSide side) {
     double time = m_vehicle->GetChTime();
-    auto displ = (side == LEFT) ? m_linact_L[axle]->GetMotionFunction()->Get_y(time)
-                                : m_linact_R[axle]->GetMotionFunction()->Get_y(time);
+    auto displ = (side == LEFT) ? m_linact_L[axle]->GetMotionFunction()->GetVal(time)
+                                : m_linact_R[axle]->GetMotionFunction()->GetVal(time);
 
     // Flip sign (because of motor definition) so that positive input represents upward motion
     return -displ;
@@ -913,8 +913,8 @@ void ChSuspensionTestRigPushrod::UpdateActuators(std::vector<double> displ_left,
 
 double ChSuspensionTestRigPushrod::GetActuatorDisp(int axle, VehicleSide side) {
     double time = m_vehicle->GetChTime();
-    auto displ = (side == LEFT) ? m_linact_L[axle]->GetMotionFunction()->Get_y(time)
-                                : m_linact_R[axle]->GetMotionFunction()->Get_y(time);
+    auto displ = (side == LEFT) ? m_linact_L[axle]->GetMotionFunction()->GetVal(time)
+                                : m_linact_R[axle]->GetMotionFunction()->GetVal(time);
 
     // Flip sign (because of motor definition) so that positive input represents upward motion
     return -displ;

@@ -33,14 +33,14 @@ class ChApi ChFunctionSineStep : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionSineStep* Clone() const override { return new ChFunctionSineStep(*this); }
 
-    virtual FunctionType Get_Type() const override { return FUNCT_SINE_STEP; }
+    virtual Type GetType() const override { return ChFunction::Type::SINE_STEP; }
 
-    virtual double Get_y(double x) const override;
-    virtual double Get_y_dx(double x) const override;
-    virtual double Get_y_dxdx(double x) const override;
+    virtual double GetVal(double x) const override;
+    virtual double GetDer(double x) const override;
+    virtual double GetDer2(double x) const override;
 
-    void SetP1(const ChVector2d& p1);
-    void SetP2(const ChVector2d& p2);
+    void SetFirstPoint(const ChVector2d& p1);
+    void SetSecondPoint(const ChVector2d& p2);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

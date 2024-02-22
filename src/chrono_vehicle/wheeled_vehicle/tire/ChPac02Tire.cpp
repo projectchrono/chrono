@@ -73,7 +73,7 @@ double ChPac02Tire::GetNormalStiffnessForce(double depth) const {
                 (1.0 + m_par.QPFZ1 * dpi) * m_par.LCZ * m_par.FNOMIN;
     double Fb = 0;
     if (m_bottoming_table_found)
-        Fb = m_bott_map.Get_y(depth);
+        Fb = m_bott_map.GetVal(depth);
     return Fc + Fb;
 }
 
@@ -1493,7 +1493,7 @@ void ChPac02Tire::LoadBottomingTable(FILE* fp) {
         double y = m_par.u_force * stod(sbuf.substr(sz), &sz);
         m_bott_map.AddPoint(x, y);
     }
-    if (m_bott_map.GetPoints().size() >= 3)
+    if (m_bott_map.GetTable().size() >= 3)
         m_bottoming_table_found = true;
 }
 

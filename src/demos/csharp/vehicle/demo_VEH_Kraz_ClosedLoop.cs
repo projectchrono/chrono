@@ -128,7 +128,7 @@ namespace ChronoDemo
             double last_speed = -1;
 
             // Record vehicle speed
-            ChFunctionRecorder speed_recorder = new ChFunctionRecorder();
+            ChFunctionInterp speed_recorder = new ChFunctionInterp();
 
             // Initialize simulation frame counter and simulation time
             int step_number = 0;

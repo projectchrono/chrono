@@ -117,8 +117,8 @@ class CH_VEHICLE_API SpringForce : public ChLinkTSDA::ForceFunctor {
     bool m_stops;
     double m_min_length;
     double m_max_length;
-    ChFunctionRecorder m_bump;
-    ChFunctionRecorder m_rebound;
+    ChFunctionInterp m_bump;
+    ChFunctionInterp m_rebound;
 };
 
 /// Utility class for specifying a linear translational spring force with pre-tension.
@@ -156,7 +156,7 @@ class CH_VEHICLE_API NonlinearSpringForce : public SpringForce {
 #endif
 
   private:
-    ChFunctionRecorder m_mapK;
+    ChFunctionInterp m_mapK;
 };
 
 /// Utility class for specifying a linear translational damper force.
@@ -194,7 +194,7 @@ class CH_VEHICLE_API NonlinearDamperForce : public ChLinkTSDA::ForceFunctor {
 #endif
 
   private:
-    ChFunctionRecorder m_mapC;
+    ChFunctionInterp m_mapC;
 };
 
 /// Utility class for specifying a degressive translational damper force.
@@ -267,8 +267,8 @@ class CH_VEHICLE_API NonlinearSpringDamperForce : public SpringForce {
 #endif
 
   private:
-    ChFunctionRecorder m_mapK;
-    ChFunctionRecorder m_mapC;
+    ChFunctionInterp m_mapK;
+    ChFunctionInterp m_mapC;
 };
 
 /// Utility class for specifying a general nonlinear translational spring-damper force with pre-tension.
@@ -331,7 +331,7 @@ class CH_VEHICLE_API NonlinearSpringTorque : public ChLinkRSDA::TorqueFunctor {
 #endif
 
   private:
-    ChFunctionRecorder m_mapK;
+    ChFunctionInterp m_mapK;
     double m_P;
 };
 
@@ -360,7 +360,7 @@ class CH_VEHICLE_API NonlinearDamperTorque : public ChLinkRSDA::TorqueFunctor {
 #endif
 
   private:
-    ChFunctionRecorder m_mapC;
+    ChFunctionInterp m_mapC;
 };
 
 /// Utility class for specifying a linear rotational spring-damper torque.
@@ -393,8 +393,8 @@ class CH_VEHICLE_API NonlinearSpringDamperTorque : public ChLinkRSDA::TorqueFunc
 #endif
 
   private:
-    ChFunctionRecorder m_mapK;
-    ChFunctionRecorder m_mapC;
+    ChFunctionInterp m_mapK;
+    ChFunctionInterp m_mapC;
     double m_P;
 };
 

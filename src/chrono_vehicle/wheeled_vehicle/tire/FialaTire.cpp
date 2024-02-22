@@ -66,7 +66,7 @@ void FialaTire::Create(const rapidjson::Document& d) {
         for (int i = 0; i < num_points; i++) {
             m_vert_map.AddPoint(data[i][0u].GetDouble(), data[i][1u].GetDouble());
         }
-        auto pnts = m_vert_map.GetPoints();
+        auto pnts = m_vert_map.GetTable();
         m_max_depth = data[num_points - 1][0u].GetDouble();
         m_max_val = data[num_points - 1][1u].GetDouble();
         m_slope = (data[num_points - 1][1u].GetDouble() - data[num_points - 2][1u].GetDouble()) /
@@ -107,7 +107,7 @@ double FialaTire::GetNormalStiffnessForce(double depth) const {
             return m_max_val + m_slope * (depth - m_max_depth);
         } else {
             // Return interpolated data
-            return m_vert_map.Get_y(depth);
+            return m_vert_map.GetVal(depth);
         }
     }
 

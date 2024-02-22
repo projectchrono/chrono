@@ -51,7 +51,7 @@ class CH_MODELS_API FEDA_TMsimpleTire : public ChTMsimpleTire {
     static const double m_mass;
     static const ChVector3d m_inertia;
 
-    ChFunctionRecorder m_stiffnessMap;
+    ChFunctionInterp m_stiffnessMap;
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;

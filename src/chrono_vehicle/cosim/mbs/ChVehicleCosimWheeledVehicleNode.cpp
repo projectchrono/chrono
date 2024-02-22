@@ -55,7 +55,7 @@ class WheeledVehicleDBPDriver : public ChDriver {
         m_steering = 0;
         m_braking = 0;
 
-        double ang_speed = m_func->Get_y(time);
+        double ang_speed = m_func->GetVal(time);
 
         for (auto& axle : m_wheeled_vehicle->GetAxles()) {
             axle->m_suspension->GetAxle(VehicleSide::LEFT)->SetPos_dt(ang_speed);

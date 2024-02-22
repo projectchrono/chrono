@@ -69,8 +69,8 @@ my_vect5 = my_vect1 >> my_frame
 
 
 # Use the ChFunction classes
-my_funct = chrono.ChFunctionSine(0,0.5,3)
-print ('function f(0.2)=', my_funct.Get_y(0.2) )
+my_funct = chrono.ChFunctionSine(3.0,0.5)
+print ('function f(0.2)=', my_funct.GetVal(0.2) )
 
 
 # Inherit from the ChFunction, from the Python side,
@@ -79,10 +79,10 @@ print ('function f(0.2)=', my_funct.Get_y(0.2) )
 class MySquareFunct (chrono.ChFunction):
     def __init__(self):
          chrono.ChFunction.__init__(self)
-    def Get_y(self,x):
+    def GetVal(self,x):
          return x*x
 
 
 my_funct2 = MySquareFunct()
-print('function f(2) =', my_funct2.Get_y(3) )
-print('function df/dx=', my_funct2.Get_y_dx(3) )
+print('function f(2) =', my_funct2.GetVal(3) )
+print('function df/dx=', my_funct2.GetDer(3) )

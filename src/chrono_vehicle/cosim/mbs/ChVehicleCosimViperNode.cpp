@@ -74,7 +74,7 @@ class ViperDBPDriver : public ViperDriver {
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
 
     virtual void Update(double time) override {
-        double driving = m_func->Get_y(time);
+        double driving = m_func->GetVal(time);
         double steering = 0;
         double lifting = 0;
         for (int i = 0; i < 4; i++) {

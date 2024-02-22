@@ -120,10 +120,10 @@ void ChMarker::Impose_Rel_Coord(const ChCoordsysd& m_coord) {
     // set the actual coordinates
     SetCsys(m_coord);
     // set the resting position coordinates
-    rest_coord.pos.x() = m_coord.pos.x() - motion_X->Get_y(ChTime);
-    rest_coord.pos.y() = m_coord.pos.y() - motion_Y->Get_y(ChTime);
-    rest_coord.pos.z() = m_coord.pos.z() - motion_Z->Get_y(ChTime);
-    qtemp = QuatFromAngleAxis(-(motion_ang->Get_y(ChTime)), motion_axis);
+    rest_coord.pos.x() = m_coord.pos.x() - motion_X->GetVal(ChTime);
+    rest_coord.pos.y() = m_coord.pos.y() - motion_Y->GetVal(ChTime);
+    rest_coord.pos.z() = m_coord.pos.z() - motion_Z->GetVal(ChTime);
+    qtemp = QuatFromAngleAxis(-(motion_ang->GetVal(ChTime)), motion_axis);
     rest_coord.rot = Qcross(m_coord.rot, qtemp);  // ***%%% check
                                                   // set also the absolute positions, and other.
     UpdateState();
@@ -182,27 +182,26 @@ void ChMarker::UpdateTime(double mytime) {
 
     // positions:
     // update positions:    rel_pos
-    csys.pos.x() = motion_X->Get_y(mytime);
-    csys.pos.y() = motion_Y->Get_y(mytime);
-    csys.pos.z() = motion_Z->Get_y(mytime);
-    if (motion_X->Get_Type() != ChFunction::FUNCT_MOCAP)
-        csys.pos += rest_coord.pos;
+    csys.pos.x() = motion_X->GetVal(mytime);
+    csys.pos.y() = motion_Y->GetVal(mytime);
+    csys.pos.z() = motion_Z->GetVal(mytime);
+    csys.pos += rest_coord.pos;
 
     // update speeds:		rel_pos_dt
-    csys_dt.pos.x() = motion_X->Get_y_dx(mytime);
-    csys_dt.pos.y() = motion_Y->Get_y_dx(mytime);
-    csys_dt.pos.z() = motion_Z->Get_y_dx(mytime);
+    csys_dt.pos.x() = motion_X->GetDer(mytime);
+    csys_dt.pos.y() = motion_Y->GetDer(mytime);
+    csys_dt.pos.z() = motion_Z->GetDer(mytime);
 
     // update accelerations
-    csys_dtdt.pos.x() = motion_X->Get_y_dxdx(mytime);
-    csys_dtdt.pos.y() = motion_Y->Get_y_dxdx(mytime);
-    csys_dtdt.pos.z() = motion_Z->Get_y_dxdx(mytime);
+    csys_dtdt.pos.x() = motion_X->GetDer2(mytime);
+    csys_dtdt.pos.y() = motion_Y->GetDer2(mytime);
+    csys_dtdt.pos.z() = motion_Z->GetDer2(mytime);
 
     // rotations:
 
-    ang = motion_ang->Get_y(mytime);
-    ang_dt = motion_ang->Get_y_dx(mytime);
-    ang_dtdt = motion_ang->Get_y_dxdx(mytime);
+    ang = motion_ang->GetVal(mytime);
+    ang_dt = motion_ang->GetDer(mytime);
+    ang_dtdt = motion_ang->GetDer2(mytime);
 
     if ((ang != 0) || (ang_dt != 0) || (ang_dtdt != 0)) {
         // update q
@@ -263,10 +262,10 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
     if ((!(Vequal(Csys.pos, last_rel_coord.pos)) || !(Qequal(Csys.rot, last_rel_coord.rot))) && (fabs(mstep) < 0.1) &&
         (mstep != 0)) {
         // ... and if motion wasn't caused by motion laws, then it was a keyframed movement!
-        if ((motion_X->Get_y(mtime) == 0) && (motion_Y->Get_y(mtime) == 0) && (motion_Z->Get_y(mtime) == 0) &&
-            (motion_ang->Get_y(mtime) == 0) && (motion_X->Get_Type() == ChFunction::FUNCT_CONST) &&
-            (motion_Y->Get_Type() == ChFunction::FUNCT_CONST) && (motion_Z->Get_Type() == ChFunction::FUNCT_CONST) &&
-            (motion_ang->Get_Type() == ChFunction::FUNCT_CONST)) {
+        if ((motion_X->GetVal(mtime) == 0) && (motion_Y->GetVal(mtime) == 0) && (motion_Z->GetVal(mtime) == 0) &&
+            (motion_ang->GetVal(mtime) == 0) && (motion_X->GetType() == ChFunction::Type::CONSTANT) &&
+            (motion_Y->GetType() == ChFunction::Type::CONSTANT) && (motion_Z->GetType() == ChFunction::Type::CONSTANT) &&
+            (motion_ang->GetType() == ChFunction::Type::CONSTANT)) {
             // compute the relative speed by BDF !
             m_rel_pos_dt.pos = Vmul(Vsub(Csys.pos, last_rel_coord.pos), 1 / mstep);
             m_rel_pos_dt.rot = Qscale(Qsub(Csys.rot, last_rel_coord.rot), 1 / mstep);

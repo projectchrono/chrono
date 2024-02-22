@@ -25,9 +25,7 @@ namespace chrono {
 
 /// Operation between functions:
 ///
-/// math operation between A and  B operands
-///   - fa = first operand function
-///   - fb = second operand function
+/// Math operation between two operand functions
 class ChApi ChFunctionOperation : public ChFunction {
   public:
     ChFunctionOperation();
@@ -36,35 +34,42 @@ class ChApi ChFunctionOperation : public ChFunction {
 
     /// Type of operation.
     enum eChOperation {
-        ChOP_ADD = 0,
-        ChOP_SUB,
-        ChOP_MUL,
-        ChOP_DIV,
-        ChOP_POW,
-        ChOP_MAX,
-        ChOP_MIN,
-        ChOP_MODULO,
-        ChOP_FABS,
-        ChOP_FUNCT,
+        ADD = 0,
+        SUB,
+        MUL,
+        DIV,
+        POW,
+        MAX,
+        MIN,
+        MODULO,
+        FABS,
+        FUNCT,
     };
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionOperation* Clone() const override { return new ChFunctionOperation(*this); }
 
-    virtual FunctionType Get_Type() const override { return FUNCT_OPERATION; }
+    virtual Type GetType() const override { return ChFunction::Type::OPERATION; }
 
-    virtual double Get_y(double x) const override;
+    virtual double GetVal(double x) const override;
 
-    void Set_optype(eChOperation m_op) { op_type = m_op; }
-    eChOperation Get_optype() { return op_type; }
+    /// Set the operation type between the two operands.
+    void SetOperationType(eChOperation m_op) { m_op_type = m_op; }
 
-    void Set_fa(std::shared_ptr<ChFunction> m_fa) { fa = m_fa; }
-    std::shared_ptr<ChFunction> Get_fa() { return fa; }
+    /// Get the operation type between the two operands.
+    eChOperation GetOperationType() { return m_op_type; }
 
-    void Set_fb(std::shared_ptr<ChFunction> m_fb) { fb = m_fb; }
-    std::shared_ptr<ChFunction> Get_fb() { return fb; }
+    /// Set the first operand function.
+    void SetFirstOperandFunction(std::shared_ptr<ChFunction> m_m_first_fun) { m_first_fun = m_m_first_fun; }
 
-    virtual void Estimate_x_range(double& xmin, double& xmax) const override;
+    /// Get the first operand function.
+    std::shared_ptr<ChFunction> GetFirstOperandFunction() { return m_first_fun; }
+
+    /// Set the second operand function.
+    void SetSecondOperandFunction(std::shared_ptr<ChFunction> m_m_second_fun) { m_second_fun = m_m_second_fun; }
+
+    /// Get the second operand function.
+    std::shared_ptr<ChFunction> GetSecondOperandFunction() { return m_second_fun; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -74,23 +79,23 @@ class ChApi ChFunctionOperation : public ChFunction {
 
     /// @cond
     CH_ENUM_MAPPER_BEGIN(eChOperation);
-    CH_ENUM_VAL(ChOP_ADD);
-    CH_ENUM_VAL(ChOP_SUB);
-    CH_ENUM_VAL(ChOP_MUL);
-    CH_ENUM_VAL(ChOP_DIV);
-    CH_ENUM_VAL(ChOP_POW);
-    CH_ENUM_VAL(ChOP_MAX);
-    CH_ENUM_VAL(ChOP_MIN);
-    CH_ENUM_VAL(ChOP_MODULO);
-    CH_ENUM_VAL(ChOP_FABS);
-    CH_ENUM_VAL(ChOP_FUNCT);
+    CH_ENUM_VAL(ADD);
+    CH_ENUM_VAL(SUB);
+    CH_ENUM_VAL(MUL);
+    CH_ENUM_VAL(DIV);
+    CH_ENUM_VAL(POW);
+    CH_ENUM_VAL(MAX);
+    CH_ENUM_VAL(MIN);
+    CH_ENUM_VAL(MODULO);
+    CH_ENUM_VAL(FABS);
+    CH_ENUM_VAL(FUNCT);
     CH_ENUM_MAPPER_END(eChOperation);
     /// @endcond
 
   private:
-    std::shared_ptr<ChFunction> fa;
-    std::shared_ptr<ChFunction> fb;
-    eChOperation op_type;
+    std::shared_ptr<ChFunction> m_first_fun;
+    std::shared_ptr<ChFunction> m_second_fun;
+    eChOperation m_op_type;
 };
 
 /// @} chrono_functions

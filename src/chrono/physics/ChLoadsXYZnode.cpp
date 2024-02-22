@@ -73,7 +73,7 @@ void ChLoadXYZnodeForceAbsolute::ComputeForce(const ChVector3d& abs_pos,
 
 void ChLoadXYZnodeForceAbsolute::Update(double time) {
     m_modulation->Update(time);
-    m_scale = m_modulation->Get_y(time);
+    m_scale = m_modulation->GetVal(time);
     ChLoadXYZnodeForce::Update(time);
 }
 
@@ -171,9 +171,9 @@ ChLoadXYZnodeXYZnodeBushing::ChLoadXYZnodeXYZnodeBushing(std::shared_ptr<ChNodeX
 void ChLoadXYZnodeXYZnodeBushing::ComputeForce(const ChVector3d& rel_pos,
                                                const ChVector3d& rel_vel,
                                                ChVector3d& abs_force) {
-    abs_force = ChVector3d(force_dX->Get_y(rel_pos.x()) - R.x() * rel_vel.x(),
-                           force_dY->Get_y(rel_pos.y()) - R.y() * rel_vel.y(),
-                           force_dZ->Get_y(rel_pos.z()) - R.z() * rel_vel.z());
+    abs_force = ChVector3d(force_dX->GetVal(rel_pos.x()) - R.x() * rel_vel.x(),
+                           force_dY->GetVal(rel_pos.y()) - R.y() * rel_vel.y(),
+                           force_dZ->GetVal(rel_pos.z()) - R.z() * rel_vel.z());
 }
 
 // -----------------------------------------------------------------------------
@@ -275,9 +275,9 @@ ChLoadXYZnodeBodyBushing::ChLoadXYZnodeBodyBushing(std::shared_ptr<ChNodeXYZ> no
 /// Compute the force on the node, in absolute coordsystem,
 /// given position of node as abs_pos.
 void ChLoadXYZnodeBodyBushing::ComputeForce(const ChFrameMoving<>& rel_AB, ChVector3d& loc_force) {
-    loc_force = ChVector3d(force_dX->Get_y(rel_AB.GetPos().x()) - R.x() * rel_AB.GetPos_dt().x(),
-                           force_dY->Get_y(rel_AB.GetPos().y()) - R.y() * rel_AB.GetPos_dt().y(),
-                           force_dZ->Get_y(rel_AB.GetPos().z()) - R.z() * rel_AB.GetPos_dt().z());
+    loc_force = ChVector3d(force_dX->GetVal(rel_AB.GetPos().x()) - R.x() * rel_AB.GetPos_dt().x(),
+                           force_dY->GetVal(rel_AB.GetPos().y()) - R.y() * rel_AB.GetPos_dt().y(),
+                           force_dZ->GetVal(rel_AB.GetPos().z()) - R.z() * rel_AB.GetPos_dt().z());
 }
 
 }  // end namespace chrono

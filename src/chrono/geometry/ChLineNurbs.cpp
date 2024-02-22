@@ -22,7 +22,7 @@ CH_FACTORY_REGISTER(ChLineNurbs)
 
 ChLineNurbs::ChLineNurbs() {
     std::vector<ChVector3d > mpoints = {ChVector3d(-1, 0, 0), ChVector3d(1, 0, 0)};
-    this->SetupData(1, mpoints);
+    this->Setup(1, mpoints);
 }
 
 ChLineNurbs::ChLineNurbs(
@@ -31,7 +31,7 @@ ChLineNurbs::ChLineNurbs(
     ChVectorDynamic<>* mknots,          ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     ChVectorDynamic<>* weights          ///< weights, size w. Required w=n. If not provided, all weights as 1.
 ) {
-    this->SetupData(morder, mpoints, mknots, weights);
+    this->Setup(morder, mpoints, mknots, weights);
 }
 
 ChLineNurbs::ChLineNurbs(const ChLineNurbs& source) : ChLine(source) {
@@ -76,23 +76,23 @@ ChVector3d ChLineNurbs::GetTangent(double parU) const {
     return dir;
 }
 
-void ChLineNurbs::SetupData(
+void ChLineNurbs::Setup(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
     std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots,          ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     ChVectorDynamic<>* weights          ///< weights, size w. Required w=n. If not provided, all weights as 1.
 ) {
     if (morder < 1)
-        throw std::invalid_argument("ChLineNurbs::SetupData requires order >= 1.");
+        throw std::invalid_argument("ChLineNurbs::Setup requires order >= 1.");
 
     if (mpoints.size() < morder + 1)
-        throw std::invalid_argument("ChLineNurbs::SetupData requires at least order+1 control points.");
+        throw std::invalid_argument("ChLineNurbs::Setup requires at least order+1 control points.");
 
     if (mknots && (size_t)mknots->size() != (mpoints.size() + morder + 1))
-        throw std::invalid_argument("ChLineNurbs::SetupData: knots must have size=n_points+order+1");
+        throw std::invalid_argument("ChLineNurbs::Setup knots must have size=n_points+order+1");
 
     if (weights && (size_t)weights->size() != mpoints.size())
-        throw std::invalid_argument("ChLineNurbs::SetupData: weights must have size=n_points");
+        throw std::invalid_argument("ChLineNurbs::Setup weights must have size=n_points");
 
     this->p = morder;
     this->points = mpoints;

@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     auto nurbs = chrono_types::make_shared<ChLineNurbs>();
     std::vector<ChVector3d> controlpoints = {ChVector3d(1, 2, -1), ChVector3d(1, 3, -1), ChVector3d(1, 3, -2),
                                              ChVector3d(1, 4, -2)};
-    nurbs->SetupData(3, controlpoints);
+    nurbs->Setup(3, controlpoints);
 
     auto nurbsasset = chrono_types::make_shared<ChVisualShapeLine>();
     nurbsasset->SetLineGeometry(nurbs);
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     surfpoints(1, 1) = ChVector3d(1, 3, 1);
     surfpoints(2, 1) = ChVector3d(3, 3, 1);
     surfpoints(3, 1) = ChVector3d(2, 4, 1);
-    surf->SetupData(3, 1, surfpoints);
+    surf->Setup(3, 1, surfpoints);
 
     auto surfasset = chrono_types::make_shared<ChVisualShapeSurface>();
     surfasset->SetSurfaceGeometry(surf);

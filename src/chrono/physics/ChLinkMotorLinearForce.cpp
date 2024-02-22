@@ -35,7 +35,7 @@ void ChLinkMotorLinearForce::Update(double mytime, bool update_assets) {
 
 void ChLinkMotorLinearForce::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     // compute instant force
-    double mF = m_func->Get_y(this->GetChTime());
+    double mF = m_func->GetVal(this->GetChTime());
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
@@ -66,7 +66,7 @@ void ChLinkMotorLinearForce::IntLoadResidual_F(const unsigned int off, ChVectorD
 
 void ChLinkMotorLinearForce::ConstraintsFbLoadForces(double factor) {
     // compute instant force
-    double mF = m_func->Get_y(this->GetChTime());
+    double mF = m_func->GetVal(this->GetChTime());
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);

@@ -20,21 +20,17 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunctionRepeat)
 
 ChFunctionRepeat::ChFunctionRepeat(std::shared_ptr<ChFunction> func, double start, double length, double phase)
-    : fa(func), window_start(start), window_length(length), window_phase(phase) {}
+    : fa(func), m_slice_start(start), m_slice_width(length), m_slice_shift(phase) {}
 
 ChFunctionRepeat::ChFunctionRepeat(const ChFunctionRepeat& other) {
-    window_start = other.window_start;
-    window_length = other.window_length;
-    window_phase = other.window_phase;
+    m_slice_start = other.m_slice_start;
+    m_slice_width = other.m_slice_width;
+    m_slice_shift = other.m_slice_shift;
     fa = std::shared_ptr<ChFunction>(other.fa->Clone());
 }
 
-double ChFunctionRepeat::Get_y(double x) const {
-    return fa->Get_y(this->window_start + fmod(x + this->window_phase, this->window_length));
-}
-
-void ChFunctionRepeat::Estimate_x_range(double& xmin, double& xmax) const {
-    fa->Estimate_x_range(xmin, xmax);
+double ChFunctionRepeat::GetVal(double x) const {
+    return fa->GetVal(this->m_slice_start + fmod(x + this->m_slice_shift, this->m_slice_width));
 }
 
 void ChFunctionRepeat::ArchiveOut(ChArchiveOut& archive) {
@@ -44,21 +40,21 @@ void ChFunctionRepeat::ArchiveOut(ChArchiveOut& archive) {
     ChFunction::ArchiveOut(archive);
     // serialize all member data:
     archive << CHNVP(fa);
-    archive << CHNVP(window_start);
-    archive << CHNVP(window_length);
-    archive << CHNVP(window_phase);
+    archive << CHNVP(m_slice_start);
+    archive << CHNVP(m_slice_width);
+    archive << CHNVP(m_slice_shift);
 }
 
 void ChFunctionRepeat::ArchiveIn(ChArchiveIn& archive) {
     // version number
-    /*int version =*/ archive.VersionRead<ChFunctionRepeat>();
+    /*int version =*/archive.VersionRead<ChFunctionRepeat>();
     // deserialize parent class
     ChFunction::ArchiveIn(archive);
     // stream in all member data:
     archive >> CHNVP(fa);
-    archive >> CHNVP(window_start);
-    archive >> CHNVP(window_length);
-    archive >> CHNVP(window_phase);
+    archive >> CHNVP(m_slice_start);
+    archive >> CHNVP(m_slice_width);
+    archive >> CHNVP(m_slice_shift);
 }
 
 }  // end namespace chrono

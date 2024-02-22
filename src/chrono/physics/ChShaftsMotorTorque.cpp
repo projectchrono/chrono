@@ -48,7 +48,7 @@ void ChShaftsMotorTorque::IntLoadResidual_F(const unsigned int off,  // offset i
                                 ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                 const double c           // a scaling factor
                                 ) {
-    double imposed_torque = this->f_torque->Get_y(this->GetChTime());
+    double imposed_torque = this->f_torque->GetVal(this->GetChTime());
     if (shaft1->IsActive())
         R(shaft1->GetOffset_w()) +=  imposed_torque * c;
     if (shaft2->IsActive())
@@ -57,7 +57,7 @@ void ChShaftsMotorTorque::IntLoadResidual_F(const unsigned int off,  // offset i
 
 void ChShaftsMotorTorque::VariablesFbLoadForces(double factor) {
 
-    double imposed_torque = this->f_torque->Get_y(this->GetChTime());
+    double imposed_torque = this->f_torque->GetVal(this->GetChTime());
     shaft1->Variables().Get_fb()(0) +=  imposed_torque * factor;
     shaft2->Variables().Get_fb()(0) += -imposed_torque * factor;
 }

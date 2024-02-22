@@ -20,6 +20,7 @@
 #include <typeindex>
 #include <type_traits>
 #include <unordered_set>
+#include <map>
 #include <memory>
 #include <algorithm>
 
@@ -966,6 +967,23 @@ class ChApi ChArchiveOut : public ChArchive {
         this->out_array_end(specVal, bVal.value().size());
     }
 
+    // trick to wrap std::map container
+    template <class T, class Tv>
+    void out(ChNameValue<std::map<T, Tv>> bVal) {
+        ChValueSpecific<std::map<T, Tv>> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(),
+                                                           bVal.GetVariability());
+        this->out_array_pre(specVal, bVal.value().size());
+        int i = 0;
+        for (auto it = bVal.value().begin(); it != bVal.value().end(); ++it) {
+            ChNameValue<std::pair<T, Tv>> array_key(std::to_string(i), (*it));
+            this->out(array_key);
+            this->out_array_between(specVal, bVal.value().size());
+            ++i;
+        }
+        this->out_array_end(specVal, bVal.value().size());
+    }
+
+
     // trick to call out_ref on std::shared_ptr
     template <class T>
     void out(ChNameValue<std::shared_ptr<T>> bVal) {
@@ -1252,6 +1270,26 @@ class ChApi ChArchiveIn : public ChArchive {
         this->in_array_end(bVal.name());
         return true;
     }
+
+    // trick to wrap std::map container
+    template <class T, class Tv>
+    bool in(ChNameValue<std::map<T, Tv>> bVal) {
+        bVal.value().clear();
+        size_t arraysize;
+        if (!this->in_array_pre(bVal.name(), arraysize))
+            return false;
+        for (size_t i = 0; i < arraysize; ++i) {
+            std::pair<T, Tv> mpair;
+            ChNameValue<std::pair<T, Tv>> array_val(std::to_string(i), mpair);
+            this->in(array_val);
+            // store in map; constant time:
+            bVal.value()[mpair.first] = mpair.second;
+            this->in_array_between(bVal.name());
+        }
+        this->in_array_end(bVal.name());
+        return true;
+    }
+
 
     // trick to call in_ref on ChSharedPointer:
     template <class T>

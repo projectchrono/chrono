@@ -86,7 +86,7 @@ class ChApi ChLineNurbs : public ChLine {
     /// Initial easy setup from a given array of control points. Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
     /// If the weights are not provided, a constant weight vector is made.
-    virtual void SetupData(
+    virtual void Setup(
         int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
         std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
         ChVectorDynamic<>* mknots = 0,  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.

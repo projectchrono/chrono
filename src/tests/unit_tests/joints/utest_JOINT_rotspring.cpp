@@ -44,7 +44,7 @@ class ChFunctionCustomSpring : public ChFunction {
   public:
     virtual ChFunctionCustomSpring* Clone() const override { return new ChFunctionCustomSpring; }
 
-    virtual double Get_y(double x) const override {
+    virtual double GetVal(double x) const override {
         double spring_coef = 50;
         double spring_nonlin_coef = 10;
 

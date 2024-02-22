@@ -102,7 +102,7 @@ void ChRackPinion::Synchronize(double time, const DriverInputs& driver_inputs) {
     double displ = angle * GetPinionRadius();
 
     if (auto fun = std::dynamic_pointer_cast<ChFunctionConst>(m_actuator->GetActuatorFunction()))
-        fun->Set_yconst(displ);
+        fun->SetConstant(displ);
 }
 
 void ChRackPinion::InitializeInertiaProperties() {

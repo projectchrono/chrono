@@ -52,7 +52,7 @@ class CH_MODELS_API UAZBUS_TMeasyTireFront : public ChTMeasyTire {
     static const double m_mass;
     static const ChVector3d m_inertia;
 
-    ChFunctionRecorder m_stiffnessMap;
+    ChFunctionInterp m_stiffnessMap;
 
     static const std::string m_meshFile;
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
@@ -79,7 +79,7 @@ class CH_MODELS_API UAZBUS_TMeasyTireRear : public ChTMeasyTire {
     static const double m_mass;
     static const ChVector3d m_inertia;
 
-    ChFunctionRecorder m_stiffnessMap;
+    ChFunctionInterp m_stiffnessMap;
 
     static const std::string m_meshFile;
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;

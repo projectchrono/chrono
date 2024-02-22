@@ -44,7 +44,7 @@ class ChApi ChLinkMotorRotationTorque : public ChLinkMotorRotation {
     std::shared_ptr<ChFunction> GetTorqueFunction() const { return GetMotorFunction(); }
 
     /// Get the current actuator reaction torque.
-    virtual double GetMotorTorque() const override { return m_func->Get_y(GetChTime()); }
+    virtual double GetMotorTorque() const override { return m_func->GetVal(GetChTime()); }
 
     void Update(double mytime, bool update_assets) override;
 

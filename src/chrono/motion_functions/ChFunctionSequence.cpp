@@ -111,7 +111,7 @@ bool ChFunctionSequence::InsertFunct(std::shared_ptr<ChFunction> myfx,
                                       bool c0,
                                       bool c1,
                                       bool c2,
-                                      int position) {
+                                      int index) {
     ChFseqNode mfxsegment(myfx, duration);
     mfxsegment.y_cont = c0;
     mfxsegment.ydt_cont = c1;
@@ -120,7 +120,7 @@ bool ChFunctionSequence::InsertFunct(std::shared_ptr<ChFunction> myfx,
 
     bool inserted = false;
 
-    if (position == -1) {
+    if (index == -1) {
         functions.push_back(mfxsegment);
         inserted = true;
     }
@@ -128,7 +128,7 @@ bool ChFunctionSequence::InsertFunct(std::shared_ptr<ChFunction> myfx,
         std::list<ChFseqNode>::iterator iter;
         size_t i = 0;
         for (iter = functions.begin(); iter != functions.end(); ++iter, ++i) {
-            if (i == position) {
+            if (i == index) {
                 functions.insert(iter, mfxsegment);
                 inserted = true;
                 break;
@@ -143,21 +143,21 @@ bool ChFunctionSequence::InsertFunct(std::shared_ptr<ChFunction> myfx,
     return inserted;
 }
 
-bool ChFunctionSequence::KillFunct(int position) {
+bool ChFunctionSequence::RemoveFunct(int index) {
     if (functions.size() == 0)
         return false;
-    if ((position == -1) || (position > functions.size())) {
+    if ((index == -1) || (index > functions.size())) {
         functions.erase(functions.end());
         return true;
     }
-    if (position == 0) {
+    if (index == 0) {
         functions.erase(functions.begin());
         return true;
     }
     std::list<ChFseqNode>::iterator iter;
     size_t i = 1;
     for (iter = functions.begin(); iter != functions.end(); ++iter, ++i) {
-        if (i == position) {
+        if (i == index) {
             functions.erase(iter);
             this->Setup();
             return true;
@@ -168,32 +168,32 @@ bool ChFunctionSequence::KillFunct(int position) {
     return false;
 }
 
-std::shared_ptr<ChFunction> ChFunctionSequence::GetNthFunction(int position) {
-    ChFseqNode* mnode = GetNthNode(position);
+std::shared_ptr<ChFunction> ChFunctionSequence::GetFunction(int index) {
+    ChFseqNode* mnode = GetNode(index);
     if (mnode)
         return mnode->fx;
     return std::shared_ptr<ChFunction>();
 }
 
-double ChFunctionSequence::GetNthDuration(int position) {
-    ChFseqNode* mnode = GetNthNode(position);
+double ChFunctionSequence::GetWidth(int index) {
+    ChFseqNode* mnode = GetNode(index);
     if (mnode)
         return mnode->duration;
     return 0.0;
 }
 
-ChFseqNode* ChFunctionSequence::GetNthNode(int position) {
+ChFseqNode* ChFunctionSequence::GetNode(int index) {
     if (functions.size() == 0)
         return 0;
-    if ((position == -1) || (position > functions.size())) {
+    if ((index == -1) || (index > functions.size())) {
         return &(*(functions.end()));
     }
-    if (position == 0) {
+    if (index == 0) {
         return &(*(functions.begin()));
     }
     size_t i = 1;
     for (auto iter = functions.begin(); iter != functions.end(); ++iter, ++i) {
-        if (i == position) {
+        if (i == index) {
             return &(*iter);
         }
     }
@@ -215,76 +215,77 @@ void ChFunctionSequence::Setup() {
         iter->Iydtdt = 0;
 
         if (auto mfillet = std::dynamic_pointer_cast<ChFunctionFillet3>(iter->fx)) {
-            mfillet->Set_y1(lastIy);
-            mfillet->Set_dy1(lastIy_dt);
+            mfillet->SetStartVal(lastIy);
+            mfillet->SetStartDer(lastIy_dt);
 
             iter_next = iter;
             ++iter_next;
             if (iter_next != functions.end()) {
-                mfillet->Set_y2(iter_next->fx->Get_y(0));
-                mfillet->Set_dy2(iter_next->fx->Get_y_dx(0));
+                mfillet->SetEndVal(iter_next->fx->GetVal(0));
+                mfillet->SetEndDer(iter_next->fx->GetDer(0));
             } else {
-                mfillet->Set_y2(0);
-                mfillet->Set_dy2(0);
+                mfillet->SetEndVal(0);
+                mfillet->SetEndDer(0);
             }
-            mfillet->Set_end(iter->duration);
+            mfillet->SetWidth(iter->duration);
+            mfillet->Setup();
             iter->Iy = iter->Iydt = iter->Iydtdt = 0;
         } else  // generic continuity conditions
         {
             if (iter->y_cont)
-                iter->Iy = lastIy - iter->fx->Get_y(0);
+                iter->Iy = lastIy - iter->fx->GetVal(0);
             if (iter->ydt_cont)
-                iter->Iydt = lastIy_dt - iter->fx->Get_y_dx(0);
+                iter->Iydt = lastIy_dt - iter->fx->GetDer(0);
             if (iter->ydtdt_cont)
-                iter->Iydtdt = lastIy_dtdt - iter->fx->Get_y_dxdx(0);
+                iter->Iydtdt = lastIy_dtdt - iter->fx->GetDer2(0);
         }
 
-        lastIy = iter->fx->Get_y(iter->duration) + iter->Iy + iter->Iydt * iter->duration +
+        lastIy = iter->fx->GetVal(iter->duration) + iter->Iy + iter->Iydt * iter->duration +
                  iter->Iydtdt * iter->duration * iter->duration;
-        lastIy_dt = iter->fx->Get_y_dx(iter->duration) + iter->Iydt + iter->Iydtdt * iter->duration;
-        lastIy_dtdt = iter->fx->Get_y_dxdx(iter->duration) + iter->Iydtdt;
+        lastIy_dt = iter->fx->GetDer(iter->duration) + iter->Iydt + iter->Iydtdt * iter->duration;
+        lastIy_dtdt = iter->fx->GetDer2(iter->duration) + iter->Iydtdt;
 
         basetime += iter->duration;
     }
 }
 
-double ChFunctionSequence::Get_y(double x) const {
+double ChFunctionSequence::GetVal(double x) const {
     double res = 0;
     double localtime;
     for (auto iter = functions.begin(); iter != functions.end(); ++iter) {
         if ((x >= iter->t_start) && (x < iter->t_end)) {
             localtime = x - iter->t_start;
-            res = iter->fx->Get_y(localtime) + iter->Iy + iter->Iydt * localtime + iter->Iydtdt * localtime * localtime;
+            res = iter->fx->GetVal(localtime) + iter->Iy + iter->Iydt * localtime + iter->Iydtdt * localtime * localtime;
         }
     }
     return res;
 }
 
-double ChFunctionSequence::Get_y_dx(double x) const {
+double ChFunctionSequence::GetDer(double x) const {
     double res = 0;
     double localtime;
     for (auto iter = functions.begin(); iter != functions.end(); ++iter) {
         if ((x >= iter->t_start) && (x < iter->t_end)) {
             localtime = x - iter->t_start;
-            res = iter->fx->Get_y_dx(localtime) + iter->Iydt + iter->Iydtdt * localtime;
+            res = iter->fx->GetDer(localtime) + iter->Iydt + iter->Iydtdt * localtime;
         }
     }
     return res;
 }
 
-double ChFunctionSequence::Get_y_dxdx(double x) const {
+double ChFunctionSequence::GetDer2(double x) const {
     double res = 0;
     double localtime;
     for (auto iter = functions.begin(); iter != functions.end(); ++iter) {
         if ((x >= iter->t_start) && (x < iter->t_end)) {
             localtime = x - iter->t_start;
-            res = iter->fx->Get_y_dxdx(localtime) + iter->Iydtdt;
+            res = iter->fx->GetDer2(localtime) + iter->Iydtdt;
         }
     }
     return res;
 }
 
-double ChFunctionSequence::Get_weight(double x) const {
+double ChFunctionSequence::GetWeight(double x) const {
     double res = 1.0;
     for (auto iter = functions.begin(); iter != functions.end(); ++iter) {
         if ((x >= iter->t_start) && (x < iter->t_end)) {
@@ -292,45 +293,6 @@ double ChFunctionSequence::Get_weight(double x) const {
         }
     }
     return res;
-}
-
-void ChFunctionSequence::Estimate_x_range(double& xmin, double& xmax) const {
-    xmin = start;
-    xmax = functions.end()->t_end;
-    if (xmin == xmax)
-        xmax = xmin + 1.1;
-}
-
-int ChFunctionSequence::HandleNumber() const {
-    int tot = 1;
-    for (auto iter = functions.begin(); iter != functions.end(); ++iter) {
-        tot++;
-    }
-    return tot;
-}
-
-bool ChFunctionSequence::HandleAccess(int handle_id, double mx, double my, bool set_mode) {
-    if (handle_id == 0) {
-        if (!set_mode)
-            mx = Get_start();
-        else
-            Set_start(mx);
-        return true;
-    }
-    int tot = 1;
-    for (auto iter = functions.begin(); iter != functions.end(); ++iter) {
-        if (handle_id == tot) {
-            if (!set_mode)
-                mx = iter->t_end;
-            else {
-                iter->SetTend(mx);
-                Setup();
-            }
-            return true;
-        }
-    }
-
-    return false;
 }
 
 void ChFunctionSequence::ArchiveOut(ChArchiveOut& marchive) {

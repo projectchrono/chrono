@@ -431,9 +431,9 @@ class MySimpleCar {
         double singlewheeltorque = 0.5 * shafttorque * (1.0 / this->conic_tau);
         // Set the wheel torque in both 'motor' links, connecting the wheels to the truss;
         if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(link_motorL->GetTorqueFunction()))
-            mfun->Set_yconst(singlewheeltorque);
+            mfun->SetConstant(singlewheeltorque);
         if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(link_motorR->GetTorqueFunction()))
-            mfun->Set_yconst(singlewheeltorque);
+            mfun->SetConstant(singlewheeltorque);
         // debug:print infos on screen:
         // std::cout << "motor torque="<< motortorque<< "  speed=" << motorspeed << "  wheel torqe=" <<
         // singlewheeltorque

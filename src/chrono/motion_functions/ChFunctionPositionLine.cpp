@@ -43,13 +43,13 @@ ChFunctionPositionLine::ChFunctionPositionLine(const ChFunctionPositionLine& oth
 ChFunctionPositionLine::~ChFunctionPositionLine() {}
 
 ChVector3d ChFunctionPositionLine::Get_p(double s) const {
-    double u = space_fx->Get_y(s);
+    double u = space_fx->GetVal(s);
     return trajectory_line->Evaluate(u);
 }
 
 ChVector3d ChFunctionPositionLine::Get_p_ds(double s) const {
-    double u = space_fx->Get_y(s);
-    double du_ds = space_fx->Get_y_dx(s);
+    double u = space_fx->GetVal(s);
+    double du_ds = space_fx->GetDer(s);
     auto dp_du = trajectory_line->GetTangent(u);
     return dp_du * du_ds;
 }

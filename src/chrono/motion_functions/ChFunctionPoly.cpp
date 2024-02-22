@@ -20,39 +20,33 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunctionPoly)
 
 ChFunctionPoly::ChFunctionPoly() {
-    order = 0;
-    for (int i = 0; i < POLY_COEFF_ARRAY; i++) {
-        coeff[i] = 0;
-    }
+    m_coeffs = {0};
 }
 
 ChFunctionPoly::ChFunctionPoly(const ChFunctionPoly& other) {
-    order = other.order;
-    for (int i = 0; i < POLY_COEFF_ARRAY; i++) {
-        coeff[i] = other.coeff[i];
-    }
+    m_coeffs = other.m_coeffs;
 }
 
-double ChFunctionPoly::Get_y(double x) const {
+double ChFunctionPoly::GetVal(double x) const {
     double total = 0;
-    for (int i = 0; i <= order; i++) {
-        total += (coeff[i] * pow(x, (double)i));
+    for (int i = 0; i <= m_coeffs.size(); i++) {
+        total += (m_coeffs[i] * pow(x, (double)i));
     }
     return total;
 }
 
-double ChFunctionPoly::Get_y_dx(double x) const {
+double ChFunctionPoly::GetDer(double x) const {
     double total = 0;
-    for (int i = 1; i <= order; i++) {
-        total += ((double)i * coeff[i] * pow(x, ((double)(i - 1))));
+    for (int i = 1; i <= m_coeffs.size(); i++) {
+        total += ((double)i * m_coeffs[i] * pow(x, ((double)(i - 1))));
     }
     return total;
 }
 
-double ChFunctionPoly::Get_y_dxdx(double x) const {
+double ChFunctionPoly::GetDer2(double x) const {
     double total = 0;
-    for (int i = 2; i <= order; i++) {
-        total += ((double)(i * (i - 1)) * coeff[i] * pow(x, ((double)(i - 2))));
+    for (int i = 2; i <= m_coeffs.size(); i++) {
+        total += ((double)(i * (i - 1)) * m_coeffs[i] * pow(x, ((double)(i - 2))));
     }
     return total;
 }
@@ -63,8 +57,7 @@ void ChFunctionPoly::ArchiveOut(ChArchiveOut& marchive) {
     // serialize parent class
     ChFunction::ArchiveOut(marchive);
     // serialize all member data:
-    marchive << CHNVP(coeff);
-    marchive << CHNVP(order);
+    marchive << CHNVP(m_coeffs);
 }
 
 void ChFunctionPoly::ArchiveIn(ChArchiveIn& marchive) {
@@ -73,8 +66,7 @@ void ChFunctionPoly::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChFunction::ArchiveIn(marchive);
     // stream in all member data:
-    marchive >> CHNVP(coeff);
-    marchive >> CHNVP(order);
+    marchive >> CHNVP(m_coeffs);
 }
 
 }  // end namespace chrono

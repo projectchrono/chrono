@@ -27,7 +27,7 @@ CH_FACTORY_REGISTER(ChFunctionRotationBSpline)
 ChFunctionRotationBSpline::ChFunctionRotationBSpline() {
     const std::vector<ChQuaternion<> > mrotations = {QUNIT, QUNIT};
 	this->closed = false;
-    this->SetupData(1, mrotations);
+    this->Setup(1, mrotations);
 
 	// default s(t) function. User will provide better fx.
     space_fx = chrono_types::make_shared<ChFunctionRamp>(0, 1.);
@@ -39,7 +39,7 @@ ChFunctionRotationBSpline::ChFunctionRotationBSpline(
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
 	this->closed = false;
-    this->SetupData(morder, mrotations, mknots);
+    this->Setup(morder, mrotations, mknots);
 
 	// default s(t) function. User will provide better fx.
     space_fx = chrono_types::make_shared<ChFunctionRamp>(0, 1.);
@@ -57,19 +57,19 @@ ChFunctionRotationBSpline::~ChFunctionRotationBSpline() {
 
 }
 
-void ChFunctionRotationBSpline::SetupData(
+void ChFunctionRotationBSpline::Setup(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
     const std::vector<ChQuaternion<> >& mrotations,  ///< rotation control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     if (morder < 1)
-        throw std::invalid_argument("ChFunctionRotationBSpline::SetupData requires order >= 1.");
+        throw std::invalid_argument("ChFunctionRotationBSpline::Setup requires order >= 1.");
 
     if (mrotations.size() < morder + 1)
-        throw std::invalid_argument("ChFunctionRotationBSpline::SetupData requires at least order+1 control points.");
+        throw std::invalid_argument("ChFunctionRotationBSpline::Setup requires at least order+1 control points.");
 
     if (mknots && (size_t)mknots->size() != (mrotations.size() + morder + 1))
-        throw std::invalid_argument("ChFunctionRotationBSpline::SetupData: knots must have size=n_points+order+1");
+        throw std::invalid_argument("ChFunctionRotationBSpline::Setup: knots must have size=n_points+order+1");
 
     this->p = morder;
     this->rotations = mrotations;
@@ -87,7 +87,7 @@ void ChFunctionRotationBSpline::SetupData(
 
 ChQuaternion<> ChFunctionRotationBSpline::Get_q(double s) const {
 	
-	double fs = space_fx->Get_y(s);
+	double fs = space_fx->GetVal(s);
 
 	double mU;
 	if (this->closed)

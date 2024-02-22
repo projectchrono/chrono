@@ -12,117 +12,121 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <memory.h>
+#include <memory>
 #include <cfloat>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <iomanip>
+#include <limits>
 
 #include "chrono/motion_functions/ChFunctionBase.h"
 
 namespace chrono {
 
-static const double FD_PERTURBATION = 1e-7;
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChFunction) // NO! this is an abstract class, rather use for children concrete classes.
 
-double ChFunction::Get_y_dx(double x) const {
-    return (Get_y(x + FD_PERTURBATION) - Get_y(x)) / FD_PERTURBATION;
+class ChFunction_Type_enum_mapper : public ChFunction {
+  public:
+    CH_ENUM_MAPPER_BEGIN(Type);
+    CH_ENUM_VAL(Type::BSPLINE);
+    CH_ENUM_VAL(Type::CONSTANT);
+    CH_ENUM_VAL(Type::CONSTACC);
+    CH_ENUM_VAL(Type::CONSTJERK);
+    CH_ENUM_VAL(Type::CUSTOM);
+    CH_ENUM_VAL(Type::CYCLOIDAL);
+    CH_ENUM_VAL(Type::DERIVE);
+    CH_ENUM_VAL(Type::FILLET3);
+    CH_ENUM_VAL(Type::INTEGRATE);
+    CH_ENUM_VAL(Type::INTERP);
+    CH_ENUM_VAL(Type::LAMBDA);
+    CH_ENUM_VAL(Type::MIRROR);
+    CH_ENUM_VAL(Type::OPERATION);
+    CH_ENUM_VAL(Type::POLY);
+    CH_ENUM_VAL(Type::POLY23);
+    CH_ENUM_VAL(Type::POLY345);
+    CH_ENUM_VAL(Type::RAMP);
+    CH_ENUM_VAL(Type::REPEAT);
+    CH_ENUM_VAL(Type::SEQUENCE);
+    CH_ENUM_VAL(Type::SINE);
+    CH_ENUM_VAL(Type::SINE_STEP);
+    CH_ENUM_MAPPER_END(Type);
+};
+
+double ChFunction::GetDer(double x) const {
+    return (GetVal(x + m_der_perturbation) - GetVal(x)) / m_der_perturbation;
 }
 
-double ChFunction::Get_y_dxdx(double x) const {
-    return (Get_y_dx(x + FD_PERTURBATION) - Get_y_dx(x)) / FD_PERTURBATION;
+double ChFunction::GetDer2(double x) const {
+    return (GetDer(x + m_der_perturbation) - GetDer(x)) / m_der_perturbation;
 }
 
-double ChFunction::Get_y_dxdxdx(double x) const {
-    return ((Get_y_dxdx(x + FD_PERTURBATION) - Get_y_dxdx(x)) / FD_PERTURBATION);
+double ChFunction::GetDer3(double x) const {
+    return ((GetDer2(x + m_der_perturbation) - GetDer2(x)) / m_der_perturbation);
 }
 
-double ChFunction::Get_y_dN(double x, int derivate) const {
-    switch (derivate) {
+double ChFunction::GetDerN(double x, int der_order) const {
+    switch (der_order) {
         case 0:
-            return Get_y(x);
+            return GetVal(x);
         case 1:
-            return Get_y_dx(x);
+            return GetDer(x);
         case 2:
-            return Get_y_dxdx(x);
+            return GetDer2(x);
         case 3:
-            return Get_y_dxdxdx(x);
+            return GetDer3(x);
         default:
-            return Get_y(x);
+            return GetVal(x);
     }
-}
-
-void ChFunction::Estimate_x_range(double& xmin, double& xmax) const {
-    xmin = 0.0;
-    xmax = 1.2;
-}
-
-void ChFunction::Estimate_y_range(double xmin, double xmax, double& ymin, double& ymax, int derivate) const {
-    ymin = 10000;
-    ymax = -10000;
-    for (double mx = xmin; mx < xmax; mx += (xmax - xmin) / 100.0) {
-        if (Get_y_dN(mx, derivate) < ymin)
-            ymin = Get_y_dN(mx, derivate);
-        if (Get_y_dN(mx, derivate) > ymax)
-            ymax = Get_y_dN(mx, derivate);
-    }
-    if (fabs(ymax - ymin) < 10e-12) {
-        ymin = -0.5;
-        ymax = +1.0;
-    }
-    ymax += 0.12 * (ymax - ymin);
-    ymin -= 0.12 * (ymax - ymin);
 }
 
 // some analysis functions
-double ChFunction::Compute_max(double xmin, double xmax, double sampling_step, int derivate) const {
-    double mret = -1E30;
+double ChFunction::GetMax(double xmin, double xmax, double sampling_step, int derivative) const {
+    double mret = std::numeric_limits<double>::min();
     for (double mx = xmin; mx <= xmax; mx += sampling_step) {
-        if (this->Get_y_dN(mx, derivate) > mret)
-            mret = this->Get_y_dN(mx, derivate);
+        if (this->GetDerN(mx, derivative) > mret)
+            mret = this->GetDerN(mx, derivative);
     }
     return mret;
 }
 
-double ChFunction::Compute_min(double xmin, double xmax, double sampling_step, int derivate) const {
-    double mret = +1E30;
+double ChFunction::GetMin(double xmin, double xmax, double sampling_step, int derivative) const {
+    double mret = std::numeric_limits<double>::max();
     for (double mx = xmin; mx <= xmax; mx += sampling_step) {
-        if (this->Get_y_dN(mx, derivate) < mret)
-            mret = this->Get_y_dN(mx, derivate);
+        if (this->GetDerN(mx, derivative) < mret)
+            mret = this->GetDerN(mx, derivative);
     }
     return mret;
 }
 
-double ChFunction::Compute_mean(double xmin, double xmax, double sampling_step, int derivate) const {
+double ChFunction::GetMean(double xmin, double xmax, double sampling_step, int derivative) const {
     double mret = 0;
     int numpts = 0;
     for (double mx = xmin; mx <= xmax; mx = mx + sampling_step) {
         numpts++;
-        mret += this->Get_y_dN(mx, derivate);
+        mret += this->GetDerN(mx, derivative);
     }
     return mret / ((double)numpts);
 }
 
-double ChFunction::Compute_sqrmean(double xmin, double xmax, double sampling_step, int derivate) const {
+double ChFunction::GetSquaredMean(double xmin, double xmax, double sampling_step, int derivative) const {
     double mret = 0;
     int numpts = 0;
     for (double mx = xmin; mx <= xmax; mx = mx + sampling_step) {
         numpts++;
-        mret += pow(this->Get_y_dN(mx, derivate), 2.);
+        mret += pow(this->GetDerN(mx, derivative), 2.);
     }
     return sqrt(mret / ((double)numpts));
 }
 
-double ChFunction::Compute_int(double xmin, double xmax, double sampling_step, int derivate) const {
+double ChFunction::GetIntegral(double xmin, double xmax, double sampling_step, int derivative) const {
     double mret = 0;
-    double ya = this->Get_y_dN(xmin, derivate);
+    double ya = this->GetDerN(xmin, derivative);
     double yb = 0;
     for (double mx = xmin + sampling_step; mx <= xmax; mx += sampling_step) {
-        yb = this->Get_y_dN(mx, derivate);
+        yb = this->GetDerN(mx, derivative);
         mret += sampling_step * (ya + yb) * 0.5;  // trapezoidal quadrature
         ya = yb;
     }
@@ -140,40 +144,40 @@ void ChFunction::ArchiveIn(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChFunction>();
 }
 
-int ChFunction::FileAsciiPairsSave(std::ostream& outfile, double mxmin, double mxmax, int msamples) {
-    if (msamples <= 1)
+int ChFunction::OutputToASCIIFile(std::ostream& outfile, double xmin, double xmax, int samples, char delimiter) {
+    if (samples <= 1)
         throw std::invalid_argument("Too short range or too long sampling period: no points can be saved");
-    if (msamples >= 100000)
-        throw std::invalid_argument("Too many points should be saved");
-    if (mxmax <= mxmin)
+    if (xmax <= xmin)
         throw std::invalid_argument("Cannot save ChFunction if Xmax < Xmin");
 
     outfile << std::setprecision(8) << std::defaultfloat;
 
-    double period = (mxmax - mxmin) / ((double)msamples - 1);
+    double period = (xmax - xmin) / ((double)samples - 1);
 
-    double mX = mxmin;
-    for (int cnt = 1; cnt <= msamples; cnt++) {
+    double mX = xmin;
+    for (int cnt = 1; cnt <= samples; cnt++) {
         outfile << mX;
-        outfile << "    ";
-        outfile << this->Get_y(mX);
+        outfile << delimiter;
+        outfile << this->GetVal(mX);
         outfile << std::endl;
         mX += period;
     }
     return 1;
 }
 
-void ChFunction::EvaluateIntervaldN(ChMatrixDynamic<>& data, double xmin, double xmax, double step, int der) {
+ChMatrixDynamic<> ChFunction::SampleUpToDerN(double xmin, double xmax, double step, int derN) {
+    ChMatrixDynamic<> data;
     int num_samples = (xmax - xmin) / step;
-    data.resize(num_samples, der + 2);  // data = [x, y(x), y_dx(x), ...]
+    data.resize(num_samples, derN + 2);  // data = [x, y(x), y_dx(x), ...]
     double x = xmin;
     for (int i = 0; i < num_samples; ++i) {
         data(i, 0) = x;
-        for (int j = 0; j < der + 1; ++j) {
-            data(i, j + 1) = Get_y_dN(x, j);
+        for (int j = 0; j < derN + 1; ++j) {
+            data(i, j + 1) = GetDerN(x, j);
         }
         x += step;
     }
+    return data;
 }
 
 }  // end namespace chrono

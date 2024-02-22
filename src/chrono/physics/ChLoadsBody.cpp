@@ -72,7 +72,7 @@ void ChLoadBodyForce::Update(double time) {
         return;
 
     m_modulation->Update(time);
-    m_scale = m_modulation->Get_y(time);
+    m_scale = m_modulation->GetVal(time);
     ChLoadCustom::Update(time);
 }
 
@@ -131,7 +131,7 @@ void ChLoadBodyTorque::Update(double time) {
         return;
 
     m_modulation->Update(time);
-    m_scale = m_modulation->Get_y(time);
+    m_scale = m_modulation->GetVal(time);
     ChLoadCustom::Update(time);
 }
 
@@ -400,7 +400,7 @@ void ChLoadBodyBodyTorque::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel
 
 void ChLoadBodyBodyTorque::Update(double time) {
     m_modulation->Update(time);
-    m_scale = m_modulation->Get_y(time);
+    m_scale = m_modulation->GetVal(time);
     ChLoadCustomMultiple::Update(time);
 }
 

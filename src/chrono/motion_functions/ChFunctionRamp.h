@@ -22,35 +22,39 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Linear function (like a straight ramp):
-/// `y = y0 + x * speed`
+/// Ramp function.
+/// `y = y0 + m * x`
 class ChApi ChFunctionRamp : public ChFunction {
   private:
-    double y0;
-    double ang;
+    double m_y0;
+    double m_ang_coeff;
 
   public:
-    ChFunctionRamp() : y0(0), ang(1) {}
-    ChFunctionRamp(double m_y0, double m_ang) : y0(m_y0), ang(m_ang) {}
+    ChFunctionRamp() : m_y0(0), m_ang_coeff(1) {}
+    ChFunctionRamp(double y0, double ang_coeff) : m_y0(y0), m_ang_coeff(ang_coeff) {}
     ChFunctionRamp(const ChFunctionRamp& other);
     ~ChFunctionRamp() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionRamp* Clone() const override { return new ChFunctionRamp(*this); }
 
-    virtual FunctionType Get_Type() const override { return FUNCT_RAMP; }
+    virtual Type GetType() const override { return ChFunction::Type::RAMP; }
 
-    virtual double Get_y(double x) const override { return (y0 + (x * ang)); }
-    virtual double Get_y_dx(double x) const override { return (ang); }
-    virtual double Get_y_dxdx(double x) const override { return 0; }
+    virtual double GetVal(double x) const override { return (m_y0 + (x * m_ang_coeff)); }
+    virtual double GetDer(double x) const override { return (m_ang_coeff); }
+    virtual double GetDer2(double x) const override { return 0; }
 
-    /// The value for x=0;
-    void Set_y0(double m_y0) { y0 = m_y0; }
-    double Get_y0() { return y0; }
+    /// Set the initial value.
+    void SetStartVal(double y0) { m_y0 = y0; }
 
-    /// The angular coefficient.
-    void Set_ang(double m_ang) { ang = m_ang; }
-    double Get_ang() { return ang; }
+    /// Get the initial value.
+    double GetStartVal() { return m_y0; }
+
+    /// Set the angular coefficient.
+    void SetAngularCoeff(double ang_coeff) { m_ang_coeff = ang_coeff; }
+
+    /// Get the angular coefficient.
+    double GetAngularCoeff() { return m_ang_coeff; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

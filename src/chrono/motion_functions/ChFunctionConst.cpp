@@ -25,7 +25,7 @@ void ChFunctionConst::ArchiveOut(ChArchiveOut& marchive) {
     // serialize parent class
     ChFunction::ArchiveOut(marchive);
     // serialize all member data:
-    marchive << CHNVP(C);
+    marchive << CHNVP(m_constant);
 }
 
 void ChFunctionConst::ArchiveIn(ChArchiveIn& marchive) {
@@ -34,7 +34,7 @@ void ChFunctionConst::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChFunction::ArchiveIn(marchive);
     // stream in all member data:
-    marchive >> CHNVP(C);
+    marchive >> CHNVP(m_constant);
 }
 
 }  // end namespace chrono

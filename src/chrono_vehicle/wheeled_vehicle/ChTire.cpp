@@ -132,7 +132,7 @@ bool ChTire::DiscTerrainCollision(
     const ChVector3d& disc_normal,       // [in] disc normal, expressed in the global frame
     double disc_radius,                  // [in] disc radius
     double width,                        // [in] tire width
-    const ChFunctionRecorder& areaDep,  // [in] lookup table to calculate depth from intersection area
+    const ChFunctionInterp& areaDep,  // [in] lookup table to calculate depth from intersection area
     ChCoordsys<>& contact,               // [out] contact coordinate system (relative to the global frame)
     double& depth,                       // [out] penetration depth (positive if contact occurred)
     float& mu                            // [out] coefficient of friction at contact
@@ -310,7 +310,7 @@ bool ChTire::DiscTerrainCollision4pt(
     return true;
 }
 
-void ChTire::ConstructAreaDepthTable(double disc_radius, ChFunctionRecorder& areaDep) {
+void ChTire::ConstructAreaDepthTable(double disc_radius, ChFunctionInterp& areaDep) {
     const size_t n_lookup = 90;
     double depMax = disc_radius;  // should be high enough to avoid extrapolation
     double depStep = depMax / double(n_lookup - 1);
@@ -328,7 +328,7 @@ bool ChTire::DiscTerrainCollisionEnvelope(
     const ChVector3d& disc_normal,       // [in] disc normal, expressed in the global frame
     double disc_radius,                  // [in] disc radius
     double width,                        // [in] tire width
-    const ChFunctionRecorder& areaDep,  // [in] lookup table to calculate depth from intersection area
+    const ChFunctionInterp& areaDep,  // [in] lookup table to calculate depth from intersection area
     ChCoordsys<>& contact,               // [out] contact coordinate system (relative to the global frame)
     double& depth,                       // [out] penetration depth (positive if contact occurred)
     float& mu                            // [out] coefficient of friction at contact
@@ -362,7 +362,7 @@ bool ChTire::DiscTerrainCollisionEnvelope(
     }
 
     // Calculate equivalent depth from A
-    depth = areaDep.Get_y(A);
+    depth = areaDep.GetVal(A);
 
     // Find the lowest point on the disc. There is no contact if the disc is (almost) horizontal.
     ChVector3d dir1 = Vcross(disc_normal, normal);

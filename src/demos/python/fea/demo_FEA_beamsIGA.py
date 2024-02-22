@@ -122,7 +122,7 @@ sys.Add(rotmotor1)
 class ChFunctionMyFun (chrono.ChFunction):
     def __init__(self):
          chrono.ChFunction.__init__(self)
-    def Get_y(self,x):
+    def GetVal(self,x):
         A1 = 0.8
         A2 = 1.2
         T1 = 0.5
@@ -139,7 +139,7 @@ class ChFunctionMyFun (chrono.ChFunction):
             return A2 * w
 
 f_ramp = ChFunctionMyFun()
-#f_ramp = chrono.ChFunctionSine(0,0.2,40)
+#f_ramp = chrono.ChFunctionSine(40,0.2)
 rotmotor1.SetMotorFunction(f_ramp)
 
 # Attach a visualization of the FEM mesh.

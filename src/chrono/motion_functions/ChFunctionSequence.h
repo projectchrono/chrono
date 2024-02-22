@@ -63,8 +63,6 @@ CH_CLASS_VERSION(ChFseqNode, 0)
 /// Sequence function:
 ///   `y = sequence_of_functions(f1(y), f2(y), f3(y))`
 /// All other function types can be inserted into this.
-/// This function is very important because very complex motion
-/// laws can be created by sequencing many basic ChFunctions.
 class ChApi ChFunctionSequence : public ChFunction {
   private:
     std::list<ChFseqNode> functions;  ///< the list of sub functions
@@ -78,18 +76,20 @@ class ChApi ChFunctionSequence : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionSequence* Clone() const override { return new ChFunctionSequence(*this); }
 
-    virtual FunctionType Get_Type() const override { return FUNCT_SEQUENCE; }
+    virtual Type GetType() const override { return ChFunction::Type::SEQUENCE; }
 
-    virtual double Get_y(double x) const override;
-    virtual double Get_y_dx(double x) const override;
-    virtual double Get_y_dxdx(double x) const override;
+    virtual double GetVal(double x) const override;
+    virtual double GetDer(double x) const override;
+    virtual double GetDer2(double x) const override;
 
     /// The sequence of functions starts at this x value.
-    void Set_start(double m_start) { start = m_start; }
-    double Get_start() const { return start; }
+    void SetStart(double m_start) { start = m_start; }
+
+    /// The sequence of functions starts at this x value.
+    double GetStart() const { return start; }
 
     /// Access the list of the sub-functions.
-    std::list<ChFseqNode>& Get_list() { return functions; }
+    std::list<ChFseqNode>& GetFunctions() { return functions; }
 
     /// Scans all the seq.of functions and setup the timings and continuity
     /// offsets, to satisfy all constraints.
@@ -103,7 +103,7 @@ class ChApi ChFunctionSequence : public ChFunction {
     ///  - If index = -1 insert at the end.
     /// Inserted functions will be deleted automatically when this object will be deleted.
     /// The fx segment has its own 'weight': use 1.0 for default, or different weights
-    /// if you want that Get_weight() will give different results depending on the "x" parameter.
+    /// if you want that GetWeight() will give different results depending on the "x" parameter.
     /// Set c0=true if you want to force C0 continuity with previous function (an offset
     /// will be implicitly added to the function, as y=f(x)+Offset). Same for C1 and C2 continuity,
     /// using c1 and c2 flags.
@@ -117,33 +117,28 @@ class ChApi ChFunctionSequence : public ChFunction {
     );
 
     /// Remove and deletes function with defined "position", and returns true.
-    ///	 - If position = 0, removes always head (beginning),
-    ///  - If position = -1 removes tail (end).
-    ///  - If position > max number of current nodes, removes tail anyway, but returns false.
-    bool KillFunct(int position);
+    ///	 - If index = 0, removes always head (beginning),
+    ///  - If index = -1 removes tail (end).
+    ///  - If index > max number of current nodes, removes tail anyway, but returns false.
+    bool RemoveFunct(int index);
 
-    /// Returns the ChFunction with given "position".
-    ///  - If position = 0, returns always head (beginning),
-    ///  - If position = -1 returns tail (end).
-    ///  - If position > max number of current nodes, returns tail fx anyway.
-    std::shared_ptr<ChFunction> GetNthFunction(int position);
+    /// Returns the ChFunction with given "index".
+    ///  - If index = 0, returns always head (beginning),
+    ///  - If index = -1 returns tail (end).
+    ///  - If index > max number of current nodes, returns tail fx anyway.
+    std::shared_ptr<ChFunction> GetFunction(int index);
 
     /// As above, but returns the function node (containing function pointer,
     /// function duration, continuity flags with previous node, etc.)
-    ChFseqNode* GetNthNode(int position);
+    ChFseqNode* GetNode(int index);
 
     /// As above, but returning duration. (return value is reference, so it
     /// can be also changed later, but remember Setup() for the
     /// ChFunctionSequence after you modified this return value by reference ***TO DO***).
     /// If no function, returns 0.
-    double GetNthDuration(int position);
+    double GetWidth(int index);
 
-    virtual double Get_weight(double x) const override;
-
-    virtual void Estimate_x_range(double& xmin, double& xmax) const override;
-
-    virtual int HandleNumber() const override;
-    virtual bool HandleAccess(int handle_id, double mx, double my, bool set_mode) override;
+    virtual double GetWeight(double x) const override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

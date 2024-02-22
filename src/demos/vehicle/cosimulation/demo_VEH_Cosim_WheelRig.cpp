@@ -27,7 +27,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimRigNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
@@ -43,6 +42,9 @@
 #ifdef CHRONO_GPU
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularGPU.h"
 #endif
+
+#include "chrono_thirdparty/filesystem/path.h"
+
 
 using std::cout;
 using std::cin;

@@ -399,7 +399,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     motfun->InsertFunct(rampdo, 1, 0, true);
     motfun->InsertFunct(rampup, 1, 0, true);
     auto motrepeat = chrono_types::make_shared<ChFunctionRepeat>(motfun);
-    motrepeat->Set_window_length(2);
+    motrepeat->SetSliceWidth(2);
     auto motfuntot = chrono_types::make_shared<ChFunctionSequence>();
     motfuntot->InsertFunct(rampup, 0.5, 0, true);
     motfuntot->InsertFunct(motrepeat, 10, 0, true);
@@ -554,7 +554,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
       public:
         virtual ChFunctionMyFun* Clone() const override { return new ChFunctionMyFun(); }
 
-        virtual double Get_y(double x) const override {
+        virtual double GetVal(double x) const override {
             double A1 = 0.8;
             double A2 = 1.2;
             double T1 = 0.5;

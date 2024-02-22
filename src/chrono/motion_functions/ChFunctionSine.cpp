@@ -20,22 +20,21 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunctionSine)
 
 ChFunctionSine::ChFunctionSine(const ChFunctionSine& other) {
-    amp = other.amp;
-    phase = other.phase;
-    freq = other.freq;
-    w = other.w;
+    m_ampl = other.m_ampl;
+    m_phase = other.m_phase;
+    m_angular_rate = other.m_angular_rate;
 }
 
-double ChFunctionSine::Get_y(double x) const {
-    return amp * (sin(phase + w * x));
+double ChFunctionSine::GetVal(double x) const {
+    return m_ampl * (sin(m_phase + m_angular_rate * x));
 }
 
-double ChFunctionSine::Get_y_dx(double x) const {
-    return amp * w * (cos(phase + w * x));
+double ChFunctionSine::GetDer(double x) const {
+    return m_ampl * m_angular_rate * (cos(m_phase + m_angular_rate * x));
 }
 
-double ChFunctionSine::Get_y_dxdx(double x) const {
-    return amp * -w * w * (sin(phase + w * x));
+double ChFunctionSine::GetDer2(double x) const {
+    return m_ampl * -m_angular_rate * m_angular_rate * (sin(m_phase + m_angular_rate * x));
 }
 
 void ChFunctionSine::ArchiveOut(ChArchiveOut& marchive) {
@@ -44,20 +43,20 @@ void ChFunctionSine::ArchiveOut(ChArchiveOut& marchive) {
     // serialize parent class
     ChFunction::ArchiveOut(marchive);
     // serialize all member data:
-    marchive << CHNVP(amp);
-    marchive << CHNVP(phase);
-    marchive << CHNVP(freq);
+    marchive << CHNVP(m_ampl);
+    marchive << CHNVP(m_phase);
+    marchive << CHNVP(m_angular_rate);
 }
 
 void ChFunctionSine::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunctionSine>();
+    /*int version =*/marchive.VersionRead<ChFunctionSine>();
     // deserialize parent class
     ChFunction::ArchiveIn(marchive);
     // stream in all member data:
-    marchive >> CHNVP(amp);
-    marchive >> CHNVP(phase);
-    marchive >> CHNVP(freq);
+    marchive >> CHNVP(m_ampl);
+    marchive >> CHNVP(m_phase);
+    marchive >> CHNVP(m_angular_rate);
 }
 
 }  // end namespace chrono

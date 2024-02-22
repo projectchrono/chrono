@@ -42,7 +42,7 @@ double ChShaftsThermalEngine::ComputeTorque() {
         error_backward = false;
 
     // get the actual torque from torque curve
-    double mT = Tw->Get_y(mw);
+    double mT = Tw->GetVal(mw);
 
     // modulate it with throttle
     double modulated_T = mT * throttle;

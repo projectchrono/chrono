@@ -654,7 +654,7 @@ void drawChFunction(ChVisualSystemIrrlicht* vis,
 
     for (int ix = 0; ix < sx; ix++) {
         double x = xmin + (xmax - xmin) * ((double)(ix)) / (double)(sx);
-        double y = fx->Get_y(x);
+        double y = fx->GetVal(x);
         int py = my + sy - (int)(((y - ymin) / (ymax - ymin)) * (double)sy);
         int px = mx + ix;
         if (ix > 0)

@@ -68,13 +68,13 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
 
     // imposed relative positions/speeds
     deltaC.pos = VNULL;
-    deltaC.pos.x() = dist_funct->Get_y(ChTime) + offset;  // distance is always on M2 'X' axis
+    deltaC.pos.x() = dist_funct->GetVal(ChTime) + offset;  // distance is always on M2 'X' axis
 
     deltaC_dt.pos = VNULL;
-    deltaC_dt.pos.x() = dist_funct->Get_y_dx(ChTime);  // distance speed
+    deltaC_dt.pos.x() = dist_funct->GetDer(ChTime);  // distance speed
 
     deltaC_dtdt.pos = VNULL;
-    deltaC_dtdt.pos.x() = dist_funct->Get_y_dxdx(ChTime);  // distance acceleration
+    deltaC_dtdt.pos.x() = dist_funct->GetDer2(ChTime);  // distance acceleration
 
     // add also the centripetal acceleration if distance vector's rotating,
     // as centripetal acc. of point sliding on a sphere surface.

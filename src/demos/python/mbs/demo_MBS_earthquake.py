@@ -147,11 +147,11 @@ link_shaker.Initialize(body_table, body_floor, chrono.CSYSNORM)
 sys.Add(link_shaker)
 
 # ..create the function for imposed x horizontal motion, etc.
-mfunY = chrono.ChFunctionSine(0,1.5,0.001)  # phase, frequency, amplitude
+mfunY = chrono.ChFunctionSine(0.001,1.5)  # amplitude, frequency
 link_shaker.SetMotion_Y(mfunY)
 
 # ..create the function for imposed y vertical motion, etc.
-mfunZ = chrono.ChFunctionSine(0,1.5,0.12)  # phase, frequency, amplitude
+mfunZ = chrono.ChFunctionSine(0.12,1.5)  # amplitude, frequency
 link_shaker.SetMotion_Z(mfunZ)
 
 # Note that you could use other types of ChFunction objects, or create

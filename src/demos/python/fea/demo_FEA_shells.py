@@ -50,8 +50,8 @@ nodePlotA = fea.ChNodeFEAxyzrot()
 nodePlotB = fea.ChNodeFEAxyzrot()
 nodesLoad = []
 
-ref_X = chrono.ChFunctionRecorder()
-ref_Y = chrono.ChFunctionRecorder()
+ref_X = chrono.ChFunctionInterp()
+ref_Y = chrono.ChFunctionInterp()
 
 load_torque = chrono.ChVector3d()
 load_force = chrono.ChVector3d()

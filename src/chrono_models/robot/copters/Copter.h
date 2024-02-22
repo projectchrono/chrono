@@ -302,7 +302,7 @@ template <int nop>
 void Copter<nop>::ControlIncremental(double inputs[nop]) {
     for (int i = 0; i < nop; i++) {
         u_p[i] = ChClamp(u_p[i] + inputs[i], -1.0, 1.0);
-        speeds[i]->Set_yconst(u_p[i] * rps_max * CH_C_2PI);
+        speeds[i]->SetConstant(u_p[i] * rps_max * CH_C_2PI);
     }
 }
 
@@ -311,7 +311,7 @@ template <int nop>
 void Copter<nop>::ControlAbsolute(double inputs[nop]) {
     for (int i = 0; i < nop; i++) {
         u_p[i] = ChClamp<double>(inputs[i], -1, 1);
-        speeds[i]->Set_yconst(u_p[i] * rps_max * CH_C_2PI);
+        speeds[i]->SetConstant(u_p[i] * rps_max * CH_C_2PI);
     }
 }
 

@@ -437,7 +437,7 @@ int main(int argc, char* argv[]) {
         // for simplified testing of the tilting control of the blade, with sudden jump:
         if (sys.GetChTime() > 2){
             if (auto myfunct = std::dynamic_pointer_cast<ChFunctionConst>(my_root->GetMotorFunction()))
-                myfunct->Set_yconst(0.4);
+                myfunct->SetConstant(0.4);
         }
         */
 

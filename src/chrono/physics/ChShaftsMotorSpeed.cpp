@@ -122,7 +122,7 @@ void ChShaftsMotorSpeed::IntLoadResidual_F(const unsigned int off,  // offset in
                                 ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                 const double c           // a scaling factor
                                 ) {
-    double imposed_speed = this->f_speed->Get_y(this->GetChTime());
+    double imposed_speed = this->f_speed->GetVal(this->GetChTime());
     R(off) +=  imposed_speed * c;
 }
 
@@ -177,7 +177,7 @@ void ChShaftsMotorSpeed::IntLoadConstraint_Ct(const unsigned int off_L,  // offs
                                          ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
                                          const double c             // a scaling factor
                                          ) {
-    double ct = - this->f_speed->Get_y(this->GetChTime());
+    double ct = - this->f_speed->GetVal(this->GetChTime());
     Qc(off_L) += c * ct;
 }
 
@@ -221,7 +221,7 @@ void ChShaftsMotorSpeed::VariablesFbReset() {
 
 void ChShaftsMotorSpeed::VariablesFbLoadForces(double factor) {
     
-    double imposed_speed = this->f_speed->Get_y(this->GetChTime());
+    double imposed_speed = this->f_speed->GetVal(this->GetChTime());
     variable.Get_fb()(0) += imposed_speed * factor;
 }
 
@@ -266,7 +266,7 @@ void ChShaftsMotorSpeed::ConstraintsBiLoad_C(double factor, double recovery_clam
 
 void ChShaftsMotorSpeed::ConstraintsBiLoad_Ct(double factor) {
 
-    double ct = - this->f_speed->Get_y(this->GetChTime());
+    double ct = - this->f_speed->GetVal(this->GetChTime());
     constraint.Set_b_i(constraint.Get_b_i() + factor * ct);
 }
 

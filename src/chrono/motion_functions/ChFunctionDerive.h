@@ -23,34 +23,39 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Derivative of a function: `y = df/dx`
+/// Derivative of a function.
 ///
 /// Uses a numerical differentiation method to compute the derivative
 /// of a generic function.
 class ChApi ChFunctionDerive : public ChFunction {
   private:
-    std::shared_ptr<ChFunction> fa;
-    int order;  ///< 1= derive one time, 2= two times, etc.
+    std::shared_ptr<ChFunction> m_operand_fun;
+    int m_der_order;  ///< derivative order
 
   public:
-    ChFunctionDerive() : order(1) {}
+    ChFunctionDerive() : m_der_order(1) {}
     ChFunctionDerive(const ChFunctionDerive& other);
     ~ChFunctionDerive() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionDerive* Clone() const override { return new ChFunctionDerive(*this); }
 
-    virtual FunctionType Get_Type() const override { return FUNCT_DERIVE; }
+    virtual Type GetType() const override { return ChFunction::Type::DERIVE; }
 
-    virtual double Get_y(double x) const override;
+    /// Get function output at \a x.
+    virtual double GetVal(double x) const override;
 
-    void Set_order(int m_order) { order = m_order; }
-    int Get_order() { return order; }
+    /// Set the derivative order.
+    void SetOrder(int m_order) { m_der_order = m_order; }
 
-    void Set_fa(std::shared_ptr<ChFunction> m_fa) { fa = m_fa; }
-    std::shared_ptr<ChFunction> Get_fa() { return fa; }
+    /// Get the derivative order.
+    int GetOrder() const { return m_der_order; } 
 
-    virtual void Estimate_x_range(double& xmin, double& xmax) const override;
+    /// Set the function to be differentiated.
+    void SetOperandFunction(std::shared_ptr<ChFunction> operand_function) { m_operand_fun = operand_function; }
+
+    /// Get the function to be differentiated.
+    std::shared_ptr<ChFunction> GetOperandFunction() { return m_operand_fun; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

@@ -268,7 +268,7 @@ void ChTrackTestRig::SetPostCollide(bool flag) {
 
 double ChTrackTestRig::GetActuatorDisp(int index) {
     double time = GetSystem()->GetChTime();
-    return m_post_linact[index]->GetMotionFunction()->Get_y(time);
+    return m_post_linact[index]->GetMotionFunction()->GetVal(time);
 }
 
 double ChTrackTestRig::GetActuatorForce(int index) {
