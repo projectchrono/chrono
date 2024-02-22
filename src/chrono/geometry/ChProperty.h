@@ -47,9 +47,12 @@ class ChApi ChProperty {
     virtual void SetSize(const size_t msize) = 0;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out) { archive_out << CHNVP(name); };
+    virtual void ArchiveOut(ChArchiveOut& marchive);
+
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) {  archive_in >> CHNVP(name); };
+    virtual void ArchiveIn(ChArchiveIn& marchive);
+
+    std::string name;  ///< name of this property
 };
 
 /// Templated property: a generic array of items of type T.
