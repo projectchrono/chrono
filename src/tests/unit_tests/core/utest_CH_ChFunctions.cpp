@@ -27,16 +27,14 @@ using namespace chrono;
 #define TOL_FUN 1e-5
 
 TEST(ChFunctionLambda, basic_usage) {
-    
     ChFunctionLambda fun;
     fun.SetFunction([](double x) { return std::sin(x); });
-
 
     ASSERT_NEAR(fun.GetVal(-CH_C_2PI), std::sin(-CH_C_2PI), TOL_FUN);
     ASSERT_NEAR(fun.GetVal(0.0), 0.0, TOL_FUN);
     ASSERT_NEAR(fun.GetVal(1.0), std::sin(1.0), TOL_FUN);
     ASSERT_NEAR(fun.GetVal(CH_C_2PI), std::sin(CH_C_2PI), TOL_FUN);
-    ASSERT_NEAR(fun.GetVal(7*CH_C_2PI),std::sin(7*CH_C_2PI), TOL_FUN);
+    ASSERT_NEAR(fun.GetVal(7 * CH_C_2PI), std::sin(7 * CH_C_2PI), TOL_FUN);
 }
 
 TEST(ChFunctionInterp, interp1_noextrap) {
@@ -91,15 +89,22 @@ TEST(ChFunctionInterp, interp1_extrap) {
     ASSERT_NEAR(fun_table.GetVal(18.3), -76.6, TOL_FUN);
 
     // check operator() overloading
-    //ASSERT_DOUBLE_EQ(fun_table.GetVal(-0.7), fun_table(-0.7));
+    // ASSERT_DOUBLE_EQ(fun_table.GetVal(-0.7), fun_table(-0.7));
 }
 
 TEST(ChFunctionInterp, wrong_insertions) {
     ChFunctionInterp fun_table_noovr;
     fun_table_noovr.AddPoint(0.0, 2.7);
-    EXPECT_THROW(fun_table_noovr.AddPoint(0.0, 0.3), std::invalid_argument);
+    bool thrown = false;
+    try {
+        fun_table_noovr.AddPoint(0.0, 0.3);
+    } catch (const std::invalid_argument& e) {
+        std::cout << "Caught exception '" << e.what() << "'" << std::endl;
+        thrown = true;
+    }
+    ASSERT_TRUE(thrown);
 
     ChFunctionInterp fun_table_ovr;
-    fun_table_ovr.AddPoint(0.0, 2.7, true);
+    fun_table_ovr.AddPoint(0.0, 2.7);
     EXPECT_NO_THROW(fun_table_ovr.AddPoint(0.0, 0.3, true));
 }
