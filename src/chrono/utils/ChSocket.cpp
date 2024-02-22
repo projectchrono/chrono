@@ -38,9 +38,8 @@ ChSocket::ChSocket(int pNumber) {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
@@ -78,9 +77,8 @@ void ChSocket::setDebug(int debugToggle) {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -99,9 +97,8 @@ void ChSocket::setReuseAddr(int reuseToggle) {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -120,9 +117,8 @@ void ChSocket::setKeepAlive(int aliveToggle) {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -149,9 +145,8 @@ void ChSocket::setLingerSeconds(int seconds) {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -177,9 +172,8 @@ void ChSocket::setLingerOnOff(bool lingerOn) {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -198,9 +192,8 @@ void ChSocket::setSendBufSize(int sendBufSize) {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -219,9 +212,8 @@ void ChSocket::setReceiveBufSize(int receiveBufSize) {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -254,9 +246,8 @@ void ChSocket::setSocketBlocking(int blockingToggle) {
             throw std::runtime_error("unix: error getting host by name");
         }
 #endif
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -282,9 +273,8 @@ int ChSocket::getDebug() {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
@@ -312,9 +302,8 @@ int ChSocket::getReuseAddr() {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
@@ -342,9 +331,8 @@ int ChSocket::getKeepAlive() {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
     return myOption;
@@ -371,9 +359,8 @@ int ChSocket::getLingerSeconds() {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
@@ -401,9 +388,8 @@ bool ChSocket::getLingerOnOff() {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
@@ -434,9 +420,8 @@ int ChSocket::getSendBufSize() {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
     return sendBuf;
@@ -462,9 +447,8 @@ int ChSocket::getReceiveBufSize() {
             throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
     return rcvBuf;
@@ -593,9 +577,8 @@ void ChSocketTCP::bindSocket() {
             throw std::runtime_error("unix: error calling bind()");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -910,9 +893,8 @@ void ChSocketTCP::connectToServer(std::string& serverNameOrAddr, hostType hType)
             throw std::runtime_error("unix: error calling connect()");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -942,9 +924,8 @@ ChSocketTCP* ChSocketTCP::acceptClient(std::string& clientHost) {
             throw std::runtime_error("unix: error calling accept()");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         return NULL;
     }
 
@@ -974,9 +955,8 @@ void ChSocketTCP::listenToClient(int totalNumPorts) {
             throw std::runtime_error("unix: error calling listen()");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -1049,9 +1029,8 @@ int ChSocketTCP::sendMessage(std::string& message) {
             throw std::runtime_error("unix: error calling send()");
 #endif
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
@@ -1093,9 +1072,8 @@ int ChSocketTCP::XPReceiveMessage(std::string& message) {
             } else
                 received++;
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
@@ -1132,9 +1110,8 @@ int ChSocketTCP::receiveMessage(std::string& message) {
 
             receivedBytes += numBytes;
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
