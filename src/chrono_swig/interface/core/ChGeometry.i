@@ -1,3 +1,11 @@
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+
+%csmethodmodifiers chrono::geometry::ChGeometry::GetType "public virtual new"
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
+
+
 %{
 
 /* Includes the header in the wrapper code */
