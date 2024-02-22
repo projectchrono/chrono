@@ -46,12 +46,8 @@ ChSystem::ChSystem()
       is_initialized(false),
       is_updated(false),
       ncoords(0),
-      ndoc(0),
-      nsysvars(0),
       ncoords_w(0),
       ndoc_w(0),
-      nsysvars_w(0),
-      ndof(0),
       ndoc_w_C(0),
       ndoc_w_D(0),
       ch_time(0),
@@ -93,13 +89,9 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
     G_acc = other.G_acc;
     ncoords = other.ncoords;
     ncoords_w = other.ncoords_w;
-    ndoc = other.ndoc;
     ndoc_w = other.ndoc_w;
     ndoc_w_C = other.ndoc_w_C;
     ndoc_w_D = other.ndoc_w_D;
-    ndof = other.ndof;
-    nsysvars = other.nsysvars;
-    nsysvars_w = other.nsysvars_w;
     ch_time = other.ch_time;
     step = other.step;
     stepcount = other.stepcount;
@@ -677,7 +669,6 @@ void ChSystem::Setup() {
 
     ncoords = 0;
     ncoords_w = 0;
-    ndoc = 0;
     ndoc_w = 0;
     ndoc_w_C = 0;
     ndoc_w_D = 0;
@@ -692,15 +683,9 @@ void ChSystem::Setup() {
 
     // Compute offsets for contact container
     contact_container->SetOffset_L(assembly.offset_L + ndoc_w);
-    ndoc_w += contact_container->GetDOC();
-    ndoc_w_C += contact_container->GetDOC_c();
-    ndoc_w_D += contact_container->GetDOC_d();
-
-    ndoc = ndoc_w + assembly.nbodies;  // number of constraints including quaternion constraints.
-    nsysvars = ncoords + ndoc;         // total number of variables (coordinates + lagrangian multipliers)
-    nsysvars_w = ncoords_w + ndoc_w;   // total number of variables (with 6 dof per body)
-
-    ndof = ncoords - ndoc;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
+    ndoc_w += contact_container->GetNumConstraints();
+    ndoc_w_C += contact_container->GetNumConstraintsBilateral();
+    ndoc_w_D += contact_container->GetNumConstraintsUnilateral();
 
     timer_setup.stop();
 
@@ -711,10 +696,10 @@ void ChSystem::Setup() {
 
     bool check_bookkeeping = false;
     if (check_bookkeeping) {
-        ChState test_x(GetNcoords_x(), this);
-        ChStateDelta test_v(GetNcoords_w(), this);
-        ChStateDelta test_a(GetNcoords_w(), this);
-        ChVectorDynamic<> test_L(GetNconstr());
+        ChState test_x(GetNumCoordinatesPos(), this);
+        ChStateDelta test_v(GetNumCoordinatesVel(), this);
+        ChStateDelta test_a(GetNumCoordinatesVel(), this);
+        ChVectorDynamic<> test_L(GetNumConstraints());
         double poison_x = -8888.888;
         double poison_v = -9999.999;
         double poison_a = -7777.777;
@@ -1161,7 +1146,7 @@ bool ChSystem::StateSolveCorrection(
 
         // Just for diagnostic, dump also unscaled loads (forces,torques),
         // since the .._f.dat vector dumped in WriteMatrixBlocks() might contain scaled loads, and also +M*v
-        ChVectorDynamic<> tempF(this->GetNcoords_v());
+        ChVectorDynamic<> tempF(this->GetNumCoordinatesVel());
         tempF.setZero();
         LoadResidual_F(tempF, 1.0);
         std::ofstream file_F(output_dir + "/" + prefix + "F_pre.dat");
@@ -1179,7 +1164,7 @@ ChVector3d ChSystem::GetBodyAppliedForce(ChBody* body) {
         return ChVector3d(0, 0, 0);
 
     if (!applied_forces_current) {
-        applied_forces.setZero(this->GetNcoords_v());
+        applied_forces.setZero(this->GetNumCoordinatesVel());
         LoadResidual_F(applied_forces, 1.0);
         applied_forces_current = true;
     }
@@ -1191,7 +1176,7 @@ ChVector3d ChSystem::GetBodyAppliedTorque(ChBody* body) {
         return ChVector3d(0, 0, 0);
 
     if (!applied_forces_current) {
-        applied_forces.setZero(this->GetNcoords_v());
+        applied_forces.setZero(this->GetNumCoordinatesVel());
         LoadResidual_F(applied_forces, 1.0);
         applied_forces_current = true;
     }
@@ -1330,7 +1315,7 @@ double ChSystem::ComputeCollisions() {
         collision_callbacks[ic]->OnCustomCollision(this);
 
     // Cache the total number of contacts
-    ncontacts = contact_container->GetNcontacts();
+    ncontacts = contact_container->GetNumContacts();
 
     timer_collision.stop();
 
@@ -1497,14 +1482,14 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
             std::shared_ptr<ChLinkBase> corr_link;
             for (const auto& link : GetLinks()) {
                 if (redundant_constraints_idx[c_sel] >= link->GetOffset_L() &&
-                    redundant_constraints_idx[c_sel] < link->GetOffset_L() + link->GetDOC()) {
+                    redundant_constraints_idx[c_sel] < link->GetOffset_L() + link->GetNumConstraints()) {
                     corr_link = link;
                     break;
                 }
             }
 
             std::cout << "      - [" << redundant_constraints_idx[c_sel] << "]: " << corr_link->GetName() << "["
-                      << (redundant_constraints_idx[c_sel] - corr_link->GetOffset_L()) << "/" << corr_link->GetDOC()
+                      << (redundant_constraints_idx[c_sel] - corr_link->GetOffset_L()) << "/" << corr_link->GetNumConstraints()
                       << "]" << std::endl;
         }
     }
@@ -1579,7 +1564,7 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     if (remove_zero_constr) {
         int i = 0;
         while (i < GetLinks().size()) {
-            if (GetLinks()[i]->GetDOC() == 0)
+            if (GetLinks()[i]->GetNumConstraints() == 0)
                 RemoveLink(GetLinks()[i]);
             else
                 ++i;
@@ -1911,7 +1896,10 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 
     int err = 0;
 
-    if ((ncoords > 0) && (ndof >= 0)) {
+    // TODO: DARIOM the original check was on (ncoords - ndoc >= 0)
+    // but should be more appropriate to have (ncoords - ndoc_w >= 0)
+    // since there are no quaternion constraints anymore
+    if ((ncoords > 0) && (ncoords - ndoc_w >= 0)) {
         for (int m_iter = 0; m_iter < nsteps; m_iter++) {
             for (auto& body : assembly.bodylist) {
                 // Set no body speed and no body accel.

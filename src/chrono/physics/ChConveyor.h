@@ -84,11 +84,11 @@ class ChApi ChConveyor : public ChPhysicsItem {
     //
 
     /// Number of coordinates: this contains an auxiliary body, so it is 14 (with quaternions for rotations)
-    virtual int GetDOF() override { return 7 + 7; }
+    virtual int GetNumCoordinatesPos() override { return 7 + 7; }
     /// Number of coordinates of the particle cluster (for two bodies).
-    virtual int GetDOF_w() override { return 6 + 6; }
+    virtual int GetNumCoordinatesVel() override { return 6 + 6; }
     /// Get the number of scalar constraints. In this case, a lock constraint is embedded.
-    virtual int GetDOC_c() override { return 6; }
+    virtual int GetNumConstraintsBilateral() override { return 6; }
 
     // Override/implement interfaces for global state vectors (see ChPhysicsItem for details)
 

@@ -37,12 +37,8 @@ ChAssembly::ChAssembly()
       nmeshes(0),
       nphysicsitems(0),
       ncoords(0),
-      ndoc(0),
-      nsysvars(0),
       ncoords_w(0),
       ndoc_w(0),
-      nsysvars_w(0),
-      ndof(0),
       ndoc_w_C(0),
       ndoc_w_D(0) {}
 
@@ -58,13 +54,9 @@ ChAssembly::ChAssembly(const ChAssembly& other) : ChPhysicsItem(other) {
     nphysicsitems = other.nphysicsitems;
     ncoords = other.ncoords;
     ncoords_w = other.ncoords_w;
-    ndoc = other.ndoc;
     ndoc_w = other.ndoc_w;
     ndoc_w_C = other.ndoc_w_C;
     ndoc_w_D = other.ndoc_w_D;
-    ndof = other.ndof;
-    nsysvars = other.nsysvars;
-    nsysvars_w = other.nsysvars_w;
 
     //// RADU
     //// TODO:  deep copy of the object lists (bodylist, shaftlist, linklist, meshlist,  otherphysicslist)
@@ -99,13 +91,9 @@ void swap(ChAssembly& first, ChAssembly& second) {
     swap(first.nphysicsitems, second.nphysicsitems);
     swap(first.ncoords, second.ncoords);
     swap(first.ncoords_w, second.ncoords_w);
-    swap(first.ndoc, second.ndoc);
     swap(first.ndoc_w, second.ndoc_w);
     swap(first.ndoc_w_C, second.ndoc_w_C);
     swap(first.ndoc_w_D, second.ndoc_w_D);
-    swap(first.ndof, second.ndof);
-    swap(first.nsysvars, second.nsysvars);
-    swap(first.nsysvars_w, second.nsysvars_w);
 
     //// RADU
     //// TODO: deal with all other member variables...
@@ -127,15 +115,11 @@ void ChAssembly::Clear() {
     nlinks = 0;
     nmeshes = 0;
     nphysicsitems = 0;
-    ndof = 0;
-    ndoc = 0;
     ndoc_w = 0;
     ndoc_w_C = 0;
     ndoc_w_D = 0;
-    nsysvars_w = 0;
     ncoords = 0;
     ncoords_w = 0;
-    nsysvars = 0;
     ncoords_w = 0;
 }
 
@@ -544,7 +528,6 @@ void ChAssembly::Setup() {
     nshafts_fixed = 0;
     ncoords = 0;
     ncoords_w = 0;
-    ndoc = 0;
     ndoc_w = 0;
     ndoc_w_C = 0;
     ndoc_w_D = 0;
@@ -569,11 +552,11 @@ void ChAssembly::Setup() {
 
             body->Setup();  // currently, no-op
 
-            ncoords += body->GetDOF();
-            ncoords_w += body->GetDOF_w();
-            ndoc_w += body->GetDOC();      // not really needed since ChBody introduces no constraints
-            ndoc_w_C += body->GetDOC_c();  // not really needed since ChBody introduces no constraints
-            ndoc_w_D += body->GetDOC_d();  // not really needed since ChBody introduces no constraints
+            ncoords += body->GetNumCoordinatesPos();
+            ncoords_w += body->GetNumCoordinatesVel();
+            ndoc_w += body->GetNumConstraints();      // not really needed since ChBody introduces no constraints
+            ndoc_w_C += body->GetNumConstraintsBilateral();  // not really needed since ChBody introduces no constraints
+            ndoc_w_D += body->GetNumConstraintsUnilateral();  // not really needed since ChBody introduces no constraints
         }
     }
 
@@ -591,11 +574,11 @@ void ChAssembly::Setup() {
 
             shaft->Setup();
 
-            ncoords += shaft->GetDOF();
-            ncoords_w += shaft->GetDOF_w();
-            ndoc_w += shaft->GetDOC();
-            ndoc_w_C += shaft->GetDOC_c();
-            ndoc_w_D += shaft->GetDOC_d();
+            ncoords += shaft->GetNumCoordinatesPos();
+            ncoords_w += shaft->GetNumCoordinatesVel();
+            ndoc_w += shaft->GetNumConstraints();
+            ndoc_w_C += shaft->GetNumConstraintsBilateral();
+            ndoc_w_D += shaft->GetNumConstraintsUnilateral();
         }
     }
 
@@ -609,11 +592,11 @@ void ChAssembly::Setup() {
 
             link->Setup();  // compute DOFs etc. and sets the offsets also in child items, if any
 
-            ncoords += link->GetDOF();
-            ncoords_w += link->GetDOF_w();
-            ndoc_w += link->GetDOC();
-            ndoc_w_C += link->GetDOC_c();
-            ndoc_w_D += link->GetDOC_d();
+            ncoords += link->GetNumCoordinatesPos();
+            ncoords_w += link->GetNumCoordinatesVel();
+            ndoc_w += link->GetNumConstraints();
+            ndoc_w_C += link->GetNumConstraintsBilateral();
+            ndoc_w_D += link->GetNumConstraintsUnilateral();
         }
     }
 
@@ -626,11 +609,11 @@ void ChAssembly::Setup() {
 
         mesh->Setup();  // compute DOFs and iteratively call Setup for child items
 
-        ncoords += mesh->GetDOF();
-        ncoords_w += mesh->GetDOF_w();
-        ndoc_w += mesh->GetDOC();
-        ndoc_w_C += mesh->GetDOC_c();
-        ndoc_w_D += mesh->GetDOC_d();
+        ncoords += mesh->GetNumCoordinatesPos();
+        ncoords_w += mesh->GetNumCoordinatesVel();
+        ndoc_w += mesh->GetNumConstraints();
+        ndoc_w_C += mesh->GetNumConstraintsBilateral();
+        ndoc_w_D += mesh->GetNumConstraintsUnilateral();
     }
 
     for (auto& item : otherphysicslist) {
@@ -643,20 +626,13 @@ void ChAssembly::Setup() {
 
             item->Setup();
 
-            ncoords += item->GetDOF();
-            ncoords_w += item->GetDOF_w();
-            ndoc_w += item->GetDOC();
-            ndoc_w_C += item->GetDOC_c();
-            ndoc_w_D += item->GetDOC_d();
+            ncoords += item->GetNumCoordinatesPos();
+            ncoords_w += item->GetNumCoordinatesVel();
+            ndoc_w += item->GetNumConstraints();
+            ndoc_w_C += item->GetNumConstraintsBilateral();
+            ndoc_w_D += item->GetNumConstraintsUnilateral();
         }
     }
-
-    ndoc = ndoc_w + nbodies;          // number of constraints including quaternion constraints.
-    nsysvars = ncoords + ndoc;        // total number of variables (coordinates + lagrangian multipliers)
-    nsysvars_w = ncoords_w + ndoc_w;  // total number of variables (with 6 dof per body)
-
-    // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
-    ndof = ncoords_w - ndoc_w;
 }
 
 // Update assembly's own properties first (ChTime and assets, if any).

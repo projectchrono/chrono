@@ -710,7 +710,7 @@ void ChLinkLock::UpdateForces(double mytime) {
 }
 
 // Count also unilateral constraints from joint limits (if any)
-int ChLinkLock::GetDOC_d() {
+int ChLinkLock::GetNumConstraintsUnilateral() {
     int mdocd = ndoc_d;
 
     if (limit_X && limit_X->IsActive()) {
@@ -937,7 +937,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
 void ChLinkLock::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     L.segment(off_L, react.size()) = react;
 
-    ////int local_off = this->GetDOC_c();
+    ////int local_off = this->GetNumConstraintsBilateral();
 
     // gather also the contribution from link limits
     // TODO not yet implemented
@@ -956,7 +956,7 @@ void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L
         }
     }
 
-    int local_offset = this->GetDOC_c();
+    int local_offset = this->GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1043,7 +1043,7 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
     if (!do_clamp)
         recovery_clamp = 1e24;
 
-    int local_offset = this->GetDOC_c();
+    int local_offset = this->GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1137,7 +1137,7 @@ void ChLinkLock::IntToDescriptor(const unsigned int off_v,
         }
     }
 
-    int local_offset = this->GetDOC_c();
+    int local_offset = this->GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1225,7 +1225,7 @@ void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
         }
     }
 
-    int local_offset = this->GetDOC_c();
+    int local_offset = this->GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {

@@ -92,11 +92,11 @@ class ChApi ChFeeder : public ChPhysicsItem {
     //
 
     /// Number of coordinates
-    virtual int GetDOF() override { return 0; }
+    virtual int GetNumCoordinatesPos() override { return 0; }
     /// Number of speed coordinates
-    virtual int GetDOF_w() override { return 0; }
+    virtual int GetNumCoordinatesVel() override { return 0; }
     /// Get the number of scalar constraints. 
-    virtual int GetDOC_c() override { return 0; }
+    virtual int GetNumConstraintsBilateral() override { return 0; }
 
     // Override/implement interfaces for global state vectors (see ChPhysicsItem for details)
 

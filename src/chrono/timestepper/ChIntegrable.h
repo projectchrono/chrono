@@ -57,23 +57,22 @@ public:
 /// Derived concrete classes can use time integrators for the ChTimestepper hierarchy.
 class ChApi ChIntegrable {
   public:
-    /// Return the number of coordinates in the state Y.
-    virtual int GetNcoords_y() = 0;
+    /// Return the number of coordinates of the state (excluding constraints).
+    /// It is the sum of coordinates at the position and velocity levels.
+    virtual int GetNumCoordinatesPosVel() = 0;
 
-    /// Return the number of coordinates in the state increment.
-    /// This is a base implementation that works in many cases where dim(Y) = dim(dy),
-    /// but it can be overridden in the case that y contains quaternions for rotations
-    /// rather than simple y+dy
-    virtual int GetNcoords_dy() = 0;
+    /// Return the number of coordinates of the state increment
+    /// It is the sum of coordinates at the velocity and acceleration levels.
+    /// Might differ from ::GetNumCoordinatesPosVel() if the object has quaternions.
+    virtual int GetNumCoordinatesVelAcc() = 0;
 
-    /// Return the number of lagrangian multipliers (constraints).
-    /// By default returns 0.
-    virtual int GetNconstr() { return 0; }
+    /// Return the number of lagrangian multipliers i.e. of scalar constraints.
+    virtual int GetNumConstraints() { return 0; }
 
     /// Set up the system state.
     virtual void StateSetup(ChState& y, ChStateDelta& dy) {
-        y.resize(GetNcoords_y());
-        dy.resize(GetNcoords_dy());
+        y.resize(GetNumCoordinatesPosVel());
+        dy.resize(GetNumCoordinatesVelAcc());
     }
 
     /// Gather system state in specified array.
@@ -243,10 +242,10 @@ class ChApi ChIntegrable {
 class ChApi ChIntegrableIIorder : public ChIntegrable {
   public:
     /// Return the number of position coordinates x in y = {x, v}
-    virtual int GetNcoords_x() = 0;
+    virtual int GetNumCoordinatesPos() = 0;
 
     /// Return the number of speed coordinates of v in y = {x, v} and  dy/dt={v, a}
-    virtual int GetNcoords_v() = 0;
+    virtual int GetNumCoordinatesVel() = 0;
 
     /// Set up the system state with separate II order components x, v, a
     /// for y = {x, v} and  dy/dt={v, a}
@@ -446,11 +445,11 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
 
     /// Return the number of coordinates in the state Y.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
-    virtual int GetNcoords_y() override { return GetNcoords_x() + GetNcoords_v(); }
+    virtual int GetNumCoordinatesPosVel() override { return GetNumCoordinatesPos() + GetNumCoordinatesVel(); }
 
     /// Return the number of coordinates in the state increment.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
-    virtual int GetNcoords_dy() override { return 2*GetNcoords_v(); }
+    virtual int GetNumCoordinatesVelAcc() override { return 2*GetNumCoordinatesVel(); }
 
     /// Gather system state in specified array.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)

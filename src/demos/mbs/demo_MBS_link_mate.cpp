@@ -699,7 +699,7 @@ void test_anchorchain() {
         sys.StateSetup(X0, V0, A0);
         sys.StateGather(X0, V0, T0);
         sys.StateGatherAcceleration(A0);
-        L0.resize(sys.GetNconstr());
+        L0.resize(sys.GetNumConstraints());
         sys.StateGatherReactions(L0);
 
         // excitation in X direction (In-plane horizontal motion is expected)

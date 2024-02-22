@@ -52,7 +52,7 @@ class ChApi ChLinkDistance : public ChLink {
     );
 
     /// Get the number of (bilateral) constraints introduced by this link.
-    virtual int GetDOC_c() override { return 1; }
+    virtual int GetNumConstraintsBilateral() override { return 1; }
 
     /// Get the link coordinate system, expressed relative to Body2 (the 'master' body). This represents the 'main'
     /// reference of the link: reaction forces are expressed in this coordinate system. (It is the coordinate system of

@@ -627,7 +627,7 @@ void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
             continue;
         auto link = joint->GetAsLink();
         const auto& C = link->GetConstraintViolation();
-        assert(C.size() == link->GetDOC_c());
+        assert(C.size() == link->GetNumConstraintsBilateral());
         std::cout << "Joint " << item.first.name << " type: " << ChVehicleJoint::GetTypeString(item.second.type)
                   << "\n";
         std::cout << "   " << C.transpose() << "\n";

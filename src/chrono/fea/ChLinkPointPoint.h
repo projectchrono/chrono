@@ -55,7 +55,7 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     virtual int GetNumCoords() override { return 3 + 3; }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 3; }
+    virtual int GetNumConstraintsBilateral() override { return 3; }
 
     /// To get reaction force, expressed in link coordinate system:
     virtual ChVector3d Get_react_force() override { return GetReactionOnNode(); }

@@ -158,7 +158,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
 
     /// Report the number of scalar unilateral constraints.
     /// Note: friction constraints aren't exactly unilaterals, but they are still counted.
-    virtual int GetDOC_d() override {
+    virtual int GetNumConstraintsUnilateral() override {
         return 3 * (n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
                     n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666) +
                6 * (n_added_6_6_rolling);

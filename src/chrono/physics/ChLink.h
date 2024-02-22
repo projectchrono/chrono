@@ -47,7 +47,7 @@ class ChApi ChLink : public ChLinkBase {
     virtual ChLink* Clone() const override { return new ChLink(*this); }
 
     /// Get the number of free degrees of freedom left by this link, between two bodies.
-    int GetLeftDOF() { return 6 - GetDOC(); }
+    int GetLeftDOF() { return 6 - GetNumConstraints(); }
 
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() override { return 12; }

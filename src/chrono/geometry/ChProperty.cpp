@@ -24,13 +24,13 @@ CH_FACTORY_REGISTER(ChPropertyColor)
 CH_FACTORY_REGISTER(ChPropertyVector)
 CH_FACTORY_REGISTER(ChPropertyQuaternion)
 
-void ChProperty::ArchiveOut(ChArchiveOut& marchive) {
-    marchive << CHNVP(name);
+void ChProperty::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out << CHNVP(name);
 }
 
 /// Method to allow de-serialization of transient data from archives.
-void ChProperty::ArchiveIn(ChArchiveIn& marchive) {
-    marchive >> CHNVP(name);
+void ChProperty::ArchiveIn(ChArchiveIn& archive_in) {
+    archive_in >> CHNVP(name);
 }
 
 

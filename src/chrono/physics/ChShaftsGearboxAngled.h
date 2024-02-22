@@ -66,7 +66,7 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     virtual int GetNumCoords() const { return 6 + 1 + 1; }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 1; }
+    virtual int GetNumConstraintsBilateral() override { return 1; }
 
     //
     // STATE FUNCTIONS

@@ -37,7 +37,7 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     virtual ChLinkRevoluteTranslational* Clone() const override { return new ChLinkRevoluteTranslational(*this); }
 
     /// Get the number of (bilateral) constraints introduced by this joint.
-    virtual int GetDOC_c() override { return 4; }
+    virtual int GetNumConstraintsBilateral() override { return 4; }
 
     /// Get the point on Body1 (revolute side), expressed in Body1 coordinate system.
     const ChVector3d& GetPoint1Rel() const { return m_p1; }

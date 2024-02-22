@@ -94,16 +94,16 @@ void ChLinkMotorRotationDriveline::Update(double mytime, bool update_assets) {
     innerconstraint2->SetShaftDirection(shaftdir_b2);
 }
 
-int ChLinkMotorRotationDriveline::GetDOF() {
-    return 2 + ChLinkMotorRotation::GetDOF();
+int ChLinkMotorRotationDriveline::GetNumCoordinatesPos() {
+    return 2 + ChLinkMotorRotation::GetNumCoordinatesPos();
 }
 
-int ChLinkMotorRotationDriveline::GetDOC() {
-    return 2 + ChLinkMotorRotation::GetDOC();
+int ChLinkMotorRotationDriveline::GetNumConstraints() {
+    return 2 + ChLinkMotorRotation::GetNumConstraints();
 }
 
-int ChLinkMotorRotationDriveline::GetDOC_c() {
-    return 2 + ChLinkMotorRotation::GetDOC_c();
+int ChLinkMotorRotationDriveline::GetNumConstraintsBilateral() {
+    return 2 + ChLinkMotorRotation::GetNumConstraintsBilateral();
 }
 
 void ChLinkMotorRotationDriveline::IntStateGather(const unsigned int off_x,

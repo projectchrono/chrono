@@ -74,8 +74,8 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Get the number of elements in the mesh.
     unsigned int GetNelements() { return (unsigned int)velements.size(); }
 
-    virtual int GetDOF() override { return n_dofs; }
-    virtual int GetDOF_w() override { return n_dofs_w; }
+    virtual int GetNumCoordinatesPos() override { return n_dofs; }
+    virtual int GetNumCoordinatesVel() override { return n_dofs_w; }
 
     /// Override default in ChPhysicsItem.
     virtual bool GetCollide() const override { return true; }

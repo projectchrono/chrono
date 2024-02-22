@@ -281,60 +281,44 @@ public:
     //
 
     /// Get the number of internal bodies 
-    int GetN_internal_bodies() const { return n_internal_bodies; }
+    int GetNumBodiesInternal() const { return n_internal_bodies; }
     /// Get the number of internal links.
-    int GetN_internal_links() const { return n_internal_links; }
+    int GetNumLinksInternal() const { return n_internal_links; }
     /// Get the number of internal meshes.
-    int GetN_internal_meshes() const { return n_internal_meshes; }
+    int GetNumMeshesInternal() const { return n_internal_meshes; }
     /// Get the number of other internal physics items (other than bodies, links, or meshes).
-    int GetN_internal_physicsItems() const { return n_internal_physicsitems; }
+    int GetNumOtherPhysicsItemsInternal() const { return n_internal_physicsitems; }
 
     /// Get the number of internal coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
-    int GetN_internal_coords() const { return n_internal_coords; }
-    /// Get the number of internal degrees of freedom of the assembly.
-    int GetN_internal_dof() const { return n_internal_dof; }
-    /// Get the number of internal scalar constraints added to the assembly, including constraints on quaternion norms because of the 4 dof of quaternions.
-    int GetN_internal_doc() const { return n_internal_doc; }
+    int GetNumCoordinatesPosInternal() const { return n_internal_coords; }
     /// Get the number of internal system variables (coordinates plus the constraint multipliers, in case of quaternions).
-    int GetN_internal_sysvars() const { return n_internal_sysvars; }
-    /// Get the number of internal coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
-    int GetN_internal_coords_w() const { return n_internal_coords_w; }
+    int GetNumCoordinatesVelInternal() const { return n_internal_coords_w; }
     /// Get the number of internal scalar constraints added to the assembly.
-    int GetN_internal_doc_w() const { return n_internal_doc_w; }
+    int GetNumConstraintsInternal() const { return n_internal_doc_w; }
     /// Get the number of internal scalar constraints added to the assembly (only bilaterals).
-    int GetN_internal_doc_w_C() const { return n_internal_doc_w_C; }
+    int GetNumConstraintsBilateralInternal() const { return n_internal_doc_w_C; }
     /// Get the number of internal scalar constraints added to the assembly (only unilaterals).
-    int GetN_internal_doc_w_D() const { return n_internal_doc_w_D; }
-    /// Get the number of internal system variables (coordinates plus the constraint multipliers).
-    int GetN_internal_sysvars_w() const { return n_internal_sysvars_w; }
+    int GetNumConstraintsUnilateralInternal() const { return n_internal_doc_w_D; }
 
     /// Get the number of boundary bodies 
-    int GetN_boundary_bodies() const { return n_boundary_bodies; }
+    int GetNumBodiesBoundary() const { return n_boundary_bodies; }
     /// Get the number of boundary links.
-    int GetN_boundary_links() const { return n_boundary_links; }
+    int GetNumLinksBoundary() const { return n_boundary_links; }
     /// Get the number of boundary meshes.
-    int GetN_boundary_meshes() const { return n_boundary_meshes; }
+    int GetNumMeshesBoundary() const { return n_boundary_meshes; }
     /// Get the number of other boundary physics items (other than bodies, links, or meshes).
     int GetN_boundary_physicsItems() const { return n_boundary_physicsitems; }
 
     /// Get the number of boundary coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
-    int GetN_boundary_coords() const { return n_boundary_coords; }
-    /// Get the number of boundary degrees of freedom of the assembly.
-    int GetN_boundary_dof() const { return n_boundary_dof; }
-    /// Get the number of boundary scalar constraints added to the assembly, including constraints on quaternion norms because of the 4 dof of quaternions.
-    int GetN_boundary_doc() const { return n_boundary_doc; }
+    int GetNumCoordinatesPosBoundary() const { return n_boundary_coords; }
     /// Get the number of boundary system variables (coordinates plus the constraint multipliers, in case of quaternions).
-    int GetN_boundary_sysvars() const { return n_boundary_sysvars; }
-    /// Get the number of boundary coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
-    int GetN_boundary_coords_w() const { return n_boundary_coords_w; }
+    int GetNumCoordinatesVelBoundary() const { return n_boundary_coords_w; }
     /// Get the number of boundary scalar constraints added to the assembly.
-    int GetN_boundary_doc_w() const { return n_boundary_doc_w; }
+    int GetNumConstraintsBoundary() const { return n_boundary_doc_w; }
     /// Get the number of boundary scalar constraints added to the assembly (only bilaterals).
-    int GetN_boundary_doc_w_C() const { return n_boundary_doc_w_C; }
+    int GetNumConstraintsBilateralBoundary() const { return n_boundary_doc_w_C; }
     /// Get the number of boundary scalar constraints added to the assembly (only unilaterals).
-    int GetN_boundary_doc_w_D() const { return n_boundary_doc_w_D; }
-    /// Get the number of boundary system variables (coordinates plus the constraint multipliers).
-    int GetN_boundary_sysvars_w() const { return n_boundary_sysvars_w; }
+    int GetNumConstraintsUnilateralBoundary() const { return n_boundary_doc_w_D; }
 
 
     //
@@ -398,15 +382,15 @@ public:
     virtual void SetNoSpeedNoAcceleration() override;
 
     /// Get the number of scalar coordinates (ex. dim of position vector)
-    virtual int GetDOF() override { return GetNcoords(); }
+    virtual int GetNumCoordinatesPos() override { return ncoords; }
     /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector)
-    virtual int GetDOF_w() override { return GetNcoords_w(); }
+    virtual int GetNumCoordinatesVel() override { return ncoords_w; }
     /// Get the number of scalar constraints, if any, in this item
-    virtual int GetDOC() override { return GetNdoc_w(); }
+    virtual int GetNumConstraints() override { return ndoc_w; }
     /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    virtual int GetDOC_c() override { return GetNdoc_w_C(); }
+    virtual int GetNumConstraintsBilateral() override { return ndoc_w_C; }
     /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    virtual int GetDOC_d() override { return GetNdoc_w_D(); }
+    virtual int GetNumConstraintsUnilateral() override { return ndoc_w_D; }
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,
@@ -562,13 +546,10 @@ public:
     int n_internal_links;         ///< number of internal links
     int n_internal_meshes;        ///< number of internal meshes
     int n_internal_physicsitems;  ///< number of internal other physics items
+    
     int n_internal_coords;        ///< number of internal scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int n_internal_doc;           ///< number of internal scalar constraints (including constr. on quaternions)
-    int n_internal_sysvars;       ///< number of internal variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
     int n_internal_coords_w;      ///< number of internal scalar coordinates when using 3 rot. dof. per body;  
     int n_internal_doc_w;         ///< number of internal scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int n_internal_sysvars_w;     ///< number of internal variables when using 3 rot. dof. per body; i.e. = n_internal_coords_w+n_internal_doc_w
-    int n_internal_dof;           ///< number of internal degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
     int n_internal_doc_w_C;       ///< number of internal scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
     int n_internal_doc_w_D;       ///< number of internal scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
     //int n_internal_bodies_sleep;  ///< number of internal bodies that are sleeping
@@ -579,13 +560,10 @@ public:
     int n_boundary_links;         ///< number of boundary links
     int n_boundary_meshes;        ///< number of boundary meshes
     int n_boundary_physicsitems;  ///< number of boundary other physics items
+
     int n_boundary_coords;        ///< number of boundary scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int n_boundary_doc;           ///< number of boundary scalar constraints (including constr. on quaternions)
-    int n_boundary_sysvars;       ///< number of boundary variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
     int n_boundary_coords_w;      ///< number of boundary scalar coordinates when using 3 rot. dof. per body;  
     int n_boundary_doc_w;         ///< number of boundary scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int n_boundary_sysvars_w;     ///< number of boundary variables when using 3 rot. dof. per body; i.e. = n_internal_coords_w+n_internal_doc_w
-    int n_boundary_dof;           ///< number of boundary degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
     int n_boundary_doc_w_C;       ///< number of boundary scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
     int n_boundary_doc_w_D;       ///< number of boundary scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 

@@ -954,13 +954,9 @@ void ChModalAssembly::Setup() {
     n_boundary_physicsitems = nphysicsitems;
     n_boundary_coords = ncoords;
     n_boundary_coords_w = ncoords_w;
-    n_boundary_doc = ndoc;
     n_boundary_doc_w = ndoc_w;
     n_boundary_doc_w_C = ndoc_w_C;
     n_boundary_doc_w_D = ndoc_w_D;
-    n_boundary_sysvars   = nsysvars;
-    n_boundary_sysvars_w = nsysvars_w;
-    n_boundary_dof       = ndof;
 
     n_internal_bodies = 0;
     n_internal_links = 0;
@@ -968,7 +964,6 @@ void ChModalAssembly::Setup() {
     n_internal_physicsitems = 0;
     n_internal_coords = 0;
     n_internal_coords_w = 0;
-    n_internal_doc = 0;
     n_internal_doc_w = 0;
     n_internal_doc_w_C = 0;
     n_internal_doc_w_D = 0;
@@ -994,9 +989,9 @@ void ChModalAssembly::Setup() {
 
             body->Setup();  // currently, no-op
 
-            n_internal_coords += body->GetDOF();
-            n_internal_coords_w += body->GetDOF_w();
-            n_internal_doc_w += body->GetDOC();      // not really needed since ChBody introduces no constraints
+            n_internal_coords += body->GetNumCoordinatesPos();
+            n_internal_coords_w += body->GetNumCoordinatesVel();
+            n_internal_doc_w += body->GetNumConstraints();      // not really needed since ChBody introduces no constraints
         }
     }
 
@@ -1010,11 +1005,11 @@ void ChModalAssembly::Setup() {
 
             link->Setup();  // compute DOFs etc. and sets the offsets also in child items, if any
 
-            n_internal_coords += link->GetDOF();
-            n_internal_coords_w += link->GetDOF_w();
-            n_internal_doc_w += link->GetDOC();
-            n_internal_doc_w_C += link->GetDOC_c();
-            n_internal_doc_w_D += link->GetDOC_d();
+            n_internal_coords += link->GetNumCoordinatesPos();
+            n_internal_coords_w += link->GetNumCoordinatesVel();
+            n_internal_doc_w += link->GetNumConstraints();
+            n_internal_doc_w_C += link->GetNumConstraintsBilateral();
+            n_internal_doc_w_D += link->GetNumConstraintsUnilateral();
         }
     }
 
@@ -1027,11 +1022,11 @@ void ChModalAssembly::Setup() {
 
         mesh->Setup();  // compute DOFs and iteratively call Setup for child items
 
-        n_internal_coords += mesh->GetDOF();
-        n_internal_coords_w += mesh->GetDOF_w();
-        n_internal_doc_w += mesh->GetDOC();
-        n_internal_doc_w_C += mesh->GetDOC_c();
-        n_internal_doc_w_D += mesh->GetDOC_d();
+        n_internal_coords += mesh->GetNumCoordinatesPos();
+        n_internal_coords_w += mesh->GetNumCoordinatesVel();
+        n_internal_doc_w += mesh->GetNumConstraints();
+        n_internal_doc_w_C += mesh->GetNumConstraintsBilateral();
+        n_internal_doc_w_D += mesh->GetNumConstraintsUnilateral();
     }
 
     for (auto& item : internal_otherphysicslist) {
@@ -1043,17 +1038,12 @@ void ChModalAssembly::Setup() {
 
         item->Setup();
 
-        n_internal_coords += item->GetDOF();
-        n_internal_coords_w += item->GetDOF_w();
-        n_internal_doc_w += item->GetDOC();
-        n_internal_doc_w_C += item->GetDOC_c();
-        n_internal_doc_w_D += item->GetDOC_d();
+        n_internal_coords += item->GetNumCoordinatesPos();
+        n_internal_coords_w += item->GetNumCoordinatesVel();
+        n_internal_doc_w += item->GetNumConstraints();
+        n_internal_doc_w_C += item->GetNumConstraintsBilateral();
+        n_internal_doc_w_D += item->GetNumConstraintsUnilateral();
     }
-
-    n_internal_doc = n_internal_doc_w + n_internal_bodies;          // number of constraints including quaternion constraints.
-    n_internal_sysvars = n_internal_coords + n_internal_doc;        // total number of variables (coordinates + lagrangian multipliers)
-    n_internal_sysvars_w = n_internal_coords_w + n_internal_doc_w;  // total number of variables (with 6 dof per body)
-    n_internal_dof = n_internal_coords_w - n_internal_doc_w;
 
     this->custom_F_full.setZero(this->n_boundary_coords_w + this->n_internal_coords_w);
 
@@ -1069,13 +1059,9 @@ void ChModalAssembly::Setup() {
     if (this->is_modal == false) {
         ncoords    = n_boundary_coords    + n_internal_coords;
         ncoords_w  = n_boundary_coords_w  + n_internal_coords_w;
-        ndoc       = n_boundary_doc       + n_internal_doc;
         ndoc_w     = n_boundary_doc_w     + n_internal_doc_w;
         ndoc_w_C   = n_boundary_doc_w_C   + n_internal_doc_w_C;
         ndoc_w_D   = n_boundary_doc_w_D   + n_internal_doc_w_D;
-        nsysvars   = n_boundary_sysvars   + n_internal_sysvars;
-        nsysvars_w = n_boundary_sysvars_w + n_internal_sysvars_w;
-        ndof       = n_boundary_dof       + n_internal_dof;
         nbodies += n_internal_bodies;
         nlinks  += n_internal_links;
         nmeshes += n_internal_meshes;
@@ -1084,13 +1070,9 @@ void ChModalAssembly::Setup() {
     else {
         ncoords    = n_boundary_coords    + n_modes_coords_w; // no need for a n_modes_coords, same as n_modes_coords_w
         ncoords_w  = n_boundary_coords_w  + n_modes_coords_w;
-        ndoc       = n_boundary_doc;
         ndoc_w     = n_boundary_doc_w;
         ndoc_w_C   = n_boundary_doc_w_C;
         ndoc_w_D   = n_boundary_doc_w_D;
-        nsysvars   = n_boundary_sysvars   + n_modes_coords_w; // no need for a n_modes_coords, same as n_modes_coords_w
-        nsysvars_w = n_boundary_sysvars_w + n_modes_coords_w;
-        ndof       = n_boundary_dof       + n_modes_coords_w;
     }
 }
 

@@ -47,7 +47,7 @@ class ChApi ChShaftsFreewheel : public ChShaftsCouple {
     virtual ChShaftsFreewheel* Clone() const override { return new ChShaftsFreewheel(*this); }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 1; }
+    virtual int GetNumConstraintsBilateral() override { return 1; }
 
     //
     // STATE FUNCTIONS

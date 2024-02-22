@@ -121,10 +121,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     // FUNCTIONS
 
     /// Number of coordinates of body: 7 because uses quaternions for rotation.
-    virtual int GetDOF() override { return 7; }
+    virtual int GetNumCoordinatesPos() override { return 7; }
 
     /// Number of coordinates of body: 6 because derivatives use angular velocity.
-    virtual int GetDOF_w() override { return 6; }
+    virtual int GetNumCoordinatesVel() override { return 6; }
 
     /// Return a reference to the encapsulated ChVariablesBody, representing states (pos, speed, or accel.) and forces.
     /// The ChVariablesBodyOwnMass is the interface to the system solver.

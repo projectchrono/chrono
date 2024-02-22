@@ -166,35 +166,16 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Get the number of other physics items (other than bodies, links, or meshes).
     int GetNumOtherPhysicsItems() const { return nphysicsitems; }
 
-    /// Get the number of coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
-    int GetNcoords() const { return ncoords; }
-    /// Get the number of degrees of freedom of the assembly.
-    int GetNdof() const { return ndof; }
-    /// Get the number of scalar constraints added to the assembly, including constraints on quaternion norms.
-    int GetNdoc() const { return ndoc; }
-    /// Get the number of system variables (coordinates plus the constraint multipliers, in case of quaternions).
-    int GetNsysvars() const { return nsysvars; }
-    /// Get the number of coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
-    int GetNcoords_w() const { return ncoords_w; }
-    /// Get the number of scalar constraints added to the assembly.
-    int GetNdoc_w() const { return ndoc_w; }
-    /// Get the number of scalar constraints added to the assembly (only bilaterals).
-    int GetNdoc_w_C() const { return ndoc_w_C; }
-    /// Get the number of scalar constraints added to the assembly (only unilaterals).
-    int GetNdoc_w_D() const { return ndoc_w_D; }
-    /// Get the number of system variables (coordinates plus the constraint multipliers).
-    int GetNsysvars_w() const { return nsysvars_w; }
-
     /// Get the number of scalar coordinates (ex. dim of position vector)
-    virtual int GetDOF() override { return GetNcoords(); }
+    virtual int GetNumCoordinatesPos() override { return ncoords; }
     /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector)
-    virtual int GetDOF_w() override { return GetNcoords_w(); }
+    virtual int GetNumCoordinatesVel() override { return ncoords_w; }
     /// Get the number of scalar constraints, if any, in this item
-    virtual int GetDOC() override { return GetNdoc_w(); }
+    virtual int GetNumConstraints() override { return ndoc_w; }
     /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    virtual int GetDOC_c() override { return GetNdoc_w_C(); }
+    virtual int GetNumConstraintsBilateral() override { return ndoc_w_C; }
     /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    virtual int GetDOC_d() override { return GetNdoc_w_D(); }
+    virtual int GetNumConstraintsUnilateral() override { return ndoc_w_D; }
 
     // PHYSICS ITEM INTERFACE
 
@@ -349,12 +330,8 @@ class ChApi ChAssembly : public ChPhysicsItem {
     int nphysicsitems;  ///< number of other physics items
 
     int ncoords;     ///< number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int ndoc;        ///< number of scalar constraints (including constr. on quaternions)
-    int nsysvars;    ///< number of variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
     int ncoords_w;   ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
     int ndoc_w;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int nsysvars_w;  ///< number of variables when using 3 rot. dof. per body; i.e. = ncoords_w+ndoc_w
-    int ndof;        ///< number of degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
     int ndoc_w_C;    ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
     int ndoc_w_D;    ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 

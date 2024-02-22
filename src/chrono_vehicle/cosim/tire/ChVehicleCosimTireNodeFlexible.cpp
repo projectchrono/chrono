@@ -233,8 +233,8 @@ void ChVehicleCosimTireNodeFlexible::OutputVisualizationData(int frame) {
 void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::CSV_writer& csv) {
     // Extract vertex states from mesh
     auto mesh = m_tire_def->GetMesh();
-    ChState x(mesh->GetDOF(), NULL);
-    ChStateDelta v(mesh->GetDOF_w(), NULL);
+    ChState x(mesh->GetNumCoordinatesPos(), NULL);
+    ChStateDelta v(mesh->GetNumCoordinatesVel(), NULL);
     unsigned int offset_x = 0;
     unsigned int offset_v = 0;
     double t;
@@ -246,7 +246,7 @@ void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::CSV_writer
     }
 
     // Write number of vertices, number of DOFs
-    csv << mesh->GetNnodes() << mesh->GetDOF() << mesh->GetDOF_w() << endl;
+    csv << mesh->GetNnodes() << mesh->GetNumCoordinatesPos() << mesh->GetNumCoordinatesVel() << endl;
 
     // Write mesh vertex positions and velocities
     for (int ix = 0; ix < x.size(); ix++)

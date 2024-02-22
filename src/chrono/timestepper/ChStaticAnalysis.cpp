@@ -33,12 +33,12 @@ void ChStaticLinearAnalysis::StaticAnalysis() {
     // Set up main vectors
     double T;
     ChStateDelta V(integrable);
-    X.resize(integrable->GetNcoords_x());
-    V.resize(integrable->GetNcoords_v());
+    X.resize(integrable->GetNumCoordinatesPos());
+    V.resize(integrable->GetNumCoordinatesVel());
     integrable->StateGather(X, V, T);  // state <- system
 
     // Set V speed to zero
-    V.setZero(integrable->GetNcoords_v(), integrable);
+    V.setZero(integrable->GetNumCoordinatesVel(), integrable);
     integrable->StateScatter(X, V, T, true);  // state -> system
 
     // Set up auxiliary vectors
@@ -46,10 +46,10 @@ void ChStaticLinearAnalysis::StaticAnalysis() {
     ChVectorDynamic<> R;
     ChVectorDynamic<> Qc;
 
-    Dx.setZero(integrable->GetNcoords_v(), integrable);
-    R.setZero(integrable->GetNcoords_v());
-    Qc.setZero(integrable->GetNconstr());
-    L.setZero(integrable->GetNconstr());
+    Dx.setZero(integrable->GetNumCoordinatesVel(), integrable);
+    R.setZero(integrable->GetNumCoordinatesVel());
+    Qc.setZero(integrable->GetNumConstraints());
+    L.setZero(integrable->GetNumConstraints());
 
     // Solve
     //     [-dF/dx     Cq' ] [ dx  ] = [ f]
@@ -107,12 +107,12 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
     // Set up main vectors
     double T;
     ChStateDelta V(integrable);
-    X.resize(integrable->GetNcoords_x());
-    V.resize(integrable->GetNcoords_v());
+    X.resize(integrable->GetNumCoordinatesPos());
+    V.resize(integrable->GetNumCoordinatesVel());
     integrable->StateGather(X, V, T);  // state <- system
 
     // Set speed to zero
-    V.setZero(integrable->GetNcoords_v(), integrable);
+    V.setZero(integrable->GetNumCoordinatesVel(), integrable);
     integrable->StateScatter(X, V, T, true);  // state -> system
 
     // Set up auxiliary vectors
@@ -120,11 +120,11 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
     ChStateDelta Dx;
     ChVectorDynamic<> R;
     ChVectorDynamic<> Qc;
-    Xnew.setZero(integrable->GetNcoords_x(), integrable);
-    Dx.setZero(integrable->GetNcoords_v(), integrable);
-    R.setZero(integrable->GetNcoords_v());
-    Qc.setZero(integrable->GetNconstr());
-    L.setZero(integrable->GetNconstr());
+    Xnew.setZero(integrable->GetNumCoordinatesPos(), integrable);
+    Dx.setZero(integrable->GetNumCoordinatesVel(), integrable);
+    R.setZero(integrable->GetNumCoordinatesVel());
+    Qc.setZero(integrable->GetNumConstraints());
+    L.setZero(integrable->GetNumConstraints());
 
     // Use Newton Raphson iteration, solving for the increments
     //      [ - dF/dx    Cq' ] [ Dx  ] = [ f ]
@@ -265,16 +265,16 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
     ChStateDelta Vp(integrable);
     ChStateDelta Vm(integrable);
     ChStateDelta A(integrable);
-    X.resize(integrable->GetNcoords_x());
-    V.resize(integrable->GetNcoords_v());
-    Vp.resize(integrable->GetNcoords_v());
-    Vm.resize(integrable->GetNcoords_v());
-    A.resize(integrable->GetNcoords_v());
+    X.resize(integrable->GetNumCoordinatesPos());
+    V.resize(integrable->GetNumCoordinatesVel());
+    Vp.resize(integrable->GetNumCoordinatesVel());
+    Vm.resize(integrable->GetNumCoordinatesVel());
+    A.resize(integrable->GetNumCoordinatesVel());
 
     integrable->StateGather(X, V, T);  // state <- system
 
     // Set speed to zero
-    V.setZero(integrable->GetNcoords_v(), integrable);
+    V.setZero(integrable->GetNumCoordinatesVel(), integrable);
     integrable->StateScatter(X, V, T, true);  // state -> system
 
     // Set up auxiliary vectors
@@ -284,13 +284,13 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
     ChVectorDynamic<> Qc;
     ChVectorDynamic<> Dl;
     ChVectorDynamic<> L_v;
-    Xnew.setZero(integrable->GetNcoords_x(), integrable);
-    Dx.setZero(integrable->GetNcoords_v(), integrable);
-    R.setZero(integrable->GetNcoords_v());
-    Qc.setZero(integrable->GetNconstr());
-    L.setZero(integrable->GetNconstr());
-    L_v.setZero(integrable->GetNconstr());
-    Dl.setZero(integrable->GetNconstr());
+    Xnew.setZero(integrable->GetNumCoordinatesPos(), integrable);
+    Dx.setZero(integrable->GetNumCoordinatesVel(), integrable);
+    R.setZero(integrable->GetNumCoordinatesVel());
+    Qc.setZero(integrable->GetNumConstraints());
+    L.setZero(integrable->GetNumConstraints());
+    L_v.setZero(integrable->GetNumConstraints());
+    Dl.setZero(integrable->GetNumConstraints());
     double dt_perturbation = 1e-5;
 
     // Use Newton Raphson iteration
@@ -317,8 +317,8 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
             //      [ - dF/dx    Cq' ] [ V  ] = [ 0  ]
             //      [ Cq         0   ] [-L_v] = [-Ct ]
 
-            R.setZero(integrable->GetNcoords_v());
-            Qc.setZero(integrable->GetNconstr());
+            R.setZero(integrable->GetNumCoordinatesVel());
+            Qc.setZero(integrable->GetNumConstraints());
             integrable->LoadConstraint_Ct(Qc, 1.0);  // Ct  (sign flipped later in StateSolveCorrection)
 
             // Solve linear system for correction
@@ -390,8 +390,8 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
         //      [ - dF/dx    Cq' ] [ Dx  ] = [ f - M*a + Cq*L]
         //      [ Cq         0   ] [-Dl  ] = [ -C            ]
 
-        R.setZero(integrable->GetNcoords_v());
-        Qc.setZero(integrable->GetNconstr());
+        R.setZero(integrable->GetNumCoordinatesVel());
+        Qc.setZero(integrable->GetNumConstraints());
         integrable->LoadResidual_F(R, 1.0);
         integrable->LoadResidual_CqL(R, L, 1.0);
         integrable->LoadResidual_Mv(R, A, -1.0);
@@ -482,8 +482,8 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
             //      [ - dF/dx    Cq' ] [ Dx  ] = [ f - M*a + Cq*L]
             //      [ Cq         0   ] [-Dl  ] = [ -C            ]
 
-            R.setZero(integrable->GetNcoords_v());
-            Qc.setZero(integrable->GetNconstr());
+            R.setZero(integrable->GetNumCoordinatesVel());
+            Qc.setZero(integrable->GetNumConstraints());
             integrable->LoadResidual_F(R, 1.0);
             integrable->LoadResidual_CqL(R, L, 1.0);
             integrable->LoadResidual_Mv(R, A, -1.0);
@@ -512,10 +512,10 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
             // X = Xnew;
         }
 
-        V.setZero(integrable->GetNcoords_v(), integrable);
-        R.setZero(integrable->GetNcoords_v());
-        Qc.setZero(integrable->GetNconstr());
-        L_v.setZero(integrable->GetNconstr());
+        V.setZero(integrable->GetNumCoordinatesVel(), integrable);
+        R.setZero(integrable->GetNumCoordinatesVel());
+        Qc.setZero(integrable->GetNumConstraints());
+        L_v.setZero(integrable->GetNumConstraints());
         integrable->LoadConstraint_Ct(Qc, 1.0);  // Ct   (sign flipped later in StateSolveCorrection)
 
         // Solve linear system for correction
@@ -610,12 +610,12 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
     // Set up main vectors
     double T;
     ChStateDelta V(integrable);
-    X.resize(integrable->GetNcoords_x());
-    V.resize(integrable->GetNcoords_v());
+    X.resize(integrable->GetNumCoordinatesPos());
+    V.resize(integrable->GetNumCoordinatesVel());
     integrable->StateGather(X, V, T);  // state <- system
 
     // Set speed to zero
-    V.setZero(integrable->GetNcoords_v(), integrable);
+    V.setZero(integrable->GetNumCoordinatesVel(), integrable);
     integrable->StateScatter(X, V, T, true);  // state -> system
 
     // Set up auxiliary vectors
@@ -624,12 +624,12 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
     ChVectorDynamic<> R;
     ChVectorDynamic<> Qc;
     ChVectorDynamic<> Dl;
-    Xnew.setZero(integrable->GetNcoords_x(), integrable);
-    Dx.setZero(integrable->GetNcoords_v(), integrable);
-    R.setZero(integrable->GetNcoords_v());
-    Qc.setZero(integrable->GetNconstr());
-    L.setZero(integrable->GetNconstr());
-    Dl.setZero(integrable->GetNconstr());
+    Xnew.setZero(integrable->GetNumCoordinatesPos(), integrable);
+    Dx.setZero(integrable->GetNumCoordinatesVel(), integrable);
+    R.setZero(integrable->GetNumCoordinatesVel());
+    Qc.setZero(integrable->GetNumConstraints());
+    L.setZero(integrable->GetNumConstraints());
+    Dl.setZero(integrable->GetNumConstraints());
 
     // Outer loop: increment the external load(s)
     // by invoking the callback.
@@ -834,12 +834,12 @@ void ChStaticNonLinearRigidMotion::StaticAnalysis() {
     // Set up main vectors
     double T;
     ChStateDelta V(integrable);
-    X.resize(integrable->GetNcoords_x());
-    V.resize(integrable->GetNcoords_v());
+    X.resize(integrable->GetNumCoordinatesPos());
+    V.resize(integrable->GetNumCoordinatesVel());
     integrable->StateGather(X, V, T);  // state <- system
 
     // Set speed to zero
-    V.setZero(integrable->GetNcoords_v(), integrable);
+    V.setZero(integrable->GetNumCoordinatesVel(), integrable);
     integrable->StateScatter(X, V, T, true);  // state -> system
 
     // Set up auxiliary vectors
@@ -848,12 +848,12 @@ void ChStaticNonLinearRigidMotion::StaticAnalysis() {
     ChVectorDynamic<> Dl;
     ChVectorDynamic<> R;
     ChVectorDynamic<> Qc;
-    Xnew.setZero(integrable->GetNcoords_x(), integrable);
-    Dx.setZero(integrable->GetNcoords_v(), integrable);
-    Dl.setZero(integrable->GetNconstr());
-    R.setZero(integrable->GetNcoords_v());
-    Qc.setZero(integrable->GetNconstr());
-    L.setZero(integrable->GetNconstr());
+    Xnew.setZero(integrable->GetNumCoordinatesPos(), integrable);
+    Dx.setZero(integrable->GetNumCoordinatesVel(), integrable);
+    Dl.setZero(integrable->GetNumConstraints());
+    R.setZero(integrable->GetNumCoordinatesVel());
+    Qc.setZero(integrable->GetNumConstraints());
+    L.setZero(integrable->GetNumConstraints());
 
     // Use Newton Raphson iteration, solving for the increments
     //      [ - dF/dx    Cq' ] [ Dx  ] = [ f + Cq*L ]

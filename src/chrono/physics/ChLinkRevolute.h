@@ -39,7 +39,7 @@ class ChApi ChLinkRevolute : public ChLink {
     virtual ChLinkRevolute* Clone() const override { return new ChLinkRevolute(*this); }
 
     /// Get the number of (bilateral) constraints introduced by this joint.
-    virtual int GetDOC_c() override { return 5; }
+    virtual int GetNumConstraintsBilateral() override { return 5; }
 
     /// Get the link coordinate system, expressed relative to Body2.
     virtual ChCoordsys<> GetLinkRelativeCoords() override { return m_frame2.GetCsys(); }

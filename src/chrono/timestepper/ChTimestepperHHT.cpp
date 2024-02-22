@@ -58,16 +58,16 @@ void ChTimestepperHHT::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // Setup auxiliary vectors
-    Da.setZero(mintegrable->GetNcoords_v(), mintegrable);
-    Dl.setZero(mintegrable->GetNconstr());
-    Xnew.setZero(mintegrable->GetNcoords_x(), mintegrable);
-    Vnew.setZero(mintegrable->GetNcoords_v(), mintegrable);
-    Anew.setZero(mintegrable->GetNcoords_v(), mintegrable);
-    R.setZero(mintegrable->GetNcoords_v());
-    Rold.setZero(mintegrable->GetNcoords_v());
-    Qc.setZero(mintegrable->GetNconstr());
-    L.setZero(mintegrable->GetNconstr());
-    Lnew.setZero(mintegrable->GetNconstr());
+    Da.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
+    Dl.setZero(mintegrable->GetNumConstraints());
+    Xnew.setZero(mintegrable->GetNumCoordinatesPos(), mintegrable);
+    Vnew.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
+    Anew.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
+    R.setZero(mintegrable->GetNumCoordinatesVel());
+    Rold.setZero(mintegrable->GetNumCoordinatesVel());
+    Qc.setZero(mintegrable->GetNumConstraints());
+    L.setZero(mintegrable->GetNumConstraints());
+    Lnew.setZero(mintegrable->GetNumConstraints());
 
     // State at current time T
     mintegrable->StateGather(X, V, T);        // state <- system
@@ -231,7 +231,7 @@ void ChTimestepperHHT::Advance(const double dt) {
         // Scatter state -> system
         mintegrable->StateScatter(X, V, T, false);
         Rold.setZero();
-        Anew.setZero(mintegrable->GetNcoords_v(), mintegrable);
+        Anew.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
     }
 
     // Scatter state -> system doing a full update

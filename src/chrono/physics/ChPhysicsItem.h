@@ -156,7 +156,7 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void Update(bool update_assets = true) { Update(ChTime, update_assets); }
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
-    /// Child classes should implement this function if GetDOF() > 0.
+    /// Child classes should implement this function if GetNumCoordinatesPos() > 0.
     /// It is used by owner ChSystem for some static analysis.
     virtual void SetNoSpeedNoAcceleration() {}
 
@@ -169,21 +169,22 @@ class ChApi ChPhysicsItem : public ChObj {
     // when just few are needed, so here is a default fallback that represent a 0 DOF, 0 DOC item, but
     // the children classes should override them.
 
-    /// Get the number of scalar coordinates (variables), if any, in this item.
-    /// Children classes must override this.
-    virtual int GetDOF() { return 0; }
-    /// Get the number of scalar coordinates of variables derivatives (usually = DOF, but might be
-    /// different than DOF, ex. DOF=4 for quaternions, but DOF_w = 3 for its Lie algebra, ex angular velocity)
-    /// Children classes might override this.
-    virtual int GetDOF_w() { return GetDOF(); }
-    /// Get the number of scalar constraints, if any, in this item
-    virtual int GetDOC() { return GetDOC_c() + GetDOC_d(); }
-    /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    /// Children classes might override this.
-    virtual int GetDOC_c() { return 0; }
-    /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    /// Children classes might override this.
-    virtual int GetDOC_d() { return 0; }
+    /// Get the number of coordinates at the position level.
+    /// Might differ from coordinates at velocity level if quaternions are used for rotations.
+    virtual int GetNumCoordinatesPos() { return 0; }
+
+    /// Get the number of coordinates at the velocity level.
+    /// Might differ from coordinates at position level if quaternions are used for rotations.
+    virtual int GetNumCoordinatesVel() { return GetNumCoordinatesPos(); }
+
+    /// Get the number of scalar constraints.
+    virtual int GetNumConstraints() { return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral(); }
+
+    /// Get the number of bilateral scalar constraints.
+    virtual int GetNumConstraintsBilateral() { return 0; }
+
+    /// Get the number of unilateral scalar constraints.
+    virtual int GetNumConstraintsUnilateral() { return 0; }
 
     /// Get offset in the state vector (position part)
     unsigned int GetOffset_x() { return offset_x; }
@@ -251,7 +252,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                    const unsigned int off_v,  ///< offset in v state vector
                                    const ChStateDelta& Dv     ///< state vector, increment
     ) {
-        for (int i = 0; i < GetDOF(); ++i) {
+        for (int i = 0; i < GetNumCoordinatesPos(); ++i) {
             x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
         }
     }
@@ -265,7 +266,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                       const unsigned int off_v,  ///< offset in v state vector
                                       ChStateDelta& Dv           ///< state vector, increment. Here gets the result
     ) {
-        for (int i = 0; i < GetDOF(); ++i) {
+        for (int i = 0; i < GetNumCoordinatesPos(); ++i) {
             Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
         }
     }

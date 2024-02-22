@@ -60,7 +60,7 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     virtual int GetNumCoords() override { return 3 + 7; }
 
     /// Number of scalar constraints.
-    virtual int GetDOC_c() override { return 3; }
+    virtual int GetNumConstraintsBilateral() override { return 3; }
 
     /// Reaction force on the body, at the attachment point, expressed in the link coordinate frame.
     virtual ChVector3d Get_react_force() override { return GetReactionOnBody(); }
@@ -213,7 +213,7 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
     virtual int GetNumCoords() override { return 3 + 7; }
 
     /// Number of scalar constraints.
-    virtual int GetDOC_c() override { return ((int)c_x+(int)c_y+(int)c_z); }
+    virtual int GetNumConstraintsBilateral() override { return ((int)c_x+(int)c_y+(int)c_z); }
 
     /// Reaction force on the body, at the attachment point, expressed in the link coordinate frame.
     virtual ChVector3d Get_react_force() override { return GetReactionOnBody(); }

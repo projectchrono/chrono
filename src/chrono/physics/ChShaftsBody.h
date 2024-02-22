@@ -53,7 +53,7 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     virtual int GetNumCoords() const { return 6 + 1; }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 1; }
+    virtual int GetNumConstraintsBilateral() override { return 1; }
 
     // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
 
@@ -168,7 +168,7 @@ class ChApi ChShaftsBodyTranslation : public ChPhysicsItem {
     virtual int GetNumCoords() const { return 6 + 1; }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 1; }
+    virtual int GetNumConstraintsBilateral() override { return 1; }
 
     // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
 

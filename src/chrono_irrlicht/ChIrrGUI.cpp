@@ -510,11 +510,11 @@ void ChIrrGUI::Render() {
     str += "\nNum. contacts:  ";
     str += m_system->GetNumContacts();
     str += "\nNum. coords:  ";
-    str += m_system->GetNcoords_w();
+    str += m_system->GetNumCoordinatesVel();
     str += "\nNum. constr:  ";
     str += m_system->GetNdoc_w();
     str += "\nNum. variables:  ";
-    str += m_system->GetNsysvars_w();
+    str += m_system->GetNumCoordinatesVel() + m_system->GetNumConstraints();
     g_textFPS->setText(str.c_str());
 
     int dmode = g_drawcontacts->getSelected();

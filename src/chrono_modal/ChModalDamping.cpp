@@ -37,7 +37,7 @@ void ChModalDampingFactorRmm::ComputeR(ChModalAssembly& assembly,
                                        const ChMatrixDynamic<>& Psi,
                                        ChMatrixDynamic<>& modal_R) const {
     int n_mod_coords = assembly.Get_n_modes_coords_w();
-    int n_bou_coords = assembly.GetN_boundary_coords_w();
+    int n_bou_coords = assembly.GetNumCoordinatesVelBoundary();
 
     ChVectorDynamic<> omegas = CH_C_2PI * assembly.Get_modes_frequencies();
     ChVectorDynamic<> zetas;
@@ -69,7 +69,7 @@ void ChModalDampingFactorRayleigh::ComputeR(ChModalAssembly& assembly,
     ChModalDampingFactorRmm::ComputeR(assembly, modal_M, modal_K, Psi, modal_R);
 
     // For the Rbb block:
-    int n_bou_coords = assembly.GetN_boundary_coords_w();
+    int n_bou_coords = assembly.GetNumCoordinatesVelBoundary();
 
     modal_R.block(0, 0, n_bou_coords, n_bou_coords) = alpha * modal_M.block(0, 0, n_bou_coords, n_bou_coords) +
                                                       beta * modal_K.block(0, 0, n_bou_coords, n_bou_coords);
@@ -83,7 +83,7 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     assert(false);  // this damping model is not ready and must be validated
 
     int n_mod_coords = assembly.Get_n_modes_coords_w();
-    int n_bou_coords = assembly.GetN_boundary_coords_w();
+    int n_bou_coords = assembly.GetNumCoordinatesVelBoundary();
     int n_bou_mod_coords = n_bou_coords + n_mod_coords;
 
     ChMatrixDynamic<std::complex<double>> modes_V_reduced(n_bou_mod_coords, n_bou_mod_coords);

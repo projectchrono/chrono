@@ -47,7 +47,7 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     virtual int GetNumCoords() const { return 3; }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 1; }
+    virtual int GetNumConstraintsBilateral() override { return 1; }
 
     //
     // STATE FUNCTIONS

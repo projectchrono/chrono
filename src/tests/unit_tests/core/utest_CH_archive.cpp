@@ -266,8 +266,8 @@ void create_test(std::function<void(ChSystemNSC&)> assembler_fun,
             system.DoStepDynamics(timestep);
         }
 
-        state_before_archive = chrono_types::make_shared<ChState>(system.GetNcoords_x(), &system);
-        auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNcoords_w(), &system);
+        state_before_archive = chrono_types::make_shared<ChState>(system.GetNumCoordinatesPos(), &system);
+        auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNumCoordinatesVel(), &system);
         double time_dummy;
         system.StateGather(*state_before_archive, *state_delta_dummy, time_dummy);
     }
@@ -294,8 +294,8 @@ void create_test(std::function<void(ChSystemNSC&)> assembler_fun,
         system.DoStepDynamics(timestep);
     }
 
-    state_after_archive = chrono_types::make_shared<ChState>(system.GetNcoords_x(), &system);
-    auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNcoords_w(), &system);
+    state_after_archive = chrono_types::make_shared<ChState>(system.GetNumCoordinatesPos(), &system);
+    auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNumCoordinatesVel(), &system);
     double time_dummy;
     system.StateGather(*state_after_archive, *state_delta_dummy, time_dummy);
 
@@ -339,8 +339,8 @@ TEST(ChArchiveJSON, Pendulum) {
             system.DoStepDynamics(timestep);
         }
 
-        state_before_archive = chrono_types::make_shared<ChState>(system.GetNcoords_x(), &system);
-        auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNcoords_w(), &system);
+        state_before_archive = chrono_types::make_shared<ChState>(system.GetNumCoordinatesPos(), &system);
+        auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNumCoordinatesVel(), &system);
         double time_dummy;
         system.StateGather(*state_before_archive, *state_delta_dummy, time_dummy);
     }
@@ -357,8 +357,8 @@ TEST(ChArchiveJSON, Pendulum) {
         system.DoStepDynamics(timestep);
     }
 
-    state_after_archive = chrono_types::make_shared<ChState>(system.GetNcoords_x(), &system);
-    auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNcoords_w(), &system);
+    state_after_archive = chrono_types::make_shared<ChState>(system.GetNumCoordinatesPos(), &system);
+    auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNumCoordinatesVel(), &system);
     double time_dummy;
     system.StateGather(*state_after_archive, *state_delta_dummy, time_dummy);
 

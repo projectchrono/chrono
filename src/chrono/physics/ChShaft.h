@@ -114,7 +114,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     unsigned int GetId() const { return id; }
 
     /// Number of coordinates of the shaft
-    virtual int GetDOF() override { return 1; }
+    virtual int GetNumCoordinatesPos() override { return 1; }
 
     /// Returns reference to the encapsulated ChVariables,
     ChVariablesShaft& Variables() { return variables; }

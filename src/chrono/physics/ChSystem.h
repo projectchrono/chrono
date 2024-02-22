@@ -368,36 +368,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Get the number of other physics items (other than bodies, links, or meshes).
     int GetNumOtherPhysicsItems() const { return assembly.GetNumOtherPhysicsItems(); }
 
-    /// Get the number of coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
-    int GetNcoords() const { return ncoords; }
-    /// Get the number of degrees of freedom of the assembly.
-    int GetNdof() const { return ndof; }
-    /// Get the number of scalar constraints added to the assembly, including constraints on quaternion norms.
-    int GetNdoc() const { return ndoc; }
-    /// Get the number of system variables (coordinates plus the constraint multipliers, in case of quaternions).
-    int GetNsysvars() const { return nsysvars; }
-    /// Get the number of coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
-    int GetNcoords_w() const { return ncoords_w; }
-    /// Get the number of scalar constraints added to the assembly.
-    int GetNdoc_w() const { return ndoc_w; }
-    /// Get the number of scalar constraints added to the assembly (only bilaterals).
-    int GetNdoc_w_C() const { return ndoc_w_C; }
-    /// Get the number of scalar constraints added to the assembly (only unilaterals).
-    int GetNdoc_w_D() const { return ndoc_w_D; }
-    /// Get the number of system variables (coordinates plus the constraint multipliers).
-    int GetNsysvars_w() const { return nsysvars_w; }
-
-    /// Get the number of scalar coordinates (ex. dim of position vector)
-    int GetDOF() const { return GetNcoords(); }
-    /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector)
-    int GetDOF_w() const { return GetNcoords_w(); }
-    /// Get the number of scalar constraints, if any, in this item
-    int GetDOC() const { return GetNdoc_w(); }
-    /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    int GetDOC_c() const { return GetNdoc_w_C(); }
-    /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    int GetDOC_d() const { return GetNdoc_w_D(); }
-
     /// Write the hierarchy of contained bodies, markers, etc. in ASCII
     /// readable form, mostly for debugging purposes. Level is the tab spacing at the left.
     void ShowHierarchy(std::ostream& m_file, int level = 0) const { assembly.ShowHierarchy(m_file, level); }
@@ -521,14 +491,22 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     // TIMESTEPPER INTERFACE
 
-    /// Tells the number of position coordinates x in y = {x, v}
-    virtual int GetNcoords_x() override { return GetNcoords(); }
+    /// Get the number of coordinates at the position level.
+    /// Might differ from coordinates at the velocity level if quaternions are used for rotations.
+    virtual int GetNumCoordinatesPos() override { return ncoords; }
 
-    /// Tells the number of speed coordinates of v in y = {x, v} and  dy/dt={v, a}
-    virtual int GetNcoords_v() override { return GetNcoords_w(); }
+    /// Get the number of coordinates at the velocity level.
+    /// Might differ from coordinates at the position level if quaternions are used for rotations.
+    virtual int GetNumCoordinatesVel() override { return GetNumCoordinatesVel(); }
 
-    /// Tells the number of lagrangian multipliers (constraints)
-    virtual int GetNconstr() override { return GetNdoc_w(); }
+    /// Tells the number of scalar constraints i.e. of lagrangian multipliers
+    virtual int GetNumConstraints() override { return ndoc_w; }
+
+    /// Get the number of bilateral scalar constraints.
+    virtual int GetNumConstraintsBilateral() { return ndoc_w_C; }
+
+    /// Get the number of unilateral scalar constraints.
+    virtual int GetNumConstraintsUnilateral() { return ndoc_w_D; }
 
     /// From system to state y={x,v}
     virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override;
@@ -864,12 +842,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     bool is_updated;      ///< if false, a new update is required (i.e. a call to Update)
 
     int ncoords;     ///< number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int ndoc;        ///< number of scalar constraints (including constr. on quaternions)
-    int nsysvars;    ///< number of variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
     int ncoords_w;   ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
     int ndoc_w;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int nsysvars_w;  ///< number of variables when using 3 rot. dof. per body; i.e. = ncoords_w+ndoc_w
-    int ndof;        ///< number of degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
     int ndoc_w_C;    ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
     int ndoc_w_D;    ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 
@@ -898,9 +872,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     int ncontacts;  ///< total number of contacts
 
-    std::shared_ptr<ChCollisionSystem> collision_system;                        ///< collision engine
-    std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;  ///< user-defined collision callbacks
-    std::unique_ptr<ChContactMaterialCompositionStrategy> composition_strategy;        /// material composition strategy
+    std::shared_ptr<ChCollisionSystem> collision_system;                         ///< collision engine
+    std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;   ///< user-defined collision callbacks
+    std::unique_ptr<ChContactMaterialCompositionStrategy> composition_strategy;  /// material composition strategy
 
     ChVisualSystem* visual_system;  ///< run-time visualization engine
 

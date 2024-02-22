@@ -70,7 +70,7 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     virtual int GetNumCoords() override { return (int)m_nodes.size() * 3 + 7; }
 
     /// Number of scalar constraints.
-    virtual int GetDOC_c() override { return 2; }
+    virtual int GetNumConstraintsBilateral() override { return 2; }
 
     /// Reaction force on the body, at the attachment point, expressed in the link coordinate frame.
     virtual ChVector3d Get_react_force() override { return GetReactionOnBody(); }

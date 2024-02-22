@@ -251,7 +251,7 @@ void ChSystemMulticore::AddShaft(std::shared_ptr<ChShaft> shaft) {
 }
 
 void ChSystemMulticore::AddLink(std::shared_ptr<ChLinkBase> link) {
-    if (link->GetDOF() == 1) {
+    if (link->GetNumCoordinatesPos() == 1) {
         if (auto mot = std::dynamic_pointer_cast<ChLinkMotorLinearSpeed>(link)) {
             linmotorlist.push_back(mot.get());
             data_manager->num_linmotors++;
@@ -466,7 +466,7 @@ void ChSystemMulticore::UpdateLinks() {
 
         link->InjectConstraints(*descriptor);
 
-        for (int j = 0; j < link->GetDOC_c(); j++)
+        for (int j = 0; j < link->GetNumConstraintsBilateral(); j++)
             data_manager->host_data.bilateral_type.push_back(BilateralType::BODY_BODY);
     }
 }
@@ -477,7 +477,7 @@ void ChSystemMulticore::UpdateLinks() {
 // bilateral constraints or if it is unsupported.
 //
 BilateralType GetBilateralType(ChPhysicsItem* item) {
-    if (item->GetDOC_c() == 0)
+    if (item->GetNumConstraintsBilateral() == 0)
         return BilateralType::UNKNOWN;
 
     if (dynamic_cast<ChShaftsCouple*>(item))
@@ -493,7 +493,7 @@ BilateralType GetBilateralType(ChPhysicsItem* item) {
         return BilateralType::SHAFT_BODY;
 
     // Debug check - do we ignore any constraints?
-    assert(item->GetDOC_c() == 0);
+    assert(item->GetNumConstraintsBilateral() == 0);
 
     return BilateralType::UNKNOWN;
 }
@@ -532,7 +532,7 @@ void ChSystemMulticore::UpdateOtherPhysics() {
 
         item->InjectConstraints(*descriptor);
 
-        for (int j = 0; j < item->GetDOC_c(); j++)
+        for (int j = 0; j < item->GetNumConstraintsBilateral(); j++)
             data_manager->host_data.bilateral_type.push_back(type);
     }
 }
@@ -591,12 +591,8 @@ void ChSystemMulticore::Setup() {
     assembly.nlinks = 0;
     assembly.nphysicsitems = 0;
     ncoords = 0;
-    ndoc = 0;
-    nsysvars = 0;
     ncoords_w = 0;
     ndoc_w = 0;
-    nsysvars_w = 0;
-    ndof = data_manager->num_dof;
     ndoc_w_C = 0;
     ndoc_w_D = 0;
     if (data_manager->cd_data)

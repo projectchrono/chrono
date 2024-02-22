@@ -59,7 +59,7 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
     virtual int GetNumCoords() override { return 3 + 4; }
 
     /// Number of scalar constraints.
-    virtual int GetDOC_c() override { return 2; }
+    virtual int GetNumConstraintsBilateral() override { return 2; }
 
     /// Get the reaction torque on the body, expressed in the link coordinate system.
     virtual ChVector3d Get_react_torque() override { return GetReactionOnBody(); }

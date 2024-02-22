@@ -92,13 +92,13 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     //@}
 
     /// Get the number of scalar constraints for this link.
-    virtual int GetDOC() override { return GetDOC_c() + GetDOC_d(); }
+    virtual int GetNumConstraints() override { return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral(); }
 
     /// Get the number of bilateral constraints for this link.
-    virtual int GetDOC_c() override { return ndoc_c; }
+    virtual int GetNumConstraintsBilateral() override { return ndoc_c; }
 
     /// Get the number of unilateral constraints for this link.
-    virtual int GetDOC_d() override;
+    virtual int GetNumConstraintsUnilateral() override;
 
     // LINK VIOLATIONS
 
