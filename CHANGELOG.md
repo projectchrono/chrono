@@ -293,7 +293,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_window_length             | rename: GetSliceLength                           |
 |                                   | Get_window_phase              | rename: GetSliceShift                            |
 |                                   | Get_window_start              | rename: GetSliceStart                            |
-|                                   | Set_window_length             | rename: GetSliceWidth                            |
+|                                   | Set_window_length             | rename: SetSliceWidth                            |
 |                                   | Set_window_phase              | rename: SetSliceShift                            |
 |                                   | Set_window_start              | rename: SetSliceStart                            |
 | ChFunction_Sequence               |                               | rename: ChFunctionSequence                       |

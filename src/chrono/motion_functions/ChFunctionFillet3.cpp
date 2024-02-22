@@ -61,7 +61,7 @@ double ChFunctionFillet3::GetDer2(double x) const {
     return ret;
 }
 
-inline void ChFunctionFillet3::SetWidth(double width) {
+void ChFunctionFillet3::SetWidth(double width) {
     if (width < 0)
         throw std::invalid_argument("Width cannot be negative");
 

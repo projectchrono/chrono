@@ -461,9 +461,7 @@ int main(int argc, char* argv[]) {
 
     if (!power_limit_reached) {
         cout << "Could not find Absorbed Power limit!\n";
-        double a, b;
-        powRec.Estimate_x_range(a, b);
-        cout << "Speed 6W above " << b << " mph\n";
+        cout << "Speed 6W above " << powRec.GetTable().rbegin()->first << " mph\n";
     } else {
         double speed_6W = powRec.GetVal(6.0);
         cout << "Speed 6W = " << speed_6W << " mph\n";

@@ -331,12 +331,12 @@ int main(int argc, char* argv[]) {
     // ChFunctionSequence and we repeat sequence by ChFunctionRepeat
 
     std::shared_ptr<ChFunctionConstAcc> motlaw_z1(new ChFunctionConstAcc);
-    motlaw_z1->Set_h(-0.7);
-    motlaw_z1->Set_end(1);
+    motlaw_z1->SetDisplacement(-0.7);
+    motlaw_z1->SetDuration(1);
     std::shared_ptr<ChFunctionConst> motlaw_z2(new ChFunctionConst);
     std::shared_ptr<ChFunctionConstAcc> motlaw_z3(new ChFunctionConstAcc);
-    motlaw_z3->Set_h(0.7);
-    motlaw_z3->Set_end(1);
+    motlaw_z3->SetDisplacement(0.7);
+    motlaw_z3->SetDuration(1);
     std::shared_ptr<ChFunctionConst> motlaw_z4(new ChFunctionConst);
     std::shared_ptr<ChFunctionSequence> motlaw_z_seq(new ChFunctionSequence);
     motlaw_z_seq->InsertFunct(motlaw_z1, 1, 1, true);
@@ -344,23 +344,23 @@ int main(int argc, char* argv[]) {
     motlaw_z_seq->InsertFunct(motlaw_z3, 1, 1, true);
     motlaw_z_seq->InsertFunct(motlaw_z4, 1, 1, true);
     auto motlaw_z = chrono_types::make_shared<ChFunctionRepeat>(motlaw_z_seq);
-    motlaw_z->Set_window_length(4);
+    motlaw_z->SetSliceWidth(4);
 
     std::shared_ptr<ChFunctionConst> motlaw_y1(new ChFunctionConst);
     std::shared_ptr<ChFunctionConstAcc> motlaw_y2(new ChFunctionConstAcc);
-    motlaw_y2->Set_h(-0.6);
-    motlaw_y2->Set_end(1);
+    motlaw_y2->SetDisplacement(-0.6);
+    motlaw_y2->SetDuration(1);
     std::shared_ptr<ChFunctionConst> motlaw_y3(new ChFunctionConst);
     std::shared_ptr<ChFunctionConstAcc> motlaw_y4(new ChFunctionConstAcc);
-    motlaw_y4->Set_h(0.6);
-    motlaw_y4->Set_end(1);
+    motlaw_y4->SetDisplacement(0.6);
+    motlaw_y4->SetDuration(1);
     std::shared_ptr<ChFunctionSequence> motlaw_y_seq(new ChFunctionSequence);
     motlaw_y_seq->InsertFunct(motlaw_y1, 1, 1, true);
     motlaw_y_seq->InsertFunct(motlaw_y2, 1, 1, true);  // true = force c0 continuity, traslating fx
     motlaw_y_seq->InsertFunct(motlaw_y3, 1, 1, true);
     motlaw_y_seq->InsertFunct(motlaw_y4, 1, 1, true);
     auto motlaw_y = chrono_types::make_shared<ChFunctionRepeat>(motlaw_y_seq);
-    motlaw_y->Set_window_length(4);
+    motlaw_y->SetSliceWidth(4);
 
     my_marker_move->SetMotion_Z(motlaw_z);
     my_marker_move->SetMotion_Y(motlaw_y);
