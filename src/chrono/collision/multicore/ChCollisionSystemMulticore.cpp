@@ -243,18 +243,18 @@ void ChCollisionSystemMulticore::PreProcess() {
     std::vector<char>& collide = *cd_data->state_data.collide_rigid;
 
     const auto& blist = m_system->GetBodies();
-    int nbodies = static_cast<int>(blist.size());
+    int m_num_bodies = static_cast<int>(blist.size());
 
-    position.resize(nbodies);
-    rotation.resize(nbodies);
-    active.resize(nbodies);
-    collide.resize(nbodies);
+    position.resize(m_num_bodies);
+    rotation.resize(m_num_bodies);
+    active.resize(m_num_bodies);
+    collide.resize(m_num_bodies);
 
-    cd_data->state_data.num_rigid_bodies = nbodies;
+    cd_data->state_data.num_rigid_bodies = m_num_bodies;
     cd_data->state_data.num_fluid_bodies = 0;
 
 #pragma omp parallel for
-    for (int i = 0; i < nbodies; i++) {
+    for (int i = 0; i < m_num_bodies; i++) {
         const auto& body = blist[i];
 
         ChVector3d& body_pos = body->GetPos();
@@ -272,10 +272,10 @@ void ChCollisionSystemMulticore::PostProcess() {
     if (use_aabb_active) {
         const auto& active = *cd_data->state_data.active_rigid;
         auto& blist = m_system->GetBodies();
-        int nbodies = static_cast<int>(blist.size());
+        int m_num_bodies = static_cast<int>(blist.size());
 
 #pragma omp parallel for
-        for (int i = 0; i < nbodies; i++) {
+        for (int i = 0; i < m_num_bodies; i++) {
             blist[i]->SetSleeping(!active[i]);
         }
     }

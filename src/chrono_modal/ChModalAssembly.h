@@ -88,7 +88,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// - in Chrono, M and K and Cq constraint jacobians (if any) are load from disk and stored in ChSparseMatrix objects
     /// - in Chrono, only boundary nodes are added to a ChModalAssembly
     /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
-    /// Note that the size of M (and K) must be at least > n_boundary_coords_w. 
+    /// Note that the size of M (and K) must be at least > m_num_coords_vel_boundary. 
     void SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, 
         const ChModalSolveUndamped& n_modes_settings,  ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
         const ChModalDamping& damping_model = ChModalDampingNone());    ///< a damping model to use for the reduced model
@@ -162,14 +162,14 @@ public:
     /// Class to be used as a callback interface for computing a custom 
     /// force F applied to the full (not reduced) coordinates; when in reduced mode, this force
     /// will be applied with an automatic transformation to the reduced coordinates. 
-    /// Assuming F has size= n_boundary_coords_w + n_internal_coords_w.
+    /// Assuming F has size= m_num_coords_vel_boundary + m_num_coords_vel_internal.
     /// A derived class must implement evaluate().
     class ChApiModal CustomForceFullCallback {
       public:
         virtual ~CustomForceFullCallback() {}
 
         /// Compute the custom force vector applied on the full coordinates, at the specified configuration.
-        virtual void evaluate(  ChVectorDynamic<>& computed_custom_F_full, //< compute F here, size= n_boundary_coords_w + n_internal_coords_w
+        virtual void evaluate(  ChVectorDynamic<>& computed_custom_F_full, //< compute F here, size= m_num_coords_vel_boundary + m_num_coords_vel_internal
                                 const ChModalAssembly& link  ///< associated modal assembly
                                 ) = 0;
     };
@@ -268,64 +268,64 @@ public:
     void RemoveAllInternalOtherPhysicsItems();
 
     /// Get the list of internal bodies.
-    const std::vector<std::shared_ptr<ChBody>>& Get_internal_bodylist() const { return internal_bodylist; }
+    const std::vector<std::shared_ptr<ChBody>>& GetBodiesInternal() const { return internal_bodylist; }
     /// Get the list of internal links.
-    const std::vector<std::shared_ptr<ChLinkBase>>& Get_internal_linklist() const { return internal_linklist; }
+    const std::vector<std::shared_ptr<ChLinkBase>>& GetLinksInternal() const { return internal_linklist; }
     /// Get the list of internal meshes.
-    const std::vector<std::shared_ptr<fea::ChMesh>>& Get_internal_meshlist() const { return internal_meshlist; }
+    const std::vector<std::shared_ptr<fea::ChMesh>>& GetMeshesInternal() const { return internal_meshlist; }
     /// Get the list of internal physics items that are not in the body or link lists.
-    const std::vector<std::shared_ptr<ChPhysicsItem>>& Get_internal_otherphysicslist() const { return internal_otherphysicslist; }
+    const std::vector<std::shared_ptr<ChPhysicsItem>>& GetOtherPhysicsItemsInternal() const { return internal_otherphysicslist; }
 
     //
     // STATISTICS
     //
 
     /// Get the number of internal bodies 
-    int GetNumBodiesInternal() const { return n_internal_bodies; }
+    int GetNumBodiesInternal() const { return m_num_bodies_internal; }
     /// Get the number of internal links.
-    int GetNumLinksInternal() const { return n_internal_links; }
+    int GetNumLinksInternal() const { return m_num_links_internal; }
     /// Get the number of internal meshes.
-    int GetNumMeshesInternal() const { return n_internal_meshes; }
+    int GetNumMeshesInternal() const { return m_num_meshes_internal; }
     /// Get the number of other internal physics items (other than bodies, links, or meshes).
-    int GetNumOtherPhysicsItemsInternal() const { return n_internal_physicsitems; }
+    int GetNumOtherPhysicsItemsInternal() const { return m_num_otherphysicsitems_internal; }
 
     /// Get the number of internal coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
-    int GetNumCoordinatesPosInternal() const { return n_internal_coords; }
+    int GetNumCoordinatesPosInternal() const { return m_num_coords_pos_internal; }
     /// Get the number of internal system variables (coordinates plus the constraint multipliers, in case of quaternions).
-    int GetNumCoordinatesVelInternal() const { return n_internal_coords_w; }
+    int GetNumCoordinatesVelInternal() const { return m_num_coords_vel_internal; }
     /// Get the number of internal scalar constraints added to the assembly.
-    int GetNumConstraintsInternal() const { return n_internal_doc_w; }
+    int GetNumConstraintsInternal() const { return m_num_constr_internal; }
     /// Get the number of internal scalar constraints added to the assembly (only bilaterals).
-    int GetNumConstraintsBilateralInternal() const { return n_internal_doc_w_C; }
+    int GetNumConstraintsBilateralInternal() const { return m_num_constr_bil_internal; }
     /// Get the number of internal scalar constraints added to the assembly (only unilaterals).
-    int GetNumConstraintsUnilateralInternal() const { return n_internal_doc_w_D; }
+    int GetNumConstraintsUnilateralInternal() const { return m_num_constr_uni_internal; }
 
     /// Get the number of boundary bodies 
-    int GetNumBodiesBoundary() const { return n_boundary_bodies; }
+    int GetNumBodiesBoundary() const { return m_num_bodies_boundary; }
     /// Get the number of boundary links.
-    int GetNumLinksBoundary() const { return n_boundary_links; }
+    int GetNumLinksBoundary() const { return m_num_links_boundary; }
     /// Get the number of boundary meshes.
-    int GetNumMeshesBoundary() const { return n_boundary_meshes; }
+    int GetNumMeshesBoundary() const { return m_num_meshes_boundary; }
     /// Get the number of other boundary physics items (other than bodies, links, or meshes).
-    int GetN_boundary_physicsItems() const { return n_boundary_physicsitems; }
+    int GetNumOtherPhysicsItemsBoundary() const { return m_num_otherphysicsitems_boundary; }
 
     /// Get the number of boundary coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
-    int GetNumCoordinatesPosBoundary() const { return n_boundary_coords; }
+    int GetNumCoordinatesPosBoundary() const { return m_num_coords_pos_boundary; }
     /// Get the number of boundary system variables (coordinates plus the constraint multipliers, in case of quaternions).
-    int GetNumCoordinatesVelBoundary() const { return n_boundary_coords_w; }
+    int GetNumCoordinatesVelBoundary() const { return m_num_coords_vel_boundary; }
     /// Get the number of boundary scalar constraints added to the assembly.
-    int GetNumConstraintsBoundary() const { return n_boundary_doc_w; }
+    int GetNumConstraintsBoundary() const { return m_num_constr_boundary; }
     /// Get the number of boundary scalar constraints added to the assembly (only bilaterals).
-    int GetNumConstraintsBilateralBoundary() const { return n_boundary_doc_w_C; }
+    int GetNumConstraintsBilateralBoundary() const { return m_num_constr_bil_boundary; }
     /// Get the number of boundary scalar constraints added to the assembly (only unilaterals).
-    int GetNumConstraintsUnilateralBoundary() const { return n_boundary_doc_w_D; }
+    int GetNumConstraintsUnilateralBoundary() const { return m_num_constr_uni_boundary; }
 
 
     //
     // OTHER FUNCTIONS
     //
 
-    /// Dump the  M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian
+    /// Dump the M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian
     /// matrix (at the current configuration) for this subassembly,
     /// Assumes the rows/columns of the matrices are ordered as the ChVariable objects used in this assembly, 
     /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
@@ -382,15 +382,15 @@ public:
     virtual void SetNoSpeedNoAcceleration() override;
 
     /// Get the number of scalar coordinates (ex. dim of position vector)
-    virtual int GetNumCoordinatesPos() override { return ncoords; }
+    virtual int GetNumCoordinatesPos() override { return m_num_coords_pos; }
     /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector)
-    virtual int GetNumCoordinatesVel() override { return ncoords_w; }
+    virtual int GetNumCoordinatesVel() override { return m_num_coords_vel; }
     /// Get the number of scalar constraints, if any, in this item
-    virtual int GetNumConstraints() override { return ndoc_w; }
+    virtual int GetNumConstraints() override { return m_num_constr; }
     /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    virtual int GetNumConstraintsBilateral() override { return ndoc_w_C; }
+    virtual int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
     /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    virtual int GetNumConstraintsUnilateral() override { return ndoc_w_D; }
+    virtual int GetNumConstraintsUnilateral() override { return m_num_constr_uni; }
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,
@@ -542,30 +542,30 @@ public:
     
     // INTERNAL bodies, meshes etc. are NOT considered in equations of motion. These are
     // used anyway when computing modal analysis for component mode sysnthesis.
-    int n_internal_bodies;        ///< number of internal bodies 
-    int n_internal_links;         ///< number of internal links
-    int n_internal_meshes;        ///< number of internal meshes
-    int n_internal_physicsitems;  ///< number of internal other physics items
+    int m_num_bodies_internal;        ///< number of internal bodies 
+    int m_num_links_internal;         ///< number of internal links
+    int m_num_meshes_internal;        ///< number of internal meshes
+    int m_num_otherphysicsitems_internal;  ///< number of internal other physics items
     
-    int n_internal_coords;        ///< number of internal scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int n_internal_coords_w;      ///< number of internal scalar coordinates when using 3 rot. dof. per body;  
-    int n_internal_doc_w;         ///< number of internal scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int n_internal_doc_w_C;       ///< number of internal scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int n_internal_doc_w_D;       ///< number of internal scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
+    int m_num_coords_pos_internal;        ///< number of internal scalar coordinates (including 4th dimension of quaternions) for all active bodies
+    int m_num_coords_vel_internal;      ///< number of internal scalar coordinates when using 3 rot. dof. per body;  
+    int m_num_constr_internal;         ///< number of internal scalar constraints  when using 3 rot. dof. per body;  for all active bodies
+    int m_num_constr_bil_internal;       ///< number of internal scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    int m_num_constr_uni_internal;       ///< number of internal scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
     //int n_internal_bodies_sleep;  ///< number of internal bodies that are sleeping
     //int n_internal_bodies_fixed;  ///< number of internal bodies that are fixed
     
     // BOUNDARY bodies, meshes etc.: those of the parent class ChAssembly.
-    int n_boundary_bodies;        ///< number of boundary bodies 
-    int n_boundary_links;         ///< number of boundary links
-    int n_boundary_meshes;        ///< number of boundary meshes
-    int n_boundary_physicsitems;  ///< number of boundary other physics items
+    int m_num_bodies_boundary;        ///< number of boundary bodies 
+    int m_num_links_boundary;         ///< number of boundary links
+    int m_num_meshes_boundary;        ///< number of boundary meshes
+    int m_num_otherphysicsitems_boundary;  ///< number of boundary other physics items
 
-    int n_boundary_coords;        ///< number of boundary scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int n_boundary_coords_w;      ///< number of boundary scalar coordinates when using 3 rot. dof. per body;  
-    int n_boundary_doc_w;         ///< number of boundary scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int n_boundary_doc_w_C;       ///< number of boundary scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int n_boundary_doc_w_D;       ///< number of boundary scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
+    int m_num_coords_pos_boundary;        ///< number of boundary scalar coordinates (including 4th dimension of quaternions) for all active bodies
+    int m_num_coords_vel_boundary;      ///< number of boundary scalar coordinates when using 3 rot. dof. per body;  
+    int m_num_constr_boundary;         ///< number of boundary scalar constraints  when using 3 rot. dof. per body;  for all active bodies
+    int m_num_constr_bil_boundary;       ///< number of boundary scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    int m_num_constr_uni_boundary;       ///< number of boundary scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 
     // MODES: represent the motion of the assembly (internal, boundary nodes) 
     int n_modes_coords_w; // number of modes to be used

@@ -43,7 +43,10 @@ void example1(const std::string& out_dir) {
         MyIntegrable() {}
 
         /// the number of coordinates in the state:
-        virtual int GetNumCoordinatesPosVel() override { return 1; }
+        virtual int GetNumCoordinatesPos() override { return 0; }
+        virtual int GetNumCoordinatesVel() override { return 1; }
+        virtual int GetNumCoordinatesAcc() override { return 0; }
+
 
         /// compute  dy/dt=f(y,t)
         virtual bool StateSolve(ChStateDelta& dydt,        ///< result: computed dy/dt
@@ -126,7 +129,9 @@ void example2(const std::string& out_dir) {
         }
 
         /// the number of coordinates in the state:
-        virtual int GetNumCoordinatesPosVel() override { return 2; }
+        virtual int GetNumCoordinatesPos() override { return 1; }
+        virtual int GetNumCoordinatesVel() override { return 1; }
+        virtual int GetNumCoordinatesAcc() override { return 1; }
 
         /// system -> state
         virtual void StateGather(ChState& y, double& mT) override {
@@ -242,6 +247,8 @@ void example3(const std::string& out_dir) {
 
         /// the number of coordinates in the state, x position part:
         virtual int GetNumCoordinatesPos() override { return 1; }
+        virtual int GetNumCoordinatesVel() override { return 1; }
+        virtual int GetNumCoordinatesAcc() override { return 1; }
 
         /// system -> state
         virtual void StateGather(ChState& x, ChStateDelta& v, double& mT) override {
@@ -354,6 +361,8 @@ void example4(const std::string& out_dir) {
 
         /// the number of coordinates in the state, x position part:
         virtual int GetNumCoordinatesPos() override { return 1; }
+        virtual int GetNumCoordinatesVel() override { return 1; }
+        virtual int GetNumCoordinatesAcc() override { return 1; }
 
         /// system -> state
         virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override {
@@ -568,6 +577,8 @@ void example5(const std::string& out_dir) {
 
         /// the number of coordinates in the state, x position part:
         virtual int GetNumCoordinatesPos() override { return 2; }
+        virtual int GetNumCoordinatesVel() override { return 2; }
+        virtual int GetNumCoordinatesAcc() override { return 2; }
 
         /// Tells the number of lagrangian multipliers (constraints)
         virtual int GetNumConstraints() override { return 1; }

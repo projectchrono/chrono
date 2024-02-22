@@ -493,20 +493,20 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Get the number of coordinates at the position level.
     /// Might differ from coordinates at the velocity level if quaternions are used for rotations.
-    virtual int GetNumCoordinatesPos() override { return ncoords; }
+    virtual int GetNumCoordinatesPos() override { return m_num_coords_pos; }
 
     /// Get the number of coordinates at the velocity level.
     /// Might differ from coordinates at the position level if quaternions are used for rotations.
-    virtual int GetNumCoordinatesVel() override { return GetNumCoordinatesVel(); }
+    virtual int GetNumCoordinatesVel() override { return m_num_coords_vel; }
 
     /// Tells the number of scalar constraints i.e. of lagrangian multipliers
-    virtual int GetNumConstraints() override { return ndoc_w; }
+    virtual int GetNumConstraints() override { return m_num_constr; }
 
     /// Get the number of bilateral scalar constraints.
-    virtual int GetNumConstraintsBilateral() { return ndoc_w_C; }
+    virtual int GetNumConstraintsBilateral() { return m_num_constr_bil; }
 
     /// Get the number of unilateral scalar constraints.
-    virtual int GetNumConstraintsUnilateral() { return ndoc_w_D; }
+    virtual int GetNumConstraintsUnilateral() { return m_num_constr_uni; }
 
     /// From system to state y={x,v}
     virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override;
@@ -841,11 +841,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     bool is_initialized;  ///< if false, an initial setup is required (i.e. a call to Initialize)
     bool is_updated;      ///< if false, a new update is required (i.e. a call to Update)
 
-    int ncoords;     ///< number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int ncoords_w;   ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
-    int ndoc_w;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int ndoc_w_C;    ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int ndoc_w_D;    ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
+    int m_num_coords_pos;     ///< number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
+    int m_num_coords_vel;   ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
+    int m_num_constr;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
+    int m_num_constr_bil;    ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    int m_num_constr_uni;    ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 
     double ch_time;  ///< simulation time of the system
     double step;     ///< time step

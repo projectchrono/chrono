@@ -50,16 +50,16 @@ void create_items(ChSystem& sys) {
     double dens = 1000;
 
     if (do_stack) {
-        int nbodies = 15;
+        int m_num_bodies = 15;
 
         double totmass = 0;
         double level = 0;
         double sphrad_base = 0.2;
         double oddfactor = 100;
 
-        for (int bi = 0; bi < nbodies; bi++) {
+        for (int bi = 0; bi < m_num_bodies; bi++) {
             double sphrad = sphrad_base;
-            if (do_oddmass && bi == (nbodies - 1))
+            if (do_oddmass && bi == (m_num_bodies - 1))
                 sphrad = sphrad * pow(oddfactor, 1. / 3.);
 
             std::shared_ptr<ChBody> rigidBody;

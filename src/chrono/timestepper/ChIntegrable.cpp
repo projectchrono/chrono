@@ -174,7 +174,7 @@ void ChIntegrableIIorder::StateIncrement(ChState& y_new,         // resulting y_
         return;
     }
 
-    if (y.size() == GetNumCoordinatesPosVel()) {
+    if (y.size() == (GetNumCoordinatesPos() + GetNumCoordinatesVel())) {
         // Incrementing y in y={x, dx/dt}.
         // PERFORMANCE WARNING! temporary vectors allocated on heap.
         // This is only to support compatibility with 1st order integrators.

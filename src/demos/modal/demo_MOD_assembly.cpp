@@ -244,7 +244,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
             MyCallback(){};
             virtual void evaluate(
                 ChVectorDynamic<>&
-                    computed_custom_F_full,  //< compute F here, size= n_boundary_coords_w + n_internal_coords_w
+                    computed_custom_F_full,  //< compute F here, size= m_num_coords_vel_boundary + m_num_coords_vel_internal
                 const ChModalAssembly& link  ///< associated modal assembly
             ) {
                 // remember! assume F vector is already properly sized, but not zeroed!

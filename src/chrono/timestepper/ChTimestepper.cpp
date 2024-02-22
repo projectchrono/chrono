@@ -246,8 +246,8 @@ void ChTimestepperRungeKuttaExpl::Advance(const double dt) {
     GetIntegrable()->StateSetup(Y, dYdt);
 
     // setup auxiliary vectors
-    int n_y = GetIntegrable()->GetNumCoordinatesPosVel();
-    int n_dy = GetIntegrable()->GetNumCoordinatesVelAcc();
+    int n_y = (GetIntegrable()->GetNumCoordinatesPos() + GetIntegrable()->GetNumCoordinatesVel());
+    int n_dy = (GetIntegrable()->GetNumCoordinatesVel() + GetIntegrable()->GetNumCoordinatesAcc());
     int n_c = GetIntegrable()->GetNumConstraints();
     y_new.setZero(n_y, GetIntegrable());
     Dydt1.setZero(n_dy, GetIntegrable());
@@ -311,8 +311,8 @@ void ChTimestepperHeun::Advance(const double dt) {
     GetIntegrable()->StateSetup(Y, dYdt);
 
     // setup auxiliary vectors
-    int n_y = GetIntegrable()->GetNumCoordinatesPosVel();
-    int n_dy = GetIntegrable()->GetNumCoordinatesVelAcc();
+    int n_y = (GetIntegrable()->GetNumCoordinatesPos() + GetIntegrable()->GetNumCoordinatesVel());
+    int n_dy = (GetIntegrable()->GetNumCoordinatesVel() + GetIntegrable()->GetNumCoordinatesAcc());
     int n_c = GetIntegrable()->GetNumConstraints();
     y_new.setZero(n_y, GetIntegrable());
     Dydt1.setZero(n_dy, GetIntegrable());

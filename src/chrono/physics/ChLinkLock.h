@@ -95,7 +95,7 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     virtual int GetNumConstraints() override { return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral(); }
 
     /// Get the number of bilateral constraints for this link.
-    virtual int GetNumConstraintsBilateral() override { return ndoc_c; }
+    virtual int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
 
     /// Get the number of unilateral constraints for this link.
     virtual int GetNumConstraintsUnilateral() override;
@@ -117,14 +117,14 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     // Note that these functions do not compute/update such matrices; this happens
     // in the Update functions.
 
-    /// The jacobian (body n.1 part, i.e. columns= 7 ,  rows= ndoc)
+    /// The jacobian (body n.1 part, i.e. columns= 7 ,  rows= m_num_constr)
     const ChConstraintMatrixX7& GetCq1() const { return Cq1; }
-    /// The jacobian (body n.2 part, i.e. columns= 7 ,  rows= ndoc)
+    /// The jacobian (body n.2 part, i.e. columns= 7 ,  rows= m_num_constr)
     const ChConstraintMatrixX7& GetCq2() const { return Cq2; }
 
-    /// The jacobian for Wl (col 6, rows= ndoc), as [Cqw1_rot]=[Cq_rot]*[Gl_1]'
+    /// The jacobian for Wl (col 6, rows= m_num_constr), as [Cqw1_rot]=[Cq_rot]*[Gl_1]'
     const ChConstraintMatrixX6& GetCqw1() const { return Cqw1; }
-    /// The jacobian for Wl (col 6, rows= ndoc)	as [Cqw2_rot]=[Cq_rot]*[Gl_2]'
+    /// The jacobian for Wl (col 6, rows= m_num_constr)	as [Cqw2_rot]=[Cq_rot]*[Gl_2]'
     const ChConstraintMatrixX6& GetCqw2() const { return Cqw2; }
 
     /// The gamma vector used in dynamics,  [Cq]x''=Qc
@@ -193,9 +193,9 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     ChLinkMaskLF mask;  ///< scalar constraints
 
     // Degrees of constraint (excluding constraints from joint limits)
-    int ndoc;    ///< number of degrees of constraint
-    int ndoc_c;  ///< number of degrees of constraint (bilateral constraintss)
-    int ndoc_d;  ///< number of degrees of constraint (unilateral constraints, excluding joint limits)
+    int m_num_constr;    ///< number of degrees of constraint
+    int m_num_constr_bil;  ///< number of degrees of constraint (bilateral constraintss)
+    int m_num_constr_uni;  ///< number of degrees of constraint (unilateral constraints, excluding joint limits)
 
     std::unique_ptr<ChLinkForce> force_D;   ///< the force acting on the straight line m1-m2 (distance)
     std::unique_ptr<ChLinkForce> force_R;   ///< the torque acting about rotation axis
@@ -220,11 +220,11 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     ChConstraintVectorX C_dt;    ///< Speed constraint violations
     ChConstraintVectorX C_dtdt;  ///< Acceleration constraint violations
 
-    ChConstraintMatrixX7 Cq1;  ///< [Cq1], the jacobian of the constraint, for coords1, [ndoc,7]
-    ChConstraintMatrixX7 Cq2;  ///< [Cq2], the jacobian of the constraint, for coords2. [ndoc,7]
+    ChConstraintMatrixX7 Cq1;  ///< [Cq1], the jacobian of the constraint, for coords1, [m_num_constr,7]
+    ChConstraintMatrixX7 Cq2;  ///< [Cq2], the jacobian of the constraint, for coords2. [m_num_constr,7]
 
-    ChConstraintMatrixX6 Cqw1;  ///< [Cqw1], the jacobian [ndoc,6] for 3 Wl rot.coordinates instead of quaternions
-    ChConstraintMatrixX6 Cqw2;  ///< [Cqw2], the jacobian [ndoc,6] for 3 Wl rot.coordinates instead of quaternions
+    ChConstraintMatrixX6 Cqw1;  ///< [Cqw1], the jacobian [m_num_constr,6] for 3 Wl rot.coordinates instead of quaternions
+    ChConstraintMatrixX6 Cqw2;  ///< [Cqw2], the jacobian [m_num_constr,6] for 3 Wl rot.coordinates instead of quaternions
 
     ChConstraintVectorX Qc;     ///< {Qc}, the known part, {Qc}=-{C_dtdt}-([Cq]{q_dt})q-2[Cq_dt]{q_dt}
     ChConstraintVectorX Ct;     ///< partial derivative of the link kin. equation wrt to time
@@ -241,7 +241,7 @@ class ChApi ChLinkLock : public ChLinkMarkers {
 
   protected:
     /// Resize matrices and initializes all mask-dependent quantities.
-    /// Sets number of DOF and number DOC based on current mask information.
+    /// Sets number of constraints based on current mask information.
     void BuildLink();
 
     /// Set the mask and then resize matrices.

@@ -740,20 +740,20 @@ void ChVisualSystemIrrlicht::CreateIrrNodes(const ChAssembly* assembly, std::uno
 #ifdef CHRONO_MODAL
     // Modal assemblies contain custom internal items that might be useful to visualize
     if (auto assy_modal = dynamic_cast<const chrono::modal::ChModalAssembly*>(assembly)) {
-        for (auto body : assy_modal->Get_internal_bodylist()) {
+        for (auto body : assy_modal->GetBodiesInternal()) {
             CreateIrrNode(body);
         }
-        for (auto& mesh : assy_modal->Get_internal_meshlist()) {
+        for (auto& mesh : assy_modal->GetMeshesInternal()) {
             CreateIrrNode(mesh);
         }
-        for (auto ph : assy_modal->Get_internal_otherphysicslist()) {
+        for (auto ph : assy_modal->GetOtherPhysicsItemsInternal()) {
             CreateIrrNode(ph);
             // If the assembly holds another assemblies, also bind their contents.
             if (auto a = std::dynamic_pointer_cast<ChAssembly>(ph)) {
                 CreateIrrNodes(a.get(), trace);
             }
         }
-        for (auto link : assy_modal->Get_internal_linklist()) {
+        for (auto link : assy_modal->GetLinksInternal()) {
             CreateIrrNode(link);
         }
     }

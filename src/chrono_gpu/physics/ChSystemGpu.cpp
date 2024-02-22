@@ -1771,15 +1771,15 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
 
 void ChSystemGpuMesh::CollectMeshContactForces(std::vector<ChVector3d>& forces, std::vector<ChVector3d>& torques) {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
-    unsigned int nmeshes = sys_trimesh->meshSoup->numTriangleFamilies;
+    unsigned int m_num_meshes = sys_trimesh->meshSoup->numTriangleFamilies;
     double force_factor = sys_trimesh->FORCE_SU2UU;
     double torque_factor = sys_trimesh->TORQUE_SU2UU;
 
-    forces.resize(nmeshes);
-    torques.resize(nmeshes);
+    forces.resize(m_num_meshes);
+    torques.resize(m_num_meshes);
 
     // Pull directly from unified memory
-    for (unsigned int i = 0; i < nmeshes; i++) {
+    for (unsigned int i = 0; i < m_num_meshes; i++) {
         double fx = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 0];
         double fy = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 1];
         double fz = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 2];

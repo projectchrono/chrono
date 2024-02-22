@@ -101,9 +101,9 @@ void ChLinkMateGeneric::SetupLinkMask() {
 }
 
 void ChLinkMateGeneric::ChangedLinkMask() {
-    ndoc = mask.GetMaskDoc();
-    ndoc_c = mask.GetMaskDoc_c();
-    ndoc_d = mask.GetMaskDoc_d();
+    m_num_constr = mask.GetMaskDoc();
+    m_num_constr_bil = mask.GetMaskDoc_c();
+    m_num_constr_uni = mask.GetMaskDoc_d();
 }
 
 void ChLinkMateGeneric::SetDisabled(bool mdis) {

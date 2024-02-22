@@ -24,7 +24,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkLock)
 
-ChLinkLock::ChLinkLock() : type(LinkType::FREE), ndoc(0), ndoc_c(0), ndoc_d(0), d_restlength(0) {
+ChLinkLock::ChLinkLock() : type(LinkType::FREE), m_num_constr(0), m_num_constr_bil(0), m_num_constr_uni(0), d_restlength(0) {
     // Need to zero out the bottom-right 4x3 block
     Cq1_temp.setZero();
     Cq2_temp.setZero();
@@ -242,27 +242,27 @@ void ChLinkLock::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
     mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
 
     // We must call BuildLink here again, because only now are the constraints properly activated
-    // (and hence the correct NDOC available).
+    // (and hence the correct number of constraints is available).
     BuildLink();
 }
 
 void ChLinkLock::BuildLink() {
-    // set ndoc by counting non-dofs
-    ndoc = mask.GetMaskDoc();
-    ndoc_c = mask.GetMaskDoc_c();
-    ndoc_d = mask.GetMaskDoc_d();
+    // set m_num_constr by counting non-dofs
+    m_num_constr = mask.GetMaskDoc();
+    m_num_constr_bil = mask.GetMaskDoc_c();
+    m_num_constr_uni = mask.GetMaskDoc_d();
 
     // create matrices
-    C.resize(ndoc);
-    C_dt.resize(ndoc);
-    C_dtdt.resize(ndoc);
-    react.resize(ndoc);
-    Qc.resize(ndoc);
-    Ct.resize(ndoc);
-    Cq1.resize(ndoc, BODY_QDOF);
-    Cq2.resize(ndoc, BODY_QDOF);
-    Cqw1.resize(ndoc, BODY_DOF);
-    Cqw2.resize(ndoc, BODY_DOF);
+    C.resize(m_num_constr);
+    C_dt.resize(m_num_constr);
+    C_dtdt.resize(m_num_constr);
+    react.resize(m_num_constr);
+    Qc.resize(m_num_constr);
+    Ct.resize(m_num_constr);
+    Cq1.resize(m_num_constr, BODY_QDOF);
+    Cq2.resize(m_num_constr, BODY_QDOF);
+    Cqw1.resize(m_num_constr, BODY_DOF);
+    Cqw2.resize(m_num_constr, BODY_DOF);
 
     // Zero out vectors of constraint violations
     C.setZero();
@@ -711,7 +711,7 @@ void ChLinkLock::UpdateForces(double mytime) {
 
 // Count also unilateral constraints from joint limits (if any)
 int ChLinkLock::GetNumConstraintsUnilateral() {
-    int mdocd = ndoc_d;
+    int mdocd = m_num_constr_uni;
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive())
@@ -1601,7 +1601,7 @@ void Transform_Cq_to_Cqw_row(const ChMatrixNM<double, 7, BODY_QDOF>& mCq,
 }
 
 void ChLinkLock::ConstraintsLoadJacobians() {
-    if (ndoc == 0)
+    if (m_num_constr == 0)
         return;
 
     int cnt = 0;

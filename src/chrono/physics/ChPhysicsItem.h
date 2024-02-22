@@ -160,15 +160,6 @@ class ChApi ChPhysicsItem : public ChObj {
     /// It is used by owner ChSystem for some static analysis.
     virtual void SetNoSpeedNoAcceleration() {}
 
-    // STATE FUNCTIONS
-    //
-    // These functions are used for bookkeeping in ChSystem, so that states (position, speeds)
-    // of multiple physics items can be mapped in a single system state vector.
-    // These will be used to interface to time integrators.
-    // Note: these are not 'pure virtual' interfaces to avoid the burden of implementing all them
-    // when just few are needed, so here is a default fallback that represent a 0 DOF, 0 DOC item, but
-    // the children classes should override them.
-
     /// Get the number of coordinates at the position level.
     /// Might differ from coordinates at velocity level if quaternions are used for rotations.
     virtual int GetNumCoordinatesPos() { return 0; }

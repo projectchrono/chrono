@@ -45,11 +45,11 @@ ChSystem::ChSystem()
     : G_acc(ChVector3d(0, -9.8, 0)),
       is_initialized(false),
       is_updated(false),
-      ncoords(0),
-      ncoords_w(0),
-      ndoc_w(0),
-      ndoc_w_C(0),
-      ndoc_w_D(0),
+      m_num_coords_pos(0),
+      m_num_coords_vel(0),
+      m_num_constr(0),
+      m_num_constr_bil(0),
+      m_num_constr_uni(0),
       ch_time(0),
       m_RTF(0),
       step(0.04),
@@ -87,11 +87,11 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
     assembly.system = this;
 
     G_acc = other.G_acc;
-    ncoords = other.ncoords;
-    ncoords_w = other.ncoords_w;
-    ndoc_w = other.ndoc_w;
-    ndoc_w_C = other.ndoc_w_C;
-    ndoc_w_D = other.ndoc_w_D;
+    m_num_coords_pos = other.m_num_coords_pos;
+    m_num_coords_vel = other.m_num_coords_vel;
+    m_num_constr = other.m_num_constr;
+    m_num_constr_bil = other.m_num_constr_bil;
+    m_num_constr_uni = other.m_num_constr_uni;
     ch_time = other.ch_time;
     step = other.step;
     stepcount = other.stepcount;
@@ -667,25 +667,29 @@ void ChSystem::Setup() {
 
     timer_setup.start();
 
-    ncoords = 0;
-    ncoords_w = 0;
-    ndoc_w = 0;
-    ndoc_w_C = 0;
-    ndoc_w_D = 0;
+    m_num_coords_pos = 0;
+    m_num_coords_vel = 0;
+    m_num_constr = 0;
+    m_num_constr_bil = 0;
+    m_num_constr_uni = 0;
 
     // Set up the underlying assembly (compute offsets of bodies, links, etc.)
     assembly.Setup();
-    ncoords += assembly.ncoords;
-    ncoords_w += assembly.ncoords_w;
-    ndoc_w += assembly.ndoc_w;
-    ndoc_w_C += assembly.ndoc_w_C;
-    ndoc_w_D += assembly.ndoc_w_D;
+    m_num_coords_pos += assembly.m_num_coords_pos;
+    m_num_coords_vel += assembly.m_num_coords_vel;
+    m_num_constr += assembly.m_num_constr;
+    m_num_constr_bil += assembly.m_num_constr_bil;
+    m_num_constr_uni += assembly.m_num_constr_uni;
 
     // Compute offsets for contact container
-    contact_container->SetOffset_L(assembly.offset_L + ndoc_w);
-    ndoc_w += contact_container->GetNumConstraints();
-    ndoc_w_C += contact_container->GetNumConstraintsBilateral();
-    ndoc_w_D += contact_container->GetNumConstraintsUnilateral();
+    contact_container->SetOffset_L(assembly.offset_L + m_num_constr);
+    m_num_constr += contact_container->GetNumConstraints();
+    m_num_constr_bil += contact_container->GetNumConstraintsBilateral();
+    m_num_constr_uni += contact_container->GetNumConstraintsUnilateral();
+
+    //// TODO: DARIOM all the m_num_coords and m_num_constr variables are currently used only to avoid calling
+    //// assembly and contact_container methods every time a GetNumCoordinates/GetNumConstraints on ChSystem
+    //// is called. We might want to remove these variables and call the methods directly.
 
     timer_setup.stop();
 
@@ -1896,10 +1900,10 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 
     int err = 0;
 
-    // TODO: DARIOM the original check was on (ncoords - ndoc >= 0)
-    // but should be more appropriate to have (ncoords - ndoc_w >= 0)
+    // TODO: DARIOM the original check was on (m_num_coords_pos - ndoc >= 0)
+    // but should be more appropriate to have (m_num_coords_pos - m_num_constr >= 0)
     // since there are no quaternion constraints anymore
-    if ((ncoords > 0) && (ncoords - ndoc_w >= 0)) {
+    if ((m_num_coords_pos > 0) && (m_num_coords_pos - m_num_constr >= 0)) {
         for (int m_iter = 0; m_iter < nsteps; m_iter++) {
             for (auto& body : assembly.bodylist) {
                 // Set no body speed and no body accel.

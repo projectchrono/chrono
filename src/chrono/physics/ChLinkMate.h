@@ -167,9 +167,9 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// It is false by default to keep consistent as previous code.
     void SetUseTangentStiffness(bool useKc);
 
-    virtual int GetNumConstraints() override { return ndoc; }
-    virtual int GetNumConstraintsBilateral() override { return ndoc_c; }
-    virtual int GetNumConstraintsUnilateral() override { return ndoc_d; }
+    virtual int GetNumConstraints() override { return m_num_constr; }
+    virtual int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
+    virtual int GetNumConstraintsUnilateral() override { return m_num_constr_uni; }
 
     // LINK VIOLATIONS
     // Get the constraint violations, i.e. the residual of the constraint equations and their time derivatives (TODO)
@@ -248,9 +248,9 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     bool c_ry;
     bool c_rz;
 
-    int ndoc;    ///< number of DOC, degrees of constraint
-    int ndoc_c;  ///< number of DOC, degrees of constraint (only bilaterals)
-    int ndoc_d;  ///< number of DOC, degrees of constraint (only unilaterals)
+    int m_num_constr;    ///< number of constraints
+    int m_num_constr_bil;  ///< number of bilateral constraints
+    int m_num_constr_uni;  ///< number of unilateral constraints
 
     ChLinkMask mask;
 

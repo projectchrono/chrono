@@ -587,19 +587,19 @@ void ChSystemMulticore::Setup() {
                             data_manager->num_fluid_bodies * 3;
 
     // Set variables that are stored in the ChSystem class
-    assembly.nbodies = data_manager->num_rigid_bodies;
-    assembly.nlinks = 0;
-    assembly.nphysicsitems = 0;
-    ncoords = 0;
-    ncoords_w = 0;
-    ndoc_w = 0;
-    ndoc_w_C = 0;
-    ndoc_w_D = 0;
+    assembly.m_num_bodies = data_manager->num_rigid_bodies;
+    assembly.m_num_links = 0;
+    assembly.m_num_otherphysicsitems = 0;
+    m_num_coords_pos = 0;
+    m_num_coords_vel = 0;
+    m_num_constr = 0;
+    m_num_constr_bil = 0;
+    m_num_constr_uni = 0;
     if (data_manager->cd_data)
         ncontacts = data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
                     data_manager->cd_data->num_fluid_contacts;
-    assembly.nbodies_sleep = 0;
-    assembly.nbodies_fixed = 0;
+    assembly.m_num_bodies_sleep = 0;
+    assembly.m_num_bodies_fixed = 0;
 }
 
 void ChSystemMulticore::RecomputeThreads() {
