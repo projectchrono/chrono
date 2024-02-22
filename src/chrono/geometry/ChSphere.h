@@ -32,7 +32,7 @@ class ChApi ChSphere : public ChVolume {
     virtual ChSphere* Clone() const override { return new ChSphere(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::SPHERE; }
+    virtual Type GetType() const override { return Type::SPHERE; }
 
     /// Get the sphere radius.
     double GetRadius() const { return rad; }

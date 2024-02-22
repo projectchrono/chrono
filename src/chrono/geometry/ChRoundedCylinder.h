@@ -31,7 +31,7 @@ class ChApi ChRoundedCylinder : public ChVolume {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChRoundedCylinder* Clone() const override { return new ChRoundedCylinder(*this); }
 
-    virtual Type GetClassType() const override { return Type::ROUNDED_CYLINDER; }
+    virtual Type GetType() const override { return Type::ROUNDED_CYLINDER; }
 
     /// Return the volume of this solid.
     virtual double GetVolume() const override;

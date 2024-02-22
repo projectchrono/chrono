@@ -32,7 +32,7 @@ class ChApi ChCone : public ChVolume {
     virtual ChCone* Clone() const override { return new ChCone(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::CONE; }
+    virtual Type GetType() const override { return Type::CONE; }
 
     /// Return the volume of this solid.
     virtual double GetVolume() const override;

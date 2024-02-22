@@ -66,7 +66,7 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     virtual void Transform(const ChVector3d displ, const ChMatrix33<> rotscale) override;
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::TRIANGLEMESH_SOUP; }
+    virtual Type GetType() const override { return Type::TRIANGLEMESH_SOUP; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

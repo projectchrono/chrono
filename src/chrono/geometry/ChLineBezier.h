@@ -40,7 +40,7 @@ class ChApi ChLineBezier : public ChLine {
     virtual ChLineBezier* Clone() const override { return new ChLineBezier(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::LINE_BEZIER; }
+    virtual Type GetType() const override { return Type::LINE_BEZIER; }
 
     virtual void Set_closed(bool mc) override {}
     virtual void Set_complexity(int mc) override {}

@@ -74,7 +74,7 @@ class ChApi ChLineCam : public ChLine {
     virtual ChLineCam* Clone() const override { return new ChLineCam(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::LINE_CAM; }
+    virtual Type GetType() const override { return Type::LINE_CAM; }
 
     virtual bool Get_closed() const override { return true; }
     virtual void Set_closed(bool mc) override {}

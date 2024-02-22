@@ -67,7 +67,7 @@ void ChGeometry::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChGeometry>();
     ChGeometry_Type_enum_mapper::Type_mapper typemapper;
-    Type type = GetClassType();
+    Type type = GetType();
     marchive << CHNVP(typemapper(type), "ChGeometry__Type");
 }
 
@@ -75,7 +75,7 @@ void ChGeometry::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChGeometry>();
     ChGeometry_Type_enum_mapper::Type_mapper typemapper;
-    Type type = GetClassType();
+    Type type = GetType();
     marchive >> CHNVP(typemapper(type), "ChGeometry__Type");
 }
 

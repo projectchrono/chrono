@@ -48,7 +48,7 @@ class ChApi ChTriangleMesh : public ChGeometry {
     virtual void Transform(const ChVector3d displ, const ChQuaternion<> mquat = ChQuaternion<>(1, 0, 0, 0));
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::TRIANGLEMESH; }
+    virtual Type GetType() const override { return Type::TRIANGLEMESH; }
 
     /// Compute bounding box of this triangle mesh.
     virtual ChAABB GetBoundingBox() const override;

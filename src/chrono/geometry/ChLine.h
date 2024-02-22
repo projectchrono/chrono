@@ -39,7 +39,7 @@ class ChApi ChLine : public ChGeometry {
     // virtual ChLine* Clone() const override { };
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::LINE; }
+    virtual Type GetType() const override { return Type::LINE; }
 
     /// Return a point on the line, given parametric coordinate U.
     /// Parameter U always work in 0..1 range.

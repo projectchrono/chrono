@@ -45,7 +45,7 @@ class ChApi ChLineArc : public ChLine {
     virtual ChLineArc* Clone() const override { return new ChLineArc(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::LINE_ARC; }
+    virtual Type GetType() const override { return Type::LINE_ARC; }
 
     virtual int Get_complexity() const override { return 2; }
 

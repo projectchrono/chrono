@@ -35,7 +35,7 @@ class ChApi ChRoundedBox : public ChVolume {
     virtual ChRoundedBox* Clone() const override { return new ChRoundedBox(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::ROUNDED_BOX; }
+    virtual Type GetType() const override { return Type::ROUNDED_BOX; }
 
     /// Return the volume of this solid.
     virtual double GetVolume() const override;

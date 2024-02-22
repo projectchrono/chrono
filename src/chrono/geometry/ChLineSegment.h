@@ -34,7 +34,7 @@ class ChApi ChLineSegment : public ChLine {
     virtual ChLineSegment* Clone() const override { return new ChLineSegment(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::LINE_SEGMENT; }
+    virtual Type GetType() const override { return Type::LINE_SEGMENT; }
 
     virtual int Get_complexity() const override { return 2; }
 

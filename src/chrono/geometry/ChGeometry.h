@@ -93,7 +93,7 @@ class ChApi ChGeometry {
     virtual ChGeometry* Clone() const = 0;
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const { return Type::NONE; }
+    virtual Type GetType() const { return Type::NONE; }
 
     /// Compute bounding box along the directions of the shape definition frame.
     /// The default implementation returns a bounding box with zero dimensions.

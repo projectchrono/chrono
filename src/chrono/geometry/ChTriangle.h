@@ -37,7 +37,7 @@ class ChApi ChTriangle : public ChGeometry {
     ChTriangle& operator=(const ChTriangle& source);
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::TRIANGLE; }
+    virtual Type GetType() const override { return Type::TRIANGLE; }
 
     /// Compute bounding box of this triangle.
     virtual ChAABB GetBoundingBox() const override;

@@ -225,7 +225,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     const std::vector<ChVector3d>& getAverageNormals();
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::TRIANGLEMESH_CONNECTED; }
+    virtual Type GetType() const override { return Type::TRIANGLEMESH_CONNECTED; }
 
     /// Return the bounding box of a triangle mesh with given vertices.
     static ChAABB GetBoundingBox(std::vector<ChVector3d> vertices);

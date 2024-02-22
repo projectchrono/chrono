@@ -33,7 +33,7 @@ class ChApi ChEllipsoid : public ChVolume {
     virtual ChEllipsoid* Clone() const override { return new ChEllipsoid(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::ELLIPSOID; }
+    virtual Type GetType() const override { return Type::ELLIPSOID; }
 
     /// Get the ellipsoid semiaxes.
     const ChVector3d& GetSemiaxes() const { return rad; }
