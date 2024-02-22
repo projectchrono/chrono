@@ -210,7 +210,7 @@ int drawAllContactPoints(ChVisualSystemIrrlicht* vis, double mlen, ContactsDrawM
     if (drawtype == ContactsDrawMode::CONTACT_NONE)
         return 0;
 
-    // if (sys.GetNcontacts() == 0)
+    // if (sys.GetNumContacts() == 0)
     //    return 0;
 
     vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
@@ -294,7 +294,7 @@ int drawAllContactLabels(ChVisualSystemIrrlicht* vis, ContactsLabelMode labeltyp
     if (labeltype == ContactsLabelMode::CONTACT_NONE_VAL)
         return 0;
 
-    // if (sys.GetNcontacts() == 0)
+    // if (sys.GetNumContacts() == 0)
     //   return 0;
 
     auto my_label_rep = chrono_types::make_shared<_label_reporter_class>();
@@ -322,7 +322,7 @@ int drawAllLinks(ChVisualSystemIrrlicht* vis, double mlen, LinkDrawMode drawtype
     mattransp.Lighting = false;
     vis->GetVideoDriver()->setMaterial(mattransp);
 
-    for (auto& link : vis->GetSystem(0).Get_linklist()) {
+    for (auto& link : vis->GetSystem(0).GetLinks()) {
         ChCoordsys<> mlinkframe = link->GetLinkAbsoluteCoords();
         ChVector3d v1abs = mlinkframe.pos;
         ChVector3d v2;
@@ -354,7 +354,7 @@ int drawAllLinkLabels(ChVisualSystemIrrlicht* vis, LinkLabelMode labeltype, ChCo
     if (labeltype == LinkLabelMode::LINK_NONE_VAL)
         return 0;
 
-    for (auto& link : vis->GetSystem(0).Get_linklist()) {
+    for (auto& link : vis->GetSystem(0).GetLinks()) {
         ChCoordsys<> mlinkframe = link->GetLinkAbsoluteCoords();
 
         char buffer[25];
@@ -410,7 +410,7 @@ int drawAllBoundingBoxes(ChVisualSystemIrrlicht* vis) {
     mattransp.Lighting = false;
     vis->GetVideoDriver()->setMaterial(mattransp);
 
-    for (auto& body : vis->GetSystem(0).Get_bodylist()) {
+    for (auto& body : vis->GetSystem(0).GetBodies()) {
         irr::video::SColor mcol;
 
         if (body->GetSleeping())
@@ -470,7 +470,7 @@ int drawAllCOGs(ChVisualSystemIrrlicht* vis, double scale) {
     mattransp.Lighting = false;
     vis->GetVideoDriver()->setMaterial(mattransp);
 
-    for (auto& body : vis->GetSystem(0).Get_bodylist()) {
+    for (auto& body : vis->GetSystem(0).GetBodies()) {
         irr::video::SColor mcol;
         const ChFrame<>& mframe_cog = body->GetFrame_COG_to_abs();
         const ChFrame<>& mframe_ref = body->GetFrame_REF_to_abs();
@@ -513,7 +513,7 @@ int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale) {
     mattransp.Lighting = false;
     vis->GetVideoDriver()->setMaterial(mattransp);
 
-    for (auto& link : vis->GetSystem(0).Get_linklist()) {
+    for (auto& link : vis->GetSystem(0).GetLinks()) {
         ChFrame<> frAabs;
         ChFrame<> frBabs;
 

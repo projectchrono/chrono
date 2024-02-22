@@ -78,13 +78,13 @@ static inline void TimingOutput(chrono::ChSystem* mSys, std::ostream* ofile = NU
     double UPDT = mSys->GetTimerUpdate();
     double RESID = 0;
     int REQ_ITS = 0;
-    int BODS = mSys->GetNbodies();
-    int CNTC = mSys->GetNcontacts();
+    int BODS = mSys->GetNumBodies();
+    int CNTC = mSys->GetNumContacts();
     if (chrono::ChSystemMulticore* multicore_sys = dynamic_cast<chrono::ChSystemMulticore*>(mSys)) {
         RESID = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetResidual();
         REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetIterations();
-        BODS = multicore_sys->GetNbodies();
-        CNTC = multicore_sys->GetNcontacts();
+        BODS = multicore_sys->GetNumBodies();
+        CNTC = multicore_sys->GetNumContacts();
     }
 
     if (ofile) {
@@ -102,7 +102,7 @@ static inline void TimingOutput(chrono::ChSystem* mSys, std::ostream* ofile = NU
 // Callback class for contact reporting
 class ContactReporter : public ChContactContainer::ReportContactCallback {
   public:
-    ContactReporter(ChSystemMulticore* system) : sys(system) { csv << sys->GetChTime() << sys->GetNcontacts() << endl; }
+    ContactReporter(ChSystemMulticore* system) : sys(system) { csv << sys->GetChTime() << sys->GetNumContacts() << endl; }
 
     void write(const std::string& filename) { csv.write_to_file(filename); }
 
@@ -327,7 +327,7 @@ void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
 // -----------------------------------------------------------------------------
 double FindHighest(ChSystem* sys) {
     double highest = 0;
-    for (auto body : sys->Get_bodylist()) {
+    for (auto body : sys->GetBodies()) {
         if (body->GetIdentifier() > 0 && body->GetPos().z() > highest)
             highest = body->GetPos().z();
     }
@@ -336,7 +336,7 @@ double FindHighest(ChSystem* sys) {
 
 double FindLowest(ChSystem* sys) {
     double lowest = 1000;
-    for (auto body : sys->Get_bodylist()) {
+    for (auto body : sys->GetBodies()) {
         if (body->GetIdentifier() > 0 && body->GetPos().z() < lowest)
             lowest = body->GetPos().z();
     }
@@ -350,7 +350,7 @@ double FindLowest(ChSystem* sys) {
 bool CheckSettled(ChSystem* sys, double threshold) {
     double t2 = threshold * threshold;
 
-    for (auto body : sys->Get_bodylist()) {
+    for (auto body : sys->GetBodies()) {
         if (body->GetIdentifier() > 0) {
             double vel2 = body->GetPos_dt().Length2();
             if (vel2 > t2)
@@ -424,7 +424,7 @@ int main(int argc, char* argv[]) {
         cout << "Create granular material" << endl;
         // Create the fixed falling ball just below the granular material
         CreateFallingBall(sys, -3 * R_b, 0);
-        ball = sys->Get_bodylist().at(0);
+        ball = sys->GetBodies().at(0);
         ball->SetBodyFixed(true);
         CreateObjects(sys);
     } else {
@@ -440,14 +440,14 @@ int main(int argc, char* argv[]) {
         // Create the falling ball, the granular material, and the container from the checkpoint file.
         cout << "Read checkpoint data from " << checkpoint_file;
         utils::ReadCheckpoint(sys, checkpoint_file);
-        cout << "  done.  Read " << sys->Get_bodylist().size() << " bodies." << endl;
+        cout << "  done.  Read " << sys->GetBodies().size() << " bodies." << endl;
 
         // Move the falling ball just above the granular material with a velocity
         // given by free fall from the specified height and starting at rest.
         double z = FindHighest(sys);
         double vz = std::sqrt(2 * gravity * h);
         cout << "Move falling ball with center at " << z + R_b + r_g << " and velocity " << vz << endl;
-        ball = sys->Get_bodylist().at(0);
+        ball = sys->GetBodies().at(0);
         ball->SetPos(ChVector3d(0, 0, z + r_g + R_b));
         ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
         ball->SetPos_dt(ChVector3d(0, 0, -vz));
@@ -513,7 +513,7 @@ int main(int argc, char* argv[]) {
             if (problem == ProblemPhase::SETTLING && intermediate_checkpoints) {
                 cout << "     Write checkpoint data " << flush;
                 utils::WriteCheckpoint(sys, checkpoint_file);
-                cout << sys->Get_bodylist().size() << " bodies" << endl;
+                cout << sys->GetBodies().size() << " bodies" << endl;
             }
 
             // Save current projectile height.
@@ -549,7 +549,7 @@ int main(int argc, char* argv[]) {
         time += time_step;
         sim_frame++;
         exec_time += sys->GetTimerStep();
-        num_contacts += sys->GetNcontacts();
+        num_contacts += sys->GetNumContacts();
     }
 
     // Report contact information
@@ -563,12 +563,12 @@ int main(int argc, char* argv[]) {
     if (problem == ProblemPhase::SETTLING) {
         cout << "Write checkpoint data to " << checkpoint_file;
         utils::WriteCheckpoint(sys, checkpoint_file);
-        cout << "  done.  Wrote " << sys->Get_bodylist().size() << " bodies." << endl;
+        cout << "  done.  Wrote " << sys->GetBodies().size() << " bodies." << endl;
     }
 
     // Final stats
     cout << "==================================" << endl;
-    cout << "Number of bodies:  " << sys->Get_bodylist().size() << endl;
+    cout << "Number of bodies:  " << sys->GetBodies().size() << endl;
     cout << "Lowest position:   " << FindLowest(sys) << endl;
     cout << "Simulation time:   " << exec_time << endl;
     cout << "Number of threads: " << threads << endl;

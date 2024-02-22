@@ -181,14 +181,14 @@ while vis.Run():
 
     # Apply custom forcefield (brute force approach..)
     # A) reset 'user forces accumulators':
-    for body in sys.Get_bodylist() :
+    for body in sys.GetBodies() :
         body.Empty_forces_accumulators()
 
 
     # B) store user computed force:
     # G_constant = 6.674e-11 # gravitational constant
     G_constant = 6.674e-3  # gravitational constant - HACK to speed up simulation
-    mlist = list(combinations(sys.Get_bodylist(), 2))
+    mlist = list(combinations(sys.GetBodies(), 2))
 
     for bodycomb in  mlist :
         abodyA = bodycomb[0]

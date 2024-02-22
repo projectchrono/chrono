@@ -192,7 +192,7 @@ TEST_P(ContactForceTest, simulate) {
         ChVector3d contact_force = ground->GetContactForce();
         /*
         std::cout << "t = " << system->GetChTime()
-                  << " num contacts = " << system->GetContactContainer()->GetNcontacts()
+                  << " num contacts = " << system->GetContactContainer()->GetNumContacts()
                   << "  force =  " << contact_force.z() << std::endl;
         */
         if (system->GetChTime() > start_time) {

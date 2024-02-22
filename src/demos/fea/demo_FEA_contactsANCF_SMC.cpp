@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
         vsys->EndScene();
 
         ////std::cout << "Time t = " << sys.GetChTime() << "s \t";
-        ////std::cout << "n contacts: " << sys.GetNcontacts() << "\t";
+        ////std::cout << "n contacts: " << sys.GetNumContacts() << "\t";
         ////std::cout << "pos.y = " << sampleNode->pos.y - y0 << "vs. " << -0.5 * 9.8 * pow(sys.GetChTime(), 2)
         ////          << "\n";
         sys.DoStepDynamics(time_step);

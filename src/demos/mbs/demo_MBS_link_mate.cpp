@@ -489,11 +489,11 @@ void test_anchorchain() {
 
         // The coordiantes of the rigid bodies in the equilibrium configuration
         ChMatrixDynamic<> coords;
-        coords.resize(sys.Get_bodylist().size(), 3);
-        for (int i_body = 0; i_body < sys.Get_bodylist().size(); i_body++) {
-            coords(i_body, 0) = sys.Get_bodylist().at(i_body)->GetPos().x();
-            coords(i_body, 1) = sys.Get_bodylist().at(i_body)->GetPos().y();
-            coords(i_body, 2) = sys.Get_bodylist().at(i_body)->GetPos().z();
+        coords.resize(sys.GetBodies().size(), 3);
+        for (int i_body = 0; i_body < sys.GetBodies().size(); i_body++) {
+            coords(i_body, 0) = sys.GetBodies().at(i_body)->GetPos().x();
+            coords(i_body, 1) = sys.GetBodies().at(i_body)->GetPos().y();
+            coords(i_body, 2) = sys.GetBodies().at(i_body)->GetPos().z();
         }
         // sort according to the X coordinate (horizontal coordinate)
         std::sort(coords.rowwise().begin(), coords.rowwise().end(),
@@ -501,13 +501,13 @@ void test_anchorchain() {
 
         // The reaction forces and torques of the joints in the equilibrium configuration
         ChMatrixDynamic<> reactions;
-        reactions.resize(sys.Get_linklist().size(), 7);
-        for (int i_link = 0; i_link < sys.Get_linklist().size(); i_link++) {
-            reactions(i_link, 0) = sys.Get_linklist().at(i_link)->GetLinkAbsoluteCoords().pos.x();
+        reactions.resize(sys.GetLinks().size(), 7);
+        for (int i_link = 0; i_link < sys.GetLinks().size(); i_link++) {
+            reactions(i_link, 0) = sys.GetLinks().at(i_link)->GetLinkAbsoluteCoords().pos.x();
 
-            ChVector3d f_loc = sys.Get_linklist().at(i_link)->Get_react_force();
-            ChVector3d m_loc = sys.Get_linklist().at(i_link)->Get_react_torque();
-            ChQuaternion<> q_link = sys.Get_linklist().at(i_link)->GetLinkAbsoluteCoords().rot;
+            ChVector3d f_loc = sys.GetLinks().at(i_link)->Get_react_force();
+            ChVector3d m_loc = sys.GetLinks().at(i_link)->Get_react_torque();
+            ChQuaternion<> q_link = sys.GetLinks().at(i_link)->GetLinkAbsoluteCoords().rot;
             // Transform the reaction forces and torques of the joints from local frame to the absolute frame.
             // The horizontal reaction forces (along X direction) should be equal among all joints for the catenary
             // curve.
@@ -534,8 +534,8 @@ void test_anchorchain() {
         double x_offset = xC;
         // catenary curve comparison with the analytical formula
         ChMatrixDynamic<> catenary_cmp;
-        catenary_cmp.resize(sys.Get_bodylist().size(), 3);
-        for (int i_body = 0; i_body < sys.Get_bodylist().size(); i_body++) {
+        catenary_cmp.resize(sys.GetBodies().size(), 3);
+        for (int i_body = 0; i_body < sys.GetBodies().size(); i_body++) {
             catenary_cmp(i_body, 0) = coords(i_body, 0);  // X coordinate
             catenary_cmp(i_body, 1) = coords(i_body, 2);  // Z coordiante from simulation
             // Z coordiante from the theoretical catinary curve
@@ -577,9 +577,9 @@ void test_anchorchain() {
             modal_freq(imode - 1, 1) = eig_i.eigen_val.imag();
             modal_freq(imode - 1, 2) = eig_i.eigen_val.imag() / CH_C_2PI;
 
-            ChMatrixDynamic<> modal_shape_i(sys.GetNbodies(), 10);
+            ChMatrixDynamic<> modal_shape_i(sys.GetNumBodies(), 10);
             int r = 0;
-            for (auto ibody : sys.Get_bodylist()) {
+            for (auto ibody : sys.GetBodies()) {
                 if (ibody->IsActive()) {
                     modal_shape_i(r, 0) = r + 1;  // index of rigid body in the system
                     modal_shape_i(r, 1) = ibody->GetPos().x();

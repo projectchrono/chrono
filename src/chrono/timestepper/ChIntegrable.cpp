@@ -184,9 +184,9 @@ void ChIntegrableIIorder::StateIncrement(ChState& y_new,         // resulting y_
         mv = y.segment(GetNcoords_x(), GetNcoords_v());
 
         ChStateDelta mDx(GetNcoords_v(), y.GetIntegrable());
-        ChStateDelta mDv(GetNcoords_a(), y.GetIntegrable());
+        ChStateDelta mDv(GetNcoords_v(), y.GetIntegrable());
         mDx = Dy.segment(0, GetNcoords_v());
-        mDv = Dy.segment(GetNcoords_v(), GetNcoords_a());
+        mDv = Dy.segment(GetNcoords_v(), GetNcoords_v());
         
         ChState mx_new(GetNcoords_x(), y.GetIntegrable());
         ChStateDelta mv_new(GetNcoords_v(), y.GetIntegrable());

@@ -326,7 +326,7 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         // Process contacts
-        std::cout << sys.GetChTime() << "  " << sys.GetNcontacts() << std::endl;
+        std::cout << sys.GetChTime() << "  " << sys.GetNumContacts() << std::endl;
         sys.GetContactContainer()->ReportAllContacts(creporter);
 
         // Cumulative contact force and torque on boxes (as applied to COM)

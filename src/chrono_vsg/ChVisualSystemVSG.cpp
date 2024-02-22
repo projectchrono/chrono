@@ -1586,13 +1586,13 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
 void ChVisualSystemVSG::BindAll() {
     for (auto sys : m_systems) {
         // Bind visual models associated with bodies in the system
-        for (const auto& body : sys->GetAssembly().Get_bodylist()) {
+        for (const auto& body : sys->GetAssembly().GetBodies()) {
             BindBodyFrame(body);
             BindBody(body);
         }
 
         // Bind visual models associated with links in the system
-        for (const auto& link : sys->Get_linklist()) {
+        for (const auto& link : sys->GetLinks()) {
             BindLinkFrame(link);
             if (const auto& tsda = std::dynamic_pointer_cast<ChLinkTSDA>(link))
                 BindTSDA(tsda);
@@ -1601,12 +1601,12 @@ void ChVisualSystemVSG::BindAll() {
         }
 
         // Bind visual models associated with FEA meshes
-        for (const auto& mesh : sys->GetAssembly().Get_meshlist()) {
+        for (const auto& mesh : sys->GetAssembly().GetMeshes()) {
             BindMesh(mesh);
         }
 
         // Bind visual models associated with other physics items in the system
-        for (const auto& item : sys->Get_otherphysicslist()) {
+        for (const auto& item : sys->GetOtherPhysicsItems()) {
             if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
                 BindParticleCloud(pcloud);
             else if (const auto& loadcont = std::dynamic_pointer_cast<ChLoadContainer>(item))

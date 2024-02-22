@@ -58,11 +58,11 @@ void ChTimestepperHHT::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // Setup auxiliary vectors
-    Da.setZero(mintegrable->GetNcoords_a(), mintegrable);
+    Da.setZero(mintegrable->GetNcoords_v(), mintegrable);
     Dl.setZero(mintegrable->GetNconstr());
     Xnew.setZero(mintegrable->GetNcoords_x(), mintegrable);
     Vnew.setZero(mintegrable->GetNcoords_v(), mintegrable);
-    Anew.setZero(mintegrable->GetNcoords_a(), mintegrable);
+    Anew.setZero(mintegrable->GetNcoords_v(), mintegrable);
     R.setZero(mintegrable->GetNcoords_v());
     Rold.setZero(mintegrable->GetNcoords_v());
     Qc.setZero(mintegrable->GetNconstr());
@@ -231,7 +231,7 @@ void ChTimestepperHHT::Advance(const double dt) {
         // Scatter state -> system
         mintegrable->StateScatter(X, V, T, false);
         Rold.setZero();
-        Anew.setZero(mintegrable->GetNcoords_a(), mintegrable);
+        Anew.setZero(mintegrable->GetNcoords_v(), mintegrable);
     }
 
     // Scatter state -> system doing a full update

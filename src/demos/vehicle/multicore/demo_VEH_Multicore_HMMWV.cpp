@@ -624,13 +624,13 @@ void TimingOutput(chrono::ChSystem* mSys, std::ostream* ofile) {
     double UPDT = mSys->GetTimerUpdate();
     double RESID = 0;
     int REQ_ITS = 0;
-    int BODS = mSys->GetNbodies();
-    int CNTC = mSys->GetNcontacts();
+    int BODS = mSys->GetNumBodies();
+    int CNTC = mSys->GetNumContacts();
     if (chrono::ChSystemMulticore* multicore_sys = dynamic_cast<chrono::ChSystemMulticore*>(mSys)) {
         RESID = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetResidual();
         REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetIterations();
-        BODS = multicore_sys->GetNbodies();
-        CNTC = multicore_sys->GetNcontacts();
+        BODS = multicore_sys->GetNumBodies();
+        CNTC = multicore_sys->GetNumContacts();
     }
 
     if (ofile) {

@@ -302,9 +302,9 @@ int main(int argc, char* argv[]) {
     // -----------------
 
     auto sys = rig->GetSystem();
-    cout << "Number of bodies:        " << sys->Get_bodylist().size() << endl;
-    cout << "Number of physics items: " << sys->Get_otherphysicslist().size() << endl;
-    cout << "Number of FEA meshes:    " << sys->Get_meshlist().size() << endl;
+    cout << "Number of bodies:        " << sys->GetBodies().size() << endl;
+    cout << "Number of physics items: " << sys->GetOtherPhysicsItems().size() << endl;
+    cout << "Number of FEA meshes:    " << sys->GetMeshes().size() << endl;
 
     // -----------------
     // Initialize output

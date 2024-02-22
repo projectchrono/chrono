@@ -504,11 +504,11 @@ void ChIrrGUI::Render() {
     str += "\n\nReal Time Factor: ";
     str += m_system->GetRTF();
     str += "\n\nNum. active bodies:  ";
-    str += m_system->GetNbodies();
+    str += m_system->GetNumBodies();
     str += "\nNum. sleeping bodies:  ";
-    str += m_system->GetNbodiesSleeping();
+    str += m_system->GetNumBodiesSleeping();
     str += "\nNum. contacts:  ";
-    str += m_system->GetNcontacts();
+    str += m_system->GetNumContacts();
     str += "\nNum. coords:  ";
     str += m_system->GetNcoords_w();
     str += "\nNum. constr:  ";

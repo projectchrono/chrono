@@ -217,9 +217,9 @@ void ChOpenGLViewer::Render(bool render_stats) {
         model_obj.clear();
         line_path_data.clear();
         for (auto s : m_vis->GetSystems()) {
-            for (const auto& b : s->Get_bodylist())
+            for (const auto& b : s->GetBodies())
                 DrawVisualModel(b);
-            for (const auto& l : s->Get_linklist())
+            for (const auto& l : s->GetLinks())
                 DrawVisualModel(l);
         }
         if (model_box.size() > 0) {
@@ -253,12 +253,12 @@ void ChOpenGLViewer::Render(bool render_stats) {
     } else {
         size_t cloud_size = 0;
         for (auto s : m_vis->GetSystems())
-            cloud_size += s->Get_bodylist().size();
+            cloud_size += s->GetBodies().size();
         cloud_data.resize(cloud_size);
         for (auto s : m_vis->GetSystems()) {
 #pragma omp parallel for
-            for (int i = 0; i < s->Get_bodylist().size(); i++) {
-                auto abody = s->Get_bodylist().at(i);
+            for (int i = 0; i < s->GetBodies().size(); i++) {
+                auto abody = s->GetBodies().at(i);
                 ChVector3d pos = abody->GetPos();
                 cloud_data[i] = glm::vec3(pos.x(), pos.y(), pos.z());
             }
@@ -598,7 +598,7 @@ void ChOpenGLViewer::RenderFluid() {
 void ChOpenGLViewer::RenderParticles() {
     size_t num_particles = 0;
     for (auto s : m_vis->GetSystems()) {
-        for (auto& item : s->Get_otherphysicslist()) {
+        for (auto& item : s->GetOtherPhysicsItems()) {
             if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
                 if (!pcloud->GetVisualModel())
                     continue;
@@ -619,7 +619,7 @@ void ChOpenGLViewer::RenderParticles() {
 
     num_particles = 0;
     for (auto s : m_vis->GetSystems()) {
-        for (auto& item : s->Get_otherphysicslist()) {
+        for (auto& item : s->GetOtherPhysicsItems()) {
             if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
                 if (!pcloud->GetVisualModel())
                     continue;

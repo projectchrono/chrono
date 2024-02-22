@@ -41,7 +41,7 @@ void apply_fan_force(ChSystemNSC* msystem,    // contains all bodies
                      double aspeed,           // speed of fan
                      double adensity)         // density (heuristic)
 {
-    for (auto body : msystem->Get_bodylist()) {
+    for (auto body : msystem->GetBodies()) {
         // Remember to reset 'user forces accumulators':
         body->Empty_forces_accumulators();
 

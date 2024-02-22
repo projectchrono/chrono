@@ -216,7 +216,7 @@ void ReportConstraintViolation(ChSystem& sys, double threshold = 1e-3) {
     Eigen::Index imax = 0;
     double vmax = 0;
     std::string nmax = "";
-    for (auto joint : sys.Get_linklist()) {
+    for (auto joint : sys.GetLinks()) {
         if (joint->GetConstraintViolation().size() == 0)
             continue;
         Eigen::Index cimax;

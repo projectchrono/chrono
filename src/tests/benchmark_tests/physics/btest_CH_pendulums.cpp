@@ -113,7 +113,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
     double width = 0.025;
     double density = 500;
     for (int ib = 0; ib < N; ib++) {
-        auto prev = m_system->Get_bodylist().back();
+        auto prev = m_system->GetBodies().back();
 
         auto pend = chrono_types::make_shared<ChBodyEasyBox>(m_length, width, width, density, true, false);
         pend->SetPos(ChVector3d((ib + 0.5) * m_length, 0, 0));

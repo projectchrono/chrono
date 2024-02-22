@@ -480,7 +480,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         }
 
         // Read granular material state from checkpoint
-        for (uint ib = particles_start_index; ib < m_system->Get_bodylist().size(); ++ib) {
+        for (uint ib = particles_start_index; ib < m_system->GetBodies().size(); ++ib) {
             std::getline(ifile, line);
             std::istringstream iss(line);
             int identifier;
@@ -491,7 +491,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
             iss >> identifier >> pos.x() >> pos.y() >> pos.z() >> rot.e0() >> rot.e1() >> rot.e2() >> rot.e3() >>
                 pos_dt.x() >> pos_dt.y() >> pos_dt.z() >> rot_dt.e0() >> rot_dt.e1() >> rot_dt.e2() >> rot_dt.e3();
 
-            auto body = m_system->Get_bodylist()[ib];
+            auto body = m_system->GetBodies()[ib];
             assert(body->GetIdentifier() == identifier);
             body->SetPos(ChVector3d(pos.x(), pos.y(), pos.z()));
             body->SetRot(ChQuaternion<>(rot.e0(), rot.e1(), rot.e2(), rot.e3()));
@@ -709,7 +709,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 
 double ChVehicleCosimTerrainNodeGranularOMP::CalcTotalKineticEnergy() {
     double KE = 0;
-    for (const auto& body : m_system->Get_bodylist()) {
+    for (const auto& body : m_system->GetBodies()) {
         if (body->GetIdentifier() > 0) {
             auto omg = body->GetWvel_par();
             auto J = body->GetInertiaXX();
@@ -721,7 +721,7 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalcTotalKineticEnergy() {
 
 double ChVehicleCosimTerrainNodeGranularOMP::CalcCurrentHeight() {
     double height = -std::numeric_limits<double>::max();
-    for (const auto& body : m_system->Get_bodylist()) {
+    for (const auto& body : m_system->GetBodies()) {
         if (body->GetIdentifier() > 0 && body->GetPos().z() > height)
             height = body->GetPos().z();
     }
@@ -1078,7 +1078,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::CSV_w
     ////csv << m_num_particles << m_radius_g << endl;
 
     // Write particle positions and linear velocities
-    for (auto body : m_system->Get_bodylist()) {
+    for (auto body : m_system->GetBodies()) {
         if (body->GetIdentifier() < body_id_particles)
             continue;
         ////csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << endl;
@@ -1095,7 +1095,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
 
     // Loop over all bodies in the system and write state for granular material bodies.
     // Filter granular material using the body identifier.
-    for (auto& body : m_system->Get_bodylist()) {
+    for (auto& body : m_system->GetBodies()) {
         if (body->GetIdentifier() < body_id_particles)
             continue;
         csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPos_dt() << body->GetRot_dt()

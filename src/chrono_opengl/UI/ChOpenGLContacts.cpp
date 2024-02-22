@@ -42,7 +42,7 @@ bool ChOpenGLContacts::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader) 
 void ChOpenGLContacts::UpdateChrono(ChSystem* system) {
     //  ChContactContainerNSC* container = (ChContactContainerNSC*)system->GetContactContainer();
     //  std::list<ChContactContainerNSC::ChContact_6_6*> list = container-GetContactList();
-    //  int num_contacts = container->GetNcontacts();
+    //  int num_contacts = container->GetNumContacts();
     //  int counter = 0;
     //  contact_data.resize(num_contacts * 2);
     //

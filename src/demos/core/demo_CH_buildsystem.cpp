@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
         sys.ShowHierarchy(std::cout);
 
         std::cout << "Now use an interator to scan through already-added constraints:\n" << std::endl;
-        for (auto link : sys.Get_linklist()) {
+        for (auto link : sys.GetLinks()) {
             std::cout << "   Link class: " << typeid(link).name() << std::endl;
         }
 

@@ -294,7 +294,7 @@ int main(int argc, char* argv[]) {
     vis->GetActiveCamera()->setFOV(irr::core::PI / 10.0f);
 
     if (rotate_shapes) {
-        for (auto& b : sys.Get_bodylist())
+        for (auto& b : sys.GetBodies())
             b->SetWvel_loc(ChVector3d(0.1, 0.1, 0.1));
     }
 

@@ -165,9 +165,9 @@ int main(int argc, char* argv[]) {
         vis.Render();
 
         // Process contacts
-        std::cout << sys.GetChTime() << "  " << sys.GetNcontacts() << std::endl;
+        std::cout << sys.GetChTime() << "  " << sys.GetNumContacts() << std::endl;
 
-        if (sys.GetNcontacts() > 0) {
+        if (sys.GetNumContacts() > 0) {
             // Force calculation of cumulative contact forces for all bodies in sys
             // (required for an NSC sys before invoking GetContactForce/GetContactTorque)
             sys.CalculateContactForces();

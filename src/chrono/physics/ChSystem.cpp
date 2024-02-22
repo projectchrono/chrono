@@ -147,7 +147,7 @@ void ChSystem::Clear() {
 // -----------------------------------------------------------------------------
 
 void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
-    body->SetId(static_cast<int>(Get_bodylist().size()));
+    body->SetId(static_cast<int>(GetBodies().size()));
     assembly.AddBody(body);
     body->SetSystem(this);
 }
@@ -375,7 +375,7 @@ void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
 }
 
 void ChSystem::SetCollisionSystemType(ChCollisionSystem::Type type) {
-    assert(assembly.GetNbodies() == 0);
+    assert(assembly.GetNumBodies() == 0);
 
     auto coll_sys_type = type;
 
@@ -1285,8 +1285,8 @@ void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc, const double c) {
 //   COLLISION OPERATIONS
 // -----------------------------------------------------------------------------
 
-int ChSystem::GetNcontacts() {
-    return contact_container->GetNcontacts();
+int ChSystem::GetNumContacts() {
+    return contact_container->GetNumContacts();
 }
 
 double ChSystem::ComputeCollisions() {
@@ -1495,7 +1495,7 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
         for (auto c_sel = 0; c_sel < redundant_constraints_idx.size(); ++c_sel) {
             // find corresponding link
             std::shared_ptr<ChLinkBase> corr_link;
-            for (const auto& link : Get_linklist()) {
+            for (const auto& link : GetLinks()) {
                 if (redundant_constraints_idx[c_sel] >= link->GetOffset_L() &&
                     redundant_constraints_idx[c_sel] < link->GetOffset_L() + link->GetDOC()) {
                     corr_link = link;
@@ -1517,9 +1517,9 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
 
     // Remove Degrees of Constraint to ChLinkMate constraints
     std::map<int, std::shared_ptr<ChLinkBase>> constr_map;  // store an ordered list of constraints offsets
-    for (int i = 0; i < Get_linklist().size(); ++i) {
+    for (int i = 0; i < GetLinks().size(); ++i) {
         // store the link offset
-        auto link = Get_linklist()[i];
+        auto link = GetLinks()[i];
         constr_map[link->GetOffset_L()] = link;
     }
 
@@ -1578,9 +1578,9 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     // Actually REMOVE links now having DoC = 0 from system link list
     if (remove_zero_constr) {
         int i = 0;
-        while (i < Get_linklist().size()) {
-            if (Get_linklist()[i]->GetDOC() == 0)
-                RemoveLink(Get_linklist()[i]);
+        while (i < GetLinks().size()) {
+            if (GetLinks()[i]->GetDOC() == 0)
+                RemoveLink(GetLinks()[i]);
             else
                 ++i;
         }

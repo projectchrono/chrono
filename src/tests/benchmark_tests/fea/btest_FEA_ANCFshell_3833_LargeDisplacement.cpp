@@ -18,7 +18,7 @@
 // With Modifications from:
 // Aki M Mikkola and Ahmed A Shabana. A non-incremental finite element procedure
 // for the analysis of large deformation of plates and shells in mechanical
-// system applications. Multibody System Dynamics, 9(3) : 283–309, 2003.
+// system applications. Multibody System Dynamics, 9(3) : 283ï¿½309, 2003.
 //
 // =============================================================================
 
@@ -346,7 +346,7 @@ void ANCFShellTest::RunTimingTest(ChMatrixNM<double, 4, 19>& timing_stats, const
 
     // Time the requested number of steps, collecting timing information (systems is not restarted between collections)
     auto LS = std::dynamic_pointer_cast<ChDirectSolverLS>(GetSystem()->GetSolver());
-    auto MeshList = GetSystem()->Get_meshlist();
+    auto MeshList = GetSystem()->GetMeshes();
     for (int r = 0; r < REPEATS; r++) {
         for (int i = 0; i < NUM_SIM_STEPS; i++) {
             for (auto& Mesh : MeshList) {

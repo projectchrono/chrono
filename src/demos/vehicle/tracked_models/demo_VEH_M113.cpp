@@ -153,7 +153,7 @@ void ReportConstraintViolation(ChSystem& sys, double threshold = 1e-3) {
     Eigen::Index imax = 0;
     double vmax = 0;
     std::string nmax = "";
-    for (auto joint : sys.Get_linklist()) {
+    for (auto joint : sys.GetLinks()) {
         if (joint->GetConstraintViolation().size() == 0)
             continue;
         Eigen::Index cimax;
@@ -580,7 +580,7 @@ int main(int argc, char* argv[]) {
             auto track_L = vehicle.GetTrackAssembly(LEFT);
             auto track_R = vehicle.GetTrackAssembly(RIGHT);
             cout << "Time: " << m113.GetSystem()->GetChTime() << endl;
-            cout << "      Num. contacts: " << m113.GetSystem()->GetNcontacts() << endl;
+            cout << "      Num. contacts: " << m113.GetSystem()->GetNumContacts() << endl;
             const ChFrameMoving<>& c_ref = m113.GetChassisBody()->GetFrame_REF_to_abs();
             const ChVector3d& c_pos = vehicle.GetPos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;

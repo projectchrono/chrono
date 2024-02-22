@@ -239,8 +239,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void SetNumThreads(int num_threads_chrono, int num_threads_collision = 0, int num_threads_eigen = 0);
 
     int GetNumThreadsChrono() const { return nthreads_chrono; }
-    int GetNumthreadsCollision() const { return nthreads_collision; }
-    int GetNumthreadsEigen() const { return nthreads_eigen; }
+    int GetNumThreadsCollision() const { return nthreads_collision; }
+    int GetNumThreadsEigen() const { return nthreads_eigen; }
 
     // DATABASE HANDLING
 
@@ -308,15 +308,15 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void RemoveAllOtherPhysicsItems() { assembly.RemoveAllOtherPhysicsItems(); }
 
     /// Get the list of bodies.
-    const std::vector<std::shared_ptr<ChBody>>& Get_bodylist() const { return assembly.bodylist; }
+    const std::vector<std::shared_ptr<ChBody>>& GetBodies() const { return assembly.bodylist; }
     /// Get the list of shafts.
-    const std::vector<std::shared_ptr<ChShaft>>& Get_shaftlist() const { return assembly.shaftlist; }
+    const std::vector<std::shared_ptr<ChShaft>>& GetShafts() const { return assembly.shaftlist; }
     /// Get the list of links.
-    const std::vector<std::shared_ptr<ChLinkBase>>& Get_linklist() const { return assembly.linklist; }
+    const std::vector<std::shared_ptr<ChLinkBase>>& GetLinks() const { return assembly.linklist; }
     /// Get the list of meshes.
-    const std::vector<std::shared_ptr<fea::ChMesh>>& Get_meshlist() const { return assembly.meshlist; }
+    const std::vector<std::shared_ptr<fea::ChMesh>>& GetMeshes() const { return assembly.meshlist; }
     /// Get the list of physics items that are not in the body or link lists.
-    const std::vector<std::shared_ptr<ChPhysicsItem>>& Get_otherphysicslist() const {
+    const std::vector<std::shared_ptr<ChPhysicsItem>>& GetOtherPhysicsItems() const {
         return assembly.otherphysicslist;
     }
 
@@ -342,31 +342,31 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     std::shared_ptr<ChPhysicsItem> Search(const std::string& name) const { return assembly.Search(name); }
 
     /// Get the number of active bodies (excluding those that are sleeping or are fixed to ground).
-    int GetNbodies() const { return assembly.GetNbodies(); }
+    int GetNumBodies() const { return assembly.GetNumBodies(); }
     /// Get the number of bodies that are in sleeping mode (excluding fixed bodies).
-    int GetNbodiesSleeping() const { return assembly.GetNbodiesSleeping(); }
+    int GetNumBodiesSleeping() const { return assembly.GetNumBodiesSleeping(); }
     /// Get the number of bodies that are fixed to ground.
-    int GetNbodiesFixed() const { return assembly.GetNbodiesFixed(); }
+    int GetNumBodiesFixed() const { return assembly.GetNumBodiesFixed(); }
     /// Get the total number of bodies in the assembly, including the grounded and sleeping bodies.
-    int GetNbodiesTotal() const { return assembly.GetNbodiesTotal(); }
+    int GetNumBodiesTotal() const { return assembly.GetNumBodiesTotal(); }
 
     /// Get the number of shafts.
-    int GetNshafts() const { return assembly.GetNshafts(); }
+    int GetNumShafts() const { return assembly.GetNumShafts(); }
     /// Get the number of shafts that are in sleeping mode (excluding fixed shafts).
-    int GetNshaftsSleeping() const { return assembly.GetNbodiesSleeping(); }
+    int GetNumShaftsSleeping() const { return assembly.GetNumBodiesSleeping(); }
     /// Get the number of shafts that are fixed to ground.
-    int GetNshaftsFixed() const { return assembly.GetNshaftsFixed(); }
+    int GetNumShaftsFixed() const { return assembly.GetNumShaftsFixed(); }
     /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
-    int GetNshaftsTotal() const { return assembly.GetNshaftsTotal(); }
+    int GetNumShaftsTotal() const { return assembly.GetNumShaftsTotal(); }
 
     /// Get the number of links.
-    int GetNlinks() const { return assembly.GetNlinks(); }
+    int GetNumLinks() const { return assembly.GetNumLinks(); }
 
     /// Get the number of meshes.
-    int GetNmeshes() const { return assembly.GetNmeshes(); }
+    int GetNumMeshes() const { return assembly.GetNumMeshes(); }
 
     /// Get the number of other physics items (other than bodies, links, or meshes).
-    int GetNphysicsItems() const { return assembly.GetNphysicsItems(); }
+    int GetNumOtherPhysicsItems() const { return assembly.GetNumOtherPhysicsItems(); }
 
     /// Get the number of coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
     int GetNcoords() const { return ncoords; }
@@ -412,7 +412,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     // STATISTICS
 
     /// Gets the number of contacts.
-    int GetNcontacts();
+    int GetNumContacts();
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const { return timer_step(); }

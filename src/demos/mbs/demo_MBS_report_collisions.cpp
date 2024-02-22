@@ -32,7 +32,7 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
     ContactManager(ChSystem* sys) : m_system(sys) {}
 
     // Return the current total number of contacts experienced by the specified body.
-    unsigned int GetNcontacts(std::shared_ptr<ChBody> body) const {
+    unsigned int GetNumContacts(std::shared_ptr<ChBody> body) const {
         auto search = m_bcontacts.find(body.get());
         return (search == m_bcontacts.end()) ? 0 : search->second;
     }
@@ -162,10 +162,10 @@ int main(int argc, char* argv[]) {
         // Process current collisions and report number of contacts on a few bodies.
         manager.Process();
         std::cout << "Time: " << sys.GetChTime();
-        std::cout << "   container: " << manager.GetNcontacts(container);
-        std::cout << "   my_sphere: " << manager.GetNcontacts(my_sphere);
-        std::cout << "   my_box: " << manager.GetNcontacts(my_box);
-        std::cout << "   my_cylinder: " << manager.GetNcontacts(my_cylinder);
+        std::cout << "   container: " << manager.GetNumContacts(container);
+        std::cout << "   my_sphere: " << manager.GetNumContacts(my_sphere);
+        std::cout << "   my_box: " << manager.GetNumContacts(my_box);
+        std::cout << "   my_cylinder: " << manager.GetNumContacts(my_cylinder);
         std::cout << std::endl;
     }
 

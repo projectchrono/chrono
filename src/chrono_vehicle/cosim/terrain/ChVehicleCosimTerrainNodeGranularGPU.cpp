@@ -766,7 +766,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnRender() {
 
 void ChVehicleCosimTerrainNodeGranularGPU::UpdateVisualizationParticles() {
     // Note: it is assumed that the visualization bodies were created before the proxy body(ies).
-    const auto& blist = m_system->Get_bodylist();
+    const auto& blist = m_system->GetBodies();
     for (unsigned int i = 0; i < m_num_particles; i++) {
         auto pos = m_systemGPU->GetParticlePosition(i);
         blist[i]->SetPos(pos);

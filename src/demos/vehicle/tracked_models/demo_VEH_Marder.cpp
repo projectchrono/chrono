@@ -336,7 +336,7 @@ int main(int argc, char* argv[]) {
             auto track_L = marder.GetVehicle().GetTrackAssembly(LEFT);
             auto track_R = marder.GetVehicle().GetTrackAssembly(RIGHT);
             cout << "Time: " << marder.GetSystem()->GetChTime() << endl;
-            cout << "      Num. contacts: " << marder.GetSystem()->GetNcontacts() << endl;
+            cout << "      Num. contacts: " << marder.GetSystem()->GetNumContacts() << endl;
             const ChFrameMoving<>& c_ref = marder.GetChassisBody()->GetFrame_REF_to_abs();
             const ChVector3d& c_pos = marder.GetVehicle().GetPos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;

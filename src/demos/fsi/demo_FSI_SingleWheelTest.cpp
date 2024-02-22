@@ -338,7 +338,7 @@ int main(int argc, char* argv[]) {
     // Construction of the FSI system must be finalized before running
     sysFSI.Initialize();
 
-    auto wheel = sysMBS.Get_bodylist()[1];
+    auto wheel = sysMBS.GetBodies()[1];
     ChVector3d force = actuator->Get_react_force();
     ChVector3d torque = motor->Get_react_torque();
     ChVector3d w_pos = wheel->GetPos();

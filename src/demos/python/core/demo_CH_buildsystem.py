@@ -82,7 +82,7 @@ print('----------')
 
 # Iterate over added bodies (Python style)
 print ('Positions of all bodies in the system:')
-for abody in my_system.Get_bodylist():
+for abody in my_system.GetBodies():
     print (' ', abody.GetName(), ' pos =', abody.GetPos() )
 
 # Use a body with an auxiliary reference (REF) that does not correspond to the center of gravity (COG)
@@ -107,7 +107,7 @@ my_system.AddLink(rev)
 
 # Iterate over added links (Python style)
 print ('Names of all links in the system:')
-for alink in my_system.Get_linklist():
+for alink in my_system.GetLinks():
     print ('  link: ', alink.GetName() )
 
 

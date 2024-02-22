@@ -324,7 +324,7 @@ void ANCFBeamTest::RunTimingTest(ChMatrixNM<double, 4, 19>& timing_stats, const 
 
     // Time the requested number of steps, collecting timing information (system is not restarted between collections)
     auto LS = std::dynamic_pointer_cast<ChDirectSolverLS>(GetSystem()->GetSolver());
-    auto MeshList = GetSystem()->Get_meshlist();
+    auto MeshList = GetSystem()->GetMeshes();
     for (int r = 0; r < REPEATS; r++) {
         for (int i = 0; i < NUM_SIM_STEPS; i++) {
             for (auto& Mesh : MeshList) {

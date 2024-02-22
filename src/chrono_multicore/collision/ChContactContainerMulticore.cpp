@@ -81,7 +81,7 @@ void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContac
 
     // Grab the list of bodies.
     // NOTE: we assume that bodies were added in the order of their IDs!
-    auto bodylist = GetSystem()->Get_bodylist();
+    auto bodylist = GetSystem()->GetBodies();
 
     // Contact forces
     ChVector3d force;

@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        auto origin = sysMBS.Get_bodylist()[1]->GetPos();
+        auto origin = sysMBS.GetBodies()[1]->GetPos();
 
         visFSI->SetTitle("Chrono::FSI cylinder drop");
         visFSI->SetSize(1280, 720);
@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "step: " << current_step << "\ttime: " << time << "\tRTF: " << sysFSI.GetRTF()
-                  << "\tcyl z: " << sysMBS.Get_bodylist()[1]->GetPos().z() << std::endl;
+                  << "\tcyl z: " << sysMBS.GetBodies()[1]->GetPos().z() << std::endl;
 
         // Call the FSI solver
         sysFSI.DoStepDynamics_FSI();

@@ -1058,11 +1058,11 @@ void ChTimestepperNewmark::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Da.setZero(mintegrable->GetNcoords_a(), GetIntegrable());
+    Da.setZero(mintegrable->GetNcoords_v(), GetIntegrable());
     Dl.setZero(mintegrable->GetNconstr());
     Xnew.setZero(mintegrable->GetNcoords_x(), mintegrable);
     Vnew.setZero(mintegrable->GetNcoords_v(), mintegrable);
-    Anew.setZero(mintegrable->GetNcoords_a(), mintegrable);
+    Anew.setZero(mintegrable->GetNcoords_v(), mintegrable);
     R.setZero(mintegrable->GetNcoords_v());
     Rold.setZero(mintegrable->GetNcoords_v());
     Qc.setZero(mintegrable->GetNconstr());

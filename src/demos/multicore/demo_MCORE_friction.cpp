@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
     while (vis.Run()) {
         sys.DoStepDynamics(time_step);
         vis.Render();
-        ////std::cout << "num contacts: " << sys.GetNcontacts() << "\n\n";
+        ////std::cout << "num contacts: " << sys.GetNumContacts() << "\n\n";
     }
 
     return 0;

@@ -394,7 +394,7 @@ int main(int argc, char* argv[]) {
 
         robot.DoStepDynamics(time_step);
 
-        ////if (my_sys->GetNcontacts() > 0) {
+        ////if (my_sys->GetNumContacts() > 0) {
         ////    robot.ReportContacts();
         ////}
 

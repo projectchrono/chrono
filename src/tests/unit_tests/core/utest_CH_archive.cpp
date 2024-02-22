@@ -526,8 +526,8 @@ TEST(ChArchiveJSON, nullpointers) {
 //             system.DoStepDynamics(timestep);
 //         }
 //
-//         shaft0_pos_before_archive = system.Get_shaftlist()[0]->GetPos();
-//         shaft1_posdt_before_archive = system.Get_shaftlist()[1]->GetPos_dt();
+//         shaft0_pos_before_archive = system.GetShafts()[0]->GetPos();
+//         shaft1_posdt_before_archive = system.GetShafts()[1]->GetPos_dt();
 //
 //     }
 //
@@ -542,8 +542,8 @@ TEST(ChArchiveJSON, nullpointers) {
 //         system.DoStepDynamics(timestep);
 //     }
 //
-//     double shaft0_pos_after_archive = system.Get_shaftlist()[0]->GetPos();
-//     double shaft1_posdt_after_archive = system.Get_shaftlist()[1]->GetPos_dt();
+//     double shaft0_pos_after_archive = system.GetShafts()[0]->GetPos();
+//     double shaft1_posdt_after_archive = system.GetShafts()[1]->GetPos_dt();
 //
 //     //ASSERT_NEAR(shaft0_pos_before_archive, shaft0_pos_after_archive, ABS_ERR);
 //     //ASSERT_NEAR(shaft1_posdt_before_archive, shaft1_posdt_after_archive, ABS_ERR);

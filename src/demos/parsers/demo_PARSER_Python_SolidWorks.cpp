@@ -67,16 +67,16 @@ int main(int argc, char* argv[]) {
     // Restore path to Chrono data files (modified by the Python importer)
     SetChronoDataPath(data_path);
 
-    for (auto body : sys.Get_bodylist()) {
+    for (auto body : sys.GetBodies()) {
         std::cout << "item:" << typeid(body).name() << std::endl;
     }
-    for (auto link : sys.Get_linklist()) {
+    for (auto link : sys.GetLinks()) {
         std::cout << "item:" << typeid(link).name() << std::endl;
     }
-    for (auto& mesh : sys.Get_meshlist()) {
+    for (auto& mesh : sys.GetMeshes()) {
         std::cout << "item:" << typeid(mesh).name() << std::endl;
     }
-    for (auto ph : sys.Get_otherphysicslist()) {
+    for (auto ph : sys.GetOtherPhysicsItems()) {
         std::cout << "item:" << typeid(ph).name() << std::endl;
     }
 

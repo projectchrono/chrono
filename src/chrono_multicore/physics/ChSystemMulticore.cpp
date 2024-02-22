@@ -643,7 +643,7 @@ void ChSystemMulticore::RecomputeThreads() {
 }
 
 void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystem::Type type) {
-    assert(assembly.GetNbodies() == 0);
+    assert(assembly.GetNumBodies() == 0);
 
     if (type != ChCollisionSystem::Type::MULTICORE) {
         std::cout << "Only the Chrono multicore collision detection system is supported!" << std::endl;

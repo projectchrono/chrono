@@ -153,7 +153,7 @@ TEST_P(SphereSphereTest, impact) {
     while (sys->GetChTime() < t_end) {
         sys->DoStepDynamics(time_step);
         ////std::cout << sys->GetChTime() << " " << body1->GetPos().x() << "  " << body1->GetPos_dt().x() << std::endl;
-        if (!contact && sys->GetNcontacts() > 0)
+        if (!contact && sys->GetNumContacts() > 0)
             contact = true;
     }
 

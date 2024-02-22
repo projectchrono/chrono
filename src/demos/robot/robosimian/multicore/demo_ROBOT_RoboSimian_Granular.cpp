@@ -425,7 +425,7 @@ int main(int argc, char* argv[]) {
 
         robot.DoStepDynamics(step_size);
 
-        ////if (sys->GetNcontacts() > 0) {
+        ////if (sys->GetNumContacts() > 0) {
         ////    robot.ReportContacts();
         ////}
 

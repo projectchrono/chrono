@@ -44,7 +44,7 @@ void WriteBodies(ChSystem* system,
                  const std::string& delim) {
     CSV_writer csv(delim);
 
-    for (auto body : system->Get_bodylist()) {
+    for (auto body : system->GetBodies()) {
         if (active_only && !body->IsActive())
             continue;
         csv << body->GetPos() << body->GetRot();
@@ -71,7 +71,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     int ctype = (system->GetContactMethod() == ChContactMethod::NSC) ? 0 : 1;
     csv << ctype << std::endl;
 
-    for (auto body : system->Get_bodylist()) {
+    for (auto body : system->GetBodies()) {
         // Write body identifier, the body fixed flag, and the collide flag
         csv << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide() << tab;
 
@@ -426,7 +426,7 @@ void WriteVisualizationAssets(ChSystem* system,
     int b_count = 0;
 
     if (body_info) {
-        for (auto body : system->Get_bodylist()) {
+        for (auto body : system->GetBodies()) {
             if (!selector(*body))
                 continue;
 
@@ -441,7 +441,7 @@ void WriteVisualizationAssets(ChSystem* system,
 
     // Loop over all bodies and over all their assets.
     int a_count = 0;
-    for (auto body : system->Get_bodylist()) {
+    for (auto body : system->GetBodies()) {
         if (!selector(*body))
             continue;
 
@@ -515,7 +515,7 @@ void WriteVisualizationAssets(ChSystem* system,
 
     // Loop over all links.  Write information on selected types of links.
     int l_count = 0;
-    for (auto ilink : system->Get_linklist()) {
+    for (auto ilink : system->GetLinks()) {
         if (auto linkR = std::dynamic_pointer_cast<ChLinkLockRevolute>(ilink)) {
             chrono::ChFrame<> frA_abs = *(linkR->GetMarker1()) >> *(linkR->GetBody1());
             chrono::ChFrame<> frB_abs = *(linkR->GetMarker2()) >> *(linkR->GetBody2());
@@ -561,7 +561,7 @@ void WriteVisualizationAssets(ChSystem* system,
 
     // Loop over links and write assets associated with spring-dampers.
     int la_count = 0;
-    for (auto ilink : system->Get_linklist()) {
+    for (auto ilink : system->GetLinks()) {
         auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink);
         if (!link)
             continue;

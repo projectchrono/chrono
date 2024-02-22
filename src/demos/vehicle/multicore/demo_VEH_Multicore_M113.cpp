@@ -436,7 +436,7 @@ int main(int argc, char* argv[]) {
         time += time_step;
         sim_frame++;
         exec_time += sys->GetTimerStep();
-        num_contacts += sys->GetNcontacts();
+        num_contacts += sys->GetNumContacts();
     }
 
     // Final stats

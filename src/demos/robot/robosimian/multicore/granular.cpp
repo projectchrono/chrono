@@ -195,7 +195,7 @@ std::pair<double, double> GroundGranular::GetTopHeight(int num_samples) const {
     std::vector<double> heights(num_samples, -DBL_MAX);
 
     // Loop over all bodies in system
-    for (auto body : m_sys->Get_bodylist()) {
+    for (auto body : m_sys->GetBodies()) {
         if (body->GetIdentifier() <= m_start_id)
             continue;
         auto pos = body->GetPos();

@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
     double time = 0.0;
     int current_step = 0;
 
-    auto body = sysMBS.Get_bodylist()[1];
+    auto body = sysMBS.GetBodies()[1];
 
     ChTimer timer;
     while (time < total_time) {
@@ -718,7 +718,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
 
         file << "POINTS " << 8 << " "
              << "float" << std::endl;
-        auto Body = sysMBS.Get_bodylist()[i + 2 + 16];
+        auto Body = sysMBS.GetBodies()[i + 2 + 16];
         ChVector3d center = Body->GetPos();
         ChMatrix33<> Rotation = Body->GetRot();
         ChVector3d vertex1 = Rotation * Node1 + center;
@@ -748,8 +748,8 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
     }
 
     // save rigid body position and rotation
-    for (int i = 1; i < sysMBS.Get_bodylist().size(); i++) {
-        auto body = sysMBS.Get_bodylist()[i];
+    for (int i = 1; i < sysMBS.GetBodies().size(); i++) {
+        auto body = sysMBS.GetBodies()[i];
         ChFrame<> ref_frame = body->GetFrame_REF_to_abs();
         ChVector3d pos = ref_frame.GetPos();
         ChQuaternion<> rot = ref_frame.GetRot();

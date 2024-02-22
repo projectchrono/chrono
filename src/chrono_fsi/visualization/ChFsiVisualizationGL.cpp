@@ -125,7 +125,7 @@ void ChFsiVisualizationGL::EnableInfoOverlay(bool val) {
 
 void ChFsiVisualizationGL::Initialize() {
     // Cache current number of bodies (if any) in m_system
-    m_bce_start_index = static_cast<unsigned int>(m_system->Get_bodylist().size());
+    m_bce_start_index = static_cast<unsigned int>(m_system->GetBodies().size());
 
     if (m_sph_markers) {
         m_sph_cloud = chrono_types::make_shared<ChParticleCloud>();
@@ -193,7 +193,7 @@ bool ChFsiVisualizationGL::Render() {
         thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkersD2->posRadD;
 
         // List of proxy bodies
-        const auto& blist = m_system->Get_bodylist();
+        const auto& blist = m_system->GetBodies();
 
         size_t p = 0;
         size_t b = 0;

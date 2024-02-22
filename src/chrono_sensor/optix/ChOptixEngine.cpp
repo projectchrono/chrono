@@ -514,7 +514,7 @@ void ChOptixEngine::ConstructScene() {
     m_pipeline->CleanMaterials();  // remove all programs and materials
 
     // iterate through all bodies in Chrono and add a subnode for each body in Chrono
-    for (auto body : m_system->Get_bodylist()) {
+    for (auto body : m_system->GetBodies()) {
         if (body->GetVisualModel()) {
             for (auto& shape_instance : body->GetVisualModel()->GetShapes()) {
                 const auto& shape = shape_instance.first;
@@ -564,7 +564,7 @@ void ChOptixEngine::ConstructScene() {
     }
 
     // // Assumption made here that other physics items don't have a transform -> not always true!!!
-    for (auto item : m_system->Get_otherphysicslist()) {
+    for (auto item : m_system->GetOtherPhysicsItems()) {
         if (item->GetVisualModel()) {
             for (auto& shape_instance : item->GetVisualModel()->GetShapes()) {
                 const auto& shape = shape_instance.first;

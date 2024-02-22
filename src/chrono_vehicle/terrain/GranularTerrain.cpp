@@ -152,7 +152,7 @@ class BoundaryContact : public ChSystem::CustomCollisionCallback {
 };
 
 void BoundaryContact::OnCustomCollision(ChSystem* system) {
-    auto bodylist = system->Get_bodylist();
+    auto bodylist = system->GetBodies();
     for (auto body : bodylist) {
         auto center = body->GetPos();
         if (body->GetIdentifier() > m_terrain->m_start_id) {
@@ -447,7 +447,7 @@ void GranularTerrain::Synchronize(double time) {
 
     // Count particles that must be relocated.
     unsigned int num_moved_particles = 0;
-    for (auto body : m_ground->GetSystem()->Get_bodylist()) {
+    for (auto body : m_ground->GetSystem()->GetBodies()) {
         if (body->GetIdentifier() > m_start_id && body->GetPos().x() - m_radius < m_rear) {
             num_moved_particles++;
         }
@@ -468,7 +468,7 @@ void GranularTerrain::Synchronize(double time) {
 
     // Relocate particles at their new locations.
     size_t ip = 0;
-    for (auto body : m_ground->GetSystem()->Get_bodylist()) {
+    for (auto body : m_ground->GetSystem()->GetBodies()) {
         if (body->GetIdentifier() > m_start_id && body->GetPos().x() - m_radius < m_rear) {
             body->SetPos(new_points[ip++]);
             body->SetPos_dt(m_init_part_vel);
@@ -489,7 +489,7 @@ void GranularTerrain::Synchronize(double time) {
 
 double GranularTerrain::GetHeight(const ChVector3d& loc) const {
     double highest = m_bottom;
-    for (auto body : m_ground->GetSystem()->Get_bodylist()) {
+    for (auto body : m_ground->GetSystem()->GetBodies()) {
         ////double height = ChWorldFrame::Height(body->GetPos());
         if (body->GetIdentifier() > m_start_id && body->GetPos().z() > highest)
             highest = body->GetPos().z();

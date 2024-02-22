@@ -64,7 +64,7 @@ class ChApi ChIntegrable {
     /// This is a base implementation that works in many cases where dim(Y) = dim(dy),
     /// but it can be overridden in the case that y contains quaternions for rotations
     /// rather than simple y+dy
-    virtual int GetNcoords_dy() { return GetNcoords_y(); }
+    virtual int GetNcoords_dy() = 0;
 
     /// Return the number of lagrangian multipliers (constraints).
     /// By default returns 0.
@@ -246,13 +246,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     virtual int GetNcoords_x() = 0;
 
     /// Return the number of speed coordinates of v in y = {x, v} and  dy/dt={v, a}
-    /// This is a base implementation that works in many cases where dim(v) = dim(x), but
-    /// might be less ex. if x uses quaternions and v uses angular vel.
-    virtual int GetNcoords_v() { return GetNcoords_x(); }
-
-    /// Return the number of acceleration coordinates of a in dy/dt={v, a}
-    /// This is a default implementation that works in almost all cases, as dim(a) = dim(v),
-    virtual int GetNcoords_a() { return GetNcoords_v(); }
+    virtual int GetNcoords_v() = 0;
 
     /// Set up the system state with separate II order components x, v, a
     /// for y = {x, v} and  dy/dt={v, a}
@@ -456,7 +450,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
 
     /// Return the number of coordinates in the state increment.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
-    virtual int GetNcoords_dy() override { return GetNcoords_v() + GetNcoords_a(); }
+    virtual int GetNcoords_dy() override { return 2*GetNcoords_v(); }
 
     /// Gather system state in specified array.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)

@@ -485,16 +485,16 @@ void ChVisualSystemIrrlicht::EnableShadows(std::shared_ptr<ChPhysicsItem> item) 
         if (node != m_nodes.end())
             AddShadowToIrrNode(node->second.get());
     } else {
-        for (auto& body : m_systems[0]->Get_bodylist()) {
+        for (auto& body : m_systems[0]->GetBodies()) {
             EnableShadows(body);
         }
-        for (auto& link : m_systems[0]->Get_linklist()) {
+        for (auto& link : m_systems[0]->GetLinks()) {
             EnableShadows(link);
         }
-        for (auto& mesh : m_systems[0]->Get_meshlist()) {
+        for (auto& mesh : m_systems[0]->GetMeshes()) {
             EnableShadows(mesh);
         }
-        for (auto& ph : m_systems[0]->Get_otherphysicslist()) {
+        for (auto& ph : m_systems[0]->GetOtherPhysicsItems()) {
             EnableShadows(ph);
         }
     }
@@ -586,7 +586,7 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
             m_gui->modal_phi = 0;
 
         // scan for modal assemblies, if any
-        for (const auto& item : m_systems[0]->Get_otherphysicslist()) {
+        for (const auto& item : m_systems[0]->GetOtherPhysicsItems()) {
             if (auto modalassembly = std::dynamic_pointer_cast<modal::ChModalAssembly>(item)) {
                 try {
                     // superposition of modal shape
@@ -716,19 +716,19 @@ void ChVisualSystemIrrlicht::CreateIrrNodes(const ChAssembly* assembly, std::uno
     if (!trace.insert(assembly).second)
         return;
 
-    for (auto& body : assembly->Get_bodylist()) {
+    for (auto& body : assembly->GetBodies()) {
         CreateIrrNode(body);
     }
 
-    for (auto& link : assembly->Get_linklist()) {
+    for (auto& link : assembly->GetLinks()) {
         CreateIrrNode(link);
     }
 
-    for (auto& mesh : assembly->Get_meshlist()) {
+    for (auto& mesh : assembly->GetMeshes()) {
         CreateIrrNode(mesh);
     }
 
-    for (auto& ph : assembly->Get_otherphysicslist()) {
+    for (auto& ph : assembly->GetOtherPhysicsItems()) {
         CreateIrrNode(ph);
 
         // Recursively process sub-assemblies

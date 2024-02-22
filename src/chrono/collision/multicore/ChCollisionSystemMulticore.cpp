@@ -242,7 +242,7 @@ void ChCollisionSystemMulticore::PreProcess() {
     std::vector<char>& active = *cd_data->state_data.active_rigid;
     std::vector<char>& collide = *cd_data->state_data.collide_rigid;
 
-    const auto& blist = m_system->Get_bodylist();
+    const auto& blist = m_system->GetBodies();
     int nbodies = static_cast<int>(blist.size());
 
     position.resize(nbodies);
@@ -271,7 +271,7 @@ void ChCollisionSystemMulticore::PreProcess() {
 void ChCollisionSystemMulticore::PostProcess() {
     if (use_aabb_active) {
         const auto& active = *cd_data->state_data.active_rigid;
-        auto& blist = m_system->Get_bodylist();
+        auto& blist = m_system->GetBodies();
         int nbodies = static_cast<int>(blist.size());
 
 #pragma omp parallel for
@@ -322,7 +322,7 @@ void ChCollisionSystemMulticore::Run() {
 // -----------------------------------------------------------------------------
 
 void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* container) {
-    const auto& blist = m_system->Get_bodylist();
+    const auto& blist = m_system->GetBodies();
 
     // Resize global arrays with composite material properties.
     // NOTE: important to do this here, to set size to zero if no contacts (in case some other added by a custom user
@@ -589,7 +589,7 @@ bool ChCollisionSystemMulticore::RayHit(const ChVector3d& from, const ChVector3d
         uint bid = cd_data->shape_data.id_rigid[info.shapeID];
 
         // Collision model of hit body
-        result.hitModel = m_system->Get_bodylist()[bid]->GetCollisionModel().get();
+        result.hitModel = m_system->GetBodies()[bid]->GetCollisionModel().get();
 
         return true;
     }

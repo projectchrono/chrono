@@ -691,7 +691,7 @@ int main(int argc, char* argv[]) {
 
         // .. draw the distance constraints (the massless rods) as simplified lines
         // .. draw the spring constraints as simplified spring helix
-        for (auto link : sys.Get_linklist()) {
+        for (auto link : sys.GetLinks()) {
             if (auto linkdist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
                 tools::drawSegment(vis.get(), linkdist->GetEndPoint1Abs(), linkdist->GetEndPoint2Abs(),
                                    ChColor(0.00f, 0.08f, 0.00f), true);

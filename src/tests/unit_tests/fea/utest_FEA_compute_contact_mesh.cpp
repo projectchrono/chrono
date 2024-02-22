@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
 
         system.GetContactContainer()->ComputeContactForces();
         ChVector3d contact_force = ground->GetContactForce();
-        std::cout << "t = " << system.GetChTime() << " num contacts = " << system.GetContactContainer()->GetNcontacts()
+        std::cout << "t = " << system.GetChTime() << " num contacts = " << system.GetContactContainer()->GetNumContacts()
                  << "  force =  " << contact_force.z() << "\n";
         std::cout << "Vertical Displacement of a Node: " << nodeRef->GetPos().z() << "\n";
         std::cout << "Total Weight of Shell: " << total_weight << "\n";

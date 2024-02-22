@@ -147,7 +147,7 @@ void SetSimParameters(
 #endif
 
 bool CalcKE(ChSystem* sys, const double& threshold) {
-    const std::shared_ptr<ChBody> body = sys->Get_bodylist().at(1);
+    const std::shared_ptr<ChBody> body = sys->GetBodies().at(1);
 
     ChVector3d eng_trn = 0.5 * body->GetMass() * body->GetPos_dt() * body->GetPos_dt();
     ChVector3d eng_rot = 0.5 * body->GetInertiaXX() * body->GetWvel_par() * body->GetWvel_par();
@@ -166,7 +166,7 @@ bool CalcAverageKE(ChSystem* sys, const double& threshold) {
     double KE_trn = 0;
     double KE_rot = 0;
 
-    for (auto body : sys->Get_bodylist()) {
+    for (auto body : sys->GetBodies()) {
         ChVector3d eng_trn = 0.5 * body->GetMass() * body->GetPos_dt() * body->GetPos_dt();
         ChVector3d eng_rot = 0.5 * body->GetInertiaXX() * body->GetWvel_par() * body->GetWvel_par();
 
@@ -174,8 +174,8 @@ bool CalcAverageKE(ChSystem* sys, const double& threshold) {
         KE_rot += eng_rot.x() + eng_rot.y() + eng_rot.z();
     }
 
-    double KE_trn_avg = KE_trn / sys->Get_bodylist().size();
-    double KE_rot_avg = KE_rot / sys->Get_bodylist().size();
+    double KE_trn_avg = KE_trn / sys->GetBodies().size();
+    double KE_rot_avg = KE_rot / sys->GetBodies().size();
     double KE_tot_avg = KE_trn_avg + KE_rot_avg;
 
     // Return true if the calc falls below the given threshold

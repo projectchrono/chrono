@@ -106,15 +106,15 @@ class ChApi ChAssembly : public ChPhysicsItem {
     void RemoveAllOtherPhysicsItems();
 
     /// Get the list of bodies.
-    const std::vector<std::shared_ptr<ChBody>>& Get_bodylist() const { return bodylist; }
+    const std::vector<std::shared_ptr<ChBody>>& GetBodies() const { return bodylist; }
     /// Get the list of shafts.
-    const std::vector<std::shared_ptr<ChShaft>>& Get_shaftlist() const { return shaftlist; }
+    const std::vector<std::shared_ptr<ChShaft>>& GetShafts() const { return shaftlist; }
     /// Get the list of links.
-    const std::vector<std::shared_ptr<ChLinkBase>>& Get_linklist() const { return linklist; }
+    const std::vector<std::shared_ptr<ChLinkBase>>& GetLinks() const { return linklist; }
     /// Get the list of meshes.
-    const std::vector<std::shared_ptr<fea::ChMesh>>& Get_meshlist() const { return meshlist; }
+    const std::vector<std::shared_ptr<fea::ChMesh>>& GetMeshes() const { return meshlist; }
     /// Get the list of physics items that are not in the body or link lists.
-    const std::vector<std::shared_ptr<ChPhysicsItem>>& Get_otherphysicslist() const { return otherphysicslist; }
+    const std::vector<std::shared_ptr<ChPhysicsItem>>& GetOtherPhysicsItems() const { return otherphysicslist; }
 
     /// Search a body by its name.
     std::shared_ptr<ChBody> SearchBody(const std::string& name) const;
@@ -140,31 +140,31 @@ class ChApi ChAssembly : public ChPhysicsItem {
     //
 
     /// Get the number of active bodies (so, excluding those that are sleeping or are fixed to ground).
-    int GetNbodies() const { return nbodies; }
+    int GetNumBodies() const { return nbodies; }
     /// Get the number of bodies that are in sleeping mode (excluding fixed bodies).
-    int GetNbodiesSleeping() const { return nbodies_sleep; }
+    int GetNumBodiesSleeping() const { return nbodies_sleep; }
     /// Get the number of bodies that are fixed to ground.
-    int GetNbodiesFixed() const { return nbodies_fixed; }
+    int GetNumBodiesFixed() const { return nbodies_fixed; }
     /// Get the total number of bodies added to the assembly, including the grounded and sleeping bodies.
-    int GetNbodiesTotal() const { return nbodies + nbodies_fixed + nbodies_sleep; }
+    int GetNumBodiesTotal() const { return nbodies + nbodies_fixed + nbodies_sleep; }
 
     /// Get the number of shafts.
-    int GetNshafts() const { return nshafts; }
+    int GetNumShafts() const { return nshafts; }
     /// Get the number of shafts that are in sleeping mode (excluding fixed shafts).
-    int GetNshaftsSleeping() const { return nshafts_sleep; }
+    int GetNumShaftsSleeping() const { return nshafts_sleep; }
     /// Get the number of shafts that are fixed to ground.
-    int GetNshaftsFixed() const { return nshafts_fixed; }
+    int GetNumShaftsFixed() const { return nshafts_fixed; }
     /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
-    int GetNshaftsTotal() const { return nshafts + nshafts_fixed + nshafts_sleep; }
+    int GetNumShaftsTotal() const { return nshafts + nshafts_fixed + nshafts_sleep; }
 
     /// Get the number of links.
-    int GetNlinks() const { return nlinks; }
+    int GetNumLinks() const { return nlinks; }
 
     /// Get the number of meshes.
-    int GetNmeshes() const { return nmeshes; }
+    int GetNumMeshes() const { return nmeshes; }
 
     /// Get the number of other physics items (other than bodies, links, or meshes).
-    int GetNphysicsItems() const { return nphysicsitems; }
+    int GetNumOtherPhysicsItems() const { return nphysicsitems; }
 
     /// Get the number of coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
     int GetNcoords() const { return ncoords; }
@@ -184,6 +184,17 @@ class ChApi ChAssembly : public ChPhysicsItem {
     int GetNdoc_w_D() const { return ndoc_w_D; }
     /// Get the number of system variables (coordinates plus the constraint multipliers).
     int GetNsysvars_w() const { return nsysvars_w; }
+
+    /// Get the number of scalar coordinates (ex. dim of position vector)
+    virtual int GetDOF() override { return GetNcoords(); }
+    /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector)
+    virtual int GetDOF_w() override { return GetNcoords_w(); }
+    /// Get the number of scalar constraints, if any, in this item
+    virtual int GetDOC() override { return GetNdoc_w(); }
+    /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
+    virtual int GetDOC_c() override { return GetNdoc_w_C(); }
+    /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
+    virtual int GetDOC_d() override { return GetNdoc_w_D(); }
 
     // PHYSICS ITEM INTERFACE
 
@@ -216,17 +227,6 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     virtual void SetNoSpeedNoAcceleration() override;
-
-    /// Get the number of scalar coordinates (ex. dim of position vector)
-    virtual int GetDOF() override { return GetNcoords(); }
-    /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector)
-    virtual int GetDOF_w() override { return GetNcoords_w(); }
-    /// Get the number of scalar constraints, if any, in this item
-    virtual int GetDOC() override { return GetNdoc_w(); }
-    /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    virtual int GetDOC_c() override { return GetNdoc_w_C(); }
-    /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    virtual int GetDOC_d() override { return GetNdoc_w_D(); }
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,

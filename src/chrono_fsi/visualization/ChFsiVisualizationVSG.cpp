@@ -209,7 +209,7 @@ bool ChFsiVisualizationVSG::Render() {
         thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkersD2->posRadD;
 
         // List of proxy bodies
-        ////const auto& blist = m_system->Get_bodylist();
+        ////const auto& blist = m_system->GetBodies();
 
         size_t p = 0;
 

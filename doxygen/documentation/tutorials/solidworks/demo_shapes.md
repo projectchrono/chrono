@@ -239,7 +239,7 @@ Note also that nonzero restitution coefficient is not physically accurate except
 
 + Assign the brick_material to all rigid body objects, by iterating over all items in the ChSystem:
 ~~~{.py}
-for my_body in my_system.Get_bodylist(): 
+for my_body in my_system.GetBodies(): 
         my_body.SetMaterialSurface(brick_material) 
 ~~~
 
@@ -251,7 +251,7 @@ marble_povmat.SetCommands('''
        texture{T_Stone8}
         ''')
 
-for my_body in my_system.Get_bodylist(): 
+for my_body in my_system.GetBodies(): 
         my_body.AddAsset(marble_povmat)
 ~~~
 

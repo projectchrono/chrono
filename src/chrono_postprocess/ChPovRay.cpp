@@ -86,31 +86,31 @@ void ChPovRay::Remove(std::shared_ptr<ChPhysicsItem> item) {
 }
 
 void ChPovRay::AddAll() {
-    for (const auto& body : mSystem->Get_bodylist()) {
+    for (const auto& body : mSystem->GetBodies()) {
         Add(body);
     }
-    for (const auto& mesh : mSystem->Get_meshlist()) {
+    for (const auto& mesh : mSystem->GetMeshes()) {
         Add(mesh);
     }
-    for (const auto& ph : mSystem->Get_otherphysicslist()) {
+    for (const auto& ph : mSystem->GetOtherPhysicsItems()) {
         Add(ph);
     }
-    for (const auto& link : mSystem->Get_linklist()) {
+    for (const auto& link : mSystem->GetLinks()) {
         Add(link);
     }
 }
 
 void ChPovRay::RemoveAll() {
-    for (auto& body : mSystem->Get_bodylist()) {
+    for (auto& body : mSystem->GetBodies()) {
         Remove(body);
     }
-    for (auto& mesh : mSystem->Get_meshlist()) {
+    for (auto& mesh : mSystem->GetMeshes()) {
         Remove(mesh);
     }
-    for (auto& ph : mSystem->Get_otherphysicslist()) {
+    for (auto& ph : mSystem->GetOtherPhysicsItems()) {
         Remove(ph);
     }
-    for (auto& link : mSystem->Get_linklist()) {
+    for (auto& link : mSystem->GetLinks()) {
         Remove(link);
     }
 }

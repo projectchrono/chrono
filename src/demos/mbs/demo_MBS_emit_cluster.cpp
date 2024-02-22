@@ -178,17 +178,17 @@ int main(int argc, char* argv[]) {
 
         // Apply custom forcefield (brute force approach..)
         // A) reset 'user forces accumulators':
-        for (auto body : sys.Get_bodylist()) {
+        for (auto body : sys.GetBodies()) {
             body->Empty_forces_accumulators();
         }
 
         // B) store user computed force:
         // double G_constant = 6.674e-11; // gravitational constant
         double G_constant = 6.674e-3;  // gravitational constant - HACK to speed up simulation
-        for (unsigned int i = 0; i < sys.Get_bodylist().size(); i++) {
-            auto abodyA = sys.Get_bodylist()[i];
-            for (unsigned int j = i + 1; j < sys.Get_bodylist().size(); j++) {
-                auto abodyB = sys.Get_bodylist()[j];
+        for (unsigned int i = 0; i < sys.GetBodies().size(); i++) {
+            auto abodyA = sys.GetBodies()[i];
+            for (unsigned int j = i + 1; j < sys.GetBodies().size(); j++) {
+                auto abodyB = sys.GetBodies()[j];
                 ChVector3d D_attract = abodyB->GetPos() - abodyA->GetPos();
                 double r_attract = D_attract.Length();
                 double f_attract = G_constant * (abodyA->GetMass() * abodyB->GetMass()) / (pow(r_attract, 2));

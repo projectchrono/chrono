@@ -181,7 +181,7 @@ while vis.Run():
     sys.DoStepDynamics(1e-3)
     
     # Process contacts
-    print(str(sys.GetChTime() ) + "  "  + str(sys.GetNcontacts()) )
+    print(str(sys.GetChTime() ) + "  "  + str(sys.GetNumContacts()) )
     sys.GetContactContainer().ReportAllContacts(creporter)
     
     # Cumulative contact force and torque on boxes (as applied to COM)

@@ -119,11 +119,11 @@ void SetupSystem(ChSystemMulticoreNSC* msystem) {
 
 // Sync the positions and velocities of the rigid bodies
 void Sync(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B) {
-    for (int i = 0; i < msystem_A->Get_bodylist().size(); i++) {
-        ChVector3d pos = msystem_B->Get_bodylist().at(i)->GetPos();
-        ChVector3d pos_dt = msystem_B->Get_bodylist().at(i)->GetPos_dt();
-        msystem_A->Get_bodylist().at(i)->SetPos(pos);
-        msystem_A->Get_bodylist().at(i)->SetPos_dt(pos_dt);
+    for (int i = 0; i < msystem_A->GetBodies().size(); i++) {
+        ChVector3d pos = msystem_B->GetBodies().at(i)->GetPos();
+        ChVector3d pos_dt = msystem_B->GetBodies().at(i)->GetPos_dt();
+        msystem_A->GetBodies().at(i)->SetPos(pos);
+        msystem_A->GetBodies().at(i)->SetPos_dt(pos_dt);
     }
 }
 

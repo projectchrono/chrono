@@ -103,5 +103,5 @@ while vis.Run():
     vis.EndScene()
     sys.DoStepDynamics(1e-3)
 
-    print(sys.GetChTime(), "  ", sys.GetNcontacts())
+    print(sys.GetChTime(), "  ", sys.GetNumContacts())
     sys.GetCollisionSystem().Visualize(chrono.ChCollisionSystem.VIS_Shapes)

@@ -320,9 +320,9 @@ int main(int argc, char* argv[]) {
         sys->DoStepDynamics(time_step);
 
         /*
-        std::cout << "----\nTime: " << sys->GetChTime() << "  " << sys->GetNcontacts() << std::endl;
+        std::cout << "----\nTime: " << sys->GetChTime() << "  " << sys->GetNumContacts() << std::endl;
         std::cout << "Object position: " << object->GetPos() << std::endl;
-        if (sys->GetNcontacts()) {
+        if (sys->GetNumContacts()) {
             // Report all contacts
             sys->GetContactContainer()->ReportAllContacts(cmanager);
 

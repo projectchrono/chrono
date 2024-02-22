@@ -142,7 +142,7 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
     virtual void SetupPostProcess(ChSystem& msystem) {
         last_positions.clear();
 
-        for (auto body : msystem.Get_bodylist()) {
+        for (auto body : msystem.GetBodies()) {
             ChVector3d localpos = rectangle_csys.TransformParentToLocal(body->GetPos());
             if ((localpos.z() > 0) && (localpos.z() < margin) && (fabs(localpos.x()) < 0.5 * Xsize + margin) &&
                 (fabs(localpos.y()) < 0.5 * Ysize + margin)) {

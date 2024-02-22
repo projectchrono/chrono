@@ -39,8 +39,8 @@ class LinkLockBM : public ::benchmark::Fixture {
         }
         for (int i = 0; i < N; i++) {
             auto joint = chrono_types::make_shared<ChLinkLockRevolute>();
-            auto b1 = sys->Get_bodylist()[i];
-            auto b2 = sys->Get_bodylist()[i + 1];
+            auto b1 = sys->GetBodies()[i];
+            auto b2 = sys->GetBodies()[i + 1];
             auto loc = 0.5 * (b1->GetPos() + b2->GetPos());
             joint->Initialize(b1, b2, ChCoordsys<>(loc, QUNIT));
             sys->AddLink(joint);
@@ -59,22 +59,22 @@ class LinkLockBM : public ::benchmark::Fixture {
 #define BM_LINK_OP_TIME(TEST_NAME, AS_TYPE, OP)                                    \
     BENCHMARK_DEFINE_F(LinkLockBM, TEST_NAME)(benchmark::State & st) {             \
         for (auto _ : st) {                                                        \
-            for (auto link : sys->Get_linklist()) {                                \
+            for (auto link : sys->GetLinks()) {                                \
                 std::static_pointer_cast<ChLinkLock>(link)->AS_TYPE::OP(crt_time); \
             }                                                                      \
         }                                                                          \
-        st.SetItemsProcessed(st.iterations() * sys->Get_linklist().size());        \
+        st.SetItemsProcessed(st.iterations() * sys->GetLinks().size());        \
     }                                                                              \
     BENCHMARK_REGISTER_F(LinkLockBM, TEST_NAME)->Unit(benchmark::kMicrosecond);
 
 #define BM_LINK_OP_VOID(TEST_NAME, AS_TYPE, OP)                             \
     BENCHMARK_DEFINE_F(LinkLockBM, TEST_NAME)(benchmark::State & st) {      \
         for (auto _ : st) {                                                 \
-            for (auto link : sys->Get_linklist()) {                         \
+            for (auto link : sys->GetLinks()) {                         \
                 std::static_pointer_cast<ChLinkLock>(link)->AS_TYPE::OP();  \
             }                                                               \
         }                                                                   \
-        st.SetItemsProcessed(st.iterations() * sys->Get_linklist().size()); \
+        st.SetItemsProcessed(st.iterations() * sys->GetLinks().size()); \
     }                                                                       \
     BENCHMARK_REGISTER_F(LinkLockBM, TEST_NAME)->Unit(benchmark::kMicrosecond);
 
