@@ -62,6 +62,12 @@ class ChApi ChFunctionInterp : public ChFunction {
     /// Retrieve the underlying table of points.
     const std::map<double, double>& GetTable() { return m_table; }
 
+    /// Return the smallest value of x in the table.
+    double GetStart() const { return m_table.begin()->first; }
+
+    /// Return the biggest value of x in the table.
+    double GetEnd() const { return m_table.rbegin()->first; }
+
     /// Enable linear extrapolation.
     /// If enabled, the function will return linear extrapolation for \a x values outside the domain.
     /// while the first derivative will be kept equal to the derivative of the nearest two points.
