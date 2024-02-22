@@ -44,32 +44,26 @@ ChFunctionPositionXYZFunctions::~ChFunctionPositionXYZFunctions() {
 
 
 
-ChVector3d ChFunctionPositionXYZFunctions::Get_p(double s) const {
+ChVector3d ChFunctionPositionXYZFunctions::GetVal(double s) const {
 	return ChVector3d(
 		px->GetVal(s), 
 		py->GetVal(s), 
 		pz->GetVal(s));
 }
 
-ChVector3d ChFunctionPositionXYZFunctions::Get_p_ds(double s) const {
+ChVector3d ChFunctionPositionXYZFunctions::GetDer(double s) const {
 	return ChVector3d(
 		px->GetDer(s), 
 		py->GetDer(s), 
 		pz->GetDer(s));
 }
 
-ChVector3d ChFunctionPositionXYZFunctions::Get_p_dsds(double s) const {
+ChVector3d ChFunctionPositionXYZFunctions::GetDer2(double s) const {
 	return ChVector3d(
 		px->GetDer2(s), 
 		py->GetDer2(s), 
 		pz->GetDer2(s));
 }
-
-void ChFunctionPositionXYZFunctions::Estimate_s_domain(double& smin, double& smax) const {
-
-}
-
-
 
 void ChFunctionPositionXYZFunctions::ArchiveOut(ChArchiveOut& archive_out) {
     // version number

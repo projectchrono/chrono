@@ -128,7 +128,7 @@ mglyphasset = chrono.ChVisualShapeLine()
 mglyphasset.SetLineGeometry(mspline)
 impose_2.AddVisualShape(mglyphasset)
 
-mmoved_2.SetPos(f_line.Get_p(0) >> impose_2.GetFrame2()
+mmoved_2.SetPos(f_line.GetVal(0) >> impose_2.GetFrame2()
                 >> impose_2.GetBody2().GetCsys())
 
 #
@@ -171,7 +171,7 @@ sys.Add(mmoved_4)
 mmoved_4.SetPos(chrono.ChVector3d(2.5, 0, 0))
 
 f_abc_angles = chrono.ChFunctionRotationABCFunctions()
-f_abc_angles.SetAngleset(chrono.RotRepresentation_CARDAN_ANGLES_XYZ)
+f_abc_angles.SetRotationRepresentation(chrono.RotRepresentation_CARDAN_ANGLES_XYZ)
 f_abc_angles.SetFunctionAngleA(chrono.ChFunctionSine(0.3, 2))
 f_abc_angles.SetFunctionAngleB(chrono.ChFunctionRamp(0, 0.2))
 

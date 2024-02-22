@@ -24,23 +24,21 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChFunctionRotation) // NO! this is an abstract class, rather use for children concrete classes.
 
-  static const double FD_PERTURBATION = 1e-7;
-
-ChVector3d ChFunctionRotation::Get_w_loc(double s) const {
-    ChQuaternion<> q0 = Get_q(s);
-    ChQuaternion<> q1 = Get_q(s + FD_PERTURBATION);
+ChVector3d ChFunctionRotation::GetAngVel(double s) const {
+    ChQuaternion<> q0 = GetQuat(s);
+    ChQuaternion<> q1 = GetQuat(s + m_der_perturbation);
     if (q0.Dot(q1) < 0)
         q1 = -q1;  // because q1 and -q1 are the same rotation, but for finite difference we must use the closest to q0
-    ChQuaternion<> qdt = (q1 - q0) / FD_PERTURBATION;
+    ChQuaternion<> qdt = (q1 - q0) / m_der_perturbation;
     ChGlMatrix34<> Gl(q0);
     return Gl * qdt;
 }
 
-ChVector3d ChFunctionRotation::Get_a_loc(double s) const {
-    ChQuaternion<> q0 = Get_q(s - FD_PERTURBATION);
-    ChQuaternion<> q1 = Get_q(s);
-    ChQuaternion<> q2 = Get_q(s + FD_PERTURBATION);
-    ChQuaternion<> qdtdt = (q0 - q1 * 2.0 + q2) / (FD_PERTURBATION * FD_PERTURBATION);
+ChVector3d ChFunctionRotation::GetAngAcc(double s) const {
+    ChQuaternion<> q0 = GetQuat(s - m_der_perturbation);
+    ChQuaternion<> q1 = GetQuat(s);
+    ChQuaternion<> q2 = GetQuat(s + m_der_perturbation);
+    ChQuaternion<> qdtdt = (q0 - q1 * 2.0 + q2) / (m_der_perturbation * m_der_perturbation);
     ChGlMatrix34<> Gl(q1);
     return Gl * qdtdt;
 }

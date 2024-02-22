@@ -106,7 +106,7 @@ ChQuaternion<> QUADRANGLE(const ChQuaternion<>& q0, const ChQuaternion<>& q1, co
 
 
 
-ChQuaternion<> ChFunctionRotationSQUAD::Get_q(double s) const {
+ChQuaternion<> ChFunctionRotationSQUAD::GetQuat(double s) const {
 	
 	double fs = space_fx->GetVal(s);
 

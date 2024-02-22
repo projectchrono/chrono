@@ -35,15 +35,15 @@ ChFunctionRotationAxis::ChFunctionRotationAxis(const ChFunctionRotationAxis& oth
 
 ChFunctionRotationAxis::~ChFunctionRotationAxis() {}
 
-ChQuaternion<> ChFunctionRotationAxis::Get_q(double s) const {
+ChQuaternion<> ChFunctionRotationAxis::GetQuat(double s) const {
     return QuatFromAngleAxis(this->fangle->GetVal(s), this->axis);
 }
 
-ChVector3d ChFunctionRotationAxis::Get_w_loc(double s) const {
+ChVector3d ChFunctionRotationAxis::GetAngVel(double s) const {
     return this->fangle->GetDer(s) * this->axis;
 }
 
-ChVector3d ChFunctionRotationAxis::Get_a_loc(double s) const {
+ChVector3d ChFunctionRotationAxis::GetAngAcc(double s) const {
     return this->fangle->GetDer2(s) * this->axis;
 }
 

@@ -316,14 +316,28 @@ Note that this represents a major public API change and we expect most user code
 | ChFunction_SineStep               | SetP1                         | rename: SetFirstPoint                            |
 |                                   | SetP2                         | rename: SetSecondPoint                           |
 | ChFunction_Setpoint               |                               | rename: ChFunctionSetpoint                       |
+| ChFunctionPosition                |                               |                                                  |
+|                                   | Get_p                         | rename: GetVal                                   |
+|                                   | Get_p_ds                      | rename: GetDer                                   |
+|                                   | Get_p_dsds                    | rename: GetDer2                                  |
+| ChFunctionPosition                |                               |                                                  |
+|                                   | Get_q                         | rename: GetQuat                                  |
+|                                   | Get_w_loc                     | rename: GetAngVel                                |
+|                                   | Get_a_loc                     | rename: GetAngAcc                                |
 | ChFunctionPosition_line           |                               | rename: ChFunctionPositionLine                   |
 | ChFunctionPosition_setpoint       |                               | rename: ChFunctionPositionSetpoint               |
 | ChFunctionPosition_XYZfunctions   |                               | rename: ChFunctionPositionXYZFunctions           |
 | ChFunctionRotation_ABCfunctions   |                               | rename: ChFunctionRotationABCFunctions           |
+|                                   | SetAngleset                   | rename: SetRotationRepresentation                |
+|                                   | GetAngleset                   | rename: GetRotationRepresentation                |
 | ChFunctionRotation_axis           |                               | rename: ChFunctionRotationAxis                   |
 | ChFunctionRotation_setpoint       |                               | rename: ChFunctionRotationSetpoint               |
 | ChFunctionRotation_spline         |                               | rename: ChFunctionRotationBSpline                |
+|                                   | Rotations                     | rename: GetRotations                             |
+|                                   | Knots                         | rename: GetKnots                                 |
 | ChFunctionRotation_SQUAD          |                               | rename: ChFunctionRotationSQUAD                  |
+|                                   | Rotations                     | rename: GetRotations                             |
+|                                   | Knots                         | rename: GetKnots                                 |
 | ChList                            |                               | remove                                           |
 | ChLog                             |                               | remove                                           |
 | ChLogConsole                      |                               | remove                                           |

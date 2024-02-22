@@ -38,7 +38,7 @@ ChFunctionRotationABCFunctions::ChFunctionRotationABCFunctions(const ChFunctionR
 
 ChFunctionRotationABCFunctions::~ChFunctionRotationABCFunctions() {}
 
-void ChFunctionRotationABCFunctions::SetAngleset(const RotRepresentation rot_rep) {
+void ChFunctionRotationABCFunctions::SetRotationRepresentation(const RotRepresentation rot_rep) {
     if (rot_rep != RotRepresentation::EULER_ANGLES_ZXZ && rot_rep != RotRepresentation::CARDAN_ANGLES_XYZ &&
         rot_rep != RotRepresentation::CARDAN_ANGLES_ZXY && rot_rep != RotRepresentation::CARDAN_ANGLES_ZYX) {
         std::cerr << "Unknown input rotation representation" << std::endl;
@@ -49,7 +49,7 @@ void ChFunctionRotationABCFunctions::SetAngleset(const RotRepresentation rot_rep
     angleset = rot_rep;
 }
 
-ChQuaternion<> ChFunctionRotationABCFunctions::Get_q(double s) const {
+ChQuaternion<> ChFunctionRotationABCFunctions::GetQuat(double s) const {
     return QuatFromAngleSet({angleset, ChVector3d(angleA->GetVal(s), angleB->GetVal(s), angleC->GetVal(s))});
 }
 

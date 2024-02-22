@@ -25,16 +25,16 @@ namespace chrono {
 
 
 /// A motion function p=f(s) where p(t) is an externally-provided sample,
-/// as a ZOH (zero order hold) of FOH (first order). 
+/// as a ZERO_ORDER_HOLD (zero order hold) of FIRST_ORDER_HOLD (first order). 
 /// You must keep the setpoint p updated via multiple
 /// calls to SetSetpoint(), for example calling SetSetpoint()
 /// at each timestep in the simulation loop.
-/// It is assumed that one will later evaluate Get_p(), Get_p_ds() etc. in close vicinity of the setpoint (old setpoints are not saved),
+/// It is assumed that one will later evaluate GetVal(), GetDer() etc. in close vicinity of the setpoint (old setpoints are not saved),
 /// preferably ecactly at the same s, but in vicinity of s there will be extrapolation (after last s) and interpolation (before last s) according to:
-/// If in ZOH mode: value p will persist indefinitely until next call, derivative p_ds and p_dsds will be zero. 
-/// If in FOH mode: value p will interpolate linearly from the previous value, derivative p_ds will be constant, p_dsds will be zero.
+/// If in ZERO_ORDER_HOLD mode: value p will persist indefinitely until next call, derivative p_ds and p_dsds will be zero. 
+/// If in FIRST_ORDER_HOLD mode: value p will interpolate linearly from the previous value, derivative p_ds will be constant, p_dsds will be zero.
 /// If in SOH mode: value p will interpolate quadratically, derivative p_ds will be linear, p_dsds will be constant.
-/// Default: uses FOH mode. Use SetMode() to change it.
+/// Default: uses FIRST_ORDER_HOLD mode. Use SetMode() to change it.
 
 class ChApi ChFunctionPositionSetpoint : public ChFunctionPosition {
 
@@ -49,16 +49,16 @@ class ChApi ChFunctionPositionSetpoint : public ChFunctionPosition {
 
 	/// Type of setpoint interpolation/extrapolation - zero order hold, first order hold, etc.
 	enum eChSetpointMode { 
-		ZOH,	///< Zero  Order Hold: p constant,  p_ds = p_dsds = 0                 in neighbour of setpoint s
-		FOH,    ///< First Order Hold: p linear,    p_ds constant, p_dsds = 0         in neighbour of setpoint s
+		ZERO_ORDER_HOLD,	///< Zero  Order Hold: p constant,  p_ds = p_dsds = 0                 in neighbour of setpoint s
+		FIRST_ORDER_HOLD,    ///< First Order Hold: p linear,    p_ds constant, p_dsds = 0         in neighbour of setpoint s
 		SOH,	///< First Order Hold: p parabolic, p_ds linear,   p_dsds  constant   in neighbour of setpoint s
-		OVERRIDE ///< p, p_ds, p_dsds are set via SetSetpointAndDerivatives() and will be considered constant in Get_p(s) regardless of s until next SetSetpointAndDerivatives()
+		OVERRIDE ///< p, p_ds, p_dsds are set via SetSetpointAndDerivatives() and will be considered constant in GetVal(s) regardless of s until next SetSetpointAndDerivatives()
 	};
 
 	/// @cond
     CH_ENUM_MAPPER_BEGIN(eChSetpointMode);
-    CH_ENUM_VAL(ZOH);
-    CH_ENUM_VAL(FOH);
+    CH_ENUM_VAL(ZERO_ORDER_HOLD);
+    CH_ENUM_VAL(FIRST_ORDER_HOLD);
 	CH_ENUM_VAL(SOH);
     CH_ENUM_VAL(OVERRIDE);
     CH_ENUM_MAPPER_END(eChSetpointMode);
@@ -82,13 +82,13 @@ class ChApi ChFunctionPositionSetpoint : public ChFunctionPosition {
 	/// the previous samples for computing extrapolation/interpolation, but if called multiple times with exactly the 
 	/// same s value, the buffer of past samples is not scrolled: it just recompute setpoint and 
 	/// derivatives according to the 'updated' setpoint.
-    /// If in ZOH mode: value p will persist indefinitely until next call, derivative p_ds and p_dsds will be zero. 
-	/// If in FOH mode: value p will interpolate linearly from the previous value, derivative p_ds will be constant, p_dsds will be zero.
+    /// If in ZERO_ORDER_HOLD mode: value p will persist indefinitely until next call, derivative p_ds and p_dsds will be zero. 
+	/// If in FIRST_ORDER_HOLD mode: value p will interpolate linearly from the previous value, derivative p_ds will be constant, p_dsds will be zero.
 	/// If in SOH mode: value p will interpolate quadratically, derivative p_ds will be linear, p_dsds will be constant.
     virtual void SetSetpoint(ChVector3d p_setpoint, double s);
 
     /// Set the setpoint, and also its derivatives. Moreover, changes the mode to eChSetpointMode::OVERRIDE, so 
-    /// all values will persist indefinitely until next call, that is multiple calls to Get_p(s) Get_p_ds() etc. will give same 
+    /// all values will persist indefinitely until next call, that is multiple calls to GetVal(s) GetDer() etc. will give same 
 	/// results (non interpolated) regardless of s.
     virtual void SetSetpointAndDerivatives(ChVector3d p_setpoint, ChVector3d p_setpoint_ds, ChVector3d p_setpoint_dsds) {
 		mode = eChSetpointMode::OVERRIDE;
@@ -99,13 +99,13 @@ class ChApi ChFunctionPositionSetpoint : public ChFunctionPosition {
 	
 
     /// Return the p value of the function, at s, as p=f(s).
-	virtual ChVector3d Get_p(double s) const override;
+	virtual ChVector3d GetVal(double s) const override;
 
     /// Return the dp/ds derivative of the function, at s.
-	virtual ChVector3d Get_p_ds(double s) const override;
+	virtual ChVector3d GetDer(double s) const override;
 
     /// Return the ddp/dsds double derivative of the function, at s.
-    virtual ChVector3d Get_p_dsds(double s) const override;
+    virtual ChVector3d GetDer2(double s) const override;
 
 
     /// Method to allow serialization of transient data to archives

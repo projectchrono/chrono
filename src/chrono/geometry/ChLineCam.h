@@ -115,7 +115,7 @@ class ChApi ChLineCam : public ChLine {
 
     /// Sets the data for the rotating follower (length, distance from cam center, initial phase mb0)
     void Set_rotating_follower(double mp, double md, double mb0);
-    double Get_p() const { return p; }
+    double GetVal() const { return p; }
     double Get_d() const { return d; }
     double Get_b0() const { return b0; }
 

@@ -31,16 +31,12 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Interface base class for scalar->vector functions of the type:
+/// Interface base class for scalar->vector functions
 ///
-///    p= f(s)
+///    p = f(s)
 ///
 /// where p is a 3D vector (ex. a position) and s is a scalar (ex. time)
-/// Classes inherited from ChFunctionPosition are often
-/// used to set time-dependent positions, for example to set
-/// the imposed trajectory of a rigid body in space.
-/// Inherited classes must override at least the Get_p() method,
-/// in order to represent more complex functions.
+/// Inherited classes must override at least the GetVal() method.
 
 class ChApi ChFunctionPosition {
   public:
@@ -51,37 +47,24 @@ class ChApi ChFunctionPosition {
     /// "Virtual" copy constructor.
     virtual ChFunctionPosition* Clone() const = 0;
 
-    // THE MOST IMPORTANT MEMBER FUNCTIONS
-    // At least Get_p() should be overridden by derived classes.
+    /// Return the value of the function, at \a s.
+    virtual ChVector3d GetVal(double s) const = 0;
 
-    /// Return the p value of the function, at s, as p=f(s).
-    virtual ChVector3d Get_p(double s) const = 0;
+    /// Return the first derivative of the function.
+    /// Default implementation computes a numerical differentiation.
+    /// Inherited classes may override this method with a more efficient implementation (e.g. analytical solution).
+    virtual ChVector3d GetDer(double s) const;
 
-    /// Return the dp/ds derivative of the function, at s.
-    /// Note that inherited classes may also avoid overriding this method,
-    /// because this base method already provide a general-purpose numerical differentiation
-    /// to get dp/dt only from the Get_p() function. (however, if the analytical derivative
-    /// is known, it may better to implement a custom method).
-    virtual ChVector3d Get_p_ds(double s) const;
+    /// Return the second derivative of the function.
+    /// Default implementation computes a numerical differentiation.
+    /// Inherited classes may override this method with a more efficient implementation (e.g. analytical solution).
+    virtual ChVector3d GetDer2(double s) const;
 
-    /// Return the ddp/dsds double derivative of the function, at s.
-    /// Note that inherited classes may also avoid overriding this method,
-    /// because this base method already provide a general-purpose numerical differentiation
-    /// to get ddp/dsds only from the Get_p() function. (however, if the analytical derivative
-    /// is known, it may be better to implement a custom method).
-    virtual ChVector3d Get_p_dsds(double s) const;
+    /// Set the perturbation value used for numerical differentiation (default: 1e-7).
+    void SetNumericDiffPerturbation(double pert) { m_der_perturbation = pert; }
 
-    /// Return an estimate of the domain of the function argument.
-    /// (ex. can be used for automatic zooming in a GUI, or for computing the bounding box)
-    virtual void Estimate_s_domain(double& smin, double& smax) const {
-        smin = 0.0;
-        smax = 1.0;
-    }
-
-    /// Return an estimate of the range of the function value. By default it samples the function N times,
-    /// but children classes migh implement a more efficient closed form solution.
-    /// (ex. can be used for automatic zooming in a GUI)
-    virtual void Estimate_boundingbox(ChVector3d& pmin, ChVector3d& pmax) const;
+    /// Get the perturbation value used for numerical differentiation.
+    double GetNumericDiffPerturbation() const { return m_der_perturbation; }
 
     /// Update could be implemented by children classes, ex. to launch callbacks
     virtual void Update(double t) {}
@@ -91,6 +74,9 @@ class ChApi ChFunctionPosition {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in);
+
+  protected:
+    double m_der_perturbation;  ///< perturbation value used for numerical differentiation
 };
 
 /// @} chrono_functions

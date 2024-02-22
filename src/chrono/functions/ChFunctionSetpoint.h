@@ -23,7 +23,7 @@ namespace chrono {
 /// @{
 
 /// Function that returns Y from an externally-provided value,
-/// as a ZOH (zero order hold) block. This means that the Y value
+/// as a ZERO_ORDER_HOLD (zero order hold) block. This means that the Y value
 /// does NOT change if you call GetVal(double x) with different values
 /// of x, unless you keep the setpoint Y updated via multiple
 /// calls to SetSetpoint(), for example calling SetSetpoint()
@@ -96,7 +96,7 @@ class ChApi ChFunctionSetpoint : public ChFunction {
 CH_CLASS_VERSION(ChFunctionSetpoint, 0)
 
 /// Interface for functions that uses a callback to return a Y value,
-/// as a ZOH (zero order hold) block. This means that the Y value
+/// as a ZERO_ORDER_HOLD (zero order hold) block. This means that the Y value
 /// does NOT change if you call GetVal(double x) with different values
 /// of x, unless you keep the setpoint Y updated via multiple
 /// callback calls.

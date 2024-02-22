@@ -45,8 +45,8 @@ void ChLinkMotionImposed::Update(double mytime, bool update_assets) {
         ChFrame<> frame1W = this->frame1 >> (*this->Body1);
         ChFrame<> frame2W = this->frame2 >> (*this->Body2);
 
-        frameM2.SetRot(rotation_function->Get_q(mytime));
-        frameM2.SetPos(position_function->Get_p(mytime));
+        frameM2.SetRot(rotation_function->GetQuat(mytime));
+        frameM2.SetPos(position_function->GetVal(mytime));
 
         frameMb2 = frameM2 >> this->frame2;
 
@@ -200,9 +200,9 @@ void ChLinkMotionImposed::KRMmatricesLoad(double Kfactor, double Rfactor, double
 void ChLinkMotionImposed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
     
 	double T = this->GetChTime();
-	ChVector3d mv = -position_function->Get_p_ds(T);
-	ChVector3d mw_loc = -rotation_function->Get_w_loc(T);
-	ChVector3d mv_rot = rotation_function->Get_q(T).RotateBack(mv); // need velocity in local rotated system
+	ChVector3d mv = -position_function->GetDer(T);
+	ChVector3d mw_loc = -rotation_function->GetAngVel(T);
+	ChVector3d mv_rot = rotation_function->GetQuat(T).RotateBack(mv); // need velocity in local rotated system
 
 	int nc = 0;
     if (c_x) {
@@ -244,9 +244,9 @@ void ChLinkMotionImposed::ConstraintsBiLoad_Ct(double factor) {
         return;
 
     double T = this->GetChTime();
-	ChVector3d mv = -position_function->Get_p_ds(T);
-	ChVector3d mw_loc = -rotation_function->Get_w_loc(T);
-	ChVector3d mv_rot = rotation_function->Get_q(T).RotateBack(mv); // need velocity in local rotated system
+	ChVector3d mv = -position_function->GetDer(T);
+	ChVector3d mw_loc = -rotation_function->GetAngVel(T);
+	ChVector3d mv_rot = rotation_function->GetQuat(T).RotateBack(mv); // need velocity in local rotated system
 
     if (mask.Constr_N(0).IsActive()) {
         mask.Constr_N(0).Set_b_i(mask.Constr_N(0).Get_b_i() + factor * mv_rot.x());

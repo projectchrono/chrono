@@ -61,13 +61,13 @@ class ChApi ChFunctionRotationABCFunctions : public ChFunctionRotation {
 
     /// Set the angle set for rotation representation.
     /// This can be one of the supported Euler angle sets.
-    void SetAngleset(const RotRepresentation rot_rep);
+    void SetRotationRepresentation(const RotRepresentation rot_rep);
 
     /// Get the angle set for rotation representation.
-    RotRepresentation GetAngleset() const { return angleset; }
+    RotRepresentation GetRotationRepresentation() const { return angleset; }
 
     /// Return the rotation as a quaternion, function of s, as q=f(s).
-    virtual ChQuaternion<> Get_q(double s) const override;
+    virtual ChQuaternion<> GetQuat(double s) const override;
 
     /// Method to allow serialization of transient data to archives
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

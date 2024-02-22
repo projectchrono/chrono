@@ -85,7 +85,7 @@ void ChFunctionRotationBSpline::Setup(
 
 
 
-ChQuaternion<> ChFunctionRotationBSpline::Get_q(double s) const {
+ChQuaternion<> ChFunctionRotationBSpline::GetQuat(double s) const {
 	
 	double fs = space_fx->GetVal(s);
 

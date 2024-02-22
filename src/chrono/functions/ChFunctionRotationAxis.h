@@ -59,13 +59,13 @@ class ChApi ChFunctionRotationAxis : public ChFunctionRotation {
     
    
 	/// Return the rotation as a quaternion, function of s, as q=f(s).
-	virtual ChQuaternion<> Get_q(double s) const override;
+	virtual ChQuaternion<> GetQuat(double s) const override;
 
     /// Return the derivative of the rotation function, at s, expressed as angular velocity w in local frame.
-	virtual ChVector3d Get_w_loc(double s) const override;
+	virtual ChVector3d GetAngVel(double s) const override;
 
     /// Return the derivative of the rotation function, at s, expressed as angular acceleration in local frame.
-	virtual ChVector3d Get_a_loc(double s) const override;
+	virtual ChVector3d GetAngAcc(double s) const override;
 
 
     /// Method to allow serialization of transient data to archives

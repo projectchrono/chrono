@@ -21,7 +21,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunctionRotationSetpoint)
 
 ChFunctionRotationSetpoint::ChFunctionRotationSetpoint() {
-    mode = eChSetpointMode::FOH;
+    mode = eChSetpointMode::FIRST_ORDER_HOLD;
     this->Reset(0);
 }
 
@@ -63,9 +63,9 @@ void ChFunctionRotationSetpoint::SetSetpoint(ChQuaternion<> q_setpoint, double s
     W = 0;
     A = 0;
 
-    if (mode == ZOH) {
+    if (mode == ZERO_ORDER_HOLD) {
     }
-    if (mode == FOH) {
+    if (mode == FIRST_ORDER_HOLD) {
         double ds = s - last_S;
         if (ds > 0) {
             W = (last_Q.GetConjugate() * Q).GetRotVec() / ds;
@@ -84,23 +84,23 @@ void ChFunctionRotationSetpoint::SetSetpoint(ChQuaternion<> q_setpoint, double s
     */
 }
 
-ChQuaternion<> ChFunctionRotationSetpoint::Get_q(double s) const {
+ChQuaternion<> ChFunctionRotationSetpoint::GetQuat(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return Q;
     ChQuaternion<> dQ;
     dQ.SetFromRotVec(W * (s - S));  // + A * pow((s - S), 2)); //// TO DO - intrinsic W and A, but rotation Q might have
-                                  // changed too much.. require better formula?
+                                    // changed too much.. require better formula?
     return Q * dQ;
 }
 
-ChVector3d ChFunctionRotationSetpoint::Get_w_loc(double s) const {
+ChVector3d ChFunctionRotationSetpoint::GetAngVel(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return W;
     return W;  // +A * (s - S); //// TO DO - intrinsic W and A, but rotation Q might have changed too much.. require
                // better formula?
 }
 
-ChVector3d ChFunctionRotationSetpoint::Get_a_loc(double s) const {
+ChVector3d ChFunctionRotationSetpoint::GetAngAcc(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return A;
     return A;
@@ -121,7 +121,7 @@ void ChFunctionRotationSetpoint::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChFunctionRotationSetpoint::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChFunctionRotationSetpoint>();
+    /*int version =*/archive_in.VersionRead<ChFunctionRotationSetpoint>();
     // deserialize parent class
     ChFunctionRotation::ArchiveIn(archive_in);
     // deserialize all member data:

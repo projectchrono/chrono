@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
 
     // Btw for periodic closed splines, the 1st contr point is not exactly the start of spline,
     // so better move the sample object exactly to beginning:
-    mmoved_2->SetPos(f_line->Get_p(0) >> impose_2->GetFrame2() >> impose_2->GetBody2()->GetCsys());
+    mmoved_2->SetPos(f_line->GetVal(0) >> impose_2->GetFrame2() >> impose_2->GetBody2()->GetCsys());
 
     //
     // EXAMPLE 3
@@ -173,8 +173,8 @@ int main(int argc, char* argv[]) {
     // In this example we impose position and rotation of a shape respect to absolute reference,
     // using the following methods:
     //
-    // position:  use a continuous setpoint (FOH first order hold), ie. a sin(t) set in simulation loop
-    // rotation:  use a continuous setpoint (FOH first order hold).
+    // position:  use a continuous setpoint (FIRST_ORDER_HOLD first order hold), ie. a sin(t) set in simulation loop
+    // rotation:  use a continuous setpoint (FIRST_ORDER_HOLD first order hold).
 
     // Create the object to move
     auto mmoved_3 =
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
 
     // Create the rotation function: use 3 distinct A,B,C functions of time to set Euler or Cardan angles
     auto f_abc_angles = chrono_types::make_shared<ChFunctionRotationABCFunctions>();
-    f_abc_angles->SetAngleset(RotRepresentation::CARDAN_ANGLES_XYZ);
+    f_abc_angles->SetRotationRepresentation(RotRepresentation::CARDAN_ANGLES_XYZ);
     f_abc_angles->SetFunctionAngleA(chrono_types::make_shared<ChFunctionSine>(0, 2, 0.3));  // phase freq ampl
     f_abc_angles->SetFunctionAngleB(chrono_types::make_shared<ChFunctionRamp>(0, 0.2));     // a0, da/dt
 
@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
         if (sys.GetStepcount() % 10 == 0) {
             f_pos_setpoint->SetSetpoint(0.2 * ChVector3d(cos(t * 12), sin(t * 12), 0), t);
             // f_rot_setpoint->SetSetpoint(QuatFromAngleZ(t*0.5), t );
-            // std::cout << "set p = " << f_setpoint->Get_p(t).y() << " at t=" << t  << std::endl;
+            // std::cout << "set p = " << f_setpoint->GetVal(t).y() << " at t=" << t  << std::endl;
         }
 
         realtime_timer.Spin(timestep);

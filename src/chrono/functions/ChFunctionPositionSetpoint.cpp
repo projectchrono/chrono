@@ -23,7 +23,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunctionPositionSetpoint) 
 
 ChFunctionPositionSetpoint::ChFunctionPositionSetpoint() {
-    mode = eChSetpointMode::FOH;
+    mode = eChSetpointMode::FIRST_ORDER_HOLD;
 	this->Reset(0);
 }
 
@@ -70,10 +70,10 @@ void ChFunctionPositionSetpoint::SetSetpoint(ChVector3d p_setpoint, double s) {
 	P_ds = 0;
 	P_dsds = 0;
 
-	if (mode == ZOH) {
+	if (mode == ZERO_ORDER_HOLD) {
 		
 	}
-	if (mode == FOH) {
+	if (mode == FIRST_ORDER_HOLD) {
 		double ds = s - last_s;
 		if (ds > 0) {
 			P_ds = (P - last_P) / ds;
@@ -90,19 +90,19 @@ void ChFunctionPositionSetpoint::SetSetpoint(ChVector3d p_setpoint, double s) {
 }
 
 
-ChVector3d ChFunctionPositionSetpoint::Get_p(double s) const {
+ChVector3d ChFunctionPositionSetpoint::GetVal(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return P;
     return P + P_ds * (s - S) + P_dsds * pow((s - S), 2);
 }
 
-ChVector3d ChFunctionPositionSetpoint::Get_p_ds(double s) const {
+ChVector3d ChFunctionPositionSetpoint::GetDer(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return P_ds;
     return P_ds + P_dsds * (s - S);
 }
 
-ChVector3d ChFunctionPositionSetpoint::Get_p_dsds(double s) const {
+ChVector3d ChFunctionPositionSetpoint::GetDer2(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return P_dsds;
     return P_dsds;

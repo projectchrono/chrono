@@ -61,10 +61,10 @@ class ChApi ChFunctionRotationBSpline : public ChFunctionRotation {
     double ComputeKnotUfromU(double U) const { return U * (knots(knots.size() - 1 - p) - knots(p)) + knots(p); }
 
     /// Access the rotations, ie. quaternion spline control points
-    std::vector<ChQuaternion<> >& Rotations() { return rotations; }
+    std::vector<ChQuaternion<>>& GetRotation() { return rotations; }
 
     /// Access the knots
-    ChVectorDynamic<>& Knots() { return knots; }
+    ChVectorDynamic<>& GetKnots() { return knots; }
 
     /// Get the order of spline
     int GetOrder() { return p; }
@@ -99,13 +99,13 @@ class ChApi ChFunctionRotationBSpline : public ChFunctionRotation {
     /// Return the q value of the function, at s, as q=f(s).
     /// Parameter s always work in 0..1 range, even if knots are not in 0..1 range.
     /// So if you want to use s in knot range, use ComputeUfromKnotU().
-    virtual ChQuaternion<> Get_q(double s) const override;
+    virtual ChQuaternion<> GetQuat(double s) const override;
 
     /// Return the derivative of the rotation function, at s, expressed as angular velocity w in local frame.
-    // virtual ChVector3d Get_w_loc(double s) const override;
+    // virtual ChVector3d GetAngVel(double s) const override;
 
     /// Return the derivative of the rotation function, at s, expressed as angular acceleration in local frame.
-    // virtual ChVector3d Get_a_loc(double s) const override;
+    // virtual ChVector3d GetAngAcc(double s) const override;
 
     /// Method to allow serialization of transient data to archives
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
