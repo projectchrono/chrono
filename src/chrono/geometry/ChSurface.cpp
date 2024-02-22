@@ -22,7 +22,7 @@
 #include "chrono/geometry/ChSurface.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChSurface) // NO! abstract class
@@ -76,5 +76,5 @@ void ChSurface::ArchiveIn(ChArchiveIn& marchive) {
     // marchive >> CHNVP(closed);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

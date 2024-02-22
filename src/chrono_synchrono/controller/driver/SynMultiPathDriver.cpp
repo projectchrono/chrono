@@ -47,7 +47,7 @@ void ChMultiPathFollowerACCDriver::Create() {
     for (int i = 0; i < bezier_curve.size(); i++) {
         auto num_points = static_cast<unsigned int>(bezier_curve[i]->getNumPoints());
         auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
-        path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve[i]));
+        path_asset->SetLineGeometry(chrono_types::make_shared<ChLineBezier>(bezier_curve[i]));
         path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
         path_asset->SetName(m_pathName);
         path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));

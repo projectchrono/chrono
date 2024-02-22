@@ -29,13 +29,13 @@ class ChApi ChCollisionShapeSegment2D : public ChCollisionShape {
   public:
     ChCollisionShapeSegment2D();
     ChCollisionShapeSegment2D(std::shared_ptr<ChContactMaterial> material,
-                              const geometry::ChLineSegment& segment,
+                              const ChLineSegment& segment,
                               double radius);
 
     ~ChCollisionShapeSegment2D() {}
 
     /// Access the segment geometry.
-    geometry::ChLineSegment& GetGeometry() { return gsegment; }
+    ChLineSegment& GetGeometry() { return gsegment; }
 
     /// Get the segment thickness (the radius of a sweeping sphere).
     double GetSRadius() const { return radius; }
@@ -47,7 +47,7 @@ class ChApi ChCollisionShapeSegment2D : public ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChLineSegment gsegment;
+    ChLineSegment gsegment;
     double radius;
 };
 

@@ -161,7 +161,7 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
 
     // Create the 'complete' knot vector, with multiple at the ends
     ChVectorDynamic<> myknots(N + p + p + 1);
-    geometry::ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(myknots, p, 0.0, 1.0);
+    ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(myknots, p, 0.0, 1.0);
 
     // Create the 'complete' stl vector of control points, with uniform distribution
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> mynodes;
@@ -199,7 +199,7 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
 
 void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
                                  std::shared_ptr<ChBeamSectionCosserat> sect,  // section material for beam elements
-                                 geometry::ChLineBspline& spline,  // the B-spline to be used as the centerline
+                                 ChLineBspline& spline,  // the B-spline to be used as the centerline
                                  const ChVector3d Ydir             // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();

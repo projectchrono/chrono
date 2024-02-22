@@ -20,7 +20,9 @@
 #include "chrono/geometry/ChTriangleMesh.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A basic triangle mesh: just a list of triangles (no edge connectivity info).
 class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
@@ -75,9 +77,9 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChTriangleMeshSoup, 0)
+CH_CLASS_VERSION(ChTriangleMeshSoup, 0)
 
 }  // end namespace chrono
 

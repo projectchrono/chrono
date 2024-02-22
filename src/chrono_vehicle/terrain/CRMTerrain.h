@@ -113,7 +113,7 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
     std::shared_ptr<ChBody> GetGroundBody() const { return m_ground; }
 
     /// Get the AABB of terrain SPH particles.
-    const geometry::ChAABB& GetBoundingBox() const { return m_aabb; }
+    const ChAABB& GetBoundingBox() const { return m_aabb; }
 
     /// Save the set of SPH and BCE grid locations to the files in the specified output directory.
     void SaveMarkers(const std::string& out_dir) const;
@@ -143,7 +143,7 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
         std::shared_ptr<ChBody> body;                                ///< associated body
         double density;                                              ///< material density
         ChContactMaterialData cmat;                                  ///< contact material properties
-        std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;  ///< geometry
+        std::shared_ptr<ChTriangleMeshConnected> trimesh;  ///< geometry
         std::vector<ChVector3d> point_cloud;                         ///< point cloud for BCE markers
         ChVector3d point;                                            ///< location of an interior point
         Points bce;                                                  ///< BCE marker grid locations
@@ -173,7 +173,7 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
     Points m_bce;                            ///< BCE marker grid locations
     ChVector3d m_offset;                     ///< patch offset
     double m_angle;                          ///< patch rotation about vertical
-    geometry::ChAABB m_aabb;                 ///< particle AABB
+    ChAABB m_aabb;                 ///< particle AABB
     std::vector<RigidObstacle> m_obstacles;  ///< list of rigid obstacles
     bool m_verbose;                          ///< if true, write information to standard output
 };

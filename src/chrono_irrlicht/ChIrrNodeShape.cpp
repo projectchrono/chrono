@@ -646,7 +646,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
 }
 
 void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface) {
-    std::shared_ptr<geometry::ChSurface> msurface = surface->GetSurfaceGeometry();
+    std::shared_ptr<ChSurface> msurface = surface->GetSurfaceGeometry();
 
     // Set color.
     auto vis = std::static_pointer_cast<ChVisualShape>(m_shape);
@@ -795,7 +795,7 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
     }
 }
 
-void ChIrrNodeShape::UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned int nvertexes) {
+void ChIrrNodeShape::UpdateLine(std::shared_ptr<ChLine> line, unsigned int nvertexes) {
     unsigned int ntriangles = nvertexes - 1;
 
     // Set color.
@@ -832,7 +832,7 @@ void ChIrrNodeShape::UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned
     irrmesh->getVertexBuffer()[0] = video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, clr, 0, 0);
 
     double maxU = 1;
-    if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(line))
+    if (auto mline_path = std::dynamic_pointer_cast<ChLinePath>(line))
         maxU = mline_path->GetPathDuration();
 
     for (unsigned int ig = 0; ig < ntriangles; ++ig) {

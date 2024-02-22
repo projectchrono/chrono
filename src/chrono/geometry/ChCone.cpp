@@ -17,7 +17,7 @@
 #include "chrono/geometry/ChCone.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCone)
@@ -91,5 +91,5 @@ void ChCone::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(h);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

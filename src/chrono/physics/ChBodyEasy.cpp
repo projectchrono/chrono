@@ -139,7 +139,7 @@ void* ChBodyEasyEllipsoid::ArchiveInConstructor(ChArchiveIn& marchive) {
 CH_FACTORY_REGISTER(ChBodyEasyCylinder)
 CH_UPCASTING(ChBodyEasyCylinder, ChBody)
 
-ChBodyEasyCylinder::ChBodyEasyCylinder(geometry::ChAxis direction,
+ChBodyEasyCylinder::ChBodyEasyCylinder(ChAxis direction,
                                        double radius,
                                        double height,
                                        double density,
@@ -150,7 +150,7 @@ ChBodyEasyCylinder::ChBodyEasyCylinder(geometry::ChAxis direction,
     SetupBody(direction, radius, height, density, visualize, collide, material);
 }
 
-ChBodyEasyCylinder::ChBodyEasyCylinder(geometry::ChAxis direction,
+ChBodyEasyCylinder::ChBodyEasyCylinder(ChAxis direction,
                                        double radius,
                                        double height,
                                        double density,
@@ -159,7 +159,7 @@ ChBodyEasyCylinder::ChBodyEasyCylinder(geometry::ChAxis direction,
     SetupBody(direction, radius, height, density, true, true, material);
 }
 
-void ChBodyEasyCylinder::SetupBody(geometry::ChAxis direction,
+void ChBodyEasyCylinder::SetupBody(ChAxis direction,
                                    double radius,
                                    double height,
                                    double density,
@@ -174,15 +174,15 @@ void ChBodyEasyCylinder::SetupBody(geometry::ChAxis direction,
     SetMass(mass);
 
     switch (direction) {
-        case geometry::ChAxis::X:
+        case ChAxis::X:
             rot = QuatFromAngleY(CH_C_PI_2);
             SetInertiaXX(ChVector3d(I_axis, I_orth, I_orth));
             break;
-        case geometry::ChAxis::Y:
+        case ChAxis::Y:
             rot = QuatFromAngleX(CH_C_PI_2);
             SetInertiaXX(ChVector3d(I_orth, I_axis, I_orth));
             break;
-        case geometry::ChAxis::Z:
+        case ChAxis::Z:
             rot = QUNIT;
             SetInertiaXX(ChVector3d(I_orth, I_orth, I_axis));
             break;
@@ -352,7 +352,7 @@ void ChBodyEasyConvexHull::ArchiveOutConstructor(ChArchiveOut& marchive) {
 void* ChBodyEasyConvexHull::ArchiveInConstructor(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChBodyEasyConvexHull>();
 
-    std::shared_ptr<geometry::ChTriangleMeshConnected> mesh;
+    std::shared_ptr<ChTriangleMeshConnected> mesh;
     marchive >> CHNVP(mesh);
 
     ChBodyEasyConvexHull* new_obj = new ChBodyEasyConvexHull(mesh);
@@ -439,7 +439,7 @@ void ChBodyEasyConvexHullAuxRef::ArchiveOutConstructor(ChArchiveOut& marchive) {
 void* ChBodyEasyConvexHullAuxRef::ArchiveInConstructor(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChBodyEasyConvexHullAuxRef>();
 
-    std::shared_ptr<geometry::ChTriangleMeshConnected> mesh;
+    std::shared_ptr<ChTriangleMeshConnected> mesh;
     marchive >> CHNVP(mesh);
 
     ChBodyEasyConvexHullAuxRef* new_obj = new ChBodyEasyConvexHullAuxRef(mesh);
@@ -460,11 +460,11 @@ ChBodyEasyMesh::ChBodyEasyMesh(const std::string& filename,
                                std::shared_ptr<ChContactMaterial> material,
                                double sphere_swept)
     : ChBodyAuxRef() {
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true);
     SetupBody(trimesh, filename, density, compute_mass, visualize, collide, material, sphere_swept);
 }
 
-ChBodyEasyMesh::ChBodyEasyMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
+ChBodyEasyMesh::ChBodyEasyMesh(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                double density,
                                bool compute_mass,
                                bool visualize,
@@ -480,11 +480,11 @@ ChBodyEasyMesh::ChBodyEasyMesh(const std::string& filename,
                                std::shared_ptr<ChContactMaterial> material,
                                double sphere_swept)
     : ChBodyAuxRef() {
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true);
     SetupBody(trimesh, filename, density, true, true, true, material, sphere_swept);
 }
 
-ChBodyEasyMesh::ChBodyEasyMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
+ChBodyEasyMesh::ChBodyEasyMesh(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                double density,
                                std::shared_ptr<ChContactMaterial> material,
                                double sphere_swept)
@@ -492,7 +492,7 @@ ChBodyEasyMesh::ChBodyEasyMesh(std::shared_ptr<geometry::ChTriangleMeshConnected
     SetupBody(mesh, "EasyMesh", density, true, true, true, material, sphere_swept);
 }
 
-void ChBodyEasyMesh::SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh,
+void ChBodyEasyMesh::SetupBody(std::shared_ptr<ChTriangleMeshConnected> trimesh,
                                const std::string& name,
                                double density,
                                bool compute_mass,

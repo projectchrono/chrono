@@ -39,7 +39,6 @@
 
 using namespace chrono;
 using namespace chrono::fsi;
-using namespace chrono::geometry;
 using namespace chrono::viper;
 
 // Run-time visualization system (OpenGL or VSG)
@@ -411,8 +410,8 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
 
         if (save_obj) {  // save to obj file
             filename = rover_dir + "/body_" + std::to_string(frame_number) + ".obj";
-            std::vector<geometry::ChTriangleMeshConnected> meshes = {*mmesh};
-            geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
+            std::vector<ChTriangleMeshConnected> meshes = {*mmesh};
+            ChTriangleMeshConnected::WriteWavefront(filename, meshes);
         } else {  // save to vtk file
             filename = rover_dir + "/body_" + std::to_string(frame_number) + ".vtk";
             std::ofstream file;
@@ -474,8 +473,8 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
 
         if (save_obj) {  // save to obj file
             filename = rover_dir + "/wheel_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".obj";
-            std::vector<geometry::ChTriangleMeshConnected> meshes = {*mmesh};
-            geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
+            std::vector<ChTriangleMeshConnected> meshes = {*mmesh};
+            ChTriangleMeshConnected::WriteWavefront(filename, meshes);
         } else {  // save to vtk file
             filename = rover_dir + "/wheel_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
             std::ofstream file;
@@ -539,8 +538,8 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
 
         if (save_obj) {  // save to obj file
             filename = rover_dir + "/steerRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".obj";
-            std::vector<geometry::ChTriangleMeshConnected> meshes = {*mmesh};
-            geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
+            std::vector<ChTriangleMeshConnected> meshes = {*mmesh};
+            ChTriangleMeshConnected::WriteWavefront(filename, meshes);
         } else {  // save to vtk file
             filename = rover_dir + "/steerRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
             std::ofstream file;
@@ -604,8 +603,8 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
 
         if (save_obj) {  // save to obj file
             filename = rover_dir + "/lowerRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".obj";
-            std::vector<geometry::ChTriangleMeshConnected> meshes = {*mmesh};
-            geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
+            std::vector<ChTriangleMeshConnected> meshes = {*mmesh};
+            ChTriangleMeshConnected::WriteWavefront(filename, meshes);
         } else {  // save to vtk file
             filename = rover_dir + "/lowerRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
             std::ofstream file;
@@ -670,8 +669,8 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
 
         if (save_obj) {  // save to obj file
             filename = rover_dir + "/upperRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".obj";
-            std::vector<geometry::ChTriangleMeshConnected> meshes = {*mmesh};
-            geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
+            std::vector<ChTriangleMeshConnected> meshes = {*mmesh};
+            ChTriangleMeshConnected::WriteWavefront(filename, meshes);
         } else {  // save to vtk file
             filename = rover_dir + "/upperRod_" + std::to_string(i + 1) + "_" + std::to_string(frame_number) + ".vtk";
             std::ofstream file;

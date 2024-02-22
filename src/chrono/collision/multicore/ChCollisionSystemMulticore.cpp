@@ -210,13 +210,13 @@ bool ChCollisionSystemMulticore::GetActiveBoundingBox(ChVector3d& aabb_min, ChVe
     return use_aabb_active;
 }
 
-geometry::ChAABB ChCollisionSystemMulticore::GetBoundingBox() const {
+ChAABB ChCollisionSystemMulticore::GetBoundingBox() const {
     ChVector3d aabb_min((double)cd_data->min_bounding_point.x, (double)cd_data->min_bounding_point.y,
                         (double)cd_data->min_bounding_point.z);
     ChVector3d aabb_max((double)cd_data->max_bounding_point.x, (double)cd_data->max_bounding_point.y,
                         (double)cd_data->max_bounding_point.z);
 
-    return geometry::ChAABB(aabb_min, aabb_max);
+    return ChAABB(aabb_min, aabb_max);
 }
 
 void ChCollisionSystemMulticore::ResetTimers() {

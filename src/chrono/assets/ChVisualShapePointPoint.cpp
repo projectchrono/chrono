@@ -50,13 +50,13 @@ void ChVisualShapePointPoint::Update(ChPhysicsItem* updater, const ChFrame<>& fr
 
 // Set line geometry as a segment between two end point
 void ChVisualShapeSegment::UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) {
-    this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(
-        chrono_types::make_shared<geometry::ChLineSegment>(endpoint1, endpoint2)));
+    this->SetLineGeometry(std::static_pointer_cast<ChLine>(
+        chrono_types::make_shared<ChLineSegment>(endpoint1, endpoint2)));
 };
 
 // Set line geometry as a coil between two end point
 void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) {
-    auto linepath = chrono_types::make_shared<geometry::ChLinePath>();
+    auto linepath = chrono_types::make_shared<ChLinePath>();
 
     // Following part was copied from irrlicht::tools::drawSpring()
     ChVector3d dist = endpoint2 - endpoint1;
@@ -79,13 +79,13 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
         ChVector3d V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
         ChVector3d V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
 
-        auto segment = geometry::ChLineSegment(mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2));
+        auto segment = ChLineSegment(mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2));
         linepath->AddSubLine(segment);
         phaseA = phaseB;
         heightA = heightB;
     }
 
-    this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(linepath));
+    this->SetLineGeometry(std::static_pointer_cast<ChLine>(linepath));
 }
 
 void ChVisualShapeRotSpring::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
@@ -95,19 +95,19 @@ void ChVisualShapeRotSpring::Update(ChPhysicsItem* updater, const ChFrame<>& fra
         return;
 
     // The asset frame for an RSDA is the frame on body1.
-    auto linepath = chrono_types::make_shared<geometry::ChLinePath>();
+    auto linepath = chrono_types::make_shared<ChLinePath>();
     double del_angle = rsda->GetAngle() / m_resolution;
     ChVector3d V1(m_radius, 0, 0);
     for (int iu = 1; iu <= m_resolution; iu++) {
         double crt_angle = iu * del_angle;
         double crt_radius = m_radius - (iu * del_angle / CH_C_2PI) * (m_radius / 10);
         ChVector3d V2(crt_radius * std::cos(crt_angle), crt_radius * std::sin(crt_angle), 0);
-        auto segment = geometry::ChLineSegment(V1, V2);
+        auto segment = ChLineSegment(V1, V2);
         linepath->AddSubLine(segment);
         V1 = V2;
     }
 
-    this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(linepath));
+    this->SetLineGeometry(std::static_pointer_cast<ChLine>(linepath));
 }
 
 }  // end namespace chrono

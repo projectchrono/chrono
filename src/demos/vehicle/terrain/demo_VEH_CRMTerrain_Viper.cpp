@@ -46,7 +46,6 @@
 
 using namespace chrono;
 using namespace chrono::fsi;
-using namespace chrono::geometry;
 using namespace chrono::viper;
 using namespace chrono::vehicle;
 

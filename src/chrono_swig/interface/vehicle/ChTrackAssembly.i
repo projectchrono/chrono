@@ -69,10 +69,9 @@
 #include "chrono_thirdparty/rapidjson/document.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 %}
 
-%shared_ptr(chrono::geometry::ChLinePath)
+%shared_ptr(chrono::ChLinePath)
 %import "../../../chrono/geometry/ChLinePath.h"
 
 

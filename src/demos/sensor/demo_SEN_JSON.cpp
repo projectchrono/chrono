@@ -35,7 +35,6 @@
 #include "chrono_sensor/ChSensorManager.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 float end_time = 20.0f;

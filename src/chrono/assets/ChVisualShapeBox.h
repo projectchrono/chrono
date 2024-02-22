@@ -29,12 +29,12 @@ class ChApi ChVisualShapeBox : public ChVisualShape {
     ChVisualShapeBox();
     ChVisualShapeBox(double length_x, double length_y, double length_z);
     ChVisualShapeBox(const ChVector3d& lengths);
-    ChVisualShapeBox(const geometry::ChBox& box);
+    ChVisualShapeBox(const ChBox& box);
 
     ~ChVisualShapeBox() {}
 
     /// Access the box geometry.
-    geometry::ChBox& GetGeometry() { return gbox; }
+    ChBox& GetGeometry() { return gbox; }
 
     /// Get the box half-lengths.
     const ChVector3d& GetHalflengths() const { return gbox.GetHalflengths(); }
@@ -49,7 +49,7 @@ class ChApi ChVisualShapeBox : public ChVisualShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChBox gbox;
+    ChBox gbox;
 };
 
 /// @} chrono_assets

@@ -17,7 +17,7 @@
 
 namespace chrono {
 
-ChLoadBodyMesh::ChLoadBodyMesh(std::shared_ptr<ChBody> cbody, geometry::ChTriangleMeshConnected& cmesh) {
+ChLoadBodyMesh::ChLoadBodyMesh(std::shared_ptr<ChBody> cbody, ChTriangleMeshConnected& cmesh) {
     contactbody = cbody;
     contactmesh = cmesh;
 }
@@ -59,7 +59,7 @@ void ChLoadBodyMesh::InputSimpleForces(
     contactbody->GetSystem()->ForceUpdate();
 }
 
-void ChLoadBodyMesh::SetContactMesh(geometry::ChTriangleMeshConnected& mmesh) {
+void ChLoadBodyMesh::SetContactMesh(ChTriangleMeshConnected& mmesh) {
     this->contactmesh = mmesh;
     this->forces.clear();
 }

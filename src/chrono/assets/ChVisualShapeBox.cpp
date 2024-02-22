@@ -34,7 +34,7 @@ ChVisualShapeBox::ChVisualShapeBox(const ChVector3d& lengths) {
     SetMutable(false);
 }
 
-ChVisualShapeBox::ChVisualShapeBox(const geometry::ChBox& box) : gbox(box) {
+ChVisualShapeBox::ChVisualShapeBox(const ChBox& box) : gbox(box) {
     SetMutable(false);
 }
 

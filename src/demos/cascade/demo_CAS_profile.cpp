@@ -35,7 +35,6 @@ using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::cascade;
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
@@ -123,13 +122,13 @@ int main(int argc, char* argv[]) {
     // Might throw exception if some wire path not on XY plane, or not closed.
 
     auto mgenevawheel = chrono_types::make_shared<ChCascadeBodyEasyProfile>(
-        std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>>{mpathwheel},  // wire(s) containing the face
-        std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>>{},            // wire(s) telling holes (empty here)
-        0.05,                                                                      // the thickness
-        1000,                                                                      // the density
-        chrono_types::make_shared<ChCascadeTriangulate>(0.01, false, 0.2),         // finer than default
-        true,                                                                      // enable 2D collision
-        material                                                                   // contact material
+        std::vector<std::shared_ptr<::chrono::ChLinePath>>{mpathwheel},     // wire(s) containing the face
+        std::vector<std::shared_ptr<::chrono::ChLinePath>>{},               // wire(s) telling holes (empty here)
+        0.05,                                                               // the thickness
+        1000,                                                               // the density
+        chrono_types::make_shared<ChCascadeTriangulate>(0.01, false, 0.2),  // finer than default
+        true,                                                               // enable 2D collision
+        material                                                            // contact material
     );
     mgenevawheel->SetFrame_REF_to_abs(ChFrame<>(geneva_center));
     mgenevawheel->SetWvel_loc(ChVector3d(0, 0, -0.08));
@@ -176,9 +175,9 @@ int main(int argc, char* argv[]) {
 
     // Use the ChCascadeBodyEasyProfile to define a 2D profile, again:
     auto mcrank = chrono_types::make_shared<ChCascadeBodyEasyProfile>(
-        std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>>{mpathcrankstopper,
-                                                                     mpathcrankpin},  // wire(s) containing the face
-        std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>>{},     // wire(s) telling holes (empty here)
+        std::vector<std::shared_ptr<::chrono::ChLinePath>>{mpathcrankstopper,
+                                                           mpathcrankpin},  // wire(s) containing the face
+        std::vector<std::shared_ptr<::chrono::ChLinePath>>{},               // wire(s) telling holes (empty here)
         0.05,                                                               // the thickness
         1000,                                                               // the density
         chrono_types::make_shared<ChCascadeTriangulate>(0.01, false, 0.2),  // finer than default
@@ -233,8 +232,8 @@ int main(int argc, char* argv[]) {
     mfollowerwire->AddSubLine(msfoll4);
 
     auto mfollower = chrono_types::make_shared<ChCascadeBodyEasyProfile>(
-        std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>>{mfollowerwire},  // wire(s) containing the face
-        std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>>{},     // wire(s) telling holes (empty here)
+        std::vector<std::shared_ptr<::chrono::ChLinePath>>{mfollowerwire},  // wire(s) containing the face
+        std::vector<std::shared_ptr<::chrono::ChLinePath>>{},               // wire(s) telling holes (empty here)
         0.09,                                                               // the thickness
         1000,                                                               // the density
         chrono_types::make_shared<ChCascadeTriangulate>(0.01, false, 0.2),  // finer than default
@@ -263,7 +262,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddCamera(ChVector3d(0.2, 0.2, -2.3));
             vis_irr->AddTypicalLights();
             vis_irr->AddLightWithShadow(ChVector3d(1.5, 5.5, -3.5), ChVector3d(0, 0, 0), 8.2, 2.2, 8.2, 40, 512,
-                                    ChColor(0.8f, 0.8f, 0.8f));
+                                        ChColor(0.8f, 0.8f, 0.8f));
             vis_irr->EnableShadows();
 
             vis = vis_irr;

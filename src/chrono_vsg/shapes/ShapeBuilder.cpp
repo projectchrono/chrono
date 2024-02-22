@@ -548,7 +548,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateLineShape(ChVisualModel::ShapeInsta
     // calculate vertices
     int numPoints = ls->GetNumRenderPoints();
     double maxU = 1;
-    if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(ls->GetLineGeometry()))
+    if (auto mline_path = std::dynamic_pointer_cast<ChLinePath>(ls->GetLineGeometry()))
         maxU = mline_path->GetPathDuration();
     assert(numPoints > 2);
     double ustep = maxU / (numPoints - 1);

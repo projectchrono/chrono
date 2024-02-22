@@ -375,7 +375,7 @@ void CreateWheelBCEMarkers(std::shared_ptr<WheeledVehicle> vehicle, ChSystemFsi&
     // Create BCE markers for a tire
     std::string tire_coll_obj = "Polaris/meshes/Polaris_tire_collision.obj";
 
-    geometry::ChTriangleMeshConnected trimesh;
+    ChTriangleMeshConnected trimesh;
     trimesh.LoadWavefrontMesh(vehicle::GetDataFile(tire_coll_obj));
     std::vector<ChVector3d> point_cloud;
     sysFSI.CreateMeshPoints(trimesh, sysFSI.GetInitialSpacing(), point_cloud);

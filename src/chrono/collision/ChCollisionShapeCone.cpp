@@ -28,7 +28,7 @@ ChCollisionShapeCone::ChCollisionShapeCone(std::shared_ptr<ChContactMaterial> ma
     gcone.h = height;
 }
 
-ChCollisionShapeCone::ChCollisionShapeCone(std::shared_ptr<ChContactMaterial> material, const geometry::ChCone& cone)
+ChCollisionShapeCone::ChCollisionShapeCone(std::shared_ptr<ChContactMaterial> material, const ChCone& cone)
     : ChCollisionShape(Type::CONE, material), gcone(cone) {}
 
 void ChCollisionShapeCone::ArchiveOut(ChArchiveOut& marchive) {

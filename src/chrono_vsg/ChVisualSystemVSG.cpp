@@ -1326,7 +1326,7 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
         return;
 
     // Search for an appropriate rendering shape
-    typedef geometry::ChGeometry::Type ShapeType;
+    typedef ChGeometry::Type ShapeType;
     auto shape = vis_model->GetShape(0);
     ShapeType shape_type = ShapeType::NONE;
     ChVector3d shape_size(0);

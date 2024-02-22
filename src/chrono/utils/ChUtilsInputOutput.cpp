@@ -493,8 +493,8 @@ void WriteVisualizationAssets(ChSystem* system,
                 gss << TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";
                 a_count++;
             } else if (auto line = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
-                std::shared_ptr<geometry::ChLine> geom = line->GetLineGeometry();
-                if (auto bezier = std::dynamic_pointer_cast<geometry::ChLineBezier>(geom)) {
+                std::shared_ptr<ChLine> geom = line->GetLineGeometry();
+                if (auto bezier = std::dynamic_pointer_cast<ChLineBezier>(geom)) {
                     gss << BEZIER << delim << "\"" << line->GetName() << "\"";
                     a_count++;
                 } else {
@@ -593,7 +593,7 @@ void WriteVisualizationAssets(ChSystem* system,
 // Write the triangular mesh from the specified OBJ file as a macro in a PovRay
 // include file.
 // -----------------------------------------------------------------------------
-void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
+void WriteMeshPovray(ChTriangleMeshConnected& trimesh,
                      const std::string& mesh_name,
                      const std::string& out_dir,
                      const ChColor& col,
@@ -668,7 +668,7 @@ bool WriteMeshPovray(const std::string& obj_filename,
                      const ChVector3d& pos,
                      const ChQuaternion<>& rot) {
     // Read trimesh from OBJ file
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, false, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, false, false);
     if (!trimesh)
         return false;
 

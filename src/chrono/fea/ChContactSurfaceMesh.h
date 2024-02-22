@@ -506,7 +506,7 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
 
     /// Construct a contact surface from a triangular mesh.
     /// FEA nodes are created at the mesh vertex locations.
-    void ConstructFromTrimesh(std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh, double sphere_swept = 0.0);
+    void ConstructFromTrimesh(std::shared_ptr<ChTriangleMeshConnected> trimesh, double sphere_swept = 0.0);
 
     /// Get the list of triangles.
     std::vector<std::shared_ptr<ChContactTriangleXYZ>>& GetTriangleList() { return m_faces; }

@@ -295,7 +295,7 @@ ChApi std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(
 
 /// Load an object from a Wavefront OBJ file and generate its convex decomposition.
 ChApi bool LoadConvexMesh(const std::string& file_name,
-                          geometry::ChTriangleMeshConnected& convex_mesh,
+                          ChTriangleMeshConnected& convex_mesh,
                           ChConvexDecompositionHACDv2& convex_shape,
                           const ChVector3d& pos = ChVector3d(0, 0, 0),
                           const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),
@@ -309,14 +309,14 @@ ChApi bool LoadConvexMesh(const std::string& file_name,
 /// Given a path to an obj file, loads the obj assuming that the individual objects in the obj are convex hulls, useful
 /// when loading a precomputed set of convex hulls. The output of this function is used with AddConvexCollisionModel
 ChApi bool LoadConvexHulls(const std::string& file_name,
-                           geometry::ChTriangleMeshConnected& convex_mesh,
+                           ChTriangleMeshConnected& convex_mesh,
                            std::vector<std::vector<ChVector3d>>& convex_hulls);
 
 /// Given a convex mesh and its decomposition add it to a ChBody use_original_asset can be used to specify if the mesh
 /// or the convex decomp should be used for visualization
 ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
                                    ChContactMaterialSharedPtr material,
-                                   std::shared_ptr<geometry::ChTriangleMeshConnected> convex_mesh,
+                                   std::shared_ptr<ChTriangleMeshConnected> convex_mesh,
                                    ChConvexDecompositionHACDv2& convex_shape,
                                    const ChVector3d& pos = ChVector3d(0, 0, 0),
                                    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),
@@ -327,7 +327,7 @@ ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
 /// This version will use the triangle mesh to set the visualization geometry.
 ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
                                    ChContactMaterialSharedPtr material,
-                                   std::shared_ptr<geometry::ChTriangleMeshConnected> convex_mesh,
+                                   std::shared_ptr<ChTriangleMeshConnected> convex_mesh,
                                    std::vector<std::vector<ChVector3d>>& convex_hulls,
                                    const ChVector3d& pos = ChVector3d(0, 0, 0),
                                    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),

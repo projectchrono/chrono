@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     ground->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(ground);
 
-    auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 1.0, 100, mat);
+    auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.5, 1.0, 100, mat);
     cyl->SetPos(ChVector3d(0.0, 3.0, 0.0));
     cyl->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(cyl);

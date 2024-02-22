@@ -132,7 +132,7 @@ void SCMTerrain::WriteMesh(const std::string& filename) const {
         return;
     }
     auto trimesh = m_loader->m_trimesh_shape->GetMesh();
-    std::vector<geometry::ChTriangleMeshConnected> meshes = {*trimesh};
+    std::vector<ChTriangleMeshConnected> meshes = {*trimesh};
     trimesh->WriteWavefront(filename, meshes);
 }
 
@@ -236,7 +236,7 @@ void SCMTerrain::Initialize(const std::string& mesh_file, double delta) {
 }
 
 // Initialize the terrain from a specified triangular mesh file.
-void SCMTerrain::Initialize(const geometry::ChTriangleMeshConnected& trimesh, double delta) {
+void SCMTerrain::Initialize(const ChTriangleMeshConnected& trimesh, double delta) {
     m_loader->Initialize(trimesh, delta);
 }
 
@@ -518,12 +518,12 @@ bool calcBarycentricCoordinates(const ChVector3d& v1,
 
 void SCMLoader::Initialize(const std::string& mesh_file, double delta) {
     // Load triangular mesh
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_file, true, true);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_file, true, true);
 
     Initialize(*trimesh, delta);
 }
 
-void SCMLoader::Initialize(const geometry::ChTriangleMeshConnected& trimesh, double delta) {
+void SCMLoader::Initialize(const ChTriangleMeshConnected& trimesh, double delta) {
     m_type = PatchType::TRI_MESH;
 
     // Load triangular mesh

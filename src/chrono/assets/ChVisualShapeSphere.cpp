@@ -28,7 +28,7 @@ ChVisualShapeSphere::ChVisualShapeSphere(double radius) {
     SetMutable(false);
 }
 
-ChVisualShapeSphere::ChVisualShapeSphere(const geometry::ChSphere& sphere) : gsphere(sphere) {
+ChVisualShapeSphere::ChVisualShapeSphere(const ChSphere& sphere) : gsphere(sphere) {
     SetMutable(false);
 }
 

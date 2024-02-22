@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     float scale_z = chamber_height;
     ChVector3d scaling(scale_xy, scale_xy, scale_z);
     float mixer_mass = 10;
-    auto mixer_mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    auto mixer_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     mixer_mesh->LoadWavefrontMesh(GetChronoDataFile("models/mixer/internal_mixer.obj"), true, false);
     mixer_mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scaling));
     auto mixer_mesh_id = gpu_sys.AddMesh(mixer_mesh, mixer_mass);

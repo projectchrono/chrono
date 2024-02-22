@@ -17,7 +17,7 @@
 #include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChGeometry)  // NO! Abstract class!
@@ -98,5 +98,5 @@ bool ChAABB::IsInverted() const {
     return min > max;
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

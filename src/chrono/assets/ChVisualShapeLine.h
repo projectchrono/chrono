@@ -28,14 +28,14 @@ namespace chrono {
 class ChApi ChVisualShapeLine : public ChVisualShape {
   public:
     ChVisualShapeLine();
-    ChVisualShapeLine(std::shared_ptr<geometry::ChLine>& mline);
+    ChVisualShapeLine(std::shared_ptr<ChLine>& mline);
     virtual ~ChVisualShapeLine() {}
 
     /// Access the line geometry.
-    std::shared_ptr<geometry::ChLine> GetLineGeometry() { return gline; }
+    std::shared_ptr<ChLine> GetLineGeometry() { return gline; }
 
     /// Set the line geometry.
-    void SetLineGeometry(std::shared_ptr<geometry::ChLine> mline) { gline = mline; }
+    void SetLineGeometry(std::shared_ptr<ChLine> mline) { gline = mline; }
 
     const std::string& GetName() const { return name; }
     void SetName(const std::string& mname) { name = mname; }
@@ -53,7 +53,7 @@ class ChApi ChVisualShapeLine : public ChVisualShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   protected:
-    std::shared_ptr<geometry::ChLine> gline;  ///< underlying line geometry
+    std::shared_ptr<ChLine> gline;  ///< underlying line geometry
     std::string name;                         ///< asset name
     unsigned int npoints;                     ///< number of points evaluated when rendering
     double thickness;                         ///< thickness of line when rendering (for rendering engines that support it)

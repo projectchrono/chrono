@@ -74,10 +74,10 @@ class CH_VEHICLE_API ChVehicleGeometry {
 
     /// Line shape for visualization.
     struct CH_VEHICLE_API LineShape {
-        LineShape(const ChVector3d& pos, const ChQuaternion<>& rot, std::shared_ptr<geometry::ChLine> line);
+        LineShape(const ChVector3d& pos, const ChQuaternion<>& rot, std::shared_ptr<ChLine> line);
         ChVector3d m_pos;                          ///< position relative to body
         ChQuaternion<> m_rot;                      ///< orientation relative to body
-        std::shared_ptr<geometry::ChLine> m_line;  ///< line data
+        std::shared_ptr<ChLine> m_line;  ///< line data
     };
 
     /// Convex hulls shape for collision.
@@ -91,10 +91,10 @@ class CH_VEHICLE_API ChVehicleGeometry {
     struct CH_VEHICLE_API TrimeshShape {
         TrimeshShape(const ChVector3d& pos, const std::string& filename, double radius, int matID = -1);
         TrimeshShape(const ChVector3d& pos,
-                     std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh,
+                     std::shared_ptr<ChTriangleMeshConnected> trimesh,
                      double radius,
                      int matID = -1);
-        std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< triangular mesh
+        std::shared_ptr<ChTriangleMeshConnected> m_trimesh;  ///< triangular mesh
         double m_radius;                                               ///< radius of sweeping sphere
         ChVector3d m_pos;                                              ///< position relative to body
         int m_matID;                                                   ///< index in contact material list
@@ -140,7 +140,7 @@ class CH_VEHICLE_API ChVehicleGeometry {
                                                                    ChVisualMaterialSharedPtr mat = nullptr);
 
     /// Calculate axis-aligned bounding box of all collision shapes.
-    geometry::ChAABB CalculateAABB();
+    ChAABB CalculateAABB();
 };
 
 /// Utility class defining visualization geometry for a vehicle TSDA.

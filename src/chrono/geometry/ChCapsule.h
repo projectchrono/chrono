@@ -18,7 +18,9 @@
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A capsule geometric object for collision and visualization.
 class ChApi ChCapsule : public ChVolume {
@@ -86,9 +88,9 @@ class ChApi ChCapsule : public ChVolume {
     double h;  ///< height of cylindrical portion
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChCapsule, 0)
+CH_CLASS_VERSION(ChCapsule, 0)
 
 }  // end namespace chrono
 

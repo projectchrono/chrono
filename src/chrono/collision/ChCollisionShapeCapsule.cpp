@@ -31,7 +31,7 @@ ChCollisionShapeCapsule::ChCollisionShapeCapsule(std::shared_ptr<ChContactMateri
 }
 
 ChCollisionShapeCapsule::ChCollisionShapeCapsule(std::shared_ptr<ChContactMaterial> material,
-                                                 const geometry::ChCapsule& cap)
+                                                 const ChCapsule& cap)
     : ChCollisionShape(Type::CAPSULE, material), gcapsule(cap) {}
 
 void ChCollisionShapeCapsule::ArchiveOut(ChArchiveOut& marchive) {

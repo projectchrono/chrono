@@ -57,7 +57,7 @@ class ChApiIrr ChIrrNodeShape : public irr::scene::ISceneNode {
 
     void UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs);
     void UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface);
-    void UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned int nvertexes);
+    void UpdateLine(std::shared_ptr<ChLine> line, unsigned int nvertexes);
 
     virtual irr::scene::ESCENE_NODE_TYPE getType() const override;
     virtual void render() override {}

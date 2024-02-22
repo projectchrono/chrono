@@ -48,7 +48,6 @@ using namespace chrono::sensor;
 
 using namespace chrono;
 using namespace chrono::vehicle;
-using namespace chrono::geometry;
 using namespace chrono::synchrono;
 
 // =============================================================================

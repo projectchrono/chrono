@@ -33,7 +33,6 @@
 
 using namespace chrono;
 using namespace sensor;
-using namespace chrono::geometry;
 
 #define RADAR_TEST_EPSILLON 1e-6
 

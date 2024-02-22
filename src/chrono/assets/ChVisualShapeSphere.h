@@ -28,12 +28,12 @@ class ChApi ChVisualShapeSphere : public ChVisualShape {
   public:
     ChVisualShapeSphere();
     ChVisualShapeSphere(double radius);
-    ChVisualShapeSphere(const geometry::ChSphere& sphere);
+    ChVisualShapeSphere(const ChSphere& sphere);
 
     ~ChVisualShapeSphere() {}
 
     /// Access the sphere geometry.
-    geometry::ChSphere& GetGeometry() { return gsphere; }
+    ChSphere& GetGeometry() { return gsphere; }
 
     /// Get the sphere radius.
     double GetRadius() const { return gsphere.GetRadius(); }
@@ -45,7 +45,7 @@ class ChApi ChVisualShapeSphere : public ChVisualShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChSphere gsphere;
+    ChSphere gsphere;
 };
 
 /// @} chrono_assets

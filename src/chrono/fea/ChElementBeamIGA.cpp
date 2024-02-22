@@ -386,7 +386,7 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
                 int nspan = order;
 
                 ChVectorDynamic<> N((int)nodes.size());
-                geometry::ChBasisToolsBspline::BasisEvaluate(this->order, nspan, u, knots, N);
+                ChBasisToolsBspline::BasisEvaluate(this->order, nspan, u, knots, N);
 
                 /*
                 // interpolate rotation of section at given u, to compute R.
@@ -487,7 +487,7 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 
         ChMatrixDynamic<> N(2, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
 
-        geometry::ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
+        ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
                                                           N);  ///< here return N and dN/du
 
         // interpolate rotation of section at given u, to compute R.
@@ -652,7 +652,7 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
                 int nspan = order;
 
                 ChMatrixDynamic<> N(1, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
-                geometry::ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
+                ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
                                                                   N);  ///< here return N and dN/du
 
                 // interpolate rotation of section at given u, to compute R.
@@ -737,7 +737,7 @@ void ChElementBeamIGA::ComputeNF(const double U,
 
     ChMatrixDynamic<> N(2, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
 
-    geometry::ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
+    ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
                                                       N);  ///< h
 
     ChVector3d dr0;
@@ -809,7 +809,7 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
 
         ChMatrixDynamic<> N(2, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
 
-        geometry::ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
+        ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
                                                           N);  ///< here return N and dN/du
 
         // compute reference spline gradient \dot{dr_0} = dr0/du
@@ -843,7 +843,7 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
 
         ChMatrixDynamic<> N(2, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
 
-        geometry::ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
+        ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
                                                           N);  ///< here return N and dN/du
 
         // compute reference spline gradient \dot{dr_0} = dr0/du

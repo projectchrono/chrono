@@ -29,7 +29,7 @@ class ChApi ChLinkTrajectory : public ChLinkLockLock {
 
   protected:
     std::shared_ptr<ChFunction> space_fx;  ///< function providing the time history of the trajectory parameter
-    std::shared_ptr<geometry::ChLine> trajectory_line;  ///< line for the trajectory.
+    std::shared_ptr<ChLine> trajectory_line;  ///< line for the trajectory.
     bool modulo_s;                                      ///< modulation
 
   public:
@@ -52,10 +52,10 @@ class ChApi ChLinkTrajectory : public ChLinkLockLock {
     void Set_modulo_one_fx(bool mmod) { modulo_s = mmod; }
 
     /// Get the address of the trajectory line
-    std::shared_ptr<geometry::ChLine> Get_trajectory_line() const { return trajectory_line; }
+    std::shared_ptr<ChLine> Get_trajectory_line() const { return trajectory_line; }
 
     /// Sets the trajectory line (take ownership - does not copy line)
-    void Set_trajectory_line(std::shared_ptr<geometry::ChLine> mline);
+    void Set_trajectory_line(std::shared_ptr<ChLine> mline);
 
     /// Use this function after link creation, to initialize the link from
     /// two joined rigid bodies.
@@ -66,7 +66,7 @@ class ChApi ChLinkTrajectory : public ChLinkLockLock {
     void Initialize(std::shared_ptr<ChBody> mbody1,  ///< first  body to join (the one that follows the trajectory)
                     std::shared_ptr<ChBody> mbody2,  ///< second body to join (the one that contains the trajectory)
                     const ChVector3d& mpos1,         ///< position of the 'following point' on body1, relative to coordinate of body1.
-                    std::shared_ptr<geometry::ChLine> mline  ///< the line on mbody2 to be followed by point mpos1 of mbody1
+                    std::shared_ptr<ChLine> mline  ///< the line on mbody2 to be followed by point mpos1 of mbody1
                     );
 
     /// Overrides the parent class function. Here it moves the

@@ -69,7 +69,7 @@ void AddFallingItems(ChSystemNSC& sys) {
         boxBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
         sys.Add(boxBody);
 
-        auto cylBody = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
+        auto cylBody = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,  //
                                                                      0.75, 0.5,            // radius, height
                                                                      100,                  // density
                                                                      cyl_mat               // contact material

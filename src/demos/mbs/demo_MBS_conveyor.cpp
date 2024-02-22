@@ -183,7 +183,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
         }
 
         if (rand_fract > box_fraction + cyl_fraction) {
-            auto rigidBody = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
+            auto rigidBody = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,  //
                                                                            sphrad, sphrad * 2,   // rad, height
                                                                            1000,                 // density
                                                                            true,                 // visualization?

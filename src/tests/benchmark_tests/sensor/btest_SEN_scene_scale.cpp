@@ -34,7 +34,6 @@
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 float time_interval = 5.0f;
@@ -98,7 +97,7 @@ int main(int argc, char* argv[]) {
         while (curr_item_cnt < target_item_cnt) {
             if (obj_type == 2) {
                 // cylinder
-                auto cyl = std::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,              //
+                auto cyl = std::make_shared<ChBodyEasyCylinder>(ChAxis::Y,              //
                                                                 randf() + .05, 2 * randf() + .1,  //
                                                                 1000,                             //
                                                                 true, false);

@@ -35,7 +35,7 @@ ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(const ChVector3d& lengths, doub
     SetMutable(false);
 }
 
-ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(const geometry::ChRoundedBox& box) : gbox(box) {
+ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(const ChRoundedBox& box) : gbox(box) {
     SetMutable(false);
 }
 

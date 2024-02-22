@@ -27,12 +27,12 @@ class ChApi ChVisualShapeEllipsoid : public ChVisualShape {
     ChVisualShapeEllipsoid();
     ChVisualShapeEllipsoid(double axis_x, double axis_y, double axis_z);
     ChVisualShapeEllipsoid(const ChVector3d& axes);
-    ChVisualShapeEllipsoid(const geometry::ChEllipsoid& ellipsoid);
+    ChVisualShapeEllipsoid(const ChEllipsoid& ellipsoid);
 
     ~ChVisualShapeEllipsoid(){};
 
     // Access the ellipsoid geometry.
-    geometry::ChEllipsoid& GetGeometry() { return gellipsoid; }
+    ChEllipsoid& GetGeometry() { return gellipsoid; }
 
     /// Get the ellipsoid semiaxes.
     const ChVector3d& GetSemiaxes() const { return gellipsoid.GetSemiaxes(); }
@@ -47,7 +47,7 @@ class ChApi ChVisualShapeEllipsoid : public ChVisualShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChEllipsoid gellipsoid;
+    ChEllipsoid gellipsoid;
 };
 
 /// @} chrono_assets

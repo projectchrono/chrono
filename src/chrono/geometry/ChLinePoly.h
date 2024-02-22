@@ -20,13 +20,15 @@
 #include "chrono/geometry/ChLine.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Geometric object representing a polygonal line in 3D space, controlled by control points.
 class ChApi ChLinePoly : public ChLine {
   private:
-    std::vector<ChVector3d > points;  ///< control points
-    int degree;                       ///< polynomial degree
+    std::vector<ChVector3d> points;  ///< control points
+    int degree;                      ///< polynomial degree
 
   public:
     ChLinePoly(int mnumpoints = 1);
@@ -68,9 +70,9 @@ class ChApi ChLinePoly : public ChLine {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLinePoly, 0)
+CH_CLASS_VERSION(ChLinePoly, 0)
 
 }  // end namespace chrono
 

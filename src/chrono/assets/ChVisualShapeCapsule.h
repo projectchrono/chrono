@@ -28,12 +28,12 @@ class ChApi ChVisualShapeCapsule : public ChVisualShape {
   public:
     ChVisualShapeCapsule();
     ChVisualShapeCapsule(double radius, double height);
-    ChVisualShapeCapsule(const geometry::ChCapsule& cap);
+    ChVisualShapeCapsule(const ChCapsule& cap);
 
     ~ChVisualShapeCapsule() {}
 
     /// Access the capsule geometry.
-    geometry::ChCapsule& GetGeometry() { return gcapsule; }
+    ChCapsule& GetGeometry() { return gcapsule; }
 
     /// Get the capsule radius.
     double GetRadius() const { return gcapsule.GetRadius(); }
@@ -51,7 +51,7 @@ class ChApi ChVisualShapeCapsule : public ChVisualShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChCapsule gcapsule;
+    ChCapsule gcapsule;
 };
 
 /// @} chrono_assets

@@ -103,7 +103,7 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     std::shared_ptr<ChBezierCurve> GetRoadBoundaryRight() const { return m_road_right; }
 
     /// Get the road mesh.
-    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
+    std::shared_ptr<ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
 
     /// Is the road a round course (closed loop)?
     bool IsPathClosed() { return m_isClosed; }
@@ -166,7 +166,7 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     std::string m_curve_left_name;
     std::string m_curve_right_name;
 
-    std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
+    std::shared_ptr<ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
     std::shared_ptr<ChBezierCurve> m_road_left;                 ///< curve for left road boundary
     std::shared_ptr<ChBezierCurve> m_road_right;                ///< curve for right road boundary
 

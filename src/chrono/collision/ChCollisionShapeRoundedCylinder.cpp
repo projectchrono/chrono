@@ -33,7 +33,7 @@ ChCollisionShapeRoundedCylinder::ChCollisionShapeRoundedCylinder(std::shared_ptr
 }
 
 ChCollisionShapeRoundedCylinder::ChCollisionShapeRoundedCylinder(std::shared_ptr<ChContactMaterial> material,
-                                                                 const geometry::ChRoundedCylinder& cyl)
+                                                                 const ChRoundedCylinder& cyl)
     : ChCollisionShape(Type::ROUNDEDCYL, material), gcylinder(cyl) {}
 
 void ChCollisionShapeRoundedCylinder::ArchiveOut(ChArchiveOut& marchive) {

@@ -17,7 +17,7 @@
 #include "chrono/geometry/ChBox.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBox)
@@ -120,5 +120,5 @@ void ChBox::ArchiveIn(ChArchiveIn& marchive) {
     SetLengths(lengths);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

@@ -67,7 +67,7 @@ bool ChOpenGLMesh::Initialize(chrono::ChVisualShapeTriangleMesh* tri_mesh, ChOpe
     int num_triangles = tri_mesh->GetMesh()->getNumTriangles();
 
     for (unsigned int i = 0; i < (unsigned)num_triangles; i++) {
-        chrono::geometry::ChTriangle tri = tri_mesh->GetMesh()->getTriangle(i);
+        chrono::ChTriangle tri = tri_mesh->GetMesh()->getTriangle(i);
         ChVector3d norm = tri.GetNormal();
         ChVector3d v1 = tri.p1;
         ChVector3d v2 = tri.p2;

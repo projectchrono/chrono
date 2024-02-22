@@ -33,7 +33,7 @@ extern "C" {
 }
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTriangleMeshConnected)
@@ -1273,5 +1273,5 @@ void ChTriangleMeshConnected::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(m_properties_per_face);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

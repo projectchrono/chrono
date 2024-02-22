@@ -243,7 +243,7 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::MESH: {
             double sphere_r = 0.005;
-            auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(tire_mesh_file);
+            auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(tire_mesh_file);
             if (!trimesh)
                 return 1;
 

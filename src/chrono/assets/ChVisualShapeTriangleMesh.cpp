@@ -24,10 +24,10 @@ CH_FACTORY_REGISTER(ChVisualShapeTriangleMesh)
 
 ChVisualShapeTriangleMesh::ChVisualShapeTriangleMesh()
     : name(""), scale(ChVector3d(1)), wireframe(false), backface_cull(false), fixed_connectivity(false) {
-    trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
 };
 
-void ChVisualShapeTriangleMesh::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, bool load_materials) {
+void ChVisualShapeTriangleMesh::SetMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, bool load_materials) {
     trimesh = mesh;
 
     // Try to read material information form an MTL file

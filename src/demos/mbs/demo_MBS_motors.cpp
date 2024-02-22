@@ -75,7 +75,7 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& stator,
                        ChSystem& sys,
                        const ChVector3d& mpos) {
     stator =
-        chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 0.1, 1000, material);
+        chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.5, 0.1, 1000, material);
     stator->SetPos(mpos);
     stator->SetRot(QuatFromAngleX(CH_C_PI_2));
     stator->SetBodyFixed(true);

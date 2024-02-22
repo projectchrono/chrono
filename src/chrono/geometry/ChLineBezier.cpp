@@ -22,7 +22,6 @@
 #include "chrono/geometry/ChLineBezier.h"
 
 namespace chrono {
-namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineBezier)
@@ -73,12 +72,11 @@ void ChLineBezier::ArchiveOut(ChArchiveOut& marchive) {
 
 void ChLineBezier::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLineBezier>();
+    /*int version =*/marchive.VersionRead<ChLineBezier>();
     // deserialize parent class
     ChLine::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(m_path);
 }
 
-}  // end of namespace geometry
 }  // end of namespace chrono

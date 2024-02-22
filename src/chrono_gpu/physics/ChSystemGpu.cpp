@@ -509,7 +509,7 @@ size_t ChSystemGpu::EstimateMemUsage() const {
 
 // -----------------------------------------------------------------------------
 
-unsigned int ChSystemGpuMesh::AddMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, float mass) {
+unsigned int ChSystemGpuMesh::AddMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, float mass) {
     unsigned int id = static_cast<unsigned int>(m_meshes.size());
     m_meshes.push_back(mesh);
     m_mesh_masses.push_back(mass);
@@ -521,7 +521,7 @@ unsigned int ChSystemGpuMesh::AddMesh(const std::string& filename,
                                       const ChVector3f& translation,
                                       const ChMatrix33<float>& rotscale,
                                       float mass) {
-    auto mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    auto mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     bool flag = mesh->LoadWavefrontMesh(filename, true, false);
     if (!flag)
         CHGPU_ERROR("ERROR! Mesh %s failed to load in!\n", filename.c_str());
@@ -580,7 +580,7 @@ void ChSystemGpuMesh::SetMeshes() {
     // for each obj file data set
     for (const auto& mesh : m_meshes) {
         for (int i = 0; i < mesh->getNumTriangles(); i++) {
-            geometry::ChTriangle tri = mesh->getTriangle(i);
+            ChTriangle tri = mesh->getTriangle(i);
 
             pMeshSoup->node1[tri_i] = make_float3((float)tri.p1.x(), (float)tri.p1.y(), (float)tri.p1.z());
             pMeshSoup->node2[tri_i] = make_float3((float)tri.p2.x(), (float)tri.p2.y(), (float)tri.p2.z());

@@ -25,7 +25,7 @@ static const double FD_STEP = 1e-4;
 
 ChFunctionPositionLine::ChFunctionPositionLine() {
     // default trajectory is a segment
-    this->trajectory_line = chrono_types::make_shared<geometry::ChLineSegment>();
+    this->trajectory_line = chrono_types::make_shared<ChLineSegment>();
 
     // default s(t) function. User will provide better fx.
     space_fx = chrono_types::make_shared<ChFunctionRamp>(0, 1.);
@@ -34,7 +34,7 @@ ChFunctionPositionLine::ChFunctionPositionLine() {
 ChFunctionPositionLine::ChFunctionPositionLine(const ChFunctionPositionLine& other) {
     // trajectory_line = other.trajectory_line;
     trajectory_line =
-        std::shared_ptr<geometry::ChLine>((geometry::ChLine*)other.trajectory_line->Clone());  // deep copy
+        std::shared_ptr<ChLine>((ChLine*)other.trajectory_line->Clone());  // deep copy
 
     // space_fx = other.space_fx;
     space_fx = std::shared_ptr<ChFunction>(other.space_fx->Clone());  // deep copy

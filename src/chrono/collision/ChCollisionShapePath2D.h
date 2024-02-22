@@ -36,13 +36,13 @@ class ChApi ChCollisionShapePath2D : public ChCollisionShape {
   public:
     ChCollisionShapePath2D();
     ChCollisionShapePath2D(std::shared_ptr<ChContactMaterial> material,
-                           std::shared_ptr<geometry::ChLinePath> path,
+                           std::shared_ptr<ChLinePath> path,
                            double radius = 0.001);
 
     ~ChCollisionShapePath2D() {}
 
     /// Access the path geometry.
-    std::shared_ptr<geometry::ChLinePath> GetGeometry() { return gpath; }
+    std::shared_ptr<ChLinePath> GetGeometry() { return gpath; }
 
     /// Get the path thickness (the radius of a sweeping sphere).
     double GetSRadius() const { return radius; }
@@ -54,7 +54,7 @@ class ChApi ChCollisionShapePath2D : public ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    std::shared_ptr<geometry::ChLinePath> gpath;
+    std::shared_ptr<ChLinePath> gpath;
     double radius;
 };
 

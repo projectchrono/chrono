@@ -40,10 +40,10 @@ class ChApi ChFunctionPositionLine : public ChFunctionPosition {
 
 
 	/// Get the trajectory line
-    std::shared_ptr<geometry::ChLine> GetLine() const { return trajectory_line; }
+    std::shared_ptr<ChLine> GetLine() const { return trajectory_line; }
 
     /// Sets the trajectory line (take ownership - does not copy line)
-	void SetLine(std::shared_ptr<geometry::ChLine> mline) { trajectory_line = mline; }
+	void SetLine(std::shared_ptr<ChLine> mline) { trajectory_line = mline; }
 
 
 	/// Gets the address of the function u=u(s) telling
@@ -72,7 +72,7 @@ class ChApi ChFunctionPositionLine : public ChFunctionPosition {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
 private:
-	std::shared_ptr<geometry::ChLine> trajectory_line;
+	std::shared_ptr<ChLine> trajectory_line;
 
 	std::shared_ptr<ChFunction> space_fx;  
 };

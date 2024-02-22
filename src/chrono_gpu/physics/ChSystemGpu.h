@@ -419,7 +419,7 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Add a trimesh to the granular system.
     /// The return value is a mesh identifier which can be used during the simulation to apply rigid body motion to the
     /// mesh; see ApplyMeshMotion(). This function must be called before Initialize().
-    unsigned int AddMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, float mass);
+    unsigned int AddMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, float mass);
 
     /// Add a trimesh from the specified Wavefront OBJ file to the granular system.
     /// The return value is a mesh identifier which can be used during the simulation to apply rigid body motion to the
@@ -455,7 +455,7 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
 
     /// Return the specified mesh in the system.
     /// The mesh is assumed to have been added with one of the AddMesh() functions.
-    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh(unsigned int mesh_id) const { return m_meshes[mesh_id]; }
+    std::shared_ptr<ChTriangleMeshConnected> GetMesh(unsigned int mesh_id) const { return m_meshes[mesh_id]; }
 
     /// Return the mass of the specified mesh.
     /// The mesh is assumed to have been added with one of the AddMesh() functions.
@@ -529,7 +529,7 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     void SetMeshes();
 
     CHGPU_MESH_VERBOSITY mesh_verbosity;                                       ///< mesh operations verbosity level
-    std::vector<std::shared_ptr<geometry::ChTriangleMeshConnected>> m_meshes;  ///< list of meshes used in cosimulation
+    std::vector<std::shared_ptr<ChTriangleMeshConnected>> m_meshes;  ///< list of meshes used in cosimulation
     std::vector<float> m_mesh_masses;                                          ///< associated mesh masses
     bool use_mesh_normals =
         false;  ///< true: use mesh normals in file to correct mesh orientation; false: do nothing, implicitly use RHR

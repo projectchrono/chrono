@@ -66,11 +66,11 @@ ChVehicleGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
 
 ChVehicleGeometry::LineShape::LineShape(const ChVector3d& pos,
                                         const ChQuaternion<>& rot,
-                                        std::shared_ptr<geometry::ChLine> line)
+                                        std::shared_ptr<ChLine> line)
     : m_pos(pos), m_rot(rot), m_line(line) {}
 
 ChVehicleGeometry::ConvexHullsShape::ConvexHullsShape(const std::string& filename, int matID) : m_matID(matID) {
-    geometry::ChTriangleMeshConnected mesh;
+    ChTriangleMeshConnected mesh;
     utils::LoadConvexHulls(vehicle::GetDataFile(filename), mesh, m_hulls);
 }
 
@@ -79,11 +79,11 @@ ChVehicleGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
                                               double radius,
                                               int matID)
     : m_radius(radius), m_pos(pos), m_matID(matID) {
-    m_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(filename), true, false);
+    m_trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(filename), true, false);
 }
 
 ChVehicleGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
-                                              std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh,
+                                              std::shared_ptr<ChTriangleMeshConnected> trimesh,
                                               double radius,
                                               int matID)
     : m_trimesh(trimesh), m_radius(radius), m_pos(pos), m_matID(matID) {}
@@ -93,7 +93,7 @@ std::shared_ptr<ChVisualShape> ChVehicleGeometry::AddVisualizationCylinder(std::
                                                                            const ChVector3d& p2,
                                                                            double radius,
                                                                            ChVisualMaterialSharedPtr mat) {
-    geometry::ChLineSegment seg(p1, p2);
+    ChLineSegment seg(p1, p2);
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, seg.GetLength());
     if (mat)
         cyl->AddMaterial(mat);
@@ -146,7 +146,7 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
     }
 
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
                                                                                   true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
@@ -247,7 +247,7 @@ void ChVehicleGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
     body->GetCollisionModel()->SetFamily(collision_family);
 }
 
-geometry::ChAABB ChVehicleGeometry::CalculateAABB() {
+ChAABB ChVehicleGeometry::CalculateAABB() {
     ChVector3d amin(+std::numeric_limits<double>::max());
     ChVector3d amax(-std::numeric_limits<double>::max());
 
@@ -291,7 +291,7 @@ geometry::ChAABB ChVehicleGeometry::CalculateAABB() {
         amax = Vmax(amax, bbox.max);
     }
 
-    return geometry::ChAABB(amin, amax);
+    return ChAABB(amin, amax);
 }
 
 // -----------------------------------------------------------------------------

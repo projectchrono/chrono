@@ -145,7 +145,7 @@ class MySimpleCar {
 
         // ..the car right-front wheel
         wheelRF =
-            chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
+            chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelRF->SetPos(ChVector3d(1.5, 1, 1));
         wheelRF->SetRot(chrono::QuatFromAngleZ(CH_C_PI_2));
         wheelRF->SetMass(3);
@@ -199,7 +199,7 @@ class MySimpleCar {
 
         // ..the car left-front wheel
         wheelLF =
-            chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
+            chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelLF->SetPos(ChVector3d(-1.5, 1, 1));
         wheelLF->SetRot(chrono::QuatFromAngleZ(CH_C_PI_2));
         wheelLF->SetMass(3);
@@ -254,7 +254,7 @@ class MySimpleCar {
 
         // ..the car right-back wheel
         wheelRB =
-            chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
+            chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelRB->SetPos(ChVector3d(1.5, 1, -1));
         wheelRB->SetRot(chrono::QuatFromAngleZ(CH_C_PI_2));
         wheelRB->SetMass(3);
@@ -314,7 +314,7 @@ class MySimpleCar {
 
         // ..the car left-back wheel
         wheelLB =
-            chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
+            chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelLB->SetPos(ChVector3d(-1.5, 1, -1));
         wheelLB->SetRot(chrono::QuatFromAngleZ(CH_C_PI_2));
         wheelLB->SetMass(3);

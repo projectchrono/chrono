@@ -31,7 +31,7 @@ ChCollisionShapeTriangle::ChCollisionShapeTriangle(std::shared_ptr<ChContactMate
 }
 
 ChCollisionShapeTriangle::ChCollisionShapeTriangle(std::shared_ptr<ChContactMaterial> material,
-                                                   const geometry::ChTriangle& triangle)
+                                                   const ChTriangle& triangle)
     : ChCollisionShape(Type::TRIANGLE, material), gtriangle(triangle) {}
 
 void ChCollisionShapeTriangle::ArchiveOut(ChArchiveOut& marchive) {

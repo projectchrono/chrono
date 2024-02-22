@@ -59,7 +59,7 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
                        std::shared_ptr<ChContactMaterial> material,
                        ChSystem& msystem,
                        const ChVector3d mpos) {
-    mstator = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 0.1, 1000, material);
+    mstator = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.5, 0.1, 1000, material);
     mstator->SetPos(mpos);
     mstator->SetRot(QuatFromAngleX(CH_C_PI_2));
     mstator->SetBodyFixed(true);

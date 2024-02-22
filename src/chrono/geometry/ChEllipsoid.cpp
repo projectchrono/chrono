@@ -17,7 +17,7 @@
 #include "chrono/geometry/ChEllipsoid.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChEllipsoid)
@@ -89,5 +89,5 @@ void ChEllipsoid::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(rad);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

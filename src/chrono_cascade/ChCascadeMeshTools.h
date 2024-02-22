@@ -38,14 +38,14 @@ class ChApiCASCADE ChCascadeMeshTools {
     /// This function can be used to convert a OpenCASCADE face into a triangle mesh.
     /// The face must be already mshed (ex because you called fillTriangleMeshFromCascade before).
     static void fillTriangleMeshFromCascadeFace(
-        geometry::ChTriangleMeshConnected& mesh,  ///< Mesh that will be filled with triangles
+        ChTriangleMeshConnected& mesh,  ///< Mesh that will be filled with triangles
         const TopoDS_Face& F                      ///< OpenCASCADE face to be meshed
     );
 
     /// This function can be used to convert a OpenCASCADE shape into a
     /// Chrono ChTriangleMesh triangle mesh.
     static void fillTriangleMeshFromCascade(
-        geometry::ChTriangleMeshConnected& mesh,  ///< Mesh that will be filled with triangles
+        ChTriangleMeshConnected& mesh,  ///< Mesh that will be filled with triangles
         const TopoDS_Shape& shape,                ///< OpenCASCADE face to be meshed
         const ChCascadeTriangulate& tolerances    ///< tesselation tolerances
     );

@@ -123,7 +123,7 @@ class CH_VEHICLE_API ObsModTerrain : public ChTerrain {
     std::vector<double> m_y;           ///< hold the unequally spaced y values
     ChMatrixDynamic<> m_Q;             ///< matrix of uneven height values
     std::shared_ptr<ChBody> m_ground;  ///< ground body
-    std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
+    std::shared_ptr<ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
 
     std::shared_ptr<ChContactMaterial> m_material;
     bool m_collision_mesh;

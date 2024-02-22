@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     ground->SetCollide(false);
 
     // Visualization for revolute joint
-    geometry::ChLineSegment seg(rev_pos + 0.2 * rev_dir, rev_pos - 0.2 * rev_dir);
+    ChLineSegment seg(rev_pos + 0.2 * rev_dir, rev_pos - 0.2 * rev_dir);
     auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, seg.GetLength());
     ground->AddVisualShape(cyl_rev, seg.GetFrame());
 

@@ -15,7 +15,7 @@
 #include "chrono/geometry/ChSurfaceNurbs.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSurfaceNurbs)
@@ -151,5 +151,5 @@ void ChSurfaceNurbs::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(p_v);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

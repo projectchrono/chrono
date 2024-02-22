@@ -38,8 +38,6 @@
 namespace chrono {
 namespace postprocess {
 
-using namespace geometry;
-
 ChBlender::ChBlender(ChSystem* system) : ChPostProcessBase(system) {
     base_path = "";
     pic_path = "anim";

@@ -48,7 +48,7 @@ ChGlyphs::ChGlyphs() {
 
 ChGlyphs::~ChGlyphs() {
 
-    for (geometry::ChProperty* id : this->m_properties)
+    for (ChProperty* id : this->m_properties)
         delete(id);
 }
 
@@ -60,18 +60,18 @@ void ChGlyphs::SetDrawMode(eCh_GlyphType mmode) {
         break;
     case GLYPH_VECTOR:
         if (!this->vectors) {
-            geometry::ChPropertyVector my_vectors;
+            ChPropertyVector my_vectors;
             my_vectors.name = "V";
             this->AddProperty(my_vectors);
-            this->vectors = &((geometry::ChPropertyVector*)(m_properties.back()))->data;
+            this->vectors = &((ChPropertyVector*)(m_properties.back()))->data;
         }
         break;
     case GLYPH_COORDSYS:
         if (!this->rotations) {
-            geometry::ChPropertyQuaternion my_quats;
+            ChPropertyQuaternion my_quats;
             my_quats.name = "rot";
             this->AddProperty(my_quats);
-            this->rotations = &((geometry::ChPropertyQuaternion*)(m_properties.back()))->data;
+            this->rotations = &((ChPropertyQuaternion*)(m_properties.back()))->data;
         }
         break;
     default:
@@ -83,7 +83,7 @@ void ChGlyphs::SetDrawMode(eCh_GlyphType mmode) {
 void ChGlyphs::Reserve(unsigned int n_glyphs) {
     points.resize(n_glyphs);
 
-    for (geometry::ChProperty* prop : this->m_properties)
+    for (ChProperty* prop : this->m_properties)
         prop->SetSize(n_glyphs);
 }
 
@@ -97,13 +97,13 @@ void ChGlyphs::SetGlyphPoint(unsigned int id, ChVector3d mpoint, ChColor mcolor)
     points[id] = mpoint;
 
     if (!this->colors) {
-        geometry::ChPropertyColor my_colors;
+        ChPropertyColor my_colors;
         my_colors.name = "color";
         this->AddProperty(my_colors);
-        this->colors = &((geometry::ChPropertyColor*)(m_properties.back()))->data;
+        this->colors = &((ChPropertyColor*)(m_properties.back()))->data;
     }
 
-    for (geometry::ChProperty* prop : this->m_properties) {
+    for (ChProperty* prop : this->m_properties) {
         if (prop->GetSize() <= id)
             prop->SetSize(id + 1);
     }
@@ -121,19 +121,19 @@ void ChGlyphs::SetGlyphVector(unsigned int id, ChVector3d mpoint, ChVector3d mve
     points[id] = mpoint;
 
     if (!this->vectors) {
-        geometry::ChPropertyVector my_vectors;
+        ChPropertyVector my_vectors;
         my_vectors.name = "V";
         this->AddProperty(my_vectors);
-        this->vectors = &((geometry::ChPropertyVector*)(m_properties.back()))->data;
+        this->vectors = &((ChPropertyVector*)(m_properties.back()))->data;
     }
     if (!this->colors) {
-        geometry::ChPropertyColor my_colors;
+        ChPropertyColor my_colors;
         my_colors.name = "color";
         this->AddProperty(my_colors);
-        this->colors = &((geometry::ChPropertyColor*)(m_properties.back()))->data;
+        this->colors = &((ChPropertyColor*)(m_properties.back()))->data;
     }
 
-    for (geometry::ChProperty* prop : this->m_properties) {
+    for (ChProperty* prop : this->m_properties) {
         if (prop->GetSize() <= id)
             prop->SetSize(id + 1);
     }
@@ -152,25 +152,25 @@ void ChGlyphs::SetGlyphVectorLocal(unsigned int id, ChVector3d mpoint, ChVector3
     points[id] = mpoint;
 
     if (!this->vectors) {
-        geometry::ChPropertyVector my_vectors;
+        ChPropertyVector my_vectors;
         my_vectors.name = "V";
         this->AddProperty(my_vectors);
-        this->vectors = &((geometry::ChPropertyVector*)(m_properties.back()))->data;
+        this->vectors = &((ChPropertyVector*)(m_properties.back()))->data;
     }
     if (!this->rotations) {
-        geometry::ChPropertyQuaternion my_quats;
+        ChPropertyQuaternion my_quats;
         my_quats.name = "rot";
         this->AddProperty(my_quats);
-        this->rotations = &((geometry::ChPropertyQuaternion*)(m_properties.back()))->data;
+        this->rotations = &((ChPropertyQuaternion*)(m_properties.back()))->data;
     }
     if (!this->colors) {
-        geometry::ChPropertyColor my_colors;
+        ChPropertyColor my_colors;
         my_colors.name = "color";
         this->AddProperty(my_colors);
-        this->colors = &((geometry::ChPropertyColor*)(m_properties.back()))->data;
+        this->colors = &((ChPropertyColor*)(m_properties.back()))->data;
     }
 
-    for (geometry::ChProperty* prop : this->m_properties) {
+    for (ChProperty* prop : this->m_properties) {
         if (prop->GetSize() <= id)
             prop->SetSize(id + 1);
     }
@@ -191,13 +191,13 @@ void ChGlyphs::SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord) {
     points[id] = mcoord.pos;
 
     if (!this->rotations) {
-        geometry::ChPropertyQuaternion my_quats;
+        ChPropertyQuaternion my_quats;
         my_quats.name = "rot";
         this->AddProperty(my_quats);
-        this->rotations = &((geometry::ChPropertyQuaternion*)(m_properties.back()))->data;
+        this->rotations = &((ChPropertyQuaternion*)(m_properties.back()))->data;
     }
 
-    for (geometry::ChProperty* prop : this->m_properties) {
+    for (ChProperty* prop : this->m_properties) {
         if (prop->GetSize() <= id)
             prop->SetSize(id + 1);
     }
@@ -218,19 +218,19 @@ void ChGlyphs::SetGlyphTensor(unsigned int id, ChVector3d mpoint, ChQuaternion<>
     points[id] = mpoint;
 
     if (!this->rotations) {
-        geometry::ChPropertyQuaternion my_quats;
+        ChPropertyQuaternion my_quats;
         my_quats.name = "rot";
         this->AddProperty(my_quats);
-        this->rotations = &((geometry::ChPropertyQuaternion*)(m_properties.back()))->data;
+        this->rotations = &((ChPropertyQuaternion*)(m_properties.back()))->data;
     }
     if (!this->eigenvalues) {
-        geometry::ChPropertyVector my_eigenvalues;
+        ChPropertyVector my_eigenvalues;
         my_eigenvalues.name = "eigenvalues";
         this->AddProperty(my_eigenvalues);
-        this->eigenvalues = &((geometry::ChPropertyVector*)(m_properties.back()))->data;
+        this->eigenvalues = &((ChPropertyVector*)(m_properties.back()))->data;
     }
 
-    for (geometry::ChProperty* prop : this->m_properties) {
+    for (ChProperty* prop : this->m_properties) {
         if (prop->GetSize() <= id)
             prop->SetSize(id + 1);
     }

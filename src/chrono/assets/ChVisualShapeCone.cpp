@@ -28,7 +28,7 @@ ChVisualShapeCone::ChVisualShapeCone(double radius, double height) {
     SetMutable(false);
 }
 
-ChVisualShapeCone::ChVisualShapeCone(const geometry::ChCone& cone) : gcone(cone) {
+ChVisualShapeCone::ChVisualShapeCone(const ChCone& cone) : gcone(cone) {
     SetMutable(false);
 }
 

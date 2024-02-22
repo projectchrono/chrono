@@ -699,7 +699,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 // It is used to convert an Irrlicht mesh into a ChTriangleMesh, which is used
 // for collision detection in Chrono::Engine.
 // -----------------------------------------------------------------------------
-void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, IMesh* pMesh) {
+void fillChTrimeshFromIrlichtMesh(chrono::ChTriangleMesh* chTrimesh, IMesh* pMesh) {
     chrono::ChVector3d vertices[3];
     u32 i, j, k, index, numVertices;
     u16* mb_indices;
@@ -754,7 +754,7 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
 //
 // ***OBSOLETE***
 // -----------------------------------------------------------------------------
-void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::geometry::ChTriangleMesh* chTrimesh, irr::video::SColor clr) {
+void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::ChTriangleMesh* chTrimesh, irr::video::SColor clr) {
     SMeshBuffer* buffer = new SMeshBuffer();
 
     // From index-less triangle soup

@@ -20,7 +20,9 @@
 #include "chrono/geometry/ChLine.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Geometric object representing an arc or a circle in 3D space.
 /// By default it is evaluated clockwise from angle1 to angle2.
@@ -71,9 +73,9 @@ class ChApi ChLineArc : public ChLine {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLineArc, 0)
+CH_CLASS_VERSION(ChLineArc, 0)
 
 }  // end namespace chrono
 

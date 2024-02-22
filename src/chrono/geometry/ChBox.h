@@ -20,7 +20,9 @@
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A box geometric object for collisions and visualization.
 class ChApi ChBox : public ChVolume {
@@ -84,9 +86,9 @@ class ChApi ChBox : public ChVolume {
     ChVector3d hlen;  ///< box halflengths
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChBox, 0)
+CH_CLASS_VERSION(ChBox, 0)
 
 }  // end namespace chrono
 

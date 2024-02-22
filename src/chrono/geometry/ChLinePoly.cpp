@@ -15,7 +15,7 @@
 #include "chrono/geometry/ChLinePoly.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinePoly)
@@ -110,5 +110,5 @@ void ChLinePoly::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(degree);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

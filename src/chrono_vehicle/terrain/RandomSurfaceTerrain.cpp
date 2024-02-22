@@ -40,11 +40,9 @@
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 
-
 namespace chrono {
 namespace vehicle {
 
-using namespace chrono::geometry;
 using namespace Eigen;
 
 RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, double width, double height, float friction)
@@ -89,7 +87,7 @@ RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, doub
 
     m_curve_left_name = "leftContour";
     m_curve_left_name = "rightContour";
-    
+
     // class limits for unevenness
     m_classLimits.resize(9);
     m_classLimits << 0.0, 2e-6, 8e-6, 32e-6, 128e-6, 512e-6, 2048e-6, 8192e-6, 16384e-6;
@@ -418,7 +416,8 @@ double RandomSurfaceTerrain::CalculateAmplitudeRight(double x) {
     for (int i = 0; i < m_ck.size(); i++) {
         A += m_ck[i] * cos(m_wfft[i] * x + m_phase_right[i]);
     }
-    double fade = ChFunctionSineStep::Eval(x, 0, 0, 10.0, 1.0) * ChFunctionSineStep::Eval(x, m_xmax - 10.0, 1.0, m_xmax, 0.0);
+    double fade =
+        ChFunctionSineStep::Eval(x, 0, 0, 10.0, 1.0) * ChFunctionSineStep::Eval(x, m_xmax - 10.0, 1.0, m_xmax, 0.0);
     return 2.0 * A * fade;
 }
 
@@ -456,7 +455,7 @@ void RandomSurfaceTerrain::GenerateMesh() {
     if (m_mesh)
         return;
 
-    m_mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    m_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     auto& coords = m_mesh->getCoordsVertices();
     auto& indices = m_mesh->getIndicesVertexes();
     auto& normals = m_mesh->getCoordsNormals();
@@ -493,14 +492,14 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
 
             auto np = m_road_left->getNumPoints();
             unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
-            auto bezier_line_left = chrono_types::make_shared<geometry::ChLineBezier>(m_road_left);
+            auto bezier_line_left = chrono_types::make_shared<ChLineBezier>(m_road_left);
             auto bezier_asset_left = chrono_types::make_shared<ChVisualShapeLine>();
             bezier_asset_left->SetLineGeometry(bezier_line_left);
             bezier_asset_left->SetNumRenderPoints(num_render_points);
             bezier_asset_left->SetName(m_curve_left_name);
             m_ground->AddVisualShape(bezier_asset_left);
 
-            auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
+            auto bezier_line_right = chrono_types::make_shared<ChLineBezier>(m_road_right);
             auto bezier_asset_right = chrono_types::make_shared<ChVisualShapeLine>();
             bezier_asset_right->SetLineGeometry(bezier_line_right);
             bezier_asset_right->SetNumRenderPoints(num_render_points);

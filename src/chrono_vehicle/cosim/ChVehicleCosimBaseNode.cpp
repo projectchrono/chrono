@@ -493,7 +493,7 @@ void ChVehicleCosimBaseNode::RecvGeometry(ChVehicleGeometry& geom, int source) c
         MPI_Recv(data, 3, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
         ChVector3d pos(data[0], data[1], data[2]);
 
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         auto& vertices = trimesh->getCoordsVertices();
         auto& normals = trimesh->getCoordsNormals();
         auto& idx_vertices = trimesh->getIndicesVertexes();

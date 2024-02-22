@@ -183,12 +183,12 @@ void ChCollisionSystemBullet::Run() {
     }
 }
 
-geometry::ChAABB ChCollisionSystemBullet::GetBoundingBox() const {
+ChAABB ChCollisionSystemBullet::GetBoundingBox() const {
     cbtVector3 aabbMin;
     cbtVector3 aabbMax;
     bt_broadphase->getBroadphaseAabb(aabbMin, aabbMax);
 
-    return geometry::ChAABB(ChVector3d((double)aabbMin.x(), (double)aabbMin.y(), (double)aabbMin.z()),
+    return ChAABB(ChVector3d((double)aabbMin.x(), (double)aabbMin.y(), (double)aabbMin.z()),
                             ChVector3d((double)aabbMax.x(), (double)aabbMax.y(), (double)aabbMax.z()));
 }
 

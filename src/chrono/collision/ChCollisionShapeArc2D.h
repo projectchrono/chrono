@@ -28,12 +28,12 @@ namespace chrono {
 class ChApi ChCollisionShapeArc2D : public ChCollisionShape {
   public:
     ChCollisionShapeArc2D();
-    ChCollisionShapeArc2D(std::shared_ptr<ChContactMaterial> material, const geometry::ChLineArc& arc, double radius);
+    ChCollisionShapeArc2D(std::shared_ptr<ChContactMaterial> material, const ChLineArc& arc, double radius);
 
     ~ChCollisionShapeArc2D() {}
 
     /// Access the arc geometry.
-    geometry::ChLineArc& GetGeometry() { return garc; }
+    ChLineArc& GetGeometry() { return garc; }
 
     /// Get the arc thickness (the radius of a sweeping sphere).
     double GetSRadius() const { return radius; }
@@ -45,7 +45,7 @@ class ChApi ChCollisionShapeArc2D : public ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChLineArc garc;
+    ChLineArc garc;
     double radius;
 };
 

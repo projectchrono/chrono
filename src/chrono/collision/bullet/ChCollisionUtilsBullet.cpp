@@ -317,7 +317,7 @@ bool IntersectSegmentCylinder(const cbtVector3& sC,  // segment center point
 ChConvexHullLibraryWrapper::ChConvexHullLibraryWrapper() {}
 
 void ChConvexHullLibraryWrapper::ComputeHull(const std::vector<ChVector3d >& points,
-                                             geometry::ChTriangleMeshConnected& vshape) {
+                                             ChTriangleMeshConnected& vshape) {
     HullLibrary hl;
     HullResult hresult;
     HullDesc desc;

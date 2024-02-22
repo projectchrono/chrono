@@ -1975,7 +1975,7 @@ void ChSystemFsi::AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
+void ChSystemFsi::CreateMeshPoints(ChTriangleMeshConnected& mesh,
                                    double delta,
                                    std::vector<ChVector3d>& point_cloud) {
     mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight

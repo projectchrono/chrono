@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
     mrigidbody->SetInertiaXX(ChVector3d(20, 20, 20));
     mrigidbody->SetPos(tire_center + ChVector3d(-1, 0, 0));
 
-    auto mesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.obj"));
     mesh->Transform(VNULL, QuatFromAngleY(CH_C_PI));
     auto mesh_asset = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

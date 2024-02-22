@@ -39,7 +39,7 @@ class ChParticleRemoverBox : public ChParticleProcessor {
         trigbox->m_frame = frame;
     }
 
-    geometry::ChBox& GetBox() {
+    ChBox& GetBox() {
         auto trigbox = std::dynamic_pointer_cast<ChParticleEventTriggerBox>(trigger);
         if (!trigbox)
             throw std::invalid_argument("ChParticleRemoverBox had trigger replaced to non-box type");

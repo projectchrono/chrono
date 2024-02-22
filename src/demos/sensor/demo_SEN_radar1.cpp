@@ -46,7 +46,6 @@
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 // ------------------------------------

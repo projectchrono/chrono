@@ -26,7 +26,6 @@
 
 // Use the namespace of Chrono
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {

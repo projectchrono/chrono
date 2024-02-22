@@ -26,12 +26,12 @@ class ChApi ChVisualShapeCone : public ChVisualShape {
   public:
     ChVisualShapeCone();
     ChVisualShapeCone(double radius, double height);
-    ChVisualShapeCone(const geometry::ChCone& cone);
+    ChVisualShapeCone(const ChCone& cone);
 
     ~ChVisualShapeCone() {}
 
     /// Access the cone geometry.
-    geometry::ChCone& GetGeometry() { return gcone; }
+    ChCone& GetGeometry() { return gcone; }
 
     /// Get the cone radius.
     double GetRadius() const { return gcone.GetRadius(); }
@@ -46,7 +46,7 @@ class ChApi ChVisualShapeCone : public ChVisualShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChCone gcone;
+    ChCone gcone;
 };
 
 /// @} chrono_assets

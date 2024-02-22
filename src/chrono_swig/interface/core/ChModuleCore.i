@@ -95,7 +95,6 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::fea;
 %}
 
@@ -269,29 +268,29 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkPointSpline)
 %shared_ptr(chrono::ChLinkMotionImposed)
 
-%shared_ptr(chrono::geometry::ChGeometry)
-%shared_ptr(chrono::geometry::ChLine)
-%shared_ptr(chrono::geometry::ChVolume)
-%shared_ptr(chrono::geometry::ChSurface)
-%shared_ptr(chrono::geometry::ChBox)
-%shared_ptr(chrono::geometry::ChSphere)
-%shared_ptr(chrono::geometry::ChCylinder)
-%shared_ptr(chrono::geometry::ChCapsule)
-%shared_ptr(chrono::geometry::ChCone)
-%shared_ptr(chrono::geometry::ChEllipsoid)
-%shared_ptr(chrono::geometry::ChLineArc)
-%shared_ptr(chrono::geometry::ChLineSegment)
-%shared_ptr(chrono::geometry::ChLineNurbs)
-%shared_ptr(chrono::geometry::ChLinePath)
-%shared_ptr(chrono::geometry::ChLinePoly)
-%shared_ptr(chrono::geometry::ChLineBezier)
-%shared_ptr(chrono::geometry::ChLineCam)
-%shared_ptr(chrono::geometry::ChLineBspline)
-%shared_ptr(chrono::geometry::ChTriangle)
-%shared_ptr(chrono::geometry::ChSurfaceNurbs)
-%shared_ptr(chrono::geometry::ChTriangleMesh)
-%shared_ptr(chrono::geometry::ChTriangleMeshConnected)
-%shared_ptr(chrono::geometry::ChTriangleMeshSoup)
+%shared_ptr(chrono::ChGeometry)
+%shared_ptr(chrono::ChLine)
+%shared_ptr(chrono::ChVolume)
+%shared_ptr(chrono::ChSurface)
+%shared_ptr(chrono::ChBox)
+%shared_ptr(chrono::ChSphere)
+%shared_ptr(chrono::ChCylinder)
+%shared_ptr(chrono::ChCapsule)
+%shared_ptr(chrono::ChCone)
+%shared_ptr(chrono::ChEllipsoid)
+%shared_ptr(chrono::ChLineArc)
+%shared_ptr(chrono::ChLineSegment)
+%shared_ptr(chrono::ChLineNurbs)
+%shared_ptr(chrono::ChLinePath)
+%shared_ptr(chrono::ChLinePoly)
+%shared_ptr(chrono::ChLineBezier)
+%shared_ptr(chrono::ChLineCam)
+%shared_ptr(chrono::ChLineBspline)
+%shared_ptr(chrono::ChTriangle)
+%shared_ptr(chrono::ChSurfaceNurbs)
+%shared_ptr(chrono::ChTriangleMesh)
+%shared_ptr(chrono::ChTriangleMeshConnected)
+%shared_ptr(chrono::ChTriangleMeshSoup)
 
 // Cross-inheritance for callbacks that must be inherited.
 // Put these 'director' features _before_ class wrapping declaration.
@@ -624,8 +623,8 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono, ChLoadBase, ChLoadBodyBodyBushingMate)
 %DefSharedPtrDynamicDowncast(chrono, ChLoadBase, ChLoadBodyBodyBushingGeneric)
 
-%DefSharedPtrDynamicDowncast(chrono::geometry, ChGeometry, ChTriangleMeshConnected)
-%DefSharedPtrDynamicDowncast(chrono::geometry, ChGeometry, ChTriangleMeshSoup)
+%DefSharedPtrDynamicDowncast(chrono, ChGeometry, ChTriangleMeshConnected)
+%DefSharedPtrDynamicDowncast(chrono, ChGeometry, ChTriangleMeshSoup)
 
 // .. to complete
 

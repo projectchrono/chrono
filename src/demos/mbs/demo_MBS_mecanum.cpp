@@ -111,7 +111,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
                                              double spindle_density) {
     ChFrameMoving<> ftot(shaft_position, shaft_alignment);  // will be used to transform pos & rot of all objects
 
-    auto centralWheel = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
+    auto centralWheel = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,  //
                                                                       wheel_radius / 2,
                                                                       wheel_width,      // radius, height
                                                                       spindle_density,  // density
@@ -146,10 +146,10 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
 
         // approximate mass & inertia to a cylinder:
         roller->SetMass(  //
-            geometry::ChCylinder::GetVolume(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
+            ChCylinder::GetVolume(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
             roller_density);
         roller->SetInertia(  //
-            geometry::ChCylinder::GetGyration(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
+            ChCylinder::GetGyration(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
             roller_density);
 
         // add collision shape
@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
     double roller_angle = CH_C_PI / 4;
 
     // Create the robot truss, as a circular platform
-    auto platform = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,       //
+    auto platform = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,       //
                                                                   platform_radius * 0.7, 2,  // radius, height
                                                                   1000,                      // density
                                                                   true,                      // visualize

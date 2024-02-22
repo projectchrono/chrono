@@ -158,7 +158,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Get the axis-aligned bounding (AABB) box of the object.
     /// The body AABB is the AABB of its collision model (if any).
-    virtual geometry::ChAABB GetTotalAABB() override;
+    virtual ChAABB GetTotalAABB() override;
 
     // DATABASE HANDLING
 

@@ -79,8 +79,8 @@ void ChPhysicsItem::AddCamera(std::shared_ptr<ChCamera> camera) {
     cameras.push_back(camera);
 }
 
-geometry::ChAABB ChPhysicsItem::GetTotalAABB() {
-    return geometry::ChAABB();
+ChAABB ChPhysicsItem::GetTotalAABB() {
+    return ChAABB();
 }
 
 void ChPhysicsItem::GetCenter(ChVector3d& mcenter) {

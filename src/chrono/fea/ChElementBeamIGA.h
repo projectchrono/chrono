@@ -177,7 +177,7 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
 
         ChVectorDynamic<> N((int)nodes.size());
 
-        geometry::ChBasisToolsBspline::BasisEvaluate(this->order, nspan, u, knots,
+        ChBasisToolsBspline::BasisEvaluate(this->order, nspan, u, knots,
                                                      N);  ///< here return  in N
 
         point = VNULL;
@@ -198,7 +198,7 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
         int nspan = order;
 
         ChVectorDynamic<> N((int)nodes.size());
-        geometry::ChBasisToolsBspline::BasisEvaluate(this->order, nspan, u, knots, N);
+        ChBasisToolsBspline::BasisEvaluate(this->order, nspan, u, knots, N);
 
         point = VNULL;
         for (int i = 0; i < nodes.size(); ++i) {

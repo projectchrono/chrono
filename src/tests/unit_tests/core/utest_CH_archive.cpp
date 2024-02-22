@@ -141,7 +141,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
 
     // ...the first gear
     auto mbody_gearA =
-        chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radA, 0.5, 1000, true, false, mat);
+        chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, radA, 0.5, 1000, true, false, mat);
     // auto mbody_gearA = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, false, mat);
     sys.Add(mbody_gearA);
     mbody_gearA->SetPos(ChVector3d(0, 0, -1));
@@ -157,7 +157,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
     // ...the second gear
     double interaxis12 = radA + radB;
     auto mbody_gearB =
-        chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radB, 0.4, 1000, true, false, mat);
+        chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, radB, 0.4, 1000, true, false, mat);
     sys.Add(mbody_gearB);
     mbody_gearB->SetPos(ChVector3d(interaxis12, 0, -1));
     mbody_gearB->SetRot(QuatFromAngleAxis(CH_C_PI / 2, VECT_X));

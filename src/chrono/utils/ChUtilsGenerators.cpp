@@ -222,28 +222,28 @@ double MixtureIngredient::getDensity() {
 void MixtureIngredient::calcGeometricProps(const ChVector3d& size, double& volume, ChVector3d& gyration) {
     switch (m_type) {
         case MixtureType::SPHERE:
-            volume = geometry::ChSphere::GetVolume(size.x());
-            gyration = geometry::ChSphere::GetGyration(size.x()).diagonal();
+            volume = ChSphere::GetVolume(size.x());
+            gyration = ChSphere::GetGyration(size.x()).diagonal();
             break;
         case MixtureType::ELLIPSOID:
-            volume = geometry::ChEllipsoid::GetVolume(size);
-            gyration = geometry::ChEllipsoid::GetGyration(size).diagonal();
+            volume = ChEllipsoid::GetVolume(size);
+            gyration = ChEllipsoid::GetGyration(size).diagonal();
             break;
         case MixtureType::BOX:
-            volume = geometry::ChBox::GetVolume(size);
-            gyration = geometry::ChBox::GetGyration(size).diagonal();
+            volume = ChBox::GetVolume(size);
+            gyration = ChBox::GetGyration(size).diagonal();
             break;
         case MixtureType::CYLINDER:
-            volume = geometry::ChCylinder::GetVolume(size.x(), size.y());
-            gyration = geometry::ChCylinder::GetGyration(size.x(), size.y()).diagonal();
+            volume = ChCylinder::GetVolume(size.x(), size.y());
+            gyration = ChCylinder::GetGyration(size.x(), size.y()).diagonal();
             break;
         case MixtureType::CONE:
-            volume = geometry::ChCone::GetVolume(size.x(), size.y());
-            gyration = geometry::ChCone::GetGyration(size.x(), size.y()).diagonal();
+            volume = ChCone::GetVolume(size.x(), size.y());
+            gyration = ChCone::GetGyration(size.x(), size.y()).diagonal();
             break;
         case MixtureType::CAPSULE:
-            volume = geometry::ChCapsule::GetVolume(size.x(), size.y());
-            gyration = geometry::ChCapsule::GetGyration(size.x(), size.y()).diagonal();
+            volume = ChCapsule::GetVolume(size.x(), size.y());
+            gyration = ChCapsule::GetGyration(size.x(), size.y()).diagonal();
             break;
     }
 }

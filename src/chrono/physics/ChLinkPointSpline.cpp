@@ -18,8 +18,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 static const double FD_STEP = 1e-4;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -40,7 +38,7 @@ ChLinkPointSpline::ChLinkPointSpline(const ChLinkPointSpline& other) : ChLinkLoc
     tolerance = other.tolerance;
 }
 
-void ChLinkPointSpline::Set_trajectory_line(std::shared_ptr<geometry::ChLine> mline) {
+void ChLinkPointSpline::Set_trajectory_line(std::shared_ptr<ChLine> mline) {
     trajectory_line = mline;
 }
 

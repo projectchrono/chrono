@@ -25,7 +25,9 @@
 #include "chrono/geometry/ChTriangleMesh.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A triangle mesh with connectivity info: vertices can be shared between faces.
 /// To keep this simple, the class assumes that you will manage the size of vectors
@@ -165,8 +167,8 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// Return the indexes of the two vertexes of the i-th edge of the triangle.
     /// If unique=true, swap the pair so that 1st < 2nd, to permit test sharing with other triangle.
     std::pair<int, int> GetTriangleEdgeIndexes(const ChVector3i& face_indices,  ///< indices of a triangular face
-                                               int nedge,                          ///< number of edge: 0, 1, 2
-                                               bool unique                         ///< swap?
+                                               int nedge,                       ///< number of edge: 0, 1, 2
+                                               bool unique                      ///< swap?
     );
 
     /// Split a given edge by inserting a vertex in the middle: from two triangles one gets four triangles.
@@ -257,9 +259,9 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::vector<ChColor> m_tmp_colors;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChTriangleMeshConnected, 0)
+CH_CLASS_VERSION(ChTriangleMeshConnected, 0)
 
 }  // end namespace chrono
 

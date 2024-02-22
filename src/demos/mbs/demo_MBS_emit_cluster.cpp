@@ -27,7 +27,6 @@
 
 using namespace chrono;
 using namespace chrono::particlefactory;
-using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
 //     A callback executed at each particle creation can be attached to the emitter.

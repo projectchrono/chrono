@@ -144,7 +144,7 @@ void CreateBoxes(ChSystemSMC& sys) {
 void CreateCylinders(ChSystemSMC& sys) {
     auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
 
-    auto c1 = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 1.0, 2.0, 1, mat);
+    auto c1 = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 1.0, 2.0, 1, mat);
     c1->SetPos(ChVector3d(0, 0, 0));
     c1->SetRot(ChQuaternion<>(ChRandom::Get(), ChRandom::Get(), ChRandom::Get(), ChRandom::Get()).GetNormalized());
     c1->GetVisualShape(0)->SetColor(ChColor(0, 0, 0.4f));
@@ -152,7 +152,7 @@ void CreateCylinders(ChSystemSMC& sys) {
     c1->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     sys.Add(c1);
 
-    auto c2 = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 2.0, 4.0, 1, mat);
+    auto c2 = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 2.0, 4.0, 1, mat);
     c2->SetPos(ChVector3d(0, 0, 3));
     c2->SetRot(QuatFromAngleZ(CH_C_PI / 4));
     c2->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.7f));
@@ -186,7 +186,7 @@ void CreateShapes(ChSystemSMC& sys) {
         b->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         sys.Add(b);
 
-        auto c = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.75 * scale, 0.75 * scale, 1, mat);
+        auto c = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.75 * scale, 0.75 * scale, 1, mat);
         c->SetPos(points[3 * i + 2]);
         c->SetRot(ChQuaternion<>(ChRandom::Get(), ChRandom::Get(), ChRandom::Get(), ChRandom::Get()).GetNormalized());
         c->GetVisualShape(0)->SetColor(ChColor(0, 0, 0.4f));
@@ -199,7 +199,7 @@ void CreateShapes(ChSystemSMC& sys) {
 void CreateMeshes(ChSystemSMC& sys) {
     auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
 
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/sphere.obj"));
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/sphere.obj"));
     trimesh->Transform(ChVector3d(0), ChMatrix33<>(2));
     std::shared_ptr<ChVisualShapeTriangleMesh> vismesh(new ChVisualShapeTriangleMesh);
     vismesh->SetMesh(trimesh);

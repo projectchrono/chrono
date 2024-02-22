@@ -51,7 +51,6 @@
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 int num_cameras = 2 - 1;
@@ -202,7 +201,7 @@ int main(int argc, char* argv[]) {
         texsphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
     }
 
-    auto texcyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
+    auto texcyl = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,  //
                                                                 .5, 1,                // size
                                                                 1000,                 // density
                                                                 true,                 // vis enable?
@@ -240,7 +239,7 @@ int main(int argc, char* argv[]) {
             imu_parent = box;
         }
 
-        auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,     //
+        auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,     //
                                                                  ChRandom::Get() / 2.0 + 0.1,  // radius
                                                                  ChRandom::Get() / 2.0 + 0.1,  // height
                                                                  1000,                    // density

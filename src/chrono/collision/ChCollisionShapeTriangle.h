@@ -31,12 +31,12 @@ class ChApi ChCollisionShapeTriangle : public ChCollisionShape {
                              const ChVector3d& p1,
                              const ChVector3d& p2,
                              const ChVector3d& p3);
-    ChCollisionShapeTriangle(std::shared_ptr<ChContactMaterial> material, const geometry::ChTriangle& triangle);
+    ChCollisionShapeTriangle(std::shared_ptr<ChContactMaterial> material, const ChTriangle& triangle);
 
     ~ChCollisionShapeTriangle() {}
 
     /// Access the triangle geometry.
-    geometry::ChTriangle& GetGeometry() { return gtriangle; }
+    ChTriangle& GetGeometry() { return gtriangle; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -45,7 +45,7 @@ class ChApi ChCollisionShapeTriangle : public ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChTriangle gtriangle;
+    ChTriangle gtriangle;
 };
 
 /// @} chrono_collision

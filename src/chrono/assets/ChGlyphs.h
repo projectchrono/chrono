@@ -121,11 +121,11 @@ class ChApi ChGlyphs : public ChVisualShape {
     void SetGlyphTensor(unsigned int id, ChVector3d mpoint, ChQuaternion<> mbasis, ChVector3d eigenvalues);
 
     /// Gets the current array of per-point properties, if any.
-    std::vector<geometry::ChProperty*> getProperties() { return m_properties; }
+    std::vector<ChProperty*> getProperties() { return m_properties; }
 
     /// Add a property as an array of data per-point. Deletion will be automatic at the end of mesh life.
     /// Warning: mprop.data.size() must be equal to points.size().  Cost: allocation and a data copy. 
-    void AddProperty(geometry::ChProperty& mprop) { m_properties.push_back(mprop.clone());}
+    void AddProperty(ChProperty& mprop) { m_properties.push_back(mprop.clone());}
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -164,7 +164,7 @@ class ChApi ChGlyphs : public ChVisualShape {
     bool vector_tip;
 
     // list of per-glyph properties. Some properties ("color", "V", "rot") might be automatically added when needed.
-    std::vector<geometry::ChProperty*> m_properties;
+    std::vector<ChProperty*> m_properties;
 
     // shortcut pointers to data of properties in m_properties, for often needed data:
     std::vector<ChColor>* colors;

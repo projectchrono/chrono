@@ -55,7 +55,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     if (m_use_contact_mesh) {
         // Mesh contact
-        m_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(m_contact_meshFile, true, false);
+        m_trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(m_contact_meshFile, true, false);
 
         //// RADU
         // Hack to deal with current limitation: cannot set offset on a trimesh collision shape!
@@ -227,7 +227,7 @@ TerrainForce ChRigidTire::ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>&
 }
 
 // -----------------------------------------------------------------------------
-std::shared_ptr<geometry::ChTriangleMeshConnected> ChRigidTire::GetContactMesh() const {
+std::shared_ptr<ChTriangleMeshConnected> ChRigidTire::GetContactMesh() const {
     assert(m_use_contact_mesh);
     return m_trimesh;
 }

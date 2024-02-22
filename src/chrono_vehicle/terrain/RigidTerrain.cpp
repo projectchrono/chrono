@@ -259,7 +259,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     patch->m_Yup = m_Yup;
 
     // Load mesh from file
-    patch->m_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_file, true, true);
+    patch->m_trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_file, true, true);
 
     // Create the collision model
     if (connected_mesh) {
@@ -267,7 +267,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
                                                                                 sweep_sphere_radius);
         patch->m_body->AddCollisionShape(ct_shape);
     } else {
-        patch->m_trimesh_s = geometry::ChTriangleMeshSoup::CreateFromWavefrontFile(mesh_file);
+        patch->m_trimesh_s = ChTriangleMeshSoup::CreateFromWavefrontFile(mesh_file);
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, patch->m_trimesh_s, true,
                                                                                 false, sweep_sphere_radius);
         patch->m_body->AddCollisionShape(ct_shape);
@@ -329,7 +329,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     unsigned int n_faces = 2 * (nv_x - 1) * (nv_y - 1);
 
     // Resize mesh arrays
-    patch->m_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    patch->m_trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     patch->m_trimesh->getCoordsVertices().resize(n_verts);
     patch->m_trimesh->getCoordsNormals().resize(n_verts);
     patch->m_trimesh->getCoordsUV().resize(n_verts);
@@ -419,12 +419,12 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
                                                                                 sweep_sphere_radius);
         patch->m_body->AddCollisionShape(ct_shape);
     } else {
-        patch->m_trimesh_s = chrono_types::make_shared<geometry::ChTriangleMeshSoup>();
-        std::vector<geometry::ChTriangle>& triangles = patch->m_trimesh_s->getTriangles();
+        patch->m_trimesh_s = chrono_types::make_shared<ChTriangleMeshSoup>();
+        std::vector<ChTriangle>& triangles = patch->m_trimesh_s->getTriangles();
         triangles.resize(n_faces);
         for (it = 0; it < n_faces; it++) {
             const ChVector3i& idx = idx_vertices[it];
-            triangles[it] = geometry::ChTriangle(vertices[idx[0]], vertices[idx[1]], vertices[idx[2]]);
+            triangles[it] = ChTriangle(vertices[idx[0]], vertices[idx[1]], vertices[idx[2]]);
         }
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, patch->m_trimesh_s, true,
                                                                                 false, sweep_sphere_radius);
@@ -471,7 +471,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     patch->m_Yup = m_Yup;
 
     // Initialise the mesh
-    patch->m_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    patch->m_trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
 
     // Calculate coarse grid resolution. Ensure not less than heightmap resolution
     const int coarse_grid_resolution = std::min(heightmap_resolution, unrefined_resolution);
@@ -1136,7 +1136,7 @@ void RigidTerrain::MeshPatch::ExportMeshPovray(const std::string& out_dir, bool 
 
 void RigidTerrain::MeshPatch::ExportMeshWavefront(const std::string& out_dir) {
     std::string obj_filename = out_dir + "/" + m_mesh_name + ".obj";
-    std::vector<geometry::ChTriangleMeshConnected> meshes = {*m_trimesh};
+    std::vector<ChTriangleMeshConnected> meshes = {*m_trimesh};
     std::cout << "Exporting to " << obj_filename << std::endl;
     m_trimesh->WriteWavefront(obj_filename, meshes);
 }

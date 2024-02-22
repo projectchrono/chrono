@@ -41,7 +41,6 @@
 // #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;

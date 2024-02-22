@@ -103,7 +103,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     void ApplyAxleTorque(double torque);
 
     /// Utility function to create a sprocket visualization mesh.
-    std::shared_ptr<geometry::ChTriangleMeshConnected> CreateVisualizationMesh(
+    std::shared_ptr<ChTriangleMeshConnected> CreateVisualizationMesh(
         double radius,                    ///< inner radius
         double width,                     ///< gear width
         double delta,                     ///< arclength between points
@@ -146,7 +146,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in
     /// clockwise order, and the end of sub-path i must be coincident with beginning of
     /// sub-path i+1.
-    virtual std::shared_ptr<geometry::ChLinePath> GetProfile() const = 0;
+    virtual std::shared_ptr<ChLinePath> GetProfile() const = 0;
 
     /// Create the contact material consistent with the specified contact method.
     virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;

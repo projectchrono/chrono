@@ -204,7 +204,7 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     std::shared_ptr<ChBezierCurve> m_road_left;                 ///< curve for left road boundary
     std::shared_ptr<ChBezierCurve> m_road_right;                ///< curve for right road boundary
-    std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
+    std::shared_ptr<ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
 
     std::string m_curve_left_name;
     std::string m_curve_right_name;

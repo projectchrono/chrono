@@ -21,7 +21,9 @@
 #include "chrono/geometry/ChLine.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Geometric object representing a segment in 3D space with two end points.
 class ChApi ChLineSegment : public ChLine {
@@ -61,9 +63,9 @@ class ChApi ChLineSegment : public ChLine {
     ChVector3d pB;  ///< second segment endpoint
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLineSegment, 0)
+CH_CLASS_VERSION(ChLineSegment, 0)
 
 }  // end namespace chrono
 

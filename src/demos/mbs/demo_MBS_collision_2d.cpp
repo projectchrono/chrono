@@ -25,7 +25,6 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
@@ -95,7 +94,6 @@ int main(int argc, char* argv[]) {
     auto hole_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathhole);
     mhole->AddCollisionShape(hole_coll, ChFrame<>());
     mhole->GetCollisionModel()->SetSafeMargin(0.1f);
-
 
     // Create a ChVisualShapeLine, a visualization asset for lines.
     auto mholeasset = chrono_types::make_shared<ChVisualShapeLine>();

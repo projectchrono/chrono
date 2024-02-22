@@ -29,12 +29,12 @@ class ChApi ChVisualShapeRoundedBox : public ChVisualShape {
     ChVisualShapeRoundedBox();
     ChVisualShapeRoundedBox(double length_x, double length_y, double length_z, double radius);
     ChVisualShapeRoundedBox(const ChVector3d& lengths, double radius);
-    ChVisualShapeRoundedBox(const geometry::ChRoundedBox& box);
+    ChVisualShapeRoundedBox(const ChRoundedBox& box);
 
     ~ChVisualShapeRoundedBox() {}
 
     // Access the rounded box geometry.
-    geometry::ChRoundedBox& GetGeometry() { return gbox; }
+    ChRoundedBox& GetGeometry() { return gbox; }
 
     /// Get the box half-lengths.
     const ChVector3d& GetHalflengths() const { return gbox.GetHalflengths(); }
@@ -52,7 +52,7 @@ class ChApi ChVisualShapeRoundedBox : public ChVisualShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChRoundedBox gbox;
+    ChRoundedBox gbox;
 };
 
 /// @} chrono_assets

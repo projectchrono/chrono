@@ -28,12 +28,12 @@ class ChApi ChVisualShapeRoundedCylinder : public ChVisualShape {
   public:
     ChVisualShapeRoundedCylinder();
     ChVisualShapeRoundedCylinder(double radius, double height, double sphere_radius);
-    ChVisualShapeRoundedCylinder(const geometry::ChRoundedCylinder& cyl);
+    ChVisualShapeRoundedCylinder(const ChRoundedCylinder& cyl);
 
     ~ChVisualShapeRoundedCylinder() {}
 
     // Access the rounded cylinder geometry.
-    geometry::ChRoundedCylinder& GetGeometry() { return groundedcyl; }
+    ChRoundedCylinder& GetGeometry() { return groundedcyl; }
 
     /// Get the cylinder radius.
     double GetRadius() const { return groundedcyl.GetRadius(); }
@@ -51,7 +51,7 @@ class ChApi ChVisualShapeRoundedCylinder : public ChVisualShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChRoundedCylinder groundedcyl;
+    ChRoundedCylinder groundedcyl;
 };
 
 /// @} chrono_assets

@@ -342,11 +342,11 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
                     auto mesh_filename = m_filepath + "/" + mesh->filename;
                     auto ext = filesystem::path(mesh->filename).extension();
 
-                    std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
+                    std::shared_ptr<ChTriangleMeshConnected> trimesh;
                     if (ext == "obj" || ext == "OBJ")
-                        trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false);
+                        trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false);
                     else if (ext == "stl" || ext == "STL")
-                        trimesh = geometry::ChTriangleMeshConnected::CreateFromSTLFile(mesh_filename, true);
+                        trimesh = ChTriangleMeshConnected::CreateFromSTLFile(mesh_filename, true);
 
                     if (!trimesh) {
                         cout << "Warning: Unsupported format for collision mesh file <" << mesh_filename << ">." << endl;

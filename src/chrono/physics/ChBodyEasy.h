@@ -110,7 +110,7 @@ class ChApi ChBodyEasyCylinder : public ChBody {
     /// Create a rigid body with optional cylinder visualization and/or collision shape.
     /// The cylinder is created along the specified axis and centered at the center of mass.
     /// Mass and inertia are set automatically depending on density.
-    ChBodyEasyCylinder(geometry::ChAxis direction,                            ///< cylinder direction
+    ChBodyEasyCylinder(ChAxis direction,                            ///< cylinder direction
                        double radius,                                         ///< radius of the cylinder
                        double height,                                         ///< height of the cylinder
                        double density,                                        ///< density of the body
@@ -122,7 +122,7 @@ class ChApi ChBodyEasyCylinder : public ChBody {
     /// Create a rigid body with a cylinder visualization and collision shape.
     /// The cylinder is created along the specified axis and centered at the center of mass.
     /// Mass and inertia are set automatically depending on density.
-    ChBodyEasyCylinder(geometry::ChAxis direction,                  ///< cylinder direction
+    ChBodyEasyCylinder(ChAxis direction,                  ///< cylinder direction
                        double radius,                               ///< radius of the cylinder
                        double height,                               ///< height of the cylinder
                        double density,                              ///< density of the body
@@ -136,7 +136,7 @@ class ChApi ChBodyEasyCylinder : public ChBody {
     static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
   private:
-    void SetupBody(geometry::ChAxis direction,
+    void SetupBody(ChAxis direction,
                    double radius,
                    double height,
                    double density,
@@ -215,7 +215,7 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
                          std::shared_ptr<ChContactMaterial> material  ///< surface contact material
     );
 
-    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
+    std::shared_ptr<ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
 
     /// Deserialization for non-default constructor classes.
     virtual void ArchiveOutConstructor(ChArchiveOut& marchive);
@@ -230,9 +230,9 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
                    bool collide,
                    std::shared_ptr<ChContactMaterial> material);
 
-    std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;
+    std::shared_ptr<ChTriangleMeshConnected> m_mesh;
 
-    ChBodyEasyConvexHull(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh) : m_mesh(mesh) {}
+    ChBodyEasyConvexHull(std::shared_ptr<ChTriangleMeshConnected> mesh) : m_mesh(mesh) {}
 };
 
 /// Create rigid body with a convex hull shape, with a reference frame distinct from the centroidal frame.
@@ -258,7 +258,7 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
                                std::shared_ptr<ChContactMaterial> material  ///< surface contact material
     );
 
-    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
+    std::shared_ptr<ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
 
     /// Deserialization for non-default constructor classes.
     virtual void ArchiveOutConstructor(ChArchiveOut& marchive);
@@ -273,9 +273,9 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
                    bool collide,
                    std::shared_ptr<ChContactMaterial> material);
 
-    std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;
+    std::shared_ptr<ChTriangleMeshConnected> m_mesh;
 
-    ChBodyEasyConvexHullAuxRef(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh) : m_mesh(mesh) {}
+    ChBodyEasyConvexHullAuxRef(std::shared_ptr<ChTriangleMeshConnected> mesh) : m_mesh(mesh) {}
 };
 
 /// Create rigid bodies with a mesh shape, with a reference frame distinct from the centroidal frame.
@@ -298,7 +298,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
     /// Create a ChBodyAuxRef with optional mesh visualization and/or collision shape.
     /// The mesh is defined with respect to the body reference frame. Mass and inertia are set automatically depending
     /// on density.
-    ChBodyEasyMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,  ///< triangular mesh
+    ChBodyEasyMesh(std::shared_ptr<ChTriangleMeshConnected> mesh,  ///< triangular mesh
                    double density,                                           ///< density of the body
                    bool compute_mass = true,  ///< automatic evaluation of inertia properties
                    bool visualize = true,     ///< create visualization asset
@@ -319,7 +319,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
     /// Create a ChBodyAuxRef with a convex hull visualization and collision shape.
     /// The mesh is defined with respect to the body reference frame. Mass and inertia are set automatically depending
     /// on density.
-    ChBodyEasyMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,  ///< triangular mesh
+    ChBodyEasyMesh(std::shared_ptr<ChTriangleMeshConnected> mesh,  ///< triangular mesh
                    double density,                                           ///< density of the body
                    std::shared_ptr<ChContactMaterial> material,              ///< surface contact material
                    double sphere_swept  ///< thickness (collision detection robustness)
@@ -332,7 +332,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
     static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
   private:
-    void SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh,
+    void SetupBody(std::shared_ptr<ChTriangleMeshConnected> trimesh,
                    const std::string& name,
                    double density,
                    bool compute_mass,

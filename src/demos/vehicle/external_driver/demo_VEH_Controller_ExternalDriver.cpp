@@ -48,7 +48,6 @@
 #include "chrono_thirdparty/rapidjson/error/en.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
@@ -341,7 +340,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     if (patch->GetGroundBody()->GetVisualModel()) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
             GetChronoDataFile("models/trees/Tree.obj"), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);

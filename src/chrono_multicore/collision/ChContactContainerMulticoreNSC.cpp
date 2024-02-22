@@ -17,8 +17,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 ChContactContainerMulticoreNSC::ChContactContainerMulticoreNSC(ChMulticoreDataManager* dc)
     : ChContactContainerMulticore(dc) {}
 

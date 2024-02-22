@@ -35,7 +35,7 @@ ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> mate
     gbox.SetLengths(lengths);
 }
 
-ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const geometry::ChBox& box)
+ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const ChBox& box)
     : ChCollisionShape(Type::BOX, material), gbox(box) {}
 
 void ChCollisionShapeBox::ArchiveOut(ChArchiveOut& marchive) {

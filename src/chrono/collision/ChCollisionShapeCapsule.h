@@ -29,12 +29,12 @@ class ChApi ChCollisionShapeCapsule : public ChCollisionShape {
   public:
     ChCollisionShapeCapsule();
     ChCollisionShapeCapsule(std::shared_ptr<ChContactMaterial> material, double radius, double height);
-    ChCollisionShapeCapsule(std::shared_ptr<ChContactMaterial> material, const geometry::ChCapsule& cap);
+    ChCollisionShapeCapsule(std::shared_ptr<ChContactMaterial> material, const ChCapsule& cap);
 
     ~ChCollisionShapeCapsule() {}
 
     /// Access the capsule geometry.
-    geometry::ChCapsule& GetGeometry() { return gcapsule; }
+    ChCapsule& GetGeometry() { return gcapsule; }
 
     /// Get the capsule radius.
     double GetRadius() const { return gcapsule.GetRadius(); }
@@ -52,7 +52,7 @@ class ChApi ChCollisionShapeCapsule : public ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChCapsule gcapsule;
+    ChCapsule gcapsule;
 };
 
 /// @} chrono_collision

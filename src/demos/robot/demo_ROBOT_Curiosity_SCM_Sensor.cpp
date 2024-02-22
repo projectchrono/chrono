@@ -64,7 +64,6 @@ using namespace chrono::vsg3d;
 
 using namespace chrono;
 using namespace chrono::irrlicht;
-using namespace chrono::geometry;
 using namespace chrono::curiosity;
 using namespace chrono::sensor;
 

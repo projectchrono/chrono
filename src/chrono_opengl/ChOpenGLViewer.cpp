@@ -388,7 +388,7 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
             auto npoints = line_shape->GetNumRenderPoints();
 
             double maxU = 1;
-            if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(mline))
+            if (auto mline_path = std::dynamic_pointer_cast<ChLinePath>(mline))
                 maxU = mline_path->GetPathDuration();
 
             ChVector3d t2 = mline->Evaluate(0.0);

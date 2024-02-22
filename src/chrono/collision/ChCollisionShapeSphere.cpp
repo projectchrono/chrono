@@ -28,7 +28,7 @@ ChCollisionShapeSphere::ChCollisionShapeSphere(std::shared_ptr<ChContactMaterial
 }
 
 ChCollisionShapeSphere::ChCollisionShapeSphere(std::shared_ptr<ChContactMaterial> material,
-                                               const geometry::ChSphere& sphere)
+                                               const ChSphere& sphere)
     : ChCollisionShape(Type::SPHERE, material), gsphere(sphere) {}
 
 void ChCollisionShapeSphere::ArchiveOut(ChArchiveOut& marchive) {

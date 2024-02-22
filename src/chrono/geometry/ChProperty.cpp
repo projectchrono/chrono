@@ -13,11 +13,10 @@
 // =============================================================================
 // =============================================================================
 
-
 #include "chrono/geometry/ChProperty.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChPropertyScalar)
@@ -25,8 +24,14 @@ CH_FACTORY_REGISTER(ChPropertyColor)
 CH_FACTORY_REGISTER(ChPropertyVector)
 CH_FACTORY_REGISTER(ChPropertyQuaternion)
 
+void ChProperty::ArchiveOut(ChArchiveOut& marchive) {
+    marchive << CHNVP(name);
+}
+
+/// Method to allow de-serialization of transient data from archives.
+void ChProperty::ArchiveIn(ChArchiveIn& marchive) {
+    marchive >> CHNVP(name);
+}
 
 
-
-}  // end namespace geometry
 }  // end namespace chrono

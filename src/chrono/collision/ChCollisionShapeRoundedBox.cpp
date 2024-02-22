@@ -41,7 +41,7 @@ ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChContact
 }
 
 ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material,
-                                                       const geometry::ChRoundedBox& box)
+                                                       const ChRoundedBox& box)
     : ChCollisionShape(Type::ROUNDEDBOX, material), gbox(box) {}
 
 void ChCollisionShapeRoundedBox::ArchiveOut(ChArchiveOut& marchive) {

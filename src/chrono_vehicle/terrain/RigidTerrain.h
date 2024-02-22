@@ -248,8 +248,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     /// Patch represented as a mesh.
     struct CH_VEHICLE_API MeshPatch : public Patch {
-        std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< associated mesh (contact and visualization)
-        std::shared_ptr<geometry::ChTriangleMeshSoup> m_trimesh_s;     ///< associated contact mesh soup
+        std::shared_ptr<ChTriangleMeshConnected> m_trimesh;  ///< associated mesh (contact and visualization)
+        std::shared_ptr<ChTriangleMeshSoup> m_trimesh_s;     ///< associated contact mesh soup
         std::string m_mesh_name;                                       ///< name of associated mesh
         virtual void Initialize() override;
         virtual bool FindPoint(const ChVector3d& loc, double& height, ChVector3d& normal) const override;

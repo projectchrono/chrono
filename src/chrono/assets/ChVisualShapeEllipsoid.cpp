@@ -31,7 +31,7 @@ ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const ChVector3d& axes) {
     SetMutable(false);
 }
 
-ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const geometry::ChEllipsoid& ellipsoid) : gellipsoid(ellipsoid) {
+ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const ChEllipsoid& ellipsoid) : gellipsoid(ellipsoid) {
     SetMutable(false);
 }
 

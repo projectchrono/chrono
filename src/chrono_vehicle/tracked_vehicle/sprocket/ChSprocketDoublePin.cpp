@@ -474,8 +474,8 @@ std::shared_ptr<ChSystem::CustomCollisionCallback> ChSprocketDoublePin::GetColli
 // -----------------------------------------------------------------------------
 // Create and return the sprocket gear profile.
 // -----------------------------------------------------------------------------
-std::shared_ptr<geometry::ChLinePath> ChSprocketDoublePin::GetProfile() const {
-    auto profile = chrono_types::make_shared<geometry::ChLinePath>();
+std::shared_ptr<ChLinePath> ChSprocketDoublePin::GetProfile() const {
+    auto profile = chrono_types::make_shared<ChLinePath>();
 
     int num_teeth = GetNumTeeth();
     double R_T = GetOuterRadius();
@@ -519,13 +519,13 @@ std::shared_ptr<geometry::ChLinePath> ChSprocketDoublePin::GetProfile() const {
         p3R = rot * p3R;
         p4R = rot * p4R;
 
-        geometry::ChLineArc arc1(ChCoordsys<>(p0L), D, alpha + CH_C_PI_2 + beta / 2, alpha + beta / 2);
-        geometry::ChLineSegment seg2(p1L, p2L);
-        geometry::ChLineArc arc3(ChCoordsys<>(p3L), R, alpha + CH_C_PI + beta / 2, alpha + 1.5 * CH_C_PI, true);
-        geometry::ChLineSegment seg4(p4L, p4R);
-        geometry::ChLineArc arc5(ChCoordsys<>(p3R), R, alpha + 1.5 * CH_C_PI, alpha + CH_C_2PI - beta / 2, true);
-        geometry::ChLineSegment seg6(p2R, p1R);
-        geometry::ChLineArc arc7(ChCoordsys<>(p0R), D, alpha + CH_C_PI - beta / 2, alpha + CH_C_PI_2 - beta / 2);
+        ChLineArc arc1(ChCoordsys<>(p0L), D, alpha + CH_C_PI_2 + beta / 2, alpha + beta / 2);
+        ChLineSegment seg2(p1L, p2L);
+        ChLineArc arc3(ChCoordsys<>(p3L), R, alpha + CH_C_PI + beta / 2, alpha + 1.5 * CH_C_PI, true);
+        ChLineSegment seg4(p4L, p4R);
+        ChLineArc arc5(ChCoordsys<>(p3R), R, alpha + 1.5 * CH_C_PI, alpha + CH_C_2PI - beta / 2, true);
+        ChLineSegment seg6(p2R, p1R);
+        ChLineArc arc7(ChCoordsys<>(p0R), D, alpha + CH_C_PI - beta / 2, alpha + CH_C_PI_2 - beta / 2);
 
         profile->AddSubLine(arc1);
         profile->AddSubLine(seg2);

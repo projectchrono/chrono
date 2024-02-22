@@ -80,7 +80,7 @@ class ChRandomParticlePositionRectangleOutlet : public ChRandomParticlePosition 
 class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
   public:
     ChRandomParticlePositionOnGeometry() {
-        m_geometry = chrono_types::make_shared<geometry::ChBox>(ChVector3d(0.1, 0.1, 0.1));
+        m_geometry = chrono_types::make_shared<ChBox>(ChVector3d(0.1, 0.1, 0.1));
     }
 
     /// Function that creates a random position each
@@ -88,11 +88,11 @@ class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
     virtual ChVector3d RandomPosition() override {
         ChVector3d pos = m_frame.GetPos();
 
-        if (auto mline = std::dynamic_pointer_cast<geometry::ChLine>(m_geometry)) {
+        if (auto mline = std::dynamic_pointer_cast<ChLine>(m_geometry)) {
             pos = mline->Evaluate(ChRandom::Get());
-        } else if (auto msurface = std::dynamic_pointer_cast<geometry::ChSurface>(m_geometry)) {
+        } else if (auto msurface = std::dynamic_pointer_cast<ChSurface>(m_geometry)) {
             pos = msurface->Evaluate(ChRandom::Get(), ChRandom::Get());
-        } else if (auto mvolume = std::dynamic_pointer_cast<geometry::ChVolume>(m_geometry)) {
+        } else if (auto mvolume = std::dynamic_pointer_cast<ChVolume>(m_geometry)) {
             pos = mvolume->Evaluate(ChRandom::Get(), ChRandom::Get(), ChRandom::Get());
         }
 
@@ -103,13 +103,13 @@ class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
     /// Set the parametric surface used for this outlet.
     /// The surface will be sampled uniformly over its U,V parametric coordinates. In cas of lines, oly U is used, in
     /// case of parametric volumes, U,V,W.
-    void SetGeometry(std::shared_ptr<geometry::ChGeometry> geometry, const ChFrame<>& frame) {
+    void SetGeometry(std::shared_ptr<ChGeometry> geometry, const ChFrame<>& frame) {
         m_geometry = geometry;
         m_frame = frame;
     }
 
   private:
-    std::shared_ptr<geometry::ChGeometry> m_geometry;
+    std::shared_ptr<ChGeometry> m_geometry;
     ChFrame<> m_frame;
 };
 

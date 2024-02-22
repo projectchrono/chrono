@@ -74,7 +74,7 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
 
     // Add a visualization asset if needed
     if (vis_params) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, topods_shape, *vis_params);
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -91,8 +91,8 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
     }
 }
 
-ChCascadeBodyEasyProfile::ChCascadeBodyEasyProfile(std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> wires,
-                                                   std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> holes,
+ChCascadeBodyEasyProfile::ChCascadeBodyEasyProfile(std::vector<std::shared_ptr<::chrono::ChLinePath>> wires,
+                                                   std::vector<std::shared_ptr<::chrono::ChLinePath>> holes,
                                                    double thickness,
                                                    double density,
                                                    std::shared_ptr<ChCascadeTriangulate> vis_params,
@@ -101,8 +101,8 @@ ChCascadeBodyEasyProfile::ChCascadeBodyEasyProfile(std::vector<std::shared_ptr<:
     AddProfile(wires, holes, thickness, density, vis_params, collide, mat);
 }
 
-void ChCascadeBodyEasyProfile::AddProfile(std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> wires,
-                                          std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> holes,
+void ChCascadeBodyEasyProfile::AddProfile(std::vector<std::shared_ptr<::chrono::ChLinePath>> wires,
+                                          std::vector<std::shared_ptr<::chrono::ChLinePath>> holes,
                                           double thickness,
                                           double density,
                                           std::shared_ptr<ChCascadeTriangulate> vis_params,
@@ -158,7 +158,7 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
 
         // Add a visualization asset if needed
         if (face.visualization) {
-            auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+            auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
             ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, prism, *face.visualization);
 
             auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -251,10 +251,10 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
 }
 
 const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(
-    std::shared_ptr<::chrono::geometry::ChLinePath> profile) {
+    std::shared_ptr<::chrono::ChLinePath> profile) {
     BRepBuilderAPI_MakeWire mwirebuilder;
     for (size_t i = 0; i < profile->GetSubLinesCount(); ++i) {
-        if (auto msegment = std::dynamic_pointer_cast<::chrono::geometry::ChLineSegment>(profile->GetSubLineN(i))) {
+        if (auto msegment = std::dynamic_pointer_cast<::chrono::ChLineSegment>(profile->GetSubLineN(i))) {
             if (msegment->pA.z() != msegment->pB.z())
                 throw std::runtime_error(
                     "Error! ChCascadeBodyEasyProfile: sub segment of ChLinePath not parallel to XY plane!");
@@ -267,7 +267,7 @@ const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(
 
             mwirebuilder.Add(aEdge1);
 
-        } else if (auto marc = std::dynamic_pointer_cast<::chrono::geometry::ChLineArc>(profile->GetSubLineN(i))) {
+        } else if (auto marc = std::dynamic_pointer_cast<::chrono::ChLineArc>(profile->GetSubLineN(i))) {
             if ((marc->origin.rot.e1() != 0) || (marc->origin.rot.e2() != 0))
                 throw std::runtime_error("Error! ChCascadeBodyEasyProfile: a sub arc of ChLinePath not parallel to XY plane!");
 

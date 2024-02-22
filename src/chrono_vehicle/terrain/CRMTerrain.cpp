@@ -83,7 +83,7 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     o.point = interior_point;
 
     // Create trimesh
-    o.trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    o.trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     o.trimesh->LoadWavefrontMesh(GetChronoDataFile(obj_file), true, true);
 
     // Scale trimesh

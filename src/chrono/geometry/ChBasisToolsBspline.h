@@ -21,7 +21,9 @@
 #include "chrono/core/ChMatrix.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Tools for evaluating basis functions for B-splines, parametrized with parameter u (as lines)
 /// These bases are often called "N" in literature.
@@ -324,7 +326,8 @@ class ChApi ChBasisToolsBsplineSurfaces {
     }
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
+
 }  // end namespace chrono
 
 #endif

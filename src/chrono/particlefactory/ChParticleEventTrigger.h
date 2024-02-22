@@ -74,7 +74,7 @@ class ChParticleEventTriggerBox : public ChParticleEventTrigger {
 
     void SetTriggerOutside(bool minvert) { invert_volume = minvert; }
 
-    geometry::ChBox m_box;  ///< box volume
+    ChBox m_box;  ///< box volume
     ChFrame<> m_frame;      ///< box position and orientation
 
   protected:

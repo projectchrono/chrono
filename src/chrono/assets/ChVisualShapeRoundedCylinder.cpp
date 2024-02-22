@@ -30,7 +30,7 @@ ChVisualShapeRoundedCylinder::ChVisualShapeRoundedCylinder(double radius, double
     SetMutable(false);
 }
 
-ChVisualShapeRoundedCylinder::ChVisualShapeRoundedCylinder(const geometry::ChRoundedCylinder& cyl) : groundedcyl(cyl) {
+ChVisualShapeRoundedCylinder::ChVisualShapeRoundedCylinder(const ChRoundedCylinder& cyl) : groundedcyl(cyl) {
     SetMutable(false);
 }
 

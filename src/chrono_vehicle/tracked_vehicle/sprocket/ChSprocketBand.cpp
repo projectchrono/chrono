@@ -693,8 +693,8 @@ std::shared_ptr<ChSystem::CustomCollisionCallback> ChSprocketBand::GetCollisionC
 // -----------------------------------------------------------------------------
 // Create and return the sprocket gear profile.
 // -----------------------------------------------------------------------------
-std::shared_ptr<geometry::ChLinePath> ChSprocketBand::GetProfile() const {
-    auto profile = chrono_types::make_shared<geometry::ChLinePath>();
+std::shared_ptr<ChLinePath> ChSprocketBand::GetProfile() const {
+    auto profile = chrono_types::make_shared<ChLinePath>();
 
     int num_teeth = GetNumTeeth();
     double OutRad = GetOuterRadius();
@@ -787,13 +787,13 @@ std::shared_ptr<geometry::ChLinePath> ChSprocketBand::GetProfile() const {
         double OuterArc_Angle2 = OuterArc_Angle1 - OuterRadArcAng;
 
         // Start the profile geometry with the upper concave tooth arc
-        geometry::ChLineArc arc1(ChCoordsys<>(ToothUpperArcCtrPnt), ArcRad, UpperArc_Angle1, UpperArc_Angle2, true);
+        ChLineArc arc1(ChCoordsys<>(ToothUpperArcCtrPnt), ArcRad, UpperArc_Angle1, UpperArc_Angle2, true);
         // Next is the straight segment for the tooth tip
-        geometry::ChLineSegment seg2(ToothTipWidthUpperPnt, ToothTipWidthLowerPnt);
+        ChLineSegment seg2(ToothTipWidthUpperPnt, ToothTipWidthLowerPnt);
         // Next is the lower concave tooth arc
-        geometry::ChLineArc arc3(ChCoordsys<>(ToothLowerArcCtrPnt), ArcRad, LowerArc_Angle1, LowerArc_Angle2, true);
+        ChLineArc arc3(ChCoordsys<>(ToothLowerArcCtrPnt), ArcRad, LowerArc_Angle1, LowerArc_Angle2, true);
         // Finally is the arc segment that runs along the sprocket's outer radius to the start of the next tooth profile
-        geometry::ChLineArc arc4(ChCoordsys<>(SprocketCtr), OutRad, OuterArc_Angle1, OuterArc_Angle2);
+        ChLineArc arc4(ChCoordsys<>(SprocketCtr), OutRad, OuterArc_Angle1, OuterArc_Angle2);
 
         // Add this tooth segments profile to the sprocket profile
         profile->AddSubLine(arc1);

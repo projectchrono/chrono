@@ -120,7 +120,7 @@ ChApi bool IntersectSegmentCylinder(const cbtVector3& sC,  ///< segment center p
 class ChApi ChConvexHullLibraryWrapper {
   public:
     ChConvexHullLibraryWrapper();
-    void ComputeHull(const std::vector<ChVector3d >& points, geometry::ChTriangleMeshConnected& vshape);
+    void ComputeHull(const std::vector<ChVector3d >& points, ChTriangleMeshConnected& vshape);
 };
 
 }  // namespace bt_utils

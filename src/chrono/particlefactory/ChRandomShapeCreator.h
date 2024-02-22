@@ -194,7 +194,7 @@ class ChRandomShapeCreatorCylinders : public ChRandomShapeCreator {
     virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsys<> mcoords) override {
         double rad = 0.5 * diameter->GetRandom();
         double height = length_factor->GetRandom() * 2.0 * rad;
-        auto mbody = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, rad, height,
+        auto mbody = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, rad, height,
                                                                    density->GetRandom(), this->add_visualization_asset,
                                                                    this->add_collision_shape, material);
         mbody->SetCsys(mcoords);

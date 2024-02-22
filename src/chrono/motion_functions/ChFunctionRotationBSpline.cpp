@@ -79,7 +79,7 @@ void ChFunctionRotationBSpline::Setup(
         this->knots = *mknots;
     else {
         this->knots.setZero(n + p + 1);
-        geometry::ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots, p);
+        ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots, p);
     }
 }
 
@@ -97,10 +97,10 @@ ChQuaternion<> ChFunctionRotationBSpline::Get_q(double s) const {
 
     double u = ComputeKnotUfromU(mU);
 
-    int spanU = geometry::ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
+    int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
 
     ChVectorDynamic<> N(this->p + 1);
-    geometry::ChBasisToolsBspline::BasisEvaluate(this->p, spanU, u, this->knots, N);
+    ChBasisToolsBspline::BasisEvaluate(this->p, spanU, u, this->knots, N);
 
 	// Use the quaternion spline interpolation as in Kim & Kim 1995 paper, ie. with cumulative basis.
 	// Note: now, instead of creating a ChVectorDynamic<> Bi(this->p + 1); vector containing all the basis
@@ -142,7 +142,7 @@ void ChFunctionRotationBSpline::SetClosed(bool mc) {
 		this->knots.setZero(n + p + 1);
 		
 		// recompute knot vector spacing
-        geometry::ChBasisToolsBspline::ComputeKnotUniform(this->knots, p);
+        ChBasisToolsBspline::ComputeKnotUniform(this->knots, p);
 		
 		// wrap last control points
 		for (int i = 0; i < p; ++i)
@@ -158,7 +158,7 @@ void ChFunctionRotationBSpline::SetClosed(bool mc) {
 		this->knots.setZero(n + p + 1);
 
 		// recompute knot vector spacing
-        geometry::ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots, p);
+        ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots, p);
 	}
 
 	this->closed = mc;

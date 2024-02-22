@@ -18,7 +18,9 @@
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// An ellipsoid geometric object for collisions and such.
 class ChApi ChEllipsoid : public ChVolume {
@@ -82,9 +84,9 @@ class ChApi ChEllipsoid : public ChVolume {
     ChVector3d rad;  ///< ellipsoid semiaxes
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChEllipsoid, 0)
+CH_CLASS_VERSION(ChEllipsoid, 0)
 
 }  // end namespace chrono
 

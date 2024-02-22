@@ -20,7 +20,9 @@
 #include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Base class for all geometric objects representing bi-parametric surfaces in 3D space.
 /// This is the base for all U,V-parametric object, implementing Evaluate()
@@ -69,9 +71,9 @@ class ChApi ChSurface : public ChGeometry {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChSurface, 0)
+CH_CLASS_VERSION(ChSurface, 0)
 
 }  // end namespace chrono
 

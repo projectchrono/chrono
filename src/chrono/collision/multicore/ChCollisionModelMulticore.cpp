@@ -232,7 +232,7 @@ void ChCollisionModelMulticore::Populate() {
                 auto trimesh = shape_trimesh->GetMesh();
 
                 for (int i = 0; i < trimesh->getNumTriangles(); i++) {
-                    geometry::ChTriangle tri = trimesh->getTriangle(i);
+                    ChTriangle tri = trimesh->getTriangle(i);
                     ChVector3d p1 = tri.p1 + position;
                     ChVector3d p2 = tri.p2 + position;
                     ChVector3d p3 = tri.p3 + position;
@@ -269,8 +269,8 @@ void TransformToCOG(ChBody* body, const ChVector3d& pos, const ChMatrix33<>& rot
     }
 }
 
-geometry::ChAABB ChCollisionModelMulticore::GetBoundingBox() const {
-    return geometry::ChAABB(aabb_min, aabb_max);
+ChAABB ChCollisionModelMulticore::GetBoundingBox() const {
+    return ChAABB(aabb_min, aabb_max);
 }
 
 void ChCollisionModelMulticore::SyncPosition() {

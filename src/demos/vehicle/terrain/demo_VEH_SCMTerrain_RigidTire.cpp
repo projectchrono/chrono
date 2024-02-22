@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     switch (tire_type) {
         case TireType::LUGGED: {
-            auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+            auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
                 GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
             auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

@@ -29,7 +29,7 @@ ChVisualShapeCapsule::ChVisualShapeCapsule(double radius, double height) {
     SetMutable(false);
 }
 
-ChVisualShapeCapsule::ChVisualShapeCapsule(const geometry::ChCapsule& cap) : gcapsule(cap) {
+ChVisualShapeCapsule::ChVisualShapeCapsule(const ChCapsule& cap) : gcapsule(cap) {
     SetMutable(false);
 }
 

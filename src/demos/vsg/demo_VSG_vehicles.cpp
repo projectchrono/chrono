@@ -27,7 +27,7 @@ using namespace chrono;
 using namespace chrono::vsg3d;
 
 std::shared_ptr<ChVisualShapeTriangleMesh> CreateMeshShape(const std::string& filename) {
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true);
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(filesystem::path(filename).stem());

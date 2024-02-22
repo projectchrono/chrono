@@ -85,7 +85,7 @@ class ChApi ChCollisionSystem {
     virtual void PostProcess() {}
 
     /// Return an AABB bounding all collision shapes in the system
-    virtual geometry::ChAABB GetBoundingBox() const = 0;
+    virtual ChAABB GetBoundingBox() const = 0;
 
     /// Return the time (in seconds) for broadphase collision detection.
     virtual double GetTimerCollisionBroad() const = 0;

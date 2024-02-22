@@ -33,12 +33,12 @@ class ChApi ChCollisionShapeRoundedCylinder : public ChCollisionShape {
                                     double height,
                                     double sradius);
     ChCollisionShapeRoundedCylinder(std::shared_ptr<ChContactMaterial> material,
-                                    const geometry::ChRoundedCylinder& cyl);
+                                    const ChRoundedCylinder& cyl);
 
     ~ChCollisionShapeRoundedCylinder() {}
 
     // Access the cylinder geometry.
-    geometry::ChRoundedCylinder& GetGeometry() { return gcylinder; }
+    ChRoundedCylinder& GetGeometry() { return gcylinder; }
 
     /// Get the cylinder radius.
     double GetRadius() const { return gcylinder.GetRadius(); }
@@ -56,7 +56,7 @@ class ChApi ChCollisionShapeRoundedCylinder : public ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChRoundedCylinder gcylinder;
+    ChRoundedCylinder gcylinder;
 };
 
 /// @} chrono_collision

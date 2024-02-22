@@ -644,7 +644,7 @@ void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyzrot> node1,
     m_faces_rot.push_back(contact_triangle);
 }
 
-void ChContactSurfaceMesh::ConstructFromTrimesh(std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh,
+void ChContactSurfaceMesh::ConstructFromTrimesh(std::shared_ptr<ChTriangleMeshConnected> trimesh,
                                                 double sphere_swept) {
     std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> nodes;
     for (const auto& v : trimesh->getCoordsVertices()) {

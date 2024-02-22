@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     body->SetRot(QuatFromAngleZ(CH_C_PI_2));
     sys->AddBody(body);
 
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

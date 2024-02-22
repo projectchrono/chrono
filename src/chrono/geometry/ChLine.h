@@ -20,7 +20,9 @@
 #include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Base class for all geometric objects representing lines in 3D space.
 /// This is the base for all U-parametric object, implementing Evaluate()
@@ -100,9 +102,9 @@ class ChApi ChLine : public ChGeometry {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLine, 0)
+CH_CLASS_VERSION(ChLine, 0)
 
 }  // end namespace chrono
 

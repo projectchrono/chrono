@@ -34,7 +34,6 @@
 #include "chrono_sensor/filters/ChFilterLidarNoise.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 float end_time = 100.0f;

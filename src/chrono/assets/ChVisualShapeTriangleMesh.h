@@ -34,12 +34,12 @@ class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
     ChVisualShapeTriangleMesh();
     ~ChVisualShapeTriangleMesh() {}
 
-    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() { return trimesh; }
+    std::shared_ptr<ChTriangleMeshConnected> GetMesh() { return trimesh; }
 
     /// Associate the mesh asset with a triangle mesh geometry.  
     /// Optionally, if `load_materials` is set to `true` and if the provided trimesh was loaded from a Wavefront OBJ file, 
     /// associated material files are searched for and visualization materials loaded.
-    void SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, bool load_materials = true);
+    void SetMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, bool load_materials = true);
 
     bool IsWireframe() const { return wireframe; }
     void SetWireframe(bool mw) { wireframe = mw; }
@@ -65,7 +65,7 @@ class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
+    std::shared_ptr<ChTriangleMeshConnected> trimesh;
 
     bool wireframe;
     bool backface_cull;

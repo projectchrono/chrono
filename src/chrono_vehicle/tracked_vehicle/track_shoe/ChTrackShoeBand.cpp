@@ -193,16 +193,16 @@ void ChTrackShoeBand::AddShoeVisualization() {
 void ChTrackShoeBand::WriteTreadVisualizationMesh(const std::string& out_dir) {
     auto mesh_shape1 = ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2);
     auto mesh_shape2 = ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2);
-    std::vector<geometry::ChTriangleMeshConnected> meshes = {*mesh_shape1->GetMesh(), *mesh_shape2->GetMesh()};
+    std::vector<ChTriangleMeshConnected> meshes = {*mesh_shape1->GetMesh(), *mesh_shape2->GetMesh()};
     std::string filename = out_dir + "/" + GetTreadVisualizationMeshName() + ".obj";
-    geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
+    ChTriangleMeshConnected::WriteWavefront(filename, meshes);
 }
 
 void ChTrackShoeBand::ExportTreadVisualizationMeshPovray(const std::string& out_dir) {
     auto mesh_shape1 = ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2);
     auto mesh_shape2 = ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2);
-    std::vector<geometry::ChTriangleMeshConnected> meshes = {*mesh_shape1->GetMesh(), *mesh_shape2->GetMesh()};
-    auto trimesh = geometry::ChTriangleMeshConnected::Merge(meshes);
+    std::vector<ChTriangleMeshConnected> meshes = {*mesh_shape1->GetMesh(), *mesh_shape2->GetMesh()};
+    auto trimesh = ChTriangleMeshConnected::Merge(meshes);
     utils::WriteMeshPovray(trimesh, GetTreadVisualizationMeshName(), out_dir, ChColor(1, 1, 1));
 }
 
@@ -249,7 +249,7 @@ std::shared_ptr<ChVisualShapeTriangleMesh> ChTrackShoeBand::ToothMesh(double y) 
     int np = ProfilePoints(points2, normals2);
 
     // Create the triangular mesh.
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     std::vector<ChVector3d>& vertices = trimesh->getCoordsVertices();
     std::vector<ChVector3d>& normals = trimesh->getCoordsNormals();
     std::vector<ChVector3i>& idx_vertices = trimesh->getIndicesVertexes();

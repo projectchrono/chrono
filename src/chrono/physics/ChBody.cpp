@@ -23,7 +23,7 @@
 
 namespace chrono {
 
-using namespace geometry;
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBody)
@@ -734,11 +734,11 @@ void ChBody::SyncCollisionModels() {
 
 // ---------------------------------------------------------------------------
 
-geometry::ChAABB ChBody::GetTotalAABB() {
+ChAABB ChBody::GetTotalAABB() {
     if (GetCollisionModel())
         return GetCollisionModel()->GetBoundingBox();
 
-    return geometry::ChAABB();  // default: inverted bounding box
+    return ChAABB();  // default: inverted bounding box
 }
 
 void ChBody::ContactableGetStateBlock_x(ChState& x) {

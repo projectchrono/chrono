@@ -29,12 +29,12 @@ class ChApi ChCollisionShapeEllipsoid : public ChCollisionShape {
     ChCollisionShapeEllipsoid();
     ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, double axis_x, double axis_y, double axis_z);
     ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, const ChVector3d& axes);
-    ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, const geometry::ChEllipsoid& ellipsoid);
+    ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, const ChEllipsoid& ellipsoid);
 
     ~ChCollisionShapeEllipsoid() {}
 
     // Access the ellipsoid geometry.
-    geometry::ChEllipsoid& GetGeometry() { return gellipsoid; }
+    ChEllipsoid& GetGeometry() { return gellipsoid; }
 
     /// Get the ellipsoid semiaxes.
     const ChVector3d& GetSemiaxes() const { return gellipsoid.GetSemiaxes(); }
@@ -49,7 +49,7 @@ class ChApi ChCollisionShapeEllipsoid : public ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChEllipsoid gellipsoid;
+    ChEllipsoid gellipsoid;
 };
 
 /// @} chrono_collision

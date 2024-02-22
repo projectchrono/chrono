@@ -128,7 +128,7 @@ using namespace chrono::cascade;
 // TEMPLATES
 //
 
-%template(vector_ChLinePath) std::vector< std::shared_ptr<::chrono::geometry::ChLinePath> >;
+%template(vector_ChLinePath) std::vector< std::shared_ptr<::chrono::ChLinePath> >;
 
 
 //

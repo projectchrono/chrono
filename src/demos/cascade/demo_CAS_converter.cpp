@@ -180,7 +180,7 @@ void DecomposeModel(ChVisualSystemIrrlicht* application) {
     decompositionNode = application->GetSceneManager()->addEmptySceneNode();
 
     // Convert the Irrlicht mesh into a Chrono::Engine mesh.
-    geometry::ChTriangleMeshSoup chmesh;
+    ChTriangleMeshSoup chmesh;
     // modelNode->getMesh();
     fillChTrimeshFromIrlichtMesh(&chmesh, modelNode->getMesh());  // modelMesh->getMesh(0));
 
@@ -199,7 +199,7 @@ void DecomposeModel(ChVisualSystemIrrlicht* application) {
         scene::SMesh* mmesh = new scene::SMesh();
 
         // Get the j-th convex hull as a ChTriangleMesh.
-        geometry::ChTriangleMeshSoup chmesh_hull;
+        ChTriangleMeshSoup chmesh_hull;
         mydecompositionHACDv2.GetConvexHullResult(j, chmesh_hull);
 
         video::SColor clr(255, 20 + (int)(140. * ChRandom::Get()), 20 + (int)(140. * ChRandom::Get()),

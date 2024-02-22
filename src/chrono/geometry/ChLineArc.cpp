@@ -15,7 +15,7 @@
 #include "chrono/geometry/ChLineArc.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineArc)
@@ -76,5 +76,5 @@ void ChLineArc::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(counterclockwise);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

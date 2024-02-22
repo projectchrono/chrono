@@ -74,7 +74,7 @@ class ChApi ChFunctionBSpline : public ChFunction {
     ChVectorDynamic<> GetKnots() const { return m_knots; }
 
     /// Get B-Spline internal tool to evaluate basis functions.
-    std::shared_ptr<geometry::ChBasisToolsBspline> GetBasisTool() { return m_basis_tool; }
+    std::shared_ptr<ChBasisToolsBspline> GetBasisTool() { return m_basis_tool; }
 
     /// B-Spline: y(x) = = SUM_i Ni,p(x) b_i
     virtual double GetVal(double x) const override;
@@ -110,7 +110,7 @@ class ChApi ChFunctionBSpline : public ChFunction {
     ChVectorDynamic<> m_cpoints;  ///< B-Spline control points
     ChVectorDynamic<> m_knots;    ///< B-Spline knots
     int m_n;                      ///< number of knots
-    std::shared_ptr<geometry::ChBasisToolsBspline>
+    std::shared_ptr<ChBasisToolsBspline>
         m_basis_tool;  ///< internal tool to evaluate B-Spline basis functions
 };
 

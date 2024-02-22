@@ -57,7 +57,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     virtual void Run() override;
 
     /// Return an AABB bounding all collision shapes in the system.
-    virtual geometry::ChAABB GetBoundingBox() const override;
+    virtual ChAABB GetBoundingBox() const override;
 
     /// Reset timers for collision detection.
     virtual void ResetTimers() override;

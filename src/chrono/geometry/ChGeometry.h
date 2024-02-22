@@ -23,9 +23,6 @@
 
 namespace chrono {
 
-/// Namespace for classes which represent basic geometric objects
-namespace geometry {
-
 /// @addtogroup chrono_geometry
 /// @{
 
@@ -126,9 +123,7 @@ class ChApi ChGeometry {
 
 /// @} chrono_geometry
 
-}  // end namespace geometry
-
-CH_CLASS_VERSION(geometry::ChGeometry, 0)
+CH_CLASS_VERSION(ChGeometry, 0)
 
 }  // end namespace chrono
 

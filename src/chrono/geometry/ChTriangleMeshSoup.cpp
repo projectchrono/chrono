@@ -19,7 +19,7 @@
 #include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTriangleMeshSoup)
@@ -101,5 +101,5 @@ void ChTriangleMeshSoup::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(m_triangles);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

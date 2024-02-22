@@ -26,8 +26,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 Ch3DOFContainer::Ch3DOFContainer()
     : data_manager(nullptr),
       kernel_radius(.04),

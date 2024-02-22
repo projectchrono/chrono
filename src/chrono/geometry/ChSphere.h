@@ -18,7 +18,9 @@
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A spherical geometric object for collisions and visualization.
 class ChApi ChSphere : public ChVolume {
@@ -78,9 +80,9 @@ class ChApi ChSphere : public ChVolume {
     double rad;  ///< sphere radius
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChSphere, 0)
+CH_CLASS_VERSION(ChSphere, 0)
 
 }  // end namespace chrono
 

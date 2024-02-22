@@ -393,7 +393,7 @@ void CRGTerrain::SetupLineGraphics() {
     auto np = m_road_left->getNumPoints();
     unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
 
-    auto bezier_line_left = chrono_types::make_shared<geometry::ChLineBezier>(m_road_left);
+    auto bezier_line_left = chrono_types::make_shared<ChLineBezier>(m_road_left);
     auto bezier_asset_left = chrono_types::make_shared<ChVisualShapeLine>();
     bezier_asset_left->SetLineGeometry(bezier_line_left);
     bezier_asset_left->SetNumRenderPoints(num_render_points);
@@ -401,7 +401,7 @@ void CRGTerrain::SetupLineGraphics() {
     bezier_asset_left->AddMaterial(mat);
     m_ground->AddVisualShape(bezier_asset_left);
 
-    auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
+    auto bezier_line_right = chrono_types::make_shared<ChLineBezier>(m_road_right);
     auto bezier_asset_right = chrono_types::make_shared<ChVisualShapeLine>();
     bezier_asset_right->SetLineGeometry(bezier_line_right);
     bezier_asset_right->SetNumRenderPoints(num_render_points);
@@ -411,7 +411,7 @@ void CRGTerrain::SetupLineGraphics() {
 }
 
 void CRGTerrain::GenerateMesh() {
-    m_mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    m_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     auto& coords = m_mesh->getCoordsVertices();
     auto& indices = m_mesh->getIndicesVertexes();
     auto& coords_uv = m_mesh->getCoordsUV();
@@ -539,8 +539,8 @@ void CRGTerrain::SetupMeshGraphics() {
 }
 
 void CRGTerrain::ExportMeshWavefront(const std::string& out_dir) {
-    std::vector<geometry::ChTriangleMeshConnected> meshes = {*m_mesh};
-    geometry::ChTriangleMeshConnected::WriteWavefront(out_dir + "/" + m_mesh_name + ".obj", meshes);
+    std::vector<ChTriangleMeshConnected> meshes = {*m_mesh};
+    ChTriangleMeshConnected::WriteWavefront(out_dir + "/" + m_mesh_name + ".obj", meshes);
 }
 
 void CRGTerrain::ExportMeshPovray(const std::string& out_dir) {

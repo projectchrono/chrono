@@ -68,14 +68,14 @@ ChPhysicsItem* ChCollisionModel::GetPhysicsItem() {
     return contactable->GetPhysicsItem();
 }
 
-geometry::ChAABB ChCollisionModel::GetBoundingBox() const {
+ChAABB ChCollisionModel::GetBoundingBox() const {
     // Return an updated bounding box only if this collision model was processed by the current collision system
     // (through BindAll or BindItem)
 
     if (impl)
         return impl->GetBoundingBox();
 
-    return geometry::ChAABB();
+    return ChAABB();
 }
 
 void ChCollisionModel::SetDefaultSuggestedEnvelope(double envelope) {
@@ -172,7 +172,7 @@ void ChCollisionModel::AddCylinder(std::shared_ptr<ChContactMaterial> material,
                                    double radius,
                                    const ChVector3d& p1,
                                    const ChVector3d& p2) {
-    geometry::ChLineSegment seg(p1, p2);
+    ChLineSegment seg(p1, p2);
     auto height = seg.GetLength();
     auto frame = seg.GetFrame();
 

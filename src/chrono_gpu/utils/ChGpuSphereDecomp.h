@@ -41,7 +41,7 @@ std::vector<ChVector3<Real>> MeshSphericalDecomposition(
 ) {
     std::vector<ChVector3<Real>> sphere_points;
     std::string mesh_filename = objfilename;
-    geometry::ChTriangleMeshConnected mesh;
+    ChTriangleMeshConnected mesh;
     mesh.LoadWavefrontMesh(mesh_filename, true, false);
     mesh.Transform(offset, ChMatrix33<>(ChVector3d(scaling.x(), scaling.y(), scaling.z())));
 
@@ -49,7 +49,7 @@ std::vector<ChVector3<Real>> MeshSphericalDecomposition(
     // Fill in successive parallel lines starting at BC and advancing toward A
     int n_triangles_mesh = mesh.getNumTriangles();
     for (int i = 0; i < n_triangles_mesh; i++) {
-        geometry::ChTriangle tri = mesh.getTriangle(i);
+        ChTriangle tri = mesh.getTriangle(i);
         ChVector3<Real> A = tri.p1;
         ChVector3<Real> B = tri.p2;
         ChVector3<Real> C = tri.p3;

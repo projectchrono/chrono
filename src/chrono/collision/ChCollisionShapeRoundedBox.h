@@ -33,12 +33,12 @@ class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
                                double length_z,
                                double sradius);
     ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material, const ChVector3d& lengths, double sradius);
-    ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material, const geometry::ChRoundedBox& box);
+    ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material, const ChRoundedBox& box);
 
     ~ChCollisionShapeRoundedBox() {}
 
     /// Access the rounded box geometry.
-    geometry::ChRoundedBox& GetGeometry() { return gbox; }
+    ChRoundedBox& GetGeometry() { return gbox; }
 
     /// Get the box half-lengths.
     const ChVector3d& GetHalflengths() const { return gbox.GetHalflengths(); }
@@ -56,7 +56,7 @@ class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChRoundedBox gbox;
+    ChRoundedBox gbox;
 };
 
 /// @} chrono_collision

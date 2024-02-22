@@ -52,7 +52,7 @@ class ChApi ChVisualShapeBarrel : public ChVisualShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    // geometry::ChBarrel gbarrel; // maybe in future the following data can be moved into a ChGeometry class?
+    // ChBarrel gbarrel; // maybe in future the following data can be moved into a ChGeometry class?
     double Hlow;
     double Hsup;
     double Rvert;

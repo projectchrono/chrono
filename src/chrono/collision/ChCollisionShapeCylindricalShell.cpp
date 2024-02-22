@@ -31,7 +31,7 @@ ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell(std::shared_p
 }
 
 ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell(std::shared_ptr<ChContactMaterial> material,
-                                                                   const geometry::ChCylinder& cyl)
+                                                                   const ChCylinder& cyl)
     : ChCollisionShape(Type::CYLINDER, material), gcylinder(cyl) {}
 
 void ChCollisionShapeCylindricalShell::ArchiveOut(ChArchiveOut& marchive) {

@@ -20,7 +20,9 @@
 #include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A triangle geometric shape for collisions and visualization.
 class ChApi ChTriangle : public ChGeometry {
@@ -81,9 +83,9 @@ class ChApi ChTriangle : public ChGeometry {
     ChVector3d p3;  ///< third triangle vertex
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChTriangle, 0)
+CH_CLASS_VERSION(ChTriangle, 0)
 
 }  // end namespace chrono
 

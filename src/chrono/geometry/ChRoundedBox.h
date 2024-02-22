@@ -20,7 +20,9 @@
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A rounded box (sphere-swept box) geometric object for collisions and visualization.
 class ChApi ChRoundedBox : public ChVolume {
@@ -92,9 +94,9 @@ class ChApi ChRoundedBox : public ChVolume {
     double srad;      ///< radius of sweeping sphere
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChRoundedBox, 0)
+CH_CLASS_VERSION(ChRoundedBox, 0)
 
 }  // end namespace chrono
 

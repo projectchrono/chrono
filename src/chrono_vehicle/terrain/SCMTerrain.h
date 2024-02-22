@@ -264,7 +264,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// at grid points are obtained through linear interpolation (outside the mesh footprint, the height of a grid node
     /// is set to the height of the closest point on the mesh).  A visualization mesh is created from the original mesh
     /// resampled at the grid node points.
-    void Initialize(const geometry::ChTriangleMeshConnected& trimesh,  ///< [in] surface triangular mesh
+    void Initialize(const ChTriangleMeshConnected& trimesh,  ///< [in] surface triangular mesh
                     double delta                                       ///< [in] grid spacing
     );
 
@@ -372,7 +372,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
 
     /// Initialize the terrain system (mesh).
     /// The initial undeformed terrain profile is provided via the specified triangular mesh.
-    void Initialize(const geometry::ChTriangleMeshConnected& trimesh,  ///< [in] surface triangular mesh
+    void Initialize(const ChTriangleMeshConnected& trimesh,  ///< [in] surface triangular mesh
                     double delta                                       ///< [in] grid spacing
     );
 

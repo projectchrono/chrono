@@ -18,7 +18,9 @@
 #include "chrono/geometry/ChTriangle.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Base class for triangle meshes.
 class ChApi ChTriangleMesh : public ChGeometry {
@@ -66,9 +68,9 @@ class ChApi ChTriangleMesh : public ChGeometry {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChTriangleMesh, 0)
+CH_CLASS_VERSION(ChTriangleMesh, 0)
 
 }  // end namespace chrono
 

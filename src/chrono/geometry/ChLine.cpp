@@ -22,7 +22,7 @@
 #include "chrono/geometry/ChLine.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChLine)  // NO! Abstract class!
@@ -281,5 +281,5 @@ void ChLine::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(complexityU);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

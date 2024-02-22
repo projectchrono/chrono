@@ -29,12 +29,12 @@ class ChApi ChCollisionShapeBox : public ChCollisionShape {
     ChCollisionShapeBox();
     ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, double length_x, double length_y, double length_z);
     ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const ChVector3d& lengths);
-    ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const geometry::ChBox& box);
+    ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const ChBox& box);
 
     ~ChCollisionShapeBox() {}
 
     /// Access the box geometry.
-    geometry::ChBox& GetGeometry() { return gbox; }
+    ChBox& GetGeometry() { return gbox; }
 
     /// Get the box half-lengths.
     const ChVector3d& GetHalflengths() const { return gbox.GetHalflengths(); }
@@ -49,7 +49,7 @@ class ChApi ChCollisionShapeBox : public ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChBox gbox;
+    ChBox gbox;
 };
 
 /// @} chrono_collision

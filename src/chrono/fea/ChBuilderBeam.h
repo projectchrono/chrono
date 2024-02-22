@@ -183,7 +183,7 @@ class ChApi ChBuilderBeamIGA {
     /// line in 3D space. Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
                    std::shared_ptr<ChBeamSectionCosserat> sect,  ///< section material for beam elements
-                   geometry::ChLineBspline& spline,              ///< the B-spline to be used as the centerline
+                   ChLineBspline& spline,              ///< the B-spline to be used as the centerline
                    const ChVector3d Ydirn                        ///< the 'up' Y direction of the beam
     );
 

@@ -192,7 +192,7 @@ void TriangleNormalsSmooth(std::vector<ChVector3d>& normals, std::vector<int>& a
 }
 
 void ChVisualShapeFEA::UpdateBuffers_Tetrahedron(std::shared_ptr<fea::ChElementBase> element,
-                                                 geometry::ChTriangleMeshConnected& trianglemesh,
+                                                 ChTriangleMeshConnected& trianglemesh,
                                                  unsigned int& i_verts,
                                                  unsigned int& i_vnorms,
                                                  unsigned int& i_vcols,
@@ -267,7 +267,7 @@ void ChVisualShapeFEA::UpdateBuffers_Tetrahedron(std::shared_ptr<fea::ChElementB
 }
 
 void ChVisualShapeFEA::UpdateBuffers_Tetra_4_P(std::shared_ptr<fea::ChElementBase> element,
-                                               geometry::ChTriangleMeshConnected& trianglemesh,
+                                               ChTriangleMeshConnected& trianglemesh,
                                                unsigned int& i_verts,
                                                unsigned int& i_vnorms,
                                                unsigned int& i_vcols,
@@ -337,7 +337,7 @@ void ChVisualShapeFEA::UpdateBuffers_Tetra_4_P(std::shared_ptr<fea::ChElementBas
 
 // Helper function for updating visualization mesh buffers for hex elements.
 void ChVisualShapeFEA::UpdateBuffers_Hex(std::shared_ptr<ChElementBase> element,
-                                         geometry::ChTriangleMeshConnected& trianglemesh,
+                                         ChTriangleMeshConnected& trianglemesh,
                                          unsigned int& i_verts,
                                          unsigned int& i_vnorms,
                                          unsigned int& i_vcols,
@@ -426,7 +426,7 @@ void ChVisualShapeFEA::UpdateBuffers_Hex(std::shared_ptr<ChElementBase> element,
 }
 
 void ChVisualShapeFEA::UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> element,
-                                          geometry::ChTriangleMeshConnected& trianglemesh,
+                                          ChTriangleMeshConnected& trianglemesh,
                                           unsigned int& i_verts,
                                           unsigned int& i_vnorms,
                                           unsigned int& i_vcols,
@@ -573,7 +573,7 @@ void ChVisualShapeFEA::UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> el
 }
 
 void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> element,
-                                           geometry::ChTriangleMeshConnected& trianglemesh,
+                                           ChTriangleMeshConnected& trianglemesh,
                                            unsigned int& i_verts,
                                            unsigned int& i_vnorms,
                                            unsigned int& i_vcols,
@@ -723,7 +723,7 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
 }
 
 void ChVisualShapeFEA::UpdateBuffers_LoadSurface(std::shared_ptr<ChMeshSurface> surface,
-                                                 geometry::ChTriangleMeshConnected& trianglemesh,
+                                                 ChTriangleMeshConnected& trianglemesh,
                                                  unsigned int& i_verts,
                                                  unsigned int& i_vnorms,
                                                  unsigned int& i_vcols,
@@ -780,7 +780,7 @@ void ChVisualShapeFEA::UpdateBuffers_LoadSurface(std::shared_ptr<ChMeshSurface> 
 }
 
 void ChVisualShapeFEA::UpdateBuffers_ContactSurfaceMesh(std::shared_ptr<ChContactSurface> surface,
-                                                        geometry::ChTriangleMeshConnected& trianglemesh,
+                                                        ChTriangleMeshConnected& trianglemesh,
                                                         unsigned int& i_verts,
                                                         unsigned int& i_vnorms,
                                                         unsigned int& i_vcols,

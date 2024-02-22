@@ -29,7 +29,6 @@
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
-using namespace geometry;
 
 // -----------------------------------------------------------------------------
 // Create a mixture of geometries

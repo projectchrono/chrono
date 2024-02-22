@@ -15,7 +15,7 @@
 #include "chrono/geometry/ChLineNurbs.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineNurbs)
@@ -135,5 +135,5 @@ void ChLineNurbs::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(p);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

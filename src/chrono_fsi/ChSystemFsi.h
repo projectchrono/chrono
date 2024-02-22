@@ -506,7 +506,7 @@ class CH_FSI_API ChSystemFsi {
 
     /// Utility function for creating points filling a closed mesh.
     //// RADU TODO eliminate delta (use initspacing)
-    static void CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
+    static void CreateMeshPoints(ChTriangleMeshConnected& mesh,
                                  double delta,
                                  std::vector<ChVector3d>& point_cloud);
 

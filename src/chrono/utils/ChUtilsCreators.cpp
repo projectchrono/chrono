@@ -29,7 +29,7 @@
 #include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 
 namespace chrono {
-using namespace geometry;
+
 namespace utils {
 
 // -----------------------------------------------------------------------------
@@ -159,7 +159,7 @@ void AddCylinderGeometry(ChBody* body,
                          const ChVector3d& p2,
                          bool visualization,
                          ChVisualMaterialSharedPtr vis_material) {
-    geometry::ChLineSegment seg(p1, p2);
+    ChLineSegment seg(p1, p2);
     auto height = seg.GetLength();
     auto frame = seg.GetFrame();
 
@@ -203,7 +203,7 @@ bool AddTriangleMeshGeometry(ChBody* body,
                              const ChQuaterniond& rot,
                              bool visualization,
                              ChVisualMaterialSharedPtr vis_material) {
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, false, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, false, false);
     if (!trimesh)
         return false;
 
@@ -235,7 +235,7 @@ bool AddTriangleMeshConvexDecomposition(ChBody* body,
                                         float skin_thickness,
                                         bool use_original_asset,
                                         ChVisualMaterialSharedPtr vis_material) {
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, true, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, true, false);
     if (!trimesh)
         return false;
 
@@ -269,7 +269,7 @@ bool AddTriangleMeshConvexDecomposition(ChBody* body,
         if (!use_original_asset) {
             std::stringstream ss;
             ss << name << "_" << c;
-            auto trimesh_convex = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+            auto trimesh_convex = chrono_types::make_shared<ChTriangleMeshConnected>();
             if (!decomposition.GetConvexHullResult(c, *trimesh_convex))
                 return false;
 
@@ -302,7 +302,7 @@ bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
                                           const ChQuaterniond& rot,
                                           bool use_original_asset,
                                           ChVisualMaterialSharedPtr vis_material) {
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, true, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, true, false);
     if (!trimesh)
         return false;
 
@@ -340,7 +340,7 @@ bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
         if (!use_original_asset) {
             std::stringstream ss;
             ss << name << "_" << c;
-            auto trimesh_convex = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+            auto trimesh_convex = chrono_types::make_shared<ChTriangleMeshConnected>();
             if (!used_decomposition->GetConvexHullResult(c, *trimesh_convex))
                 return false;
 
@@ -373,7 +373,7 @@ bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                              double total_mass) {
     assert(material->GetContactMethod() == system->GetContactMethod());
 
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, true, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, true, false);
     if (!trimesh)
         return false;
 
@@ -406,7 +406,7 @@ bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
     ChMatrix33<> inertia;
     double sum = 0;
     for (int c = 0; c < hull_count; c++) {
-        geometry::ChTriangleMeshConnected trimesh_convex;
+        ChTriangleMeshConnected trimesh_convex;
         if (!used_decomposition->GetConvexHullResult(c, trimesh_convex))
             return false;
         trimesh_convex.ComputeMassProperties(true, mass, center, inertia);
@@ -416,7 +416,7 @@ bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
     double scale = 1.0 / sum;
 
     for (int c = 0; c < hull_count; c++) {
-        auto trimesh_convex = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh_convex = chrono_types::make_shared<ChTriangleMeshConnected>();
         if (!used_decomposition->GetConvexHullResult(c, *trimesh_convex))
             return false;
         trimesh_convex->ComputeMassProperties(true, mass, center, inertia);
@@ -464,7 +464,7 @@ void AddTriangleGeometry(ChBody* body,
                          const ChQuaterniond& rot,
                          bool visualization,
                          ChVisualMaterialSharedPtr vis_material) {
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     trimesh->m_vertices.clear();
     trimesh->m_face_v_indices.clear();
     trimesh->m_vertices.push_back(vertA);
@@ -778,7 +778,7 @@ bool LoadConvexMesh(const std::string& file_name,
 
 // -----------------------------------------------------------------------------
 bool LoadConvexHulls(const std::string& file_name,
-                     geometry::ChTriangleMeshConnected& convex_mesh,
+                     ChTriangleMeshConnected& convex_mesh,
                      std::vector<std::vector<ChVector3d>>& convex_hulls) {
     convex_mesh.LoadWavefrontMesh(file_name, true, false);
 
@@ -840,7 +840,7 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
         if (!use_original_asset) {
             std::stringstream ss;
             ss << convex_mesh->GetFileName() << "_" << c;
-            auto trimesh_convex = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+            auto trimesh_convex = chrono_types::make_shared<ChTriangleMeshConnected>();
             used_decomposition->GetConvexHullResult(c, *trimesh_convex);
 
             auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

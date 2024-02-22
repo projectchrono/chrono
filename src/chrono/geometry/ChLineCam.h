@@ -21,7 +21,9 @@
 #include "chrono/motion_functions/ChFunction.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// For ChLineCam: types of cams
 enum eChCamType {
@@ -146,9 +148,9 @@ class ChApi ChLineCam : public ChLine {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLineCam, 0)
+CH_CLASS_VERSION(ChLineCam, 0)
 
 }  // end namespace chrono
 

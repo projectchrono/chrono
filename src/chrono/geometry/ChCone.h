@@ -18,7 +18,9 @@
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A conical geometric object for collisions and visualization.
 class ChApi ChCone : public ChVolume {
@@ -83,9 +85,9 @@ class ChApi ChCone : public ChVolume {
     double h;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChCone, 0)
+CH_CLASS_VERSION(ChCone, 0)
 
 }  // end namespace chrono
 

@@ -207,7 +207,7 @@ void test_pendulum() {
 
     ChFrameMoving<> rel_frame;
     my_mass->TransformParentToLocal(my_root->GetFrame_COG_to_abs(), rel_frame);
-    geometry::ChLineSegment seg(VNULL, rel_frame.GetPos());
+    ChLineSegment seg(VNULL, rel_frame.GetPos());
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, seg.GetLength());
     cyl->SetColor(ChColor(0.7f, 0.8f, 0.8f));
     my_mass->AddVisualShape(cyl, seg.GetFrame());

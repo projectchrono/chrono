@@ -150,7 +150,7 @@ class MyDriver : public ChDriver {
 
 void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<ChContactMaterialSMC> wheel_material) {
     std::string lugged_file("hmmwv/lugged_wheel_section.obj");
-    geometry::ChTriangleMeshConnected lugged_mesh;
+    ChTriangleMeshConnected lugged_mesh;
     ChConvexDecompositionHACDv2 lugged_convex;
     chrono::utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
     int num_hulls = lugged_convex.GetHullCount();
@@ -172,7 +172,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     wheel_body->AddCollisionShape(cyl_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
 
     // Visualization
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
         vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

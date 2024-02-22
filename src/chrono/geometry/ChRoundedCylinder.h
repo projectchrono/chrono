@@ -18,7 +18,9 @@
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A rounded cylinder (sphere-swept cylinder) geometric object for collision and visualization.
 class ChApi ChRoundedCylinder : public ChVolume {
@@ -85,9 +87,9 @@ class ChApi ChRoundedCylinder : public ChVolume {
     double sr;  ///< radius of sweeping sphere
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChRoundedCylinder, 0)
+CH_CLASS_VERSION(ChRoundedCylinder, 0)
 
 }  // end namespace chrono
 

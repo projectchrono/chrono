@@ -18,7 +18,7 @@
 #include "chrono/geometry/ChCylinder.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCylinder)
@@ -91,5 +91,5 @@ void ChCylinder::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(h);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

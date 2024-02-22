@@ -25,7 +25,9 @@
 #include "chrono/geometry/ChLine.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Geometric object representing a piecewise cubic Bezier curve in 3D.
 class ChApi ChLineBezier : public ChLine {
@@ -61,10 +63,10 @@ class ChApi ChLineBezier : public ChLine {
     std::shared_ptr<ChBezierCurve> m_path;  ///< handle to a Bezier curve
 };
 
-}  // end of namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLineBezier, 0)
+CH_CLASS_VERSION(ChLineBezier, 0)
 
-}  // end of namespace chrono
+}  // end namespace chrono
 
 #endif

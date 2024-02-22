@@ -18,10 +18,10 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChVisualShapeLine)
 
 ChVisualShapeLine::ChVisualShapeLine() : npoints(200), thickness(10.0) {
-    gline = chrono_types::make_shared<geometry::ChLineSegment>();
+    gline = chrono_types::make_shared<ChLineSegment>();
 }
 
-ChVisualShapeLine::ChVisualShapeLine(std::shared_ptr<geometry::ChLine>& mline) : npoints(200), thickness(10.0), gline(mline) {}
+ChVisualShapeLine::ChVisualShapeLine(std::shared_ptr<ChLine>& mline) : npoints(200), thickness(10.0), gline(mline) {}
 
 void ChVisualShapeLine::ArchiveOut(ChArchiveOut& marchive) {
     // version number

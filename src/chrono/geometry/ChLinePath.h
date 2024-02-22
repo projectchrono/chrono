@@ -20,7 +20,9 @@
 #include "chrono/geometry/ChLine.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Geometric object representing an sequence of other ChLine objects,
 /// The ChLine objects are assumed to be properly concatenated and to have C0 continuity.
@@ -116,9 +118,9 @@ class ChApi ChLinePath : public ChLine {
     std::vector<double> durations;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLinePath, 0)
+CH_CLASS_VERSION(ChLinePath, 0)
 
 }  // end namespace chrono
 

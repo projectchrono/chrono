@@ -21,8 +21,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 ChContactContainerMulticore::ChContactContainerMulticore(ChMulticoreDataManager* dc) : data_manager(dc) {
     contactlist_6_6.clear();
     n_added_6_6 = 0;

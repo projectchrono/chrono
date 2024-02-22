@@ -283,7 +283,7 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
     model->SetEnvelope(0);
 
     for (size_t i = 0; i < path.GetSubLinesCount(); ++i) {
-        if (auto segment = std::dynamic_pointer_cast<geometry::ChLineSegment>(path.GetSubLineN(i))) {
+        if (auto segment = std::dynamic_pointer_cast<ChLineSegment>(path.GetSubLineN(i))) {
             if (segment->pA.z() != segment->pB.z())
                 throw std::runtime_error("Error! injectPath2D: sub segment of ChLinePath not parallel to XY plane!");
             ChVector3d pA(segment->pA.x(), segment->pA.y(), 0);
@@ -293,7 +293,7 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
                 chrono_types::make_shared<cbt2DsegmentShape>(cbtVector3CH(pA), cbtVector3CH(pB), (cbtScalar)thickness);
             bt_shape->setMargin((cbtScalar)full_margin);
             injectShape(shape_seg, bt_shape, frame);
-        } else if (auto arc = std::dynamic_pointer_cast<geometry::ChLineArc>(path.GetSubLineN(i))) {
+        } else if (auto arc = std::dynamic_pointer_cast<ChLineArc>(path.GetSubLineN(i))) {
             if ((arc->origin.rot.e1() != 0) || (arc->origin.rot.e2() != 0))
                 throw std::invalid_argument("Error! injectPath2D: a sub arc of ChLinePath not parallel to XY plane!");
 
@@ -317,8 +317,8 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
             if ((path.GetEndA() - path.GetEndB()).Length() < 1e-9)
                 i_next = 0;  // closed path
         if (i_next < path.GetSubLinesCount()) {
-            std::shared_ptr<geometry::ChLine> line_prev = path.GetSubLineN(i_prev);
-            std::shared_ptr<geometry::ChLine> line_next = path.GetSubLineN(i_next);
+            std::shared_ptr<ChLine> line_prev = path.GetSubLineN(i_prev);
+            std::shared_ptr<ChLine> line_next = path.GetSubLineN(i_next);
             auto pos_prev = line_prev->Evaluate(1);
             auto pos_next = line_next->Evaluate(0);
             auto dir_prev = line_prev->GetTangent(1);
@@ -335,7 +335,7 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
             if (Vcross(dir_prev, dir_next).z() < -1e-9) {
                 double angle1 = atan2(dir_prev.y(), dir_prev.x()) + CH_C_PI_2;
                 double angle2 = atan2(dir_next.y(), dir_next.x()) + CH_C_PI_2;
-                geometry::ChLineArc arc(ChCoordsys<>(pos_prev, QUNIT), 0, angle1, angle2, false);
+                ChLineArc arc(ChCoordsys<>(pos_prev, QUNIT), 0, angle1, angle2, false);
                 auto shape_arc = chrono_types::make_shared<ChCollisionShapeArc2D>(material, arc, thickness);
                 auto bt_shape = chrono_types::make_shared<cbt2DarcShape>(
                     (cbtScalar)pos_prev.x(), (cbtScalar)pos_prev.y(), (cbtScalar)0, (cbtScalar)angle1,
@@ -357,7 +357,7 @@ void ChCollisionModelBullet::injectConvexHull(std::shared_ptr<ChCollisionShapeCo
     auto full_margin = GetSuggestedFullMargin();
 
     // adjust default inward margin (if object too thin)
-    geometry::ChAABB aabb;
+    ChAABB aabb;
     for (size_t i = 0; i < points.size(); ++i) {
         aabb.min = Vmin(aabb.min, points[i]);
         aabb.max = Vmax(aabb.max, points[i]);
@@ -370,7 +370,7 @@ void ChCollisionModelBullet::injectConvexHull(std::shared_ptr<ChCollisionShapeCo
 
     // shrink the convex hull by GetSafeMargin()
     bt_utils::ChConvexHullLibraryWrapper lh;
-    geometry::ChTriangleMeshConnected mmesh;
+    ChTriangleMeshConnected mmesh;
     lh.ComputeHull(points, mmesh);
     mmesh.MakeOffset(-safe_margin);
 
@@ -450,7 +450,7 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
     if (!trimesh->getNumTriangles())
         return;
 
-    if (auto mesh = std::dynamic_pointer_cast<geometry::ChTriangleMeshConnected>(trimesh)) {
+    if (auto mesh = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh)) {
         std::vector<std::array<int, 4>> trimap;
         mesh->ComputeNeighbouringTriangleMap(trimap);
 
@@ -648,16 +648,16 @@ void ChCollisionModelBullet::OnFamilyChange(short int family_group, short int fa
     coll_sys->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object.get(), family_group, family_mask);
 }
 
-geometry::ChAABB ChCollisionModelBullet::GetBoundingBox() const {
+ChAABB ChCollisionModelBullet::GetBoundingBox() const {
     if (bt_collision_object->getCollisionShape()) {
         cbtVector3 btmin;
         cbtVector3 btmax;
         bt_collision_object->getCollisionShape()->getAabb(bt_collision_object->getWorldTransform(), btmin, btmax);
-        return geometry::ChAABB(ChVector3d((double)btmin.x(), (double)btmin.y(), (double)btmin.z()),
+        return ChAABB(ChVector3d((double)btmin.x(), (double)btmin.y(), (double)btmin.z()),
                                 ChVector3d((double)btmax.x(), (double)btmax.y(), (double)btmax.z()));
     }
 
-    return geometry::ChAABB();
+    return ChAABB();
 }
 
 void ChCollisionModelBullet::SyncPosition() {

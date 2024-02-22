@@ -40,7 +40,6 @@
 // Chrono namespaces
 using namespace chrono;
 using namespace chrono::fsi;
-using namespace chrono::geometry;
 
 // Physical properties of terrain particles
 double iniSpacing = 0.01;

@@ -139,7 +139,7 @@ void ChSprocket::RemoveVisualizationAssets() {
 }
 
 // -----------------------------------------------------------------------------
-std::shared_ptr<geometry::ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(double radius,
+std::shared_ptr<ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(double radius,
                                                                                        double width,
                                                                                        double delta,
                                                                                        ChColor color) const {
@@ -168,7 +168,7 @@ std::shared_ptr<geometry::ChTriangleMeshConnected> ChSprocket::CreateVisualizati
     }
 
     // Create trimesh
-    auto mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    auto mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     std::vector<ChVector3d>& vertices = mesh->getCoordsVertices();
     std::vector<ChVector3d>& normals = mesh->getCoordsNormals();
     std::vector<ChVector3i>& idx_vertices = mesh->getIndicesVertexes();

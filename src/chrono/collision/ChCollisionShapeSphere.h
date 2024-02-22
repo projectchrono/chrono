@@ -28,12 +28,12 @@ class ChApi ChCollisionShapeSphere : public ChCollisionShape {
   public:
     ChCollisionShapeSphere();
     ChCollisionShapeSphere(std::shared_ptr<ChContactMaterial> material, double radius);
-    ChCollisionShapeSphere(std::shared_ptr<ChContactMaterial> material, const geometry::ChSphere& sphere);
+    ChCollisionShapeSphere(std::shared_ptr<ChContactMaterial> material, const ChSphere& sphere);
 
     ~ChCollisionShapeSphere() {}
 
     /// Access the sphere geometry.
-    geometry::ChSphere& GetGeometry() { return gsphere; }
+    ChSphere& GetGeometry() { return gsphere; }
 
     /// Get the sphere radius.
     double GetRadius() const { return gsphere.GetRadius(); }
@@ -45,7 +45,7 @@ class ChApi ChCollisionShapeSphere : public ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChSphere gsphere;
+    ChSphere gsphere;
 };
 
 /// @} chrono_collision

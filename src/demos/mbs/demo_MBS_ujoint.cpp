@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
         auto cyl_1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.4);
         ground->AddVisualShape(cyl_1, ChFrame<>(ChVector3d(0, 0, -hl), QUNIT));
 
-        geometry::ChLineSegment seg(ChVector3d(0, -(hl - 0.2) * sina, (hl - 0.2) * cosa),
+        ChLineSegment seg(ChVector3d(0, -(hl - 0.2) * sina, (hl - 0.2) * cosa),
                                     ChVector3d(0, -(hl + 0.2) * sina, (hl + 0.2) * cosa));
         auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, seg.GetLength());
         ground->AddVisualShape(cyl_2, seg.GetFrame());

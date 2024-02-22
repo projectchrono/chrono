@@ -171,14 +171,14 @@ int main(int argc, char* argv[]) {
 
     // NOTE: optionally, you can add a scalar or vector property, per vertex or per face, that can
     // be rendered via falsecolor in Blender. Note that optionally we can suggest a min-max range for falsecolor scale.
-    geometry::ChPropertyScalar my_scalars;
+    ChPropertyScalar my_scalars;
     my_scalars.name = "my_temperature";
     my_scalars.data = std::vector<double>{0, 10, 100, 120};
     my_scalars.min = 0;
     my_scalars.max = 150;
     trimesh->GetMesh()->AddPropertyPerVertex(my_scalars);
 
-    geometry::ChPropertyVector my_vectors;
+    ChPropertyVector my_vectors;
     my_vectors.name = "my_velocity";
     my_vectors.data = std::vector<ChVector3d>{{0, 1, 2}, {3, 0, 0}, {0, 0, 2}, {0, 0, 0}};
     trimesh->GetMesh()->AddPropertyPerVertex(my_vectors);
@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
 
     // Note: glyphs can contain per-point float or scalar properties: these will be
     // rendered using falsecolor color scales in Blender, selecting the desired property via the Chrono add-on GUI.
-    geometry::ChPropertyScalar my_temperature_for_glyps;
+    ChPropertyScalar my_temperature_for_glyps;
     my_temperature_for_glyps.name = "my_temperature";
     my_temperature_for_glyps.data =
         std::vector<double>{0, 10, 30, 40, 65, 68};  // size of .data mut match the n.of glyps
@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
 
     // ==Asset== Attach a line or a path (will be drawn as a line in 3D)
     auto line = chrono_types::make_shared<ChVisualShapeLine>();
-    auto my_arc = chrono_types::make_shared<geometry::ChLineArc>(ChCoordsys<>(ChVector3d(1, 2, 1.6)), 0.5, 0, CH_C_PI,
+    auto my_arc = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(1, 2, 1.6)), 0.5, 0, CH_C_PI,
                                                                  true);  // origin, rad, angle start&end
     line->SetLineGeometry(my_arc);
     line->SetColor(ChColor(1, 0.3, 0));

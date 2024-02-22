@@ -29,11 +29,11 @@ namespace chrono {
 class ChApi ChVisualShapePath : public ChVisualShape {
   public:
     ChVisualShapePath();
-    ChVisualShapePath(std::shared_ptr<geometry::ChLinePath>& mpath);
+    ChVisualShapePath(std::shared_ptr<ChLinePath>& mpath);
     ~ChVisualShapePath() {}
 
     /// Access the underlying path geometry.
-    std::shared_ptr<geometry::ChLinePath> GetPathGeometry() { return gpath; }
+    std::shared_ptr<ChLinePath> GetPathGeometry() { return gpath; }
 
     unsigned int GetNumRenderPoints() const { return npoints; }
     void SetNumRenderPoints(unsigned int n) { npoints = n; }
@@ -48,7 +48,7 @@ class ChApi ChVisualShapePath : public ChVisualShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    std::shared_ptr<geometry::ChLinePath> gpath;  ///< underlying path geometry
+    std::shared_ptr<ChLinePath> gpath;  ///< underlying path geometry
     unsigned int npoints;                         ///< number of points evaluated when rendering
     double thickness;                         ///< thickness of line when rendering (for rendering engines that support it)
 };

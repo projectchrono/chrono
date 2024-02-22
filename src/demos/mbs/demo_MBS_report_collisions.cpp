@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
         }
 
         auto cylinder =
-            chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.75, 0.5, 100, true, true, mat);
+            chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.75, 0.5, 100, true, true, mat);
         sys.Add(cylinder);
         cylinder->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         if (bi == 0) {

@@ -37,7 +37,7 @@ ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMa
 }
 
 ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material,
-                                                     const geometry::ChEllipsoid& ellipsoid)
+                                                     const ChEllipsoid& ellipsoid)
     : ChCollisionShape(Type::ELLIPSOID, material), gellipsoid(ellipsoid) {}
 
 void ChCollisionShapeEllipsoid::ArchiveOut(ChArchiveOut& marchive) {

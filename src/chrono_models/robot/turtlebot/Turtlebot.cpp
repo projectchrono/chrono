@@ -159,7 +159,7 @@ Turtlebot_Part::Turtlebot_Part(const std::string& name,
 // Create Visulization assets
 void Turtlebot_Part::AddVisualizationAssets() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
@@ -176,7 +176,7 @@ void Turtlebot_Part::SetCollide(bool state) {
 // Add collision assets
 void Turtlebot_Part::AddCollisionShapes() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
 
     auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh, false, false, 0.005);
@@ -202,7 +202,7 @@ Turtlebot_Chassis::Turtlebot_Chassis(const std::string& name,
 
 void Turtlebot_Chassis::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -259,7 +259,7 @@ Turtlebot_ActiveWheel::Turtlebot_ActiveWheel(const std::string& name,
 
 void Turtlebot_ActiveWheel::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -321,7 +321,7 @@ Turtlebot_PassiveWheel::Turtlebot_PassiveWheel(const std::string& name,
 
 void Turtlebot_PassiveWheel::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -383,7 +383,7 @@ Turtlebot_Rod_Short::Turtlebot_Rod_Short(const std::string& name,
 
 void Turtlebot_Rod_Short::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -447,7 +447,7 @@ Turtlebot_BottomPlate::Turtlebot_BottomPlate(const std::string& name,
 
 void Turtlebot_BottomPlate::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -510,7 +510,7 @@ Turtlebot_MiddlePlate::Turtlebot_MiddlePlate(const std::string& name,
 
 void Turtlebot_MiddlePlate::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -573,7 +573,7 @@ Turtlebot_TopPlate::Turtlebot_TopPlate(const std::string& name,
 
 void Turtlebot_TopPlate::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 
@@ -638,7 +638,7 @@ Turtlebot_Rod_Long::Turtlebot_Rod_Long(const std::string& name,
 
 void Turtlebot_Rod_Long::Initialize() {
     auto vis_mesh_file = GetChronoDataFile("robot/turtlebot/" + m_mesh_name + ".obj");
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
 

@@ -131,7 +131,6 @@
 #include "Eigen/src/Core/util/Memory.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::fea;
 using namespace chrono::vehicle;
 
@@ -189,7 +188,7 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChNodeBase) 
 %shared_ptr(chrono::ChNodeXYZ) 
 %shared_ptr(chrono::ChVisualShapeTriangleMesh)
-%shared_ptr(chrono::geometry::ChTriangleMeshConnected)
+%shared_ptr(chrono::ChTriangleMeshConnected)
 %shared_ptr(chrono::ChFunctionInterp)
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)

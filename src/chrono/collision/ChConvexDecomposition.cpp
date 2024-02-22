@@ -62,11 +62,11 @@ ChConvexDecomposition::ChConvexDecomposition() {}
 /// Destructor
 ChConvexDecomposition::~ChConvexDecomposition() {}
 
-bool ChConvexDecomposition::AddTriangle(const geometry::ChTriangle& t1) {
+bool ChConvexDecomposition::AddTriangle(const ChTriangle& t1) {
     return this->AddTriangle(t1.p1, t1.p2, t1.p3);  // add the input mesh one triangle at a time.
 }
 
-bool ChConvexDecomposition::AddTriangleMesh(const geometry::ChTriangleMesh& tm) {
+bool ChConvexDecomposition::AddTriangleMesh(const ChTriangleMesh& tm) {
     for (int i = 0; i < tm.getNumTriangles(); i++) {
         if (!this->AddTriangle(tm.getTriangle(i)))
             return false;
@@ -134,7 +134,7 @@ bool ChConvexDecompositionHACD::AddTriangle(const ChVector3d& v1, const ChVector
     return true;
 }
 
-bool ChConvexDecompositionHACD::AddTriangleMesh(const geometry::ChTriangleMesh& tm) {
+bool ChConvexDecompositionHACD::AddTriangleMesh(const ChTriangleMesh& tm) {
     for (int i = 0; i < tm.getNumTriangles(); i++) {
         if (!this->ChConvexDecomposition::AddTriangle(tm.getTriangle(i)))
             return false;
@@ -207,7 +207,7 @@ bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex,
 
 /// Get the n-th computed convex hull, by filling a ChTriangleMesh object
 /// that is passed as a parameter.
-bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, geometry::ChTriangleMesh& convextrimesh) {
+bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh) {
     if (hullIndex > myHACD->GetNClusters())
         return false;
 
@@ -316,7 +316,7 @@ bool ChConvexDecompositionHACDv2::AddTriangle(const ChVector3d& v1, const ChVect
     return true;
 }
 
-bool ChConvexDecompositionHACDv2::AddTriangleMesh(const geometry::ChTriangleMesh& tm) {
+bool ChConvexDecompositionHACDv2::AddTriangleMesh(const ChTriangleMesh& tm) {
     for (int i = 0; i < tm.getNumTriangles(); i++) {
         if (!this->ChConvexDecomposition::AddTriangle(tm.getTriangle(i)))
             return false;
@@ -415,7 +415,7 @@ bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex,
 
 /// Get the n-th computed convex hull, by filling a ChTriangleMesh object
 /// that is passed as a parameter.
-bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex, geometry::ChTriangleMesh& convextrimesh) {
+bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh) {
     if (hullIndex > this->gHACD->getHullCount())
         return false;
 

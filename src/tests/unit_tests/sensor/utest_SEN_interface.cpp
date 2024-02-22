@@ -38,7 +38,6 @@
 
 using namespace chrono;
 using namespace chrono::sensor;
-using namespace chrono::geometry;
 
 const double ABS_ERR_D = 1e-15;
 const float ABS_ERR_F = 1e-6f;
@@ -165,7 +164,7 @@ TEST(SensorInterface, shapes) {
 
     // remove sphere, add cylinder
     sys.RemoveBody(s);
-    auto c = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 1.0, 100, true, false);
+    auto c = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.5, 1.0, 100, true, false);
     c->SetPos({2.5, 0.0, 0.0});
     c->SetBodyFixed(true);
     sys.Add(c);

@@ -17,8 +17,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 static const double FD_STEP_HIGH = 1e-4;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -49,7 +47,7 @@ void ChLinkTrajectory::Set_space_fx(std::shared_ptr<ChFunction> m_funct) {
     space_fx = m_funct;
 }
 
-void ChLinkTrajectory::Set_trajectory_line(std::shared_ptr<geometry::ChLine> mline) {
+void ChLinkTrajectory::Set_trajectory_line(std::shared_ptr<ChLine> mline) {
     trajectory_line = mline;
 }
 
@@ -97,7 +95,7 @@ void ChLinkTrajectory::UpdateTime(double time) {
 void ChLinkTrajectory::Initialize(std::shared_ptr<ChBody> mbody1,
                                   std::shared_ptr<ChBody> mbody2,
                                   const ChVector3d& mpos1,
-                                  std::shared_ptr<geometry::ChLine> mline) {
+                                  std::shared_ptr<ChLine> mline) {
     ChLinkMarkers::Initialize(mbody1, mbody2, true, ChCoordsys<>(mpos1), ChCoordsys<>());
     this->Set_trajectory_line(mline);
 }

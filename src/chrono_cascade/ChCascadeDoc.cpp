@@ -72,7 +72,6 @@
 
 using namespace chrono;
 using namespace cascade;
-using namespace geometry;
 
 ChCascadeDoc::ChCascadeDoc() {
     doc = new Handle(TDocStd_Document);

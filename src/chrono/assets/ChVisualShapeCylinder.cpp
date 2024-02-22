@@ -29,7 +29,7 @@ ChVisualShapeCylinder::ChVisualShapeCylinder(double radius, double height) {
     SetMutable(false);
 }
 
-ChVisualShapeCylinder::ChVisualShapeCylinder(const geometry::ChCylinder& cyl) : gcylinder(cyl) {
+ChVisualShapeCylinder::ChVisualShapeCylinder(const ChCylinder& cyl) : gcylinder(cyl) {
     SetMutable(false);
 }
 

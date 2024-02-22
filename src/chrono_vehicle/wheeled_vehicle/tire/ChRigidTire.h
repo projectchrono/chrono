@@ -78,7 +78,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     virtual void RemoveVisualizationAssets() override;
 
     /// Get the contact mesh.
-    std::shared_ptr<geometry::ChTriangleMeshConnected> GetContactMesh() const;
+    std::shared_ptr<ChTriangleMeshConnected> GetContactMesh() const;
 
     /// Get the current state of the collision mesh.
     /// Mesh vertex positions and velocities are returned in the absolute frame.
@@ -116,7 +116,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     std::string m_contact_meshFile;  ///< name of the OBJ file for contact mesh
     double m_sweep_sphere_radius;    ///< radius of sweeping sphere for mesh contact
 
-    std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< contact mesh
+    std::shared_ptr<ChTriangleMeshConnected> m_trimesh;  ///< contact mesh
 
     std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
 };

@@ -69,10 +69,9 @@
 
 using namespace chrono;
 using namespace cascade;
-using namespace geometry;
 
 void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(
-    geometry::ChTriangleMeshConnected& chmesh,  // Mesh that will be filled with triangles
+    ChTriangleMeshConnected& chmesh,  // Mesh that will be filled with triangles
     const TopoDS_Face& F) {
     BRepAdaptor_Surface BS(F, Standard_False);
     Handle(BRepAdaptor_HSurface) gFace = new BRepAdaptor_HSurface(BS);

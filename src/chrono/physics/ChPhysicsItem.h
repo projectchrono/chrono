@@ -125,7 +125,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// The AABB must enclose the collision models, if any.
     /// By default is infinite AABB.
     /// Should be overridden by child classes.
-    virtual geometry::ChAABB GetTotalAABB();
+    virtual ChAABB GetTotalAABB();
 
     /// Get a symbolic 'center' of the object. By default this
     /// function returns the center of the AABB.
