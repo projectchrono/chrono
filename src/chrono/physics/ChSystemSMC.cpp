@@ -109,7 +109,7 @@ void ChSystemSMC::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(madhesion_mapper(m_adhesion_model), "adhesion_model");
     ChSystemSMC_Properties_enum_mapper::TangentialDisplacementModel_mapper mtangential_mapper;
     archive_out << CHNVP(mtangential_mapper(m_tdispl_model), "tangential_model");
-    //***TODO*** complete...
+    //// TODO  complete...
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -130,7 +130,7 @@ void ChSystemSMC::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(madhesion_mapper(m_adhesion_model), "adhesion_model");
     ChSystemSMC_Properties_enum_mapper::TangentialDisplacementModel_mapper mtangential_mapper;
     archive_in >> CHNVP(mtangential_mapper(m_tdispl_model), "tangential_model");
-    //***TODO*** complete...
+    //// TODO  complete...
 
     // Recompute statistics, offsets, etc.
     this->Setup();

@@ -91,8 +91,8 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
         ChPhysicsItem::ArchiveOut(archive_out);
 
         // serialize all member data:
-        archive_out << CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
-        archive_out << CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
+        archive_out << CHNVP(shaft1);  //// TODO  serialize, with shared ptr
+        archive_out << CHNVP(shaft2);  //// TODO  serialize, with shared ptr
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -104,8 +104,8 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
         ChPhysicsItem::ArchiveIn(archive_in);
 
         // deserialize all member data:
-        archive_in >> CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
-        archive_in >> CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
+        archive_in >> CHNVP(shaft1);  //// TODO  serialize, with shared ptr
+        archive_in >> CHNVP(shaft2);  //// TODO  serialize, with shared ptr
     }
 };
 

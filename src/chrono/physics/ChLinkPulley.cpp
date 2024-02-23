@@ -158,7 +158,7 @@ void ChLinkPulley::UpdateTime(double mytime) {
             m_delta = (CH_C_PI / 4.0);  // phase correction only in +/- 45�
         if (m_delta < -(CH_C_PI / 4.0))
             m_delta = -(CH_C_PI / 4.0);
-        //***TODO***
+        //// TODO 
     }
 
     // Move markers 1 and 2 to align them as pulley ends

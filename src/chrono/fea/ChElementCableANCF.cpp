@@ -333,7 +333,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         m_JacobianMatrix += (E * I * length) * Kcurv;  // Iyy should be the same value (circular section assumption)
     }
 
-    //***DEBUG***
+    //// DEBUG
     /*
     std::cout << "Stiffness matr file dump. L=" << length << " A=" << m_section->Area << " E=" <<
     m_section->E << " I=" << m_section->Izz << std::endl;

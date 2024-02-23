@@ -75,8 +75,9 @@ ChMovingAverage::ChMovingAverage(const std::valarray<double>& data, int n) {
     }
 }
 
-//******************************************************
+/******************************************************
 // Integral filter implementation
+******************************************************/
 
 ChFilterI::ChFilterI(double step, double Ti) {
     Config(step, Ti);
@@ -100,8 +101,9 @@ double ChFilterI::Filter(double u) {
     return m_y_old;
 }
 
-//******************************************************
+/******************************************************
 // Differential filter implementation
+******************************************************/
 
 ChFilterD::ChFilterD(double step, double Td) {
     Config(step, Td);

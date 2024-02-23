@@ -420,7 +420,7 @@ void ChContactContainerSMC::ReportAllContacts(std::shared_ptr<ReportContactCallb
     _ReportAllContacts(contactlist_666_6, callback.get());
     _ReportAllContacts(contactlist_666_333, callback.get());
     _ReportAllContacts(contactlist_666_666, callback.get());
-    //***TODO*** rolling cont.
+    //// TODO  rolling cont.
 }
 
 // STATE INTERFACE

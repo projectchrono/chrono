@@ -665,8 +665,8 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
     scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
 
     if (!surface->IsWireframe()) {
-        auto sections_u = surface->GetResolutionU() * 4;  //***TEST***
-        auto sections_v = surface->GetResolutionV() * 4;  //***TEST***
+        auto sections_u = surface->GetResolutionU() * 4;  //// TEST 
+        auto sections_v = surface->GetResolutionV() * 4;  //// TEST 
         auto nvertexes = (sections_u + 1) * (sections_v + 1);
         auto ntriangles = (sections_u) * (sections_v)*2;
 
@@ -722,8 +722,8 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
         meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
         meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);
     } else {                  // if wirewrame u v isolines
-        auto isolines_u = 4;  //***TEST***
-        auto isolines_v = 3;  //***TEST***
+        auto isolines_u = 4;  //// TEST 
+        auto isolines_v = 3;  //// TEST 
         auto sections_u = surface->GetResolutionU() * isolines_u;
         auto sections_v = surface->GetResolutionV() * isolines_v;
 

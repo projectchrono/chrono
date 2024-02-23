@@ -538,7 +538,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> modal_M;
     ChMatrixDynamic<> modal_K;
     ChMatrixDynamic<> modal_R;
-    ChMatrixDynamic<> Psi;  //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
+    ChMatrixDynamic<> Psi;  //// TODO  maybe prefer sparse Psi matrix, especially for upper blocks...
     ChState assembly_x0;    // state snapshot of full not reduced assembly at the time of SwitchModalReductionON()
 
     // Results of eigenvalue analysis like ComputeModes() or ComputeModesDamped():

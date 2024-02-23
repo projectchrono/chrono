@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 
     auto mdamping = chrono_types::make_shared<ChDampingCosseratLinear>();
     mdamping->SetDampingCoefficientsRe((1e-3) * ChVector3d(1, 1, 1));
-    mdamping->SetDampingCoefficientsRk((1e-4) * ChVector3d(1, 1, 1));  //***??? -/+
+    mdamping->SetDampingCoefficientsRk((1e-4) * ChVector3d(1, 1, 1));  //// TODO??? -/+
 
     auto mplasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
     mplasticity->n_yeld_Mx = chrono_types::make_shared<ChFunctionRamp>(1, 0.01);
@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
 
         sys.DoStepDynamics(0.0002);
 
-        bool modified = extruder->Update();  //***REMEMBER*** to do this to update the extrusion
+        bool modified = extruder->Update();  //// NOTE to do this to update the extrusion
         if (modified) {
             // A system change occurred: if using a sparse direct linear solver and if using the sparsity pattern
             // learner (enabled by default), then we must force a re-evaluation of system matrix sparsity pattern!

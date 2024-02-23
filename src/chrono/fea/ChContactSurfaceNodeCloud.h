@@ -122,7 +122,7 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
                                                bool second) override;
 
     virtual double GetContactableMass() override {
-        //***TODO***!!!!!!!!!!!!!!!!!!!!
+        //// TODO !!!!!!!!!!!!!!!!!!!!
         return 1;
         // return this->m_node->GetMass(); // no!! could be zero in nodes of non-lumped-masses meshes!
     }
@@ -241,7 +241,7 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
                                                bool second) override;
 
     virtual double GetContactableMass() override {
-        //***TODO***!!!!!!!!!!!!!!!!!!!!
+        //// TODO !!!!!!!!!!!!!!!!!!!!
         return 1;
         // return m_node->GetMass(); // no!! could be zero in nodes of non-lumped-masses meshes!
     }

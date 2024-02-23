@@ -168,8 +168,8 @@ void ChShaftsBody::ArchiveOut(ChArchiveOut& archive_out) {
 
     // serialize all member data:
     archive_out << CHNVP(shaft_dir);
-    archive_out << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    archive_out << CHNVP(body); //***TODO*** serialize, with shared ptr
+    archive_out << CHNVP(shaft);  //// TODO  serialize, with shared ptr
+    archive_out << CHNVP(body); //// TODO  serialize, with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -182,8 +182,8 @@ void ChShaftsBody::ArchiveIn(ChArchiveIn& archive_in) {
 
     // deserialize all member data:
     archive_in >> CHNVP(shaft_dir);
-    archive_in >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    archive_in >> CHNVP(body); //***TODO*** serialize, with shared ptr
+    archive_in >> CHNVP(shaft);  //// TODO  serialize, with shared ptr
+    archive_in >> CHNVP(body); //// TODO  serialize, with shared ptr
     constraint.SetVariables(&shaft->Variables(), &body->Variables());
 }
 
@@ -346,8 +346,8 @@ void ChShaftsBodyTranslation::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize all member data:
     archive_out << CHNVP(shaft_dir);
     archive_out << CHNVP(shaft_pos);
-    archive_out << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    archive_out << CHNVP(body); //***TODO*** serialize, with shared ptr
+    archive_out << CHNVP(shaft);  //// TODO  serialize, with shared ptr
+    archive_out << CHNVP(body); //// TODO  serialize, with shared ptr
 
 }
 
@@ -362,8 +362,8 @@ void ChShaftsBodyTranslation::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize all member data:
     archive_in >> CHNVP(shaft_dir);
     archive_in >> CHNVP(shaft_pos);
-    archive_in >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    archive_in >> CHNVP(body); //***TODO*** serialize, with shared ptr
+    archive_in >> CHNVP(shaft);  //// TODO  serialize, with shared ptr
+    archive_in >> CHNVP(body); //// TODO  serialize, with shared ptr
     constraint.SetVariables(&shaft->Variables(), &body->Variables());
 
 }

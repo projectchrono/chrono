@@ -148,7 +148,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         sysd.FromVariablesToVector(v, false); // this works supposing that variables have been warmstarted with "v" too, otherwise:  
 
         // warmstarted y:
-        // the following correct only if r_dual was approx.=0. //***TODO*** as parameter
+        // the following correct only if r_dual was approx.=0. //// TODO  as parameter
         y = - (Cq*v - E*l + b); //  dual residual exploiting the kkt form instead of - (N*l+r), faster!
             
         /*
@@ -158,7 +158,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         */
         
         // warmstarted z:
-        z = l; //  warm start also this - should project? //***TODO*** as parameter
+        z = l; //  warm start also this - should project? //// TODO  as parameter
         //sysd.ConstraintsProject(z);
 
         // y_hat  = y;   // only for spectral stepsize
@@ -542,7 +542,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         z.setZero();
         y.setZero();
 
-        //***TODO**? or just accept approximation?
+        ///// TODO or just accept approximation?
         //v = M\(k + D*l); % PERFORMANCE HIT, only needed if truncating Nesterov before convergence
         v.setZero(); // enough approx? or better sysd.FromVariablesToVector(v, false); ?
     }
@@ -556,7 +556,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         sysd.FromVariablesToVector(v, false); // this works supposing that variables have been warmstarted with "v" too, otherwise:  
 
         // warmstarted y:
-        // the following correct only if r_dual was approx.=0. //***TODO*** as parameter
+        // the following correct only if r_dual was approx.=0. //// TODO  as parameter
         y = - (Cq*v - E*l + b); //  dual residual exploiting the kkt form instead of - (N*l+r), faster!
             
         /*
@@ -566,7 +566,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         */
         
         // warmstarted z:
-        z = l; //  warm start also this - should project? //***TODO*** as parameter
+        z = l; //  warm start also this - should project? //// TODO  as parameter
         //sysd.ConstraintsProject(z);
 
     }

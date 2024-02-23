@@ -465,7 +465,7 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
     // Do quadrature over the "s" shear Gauss points
     // (only if int_order_b != int_order_s, otherwise do a single loop later over "b" bend points also for shear)
 
-    //***TODO*** maybe not needed: separate bending and shear integration points.
+    //// TODO  maybe not needed: separate bending and shear integration points.
 
     // Do quadrature over the "b" bend Gauss points
 

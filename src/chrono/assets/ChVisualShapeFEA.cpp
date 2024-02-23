@@ -131,7 +131,7 @@ double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> mnode
         default:
             return 1e30;
     }
-    //***TO DO*** other types of scalar outputs
+    //// TODO  other types of scalar outputs
     return 0;
 }
 
@@ -146,7 +146,7 @@ double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyzP> mnod
         default:
             return 1e30;
     }
-    //***TO DO*** other types of scalar outputs
+    //// TODO  other types of scalar outputs
     return 0;
 }
 
@@ -1140,7 +1140,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
             break;
     }
 
-    //***TEST***
+    //// TEST
     if (false)
         for (unsigned int iel = 0; iel < FEMmesh->GetNelements(); ++iel) {
             // ------------ELEMENT IS A ChElementShellReissner4?

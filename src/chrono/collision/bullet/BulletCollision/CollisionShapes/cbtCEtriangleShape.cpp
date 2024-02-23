@@ -80,7 +80,7 @@ cbtVector3 cbtCEtriangleShape::localGetSupportingVertexWithoutMargin(const cbtVe
         supVec = vtx;
     }
 
-    return supVec;  //+ vec0.normalized()*this->sphereswept_rad; //***TODO*** add the sphereswept_rad layer (but gives
+    return supVec;  //+ vec0.normalized()*this->sphereswept_rad; //// TODO  add the sphereswept_rad layer (but gives
                     //seldom jittering.. why?)
 }
 
@@ -91,7 +91,7 @@ void cbtCEtriangleShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const
 }
 
 void cbtCEtriangleShape::calculateLocalInertia(cbtScalar mass, cbtVector3& inertia) const {
-    //***TO DO***
+    //// TODO 
     // as an approximation, take the inertia of an average radius sphere
 
     cbtTransform ident;

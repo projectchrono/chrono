@@ -188,7 +188,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
         mtmp = alpha * mp;
         ml += mtmp;
 
-        double maxdeltalambda = mtmp.norm();  //***better infinity norm for speed reasons?
+        double maxdeltalambda = mtmp.norm();  //// TODO: better infinity norm for speed reasons?
 
         // l = Proj(l)
         sysd.ConstraintsProject(ml);  // l = P(l)
@@ -241,7 +241,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
             beta = 0;
         }
 
-        // beta = std::max(0.0, beta); //***NOT NEEDED!!! (may be negative in not positive def.matrices!)
+        // beta = std::max(0.0, beta); //// NOT NEEDED (may be negative in not positive def.matrices!)
 
         // p = z + beta * p;
         mp = mz + beta * mp;
@@ -413,7 +413,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
         mtmp = alpha * mp;
         mx += mtmp;
 
-        double maxdeltaunknowns = mtmp.norm();  //***better infinity norm for speed reasons?
+        double maxdeltaunknowns = mtmp.norm();  //// TODO: better infinity norm for speed reasons?
 
         // x = Proj(x)
         sysd.UnknownsProject(mx);  // x = P(x)

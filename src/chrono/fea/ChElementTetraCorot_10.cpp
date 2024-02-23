@@ -579,7 +579,7 @@ void ChElementTetraCorot_10::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfac
             H(id, id) += amfactor * lumped_node_mass;
         }
     }
-    //***TO DO*** better per-node lumping, or 30x30 consistent mass matrix.
+    //// TODO  better per-node lumping, or 30x30 consistent mass matrix.
 }
 
 void ChElementTetraCorot_10::ComputeInternalForces(ChVectorDynamic<>& Fi) {
@@ -607,7 +607,7 @@ void ChElementTetraCorot_10::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     double lumped_node_mass = (GetVolume() * Material->Get_density()) / GetNnodes();
     ChVectorDynamic<> FiR_local =
         Material->Get_RayleighDampingK() * (StiffnessMatrix * displ + lumped_node_mass * displ);
-    //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
+    //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
 
     FiK_local += FiR_local;
     FiK_local *= -1.0;

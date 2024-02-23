@@ -421,7 +421,7 @@ enum E_SHADER_EXTENSION {
     ESE_COUNT
 };
 
-//***ALEX***
+//// TODO: ALEX
 // from ... const char* LIGHT_MODULATE_P ... to ... const char* const LIGHT_MODULATE_P .. to avoid multiple defined
 // symbols
 const char* const LIGHT_MODULATE_P[ESE_COUNT] = {
@@ -1895,7 +1895,7 @@ inline irr::s32 EffectHandler::addPostProcessingEffectFromFile(const irr::core::
 
 inline void ScreenQuadCB::OnSetConstants(irr::video::IMaterialRendererServices* services, irr::s32 userData) {
     if (services->getVideoDriver()->getDriverType() == irr::video::EDT_OPENGL) {
-        //***ALEX*** modified for Irrlicht 1.8
+        //// ALEX modified for Irrlicht 1.8
         /*
         irr::s32 TexVar = 0;
         services->setPixelShaderConstant("ColorMapSampler", &TexVar, 1);

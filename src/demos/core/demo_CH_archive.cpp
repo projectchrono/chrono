@@ -60,11 +60,11 @@ CH_ENUM_MAPPER_END(myEnum);
 // Define some example classes just for showing how CHRONO serialization
 // system works, even with inheritance and versioning...
 //
-// The statements marked with //##### are mandatory if you want to
+// The statements marked with // NEEDED are mandatory if you want to
 // take advantage of basic Chrono streaming and serialization mechanisms,
 // that is if you want to save/load the object to&from a stream.
 //
-// The statements marked with //***** are needed only if you want to
+// The statements marked with // optional CLASS FACTORY are needed only if you want to
 // take advantage of Chrono advanced serialization mechanism, that is the
 // polymorphic creation (class factory) which can load an
 // object from stream even if the object class is not known in advance.
@@ -86,7 +86,7 @@ class myEmployee {
     // NOTE!!!In order to allow serialization with Chrono approach,
     // at least implement these two functions, with the exact names
     // ArchiveIn() and ArchiveOut():
-    virtual void ArchiveOut(ChArchiveOut& archive_out)  // ##### for Chrono serialization
+    virtual void ArchiveOut(ChArchiveOut& archive_out)  // NEEDED for Chrono serialization
     {
         // suggested: use versioning
         archive_out.VersionWrite<myEmployee>();
@@ -95,9 +95,9 @@ class myEmployee {
         archive_out << CHNVP(wages);
         myEnum_mapper enum_map;
         archive_out << CHNVP(enum_map(body),
-                          "body");  // note: CHNVP macro can override names used when streaming to ascii..
+                             "body");  // note: CHNVP macro can override names used when streaming to ascii..
     }
-    virtual void ArchiveIn(ChArchiveIn& archive_in)  // for Chrono serialization
+    virtual void ArchiveIn(ChArchiveIn& archive_in)  // NEEDED for Chrono serialization
     {
         // suggested: use versioning
         /*int version =*/archive_in.VersionRead<myEmployee>();
@@ -111,14 +111,14 @@ class myEmployee {
     // Optional: implement ArchiveContainerName()  so that, when supported as in JSON,
     // serialization of containers (std::vector, arrays, etc.) show a mnemonic name
     // instead of "0", "1", "2", etc. :
-    virtual std::string& ArchiveContainerName() { return name; }  //  optional, for advanced serialization
+    virtual std::string& ArchiveContainerName() { return name; }  // optional CLASS FACTORY
 };
 
 // Somewhere in your .cpp code (not in .h headers) you should put the
 // 'class factory' registration of your class if you want to deserialize
 // objects whose exact class is not known in advance:
 
-CH_FACTORY_REGISTER(myEmployee)  //*****  for advanced serialization
+CH_FACTORY_REGISTER(myEmployee)  // optional CLASS FACTORY
 
 // Ok, now let's do something even more difficult: an inherited class.
 class myEmployeeBoss : public myEmployee {
@@ -133,7 +133,7 @@ class myEmployeeBoss : public myEmployee {
 
     // MEMBER FUNCTIONS FOR BINARY I/O
 
-    virtual void ArchiveOut(ChArchiveOut& archive_out)  // ##### for Chrono serialization
+    virtual void ArchiveOut(ChArchiveOut& archive_out)  // NEEDED for Chrono serialization
     {
         // suggested: use versioning
         archive_out.VersionWrite<myEmployeeBoss>();
@@ -144,7 +144,7 @@ class myEmployeeBoss : public myEmployee {
         archive_out << CHNVP(is_dumb);
         archive_out << CHNVP(slave);  // this added only from version >1
     }
-    virtual void ArchiveIn(ChArchiveIn& archive_in)  // for Chrono serialization
+    virtual void ArchiveIn(ChArchiveIn& archive_in)  // NEEDED for Chrono serialization
     {
         // suggested: use versioning
         int version = archive_in.VersionRead<myEmployeeBoss>();
@@ -159,9 +159,9 @@ class myEmployeeBoss : public myEmployee {
     }
 };
 
-CH_FACTORY_REGISTER(myEmployeeBoss)  // for advanced serialization
+CH_FACTORY_REGISTER(myEmployeeBoss)  // optional CLASS FACTORY
 
-// Use the following to mark a class version:   // optional, for advanced serialization
+// Use the following to mark a class version:   // optional CLASS FACTORY
 namespace chrono {
 CH_CLASS_VERSION(myEmployeeBoss, 2)
 }

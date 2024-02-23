@@ -191,12 +191,12 @@ void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
     ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 4, CK);
     ChMatrixCorotation::ComputeKCt(CK, this->A, 4, CKCt);
 
-    // ***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
+    //// TEST SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
     for (int row = 0; row < CKCt.rows() - 1; ++row)
         for (int col = row + 1; col < CKCt.cols(); ++col)
             CKCt(row, col) = CKCt(col, row);
 
-    //***DEBUG***
+    //// DEBUG
     double max_err = 0;
     int err_r = -1;
     int err_c = -1;
@@ -246,7 +246,7 @@ void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
             H(id, id) += amfactor * lumped_node_mass;
         }
     }
-    //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
+    //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
 }
 
 void ChElementTetraCorot_4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
@@ -269,7 +269,7 @@ void ChElementTetraCorot_4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     displ *= lumped_node_mass * this->Material->Get_RayleighDampingM();
     FiR_local += displ;
 
-    //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
+    //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
 
     FiK_local += FiR_local;
     FiK_local *= -1.0;
@@ -491,7 +491,7 @@ void ChElementTetraCorot_4_P::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfa
                 H(id, id) += Rfactor * lumped_node_c;
             }
         }
-    //***TO DO*** better per-node lumping, or 4x4 consistent c integration as per mass matrices.
+    //// TODO  better per-node lumping, or 4x4 consistent c integration as per mass matrices.
 
     // For M mass matrix: NONE in Poisson equation c dT/dt + div [C] grad T = f
 }
@@ -506,7 +506,7 @@ void ChElementTetraCorot_4_P::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // [local Internal Forces] = [Klocal] * P
     ChVectorDynamic<> FiK_local = StiffnessMatrix * displ;
 
-    //***TO DO*** derivative terms? + [Rlocal] * P_dt ???? ***NO because Poisson  rho dP/dt + div [C] grad P = 0
+    //// TODO  derivative terms? + [Rlocal] * P_dt ???? ***NO because Poisson  rho dP/dt + div [C] grad P = 0
 
     FiK_local *= -1.0;
 

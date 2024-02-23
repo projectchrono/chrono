@@ -71,7 +71,7 @@ class ChApi ChLink : public ChLinkBase {
     /// Get reaction torque,  expressed in link coordinate system.
     virtual ChVector3d Get_react_torque() override { return react_torque; }
 
-    /// If some constraint is redundant, return to normal state  //***OBSOLETE***
+    /// OBSOLETE If some constraint is redundant, return to normal state.
     virtual int RestoreRedundant() { return 0; }
 
     //

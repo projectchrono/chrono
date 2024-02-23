@@ -154,7 +154,7 @@ void ChElementShellReissner4::UpdateNodalAndAveragePosAndOrientation() {
     for (int i = 0; i < NUMNODES; i++) {
         xa[i] = this->m_nodes[i]->GetPos();
         Tn[i] = this->m_nodes[i]->GetRotMat() * iTa[i];
-        T_avg += this->m_nodes[i]->GetRotMat() * iTa[i];  //***TODO*** use predicted rot?
+        T_avg += this->m_nodes[i]->GetRotMat() * iTa[i];  //// TODO  use predicted rot?
     }
     T_avg *= 0.25;
     T_overline = rotutils::Rot(rotutils::VecRot(T_avg));
@@ -695,7 +695,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     for (unsigned int i = 1; i <= iGetNumDof(); i++) {
         beta(i) = XCurr(iFirstReactionIndex + i);
     }
-    */  //***TODO*** EAS internal variables not yet implemented
+    */  //// TODO  EAS internal variables not yet implemented
 
     ComputeIPCurvature();
     for (int i = 0; i < NUMIP; i++) {
@@ -719,14 +719,14 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
             block = T_i[i] * L_alpha_beta_i[i](n, 0);
             B_overline_i[i].block(0, 6 * n, 3, 3) = block.transpose();
             block = T_i[i].transpose() * myi_1_X * Phi_Delta_i_n_LI_i;
-            block = block * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
+            block = block * m_nodes[n]->GetRotMat();  //// NEEDED because rotations are body-relative
             B_overline_i[i].block(0, 3 + 6 * n, 3, 3) = block;
 
             // delta epsilon_tilde_2_i
             block = T_i[i] * L_alpha_beta_i[i](n, 1);
             B_overline_i[i].block(3, 6 * n, 3, 3) = block.transpose();
             block = T_i[i].transpose() * myi_2_X * Phi_Delta_i_n_LI_i;
-            block = block * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
+            block = block * m_nodes[n]->GetRotMat();  //// NEEDED because rotations are body-relative
             B_overline_i[i].block(3, 3 + 6 * n, 3, 3) = block;
 
             ChVector3d phi_tilde_1_i;
@@ -735,12 +735,12 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 
             // delta k_tilde_1_i
             block = T_i[i].transpose() * mk_1_X * Phi_Delta_i_n_LI_i + T_i[i].transpose() * Kappa_delta_i_1[i][n];
-            block = block * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
+            block = block * m_nodes[n]->GetRotMat();  //// NEEDED because rotations are body-relative
             B_overline_i[i].block(6, 3 + 6 * n, 3, 3) = block;
 
             // delta k_tilde_2_i
             block = T_i[i].transpose() * mk_2_X * Phi_Delta_i_n_LI_i + T_i[i].transpose() * Kappa_delta_i_2[i][n];
-            block = block * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
+            block = block * m_nodes[n]->GetRotMat();  //// NEEDED because rotations are body-relative
             B_overline_i[i].block(9, 3 + 6 * n, 3, 3) = block;
 
             // delta y_alpha_1
@@ -752,15 +752,15 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
             D_overline_i[i].block(3, 6 * n, 3, 3) = block;
 
             // delta k_1_i
-            block = Kappa_delta_i_1[i][n] * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
+            block = Kappa_delta_i_1[i][n] * m_nodes[n]->GetRotMat();  //// NEEDED because rotations are body-relative
             D_overline_i[i].block(6, 3 + 6 * n, 3, 3) = block;
 
             // delta k_2_i
-            block = Kappa_delta_i_2[i][n] * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
+            block = Kappa_delta_i_2[i][n] * m_nodes[n]->GetRotMat();  //// NEEDED because rotations are body-relative
             D_overline_i[i].block(9, 3 + 6 * n, 3, 3) = block;
 
             // phi_delta
-            block = Phi_Delta_i_n_LI_i * m_nodes[n]->GetRotMat();  //***NEEDED because rotations are body-relative
+            block = Phi_Delta_i_n_LI_i * m_nodes[n]->GetRotMat();  //// NEEDED because rotations are body-relative
             D_overline_i[i].block(12, 3 + 6 * n, 3, 3) = block;
         }
     }
@@ -791,14 +791,14 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
             block = T_A[i].transpose() * L_alpha_beta_A[i](n, 0);
             B_overline_A.block(0, 6 * n, 3, 3) = block;
             block = T_A[i].transpose() * myA_1_X * Phi_Delta_A_n_LI_i;
-            block = block * this->m_nodes[n]->GetRotMat();  //***NEEDED because in chrono rotations are body-relative
+            block = block * this->m_nodes[n]->GetRotMat();  //// NEEDED because in chrono rotations are body-relative
             B_overline_A.block(0, 3 + 6 * n, 3, 3) = block;
 
             // delta epsilon_tilde_2_A
             block = T_A[i].transpose() * L_alpha_beta_A[i](n, 1);
             B_overline_A.block(3, 6 * n, 3, 3) = block;
             block = T_A[i].transpose() * myA_2_X * Phi_Delta_A_n_LI_i;
-            block = block * this->m_nodes[n]->GetRotMat();  //***NEEDED because in chrono rotations are body-relative
+            block = block * this->m_nodes[n]->GetRotMat();  //// NEEDED because in chrono rotations are body-relative
             B_overline_A.block(3, 3 + 6 * n, 3, 3) = block;
         }
 
@@ -848,7 +848,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         epsilon.segment(6, 3) = k_tilde_1_i[i].eigen();
         epsilon.segment(9, 3) = k_tilde_2_i[i].eigen();
 
-        //***TODO*** add the EAS effect using the epsilon_hat
+        //// TODO  add the EAS effect using the epsilon_hat
         // epsilon_hat = P_i[i] * beta;
         // epsilon += epsilon_hat;
 
@@ -909,7 +909,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         Fi.segment(0, 24) += rd;
 
 #ifdef CHUSE_EAS
-        double dCoef = 1.0;  //***TODO*** autoset this
+        double dCoef = 1.0;  //// TODO  autoset this
         ChVectorN<double, IDOFS> rbeta;
         rbeta = (-alpha_i[i] * w_i[i] / dCoef) * P_i[i].transpose() * stress_i[i];
         Fi.segment(24, IDOFS) = rbeta;
@@ -1015,7 +1015,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
         //  [ Km   Kbq' ]
         //  [ Kbq  Kbb  ]
 
-        double dCoef = 1.0;  //***TODO*** autoset this
+        double dCoef = 1.0;  //// TODO  autoset this
 
         Km *= (alpha_i[i] * w_i[i] * dCoef * Kfactor);  // was: ... * dCoef * (Kfactor+Rfactor * m_Alpha));
         m_JacobianMatrix += Km;
@@ -1043,7 +1043,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
             // compute layer damping matrix
             if (m_layers[il].GetMaterial()->GetDamping()) {
                 m_layers[il].GetMaterial()->GetDamping()->ComputeDampingMatrix(
-                    l_C, VNULL, VNULL, VNULL, VNULL,  //***TODO*** should be more general: eps_dt_tilde_1_i[i],
+                    l_C, VNULL, VNULL, VNULL, VNULL,  //// TODO  should be more general: eps_dt_tilde_1_i[i],
                                                       //eps_dt_tilde_2_i[i], k_dt_tilde_1_i[i], k_dt_tilde_2_i[i],
                     m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
                 C += l_C;
@@ -1191,7 +1191,7 @@ void ChElementShellReissner4::ComputeNF(
     ShapeVector N;
     ShapeFunctions(N, U, V);
 
-    //***TODO*** exact det of jacobian at u,v
+    //// TODO  exact det of jacobian at u,v
     detJ = GetLengthX() * GetLengthY() / 4.0;  // approximate
 
     Qi.segment(0, 3) = N(0) * F.segment(0, 3);

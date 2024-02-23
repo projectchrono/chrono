@@ -198,7 +198,7 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     virtual void SetupInitial(ChSystem* system) override;
 
 
-    //***TEST*** to make private
+    //// TEST, to be made private
 	
 	int n_usednodes;  // for optimization. Number of non-nullptr nodes
 	int nodes_used_to_six[6];  // for optimization. Maps [0,n_usednodes) to six nodes index [0..6). Padded with -1 after n_usednodes.

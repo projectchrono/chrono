@@ -165,7 +165,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         // If rolling and spinning compliance, set the cfm terms
         double h = this->container->GetSystem()->GetStep();
 
-        //***TODO*** move to KRMmatricesLoad() the following, and only for !bounced case
+        //// TODO  move to KRMmatricesLoad() the following, and only for !bounced case
         double alpha = this->dampingf;              // [R]=alpha*[K]
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
@@ -227,7 +227,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         // If rolling and spinning compliance, set the cfm terms
         double h = this->container->GetSystem()->GetStep();
 
-        //***TODO*** move to KRMmatricesLoad() the following, and only for !bounced case
+        //// TODO  move to KRMmatricesLoad() the following, and only for !bounced case
         double alpha = this->dampingf;              // [R]=alpha*[K]
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 

@@ -100,7 +100,7 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     ChGeneralizedEigenvalueSolverLanczos     eigsolver;
     //ChGeneralizedEigenvalueSolverKrylovSchur eigsolver;
     eigsolver.sigma = 0.01;  //// TODO lower value of sigma working in Debug but not in Release !?!?!
-    eigsolver.Solve(M_reduced, K_reduced, Cq_reduced, modes_V_reduced, eig_reduced, freq_reduced, 6); //***TODO*** must
+    eigsolver.Solve(M_reduced, K_reduced, Cq_reduced, modes_V_reduced, eig_reduced, freq_reduced, 6); //// TODO  must
     be all modes n_bou_mod_coords-Cq_reduced.rows(), not only first ones, but Krylov and Lanczos do not allow it..;
     */
 

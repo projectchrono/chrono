@@ -42,7 +42,7 @@ const std::string out_dir = GetChronoOutputPath() + "BEAM_BUCKLING";
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
     /*
-    //***TEST***
+    //// TEST 
         ChVector3d mFi, mTi;
         ChVector3d mWvel = (1, 2, 3);
         ChVector3d mWacc =  (0.3, -0.2, 0.4);

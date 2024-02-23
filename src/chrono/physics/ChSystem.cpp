@@ -580,7 +580,7 @@ bool ChSystem::ManageSleepingBodies() {
 
     bool need_Setup_L = false;
 
-    for (int i = 0; i < 1; i++)  //***TO DO*** reconfigurable number of wakeup cycles
+    for (int i = 0; i < 1; i++)  //// TODO  reconfigurable number of wakeup cycles
     {
         my_waker->someone_sleeps = false;
 
@@ -2198,7 +2198,7 @@ void ChSystem::ArchiveOut(ChArchiveOut& archive_out) {
 
     // archive_out << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
 
-    //***TODO*** complete...
+    //// TODO  complete...
 }
 
 // Method to allow de serialization of transient data from archives.
@@ -2234,7 +2234,7 @@ void ChSystem::ArchiveIn(ChArchiveIn& archive_in) {
     // archive_in >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
     // timestepper->SetIntegrable(this);
 
-    //***TODO*** complete...
+    //// TODO  complete...
 
     // Recompute statistics, offsets, etc.
     Setup();

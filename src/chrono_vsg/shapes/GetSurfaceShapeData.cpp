@@ -22,8 +22,8 @@ void GetSurfaceShapeData(std::shared_ptr<ChVisualShapeSurface> surface,
                          vsg::ref_ptr<vsg::vec3Array>& normals,
                          vsg::ref_ptr<vsg::vec2Array>& texcoords,
                          vsg::ref_ptr<vsg::ushortArray>& indices) {
-    auto sections_u = surface->GetResolutionU() * 4;  //***TEST*** (from irrlicht surface)
-    auto sections_v = surface->GetResolutionV() * 4;  //***TEST***
+    auto sections_u = surface->GetResolutionU() * 4;  //// TEST  (from irrlicht surface)
+    auto sections_v = surface->GetResolutionV() * 4;  //// TEST 
     auto nvertices = (sections_u + 1) * (sections_v + 1);
     auto ntriangles = (sections_u) * (sections_v)*2;
     auto nindices = ntriangles * 3;

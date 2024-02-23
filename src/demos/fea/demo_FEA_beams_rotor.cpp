@@ -134,8 +134,8 @@ int main(int argc, char* argv[]) {
         msection->SetBeamRaleyghDampingBeta(0 * 0.00001);
         msection->SetBeamRaleyghDampingAlpha(0 * 0.001);
         msection->SetAsRectangularSection(beam_wy, beam_wz);
-        msection->compute_inertia_damping_matrix = true;    //*** not much different
-        msection->compute_inertia_stiffness_matrix = true;  //*** not much differen
+        msection->compute_inertia_damping_matrix = true;    //// NOTE: not much different
+        msection->compute_inertia_stiffness_matrix = true;  //// NOTE: not much different
 
         // This helps creating sequences of nodes and ChElementBeamEuler elements:
         ChBuilderBeamEuler builder;

@@ -665,7 +665,7 @@ void cbtArcSegmentCollisionAlgorithm::processCollision(const cbtCollisionObjectW
     // Shapes on two planes that are not so parallel? no collisions!
     cbtVector3 Zarc = m44Tarc.getBasis().getColumn(2);
     cbtVector3 Zsegment = m44Tsegment.getBasis().getColumn(2);
-    if (fabs(Zarc.dot(Zsegment)) < 0.99)  //***TODO*** threshold as setting
+    if (fabs(Zarc.dot(Zsegment)) < 0.99)  //// TODO  threshold as setting
         return;
 
     // Shapes on two planes that are too far? no collisions!
@@ -838,7 +838,7 @@ void cbtArcArcCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapp
     // Shapes on two planes that are not so parallel? no collisions!
     cbtVector3 Zarc1 = m44Tarc1.getBasis().getColumn(2);
     cbtVector3 Zarc2 = m44Tarc2.getBasis().getColumn(2);
-    if (fabs(Zarc1.dot(Zarc2)) < 0.99)  //***TODO*** threshold as setting
+    if (fabs(Zarc1.dot(Zarc2)) < 0.99)  //// TODO  threshold as setting
         return;
 
     // Shapes on two planes that are too far? no collisions!

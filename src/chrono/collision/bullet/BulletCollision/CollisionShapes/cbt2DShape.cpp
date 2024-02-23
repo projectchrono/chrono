@@ -57,7 +57,7 @@ cbt2DarcShape::cbt2DarcShape(cbtScalar mx, cbtScalar my, cbtScalar mradius, cbtS
 
 void	cbt2DarcShape::calculateLocalInertia(cbtScalar mass,cbtVector3& inertia) const
 {
-	//***TO DO***
+	//// TODO 
 	//as an approximation, take the inertia of the box that bounds the barrell
 
 	cbtTransform ident;
@@ -138,7 +138,7 @@ cbt2DsegmentShape::cbt2DsegmentShape(const cbtVector3& mP1, const cbtVector3& mP
 
 void	cbt2DsegmentShape::calculateLocalInertia(cbtScalar mass,cbtVector3& inertia) const
 {
-	//***TO DO***
+	//// TODO 
 	//as an approximation, take the inertia of the box that bounds the barrell
 
 	cbtTransform ident;

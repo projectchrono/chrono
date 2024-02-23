@@ -249,7 +249,8 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     sphRearArmR->SetNameString("sphRearArmR");
     sphRearArmR->Initialize(rockerArmR, rearRodR, ChCoordsys<>(p4R, QUNIT));
     m_chassis->GetSystem()->AddLink(sphRearArmR);
-    //******************** end roll stabilizer def *************************************
+
+    /************** end roll stabilizer def ********************************/
 
     // Initialize the driveline subsystem
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());

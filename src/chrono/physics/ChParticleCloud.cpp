@@ -721,7 +721,7 @@ void ChParticleCloud::ArchiveOut(ChArchiveOut& archive_out) {
 
     // serialize all member data:
     archive_out << CHNVP(particles);
-    // archive_out << CHNVP(particle_mass); //***TODO***
+    // archive_out << CHNVP(particle_mass); //// TODO 
     archive_out << CHNVP(particle_collision_model);
     archive_out << CHNVP(collide);
     archive_out << CHNVP(limit_speed);
@@ -742,7 +742,7 @@ void ChParticleCloud::ArchiveIn(ChArchiveIn& archive_in) {
 
     // deserialize all member data:
     archive_in >> CHNVP(particles);
-    // archive_in >> CHNVP(particle_mass); //***TODO***
+    // archive_in >> CHNVP(particle_mass); //// TODO 
     archive_in >> CHNVP(particle_collision_model);
     archive_in >> CHNVP(collide);
     archive_in >> CHNVP(limit_speed);

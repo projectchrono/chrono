@@ -575,7 +575,7 @@ void ChElementHexaCorot_20::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
             H(id, id) += amfactor * lumped_node_mass;
         }
     }
-    //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
+    //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
 }
 
 void ChElementHexaCorot_20::ComputeInternalForces(ChVectorDynamic<>& Fi) {
@@ -597,7 +597,7 @@ void ChElementHexaCorot_20::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     displ *= (lumped_node_mass * Material->Get_RayleighDampingM());  // reuse 'displ' for performance
     FiR_local += displ;
 
-    //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
+    //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
 
     FiK_local += FiR_local;
     FiK_local *= -1.0;

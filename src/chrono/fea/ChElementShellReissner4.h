@@ -203,7 +203,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     void InterpolateOrientation();
     void ComputeIPCurvature();
 
-    //***TEST*** to make private
+    //// TODO: after test to make private
   public:
     //
     // DATA
@@ -285,7 +285,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     enum InnerEASdofs { IDOFS = 7 };
     ChVariablesGenericDiagonalMass* mvariables;
 
-    //***TODO*** make protected
+    //// TODO  make protected
   public:
     // nodal positions (0: initial; otherwise current)
     ChVector3d xa_0[NUMNODES];

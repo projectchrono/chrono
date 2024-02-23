@@ -945,7 +945,7 @@ CH_UPCASTING(ChTimestepperTrapezoidalLinearized2, ChTimestepperIIorder)
 CH_UPCASTING(ChTimestepperTrapezoidalLinearized2, ChImplicitIterativeTimestepper)
 
 // Performs a step of trapezoidal implicit linearized for II order systems
-//*** SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
+/// SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
 void ChTimestepperTrapezoidalLinearized2::Advance(const double dt) {
     // downcast
     ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;

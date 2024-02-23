@@ -292,7 +292,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
 
     // elements internal forces
     timer_internal_forces.start();
-    //***PARALLEL FOR***, must use omp atomic to avoid race condition in writing to R
+    //// PARALLEL FOR, must use omp atomic to avoid race condition in writing to R
 #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
     for (int ie = 0; ie < velements.size(); ie++) {
         velements[ie]->EleIntLoadResidual_F(R, c);
@@ -302,7 +302,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
 
     // elements gravity forces
     if (automatic_gravity_load) {
-        //***PARALLEL FOR***, must use omp atomic to avoid race condition in writing to R
+        //// PARALLEL FOR, must use omp atomic to avoid race condition in writing to R
 #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
         for (int ie = 0; ie < velements.size(); ie++) {
             velements[ie]->EleIntLoadResidual_F_gravity(R, GetSystem()->Get_G_acc(), c);
@@ -313,7 +313,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
     local_off_v = 0;
     if (automatic_gravity_load && system) {
         // #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
-        //***PARALLEL FOR***, (no need here to use omp atomic to avoid race condition in writing to R)
+        //// PARALLEL FOR, (no need here to use omp atomic to avoid race condition in writing to R)
         for (int in = 0; in < vnodes.size(); in++) {
             if (!vnodes[in]->IsFixed()) {
                 if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(vnodes[in])) {

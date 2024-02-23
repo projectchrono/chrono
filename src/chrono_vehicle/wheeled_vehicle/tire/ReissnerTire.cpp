@@ -346,7 +346,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 }
             }
 
-            //***TODO*** add gravity load
+            //// TODO  add gravity load
             // element->SetGravityOn(true);
 
             // Add element to mesh

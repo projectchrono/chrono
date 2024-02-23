@@ -109,7 +109,7 @@ void util_sparse_assembly_2x2symm(
     // This seems necessary in Release mode
     HCQ.makeCompressed();
 
-    //***NOTE***
+    //// NOTE
     // for some reason the HCQ matrix created via .insert() or .elementRef() or triplet insert, is
     // corrupt in Release mode, not in Debug mode. However, when doing a loop like the one below,
     // it repairs it.
@@ -219,7 +219,7 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M,
     //       [Psi_S  Psi_D]
     Psi.setZero(this->m_num_coords_vel_boundary + this->m_num_coords_vel_internal,
                 this->m_num_coords_vel_boundary + this->m_num_modes_coords_vel);
-    //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
+    //// TODO  maybe prefer sparse Psi matrix, especially for upper blocks...
 
     Psi << Eigen::MatrixXd::Identity(m_num_coords_vel_boundary, m_num_coords_vel_boundary),
         Eigen::MatrixXd::Zero(m_num_coords_vel_boundary, m_num_modes_coords_vel), Psi_S, Psi_D;
@@ -1135,7 +1135,7 @@ void ChModalAssembly::GetStateLocal(ChStateDelta& Dx, ChStateDelta& v_local) {
 
         v_local = v_mod;
 
-        //***TODO***
+        //// TODO
         // transform all Dx and all v_local into the local corotated reference. Now works only if no large rotations in
         // modal assembly.
     }

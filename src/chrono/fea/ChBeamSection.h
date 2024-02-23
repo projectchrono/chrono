@@ -77,7 +77,7 @@ class ChApi ChBeamSection {
         this->draw_shape = chrono_types::make_shared<ChBeamSectionShapeCircular>(draw_rad);
     }
 
-    ///***OBSOLETE*** only for backward compability
+    /// OBSOLETE only for backward compability
     void SetCircular(bool ic) {}
 
   private:

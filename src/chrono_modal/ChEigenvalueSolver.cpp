@@ -166,7 +166,7 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
     KrylovSchurGEigsShiftInvert<OpType, BOpType> eigen_solver(
         op, Bop, settings.n_modes, m,
         settings.sigma
-            .real());  //*** OK EIGVECTS, WRONG EIGVALS REQUIRE eigen_values(i) = (1.0 / eigen_values(i)) + sigma;
+            .real());  //// TODO: OK EIGVECTS, WRONG EIGVALS REQUIRE eigen_values(i) = (1.0 / eigen_values(i)) + sigma;
 
     eigen_solver.init();
 

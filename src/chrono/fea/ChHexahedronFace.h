@@ -147,7 +147,7 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
         ChVectorN<double, 4> N;
         ShapeFunctions(N, U, V);
 
-        //***TODO*** exact det of jacobian at u,v
+        //// TODO  exact det of jacobian at u,v
         detJ = ((GetNodeN(0)->GetPos() - GetNodeN(1)->GetPos()) - (GetNodeN(2)->GetPos() - GetNodeN(3)->GetPos()))
                    .Length() *
                ((GetNodeN(1)->GetPos() - GetNodeN(2)->GetPos()) - (GetNodeN(3)->GetPos() - GetNodeN(0)->GetPos()))

@@ -48,7 +48,7 @@ void ChLinkBeamIGAslider::UpdateNodes() {
     ChVector3d point = VNULL;
     ChVector3d goodpoint = VNULL;
     ChVectorDynamic<> N(nnodes);
-    int nsamples = 6;  //***TODO*** search via NR
+    int nsamples = 6;  //// TODO  search via NR
     double mdist = 1e30;
     ChVector3d absoutlet = this->m_body->TransformPointLocalToParent(this->m_csys.pos);
 
@@ -70,7 +70,7 @@ void ChLinkBeamIGAslider::UpdateNodes() {
             }
         }
     }
-    //***TEST
+    //// TEST
     // double u1 = m_beams[this->active_element]->GetU1();
     // double u2 = m_beams[this->active_element]->GetU2();
     // double eta = (2.0*(this->tau - u1) / (u2 - u1)) - 1.0;

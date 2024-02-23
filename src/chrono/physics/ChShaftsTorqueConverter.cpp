@@ -174,9 +174,9 @@ void ChShaftsTorqueConverter::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize all member data:
     archive_out << CHNVP(K);
     archive_out << CHNVP(T);
-    archive_out << CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    archive_out << CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    archive_out << CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
+    archive_out << CHNVP(shaft1); //// TODO  serialize with shared ptr
+    archive_out << CHNVP(shaft2); //// TODO  serialize with shared ptr
+    archive_out << CHNVP(shaft_stator); //// TODO  serialize with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -190,9 +190,9 @@ void ChShaftsTorqueConverter::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize all member data:
     archive_in >> CHNVP(K);
     archive_in >> CHNVP(T);
-    archive_in >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    archive_in >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    archive_in >> CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
+    archive_in >> CHNVP(shaft1); //// TODO  serialize with shared ptr
+    archive_in >> CHNVP(shaft2); //// TODO  serialize with shared ptr
+    archive_in >> CHNVP(shaft_stator); //// TODO  serialize with shared ptr
 
 }
 

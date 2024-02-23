@@ -181,9 +181,9 @@ void ChShaftsGearbox::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(r2);
     archive_out << CHNVP(r3);
     archive_out << CHNVP(shaft_dir);
-    archive_out << CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    archive_out << CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    archive_out << CHNVP(body); //***TODO*** serialize with shared ptr
+    archive_out << CHNVP(shaft1); //// TODO  serialize with shared ptr
+    archive_out << CHNVP(shaft2); //// TODO  serialize with shared ptr
+    archive_out << CHNVP(body); //// TODO  serialize with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -199,9 +199,9 @@ void ChShaftsGearbox::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(r2);
     archive_in >> CHNVP(r3);
     archive_in >> CHNVP(shaft_dir);
-    archive_in >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    archive_in >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    archive_in >> CHNVP(body); //***TODO*** serialize with shared ptr
+    archive_in >> CHNVP(shaft1); //// TODO  serialize with shared ptr
+    archive_in >> CHNVP(shaft2); //// TODO  serialize with shared ptr
+    archive_in >> CHNVP(body); //// TODO  serialize with shared ptr
     constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables(), &body->Variables());
 
 }

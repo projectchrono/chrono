@@ -363,7 +363,7 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticst
     }
 }
 
-//***OBSOLETE***
+//// OBSOLETE
 void ChContinuumDruckerPrager::ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow,
                                                         const ChStrainTensor<>& mestrain) const {
     ChStressTensor<> mstress;

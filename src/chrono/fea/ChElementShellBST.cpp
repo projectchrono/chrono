@@ -477,7 +477,7 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
         this->m += l_m;
 
         // add viscous damping
-        ////***TO DO*** this require (still not computed) time derivative of this->e and this->k from state_w.
+        ////// TODO  this require (still not computed) time derivative of this->e and this->k from state_w.
         /*
         if (m_layers[il].GetMaterial()->GetDamping()) {
             ChVector3d n_sp;
@@ -501,7 +501,7 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
     //  f_n^T= n^T*[Bn] ,   with  de = [Bn]*dp
     for (int iv = 0; iv < 3; ++iv) {
         Fi.segment(iv * 3, 3) +=
-            -this->area * 1.0 *  //***TO CHECK*** // gauss weight = 1.0 ? or 0.5 ?
+            -this->area * 1.0 *  //// TODO gauss weight = 1.0 ? or 0.5 ?
             (n[0] * Nx(iv) * P_1 + n[1] * Ny(iv) * P_2 + n[2] * (Nx(iv) * P_2 + Ny(iv) * P_1)).eigen();
     }
 

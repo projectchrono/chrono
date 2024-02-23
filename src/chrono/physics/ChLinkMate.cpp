@@ -572,7 +572,7 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
     if (!this->IsActive())
         return;
 
-    //***TEST***
+    //// TEST 
     /*
         std::cout << "cload: " ;
         if (this->c_x) std::cout << " x";

@@ -202,12 +202,12 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
                 double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
-                //***TODO*** move to KRMmatricesLoad() the following, and only for !bounced case
+                //// TODO  move to KRMmatricesLoad() the following, and only for !bounced case
                 Nx.Set_cfm_i((inv_hhpa) * this->compliance);
                 Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
                 Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
 
-                double qc = inv_hpa * this->norm_dist;  //***TODO*** see how to move this in KRMmatricesLoad()
+                double qc = inv_hpa * this->norm_dist;  //// TODO  see how to move this in KRMmatricesLoad()
 
                 // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outbound
                 // speed, but also the reaction, so it might allow longer 'sinking' not related to the real compliance.
@@ -300,7 +300,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
                 double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
-                Nx.Set_cfm_i((inv_hhpa) * this->compliance);  // was (inv_hh)* ...   //***TEST DAMPING***//
+                Nx.Set_cfm_i((inv_hhpa) * this->compliance);  // was (inv_hh)* ...   //// TEST DAMPING
                 Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
                 Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
 
