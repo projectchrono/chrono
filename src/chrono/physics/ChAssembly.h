@@ -231,10 +231,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) override;
     virtual void IntStateGetIncrement(const unsigned int off_x,
-                                   const ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   ChStateDelta& Dv) override;
+                                      const ChState& x_new,
+                                      const ChState& x,
+                                      const unsigned int off_v,
+                                      ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
@@ -319,21 +319,22 @@ class ChApi ChAssembly : public ChPhysicsItem {
     std::vector<std::shared_ptr<ChPhysicsItem>> batch_to_insert;   ///< list of items to insert at once
 
     // Statistics:
-    int m_num_bodies;        ///< number of bodies (currently active)
-    int m_num_bodies_sleep;  ///< number of bodies that are sleeping
-    int m_num_bodies_fixed;  ///< number of bodies that are fixed
-    int m_num_shafts;        ///< number of shafts (currently active)
-    int m_num_shafts_sleep;  ///< number of shafts that are sleeping
-    int m_num_shafts_fixed;  ///< number of shafts that are fixed
-    int m_num_links;         ///< number of links
-    int m_num_meshes;        ///< number of meshes
+    int m_num_bodies;             ///< number of bodies (currently active)
+    int m_num_bodies_sleep;       ///< number of bodies that are sleeping
+    int m_num_bodies_fixed;       ///< number of bodies that are fixed
+    int m_num_shafts;             ///< number of shafts (currently active)
+    int m_num_shafts_sleep;       ///< number of shafts that are sleeping
+    int m_num_shafts_fixed;       ///< number of shafts that are fixed
+    int m_num_links;              ///< number of links
+    int m_num_meshes;             ///< number of meshes
     int m_num_otherphysicsitems;  ///< number of other physics items
 
-    int m_num_coords_pos;     ///< number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int m_num_coords_vel;   ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
+    int m_num_coords_pos;  ///< number of scalar coordinates (including 4th dimension of quaternions) for all active
+                           ///< bodies
+    int m_num_coords_vel;  ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
     int m_num_constr;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int m_num_constr_bil;    ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int m_num_constr_uni;    ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
+    int m_num_constr_bil;  ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    int m_num_constr_uni;  ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 
     friend class ChSystem;
     friend class ChSystemMulticore;

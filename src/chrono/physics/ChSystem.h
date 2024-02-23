@@ -841,11 +841,12 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     bool is_initialized;  ///< if false, an initial setup is required (i.e. a call to Initialize)
     bool is_updated;      ///< if false, a new update is required (i.e. a call to Update)
 
-    int m_num_coords_pos;     ///< number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int m_num_coords_vel;   ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
+    int m_num_coords_pos;  ///< number of scalar coordinates (including 4th dimension of quaternions) for all active
+                           ///< bodies
+    int m_num_coords_vel;  ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
     int m_num_constr;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int m_num_constr_bil;    ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int m_num_constr_uni;    ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
+    int m_num_constr_bil;  ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    int m_num_constr_uni;  ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 
     double ch_time;  ///< simulation time of the system
     double step;     ///< time step

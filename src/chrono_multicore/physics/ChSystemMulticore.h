@@ -50,7 +50,6 @@ class settings_container;
 
 /// Base class for Chrono::Multicore systems.
 class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
-
   public:
     ChSystemMulticore();
     ChSystemMulticore(const ChSystemMulticore& other);
@@ -80,7 +79,8 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.).
-    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) override;
+    virtual void SetMaterialCompositionStrategy(
+        std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) override;
 
     virtual void PrintStepStats();
     unsigned int GetNumBodies();
@@ -196,7 +196,6 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 
 /// Multicore system using non-smooth contact (complementarity-based) method.
 class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
-
   public:
     ChSystemMulticoreNSC();
     ChSystemMulticoreNSC(const ChSystemMulticoreNSC& other);
@@ -232,7 +231,6 @@ class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
 
 /// Multicore system using smooth contact (penalty-based) method.
 class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
-
   public:
     ChSystemMulticoreSMC();
     ChSystemMulticoreSMC(const ChSystemMulticoreSMC& other);

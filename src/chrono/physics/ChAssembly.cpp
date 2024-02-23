@@ -170,7 +170,7 @@ void ChAssembly::RemoveShaft(std::shared_ptr<ChShaft> shaft) {
 
 void ChAssembly::AddLink(std::shared_ptr<ChLinkBase> link) {
     assert(std::find(std::begin(linklist), std::end(linklist), link) == linklist.end());
-    assert(link->GetSystem()==nullptr || link->GetSystem() == system);
+    assert(link->GetSystem() == nullptr || link->GetSystem() == system);
 
     link->SetSystem(system);
     linklist.push_back(link);
@@ -554,9 +554,11 @@ void ChAssembly::Setup() {
 
             m_num_coords_pos += body->GetNumCoordinatesPos();
             m_num_coords_vel += body->GetNumCoordinatesVel();
-            m_num_constr += body->GetNumConstraints();      // not really needed since ChBody introduces no constraints
-            m_num_constr_bil += body->GetNumConstraintsBilateral();  // not really needed since ChBody introduces no constraints
-            m_num_constr_uni += body->GetNumConstraintsUnilateral();  // not really needed since ChBody introduces no constraints
+            m_num_constr += body->GetNumConstraints();  // not really needed since ChBody introduces no constraints
+            m_num_constr_bil +=
+                body->GetNumConstraintsBilateral();  // not really needed since ChBody introduces no constraints
+            m_num_constr_uni +=
+                body->GetNumConstraintsUnilateral();  // not really needed since ChBody introduces no constraints
         }
     }
 
@@ -988,11 +990,7 @@ void ChAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offset in 
     }
 }
 
-void ChAssembly::IntLoadLumpedMass_Md(const unsigned int off, 
-                                    ChVectorDynamic<>& Md, 
-                                    double& err, 
-                                    const double c
-) {
+void ChAssembly::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     unsigned int displ_v = off - this->offset_w;
 
     for (auto& body : bodylist) {
@@ -1502,7 +1500,8 @@ void ChAssembly::ShowHierarchy(std::ostream& outstream, int level) const {
 
     outstream << "\n" << mtabs << "List of the " << (int)linklist.size() << " added links:" << std::endl;
     for (auto& link : linklist) {
-        outstream << mtabs << "  LINK:       " << link->GetName() << " [" << typeid(link.get()).name() << "]" << std::endl;
+        outstream << mtabs << "  LINK:       " << link->GetName() << " [" << typeid(link.get()).name() << "]"
+                  << std::endl;
         if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
             if (malink->GetMarker1())
                 outstream << mtabs << "    marker1:  " << malink->GetMarker1()->GetName() << std::endl;
@@ -1516,9 +1515,11 @@ void ChAssembly::ShowHierarchy(std::ostream& outstream, int level) const {
         outstream << mtabs << "  MESH :      " << mesh->GetName() << std::endl;
     }
 
-    outstream << "\n" << mtabs << "List of other " << (int)otherphysicslist.size() << " added physic items:" << std::endl;
+    outstream << "\n"
+              << mtabs << "List of other " << (int)otherphysicslist.size() << " added physic items:" << std::endl;
     for (auto& item : otherphysicslist) {
-        outstream << mtabs << "  PHYSIC ITEM: " << item->GetName() << " [" << typeid(item.get()).name() << "]" << std::endl;
+        outstream << mtabs << "  PHYSIC ITEM: " << item->GetName() << " [" << typeid(item.get()).name() << "]"
+                  << std::endl;
 
         // recursion:
         if (auto assem = std::dynamic_pointer_cast<ChAssembly>(item))

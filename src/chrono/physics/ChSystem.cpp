@@ -1493,8 +1493,8 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
             }
 
             std::cout << "      - [" << redundant_constraints_idx[c_sel] << "]: " << corr_link->GetName() << "["
-                      << (redundant_constraints_idx[c_sel] - corr_link->GetOffset_L()) << "/" << corr_link->GetNumConstraints()
-                      << "]" << std::endl;
+                      << (redundant_constraints_idx[c_sel] - corr_link->GetOffset_L()) << "/"
+                      << corr_link->GetNumConstraints() << "]" << std::endl;
         }
     }
 

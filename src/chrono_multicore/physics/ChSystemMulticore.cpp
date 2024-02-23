@@ -34,7 +34,6 @@
 
 #include <numeric>
 
-
 namespace chrono {
 
 ChSystemMulticore::ChSystemMulticore() : ChSystem() {
@@ -757,7 +756,8 @@ void ChSystemMulticore::EnableThreadTuning(int min_threads, int max_threads) {
 
 // -------------------------------------------------------------
 
-void ChSystemMulticore::SetMaterialCompositionStrategy(std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) {
+void ChSystemMulticore::SetMaterialCompositionStrategy(
+    std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) {
     data_manager->composition_strategy = std::move(strategy);
 }
 
