@@ -208,6 +208,41 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNsysvars_w                 | remove                                           |
 | ChBinaryArchive                   |                               | remove                                           |
 | ChException                       |                               | remove                                           |
+| ChFrame                           |                               |                                                  |
+|                                   | GetA                          | rename: GetRotMat                                |
+|                                   | GetCoord                      | rename: GetCsys                                  |
+|                                   | operator%=                    | remove                                           |
+|                                   | SetCoord                      | rename: SetCsys                                  |
+| ChFrameMoving                     |                               |                                                  | 
+|                                   | Compute_Adt                   | rename: ComputeRotMatDer                         |
+|                                   | Compute_Adtdt                 | rename: ComputeRotMatDer2                        |
+|                                   | GetA_dt                       | rename: GetRotMatDer                             |
+|                                   | GetA_dtdt                     | rename: GetRotMatDer2                            |
+|                                   | GetCoord_dt                   | rename: GetCsysDer                               |
+|                                   | GetCoord_dtdt                 | rename: GetCsysDer2                              |
+|                                   | GetPos_dt                     | rename: GetPosDer                                |
+|                                   |                               | added: GetLinVel                                 |
+|                                   | GetPos_dtdt                   | rename: GetPosDer2                               |
+|                                   |                               | added: GetLinAcc                                 |
+|                                   | GetRot_dt                     | rename: GetRotDer                                |
+|                                   | GetRot_dtdt                   | rename: GetRotDer2                               |
+|                                   | GetWacc_loc                   | rename: GetAngAccLocal                           |
+|                                   | GetWacc_par                   | rename: GetAngAccParent                          |
+|                                   | GetWvel_loc                   | rename: GetAngVelLocal                           |
+|                                   | GetWvel_par                   | rename: GetAngVelParent                          |
+|                                   | operator%=                    | remove                                           |
+|                                   | SetCoord_dt                   | rename: SetCsysDer                               |
+|                                   | SetCoord_dtdt                 | rename: SetCsysDer2                              |
+|                                   | SetPos_dt                     | rename: SetPosDer                                |
+|                                   |                               | added: SetLinVel                                 |
+|                                   | SetPos_dtdt                   | rename: SetPosDer2                               |
+|                                   |                               | added: SetLinAcc                                 |
+|                                   | SetRot_dt                     | rename: SetRotDer                                |
+|                                   | SetRot_dtdt                   | rename: SetRotDer2                               |
+|                                   | SetWacc_loc                   | rename: SetAngAccLocal                           |
+|                                   | SetWacc_par                   | rename: SetAngAccParent                          |
+|                                   | SetWvel_loc                   | rename: SetAngVelLocal                           |
+|                                   | SetWvel_par                   | rename: SetAngVelParent                          |
 | ChFunction                        |                               |                                                  |
 |                                   | Compute_int                   | rename: GetIntegral                              |
 |                                   | Compute_max                   | rename: GetMax                                   |
