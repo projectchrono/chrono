@@ -421,7 +421,7 @@ void ChVehicleOutputHDF5::WriteShafts(const std::vector<std::shared_ptr<ChShaft>
     H5::DataSpace dataspace(1, dim);
     std::vector<shaft_info> info(nshafts);
     for (auto i = 0; i < nshafts; i++) {
-        info[i] = {shafts[i]->GetIdentifier(), shafts[i]->GetPos(), shafts[i]->GetPos_dt(), shafts[i]->GetPos_dtdt(),
+        info[i] = {shafts[i]->GetIdentifier(), shafts[i]->GetPos(), shafts[i]->GetPosDer(), shafts[i]->GetPosDer2(),
                    shafts[i]->GetAppliedTorque()};
     }
 
