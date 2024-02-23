@@ -155,15 +155,15 @@ class ChFrame {
     ChVector3<Real>& GetPos() { return Csys.pos; }
     const ChVector3<Real>& GetPos() const { return Csys.pos; }
 
-    /// Return the current rotation as a quaternion
+    /// Return the current rotation as a quaternion.
     ChQuaternion<Real>& GetRot() { return Csys.rot; }
     const ChQuaternion<Real>& GetRot() const { return Csys.rot; }
 
-    /// Return the current rotation as a 3x3 matrix
+    /// Return the current rotation as a 3x3 matrix.
     ChMatrix33<Real>& GetRotMat() { return Rmat; }
     const ChMatrix33<Real>& GetRotMat() const { return Rmat; }
 
-    /// Get axis of finite rotation, in parent space
+    /// Get axis of finite rotation, in parent space.
     ChVector3<Real> GetRotAxis() {
         ChVector3<Real> vtmp;
         Real angle;

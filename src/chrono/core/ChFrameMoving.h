@@ -120,14 +120,6 @@ class ChFrameMoving : public ChFrame<Real> {
         return *this;
     }
 
-    /// Performs pre-multiplication of this frame by another
-    /// frame, for example: A%=T means  A'=T*A ; or A'=A >> T
-    /// Note: DEPRECATED, use >>= instead.
-    ChFrameMoving<Real>& operator%=(const ChFrameMoving<Real>& T) {
-        ConcatenatePreTransformation(T);
-        return *this;
-    }
-
     /// Performs post-multiplication of this frame by another
     /// frame, for example: A*=T means  A'=A*T ; or A'=T >> A
     ChFrameMoving<Real>& operator*=(const ChFrameMoving<Real>& T) {
