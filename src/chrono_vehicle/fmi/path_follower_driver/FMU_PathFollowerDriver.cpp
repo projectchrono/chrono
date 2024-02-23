@@ -163,7 +163,7 @@ void FmuComponent::CreateDriver() {
 
     auto num_points = static_cast<unsigned int>(path->getNumPoints());
     auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
-    path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(path));
+    path_asset->SetLineGeometry(chrono_types::make_shared<ChLineBezier>(path));
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName("path");
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));

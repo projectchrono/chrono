@@ -114,11 +114,11 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double throttle;  ///< throttle command, in [0,1]
     double braking;   ///< braking command, in [0,1]
 
-    fmi2Boolean vis;                     ///< enable/disable run-time visualization
-    chrono::ChSystemSMC sys;             ///< containing system (visualization use only)
-    chrono::geometry::ChAABB path_aabb;  ///< path axis-aligned bounding box
-    int iballS;                          ///< ID for sentinel visualization shape
-    int iballT;                          ///< ID for target visualization shape
+    fmi2Boolean vis;           ///< enable/disable run-time visualization
+    chrono::ChSystemSMC sys;   ///< containing system (visualization use only)
+    chrono::ChAABB path_aabb;  ///< path axis-aligned bounding box
+    int iballS;                ///< ID for sentinel visualization shape
+    int iballT;                ///< ID for target visualization shape
 #ifdef CHRONO_IRRLICHT
     std::shared_ptr<chrono::irrlicht::ChVisualSystemIrrlicht> vis_sys;
 #endif
