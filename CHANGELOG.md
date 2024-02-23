@@ -179,6 +179,33 @@ Note that this represents a major public API change and we expect most user code
 | -                                 | SetLogDefault                 | remove                                           |
 | ChArchiveAsciiDump                |                               | rename: ChOutputASCII                            |
 | ChArchiveExplorer                 |                               | rename: ChObjectExplorer                         |
+| ChAssembly                        |                               |                                                  |
+|                                   | Get_bodylist                  | rename: GetBodies                                |
+|                                   | Get_linklist                  | rename: GetLinks                                 |
+|                                   | Get_meshlist                  | rename: GetMeshes                                |
+|                                   | Get_otherphysicslist          | rename: GetShafts                                |
+|                                   | Get_shaftslist                | rename: GetOtherPhysicsItems                     |
+|                                   | GetNbodies                    | rename: GetNumBodies                             |
+|                                   | GetNbodiesFixed               | rename: GetNumBodiesFixed                        |
+|                                   | GetNbodiesSleeping            | rename: GetNumBodiesSleeping                     |
+|                                   | GetNbodiesTotal               | rename: GetNumBodiesTotal                        |
+|                                   | GetNcontacts                  | rename: GetNumContacts                           |
+|                                   | GetNcoords                    | rename: GetNumCoordinatesPos                     |
+|                                   | GetNcoords_w                  | rename: GetNumCoordinatesVel                     |
+|                                   | GetNdoc                       | remove: no constraints at position level         |
+|                                   | GetNdoc_w                     | rename: GetNumConstraints                        |
+|                                   | GetNdoc_w_C                   | rename: GetNumConstraintsBilateral               |
+|                                   | GetNdoc_w_D                   | rename: GetNumConstraintsUnilateral              |
+|                                   | GetNdof                       | remove: it was a rough estimate                  |
+|                                   | GetNlinks                     | rename: GetNumLinks                              |
+|                                   | GetNmeshes                    | rename: GetNumMeshes                             |
+|                                   | GetNphysicsItems              | rename: GetNumOtherPhysicsItems                  |
+|                                   | GetNshafts                    | rename: GetNumShafts                             |
+|                                   | GetNshaftsFixed               | rename: GetNumShaftsFixed                        |
+|                                   | GetNshaftsSleeping            | rename: GetNumShaftsSleeping                     |
+|                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
+|                                   | GetNsysvars                   | remove                                           |
+|                                   | GetNsysvars_w                 | remove                                           |
 | ChBinaryArchive                   |                               | remove                                           |
 | ChException                       |                               | remove                                           |
 | ChFunction                        |                               |                                                  |
@@ -338,6 +365,12 @@ Note that this represents a major public API change and we expect most user code
 | ChFunctionRotation_SQUAD          |                               | rename: ChFunctionRotationSQUAD                  |
 |                                   | Rotations                     | rename: GetRotations                             |
 |                                   | Knots                         | rename: GetKnots                                 |
+| ChIntegrable                      |                               |                                                  |
+|                                   | GetNconstr                    | rename: GetNumConstraints                        |
+|                                   | GetNcoords_dy                 | remove: split in GetNumCoordinatesVel/Acc        |
+|                                   | GetNcoords_x                  | rename: GetNumCoordinatesPos                     |
+|                                   | GetNcoords_v                  | rename: GetNumCoordinatesVel                     |
+|                                   | GetNcoords_y                  | remove: split in GetNumCoordinatesPos/Vel        |
 | ChList                            |                               | remove                                           |
 | ChLog                             |                               | remove                                           |
 | ChLogConsole                      |                               | remove                                           |
@@ -351,6 +384,14 @@ Note that this represents a major public API change and we expect most user code
 | ChMaterialCompositeSMC            |                               | rename: ChContactMaterialCompositeSMC            |
 | ChMaterialCompositionStrategy     |                               | rename: ChContactMaterialCompositionStrategy     |
 | ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
+| ChModalAssembly                   |                               |                                                  |
+|                                   | refer to ChAssembly           | as ChAsembly with boundary/internal suffixes     |
+| ChPhysicsItem                     |                               |                                                  |
+|                                   | GetDOC                        | rename: GetNumConstraints                        |
+|                                   | GetDOC_c                      | rename: GetNumConstraintsBilateral               |
+|                                   | GetDOC_d                      | rename: GetNumConstraintsUnilateral              |
+|                                   | GetDOF                        | rename: GetNumCoordinatesPos                     |
+|                                   | GetDOF_w                      | rename: GetNumCoordinatesVel                     |
 | ChQuaternion                      |                               |                                                  |
 |                                   | free functions                | rename and move to ChRotation.h (see Notes)      |
 |                                   | GetXaxis                      | rename: GetAxisX                                 |
@@ -391,6 +432,40 @@ Note that this represents a major public API change and we expect most user code
 | ChStreamOutAsciiFile              |                               | remove                                           |
 | ChStreamOutBinary                 |                               | remove                                           |
 | ChStreamOutBinaryFile             |                               | remove                                           |
+| ChSystem                          |                               |                                                  |
+|                                   | Get_bodylist                  | rename: GetBodies                                |
+|                                   | Get_linklist                  | rename: GetLinks                                 |
+|                                   | Get_meshlist                  | rename: GetMeshes                                |
+|                                   | Get_otherphysicslist          | rename: GetShafts                                |
+|                                   | Get_shaftslist                | rename: GetOtherPhysicsItems                     |
+|                                   | GetDOC                        | remove                                           |
+|                                   | GetDOC_c                      | remove                                           |
+|                                   | GetDOC_d                      | remove                                           |
+|                                   | GetDOF                        | remove                                           |
+|                                   | GetDOF_w                      | remove                                           |
+|                                   | GetNbodies                    | rename: GetNumBodies                             |
+|                                   | GetNbodiesFixed               | rename: GetNumBodiesFixed                        |
+|                                   | GetNbodiesSleeping            | rename: GetNumBodiesSleeping                     |
+|                                   | GetNbodiesTotal               | rename: GetNumBodiesTotal                        |
+|                                   | GetNconstr                    | rename: GetNumConstraints                        |
+|                                   | GetNcontacts                  | rename: GetNumContacts                           |
+|                                   | GetNcoords                    | rename: GetNumCoordinatesPos                     |
+|                                   | GetNcoords_w                  | rename: GetNumCoordinatesVel                     |
+|                                   | GetNdoc                       | remove: no constraints at position level         |
+|                                   | GetNdoc_w                     | rename: GetNumConstraints                        |
+|                                   | GetNdoc_w_C                   | rename: GetNumConstraintsBilateral               |
+|                                   | GetNdoc_w_D                   | rename: GetNumConstraintsUnilateral              |
+|                                   | GetNdof                       | remove: it was a rough estimate                  |
+|                                   | GetNlinks                     | rename: GetNumLinks                              |
+|                                   | GetNmeshes                    | rename: GetNumMeshes                             |
+|                                   | GetNphysicsItems              | rename: GetNumOtherPhysicsItems                  |
+|                                   | GetNshafts                    | rename: GetNumShafts                             |
+|                                   | GetNshaftsFixed               | rename: GetNumShaftsFixed                        |
+|                                   | GetNshaftsSleeping            | rename: GetNumShaftsSleeping                     |
+|                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
+|                                   | GetNsysvars                   | remove                                           |
+|                                   | GetNsysvars_w                 | remove                                           |
+
 
 **Types**
 
