@@ -415,7 +415,7 @@ void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxy(unsigned int i, MeshState& me
     for (int in = 0; in < num_vertices; in++) {
         auto& node = proxy->ind2ptr_map[in];
         node->SetPos(mesh_state.vpos[in]);
-        node->SetPos_dt(mesh_state.vvel[in]);
+        node->SetPosDer(mesh_state.vvel[in]);
     }
 }
 
@@ -423,9 +423,9 @@ void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxy(unsigned int i, MeshState& me
 void ChVehicleCosimTerrainNodeSCM::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     proxy->bodies[0]->SetPos(rigid_state.pos);
-    proxy->bodies[0]->SetPos_dt(rigid_state.lin_vel);
+    proxy->bodies[0]->SetPosDer(rigid_state.lin_vel);
     proxy->bodies[0]->SetRot(rigid_state.rot);
-    proxy->bodies[0]->SetWvel_par(rigid_state.ang_vel);
+    proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
 }
 
 // Collect contact forces on the (face) proxy bodies that are in contact.

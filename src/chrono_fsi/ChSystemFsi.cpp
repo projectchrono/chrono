@@ -1831,8 +1831,8 @@ void ChSystemFsi::AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE,
     ChVector3d nAp = cable->GetNodeA()->GetPos();
     ChVector3d nBp = cable->GetNodeB()->GetPos();
 
-    ChVector3d nAv = cable->GetNodeA()->GetPos_dt();
-    ChVector3d nBv = cable->GetNodeB()->GetPos_dt();
+    ChVector3d nAv = cable->GetNodeA()->GetPosDer();
+    ChVector3d nBv = cable->GetNodeB()->GetPosDer();
 
     ChVector3d nAdir = cable->GetNodeA()->GetD();
     ChVector3d nBdir = cable->GetNodeB()->GetD();
@@ -1918,10 +1918,10 @@ void ChSystemFsi::AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE,
     ChVector3d nCdir = shell->GetNodeC()->GetD();
     ChVector3d nDdir = shell->GetNodeD()->GetD();
 
-    ChVector3d nAv = shell->GetNodeA()->GetPos_dt();
-    ChVector3d nBv = shell->GetNodeB()->GetPos_dt();
-    ChVector3d nCv = shell->GetNodeC()->GetPos_dt();
-    ChVector3d nDv = shell->GetNodeD()->GetPos_dt();
+    ChVector3d nAv = shell->GetNodeA()->GetPosDer();
+    ChVector3d nBv = shell->GetNodeB()->GetPosDer();
+    ChVector3d nCv = shell->GetNodeC()->GetPosDer();
+    ChVector3d nDv = shell->GetNodeD()->GetPosDer();
 
     if (m_verbose)
         printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());

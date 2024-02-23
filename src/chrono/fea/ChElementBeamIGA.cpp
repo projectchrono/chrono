@@ -305,13 +305,13 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
         for (int i = 0; i < nodes.size(); ++i) {
             int stride = i * 6;
             if (this->section->GetInertia()->compute_inertia_damping_matrix) {
-                this->section->GetInertia()->ComputeInertiaDampingMatrix(matr_loc, nodes[i]->GetWvel_loc());
+                this->section->GetInertia()->ComputeInertiaDampingMatrix(matr_loc, nodes[i]->GetAngVelLocal());
                 KRi_loc += matr_loc * node_multiplier_fact_R;
             }
             if (this->section->GetInertia()->compute_inertia_stiffness_matrix) {
                 this->section->GetInertia()->ComputeInertiaStiffnessMatrix(
-                    matr_loc, nodes[i]->GetWvel_loc(), nodes[i]->GetWacc_loc(),
-                    (nodes[i]->GetRotMat().transpose()) * nodes[i]->GetPos_dtdt());  // assume x_dtdt in local frame!
+                    matr_loc, nodes[i]->GetAngVelLocal(), nodes[i]->GetAngAccLocal(),
+                    (nodes[i]->GetRotMat().transpose()) * nodes[i]->GetPosDer2());  // assume x_dtdt in local frame!
                 KRi_loc += matr_loc * node_multiplier_fact_K;
             }
             // corotate the local damping and stiffness matrices (at once, already scaled) into absolute one

@@ -72,10 +72,10 @@ class ChVehicle_DataGeneratorFunctor(veh.ChExternalDriver_DataGeneratorFunctor):
 
         writer.Key("pos") << body.GetPos()
         writer.Key("rot") << body.GetRot()
-        writer.Key("lin_vel") << body.GetPos_dt()
-        writer.Key("ang_vel") << body.GetWvel_loc()
-        writer.Key("lin_acc") << body.GetPos_dtdt()
-        writer.Key("ang_acc") << body.GetWacc_loc()
+        writer.Key("lin_vel") << body.GetPosDer()
+        writer.Key("ang_vel") << body.GetAngVelLocal()
+        writer.Key("lin_acc") << body.GetPosDer2()
+        writer.Key("ang_acc") << body.GetAngAccLocal()
 
 
 class ChDriverInputs_DataParserFunctor(veh.ChExternalDriver_DataParserFunctor):

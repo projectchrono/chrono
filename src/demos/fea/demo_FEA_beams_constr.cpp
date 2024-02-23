@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
 
         // Save output for the first 0.4 seconds
         if (sys.GetChTime() <= 0.4) {
-            file_out1 << sys.GetChTime() << " " << node_mid->GetPos().z() << " " << node_mid->GetWvel_par().x() << std::endl;
+            file_out1 << sys.GetChTime() << " " << node_mid->GetPos().z() << " " << node_mid->GetAngVelParent().x() << std::endl;
         }
 
         vis->EndScene();

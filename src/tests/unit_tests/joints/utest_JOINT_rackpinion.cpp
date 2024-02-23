@@ -272,10 +272,10 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
 
     // Total energy at initial time.
     ChMatrix33<> inertiaPinion = pinion->GetInertia();
-    ChVector3d angVelLocPinion = pinion->GetWvel_loc();
+    ChVector3d angVelLocPinion = pinion->GetAngVelLocal();
     ChMatrix33<> inertiaRack = rack->GetInertia();
-    ChVector3d angVelLocRack = rack->GetWvel_loc();
-    double transKE = 0.5 * massPinion * pinion->GetPos_dt().Length2() + 0.5 * massRack * rack->GetPos_dt().Length2();
+    ChVector3d angVelLocRack = rack->GetAngVelLocal();
+    double transKE = 0.5 * massPinion * pinion->GetPosDer().Length2() + 0.5 * massRack * rack->GetPosDer().Length2();
     double rotKE = 0.5 * Vdot(angVelLocPinion, inertiaPinion * angVelLocPinion) +
                    0.5 * Vdot(angVelLocRack, inertiaRack * angVelLocRack);
     double deltaPE =
@@ -291,34 +291,34 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
             const ChVector3d& positionPinion = pinion->GetPos();
-            const ChVector3d& velocityPinion = pinion->GetPos_dt();
+            const ChVector3d& velocityPinion = pinion->GetPosDer();
             const ChVector3d& positionRack = rack->GetPos();
-            const ChVector3d& velocityRack = rack->GetPos_dt();
+            const ChVector3d& velocityRack = rack->GetPosDer();
             out_posPinion << simTime << positionPinion << std::endl;
             out_velPinion << simTime << velocityPinion << std::endl;
-            out_accPinion << simTime << pinion->GetPos_dtdt() << std::endl;
+            out_accPinion << simTime << pinion->GetPosDer2() << std::endl;
 
             out_posRack << simTime << positionRack << std::endl;
             out_velRack << simTime << velocityRack << std::endl;
-            out_accRack << simTime << rack->GetPos_dtdt() << std::endl;
+            out_accRack << simTime << rack->GetPosDer2() << std::endl;
 
             // Orientation, angular velocity, and angular acceleration (expressed in
             // global frame).
             out_quatPinion << simTime << pinion->GetRot() << std::endl;
-            out_avelPinion << simTime << pinion->GetWvel_par() << std::endl;
-            out_aaccPinion << simTime << pinion->GetWacc_par() << std::endl;
+            out_avelPinion << simTime << pinion->GetAngVelParent() << std::endl;
+            out_aaccPinion << simTime << pinion->GetAngAccParent() << std::endl;
 
             out_quatRack << simTime << rack->GetRot() << std::endl;
-            out_avelRack << simTime << rack->GetWvel_par() << std::endl;
-            out_aaccRack << simTime << rack->GetWacc_par() << std::endl;
+            out_avelRack << simTime << rack->GetAngVelParent() << std::endl;
+            out_aaccRack << simTime << rack->GetAngAccParent() << std::endl;
 
             // Conservation of Energy
             // Translational Kinetic Energy (1/2*m*||v||^2)
             // Rotational Kinetic Energy (1/2 w'*I*w)
             // Delta Potential Energy (m*g*dz)
-            angVelLocPinion = pinion->GetWvel_loc();
-            angVelLocRack = rack->GetWvel_loc();
-            transKE = 0.5 * massPinion * pinion->GetPos_dt().Length2() + 0.5 * massRack * rack->GetPos_dt().Length2();
+            angVelLocPinion = pinion->GetAngVelLocal();
+            angVelLocRack = rack->GetAngVelLocal();
+            transKE = 0.5 * massPinion * pinion->GetPosDer().Length2() + 0.5 * massRack * rack->GetPosDer().Length2();
             rotKE = 0.5 * Vdot(angVelLocPinion, inertiaPinion * angVelLocPinion) +
                     0.5 * Vdot(angVelLocRack, inertiaRack * angVelLocRack);
             deltaPE = massPinion * g * (pinion->GetPos().z() - jointLoc.z()) +

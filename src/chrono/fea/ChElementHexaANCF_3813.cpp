@@ -1792,14 +1792,14 @@ void ChElementHexaANCF_3813::LoadableGetStateBlock_x(int block_offset, ChState& 
 }
 
 void ChElementHexaANCF_3813::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPos_dt().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPos_dt().eigen();
-    mD.segment(block_offset + 9, 3) = m_nodes[3]->GetPos_dt().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[4]->GetPos_dt().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[5]->GetPos_dt().eigen();
-    mD.segment(block_offset + 18, 3) = m_nodes[6]->GetPos_dt().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[7]->GetPos_dt().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPosDer().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPosDer().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[3]->GetPosDer().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[4]->GetPosDer().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[5]->GetPosDer().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[6]->GetPosDer().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[7]->GetPosDer().eigen();
 }
 
 void ChElementHexaANCF_3813::LoadableStateIncrement(const unsigned int off_x,

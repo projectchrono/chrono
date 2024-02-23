@@ -93,8 +93,8 @@ void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel,
 void ChVehicleCosimTireNodeRigid::ApplySpindleState(const BodyState& spindle_state) {
     m_spindle->SetPos(spindle_state.pos);
     m_spindle->SetRot(spindle_state.rot);
-    m_spindle->SetPos_dt(spindle_state.lin_vel);
-    m_spindle->SetWvel_par(spindle_state.ang_vel);
+    m_spindle->SetPosDer(spindle_state.lin_vel);
+    m_spindle->SetAngVelParent(spindle_state.ang_vel);
 }
 
 void ChVehicleCosimTireNodeRigid::ApplySpindleForce(const TerrainForce& spindle_force) {

@@ -102,7 +102,7 @@ class RollingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
 TEST_P(RollingGravityTest, rolling) {
     // Give the sphere a push in the horizontal direction
     ChVector3d init_v(1, 0, 0);
-    body->SetPos_dt(init_v);
+    body->SetPosDer(init_v);
 
     double t_start = sys->GetChTime();
     double t_end = t_start + 1;
@@ -116,7 +116,7 @@ TEST_P(RollingGravityTest, rolling) {
     }
 
     // Check results. The sphere's rotational velocity should be < 1e-3.
-    double wvel = body->GetWvel_par().Length();
+    double wvel = body->GetAngVelParent().Length();
     std::cout << ForceModel_name(GetParam()) << "  " << wvel << "\n";
     ASSERT_LT(wvel, 1e-3);
 }

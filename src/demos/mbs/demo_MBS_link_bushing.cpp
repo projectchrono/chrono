@@ -70,8 +70,8 @@ int main(int argc, char* argv[]) {
     sys.Add(body);
     body->SetBodyFixed(false);
     body->SetPos(ChVector3d(1.0, 0.0, 0.0));
-    body->SetWvel_loc(ChVector3d(1.5, 1.5, -1.5));
-    body->SetPos_dt(ChVector3d(1.0, -0.4, 0.2));
+    body->SetAngVelLocal(ChVector3d(1.5, 1.5, -1.5));
+    body->SetPosDer(ChVector3d(1.0, -0.4, 0.2));
     body->GetVisualShape(0)->SetColor(ChColor(0.6f, 0, 0));
 
     auto symbol_bushing = chrono_types::make_shared<ChVisualShapeSphere>(0.1);

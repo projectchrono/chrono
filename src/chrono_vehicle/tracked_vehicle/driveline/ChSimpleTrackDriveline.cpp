@@ -88,15 +88,15 @@ void ChSimpleTrackDriveline::Synchronize(double time, const DriverInputs& driver
         return;
 
     // Set driveshaft speed (output to transmission)
-    m_driveshaft_speed = 0.5 * (m_shaft_left->GetPos_dt() + m_shaft_right->GetPos_dt());
+    m_driveshaft_speed = 0.5 * (m_shaft_left->GetPosDer() + m_shaft_right->GetPosDer());
 
     // Split the axle torques for the corresponding left/right sprockets and apply
     // them to the sprocket axle shafts.
     double torque_left;
     double torque_right;
 
-    differentialSplit(driveshaft_torque, GetDifferentialMaxBias(), m_shaft_left->GetPos_dt(),
-                      m_shaft_right->GetPos_dt(), torque_left, torque_right);
+    differentialSplit(driveshaft_torque, GetDifferentialMaxBias(), m_shaft_left->GetPosDer(),
+                      m_shaft_right->GetPosDer(), torque_left, torque_right);
 
     // Include steering.
     double steering = driver_inputs.m_steering;
@@ -132,9 +132,9 @@ double ChSimpleTrackDriveline::GetSprocketTorque(VehicleSide side) const {
 double ChSimpleTrackDriveline::GetSprocketSpeed(VehicleSide side) const {
     switch (side) {
         case LEFT:
-            return -m_shaft_left->GetPos_dt();
+            return -m_shaft_left->GetPosDer();
         case RIGHT:
-            return -m_shaft_right->GetPos_dt();
+            return -m_shaft_right->GetPosDer();
     }
 
     return 0;

@@ -243,11 +243,11 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
 
     for (int i = 1; i <= num_elements; i++) {
         auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i - 1), 0, 0), dir1, dir2);
-        nodeC->SetPos_dt(ChVector3d(0, omega_z * (dx * (2 * i - 1)), 0));
+        nodeC->SetPosDer(ChVector3d(0, omega_z * (dx * (2 * i - 1)), 0));
         mesh->AddNode(nodeC);
 
         auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i), 0, 0), dir1, dir2);
-        nodeB->SetPos_dt(ChVector3d(0, omega_z * (dx * (2 * i)), 0));
+        nodeB->SetPosDer(ChVector3d(0, omega_z * (dx * (2 * i)), 0));
         mesh->AddNode(nodeB);
 
         auto element = chrono_types::make_shared<ChElementBeamANCF_3333>();

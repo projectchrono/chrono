@@ -182,7 +182,7 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
 
             // Node velocity
             ChVector3d vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
-            node->SetPos_dt(vel);
+            node->SetPosDer(vel);
             node->SetMass(0);
             m_mesh->AddNode(node);
         }

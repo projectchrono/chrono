@@ -344,7 +344,7 @@ class CH_MODELS_API RS_Limb {
     const chrono::ChVector3d& GetWheelPos() const { return m_wheel->GetPos(); }
 
     /// Get angular velocity of the wheel body (expressed in local coordinates).
-    chrono::ChVector3d GetWheelAngVelocity() const { return m_wheel->GetBody()->GetWvel_loc(); }
+    chrono::ChVector3d GetWheelAngVelocity() const { return m_wheel->GetBody()->GetAngVelLocal(); }
 
     /// Get wheel angle.
     double GetWheelAngle() const { return m_wheel_motor->GetMotorRot(); }

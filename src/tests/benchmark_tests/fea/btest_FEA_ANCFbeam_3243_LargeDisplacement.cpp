@@ -244,7 +244,7 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
 
     for (int i = 1; i <= num_elements; i++) {
         auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, 0, 0), dir1, dir2, dir3);
-        nodeB->SetPos_dt(ChVector3d(0, omega_z * (dx * (2 * i)), 0));
+        nodeB->SetPosDer(ChVector3d(0, omega_z * (dx * (2 * i)), 0));
         mesh->AddNode(nodeB);
 
         auto element = chrono_types::make_shared<ChElementBeamANCF_3243>();

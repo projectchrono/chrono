@@ -78,7 +78,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
 
     /// Get the angular speed of the axle.
-    double GetAxleSpeed() const { return m_axle->GetPos_dt(); }
+    double GetAxleSpeed() const { return m_axle->GetPosDer(); }
 
     /// Turn on/off collision flag for the gear wheel.
     void SetCollide(bool val) { m_gear->SetCollide(val); }

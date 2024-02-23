@@ -630,26 +630,26 @@ void ChElementHexaCorot_20::LoadableGetStateBlock_x(int block_offset, ChState& m
 }
 
 void ChElementHexaCorot_20::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = nodes[0]->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = nodes[1]->GetPos_dt().eigen();
-    mD.segment(block_offset + 6, 3) = nodes[2]->GetPos_dt().eigen();
-    mD.segment(block_offset + 9, 3) = nodes[3]->GetPos_dt().eigen();
-    mD.segment(block_offset + 12, 3) = nodes[4]->GetPos_dt().eigen();
-    mD.segment(block_offset + 15, 3) = nodes[5]->GetPos_dt().eigen();
-    mD.segment(block_offset + 18, 3) = nodes[6]->GetPos_dt().eigen();
-    mD.segment(block_offset + 21, 3) = nodes[7]->GetPos_dt().eigen();
-    mD.segment(block_offset + 24, 3) = nodes[8]->GetPos_dt().eigen();
-    mD.segment(block_offset + 27, 3) = nodes[9]->GetPos_dt().eigen();
-    mD.segment(block_offset + 30, 3) = nodes[10]->GetPos_dt().eigen();
-    mD.segment(block_offset + 33, 3) = nodes[11]->GetPos_dt().eigen();
-    mD.segment(block_offset + 36, 3) = nodes[12]->GetPos_dt().eigen();
-    mD.segment(block_offset + 39, 3) = nodes[13]->GetPos_dt().eigen();
-    mD.segment(block_offset + 42, 3) = nodes[14]->GetPos_dt().eigen();
-    mD.segment(block_offset + 45, 3) = nodes[15]->GetPos_dt().eigen();
-    mD.segment(block_offset + 48, 3) = nodes[16]->GetPos_dt().eigen();
-    mD.segment(block_offset + 51, 3) = nodes[17]->GetPos_dt().eigen();
-    mD.segment(block_offset + 54, 3) = nodes[18]->GetPos_dt().eigen();
-    mD.segment(block_offset + 57, 3) = nodes[19]->GetPos_dt().eigen();
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPosDer().eigen();
+    mD.segment(block_offset + 3, 3) = nodes[1]->GetPosDer().eigen();
+    mD.segment(block_offset + 6, 3) = nodes[2]->GetPosDer().eigen();
+    mD.segment(block_offset + 9, 3) = nodes[3]->GetPosDer().eigen();
+    mD.segment(block_offset + 12, 3) = nodes[4]->GetPosDer().eigen();
+    mD.segment(block_offset + 15, 3) = nodes[5]->GetPosDer().eigen();
+    mD.segment(block_offset + 18, 3) = nodes[6]->GetPosDer().eigen();
+    mD.segment(block_offset + 21, 3) = nodes[7]->GetPosDer().eigen();
+    mD.segment(block_offset + 24, 3) = nodes[8]->GetPosDer().eigen();
+    mD.segment(block_offset + 27, 3) = nodes[9]->GetPosDer().eigen();
+    mD.segment(block_offset + 30, 3) = nodes[10]->GetPosDer().eigen();
+    mD.segment(block_offset + 33, 3) = nodes[11]->GetPosDer().eigen();
+    mD.segment(block_offset + 36, 3) = nodes[12]->GetPosDer().eigen();
+    mD.segment(block_offset + 39, 3) = nodes[13]->GetPosDer().eigen();
+    mD.segment(block_offset + 42, 3) = nodes[14]->GetPosDer().eigen();
+    mD.segment(block_offset + 45, 3) = nodes[15]->GetPosDer().eigen();
+    mD.segment(block_offset + 48, 3) = nodes[16]->GetPosDer().eigen();
+    mD.segment(block_offset + 51, 3) = nodes[17]->GetPosDer().eigen();
+    mD.segment(block_offset + 54, 3) = nodes[18]->GetPosDer().eigen();
+    mD.segment(block_offset + 57, 3) = nodes[19]->GetPosDer().eigen();
 }
 
 void ChElementHexaCorot_20::LoadableStateIncrement(const unsigned int off_x,

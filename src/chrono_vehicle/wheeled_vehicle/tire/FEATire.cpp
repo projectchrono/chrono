@@ -101,7 +101,7 @@ void FEATire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
         ChVector3d loc = wheel_frame.TransformPointParentToLocal(node->GetPos());
         // Node velocity (expressed in absolute frame)
         ChVector3d vel = wheel_frame.PointSpeedLocalToParent(loc);
-        node->SetPos_dt(vel);
+        node->SetPosDer(vel);
     }
 }
 

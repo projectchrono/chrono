@@ -521,12 +521,12 @@ void ChElementBeamANCF_3243::LoadableGetStateBlock_x(int block_offset, ChState& 
 // Gets all the DOFs packed in a single vector (velocity part).
 
 void ChElementBeamANCF_3243::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD_dt().eigen();
     mD.segment(block_offset + 9, 3) = m_nodes[0]->GetDDD_dt().eigen();
 
-    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetPosDer().eigen();
     mD.segment(block_offset + 15, 3) = m_nodes[1]->GetD_dt().eigen();
     mD.segment(block_offset + 18, 3) = m_nodes[1]->GetDD_dt().eigen();
     mD.segment(block_offset + 21, 3) = m_nodes[1]->GetDDD_dt().eigen();
@@ -3039,24 +3039,24 @@ void ChElementBeamANCF_3243::CalcCoordMatrix(Matrix3xN& ebar) {
 }
 
 void ChElementBeamANCF_3243::CalcCoordDerivVector(Vector3N& edot) {
-    edot.segment(0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    edot.segment(0, 3) = m_nodes[0]->GetPosDer().eigen();
     edot.segment(3, 3) = m_nodes[0]->GetD_dt().eigen();
     edot.segment(6, 3) = m_nodes[0]->GetDD_dt().eigen();
     edot.segment(9, 3) = m_nodes[0]->GetDDD_dt().eigen();
 
-    edot.segment(12, 3) = m_nodes[1]->GetPos_dt().eigen();
+    edot.segment(12, 3) = m_nodes[1]->GetPosDer().eigen();
     edot.segment(15, 3) = m_nodes[1]->GetD_dt().eigen();
     edot.segment(18, 3) = m_nodes[1]->GetDD_dt().eigen();
     edot.segment(21, 3) = m_nodes[1]->GetDDD_dt().eigen();
 }
 
 void ChElementBeamANCF_3243::CalcCoordDerivMatrix(Matrix3xN& ebardot) {
-    ebardot.col(0) = m_nodes[0]->GetPos_dt().eigen();
+    ebardot.col(0) = m_nodes[0]->GetPosDer().eigen();
     ebardot.col(1) = m_nodes[0]->GetD_dt().eigen();
     ebardot.col(2) = m_nodes[0]->GetDD_dt().eigen();
     ebardot.col(3) = m_nodes[0]->GetDDD_dt().eigen();
 
-    ebardot.col(4) = m_nodes[1]->GetPos_dt().eigen();
+    ebardot.col(4) = m_nodes[1]->GetPosDer().eigen();
     ebardot.col(5) = m_nodes[1]->GetD_dt().eigen();
     ebardot.col(6) = m_nodes[1]->GetDD_dt().eigen();
     ebardot.col(7) = m_nodes[1]->GetDDD_dt().eigen();
@@ -3064,7 +3064,7 @@ void ChElementBeamANCF_3243::CalcCoordDerivMatrix(Matrix3xN& ebardot) {
 
 void ChElementBeamANCF_3243::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
     ebar_ebardot.template block<1, 3>(0, 0) = m_nodes[0]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    ebar_ebardot.template block<1, 3>(0, 3) = m_nodes[0]->GetPosDer().eigen();
     ebar_ebardot.template block<1, 3>(1, 0) = m_nodes[0]->GetD().eigen();
     ebar_ebardot.template block<1, 3>(1, 3) = m_nodes[0]->GetD_dt().eigen();
     ebar_ebardot.template block<1, 3>(2, 0) = m_nodes[0]->GetDD().eigen();
@@ -3073,7 +3073,7 @@ void ChElementBeamANCF_3243::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
     ebar_ebardot.template block<1, 3>(3, 3) = m_nodes[0]->GetDDD_dt().eigen();
 
     ebar_ebardot.template block<1, 3>(4, 0) = m_nodes[1]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(4, 3) = m_nodes[1]->GetPos_dt().eigen();
+    ebar_ebardot.template block<1, 3>(4, 3) = m_nodes[1]->GetPosDer().eigen();
     ebar_ebardot.template block<1, 3>(5, 0) = m_nodes[1]->GetD().eigen();
     ebar_ebardot.template block<1, 3>(5, 3) = m_nodes[1]->GetD_dt().eigen();
     ebar_ebardot.template block<1, 3>(6, 0) = m_nodes[1]->GetDD().eigen();

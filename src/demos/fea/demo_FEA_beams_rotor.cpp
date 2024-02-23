@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
         for (auto el : builder.GetLastBeamElements())
             el->SetUseGeometricStiffness(true);  // default true, if false convergence is bad
 
-        sys.SetNumThreads(1);  //**to do: fix race conditions in num diff
+        sys.SetNumThreads(1);  //// TODO: fix race conditions in num diff
         // for (auto el : builder.GetLastBeamElements())
         //    el->use_numerical_diff_for_KR = true;
 
@@ -248,7 +248,7 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector3d(1.0, 0.3, 10.0), ChVector3d(0.0, 0.0, 0.0));
     vis->EnableShadows();
 
-    // ***TEST***
+    // --TEST--
 
     /// Given the position of a point in local frame coords, and
     /// assuming it is sticky to frame, return the acceleration in parent coords.
@@ -256,21 +256,20 @@ int main(int argc, char* argv[]) {
     /// local_pos is the local position of point P expressed in the par_frame,
     /// par_acc is the translational acceleration of point P but expressed in inertia coordiante.
     auto PointAccelerationLocalToParent = [&](const chrono::ChFrameMoving<double>& par_frame,
-                                              const chrono::ChVector3d& local_pos,
-                                              chrono::ChVector3d& par_acc) {
+                                              const chrono::ChVector3d& local_pos, chrono::ChVector3d& par_acc) {
         chrono::ChVector3d par_pos = par_frame.TransformDirectionLocalToParent(local_pos);
-        chrono::ChVector3d alpha = par_frame.GetWacc_par();
-        chrono::ChVector3d omega = par_frame.GetWvel_par();
-        par_acc = par_frame.GetPos_dtdt() + chrono::Vcross(par_frame.GetWacc_par(), par_pos) +
+        chrono::ChVector3d alpha = par_frame.GetAngAccParent();
+        chrono::ChVector3d omega = par_frame.GetAngVelParent();
+        par_acc = par_frame.GetPosDer2() + chrono::Vcross(par_frame.GetAngAccParent(), par_pos) +
                   chrono::Vcross(omega, chrono::Vcross(omega, par_pos));
     };
 
     // define a rotatiing frame, with rotational angular velocity 2.3rad/s about X axis
     chrono::ChFrameMoving<double> rot_frame;
     chrono::ChVector3d omega = chrono::ChVector3d(2.3, 0, 0);
-    rot_frame.SetWvel_loc(omega);
-    rot_frame.SetWacc_loc(VNULL);
-    std::cout << "Frame w_loc =" << rot_frame.GetWvel_loc() << "   w_abs =" << rot_frame.GetWvel_par() << std::endl;
+    rot_frame.SetAngVelLocal(omega);
+    rot_frame.SetAngAccLocal(VNULL);
+    std::cout << "Frame w_loc =" << rot_frame.GetAngVelLocal() << "   w_abs =" << rot_frame.GetAngVelParent() << std::endl;
 
     // solve the velocites and accelerations of point P due to the rotation of rot_frame
     auto TestCase = [&](const chrono::ChFrameMoving<double> m_rot_frame, const chrono::ChVector3d& m_dpos_rel) {
@@ -283,9 +282,9 @@ int main(int argc, char* argv[]) {
         PointAccelerationLocalToParent(m_rot_frame, m_dpos_rel, acc_par_ref);
 
         std::cout << "rot_frame.GetCsys():\t" << m_rot_frame.GetCsys() << std::endl;
-        std::cout << "rot_frame.GetCsysDer():\t" << m_rot_frame.GetPos_dt() << "\t" << m_rot_frame.GetWvel_loc()
+        std::cout << "rot_frame.GetCsysDer():\t" << m_rot_frame.GetPosDer() << "\t" << m_rot_frame.GetAngVelLocal()
                   << std::endl;
-        std::cout << "rot_frame.GetCsysDer2():\t" << m_rot_frame.GetPos_dtdt() << "\t" << m_rot_frame.GetWacc_loc()
+        std::cout << "rot_frame.GetCsysDer2():\t" << m_rot_frame.GetPosDer2() << "\t" << m_rot_frame.GetAngAccLocal()
                   << std::endl;
         std::cout << "vel_par:\t" << vel_par << std::endl;
         std::cout << "acc_par from chrono method:\t" << acc_par << std::endl;
@@ -295,7 +294,7 @@ int main(int argc, char* argv[]) {
     };
 
     chrono::ChVector3d dpos_rel1 = chrono::ChVector3d(-7, 0, 0);
-    std::cout << "***Test case 1: a rotating point P along X axis, so its velocity and acceleration should be zero."
+    std::cout << "Test case 1: a rotating point P along X axis, so its velocity and acceleration should be zero."
               << std::endl
               << "But the acceleration from chrono method is NOT zero!" << std::endl;
     TestCase(rot_frame, dpos_rel1);
@@ -341,10 +340,10 @@ int main(int argc, char* argv[]) {
                               ChStaticNonLinearRheonomicAnalysis* analysis) override {
             for (auto in : blade_nodes) {
                 // Set node speed and angular velocity, as moved by hub motor:
-                in->SetPos_dt(ChVector3d(-in->GetPos().y() * blade_rad_s, 0, 0));
-                in->SetWvel_par(ChVector3d(0, 0, blade_rad_s));
+                in->SetPosDer(ChVector3d(-in->GetPos().y() * blade_rad_s, 0, 0));
+                in->SetAngVelParent(ChVector3d(0, 0, blade_rad_s));
                 // Set also centripetal acceleration:
-                in->SetPos_dtdt(ChVector3d(0, -in->GetPos().y() * blade_rad_s * blade_rad_s, 0));
+                in->SetPosDer2(ChVector3d(0, -in->GetPos().y() * blade_rad_s * blade_rad_s, 0));
             }
         }
         // some data used by the callback to make things simple
@@ -385,7 +384,7 @@ int main(int argc, char* argv[]) {
 
         ChVectorDynamic<> ploty_analytic(nodes.size());
         for (int i = 0; i < nodes.size(); ++i) {
-            ploty(i) = nodes[i]->GetPos_dt().x();
+            ploty(i) = nodes[i]->GetPosDer().x();
             ploty_analytic(i) = -nodes[i]->GetPos().y() * rad_s;
         }
         ChGnuPlot mplot_edge_speed((out_dir + "/flapwise_speed.dat").c_str());
@@ -395,7 +394,7 @@ int main(int argc, char* argv[]) {
                               " with lines lt -1 lc rgb'#AA00EE'");
 
         for (int i = 0; i < nodes.size(); ++i) {
-            ploty(i) = nodes[i]->GetPos_dtdt().y();
+            ploty(i) = nodes[i]->GetPosDer2().y();
             ploty_analytic(i) = -nodes[i]->GetPos().y() * rad_s * rad_s;
         }
         ChGnuPlot mplot_centeripetal_accel((out_dir + "/centripetal_acc.dat").c_str());
@@ -408,8 +407,8 @@ int main(int argc, char* argv[]) {
     /*
     // TRICK: force nodes to needed speed
     for (auto in : nodes) {
-        in->SetPos_dt(ChVector3d(-in->GetPos().y() * rad_s, 0, 0));
-        in->SetWvel_par(ChVector3d(0, 0,  rad_s));
+        in->SetPosDer(ChVector3d(-in->GetPos().y() * rad_s, 0, 0));
+        in->SetAngVelParent(ChVector3d(0, 0,  rad_s));
     }
     */
     // sys.EnableSolverMatrixWrite(false);

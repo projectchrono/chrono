@@ -150,7 +150,7 @@ void ChLinkRSDA::CalcAngle() {
 
     // Get angle rate of change
     m_axis = rot1.GetAxisZ();
-    m_angle_dt = Vdot(m_axis, Body2->GetWvel_par() - Body1->GetWvel_par());
+    m_angle_dt = Vdot(m_axis, Body2->GetAngVelParent() - Body1->GetAngVelParent());
 }
 
 void ChLinkRSDA::AdjustAngle() {

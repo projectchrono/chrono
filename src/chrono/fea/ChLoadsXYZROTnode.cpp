@@ -42,8 +42,8 @@ void ChLoadXYZROTnode::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     if (state_w) {
         // the numerical jacobian algo might change state_w
-        bodycoordA.SetPos_dt(state_w->segment(0, 3));
-        bodycoordA.SetWvel_loc(state_w->segment(3, 3));
+        bodycoordA.SetPosDer(state_w->segment(0, 3));
+        bodycoordA.SetAngVelLocal(state_w->segment(3, 3));
     } else {
         bodycoordA.SetCsysDer(mnode->GetCsysDer());
     }
@@ -120,10 +120,10 @@ void ChLoadXYZROTnodeXYZROTnode::ComputeQ(ChState* state_x, ChStateDelta* state_
 
     if (state_w) {
         // the numerical jacobian algo might change state_w
-        bodycoordA.SetPos_dt(state_w->segment(0, 3));
-        bodycoordA.SetWvel_loc(state_w->segment(3, 3));
-        bodycoordB.SetPos_dt(state_w->segment(6, 3));
-        bodycoordB.SetWvel_loc(state_w->segment(9, 3));
+        bodycoordA.SetPosDer(state_w->segment(0, 3));
+        bodycoordA.SetAngVelLocal(state_w->segment(3, 3));
+        bodycoordB.SetPosDer(state_w->segment(6, 3));
+        bodycoordB.SetAngVelLocal(state_w->segment(9, 3));
     } else {
         bodycoordA.SetCsysDer(mbodyA->GetCsysDer());
         bodycoordB.SetCsysDer(mbodyB->GetCsysDer());
@@ -179,7 +179,7 @@ void ChLoadXYZROTnodeXYZROTnodeBushingSpherical::ComputeForceTorque(const ChFram
                                                                     ChVector3d& loc_force,
                                                                     ChVector3d& loc_torque) {
     loc_force = rel_AB.GetPos() * stiffness      // element-wise product!
-                + rel_AB.GetPos_dt() * damping;  // element-wise product!
+                + rel_AB.GetPosDer() * damping;  // element-wise product!
     loc_torque = VNULL;
 }
 
@@ -202,7 +202,7 @@ void ChLoadXYZROTnodeXYZROTnodeBushingPlastic::ComputeForceTorque(const ChFrameM
                                                                   ChVector3d& loc_force,
                                                                   ChVector3d& loc_torque) {
     loc_force = (rel_AB.GetPos() - plastic_def) * stiffness  // element-wise product!
-                + rel_AB.GetPos_dt() * damping;              // element-wise product!
+                + rel_AB.GetPosDer() * damping;              // element-wise product!
 
     // A basic plasticity, assumed with box capping, without hardening:
 
@@ -271,7 +271,7 @@ void ChLoadXYZROTnodeXYZROTnodeBushingMate::ComputeForceTorque(const ChFrameMovi
     ChVector3d vect_rot = dir_rot * angle_rot;
 
     loc_torque = vect_rot * rot_stiffness               // element-wise product!
-                 + rel_AB.GetWvel_par() * rot_damping;  // element-wise product!
+                 + rel_AB.GetAngVelParent() * rot_damping;  // element-wise product!
 }
 
 // -----------------------------------------------------------------------------
@@ -306,8 +306,8 @@ void ChLoadXYZROTnodeXYZROTnodeBushingGeneric::ComputeForceTorque(const ChFrameM
 
     mS.segment(0, 3) = rel_pos.eigen();
     mS.segment(3, 3) = vect_rot.eigen();
-    mSdt.segment(0, 3) = rel_AB.GetPos_dt().eigen();
-    mSdt.segment(3, 3) = rel_AB.GetWvel_par().eigen();
+    mSdt.segment(0, 3) = rel_AB.GetPosDer().eigen();
+    mSdt.segment(3, 3) = rel_AB.GetAngVelParent().eigen();
 
     mF = stiffness * mS + damping * mSdt;
 
@@ -343,10 +343,10 @@ void ChLoadXYZROTnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     if (state_w) {
         // the numerical jacobian algo might change state_w
-        bodycoordA.SetPos_dt(state_w->segment(0, 3));
-        bodycoordA.SetWvel_loc(state_w->segment(3, 3));
-        bodycoordB.SetPos_dt(state_w->segment(6, 3));
-        bodycoordB.SetWvel_loc(state_w->segment(9, 3));
+        bodycoordA.SetPosDer(state_w->segment(0, 3));
+        bodycoordA.SetAngVelLocal(state_w->segment(3, 3));
+        bodycoordB.SetPosDer(state_w->segment(6, 3));
+        bodycoordB.SetAngVelLocal(state_w->segment(9, 3));
     } else {
         bodycoordA.SetCsysDer(mbodyA->GetCsysDer());
         bodycoordB.SetCsysDer(mbodyB->GetCsysDer());
@@ -399,7 +399,7 @@ void ChLoadXYZROTnodeBodyBushingSpherical::ComputeForceTorque(const ChFrameMovin
                                                               ChVector3d& loc_force,
                                                               ChVector3d& loc_torque) {
     loc_force = rel_AB.GetPos() * stiffness      // element-wise product!
-                + rel_AB.GetPos_dt() * damping;  // element-wise product!
+                + rel_AB.GetPosDer() * damping;  // element-wise product!
     loc_torque = VNULL;
 }
 
@@ -421,7 +421,7 @@ void ChLoadXYZROTnodeBodyBushingPlastic::ComputeForceTorque(const ChFrameMoving<
                                                             ChVector3d& loc_force,
                                                             ChVector3d& loc_torque) {
     loc_force = (rel_AB.GetPos() - plastic_def) * stiffness  // element-wise product!
-                + rel_AB.GetPos_dt() * damping;              // element-wise product!
+                + rel_AB.GetPosDer() * damping;              // element-wise product!
 
     // A basic plasticity, assumed with box capping, without hardening:
 
@@ -489,7 +489,7 @@ void ChLoadXYZROTnodeBodyBushingMate::ComputeForceTorque(const ChFrameMoving<>& 
     ChVector3d vect_rot = dir_rot * angle_rot;
 
     loc_torque = vect_rot * rot_stiffness               // element-wise product!
-                 + rel_AB.GetWvel_par() * rot_damping;  // element-wise product!
+                 + rel_AB.GetAngVelParent() * rot_damping;  // element-wise product!
 }
 
 // -----------------------------------------------------------------------------
@@ -523,8 +523,8 @@ void ChLoadXYZROTnodeBodyBushingGeneric::ComputeForceTorque(const ChFrameMoving<
 
     mS.segment(0, 3) = rel_pos.eigen();
     mS.segment(3, 3) = vect_rot.eigen();
-    mSdt.segment(0, 3) = rel_AB.GetPos_dt().eigen();
-    mSdt.segment(3, 3) = rel_AB.GetWvel_par().eigen();
+    mSdt.segment(0, 3) = rel_AB.GetPosDer().eigen();
+    mSdt.segment(3, 3) = rel_AB.GetAngVelParent().eigen();
 
     mF = stiffness * mS + damping * mSdt;
 

@@ -58,8 +58,8 @@ class WheeledVehicleDBPDriver : public ChDriver {
         double ang_speed = m_func->GetVal(time);
 
         for (auto& axle : m_wheeled_vehicle->GetAxles()) {
-            axle->m_suspension->GetAxle(VehicleSide::LEFT)->SetPos_dt(ang_speed);
-            axle->m_suspension->GetAxle(VehicleSide::RIGHT)->SetPos_dt(ang_speed);
+            axle->m_suspension->GetAxle(VehicleSide::LEFT)->SetPosDer(ang_speed);
+            axle->m_suspension->GetAxle(VehicleSide::RIGHT)->SetPosDer(ang_speed);
         }
     }
 
@@ -200,8 +200,8 @@ BodyState ChVehicleCosimWheeledVehicleNode::GetSpindleState(unsigned int i) cons
 
     state.pos = spindle_body->GetPos();
     state.rot = spindle_body->GetRot();
-    state.lin_vel = spindle_body->GetPos_dt();
-    state.ang_vel = spindle_body->GetWvel_par();
+    state.lin_vel = spindle_body->GetPosDer();
+    state.ang_vel = spindle_body->GetAngVelParent();
 
     return state;
 }
@@ -301,13 +301,13 @@ void ChVehicleCosimWheeledVehicleNode::WriteBodyInformation(utils::CSV_writer& c
 
     // Write body state information
     auto chassis = m_vehicle->GetChassisBody();
-    csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPos_dt() << chassis->GetRot_dt() << endl;
+    csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPosDer() << chassis->GetRotDer() << endl;
 
     for (auto& axle : m_vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
             auto spindle_body = wheel->GetSpindle();
-            csv << spindle_body->GetPos() << spindle_body->GetRot() << spindle_body->GetPos_dt()
-                << spindle_body->GetRot_dt() << endl;
+            csv << spindle_body->GetPos() << spindle_body->GetRot() << spindle_body->GetPosDer()
+                << spindle_body->GetRotDer() << endl;
         }
     }
 }

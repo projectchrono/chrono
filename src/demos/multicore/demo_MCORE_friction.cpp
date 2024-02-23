@@ -108,8 +108,8 @@ int main(int argc, char** argv) {
 
         // Initial position and velocity
         ball->SetPos(ChVector3d(-7, radius - 0.5, -5 + bi * radius * 2.5));
-        ball->SetPos_dt(ChVector3d(initial_linspeed, 0, 0));
-        ball->SetWvel_par(ChVector3d(0, 0, -initial_angspeed));
+        ball->SetPosDer(ChVector3d(initial_linspeed, 0, 0));
+        ball->SetAngVelParent(ChVector3d(0, 0, -initial_angspeed));
 
         // Contact geometry
         ball->SetCollide(true);
@@ -132,8 +132,8 @@ int main(int argc, char** argv) {
 
         // Initial position and velocity
         ball->SetPos(ChVector3d(-8, 1 + radius - 0.5, -5 + bi * radius * 2.5));
-        ball->SetPos_dt(ChVector3d(0, 0, 0));
-        ball->SetWvel_par(ChVector3d(0, 20, 0));
+        ball->SetPosDer(ChVector3d(0, 0, 0));
+        ball->SetAngVelParent(ChVector3d(0, 20, 0));
 
         // Contact geometry
         ball->SetCollide(true);

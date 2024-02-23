@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     // Create the rotating Genevawheel:
     auto mgenevawheel = chrono_types::make_shared<ChBody>();
     mgenevawheel->SetPos(geneva_center);
-    mgenevawheel->SetWvel_loc(ChVector3d(0, 0, -0.08));
+    mgenevawheel->SetAngVelLocal(ChVector3d(0, 0, -0.08));
     sys.Add(mgenevawheel);
 
     // Create a ChLinePath geometry that represents the 2D shape of the Geneva wheel.

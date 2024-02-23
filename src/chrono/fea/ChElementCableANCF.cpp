@@ -103,7 +103,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         // be race conditions when adjacent elements attempt to perturb a common node).
         ChVector3d pos[2] = {m_nodes[0]->GetPos(), m_nodes[1]->GetPos()};
         ChVector3d D[2] = {m_nodes[0]->GetD(), m_nodes[1]->GetD()};
-        ChVector3d pos_dt[2] = {m_nodes[0]->GetPos_dt(), m_nodes[1]->GetPos_dt()};
+        ChVector3d pos_dt[2] = {m_nodes[0]->GetPosDer(), m_nodes[1]->GetPosDer()};
         ChVector3d D_dt[2] = {m_nodes[0]->GetD_dt(), m_nodes[1]->GetD_dt()};
 
         // Add part of the Jacobian stemming from elastic forces
@@ -436,7 +436,7 @@ void ChElementCableANCF::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 // (e.g. the actual position of nodes is not in relaxed reference position).
 void ChElementCableANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ComputeInternalForces_Impl(m_nodes[0]->GetPos(), m_nodes[0]->GetD(), m_nodes[1]->GetPos(), m_nodes[1]->GetD(),
-                               m_nodes[0]->GetPos_dt(), m_nodes[0]->GetD_dt(), m_nodes[1]->GetPos_dt(),
+                               m_nodes[0]->GetPosDer(), m_nodes[0]->GetD_dt(), m_nodes[1]->GetPosDer(),
                                m_nodes[1]->GetD_dt(), Fi);
 }
 
@@ -766,9 +766,9 @@ void ChElementCableANCF::LoadableGetStateBlock_x(int block_offset, ChState& mD) 
 
 // Gets all the DOFs packed in a single vector (speed part)
 void ChElementCableANCF::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDer().eigen();
     mD.segment(block_offset + 9, 3) = m_nodes[1]->GetD_dt().eigen();
 }
 

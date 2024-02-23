@@ -74,11 +74,11 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
 
     /// Returns the translational velocity of the object the radar is attached to
     /// @return Returns the translational velocity of the object the radar is attached to
-    ChVector3d GetTranslationalVelocity() { return m_parent->GetPos_dt(); }
+    ChVector3d GetTranslationalVelocity() { return m_parent->GetPosDer(); }
 
     /// Returns the angular velocity of the object the radar is attached to
     /// @return Returns the angular velocity of the object the radar is attached to
-    ChVector3d GetAngularVelocity() { return m_parent->GetWvel_loc(); }
+    ChVector3d GetAngularVelocity() { return m_parent->GetAngVelLocal(); }
 
   private:
     float m_hFOV;            ///< the horizontal field of view of the radar

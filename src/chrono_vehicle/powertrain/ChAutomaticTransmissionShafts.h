@@ -66,7 +66,7 @@ class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChAutomaticTransmiss
     }
 
     /// Return the torque converter output shaft speed.
-    virtual double GetTorqueConverterOutputSpeed() const override { return m_shaft_ingear->GetPos_dt(); }
+    virtual double GetTorqueConverterOutputSpeed() const override { return m_shaft_ingear->GetPosDer(); }
 
     /// Use this to define the gear shift latency, in seconds.
     void SetGearShiftLatency(double ml) { m_gear_shift_latency = ml; }

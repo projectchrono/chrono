@@ -93,9 +93,9 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     void SetPos(const int& i, const real3& mpos);
 
     // Velocity of the node - in absolute csys.
-    real3 GetPos_dt(int i);
+    real3 GetPosDer(int i);
     // Velocity of the node - in absolute csys.
-    void SetPos_dt(const int& i, const real3& mposdt);
+    void SetPosDer(const int& i, const real3& mposdt);
 
     real kernel_radius;
     real collision_envelope;

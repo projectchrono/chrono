@@ -192,7 +192,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     const ChVector3d& GetParticlePos(unsigned int n) const { return particles[n]->GetPos(); }
 
     /// Get particle linear velocity.
-    const ChVector3d& GetParticleVel(unsigned int n) const { return particles[n]->GetPos_dt(); }
+    const ChVector3d& GetParticleVel(unsigned int n) const { return particles[n]->GetPosDer(); }
 
     /// Access the N-th particle.
     ChParticleBase& GetParticle(unsigned int n) override {

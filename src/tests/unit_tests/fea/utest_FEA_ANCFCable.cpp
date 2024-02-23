@@ -142,11 +142,11 @@ int main(int argc, char* argv[]) {
     sys.Add(my_mesh);
 
     // Set Angular velocity initial condition
-    hnodeancf1->SetPos_dt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 0.0));
-    hnodeancf2->SetPos_dt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 1.0));
-    hnodeancf3->SetPos_dt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 2.0));
-    hnodeancf4->SetPos_dt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 3.0));
-    hnodeancf5->SetPos_dt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 4.0));
+    hnodeancf1->SetPosDer(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 0.0));
+    hnodeancf2->SetPosDer(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 1.0));
+    hnodeancf3->SetPosDer(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 2.0));
+    hnodeancf4->SetPosDer(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 3.0));
+    hnodeancf5->SetPosDer(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 4.0));
 
     // Change solver settings
     auto solver = chrono_types::make_shared<ChSolverMINRES>();

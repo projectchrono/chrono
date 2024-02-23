@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
         sys.Add(mspring);
 
         // Set an initial angular velocity to the balance:
-        mbalance->SetWvel_par(ChVector3d(0, 5, 0));
+        mbalance->SetAngVelParent(ChVector3d(0, 5, 0));
 
         // Set no friction in all parts
         assert(mbalance->GetCollisionModel());

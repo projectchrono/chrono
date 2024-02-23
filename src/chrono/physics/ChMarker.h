@@ -152,11 +152,11 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
     /// Get the angular speed respect to absolute coordinates,
     /// expressed in  absolute coordinates.
-    ChVector3d GetAbsWvel() const { return abs_frame.GetWvel_par(); }
+    ChVector3d GetAbsWvel() const { return abs_frame.GetAngVelParent(); }
 
     /// Get the angular acceleration respect to absolute coordinates,
     /// expressed in  absolute coordinates.
-    ChVector3d GetAbsWacc() const { return abs_frame.GetWacc_par(); }
+    ChVector3d GetAbsWacc() const { return abs_frame.GetAngAccParent(); }
 
     //
     // Imposed motion

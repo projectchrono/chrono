@@ -291,7 +291,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
 
             // Node velocity
             ChVector3d vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
-            node->SetPos_dt(vel);
+            node->SetPosDer(vel);
             node->SetMass(0);
             m_mesh->AddNode(node);
         }
@@ -394,7 +394,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                     ChVector3d loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
                     ChVector3d vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
                     auto node1 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
-                    node1->SetPos_dt(vel);
+                    node1->SetPosDer(vel);
                     m_mesh->AddNode(node1);
                     // attach to underlying shells
                     AttachNodeToShell(m_mesh, node1);
@@ -411,7 +411,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                     loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
                     vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
                     auto node2 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
-                    node2->SetPos_dt(vel);
+                    node2->SetPosDer(vel);
                     m_mesh->AddNode(node2);
                     // attach to underlying shells
                     AttachNodeToShell(m_mesh, node2);
@@ -428,7 +428,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                     loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
                     vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
                     auto node3 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
-                    node3->SetPos_dt(vel);
+                    node3->SetPosDer(vel);
                     m_mesh->AddNode(node3);
 
                     t_prf = m_lugs_ua[il][is];
@@ -443,7 +443,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                     loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
                     vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
                     auto node4 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
-                    node4->SetPos_dt(vel);
+                    node4->SetPosDer(vel);
                     m_mesh->AddNode(node4);
 
                     // create the hexahedron element

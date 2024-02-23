@@ -88,8 +88,8 @@ int main(int argc, char* argv[]) {
     auto body = chrono_types::make_shared<ChBody>();
     sys.AddBody(body);
     body->SetPos(rev_pos + offset);
-    body->SetPos_dt(lin_vel);
-    body->SetWvel_par(ang_vel);
+    body->SetPosDer(lin_vel);
+    body->SetAngVelParent(ang_vel);
     body->SetIdentifier(1);
     body->SetBodyFixed(false);
     body->SetCollide(false);
@@ -149,9 +149,9 @@ int main(int argc, char* argv[]) {
         if (frame % 50 == 0) {
             std::cout << sys.GetChTime() << "\n";
             std::cout << "Body position" << body->GetPos() << "\n";
-            std::cout << "Body lin. vel." << body->GetPos_dt() << "\n";
-            std::cout << "Body absolute ang. vel." << body->GetWvel_par() << "\n";
-            std::cout << "Body local ang. vel." << body->GetWvel_loc() << "\n";
+            std::cout << "Body lin. vel." << body->GetPosDer() << "\n";
+            std::cout << "Body absolute ang. vel." << body->GetAngVelParent() << "\n";
+            std::cout << "Body local ang. vel." << body->GetAngVelLocal() << "\n";
             std::cout << "Rot. spring-damper  " << spring->GetAngle() << "  " << spring->GetVelocity() << "  "
                       << spring->GetTorque() << "\n";
             std::cout << "---------------\n\n";

@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
     ball->SetMass(10);
     ball->SetInertiaXX(4 * ball_radius * ball_radius * ChVector3d(1, 1, 1));
     ball->SetPos(ChVector3d(-3, 1.2 * ball_radius, -3));
-    ball->SetPos_dt(ChVector3d(5, 0, 5));
+    ball->SetPosDer(ChVector3d(5, 0, 5));
     ball->SetCollide(true);
 
     utils::AddSphereGeometry(ball.get(), ball_mat, ball_radius);

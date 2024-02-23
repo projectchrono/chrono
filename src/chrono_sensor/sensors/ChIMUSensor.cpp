@@ -50,7 +50,7 @@ CH_SENSOR_API ChGyroscopeSensor::ChGyroscopeSensor(std::shared_ptr<chrono::ChBod
 }
 
 CH_SENSOR_API void ChGyroscopeSensor::PushKeyFrame() {
-    m_keyframes.push_back(m_parent->GetWvel_loc());
+    m_keyframes.push_back(m_parent->GetAngVelLocal());
 }
 CH_SENSOR_API void ChGyroscopeSensor::ClearKeyFrames() {
     m_keyframes.clear();

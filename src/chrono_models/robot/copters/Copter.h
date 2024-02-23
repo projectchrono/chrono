@@ -325,8 +325,8 @@ void Copter<nop>::Update(double timestep) {
         backtorques[i]->SetMforce((1 / CH_C_2PI) * Cp * rho * pow(rps, 2) * pow(Dp, 5));
     }
     // update linear drag / drag torque
-    lin_drag->SetMforce(0.5 * Cd * Surf * rho * chassis->GetPos_dt().Length2());
-    lin_drag->SetDir(-chassis->GetPos_dt());
+    lin_drag->SetMforce(0.5 * Cd * Surf * rho * chassis->GetPosDer().Length2());
+    lin_drag->SetDir(-chassis->GetPosDer());
     // update pressure, temperature, altitude:
     UpdateAirData();
 }

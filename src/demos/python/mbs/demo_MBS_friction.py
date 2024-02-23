@@ -60,8 +60,8 @@ for bi in range(10):
     # Set initial speed: rolling in horizontal direction
     initial_angspeed = 10
     initial_linspeed = initial_angspeed * mradius
-    msphereBody.SetWvel_par(chrono.ChVector3d(0, 0, -initial_angspeed))
-    msphereBody.SetPos_dt(chrono.ChVector3d(initial_linspeed, 0, 0))
+    msphereBody.SetAngVelParent(chrono.ChVector3d(0, 0, -initial_angspeed))
+    msphereBody.SetPosDer(chrono.ChVector3d(initial_linspeed, 0, 0))
 
     # Add to the sys
     sys.Add(msphereBody)
@@ -82,7 +82,7 @@ for bi in range(10):
     msphereBody.GetVisualShape(0).SetMaterial(0, vis_mat_ball)
 
     # Set initial speed: spinning in vertical direction
-    msphereBody.SetWvel_par(chrono.ChVector3d(0, 20, 0))
+    msphereBody.SetAngVelParent(chrono.ChVector3d(0, 20, 0))
 
     # Add to the sys
     sys.Add(msphereBody)

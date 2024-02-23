@@ -283,8 +283,8 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set inertia
     wheel->SetMass(total_mass * 1.0 / 2.0);
     wheel->SetInertiaXX(ChVector3d(60, 60, 60));
-    wheel->SetPos_dt(Body_vel);
-    wheel->SetWvel_loc(ChVector3d(0.0, 0.0, 0.0));  // set an initial anular velocity (rad/s)
+    wheel->SetPosDer(Body_vel);
+    wheel->SetAngVelLocal(ChVector3d(0.0, 0.0, 0.0));  // set an initial anular velocity (rad/s)
 
     // Set the absolute position of the body:
     wheel->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(Body_pos), ChQuaternion<>(Body_rot)));

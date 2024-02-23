@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 
         // Output slider x position/velocity and analytical solution
         ////double x = slider1->GetPos().x();
-        ////double x_d = slider1->GetPos_dt().x();
+        ////double x_d = slider1->GetPosDer().x();
         ////double xa = x0 + (ampl / omg) * (time - std::sin(omg * time) / omg);
         ////double xa_d = (ampl / omg) * (1 - std::cos(omg * time));
         ////std::cout << time << "   " << x << " " << x_d << "   " << xa << " " << xa_d << std::endl;

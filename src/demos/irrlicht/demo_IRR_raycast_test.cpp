@@ -295,7 +295,7 @@ int main(int argc, char* argv[]) {
 
     if (rotate_shapes) {
         for (auto& b : sys.GetBodies())
-            b->SetWvel_loc(ChVector3d(0.1, 0.1, 0.1));
+            b->SetAngVelLocal(ChVector3d(0.1, 0.1, 0.1));
     }
 
     while (vis->Run()) {

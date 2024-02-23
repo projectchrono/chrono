@@ -155,7 +155,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     sys.AddBody(plate);
     plate->SetPos(ChVector3d(0, 0, 0));
     plate->SetRot(rot);
-    plate->SetPos_dt(desiredSpeed * axis);
+    plate->SetPosDer(desiredSpeed * axis);
     plate->SetMass(mass);
     plate->SetInertiaXX(inertiaXX);
 
@@ -273,16 +273,16 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
             const ChVector3d& position = plate->GetPos();
-            const ChVector3d& velocity = plate->GetPos_dt();
+            const ChVector3d& velocity = plate->GetPosDer();
             out_pos << simTime << position << std::endl;
             out_vel << simTime << velocity << std::endl;
-            out_acc << simTime << plate->GetPos_dtdt() << std::endl;
+            out_acc << simTime << plate->GetPosDer2() << std::endl;
 
             // Orientation, angular velocity, and angular acceleration (expressed in
             // global frame).
             out_quat << simTime << plate->GetRot() << std::endl;
-            out_avel << simTime << plate->GetWvel_par() << std::endl;
-            out_aacc << simTime << plate->GetWacc_par() << std::endl;
+            out_avel << simTime << plate->GetAngVelParent() << std::endl;
+            out_aacc << simTime << plate->GetAngAccParent() << std::endl;
 
             // Reaction Force and Torque in prismatic joint.
             // These are expressed in the link coordinate system. We convert them to

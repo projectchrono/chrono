@@ -182,7 +182,7 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     virtual void ContactableGetStateBlock_x(ChState& x) override { x.segment(0, 3) = m_node->GetPos().eigen(); }
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.segment(0, 3) = m_node->GetPos_dt().eigen(); }
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.segment(0, 3) = m_node->GetPosDer().eigen(); }
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -205,7 +205,7 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     }
 
     /// Get the absolute speed of point abs_point if attached to the surface.
-    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override { return m_node->GetPos_dt(); }
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override { return m_node->GetPosDer(); }
 
     /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the contact model (when rigid) and sync it.

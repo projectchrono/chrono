@@ -135,7 +135,7 @@ while vis.Run():
     array_time.append(sys.GetChTime())
     array_angle.append(my_motor.GetMotorRot())
     array_pos.append(mpiston.GetPos().x)
-    array_speed.append(mpiston.GetPos_dt().x)
+    array_speed.append(mpiston.GetPosDer().x)
     
     # here happens the visualization and step time integration
     vis.BeginScene() 
@@ -146,7 +146,6 @@ while vis.Run():
     # stop simulation after 2 seconds
     if sys.GetChTime() > 20:
           vis.GetDevice().closeDevice()
-
 
 # Use matplotlib to make two plots when simulation ended:
 fig, (ax1, ax2) = plt.subplots(2, sharex = True)
@@ -160,9 +159,5 @@ ax2.set(ylabel='speed [m]',xlabel='angle [rad]')
 ax2.grid()
 
 # trick to plot \pi on x axis of plots instead of 1 2 3 4 etc.
-plt.xticks(np.linspace(0, 2*np.pi, 5),['0','$\pi/2$','$\pi$','$3\pi/2$','$2\pi$'])
-
-
-
-
+plt.xticks(np.linspace(0, 2*np.pi, 5),['0',r'$\pi/2$',r'$\pi$',r'$3\pi/2$',r'$2\pi$'])
 

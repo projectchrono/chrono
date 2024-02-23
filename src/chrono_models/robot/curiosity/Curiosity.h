@@ -95,19 +95,19 @@ class CH_MODELS_API CuriosityPart {
 
     /// Return the linear velocity of the Curiopsity part.
     /// This is the absolute linear velocity of the part reference frame.
-    const ChVector3d& GetLinVel() const { return m_body->GetFrame_REF_to_abs().GetPos_dt(); }
+    const ChVector3d& GetLinVel() const { return m_body->GetFrame_REF_to_abs().GetPosDer(); }
 
     /// Return the angular velocity of the Curiosity part.
     /// This is the absolute angular velocity of the part reference frame.
-    const ChVector3d GetAngVel() const { return m_body->GetFrame_REF_to_abs().GetWvel_par(); }
+    const ChVector3d GetAngVel() const { return m_body->GetFrame_REF_to_abs().GetAngVelParent(); }
 
     /// Return the linear acceleration of the Curiosity part.
     /// This is the absolute linear acceleration of the part reference frame.
-    const ChVector3d& GetLinAcc() const { return m_body->GetFrame_REF_to_abs().GetPos_dtdt(); }
+    const ChVector3d& GetLinAcc() const { return m_body->GetFrame_REF_to_abs().GetPosDer2(); }
 
     /// Return the angular acceleratino of the Curiosity part.
     /// This is the absolute angular acceleratin of the part reference frame.
-    const ChVector3d GetAngAcc() const { return m_body->GetFrame_REF_to_abs().GetWacc_par(); }
+    const ChVector3d GetAngAcc() const { return m_body->GetFrame_REF_to_abs().GetAngAccParent(); }
 
     /// Initialize the rover part by attaching it to the specified chassis body.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis);

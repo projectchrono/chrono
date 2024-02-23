@@ -49,8 +49,8 @@ void ChVehicleOutputASCII::WriteBodies(const std::vector<std::shared_ptr<ChBody>
     for (auto body : bodies) {
         m_stream << "    body: " << body->GetIdentifier() << " \"" << body->GetNameString() << "\" ";
         m_stream << body->GetPos() << " " << body->GetRot() << " ";
-        m_stream << body->GetPos_dt() << " " << body->GetWvel_par() << " ";
-        m_stream << body->GetPos_dtdt() << " " << body->GetWacc_par() << " ";
+        m_stream << body->GetPosDer() << " " << body->GetAngVelParent() << " ";
+        m_stream << body->GetPosDer2() << " " << body->GetAngAccParent() << " ";
         m_stream << std::endl;
         //// TODO
     }
@@ -59,13 +59,13 @@ void ChVehicleOutputASCII::WriteBodies(const std::vector<std::shared_ptr<ChBody>
 void ChVehicleOutputASCII::WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAuxRef>>& bodies) {
     for (auto body : bodies) {
         auto& ref_pos = body->GetFrame_REF_to_abs().GetPos();
-        auto& ref_vel = body->GetFrame_REF_to_abs().GetPos_dt();
-        auto& ref_acc = body->GetFrame_REF_to_abs().GetPos_dtdt();
+        auto& ref_vel = body->GetFrame_REF_to_abs().GetPosDer();
+        auto& ref_acc = body->GetFrame_REF_to_abs().GetPosDer2();
 
         m_stream << "    body auxref: " << body->GetIdentifier() << " \"" << body->GetNameString() << "\" ";
         m_stream << body->GetPos() << " " << body->GetRot() << " ";
-        m_stream << body->GetPos_dt() << " " << body->GetWvel_par() << " ";
-        m_stream << body->GetPos_dtdt() << " " << body->GetWacc_par() << " ";
+        m_stream << body->GetPosDer() << " " << body->GetAngVelParent() << " ";
+        m_stream << body->GetPosDer2() << " " << body->GetAngAccParent() << " ";
         m_stream << ref_pos << " " << ref_vel << " " << ref_acc << " ";
         m_stream << std::endl;
         //// TODO
@@ -86,7 +86,7 @@ void ChVehicleOutputASCII::WriteMarkers(const std::vector<std::shared_ptr<ChMark
 void ChVehicleOutputASCII::WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) {
     for (auto shaft : shafts) {
         m_stream << "    shaft: " << shaft->GetIdentifier() << " \"" << shaft->GetNameString() << "\" ";
-        m_stream << shaft->GetPos() << " " << shaft->GetPos_dt() << " " << shaft->GetPos_dtdt() << " ";
+        m_stream << shaft->GetPos() << " " << shaft->GetPosDer() << " " << shaft->GetPosDer2() << " ";
         m_stream << shaft->GetAppliedTorque() << " ";
         m_stream << std::endl;
         //// TODO

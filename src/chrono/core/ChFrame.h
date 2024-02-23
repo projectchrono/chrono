@@ -139,9 +139,9 @@ class ChFrame {
         return *this;
     }
 
-    /// Transform this frame by pre-multiplication with another given frame.
-    ChFrame<Real>& operator>>=(const ChCoordsys<Real>& F) {
-        this->SetCsys(this->Csys >> F);
+    /// Transform this frame by pre-multiplication with a given coordinate system.
+    ChFrame<Real>& operator>>=(const ChCoordsys<Real>& C) {
+        this->SetCsys(this->Csys >> C);
         return *this;
     }
 

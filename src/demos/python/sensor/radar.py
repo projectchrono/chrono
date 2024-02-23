@@ -30,7 +30,7 @@ class simulation:
 
         frontcar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
         frontcar.SetPos(chrono.ChVector3d(20,1,1))
-        frontcar.SetPos_dt(chrono.ChVector3d(5,0,0))
+        frontcar.SetPosDer(chrono.ChVector3d(5,0,0))
         frontcar.GetVisualShape(0).SetMaterial(0, yellow)
         self.system.Add(frontcar)
 
@@ -38,7 +38,7 @@ class simulation:
         for i in range(10):
             leftcar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
             leftcar.SetPos(chrono.ChVector3d(10 + i * 15 ,20,1))
-            leftcar.SetPos_dt(chrono.ChVector3d(-5,0,0))
+            leftcar.SetPosDer(chrono.ChVector3d(-5,0,0))
             leftcar.GetVisualShape(0).SetMaterial(0, yellow)
             self.system.Add(leftcar)
 
@@ -47,7 +47,7 @@ class simulation:
         for i in range(10):
             rightcar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
             rightcar.SetPos(chrono.ChVector3d(10 + i * 15 ,-20,1))
-            rightcar.SetPos_dt(chrono.ChVector3d(15,0,0))
+            rightcar.SetPosDer(chrono.ChVector3d(15,0,0))
             rightcar.GetVisualShape(0).SetMaterial(0, black)
             self.system.Add(rightcar)
 

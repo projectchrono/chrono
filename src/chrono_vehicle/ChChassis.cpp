@@ -76,34 +76,34 @@ ChVector3d ChChassis::GetDriverPos() const {
 // Return the speed measured at the origin of the chassis reference frame.
 double ChChassis::GetSpeed() const {
     const auto& x_dir = m_body->GetRotMat().GetAxisX();
-    const auto& vel = m_body->GetFrame_REF_to_abs().GetPos_dt();
+    const auto& vel = m_body->GetFrame_REF_to_abs().GetPosDer();
     return Vdot(vel, x_dir);
 }
 
 // Return the speed measured at the chassis center of mass.
 double ChChassis::GetCOMSpeed() const {
     const auto& x_dir = m_body->GetRotMat().GetAxisX();
-    const auto& vel = m_body->GetPos_dt();
+    const auto& vel = m_body->GetPosDer();
     return Vdot(vel, x_dir);
 }
 
 double ChChassis::GetRollRate() const {
-    auto w = m_body->GetFrame_REF_to_abs().GetWvel_loc();
+    auto w = m_body->GetFrame_REF_to_abs().GetAngVelLocal();
     return w.x();
 }
 
 double ChChassis::GetPitchRate() const {
-    auto w = m_body->GetFrame_REF_to_abs().GetWvel_loc();
+    auto w = m_body->GetFrame_REF_to_abs().GetAngVelLocal();
     return w.y();
 }
 
 double ChChassis::GetYawRate() const {
-    auto w = m_body->GetFrame_REF_to_abs().GetWvel_loc();
+    auto w = m_body->GetFrame_REF_to_abs().GetAngVelLocal();
     return w.z();
 }
 
 double ChChassis::GetTurnRate() const {
-    auto w = m_body->GetFrame_REF_to_abs().GetWvel_par();
+    auto w = m_body->GetFrame_REF_to_abs().GetAngVelParent();
     return Vdot(w, ChWorldFrame::Vertical());
 }
 
@@ -123,7 +123,7 @@ void ChChassis::Initialize(ChSystem* system,
     m_body->SetBodyFixed(m_fixed);
 
     m_body->SetFrame_REF_to_abs(chassis_pos);
-    m_body->SetPos_dt(chassisFwdVel * chassis_pos.TransformDirectionLocalToParent(ChVector3d(1, 0, 0)));
+    m_body->SetPosDer(chassisFwdVel * chassis_pos.TransformDirectionLocalToParent(ChVector3d(1, 0, 0)));
 
     system->Add(m_body);
 
@@ -220,7 +220,7 @@ class ChassisDragForce : public ChChassis::ExternalForceTorque {
                         ChVector3d& point,
                         ChVector3d& torque) override {
         auto body = chassis.GetBody();
-        auto V = body->TransformDirectionParentToLocal(body->GetPos_dt());
+        auto V = body->TransformDirectionParentToLocal(body->GetPosDer());
         double Vx = V.x();
         double Fx = 0.5 * m_Cd * m_area * m_air_density * Vx * Vx;
         point = ChVector3d(0, 0, 0);

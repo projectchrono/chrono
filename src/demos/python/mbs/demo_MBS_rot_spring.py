@@ -81,8 +81,8 @@ lin_vel = ang_vel % offset
 body = chrono.ChBody()
 sys.AddBody(body)
 body.SetPos(rev_pos + offset)
-body.SetPos_dt(lin_vel)
-body.SetWvel_par(ang_vel)
+body.SetPosDer(lin_vel)
+body.SetAngVelParent(ang_vel)
 body.SetIdentifier(1)
 body.SetBodyFixed(False)
 body.SetCollide(False)
@@ -135,9 +135,9 @@ while vis.Run():
     if (frame % 50 == 0) :
         print('{:.6}'.format(str(sys.GetChTime())))
         print('Body position      ', body.GetPos())
-        print('Body lin. vel      ', body.GetPos_dt())
-        print('Body abs. ang. vel ', body.GetWvel_par())
-        print('Body loc. ang. vel ', body.GetWvel_loc())
+        print('Body lin. vel      ', body.GetPosDer())
+        print('Body abs. ang. vel ', body.GetAngVelParent())
+        print('Body loc. ang. vel ', body.GetAngVelLocal())
         print('Rot. spring-damper ', spring.GetAngle(), '  ', spring.GetTorque())
         print('---------------')
 

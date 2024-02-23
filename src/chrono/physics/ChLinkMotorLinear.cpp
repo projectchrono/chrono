@@ -86,8 +86,8 @@ void ChLinkMotorLinear::Update(double mytime, bool update_assets) {
     //// Should use something like sqrt(Vdot(relpos,relpos)), but taking into account sign?
 
     this->mpos = aframe12.GetPos().x();
-    this->mpos_dt = aframe12.GetPos_dt().x();
-    this->mpos_dtdt = aframe12.GetPos_dtdt().x();
+    this->mpos_dt = aframe12.GetPosDer().x();
+    this->mpos_dtdt = aframe12.GetPosDer2().x();
 }
 
 void ChLinkMotorLinear::ArchiveOut(ChArchiveOut& archive_out) {

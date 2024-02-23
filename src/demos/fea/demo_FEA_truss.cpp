@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
 
                 auto mnode = chrono_types::make_shared<ChNodeFEAxyz>(P_mass);
                 mnode->SetMass(step_x * step_y * density);
-                mnode->SetPos_dt(ChVector3d(0.05, 0, 0));
+                mnode->SetPosDer(ChVector3d(0.05, 0, 0));
                 if (ix == 0) {
                     mnode->SetFixed(true);
                     // Create a constraint between a node and the truss

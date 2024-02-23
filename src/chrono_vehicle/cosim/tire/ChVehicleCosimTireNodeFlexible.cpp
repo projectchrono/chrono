@@ -200,9 +200,9 @@ void ChVehicleCosimTireNodeFlexible::LoadSpindleForce(TerrainForce& spindle_forc
 
 void ChVehicleCosimTireNodeFlexible::ApplySpindleState(const BodyState& spindle_state) {
     m_spindle->SetPos(spindle_state.pos);
-    m_spindle->SetPos_dt(spindle_state.lin_vel);
+    m_spindle->SetPosDer(spindle_state.lin_vel);
     m_spindle->SetRot(spindle_state.rot);
-    m_spindle->SetWvel_par(spindle_state.ang_vel);
+    m_spindle->SetAngVelParent(spindle_state.ang_vel);
 }
 
 void ChVehicleCosimTireNodeFlexible::ApplyMeshForces(const MeshContact& mesh_contact) {

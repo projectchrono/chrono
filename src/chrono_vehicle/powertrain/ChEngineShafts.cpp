@@ -96,7 +96,7 @@ void ChEngineShafts::Initialize(std::shared_ptr<ChChassis> chassis) {
 // -----------------------------------------------------------------------------
 void ChEngineShafts::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed) {
     // Apply shaft speed
-    m_motorshaft->SetPos_dt(motorshaft_speed);
+    m_motorshaft->SetPosDer(motorshaft_speed);
 
     // Update the throttle level in the thermal engine
     m_engine->SetThrottle(driver_inputs.m_throttle);

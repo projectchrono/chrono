@@ -370,7 +370,7 @@ void ExampleB3(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     CreateSliderGuide(guide3, slider3, material, sys, positionB3);
 
     // just for fun: modify the initial speed of slider to match other examples
-    slider3->SetPos_dt(ChVector3d(1.6 * 0.5 * CH_C_2PI));
+    slider3->SetPosDer(ChVector3d(1.6 * 0.5 * CH_C_2PI));
 
     // Create the linear motor
     auto motor3 = chrono_types::make_shared<ChLinkMotorLinearForce>();

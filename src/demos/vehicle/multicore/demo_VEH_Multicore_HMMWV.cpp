@@ -480,8 +480,8 @@ int main(int argc, char* argv[]) {
             // Save output
             if (output && sim_frame == next_out_frame) {
                 ChVector3d pv = hmmwv->GetRefFrame().GetPos();
-                ChVector3d vv = hmmwv->GetRefFrame().GetPos_dt();
-                ChVector3d av = hmmwv->GetRefFrame().GetPos_dtdt();
+                ChVector3d vv = hmmwv->GetRefFrame().GetPosDer();
+                ChVector3d av = hmmwv->GetRefFrame().GetPosDer2();
 
                 ofile << sys->GetChTime() << del;
                 ofile << driver_inputs.m_throttle << del << driver_inputs.m_steering << del;

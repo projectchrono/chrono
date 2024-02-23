@@ -711,9 +711,9 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnInitialize(unsigned int num_objects
 void ChVehicleCosimTerrainNodeGranularGPU::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     proxy->bodies[0]->SetPos(rigid_state.pos);
-    proxy->bodies[0]->SetPos_dt(rigid_state.lin_vel);
+    proxy->bodies[0]->SetPosDer(rigid_state.lin_vel);
     proxy->bodies[0]->SetRot(rigid_state.rot);
-    proxy->bodies[0]->SetWvel_par(rigid_state.ang_vel);
+    proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
 
     m_systemGPU->ApplyMeshMotion(i, rigid_state.pos, rigid_state.rot, rigid_state.lin_vel, rigid_state.ang_vel);
 }

@@ -1164,13 +1164,13 @@ void ChElementShellANCF_3423::CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d) {
 }
 
 void ChElementShellANCF_3423::CalcCoordDerivMatrix(ChVectorN<double, 24>& dt) {
-    const ChVector3d& pA_dt = m_nodes[0]->GetPos_dt();
+    const ChVector3d& pA_dt = m_nodes[0]->GetPosDer();
     const ChVector3d& dA_dt = m_nodes[0]->GetD_dt();
-    const ChVector3d& pB_dt = m_nodes[1]->GetPos_dt();
+    const ChVector3d& pB_dt = m_nodes[1]->GetPosDer();
     const ChVector3d& dB_dt = m_nodes[1]->GetD_dt();
-    const ChVector3d& pC_dt = m_nodes[2]->GetPos_dt();
+    const ChVector3d& pC_dt = m_nodes[2]->GetPosDer();
     const ChVector3d& dC_dt = m_nodes[2]->GetD_dt();
-    const ChVector3d& pD_dt = m_nodes[3]->GetPos_dt();
+    const ChVector3d& pD_dt = m_nodes[3]->GetPosDer();
     const ChVector3d& dD_dt = m_nodes[3]->GetD_dt();
 
     dt(0) = pA_dt.x();
@@ -1513,13 +1513,13 @@ void ChElementShellANCF_3423::LoadableGetStateBlock_x(int block_offset, ChState&
 
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChElementShellANCF_3423::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDer().eigen();
     mD.segment(block_offset + 9, 3) = m_nodes[1]->GetD_dt().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPos_dt().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPosDer().eigen();
     mD.segment(block_offset + 15, 3) = m_nodes[2]->GetD_dt().eigen();
-    mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPos_dt().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPosDer().eigen();
     mD.segment(block_offset + 21, 3) = m_nodes[3]->GetD_dt().eigen();
 }
 
@@ -1537,8 +1537,8 @@ void ChElementShellANCF_3423::EvaluateSectionVelNorm(double U, double V, ChVecto
     ShapeVector N;
     ShapeFunctions(N, U, V, 0);
     for (unsigned int ii = 0; ii < 4; ii++) {
-        Result += N(ii * 2) * m_nodes[ii]->GetPos_dt();
-        Result += N(ii * 2 + 1) * m_nodes[ii]->GetPos_dt();
+        Result += N(ii * 2) * m_nodes[ii]->GetPosDer();
+        Result += N(ii * 2 + 1) * m_nodes[ii]->GetPosDer();
     }
 }
 

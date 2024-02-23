@@ -163,20 +163,20 @@ void ChShaftsDriveline8WD::Initialize(std::shared_ptr<ChChassis> chassis,
         double omega_R = axles[m_driven_axles[i]]->m_suspension->GetAxleSpeed(RIGHT);
 
         double omega_diffbox = 0.5 * (omega_L + omega_R);
-        m_AD_differentialbox[i]->SetPos_dt(omega_diffbox);
+        m_AD_differentialbox[i]->SetPosDer(omega_diffbox);
 
         omega_AD_inshaft[i] = omega_diffbox / GetAxleDiffConicalGearRatio();
-        m_AD_inshaft[i]->SetPos_dt(omega_AD_inshaft[i]);
+        m_AD_inshaft[i]->SetPosDer(omega_AD_inshaft[i]);
     }
 
     double omega_GD_inshaft[2];
     for (int i = 0; i < 2; i++) {
         omega_GD_inshaft[i] = 0.5 * (omega_AD_inshaft[2 *i] + omega_AD_inshaft[2*i+1]);
-        m_GD_inshaft[i]->SetPos_dt(omega_GD_inshaft[i]);
+        m_GD_inshaft[i]->SetPosDer(omega_GD_inshaft[i]);
     }
 
     double omega_driveshaft = 0.5 * (omega_GD_inshaft[0] + omega_GD_inshaft[1]);
-    m_driveshaft->SetPos_dt(omega_driveshaft);
+    m_driveshaft->SetPosDer(omega_driveshaft);
 }
 
 // -----------------------------------------------------------------------------

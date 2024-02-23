@@ -110,10 +110,10 @@ int main(int argc, char* argv[]) {
             // Print something on the console..
 
             std::cout << "Time: " << chronoTime << std::endl
-                      << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPos_dt()
-                      << "  accel: " << my_shaftA->GetPos_dtdt() << std::endl
-                      << "  shaft B  rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPos_dt()
-                      << "  accel: " << my_shaftB->GetPos_dtdt() << std::endl
+                      << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPosDer()
+                      << "  accel: " << my_shaftA->GetPosDer2() << std::endl
+                      << "  shaft B  rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPosDer()
+                      << "  accel: " << my_shaftB->GetPosDer2() << std::endl
                       << "  AB gear, torque on A side: " << my_shaft_gearAB->GetTorqueReactionOn1()
                       << "  AB gear, torque on B side: " << my_shaft_gearAB->GetTorqueReactionOn2() << std::endl;
         }
@@ -142,13 +142,13 @@ int main(int argc, char* argv[]) {
         // Create a ChShaft that starts with nonzero angular velocity
         auto my_shaftA = chrono_types::make_shared<ChShaft>();
         my_shaftA->SetInertia(0.5);
-        my_shaftA->SetPos_dt(30);
+        my_shaftA->SetPosDer(30);
         sys.AddShaft(my_shaftA);
 
         // Create another ChShaft, with opposite initial angular velocity
         auto my_shaftB = chrono_types::make_shared<ChShaft>();
         my_shaftB->SetInertia(0.6);
-        my_shaftB->SetPos_dt(-10);
+        my_shaftB->SetPosDer(-10);
         sys.AddShaft(my_shaftB);
 
         // Create a ChShaftsClutch, that represents a simplified model
@@ -180,10 +180,10 @@ int main(int argc, char* argv[]) {
 
             // Print something on the console..
             std::cout << "Time: " << chronoTime << std::endl
-                      << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPos_dt()
-                      << "  accel: " << my_shaftA->GetPos_dtdt() << std::endl
-                      << "  shaft B  rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPos_dt()
-                      << "  accel: " << my_shaftB->GetPos_dtdt() << std::endl
+                      << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPosDer()
+                      << "  accel: " << my_shaftA->GetPosDer2() << std::endl
+                      << "  shaft B  rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPosDer()
+                      << "  accel: " << my_shaftB->GetPosDer2() << std::endl
                       << "  AB clutch, torque on A side: " << my_shaft_clutchAB->GetTorqueReactionOn1()
                       << "  AB clutch, torque on B side: " << my_shaft_clutchAB->GetTorqueReactionOn2() << std::endl;
         }
@@ -275,10 +275,10 @@ int main(int argc, char* argv[]) {
 
             // Print something on the console..
             std::cout << "Time: " << chronoTime << std::endl
-                      << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPos_dt()
-                      << "  accel: " << my_shaftA->GetPos_dtdt() << std::endl
-                      << "  shaft B  rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPos_dt()
-                      << "  accel: " << my_shaftB->GetPos_dtdt() << std::endl
+                      << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPosDer()
+                      << "  accel: " << my_shaftA->GetPosDer2() << std::endl
+                      << "  shaft B  rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPosDer()
+                      << "  accel: " << my_shaftB->GetPosDer2() << std::endl
                       << "  epicycloidal react torques on shafts - on A: "
                       << my_shaft_planetaryBAC->GetTorqueReactionOn2()
                       << " ,   on B: " << my_shaft_planetaryBAC->GetTorqueReactionOn1()
@@ -352,10 +352,10 @@ int main(int argc, char* argv[]) {
 
             // Print something on the console..
             std::cout << "Time: " << chronoTime << std::endl
-                      << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPos_dt()
-                      << "  accel: " << my_shaftA->GetPos_dtdt() << std::endl
-                      << "  Body B angular speed on z: " << my_bodyB->GetWvel_loc().z()
-                      << "  accel on z: " << my_bodyB->GetWacc_loc().z() << std::endl
+                      << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPosDer()
+                      << "  accel: " << my_shaftA->GetPosDer2() << std::endl
+                      << "  Body B angular speed on z: " << my_bodyB->GetAngVelLocal().z()
+                      << "  accel on z: " << my_bodyB->GetAngAccLocal().z() << std::endl
                       << "  AC spring, torque on A side: " << my_shaft_torsionAC->GetTorqueReactionOn1()
                       << "  torque on C side: " << my_shaft_torsionAC->GetTorqueReactionOn2() << std::endl
                       << "  shafts/body reaction,  on shaft A: " << my_shaftbody_connection->GetTorqueReactionOnShaft()
@@ -492,10 +492,10 @@ int main(int argc, char* argv[]) {
 
             // Print something on the console..
             std::cout << "Time: " << chronoTime << std::endl
-                      << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPos_dt()
-                      << "  accel: " << my_shaftA->GetPos_dtdt() << std::endl
-                      << "  shaft B rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPos_dt()
-                      << "  accel: " << my_shaftB->GetPos_dtdt() << std::endl
+                      << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPosDer()
+                      << "  accel: " << my_shaftA->GetPosDer2() << std::endl
+                      << "  shaft B rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPosDer()
+                      << "  accel: " << my_shaftB->GetPosDer2() << std::endl
                       << "  T.Convert.:"
                       << "  R=" << my_torqueconverter->GetSpeedRatio()
                       << "  Tin=" << my_torqueconverter->GetTorqueReactionOnInput()
@@ -593,16 +593,16 @@ int main(int argc, char* argv[]) {
 
             // Print something on the console..
             std::cout << "Time: " << chronoTime << std::endl
-                      << "  shaft B rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPos_dt()
-                      << "  accel: " << my_shaftB->GetPos_dtdt() << std::endl
-                      << "  shaft C rot: " << my_shaftC->GetPos() << "  speed: " << my_shaftC->GetPos_dt()
-                      << "  accel: " << my_shaftC->GetPos_dtdt() << std::endl
+                      << "  shaft B rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPosDer()
+                      << "  accel: " << my_shaftB->GetPosDer2() << std::endl
+                      << "  shaft C rot: " << my_shaftC->GetPos() << "  speed: " << my_shaftC->GetPosDer()
+                      << "  accel: " << my_shaftC->GetPosDer2() << std::endl
                       << "  Torque: Tmotor=" << my_motor->GetTorqueReactionOn1()
                       << "  Tfreewheel=" << my_freewheel->GetTorqueReactionOn1()
                       << "  Tclutch=" << my_clutch->GetTorqueReactionOn1()
                       << "  ratchet vane=" << my_freewheel->GetCurrentTeethVane() << std::endl;
             file_results << chronoTime << ", " << my_shaftB->GetPos() << ", " << my_shaftC->GetPos() << ", "
-                         << my_shaftC->GetPos_dt() << ", " << my_clutch->GetTorqueReactionOn1() << ", "
+                         << my_shaftC->GetPosDer() << ", " << my_clutch->GetTorqueReactionOn1() << ", "
                          << my_freewheel->GetCurrentTeethVane() << "\n";
         }
     }

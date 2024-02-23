@@ -71,8 +71,8 @@ int main(int argc, char* argv[]) {
         // Set initial speed: rolling in horizontal direction
         double initial_angspeed = 10;
         double initial_linspeed = initial_angspeed * mradius;
-        sphereBody->SetWvel_par(ChVector3d(0, 0, -initial_angspeed));
-        sphereBody->SetPos_dt(ChVector3d(initial_linspeed, 0, 0));
+        sphereBody->SetAngVelParent(ChVector3d(0, 0, -initial_angspeed));
+        sphereBody->SetPosDer(ChVector3d(initial_linspeed, 0, 0));
 
         // Add to the system
         sys.Add(sphereBody);
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
         sphereBody->GetVisualShape(0)->SetMaterial(0, sph_vis_mat);
 
         // Set initial speed: spinning in vertical direction
-        sphereBody->SetWvel_par(ChVector3d(0, 20, 0));
+        sphereBody->SetAngVelParent(ChVector3d(0, 20, 0));
 
         // Add to the system
         sys.Add(sphereBody);

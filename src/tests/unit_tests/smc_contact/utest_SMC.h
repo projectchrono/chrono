@@ -60,8 +60,8 @@ std::shared_ptr<ChBody> AddSphere(int id,
     body->SetMass(mass);
     body->SetPos(pos);
     body->SetRot(rot);
-    body->SetPos_dt(init_v);
-    body->SetWvel_par(init_w);
+    body->SetPosDer(init_v);
+    body->SetAngVelParent(init_w);
     body->SetInertiaXX(inertia);
     body->SetBodyFixed(false);
     body->SetCollide(true);
@@ -93,7 +93,7 @@ std::shared_ptr<ChBody> AddWall(int id,
     body->SetMass(mass);
     body->SetPos(pos);
     body->SetRot(rot);
-    body->SetPos_dt(init_v);
+    body->SetPosDer(init_v);
     body->SetInertiaXX(inertia);
     body->SetBodyFixed(wall);
     body->SetCollide(true);
@@ -149,8 +149,8 @@ void SetSimParameters(
 bool CalcKE(ChSystem* sys, const double& threshold) {
     const std::shared_ptr<ChBody> body = sys->GetBodies().at(1);
 
-    ChVector3d eng_trn = 0.5 * body->GetMass() * body->GetPos_dt() * body->GetPos_dt();
-    ChVector3d eng_rot = 0.5 * body->GetInertiaXX() * body->GetWvel_par() * body->GetWvel_par();
+    ChVector3d eng_trn = 0.5 * body->GetMass() * body->GetPosDer() * body->GetPosDer();
+    ChVector3d eng_rot = 0.5 * body->GetInertiaXX() * body->GetAngVelParent() * body->GetAngVelParent();
 
     double KE_trn = eng_trn.x() + eng_trn.y() + eng_trn.z();
     double KE_rot = eng_rot.x() + eng_rot.y() + eng_rot.z();
@@ -167,8 +167,8 @@ bool CalcAverageKE(ChSystem* sys, const double& threshold) {
     double KE_rot = 0;
 
     for (auto body : sys->GetBodies()) {
-        ChVector3d eng_trn = 0.5 * body->GetMass() * body->GetPos_dt() * body->GetPos_dt();
-        ChVector3d eng_rot = 0.5 * body->GetInertiaXX() * body->GetWvel_par() * body->GetWvel_par();
+        ChVector3d eng_trn = 0.5 * body->GetMass() * body->GetPosDer() * body->GetPosDer();
+        ChVector3d eng_rot = 0.5 * body->GetInertiaXX() * body->GetAngVelParent() * body->GetAngVelParent();
 
         KE_trn += eng_trn.x() + eng_trn.y() + eng_trn.z();
         KE_rot += eng_rot.x() + eng_rot.y() + eng_rot.z();

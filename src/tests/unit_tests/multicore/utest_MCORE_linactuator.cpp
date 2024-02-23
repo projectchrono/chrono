@@ -120,7 +120,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     sys->AddBody(plate);
     plate->SetPos(ChVector3d(0, 0, 0));
     plate->SetRot(rot);
-    plate->SetPos_dt(speed * axis);
+    plate->SetPosDer(speed * axis);
     plate->SetMass(mass);
     plate->SetInertiaXX(inertiaXX);
 
@@ -175,8 +175,8 @@ void ChLinActuatorTest::VerifySolution(double time) {
     // ----------------------------------------------------------------
 
     ChVector3d pos = plate->GetPos();
-    ChVector3d vel = plate->GetPos_dt();
-    ChVector3d acc = plate->GetPos_dtdt();
+    ChVector3d vel = plate->GetPosDer();
+    ChVector3d acc = plate->GetPosDer2();
 
     // The motion must be constant speed along the translation axis.
     ChVector3d pos_an = time * speed * axis;
@@ -196,8 +196,8 @@ void ChLinActuatorTest::VerifySolution(double time) {
     // ---------------------------------------------------------------------------
 
     ChQuaternion<> quat = plate->GetRot();
-    ChVector3d avel = plate->GetWvel_par();
-    ChVector3d aacc = plate->GetWacc_par();
+    ChVector3d avel = plate->GetAngVelParent();
+    ChVector3d aacc = plate->GetAngAccParent();
 
     // The motion must maintain constant orientation of the plate body.
     ChQuaternion<> quat_an = rot;

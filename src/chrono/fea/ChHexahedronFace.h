@@ -95,10 +95,10 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
 
     /// Get all the DOFs packed in a single vector (speed part).
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
-        mD.segment(block_offset + 0, 3) = GetNodeN(0)->GetPos_dt().eigen();
-        mD.segment(block_offset + 3, 3) = GetNodeN(1)->GetPos_dt().eigen();
-        mD.segment(block_offset + 6, 3) = GetNodeN(2)->GetPos_dt().eigen();
-        mD.segment(block_offset + 9, 3) = GetNodeN(3)->GetPos_dt().eigen();
+        mD.segment(block_offset + 0, 3) = GetNodeN(0)->GetPosDer().eigen();
+        mD.segment(block_offset + 3, 3) = GetNodeN(1)->GetPosDer().eigen();
+        mD.segment(block_offset + 6, 3) = GetNodeN(2)->GetPosDer().eigen();
+        mD.segment(block_offset + 9, 3) = GetNodeN(3)->GetPosDer().eigen();
     }
 
     /// Increment all DOFs using a delta.

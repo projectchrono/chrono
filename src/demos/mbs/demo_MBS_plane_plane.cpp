@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(body);
     body->SetBodyFixed(false);
     body->SetPos(ChVector3d(-1.25, -0.75, 0.1));
-    body->SetWvel_loc(ChVector3d(0.1, 0.1, 0.1));
+    body->SetAngVelLocal(ChVector3d(0.1, 0.1, 0.1));
     body->GetVisualShape(0)->SetColor(ChColor(0.6f, 0, 0));
 
     // Create the plane-plane constraint

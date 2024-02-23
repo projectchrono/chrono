@@ -128,7 +128,7 @@ while vis.Run():
 
     # Output slider x position/velocity and analytical solution
     # x = slider1.GetPos().x
-    # x_d = slider1.GetPos_dt().x
+    # x_d = slider1.GetPosDer().x
     # xa = x0 + (ampl / omg) * (time - m.sin(omg * time) / omg)
     # xa_d = (ampl / omg) * (1 - m.cos(omg * time))
     # print('{0:f}   {1:f} {2:f}   {3:f} {4:f}'.format(time, x, x_d, xa, xa_d))

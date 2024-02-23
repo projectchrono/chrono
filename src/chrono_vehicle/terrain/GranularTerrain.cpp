@@ -471,7 +471,7 @@ void GranularTerrain::Synchronize(double time) {
     for (auto body : m_ground->GetSystem()->GetBodies()) {
         if (body->GetIdentifier() > m_start_id && body->GetPos().x() - m_radius < m_rear) {
             body->SetPos(new_points[ip++]);
-            body->SetPos_dt(m_init_part_vel);
+            body->SetPosDer(m_init_part_vel);
         }
     }
 

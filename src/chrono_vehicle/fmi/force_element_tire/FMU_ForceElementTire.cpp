@@ -127,8 +127,8 @@ void FmuComponent::SynchronizeTire(double time) {
     auto spindle = wheel->GetSpindle();
     spindle->SetPos(wheel_state.pos);
     spindle->SetRot(wheel_state.rot);
-    spindle->SetPos_dt(wheel_state.lin_vel);
-    spindle->SetWvel_par(wheel_state.ang_vel);
+    spindle->SetLinVel(wheel_state.lin_vel);
+    spindle->SetAngVelParent(wheel_state.ang_vel);
 
     // Update the local terrain
     terrain.height = terrain_height;

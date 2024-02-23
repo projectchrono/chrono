@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     obj1->SetMass(10);
     obj1->SetInertiaXX(ChVector3d(1, 1, 1));
     obj1->SetPos(ChVector3d(-1, 0.21, -1));
-    obj1->SetPos_dt(ChVector3d(5, 0, 0));
+    obj1->SetPosDer(ChVector3d(5, 0, 0));
 
     obj1->SetCollide(true);
     utils::AddCapsuleGeometry(obj1.get(), material, 0.2, 0.4, ChVector3d(0), QuatFromAngleZ(CH_C_PI_2));
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     obj2->SetMass(10);
     obj2->SetInertiaXX(ChVector3d(1, 1, 1));
     obj2->SetPos(ChVector3d(-1, 0.21, +1));
-    obj2->SetPos_dt(ChVector3d(5, 0, 0));
+    obj2->SetPosDer(ChVector3d(5, 0, 0));
 
     obj2->SetCollide(true);
     utils::AddCapsuleGeometry(obj2.get(), material, 0.2, 0.4, ChVector3d(0), QuatFromAngleZ(CH_C_PI_2));

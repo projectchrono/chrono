@@ -117,9 +117,9 @@ void SetupSystem(ChSystemMulticoreNSC* sys) {
 void Sync(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B) {
     for (int i = 0; i < msystem_A->GetBodies().size(); i++) {
         ChVector3d pos = msystem_B->GetBodies().at(i)->GetPos();
-        ChVector3d pos_dt = msystem_B->GetBodies().at(i)->GetPos_dt();
+        ChVector3d pos_dt = msystem_B->GetBodies().at(i)->GetPosDer();
         msystem_A->GetBodies().at(i)->SetPos(pos);
-        msystem_A->GetBodies().at(i)->SetPos_dt(pos_dt);
+        msystem_A->GetBodies().at(i)->SetPosDer(pos_dt);
     }
 }
 

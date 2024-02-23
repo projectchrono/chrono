@@ -495,8 +495,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
             assert(body->GetIdentifier() == identifier);
             body->SetPos(ChVector3d(pos.x(), pos.y(), pos.z()));
             body->SetRot(ChQuaternion<>(rot.e0(), rot.e1(), rot.e2(), rot.e3()));
-            body->SetPos_dt(ChVector3d(pos_dt.x(), pos_dt.y(), pos_dt.z()));
-            body->SetRot_dt(ChQuaternion<>(rot_dt.e0(), rot_dt.e1(), rot_dt.e2(), rot_dt.e3()));
+            body->SetPosDer(ChVector3d(pos_dt.x(), pos_dt.y(), pos_dt.z()));
+            body->SetRotDer(ChQuaternion<>(rot_dt.e0(), rot_dt.e1(), rot_dt.e2(), rot_dt.e3()));
         }
 
         if (m_verbose)
@@ -711,9 +711,9 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalcTotalKineticEnergy() {
     double KE = 0;
     for (const auto& body : m_system->GetBodies()) {
         if (body->GetIdentifier() > 0) {
-            auto omg = body->GetWvel_par();
+            auto omg = body->GetAngVelParent();
             auto J = body->GetInertiaXX();
-            KE += body->GetMass() * body->GetPos_dt().Length2() + omg.Dot(J * omg);
+            KE += body->GetMass() * body->GetPosDer().Length2() + omg.Dot(J * omg);
         }
     }
     return 0.5 * KE;
@@ -910,10 +910,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
         const ChVector3d& vC = mesh_state.vvel[idx_verts[it].z()];
 
         ChVector3d vel = (vA + vB + vC) / 3;
-        proxy->bodies[it]->SetPos_dt(vel);
+        proxy->bodies[it]->SetPosDer(vel);
 
         //// RADU TODO: angular velocity
-        proxy->bodies[it]->SetWvel_loc(ChVector3d(0, 0, 0));
+        proxy->bodies[it]->SetAngVelLocal(ChVector3d(0, 0, 0));
 
         // Update triangle contact shape (expressed in local frame) by writting directly
         // into the Chrono::Multicore data structures.
@@ -931,9 +931,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
 void ChVehicleCosimTerrainNodeGranularOMP::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     proxy->bodies[0]->SetPos(rigid_state.pos);
-    proxy->bodies[0]->SetPos_dt(rigid_state.lin_vel);
+    proxy->bodies[0]->SetPosDer(rigid_state.lin_vel);
     proxy->bodies[0]->SetRot(rigid_state.rot);
-    proxy->bodies[0]->SetWvel_par(rigid_state.ang_vel);
+    proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
 }
 
 // Calculate barycentric coordinates (a1, a2, a3) for a given point P
@@ -1081,8 +1081,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::CSV_w
     for (auto body : m_system->GetBodies()) {
         if (body->GetIdentifier() < body_id_particles)
             continue;
-        ////csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << endl;
-        csv << body->GetPos() << body->GetPos_dt() << endl;
+        ////csv << body->GetIdentifier() << body->GetPos() << body->GetPosDer() << endl;
+        csv << body->GetPos() << body->GetPosDer() << endl;
     }
 }
 
@@ -1098,7 +1098,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
     for (auto& body : m_system->GetBodies()) {
         if (body->GetIdentifier() < body_id_particles)
             continue;
-        csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPos_dt() << body->GetRot_dt()
+        csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPosDer() << body->GetRotDer()
             << endl;
     }
 
@@ -1125,7 +1125,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned i
             proxy->bodies.begin(), proxy->bodies.end(),
             [](std::shared_ptr<ChBody> a, std::shared_ptr<ChBody> b) { return a->GetPos().z() < b->GetPos().z(); });
         double height = (*lowest)->GetPos().z();
-        const ChVector3d& vel = (*lowest)->GetPos_dt();
+        const ChVector3d& vel = (*lowest)->GetPosDer();
         cout << "[Terrain node] object: " << i << "  lowest proxy:  height = " << height << "  velocity = " << vel
              << endl;
     }

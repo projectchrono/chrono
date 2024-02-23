@@ -454,7 +454,7 @@ positionB3 = chrono.ChVector3d(0, 0, -1)
 guide3, slider3 = CreateSliderGuide(material, sys, positionB3)
 
 # just for fun: modify the initial speed of slider to match other examples
-slider3.SetPos_dt(chrono.ChVector3d(1.6 * 0.5 * chrono.CH_C_2PI))
+slider3.SetPosDer(chrono.ChVector3d(1.6 * 0.5 * chrono.CH_C_2PI))
 
 # Create the linear motor
 motor3 = chrono.ChLinkMotorLinearForce()

@@ -258,8 +258,8 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
     /// Gets all the DOFs packed in a single vector (speed part)
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
         for (int i = 0; i < nodes.size(); ++i) {
-            mD.segment(block_offset + i * 6 + 0, 3) = this->nodes[i]->GetPos_dt().eigen();
-            mD.segment(block_offset + i * 6 + 3, 3) = this->nodes[i]->GetWvel_loc().eigen();
+            mD.segment(block_offset + i * 6 + 0, 3) = this->nodes[i]->GetPosDer().eigen();
+            mD.segment(block_offset + i * 6 + 3, 3) = this->nodes[i]->GetAngVelLocal().eigen();
         }
     }
 

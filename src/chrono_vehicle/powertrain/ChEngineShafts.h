@@ -44,7 +44,7 @@ class CH_VEHICLE_API ChEngineShafts : public ChEngine {
     virtual std::string GetTemplateName() const override { return "EngineShafts"; }
 
     /// Return the current engine speed.
-    virtual double GetMotorSpeed() const override { return m_motorshaft->GetPos_dt(); }
+    virtual double GetMotorSpeed() const override { return m_motorshaft->GetPosDer(); }
 
     /// Return the output engine torque.
     /// This is the torque passed to a transmission subsystem.

@@ -662,7 +662,7 @@ ChExtruderBeamEuler::ChExtruderBeamEuler(
     mysystem->Add(ground);
 
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(outlet));
-    nodeA->SetPos_dt(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
+    nodeA->SetPosDer(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
     nodeA->SetX0(ChFrame<>());
     mesh->AddNode(nodeA);
     beam_nodes.push_back(nodeA);
@@ -712,7 +712,7 @@ void ChExtruderBeamEuler::Update() {
         C0_ref.pos = node1->GetX0().GetPos() - VECT_X * this->h;
 
         auto node0 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(C0));
-        node0->SetPos_dt(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
+        node0->SetPosDer(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
         node0->SetX0(ChFrame<>(C0_ref));
         mesh->AddNode(node0);
         beam_nodes.push_back(node0);
@@ -769,7 +769,7 @@ ChExtruderBeamIGA::ChExtruderBeamIGA(ChSystem* msystem,              // system t
     mysystem->Add(ground);
 
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(outlet));
-    nodeA->SetPos_dt(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
+    nodeA->SetPosDer(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
     nodeA->SetX0(ChFrame<>());
     mesh->AddNode(nodeA);
     beam_nodes.push_back(nodeA);
@@ -827,7 +827,7 @@ bool ChExtruderBeamIGA::Update() {
     C0_ref.pos = node1->GetX0().GetPos() - VECT_X * this->h;
 
     auto node0 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(C0));
-    node0->SetPos_dt(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
+    node0->SetPosDer(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
     node0->SetX0(ChFrame<>(C0_ref));
     mesh->AddNode(node0);
     beam_nodes.push_back(node0);

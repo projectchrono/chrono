@@ -94,7 +94,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         sled->SetMass(550);
         sled->SetInertiaXX(ChVector3d(100, 100, 100));
         sled->SetPos(ChVector3d(0, 0, 0));
-        sled->SetPos_dt(ChVector3d(init_vel, 0, 0));
+        sled->SetPosDer(ChVector3d(init_vel, 0, 0));
         sled->SetBodyFixed(false);
         sled->SetCollide(false);
 
@@ -110,7 +110,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         wheel->SetInertiaXX(ChVector3d(50, 138, 138));
         wheel->SetPos(ChVector3d(2, 0, 0));
         wheel->SetRot(ChQuaternion<>(1, 0, 0, 0));
-        wheel->SetPos_dt(ChVector3d(init_vel, 0, 0));
+        wheel->SetPosDer(ChVector3d(init_vel, 0, 0));
         wheel->SetBodyFixed(false);
         wheel->SetCollide(true);
 

@@ -104,8 +104,8 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
 
     clock_t start = std::clock();
     for (double t = 0; t < (double)params.time_end; t += iteration_step, curr_step++) {
-        gpu_sys.ApplyMeshMotion(0, ball_body->GetPos(), ball_body->GetRot(), ball_body->GetPos_dt(),
-                                ball_body->GetWvel_par());
+        gpu_sys.ApplyMeshMotion(0, ball_body->GetPos(), ball_body->GetRot(), ball_body->GetPosDer(),
+                                ball_body->GetAngVelParent());
 
         ChVector3d ball_force;
         ChVector3d ball_torque;

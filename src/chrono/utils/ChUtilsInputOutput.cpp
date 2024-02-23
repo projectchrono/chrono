@@ -49,7 +49,7 @@ void WriteBodies(ChSystem* system,
             continue;
         csv << body->GetPos() << body->GetRot();
         if (dump_vel)
-            csv << body->GetPos_dt() << body->GetWvel_loc();
+            csv << body->GetPosDer() << body->GetAngVelLocal();
         csv << std::endl;
     }
 
@@ -83,7 +83,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
         // Write body position, orientation, and their time derivatives
         csv << body->GetPos() << body->GetRot() << tab;
-        csv << body->GetPos_dt() << body->GetRot_dt() << tab;
+        csv << body->GetPosDer() << body->GetRotDer() << tab;
 
         csv << std::endl;
 
@@ -248,8 +248,8 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         // Set body properties and state
         body->SetPos(bpos);
         body->SetRot(brot);
-        body->SetPos_dt(bpos_dt);
-        body->SetRot_dt(brot_dt);
+        body->SetPosDer(bpos_dt);
+        body->SetRotDer(brot_dt);
 
         body->SetIdentifier(bid);
         body->SetBodyFixed(bfixed != 0);

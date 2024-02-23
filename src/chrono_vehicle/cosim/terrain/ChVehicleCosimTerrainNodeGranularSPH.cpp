@@ -218,9 +218,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         body->SetBodyFixed(false);
         body->SetCollide(true);
 
-        auto trimesh_shape = chrono_types::make_shared<ChCollsionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_g);
-        body->AddCollisionShape(trimesh_shape);
-        body->GetCollisionModel()->SetFamily(2);
+        auto trimesh_shape = chrono_types::make_shared<ChCollsionShapeTriangleMesh>(mat, trimesh,
+                                                                                    false, false, m_radius_g);
+        body->AddCollisionShape(trimesh_shape); body->GetCollisionModel()->SetFamily(2);
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
@@ -348,10 +348,10 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
 void ChVehicleCosimTerrainNodeGranularSPH::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     proxy->bodies[0]->SetPos(rigid_state.pos);
-    proxy->bodies[0]->SetPos_dt(rigid_state.lin_vel);
+    proxy->bodies[0]->SetPosDer(rigid_state.lin_vel);
     proxy->bodies[0]->SetRot(rigid_state.rot);
-    proxy->bodies[0]->SetWvel_par(rigid_state.ang_vel);
-    proxy->bodies[0]->SetWacc_par(VNULL);
+    proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
+    proxy->bodies[0]->SetAngAccParent(VNULL);
 }
 
 // Collect resultant contact force and torque on rigid proxy body.

@@ -70,7 +70,7 @@ class CorNormalTest : public ::testing::TestWithParam<std::tuple<ChSystemSMC::Co
         body2 = AddSphere(1, sys, mat, srad, smass, spos * -1, init_v * -1);
 
         // Calculate motion parameters prior to collision
-        rel_vm_in = (body2->GetPos_dt() - body1->GetPos_dt()).Length();
+        rel_vm_in = (body2->GetPosDer() - body1->GetPosDer()).Length();
     }
 
     ~CorNormalTest() { delete sys; }
@@ -89,7 +89,7 @@ TEST_P(CorNormalTest, impact) {
     }
 
     // Calculate output COR and compare against input COR. Test passes if difference below 1e-3
-    double rel_vm_out = (body2->GetPos_dt() - body1->GetPos_dt()).Length();
+    double rel_vm_out = (body2->GetPosDer() - body1->GetPosDer()).Length();
     double cor_out = rel_vm_out / rel_vm_in;
     double cor_in = std::get<1>(GetParam());
     std::cout << ForceModel_name(std::get<0>(GetParam())) << "  "  //

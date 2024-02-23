@@ -311,7 +311,7 @@ void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
     ball->SetInertiaXX(inertia_b);
     ball->SetPos(ChVector3d(0, 0, z + r_g + R_b));
     ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    ball->SetPos_dt(ChVector3d(0, 0, -vz));
+    ball->SetPosDer(ChVector3d(0, 0, -vz));
     ball->SetCollide(true);
     ball->SetBodyFixed(false);
 
@@ -352,7 +352,7 @@ bool CheckSettled(ChSystem* sys, double threshold) {
 
     for (auto body : sys->GetBodies()) {
         if (body->GetIdentifier() > 0) {
-            double vel2 = body->GetPos_dt().Length2();
+            double vel2 = body->GetPosDer().Length2();
             if (vel2 > t2)
                 return false;
         }
@@ -450,7 +450,7 @@ int main(int argc, char* argv[]) {
         ball = sys->GetBodies().at(0);
         ball->SetPos(ChVector3d(0, 0, z + r_g + R_b));
         ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-        ball->SetPos_dt(ChVector3d(0, 0, -vz));
+        ball->SetPosDer(ChVector3d(0, 0, -vz));
         ball->SetBodyFixed(false);
     }
 

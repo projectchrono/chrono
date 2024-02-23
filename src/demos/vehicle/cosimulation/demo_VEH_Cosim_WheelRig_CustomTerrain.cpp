@@ -195,9 +195,9 @@ void MyTerrain::OnRender() {
 
 void MyTerrain::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     m_bodies[i]->SetPos(rigid_state.pos);
-    m_bodies[i]->SetPos_dt(rigid_state.lin_vel);
+    m_bodies[i]->SetPosDer(rigid_state.lin_vel);
     m_bodies[i]->SetRot(rigid_state.rot);
-    m_bodies[i]->SetWvel_par(rigid_state.ang_vel);
+    m_bodies[i]->SetAngVelParent(rigid_state.ang_vel);
 }
 
 void MyTerrain::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {

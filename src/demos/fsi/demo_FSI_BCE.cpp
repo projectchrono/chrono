@@ -44,9 +44,9 @@ int main(int argc, char* argv[]) {
 
     auto body = chrono_types::make_shared<ChBody>();
     body->SetPos(ChVector3d(-1, -2, -3));
-    body->SetPos_dt(ChVector3d(0.2, 0.3, 0.4));
+    body->SetPosDer(ChVector3d(0.2, 0.3, 0.4));
     body->SetRot(QuatFromAngleY(CH_C_PI / 4));
-    body->SetWvel_loc(ChVector3d(0.1, -0.1, 0.2));
+    body->SetAngVelLocal(ChVector3d(0.1, -0.1, 0.2));
 
     ChFrame<> frame(ChVector3d(1, 2, 3), QuatFromAngleX(CH_C_PI / 8));
     thrust::host_vector<Real4> bce;

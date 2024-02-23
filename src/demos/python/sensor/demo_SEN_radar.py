@@ -47,7 +47,7 @@ def main():
         z = 0
         box = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 1000, True, False)
         box.SetPos(chrono.ChVector3d(5+x, y, z))
-        box.SetPos_dt(chrono.ChVector3d(-0.5, 0, 0))
+        box.SetPosDer(chrono.ChVector3d(-0.5, 0, 0))
         box.GetVisualShape(0).SetMaterial(0, red)
         mphysicalSystem.Add(box)
     
@@ -57,7 +57,7 @@ def main():
         z = 0
         box = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 1000, True, False)
         box.SetPos(chrono.ChVector3d(10-x, y, z))
-        box.SetPos_dt(chrono.ChVector3d(0.5, 0, 0))
+        box.SetPosDer(chrono.ChVector3d(0.5, 0, 0))
         box.GetVisualShape(0).SetMaterial(0, red)
         mphysicalSystem.Add(box)
 

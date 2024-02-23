@@ -174,8 +174,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set inertia
     wheel->SetMass(total_mass * 1.0 / 2.0);
     wheel->SetInertiaXX(mdensity * principal_I);
-    wheel->SetPos_dt(wheel_IniVel);
-    wheel->SetWvel_loc(ChVector3d(0.0, 0.0, 0.0));  // set an initial anular velocity (rad/s)
+    wheel->SetPosDer(wheel_IniVel);
+    wheel->SetAngVelLocal(ChVector3d(0.0, 0.0, 0.0));  // set an initial anular velocity (rad/s)
 
     // Set the absolute position of the body:
     wheel->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(wheel_IniPos), ChQuaternion<>(wheel_Rot)));
@@ -342,8 +342,8 @@ int main(int argc, char* argv[]) {
     ChVector3d force = actuator->Get_react_force();
     ChVector3d torque = motor->Get_react_torque();
     ChVector3d w_pos = wheel->GetPos();
-    ChVector3d w_vel = wheel->GetPos_dt();
-    ChVector3d angvel = wheel->GetWvel_loc();
+    ChVector3d w_vel = wheel->GetPosDer();
+    ChVector3d angvel = wheel->GetAngVelLocal();
 
     // Save wheel mesh
     ChTriangleMeshConnected wheel_mesh;
@@ -384,8 +384,8 @@ int main(int argc, char* argv[]) {
         force = actuator->Get_react_force();
         torque = motor->Get_react_torque();
         w_pos = wheel->GetPos();
-        w_vel = wheel->GetPos_dt();
-        angvel = wheel->GetWvel_loc();
+        w_vel = wheel->GetPosDer();
+        angvel = wheel->GetAngVelLocal();
 
         if (verbose) {
             std::cout << "time: " << time << std::endl;

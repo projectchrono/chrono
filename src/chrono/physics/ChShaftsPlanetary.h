@@ -111,11 +111,11 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     ChShaft* GetShaft3() { return shaft3; }
 
     /// Return the speed of the first shaft (carrier wheel).
-    double GetSpeedShaft1() const { return shaft1->GetPos_dt(); }
+    double GetSpeedShaft1() const { return shaft1->GetPosDer(); }
     /// Return the speed of the second shaft.
-    double GetSpeedShaft2() const { return shaft2->GetPos_dt(); }
+    double GetSpeedShaft2() const { return shaft2->GetPosDer(); }
     /// Return the speed of the third shaft.
-    double GetSpeedShaft3() const { return shaft3->GetPos_dt(); }
+    double GetSpeedShaft3() const { return shaft3->GetPosDer(); }
 
     /// Set the transmission ratios r1 r2 r3 as in
     ///     r1*w1 + r2*w2 + r3*w3 = 0

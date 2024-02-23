@@ -57,8 +57,8 @@ class TrackedVehicleDBPDriver : public ChDriver {
         m_braking = 0;
 
         double ang_speed = m_func->GetVal(time);
-        m_vehicle->GetTrackAssembly(VehicleSide::LEFT)->GetSprocket()->GetAxle()->SetPos_dt(ang_speed);
-        m_vehicle->GetTrackAssembly(VehicleSide::RIGHT)->GetSprocket()->GetAxle()->SetPos_dt(ang_speed);
+        m_vehicle->GetTrackAssembly(VehicleSide::LEFT)->GetSprocket()->GetAxle()->SetPosDer(ang_speed);
+        m_vehicle->GetTrackAssembly(VehicleSide::RIGHT)->GetSprocket()->GetAxle()->SetPosDer(ang_speed);
     }
 
     std::shared_ptr<ChTrackedVehicle> m_vehicle;
@@ -291,13 +291,13 @@ void ChVehicleCosimTrackedVehicleNode::WriteBodyInformation(utils::CSV_writer& c
 
         // Write body state information
         auto chassis = m_vehicle->GetChassisBody();
-        csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPos_dt() << chassis->GetRot_dt() << endl;
+        csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPosDer() << chassis->GetRotDer() << endl;
 
         for (auto& axle : m_vehicle->GetAxles()) {
             for (auto& wheel : axle->GetWheels()) {
                 auto spindle_body = wheel->GetSpindle();
-                csv << spindle_body->GetPos() << spindle_body->GetRot() << spindle_body->GetPos_dt()
-                    << spindle_body->GetRot_dt() << endl;
+                csv << spindle_body->GetPos() << spindle_body->GetRot() << spindle_body->GetPosDer()
+                    << spindle_body->GetRotDer() << endl;
             }
         }
     */

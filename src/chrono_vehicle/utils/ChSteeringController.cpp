@@ -350,7 +350,7 @@ double ChPathSteeringControllerXT::CalcAckermannAngle() {
 double ChPathSteeringControllerXT::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
     // Calculate current "sentinel" location.  This is a point at the look-ahead distance in front of the vehicle.
     m_sentinel = ref_frame.TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
-    m_vel = ref_frame.GetPos_dt();
+    m_vel = ref_frame.GetPosDer();
 
     if (!m_filters_initialized) {
         // first time we know about step size
@@ -537,7 +537,7 @@ void ChPathSteeringControllerSR::SetPreviewTime(double Tp) {
 double ChPathSteeringControllerSR::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
     const double g = 9.81;
 
-    double u = Vdot(ref_frame.GetPos_dt(), ref_frame.GetRotMat().GetAxisX()); // vehicle forward speed
+    double u = Vdot(ref_frame.GetPosDer(), ref_frame.GetRotMat().GetAxisX()); // vehicle forward speed
 
     // Calculate unit vector pointing to the yaw center
     ChVector3d n_g = ref_frame.GetRotMat().GetAxisY();  // vehicle left direction (ISO frame)
@@ -685,7 +685,7 @@ double ChPathSteeringControllerStanley::Advance(const ChFrameMoving<>& ref_frame
         m_delayFilter = std::shared_ptr<utils::ChFilterPT1>(new utils::ChFilterPT1(step, m_Tdelay));
     }
 
-    double u = Vdot(ref_frame.GetPos_dt(), ref_frame.GetRotMat().GetAxisX());  // vehicle forward speed
+    double u = Vdot(ref_frame.GetPosDer(), ref_frame.GetRotMat().GetAxisX());  // vehicle forward speed
 
     // Calculate current "sentinel" location.  This is a point at the look-ahead distance in front of the vehicle.
     m_sentinel = ref_frame.TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());

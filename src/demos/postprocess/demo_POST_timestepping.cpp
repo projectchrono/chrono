@@ -767,7 +767,7 @@ void example5(const std::string& out_dir) {
     my_body_B->SetMass(2.0);
     my_body_B->SetInertiaXX(ChVector3d(1e-7, 1e-7, 1e-7));  // to approximate point-like mass as in MyIntegrable
     my_body_B->SetPos(ChVector3d(0, -5, 0));
-    my_body_B->SetPos_dt(ChVector3d(0.8, 0, 0));
+    my_body_B->SetPosDer(ChVector3d(0.8, 0, 0));
 
     auto my_link_AB = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>());
@@ -805,7 +805,7 @@ void example5(const std::string& out_dir) {
                   << mystepper5.get_X()(1) << ", " << mystepper5.get_V()(0) << ", " << mystepper5.get_V()(1) << ", "
                   << mystepper6.get_X()(0) << ", " << mystepper6.get_X()(1) << ", " << mystepper6.get_V()(0) << ", "
                   << mystepper6.get_V()(1) << ", " << my_body_B->GetPos().x() << ", " << my_body_B->GetPos().y() << ", "
-                  << my_body_B->GetPos_dt().x() << ", " << my_body_B->GetPos_dt().y() << std::endl;
+                  << my_body_B->GetPosDer().x() << ", " << my_body_B->GetPosDer().y() << std::endl;
         log_file5r << mystepper1.GetTime() << ", " << mystepper1.get_L()(0) << ", " << mystepper2.get_L()(0) << ", "
                    << mystepper3.get_L()(0) << ", " << mystepper4.get_L()(0) << ", " << mystepper5.get_L()(0) << ", "
                    << mystepper6.get_L()(0) << ", " << my_link_AB->Get_react_force().y() << std::endl;

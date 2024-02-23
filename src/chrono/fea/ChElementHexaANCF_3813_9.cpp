@@ -2617,7 +2617,7 @@ void ChElementHexaANCF_3813_9::LoadableGetStateBlock_x(int block_offset, ChState
 // Get all the DOFs packed in a single vector (speed part).
 void ChElementHexaANCF_3813_9::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     for (int i = 0; i < 8; i++) {
-        mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPos_dt().eigen();
+        mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPosDer().eigen();
     }
     mD.segment(block_offset + 24, 3) = m_central_node->GetCurvatureXX_dt().eigen();
     mD.segment(block_offset + 27, 3) = m_central_node->GetCurvatureYY_dt().eigen();
@@ -2849,7 +2849,7 @@ void ChElementHexaANCF_3813_9::CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d) {
 
 void ChElementHexaANCF_3813_9::CalcCoordDerivMatrix(ChVectorN<double, 33>& dt) {
     for (int i = 0; i < 8; i++) {
-        const ChVector3d& vel = m_nodes[i]->GetPos_dt();
+        const ChVector3d& vel = m_nodes[i]->GetPosDer();
         dt(3 * i + 0) = vel.x();
         dt(3 * i + 1) = vel.y();
         dt(3 * i + 2) = vel.z();

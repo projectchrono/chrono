@@ -191,7 +191,7 @@ void ChMeshExporter::WriteFrame(std::shared_ptr<ChMesh> mesh,
 
     out_stream << "VECTORS Velocity float\n";
     for (unsigned int i = 0; i < mesh->GetNnodes(); i++) {
-        ChVector3d vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i))->GetPos_dt();
+        ChVector3d vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i))->GetPosDer();
         vel += ChVector3d(1e-20);
         out_stream << (double)vel.x() << " " << (double)vel.y() << " " << (double)vel.z() << "\n";
     }
@@ -199,7 +199,7 @@ void ChMeshExporter::WriteFrame(std::shared_ptr<ChMesh> mesh,
     out_stream << "VECTORS Acceleration float\n";
 
     for (unsigned int i = 0; i < mesh->GetNnodes(); i++) {
-        ChVector3d acc = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i))->GetPos_dtdt();
+        ChVector3d acc = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i))->GetPosDer2();
         acc += ChVector3d(1e-20);
         out_stream << (double)acc.x() << " " << (double)acc.y() << " " << (double)acc.z() << "\n";
     }

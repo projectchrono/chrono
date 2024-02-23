@@ -157,16 +157,16 @@ void ChElementBeamEuler::GetField_dt(ChVectorDynamic<>& mD_dt) {
     mD_dt.resize(12);
 
     // Node 0, velocity (in local element frame, corotated back by A' )
-    mD_dt.segment(0, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos_dt()).eigen();
+    mD_dt.segment(0, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPosDer()).eigen();
 
     // Node 0, x,y,z ang.velocity (in local element frame, corotated back by A' )
-    mD_dt.segment(3, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetWvel_par()).eigen();
+    mD_dt.segment(3, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetAngVelParent()).eigen();
 
     // Node 1, velocity (in local element frame, corotated back by A' )
-    mD_dt.segment(6, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos_dt()).eigen();
+    mD_dt.segment(6, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPosDer()).eigen();
 
     // Node 1, x,y,z ang.velocity (in local element frame, corotated back by A' )
-    mD_dt.segment(9, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetWvel_par()).eigen();
+    mD_dt.segment(9, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetAngVelParent()).eigen();
 }
 
 // This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
@@ -522,41 +522,41 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
             H.block(0, 0, 12, 12) = -H_num * Kfactor;
 
             // R
-            ChVector3d va0 = this->GetNodeA()->GetPos_dt();
-            ChVector3d wa0 = this->GetNodeA()->GetWvel_loc();
-            ChVector3d vb0 = this->GetNodeB()->GetPos_dt();
-            ChVector3d wb0 = this->GetNodeB()->GetWvel_loc();
+            ChVector3d va0 = this->GetNodeA()->GetPosDer();
+            ChVector3d wa0 = this->GetNodeA()->GetAngVelLocal();
+            ChVector3d vb0 = this->GetNodeB()->GetPosDer();
+            ChVector3d wb0 = this->GetNodeB()->GetAngVelLocal();
             for (int i = 0; i < 3; ++i) {
                 ChVector3d vaD = va0;
                 vaD[i] += delta_p;
-                this->GetNodeA()->SetPos_dt(vaD);
+                this->GetNodeA()->SetPosDer(vaD);
                 this->ComputeInternalForces(FiD);
                 H_num.block<12, 1>(0, i) = (FiD - Fi0) / delta_p;
-                this->GetNodeA()->SetPos_dt(va0);
+                this->GetNodeA()->SetPosDer(va0);
             }
             for (int i = 0; i < 3; ++i) {
                 ChVector3d waD = wa0;
                 waD[i] += delta_r;
-                this->GetNodeA()->SetWvel_loc(waD);
+                this->GetNodeA()->SetAngVelLocal(waD);
                 this->ComputeInternalForces(FiD);
                 H_num.block<12, 1>(0, i + 3) = (FiD - Fi0) / delta_r;
-                this->GetNodeA()->SetWvel_loc(wa0);
+                this->GetNodeA()->SetAngVelLocal(wa0);
             }
             for (int i = 0; i < 3; ++i) {
                 ChVector3d vbD = vb0;
                 vbD[i] += delta_p;
-                this->GetNodeB()->SetPos_dt(vbD);
+                this->GetNodeB()->SetPosDer(vbD);
                 this->ComputeInternalForces(FiD);
                 H_num.block<12, 1>(0, i + 6) = (FiD - Fi0) / delta_p;
-                this->GetNodeB()->SetPos_dt(vb0);
+                this->GetNodeB()->SetPosDer(vb0);
             }
             for (int i = 0; i < 3; ++i) {
                 ChVector3d wbD = wb0;
                 wbD[i] += delta_r;
-                this->GetNodeB()->SetWvel_loc(wbD);
+                this->GetNodeB()->SetAngVelLocal(wbD);
                 this->ComputeInternalForces(FiD);
                 H_num.block<12, 1>(0, i + 9) = (FiD - Fi0) / delta_r;
-                this->GetNodeB()->SetWvel_loc(wb0);
+                this->GetNodeB()->SetAngVelLocal(wb0);
             }
             H.block(0, 0, 12, 12) += -H_num * Rfactor;
 
@@ -631,14 +631,14 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
                 for (int i = 0; i < nodes.size(); ++i) {
                     int stride = i * 6;
                     if (this->section->compute_inertia_damping_matrix) {
-                        this->section->ComputeInertiaDampingMatrix(matr_loc, nodes[i]->GetWvel_loc());
+                        this->section->ComputeInertiaDampingMatrix(matr_loc, nodes[i]->GetAngVelLocal());
                         KRi_loc += matr_loc * node_multiplier_fact_R;
                     }
                     if (this->section->compute_inertia_stiffness_matrix) {
                         this->section->ComputeInertiaStiffnessMatrix(
-                            matr_loc, nodes[i]->GetWvel_loc(), nodes[i]->GetWacc_loc(),
+                            matr_loc, nodes[i]->GetAngVelLocal(), nodes[i]->GetAngAccLocal(),
                             (nodes[i]->GetRotMat().transpose()) *
-                                nodes[i]->GetPos_dtdt());  // assume x_dtdt in local frame!
+                                nodes[i]->GetPosDer2());  // assume x_dtdt in local frame!
                         KRi_loc += matr_loc * node_multiplier_fact_K;
                     }
                     // corotate the local damping and stiffness matrices (at once, already scaled) into absolute one
@@ -777,7 +777,7 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChVector3d mFcent_i;
     ChVector3d mTgyro_i;
     for (int i = 0; i < nodes.size(); ++i) {
-        this->section->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
+        this->section->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetAngVelLocal());
         Fi.segment(i * 6, 3) -= node_multiplier * (nodes[i]->GetRotMat() * mFcent_i).eigen();
         Fi.segment(3 + i * 6, 3) -= node_multiplier * mTgyro_i.eigen();
     }
@@ -999,11 +999,11 @@ void ChElementBeamEuler::LoadableGetStateBlock_x(int block_offset, ChState& mD) 
 }
 
 void ChElementBeamEuler::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = nodes[0]->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = nodes[0]->GetWvel_loc().eigen();
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPosDer().eigen();
+    mD.segment(block_offset + 3, 3) = nodes[0]->GetAngVelLocal().eigen();
 
-    mD.segment(block_offset + 6, 3) = nodes[1]->GetPos_dt().eigen();
-    mD.segment(block_offset + 9, 3) = nodes[1]->GetWvel_loc().eigen();
+    mD.segment(block_offset + 6, 3) = nodes[1]->GetPosDer().eigen();
+    mD.segment(block_offset + 9, 3) = nodes[1]->GetAngVelLocal().eigen();
 }
 
 void ChElementBeamEuler::LoadableStateIncrement(const unsigned int off_x,

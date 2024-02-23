@@ -82,7 +82,7 @@ void create_wall_bodies(ChSystemNSC& sys) {
                                                                   mat);  // contact material
     mrigidBall->SetPos(ChVector3d(0, -2, 0));
     mrigidBall->SetPos(ChVector3d(0, 3, -8));
-    mrigidBall->SetPos_dt(ChVector3d(0, 0, 16));  // set initial speed
+    mrigidBall->SetPosDer(ChVector3d(0, 0, 16));  // set initial speed
     mrigidBall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     sys.Add(mrigidBall);
 }
@@ -149,7 +149,7 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
                                                                   true,  // collision?
                                                                   mat);  // contact material
     mrigidBall->SetPos(ChVector3d(0, 3, -8));
-    mrigidBall->SetPos_dt(ChVector3d(0, 0, 2));  // set initial speed
+    mrigidBall->SetPosDer(ChVector3d(0, 0, 2));  // set initial speed
     mrigidBall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     sys.Add(mrigidBall);
 }

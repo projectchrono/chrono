@@ -189,8 +189,8 @@ void SynchronizeTires(double time, FmuChronoUnit& vehicle_fmu, ChTerrain& terrai
         auto spindle = wt[i].wheel->GetSpindle();
         spindle->SetPos(state.pos);
         spindle->SetRot(state.rot);
-        spindle->SetPos_dt(state.lin_vel);
-        spindle->SetWvel_par(state.ang_vel);
+        spindle->SetLinVel(state.lin_vel);
+        spindle->SetAngVelParent(state.ang_vel);
         wt[i].tire->Synchronize(time, terrain);
 
         // Set tire force to vehicle FMU

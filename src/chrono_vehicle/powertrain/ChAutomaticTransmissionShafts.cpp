@@ -123,7 +123,7 @@ void ChAutomaticTransmissionShafts::Synchronize(double time,
                                                 double driveshaft_speed) {
     // Enforce inputs from engine (torque) and driveline (speed)
     m_motorshaft->SetAppliedTorque(motorshaft_torque);
-    m_driveshaft->SetPos_dt(driveshaft_speed);
+    m_driveshaft->SetPosDer(driveshaft_speed);
 
     // To avoid bursts of gear shifts, do nothing if the last shift was too recent
     if (time - m_last_time_gearshift < m_gear_shift_latency)
@@ -131,7 +131,7 @@ void ChAutomaticTransmissionShafts::Synchronize(double time,
 
     // Automatic gear selection (fixed latency state machine)
     if (m_shift_mode == ShiftMode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD) {
-        double gearshaft_speed = m_shaft_ingear->GetPos_dt();
+        double gearshaft_speed = m_shaft_ingear->GetPosDer();
         if (gearshaft_speed > m_upshift_speed) {
             // upshift if possible
             if (m_current_gear < GetMaxGear()) {
@@ -153,7 +153,7 @@ double ChAutomaticTransmissionShafts::GetOutputDriveshaftTorque() const {
 }
 
 double ChAutomaticTransmissionShafts::GetOutputMotorshaftSpeed() const {
-    return m_motorshaft->GetPos_dt();
+    return m_motorshaft->GetPosDer();
 }
 
 }  // end namespace vehicle

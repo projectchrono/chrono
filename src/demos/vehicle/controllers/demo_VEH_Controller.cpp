@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         // Extract system state
         double time = hmmwv.GetSystem()->GetChTime();
-        ChVector3d acc_CG = hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
+        ChVector3d acc_CG = hmmwv.GetVehicle().GetChassisBody()->GetPosDer2();
         ChVector3d acc_driver = hmmwv.GetVehicle().GetPointAcceleration(driver_pos);
         double fwd_acc_CG = fwd_acc_GC_filter.Add(acc_CG.x());
         double lat_acc_CG = lat_acc_GC_filter.Add(acc_CG.y());

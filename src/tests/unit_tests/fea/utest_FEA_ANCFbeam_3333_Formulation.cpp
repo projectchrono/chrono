@@ -409,8 +409,8 @@ bool ANCFBeamTest::GeneralizedInternalForceNoDispSmallVelCheck(int msglvl) {
         return false;
 
     // Setup the test conditions
-    ChVector3d OriginalVel = m_nodeC->GetPos_dt();
-    m_nodeC->SetPos_dt(ChVector3d(0.0, 0.0, 0.001));
+    ChVector3d OriginalVel = m_nodeC->GetPosDer();
+    m_nodeC->SetPosDer(ChVector3d(0.0, 0.0, 0.001));
     m_element->SetAlphaDamp(0.01);
 
     ChVectorDynamic<double> InternalForceNoDispSmallVel;
@@ -418,7 +418,7 @@ bool ANCFBeamTest::GeneralizedInternalForceNoDispSmallVelCheck(int msglvl) {
     m_element->ComputeInternalForces(InternalForceNoDispSmallVel);
 
     // Reset the element conditions back to its original values
-    m_nodeC->SetPos_dt(OriginalVel);
+    m_nodeC->SetPosDer(OriginalVel);
     m_element->SetAlphaDamp(0.0);
 
     double MaxAbsError = (InternalForceNoDispSmallVel - Expected_InternalForceNoDispSmallVel).cwiseAbs().maxCoeff();
@@ -1052,8 +1052,8 @@ bool ANCFBeamTest::JacobianNoDispSmallVelWithDampingCheck(int msglvl) {
         Expected_Jacobians.block(Expected_Jacobians.cols(), 0, Expected_Jacobians.cols(), Expected_Jacobians.cols());
 
     // Setup the test conditions
-    ChVector3d OriginalVel = m_nodeC->GetPos_dt();
-    m_nodeC->SetPos_dt(ChVector3d(0.0, 0.0, 0.001));
+    ChVector3d OriginalVel = m_nodeC->GetPosDer();
+    m_nodeC->SetPosDer(ChVector3d(0.0, 0.0, 0.001));
     m_element->SetAlphaDamp(0.01);
 
     // Ensure that the internal force is recalculated in case the results are expected
@@ -1071,7 +1071,7 @@ bool ANCFBeamTest::JacobianNoDispSmallVelWithDampingCheck(int msglvl) {
     m_element->ComputeKRMmatricesGlobal(JacobianR_NoDispSmallVelWithDamping, 0, 1, 0);
 
     // Reset the element conditions back to its original values
-    m_nodeC->SetPos_dt(OriginalVel);
+    m_nodeC->SetPosDer(OriginalVel);
     m_element->SetAlphaDamp(0.0);
 
     double small_terms_JacK = 1e-4 * Expected_JacobianK_NoDispSmallVelWithDamping.cwiseAbs().maxCoeff();

@@ -100,8 +100,8 @@ void ChLinkMotorRotation::Update(double mytime, bool update_assets) {
     if (fabs(new_rot - CH_C_2PI - last_rot) < fabs(new_rot - last_rot))
         this->mrot = last_turns + new_rot - CH_C_2PI;
 
-    this->mrot_dt = aframe12.GetWvel_loc().z();
-    this->mrot_dtdt = aframe12.GetWacc_loc().z();
+    this->mrot_dt = aframe12.GetAngVelLocal().z();
+    this->mrot_dtdt = aframe12.GetAngAccLocal().z();
 }
 
 void ChLinkMotorRotation::ArchiveOut(ChArchiveOut& archive_out) {

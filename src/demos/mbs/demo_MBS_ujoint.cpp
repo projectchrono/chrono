@@ -184,8 +184,8 @@ int main(int argc, char* argv[]) {
 
         if (frame % 20 == 0) {
             // Output the shaft angular velocities at the current time
-            double omega_1 = shaft_1->GetWvel_loc().z();
-            double omega_2 = shaft_2->GetWvel_loc().z();
+            double omega_1 = shaft_1->GetAngVelLocal().z();
+            double omega_2 = shaft_2->GetAngVelLocal().z();
             std::cout << sys.GetChTime() << "   " << omega_1 << "   " << omega_2 << "\n";
         }
 

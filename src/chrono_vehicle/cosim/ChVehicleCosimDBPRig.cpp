@@ -200,7 +200,7 @@ void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chas
     carrier->SetInertiaXX(ChVector3d(1, 1, 1));
     carrier->SetPos(chassis->GetPos());
     carrier->SetRot(QUNIT);
-    carrier->SetPos_dt(ChVector3d(m_lin_vel, 0, 0));
+    carrier->SetPosDer(ChVector3d(m_lin_vel, 0, 0));
     chassis->GetSystem()->AddBody(carrier);
 
     // Connect chassis body to connector using a vertical prismatic joint
@@ -282,13 +282,13 @@ std::shared_ptr<ChFunction> ChVehicleCosimDBPRigImposedAngVel::GetMotorFunction(
 }
 
 double ChVehicleCosimDBPRigImposedAngVel::GetSlip() const {
-    double lin_vel = m_carrier->GetPos_dt().x();
+    double lin_vel = m_carrier->GetPosDer().x();
     double slip = 1 - lin_vel / (m_ang_vel * m_tire_radius);
     return slip;
 }
 
 double ChVehicleCosimDBPRigImposedAngVel::GetLinVel() const {
-    return m_carrier->GetPos_dt().x();
+    return m_carrier->GetPosDer().x();
 }
 
 double ChVehicleCosimDBPRigImposedAngVel::GetDBP() const {

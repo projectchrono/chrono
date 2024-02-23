@@ -763,7 +763,7 @@ void ShellBrickContact() {
         std::cout << nodetip1->GetPos().x() << std::endl;
         std::cout << nodetip1->GetPos().y() << std::endl;
         std::cout << nodetip1->GetPos().z() << std::endl;
-        std::cout << nodetip1->GetPos_dt().z() << std::endl;
+        std::cout << nodetip1->GetPosDer().z() << std::endl;
 
         fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         for (int in = 0; in < XYNumNodes; in++) {
@@ -959,7 +959,7 @@ void SimpleBoxContact() {
     Plate->SetBodyFixed(true);
     Plate->SetPos(ChVector3d(0.025, 0.025, -0.0015 - plate_h / 2));
     Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
-    // Plate->SetPos_dt(ChVector3d(0.0, 0.0, -0.1));
+    // Plate->SetPosDer(ChVector3d(0.0, 0.0, -0.1));
 
     sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
 
@@ -1048,12 +1048,12 @@ void SimpleBoxContact() {
         // std::cout << "t = " << sys.GetChTime() << std::endl;
         // std::cout << "Last it: " << mystepper->GetNumIterations() << std::endl;
         // std::cout << "Plate Pos: " << Plate->GetPos();
-        // std::cout << "Plate Vel: " << Plate->GetPos_dt();
+        // std::cout << "Plate Vel: " << Plate->GetPosDer();
         // std::cout << "Body Contact F: " << Plate->GetContactForce() << std::endl;
         // std::cout << nodetip1->GetPos().x() << std::endl;
         // std::cout << nodetip1->GetPos().y() << std::endl;
         // std::cout << nodetip1->GetPos().z() << std::endl;
-        // std::cout << nodetip1->GetPos_dt().z() << std::endl;
+        // std::cout << nodetip1->GetPosDer().z() << std::endl;
         fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         for (int in = 0; in < XYNumNodes; in++) {
             auto nodetest = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(in));
@@ -1253,8 +1253,8 @@ void SoilBin() {
     Plate->SetBodyFixed(false);
     Plate->SetPos(ChVector3d(0.2, 0.2, 0.6001 + plate_h / 2));
     Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
-    Plate->SetPos_dt(ChVector3d(0.0, 0.0, 0.0));
-    Plate->SetRot_dt(ChQuaternion<>(0.0, 0.0, 0.0, 0.0));
+    Plate->SetPosDer(ChVector3d(0.0, 0.0, 0.0));
+    Plate->SetRotDer(ChQuaternion<>(0.0, 0.0, 0.0, 0.0));
     Plate->SetMass(1.2265625);
 
     //// Create ground body
@@ -1381,9 +1381,9 @@ void SoilBin() {
         std::cout << "t = " << time << std::endl;
         std::cout << "   Last it: " << mystepper->GetNumIterations() << std::endl;
         std::cout << "   Plate Pos: " << Plate->GetPos() << std::endl;
-        std::cout << "   Plate Vel: " << Plate->GetPos_dt() << std::endl;
+        std::cout << "   Plate Vel: " << Plate->GetPosDer() << std::endl;
         std::cout << "   Plate Rot: " << Plate->GetRot() << std::endl;
-        std::cout << "   Plate Rot_v: " << Plate->GetRot_dt() << std::endl;
+        std::cout << "   Plate Rot_v: " << Plate->GetRotDer() << std::endl;
         std::cout << "   Body Contact F: " << Plate->GetContactForce() << std::endl;
         std::cout << "   Center node pos: " << nodecenter->GetPos() << std::endl;
 

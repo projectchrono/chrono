@@ -35,9 +35,9 @@ class ChApi ChShaftsMotorBase : public ChShaftsCouple {
     /// Get the actual angle rotation [rad] of the motor, in terms of phase of shaft 1 respect to 2.
     virtual double GetMotorRot() const { return (shaft1->GetPos() - shaft2->GetPos()); }
     /// Get the actual speed [rad/s] of the motor, in terms of speed of shaft 1 respect to 2.
-    virtual double GetMotorRot_dt() const { return (shaft1->GetPos_dt() - shaft2->GetPos_dt()); }
+    virtual double GetMotorRot_dt() const { return (shaft1->GetPosDer() - shaft2->GetPosDer()); }
     /// Get the actual acceleration [rad/s^2] of the motor, in terms of accel. of shaft 1 respect to 2.
-    virtual double GetMotorRot_dtdt() const { return (shaft1->GetPos_dtdt() - shaft2->GetPos_dtdt()); }
+    virtual double GetMotorRot_dtdt() const { return (shaft1->GetPosDer2() - shaft2->GetPosDer2()); }
 
     /// In case of multi-turns, gets the current actuator number of (integer) rotations:
     virtual int GetMotorRotTurns() const { return int(GetMotorRot() / CH_C_2PI); }

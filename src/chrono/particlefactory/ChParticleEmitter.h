@@ -136,13 +136,13 @@ class ChParticleEmitter {
             // in case everything is transformed
             if (inherit_owner_speed) {
                 mv_abs = pre_transform.PointSpeedLocalToParent(mcoords.pos, mv_loc);
-                mw_abs = pre_transform.TransformDirectionLocalToParent(mw_loc) + pre_transform.GetWvel_par();
+                mw_abs = pre_transform.TransformDirectionLocalToParent(mw_loc) + pre_transform.GetAngVelParent();
             } else {
                 mv_abs = pre_transform.TransformDirectionLocalToParent(mv_loc);
                 mw_abs = pre_transform.TransformDirectionLocalToParent(mw_loc);
             }
-            mbody->SetPos_dt(mv_abs);
-            mbody->SetWvel_par(mw_abs);
+            mbody->SetPosDer(mv_abs);
+            mbody->SetAngVelParent(mw_abs);
 
             if (this->jitter_declustering) {
                 // jitter term: high speed jet clustering

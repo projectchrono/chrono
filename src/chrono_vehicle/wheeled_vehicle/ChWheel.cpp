@@ -120,8 +120,8 @@ WheelState ChWheel::GetState() const {
     m_spindle->TransformLocalToParent(wheel_loc, wheel_abs);
     state.pos = wheel_abs.GetPos();
     state.rot = wheel_abs.GetRot();
-    state.lin_vel = wheel_abs.GetPos_dt();
-    state.ang_vel = wheel_abs.GetWvel_par();
+    state.lin_vel = wheel_abs.GetPosDer();
+    state.ang_vel = wheel_abs.GetAngVelParent();
 
     ChVector3d ang_vel_loc = state.rot.RotateBack(state.ang_vel);
     state.omega = ang_vel_loc.y();

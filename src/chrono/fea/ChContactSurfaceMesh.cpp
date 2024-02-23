@@ -63,9 +63,9 @@ void ChContactTriangleXYZ::LoadableGetStateBlock_x(int block_offset, ChState& mD
 
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChContactTriangleXYZ::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPos_dt().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPos_dt().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPosDer().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPosDer().eigen();
 }
 
 /// Increment all DOFs using a delta.
@@ -309,14 +309,14 @@ void ChContactTriangleXYZROT::LoadableGetStateBlock_x(int block_offset, ChState&
 
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChContactTriangleXYZROT::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetWvel_loc().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetAngVelLocal().eigen();
 
-    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPos_dt().eigen();
-    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetWvel_loc().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDer().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetAngVelLocal().eigen();
 
-    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPos_dt().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetWvel_loc().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPosDer().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetAngVelLocal().eigen();
 }
 
 // Increment all DOFs using a delta.
@@ -349,14 +349,14 @@ void ChContactTriangleXYZROT::ContactableGetStateBlock_x(ChState& x) {
 }
 
 void ChContactTriangleXYZROT::ContactableGetStateBlock_w(ChStateDelta& w) {
-    w.segment(0, 3) = m_nodes[0]->GetPos_dt().eigen();
-    w.segment(3, 3) = m_nodes[0]->GetWvel_loc().eigen();
+    w.segment(0, 3) = m_nodes[0]->GetPosDer().eigen();
+    w.segment(3, 3) = m_nodes[0]->GetAngVelLocal().eigen();
 
-    w.segment(6, 3) = m_nodes[1]->GetPos_dt().eigen();
-    w.segment(9, 3) = m_nodes[1]->GetWvel_loc().eigen();
+    w.segment(6, 3) = m_nodes[1]->GetPosDer().eigen();
+    w.segment(9, 3) = m_nodes[1]->GetAngVelLocal().eigen();
 
-    w.segment(12, 3) = m_nodes[2]->GetPos_dt().eigen();
-    w.segment(15, 3) = m_nodes[2]->GetWvel_loc().eigen();
+    w.segment(12, 3) = m_nodes[2]->GetPosDer().eigen();
+    w.segment(15, 3) = m_nodes[2]->GetAngVelLocal().eigen();
 }
 
 void ChContactTriangleXYZROT::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
@@ -403,7 +403,7 @@ ChVector3d ChContactTriangleXYZROT::GetContactPointSpeed(const ChVector3d& abs_p
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
-    return (s1 * m_nodes[0]->GetPos_dt() + s2 * m_nodes[1]->GetPos_dt() + s3 * m_nodes[2]->GetPos_dt());
+    return (s1 * m_nodes[0]->GetPosDer() + s2 * m_nodes[1]->GetPosDer() + s3 * m_nodes[2]->GetPosDer());
 }
 
 void ChContactTriangleXYZROT::ContactForceLoadResidual_F(const ChVector3d& F,
@@ -1362,17 +1362,17 @@ void ChContactSurfaceMesh::OutputSimpleMesh(std::vector<ChVector3d>& vert_pos,
         for (const auto& tri : m_faces) {
             if (ptr_ind_map.insert({tri->GetNode(0).get(), vertex_index}).second) {
                 vert_pos.push_back(tri->GetNode(0)->GetPos());
-                vert_vel.push_back(tri->GetNode(0)->GetPos_dt());
+                vert_vel.push_back(tri->GetNode(0)->GetPosDer());
                 ++vertex_index;
             }
             if (ptr_ind_map.insert({tri->GetNode(1).get(), vertex_index}).second) {
                 vert_pos.push_back(tri->GetNode(1)->GetPos());
-                vert_vel.push_back(tri->GetNode(1)->GetPos_dt());
+                vert_vel.push_back(tri->GetNode(1)->GetPosDer());
                 ++vertex_index;
             }
             if (ptr_ind_map.insert({tri->GetNode(2).get(), vertex_index}).second) {
                 vert_pos.push_back(tri->GetNode(2)->GetPos());
-                vert_vel.push_back(tri->GetNode(2)->GetPos_dt());
+                vert_vel.push_back(tri->GetNode(2)->GetPosDer());
                 ++vertex_index;
             }
         }
@@ -1393,17 +1393,17 @@ void ChContactSurfaceMesh::OutputSimpleMesh(std::vector<ChVector3d>& vert_pos,
         for (const auto& tri : m_faces_rot) {
             if (ptr_ind_map.insert({tri->GetNode(0).get(), vertex_index}).second) {
                 vert_pos.push_back(tri->GetNode(0)->GetPos());
-                vert_vel.push_back(tri->GetNode(0)->GetPos_dt());
+                vert_vel.push_back(tri->GetNode(0)->GetPosDer());
                 ++vertex_index;
             }
             if (ptr_ind_map.insert({tri->GetNode(1).get(), vertex_index}).second) {
                 vert_pos.push_back(tri->GetNode(1)->GetPos());
-                vert_vel.push_back(tri->GetNode(1)->GetPos_dt());
+                vert_vel.push_back(tri->GetNode(1)->GetPosDer());
                 ++vertex_index;
             }
             if (ptr_ind_map.insert({tri->GetNode(2).get(), vertex_index}).second) {
                 vert_pos.push_back(tri->GetNode(2)->GetPos());
-                vert_vel.push_back(tri->GetNode(2)->GetPos_dt());
+                vert_vel.push_back(tri->GetNode(2)->GetPosDer());
                 ++vertex_index;
             }
         }

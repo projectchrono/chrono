@@ -97,7 +97,7 @@ class CH_VEHICLE_API ChShaftsDriveline6WD : public ChDrivelineWV {
 
     /// Return the output driveline speed of the driveshaft.
     /// This represents the output from the driveline subsystem that is passed to the transmission subsystem.
-    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft->GetPos_dt(); }
+    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft->GetPosDer(); }
 
   protected:
     /// Return the inertia of the driveshaft.

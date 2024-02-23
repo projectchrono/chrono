@@ -94,8 +94,8 @@ void ChBody::IntStateGather(const unsigned int off_x,  // offset in x state vect
 ) {
     x.segment(off_x + 0, 3) = GetPos().eigen();
     x.segment(off_x + 3, 4) = GetRot().eigen();
-    v.segment(off_v + 0, 3) = GetPos_dt().eigen();
-    v.segment(off_v + 3, 3) = GetWvel_loc().eigen();
+    v.segment(off_v + 0, 3) = GetPosDer().eigen();
+    v.segment(off_v + 3, 3) = GetAngVelLocal().eigen();
     T = GetChTime();
 }
 
@@ -107,20 +107,20 @@ void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vec
                              bool full_update           // perform complete update
 ) {
     SetCsys(x.segment(off_x, 7));
-    SetPos_dt(v.segment(off_v + 0, 3));
-    SetWvel_loc(v.segment(off_v + 3, 3));
+    SetPosDer(v.segment(off_v + 0, 3));
+    SetAngVelLocal(v.segment(off_v + 3, 3));
     SetChTime(T);
     Update(T, full_update);
 }
 
 void ChBody::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    a.segment(off_a + 0, 3) = GetPos_dtdt().eigen();
-    a.segment(off_a + 3, 3) = GetWacc_loc().eigen();
+    a.segment(off_a + 0, 3) = GetPosDer2().eigen();
+    a.segment(off_a + 3, 3) = GetAngAccLocal().eigen();
 }
 
 void ChBody::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    SetPos_dtdt(a.segment(off_a + 0, 3));
-    SetWacc_loc(a.segment(off_a + 3, 3));
+    SetPosDer2(a.segment(off_a + 0, 3));
+    SetAngAccLocal(a.segment(off_a + 3, 3));
 }
 
 void ChBody::IntStateIncrement(const unsigned int off_x,  // offset in x state vector
@@ -247,15 +247,15 @@ void ChBody::VariablesFbIncrementMq() {
 void ChBody::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
     variables.Get_qb().segment(0, 3) = GetCsysDer().pos.eigen();
-    variables.Get_qb().segment(3, 3) = GetWvel_loc().eigen();
+    variables.Get_qb().segment(3, 3) = GetAngVelLocal().eigen();
 }
 
 void ChBody::VariablesQbSetSpeed(double step) {
     ChCoordsys<> old_coord_dt = GetCsysDer();
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    SetPos_dt(variables.Get_qb().segment(0, 3));
-    SetWvel_loc(variables.Get_qb().segment(3, 3));
+    SetPosDer(variables.Get_qb().segment(0, 3));
+    SetAngVelLocal(variables.Get_qb().segment(3, 3));
 
     // apply limits (if in speed clamping mode) to speeds.
     ClampSpeed();
@@ -265,8 +265,8 @@ void ChBody::VariablesQbSetSpeed(double step) {
 
     // Compute accel. by BDF (approximate by differentiation);
     if (step) {
-        SetPos_dtdt((GetCsysDer().pos - old_coord_dt.pos) / step);
-        SetRot_dtdt((GetCsysDer().rot - old_coord_dt.rot) / step);
+        SetPosDer2((GetCsysDer().pos - old_coord_dt.pos) / step);
+        SetRotDer2((GetCsysDer().rot - old_coord_dt.rot) / step);
     }
 }
 
@@ -295,22 +295,22 @@ void ChBody::VariablesQbIncrementPosition(double dt_step) {
 }
 
 void ChBody::SetNoSpeedNoAcceleration() {
-    SetPos_dt(VNULL);
-    SetWvel_loc(VNULL);
-    SetPos_dtdt(VNULL);
-    SetRot_dtdt(QNULL);
+    SetPosDer(VNULL);
+    SetAngVelLocal(VNULL);
+    SetPosDer2(VNULL);
+    SetRotDer2(QNULL);
 }
 
 ////
 void ChBody::ClampSpeed() {
     if (GetLimitSpeed()) {
-        double w = 2.0 * GetRot_dt().Length();
+        double w = 2.0 * GetRotDer().Length();
         if (w > max_wvel)
-            GetRot_dt() *= max_wvel / w;
+            GetRotDer() *= max_wvel / w;
 
-        double v = GetPos_dt().Length();
+        double v = GetPosDer().Length();
         if (v > max_speed)
-            GetPos_dt() *= max_speed / v;
+            GetPosDer() *= max_speed / v;
     }
 }
 
@@ -412,7 +412,7 @@ void ChBody::Accumulate_torque(const ChVector3d& torque, bool local) {
 //////
 
 void ChBody::ComputeGyro() {
-    ChVector3d Wvel = GetWvel_loc();
+    ChVector3d Wvel = GetAngVelLocal();
     gyro = Vcross(Wvel, variables.GetBodyInertia() * Wvel);
 }
 
@@ -424,7 +424,7 @@ bool ChBody::TrySleeping() {
             return false;
 
         // if not yet sleeping:
-        if ((GetPos_dt().LengthInf() < sleep_minspeed) && (2.0 * GetRot_dt().LengthInf() < sleep_minwvel)) {
+        if ((GetPosDer().LengthInf() < sleep_minspeed) && (2.0 * GetRotDer().LengthInf() < sleep_minwvel)) {
             if ((GetChTime() - sleep_starttime) > sleep_time) {
                 BFlagSet(BodyFlag::COULDSLEEP, true);  // mark as sleep candidate
                 return true;                           // could go to sleep!
@@ -745,8 +745,8 @@ void ChBody::ContactableGetStateBlock_x(ChState& x) {
 }
 
 void ChBody::ContactableGetStateBlock_w(ChStateDelta& w) {
-    w.segment(0, 3) = GetPos_dt().eigen();
-    w.segment(3, 3) = GetWvel_loc().eigen();
+    w.segment(0, 3) = GetPosDer().eigen();
+    w.segment(3, 3) = GetAngVelLocal().eigen();
 }
 
 void ChBody::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
@@ -962,8 +962,8 @@ void ChBody::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
 }
 
 void ChBody::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = GetWvel_loc().eigen();
+    mD.segment(block_offset + 0, 3) = GetPosDer().eigen();
+    mD.segment(block_offset + 3, 3) = GetAngVelLocal().eigen();
 }
 
 void ChBody::ComputeNF(

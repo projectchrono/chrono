@@ -99,7 +99,7 @@ void ChSimpleDrivelineXWD::Synchronize(double time, const DriverInputs& driver_i
     // Set driveshaft speed (output to transmission)
     m_driveshaft_speed = 0;
     for (int i = 0; i < m_shaft_left.size(); i++) {
-        m_driveshaft_speed += alpha * 0.5 * (m_shaft_left[i]->GetPos_dt() + m_shaft_right[i]->GetPos_dt());
+        m_driveshaft_speed += alpha * 0.5 * (m_shaft_left[i]->GetPosDer() + m_shaft_right[i]->GetPosDer());
     }
 
     // Split the input torque over all driven axles.
@@ -111,8 +111,8 @@ void ChSimpleDrivelineXWD::Synchronize(double time, const DriverInputs& driver_i
     for (int axle = 0; axle < m_shaft_left.size(); axle++) {
         double torque_left;
         double torque_right;
-        differentialSplitXWD(torque_axle, GetDifferentialMaxBias(), m_shaft_left[axle]->GetPos_dt(),
-                             m_shaft_right[axle]->GetPos_dt(), torque_left, torque_right);
+        differentialSplitXWD(torque_axle, GetDifferentialMaxBias(), m_shaft_left[axle]->GetPosDer(),
+                             m_shaft_right[axle]->GetPosDer(), torque_left, torque_right);
         m_shaft_left[axle]->SetAppliedTorque(-torque_left);
         m_shaft_right[axle]->SetAppliedTorque(-torque_right);
     }

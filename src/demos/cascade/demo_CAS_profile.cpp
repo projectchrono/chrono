@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
         material                                                            // contact material
     );
     mgenevawheel->SetFrame_REF_to_abs(ChFrame<>(geneva_center));
-    mgenevawheel->SetWvel_loc(ChVector3d(0, 0, -0.08));
+    mgenevawheel->SetAngVelLocal(ChVector3d(0, 0, -0.08));
     sys.Add(mgenevawheel);
 
     // Do you need an additional profile at a different Z depht?

@@ -254,10 +254,10 @@ int main(int argc, char* argv[]) {
     ChGwMatrix34<> Gw(qrotA);
 
     ChFrameMoving<> testa(vtraslA, qrotA);
-    testa.SetPos_dt(ChVector3d(0.5, 0.6, 0.7));
-    testa.SetWvel_loc(ChVector3d(1.1, 2.1, 5.1));
-    testa.SetPos_dtdt(ChVector3d(7, 8, 9));
-    testa.SetWacc_loc(ChVector3d(4.3, 5.3, 2.3));
+    testa.SetPosDer(ChVector3d(0.5, 0.6, 0.7));
+    testa.SetAngVelLocal(ChVector3d(1.1, 2.1, 5.1));
+    testa.SetPosDer2(ChVector3d(7, 8, 9));
+    testa.SetAngAccLocal(ChVector3d(4.3, 5.3, 2.3));
     std::cout << testa << "a moving frame " << std::endl;
 
     ChVector3d locpos(0.1, 3.1, 1.1);
@@ -265,11 +265,11 @@ int main(int argc, char* argv[]) {
     ChVector3d locacc(5.3, 3.3, 2.3);
 
     ChFrameMoving<> testPl(locpos, QUNIT);
-    testPl.SetPos_dt(locspeed);
-    testPl.SetRot_dt(qrotA);
-    testPl.SetWvel_loc(ChVector3d(0.4, 0.5, 0.6));
-    testPl.SetPos_dtdt(locacc);
-    testPl.SetWacc_loc(ChVector3d(0.43, 0.53, 0.63));
+    testPl.SetPosDer(locspeed);
+    testPl.SetRotDer(qrotA);
+    testPl.SetAngVelLocal(ChVector3d(0.4, 0.5, 0.6));
+    testPl.SetPosDer2(locacc);
+    testPl.SetAngAccLocal(ChVector3d(0.43, 0.53, 0.63));
     ChFrameMoving<> testPw;
     ChFrameMoving<> testX;
     testa.TransformLocalToParent(testPl, testPw);

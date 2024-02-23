@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
     // torques for whatever part of the driveline by putting lines like the following
     // in the  while() {...} simulation loop:
     //
-    // std::cout << " 1D shaft 'A' angular speed: "      << my_shaftA->GetPos_dt() << " [rad/s]" << std::endl;
+    // std::cout << " 1D shaft 'A' angular speed: "      << my_shaftA->GetPosDer() << " [rad/s]" << std::endl;
     // std::cout << " 1D Drive angular speed: rot-stat " << my_drive->GetMotorRot_dt() << " [rad/s]" << std::endl;
     // std::cout << " 1D Drive torque: "                 << my_drive->GetMotorTorque() << " [Ns]" << std::endl;
     // std::cout << " 3D motor angular speed: rot-stat " << rotmotor5->GetMotorRot_dt() << " [rad/s]" << std::endl;
@@ -490,7 +490,7 @@ int main(int argc, char* argv[]) {
     CreateSliderGuide(guide3, slider3, material, sys, positionB3);
 
     // just for fun: modify the initial speed of slider to match other examples
-    slider3->SetPos_dt(ChVector3d(1.6 * 0.5 * CH_C_2PI));
+    slider3->SetPosDer(ChVector3d(1.6 * 0.5 * CH_C_2PI));
 
     // Create the linear motor
     auto motor3 = chrono_types::make_shared<ChLinkMotorLinearForce>();
@@ -713,7 +713,7 @@ int main(int argc, char* argv[]) {
     // torques for whatever part of the driveline by putting lines like the   following
     // in the  while() {...} simulation loop:
     //
-    // std::cout << " 1D shaft 'B' angular speed: "      << my_shaftB->GetPos_dt() << " [rad/s]" << std::endl;
+    // std::cout << " 1D shaft 'B' angular speed: "      << my_shaftB->GetPosDer() << " [rad/s]" << std::endl;
     // std::cout << " 1D Drive angular speed: rot-stat " << my_driveli->GetMotorRot_dt() << " [rad/s]" << std::endl;
     // std::cout << " 1D Drive torque: "                 << my_driveli->GetMotorTorque() << " [Ns]" << std::endl;
     // std::cout << " 3D actuator speed: rot-stat " << motor5->GetMotorPos() << " [rad/s]" << std::endl;

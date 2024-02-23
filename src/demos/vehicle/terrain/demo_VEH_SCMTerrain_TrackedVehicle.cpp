@@ -418,8 +418,8 @@ void AddMovingObstacles(ChSystem* system) {
     ball->SetMass(mass);
     ball->SetPos(pos);
     ball->SetRot(rot);
-    ball->SetPos_dt(init_vel);
-    ball->SetWvel_loc(init_ang_vel);
+    ball->SetPosDer(init_vel);
+    ball->SetAngVelLocal(init_ang_vel);
     ball->SetBodyFixed(false);
     ball->SetCollide(true);
 

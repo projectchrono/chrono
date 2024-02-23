@@ -52,10 +52,10 @@ SynPose::SynPose(const SynFlatBuffers::Pose* pose) {
     m_frame = ChFrameMoving<>({pose->pos()->x(), pose->pos()->y(), pose->pos()->z()},
                               {pose->rot()->e0(), pose->rot()->e1(), pose->rot()->e2(), pose->rot()->e3()});
 
-    m_frame.GetPos_dt() = {pose->pos_dt()->x(), pose->pos_dt()->y(), pose->pos_dt()->z()};
-    m_frame.GetRot_dt() = {pose->rot_dt()->e0(), pose->rot_dt()->e1(), pose->rot_dt()->e2(), pose->rot_dt()->e3()};
-    m_frame.GetPos_dtdt() = {pose->pos_dtdt()->x(), pose->pos_dtdt()->y(), pose->pos_dtdt()->z()};
-    m_frame.GetRot_dtdt() = {pose->rot_dtdt()->e0(), pose->rot_dtdt()->e1(), pose->rot_dtdt()->e2(),
+    m_frame.GetPosDer() = {pose->pos_dt()->x(), pose->pos_dt()->y(), pose->pos_dt()->z()};
+    m_frame.GetRotDer() = {pose->rot_dt()->e0(), pose->rot_dt()->e1(), pose->rot_dt()->e2(), pose->rot_dt()->e3()};
+    m_frame.GetPosDer2() = {pose->pos_dtdt()->x(), pose->pos_dtdt()->y(), pose->pos_dtdt()->z()};
+    m_frame.GetRotDer2() = {pose->rot_dtdt()->e0(), pose->rot_dtdt()->e1(), pose->rot_dtdt()->e2(),
                              pose->rot_dtdt()->e3()};
 }
 
@@ -68,23 +68,23 @@ flatbuffers::Offset<SynFlatBuffers::Pose> SynPose::ToFlatBuffers(flatbuffers::Fl
                                                    m_frame.GetRot().e2(),   //
                                                    m_frame.GetRot().e3());  //
 
-    auto fb_pos_dt = SynFlatBuffers::CreateVector(builder, m_frame.GetPos_dt().x(), m_frame.GetPos_dt().y(),
-                                                  m_frame.GetPos_dt().z());
+    auto fb_pos_dt = SynFlatBuffers::CreateVector(builder, m_frame.GetPosDer().x(), m_frame.GetPosDer().y(),
+                                                  m_frame.GetPosDer().z());
     auto fb_rot_dt = SynFlatBuffers::CreateQuaternion(builder,
-                                                      m_frame.GetRot_dt().e0(),   //
-                                                      m_frame.GetRot_dt().e1(),   //
-                                                      m_frame.GetRot_dt().e2(),   //
-                                                      m_frame.GetRot_dt().e3());  //
+                                                      m_frame.GetRotDer().e0(),   //
+                                                      m_frame.GetRotDer().e1(),   //
+                                                      m_frame.GetRotDer().e2(),   //
+                                                      m_frame.GetRotDer().e3());  //
 
     auto fb_pos_dtdt = SynFlatBuffers::CreateVector(builder,                     //
-                                                    m_frame.GetPos_dtdt().x(),   //
-                                                    m_frame.GetPos_dtdt().y(),   //
-                                                    m_frame.GetPos_dtdt().z());  //
+                                                    m_frame.GetPosDer2().x(),   //
+                                                    m_frame.GetPosDer2().y(),   //
+                                                    m_frame.GetPosDer2().z());  //
     auto fb_rot_dtdt = SynFlatBuffers::CreateQuaternion(builder,
-                                                        m_frame.GetRot_dtdt().e0(),   //
-                                                        m_frame.GetRot_dtdt().e1(),   //
-                                                        m_frame.GetRot_dtdt().e2(),   //
-                                                        m_frame.GetRot_dtdt().e3());  //
+                                                        m_frame.GetRotDer2().e0(),   //
+                                                        m_frame.GetRotDer2().e1(),   //
+                                                        m_frame.GetRotDer2().e2(),   //
+                                                        m_frame.GetRotDer2().e3());  //
     auto fb_pose = SynFlatBuffers::CreatePose(builder, fb_pos, fb_rot, fb_pos_dt, fb_rot_dt, fb_pos_dtdt, fb_rot_dtdt);
 
     return fb_pose;

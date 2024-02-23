@@ -103,7 +103,7 @@ void ChManualTransmissionShafts::Synchronize(double time,
                                              double driveshaft_speed) {
     // Enforce inputs from engine (torque) and driveline (speed)
     m_motorshaft->SetAppliedTorque(motorshaft_torque);
-    m_driveshaft->SetPos_dt(driveshaft_speed);
+    m_driveshaft->SetPosDer(driveshaft_speed);
 
     // Clutch
     m_clutch->SetModulation(1.0 - driver_inputs.m_clutch);
@@ -114,7 +114,7 @@ double ChManualTransmissionShafts::GetOutputDriveshaftTorque() const {
 }
 
 double ChManualTransmissionShafts::GetOutputMotorshaftSpeed() const {
-    return m_motorshaft->GetPos_dt();
+    return m_motorshaft->GetPosDer();
 }
 
 }  // end namespace vehicle

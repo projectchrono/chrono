@@ -97,21 +97,21 @@ double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> mnode
         case DataType::NODE_DISP_Z:
             return (mnode->GetPos() - mnode->GetX0()).z();
         case DataType::NODE_SPEED_NORM:
-            return mnode->GetPos_dt().Length();
+            return mnode->GetPosDer().Length();
         case DataType::NODE_SPEED_X:
-            return mnode->GetPos_dt().x();
+            return mnode->GetPosDer().x();
         case DataType::NODE_SPEED_Y:
-            return mnode->GetPos_dt().y();
+            return mnode->GetPosDer().y();
         case DataType::NODE_SPEED_Z:
-            return mnode->GetPos_dt().z();
+            return mnode->GetPosDer().z();
         case DataType::NODE_ACCEL_NORM:
-            return mnode->GetPos_dtdt().Length();
+            return mnode->GetPosDer2().Length();
         case DataType::NODE_ACCEL_X:
-            return mnode->GetPos_dtdt().x();
+            return mnode->GetPosDer2().x();
         case DataType::NODE_ACCEL_Y:
-            return mnode->GetPos_dtdt().y();
+            return mnode->GetPosDer2().y();
         case DataType::NODE_ACCEL_Z:
-            return mnode->GetPos_dtdt().z();
+            return mnode->GetPosDer2().z();
         case DataType::ELEM_STRAIN_VONMISES:
             if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
                 return mytetra->GetStrain().GetEquivalentVonMises();
@@ -1052,7 +1052,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
             m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
             for (unsigned int inode = 0; inode < FEMmesh->GetNnodes(); ++inode)
                 if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyz>(FEMmesh->GetNode(inode))) {
-                    m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPos_dt() * symbols_scale,
+                    m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPosDer() * symbols_scale,
                                                    symbolscolor);
                 }
             break;
@@ -1060,7 +1060,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
             m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
             for (unsigned int inode = 0; inode < FEMmesh->GetNnodes(); ++inode)
                 if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyz>(FEMmesh->GetNode(inode))) {
-                    m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPos_dtdt() * symbols_scale,
+                    m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPosDer2() * symbols_scale,
                                                    symbolscolor);
                 }
             break;

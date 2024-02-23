@@ -703,7 +703,7 @@ void ViperDCMotorControl::Update(double time) {
     double speed_reading;
     double target_torque;
     for (int i = 0; i < 4; i++) {
-        speed_reading = -viper->m_drive_shafts[i]->GetPos_dt();
+        speed_reading = -viper->m_drive_shafts[i]->GetPosDer();
 
         if (speed_reading > m_no_load_speed[i]) {
             target_torque = 0;

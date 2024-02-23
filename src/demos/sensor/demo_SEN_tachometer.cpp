@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     // add a ChBody to test
     auto body = chrono_types::make_shared<ChBodyEasyBox>(10, 1, 1, 1000, true, false);
     body->SetPos({0, 0, 0});
-    body->SetWvel_loc({0., 0.2, 0.});
+    body->SetAngVelLocal({0., 0.2, 0.});
     mphysicalsystem.Add(body);
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, 1, 1000, true, false);

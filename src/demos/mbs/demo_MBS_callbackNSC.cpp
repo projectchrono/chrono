@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     box1->SetMass(10);
     box1->SetInertiaXX(ChVector3d(1, 1, 1));
     box1->SetPos(ChVector3d(-1, 0.21, -1));
-    box1->SetPos_dt(ChVector3d(5, 0, 0));
+    box1->SetPosDer(ChVector3d(5, 0, 0));
 
     box1->SetCollide(true);
     utils::AddBoxGeometry(box1.get(), material, ChVector3d(0.8, 0.4, 0.2));
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     box2->SetMass(10);
     box2->SetInertiaXX(ChVector3d(1, 1, 1));
     box2->SetPos(ChVector3d(-1, 0.21, +1));
-    box2->SetPos_dt(ChVector3d(5, 0, 0));
+    box2->SetPosDer(ChVector3d(5, 0, 0));
 
     box2->SetCollide(true);
     utils::AddBoxGeometry(box2.get(), material, ChVector3d(0.8, 0.4, 0.2));

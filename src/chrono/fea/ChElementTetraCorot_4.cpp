@@ -307,10 +307,10 @@ void ChElementTetraCorot_4::LoadableGetStateBlock_x(int block_offset, ChState& m
 }
 
 void ChElementTetraCorot_4::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = nodes[0]->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = nodes[1]->GetPos_dt().eigen();
-    mD.segment(block_offset + 6, 3) = nodes[2]->GetPos_dt().eigen();
-    mD.segment(block_offset + 9, 3) = nodes[3]->GetPos_dt().eigen();
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPosDer().eigen();
+    mD.segment(block_offset + 3, 3) = nodes[1]->GetPosDer().eigen();
+    mD.segment(block_offset + 6, 3) = nodes[2]->GetPosDer().eigen();
+    mD.segment(block_offset + 9, 3) = nodes[3]->GetPosDer().eigen();
 }
 
 void ChElementTetraCorot_4::LoadableStateIncrement(const unsigned int off_x,

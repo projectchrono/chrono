@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     auto body = chrono_types::make_shared<ChBody>();
     body->SetMass(1);
     body->SetInertiaXX(ChVector3d(1, 1, 1));
-    body->SetPos_dt(ChVector3d(body_speed, 0, 0));
+    body->SetPosDer(ChVector3d(body_speed, 0, 0));
     body->SetPos(pos);
     sys->AddBody(body);
 

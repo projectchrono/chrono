@@ -892,7 +892,7 @@ double ChLinkMateRevolute::GetRelativeAngle_dt() {
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
     ChFrameMoving<> F1_F2;
     F2_W.TransformParentToLocal(F1_W, F1_F2);
-    double vel12_W = F1_F2.GetWvel_loc().z(); // NB: assumes rotation along z
+    double vel12_W = F1_F2.GetAngVelLocal().z(); // NB: assumes rotation along z
     return vel12_W;
 }
 
@@ -901,7 +901,7 @@ double ChLinkMateRevolute::GetRelativeAngle_dtdt() {
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
     ChFrameMoving<> F1_F2;
     F2_W.TransformParentToLocal(F1_W, F1_F2);
-    double acc12_W = F1_F2.GetWacc_loc().z(); // NB: assumes rotation along z
+    double acc12_W = F1_F2.GetAngAccLocal().z(); // NB: assumes rotation along z
     return acc12_W;
 }
 
@@ -977,14 +977,14 @@ double ChLinkMatePrismatic::GetRelativePos() {
 double ChLinkMatePrismatic::GetRelativePos_dt() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
-    ChVector3d vel12_W = F1_W.GetPos_dt() - F2_W.GetPos_dt();
+    ChVector3d vel12_W = F1_W.GetPosDer() - F2_W.GetPosDer();
     return vel12_W.x(); // NB: assumes translation along x
 }
 
 double ChLinkMatePrismatic::GetRelativePos_dtdt() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
-    ChVector3d acc12_W = F1_W.GetPos_dtdt() - F2_W.GetPos_dtdt();
+    ChVector3d acc12_W = F1_W.GetPosDer2() - F2_W.GetPosDer2();
     return acc12_W.x(); // NB: assumes translation along x
 }
 

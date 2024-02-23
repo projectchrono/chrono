@@ -129,7 +129,7 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ChANCFTire::CreateMeshANCF4(con
 
             // Node velocity
             ChVector3d vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
-            node->SetPos_dt(vel);
+            node->SetPosDer(vel);
             node->SetMass(0);
             mesh->AddNode(node);
         }
@@ -263,7 +263,7 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ChANCFTire::CreateMeshANCF8(con
 
             // Node velocity
             ChVector3d vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
-            node->SetPos_dt(vel);
+            node->SetPosDer(vel);
             node->SetMass(0);
             mesh->AddNode(node);
         }

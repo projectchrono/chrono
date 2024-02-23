@@ -441,9 +441,9 @@ void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxy(unsigned int i, MeshState& 
 
     for (size_t iv = 0; iv < num_bodies; iv++) {
         proxy->bodies[iv]->SetPos(mesh_state.vpos[iv]);
-        proxy->bodies[iv]->SetPos_dt(mesh_state.vvel[iv]);
+        proxy->bodies[iv]->SetPosDer(mesh_state.vvel[iv]);
         proxy->bodies[iv]->SetRot(ChQuaternion<>(1, 0, 0, 0));
-        proxy->bodies[iv]->SetRot_dt(ChQuaternion<>(0, 0, 0, 0));
+        proxy->bodies[iv]->SetRotDer(ChQuaternion<>(0, 0, 0, 0));
     }
 
     ////if (m_verbose)
@@ -454,9 +454,9 @@ void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxy(unsigned int i, MeshState& 
 void ChVehicleCosimTerrainNodeRigid::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     proxy->bodies[0]->SetPos(rigid_state.pos);
-    proxy->bodies[0]->SetPos_dt(rigid_state.lin_vel);
+    proxy->bodies[0]->SetPosDer(rigid_state.lin_vel);
     proxy->bodies[0]->SetRot(rigid_state.rot);
-    proxy->bodies[0]->SetWvel_par(rigid_state.ang_vel);
+    proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
 }
 
 // Collect contact forces on the (node) proxy bodies that are in contact.
@@ -520,7 +520,7 @@ void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesUpdateData(unsigned int i, 
         proxy->bodies.begin(), proxy->bodies.end(),
         [](std::shared_ptr<ChBody> a, std::shared_ptr<ChBody> b) { return a->GetPos().z() < b->GetPos().z(); });
     double height = (*lowest)->GetPos().z();
-    const ChVector3d& vel = (*lowest)->GetPos_dt();
+    const ChVector3d& vel = (*lowest)->GetPosDer();
     cout << "[Terrain node] object: " << i << "  lowest proxy:  height = " << height << "  velocity = " << vel << endl;
 }
 

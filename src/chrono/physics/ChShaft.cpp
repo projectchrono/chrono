@@ -90,7 +90,7 @@ void ChShaft::IntStateScatter(const unsigned int off_x,  // offset in x state ve
                               bool full_update           // perform complete update
 ) {
     SetPos(x(off_x));
-    SetPos_dt(v(off_v));
+    SetPosDer(v(off_v));
     Update(T, full_update);
 }
 
@@ -99,7 +99,7 @@ void ChShaft::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta&
 }
 
 void ChShaft::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    SetPos_dtdt(a(off_a));
+    SetPosDer2(a(off_a));
 }
 
 void ChShaft::IntLoadResidual_F(const unsigned int off,  // offset in R residual

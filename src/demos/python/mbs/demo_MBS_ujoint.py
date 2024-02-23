@@ -168,8 +168,8 @@ while vis.Run():
     frame += 1
 
     if frame % 20 == 0:
-        omega_1 = shaft_1.GetWvel_loc().z
-        omega_2 = shaft_2.GetWvel_loc().z
+        omega_1 = shaft_1.GetAngVelLocal().z
+        omega_2 = shaft_2.GetAngVelLocal().z
         print('{:.4}'.format(str(sys.GetChTime())), '{:.6}'.format(str(omega_1)), '{:.6}'.format(str(omega_2)))
 
 
