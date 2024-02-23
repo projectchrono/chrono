@@ -183,8 +183,6 @@ class ChQuaternion {
     // NOTE
     // The following * and *= operators had a different behaviour prior to 13/9/2014,
     // but we assume no one used * *= in that previous form (element-by-element product).
-    // Now * operator will be used for classical quaternion product, as the old % operator.
-    // This is to be more consistent with the * operator for ChFrames etc.
 
     /// Operator for quaternion product: A*B means the typical quaternion product.
     /// Notes:
@@ -232,11 +230,6 @@ class ChQuaternion {
     /// Operator for scaling the quaternion by inverse of a scalar value, as q/s.
     ChQuaternion<Real> operator/(Real s) const;
     ChQuaternion<Real>& operator/=(Real s);
-
-    /// Operator for quaternion product: A%B means the typical quaternion product AxB.
-    /// Note: DEPRECATED, use the * operator instead.
-    ChQuaternion<Real> operator%(const ChQuaternion<Real>& other) const;
-    ChQuaternion<Real>& operator%=(const ChQuaternion<Real>& other);
 
     /// Operator for dot product: A^B means the scalar dot-product A*B.
     /// Note: pay attention to operator low precedence (see C++ precedence rules!)
@@ -651,7 +644,6 @@ inline ChQuaternion<Real> ChQuaternion<Real>::operator*(const ChQuaternion<Real>
     q.Cross(*this, other);
     return q;
 }
-
 template <class Real>
 inline ChQuaternion<Real>& ChQuaternion<Real>::operator*=(const ChQuaternion<Real>& other) {
     this->Cross(*this, other);
@@ -713,19 +705,6 @@ inline ChQuaternion<Real>& ChQuaternion<Real>::operator/=(Real s) {
     m_data[1] *= oos;
     m_data[2] *= oos;
     m_data[3] *= oos;
-    return *this;
-}
-
-template <class Real>
-inline ChQuaternion<Real> ChQuaternion<Real>::operator%(const ChQuaternion<Real>& other) const {
-    ChQuaternion<Real> q;
-    q.Cross(*this, other);
-    return q;
-}
-
-template <class Real>
-inline ChQuaternion<Real>& ChQuaternion<Real>::operator%=(const ChQuaternion<Real>& other) {
-    this->Cross(*this, other);
     return *this;
 }
 

@@ -359,6 +359,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | ImmQ_complete                 | remove                                           |
 |                                   | ImmQ_dt_complete              | remove                                           |
 |                                   | ImmQ_dtdtcomplete             | remove                                           |
+|                                   | operator%                     | remove (use operator*)                           |
 |                                   | Q_from_AngAxis                | rename: SetFromAngleAxis                         |
 |                                   | Q_from_AngX                   | rename: SetFromAngleX                            |
 |                                   | Q_from_AngY                   | rename: SetFromAngleY                            |

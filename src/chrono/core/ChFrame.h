@@ -221,7 +221,7 @@ class ChFrame {
     ///  or
     ///     this' = this >> F
     void ConcatenatePreTransformation(const ChFrame<Real>& F) {
-        this->SetCsys(F.TransformPointLocalToParent(Csys.pos), F.Csys.rot % Csys.rot);
+        this->SetCsys(F.TransformPointLocalToParent(Csys.pos), F.Csys.rot * Csys.rot);
     }
 
     /// Apply a transformation (rotation and translation) represented by another frame F in local coordinate.
@@ -230,7 +230,7 @@ class ChFrame {
     ///  or
     ///    this'= F >> this
     void ConcatenatePostTransformation(const ChFrame<Real>& F) {
-        this->SetCsys(TransformPointLocalToParent(F.Csys.pos), Csys.rot % F.Csys.rot);
+        this->SetCsys(TransformPointLocalToParent(F.Csys.pos), Csys.rot * F.Csys.rot);
     }
 
     /// An easy way to move the frame by the amount specified by vector v,
@@ -239,7 +239,7 @@ class ChFrame {
 
     /// Apply both translation and rotation, assuming both expressed in parent
     /// coordinates, as a vector for translation and quaternion for rotation,
-    void Move(const ChCoordsys<Real>& C) { this->SetCsys(C.TransformPointLocalToParent(Csys.pos), C.rot % Csys.rot); }
+    void Move(const ChCoordsys<Real>& C) { this->SetCsys(C.TransformPointLocalToParent(Csys.pos), C.rot * Csys.rot); }
 
     // FUNCTIONS FOR COORDINATE TRANSFORMATIONS
 
@@ -255,14 +255,14 @@ class ChFrame {
     void TransformLocalToParent(const ChFrame<Real>& local,  ///< frame to transform, given in local frame coordinates
                                 ChFrame<Real>& parent        ///< transformed frame, in parent coordinates
     ) const {
-        parent.SetCsys(TransformPointLocalToParent(local.Csys.pos), Csys.rot % local.Csys.rot);
+        parent.SetCsys(TransformPointLocalToParent(local.Csys.pos), Csys.rot * local.Csys.rot);
     }
 
     /// Transform a frame from the parent coordinate system to 'this' local frame coordinate system.
     void TransformParentToLocal(const ChFrame<Real>& parent,  ///< frame to transform, given in parent coordinates
                                 ChFrame<Real>& local          ///< transformed frame, in local coordinates
     ) const {
-        local.SetCsys(TransformPointParentToLocal(parent.Csys.pos), Csys.rot.GetConjugate() % parent.Csys.rot);
+        local.SetCsys(TransformPointParentToLocal(parent.Csys.pos), Csys.rot.GetConjugate() * parent.Csys.rot);
     }
 
     /// Transform a direction from the parent frame coordinate system to 'this' local coordinate system.

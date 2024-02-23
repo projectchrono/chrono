@@ -250,15 +250,15 @@ class ChFrameMoving : public ChFrame<Real> {
     /// might be nonzero due to nonzero q_dt (in case of rotational motion).
     virtual void SetWacc_loc(const ChVector3<Real>& a) {
         // q_dtdt = q_dt * q' * q_dt + 1/2 * q * (0,a)
-        Csys_dtdt.rot = (Csys_dt.rot % this->Csys.rot.GetConjugate() % Csys_dt.rot) +
-                        (this->Csys.rot % ChQuaternion<Real>(0, a) * (Real)0.5);
+        Csys_dtdt.rot = (Csys_dt.rot * this->Csys.rot.GetConjugate() * Csys_dt.rot) +
+                        (this->Csys.rot * ChQuaternion<Real>(0, a) * (Real)0.5);
     }
 
     /// Set the rotation acceleration from given angular acceleration (expressed in parent coordinates).
     virtual void SetWacc_par(const ChVector3<Real>& a) {
         // q_dtdt = q_dt * q' * q_dt + 1/2 * (0,a) * q
-        Csys_dtdt.rot = (Csys_dt.rot % this->Csys.rot.GetConjugate() % Csys_dt.rot) +
-                        (ChQuaternion<Real>(0, a) % this->Csys.rot * (Real)0.5);
+        Csys_dtdt.rot = (Csys_dt.rot * this->Csys.rot.GetConjugate() * Csys_dt.rot) +
+                        (ChQuaternion<Real>(0, a) * this->Csys.rot * (Real)0.5);
     }
 
     /// Compute the time derivative of the rotation matrix.
@@ -323,7 +323,7 @@ class ChFrameMoving : public ChFrame<Real> {
     /// assuming it is sticky to frame, return the speed in parent coords.
     ChVector3<Real> PointSpeedLocalToParent(const ChVector3<Real>& localpos) const {
         return Csys_dt.pos +
-               ((Csys_dt.rot % ChQuaternion<Real>(0, localpos) % this->Csys.rot.GetConjugate()).GetVector() * 2);
+               ((Csys_dt.rot * ChQuaternion<Real>(0, localpos) * this->Csys.rot.GetConjugate()).GetVector() * 2);
     }
 
     /// Given the position localpos of a point in the local reference frame, assuming
@@ -331,7 +331,7 @@ class ChFrameMoving : public ChFrame<Real> {
     /// return the speed in the parent reference frame.
     ChVector3<Real> PointSpeedLocalToParent(const ChVector3<Real>& localpos, const ChVector3<Real>& localspeed) const {
         return Csys_dt.pos + this->Rmat * localspeed +
-               ((Csys_dt.rot % ChQuaternion<Real>(0, localpos) % this->Csys.rot.GetConjugate()).GetVector() * 2);
+               ((Csys_dt.rot * ChQuaternion<Real>(0, localpos) * this->Csys.rot.GetConjugate()).GetVector() * 2);
     }
 
     /// Given the position of a point in local frame coords, and
@@ -341,8 +341,8 @@ class ChFrameMoving : public ChFrame<Real> {
     /// bacause the q_dtdt may be nonzero due to nonzero q_dt in case of rotational motion.
     ChVector3<Real> PointAccelerationLocalToParent(const ChVector3<Real>& localpos) const {
         return Csys_dtdt.pos +
-               ((Csys_dtdt.rot % ChQuaternion<Real>(0, localpos) % this->Csys.rot.GetConjugate()).GetVector() * 2) +
-               ((Csys_dt.rot % ChQuaternion<Real>(0, localpos) % Csys_dt.rot.GetConjugate()).GetVector() * 2);
+               ((Csys_dtdt.rot * ChQuaternion<Real>(0, localpos) * this->Csys.rot.GetConjugate()).GetVector() * 2) +
+               ((Csys_dt.rot * ChQuaternion<Real>(0, localpos) * Csys_dt.rot.GetConjugate()).GetVector() * 2);
     }
 
     /// Given the position of a point in local frame coords, and
@@ -352,9 +352,9 @@ class ChFrameMoving : public ChFrame<Real> {
                                                    const ChVector3<Real>& localspeed,
                                                    const ChVector3<Real>& localacc) const {
         return Csys_dtdt.pos + this->Rmat * localacc +
-               ((Csys_dtdt.rot % ChQuaternion<Real>(0, localpos) % this->Csys.rot.GetConjugate()).GetVector() * 2) +
-               ((Csys_dt.rot % ChQuaternion<Real>(0, localpos) % Csys_dt.rot.GetConjugate()).GetVector() * 2) +
-               ((Csys_dt.rot % ChQuaternion<Real>(0, localspeed) % this->Csys.rot.GetConjugate()).GetVector() * 4);
+               ((Csys_dtdt.rot * ChQuaternion<Real>(0, localpos) * this->Csys.rot.GetConjugate()).GetVector() * 2) +
+               ((Csys_dt.rot * ChQuaternion<Real>(0, localpos) * Csys_dt.rot.GetConjugate()).GetVector() * 2) +
+               ((Csys_dt.rot * ChQuaternion<Real>(0, localspeed) * this->Csys.rot.GetConjugate()).GetVector() * 4);
     }
 
     /// Given the position of a point in parent frame coords, and
@@ -365,7 +365,7 @@ class ChFrameMoving : public ChFrame<Real> {
         ChVector3<Real> localpos = ChFrame<Real>::TransformPointParentToLocal(parentpos);
         return this->Rmat.transpose() *
                (parentspeed - Csys_dt.pos -
-                ((Csys_dt.rot % ChQuaternion<Real>(0, localpos) % this->Csys.rot.GetConjugate()).GetVector() * 2));
+                ((Csys_dt.rot * ChQuaternion<Real>(0, localpos) * this->Csys.rot.GetConjugate()).GetVector() * 2));
     }
 
     /// Given the position of a point in parent frame coords, and
@@ -378,9 +378,9 @@ class ChFrameMoving : public ChFrame<Real> {
         ChVector3<Real> localspeed = PointSpeedParentToLocal(parentpos, parentspeed);
         return this->Rmat.transpose() *
                (parentacc - Csys_dtdt.pos -
-                (Csys_dtdt.rot % ChQuaternion<Real>(0, localpos) % this->Csys.rot.GetConjugate()).GetVector() * 2 -
-                (Csys_dt.rot % ChQuaternion<Real>(0, localpos) % Csys_dt.rot.GetConjugate()).GetVector() * 2 -
-                (Csys_dt.rot % ChQuaternion<Real>(0, localspeed) % this->Csys.rot.GetConjugate()).GetVector() * 4);
+                (Csys_dtdt.rot * ChQuaternion<Real>(0, localpos) * this->Csys.rot.GetConjugate()).GetVector() * 2 -
+                (Csys_dt.rot * ChQuaternion<Real>(0, localpos) * Csys_dt.rot.GetConjugate()).GetVector() * 2 -
+                (Csys_dt.rot * ChQuaternion<Real>(0, localspeed) * this->Csys.rot.GetConjugate()).GetVector() * 4);
     }
 
     /// Transform a frame from 'this' local coordinate system to parent frame coordinate system.
@@ -398,11 +398,11 @@ class ChFrameMoving : public ChFrame<Real> {
         parent.Csys_dtdt.pos = PointAccelerationLocalToParent(local.Csys.pos, local.Csys_dt.pos, local.Csys_dtdt.pos);
 
         // rot_dt
-        parent.Csys_dt.rot = Csys_dt.rot % local.Csys.rot + this->Csys.rot % local.Csys_dt.rot;
+        parent.Csys_dt.rot = Csys_dt.rot * local.Csys.rot + this->Csys.rot * local.Csys_dt.rot;
 
         // rot_dtdt
-        parent.Csys_dtdt.rot = Csys_dtdt.rot % local.Csys.rot + (Csys_dt.rot % local.Csys_dt.rot) * 2 +
-                               this->Csys.rot % local.Csys_dtdt.rot;
+        parent.Csys_dtdt.rot = Csys_dtdt.rot * local.Csys.rot + (Csys_dt.rot * local.Csys_dt.rot) * 2 +
+                               this->Csys.rot * local.Csys_dtdt.rot;
     }
 
     /// Transform a frame from the parent coordinate system to 'this' local frame coordinate system.
@@ -420,11 +420,11 @@ class ChFrameMoving : public ChFrame<Real> {
         local.Csys_dtdt.pos = PointAccelerationParentToLocal(parent.Csys.pos, parent.Csys_dt.pos, parent.Csys_dtdt.pos);
 
         // rot_dt
-        local.Csys_dt.rot = this->Csys.rot.GetConjugate() % (parent.Csys_dt.rot - Csys_dt.rot % local.Csys.rot);
+        local.Csys_dt.rot = this->Csys.rot.GetConjugate() * (parent.Csys_dt.rot - Csys_dt.rot * local.Csys.rot);
 
         // rot_dtdt
-        local.Csys_dtdt.rot = this->Csys.rot.GetConjugate() % (parent.Csys_dtdt.rot - Csys_dtdt.rot % local.Csys.rot -
-                                                               (Csys_dt.rot % local.Csys_dt.rot) * 2);
+        local.Csys_dtdt.rot = this->Csys.rot.GetConjugate() * (parent.Csys_dtdt.rot - Csys_dtdt.rot * local.Csys.rot -
+                                                               (Csys_dt.rot * local.Csys_dt.rot) * 2);
     }
 
     // OTHER FUNCTIONS

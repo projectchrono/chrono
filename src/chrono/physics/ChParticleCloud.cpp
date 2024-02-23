@@ -414,7 +414,7 @@ void ChParticleCloud::IntStateGetIncrement(const unsigned int off_x,  // offset 
         //  because   q_new = Dq_abs * q_old   = q_old * Dq_loc
         ChQuaternion<> q_old(x.segment(off_x + 7 * j + 3, 4));
         ChQuaternion<> q_new(x_new.segment(off_x + 7 * j + 3, 4));
-        ChQuaternion<> rel_q = q_old.GetConjugate() % q_new;
+        ChQuaternion<> rel_q = q_old.GetConjugate() * q_new;
         Dv.segment(off_v + 6 * j + 3, 3) = rel_q.GetRotVec().eigen();
     }
 }
@@ -573,7 +573,7 @@ void ChParticleCloud::VariablesQbIncrementPosition(double dt_step) {
         double mangle = newwel_abs.Length() * dt_step;
         newwel_abs.Normalize();
         mdeltarot.SetFromAngleAxis(mangle, newwel_abs);
-        ChQuaternion<> mnewrot = mdeltarot % moldrot;
+        ChQuaternion<> mnewrot = mdeltarot * moldrot;
         particles[j]->SetRot(mnewrot);
     }
 }

@@ -256,13 +256,13 @@ class ChCoordsys {
     /// This function transforms a coordsys given in 'this' coordinate system to
     /// the parent coordinate system
     ChCoordsys<Real> TransformLocalToParent(const ChCoordsys<Real>& local) const {
-        return ChCoordsys<Real>(TransformLocalToParent(local.pos), rot % local.rot);
+        return ChCoordsys<Real>(TransformLocalToParent(local.pos), rot * local.rot);
     }
 
     /// This function transforms a coordsys given in the parent coordinate system
     /// to 'this' coordinate system
     ChCoordsys<Real> TransformParentToLocal(const ChCoordsys<Real>& parent) const {
-        return ChCoordsys<Real>(TransformParentToLocal(parent.pos), rot.GetConjugate() % parent.rot);
+        return ChCoordsys<Real>(TransformParentToLocal(parent.pos), rot.GetConjugate() * parent.rot);
     }
 
     //

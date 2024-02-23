@@ -127,7 +127,7 @@ void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(0, 3) = displ.eigen();
 
     // Node 0, x,y,z small rotations (in local element frame)
-    ChQuaternion<> q_delta0 = q_element_abs_rot.GetConjugate() % nodes[0]->Frame().GetRot() % q_refrotA.GetConjugate();
+    ChQuaternion<> q_delta0 = q_element_abs_rot.GetConjugate() * nodes[0]->Frame().GetRot() * q_refrotA.GetConjugate();
     // note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition
     q_delta0.GetAngleAxis(delta_rot_angle, delta_rot_dir);
 
@@ -143,7 +143,7 @@ void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(6, 3) = displ.eigen();
 
     // Node 1, x,y,z small rotations (in local element frame)
-    ChQuaternion<> q_delta1 = q_element_abs_rot.GetConjugate() % nodes[1]->Frame().GetRot() % q_refrotB.GetConjugate();
+    ChQuaternion<> q_delta1 = q_element_abs_rot.GetConjugate() * nodes[1]->Frame().GetRot() * q_refrotB.GetConjugate();
     // note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition
     q_delta1.GetAngleAxis(delta_rot_angle, delta_rot_dir);
 
@@ -572,8 +572,8 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
             //
 
             ChMatrix33<> Atoabs(this->q_element_abs_rot);
-            ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
-            ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+            ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
+            ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
             std::vector<ChMatrix33<>*> R;
             R.push_back(&Atoabs);
             R.push_back(&AtolocwelA);
@@ -637,7 +637,8 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
                     if (this->section->compute_inertia_stiffness_matrix) {
                         this->section->ComputeInertiaStiffnessMatrix(
                             matr_loc, nodes[i]->GetWvel_loc(), nodes[i]->GetWacc_loc(),
-                            (nodes[i]->GetRotMat().transpose()) * nodes[i]->GetPos_dtdt());  // assume x_dtdt in local frame!
+                            (nodes[i]->GetRotMat().transpose()) *
+                                nodes[i]->GetPos_dtdt());  // assume x_dtdt in local frame!
                         KRi_loc += matr_loc * node_multiplier_fact_K;
                     }
                     // corotate the local damping and stiffness matrices (at once, already scaled) into absolute one
@@ -760,8 +761,8 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 
     // Fi = C * Fi_local  with C block-diagonal rotations A  , for nodal forces in abs. frame
     ChMatrix33<> Atoabs(this->q_element_abs_rot);
-    ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
-    ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+    ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
+    ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
     std::vector<ChMatrix33<>*> R;
     R.push_back(&Atoabs);
     R.push_back(&AtolocwelA);
@@ -815,7 +816,7 @@ void ChElementBeamEuler::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVec
     Fg = mM * mG;
 
     //// TODO for the lumped mass matrix case, the mM * mG product can be unrolled into few multiplications as mM mostly
-    ///zero, and same for mG
+    /// zero, and same for mG
 }
 
 void ChElementBeamEuler::EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) {
@@ -855,7 +856,7 @@ void ChElementBeamEuler::EvaluateSectionFrame(const double eta, ChVector3d& poin
 
     ChQuaternion<> msectionrot;
     msectionrot.SetFromAngleAxis(u_rotaz.Length(), u_rotaz.GetNormalized());
-    rot = this->q_element_abs_rot % msectionrot;
+    rot = this->q_element_abs_rot * msectionrot;
 }
 
 void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) {

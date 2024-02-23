@@ -544,7 +544,7 @@ void AddTorusGeometry(ChBody* body,
         double alpha = i * CH_C_PI / 180.0;
         double x = cos(alpha) * radius;
         double z = sin(alpha) * radius;
-        ChQuaterniond q = chrono::QuatFromAngleY(-alpha) % chrono::QuatFromAngleX(CH_C_PI_2);
+        ChQuaterniond q = chrono::QuatFromAngleY(-alpha) * chrono::QuatFromAngleX(CH_C_PI_2);
         double outer_circ = 2 * CH_C_PI * (radius + thickness);
 
         AddCapsuleGeometry(body, material, thickness, outer_circ / segments * .5, ChVector3d(x, 0, z) + pos, q,

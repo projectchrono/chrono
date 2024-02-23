@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     rotation1.SetFromAngleX(-CH_C_PI_2);  // 1: rotate 90 deg on X axis
     ChQuaternion<> rotation2;
     rotation2.SetFromAngleY(CH_C_PI);                     // 2: rotate 180 deg on vertical Y axis
-    ChQuaternion<> tot_rotation = rotation2 % rotation1;  // rotate on 1 then on 2, using quaternion product
+    ChQuaternion<> tot_rotation = rotation2 * rotation1;  // rotate on 1 then on 2, using quaternion product
     ChFrameMoving<> root_frame(ChVector3d(0, 0, 0), tot_rotation);
 
     // Retrieve some sub shapes from the loaded model, using

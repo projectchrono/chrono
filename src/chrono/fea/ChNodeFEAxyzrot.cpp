@@ -132,7 +132,7 @@ void ChNodeFEAxyzrot::NodeIntStateGetIncrement(const unsigned int off_x,
     //  because   q_new = Dq_abs * q_old   = q_old * Dq_loc
     ChQuaternion<> q_old(x.segment(off_x + 3, 4));
     ChQuaternion<> q_new(x_new.segment(off_x + 3, 4));
-    ChQuaternion<> rel_q = q_old.GetConjugate() % q_new;
+    ChQuaternion<> rel_q = q_old.GetConjugate() * q_new;
     Dv.segment(off_v + 3, 3) = rel_q.GetRotVec().eigen();
 }
 
@@ -241,7 +241,7 @@ void ChNodeFEAxyzrot::VariablesQbIncrementPosition(double step) {
     double mangle = newwel_abs.Length() * step;
     newwel_abs.Normalize();
     mdeltarot.SetFromAngleAxis(mangle, newwel_abs);
-    ChQuaternion<> mnewrot = mdeltarot % moldrot;
+    ChQuaternion<> mnewrot = mdeltarot * moldrot;
     this->SetRot(mnewrot);
 }
 
