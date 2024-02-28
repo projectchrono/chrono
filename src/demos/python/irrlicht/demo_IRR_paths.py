@@ -65,11 +65,11 @@ sys.Add(mpendulum)
 mtrajectory = chrono.ChLinkTrajectory()
 
 # Define which parts are connected (the trajectory is considered in the 2nd body).
-mtrajectory.Initialize(mpendulum, # body1 that follows the trajectory
-          mfloor,                 # body2 that 'owns' the trajectory
-          chrono.ChVector3d(0, 0.5, 0),  # point on body1 that will follow the trajectory
-          mpath                   # the trajectory (reuse the one already added to body2 as asset)
-          )
+mtrajectory.Initialize(mpendulum,                    # body1 that follows the trajectory
+                      mfloor,                        # body2 that 'owns' the trajectory
+                      chrono.ChVector3d(0, 0.5, 0),  # point on body1 that will follow the trajectory
+                      mpath                          # the trajectory (reuse the one already added to body2 as asset)
+                      )
 
 # Optionally, set a function that gets the curvilinear
 # abscyssa s of the line, as a function of time s(t). 
@@ -127,10 +127,10 @@ mglyphconstraint = chrono.ChLinkPointSpline()
 
 # Define which parts are connected (the trajectory is considered in the 2nd body).
 mglyphconstraint.Initialize(mpendulum2,  # body1 that follows the trajectory
-               mwheel,      # body2 that 'owns' the trajectory
-               True,
-               chrono.ChCoordsysd(chrono.ChVector3d(0, 0.5, 0)), # point on body1 that will follow the trajectory
-               chrono.ChCoordsysd())
+                            mwheel,      # body2 that 'owns' the trajectory
+                            True,
+                            chrono.ChFramed(chrono.ChVector3d(0, 0.5, 0)), # point on body1 that will follow the trajectory
+                            chrono.ChFramed())
 
 mglyphconstraint.Set_trajectory_line(mglyph)
 

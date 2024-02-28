@@ -98,13 +98,13 @@ body.AddVisualShape(cyl, chrono.ChFramed(chrono.ChVector3d(-0.75,0,0), chrono.Qu
 
 # Create revolute joint between body and ground
 rev = chrono.ChLinkLockRevolute()
-rev.Initialize(body, ground, chrono.ChCoordsysd(rev_pos, rev_rot))
+rev.Initialize(body, ground, chrono.ChFramed(rev_pos, rev_rot))
 sys.AddLink(rev)
 
 # Create the rotational spring between body and ground
 torque = MySpringTorque()
 spring = chrono.ChLinkRSDA()
-spring.Initialize(body, ground, chrono.ChCoordsysd(rev_pos, rev_rot))
+spring.Initialize(body, ground, chrono.ChFramed(rev_pos, rev_rot))
 spring.RegisterTorqueFunctor(torque)
 rsda = chrono.ChVisualShapeRotSpring(0.5, 40)
 rsda.SetColor(chrono.ChColor(0, 0, 0))

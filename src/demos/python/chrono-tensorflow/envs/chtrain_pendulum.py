@@ -123,7 +123,7 @@ class Model(object):
       z2x = chrono.ChQuaterniond()
       z2x.SetFromAngleAxis(-chrono.CH_C_PI / 2 , chrono.ChVector3d(0, 1, 0))
 
-      self.link_slider.Initialize(self.body_table, self.body_floor, chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), z2x))
+      self.link_slider.Initialize(self.body_table, self.body_floor, chrono.ChFramed(chrono.ChVector3d(0, 0, 0), z2x))
       self.rev_pend_sys.Add(self.link_slider)
 
 

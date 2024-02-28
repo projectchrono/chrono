@@ -69,7 +69,7 @@ rev.GetLimit_Rz().SetMin(min_angle)
 rev.GetLimit_Rz().SetMax(max_angle)
 
 # Initialize the joint specifying a coordinate sys (expressed in the absolute frame).
-rev.Initialize(ground, pend, chrono.ChCoordsysd(chrono.VNULL, chrono.QUNIT))
+rev.Initialize(ground, pend, chrono.ChFramed(chrono.VNULL, chrono.QUNIT))
 
 # Create the Irrlicht application
 vis = irr.ChVisualSystemIrrlicht()

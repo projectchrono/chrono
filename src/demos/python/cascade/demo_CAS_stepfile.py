@@ -94,7 +94,7 @@ joint_pos = chrono.ChVector3d(root_frame.TransformPointLocalToParent(measured_jo
 
 if (rigidBody1 and rigidBody2):
     link = chrono.ChLinkLockRevolute()
-    link.Initialize(rigidBody1, rigidBody2, chrono.ChCoordsysd(joint_pos));
+    link.Initialize(rigidBody1, rigidBody2, chrono.ChFramed(joint_pos));
     sys.Add(link);
 
 # Create a large cube as a floor.

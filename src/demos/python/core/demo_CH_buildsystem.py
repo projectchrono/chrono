@@ -102,7 +102,7 @@ bodyC.AddVisualShape(myasset)
 # Add a revolute joint 
 rev = chrono.ChLinkLockRevolute()
 rev.SetName('Revolute')
-rev.Initialize(bodyA, bodyC, chrono.ChCoordsysd(chrono.ChVector3d(1, 2, 3), chrono.ChQuaterniond(1, 0, 0, 0)))
+rev.Initialize(bodyA, bodyC, chrono.ChFramed(chrono.ChVector3d(1, 2, 3), chrono.ChQuaterniond(1, 0, 0, 0)))
 my_system.AddLink(rev)
 
 # Iterate over added links (Python style)

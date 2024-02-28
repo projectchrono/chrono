@@ -50,7 +50,7 @@ body.GetVisualShape(0).SetColor(chrono.ChColor(0.9, 0.4, 0.1))
 plane_plane = chrono.ChLinkLockPlanePlane()
 plane_plane.Initialize(ground, 
                        body, 
-                       chrono.ChCoordsysd(chrono.ChVector3d(-1.25, -0.75, 0), chrono.ChQuaterniond(1, 0, 0, 0)))
+                       chrono.ChFramed(chrono.ChVector3d(-1.25, -0.75, 0), chrono.ChQuaterniond(1, 0, 0, 0)))
 sys.AddLink(plane_plane)
 
 # Create a linear spring (with default sprint & damping coefficients)

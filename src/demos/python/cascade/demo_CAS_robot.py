@@ -117,39 +117,39 @@ frame_marker_rod_bicep      = make_frame_from_name("Assem10/Assem2/marker#2", ro
 # frame_marker_xxxx_zzzz frames created above.
 
 my_link1 = chrono.ChLinkLockRevolute()
-my_link1.Initialize(rigidBody_base, rigidBody_turret, frame_marker_base_turret.GetCsys())
+my_link1.Initialize(rigidBody_base, rigidBody_turret, frame_marker_base_turret)
 sys.Add(my_link1)
     
 my_link2 = chrono.ChLinkLockRevolute()                                               
-my_link2.Initialize(rigidBody_turret, rigidBody_bicep, frame_marker_turret_bicep.GetCsys())
+my_link2.Initialize(rigidBody_turret, rigidBody_bicep, frame_marker_turret_bicep)
 sys.Add(my_link2)  
         
 my_link3 = chrono.ChLinkLockRevolute()
-my_link3.Initialize(rigidBody_bicep, rigidBody_elbow, frame_marker_bicep_elbow.GetCsys())
+my_link3.Initialize(rigidBody_bicep, rigidBody_elbow, frame_marker_bicep_elbow)
 sys.Add(my_link3)
 
 my_link4 = chrono.ChLinkLockRevolute()
-my_link4.Initialize(rigidBody_elbow, rigidBody_forearm, frame_marker_elbow_forearm.GetCsys())
+my_link4.Initialize(rigidBody_elbow, rigidBody_forearm, frame_marker_elbow_forearm)
 sys.Add(my_link4)
 
 my_link5 = chrono.ChLinkLockRevolute()
-my_link5.Initialize(rigidBody_forearm, rigidBody_wrist, frame_marker_forearm_wrist.GetCsys())
+my_link5.Initialize(rigidBody_forearm, rigidBody_wrist, frame_marker_forearm_wrist)
 sys.Add(my_link5)
 
 my_link6 = chrono.ChLinkLockRevolute()
-my_link6.Initialize(rigidBody_wrist, rigidBody_hand, frame_marker_wrist_hand.GetCsys())
+my_link6.Initialize(rigidBody_wrist, rigidBody_hand, frame_marker_wrist_hand)
 sys.Add(my_link6)
 
 my_link7 = chrono.ChLinkLockRevolute()
-my_link7.Initialize(rigidBody_turret, rigidBody_cylinder, frame_marker_turret_cylinder.GetCsys())
+my_link7.Initialize(rigidBody_turret, rigidBody_cylinder, frame_marker_turret_cylinder)
 sys.Add(my_link7)
 
 my_link8 = chrono.ChLinkLockRevolute()
-my_link8.Initialize(rigidBody_cylinder, rigidBody_rod, frame_marker_cylinder_rod.GetCsys())
+my_link8.Initialize(rigidBody_cylinder, rigidBody_rod, frame_marker_cylinder_rod)
 sys.Add(my_link8)
         
 my_link9 = chrono.ChLinkLockRevolute()
-my_link9.Initialize(rigidBody_rod, rigidBody_bicep, frame_marker_rod_bicep.GetCsys())
+my_link9.Initialize(rigidBody_rod, rigidBody_bicep, frame_marker_rod_bicep)
 sys.Add(my_link9)
 
                          
@@ -188,11 +188,11 @@ floor.AddVisualShape(pathasset)
 # This is the constraint that uses the trajectory
 trajectory = chrono.ChLinkTrajectory()
 # Define which parts are connected (the trajectory is considered in the 2nd body).
-trajectory.Initialize(rigidBody_hand, # body1 that follows the trajectory
-          floor,                 # body2 that 'owns' the trajectory
-          chrono.VNULL,           # point on body1 that will follow the trajectory, in body1 coords
-          path                   # the trajectory (reuse the one already added to body2 as asset)
-          )
+trajectory.Initialize(rigidBody_hand,   # body1 that follows the trajectory
+                      floor,            # body2 that 'owns' the trajectory
+                      chrono.VNULL,     # point on body1 that will follow the trajectory, in body1 coords
+                      path              # the trajectory (reuse the one already added to body2 as asset)
+                      )
 sys.Add(trajectory)
 
 # Optionally, set a function that gets the curvilinear
@@ -203,7 +203,7 @@ trajectory.Set_space_fx(spacefx)
 
 # Just to constraint the hand rotation:
 parallelism = chrono.ChLinkLockParallel()
-parallelism.Initialize(rigidBody_hand, floor, frame_marker_wrist_hand.GetCsys())
+parallelism.Initialize(rigidBody_hand, floor, frame_marker_wrist_hand)
 sys.Add(parallelism);
 
 #  Create an Irrlicht application to visualize the system

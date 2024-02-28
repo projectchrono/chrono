@@ -79,21 +79,21 @@ sys.Add(my_motor)
 mjointA = chrono.ChLinkLockRevolute()
 mjointA.Initialize(mrod,
                    mcrank, 
-                   chrono.ChCoordsysd( crank_center + chrono.ChVector3d(crank_rad,0,0) ))
+                   chrono.ChFramed( crank_center + chrono.ChVector3d(crank_rad,0,0) ))
 sys.Add(mjointA)
 
 # Create rod-piston joint
 mjointB = chrono.ChLinkLockRevolute()
 mjointB.Initialize(mpiston,
                    mrod, 
-                   chrono.ChCoordsysd( crank_center + chrono.ChVector3d(crank_rad+rod_length,0,0) ))
+                   chrono.ChFramed( crank_center + chrono.ChVector3d(crank_rad+rod_length,0,0) ))
 sys.Add(mjointB)
 
 # Create piston-truss joint
 mjointC = chrono.ChLinkLockPrismatic()
 mjointC.Initialize(mpiston,
                    mfloor, 
-                   chrono.ChCoordsysd( 
+                   chrono.ChFramed( 
                                crank_center + chrono.ChVector3d(crank_rad+rod_length,0,0), 
                                chrono.Q_ROTATE_Z_TO_X)
                   )

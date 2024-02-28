@@ -143,7 +143,7 @@ sys.Add(body_table)
 # depends on a specified motion law.
 
 link_shaker = chrono.ChLinkLockLock()
-link_shaker.Initialize(body_table, body_floor, chrono.CSYSNORM)
+link_shaker.Initialize(body_table, body_floor, chrono.ChFramed())
 sys.Add(link_shaker)
 
 # ..create the function for imposed x horizontal motion, etc.

@@ -130,7 +130,7 @@ cyljoint = chrono.ChLinkLockCylindrical()
 sys.AddLink(cyljoint)
 cyljoint.Initialize(ground, 
                     shaft_2,
-                    chrono.ChCoordsysd(chrono.ChVector3d(0, -hl * sina, hl * cosa), rot))
+                    chrono.ChFramed(chrono.ChVector3d(0, -hl * sina, hl * cosa), rot))
 
 # Connect the two shafts through a universal joint
 # ------------------------------------------------

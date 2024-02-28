@@ -83,7 +83,7 @@ pend_1.SetPos(chrono.ChVector3d(1, 0, 1))
 # Create a revolute joint to connect pendulum to ground. We specify the link
 # coordinate frame in the absolute frame.
 rev_1 = chrono.ChLinkLockRevolute()
-rev_1.Initialize(ground, pend_1, chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 1), chrono.ChQuaterniond(1, 0, 0, 0)))
+rev_1.Initialize(ground, pend_1, chrono.ChFramed(chrono.ChVector3d(0, 0, 1), chrono.ChQuaterniond(1, 0, 0, 0)))
 sys.AddLink(rev_1)
 
 # Create a pendulum modeled using ChBodyAuxRef
@@ -131,7 +131,7 @@ pend_2.SetFrame_REF_to_abs(chrono.ChFramed(chrono.ChVector3d(0, 0, -1)))
 # Create a revolute joint to connect pendulum to ground. We specify the link
 # coordinate frame in the absolute frame.
 rev_2 = chrono.ChLinkLockRevolute()
-rev_2.Initialize(ground, pend_2, chrono.ChCoordsysd(chrono.ChVector3d(0, 0, -2), chrono.ChQuaterniond(1, 0, 0, 0)))
+rev_2.Initialize(ground, pend_2, chrono.ChFramed(chrono.ChVector3d(0, 0, -2), chrono.ChQuaterniond(1, 0, 0, 0)))
 sys.AddLink(rev_2)
 
 # Create the Irrlicht visualization

@@ -79,13 +79,11 @@ slider2.AddVisualShape(cyl2, chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleY
 
 # Create prismatic joints between ground a sliders
 prismatic1 = chrono.ChLinkLockPrismatic()
-prismatic1.Initialize(slider1, ground, chrono.ChCoordsysd(
-    chrono.ChVector3d(0, 0, -1), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
+prismatic1.Initialize(slider1, ground, chrono.ChFramed(chrono.ChVector3d(0, 0, -1), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
 sys.AddLink(prismatic1)
 
 prismatic2 = chrono.ChLinkLockPrismatic()
-prismatic2.Initialize(slider2, ground, chrono.ChCoordsysd(
-    chrono.ChVector3d(0, 0, 1), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
+prismatic2.Initialize(slider2, ground, chrono.ChFramed(chrono.ChVector3d(0, 0, 1), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
 sys.AddLink(prismatic2)
 
 # Sine function parameters
