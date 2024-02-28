@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
                                                         false         // no collision geometry
                                                         );
     pendulumBody->SetPos(ChVector3d(0, 3, 0));
-    pendulumBody->SetPos_dt(ChVector3d(1, 0, 0));
+    pendulumBody->SetLinVel(ChVector3d(1, 0, 0));
 
     sys.Add(pendulumBody);
 

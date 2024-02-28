@@ -64,7 +64,7 @@ namespace ChronoDemo
             //ball.SetInertiaXX(0.4 * mass * radius * radius * onev);
             ball.SetPos(pos);
             ball.SetRot(rot);
-            ball.SetPos_dt(init_vel);
+            ball.SetLinVel(init_vel);
             // ball.SetWvel_par(new ChVectorD(0,0,3));
             ball.SetBodyFixed(false);
 
