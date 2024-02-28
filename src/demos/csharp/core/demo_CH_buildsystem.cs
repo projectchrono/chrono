@@ -58,13 +58,13 @@ namespace ChronoDemo
             // .. a revolute joint between crank and rod
             ChLinkLockRevolute my_link_BC = new ChLinkLockRevolute();
             my_link_BC.SetName("RevJointCrankRod");
-            my_link_BC.Initialize(my_body_B, my_body_C, new ChCoordsysd(new ChVector3d(2, 0, 0)));
+            my_link_BC.Initialize(my_body_B, my_body_C, new ChFramed(new ChVector3d(2, 0, 0)));
             sys.AddLink(my_link_BC);
 
             // .. a slider joint between rod and truss
             ChLinkLockPointLine my_link_CA = new ChLinkLockPointLine();
             my_link_CA.SetName("TransJointRodGround");
-            my_link_CA.Initialize(my_body_C, my_body_A, new ChCoordsysd(new ChVector3d(6, 0, 0)));
+            my_link_CA.Initialize(my_body_C, my_body_A, new ChFramed(new ChVector3d(6, 0, 0)));
             sys.AddLink(my_link_CA);
 
             // .. a motor between crank and truss
