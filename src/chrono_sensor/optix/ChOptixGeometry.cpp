@@ -76,6 +76,8 @@ void ChOptixGeometry::Cleanup() {
     m_sphere_gas_id = 0;
     m_cyl_inst = false;
     m_cyl_gas_id = 0;
+    m_nvdb_inst = false;
+    m_nvdb_gas_id = 0;
 
     // clear out chrono reference data
     m_obj_scales.clear();
@@ -206,6 +208,98 @@ void ChOptixGeometry::AddBox(std::shared_ptr<ChBody> body,
 
     AddGenericObject(mat_id, body, asset_frame, scale, m_gas_handles[m_box_gas_id]);
 }
+
+
+#ifdef USE_SENSOR_NVDB
+void ChOptixGeometry::AddNVDBVolume(std::shared_ptr<ChBody> body,
+                                    ChFrame<double> asset_frame,
+                                    ChVector<double> scale,
+                                    unsigned int mat_id) {
+    if (!m_nvdb_inst) {
+        // create first box instance
+        OptixAabb aabb[1];
+
+        //*aabb = {-512.0f, -64.0f, 0.0f, 0.0f, 0.0f, 28.0f};
+        //*aabb = {-508.0f, -84.0f, 0.0f, 0.0f,  0.0f, 20.0f};
+        *aabb = {-.5f, -.5f, -.5f, .5f, .5f, .5f};
+        //*aabb = {-1500.0f, -1500.0f, -1500.0f, 1500.0f, 1500.0f, 1500.0f};
+        //*aabb = {-404.0f, -204.0f, 0.0f, 0.0f,  0.0f, 12.0f};
+        // *aabb = {-204.0f, -104.0f, 0.0f, 0.0f,  0.0f, 24.0f};
+
+        CUdeviceptr d_aabb;
+        CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_aabb), sizeof(OptixAabb)));
+        CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_aabb), &aabb, sizeof(OptixAabb), cudaMemcpyHostToDevice));
+        uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT};
+        // uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_NONE};
+        // const uint32_t sbt_index[] = {0};  // TODO: may need to check this when we have multiple types of ojbects
+        // CUdeviceptr d_sbt_index;
+        // CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_sbt_index), sizeof(sbt_index)));
+        // CUDA_ERROR_CHECK(
+        //     cudaMemcpy(reinterpret_cast<void*>(d_sbt_index), sbt_index, sizeof(sbt_index), cudaMemcpyHostToDevice));
+
+        OptixBuildInput aabb_input = {};
+        aabb_input.type = OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES;
+        aabb_input.customPrimitiveArray.aabbBuffers = &d_aabb;
+        aabb_input.customPrimitiveArray.flags = aabb_input_flags;
+        aabb_input.customPrimitiveArray.numSbtRecords = 1;
+        aabb_input.customPrimitiveArray.numPrimitives = 1;
+        aabb_input.customPrimitiveArray.sbtIndexOffsetBuffer = 0;  // d_sbt_index;
+        aabb_input.customPrimitiveArray.sbtIndexOffsetSizeInBytes = sizeof(uint32_t);
+        aabb_input.customPrimitiveArray.sbtIndexOffsetStrideInBytes = sizeof(uint32_t);
+        aabb_input.customPrimitiveArray.primitiveIndexOffset = 0;
+
+        OptixAccelBuildOptions accel_options = {
+            OPTIX_BUILD_FLAG_ALLOW_COMPACTION,  // buildFlags
+            OPTIX_BUILD_OPERATION_BUILD         // operation
+        };
+
+        // building box GAS
+        OptixAccelBufferSizes gas_buffer_sizes;
+        CUdeviceptr d_temp_buffer_gas;
+        OPTIX_ERROR_CHECK(optixAccelComputeMemoryUsage(m_context, &accel_options, &aabb_input, 1, &gas_buffer_sizes));
+        CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_temp_buffer_gas), gas_buffer_sizes.tempSizeInBytes));
+        CUdeviceptr d_buffer_temp_output_gas_and_compacted_size;
+
+        size_t compactedSizeOffset = (size_t)((gas_buffer_sizes.outputSizeInBytes + 8ull - 1 / 8ull) * 8ull);
+
+        CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_buffer_temp_output_gas_and_compacted_size),
+                                    compactedSizeOffset + 8));
+        OptixAccelEmitDesc emitProperty = {};
+        emitProperty.type = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE;
+        emitProperty.result = (CUdeviceptr)((char*)d_buffer_temp_output_gas_and_compacted_size + compactedSizeOffset);
+
+        m_gas_handles.emplace_back();
+        m_gas_buffers.emplace_back();
+        m_box_gas_id = static_cast<unsigned int>(m_gas_handles.size() - 1);
+
+        OPTIX_ERROR_CHECK(optixAccelBuild(m_context, 0, &accel_options, &aabb_input, 1, d_temp_buffer_gas,
+                                          gas_buffer_sizes.tempSizeInBytes, d_buffer_temp_output_gas_and_compacted_size,
+                                          gas_buffer_sizes.outputSizeInBytes, &m_gas_handles[m_box_gas_id],
+                                          &emitProperty, 1));
+        CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(d_temp_buffer_gas)));
+
+        size_t compacted_gas_size;
+        CUDA_ERROR_CHECK(cudaMemcpy(&compacted_gas_size, reinterpret_cast<void*>(emitProperty.result), sizeof(size_t),
+                                    cudaMemcpyDeviceToHost));
+
+        if (compacted_gas_size < gas_buffer_sizes.outputSizeInBytes) {
+            CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&m_gas_buffers[m_box_gas_id]), compacted_gas_size));
+
+            // use handle as input and output
+            OPTIX_ERROR_CHECK(optixAccelCompact(m_context, 0, m_gas_handles[m_box_gas_id], m_gas_buffers[m_box_gas_id],
+                                                compacted_gas_size, &m_gas_handles[m_box_gas_id]));
+            CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(d_buffer_temp_output_gas_and_compacted_size)));
+        } else {
+            m_gas_buffers[m_box_gas_id] = d_buffer_temp_output_gas_and_compacted_size;
+        }
+        CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(d_aabb)));
+        // CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(d_sbt_index)));
+        m_nvdb_inst = true;
+    }
+
+    AddGenericObject(mat_id, body, asset_frame, scale, m_gas_handles[m_box_gas_id]);
+}
+#endif // USE_SENSOR_NVDB
 
 void ChOptixGeometry::AddSphere(std::shared_ptr<ChBody> body,
                                 ChFrame<double> asset_frame,

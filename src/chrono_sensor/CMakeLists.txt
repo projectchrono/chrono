@@ -12,6 +12,23 @@ endif()
 
 message(STATUS "\n==== Chrono Sensor module ====\n")
 
+
+
+
+option(USE_NVDB "Enable Chrono::FSI deformable terrain sim rendering in Chrono::Sensor" OFF)
+
+if(USE_NVDB)
+  # CMake Module path
+  set(OpenVDB_DIR "" CACHE PATH "OpenVDB CMake Module Path")
+  set(CMAKE_MODULE_PATH ${OpenVDB_DIR} ${CMAKE_MODULE_PATH} )
+  # Print out the CMake module path
+  message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+  # print cmake cxx standard
+  message(STATUS "CMAKE_CXX_STANDARD: ${CMAKE_CXX_STANDARD}")
+  find_package(OpenVDB REQUIRED COMPONENTS nanovdb)
+endif()
+
+
 # Return now if CUDA is not available
 if(NOT CUDA_FOUND)
     message(WARNING "Chrono::Sensor requires CUDA, but CUDA was not found; disabling Chrono::Sensor")
@@ -35,6 +52,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   mark_as_advanced(CLEAR GLEW_DLL)
   mark_as_advanced(CLEAR GLFW_DLL)
 endif()
+
 
 # ------------------------------------------------------------------------------
 # Hack to deal with MSVC runtime libraries
@@ -96,12 +114,35 @@ set(CH_SENSOR_INCLUDES ${CH_SENSOR_INCLUDES}
     ${CUDA_INCLUDE_DIRS}
 )
 
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CUDA_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 list(APPEND LIBRARIES ${CUDA_nppc_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_nppig_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_nppidei_LIBRARY})
+list(APPEND LIBRARIES ${CUDA_CUDA_LIBRARY})
+
+if(USE_NVDB)
+  list(APPEND LIBRARIES OpenVDB::openvdb)
+  list(APPEND LIBRARIES OpenVDB::nanovdb)
+endif()
+
+message(STATUS "CMAKE_CXX_STANDARD: ${CMAKE_CXX_STANDARD}")
+# print cxx compiler flags\
+if(MSVC AND MSVC_VERSION GREATER_EQUAL 1900)
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
+endif()
+message(STATUS "CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 
 set(CH_SENSOR_INCLUDES ${CH_SENSOR_INCLUDES} "${CUDA_TOOLKIT_ROOT_DIR}/include")
-list(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
+list(APPEND CUDA_NVCC_FLAGS "--use_fast_math --extended-lambda --std c++17")
+
+
+
 
 
 # ------------------------------------------------------------------------------
@@ -209,6 +250,13 @@ set(ChronoEngine_sensor_RT_SOURCES
     optix/shaders/material_shaders.cu
     optix/shaders/radar.cu
 )
+
+if(USE_NVDB)
+  list(APPEND ChronoEngine_sensor_RT_SOURCES
+    optix/shaders/nvdb.cu
+  )
+endif()
+
 set(ChronoEngine_sensor_RT_HEADERS
     optix/shaders/device_utils.h
 )
@@ -233,6 +281,7 @@ set(ChronoEngine_sensor_CUDA_SOURCES
     cuda/nn_prep.cu
     cuda/lidar_clip.cu
     cuda/radarprocess.cu
+    cuda/cuda_utils.cu
 )
 
 set(ChronoEngine_sensor_CUDA_HEADERS
@@ -246,12 +295,14 @@ set(ChronoEngine_sensor_CUDA_HEADERS
     cuda/nn_prep.cuh
     cuda/lidar_clip.cuh
     cuda/radarprocess.cuh
+    cuda/cuda_utils.cuh
 )
 
 source_group("Cuda" FILES
     ${ChronoEngine_sensor_CUDA_SOURCES}
 	${ChronoEngine_sensor_CUDA_HEADERS}
 )
+
 
 #-----------------------------------------------------------------------------
 # LIST THE FILES THAT MAKE THE CORE SENSOR LIBRARY
@@ -280,6 +331,7 @@ set(ChronoEngine_sensor_SENSORS_SOURCES
     sensors/ChOptixSensor.cpp
     sensors/ChCameraSensor.cpp
     sensors/ChSegmentationCamera.cpp
+    sensors/ChDepthCamera.cpp
     sensors/ChLidarSensor.cpp
     sensors/ChRadarSensor.cpp
     sensors/ChIMUSensor.cpp
@@ -294,6 +346,7 @@ set(ChronoEngine_sensor_SENSORS_HEADERS
     sensors/ChOptixSensor.h
     sensors/ChCameraSensor.h
     sensors/ChSegmentationCamera.h
+    sensors/ChDepthCamera.h
     sensors/ChLidarSensor.h
     sensors/ChRadarSensor.h
     sensors/ChIMUSensor.h
@@ -335,6 +388,7 @@ set(ChronoEngine_sensor_OPTIX_SOURCES
     optix/ChOptixPipeline.cpp
     optix/ChOptixUtils.cpp
     optix/ChFilterOptixRender.cpp
+    optix/ChNVDBVolume.cpp
 )
 
 set(ChronoEngine_sensor_OPTIX_HEADERS
@@ -344,6 +398,7 @@ set(ChronoEngine_sensor_OPTIX_HEADERS
     optix/ChOptixUtils.h
     optix/ChFilterOptixRender.h
     optix/ChOptixDefinitions.h
+    optix/ChNVDBVolume.h
 )
 
 source_group("Optix" FILES
@@ -470,13 +525,13 @@ set(SENSOR_TINYOBJ_FILES
 )
 source_group("utils\\tinyobjloader" FILES ${SENSOR_TINYOBJ_FILES})
 
-
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_sensor library
 #-----------------------------------------------------------------------------
 
 # Generate the OBJ files
 CUDA_WRAP_SRCS(ChronoEngine_sensor OBJ generated_obj_files ${ChronoEngine_sensor_CUDA_SOURCES} )
+
 
 # Generate the PTX files only if NVRTC is disabled
 if(NOT USE_CUDA_NVRTC)
@@ -502,8 +557,10 @@ list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_FILTERS_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_FILTERS_HEADERS})
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_SCENE_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_SCENE_HEADERS})
+
 list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_STB_FILES})
 list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_TINYOBJ_FILES})
+
 
 list(APPEND ALL_CH_SENSOR_FILES ${generated_obj_files})
 
@@ -529,10 +586,16 @@ if(${HAVE_GL})
   target_compile_definitions(ChronoEngine_sensor PUBLIC -DUSE_SENSOR_GLFW )
 endif()
 
+if(${USE_NVDB})
+  target_compile_definitions(ChronoEngine_sensor PUBLIC -DUSE_SENSOR_NVDB)
+  message(STATUS "NANO VDB Visualization enabled in Chrono::Sensor.")
+endif()
+
 # windows builds should disable warning 4661 and 4005
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4661 /wd4005")
 endif()
+
 
 target_compile_definitions(ChronoEngine_sensor PUBLIC CH_API_COMPILE_SENSOR)
 
@@ -580,7 +643,7 @@ install(FILES ${ChronoEngine_sensor_SCENE_HEADERS}
       DESTINATION include/chrono_sensor/optix/scene)
 install(FILES ${ChronoEngine_sensor_RT_HEADERS}
       DESTINATION include/chrono_sensor/optix/shaders)
-
+      
 if(NOT USE_CUDA_NVRTC)
   install(FILES ${generated_rt_files}
           DESTINATION lib/sensor_ptx)

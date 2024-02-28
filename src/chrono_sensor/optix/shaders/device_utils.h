@@ -22,8 +22,15 @@
 #include <math_constants.h>
 #include <optix.h>
 
+typedef uchar3				bool3;
+typedef unsigned char		uchar;
+typedef unsigned short		ushort;
+typedef unsigned int		uint;
+typedef unsigned long		ulong;
+typedef unsigned long long	uint64;
+
 extern "C" {
-__constant__ ContextParameters params;
+    __constant__ ContextParameters params;
 }
 
 __device__ __inline__ half4 make_half4(const float4& a) {
@@ -75,6 +82,13 @@ __device__ __inline__ PerRayData_semantic* getSemanticPRD() {
     return reinterpret_cast<PerRayData_semantic*>(ints_as_pointer(opt0, opt1));
 }
 
+__device__ __inline__ PerRayData_depthCamera* getDepthCameraPRD() {
+    unsigned int opt0 = optixGetPayload_0();
+    unsigned int opt1 = optixGetPayload_1();
+    return reinterpret_cast<PerRayData_depthCamera*>(ints_as_pointer(opt0, opt1));
+}
+
+
 __device__ __inline__ PerRayData_lidar* getLidarPRD() {
     unsigned int opt0 = optixGetPayload_0();
     unsigned int opt1 = optixGetPayload_1();
@@ -106,6 +120,13 @@ __device__ __inline__ PerRayData_camera default_camera_prd() {
     return prd;
 };
 
+
+__device__ __inline__ PerRayData_depthCamera default_depthCamera_prd() {
+    PerRayData_depthCamera prd = {};
+    prd.depth = 0.f;
+    return prd;
+};
+
 __device__ __inline__ PerRayData_semantic default_semantic_prd() {
     PerRayData_semantic prd = {};
     prd.class_id = 0;
@@ -134,7 +155,6 @@ __device__ __inline__ PerRayData_radar default_radar_prd() {
     };
     return prd;
 };
-
 /// =======================
 /// float3-float3 operators
 /// =======================

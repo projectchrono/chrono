@@ -55,6 +55,16 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param mat_id the material id associated with the box
     void AddBox(std::shared_ptr<ChBody> body, ChFrame<double> asset_frame, ChVector3d scale, unsigned int mat_id);
 
+    #ifdef USE_SENSOR_NVDB
+    /// Add a NVDB volume to the optix scene
+    /// @param body the Chrono Body that drives the NVDB volume
+    /// @param asset_frame the Chrono frame that specifies how the asset is attached to the body
+    /// @param scale the scale of the NVDB volume
+    /// @param mat_id the material id associated with the NVDB volume
+    void AddNVDBVolume(std::shared_ptr<ChBody> body, ChFrame<double> asset_frame,ChVector<double> scale,unsigned int mat_id);
+    #endif
+
+
     /// Add a sphere geometry to the optix scene
     /// @param body the Chrono Body that drives the sphere
     /// @param asset_frame the Chrono frame that specifies how the asset is attached to the body
@@ -100,6 +110,7 @@ class CH_SENSOR_API ChOptixGeometry {
                            ChFrame<double> asset_frame,
                            ChVector3d scale,
                            unsigned int mat_id);
+
 
     /// Create the root node and acceleration structure of the scene
     ///@return A traversable handle to the root node
@@ -173,6 +184,9 @@ class CH_SENSOR_API ChOptixGeometry {
     bool m_sphere_inst = false;    ///< whether a sphere has been created
     unsigned int m_cyl_gas_id;     ///< id of the single cylinder geometry acceleration structure
     bool m_cyl_inst = false;       ///< whether a cylinder has been created
+
+    unsigned int m_nvdb_gas_id;
+    bool m_nvdb_inst = false;  
 
     // intance and root buffers
     std::vector<OptixInstance> m_instances;  ///< host vector of geometry instances

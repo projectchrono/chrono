@@ -31,6 +31,9 @@ CH_SENSOR_API ChScene::ChScene() {
 
     m_ambient_light = ChVector3f({.2f, .2f, .2f});
     m_pointlights = std::vector<PointLight>();
+    m_arealights = std::vector<AreaLight>();
+
+    arealights_changed = true;
     lights_changed = true;
     background_changed = true;
 
@@ -40,6 +43,8 @@ CH_SENSOR_API ChScene::ChScene() {
     m_scene_epsilon = 1e-3f;
     m_dynamic_origin_threshold = 100.f;
     m_dynamic_origin_offset = false;
+
+    //m_nvdb = nullptr;
 }
 
 CH_SENSOR_API ChScene::~ChScene() {}
@@ -52,6 +57,21 @@ CH_SENSOR_API unsigned int ChScene::AddPointLight(ChVector3f pos, ChColor color,
     m_pointlights.push_back(p);
     lights_changed = true;
     return static_cast<unsigned int>(m_pointlights.size() - 1);
+}
+
+CH_SENSOR_API unsigned int ChScene::AddAreaLight(ChVector<float> pos, ChColor color, float max_range, ChVector<float> du, ChVector<float> dv) {
+    AreaLight a;
+
+    a.pos = {pos.x(), pos.y(), pos.z()};
+    a.du = {du.x(), du.y(), du.z()};
+    a.dv = {dv.x(), dv.y(), dv.z()};
+
+    a.color = {color.R, color.G, color.B};
+    a.max_range = max_range;
+    
+    m_arealights.push_back(a);
+    arealights_changed = true;
+    return static_cast<unsigned int>(m_arealights.size() - 1);
 }
 
 CH_SENSOR_API unsigned int ChScene::AddPointLight(const PointLight& p) {

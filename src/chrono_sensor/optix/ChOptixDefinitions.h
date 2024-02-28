@@ -21,8 +21,14 @@
 #include <optix_types.h>
 #include <cuda_runtime_api.h>
 #include <curand_kernel.h>
-
 #include <cuda_fp16.h>
+
+#ifdef USE_SENSOR_NVDB
+    #include <nanovdb/NanoVDB.h>
+    #include <nanovdb/util/GridHandle.h>
+    #include <nanovdb/util/cuda/CudaDeviceBuffer.h>
+#endif
+
 struct half4 {
     __half x;
     __half y;
@@ -33,13 +39,18 @@ struct half4 {
 /// @addtogroup sensor_optix
 /// @{
 
+/// @addtogroup sensor_optix
+/// @{
+
+
 /// Ray types, used to determine the shading and miss functions for populating ray information
 enum RayType {
     CAMERA_RAY_TYPE = 0,       /// camera rays
     SHADOW_RAY_TYPE = 1,       /// shadow rays
     LIDAR_RAY_TYPE = 2,        /// lidar rays
     RADAR_RAY_TYPE = 3,        /// radar rays
-    SEGMENTATION_RAY_TYPE = 4  /// semantic camera rays
+    SEGMENTATION_RAY_TYPE = 4, /// semantic camera rays 
+    DEPTH_RAY_TYPE = 5,        /// depth camera rays
 };
 
 /// The type of lens model that camera can use for rendering
@@ -47,6 +58,23 @@ enum CameraLensModelType {
     PINHOLE,   ///< traditional computer graphics ideal camera model.
     FOV_LENS,  ///< Wide angle lens model based on single spherical lens.
     RADIAL     ///< Wide angle lens model based on polynomial fit
+};
+
+/// The different types of area lights that can exist in our current models
+/*enum AreaLightType {
+    CIRCLE,     ///< circular-disk area light with a radius value
+    SQUARE,     ///< square-shaped area light with a side length value
+    RECTANGLE   ///< retangular area light with a length and width value
+}
+*/
+
+/// Parameters for an area light
+struct AreaLight {
+    float3 pos;         ///< the centre position of the area light from a global perspective
+    float3 color;       ///< the light's color and intensity
+    float max_range;    ///< the range at which 10% of the light's intensity remains
+    float3 du;          ///< the vector signifying the length of the area light
+    float3 dv;          ///< The vector signifying the width of the area light
 };
 
 /// Packed parameters of a point light
@@ -103,6 +131,15 @@ struct CameraParameters {
     half4* normal_buffer;  ///< The screen-space normal of the first hit. Only initialized if using global illumination
                            ///< (screenspace normal)
     curandState_t* rng_buffer;  ///< The random number generator object. Only initialized if using global illumination
+};
+
+// Parameters for specifying a depth camera
+struct DepthCameraParameters {
+    float hFOV;                      ///< horizontal field of view
+    CameraLensModelType lens_model;  ///< lens model to use
+    LensParams lens_parameters;      ///< lens fitting parameters (if applicable)
+    float* frame_buffer;             ///< buffer of class and instance ids
+    curandState_t* rng_buffer;       ///< only initialized if using global illumination
 };
 
 /// Parameters need to define a camera that generates semantic segmentation data
@@ -165,6 +202,7 @@ struct RaygenParameters {
         SemanticCameraParameters segmentation;  ///< the specific data when modeling a semantic segementation camera
         LidarParameters lidar;                  ///< the specific data when modeling a lidar
         RadarParameters radar;                  ///< the specific data when modeling a radar
+        DepthCameraParameters depthCamera;      /// < the specific data when modeling a depth camera
     } specific;                                 ///< the data for the specific sensor
 };
 
@@ -184,6 +222,8 @@ struct MeshParameters {              // pad to align 16 (swig doesn't support ex
 struct MaterialParameters {      // pad to align 16 (swig doesn't support explicit alignment calls)
     float3 Kd;                   ///< the diffuse color // size 12
     float3 Ks;                   ///< the specular color // size 12
+    float3 Ke;                   /// < the emissive color // size 12>
+    float anisotropy;            ///< the anisotropic value of material (0-1) // size 4
     float fresnel_exp;           ///< the fresnel exponent // size 4
     float fresnel_min;           ///< the minimum fresnel value (0-1) // size 4
     float fresnel_max;           ///< maximum fresnel value (0-1) // size 4
@@ -196,19 +236,26 @@ struct MaterialParameters {      // pad to align 16 (swig doesn't support explic
     cudaTextureObject_t kd_tex;  ///< a diffuse color texture // size 8
     cudaTextureObject_t kn_tex;  ///< a normal perterbation texture // size 8
     cudaTextureObject_t ks_tex;  ///< a specular color texture // size 8
+    cudaTextureObject_t ke_tex; /// <an emissive color texture // size 8
     cudaTextureObject_t metallic_tex;   ///< a metalic color texture // size 8
     cudaTextureObject_t roughness_tex;  ///< a roughness texture // size 8
     cudaTextureObject_t opacity_tex;    ///< an opacity texture // size 8
     cudaTextureObject_t weight_tex;     ///< a weight texture for blended textures // size 8
-    float2 tex_scale;                   ///< texture scaling
+    float2 tex_scale;                   ///< texture scaling // size 8
     unsigned short int class_id;        ///< a class id of an object // size 2
     unsigned short int instance_id;     ///< an instance id of an object // size 2
-    // float2 pad;                      // padding to ensure 16 byte alignment
+   
+    int use_hapke;                      // toggle between disney and hapke shader // size 4
+    float emissive_power;               // size 4
+    float3 pad;                      // padding to ensure 16 byte alignment
+    
 };
 
 /// Parameters associated with the entire optix scene
 struct ContextParameters {
+    AreaLight* arealights;              ///< device pointer to the set of area lights in the scene
     PointLight* lights;                 ///< device pointer to set of point lights in the scene
+    int num_arealights;                ///< the number of area lights in the scene
     int num_lights;                     ///< the number of point lights in the scene
     float3 ambient_light_color;         ///< the ambient light color and intensity
     float3 fog_color;                   ///< color of fog in the scene
@@ -219,6 +266,14 @@ struct ContextParameters {
     OptixTraversableHandle root;        ///< a handle to the root node in the scene
     MaterialParameters* material_pool;  ///< device pointer to list of materials to use for shading
     MeshParameters* mesh_pool;          ///< device pointer to list of meshes for instancing
+    
+    #ifdef USE_SENSOR_NVDB
+    //nanovdb::GridHandle<nanovdb::CudaDeviceBuffer>* handle_ptr; // NanoVDB grid handle
+    //nanovdb::NanoGrid<float>* handle_ptr;
+        nanovdb::NanoGrid<nanovdb::Point>* handle_ptr;
+    #else
+        int handle_ptr;
+    #endif
 };
 
 /// Parameters associated with a single object in the scene. Padding added during record creation
@@ -242,6 +297,10 @@ struct PerRayData_camera {
     float3 albedo;            ///< the albed of the first hit
     float3 normal;            ///< the global normal of the first hit
     bool use_fog;             ///< whether to use fog on this prd
+};
+
+struct PerRayData_depthCamera {
+    float depth;
 };
 
 /// Data associated with a single segmentation camera ray

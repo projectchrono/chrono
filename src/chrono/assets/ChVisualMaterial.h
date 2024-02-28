@@ -43,6 +43,7 @@ class ChApi ChVisualMaterial {
     void SetDiffuseColor(const ChColor& rgb);
     void SetSpecularColor(const ChColor& rgb);
     void SetEmissiveColor(const ChColor& rgb);
+    void SetEmissivePower(const float& power);
 
     void SetSpecularExponent(float exponent);
     void SetOpacity(float o);
@@ -67,7 +68,9 @@ class ChApi ChVisualMaterial {
     void SetFresnelMin(float min);
     void SetRoughness(float r);
     void SetMetallic(float m);
+    void SetAnisotropy(float a);
     void SetUseSpecularWorkflow(bool s) { use_specular_workflow = s; }
+    void SetUseHapke(bool h) {use_hapke = h;}
 
     void SetClassID(unsigned short int id) { class_id = id; }
     void SetInstanceID(unsigned short int id) { instance_id = id; }
@@ -78,6 +81,7 @@ class ChApi ChVisualMaterial {
     const ChColor& GetDiffuseColor() const { return Kd; }
     const ChColor& GetSpecularColor() const { return Ks; }
     const ChColor& GetEmissiveColor() const { return Ke; }
+    const float& GetEmissivePower() const {return emissive_power;}
     float GetSpecularExponent() const { return Ns; }
     float GetOpacity() const { return d; }
     int GetIllumination() const { return illum; }
@@ -100,7 +104,9 @@ class ChApi ChVisualMaterial {
     float GetFresnelMin() const { return fresnel_min; }
     float GetRoughness() const { return roughness; }
     float GetMetallic() const { return metallic; }
+    float GetAnisotropy() const {return anisotropy; }
     bool GetUseSpecularWorkflow() const { return use_specular_workflow; }
+    bool GetUseHapke() const {return use_hapke;}
     unsigned short int GetClassID() const { return class_id; }
     unsigned short int GetInstanceID() const { return instance_id; }
 
@@ -119,6 +125,8 @@ class ChApi ChVisualMaterial {
     ChColor Ks;  ///< specular color
     ChColor Ke;  ///< emissive color
 
+    float emissive_power;
+
     float fresnel_max;
     float fresnel_min;
     float fresnel_exp;
@@ -129,8 +137,10 @@ class ChApi ChVisualMaterial {
 
     float roughness;
     float metallic;
+    float anisotropy;
 
     bool use_specular_workflow;
+    bool use_hapke;
 
     ChTexture kd_texture;         ///< diffuse texture map
     ChTexture ks_texture;         ///< specular texture map
