@@ -379,11 +379,11 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         // Create joint
         ChVector3d pos = TransformPosition(item.second.pos, item.first.side);
         ChQuaternion<> rot = TransformRotation(item.second.rot, item.first.side);
-        item.second.joint = chrono_types::make_shared<ChVehicleJoint>(item.second.type,        //
-                                                                      Name(item.first),        //
-                                                                      body1,                   //
-                                                                      body2,                   //
-                                                                      ChCoordsys<>(pos, rot),  //
+        item.second.joint = chrono_types::make_shared<ChVehicleJoint>(item.second.type,     //
+                                                                      Name(item.first),     //
+                                                                      body1,                //
+                                                                      body2,                //
+                                                                      ChFrame<>(pos, rot),  //
                                                                       item.second.bdata);
         chassis->AddJoint(item.second.joint);
     }

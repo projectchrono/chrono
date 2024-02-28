@@ -195,18 +195,18 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     // Create and initialize the spherical joint between chassis and arm.
     m_sphericalArm[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalArm" + suffix, chassis->GetBody(), m_arm[side],
-        ChCoordsys<>(points[TA_C], QUNIT), getArmChassisBushingData());
+        ChFrame<>(points[TA_C], QUNIT), getArmChassisBushingData());
     chassis->AddJoint(m_sphericalArm[side]);
 
     // Create and initialize the spherical joints between links and arm.
     m_sphericalUpper[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalUpper" + suffix, m_upper[side], m_arm[side],
-        ChCoordsys<>(points[UL_A], QUNIT), getArmUpperBushingData());
+        ChFrame<>(points[UL_A], QUNIT), getArmUpperBushingData());
     chassis->AddJoint(m_sphericalUpper[side]);
 
     m_sphericalLower[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalLower" + suffix, m_lower[side], m_arm[side],
-        ChCoordsys<>(points[LL_A], QUNIT), getArmLowerBushingData());
+        ChFrame<>(points[LL_A], QUNIT), getArmLowerBushingData());
     chassis->AddJoint(m_sphericalLower[side]);
 
     // Create and initialize the universal joints between links and chassis.
@@ -218,7 +218,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
 
     m_universalUpper[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalUpper" + suffix, m_upper[side], chassis->GetBody(),
-        ChCoordsys<>(points[UL_C], rot.GetQuaternion()), getChassisUpperBushingData());
+        ChFrame<>(points[UL_C], rot.GetQuaternion()), getChassisUpperBushingData());
     chassis->AddJoint(m_universalUpper[side]);
 
     u = dirs[UNIV_AXIS_LOWER];
@@ -229,7 +229,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
 
     m_universalLower[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalLower" + suffix, m_lower[side], chassis->GetBody(),
-        ChCoordsys<>(points[LL_C], rot.GetQuaternion()), getChassisLowerBushingData());
+        ChFrame<>(points[LL_C], rot.GetQuaternion()), getChassisLowerBushingData());
     chassis->AddJoint(m_universalLower[side]);
 
     // Create and initialize the spring/damper.

@@ -364,12 +364,12 @@ void ChTrackShoeDoublePin::Connect2(std::shared_ptr<ChTrackShoe> next,
 
     m_joint_L =
         chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_pin_L", m_connector_L,
-                                                  m_shoe, ChCoordsys<>(loc_L, rot), track->GetBushingData());
+                                                  m_shoe, ChFrame<>(loc_L, rot), track->GetBushingData());
     chassis->AddJoint(m_joint_L);
 
     m_joint_R =
         chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_pin_R", m_connector_R,
-                                                  m_shoe, ChCoordsys<>(loc_R, rot), track->GetBushingData());
+                                                  m_shoe, ChFrame<>(loc_R, rot), track->GetBushingData());
     chassis->AddJoint(m_joint_R);
 
     // Optionally, include rotational spring-dampers to model track bending stiffness.
@@ -403,13 +403,13 @@ void ChTrackShoeDoublePin::Connect2(std::shared_ptr<ChTrackShoe> next,
     rot = m_connector_L->GetRot() * QuatFromAngleX(CH_C_PI_2);
     m_connection_joint_L = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_cpin_L",
                                                                      next->GetShoeBody(), m_connector_L,
-                                                                     ChCoordsys<>(loc_L, rot), track->GetBushingData());
+                                                                     ChFrame<>(loc_L, rot), track->GetBushingData());
     chassis->AddJoint(m_connection_joint_L);
 
     rot = m_connector_R->GetRot() * QuatFromAngleX(CH_C_PI_2);
     m_connection_joint_R = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_cpin_R",
                                                                      next->GetShoeBody(), m_connector_R,
-                                                                     ChCoordsys<>(loc_R, rot), track->GetBushingData());
+                                                                     ChFrame<>(loc_R, rot), track->GetBushingData());
     chassis->AddJoint(m_connection_joint_R);
 
     // Optionally, include rotational spring-dampers to model track bending stiffness
@@ -461,11 +461,11 @@ void ChTrackShoeDoublePin::Connect1(std::shared_ptr<ChTrackShoe> next,
         rot = m_shoe->GetRot() * QuatFromAngleX(CH_C_PI_2);
         m_joint_L =
             chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_pin", m_connector_L,
-                                                      m_shoe, ChCoordsys<>(loc, rot), track->GetBushingData());
+                                                      m_shoe, ChFrame<>(loc, rot), track->GetBushingData());
         chassis->AddJoint(m_joint_L);
     } else {
         m_joint_L = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sph",
-                                                              m_connector_L, m_shoe, ChCoordsys<>(loc, QUNIT));
+                                                              m_connector_L, m_shoe, ChFrame<>(loc, QUNIT));
         chassis->AddJoint(m_joint_L);
     }
 
@@ -491,14 +491,14 @@ void ChTrackShoeDoublePin::Connect1(std::shared_ptr<ChTrackShoe> next,
     if (track->GetBushingData() || m_index != 0) {
         rot = m_connector_L->GetRot() * QuatFromAngleX(CH_C_PI_2);
         m_connection_joint_L = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::REVOLUTE, m_name + "_cpin", next->GetShoeBody(), m_connector_L,
-            ChCoordsys<>(loc, rot), track->GetBushingData());
+            ChVehicleJoint::Type::REVOLUTE, m_name + "_cpin", next->GetShoeBody(), m_connector_L, ChFrame<>(loc, rot),
+            track->GetBushingData());
         chassis->AddJoint(m_connection_joint_L);
     } else {
         rot = m_connector_L->GetRot() * QuatFromAngleY(-CH_C_PI_2);
         m_connection_joint_L =
             chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::UNIVERSAL, m_name + "_cuniv",
-                                                      next->GetShoeBody(), m_connector_L, ChCoordsys<>(loc, rot));
+                                                      next->GetShoeBody(), m_connector_L, ChFrame<>(loc, rot));
         chassis->AddJoint(m_connection_joint_L);
     }
 

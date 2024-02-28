@@ -73,7 +73,7 @@ class CH_VEHICLE_API ChVehicleJoint {
                    const std::string& name,
                    std::shared_ptr<ChBody> body1,
                    std::shared_ptr<ChBody> body2,
-                   ChCoordsys<> pos,
+                   ChFrame<> joint_frame,
                    std::shared_ptr<ChVehicleBushingData> bushing_data = nullptr);
 
     ~ChVehicleJoint();
@@ -94,7 +94,7 @@ class CH_VEHICLE_API ChVehicleJoint {
     /// Return true if wrapping a kinematic joint and false if wrapping a bushing.
     bool IsKinematic() const;
 
-    /// Get the underlying kinematic joint. 
+    /// Get the underlying kinematic joint.
     /// A null pointer is returned if the vehicle joint is in fact a bushing.
     Link GetAsLink() const;
 
@@ -106,11 +106,11 @@ class CH_VEHICLE_API ChVehicleJoint {
     static std::string GetTypeString(Type type);
 
   private:
-    void CreateLink(Type type, std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, ChCoordsys<> pos);
+    void CreateLink(Type type, std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, ChFrame<> link_frame);
     void CreateBushing(Type type,
                        std::shared_ptr<ChBody> body1,
                        std::shared_ptr<ChBody> body2,
-                       ChCoordsys<> pos,
+                       ChFrame<> bushing_frame,
                        std::shared_ptr<ChVehicleBushingData> bd);
 
     mpark::variant<Link, Bushing> m_joint;

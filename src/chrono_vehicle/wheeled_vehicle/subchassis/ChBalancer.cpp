@@ -100,7 +100,7 @@ void ChBalancer::InitializeSide(VehicleSide side,
     // Attach balancer to chassis through a revolute joint and set joint limits
     m_balancer_joint[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_rev_balancer" + suffix, m_beam[side], chassis->GetBody(),
-        ChCoordsys<>(points[REVOLUTE], joint_rot), GetBushingData());
+        ChFrame<>(points[REVOLUTE], joint_rot), GetBushingData());
     chassis->AddJoint(m_balancer_joint[side]);
 
     if (m_balancer_joint[side]->IsKinematic()) {

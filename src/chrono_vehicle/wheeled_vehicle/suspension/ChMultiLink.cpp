@@ -301,11 +301,11 @@ void ChMultiLink::InitializeSide(VehicleSide side,
         // Connect tierod body to upright (spherical) and chassis (universal)
         m_sphericalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_upright[side], m_tierod[side],
-            ChCoordsys<>(points[TIEROD_U], QUNIT), getTierodBushingData());
+            ChFrame<>(points[TIEROD_U], QUNIT), getTierodBushingData());
         chassis->AddJoint(m_sphericalTierod[side]);
         m_universalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
-            ChCoordsys<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
+            ChFrame<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
         chassis->AddJoint(m_universalTierod[side]);
     } else {
         // Create and initialize the tierod distance constraint between chassis and upright.

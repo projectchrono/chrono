@@ -102,17 +102,17 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
         // Create and initialize the revolute joint (rotation axis along Z)
         auto rot = m_shoe->GetRot() * QuatFromAngleX(CH_C_PI_2);
         m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_pin",
-                                                            next->GetShoeBody(), m_shoe, ChCoordsys<>(loc, rot),
+                                                            next->GetShoeBody(), m_shoe, ChFrame<>(loc, rot),
                                                             track->GetBushingData());
         chassis->AddJoint(m_joint);
     } else if (m_index == 0) {
         m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sph",
-                                                            next->GetShoeBody(), m_shoe, ChCoordsys<>(loc, QUNIT));
+                                                            next->GetShoeBody(), m_shoe, ChFrame<>(loc, QUNIT));
         chassis->AddJoint(m_joint);
     } else if (m_index == 1) {
         auto rot = m_shoe->GetRot() * QuatFromAngleY(-CH_C_PI_2);
         m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::UNIVERSAL, m_name + "_univ",
-                                                      next->GetShoeBody(), m_shoe, ChCoordsys<>(loc, rot));
+                                                            next->GetShoeBody(), m_shoe, ChFrame<>(loc, rot));
         chassis->AddJoint(m_joint);
     }
 

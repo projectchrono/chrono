@@ -223,13 +223,13 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
 
     m_revoluteUCA[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteUCA" + suffix, chassis->GetBody(), m_UCA[side],
-        ChCoordsys<>((points[UCA_F] + points[UCA_B]) / 2, rot.GetQuaternion()), getUCABushingData());
+        ChFrame<>((points[UCA_F] + points[UCA_B]) / 2, rot.GetQuaternion()), getUCABushingData());
     chassis->AddJoint(m_revoluteUCA[side]);
 
     // Create and initialize the spherical joint between upright and UCA.
-    m_sphericalUCA[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalUCA" + suffix, m_UCA[side], m_upright[side],
-        ChCoordsys<>(points[UCA_U], chassisRot));
+    m_sphericalUCA[side] =
+        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalUCA" + suffix,
+                                                  m_UCA[side], m_upright[side], ChFrame<>(points[UCA_U], chassisRot));
     chassis->AddJoint(m_sphericalUCA[side]);
 
     // Create and initialize the revolute joint between chassis and LCA.
@@ -245,13 +245,13 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
 
     m_revoluteLCA[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteLCA" + suffix, chassis->GetBody(), m_LCA[side],
-        ChCoordsys<>((points[LCA_F] + points[LCA_B]) / 2, rot.GetQuaternion()), getLCABushingData());
+        ChFrame<>((points[LCA_F] + points[LCA_B]) / 2, rot.GetQuaternion()), getLCABushingData());
     chassis->AddJoint(m_revoluteLCA[side]);
 
     // Create and initialize the spherical joint between upright and LCA.
-    m_sphericalLCA[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalLCA" + suffix, m_LCA[side], m_upright[side],
-        ChCoordsys<>(points[LCA_U], chassisRot));
+    m_sphericalLCA[side] =
+        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalLCA" + suffix,
+                                                  m_LCA[side], m_upright[side], ChFrame<>(points[LCA_U], chassisRot));
     chassis->AddJoint(m_sphericalLCA[side]);
 
     if (UseTierodBodies()) {
@@ -274,11 +274,11 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
         // Connect tierod body to upright (spherical) and chassis (universal)
         m_sphericalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_upright[side], m_tierod[side],
-            ChCoordsys<>(points[TIEROD_U], chassisRot), getTierodBushingData());
+            ChFrame<>(points[TIEROD_U], chassisRot), getTierodBushingData());
         chassis->AddJoint(m_sphericalTierod[side]);
         m_universalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
-            ChCoordsys<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
+            ChFrame<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
         chassis->AddJoint(m_universalTierod[side]);
     } else {
         // Create and initialize the tierod distance constraint between chassis and upright.

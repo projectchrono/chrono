@@ -171,13 +171,13 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     // Create and initialize the revolute joint between chassis and CA
     m_revoluteCA[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteCA" + suffix, chassis->GetBody(), m_control_arm[side],
-        ChCoordsys<>(points[CA_C], chassisRot * QuatFromAngleY(CH_C_PI_2)), getCABushingData());
+        ChFrame<>(points[CA_C], chassisRot * QuatFromAngleY(CH_C_PI_2)), getCABushingData());
     chassis->AddJoint(m_revoluteCA[side]);
 
     // Create and initialize the revolute joint between upright and CA
     m_revoluteUA[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteUA" + suffix, m_control_arm[side], m_upright[side],
-        ChCoordsys<>(points[CA_U], chassisRot));
+        ChFrame<>(points[CA_U], chassisRot));
     chassis->AddJoint(m_revoluteUA[side]);
 
     if (UseTierodBodies()) {
@@ -200,11 +200,11 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
         // Connect tierod body to upright (spherical) and chassis (universal)
         m_sphericalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_upright[side], m_tierod[side],
-            ChCoordsys<>(points[TIEROD_U], QUNIT), getTierodBushingData());
+            ChFrame<>(points[TIEROD_U], QUNIT), getTierodBushingData());
         chassis->AddJoint(m_sphericalTierod[side]);
         m_universalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
-            ChCoordsys<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
+            ChFrame<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
         chassis->AddJoint(m_universalTierod[side]);
     } else {
         // Create and initialize the tierod distance constraint between chassis and upright.

@@ -155,13 +155,13 @@ void ChToeBarRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // connect the Panhard rod to the chassis
     m_sphPanhardChassis = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalPanhardChassis", chassis->GetBody(), m_panhardRodBody,
-        ChCoordsys<>(m_panrodOuterC, QUNIT));
+        ChFrame<>(m_panrodOuterC, QUNIT));
     chassis->AddJoint(m_sphPanhardChassis);
 
     // connect the panhard rod to the axle tube
-    m_sphPanhardAxle = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL,
-                                                                 m_name + "_sphericalPanhardAxle", m_axleTubeBody,
-                                                                 m_panhardRodBody, ChCoordsys<>(m_panrodOuterA, QUNIT));
+    m_sphPanhardAxle =
+        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalPanhardAxle",
+                                                  m_axleTubeBody, m_panhardRodBody, ChFrame<>(m_panrodOuterA, QUNIT));
     chassis->AddJoint(m_sphPanhardAxle);
 
     // Calculate end points on the tierod body, expressed in the absolute frame
@@ -379,7 +379,7 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
     if (side == LEFT) {
         m_revARBChassis = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::REVOLUTE, m_name + "_revARBchassis", chassisBody, m_arbBody[side],
-            ChCoordsys<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_C_PI_2)));
+            ChFrame<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_C_PI_2)));
         chassis->AddJoint(m_revARBChassis);
     } else {
         m_revARBLeftRight = chrono_types::make_shared<ChLinkLockRevolute>();
@@ -395,7 +395,7 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
 
     m_slideARB[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::POINTPLANE, m_name + "_revARBslide" + suffix, m_arbBody[side], m_axleTubeBody,
-        ChCoordsys<>(m_ptARBAxle[side], chassisRot * QUNIT));
+        ChFrame<>(m_ptARBAxle[side], chassisRot * QUNIT));
     chassis->AddJoint(m_slideARB[side]);
 }
 

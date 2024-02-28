@@ -229,13 +229,13 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
 
     m_revoluteLCA[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteLCA" + suffix, chassis->GetBody(), m_LCA[side],
-        ChCoordsys<>((points[LCA_F] + points[LCA_B]) / 2, rot.GetQuaternion()), getLCABushingData());
+        ChFrame<>((points[LCA_F] + points[LCA_B]) / 2, rot.GetQuaternion()), getLCABushingData());
     chassis->AddJoint(m_revoluteLCA[side]);
 
     // Create and initialize the spherical joint between upright and LCA.
     m_sphericalLCA[side] =
         chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalLCA" + suffix,
-                                                  m_LCA[side], m_upright[side], ChCoordsys<>(points[LCA_U], QUNIT));
+                                                  m_LCA[side], m_upright[side], ChFrame<>(points[LCA_U], QUNIT));
     chassis->AddJoint(m_sphericalLCA[side]);
 
     if (UseTierodBodies()) {
@@ -258,11 +258,11 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
         // Connect tierod body to upright (spherical) and chassis (universal)
         m_sphericalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_upright[side], m_tierod[side],
-            ChCoordsys<>(points[TIEROD_U], QUNIT), getTierodBushingData());
+            ChFrame<>(points[TIEROD_U], QUNIT), getTierodBushingData());
         chassis->AddJoint(m_sphericalTierod[side]);
         m_universalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
-            ChCoordsys<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
+            ChFrame<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
         chassis->AddJoint(m_universalTierod[side]);
     } else {
         // Create and initialize the tierod distance constraint between chassis and upright.

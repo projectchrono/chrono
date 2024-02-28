@@ -382,10 +382,9 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_shackle[side]);
 
     // chassis-shackle rev joint
-    ChCoordsys<> rev_csys_shackle(points[REAR_HANGER], chassisRot * QuatFromAngleX(CH_C_PI_2));
     m_shackleRev[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_shackleRev" + suffix, m_shackle[side], chassis->GetBody(),
-        rev_csys_shackle, getShackleBushingData());
+        ChFrame<>(points[REAR_HANGER], chassisRot * QuatFromAngleX(CH_C_PI_2)), getShackleBushingData());
     chassis->AddJoint(m_shackleRev[side]);
 
     // Create and initialize the frontleaf body.
@@ -429,14 +428,14 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_clampA[side]);
 
     // clampA-axleTube rev joint (Z)
-    ChCoordsys<> rev_csys_clampA(points[CLAMP_A], chassisRot);
+    ChFrame<> rev_frame_clampA(points[CLAMP_A], chassisRot);
     m_clampARev[side] =
         chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_clampARev" + suffix,
-                                                  m_clampA[side], m_axleTube, rev_csys_clampA, getClampBushingData());
+                                                  m_clampA[side], m_axleTube, rev_frame_clampA, getClampBushingData());
     chassis->AddJoint(m_clampARev[side]);
 
     m_latRotSpringA[side] = chrono_types::make_shared<ChLinkRSDA>();
-    m_latRotSpringA[side]->Initialize(m_clampA[side], m_axleTube, rev_csys_clampA);
+    m_latRotSpringA[side]->Initialize(m_clampA[side], m_axleTube, rev_frame_clampA.GetCsys());
     m_latRotSpringA[side]->RegisterTorqueFunctor(getLatTorqueFunctorA());
     chassis->GetSystem()->AddLink(m_latRotSpringA[side]);
 
@@ -451,38 +450,38 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_clampB[side]);
 
     // clampB-axleTube rev joint (Z)
-    ChCoordsys<> rev_csys_clampB(points[CLAMP_B], chassisRot);
+    ChFrame<> rev_frame_clampB(points[CLAMP_B], chassisRot);
     m_clampBRev[side] =
         chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_clampBRev" + suffix,
-                                                  m_clampB[side], m_axleTube, rev_csys_clampB, getClampBushingData());
+                                                  m_clampB[side], m_axleTube, rev_frame_clampB, getClampBushingData());
     chassis->AddJoint(m_clampBRev[side]);
 
     m_latRotSpringB[side] = chrono_types::make_shared<ChLinkRSDA>();
-    m_latRotSpringB[side]->Initialize(m_clampB[side], m_axleTube, rev_csys_clampB);
+    m_latRotSpringB[side]->Initialize(m_clampB[side], m_axleTube, rev_frame_clampB.GetCsys());
     m_latRotSpringB[side]->RegisterTorqueFunctor(getLatTorqueFunctorB());
     chassis->GetSystem()->AddLink(m_latRotSpringB[side]);
 
     // clampB-rearleaf rev joint (Y)
-    ChCoordsys<> rev_csys_rearleaf(points[CLAMP_B], chassisRot * QuatFromAngleX(CH_C_PI_2));
+    ChFrame<> rev_frame_rearleaf(points[CLAMP_B], chassisRot * QuatFromAngleX(CH_C_PI_2));
     m_rearleafRev[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_rearleafRev" + suffix, m_clampB[side], m_rearleaf[side],
-        rev_csys_rearleaf, getLeafspringBushingData());
+        rev_frame_rearleaf, getLeafspringBushingData());
     chassis->AddJoint(m_rearleafRev[side]);
 
     m_vertRotSpringB[side] = chrono_types::make_shared<ChLinkRSDA>();
-    m_vertRotSpringB[side]->Initialize(m_clampB[side], m_rearleaf[side], rev_csys_rearleaf);
+    m_vertRotSpringB[side]->Initialize(m_clampB[side], m_rearleaf[side], rev_frame_rearleaf.GetCsys());
     m_vertRotSpringB[side]->RegisterTorqueFunctor(getVertTorqueFunctorB());
     chassis->GetSystem()->AddLink(m_vertRotSpringB[side]);
 
     // clampA-frontleaf rev joint (Y)
-    ChCoordsys<> rev_csys_frontleaf(points[CLAMP_A], chassisRot * QuatFromAngleX(CH_C_PI_2));
+    ChFrame<> rev_frame_frontleaf(points[CLAMP_A], chassisRot * QuatFromAngleX(CH_C_PI_2));
     m_frontleafRev[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_frontleafRev" + suffix, m_clampA[side], m_frontleaf[side],
-        rev_csys_frontleaf, getLeafspringBushingData());
+        rev_frame_frontleaf, getLeafspringBushingData());
     chassis->AddJoint(m_frontleafRev[side]);
 
     m_vertRotSpringA[side] = chrono_types::make_shared<ChLinkRSDA>();
-    m_vertRotSpringA[side]->Initialize(m_clampA[side], m_frontleaf[side], rev_csys_frontleaf);
+    m_vertRotSpringA[side]->Initialize(m_clampA[side], m_frontleaf[side], rev_frame_frontleaf.GetCsys());
     m_vertRotSpringA[side]->RegisterTorqueFunctor(getVertTorqueFunctorA());
     chassis->GetSystem()->AddLink(m_vertRotSpringA[side]);
 }

@@ -27,13 +27,13 @@ ChVehicleJoint::ChVehicleJoint(Type type,
                                const std::string& name,
                                std::shared_ptr<ChBody> body1,
                                std::shared_ptr<ChBody> body2,
-                               ChCoordsys<> pos,
+                               ChFrame<> joint_frame,
                                std::shared_ptr<ChVehicleBushingData> bushing_data) {
     if (bushing_data == nullptr) {
-        CreateLink(type, body1, body2, pos);
+        CreateLink(type, body1, body2, joint_frame);
         mpark::get<Link>(m_joint)->SetNameString(name);
     } else {
-        CreateBushing(type, body1, body2, pos, bushing_data);
+        CreateBushing(type, body1, body2, joint_frame, bushing_data);
         mpark::get<Bushing>(m_joint)->SetNameString(name);
     }
 }
@@ -79,43 +79,41 @@ ChVehicleJoint::Bushing ChVehicleJoint::GetAsBushing() const {
 void ChVehicleJoint::CreateLink(Type type,
                                 std::shared_ptr<ChBody> body1,
                                 std::shared_ptr<ChBody> body2,
-                                ChCoordsys<> pos) {
-    ChFrame<> frame(pos.pos, pos.rot);
-
+                                ChFrame<> link_frame) {
     switch (type) {
         case Type::LOCK: {
             auto link = chrono_types::make_shared<ChLinkLockLock>();
-            link->Initialize(body1, body2, frame);
+            link->Initialize(body1, body2, link_frame);
             m_joint = link;
             break;
         }
         case Type::SPHERICAL: {
             auto link = chrono_types::make_shared<ChLinkLockSpherical>();
-            link->Initialize(body1, body2, frame);
+            link->Initialize(body1, body2, link_frame);
             m_joint = link;
             break;
         }
         case Type::REVOLUTE: {
             auto link = chrono_types::make_shared<ChLinkLockRevolute>();
-            link->Initialize(body1, body2, frame);
+            link->Initialize(body1, body2, link_frame);
             m_joint = link;
             break;
         }
         case Type::UNIVERSAL: {
             auto link = chrono_types::make_shared<ChLinkUniversal>();
-            link->Initialize(body1, body2, ChFrame<>(pos));
+            link->Initialize(body1, body2, link_frame);
             m_joint = link;
             break;
         }
         case Type::POINTLINE: {
             auto link = chrono_types::make_shared<ChLinkLockPointLine>();
-            link->Initialize(body1, body2, frame);
+            link->Initialize(body1, body2, link_frame);
             m_joint = link;
             break;
         }
         case Type::POINTPLANE: {
             auto link = chrono_types::make_shared<ChLinkLockPointPlane>();
-            link->Initialize(body1, body2, frame);
+            link->Initialize(body1, body2, link_frame);
             m_joint = link;
             break;
         }
@@ -125,7 +123,7 @@ void ChVehicleJoint::CreateLink(Type type,
 void ChVehicleJoint::CreateBushing(Type type,
                                    std::shared_ptr<ChBody> body1,
                                    std::shared_ptr<ChBody> body2,
-                                   ChCoordsys<> pos,
+                                   ChFrame<> bushing_frame,
                                    std::shared_ptr<ChVehicleBushingData> bd) {
     ChMatrixNM<double, 6, 6> K_matrix;
     ChMatrixNM<double, 6, 6> D_matrix;
@@ -156,10 +154,10 @@ void ChVehicleJoint::CreateBushing(Type type,
             break;
         case Type::POINTLINE:
         case Type::POINTPLANE:
-            return; // do not create a bushing
+            return;  // do not create a bushing
     }
 
-    m_joint = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(body1, body2, ChFrame<>(pos), K_matrix, D_matrix);
+    m_joint = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(body1, body2, bushing_frame, K_matrix, D_matrix);
 }
 
 std::string ChVehicleJoint::GetTypeString(Type type) {
