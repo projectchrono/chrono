@@ -770,7 +770,7 @@ void example5(const std::string& out_dir) {
     my_body_B->SetPosDer(ChVector3d(0.8, 0, 0));
 
     auto my_link_AB = chrono_types::make_shared<ChLinkLockRevolute>();
-    my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>());
+    my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>());
     sys.AddLink(my_link_AB);
 
     // use a precise linear solver

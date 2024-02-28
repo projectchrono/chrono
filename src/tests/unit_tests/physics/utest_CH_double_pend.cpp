@@ -218,13 +218,13 @@ ChronoModelL::ChronoModelL() {
     // Revolute joint ground-pendulum
     // ------------------------------
     m_revolute1 = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute1->Initialize(m_ground, m_pend1, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
+    m_revolute1->Initialize(m_ground, m_pend1, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
     m_system->AddLink(m_revolute1);
 
     // Revolute joint pendulum-pendulum
     // --------------------------------
     m_revolute2 = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute2->Initialize(m_pend1, m_pend2, ChCoordsys<>(ChVector3d(l1, 0, 0), QUNIT));
+    m_revolute2->Initialize(m_pend1, m_pend2, ChFrame<>(ChVector3d(l1, 0, 0), QUNIT));
     m_system->AddLink(m_revolute2);
 }
 

@@ -75,13 +75,13 @@ int main(int argc, char* argv[]) {
     // .. a revolute joint between crank and rod
     auto my_link_BC = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_BC->SetName("RevJointCrankRod");
-    my_link_BC->Initialize(my_body_B, my_body_C, ChCoordsys<>(ChVector3d(2, 0, 0)));
+    my_link_BC->Initialize(my_body_B, my_body_C, ChFrame<>(ChVector3d(2, 0, 0)));
     sys.AddLink(my_link_BC);
 
     // .. a slider joint between rod and truss
     auto my_link_CA = chrono_types::make_shared<ChLinkLockPointLine>();
     my_link_CA->SetName("TransJointRodGround");
-    my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector3d(6, 0, 0)));
+    my_link_CA->Initialize(my_body_C, my_body_A, ChFrame<>(ChVector3d(6, 0, 0)));
     sys.AddLink(my_link_CA);
 
     // .. a motor between crank and truss

@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     rev->GetLimit_Rz().SetMax(max_angle);
 
     // Initialize the joint specifying a coordinate sys (expressed in the absolute frame).
-    rev->Initialize(ground, pend, ChCoordsys<>(ChVector3d(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    rev->Initialize(ground, pend, ChFrame<>(ChVector3d(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
 
     // Create the Irrlicht application
     // -------------------------------

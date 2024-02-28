@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
 
     if (body1 && body2) {
         std::shared_ptr<ChLinkLockRevolute> my_link(new ChLinkLockRevolute);
-        my_link->Initialize(body1, body2, ChCoordsys<>(joint_pos));
+        my_link->Initialize(body1, body2, ChFrame<>(joint_pos));
         sys.AddLink(my_link);
     }
 

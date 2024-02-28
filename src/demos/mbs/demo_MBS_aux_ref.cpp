@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     // Create a revolute joint to connect pendulum to ground. We specify the link
     // coordinate frame in the absolute frame.
     auto rev_1 = chrono_types::make_shared<ChLinkLockRevolute>();
-    rev_1->Initialize(ground, pend_1, ChCoordsys<>(ChVector3d(0, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
+    rev_1->Initialize(ground, pend_1, ChFrame<>(ChVector3d(0, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
     sys.AddLink(rev_1);
 
     // Create a pendulum modeled using ChBodyAuxRef
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     // Create a revolute joint to connect pendulum to ground. We specify the link
     // coordinate frame in the absolute frame.
     auto rev_2 = chrono_types::make_shared<ChLinkLockRevolute>();
-    rev_2->Initialize(ground, pend_2, ChCoordsys<>(ChVector3d(0, 0, -1), ChQuaternion<>(1, 0, 0, 0)));
+    rev_2->Initialize(ground, pend_2, ChFrame<>(ChVector3d(0, 0, -1), ChQuaternion<>(1, 0, 0, 0)));
     sys.AddLink(rev_2);
 
     // Create the Irrlicht application

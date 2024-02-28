@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
 
     // Revolute constraint
     auto mrevolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    mrevolute->Initialize(mgenevawheel, mfloor, ChCoordsys<>(geneva_center));
+    mrevolute->Initialize(mgenevawheel, mfloor, ChFrame<>(geneva_center));
     sys.Add(mrevolute);
 
     // Create the crank:

@@ -44,7 +44,7 @@ class ChApi ChLinkBushing : public ChLinkLock {
 
     void Initialize(std::shared_ptr<ChBody> body1,
                     std::shared_ptr<ChBody> body2,
-                    const ChCoordsys<>& pos,
+                    const ChFrame<>& frame,
                     const ChMatrixNM<double, 6, 6>& K,
                     const ChMatrixNM<double, 6, 6>& R);
 

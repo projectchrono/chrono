@@ -120,7 +120,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
         m_system->AddBody(pend);
 
         auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
-        rev->Initialize(pend, prev, ChCoordsys<>(ChVector3d(ib * m_length, 0, 0)));
+        rev->Initialize(pend, prev, ChFrame<>(ChVector3d(ib * m_length, 0, 0)));
         m_system->AddLink(rev);
     }
 }

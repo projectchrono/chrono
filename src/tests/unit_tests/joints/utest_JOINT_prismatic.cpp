@@ -186,7 +186,7 @@ bool TestPrismatic(const ChVector3d& jointLoc,      // absolute location of join
     // of the specified rotation matrix.
 
     auto prismaticJoint = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismaticJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
+    prismaticJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
     sys.AddLink(prismaticJoint);
 
     // Perform the simulation (record results option)

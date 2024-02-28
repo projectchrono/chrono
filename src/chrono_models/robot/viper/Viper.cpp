@@ -104,7 +104,7 @@ void AddRevoluteJoint(std::shared_ptr<ChBody> body1,
 
     // Create joint (DOF about Z axis of X_GC frame)
     auto joint = chrono_types::make_shared<ChLinkLockRevolute>();
-    joint->Initialize(body1, body2, ChCoordsys<>(X_GC.GetPos(), X_GC.GetRot()));
+    joint->Initialize(body1, body2, ChFrame<>(X_GC.GetPos(), X_GC.GetRot()));
     chassis->GetBody()->GetSystem()->AddLink(joint);
 }
 

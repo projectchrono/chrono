@@ -239,13 +239,13 @@ ChronoModelL::ChronoModelL() {
     // Translational joint ground-cart
     // -------------------------------
     m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-    m_prismatic->Initialize(m_ground, m_slider, ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+    m_prismatic->Initialize(m_ground, m_slider, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
     m_system->AddLink(m_prismatic);
 
     // Revolute joint cart-pendulum
     // ----------------------------
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute->Initialize(m_slider, m_pend, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
+    m_revolute->Initialize(m_slider, m_pend, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
     m_system->AddLink(m_revolute);
 }
 

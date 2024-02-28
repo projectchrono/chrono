@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     sys.AddLink(rev_joint);
 
     auto sph_joint = chrono_types::make_shared<ChLinkLockSpherical>();
-    sph_joint->Initialize(crane, ball, ChCoordsys<>(2.0 * crane_pos, QUNIT));
+    sph_joint->Initialize(crane, ball, ChFrame<>(2.0 * crane_pos, QUNIT));
     sys.AddLink(sph_joint);
 
     // Hydraulic actuation

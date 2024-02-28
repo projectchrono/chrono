@@ -96,7 +96,7 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_carrier_pin");
     m_revolute->Initialize(chassis->GetBody(), m_carrier,
-        ChCoordsys<>(m_points[CARRIER_CHASSIS], idler_to_abs.GetRot() * QuatFromAngleX(CH_C_PI_2)));
+        ChFrame<>(m_points[CARRIER_CHASSIS], idler_to_abs.GetRot() * QuatFromAngleX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Linear actuator function
@@ -112,7 +112,7 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     m_tensioner = chrono_types::make_shared<ChLinkLinActuator>();
     m_tensioner->SetNameString(m_name + "_tensioner");
     m_tensioner->SetActuatorFunction(motfun);
-    m_tensioner->Initialize(arm, m_carrier, false, ChCoordsys<>(m_points[MOTOR_ARM]), ChCoordsys<>(m_points[MOTOR_CARRIER]));
+    m_tensioner->Initialize(arm, m_carrier, false, ChFrame<>(m_points[MOTOR_ARM]), ChFrame<>(m_points[MOTOR_CARRIER]));
     chassis->GetSystem()->AddLink(m_tensioner);
 
     // Invoke the base class implementation. This initializes the associated idler wheel.

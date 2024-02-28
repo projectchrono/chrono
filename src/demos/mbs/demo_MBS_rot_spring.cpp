@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 
     // Create revolute joint between body and ground
     auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
-    rev->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
+    rev->Initialize(body, ground, ChFrame<>(rev_pos, rev_rot));
     sys.AddLink(rev);
 
     // Create the rotational spring between body and ground

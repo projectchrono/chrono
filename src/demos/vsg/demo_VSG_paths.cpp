@@ -134,10 +134,10 @@ int main(int argc, char* argv[]) {
 
     // Define which parts are connected (the trajectory is considered in the 2nd body).
     glyphconstraint->Initialize(pendulum2,  // body1 that follows the trajectory
-            wheel,      // body2 that 'owns' the trajectory
-            true,
-            ChCoordsys<>(ChVector3d(0, 0.5, 0)),  // point on body1 that will follow the trajectory
-            ChCoordsys<>());
+                                wheel,      // body2 that 'owns' the trajectory
+                                true,
+                                ChFrame<>(ChVector3d(0, 0.5, 0)),  // point on body1 that will follow the trajectory
+                                ChFrame<>());
 
     glyphconstraint->Set_trajectory_line(glyph);
 

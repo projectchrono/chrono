@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 
         // Add a torsional spring
         std::shared_ptr<ChLinkLockFree> mspring(new ChLinkLockFree);
-        mspring->Initialize(mtruss, mbalance, CSYSNORM);  // origin does not matter, it's only torque
+        mspring->Initialize(mtruss, mbalance, ChFrame<>());  // origin does not matter, it's only torque
         mspring->GetForce_Ry().SetK(0.24);
         mspring->GetForce_Ry().SetActive(1);
         sys.Add(mspring);

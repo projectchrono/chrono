@@ -207,7 +207,7 @@ ChQuaternion<> rpy2quat(const ChVector3d& rpy) {
 
 // Calculate a coordinate system with the Z direction along 'axis' (given in 'base').
 // Implicit assumption: 'axis' is always along X, Y, or Z.
-ChCoordsys<> calcJointFrame(const ChFrame<>& base, const ChVector3d& axis) {
+ChFrame<> calcJointFrame(const ChFrame<>& base, const ChVector3d& axis) {
     ChVector3d u;
     ChVector3d v;
     ChVector3d w = axis;
@@ -221,7 +221,7 @@ ChCoordsys<> calcJointFrame(const ChFrame<>& base, const ChVector3d& axis) {
     ChMatrix33<> A;
     A.SetFromDirectionAxes(u, v, w);
     ChMatrix33<> B = base.GetRotMat() * A;
-    return ChCoordsys<>(base.GetPos(), B.GetQuaternion());
+    return ChFrame<>(base.GetPos(), B.GetQuaternion());
 }
 
 // =============================================================================

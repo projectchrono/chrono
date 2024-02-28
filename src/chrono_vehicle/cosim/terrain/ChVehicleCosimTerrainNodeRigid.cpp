@@ -230,7 +230,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         m_system->AddBody(ground);
 
         auto weld = chrono_types::make_shared<ChLinkLockLock>();
-        weld->Initialize(ground, container, ChCoordsys<>(VNULL, QUNIT));
+        weld->Initialize(ground, container, ChFrame<>(VNULL, QUNIT));
         m_system->AddLink(weld);
     }
 

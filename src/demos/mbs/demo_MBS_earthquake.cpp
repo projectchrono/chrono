@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     // keeps the table in position.
 
     auto linkEarthquake = chrono_types::make_shared<ChLinkLockLock>();
-    linkEarthquake->Initialize(tableBody, floorBody, ChCoordsys<>(ChVector3d(0, 0, 0)));
+    linkEarthquake->Initialize(tableBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0)));
 
     auto mmotion_x = chrono_types::make_shared<ChFunctionSine>(0.2, 0.6);  // phase freq ampl
     linkEarthquake->SetMotion_X(mmotion_x);

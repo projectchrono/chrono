@@ -160,7 +160,7 @@ void ChLinkClearance::UpdateTime(double mytime) {
     ChCoordsysd newmarkpos;
     newmarkpos.pos = marker2->GetAbsCoord().pos;
     newmarkpos.rot = ma.GetQuaternion();
-    marker2->Impose_Abs_Coord(newmarkpos);  // rotate "main" marker2 into tangent position
+    marker2->ImposeAbsoluteTransform(newmarkpos);  // rotate "main" marker2 into tangent position
 
     // imposed relative positions/speeds
     deltaC.pos = VNULL;

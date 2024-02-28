@@ -63,8 +63,8 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
     ChVector3d oldpos = marker2->GetPos();  // backup to avoid numerical err.accumulation
     newmarkpos.pos = marker2->GetAbsCoord().pos;
     newmarkpos.rot = ma.GetQuaternion();
-    marker2->Impose_Abs_Coord(newmarkpos);  // rotate "main" marker2 into tangent position (may add err.accumulation)
-    marker2->SetPos(oldpos);                // backup to avoid numerical err.accumulation
+    marker2->ImposeAbsoluteTransform(newmarkpos);  // rotate "main" marker2 into tangent position
+    marker2->SetPos(oldpos);                       // backup to avoid numerical err.accumulation
 
     // imposed relative positions/speeds
     deltaC.pos = VNULL;

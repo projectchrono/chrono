@@ -136,8 +136,8 @@ int main(int argc, char* argv[]) {
     glyphconstraint->Initialize(pendulum2,  // body1 that follows the trajectory
                                 wheel,      // body2 that 'owns' the trajectory
                                 true,
-                                ChCoordsys<>(ChVector3d(0, 0.5, 0)),  // point on body1 that will follow the trajectory
-                                ChCoordsys<>());
+                                ChFrame<>(ChVector3d(0, 0.5, 0)),  // point on body1 that will follow the trajectory
+                                ChFrame<>());
 
     glyphconstraint->Set_trajectory_line(glyph);
 

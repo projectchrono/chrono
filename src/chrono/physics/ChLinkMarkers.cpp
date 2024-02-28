@@ -67,28 +67,26 @@ void ChLinkMarkers::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
         Body2 = NULL;
 }
 
-void ChLinkMarkers::Initialize(std::shared_ptr<ChMarker> mmark1, std::shared_ptr<ChMarker> mmark2) {
-    ChMarker* mm1 = mmark1.get();
-    ChMarker* mm2 = mmark2.get();
-    assert(mm1 && mm2);
-    assert(mm1 != mm2);
-    assert(mm1->GetBody() && mm2->GetBody());
-    assert(mm1->GetBody()->GetSystem() == mm2->GetBody()->GetSystem());
+void ChLinkMarkers::Initialize(std::shared_ptr<ChMarker> mark1, std::shared_ptr<ChMarker> mark2) {
+    assert(mark1 && mark2);
+    assert(mark1.get() != mark2.get());
+    assert(mark1->GetBody() && mark2->GetBody());
+    assert(mark1->GetBody()->GetSystem() == mark2->GetBody()->GetSystem());
 
-    SetUpMarkers(mm1, mm2);
+    SetUpMarkers(mark1.get(), mark2.get());
 }
 
 void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
                                std::shared_ptr<ChBody> mbody2,
-                               const ChCoordsys<>& mpos) {
-    return Initialize(mbody1, mbody2, false, mpos, mpos);
+                               const ChFrame<>& frame) {
+    return Initialize(mbody1, mbody2, false, frame, frame);
 }
 
 void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
                                std::shared_ptr<ChBody> mbody2,
-                               bool pos_are_relative,
-                               const ChCoordsys<>& mpos1,
-                               const ChCoordsys<>& mpos2) {
+                               bool rel_frames,
+                               const ChFrame<>& frame1,
+                               const ChFrame<>& frame2) {
     assert(mbody1.get() != mbody2.get());
     assert(mbody1->GetSystem() == mbody2->GetSystem());
 
@@ -102,12 +100,12 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
     ChMarker* mm2 = mmark2.get();
     SetUpMarkers(mm1, mm2);
 
-    if (pos_are_relative) {
-        mmark1->Impose_Rel_Coord(mpos1);
-        mmark2->Impose_Rel_Coord(mpos2);
+    if (rel_frames) {
+        mmark1->ImposeRelativeTransform(frame1.GetCsys());
+        mmark2->ImposeRelativeTransform(frame2.GetCsys());
     } else {
-        mmark1->Impose_Abs_Coord(mpos1);
-        mmark2->Impose_Abs_Coord(mpos2);
+        mmark1->ImposeAbsoluteTransform(frame1.GetCsys());
+        mmark2->ImposeAbsoluteTransform(frame2.GetCsys());
     }
 }
 

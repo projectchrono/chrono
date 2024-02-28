@@ -188,7 +188,7 @@ bool TestCylindrical(const ChVector3d& jointLoc,      // absolute location of jo
     // will be the Z axis of the specified rotation matrix.
 
     auto cylindricalJoint = chrono_types::make_shared<ChLinkLockCylindrical>();
-    cylindricalJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
+    cylindricalJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
     sys.AddLink(cylindricalJoint);
 
     // Perform the simulation (record results option)

@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
         // Now create a mechanical link (a revolute joint in 0,0,0)
         // between these two markers, and insert in system:
         auto my_link_BA = chrono_types::make_shared<ChLinkLockRevolute>();
-        my_link_BA->Initialize(my_body_B, my_body_A, ChCoordsys<>(ChVector3d(0, 1, 0)));
+        my_link_BA->Initialize(my_body_B, my_body_A, ChFrame<>(ChVector3d(0, 1, 0)));
         my_system.AddLink(my_link_BA);
 
         // Now create a 'dead' linear actuator between two points using a ChLinkTSDA with zero stiffness and damping.

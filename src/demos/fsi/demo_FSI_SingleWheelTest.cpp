@@ -216,15 +216,15 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Connect the chassis to the containing bin (ground) through a translational joint and create a linear actuator.
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic1->Initialize(ground, chassis, ChCoordsys<>(chassis->GetPos(), QuatFromAngleY(CH_C_PI_2)));
+    prismatic1->Initialize(ground, chassis, ChFrame<>(chassis->GetPos(), QuatFromAngleY(CH_C_PI_2)));
     prismatic1->SetName("prismatic_chassis_ground");
     sysMBS.AddLink(prismatic1);
 
     double velocity = wheel_AngVel * wheel_radius * (1.0 - wheel_slip);
     auto actuator_fun = chrono_types::make_shared<ChFunctionRamp>(0.0, velocity);
 
-    actuator->Initialize(ground, chassis, false, ChCoordsys<>(chassis->GetPos(), QUNIT),
-                         ChCoordsys<>(chassis->GetPos() + ChVector3d(1, 0, 0), QUNIT));
+    actuator->Initialize(ground, chassis, false, ChFrame<>(chassis->GetPos(), QUNIT),
+                         ChFrame<>(chassis->GetPos() + ChVector3d(1, 0, 0), QUNIT));
     actuator->SetName("actuator");
     actuator->SetDistanceOffset(1);
     actuator->SetActuatorFunction(actuator_fun);
@@ -232,7 +232,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Connect the axle to the chassis through a vertical translational joint.
     auto prismatic2 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic2->Initialize(chassis, axle, ChCoordsys<>(chassis->GetPos(), QUNIT));
+    prismatic2->Initialize(chassis, axle, ChFrame<>(chassis->GetPos(), QUNIT));
     prismatic2->SetName("prismatic_axle_chassis");
     sysMBS.AddLink(prismatic2);
 

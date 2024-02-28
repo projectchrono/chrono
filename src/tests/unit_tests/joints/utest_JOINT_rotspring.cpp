@@ -186,7 +186,7 @@ bool TestRotSpring(const ChVector3d& jointLoc,      // absolute location of join
     // of the specified rotation matrix.
 
     auto revoluteJoint = chrono_types::make_shared<ChLinkLockRevolute>();
-    revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
+    revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
     sys.AddLink(revoluteJoint);
 
     // Add a rotational spring damper to the revolute joint

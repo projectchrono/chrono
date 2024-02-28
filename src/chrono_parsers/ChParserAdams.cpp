@@ -443,7 +443,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             // std::cout << "adding revolute joint " << joint_pair.first <<std::endl;
             auto ch_joint = chrono_types::make_shared<ChLinkLockRevolute>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()),
-                                 (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCsys());
+                                 body_I->GetFrame_REF_to_abs() * (*marker_I));
             new_joint = ch_joint;
         } else if (joint.type == std::string("SPHERICAL")) {
             // Make spherical
@@ -456,7 +456,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             // std::cout << "adding spherical joint " << joint_pair.first <<std::endl;
             auto ch_joint = chrono_types::make_shared<ChLinkLockSpherical>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()),
-                                 (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCsys());
+                                 body_I->GetFrame_REF_to_abs() * (*marker_I));
             new_joint = ch_joint;
         } else if (joint.type == std::string("HOOKE")) {
             // Make spherical
@@ -469,8 +469,8 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             // std::cout << "adding revolute joint " << joint_pair.first <<std::endl;
             auto ch_joint = chrono_types::make_shared<ChLinkUniversal>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()), true,
-                                 (body_I->GetFrame_REF_to_abs() * (*marker_I)),
-                                 (body_J->GetFrame_REF_to_abs() * (*marker_J)));
+                                 body_I->GetFrame_REF_to_abs() * (*marker_I),
+                                 body_J->GetFrame_REF_to_abs() * (*marker_J));
             new_joint = ch_joint;
         } else if (joint.type == std::string("TRANSLATIONAL")) {
             // Make spherical
@@ -483,8 +483,8 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             // std::cout << "adding prismatic joint " << joint_pair.first <<std::endl;
             auto ch_joint = chrono_types::make_shared<ChLinkLockPrismatic>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()), true,
-                                 (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCsys(),
-                                 (body_J->GetFrame_REF_to_abs() * (*marker_J)).GetCsys());
+                                 body_I->GetFrame_REF_to_abs() * (*marker_I),
+                                 body_J->GetFrame_REF_to_abs() * (*marker_J));
             new_joint = ch_joint;
         } else if (joint.type == std::string("CYLINDRICAL")) {
             // Make spherical
@@ -497,8 +497,8 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             // std::cout << "adding cylindrical joint " << joint_pair.first <<std::endl;
             auto ch_joint = chrono_types::make_shared<ChLinkLockCylindrical>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()), true,
-                                 (body_I->GetFrame_REF_to_abs() * (*marker_I)).GetCsys(),
-                                 (body_J->GetFrame_REF_to_abs() * (*marker_J)).GetCsys());
+                                 body_I->GetFrame_REF_to_abs() * (*marker_I),
+                                 body_J->GetFrame_REF_to_abs() * (*marker_J));
             new_joint = ch_joint;
         } else if (joint.type == std::string("RACKPIN")) {
             // Make spherical

@@ -87,15 +87,13 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     /// Sets the parent rigid body.
     void SetBody(ChBody* newRB) { Body = newRB; }
 
-    /// Set body-relative coord. and update auxiliary variables
-    /// Also, current position becomes the 'resting position' coordinates
-    /// for the current time.
-    void Impose_Rel_Coord(const ChCoordsysd& m_coord);
+    /// Set body-relative marker frame and update auxiliary variables.
+    /// The current position becomes the 'resting position' coordinates for the current time.
+    void ImposeRelativeTransform(const ChCoordsysd& csys);
 
-    /// Set absolute coordinates  and update auxiliary variables
-    /// Also, current position becomes the 'resting position' coordinates
-    /// for the current time.
-    void Impose_Abs_Coord(const ChCoordsysd& m_coord);
+    /// Set absolute coordinate marker frame and update auxiliary variables.
+    /// The current position becomes the 'resting position' coordinates for the current time.
+    void ImposeAbsoluteTransform(const ChCoordsysd& csys);
 
     /// Get the 'resting position' (that is, the position which the
     /// marker should have when the x,y,z motion laws are at time=0).
@@ -139,15 +137,17 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
     /// Set the translation and rotation (as a ChCoordsysd) of the marker
     /// respect to the absolute coordinates.
-    /// NOTE! inner use only, for the moment. Use  Impose_Abs_Coord() if needed.
+    /// NOTE! internal use only, for the moment. Use  ImposeAbsoluteTransform() if needed.
     void SetAbsCoord(const ChCoordsysd& newpos) { abs_frame.SetCsys(newpos); }
+
     /// Set the speed of translation and rotation (as a ChCoordsysd) of the marker
     /// respect to the absolute coordinates.
-    /// NOTE! inner use only, for the moment.
+    /// NOTE! internal use only, for the moment.
     void SetAbsCoord_dt(const ChCoordsysd& newpos_dt) { abs_frame.SetCsys(newpos_dt); }
+    
     /// Set the speed of translation and rotation (as a ChCoordsysd) of the marker
     /// respect to the absolute coordinates.
-    /// NOTE! inner use only, for the moment.
+    /// NOTE! internal use only, for the moment.
     void SetAbsCoord_dtdt(const ChCoordsysd& newpos_dtdt) { abs_frame.SetCsys(newpos_dtdt); }
 
     /// Get the angular speed respect to absolute coordinates,

@@ -115,32 +115,28 @@ void ChMarker::SetMotion_axis(ChVector3d m_axis) {
 
 // Coordinate setting, for user access
 
-void ChMarker::Impose_Rel_Coord(const ChCoordsysd& m_coord) {
-    ChQuaterniond qtemp;
+void ChMarker::ImposeRelativeTransform(const ChCoordsysd& csys) {
     // set the actual coordinates
-    SetCsys(m_coord);
+    SetCsys(csys);
+
     // set the resting position coordinates
-    rest_coord.pos.x() = m_coord.pos.x() - motion_X->GetVal(ChTime);
-    rest_coord.pos.y() = m_coord.pos.y() - motion_Y->GetVal(ChTime);
-    rest_coord.pos.z() = m_coord.pos.z() - motion_Z->GetVal(ChTime);
-    qtemp = QuatFromAngleAxis(-(motion_ang->GetVal(ChTime)), motion_axis);
-    rest_coord.rot = Qcross(m_coord.rot, qtemp);  // ***%%% check
-                                                  // set also the absolute positions, and other.
+    rest_coord.pos.x() = Csys.pos.x() - motion_X->GetVal(ChTime);
+    rest_coord.pos.y() = Csys.pos.y() - motion_Y->GetVal(ChTime);
+    rest_coord.pos.z() = Csys.pos.z() - motion_Z->GetVal(ChTime);
+    auto q = QuatFromAngleAxis(-(motion_ang->GetVal(ChTime)), motion_axis);
+    rest_coord.rot = Qcross(Csys.rot, q);  //// TODO: check
+                                           //// set also the absolute positions and other
     UpdateState();
 }
 
-void ChMarker::Impose_Abs_Coord(const ChCoordsysd& m_coord) {
-    ChBody* my_body;
-    my_body = GetBody();
+void ChMarker::ImposeAbsoluteTransform(const ChCoordsysd& csys) {
+    // transform representation from the parent reference frame to the local reference frame
+    ChCoordsysd rel_csys;
+    rel_csys.pos = GetBody()->TransformPointParentToLocal(csys.pos);
+    rel_csys.rot = Qcross(Qconjugate(GetBody()->GetRot()), csys.rot);
 
-    ChCoordsysd csys;
-    // coordsys: transform the representation from the parent reference frame
-    // to the local reference frame.
-    csys.pos = my_body->TransformPointParentToLocal(m_coord.pos);
-    csys.rot = Qcross(Qconjugate(my_body->GetCsys().rot), m_coord.rot);
-
-    // apply the imposition on local  coordinate and resting coordinate:
-    Impose_Rel_Coord(csys);
+    // impose relative transform and set resting coordinate
+    ImposeRelativeTransform(rel_csys);
 }
 
 // Utilities for coordinate transformations
@@ -336,8 +332,8 @@ void ChMarker::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(motion_axis);
     archive_in >> CHNVP(Body);
 
-    UpdateState();                          // updates the ChMarker::abs_frame first
-    Impose_Abs_Coord(this->GetAbsCoord());  // from ChMarker::abs_frame update ChMarker::rest_coord and ChFrame::coord
+    UpdateState();                                 // update abs_frame first
+    ImposeAbsoluteTransform(this->GetAbsCoord());  // use abs_frame to update rest_coord and coord
 }
 
 }  // end namespace chrono

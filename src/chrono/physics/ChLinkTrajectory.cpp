@@ -73,7 +73,7 @@ void ChLinkTrajectory::UpdateTime(double time) {
         mw.SetFromQuaternion(marker2->GetAbsCoord().rot);
 
         // if line coordinate is relative to body2:
-        marker2->Impose_Rel_Coord(CSYSNORM);
+        marker2->ImposeRelativeTransform(CSYSNORM);
         deltaC.pos = result;
         deltaC_dt.pos = (resultB - resultA) * (1 / (2 * tstep));
         deltaC_dtdt.pos = (resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2));
@@ -92,12 +92,12 @@ void ChLinkTrajectory::UpdateTime(double time) {
     }
 }
 
-void ChLinkTrajectory::Initialize(std::shared_ptr<ChBody> mbody1,
-                                  std::shared_ptr<ChBody> mbody2,
-                                  const ChVector3d& mpos1,
-                                  std::shared_ptr<ChLine> mline) {
-    ChLinkMarkers::Initialize(mbody1, mbody2, true, ChCoordsys<>(mpos1), ChCoordsys<>());
-    this->Set_trajectory_line(mline);
+void ChLinkTrajectory::Initialize(std::shared_ptr<ChBody> body1,
+                                  std::shared_ptr<ChBody> body2,
+                                  const ChVector3d& pos1,
+                                  std::shared_ptr<ChLine> line) {
+    ChLinkMarkers::Initialize(body1, body2, true, ChFrame<>(pos1), ChFrame<>());
+    this->Set_trajectory_line(line);
 }
 
 void ChLinkTrajectory::ArchiveOut(ChArchiveOut& archive_out) {

@@ -93,7 +93,7 @@ void ChLinkPointSpline::UpdateTime(double time) {
         ChCoordsysd newmarkpos;
         newmarkpos.pos = ptang;
         newmarkpos.rot = qabsdir;
-        marker2->Impose_Abs_Coord(newmarkpos);  // move "main" marker2 into tangent position
+        marker2->ImposeAbsoluteTransform(newmarkpos);  // move "main" marker2 into tangent position
         marker2->SetMotionType(
             ChMarker::M_MOTION_EXTERNAL);  // the BDF routine won't handle speed and acc.calculus of the moved marker!
 

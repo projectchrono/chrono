@@ -152,7 +152,7 @@ void ChChassis::AddMarker(const std::string& name, const ChCoordsys<>& pos) {
     // Create the marker, attach it to the chassis body, add it to the list
     auto marker = chrono_types::make_shared<ChMarker>();
     marker->SetNameString(m_name + " " + name);
-    marker->Impose_Rel_Coord(pos_com);
+    marker->ImposeRelativeTransform(pos_com);
     m_body->AddMarker(marker);
     m_markers.push_back(marker);
 }

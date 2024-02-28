@@ -165,12 +165,12 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
 
     // ... the second gear is fixed to the rotating bar
     auto link_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    link_revolute->Initialize(mbody_gearB, mbody_truss, ChCoordsys<>(ChVector3d(interaxis12, 0, 0), QUNIT));  // TEMP
+    link_revolute->Initialize(mbody_gearB, mbody_truss, ChFrame<>(ChVector3d(interaxis12, 0, 0), QUNIT));  // TEMP
     // link_revolute->Initialize(mbody_gearB, mbody_train, ChCoordsys<>(ChVector3d(interaxis12, 0, 0), QUNIT));
     sys.AddLink(link_revolute);
 
     auto link_gearAB = chrono_types::make_shared<ChLinkGear>();
-    link_gearAB->Initialize(mbody_gearA, mbody_gearB, CSYSNORM);
+    link_gearAB->Initialize(mbody_gearA, mbody_gearB, ChFrame<>());
     link_gearAB->Set_local_shaft1(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_C_PI_2)));
     link_gearAB->Set_local_shaft2(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_C_PI_2)));
     link_gearAB->Set_tau(radA / radB);
@@ -207,7 +207,7 @@ void assemble_pendulum_visual(ChSystemNSC& system) {
     // auto link = chrono_types::make_shared<ChLinkMateRevolute>();
     // link->Initialize(moving_body, floor, ChFrame<>());
     auto link = chrono_types::make_shared<ChLinkLockRevolute>();
-    link->Initialize(moving_body, floor, ChCoordsys<>());
+    link->Initialize(moving_body, floor, ChFrame<>());
     system.Add(link);
 }
 

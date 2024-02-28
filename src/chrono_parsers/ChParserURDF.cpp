@@ -544,7 +544,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                 revolute->GetLimit_Rz().SetMax(joint->limits->upper);
             }
             joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono revolute axis along Z
-            revolute->Initialize(parent, child, joint_frame.GetCsys());
+            revolute->Initialize(parent, child, joint_frame);
             revolute->SetNameString(joint_name);
             return revolute;
         }
@@ -557,14 +557,14 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                 prismatic->GetLimit_Rz().SetMax(joint->limits->upper);
             }
             joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono prismatic axis along Z
-            prismatic->Initialize(parent, child, joint_frame.GetCsys());
+            prismatic->Initialize(parent, child, joint_frame);
             prismatic->SetNameString(joint_name);
             return prismatic;
         }
 
         if (joint_type == urdf::Joint::FLOATING) {
             auto free = chrono_types::make_shared<ChLinkLockFree>();
-            free->Initialize(parent, child, joint_frame.GetCsys());
+            free->Initialize(parent, child, joint_frame);
             free->SetNameString(joint_name);
             return free;
         }
@@ -572,14 +572,14 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
         if (joint_type == urdf::Joint::PLANAR) {
             auto planar = chrono_types::make_shared<ChLinkLockPointPlane>();
             joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono plane normal along Z
-            planar->Initialize(parent, child, joint_frame.GetCsys());
+            planar->Initialize(parent, child, joint_frame);
             planar->SetNameString(joint_name);
             return planar;
         }
 
         if (joint_type == urdf::Joint::FIXED) {
             auto fixed = chrono_types::make_shared<ChLinkLockLock>();
-            fixed->Initialize(parent, child, joint_frame.GetCsys());
+            fixed->Initialize(parent, child, joint_frame);
             fixed->SetNameString(joint_name);
             return fixed;
         }

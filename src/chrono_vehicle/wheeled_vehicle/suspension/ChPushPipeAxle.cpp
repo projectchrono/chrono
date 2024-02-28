@@ -115,7 +115,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTubeGuideLong = chrono_types::make_shared<ChLinkLockSpherical>();
     m_axleTubeGuideLong->SetNameString(m_name + "_sphereAxleTube");
     ChVector3d spPos = suspension_to_abs.TransformPointLocalToParent(getLocation(AXLE_C));
-    m_axleTubeGuideLong->Initialize(m_axleTube, chassis->GetBody(), ChCoordsys<>(spPos, QUNIT));
+    m_axleTubeGuideLong->Initialize(m_axleTube, chassis->GetBody(), ChFrame<>(spPos, QUNIT));
     chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuideLong);
 
     // Create and initialize the panhard rod body
@@ -133,14 +133,14 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     ChVector3d panAxl = suspension_to_abs.TransformPointLocalToParent(getLocation(PANHARD_A));
     m_panhardRod2Axle = chrono_types::make_shared<ChLinkLockSpherical>();
     m_panhardRod2Axle->SetNameString(m_name + "_panhardRod2Axle");
-    m_panhardRod2Axle->Initialize(m_panhardRod, m_axleTube, ChCoordsys<>(panAxl, QUNIT));
+    m_panhardRod2Axle->Initialize(m_panhardRod, m_axleTube, ChFrame<>(panAxl, QUNIT));
     chassis->GetBody()->GetSystem()->AddLink(m_panhardRod2Axle);
 
     // fix panhard rod body to the chassis body
     ChVector3d panCh = suspension_to_abs.TransformPointLocalToParent(getLocation(PANHARD_C));
     m_panhardRod2Chassis = chrono_types::make_shared<ChLinkLockSpherical>();
     m_panhardRod2Chassis->SetNameString(m_name + "_panhardRod2Chassis");
-    m_panhardRod2Chassis->Initialize(m_panhardRod, chassis->GetBody(), ChCoordsys<>(panCh, QUNIT));
+    m_panhardRod2Chassis->Initialize(m_panhardRod, chassis->GetBody(), ChFrame<>(panCh, QUNIT));
     chassis->GetBody()->GetSystem()->AddLink(m_panhardRod2Chassis);
 
     // Transform all hardpoints to absolute frame.
@@ -192,10 +192,10 @@ void ChPushPipeAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize the revolute joint between axle tube and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
-    m_revolute[side]->Initialize(m_spindle[side], m_axleTube, rev_csys);
+    m_revolute[side]->Initialize(m_spindle[side], m_axleTube,
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the shock damper

@@ -138,10 +138,10 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_arm[side]);
 
     // Create and initialize the revolute joint between arm and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
-    m_revolute[side]->Initialize(m_spindle[side], m_arm[side], rev_csys);
+    m_revolute[side]->Initialize(m_spindle[side], m_arm[side],
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the revolute joint between chassis and arm.

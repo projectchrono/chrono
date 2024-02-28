@@ -142,8 +142,8 @@ int main(int argc, char* argv[]) {
 
         // Set absolute position of the two markers,
         // for the initial position of the 'rod-crank' link:
-        my_marker_b->Impose_Abs_Coord(ChCoordsys<>(ChVector3d(2, 0, 0)));
-        my_marker_c->Impose_Abs_Coord(ChCoordsys<>(ChVector3d(2, 0, 0)));
+        my_marker_b->ImposeAbsoluteTransform(ChCoordsys<>(ChVector3d(2, 0, 0)));
+        my_marker_c->ImposeAbsoluteTransform(ChCoordsys<>(ChVector3d(2, 0, 0)));
 
         // Now create a mechanical link (a revolute joint)
         // between these two markers, and insert in system:
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
         // i.e. is using two bodies and a position as arguments..
         // For example, to create the rod-truss constraint:
         auto my_link_CA = chrono_types::make_shared<ChLinkLockPointLine>();
-        my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector3d(6, 0, 0)));
+        my_link_CA->Initialize(my_body_C, my_body_A, ChFrame<>(ChVector3d(6, 0, 0)));
         sys.AddLink(my_link_CA);
 
         my_link_CA->GetMarker1()->SetName("rod_poinline");

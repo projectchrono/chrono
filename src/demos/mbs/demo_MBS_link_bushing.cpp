@@ -159,11 +159,11 @@ int main(int argc, char* argv[]) {
 
     auto bushing_link = chrono_types::make_shared<ChLinkBushing>(ChLinkBushing::Type::Mount);
     bushing_link->Initialize(
-        body,                                                                 // body A
-        ground,                                                               // body B
-        ChCoordsys<>(ChVector3d(0.0, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0)),  // initial frame of bushing in abs space
-        K_matrix,                                                             // K stiffness in local frame
-        R_matrix);                                                            // R damping in local frame
+        body,                                                              // body A
+        ground,                                                            // body B
+        ChFrame<>(ChVector3d(0.0, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0)),  // initial frame of bushing in abs space
+        K_matrix,                                                          // K stiffness in local frame
+        R_matrix);                                                         // R damping in local frame
     if (example == 4) {
         sys.Add(bushing_link);
     }

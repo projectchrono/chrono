@@ -128,7 +128,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTubeGuideLong = chrono_types::make_shared<ChLinkLockSpherical>();
     m_axleTubeGuideLong->SetNameString(m_name + "_sphereAxleTube");
     ChVector3d spPos = suspension_to_abs.TransformPointLocalToParent(getLocation(AXLE_C));
-    m_axleTubeGuideLong->Initialize(m_axleTube, chassis->GetBody(), ChCoordsys<>(spPos, QUNIT));
+    m_axleTubeGuideLong->Initialize(m_axleTube, chassis->GetBody(), ChFrame<>(spPos, QUNIT));
     chassis->GetSystem()->AddLink(m_axleTubeGuideLong);
 
     // Watt lateral guiding mechanism
@@ -163,38 +163,41 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     chassis->GetBody()->GetSystem()->AddBody(m_wattRightLinkBody);
 
     // link the Watt center link to the axle tube
-    ChCoordsys<> watt_rev_csys(cntrPos, QuatFromAngleY(CH_C_PI_2));
     m_wattCenterRev = chrono_types::make_shared<ChLinkLockRevolute>();
     m_wattCenterRev->SetNameString(m_name + "_wattCenterPivot");
-    m_wattCenterRev->Initialize(m_wattCenterLinkBody, m_axleTube, watt_rev_csys);
+    m_wattCenterRev->Initialize(m_wattCenterLinkBody, m_axleTube, ChFrame<>(cntrPos, QuatFromAngleY(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_wattCenterRev);
 
     // link the Watt left link to the center link
-    ChCoordsys<> lft1Mpos(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_LE)), QUNIT);
     m_wattLeftToCenterSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_wattLeftToCenterSph->SetNameString(m_name + "_wattLeft2CenterSph");
-    m_wattLeftToCenterSph->Initialize(m_wattLeftLinkBody, m_wattCenterLinkBody, lft1Mpos);
+    m_wattLeftToCenterSph->Initialize(
+        m_wattLeftLinkBody, m_wattCenterLinkBody,
+        ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_LE)), QUNIT));
     chassis->GetSystem()->AddLink(m_wattLeftToCenterSph);
 
     // link the Watt left link to the axle tube
-    ChCoordsys<> lft2Mpos(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_LE_CH)), QUNIT);
     m_wattLeftToAxleTubeSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_wattLeftToAxleTubeSph->SetNameString(m_name + "_wattLeft2ChassisSph");
-    m_wattLeftToAxleTubeSph->Initialize(m_wattLeftLinkBody, chassis->GetBody(), lft2Mpos);
+    m_wattLeftToAxleTubeSph->Initialize(
+        m_wattLeftLinkBody, chassis->GetBody(),
+        ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_LE_CH)), QUNIT));
     chassis->GetSystem()->AddLink(m_wattLeftToAxleTubeSph);
 
     // link the Watt right link to the center link
-    ChCoordsys<> rght1Mpos(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_RI)), QUNIT);
     m_wattRightToCenterSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_wattRightToCenterSph->SetNameString(m_name + "_wattRight2CenterSph");
-    m_wattRightToCenterSph->Initialize(m_wattRightLinkBody, m_wattCenterLinkBody, rght1Mpos);
+    m_wattRightToCenterSph->Initialize(
+        m_wattRightLinkBody, m_wattCenterLinkBody,
+        ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_RI)), QUNIT));
     chassis->GetSystem()->AddLink(m_wattRightToCenterSph);
 
     // link the Watt right link to the axle tube
-    ChCoordsys<> rght2Mpos(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_RI_CH)), QUNIT);
     m_wattRightToAxleTubeSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_wattRightToAxleTubeSph->SetNameString(m_name + "_wattRight2ChassisSph");
-    m_wattRightToAxleTubeSph->Initialize(m_wattRightLinkBody, chassis->GetBody(), rght2Mpos);
+    m_wattRightToAxleTubeSph->Initialize(
+        m_wattRightLinkBody, chassis->GetBody(),
+        ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_RI_CH)), QUNIT));
     chassis->GetSystem()->AddLink(m_wattRightToAxleTubeSph);
 
     // Transform all hardpoints to absolute frame.
@@ -246,10 +249,10 @@ void ChDeDionAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize the revolute joint between axle tube and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
-    m_revolute[side]->Initialize(m_spindle[side], m_axleTube, rev_csys);
+    m_revolute[side]->Initialize(m_spindle[side], m_axleTube,
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the shock damper

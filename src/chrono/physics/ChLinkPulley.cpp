@@ -193,14 +193,15 @@ void ChLinkPulley::UpdateTime(double mytime) {
 
     ChCoordsys<> newmarkpos;
 
-    // move marker1 in proper positions
+    // move marker1 in proper position
     newmarkpos.pos = this->belt_up1;
     newmarkpos.rot = maU.GetQuaternion();
-    marker1->Impose_Abs_Coord(newmarkpos);  // move marker1 into teeth position
-    // move marker2 in proper positions
+    marker1->ImposeAbsoluteTransform(newmarkpos);  // move marker1 into teeth position
+
+    // move marker2 in proper position
     newmarkpos.pos = this->belt_up2;
     newmarkpos.rot = maU.GetQuaternion();
-    marker2->Impose_Abs_Coord(newmarkpos);  // move marker2 into teeth position
+    marker2->ImposeAbsoluteTransform(newmarkpos);  // move marker2 into teeth position
 
     double phase_correction_up = m_delta * r1;
     double hU = Vlength(belt_up2 - belt_up1) + phase_correction_up;

@@ -216,10 +216,10 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_trailingLink[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
-    m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
+    m_revolute[side]->Initialize(m_spindle[side], m_upright[side],
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the revolute joint between chassis and upper arm.
@@ -236,19 +236,19 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     m_revoluteUA[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteUA[side]->SetNameString(m_name + "_revoluteUA" + suffix);
     m_revoluteUA[side]->Initialize(chassis->GetBody(), m_upperArm[side],
-                                   ChCoordsys<>((points[UA_F] + points[UA_B]) / 2, rot.GetQuaternion()));
+                                   ChFrame<>((points[UA_F] + points[UA_B]) / 2, rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_revoluteUA[side]);
 
     // Create and initialize the spherical joint between upright and upper arm.
     m_sphericalUA[side] = chrono_types::make_shared<ChLinkLockSpherical>();
     m_sphericalUA[side]->SetNameString(m_name + "_sphericalUA" + suffix);
-    m_sphericalUA[side]->Initialize(m_upperArm[side], m_upright[side], ChCoordsys<>(points[UA_U], QUNIT));
+    m_sphericalUA[side]->Initialize(m_upperArm[side], m_upright[side], ChFrame<>(points[UA_U], QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalUA[side]);
 
     // Create and initialize the spherical joint between upright and track rod.
     m_sphericalLateralUpright[side] = chrono_types::make_shared<ChLinkLockSpherical>();
     m_sphericalLateralUpright[side]->SetNameString(m_name + "_sphericalLateralUpright" + suffix);
-    m_sphericalLateralUpright[side]->Initialize(m_lateral[side], m_upright[side], ChCoordsys<>(points[LAT_U], QUNIT));
+    m_sphericalLateralUpright[side]->Initialize(m_lateral[side], m_upright[side], ChFrame<>(points[LAT_U], QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalLateralUpright[side]);
 
     // Create and initialize the universal joint between chassis and track rod.
@@ -266,7 +266,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     // Create and initialize the spherical joint between upright and trailing link.
     m_sphericalTLUpright[side] = chrono_types::make_shared<ChLinkLockSpherical>();
     m_sphericalTLUpright[side]->SetNameString(m_name + "_sphericalTLUpright" + suffix);
-    m_sphericalTLUpright[side]->Initialize(m_trailingLink[side], m_upright[side], ChCoordsys<>(points[TL_U], QUNIT));
+    m_sphericalTLUpright[side]->Initialize(m_trailingLink[side], m_upright[side], ChFrame<>(points[TL_U], QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalTLUpright[side]);
 
     // Create and initialize the universal joint between chassis and trailing link.

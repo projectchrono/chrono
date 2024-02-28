@@ -168,7 +168,7 @@ bool TestSpherical(const ChVector3d& jointLoc,      // absolute location of join
     // of the specified rotation matrix.
 
     auto sphericalJoint = chrono_types::make_shared<ChLinkLockSpherical>();
-    sphericalJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
+    sphericalJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
     sys.AddLink(sphericalJoint);
 
     // Perform the simulation (record results option)

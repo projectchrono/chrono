@@ -85,13 +85,13 @@ int main(int argc, char* argv[]) {
     // Add limit (Z min) on this prismatic joint.
     // The limit value relates to the Z component of the relative marker position 2->1
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic1->Initialize(ground, slider1, ChCoordsys<>(ChVector3d(0, 0, -1), QuatFromAngleY(CH_C_PI_2)));
+    prismatic1->Initialize(ground, slider1, ChFrame<>(ChVector3d(0, 0, -1), QuatFromAngleY(CH_C_PI_2)));
     prismatic1->GetLimit_Z().SetActive(true);
     prismatic1->GetLimit_Z().SetMin(-6);
     sys.AddLink(prismatic1);
 
     auto prismatic2 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic2->Initialize(ground, slider2, ChCoordsys<>(ChVector3d(0, 0, +1), QuatFromAngleY(CH_C_PI_2)));
+    prismatic2->Initialize(ground, slider2, ChFrame<>(ChVector3d(0, 0, +1), QuatFromAngleY(CH_C_PI_2)));
     sys.AddLink(prismatic2);
 
     // Add linear springs to the sliders

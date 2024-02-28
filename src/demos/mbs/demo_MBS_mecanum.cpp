@@ -173,7 +173,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
         ChFrameMoving<> fr(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2));
         ChFrameMoving<> frabs = fr >> f3;
         auto link_roller = chrono_types::make_shared<ChLinkLockRevolute>();
-        link_roller->Initialize(roller, centralWheel, frabs.GetCsys());
+        link_roller->Initialize(roller, centralWheel, frabs);
         sys.AddLink(link_roller);
     }
 

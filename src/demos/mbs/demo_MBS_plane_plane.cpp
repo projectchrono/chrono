@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     // Constrain the sliding body to move and rotate in the x-y plane
     // (i.e. the plane whose normal is the z-axis of the specified coord sys)
     auto plane_plane = chrono_types::make_shared<ChLinkLockPlanePlane>();
-    plane_plane->Initialize(ground, body, ChCoordsys<>(ChVector3d(-1.25, -0.75, 0), ChQuaternion<>(1, 0, 0, 0)));
+    plane_plane->Initialize(ground, body, ChFrame<>(ChVector3d(-1.25, -0.75, 0), ChQuaternion<>(1, 0, 0, 0)));
     sys.AddLink(plane_plane);
 
     // Create a linear spring (with default spring & damping coefficients)

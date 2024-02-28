@@ -254,11 +254,11 @@ void ChLinkGear::UpdateTime(double mytime) {
     // move marker1 in proper positions
     newmarkpos.pos = mmark1;
     newmarkpos.rot = ma1.GetQuaternion();
-    marker1->Impose_Abs_Coord(newmarkpos);  // move marker1 into teeth position
+    marker1->ImposeAbsoluteTransform(newmarkpos);  // move marker1 into teeth position
     // move marker2 in proper positions
     newmarkpos.pos = mmark2;
     newmarkpos.rot = ma2.GetQuaternion();
-    marker2->Impose_Abs_Coord(newmarkpos);  // move marker2 into teeth position
+    marker2->ImposeAbsoluteTransform(newmarkpos);  // move marker2 into teeth position
 }
 
 void ChLinkGear::ArchiveOut(ChArchiveOut& archive_out) {

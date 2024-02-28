@@ -156,7 +156,7 @@ class MySimpleCar {
         // .. create the revolute joint between the wheel and the spindle
         link_revoluteRF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
         link_revoluteRF->Initialize(wheelRF, spindleRF,
-                                    ChCoordsys<>(ChVector3d(1.5, 1, 1), chrono::QuatFromAngleY(CH_C_PI_2)));
+                                    ChFrame<>(ChVector3d(1.5, 1, 1), chrono::QuatFromAngleY(CH_C_PI_2)));
         sys.AddLink(link_revoluteRF);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
@@ -210,7 +210,7 @@ class MySimpleCar {
         // .. create the revolute joint between the wheel and the spindle
         link_revoluteLF = chrono_types::make_shared<ChLinkLockRevolute>();  // left, front, upper, 1
         link_revoluteLF->Initialize(wheelLF, spindleLF,
-                                    ChCoordsys<>(ChVector3d(-1.5, 1, 1), chrono::QuatFromAngleY(CH_C_PI_2)));
+                                    ChFrame<>(ChVector3d(-1.5, 1, 1), chrono::QuatFromAngleY(CH_C_PI_2)));
         sys.AddLink(link_revoluteLF);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
@@ -265,7 +265,7 @@ class MySimpleCar {
         // .. create the revolute joint between the wheel and the spindle
         link_revoluteRB = chrono_types::make_shared<ChLinkLockRevolute>();  // right, back, upper, 1
         link_revoluteRB->Initialize(wheelRB, spindleRB,
-                                    ChCoordsys<>(ChVector3d(1.5, 1, -1), chrono::QuatFromAngleY(CH_C_PI_2)));
+                                    ChFrame<>(ChVector3d(1.5, 1, -1), chrono::QuatFromAngleY(CH_C_PI_2)));
         sys.AddLink(link_revoluteRB);
 
         // .. create the motor transmission joint between the wheel and the truss (assuming small changes of alignment)
@@ -325,7 +325,7 @@ class MySimpleCar {
         // .. create the revolute joint between the wheel and the spindle
         link_revoluteLB = chrono_types::make_shared<ChLinkLockRevolute>();  // left, back, upper, 1
         link_revoluteLB->Initialize(wheelLB, spindleLB,
-                                    ChCoordsys<>(ChVector3d(-1.5, 1, -1), chrono::QuatFromAngleY(CH_C_PI_2)));
+                                    ChFrame<>(ChVector3d(-1.5, 1, -1), chrono::QuatFromAngleY(CH_C_PI_2)));
         sys.AddLink(link_revoluteLB);
 
         // .. create the motor transmission joint between the wheel and the truss (assuming small changes of alignment)

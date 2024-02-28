@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
         // .. a joint of type 'point on a line', with upper and lower limits on
         //    the X sliding direction, for the pendulum-ground constraint.
         auto my_link_01 = chrono_types::make_shared<ChLinkLockPointLine>();
-        my_link_01->Initialize(mrigidBody1, mrigidBody0, ChCoordsys<>(ChVector3d(0, 0, z_step)));
+        my_link_01->Initialize(mrigidBody1, mrigidBody0, ChFrame<>(ChVector3d(0, 0, z_step)));
 
         my_link_01->GetLimit_X().SetActive(true);
         my_link_01->GetLimit_X().SetMax(1.0);
@@ -130,12 +130,12 @@ int main(int argc, char* argv[]) {
 
         // .. a spherical joint
         auto my_link_12 = chrono_types::make_shared<ChLinkLockSpherical>();
-        my_link_12->Initialize(mrigidBody2, mrigidBody1, ChCoordsys<>(ChVector3d(0, -6, z_step)));
+        my_link_12->Initialize(mrigidBody2, mrigidBody1, ChFrame<>(ChVector3d(0, -6, z_step)));
         sys.AddLink(my_link_12);
 
         // .. a spherical joint
         auto my_link_23 = chrono_types::make_shared<ChLinkLockSpherical>();
-        my_link_23->Initialize(mrigidBody3, mrigidBody2, ChCoordsys<>(ChVector3d(0, -12, z_step)));
+        my_link_23->Initialize(mrigidBody3, mrigidBody2, ChFrame<>(ChVector3d(0, -12, z_step)));
         sys.AddLink(my_link_23);
     }
 

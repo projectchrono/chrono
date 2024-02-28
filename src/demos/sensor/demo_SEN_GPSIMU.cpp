@@ -137,12 +137,12 @@ int main(int argc, char* argv[]) {
     sys.Add(plate);
 
     auto link1 = chrono_types::make_shared<ChLinkLockRevolute>();
-    link1->Initialize(base, pendulum_leg_1, ChCoordsys<>({0, 0, 1}, chrono::QuatFromAngleAxis(CH_C_PI / 2, VECT_Y)));
+    link1->Initialize(base, pendulum_leg_1, ChFrame<>({0, 0, 1}, chrono::QuatFromAngleAxis(CH_C_PI / 2, VECT_Y)));
     sys.AddLink(link1);
 
     auto link2 = chrono_types::make_shared<ChLinkLockRevolute>();
     link2->Initialize(pendulum_leg_1, pendulum_leg_2,
-                      ChCoordsys<>({0, .4, 1}, chrono::QuatFromAngleAxis(CH_C_PI / 2, VECT_Y)));
+                      ChFrame<>({0, .4, 1}, chrono::QuatFromAngleAxis(CH_C_PI / 2, VECT_Y)));
     sys.AddLink(link2);
 
     // -----------------------

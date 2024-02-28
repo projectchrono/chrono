@@ -126,7 +126,7 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTubeGuide->SetNameString(m_name + "_planePlaneAxleTube");
     const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
     m_axleTubeGuide->Initialize(chassis->GetBody(), m_axleTubeBody,
-                                ChCoordsys<>(axleCOM, guideRot * QuatFromAngleY(CH_C_PI_2)));
+                                ChFrame<>(axleCOM, guideRot * QuatFromAngleY(CH_C_PI_2)));
     chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuide);
 
     // Create and initialize the Panhard body.
@@ -202,10 +202,10 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize the revolute joint between axle tube and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
-    m_revolute[side]->Initialize(m_spindle[side], m_axleTubeBody, rev_csys);
+    m_revolute[side]->Initialize(m_spindle[side], m_axleTubeBody,
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the shock damper
@@ -254,7 +254,7 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
         m_revARBLeftRight = chrono_types::make_shared<ChLinkLockRevolute>();
         m_revARBLeftRight->SetNameString(m_name + "_revARBleftRight");
         m_revARBLeftRight->Initialize(m_arb[LEFT], m_arb[RIGHT],
-                                      ChCoordsys<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_C_PI_2)));
+                                      ChFrame<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_C_PI_2)));
         chassis->GetSystem()->AddLink(m_revARBLeftRight);
 
         m_revARBLeftRight->GetForce_Rz().SetActive(1);

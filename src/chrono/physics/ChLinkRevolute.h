@@ -22,14 +22,10 @@
 namespace chrono {
 
 /// Class for modeling a revolute joint between two two ChBodyFrame objects.
-/// This joint is defined through 5 constraint equations between two marker
-/// frames, one on each body.  Kinematically, these constraints impose the
-/// condition that the two marker origins coincide (3 constraints) and that
-/// two directions (one on each body, namely the Z axes of the marker frames)
-/// are always parallel.
-
+/// This joint is defined through 5 constraint equations between two marker frames, one on each body.  Kinematically,
+/// these constraints impose the condition that the two marker origins coincide (3 constraints) and that two directions
+/// (one on each body, namely the Z axes of the marker frames) are always parallel.
 class ChApi ChLinkRevolute : public ChLink {
-
   public:
     ChLinkRevolute();
     ChLinkRevolute(const ChLinkRevolute& other);
@@ -57,18 +53,16 @@ class ChApi ChLinkRevolute : public ChLink {
     /// Get the joint violation (residuals of the constraint equations)
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return m_C; }
 
-    /// Initialize this joint by specifying the two bodies to be connected and a
-    /// joint frame specified in the absolute frame. The revolute joint is
-    /// constructed such that ...
+    /// Initialize this joint by specifying the two bodies to be connected and a joint frame (in absolute frame).
+    /// The revolute joint is constructed such that the rotation axis is along the Z axis of the provided joint frame.
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first body frame
                     std::shared_ptr<ChBody> body2,  ///< second body frame
                     const ChFrame<>& frame          ///< joint frame (in absolute frame)
     );
 
-    /// Initialize this joint by specifying the two bodies to be connected and the
-    /// joint frames on each body. If local = true, it is assumed that these quantities
-    /// are specified in the local body frames. Otherwise, it is assumed that they are
-    /// specified in the absolute frame.
+    /// Initialize this joint by specifying the two bodies to be connected and the joint frames on each body.
+    /// If local = true, it is assumed that these quantities are specified in the local body frames. Otherwise, it is
+    /// assumed that they are specified in the absolute frame.
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first body frame
                     std::shared_ptr<ChBody> body2,  ///< second body frame
                     bool local,                     ///< true if data given in body local frames
@@ -76,17 +70,13 @@ class ChApi ChLinkRevolute : public ChLink {
                     const ChFrame<>& frame2         ///< joint frame on body 2
     );
 
-    //
     // UPDATING FUNCTIONS
-    //
 
     /// Perform the update of this joint at the specified time: compute jacobians
     /// and constraint violations, cache in internal structures
     virtual void Update(double time, bool update_assets = true) override;
 
-    //
     // STATE FUNCTIONS
-    //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
@@ -111,9 +101,7 @@ class ChApi ChLinkRevolute : public ChLink {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    //
     // SOLVER INTERFACE
-    //
 
     virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsBiReset() override;
@@ -121,9 +109,7 @@ class ChApi ChLinkRevolute : public ChLink {
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

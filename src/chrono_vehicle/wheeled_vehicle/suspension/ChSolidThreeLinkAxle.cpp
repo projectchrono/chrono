@@ -138,18 +138,18 @@ void ChSolidThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     chassis->GetBody()->GetSystem()->AddBody(m_triangleBody);
 
     // Create and initialize the revolute joint between chassis and triangle.
-    ChCoordsys<> rev_csys(pt_tri_chassis,
-                          chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * QuatFromAngleX(CH_C_PI_2));
     m_triangleRev = chrono_types::make_shared<ChLinkLockRevolute>();
     m_triangleRev->SetNameString(m_name + "_revoluteTriangle");
-    m_triangleRev->Initialize(m_triangleBody, chassis->GetBody(), rev_csys);
+    m_triangleRev->Initialize(
+        m_triangleBody, chassis->GetBody(),
+        ChFrame<>(pt_tri_chassis, chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * QuatFromAngleX(CH_C_PI_2)));
     chassis->GetBody()->GetSystem()->AddLink(m_triangleRev);
 
     // Create and initialize the spherical joint between axle tube and triangle.
-    ChCoordsys<> sph_csys(pt_tri_axle, chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_triangleSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_triangleSph->SetNameString(m_name + "_sphericalTriangle");
-    m_triangleSph->Initialize(m_triangleBody, m_axleTube, sph_csys);
+    m_triangleSph->Initialize(m_triangleBody, m_axleTube,
+                              ChFrame<>(pt_tri_axle, chassis->GetBody()->GetFrame_REF_to_abs().GetRot()));
     chassis->GetBody()->GetSystem()->AddLink(m_triangleSph);
 
     m_link_axleL = m_pointsL[LINK_A];
@@ -196,10 +196,10 @@ void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize the revolute joint between axle tube and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
-    m_revolute[side]->Initialize(m_spindle[side], m_axleTube, rev_csys);
+    m_revolute[side]->Initialize(m_spindle[side], m_axleTube,
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the shock damper
@@ -241,10 +241,9 @@ void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_linkBody[side]);
 
     // Create and initialize the spherical joint between axle tube and link body.
-    ChCoordsys<> sph1_csys(points[LINK_A], chassisRot);
     m_linkBodyToAxleTube[side] = chrono_types::make_shared<ChLinkLockSpherical>();
     m_linkBodyToAxleTube[side]->SetNameString(m_name + "_sphericalLinkToAxle" + suffix);
-    m_linkBodyToAxleTube[side]->Initialize(m_linkBody[side], m_axleTube, sph1_csys);
+    m_linkBodyToAxleTube[side]->Initialize(m_linkBody[side], m_axleTube, ChFrame<>(points[LINK_A], chassisRot));
     chassis->GetSystem()->AddLink(m_linkBodyToAxleTube[side]);
 
     // Create and initialize the spherical joint between axle tube and link body.

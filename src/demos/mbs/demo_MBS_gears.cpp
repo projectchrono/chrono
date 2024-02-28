@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
 
     // ...which must rotate respect to truss along Z axis, in 0,0,0,
     auto link_revoluteTT = chrono_types::make_shared<ChLinkLockRevolute>();
-    link_revoluteTT->Initialize(mbody_truss, mbody_train, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
+    link_revoluteTT->Initialize(mbody_truss, mbody_train, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
     sys.AddLink(link_revoluteTT);
 
     // ...the first gear
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 
     // ... the second gear is fixed to the rotating bar
     auto link_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    link_revolute->Initialize(mbody_gearB, mbody_train, ChCoordsys<>(ChVector3d(interaxis12, 0, 0), QUNIT));
+    link_revolute->Initialize(mbody_gearB, mbody_train, ChFrame<>(ChVector3d(interaxis12, 0, 0), QUNIT));
     sys.AddLink(link_revolute);
 
     // ...the gear constraint between the two wheels A and B.
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     //    will be considered the axis of the wheel, we must rotate the frame 90 deg with QuatFromAngleAxis(), because
     //    we created the wheel with ChBodyEasyCylinder() which created a cylinder with Y as axis.
     auto link_gearAB = chrono_types::make_shared<ChLinkGear>();
-    link_gearAB->Initialize(mbody_gearA, mbody_gearB, CSYSNORM);
+    link_gearAB->Initialize(mbody_gearA, mbody_gearB, ChFrame<>());
     link_gearAB->Set_local_shaft1(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_C_PI_2)));
     link_gearAB->Set_local_shaft2(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_C_PI_2)));
     link_gearAB->Set_tau(radA / radB);
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     //    epicycloidal reducer, so, as wheel C, we will simply use the ground object 'mbody_truss'.
     double radC = 2 * radB + radA;
     auto link_gearBC = chrono_types::make_shared<ChLinkGear>();
-    link_gearBC->Initialize(mbody_gearB, mbody_truss, CSYSNORM);
+    link_gearBC->Initialize(mbody_gearB, mbody_truss, ChFrame<>());
     link_gearBC->Set_local_shaft1(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_C_PI_2)));
     link_gearBC->Set_local_shaft2(ChFrame<>(ChVector3d(0, 0, -4), QUNIT));
     link_gearBC->Set_tau(radB / radC);
@@ -137,14 +137,13 @@ int main(int argc, char* argv[]) {
     // ... it is fixed to the truss using a revolute joint with horizontal axis (must rotate
     //     default ChLink creation coordys 90� on the Y vertical, since the revolute axis is the Z axis).
     auto link_revoluteD = chrono_types::make_shared<ChLinkLockRevolute>();
-    link_revoluteD->Initialize(mbody_gearD, mbody_truss,
-                               ChCoordsys<>(ChVector3d(-10, 0, -9), QuatFromAngleY(CH_C_PI_2)));
+    link_revoluteD->Initialize(mbody_gearD, mbody_truss, ChFrame<>(ChVector3d(-10, 0, -9), QuatFromAngleY(CH_C_PI_2)));
     sys.AddLink(link_revoluteD);
 
     // ... Let's make a 1:1 gear between wheel A and wheel D as a bevel gear: Chrono does not require
     //     special info for this case -the position of the two shafts and the transmission ratio are enough-
     auto link_gearAD = chrono_types::make_shared<ChLinkGear>();
-    link_gearAD->Initialize(mbody_gearA, mbody_gearD, CSYSNORM);
+    link_gearAD->Initialize(mbody_gearA, mbody_gearD, ChFrame<>());
     link_gearAD->Set_local_shaft1(ChFrame<>(ChVector3d(0, -7, 0), chrono::QuatFromAngleX(-CH_C_PI_2)));
     link_gearAD->Set_local_shaft2(ChFrame<>(ChVector3d(0, -7, 0), chrono::QuatFromAngleX(-CH_C_PI_2)));
     link_gearAD->Set_tau(1);
@@ -163,13 +162,13 @@ int main(int argc, char* argv[]) {
     //     default ChLink creation coordys 90� on the Y vertical, since the revolute axis is the Z axis).
     auto link_revoluteE = chrono_types::make_shared<ChLinkLockRevolute>();
     link_revoluteE->Initialize(mbody_pulleyE, mbody_truss,
-                               ChCoordsys<>(ChVector3d(-10, -11, -9), QuatFromAngleY(CH_C_PI_2)));
+                               ChFrame<>(ChVector3d(-10, -11, -9), QuatFromAngleY(CH_C_PI_2)));
     sys.AddLink(link_revoluteE);
 
     // ... Let's make a synchro belt constraint between pulley D and pulley E. The user must be
     //     sure that the two shafts are parallel in absolute space. Also, interaxial distance should not change.
     auto link_pulleyDE = chrono_types::make_shared<ChLinkPulley>();
-    link_pulleyDE->Initialize(mbody_gearD, mbody_pulleyE, CSYSNORM);
+    link_pulleyDE->Initialize(mbody_gearD, mbody_pulleyE, ChFrame<>());
     link_pulleyDE->Set_local_shaft1(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_C_PI_2)));
     link_pulleyDE->Set_local_shaft2(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_C_PI_2)));
     link_pulleyDE->Set_r1(radD);

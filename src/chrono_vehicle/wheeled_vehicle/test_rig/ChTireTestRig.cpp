@@ -343,16 +343,16 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
         z2x.SetFromAngleY(CH_C_PI_2);
         auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
         m_system->AddLink(prismatic);
-        prismatic->Initialize(m_carrier_body, m_ground_body, ChCoordsys<>(VNULL, z2x));
+        prismatic->Initialize(m_carrier_body, m_ground_body, ChFrame<>(VNULL, z2x));
     }
 
     auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_system->AddLink(prismatic);
-    prismatic->Initialize(m_carrier_body, m_chassis_body, ChCoordsys<>(VNULL, QUNIT));
+    prismatic->Initialize(m_carrier_body, m_chassis_body, ChFrame<>(VNULL, QUNIT));
 
     m_slip_lock = chrono_types::make_shared<ChLinkLockLock>();
     m_system->AddLink(m_slip_lock);
-    m_slip_lock->Initialize(m_chassis_body, m_slip_body, ChCoordsys<>(VNULL, QUNIT));
+    m_slip_lock->Initialize(m_chassis_body, m_slip_body, ChFrame<>(VNULL, QUNIT));
     m_slip_lock->SetMotion_axis(ChVector3d(0, 0, 1));
 
     ChQuaternion<> z2y;
@@ -364,7 +364,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     } else {
         auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
         m_system->AddLink(revolute);
-        revolute->Initialize(m_spindle_body, m_slip_body, ChCoordsys<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
+        revolute->Initialize(m_spindle_body, m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
     }
 
     // Initialize subsystems

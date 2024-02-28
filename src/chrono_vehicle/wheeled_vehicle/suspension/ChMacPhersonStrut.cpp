@@ -175,10 +175,10 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_LCA[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * QuatFromAngleX(-CH_C_PI_2));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
-    m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
+    m_revolute[side]->Initialize(m_spindle[side], m_upright[side],
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(-CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the cylindrical joint between upright and strut.
@@ -196,7 +196,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     m_cylindricalStrut[side] = chrono_types::make_shared<ChLinkLockCylindrical>();
     m_cylindricalStrut[side]->SetNameString(m_name + "_cylindricalStrut" + suffix);
     m_cylindricalStrut[side]->Initialize(m_strut[side], m_upright[side],
-                                         ChCoordsys<>(points[SPRING_U], rot.GetQuaternion()));
+                                         ChFrame<>(points[SPRING_U], rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_cylindricalStrut[side]);
 
     // Create and initialize the universal joint between chassis and UCA.

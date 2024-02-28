@@ -31,8 +31,8 @@ class ChApi ChLinkMarkers : public ChLink {
     ChLinkMarkers();
     ChLinkMarkers(const ChLinkMarkers& other);
 
-    ChMarker* marker1;  ///< slave coordsys
-    ChMarker* marker2;  ///< master coordsys, =0 if liked to ground
+    ChMarker* marker1;  ///< secondary coordsys
+    ChMarker* marker2;  ///< main coordsys
 
     ChCoordsysd relM;    ///< relative marker position 2-1
     ChCoordsysd relM_dt;  ///< relative marker speed
@@ -65,89 +65,73 @@ class ChApi ChLinkMarkers : public ChLink {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMarkers* Clone() const override { return new ChLinkMarkers(*this); }
 
-    /// Return the 1st referenced marker (the 'slave' marker, owned by 1st body)
+    /// Return the 1st referenced marker (the secondary marker, on 1st body).
     ChMarker* GetMarker1() { return marker1; }
-    /// Return the 2nd referenced marker (the 'master' marker, owned by 2nd body)
+
+    /// Return the 2nd referenced marker (the main marker, on 2nd body).
     ChMarker* GetMarker2() { return marker2; }
 
-    /// set the two markers associated with this link
+    /// Set the two markers associated with this link.
     virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
 
-
-    /// Use this function after link creation, to initialize the link from
-    /// two markers to join.
-    /// Each marker must belong to a rigid body, and both rigid bodies
-    /// must belong to the same ChSystem.
+    /// Initialize the link to join two markers.
+    /// Each marker must belong to a rigid body, and both rigid bodies must belong to the same system.
     /// The position of mark2 is used as link's position and main reference.
-    virtual void Initialize(std::shared_ptr<ChMarker> mark1,  ///< first  marker to join
-                            std::shared_ptr<ChMarker> mark2   ///< second marker to join (master)
+    virtual void Initialize(std::shared_ptr<ChMarker> mark1,  ///< first  marker to join (secondary)
+                            std::shared_ptr<ChMarker> mark2   ///< second marker to join (main)
     );
 
-    /// Use this function after link creation, to initialize the link from
-    /// two joined rigid bodies.
-    /// Both rigid bodies must belong to the same ChSystem.
-    /// Two markers will be created and added to the rigid bodies (later,
-    /// you can use GetMarker1() and GetMarker2() to access them.
-    /// To specify the (absolute) position of link and markers, use 'mpos'.
+    /// Initialize the link to join two rigid bodies.
+    /// Both rigid bodies must belong to the same system.
+    /// This version creates the link at the specified absolute position and alignment.
+    /// Two markers will be created and added to the rigid bodies.
     virtual void Initialize(std::shared_ptr<ChBody> mbody1,  ///< first  body to join
                             std::shared_ptr<ChBody> mbody2,  ///< second body to join
-                            const ChCoordsys<>& mpos         ///< the current absolute pos.& alignment.
+                            const ChFrame<>& frame           ///< initial absolute position & alignment
     );
 
-    /// Use this function after link creation, to initialize the link from
-    /// two joined rigid bodies.
-    /// Both rigid bodies must belong to the same ChSystem.
-    /// Two markers will be created and added to the rigid bodies (later,
-    /// you can use GetMarker1() and GetMarker2() to access them.
-    /// To specify the (absolute) position of link and markers, use 'mpos'.
+    /// Initialize the link to join two rigid bodies.
+    /// This version uses the local positions and alignments on the two bodies.
+    /// Both rigid bodies must belong to the same system.
+    /// Two markers will be created and added to the rigid bodies.
     virtual void Initialize(
         std::shared_ptr<ChBody> mbody1,  ///< first  body to join
         std::shared_ptr<ChBody> mbody2,  ///< second body to join
-        bool pos_are_relative,  ///< if =true, following two positions are relative to bodies. If false, are absolute.
-        const ChCoordsys<>& mpos1,  ///< the position & alignment of 1st marker (relative to body1 cords, or absolute)
-        const ChCoordsys<>& mpos2   ///< the position & alignment of 2nd marker (relative to body2 cords, or absolute)
+        bool rel_frames,                 ///< marker frames are relative (true) or absolute (false)
+        const ChFrame<>& frame1,         ///< position & alignment of 1st marker (absolute or relative to body1)
+        const ChFrame<>& frame2          ///< position & alignment of 2nd marker (absolute or relative to body2)
     );
 
-    /// Get the link coordinate system, expressed relative to Body2 (the 'master'
-    /// body). This represents the 'main' reference of the link: reaction forces
-    /// and torques are expressed in this coordinate system.
-    /// (It is the coordinate system of the 'master' marker2 relative to Body2)
+    /// Get the link coordinate system, expressed relative to Body2 (the main body).
+    /// This represents the 'main' reference of the link (the coordinate system of the main marker2 on Body2).
+    /// Reaction forces and torques are expressed in this coordinate system.
     virtual ChCoordsys<> GetLinkRelativeCoords() override { return marker2->GetCsys(); }
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
-    /// For a ChLinkMarkers, this returns the absolute coordinate system of the 'master' marker2.
+    /// For a ChLinkMarkers, this returns the absolute coordinate system of the main marker2.
     virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return marker2->GetAbsFrame(); }
 
-    //
     // UPDATING FUNCTIONS
-    //
 
     /// Updates auxiliary quantities for all relative degrees of freedom of the two markers.
     virtual void UpdateRelMarkerCoords();
 
-    /// Updates auxiliary forces caused by springs/dampers/etc. which may
-    /// be connected between the two bodies of the link.
-    /// By default, it adds the forces which might have been added by the
-    /// user using Set_Scr_force() and Set_Scr_torque(). Note, these forces
-    /// are considered in the reference coordsystem of marker2 (the MAIN marker),
-    /// and their application point is the origin of marker1 (the SLAVE marker).
+    /// Updates auxiliary forces caused by springs/dampers/etc. which may be connected between the two link bodies.
+    /// These forces are considered in the reference coordsystem of marker2 (the main marker), and their application
+    /// point is the origin of marker1 (the secondary marker).
     virtual void UpdateForces(double mytime);
 
     /// Complete link update: UpdateTime -> UpdateRelMarkerCoords -> UpdateForces.
     virtual void Update(double mytime, bool update_assets = true) override;
 
-    //
     // STATE FUNCTIONS
-    //
 
     /// Adds force to residual R, as R*= F*c
     /// NOTE: here the off offset in R is NOT used because add F at the TWO offsets of the two connected bodies,
     /// so it is assumed that offsets for Body1 and Body2 variables have been already set properly!
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
 
-    //
     // SOLVER INTERFACE
-    //
 
     /// Overrides the empty behaviour of the parent ChLink implementation, which
     /// does not consider any user-imposed force between the two bodies.
@@ -159,9 +143,7 @@ class ChApi ChLinkMarkers : public ChLink {
     /// and their application point is the origin of marker1 (the SLAVE marker).
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
 
-    //
-    // LINK COORDINATES and other functions:
-    //
+    // LINK COORDINATES and other functions
 
     /// Relative position of marker 1 respect to marker 2.
     const ChCoordsysd& GetRelM() const { return relM; }
@@ -198,9 +180,7 @@ class ChApi ChLinkMarkers : public ChLink {
     const ChVector3d& GetC_force() const { return C_force; }
     const ChVector3d& GetC_torque() const { return C_torque; }
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

@@ -41,7 +41,7 @@ void ChChassisConnectorHitch::Initialize(std::shared_ptr<ChChassis> front, std::
     // Create the revolute joint connection
     m_joint = chrono_types::make_shared<ChLinkLockSpherical>();
     m_joint->SetNameString(m_name + " joint");
-    m_joint->Initialize(front->GetBody(), rear->GetBody(), ChCoordsys<>(to_abs.GetPos(), QUNIT));
+    m_joint->Initialize(front->GetBody(), rear->GetBody(), ChFrame<>(to_abs.GetPos(), QUNIT));
     rear->GetBody()->GetSystem()->AddLink(m_joint);
 }
 

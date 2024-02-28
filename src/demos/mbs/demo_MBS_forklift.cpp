@@ -141,7 +141,7 @@ class MySimpleForklift {
 
         // .. create the revolute joint between the wheel and the truss
         link_revoluteRF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
-        link_revoluteRF->Initialize(wheelRF, chassis, ChCoordsys<>(COG_wheelRF, chrono::QuatFromAngleY(CH_C_PI / 2)));
+        link_revoluteRF->Initialize(wheelRF, chassis, ChFrame<>(COG_wheelRF, chrono::QuatFromAngleY(CH_C_PI / 2)));
         sys->AddLink(link_revoluteRF);
 
         // ..the left-front wheel
@@ -160,7 +160,7 @@ class MySimpleForklift {
 
         // .. create the revolute joint between the wheel and the truss
         link_revoluteLF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
-        link_revoluteLF->Initialize(wheelLF, chassis, ChCoordsys<>(COG_wheelLF, chrono::QuatFromAngleY(CH_C_PI / 2)));
+        link_revoluteLF->Initialize(wheelLF, chassis, ChFrame<>(COG_wheelLF, chrono::QuatFromAngleY(CH_C_PI / 2)));
         sys->AddLink(link_revoluteLF);
 
         // ..the back steering spindle (invisible)
@@ -236,13 +236,13 @@ class MySimpleForklift {
         // .. create the prismatic joint between the fork and arm
         // (set joint as vertical; default would be aligned to z, horizontal)
         link_prismaticFork = chrono_types::make_shared<ChLinkLockPrismatic>();
-        link_prismaticFork->Initialize(fork, arm, ChCoordsys<>(POS_prismatic, QuatFromAngleX(CH_C_PI / 2)));
+        link_prismaticFork->Initialize(fork, arm, ChFrame<>(POS_prismatic, QuatFromAngleX(CH_C_PI / 2)));
         sys->AddLink(link_prismaticFork);
 
         // .. create the linear actuator that pushes upward the fork
         link_actuatorFork = chrono_types::make_shared<ChLinkLinActuator>();
-        link_actuatorFork->Initialize(fork, arm, false, ChCoordsys<>(POS_prismatic + ChVector3d(0, 0.01, 0), QUNIT),
-                                      ChCoordsys<>(POS_prismatic, QUNIT));
+        link_actuatorFork->Initialize(fork, arm, false, ChFrame<>(POS_prismatic + ChVector3d(0, 0.01, 0), QUNIT),
+                                      ChFrame<>(POS_prismatic, QUNIT));
         sys->AddLink(link_actuatorFork);
 
         // ..a pallet

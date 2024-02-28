@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
 
     auto cyljoint = chrono_types::make_shared<ChLinkLockCylindrical>();
     sys.AddLink(cyljoint);
-    cyljoint->Initialize(ground, shaft_2, ChCoordsys<>(ChVector3d(0, -hl * sina, hl * cosa), rot));
+    cyljoint->Initialize(ground, shaft_2, ChFrame<>(ChVector3d(0, -hl * sina, hl * cosa), rot));
 
     // Connect the two shafts through a universal joint
     // ------------------------------------------------

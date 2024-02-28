@@ -123,12 +123,12 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 
         // Create and initialize translational joint ground - sled
         prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-        prismatic->Initialize(ground, sled, ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+        prismatic->Initialize(ground, sled, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
         sys->AddLink(prismatic);
 
         // Create and initialize revolute joint sled - wheel
         revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-        revolute->Initialize(wheel, sled, ChCoordsys<>(ChVector3d(1, 0, 0), QuatFromAngleX(CH_C_PI_2)));
+        revolute->Initialize(wheel, sled, ChFrame<>(ChVector3d(1, 0, 0), QuatFromAngleX(CH_C_PI_2)));
         sys->AddLink(revolute);
     }
 

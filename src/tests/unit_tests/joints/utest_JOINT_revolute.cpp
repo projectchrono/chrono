@@ -182,7 +182,7 @@ bool TestRevolute(const ChVector3d& jointLoc,      // absolute location of joint
     std::cout << "  Create joint..." << std::endl;
 
     auto revoluteJoint = chrono_types::make_shared<ChLinkLockRevolute>();
-    revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
+    revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
     ////ChSharedPtr<ChLinkRevolute>  revoluteJoint(new ChLinkRevolute);
     ////revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
     sys.AddLink(revoluteJoint);

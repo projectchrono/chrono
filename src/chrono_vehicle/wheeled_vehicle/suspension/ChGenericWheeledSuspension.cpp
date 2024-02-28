@@ -446,10 +446,10 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         else
             abody = FindBody(abody_id, side);
 
-        ChCoordsys<> rev_csys(spindlePos, spindleRot * QuatFromAngleX(CH_C_PI_2));
         m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
         m_revolute[side]->SetNameString(Name({"spindle_rev", side}));
-        m_revolute[side]->Initialize(m_spindle[side], abody, rev_csys);
+        m_revolute[side]->Initialize(m_spindle[side], abody,
+                                     ChFrame<>(spindlePos, spindleRot * QuatFromAngleX(CH_C_PI_2)));
         chassis->GetSystem()->AddLink(m_revolute[side]);
 
         // Axle shaft

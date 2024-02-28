@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
             mcube->SetCsys(ChCoordsys<>(ChVector3d(0.1, 0, 0)) >> body_hand->GetCsys());
             sys.Add(mcube);
             auto mcubelink = chrono_types::make_shared<ChLinkLockLock>();
-            mcubelink->Initialize(mcube, body_hand, mcube->GetCsys());
+            mcubelink->Initialize(mcube, body_hand, *mcube);
             sys.Add(mcubelink);
 
         } else
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
     frame_marker_base_turret >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link1(new ChLinkLockRevolute);
-    my_link1->Initialize(body_base, body_turret, frame_marker_base_turret.GetCsys());
+    my_link1->Initialize(body_base, body_turret, frame_marker_base_turret);
     sys.AddLink(my_link1);
 
     ChFrame<> frame_marker_turret_bicep;
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
     frame_marker_turret_bicep >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link2(new ChLinkLockRevolute);
-    my_link2->Initialize(body_turret, body_bicep, frame_marker_turret_bicep.GetCsys());
+    my_link2->Initialize(body_turret, body_bicep, frame_marker_turret_bicep);
     sys.AddLink(my_link2);
 
     ChFrame<> frame_marker_bicep_elbow;
@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
     frame_marker_bicep_elbow >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link3(new ChLinkLockRevolute);
-    my_link3->Initialize(body_bicep, body_elbow, frame_marker_bicep_elbow.GetCsys());
+    my_link3->Initialize(body_bicep, body_elbow, frame_marker_bicep_elbow);
     sys.AddLink(my_link3);
 
     ChFrame<> frame_marker_elbow_forearm;
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
     frame_marker_elbow_forearm >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link4(new ChLinkLockRevolute);
-    my_link4->Initialize(body_elbow, body_forearm, frame_marker_elbow_forearm.GetCsys());
+    my_link4->Initialize(body_elbow, body_forearm, frame_marker_elbow_forearm);
     sys.AddLink(my_link4);
 
     ChFrame<> frame_marker_forearm_wrist;
@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
     frame_marker_forearm_wrist >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link5(new ChLinkLockRevolute);
-    my_link5->Initialize(body_forearm, body_wrist, frame_marker_forearm_wrist.GetCsys());
+    my_link5->Initialize(body_forearm, body_wrist, frame_marker_forearm_wrist);
     sys.AddLink(my_link5);
 
     ChFrame<> frame_marker_wrist_hand;
@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
     frame_marker_wrist_hand >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link6(new ChLinkLockRevolute);
-    my_link6->Initialize(body_wrist, body_hand, frame_marker_wrist_hand.GetCsys());
+    my_link6->Initialize(body_wrist, body_hand, frame_marker_wrist_hand);
     sys.AddLink(my_link6);
 
     ChFrame<> frame_marker_turret_cylinder;
@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
     frame_marker_turret_cylinder >>= root_frame;
 
     std::shared_ptr<ChLinkLockRevolute> my_link7(new ChLinkLockRevolute);
-    my_link7->Initialize(body_turret, body_cylinder, frame_marker_turret_cylinder.GetCsys());
+    my_link7->Initialize(body_turret, body_cylinder, frame_marker_turret_cylinder);
     sys.AddLink(my_link7);
 
     ChFrame<> frame_marker_cylinder_rod;
@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
     frame_marker_cylinder_rod >>= root_frame;
 
     std::shared_ptr<ChLinkLockCylindrical> my_link8(new ChLinkLockCylindrical);
-    my_link8->Initialize(body_cylinder, body_rod, frame_marker_cylinder_rod.GetCsys());
+    my_link8->Initialize(body_cylinder, body_rod, frame_marker_cylinder_rod);
     sys.AddLink(my_link8);
 
     ChFrame<> frame_marker_rod_bicep;
@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
     frame_marker_rod_bicep >>= root_frame;
 
     std::shared_ptr<ChLinkLockCylindrical> my_link9(new ChLinkLockCylindrical);
-    my_link9->Initialize(body_rod, body_bicep, frame_marker_rod_bicep.GetCsys());
+    my_link9->Initialize(body_rod, body_bicep, frame_marker_rod_bicep);
     sys.AddLink(my_link9);
 
     // Add a couple of markers for the 'lock' constraint between the hand and the
@@ -318,8 +318,8 @@ int main(int argc, char* argv[]) {
     rot_on_x.SetFromAngleX(CH_C_PI_2);
     ChFrame<> frame_marker_move = ChFrame<>(VNULL, rot_on_x) >> frame_marker_wrist_hand;
 
-    my_marker_hand->Impose_Abs_Coord(frame_marker_wrist_hand.GetCsys());
-    my_marker_move->Impose_Abs_Coord(frame_marker_move.GetCsys());
+    my_marker_hand->ImposeAbsoluteTransform(frame_marker_wrist_hand.GetCsys());
+    my_marker_move->ImposeAbsoluteTransform(frame_marker_move.GetCsys());
 
     std::shared_ptr<ChLinkLockLock> my_link_teacher(new ChLinkLockLock);
     my_link_teacher->Initialize(my_marker_hand, my_marker_move);

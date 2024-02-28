@@ -83,7 +83,7 @@ TEST(FullAssembly, Assemble) {
     // reference frame. The revolute joint's axis of rotation will be the Z axis
     // of the specified rotation matrix.
     auto revoluteJoint = chrono_types::make_shared<ChLinkLockRevolute>();
-    revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
+    revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
     ////auto revoluteJoint = chrono_types::make_shared<ChLinkRevolute>();
     ////revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
     sys.AddLink(revoluteJoint);

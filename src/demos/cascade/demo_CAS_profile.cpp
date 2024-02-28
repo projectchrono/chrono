@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
 
     // Revolute constraint
     auto mrevolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    mrevolute->Initialize(mgenevawheel, mfloor, ChCoordsys<>(geneva_center));
+    mrevolute->Initialize(mgenevawheel, mfloor, ChFrame<>(geneva_center));
     sys.Add(mrevolute);
 
     //
@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
 
     // Revolute constraint
     auto mrevolute2 = chrono_types::make_shared<ChLinkLockRevolute>();
-    mrevolute2->Initialize(mfollower, mfloor, ChCoordsys<>(ChVector3d(-1.4 * R, R * 0.3 + 0.05, Z_layer_2)));
+    mrevolute2->Initialize(mfollower, mfloor, ChFrame<>(ChVector3d(-1.4 * R, R * 0.3 + 0.05, Z_layer_2)));
     sys.Add(mrevolute2);
 
     // Create the run-time visualization system

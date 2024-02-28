@@ -54,7 +54,7 @@ void ChBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis,
     auto mb1 = std::dynamic_pointer_cast<ChBody>(mbf1);
     auto mb2 = std::dynamic_pointer_cast<ChBody>(mbf2);
 
-    m_brake->Initialize(mb1, mb2, true, m_hub->GetMarker1()->GetCsys(), m_hub->GetMarker2()->GetCsys());
+    m_brake->Initialize(mb1, mb2, true, *m_hub->GetMarker1(), *m_hub->GetMarker2());
     m_hub->GetSystem()->AddLink(m_brake);
 }
 

@@ -187,13 +187,12 @@ void AddMesh(ChSystemNSC& sys) {
 void AddConstraints(ChSystemNSC& sys) {
     // Weld Body_1 to ground
     joint_weld = chrono_types::make_shared<ChLinkLockLock>();
-    joint_weld->Initialize(ground, Body_1, ChCoordsys<>(ChVector3d(-2.0, 0, 0)));
+    joint_weld->Initialize(ground, Body_1, ChFrame<>(ChVector3d(-2.0, 0, 0)));
     sys.AddLink(joint_weld);
 
     // Revolute joint between Body_1 and Body_2
     joint_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    joint_revolute->Initialize(Body_1, Body_2,
-                               ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI / 2.0)));
+    joint_revolute->Initialize(Body_1, Body_2, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI / 2.0)));
     sys.AddLink(joint_revolute);
 
     // Constraining a node to Body_2

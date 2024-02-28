@@ -1273,11 +1273,11 @@ void SoilBin() {
     ////// Constrain only the lateral displacement of the Rim
     constraintLateral = chrono_types::make_shared<ChLinkLockPointPlane>();
     sys.AddLink(constraintLateral);
-    constraintLateral->Initialize(Plate, Ground, ChCoordsys<>(Plate->GetPos(), QuatFromAngleX(CH_C_PI_2)));
+    constraintLateral->Initialize(Plate, Ground, ChFrame<>(Plate->GetPos(), QuatFromAngleX(CH_C_PI_2)));
 
     constraintLongitudinal = chrono_types::make_shared<ChLinkLockPointPlane>();
     sys.AddLink(constraintLongitudinal);
-    constraintLongitudinal->Initialize(Plate, Ground, ChCoordsys<>(Plate->GetPos(), QuatFromAngleY(CH_C_PI_2)));
+    constraintLongitudinal->Initialize(Plate, Ground, ChFrame<>(Plate->GetPos(), QuatFromAngleY(CH_C_PI_2)));
 
     // Create a load container and a body force load on the plate
     auto load_container = chrono_types::make_shared<ChLoadContainer>();

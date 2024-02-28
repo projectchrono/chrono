@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
     utils::AddSphereGeometry(body.get(), body_mat, body_rad, ChVector3d(0, 0, 0));
 
     auto joint = chrono_types::make_shared<ChLinkLockPrismatic>();
-    joint->Initialize(terrain.GetGroundBody(), body, ChCoordsys<>(pos, QuatFromAngleY(CH_C_PI_2)));
+    joint->Initialize(terrain.GetGroundBody(), body, ChFrame<>(pos, QuatFromAngleY(CH_C_PI_2)));
     sys->AddLink(joint);
 
     // Enable moving patch, based on body location

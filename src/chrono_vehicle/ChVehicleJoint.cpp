@@ -80,22 +80,24 @@ void ChVehicleJoint::CreateLink(Type type,
                                 std::shared_ptr<ChBody> body1,
                                 std::shared_ptr<ChBody> body2,
                                 ChCoordsys<> pos) {
+    ChFrame<> frame(pos.pos, pos.rot);
+
     switch (type) {
         case Type::LOCK: {
             auto link = chrono_types::make_shared<ChLinkLockLock>();
-            link->Initialize(body1, body2, pos);
+            link->Initialize(body1, body2, frame);
             m_joint = link;
             break;
         }
         case Type::SPHERICAL: {
             auto link = chrono_types::make_shared<ChLinkLockSpherical>();
-            link->Initialize(body1, body2, pos);
+            link->Initialize(body1, body2, frame);
             m_joint = link;
             break;
         }
         case Type::REVOLUTE: {
             auto link = chrono_types::make_shared<ChLinkLockRevolute>();
-            link->Initialize(body1, body2, pos);
+            link->Initialize(body1, body2, frame);
             m_joint = link;
             break;
         }
@@ -107,13 +109,13 @@ void ChVehicleJoint::CreateLink(Type type,
         }
         case Type::POINTLINE: {
             auto link = chrono_types::make_shared<ChLinkLockPointLine>();
-            link->Initialize(body1, body2, pos);
+            link->Initialize(body1, body2, frame);
             m_joint = link;
             break;
         }
         case Type::POINTPLANE: {
             auto link = chrono_types::make_shared<ChLinkLockPointPlane>();
-            link->Initialize(body1, body2, pos);
+            link->Initialize(body1, body2, frame);
             m_joint = link;
             break;
         }

@@ -69,10 +69,10 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     m_gear->AddCollisionModel(chrono_types::make_shared<ChCollisionModel>());
 
     // Create and initialize the revolute joint between chassis and gear.
-    ChCoordsys<> rev_csys(loc, chassisRot * y2z);
+    ChFrame<> rev_frame(loc, chassisRot * y2z);
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
-    m_revolute->Initialize(chassis->GetBody(), m_gear, rev_csys);
+    m_revolute->Initialize(chassis->GetBody(), m_gear, rev_frame);
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Create and initialize the axle shaft and its connection to the gear. Note that the

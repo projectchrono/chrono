@@ -231,13 +231,13 @@ int main(int argc, char* argv[]) {
     // Translational joint ground-cart
     // -------------------------------
     auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic->Initialize(ground, cart, ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+    prismatic->Initialize(ground, cart, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
     sys.AddLink(prismatic);
 
     // Revolute joint cart-pendulum
     // ----------------------------
     auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    revolute->Initialize(cart, pend, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
+    revolute->Initialize(cart, pend, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
     sys.AddLink(revolute);
 
     // Create the PID controller

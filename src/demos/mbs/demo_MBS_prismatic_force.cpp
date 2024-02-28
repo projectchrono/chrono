@@ -80,11 +80,11 @@ int main(int argc, char* argv[]) {
 
     // Create prismatic joints between ground and sliders
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic1->Initialize(slider1, ground, ChCoordsys<>(ChVector3d(0, 0, -1), QuatFromAngleY(CH_C_PI_2)));
+    prismatic1->Initialize(slider1, ground, ChFrame<>(ChVector3d(0, 0, -1), QuatFromAngleY(CH_C_PI_2)));
     sys.AddLink(prismatic1);
 
     auto prismatic2 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic2->Initialize(slider2, ground, ChCoordsys<>(ChVector3d(0, 0, +1), QuatFromAngleY(CH_C_PI_2)));
+    prismatic2->Initialize(slider2, ground, ChFrame<>(ChVector3d(0, 0, +1), QuatFromAngleY(CH_C_PI_2)));
     sys.AddLink(prismatic2);
 
     // Sine function

@@ -42,7 +42,7 @@ class LinkLockBM : public ::benchmark::Fixture {
             auto b1 = sys->GetBodies()[i];
             auto b2 = sys->GetBodies()[i + 1];
             auto loc = 0.5 * (b1->GetPos() + b2->GetPos());
-            joint->Initialize(b1, b2, ChCoordsys<>(loc, QUNIT));
+            joint->Initialize(b1, b2, ChFrame<>(loc, QUNIT));
             sys->AddLink(joint);
         }
     }

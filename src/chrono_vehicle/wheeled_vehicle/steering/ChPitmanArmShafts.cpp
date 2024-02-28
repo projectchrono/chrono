@@ -143,7 +143,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
-    m_revolute->Initialize(chassisBody, m_arm, ChCoordsys<>(points[REV], rot.GetQuaternion()));
+    m_revolute->Initialize(chassisBody, m_arm, ChFrame<>(points[REV], rot.GetQuaternion()));
     sys->AddLink(m_revolute);
 
     // Create and initialize the universal joint between the Pitman arm and steering link.

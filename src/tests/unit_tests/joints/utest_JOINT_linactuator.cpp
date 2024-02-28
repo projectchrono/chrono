@@ -164,7 +164,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     // call) so that the link coordinate system is expressed in the ground frame.
 
     auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic->Initialize(plate, ground, ChCoordsys<>(ChVector3d(0, 0, 0), rot));
+    prismatic->Initialize(plate, ground, ChFrame<>(ChVector3d(0, 0, 0), rot));
     sys.AddLink(prismatic);
 
     // Create a ramp function to impose constant speed.  This function returns
@@ -181,7 +181,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     auto actuator = chrono_types::make_shared<ChLinkLinActuator>();
     ChVector3d pt1 = ChVector3d(0, 0, 0);
     ChVector3d pt2 = axis;
-    actuator->Initialize(ground, plate, false, ChCoordsys<>(pt1, rot), ChCoordsys<>(pt2, rot));
+    actuator->Initialize(ground, plate, false, ChFrame<>(pt1, rot), ChFrame<>(pt2, rot));
     actuator->SetDistanceOffset(1);
     actuator->SetActuatorFunction(actuator_fun);
     sys.AddLink(actuator);

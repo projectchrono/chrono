@@ -64,7 +64,7 @@ void ChTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(carrier, m_wheel,
-        ChCoordsys<>(wheel_to_abs.GetPos(), wheel_to_abs.GetRot() * QuatFromAngleX(CH_C_PI_2)));
+                           ChFrame<>(wheel_to_abs.GetPos(), wheel_to_abs.GetRot() * QuatFromAngleX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Mark as initialized

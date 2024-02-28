@@ -57,17 +57,14 @@ class ChApi ChLinkTrajectory : public ChLinkLockLock {
     /// Sets the trajectory line (take ownership - does not copy line)
     void Set_trajectory_line(std::shared_ptr<ChLine> mline);
 
-    /// Use this function after link creation, to initialize the link from
-    /// two joined rigid bodies.
-    /// Both rigid bodies must belong to the same ChSystem.
-    /// Two markers will be created and added to the rigid bodies (later,
-    /// you can use GetMarker1() and GetMarker2() to access them.
+    /// Initialize the link to join two rigid bodies.
+    /// Both rigid bodies must belong to the same system. Two markers will be created and added to the rigid bodies.
     /// Marker2 will stay in origin of body2. Trajectory is considered relative to body2.
-    void Initialize(std::shared_ptr<ChBody> mbody1,  ///< first  body to join (the one that follows the trajectory)
-                    std::shared_ptr<ChBody> mbody2,  ///< second body to join (the one that contains the trajectory)
-                    const ChVector3d& mpos1,         ///< position of the 'following point' on body1, relative to coordinate of body1.
-                    std::shared_ptr<ChLine> mline  ///< the line on mbody2 to be followed by point mpos1 of mbody1
-                    );
+    void Initialize(std::shared_ptr<ChBody> body1,  ///< first  body to join (the one that follows the trajectory)
+                    std::shared_ptr<ChBody> body2,  ///< second body to join (the one that contains the trajectory)
+                    const ChVector3d& pos1,         ///< position of the 'following point' on body1, relative to body1
+                    std::shared_ptr<ChLine> line    ///< the line on body2 to be followed by the point on body1
+    );
 
     /// Overrides the parent class function. Here it moves the
     /// constraint mmain marker tangent to the line.

@@ -205,7 +205,7 @@ void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chas
 
     // Connect chassis body to connector using a vertical prismatic joint
     auto prism_vert = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prism_vert->Initialize(carrier, chassis, ChCoordsys<>(carrier->GetPos(), QUNIT));
+    prism_vert->Initialize(carrier, chassis, ChFrame<>(carrier->GetPos(), QUNIT));
     chassis->GetSystem()->AddLink(prism_vert);
 
     // Connect carrier to ground with a linear motor
@@ -256,12 +256,12 @@ void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> ch
 
     // Connect chassis body to connector using a vertical prismatic joint
     auto prism_vert = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prism_vert->Initialize(m_carrier, chassis, ChCoordsys<>(m_carrier->GetPos(), QUNIT));
+    prism_vert->Initialize(m_carrier, chassis, ChFrame<>(m_carrier->GetPos(), QUNIT));
     chassis->GetSystem()->AddLink(prism_vert);
 
     // Connect carrier to ground with a horizonal prismatic joint
     auto prism_horiz = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prism_horiz->Initialize(m_carrier, ground, ChCoordsys<>(m_carrier->GetPos(), QuatFromAngleY(CH_C_PI_2)));
+    prism_horiz->Initialize(m_carrier, ground, ChFrame<>(m_carrier->GetPos(), QuatFromAngleY(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(prism_horiz);
 
     // Apply a resistive force to carrier body

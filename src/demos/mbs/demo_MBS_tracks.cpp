@@ -154,7 +154,7 @@ class MySimpleTank {
 
         // .. create the revolute joint between the wheel and the truss
         link_revoluteRF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
-        link_revoluteRF->Initialize(wheelRF, truss, ChCoordsys<>(ChVector3d(mx + passo, my + radiustrack, 0), QUNIT));
+        link_revoluteRF->Initialize(wheelRF, truss, ChFrame<>(ChVector3d(mx + passo, my + radiustrack, 0), QUNIT));
         sys.AddLink(link_revoluteRF);
 
         // --- Left Front suspension ---
@@ -185,7 +185,7 @@ class MySimpleTank {
         // .. create the revolute joint between the wheel and the truss
         link_revoluteLF = chrono_types::make_shared<ChLinkLockRevolute>();  // left, front, upper, 1
         link_revoluteLF->Initialize(wheelLF, truss,
-                                    ChCoordsys<>(ChVector3d(mx + passo, my + radiustrack, rlwidth), QUNIT));
+                                    ChFrame<>(ChVector3d(mx + passo, my + radiustrack, rlwidth), QUNIT));
         sys.AddLink(link_revoluteLF);
 
         // --- Right Back suspension ---
@@ -390,7 +390,7 @@ class MySimpleTank {
             // close track
             ChVector3d linkpos = firstBodyShoe->Point_Body2World(joint_displacement);
             auto link_revolute_shoeshoe = chrono_types::make_shared<ChLinkLockRevolute>();
-            link_revolute_shoeshoe->Initialize(firstBodyShoe, previous_rigidBodyShoe, ChCoordsys<>(linkpos, QUNIT));
+            link_revolute_shoeshoe->Initialize(firstBodyShoe, previous_rigidBodyShoe, ChFrame<>(linkpos, QUNIT));
             sys.AddLink(link_revolute_shoeshoe);
         }
     }
@@ -439,7 +439,7 @@ class MySimpleTank {
         if (previous_shoe) {
             ChVector3d linkpos = rigidBodyShoe->Point_Body2World(joint_displacement);
             auto link_revolute_shoeshoe = chrono_types::make_shared<ChLinkLockRevolute>();
-            link_revolute_shoeshoe->Initialize(rigidBodyShoe, previous_shoe, ChCoordsys<>(linkpos, QUNIT));
+            link_revolute_shoeshoe->Initialize(rigidBodyShoe, previous_shoe, ChFrame<>(linkpos, QUNIT));
             sys.AddLink(link_revolute_shoeshoe);
         }
 

@@ -134,11 +134,11 @@ class Model(object):
 
       self.rod_pin = chrono.ChMarker()
       self.body_rod.AddMarker(self.rod_pin)
-      self.rod_pin.Impose_Abs_Coord(chrono.ChCoordsysd(chrono.ChVector3d(0,0,0)))
+      self.rod_pin.ImposeAbsoluteTransform(chrono.ChCoordsysd(chrono.ChVector3d(0,0,0)))
 
       self.table_pin = chrono.ChMarker()
       self.body_table.AddMarker(self.table_pin)
-      self.table_pin.Impose_Abs_Coord(chrono.ChCoordsysd(chrono.ChVector3d(0,0,0)))
+      self.table_pin.ImposeAbsoluteTransform(chrono.ChCoordsysd(chrono.ChVector3d(0,0,0)))
 
       self.pin_joint = chrono.ChLinkLockRevolute()
       self.pin_joint.Initialize(self.rod_pin, self.table_pin)
