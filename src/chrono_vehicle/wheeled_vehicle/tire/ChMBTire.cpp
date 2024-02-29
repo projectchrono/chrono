@@ -285,11 +285,6 @@ ChMatrix33<> MBTireModel::Spring2::CalculateJacobianBlock(double Kfactor, double
     const auto& vel1 = node1->GetPos_dt();
     const auto& vel2 = node2->GetPos_dt();
 
-    ChMatrixRef K = KRM.Get_K();
-
-    std::cout << "Grid spring2 " << inode1 << "-" << inode2;
-    std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
-
     auto d = pos2 - pos1;
     double l = d.Length();
     assert(l > zero_length);
@@ -438,7 +433,136 @@ void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor, double Rfactor)
     ////std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
     ////std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
 
-    //// TODO
+    const auto& pos_p = node_p->GetPos();
+    const auto& pos_c = node_c->GetPos();
+    const auto& pos_n = node_n->GetPos();
+
+    auto d_p = pos_c - pos_p;
+    auto d_n = pos_n - pos_c;
+
+    //
+    ChStarMatrix33<> skew_dp(d_p);
+    ChStarMatrix33<> skew_dn(d_n);
+
+    double l_p = d_p.Length();
+    double l_n = d_n.Length();
+    assert(l_p > zero_length);
+    assert(l_n > zero_length);
+    d_p /= l_p;
+    d_n /= l_n;
+
+    auto cross = Vcross(d_p, d_n);
+    double length_cross = cross.Length();
+    double a = std::asin(length_cross);
+
+    if (std::abs(a - a0) < zero_angle) {
+        force_p = VNULL;
+        force_c = VNULL;
+        force_n = VNULL;
+        return;
+    }
+
+    if (length_cross > zero_length) {
+        // cross /= length_cross;
+    } else {  // colinear points
+        cross = wheel->TransformDirectionLocalToParent(t0);
+    }
+
+    double A = Vdot(d_p, d_n);
+
+    // Calculate D_pp, D_nn, D_pn
+    ChVectorN<double, 3> dp = d_p.eigen();
+    ChVectorN<double, 3> dn = d_n.eigen();
+
+    ChMatrix33<> D_pp = dp * dp.transpose();
+    ChMatrix33<> D_nn = dn * dn.transpose();
+    ChMatrix33<> D_pn = dp * dn.transpose();
+
+    // Calculate tp, tn = t' .* cross(cross(np,nn),np), t' .* cross(cross(np,nn),nn)
+    // Calculate tp
+    // tp = [t(1)*(nn - A*np)   t(2)*(nn - A*np)   t(3)*(nn - A*np) ];
+    ChMatrix33<> tp;
+    tp(0, 0) = cross[0] * (d_n[0] - A * d_p[0]);
+    tp(1, 0) = cross[0] * (d_n[1] - A * d_p[1]);
+    tp(2, 0) = cross[0] * (d_n[2] - A * d_p[2]);
+
+    tp(0, 1) = cross[1] * (d_n[0] - A * d_p[0]);
+    tp(1, 1) = cross[1] * (d_n[1] - A * d_p[1]);
+    tp(2, 1) = cross[1] * (d_n[2] - A * d_p[2]);
+
+    tp(0, 2) = cross[2] * (d_n[0] - A * d_p[0]);
+    tp(1, 2) = cross[2] * (d_n[1] - A * d_p[1]);
+    tp(2, 2) = cross[2] * (d_n[2] - A * d_p[2]);
+
+    // Calculate tn
+    // tn = [t(1)*(A*dn - dp)   t(2)*(A*dn - dp)     t(3)*(A*dn - dp) ];
+    ChMatrix33<> tn;
+    tn(0, 0) = cross[0] * (A * d_n[0] - d_p[0]);
+    tn(1, 0) = cross[0] * (A * d_n[1] - d_p[1]);
+    tn(2, 0) = cross[0] * (A * d_n[2] - d_p[2]);
+
+    tn(0, 1) = cross[1] * (A * d_n[0] - d_p[0]);
+    tn(1, 1) = cross[1] * (A * d_n[1] - d_p[1]);
+    tn(2, 1) = cross[1] * (A * d_n[2] - d_p[2]);
+
+    tn(0, 2) = cross[2] * (A * d_n[0] - d_p[0]);
+    tn(1, 2) = cross[2] * (A * d_n[1] - d_p[1]);
+    tn(2, 2) = cross[2] * (A * d_n[2] - d_p[2]);
+
+    // multipliers, which are applied to jacobian_1 and jacobian_2, respectfully
+    double scale1 = k / (length_cross * l_p * l_n);
+    double scale2 = scale1 * (a - a0);
+
+    // Calculate AA1 (weird naming, just keeping here because I defined such in Matlab)
+    // AA1 = (lt - abs(A)*(a-a0)) / (lt^2*abs(A)) ;
+    double AA1 = (length_cross - abs(A) * (a - a0)) / (length_cross * length_cross * abs(A));
+
+    // Calculate BB1 3x9 matrix by 3x3 blocks (weird naming, just keeping here because I defined such in Matlab)
+    // BB1 = [skew(dn)*(I - D_pp)*I  -( skew(dn)*(I - D_pp)+skew(dp)*(I - D_nn) )*I  skew(dp)*(I - D_nn)*I];
+    ChMatrix33<> BB11 = skew_dn * (ChMatrix33<>::Identity() - D_pp);
+    ChMatrix33<> BB13 = skew_dp * (ChMatrix33<>::Identity() - D_nn);
+    ChMatrix33<> BB12 = -(BB11 + BB13);
+
+    // Calculate Jp_1 - the first part of J_p, 3x9 matrix by 3x3 blocks (weird naming, just keeping here because I
+    // defined such in Matlab) Jp_1 =AA1 * tp/lp * BB1;
+
+    ChMatrix33<> Jp_11 = (AA1 / l_p) * tp * BB11;
+    ChMatrix33<> Jp_12 = (AA1 / l_p) * tp * BB12;
+    ChMatrix33<> Jp_13 = (AA1 / l_p) * tp * BB13;
+
+    // Calculate Jn_1 - the first part of J_n, 3x9 matrix by 3x3 blocks (weird naming, just keeping here because I
+    // defined such in Matlab) Jn_1 = AA1 * tn / ln * BB1;
+    ChMatrix33<> Jn_11 = (AA1 / l_n) * tn * BB11;
+    ChMatrix33<> Jn_12 = (AA1 / l_n) * tn * BB12;
+    ChMatrix33<> Jn_13 = (AA1 / l_n) * tn * BB13;
+
+    // Calculate Jn_2 - the second part of J_n, 3x9 matrix by 3x3 blocks
+    // Jn_2 =  (a-a0) * [ (I-D_nn)*(I-D_pp)*I   -(lp/ln*( D_pn + D_pn' + A*(I - 3*D_nn) ) +  (I-D_nn)*(I-D_pp)  )*I
+    // lp/ln*(D_pn + D_pn' + A*(I - 3*D_nn))*I];
+
+    ChMatrix33<> Jn_21 = (ChMatrix33<>::Identity() - D_nn) * (ChMatrix33<>::Identity() - D_pp);
+    ChMatrix33<> Jn_23 = (l_p / l_n) * (D_pn + D_pn.transpose() + A * (ChMatrix33<>::Identity() - 3 * D_nn));
+    ChMatrix33<> Jn_22 = -(Jn_21 + Jn_23);
+
+    // Calculate Jp_2 - the second part of J_p, 3x9 matrix by 3x3 blocks
+    // Jp_2 =  (a-a0) * [ln/lp*(D_pn + D_pn' + A*(I - 3*D_pp))*I   -(ln/lp*( D_pn + D_pn' + A*(I - 3*D_pp) ) +
+    // ((I-D_nn)*(I-D_pp))')*I    ((I-D_nn)*(I-D_pp))'*I];
+    ChMatrix33<> Jp_21 = (l_n / l_p) * (D_pn + D_pn.transpose() + A * (ChMatrix33<>::Identity() - 3 * D_pp));
+    ChMatrix33<> Jp_23 = Jn_21.transpose();
+    ChMatrix33<> Jp_22 = -(Jp_21 + Jp_23);
+
+    // substitution of all into matrix
+    K.block(0, 0, 3, 3) = scale1 * Jp_11 + scale2 * Jp_21;
+    K.block(0, 3, 3, 3) = scale1 * Jp_12 + scale2 * Jp_22;
+    K.block(0, 6, 3, 3) = scale1 * Jp_13 + scale2 * Jp_23;
+
+    K.block(3, 0, 3, 3) = -(scale1 * Jn_11 + scale2 * Jn_21) - (scale1 * Jp_11 + scale2 * Jp_21);
+    K.block(3, 3, 3, 3) = -(scale1 * Jn_12 + scale2 * Jn_22) - (scale1 * Jp_12 + scale2 * Jp_22);
+    K.block(3, 6, 3, 3) = -(scale1 * Jn_13 + scale2 * Jn_23) - (scale1 * Jp_13 + scale2 * Jp_23);
+
+    K.block(6, 0, 3, 3) = scale1 * Jn_11 + scale2 * Jn_21;
+    K.block(6, 3, 3, 3) = scale1 * Jn_12 + scale2 * Jn_22;
+    K.block(6, 6, 3, 3) = scale1 * Jn_13 + scale2 * Jn_23;
 }
 
 // For a rotational spring connecting a rim node and 2 grid nodes, the Jacobian is a:
@@ -454,7 +578,104 @@ void MBTireModel::EdgeSpring3::CalculateJacobian(bool full_jac, double Kfactor, 
     ////std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
     ////std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
 
-    //// TODO
+    const auto& pos_p = node_p->GetPos();
+    const auto& pos_c = node_c->GetPos();
+    const auto& pos_n = node_n->GetPos();
+
+    auto d_p = pos_c - pos_p;
+    auto d_n = pos_n - pos_c;
+
+    //
+    ChStarMatrix33<> skew_dp(d_p);
+    ChStarMatrix33<> skew_dn(d_n);
+
+    double l_p = d_p.Length();
+    double l_n = d_n.Length();
+    assert(l_p > zero_length);
+    assert(l_n > zero_length);
+    d_p /= l_p;
+    d_n /= l_n;
+
+    auto cross = Vcross(d_p, d_n);
+    double length_cross = cross.Length();
+    double a = std::asin(length_cross);
+
+    if (std::abs(a - a0) < zero_angle) {
+        force_p = VNULL;
+        force_c = VNULL;
+        force_n = VNULL;
+        return;
+    }
+
+    if (length_cross > zero_length) {
+        // cross /= length_cross;
+    } else {  // colinear points
+        cross = wheel->TransformDirectionLocalToParent(t0);
+    }
+
+    double A = Vdot(d_p, d_n);
+
+    // Calculate D_pp, D_nn, D_pn
+    ChVectorN<double, 3> dp = d_p.eigen();
+    ChVectorN<double, 3> dn = d_n.eigen();
+
+    ChMatrix33<> D_pp = dp * dp.transpose();
+    ChMatrix33<> D_nn = dn * dn.transpose();
+    ChMatrix33<> D_pn = dp * dn.transpose();
+
+    // Calculate tn = t' .* cross(cross(np,nn),nn)
+
+    // Calculate tn
+    // tn = [t(1)*(A*dn - dp)   t(2)*(A*dn - dp)     t(3)*(A*dn - dp) ];
+    ChMatrix33<> tn;
+    tn(0, 0) = cross[0] * (A * d_n[0] - d_p[0]);
+    tn(1, 0) = cross[0] * (A * d_n[1] - d_p[1]);
+    tn(2, 0) = cross[0] * (A * d_n[2] - d_p[2]);
+
+    tn(0, 1) = cross[1] * (A * d_n[0] - d_p[0]);
+    tn(1, 1) = cross[1] * (A * d_n[1] - d_p[1]);
+    tn(2, 1) = cross[1] * (A * d_n[2] - d_p[2]);
+
+    tn(0, 2) = cross[2] * (A * d_n[0] - d_p[0]);
+    tn(1, 2) = cross[2] * (A * d_n[1] - d_p[1]);
+    tn(2, 2) = cross[2] * (A * d_n[2] - d_p[2]);
+
+    // multipliers, which are applied to jacobian_1 and jacobian_2, respectfully
+    double scale1 = k / (length_cross * l_p * l_n);
+    double scale2 = scale1 * (a - a0);
+
+    // Calculate AA1 (weird naming, just keeping here because I defined such in Matlab)
+    double AA1 = (length_cross - abs(A) * (a - a0)) / (length_cross * length_cross * abs(A));
+
+    // Calculate BB1 3x9 matrix by 3x3 blocks (weird naming, just keeping here because I defined such in Matlab)
+    ChMatrix33<> BB11 = skew_dn * (ChMatrix33<>::Identity() - D_pp);
+    ChMatrix33<> BB13 = skew_dp * (ChMatrix33<>::Identity() - D_nn);
+    ChMatrix33<> BB12 = -(BB11 + BB13);
+
+    // Calculate Jn_1 - the first part of J_p, 3x9 matrix by 3x3 blocks (weird naming, just keeping here because I
+    // defined such in Matlab)
+    ChMatrix33<> Jn_11 = AA1 / l_n * tn * BB11;
+    ChMatrix33<> Jn_12 = AA1 / l_n * tn * BB12;
+    ChMatrix33<> Jn_13 = AA1 / l_n * tn * BB13;
+
+    // Calculate Jn_2 - the second part of J_n, 3x9 matrix by 3x3 blocks (weird naming, just keeping here because I
+    // defined such in Matlab)
+    ChMatrix33<> Jn_21 = (ChMatrix33<>::Identity() - D_nn) * (ChMatrix33<>::Identity() - D_pp);
+    ChMatrix33<> Jn_23 = l_p / l_n * (D_pn + D_pn.transpose() + A * (ChMatrix33<>::Identity() - 3 * D_nn));
+    ChMatrix33<> Jn_22 = -(Jn_21 + Jn_23);
+
+    // substitution of all into matrix
+    if (!full_jac) {
+        // blocks for forces Fn in node_c & node_p
+        K.block(3, 0, 3, 3) = -(scale1 * Jn_11 + scale2 * Jn_21);
+        K.block(3, 3, 3, 3) = -(scale1 * Jn_12 + scale2 * Jn_22);
+        K.block(3, 6, 3, 3) = -(scale1 * Jn_13 + scale2 * Jn_23);
+
+        K.block(6, 0, 3, 3) = scale1 * Jn_11 + scale2 * Jn_21;
+        K.block(6, 3, 3, 3) = scale1 * Jn_12 + scale2 * Jn_22;
+        K.block(6, 6, 3, 3) = scale1 * Jn_13 + scale2 * Jn_23;
+        return;
+    }
 }
 
 // -----------------------------------------------------------------------------
