@@ -48,12 +48,12 @@ ChLinkRSDA::ChLinkRSDA(const ChLinkRSDA& other) : ChLink(other), m_turns(0), m_t
 // -----------------------------------------------------------------------------
 // Link initialization functions
 
-void ChLinkRSDA::Initialize(std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, const ChCoordsys<>& csys) {
+void ChLinkRSDA::Initialize(std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, const ChFrame<>& frame) {
     Body1 = body1.get();
     Body2 = body2.get();
 
-    m_csys1 = Body1->GetCsys().TransformParentToLocal(csys);
-    m_csys2 = Body2->GetCsys().TransformParentToLocal(csys);
+    m_csys1 = Body1->GetCsys().TransformParentToLocal(frame.GetCsys());
+    m_csys2 = Body2->GetCsys().TransformParentToLocal(frame.GetCsys());
 
     CalcAngle();
     m_last_angle = m_angle;
@@ -64,17 +64,17 @@ void ChLinkRSDA::Initialize(std::shared_ptr<ChBody> body1, std::shared_ptr<ChBod
 void ChLinkRSDA::Initialize(std::shared_ptr<ChBody> body1,
                             std::shared_ptr<ChBody> body2,
                             bool local,
-                            const ChCoordsys<>& csys1,
-                            const ChCoordsys<>& csys2) {
+                            const ChFrame<>& frame1,
+                            const ChFrame<>& frame2) {
     Body1 = body1.get();
     Body2 = body2.get();
 
     if (local) {
-        m_csys1 = csys1;
-        m_csys2 = csys2;
+        m_csys1 = frame1.GetCsys();
+        m_csys2 = frame2.GetCsys();
     } else {
-        m_csys1 = Body1->GetCsys().TransformParentToLocal(csys1);
-        m_csys2 = Body2->GetCsys().TransformParentToLocal(csys2);
+        m_csys1 = Body1->GetCsys().TransformParentToLocal(frame1.GetCsys());
+        m_csys2 = Body2->GetCsys().TransformParentToLocal(frame2.GetCsys());
     }
 
     CalcAngle();

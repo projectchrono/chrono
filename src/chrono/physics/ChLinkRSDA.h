@@ -125,7 +125,7 @@ class ChApi ChLinkRSDA : public ChLink {
     /// SetRestAngle() is explicitly called, the RSDA rest angle is set to 0.
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first body frame
                     std::shared_ptr<ChBody> body2,  ///< second body frame
-                    const ChCoordsys<>& csys        ///< RSDA frame orientation (in absolute frame)
+                    const ChFrame<>& frame          ///< RSDA frame orientation (in absolute reference frame)
     );
 
     /// Initialize the rotational spring by specifying the two bodies to be connected and RSDA frames on each body.
@@ -136,8 +136,8 @@ class ChApi ChLinkRSDA : public ChLink {
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first body frame
                     std::shared_ptr<ChBody> body2,  ///< second body frame
                     bool local,                     ///< true if data given in body local frames
-                    const ChCoordsys<>& csys1,      ///< RSDA frame orientation on body 1
-                    const ChCoordsys<>& csys2       ///< RSDA frame orientation on body 2
+                    const ChFrame<>& frame1,        ///< RSDA frame orientation on body 1
+                    const ChFrame<>& frame2         ///< RSDA frame orientation on body 2
     );
 
     /// Method to allow serialization of transient data to archives.

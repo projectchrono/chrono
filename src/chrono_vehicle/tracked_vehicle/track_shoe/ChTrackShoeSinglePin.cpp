@@ -123,7 +123,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
 
         m_rsda = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda->SetNameString(m_name + "_rsda");
-        m_rsda->Initialize(m_shoe, next->GetShoeBody(), true, ChCoordsys<>(p_shoe, z2y), ChCoordsys<>(p_next, z2y));
+        m_rsda->Initialize(m_shoe, next->GetShoeBody(), true, ChFrame<>(p_shoe, z2y), ChFrame<>(p_next, z2y));
         m_rsda->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_rsda);
     }

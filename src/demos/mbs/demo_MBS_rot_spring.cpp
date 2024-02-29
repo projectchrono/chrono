@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     auto torque_functor = chrono_types::make_shared<MySpringTorque>(spring_coef, damping_coef);
     auto spring = chrono_types::make_shared<ChLinkRSDA>();
     spring->SetRestAngle(rest_angle);
-    spring->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
+    spring->Initialize(body, ground, ChFrame<>(rev_pos, rev_rot));
     spring->AddVisualShape(chrono_types::make_shared<ChVisualShapeRotSpring>(0.5, 100));
     spring->RegisterTorqueFunctor(torque_functor);
     sys.AddLink(spring);

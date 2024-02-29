@@ -104,7 +104,7 @@ void ChRotationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis
     // The reference RSDA frame is aligned with the chassis frame.
     m_spring = chrono_types::make_shared<ChLinkRSDA>();
     m_spring->SetNameString(m_name + "_spring");
-    m_spring->Initialize(chassis->GetBody(), m_arm, ChCoordsys<>(points[ARM_CHASSIS], z2y));
+    m_spring->Initialize(chassis->GetBody(), m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
     m_spring->SetRestAngle(GetSpringRestAngle());
     m_spring->RegisterTorqueFunctor(GetSpringTorqueFunctor());
     chassis->GetSystem()->AddLink(m_spring);
@@ -113,7 +113,7 @@ void ChRotationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis
     if (m_has_shock) {
         m_shock = chrono_types::make_shared<ChLinkRSDA>();
         m_shock->SetNameString(m_name + "_shock");
-        m_shock->Initialize(chassis->GetBody(), m_arm, ChCoordsys<>(points[ARM_CHASSIS], z2y));
+        m_shock->Initialize(chassis->GetBody(), m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
         m_shock->RegisterTorqueFunctor(GetShockTorqueCallback());
         chassis->GetSystem()->AddLink(m_shock);
     }

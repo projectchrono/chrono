@@ -74,13 +74,13 @@ void ChLinkTSDA::RegisterODE(ODE* functor) {
 
 void ChLinkTSDA::Initialize(std::shared_ptr<ChBody> body1,
                             std::shared_ptr<ChBody> body2,
-                            bool pos_are_relative,
-                            ChVector3d loc1,
-                            ChVector3d loc2) {
+                            bool local,
+                            const ChVector3d& loc1,
+                            const ChVector3d& loc2) {
     Body1 = (ChBodyFrame*)body1.get();
     Body2 = (ChBodyFrame*)body2.get();
 
-    if (pos_are_relative) {
+    if (local) {
         m_loc1 = loc1;
         m_loc2 = loc2;
         m_aloc1 = body1->TransformPointLocalToParent(loc1);
@@ -386,11 +386,7 @@ void ChLinkTSDA::IntLoadResidual_Mv(const unsigned int off,      // offset in R 
     }
 }
 
-void ChLinkTSDA::IntLoadLumpedMass_Md(const unsigned int off,
-                                      ChVectorDynamic<>& Md,
-                                      double& err,
-                                      const double c
-) {
+void ChLinkTSDA::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     if (!IsActive())
         return;
 
@@ -499,7 +495,7 @@ void ChLinkTSDA::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChLinkTSDA::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkTSDA>();
+    /*int version =*/archive_in.VersionRead<ChLinkTSDA>();
 
     // deserialize parent class
     ChLink::ArchiveIn(archive_in);

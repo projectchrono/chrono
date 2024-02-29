@@ -179,9 +179,9 @@ class ChApi ChLinkTSDA : public ChLink {
     /// rest length is calculated from the initial configuration.
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first body to link
                     std::shared_ptr<ChBody> body2,  ///< second body to link
-                    bool pos_are_relative,          ///< if true, point locations are relative to bodies
-                    ChVector3d loc1,                ///< point on 1st body (rel. or abs., see flag above)
-                    ChVector3d loc2                 ///< point on 2nd body (rel. or abs., see flag above)
+                    bool local,                     ///< if true, point locations are relative to bodies
+                    const ChVector3d& loc1,         ///< point on 1st body (rel. or abs., see flag above)
+                    const ChVector3d& loc2          ///< point on 2nd body (rel. or abs., see flag above)
     );
 
     /// Method to allow serialization of transient data to archives.

@@ -531,7 +531,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         ChQuaternion<> quat = rot.GetQuaternion() * QuatFromAngleY(CH_C_PI_2);
         item.second.rsda = chrono_types::make_shared<ChLinkRSDA>();
         item.second.rsda->SetNameString(Name(item.first));
-        item.second.rsda->Initialize(body1, body2, ChCoordsys<>(pos, quat));
+        item.second.rsda->Initialize(body1, body2, ChFrame<>(pos, quat));
         item.second.rsda->SetRestAngle(item.second.rest_angle);
         item.second.rsda->RegisterTorqueFunctor(item.second.torque);
         chassis->GetSystem()->AddLink(item.second.rsda);

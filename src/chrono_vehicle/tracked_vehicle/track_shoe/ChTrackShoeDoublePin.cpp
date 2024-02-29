@@ -379,13 +379,13 @@ void ChTrackShoeDoublePin::Connect2(std::shared_ptr<ChTrackShoe> next,
 
         m_rsda_L = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda_L->SetNameString(m_name + "_rsda_pin_L");
-        m_rsda_L->Initialize(m_shoe, m_connector_L, true, ChCoordsys<>(pShoe_L, z2y), ChCoordsys<>(pConnector, z2y));
+        m_rsda_L->Initialize(m_shoe, m_connector_L, true, ChFrame<>(pShoe_L, z2y), ChFrame<>(pConnector, z2y));
         m_rsda_L->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_rsda_L);
 
         m_rsda_R = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda_R->SetNameString(m_name + "_rsda_pin_R");
-        m_rsda_R->Initialize(m_shoe, m_connector_R, true, ChCoordsys<>(pShoe_R, z2y), ChCoordsys<>(pConnector, z2y));
+        m_rsda_R->Initialize(m_shoe, m_connector_R, true, ChFrame<>(pShoe_R, z2y), ChFrame<>(pConnector, z2y));
         m_rsda_R->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_rsda_R);
     }
@@ -419,15 +419,15 @@ void ChTrackShoeDoublePin::Connect2(std::shared_ptr<ChTrackShoe> next,
 
         m_connection_rsda_L = chrono_types::make_shared<ChLinkRSDA>();
         m_connection_rsda_L->SetNameString(m_name + "_rsda_cpin_L");
-        m_connection_rsda_L->Initialize(m_connector_L, next->GetShoeBody(), true, ChCoordsys<>(pConnector, z2y),
-                                        ChCoordsys<>(pShoe_L, z2y));
+        m_connection_rsda_L->Initialize(m_connector_L, next->GetShoeBody(), true, ChFrame<>(pConnector, z2y),
+                                        ChFrame<>(pShoe_L, z2y));
         m_connection_rsda_L->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_connection_rsda_L);
 
         m_connection_rsda_R = chrono_types::make_shared<ChLinkRSDA>();
         m_connection_rsda_R->SetNameString(m_name + "_rsda_cpin_R");
-        m_connection_rsda_R->Initialize(m_connector_R, next->GetShoeBody(), true, ChCoordsys<>(pConnector, z2y),
-                                        ChCoordsys<>(pShoe_R, z2y));
+        m_connection_rsda_R->Initialize(m_connector_R, next->GetShoeBody(), true, ChFrame<>(pConnector, z2y),
+                                        ChFrame<>(pShoe_R, z2y));
         m_connection_rsda_R->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_connection_rsda_R);
     }
@@ -476,7 +476,7 @@ void ChTrackShoeDoublePin::Connect1(std::shared_ptr<ChTrackShoe> next,
 
         m_rsda_L = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda_L->SetNameString(m_name + "_rsda_pin");
-        m_rsda_L->Initialize(m_shoe, m_connector_L, true, ChCoordsys<>(pShoe, z2y), ChCoordsys<>(pConnector, z2y));
+        m_rsda_L->Initialize(m_shoe, m_connector_L, true, ChFrame<>(pShoe, z2y), ChFrame<>(pConnector, z2y));
         m_rsda_L->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_rsda_L);
     }
@@ -509,8 +509,8 @@ void ChTrackShoeDoublePin::Connect1(std::shared_ptr<ChTrackShoe> next,
 
         m_connection_rsda_L = chrono_types::make_shared<ChLinkRSDA>();
         m_connection_rsda_L->SetNameString(m_name + "_rsda_cpin_L");
-        m_connection_rsda_L->Initialize(m_connector_L, next->GetShoeBody(), true, ChCoordsys<>(pConnector, z2y),
-                                        ChCoordsys<>(pShoe, z2y));
+        m_connection_rsda_L->Initialize(m_connector_L, next->GetShoeBody(), true, ChFrame<>(pConnector, z2y),
+                                        ChFrame<>(pShoe, z2y));
         m_connection_rsda_L->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_connection_rsda_L);
     }
