@@ -124,10 +124,10 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 %extend chrono::ChVectorDynamic<double>{
 		public:
 			double __getitem__(int i) {
-				return (*$self)(i,1);
+				return (*$self)(i,0);
 				}
 			void __setitem__(int i, double v) {
-				(*$self)(i, 1) = v;
+				(*$self)(i, 0) = v;
 				}
 
 			const int Size() {
@@ -136,13 +136,13 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 				}
 			void GetVectorData(double* p, int len) {
 				for (int i = 0; i < len; i++){
-					p[i] =  (double)(*$self)(i, 1);
+					p[i] =  (double)(*$self)(i, 0);
 						}
 				}
 			void SetVect(int numel, double* q){
 				($self)->resize(numel);
 				for (int i = 0; i < numel; i++){
-					(*$self)(i, 1) = q[i];
+					(*$self)(i, 0) = q[i];
 						}
 				}
 		};
