@@ -119,7 +119,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     sys.AddLink(rev_joint);
 
     auto sph_joint = chrono_types::make_shared<ChLinkLockSpherical>();
-    sph_joint->Initialize(m_crane, ball, ChCoordsys<>(2.0 * crane_pos, QUNIT));
+    sph_joint->Initialize(m_crane, ball, ChFrame<>(2.0 * crane_pos, QUNIT));
     sys.AddLink(sph_joint);
 
     // Create an external force load on crane

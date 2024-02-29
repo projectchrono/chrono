@@ -62,7 +62,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     sys.Add(pendulum);
 
     auto cart_prism = chrono_types::make_shared<ChLinkLockPrismatic>();
-    cart_prism->Initialize(cart, ground, ChCoordsys<>(VNULL, Q_ROTATE_Z_TO_X));
+    cart_prism->Initialize(cart, ground, ChFrame<>(VNULL, Q_ROTATE_Z_TO_X));
     cart_prism->SetName("cart_prism");
     sys.Add(cart_prism);
 
@@ -87,8 +87,8 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 #endif
 
     // Specify functions to calculate FMU outputs (at end of step)
-    m_postStepCallbacks.push_back([this]() { x_tt = this->sys.SearchBodyID(10)->GetPos_dtdt().x(); });
-    m_postStepCallbacks.push_back([this]() { x_t = this->sys.SearchBodyID(10)->GetPos_dt().x(); });
+    m_postStepCallbacks.push_back([this]() { x_tt = this->sys.SearchBodyID(10)->GetLinAcc().x(); });
+    m_postStepCallbacks.push_back([this]() { x_t = this->sys.SearchBodyID(10)->GetLinVel().x(); });
     m_postStepCallbacks.push_back([this]() { x = this->sys.SearchBodyID(10)->GetPos().x(); });
 };
 
