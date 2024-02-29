@@ -135,7 +135,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Add a marker on the chassis body at the specified position (relative to the chassis reference frame).
     /// If called before initialization, this function has no effect.
     void AddMarker(const std::string& name,  ///< [in] marker name
-                   const ChCoordsys<>& pos   ///< [in] marker position relative to chassis reference frame
+                   const ChFrame<>& frame    ///< [in] marker position relative to chassis reference frame
     );
 
     const std::vector<std::shared_ptr<ChMarker>>& GetMarkers() const { return m_markers; }

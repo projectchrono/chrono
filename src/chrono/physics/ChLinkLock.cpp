@@ -762,7 +762,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
 
     // From react vector to the 'intuitive' react_force and react_torque
     // const ChQuaternion<>& q2 = Body2->GetRot();
-    // const ChQuaternion<>& q1p = marker1->GetAbsCoord().rot;
+    // const ChQuaternion<>& q1p = marker1->GetAbsCsys().rot;
     // const ChQuaternion<>& qs = marker2->GetCsys().rot;
     // const ChMatrix33<>& Cs = marker2->GetRotMat();
 

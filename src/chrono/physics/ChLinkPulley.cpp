@@ -188,20 +188,14 @@ void ChLinkPulley::UpdateTime(double mytime) {
     ChMatrix33<> maU(Dxu, Dyu, Dzu);
 
     // ! Require that the BDF routine of marker won't handle speed and acc.calculus of the moved marker 2!
-    marker2->SetMotionType(ChMarker::M_MOTION_EXTERNAL);
-    marker1->SetMotionType(ChMarker::M_MOTION_EXTERNAL);
-
-    ChCoordsys<> newmarkpos;
+    marker2->SetMotionType(ChMarker::MotionType::EXTERNAL);
+    marker1->SetMotionType(ChMarker::MotionType::EXTERNAL);
 
     // move marker1 in proper position
-    newmarkpos.pos = this->belt_up1;
-    newmarkpos.rot = maU.GetQuaternion();
-    marker1->ImposeAbsoluteTransform(newmarkpos);  // move marker1 into teeth position
+    marker1->ImposeAbsoluteTransform(ChFrame<>(this->belt_up1, maU.GetQuaternion()));
 
     // move marker2 in proper position
-    newmarkpos.pos = this->belt_up2;
-    newmarkpos.rot = maU.GetQuaternion();
-    marker2->ImposeAbsoluteTransform(newmarkpos);  // move marker2 into teeth position
+    marker2->ImposeAbsoluteTransform(ChFrame<>(this->belt_up2, maU.GetQuaternion()));
 
     double phase_correction_up = m_delta * r1;
     double hU = Vlength(belt_up2 - belt_up1) + phase_correction_up;

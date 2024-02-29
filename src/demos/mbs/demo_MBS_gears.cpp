@@ -212,9 +212,9 @@ int main(int argc, char* argv[]) {
                           (link_gearAD->Get_local_shaft2() >> *link_gearAD->GetBody2()).GetCsys(), ChColor(1, 0, 0),
                           30, true);
 
-        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAB->GetMarker2()->GetAbsCoord().pos, QUNIT));
-        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAD->GetMarker2()->GetAbsCoord().pos, QUNIT));
-        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearBC->GetMarker2()->GetAbsCoord().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAB->GetMarker2()->GetAbsCsys().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAD->GetMarker2()->GetAbsCsys().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearBC->GetMarker2()->GetAbsCsys().pos, QUNIT));
 
         // ..draw also some segments for a simplified representation of pulley
         tools::drawSegment(vis.get(), link_pulleyDE->Get_belt_up1(), link_pulleyDE->Get_belt_up2(), ChColor(0, 1, 0),

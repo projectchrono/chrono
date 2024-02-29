@@ -107,7 +107,6 @@ void ChLinkGear::UpdateTime(double mytime) {
     ChVector3d mmark2;
     ChVector3d lastX;
     ChVector3d vrota;
-    ChCoordsysd newmarkpos;
 
     ChFrame<double> abs_shaft1;
     ChFrame<double> abs_shaft2;
@@ -248,17 +247,13 @@ void ChLinkGear::UpdateTime(double mytime) {
         local_shaft1.SetPos(local_shaft1.GetPos() + Body1->TransformDirectionParentToLocal(moff));
 
     // ! Require that the BDF routine of marker won't handle speed and acc.calculus of the moved marker 2!
-    marker2->SetMotionType(ChMarker::M_MOTION_EXTERNAL);
-    marker1->SetMotionType(ChMarker::M_MOTION_EXTERNAL);
+    marker2->SetMotionType(ChMarker::MotionType::EXTERNAL);
+    marker1->SetMotionType(ChMarker::MotionType::EXTERNAL);
 
     // move marker1 in proper positions
-    newmarkpos.pos = mmark1;
-    newmarkpos.rot = ma1.GetQuaternion();
-    marker1->ImposeAbsoluteTransform(newmarkpos);  // move marker1 into teeth position
+    marker1->ImposeAbsoluteTransform(ChFrame<>(mmark1, ma1.GetQuaternion()));
     // move marker2 in proper positions
-    newmarkpos.pos = mmark2;
-    newmarkpos.rot = ma2.GetQuaternion();
-    marker2->ImposeAbsoluteTransform(newmarkpos);  // move marker2 into teeth position
+    marker2->ImposeAbsoluteTransform(ChFrame<>(mmark2, ma2.GetQuaternion()));
 }
 
 void ChLinkGear::ArchiveOut(ChArchiveOut& archive_out) {

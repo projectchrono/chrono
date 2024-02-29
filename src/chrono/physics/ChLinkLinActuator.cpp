@@ -39,11 +39,11 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
     // Move (well, rotate...) marker 2 to align it in actuator direction
 
     // ! Require that the BDF routine of marker won't handle speed and acc.calculus of the moved marker 2!
-    marker2->SetMotionType(ChMarker::M_MOTION_EXTERNAL);
+    marker2->SetMotionType(ChMarker::MotionType::EXTERNAL);
 
-    ChMatrix33<> ma(marker2->GetAbsCoord().rot);
+    ChMatrix33<> ma(marker2->GetAbsCsys().rot);
 
-    ChVector3d absdist = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
+    ChVector3d absdist = marker1->GetAbsCsys().pos - marker2->GetAbsCsys().pos;
 
     ChVector3d mx = Vnorm(absdist);
 
@@ -59,12 +59,12 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
 
     ma.SetFromDirectionAxes(mx, my, mz);
 
-    ChCoordsysd newmarkpos;
-    ChVector3d oldpos = marker2->GetPos();  // backup to avoid numerical err.accumulation
-    newmarkpos.pos = marker2->GetAbsCoord().pos;
-    newmarkpos.rot = ma.GetQuaternion();
-    marker2->ImposeAbsoluteTransform(newmarkpos);  // rotate "main" marker2 into tangent position
-    marker2->SetPos(oldpos);                       // backup to avoid numerical err.accumulation
+    // backup to avoid numerical err.accumulation
+    ChVector3d oldpos = marker2->GetPos();
+    // rotate "main" marker2 into tangent position
+    marker2->ImposeAbsoluteTransform(ChFrame<>(marker2->GetAbsCsys().pos, ma.GetQuaternion()));
+    // backup to avoid numerical err.accumulation
+    marker2->SetPos(oldpos);                     
 
     // imposed relative positions/speeds
     deltaC.pos = VNULL;

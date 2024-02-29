@@ -52,7 +52,7 @@ void ChLinkPointSpline::UpdateTime(double time) {
         double mu, ds, dh, mrad;
 
         // find nearest point
-        vpoint = marker1->GetAbsCoord().pos;
+        vpoint = marker1->GetAbsCsys().pos;
         vpoint = Body2->TransformPointParentToLocal(vpoint);
         trajectory_line->FindNearestLinePoint(vpoint, mu, 0, tolerance);
 
@@ -90,19 +90,14 @@ void ChLinkPointSpline::UpdateTime(double time) {
         ptang = Body2->TransformPointLocalToParent(ptang);
         qabsdir = Body2->GetRot() * qabsdir;
 
-        ChCoordsysd newmarkpos;
-        newmarkpos.pos = ptang;
-        newmarkpos.rot = qabsdir;
-        marker2->ImposeAbsoluteTransform(newmarkpos);  // move "main" marker2 into tangent position
-        marker2->SetMotionType(
-            ChMarker::M_MOTION_EXTERNAL);  // the BDF routine won't handle speed and acc.calculus of the moved marker!
+        marker2->ImposeAbsoluteTransform(ChFrame<>(ptang, qabsdir));  // move "main" marker2 into tangent position
+        marker2->SetMotionType(ChMarker::MotionType::EXTERNAL);
 
         ds = Vlength(Vsub(ptang, ptang2));
         dh = Vdot(Vsub(ptang2, ptang), vrad);
         mrad = ((ds * ds) / (2 * dh));  // radius of curvature on spline
 
-        ChMatrix33<> mw;
-        mw.SetFromQuaternion(marker2->GetAbsCoord().rot);
+        //ChMatrix33<> mw(marker2->GetAbsCsys().rot);
 
         deltaC.pos = VNULL;
         deltaC_dt.pos = VNULL;

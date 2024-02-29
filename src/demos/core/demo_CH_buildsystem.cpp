@@ -142,8 +142,8 @@ int main(int argc, char* argv[]) {
 
         // Set absolute position of the two markers,
         // for the initial position of the 'rod-crank' link:
-        my_marker_b->ImposeAbsoluteTransform(ChCoordsys<>(ChVector3d(2, 0, 0)));
-        my_marker_c->ImposeAbsoluteTransform(ChCoordsys<>(ChVector3d(2, 0, 0)));
+        my_marker_b->ImposeAbsoluteTransform(ChFrame<>(ChVector3d(2, 0, 0)));
+        my_marker_c->ImposeAbsoluteTransform(ChFrame<>(ChVector3d(2, 0, 0)));
 
         // Now create a mechanical link (a revolute joint)
         // between these two markers, and insert in system:
@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
 
             // Print something on the console..
             std::cout << "Time: " << chronoTime
-                      << "  Slider X position: " << my_link_CA->GetMarker1()->GetAbsCoord().pos.x()
+                      << "  Slider X position: " << my_link_CA->GetMarker1()->GetAbsCsys().pos.x()
                       << "  Engine torque: " << my_motor_AB->GetMotorTorque() << std::endl;
         }
     }

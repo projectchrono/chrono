@@ -101,11 +101,11 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
     SetUpMarkers(mm1, mm2);
 
     if (rel_frames) {
-        mmark1->ImposeRelativeTransform(frame1.GetCsys());
-        mmark2->ImposeRelativeTransform(frame2.GetCsys());
+        mmark1->ImposeRelativeTransform(frame1);
+        mmark2->ImposeRelativeTransform(frame2);
     } else {
-        mmark1->ImposeAbsoluteTransform(frame1.GetCsys());
-        mmark2->ImposeAbsoluteTransform(frame2.GetCsys());
+        mmark1->ImposeAbsoluteTransform(frame1);
+        mmark2->ImposeAbsoluteTransform(frame2);
     }
 }
 
@@ -113,9 +113,9 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
 // and relM_dtdt, as well as auxiliary data. Cache some intermediate quantities
 // for possible reuse in UpdateState by some derived classes.
 void ChLinkMarkers::UpdateRelMarkerCoords() {
-    PQw = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
-    PQw_dt = Vsub(marker1->GetAbsCoord_dt().pos, marker2->GetAbsCoord_dt().pos);
-    PQw_dtdt = Vsub(marker1->GetAbsCoord_dtdt().pos, marker2->GetAbsCoord_dtdt().pos);
+    PQw = marker1->GetAbsCsys().pos - marker2->GetAbsCsys().pos;
+    PQw_dt = marker1->GetAbsCsysDer().pos - marker2->GetAbsCsysDer().pos;
+    PQw_dtdt = marker1->GetAbsCsysDer2().pos - marker2->GetAbsCsysDer2().pos;
 
     dist = Vlength(PQw);                 // distance between origins, modulus
     dist_dt = Vdot(Vnorm(PQw), PQw_dt);  // speed between origins, modulus.
@@ -319,7 +319,7 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>&
 
         if (Body2->Variables().IsActive()) {
             Body2->To_abs_forcetorque(m_abs_force,
-                                      marker1->GetAbsCoord().pos,  // absolute application point is always marker1
+                                      marker1->GetAbsCsys().pos,   // absolute application point is always marker1
                                       false,                       // from abs. space
                                       mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
             R.segment(Body2->Variables().GetOffset() + 0, 3) -= c * mbody_force.eigen();
@@ -329,7 +329,7 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>&
 
         if (Body1->Variables().IsActive()) {
             Body1->To_abs_forcetorque(m_abs_force,
-                                      marker1->GetAbsCoord().pos,  // absolute application point is always marker1
+                                      marker1->GetAbsCsys().pos,   // absolute application point is always marker1
                                       false,                       // from abs. space
                                       mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
             R.segment(Body1->Variables().GetOffset() + 0, 3) += c * mbody_force.eigen();
@@ -363,7 +363,7 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
         ChVector3d m_abs_force = Body2->GetRotMat() * (marker2->GetRotMat() * C_force);
 
         Body2->To_abs_forcetorque(m_abs_force,
-                                  marker1->GetAbsCoord().pos,  // absolute application point is always marker1
+                                  marker1->GetAbsCsys().pos,   // absolute application point is always marker1
                                   false,                       // from abs. space
                                   mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
         Body2->Variables().Get_fb().segment(0, 3) -= factor * mbody_force.eigen();
@@ -371,7 +371,7 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
             factor * Body2->TransformDirectionParentToLocal(mbody_torque).eigen();
 
         Body1->To_abs_forcetorque(m_abs_force,
-                                  marker1->GetAbsCoord().pos,  // absolute application point is always marker1
+                                  marker1->GetAbsCsys().pos,   // absolute application point is always marker1
                                   false,                       // from abs. space
                                   mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
         Body1->Variables().Get_fb().segment(0, 3) += factor * mbody_force.eigen();

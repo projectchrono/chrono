@@ -133,26 +133,27 @@ void ChChassis::Initialize(ChSystem* system,
     system->Add(m_container_terrain);
 
     // Add pre-defined markers (driver position and COM) on the chassis body.
-    AddMarker("driver position", GetLocalDriverCoordsys());
-    AddMarker("COM", ChCoordsys<>(GetCOMFrame().GetPos(), GetCOMFrame().GetRot()));
+    AddMarker("driver position", ChFrame<>(GetLocalDriverCoordsys()));
+    AddMarker("COM", GetCOMFrame());
 
     // Mark as initialized
     m_initialized = true;
 }
 
-void ChChassis::AddMarker(const std::string& name, const ChCoordsys<>& pos) {
+void ChChassis::AddMarker(const std::string& name, const ChFrame<>& frame) {
     // Do nothing if the chassis is not yet initialized
     if (!m_body)
         return;
 
     // Note: marker local positions are assumed to be relative to the centroidal frame
     //       of the associated body.
-    auto pos_com = m_body->GetFrame_REF_to_COG().GetCsys().TransformLocalToParent(pos);
+    ChFrame<> frame_com;
+    m_body->GetFrame_REF_to_COG().TransformLocalToParent(frame, frame_com);
 
     // Create the marker, attach it to the chassis body, add it to the list
     auto marker = chrono_types::make_shared<ChMarker>();
     marker->SetNameString(m_name + " " + name);
-    marker->ImposeRelativeTransform(pos_com);
+    marker->ImposeRelativeTransform(frame_com);
     m_body->AddMarker(marker);
     m_markers.push_back(marker);
 }
@@ -289,7 +290,7 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
     system->Add(m_container_terrain);
 
     // Add pre-defined marker (COM) on the chassis body.
-    AddMarker("COM", ChCoordsys<>(GetBodyCOMFrame().GetPos(), GetBodyCOMFrame().GetRot()));
+    AddMarker("COM", GetBodyCOMFrame());
 
     // Mark as initialized
     m_initialized = true;

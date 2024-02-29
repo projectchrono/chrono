@@ -402,7 +402,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
         parentBody->AddMarker(ch_marker);
         // std::cout << "marker " << marker_pair.first << " is at " << loc.x() << "," << loc.y() << "," << loc.z()
         // <<std::endl;
-        // auto absloc = ch_marker->GetAbsCoord().pos;
+        // auto absloc = ch_marker->GetAbsCsys().pos;
         // std::cout << "marker " << marker_pair.first << " is at abs " << absloc.x() << "," << absloc.y() << "," <<
         // absloc.z()
         // <<std::endl;

@@ -229,9 +229,9 @@ def main():
             # hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS)
 
             marker_driver = hmmwv.GetChassis().GetMarkers()[
-                0].GetAbsCoord().pos
+                0].GetAbsCsys().pos
             marker_com = hmmwv.GetChassis().GetMarkers()[
-                1].GetAbsCoord().pos
+                1].GetAbsCsys().pos
             print("Markers\n")
             print("  Driver loc:      ", marker_driver.x,
                   " ", marker_driver.y, " ", marker_driver.z)

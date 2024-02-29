@@ -318,8 +318,8 @@ int main(int argc, char* argv[]) {
     rot_on_x.SetFromAngleX(CH_C_PI_2);
     ChFrame<> frame_marker_move = ChFrame<>(VNULL, rot_on_x) >> frame_marker_wrist_hand;
 
-    my_marker_hand->ImposeAbsoluteTransform(frame_marker_wrist_hand.GetCsys());
-    my_marker_move->ImposeAbsoluteTransform(frame_marker_move.GetCsys());
+    my_marker_hand->ImposeAbsoluteTransform(frame_marker_wrist_hand);
+    my_marker_move->ImposeAbsoluteTransform(frame_marker_move);
 
     std::shared_ptr<ChLinkLockLock> my_link_teacher(new ChLinkLockLock);
     my_link_teacher->Initialize(my_marker_hand, my_marker_move);
@@ -362,8 +362,8 @@ int main(int argc, char* argv[]) {
     auto motlaw_y = chrono_types::make_shared<ChFunctionRepeat>(motlaw_y_seq);
     motlaw_y->SetSliceWidth(4);
 
-    my_marker_move->SetMotion_Z(motlaw_z);
-    my_marker_move->SetMotion_Y(motlaw_y);
+    my_marker_move->SetMotionAxisZ(motlaw_z);
+    my_marker_move->SetMotionAxisY(motlaw_y);
 
     // Create a large cube as a floor.
 

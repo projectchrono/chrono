@@ -32,10 +32,10 @@ ChLinkClearance::ChLinkClearance() {
     contact_F_abs = VNULL;
     contact_V_abs = VNULL;
 
-    this->limit_X->SetActive(true);
-    this->limit_X->SetMax(clearance);
-    this->limit_X->SetMaxElastic(c_restitution);
-    this->limit_X->SetMin(-1000.0);
+    limit_X->SetActive(true);
+    limit_X->SetMax(clearance);
+    limit_X->SetMaxElastic(c_restitution);
+    limit_X->SetMin(-1000.0);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     mask.SetLockMask(false, false, false, false, true, true, false);
@@ -54,72 +54,74 @@ ChLinkClearance::ChLinkClearance(const ChLinkClearance& other) : ChLinkLockLock(
     contact_V_abs = other.contact_V_abs;
 }
 
-// easy data getting
-
 double ChLinkClearance::Get_axis_eccentricity() {
-    return (this->GetDist());
+    return GetDist();
 }
+
 double ChLinkClearance::Get_axis_phase() {
-    if (!this->GetMarker2())
+    if (!GetMarker2())
         return 0;
-    double mangle;
-    ChVector3d maxis;
-    GetMarker2()->GetCsys().rot.GetAngleAxis(mangle, maxis);
-    if (maxis.z() < 0.0) {
-        maxis = Vmul(maxis, -1.0);
-        mangle = (2.0 * CH_C_PI) - mangle;
+    double angle;
+    ChVector3d axis;
+    GetMarker2()->GetCsys().rot.GetAngleAxis(angle, axis);
+    if (axis.z() < 0.0) {
+        axis = Vmul(axis, -1.0);
+        angle = CH_C_2PI - angle;
     }
-    return (mangle);
+    return angle;
 }
+
 double ChLinkClearance::Get_rotation_angle() {
-    return (this->GetRelAngle());
+    return GetRelAngle();
 }
+
 ChVector3d ChLinkClearance::Get_contact_P_abs() {
-    if (!this->GetMarker2())
+    if (!GetMarker2())
         return VNULL;
-    return Vadd(this->GetMarker2()->GetAbsCoord().pos,
-                Vmul(this->Get_contact_N_abs(), -(this->clearance + this->diameter / 2)));
+    return GetMarker2()->GetAbsCsys().pos - (clearance + diameter / 2) * Get_contact_N_abs();
 }
+
 ChVector3d ChLinkClearance::Get_contact_N_abs() {
-    if (!this->GetMarker2())
+    if (!GetMarker2())
         return VECT_X;
-    ChVector3d mNrel = VECT_X;
-    mNrel = Vmul(mNrel, -1);
-    return (this->GetMarker2()->Dir_Ref2World(mNrel));
+    return GetMarker2()->GetAbsFrame().TransformDirectionLocalToParent(-VECT_X);
 }
+
 ChVector3d ChLinkClearance::Get_contact_F_abs() {
-    return (this->contact_F_abs);
+    return contact_F_abs;
 }
+
 double ChLinkClearance::Get_contact_F_n() {
-    if (!this->GetMarker2())
+    if (!GetMarker2())
         return 0;
-    return (this->GetMarker2()->Dir_World2Ref(contact_F_abs).x());
+    return GetMarker2()->GetAbsFrame().TransformDirectionParentToLocal(contact_F_abs).x();
 }
+
 double ChLinkClearance::Get_contact_F_t() {
-    if (!this->GetMarker2())
+    if (!GetMarker2())
         return 0;
-    return (this->GetMarker2()->Dir_World2Ref(contact_F_abs).y());
+    return GetMarker2()->GetAbsFrame().TransformDirectionParentToLocal(contact_F_abs).y();
 }
+
 double ChLinkClearance::Get_contact_V_t() {
-    if (!this->GetMarker2())
+    if (!GetMarker2())
         return 0;
-    return (this->GetMarker2()->Dir_World2Ref(contact_V_abs).y());
+    return GetMarker2()->GetAbsFrame().TransformDirectionParentToLocal(contact_V_abs).y();
 }
 
 void ChLinkClearance::UpdateForces(double mytime) {
-    // May avoid inheriting parent class force computation, since not
-    // needed...
-    // LinkLock::UpdateForces(mytime);
+    // May avoid inheriting parent class force computation, since not needed
+    ////LinkLock::UpdateForces(mytime);
 
     ChVector3d m_friction_F_abs = VNULL;
-    double m_norm_force = -this->react_force.x();
+    double m_norm_force = -react_force.x();
 
-    // Just add Coulomb kinematic friction...
+    // Add Coulomb kinematic friction
 
     if (mask.Constr_X().IsActive()) {
         ChVector3d temp = Get_contact_P_abs();
-        ChVector3d pb1 = ((ChFrame<double>*)Body1)->TransformPointParentToLocal(temp);
-        ChVector3d pb2 = ((ChFrame<double>*)Body2)->TransformPointParentToLocal(temp);
+        ChVector3d pb1 = Body1->TransformPointParentToLocal(temp);
+        ChVector3d pb2 = Body2->TransformPointParentToLocal(temp);
         ChVector3d m_V1_abs = Body1->PointSpeedLocalToParent(pb1);
         ChVector3d m_V2_abs = Body2->PointSpeedLocalToParent(pb2);
         contact_V_abs = Vsub(m_V1_abs, m_V2_abs);
@@ -130,11 +132,11 @@ void ChLinkClearance::UpdateForces(double mytime) {
         m_friction_F_abs = Vmul(Vnorm(m_tang_V_abs), Get_c_friction() * (-m_norm_force));
 
         // transform the friction force in link master coords ***TO CHECK*** (new version!)
-        this->C_force += this->marker2->Dir_World2Ref(m_friction_F_abs);
+        C_force = marker2->GetAbsFrame().TransformDirectionParentToLocal(m_friction_F_abs);
     }
 
     // update internal data: the abs. vector of all contact forces, is a sum of reaction and friction
-    this->contact_F_abs = Vadd(Vmul(Get_contact_N_abs(), m_norm_force), m_friction_F_abs);
+    contact_F_abs = Vadd(Vmul(Get_contact_N_abs(), m_norm_force), m_friction_F_abs);
 }
 
 void ChLinkClearance::UpdateTime(double mytime) {
@@ -144,12 +146,12 @@ void ChLinkClearance::UpdateTime(double mytime) {
     // Move (well, rotate...) marker 2 to align it in actuator direction
 
     // ! Require that the BDF routine of marker won't handle speed and acc.calculus of the moved marker 2!
-    marker2->SetMotionType(ChMarker::M_MOTION_EXTERNAL);
+    marker2->SetMotionType(ChMarker::MotionType::EXTERNAL);
 
     ChMatrix33<> ma;
-    ma.SetFromQuaternion(marker2->GetAbsCoord().rot);
+    ma.SetFromQuaternion(marker2->GetAbsCsys().rot);
 
-    ChVector3d absdist = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
+    ChVector3d absdist = Vsub(marker1->GetAbsCsys().pos, marker2->GetAbsCsys().pos);
 
     ChVector3d mz = ma.GetAxisZ();
     ChVector3d my = Vnorm(Vcross(ma.GetAxisZ(), absdist));
@@ -157,14 +159,12 @@ void ChLinkClearance::UpdateTime(double mytime) {
 
     ma.SetFromDirectionAxes(mx, my, mz);
 
-    ChCoordsysd newmarkpos;
-    newmarkpos.pos = marker2->GetAbsCoord().pos;
-    newmarkpos.rot = ma.GetQuaternion();
-    marker2->ImposeAbsoluteTransform(newmarkpos);  // rotate "main" marker2 into tangent position
+    // rotate "main" marker2 into tangent position
+    marker2->ImposeAbsoluteTransform(ChFrame<>(marker2->GetAbsCsys().pos, ma.GetQuaternion()));  
 
     // imposed relative positions/speeds
     deltaC.pos = VNULL;
-    deltaC.pos.x() = this->clearance;  // distance is always on M2 'X' axis
+    deltaC.pos.x() = clearance;  // distance is always on M2 'X' axis
 
     deltaC_dt.pos = VNULL;
     deltaC_dt.pos.x() = 0;  // distance speed

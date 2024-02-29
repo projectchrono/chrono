@@ -75,9 +75,9 @@ void ChVehicleOutputASCII::WriteAuxRefBodies(const std::vector<std::shared_ptr<C
 void ChVehicleOutputASCII::WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) {
     for (auto marker : markers) {
         m_stream << "    marker: " << marker->GetIdentifier() << " \"" << marker->GetNameString() << "\" ";
-        m_stream << marker->GetAbsCoord().pos << " ";
-        m_stream << marker->GetAbsCoord_dt().pos << " ";
-        m_stream << marker->GetAbsCoord_dtdt().pos << " ";
+        m_stream << marker->GetAbsCsys().pos << " ";
+        m_stream << marker->GetAbsCsysDer().pos << " ";
+        m_stream << marker->GetAbsCsysDer2().pos << " ";
         m_stream << std::endl;
         //// TODO
     }

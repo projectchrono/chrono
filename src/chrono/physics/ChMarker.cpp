@@ -26,7 +26,7 @@ CH_UPCASTING_SANITIZED(ChMarker, ChFrameMoving<double>, ChMarker_ChFrameMoving_d
 ChMarker::ChMarker()
     : Body(NULL),
       rest_coord(CSYSNORM),
-      motion_type(M_MOTION_FUNCTIONS),
+      motion_type(MotionType::FUNCTIONS),
       motion_axis(VECT_Z),
       last_rel_coord(CSYSNORM),
       last_rel_coord_dt(CSYSNULL),
@@ -55,7 +55,7 @@ ChMarker::ChMarker(const std::string& name,
 
     rest_coord = CSYSNORM;
 
-    motion_type = M_MOTION_FUNCTIONS;
+    motion_type = MotionType::FUNCTIONS;
 
     SetCsys(rel_pos);
     SetCsysDer(rel_pos_dt);
@@ -93,31 +93,31 @@ ChMarker::~ChMarker() {}
 
 // Setup the functions when user changes them.
 
-void ChMarker::SetMotion_X(std::shared_ptr<ChFunction> m_funct) {
-    motion_X = m_funct;
+void ChMarker::SetMotionAxisX(std::shared_ptr<ChFunction> funct) {
+    motion_X = funct;
 }
 
-void ChMarker::SetMotion_Y(std::shared_ptr<ChFunction> m_funct) {
-    motion_Y = m_funct;
+void ChMarker::SetMotionAxisY(std::shared_ptr<ChFunction> funct) {
+    motion_Y = funct;
 }
 
-void ChMarker::SetMotion_Z(std::shared_ptr<ChFunction> m_funct) {
-    motion_Z = m_funct;
+void ChMarker::SetMotionAxisZ(std::shared_ptr<ChFunction> funct) {
+    motion_Z = funct;
 }
 
-void ChMarker::SetMotion_ang(std::shared_ptr<ChFunction> m_funct) {
-    motion_ang = m_funct;
+void ChMarker::SetMotionAngle(std::shared_ptr<ChFunction> funct) {
+    motion_ang = funct;
 }
 
-void ChMarker::SetMotion_axis(ChVector3d m_axis) {
-    motion_axis = m_axis;
+void ChMarker::SetMotionAxis(ChVector3d axis) {
+    motion_axis = axis;
 }
 
 // Coordinate setting, for user access
 
-void ChMarker::ImposeRelativeTransform(const ChCoordsysd& csys) {
+void ChMarker::ImposeRelativeTransform(const ChFrame<>& frame) {
     // set the actual coordinates
-    SetCsys(csys);
+    SetCsys(frame.GetPos(), frame.GetRot());
 
     // set the resting position coordinates
     rest_coord.pos.x() = Csys.pos.x() - motion_X->GetVal(ChTime);
@@ -129,32 +129,13 @@ void ChMarker::ImposeRelativeTransform(const ChCoordsysd& csys) {
     UpdateState();
 }
 
-void ChMarker::ImposeAbsoluteTransform(const ChCoordsysd& csys) {
+void ChMarker::ImposeAbsoluteTransform(const ChFrame<>& frame) {
     // transform representation from the parent reference frame to the local reference frame
-    ChCoordsysd rel_csys;
-    rel_csys.pos = GetBody()->TransformPointParentToLocal(csys.pos);
-    rel_csys.rot = Qcross(Qconjugate(GetBody()->GetRot()), csys.rot);
+    auto pos = GetBody()->TransformPointParentToLocal(frame.GetPos());
+    auto rot = Qcross(Qconjugate(GetBody()->GetRot()), frame.GetRot());
 
     // impose relative transform and set resting coordinate
-    ImposeRelativeTransform(rel_csys);
-}
-
-// Utilities for coordinate transformations
-
-ChVector3d ChMarker::Point_World2Ref(const ChVector3d& point) const {
-    return abs_frame / point;
-}
-
-ChVector3d ChMarker::Point_Ref2World(const ChVector3d& point) const {
-    return *(ChFrame<double>*)&abs_frame * point;
-}
-
-ChVector3d ChMarker::Dir_World2Ref(const ChVector3d& dir) const {
-    return abs_frame.GetRotMat().transpose() * dir;
-}
-
-ChVector3d ChMarker::Dir_Ref2World(const ChVector3d& dir) const {
-    return abs_frame.GetRotMat().transpose() * dir;
+    ImposeRelativeTransform(ChFrame<>(pos, rot));
 }
 
 // This handles the time-varying functions for the relative coordinates
@@ -168,12 +149,12 @@ void ChMarker::UpdateTime(double mytime) {
     // if a imposed motion (keyframed movement) affects the marker position (example,from R3D animation system),
     // compute the speed and acceleration values by BDF (example,see the UpdatedExternalTime() function, later)
     // so the updating via motion laws can be skipped!
-    if (motion_type == M_MOTION_KEYFRAMED)
+    if (motion_type == MotionType::KEYFRAMED)
         return;
 
     // skip relative-position-functions evaluation also if
     // someone is already handling this from outside..
-    if (motion_type == M_MOTION_EXTERNAL)
+    if (motion_type == MotionType::EXTERNAL)
         return;
 
     // positions:
@@ -248,11 +229,11 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
     // we are already in the M_MOTION_EXTERNAL mode, maybe because
     // a link point-surface is already moving the marker and
     // it will handle the accelerations by itself
-    if (this->motion_type == M_MOTION_EXTERNAL)
+    if (this->motion_type == MotionType::EXTERNAL)
         return;
 
     // otherwise see if a BDF is needed, cause an external 3rd party is moving the marker
-    this->motion_type = M_MOTION_FUNCTIONS;
+    this->motion_type = MotionType::FUNCTIONS;
 
     // if POSITION or ROTATION ("rel_pos") has been changed in acceptable time step...
     if ((!(Vequal(Csys.pos, last_rel_coord.pos)) || !(Qequal(Csys.rot, last_rel_coord.rot))) && (fabs(mstep) < 0.1) &&
@@ -280,17 +261,26 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
 
             // remember that the movement of this guy won't need further update
             // of speed and acc. via motion laws!
-            this->motion_type = M_MOTION_KEYFRAMED;
+            this->motion_type = MotionType::KEYFRAMED;
         }
     }
 
-    // restore state buffers and that's all.
+    // restore state buffers
     last_time = ChTime;
     last_rel_coord = Csys;
     last_rel_coord_dt = Csys_dt;
 }
 
-//  FILE I/O
+// -----------------------------------------------------------------------------
+
+class ChMarker_MotionType_enum_mapper : public ChMarker {
+  public:
+    CH_ENUM_MAPPER_BEGIN(MotionType);
+    CH_ENUM_VAL(MotionType::FUNCTIONS);
+    CH_ENUM_VAL(MotionType::KEYFRAMED);
+    CH_ENUM_VAL(MotionType::EXTERNAL);
+    CH_ENUM_MAPPER_END(MotionType);
+};
 
 void ChMarker::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
@@ -302,8 +292,8 @@ void ChMarker::ArchiveOut(ChArchiveOut& archive_out) {
     ChFrameMoving<double>::ArchiveOut(archive_out);
 
     // serialize all member data:
-    eChMarkerMotion_mapper mmapper;
-    archive_out << CHNVP(mmapper(motion_type), "motion_type");
+    ChMarker_MotionType_enum_mapper::MotionType_mapper typemapper;
+    archive_out << CHNVP(typemapper(motion_type), "motion_type");
     archive_out << CHNVP(motion_X);
     archive_out << CHNVP(motion_Y);
     archive_out << CHNVP(motion_Z);
@@ -323,8 +313,8 @@ void ChMarker::ArchiveIn(ChArchiveIn& archive_in) {
     ChFrameMoving<double>::ArchiveIn(archive_in);
 
     // stream in all member data:
-    eChMarkerMotion_mapper mmapper;
-    archive_in >> CHNVP(mmapper(motion_type), "motion_type");
+    ChMarker_MotionType_enum_mapper::MotionType_mapper typemapper;
+    archive_in >> CHNVP(typemapper(motion_type), "motion_type");
     archive_in >> CHNVP(motion_X);
     archive_in >> CHNVP(motion_Y);
     archive_in >> CHNVP(motion_Z);
@@ -332,8 +322,8 @@ void ChMarker::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(motion_axis);
     archive_in >> CHNVP(Body);
 
-    UpdateState();                                 // update abs_frame first
-    ImposeAbsoluteTransform(this->GetAbsCoord());  // use abs_frame to update rest_coord and coord
+    UpdateState();                       // update abs_frame first
+    ImposeAbsoluteTransform(abs_frame);  // use abs_frame to update rest_coord and coord
 }
 
 }  // end namespace chrono

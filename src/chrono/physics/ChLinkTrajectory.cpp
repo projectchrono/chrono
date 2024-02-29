@@ -69,17 +69,15 @@ void ChLinkTrajectory::UpdateTime(double time) {
         auto resultA = trajectory_line->Evaluate(tr_timeA);
         auto resultB = trajectory_line->Evaluate(tr_timeB);
 
-        ChMatrix33<> mw;
-        mw.SetFromQuaternion(marker2->GetAbsCoord().rot);
-
         // if line coordinate is relative to body2:
-        marker2->ImposeRelativeTransform(CSYSNORM);
+        marker2->ImposeRelativeTransform(ChFrame<>());
         deltaC.pos = result;
         deltaC_dt.pos = (resultB - resultA) * (1 / (2 * tstep));
         deltaC_dtdt.pos = (resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2));
         /*
         // if line coordinate is relative to absolute space:
-        deltaC.pos = mw.transpose() * (result - marker2->GetAbsCoord().pos);  //// CORRECT?
+        ChMatrix33<> mw(marker2->GetAbsCsys().rot);
+        deltaC.pos = mw.transpose() * (result - marker2->GetAbsCsys().pos);  //// CORRECT?
         deltaC_dt.pos = mw.transpose() * ((resultB - resultA) * (1 / (2 * tstep)));
         deltaC_dtdt.pos = mw.transpose() * ((resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2)));
         */
