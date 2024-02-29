@@ -55,7 +55,7 @@ def main():
     hmmwv.SetContactMethod(chrono.ChContactMethod_SMC)
     hmmwv.SetInitPosition(chrono.ChCoordsysD(chrono.ChVectorD(-5, -2, 0.6), chrono.ChQuaternionD(1, 0, 0, 0)))
     hmmwv.SetEngineType(veh.EngineModelType_SHAFTS);
-    hmmwv.SetTransmissionType(veh.TransmissionModelType_SHAFTS);
+    hmmwv.SetTransmissionType(veh.TransmissionModelType_AUTOMATIC_SHAFTS);
     hmmwv.SetDriveType(veh.DrivelineTypeWV_AWD)
     hmmwv.SetTireType(veh.TireModelType_RIGID)
     hmmwv.Initialize()

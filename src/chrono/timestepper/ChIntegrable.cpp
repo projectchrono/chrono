@@ -57,39 +57,67 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
                                       const double T,            // current time T
                                       const double dt,           // timestep (if needed)
                                       bool force_state_scatter,  // if false, x and v are not scattered to the system
-                                      bool full_update           // if true, perform a full update during scatter
+                                      bool full_update,          // if true, perform a full update during scatter
+                                      ChLumpingParms* lumping    ///< if not null, uses lumped masses to avoid inverting a mass matrix, and uses penalty for constraints.
 ) {
     if (force_state_scatter)
         StateScatter(x, v, T, full_update);
 
     ChVectorDynamic<> R(GetNcoords_v());
-    ChVectorDynamic<> Qc(GetNconstr());
-    const double Delta = 1e-6;
 
-    R.setZero();
-    Qc.setZero();
+    if (! lumping) {
+        ChVectorDynamic<> Qc(GetNconstr());
+        const double Delta = 1e-6;
 
-    LoadResidual_F(R, 1.0);
-    LoadConstraint_C(Qc, -2.0 / (Delta * Delta));
+        R.setZero();
+        Qc.setZero();
 
-    // numerical differentiation to get the Qc term in constraints
-    ChStateDelta dx(v);
-    dx *= Delta;
-    ChState xdx(x.size(), this);
+        LoadResidual_F(R, 1.0);
+        LoadConstraint_C(Qc, -2.0 / (Delta * Delta));
 
-    StateIncrement(xdx, x, dx);
-    StateScatter(xdx, v, T + Delta, full_update);
-    LoadConstraint_C(Qc, 1.0 / (Delta * Delta));
+        // numerical differentiation to get the Qc term in constraints
+        ChStateDelta dx(v);
+        dx *= Delta;
+        ChState xdx(x.size(), this);
 
-    StateIncrement(xdx, x, -dx);
-    StateScatter(xdx, v, T - Delta, full_update);
-    LoadConstraint_C(Qc, 1.0 / (Delta * Delta));
+        StateIncrement(xdx, x, dx);
+        StateScatter(xdx, v, T + Delta, full_update);
+        LoadConstraint_C(Qc, 1.0 / (Delta * Delta));
 
-    StateScatter(x, v, T, full_update);  // back to original state
+        StateIncrement(xdx, x, -dx);
+        StateScatter(xdx, v, T - Delta, full_update);
+        LoadConstraint_C(Qc, 1.0 / (Delta * Delta));
 
-    bool success = StateSolveCorrection(Dvdt, L, R, Qc, 1.0, 0, 0, x, v, T, false, false, true);
+        StateScatter(x, v, T, full_update);  // back to original state
 
-    return success;
+        bool success = StateSolveCorrection(Dvdt, L, R, Qc, 1.0, 0, 0, x, v, T, false, false, true);
+
+        return success;
+    } 
+    else {
+        ChVectorDynamic<> Md(GetNcoords_v()); // diagonal mass
+        Md.setZero(GetNcoords_v());
+
+        // penalty terms from constraints
+        R.setZero(GetNcoords_v());
+        L.setZero(GetNconstr());
+
+        LoadResidual_F(R, 1.0); // rhs, applied forces
+
+        double err = 0;
+        LoadLumpedMass_Md(Md, err, 1.0);
+
+        if (GetNconstr()) {
+            LoadConstraint_C(L, -lumping->Ck_penalty);  // L  = -k*C     // to do: modulate  k  as constraint-dependent, k=lumping->Ck_penalty*Ck_i
+            LoadResidual_CqL(R, L, 1.0);    // Fc =  Cq' * (-k*C)    = Cq' * L
+            // to do: add c_penalty for speed proportional damping, as   Fc = - Cq' * (k*C + c*(dC/dt))  
+        }
+
+        // compute acceleration using lumped diagonal mass. No need to invoke a linear solver.
+        Dvdt.array() = R.array() / Md.array();  //  a = Md^-1 * F
+
+        return (err == 0);
+    }
 }
 
 void ChIntegrableIIorder::StateIncrementX(ChState& x_new, const ChState& x, const ChStateDelta& Dx) {
@@ -180,7 +208,8 @@ bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,        // result: compu
                                      const double T,            // current time T
                                      const double dt,           // timestep (if needed, ex. in NSC)
                                      bool force_state_scatter,  // if false, y and T are not scattered to the system
-                                     bool full_update           // if true, perform a full update during scatter
+                                     bool full_update,          // if true, perform a full update during scatter
+                                     ChLumpingParms* lumping    // if not null, uses lumped masses to avoid inverting a mass matrix, and uses penalty for constraints.
 ) {
     ChState mx(GetNcoords_x(), y.GetIntegrable());
     ChStateDelta mv(GetNcoords_v(), y.GetIntegrable());
@@ -189,7 +218,7 @@ bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,        // result: compu
 
     // Solve with custom II order solver
     ChStateDelta ma(GetNcoords_v(), y.GetIntegrable());
-    if (!StateSolveA(ma, L, mx, mv, T, dt, force_state_scatter, full_update)) {
+    if (!StateSolveA(ma, L, mx, mv, T, dt, force_state_scatter, full_update, lumping)) {
         return false;
     }
 

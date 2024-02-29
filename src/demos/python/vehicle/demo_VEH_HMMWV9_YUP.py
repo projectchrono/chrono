@@ -37,7 +37,7 @@ def main():
     hmmwv.SetChassisFixed(False) 
     hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, chrono.Q_from_AngY(initYaw)))
     hmmwv.SetEngineType(veh.EngineModelType_SIMPLE)
-    hmmwv.SetTransmissionType(veh.TransmissionModelType_SIMPLE_MAP)
+    hmmwv.SetTransmissionType(veh.TransmissionModelType_AUTOMATIC_SIMPLE_MAP)
     hmmwv.SetDriveType(veh.DrivelineTypeWV_AWD)
     hmmwv.SetTireType(tire_model)
     hmmwv.SetTireStepSize(tire_step_size)

@@ -54,7 +54,7 @@ class ChApi ChNodeFEAbase : public virtual ChNodeBase {
     /// Initial setup.
     virtual void SetupInitial(ChSystem* system) {}
 
-    double m_TotalMass;  ///< Nodal mass obtained from element masss matrix
+    double m_TotalMass;  ///< Nodal mass obtained from element mass matrix
 
   protected:
     unsigned int g_index;  ///< global node index

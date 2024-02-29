@@ -557,6 +557,8 @@ set(CVM_GENERIC_POWERTRAIN_FILES
     generic/powertrain/Generic_AutomaticTransmissionShafts.cpp
     generic/powertrain/Generic_AutomaticTransmissionSimpleMap.h
     generic/powertrain/Generic_AutomaticTransmissionSimpleMap.cpp
+    generic/powertrain/Generic_ManualTransmissionShafts.h
+    generic/powertrain/Generic_ManualTransmissionShafts.cpp
 )
 set(CVM_GENERIC_TIRE_FILES
     generic/tire/Generic_RigidTire.cpp

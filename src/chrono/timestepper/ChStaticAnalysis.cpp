@@ -56,7 +56,7 @@ void ChStaticLinearAnalysis::StaticAnalysis() {
     //     [ Cq        0   ] [  l  ] = [-C]
 
     integrable->LoadResidual_F(R, 1.0);
-    integrable->LoadConstraint_C(Qc, 1.0);  // -C  (-sign already included)
+    integrable->LoadConstraint_C(Qc, 1.0);  //  C  (sign flipped later in StateSolveCorrection)
 
     integrable->StateSolveCorrection(  //
         Dx, L, R, Qc,                  //
@@ -318,11 +318,11 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
         {
             // solve
             //      [ - dF/dx    Cq' ] [ V  ] = [ 0  ]
-            //      [ Cq         0   ] [ L_v] = [-Ct ]
+            //      [ Cq         0   ] [-L_v] = [-Ct ]
 
             R.setZero(integrable->GetNcoords_v());
             Qc.setZero(integrable->GetNconstr());
-            integrable->LoadConstraint_Ct(Qc, 1.0);  // -Ct
+            integrable->LoadConstraint_Ct(Qc, 1.0);  // Ct  (sign flipped later in StateSolveCorrection)
 
             // Solve linear system for correction
             integrable->StateSolveCorrection(  //
@@ -387,14 +387,14 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
         //    f automatically includes -centrifugal/gyroscopic terms at given acceleration/speed, and -M*a is added for completing inertial forces
         //
         //      [ - dF/dx    Cq' ] [ Dx  ] = [ f - M*a + Cq*L]
-        //      [ Cq         0   ] [ Dl  ] = [ -C            ]
+        //      [ Cq         0   ] [-Dl  ] = [ -C            ]
 
         R.setZero(integrable->GetNcoords_v());
         Qc.setZero(integrable->GetNconstr());
         integrable->LoadResidual_F(R, 1.0);
         integrable->LoadResidual_CqL(R, L, 1.0);
         integrable->LoadResidual_Mv(R, A, -1.0);
-        integrable->LoadConstraint_C(Qc, 1.0);  // -C
+        integrable->LoadConstraint_C(Qc, 1.0);  // C   (sign flipped later in StateSolveCorrection)
 
         R *= cfactor;
         Qc *= cfactor;
@@ -480,15 +480,15 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
             //    f automatically includes -centrifugal/gyroscopic terms at given acceleration/speed, and -M*a is added for completing inertial forces
             //
             //      [ - dF/dx    Cq' ] [ Dx  ] = [ f - M*a + Cq*L]
-            //      [ Cq         0   ] [ Dl  ] = [ -C            ]
+            //      [ Cq         0   ] [-Dl  ] = [ -C            ]
 
             R.setZero(integrable->GetNcoords_v());
             Qc.setZero(integrable->GetNconstr());
             integrable->LoadResidual_F(R, 1.0);
             integrable->LoadResidual_CqL(R, L, 1.0);
             integrable->LoadResidual_Mv(R, A, -1.0);
-            //integrable->LoadConstraint_C(Qc, 1.0);  // -C
-            integrable->LoadConstraint_Ct(Qc, 1.0);  // -Ct
+            //integrable->LoadConstraint_C(Qc, 1.0);  // C  (sign flipped later in StateSolveCorrection)
+            integrable->LoadConstraint_Ct(Qc, 1.0);  // Ct  (sign flipped later in StateSolveCorrection)
 
             double cfactor = ChMin(1.0, (i + 2.0) / (m_incremental_steps + 1.0));
             R *= cfactor;
@@ -521,7 +521,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
         R.setZero(integrable->GetNcoords_v());
         Qc.setZero(integrable->GetNconstr());
         L_v.setZero(integrable->GetNconstr());
-        integrable->LoadConstraint_Ct(Qc, 1.0);  // -Ct
+        integrable->LoadConstraint_Ct(Qc, 1.0);  // Ct   (sign flipped later in StateSolveCorrection)
 
         // Solve linear system for correction
         integrable->StateSolveCorrection(  //
@@ -864,7 +864,7 @@ void ChStaticNonLinearRigidMotion::StaticAnalysis() {
 
     // Use Newton Raphson iteration, solving for the increments
     //      [ - dF/dx    Cq' ] [ Dx  ] = [ f + Cq*L ]
-    //      [ Cq         0   ] [ Dl  ] = [-C ]
+    //      [ Cq         0   ] [-Dl  ] = [-C ]
 
     for (int i = 0; i < m_maxiters; ++i) {
         integrable->StateScatter(X, V, T, true);  // state -> system
@@ -873,7 +873,7 @@ void ChStaticNonLinearRigidMotion::StaticAnalysis() {
         integrable->LoadResidual_F(R, 1.0);
         // integrable->LoadResidual_Mv(R, V, 1.0); // V is zero
         integrable->LoadResidual_CqL(R, L, 1.0);  // Update the reaction forces
-        integrable->LoadConstraint_C(Qc, 1.0);
+        integrable->LoadConstraint_C(Qc, 1.0);  // Qc= C (sign flipped later in StateSolveCorrection)
         // Do not consider the rheonomic excitation because it constrains the DOFs in fact.
         // integrable->LoadConstraint_Ct(Qc, 1.0);
 

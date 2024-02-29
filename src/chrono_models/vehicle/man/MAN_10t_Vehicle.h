@@ -57,14 +57,6 @@ class CH_MODELS_API MAN_10t_Vehicle : public ChWheeledVehicle {
         m_omega = omega;
     }
 
-    double GetSpringForce(int axle, VehicleSide side) const;
-    double GetSpringLength(int axle, VehicleSide side) const;
-    double GetSpringDeformation(int axle, VehicleSide side) const;
-
-    double GetShockForce(int axle, VehicleSide side) const;
-    double GetShockLength(int axle, VehicleSide side) const;
-    double GetShockVelocity(int axle, VehicleSide side) const;
-
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
     // Log debugging information
