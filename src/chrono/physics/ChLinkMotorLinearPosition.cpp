@@ -39,7 +39,7 @@ void ChLinkMotorLinearPosition::Update(double mytime, bool update_assets) {
 
     // Add the time-dependent term in residual C as
     //   C = d_error - d_setpoint - d_offset
-    // with d_error = x_pos_A- x_pos_B, and d_setpoint = x(t)
+    // with d_error = z_pos_1 - z_pos_2, and d_setpoint = z(t)
     C(0) = this->mpos - m_func->GetVal(mytime) - this->pos_offset;
 }
 

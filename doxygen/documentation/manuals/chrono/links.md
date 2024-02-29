@@ -25,22 +25,22 @@ Some general information are fundamental to effectively use these classes:
 | 6 | Fix | Fix position and rotation | @ref chrono::ChLinkMateFix "ChLinkMateFix" <br> @ref chrono::ChLinkLockLock "ChLinkLockLock" |
 | 6\|3 | Bushing | Linear compliance + optional spherical joint | @ref chrono::ChLinkBushing "ChLinkBushing" |
 | 5 | Revolute | Allows rotation along Z axis | @ref chrono::ChLinkMateRevolute "ChLinkMateRevolute" <br> @ref chrono::ChLinkLockRevolute "ChLinkLockRevolute" <br> @ref chrono::ChLinkRevolute "ChLinkRevolute" |
-| 5 | Prismatic | Allows translation along axis  | @ref chrono::ChLinkMatePrismatic "ChLinkMatePrismatic" (X axis) <br> @ref chrono::ChLinkLockPrismatic "ChLinkLockPrismatic" (Z axis) |
+| 5 | Prismatic | Allows translation along Z axis  | @ref chrono::ChLinkMatePrismatic "ChLinkMatePrismatic" <br> @ref chrono::ChLinkLockPrismatic "ChLinkLockPrismatic" |
 | 4 | Universal | Universal joint (along X and Y axes) | @ref chrono::ChLinkUniversal "ChLinkUniversal" |
 | 4 | Revolute+Prismatic | Allow translation along X axis and rotation along Z axis | @ref chrono::ChLinkLockRevolutePrismatic "ChLinkLockRevolutePrismatic" |
 | 4 | Oldham | Oldham joint; does not fix axes position | @ref chrono::ChLinkLockOldham "ChLinkLockOldham" |
-| 4 | Cylindrical | Axes are collinear  | @ref chrono::ChLinkMateCoaxial "ChLinkMateCoaxial" (X axis) <br> @ref chrono::ChLinkLockCylindrical "ChLinkLockCylindrical" (Z axis) |
+| 4 | Cylindrical | Z Axes are collinear  | @ref chrono::ChLinkMateCylindrical "ChLinkMateCylindrical" <br> @ref chrono::ChLinkLockCylindrical "ChLinkLockCylindrical" |
 | 3 | Spherical | Fix translations | @ref chrono::ChLinkMateSpherical "ChLinkMateSpherical" <br> @ref chrono::ChLinkLockSpherical "ChLinkLockSpherical" |
-| 3 | Planar | YZ planes are coplanar | @ref chrono::ChLinkLockPlanePlane "ChLinkLockPlanePlane" <br> @ref chrono::ChLinkMatePlane "ChLinkMatePlane" |
+| 3 | Planar | XY planes are coplanar | @ref chrono::ChLinkLockPlanePlane "ChLinkLockPlanePlane" <br> @ref chrono::ChLinkMatePlanar "ChLinkMatePlanar" |
 | 3 | Aligned | Fix rotations | @ref chrono::ChLinkLockAlign "ChLinkLockAlign" |
-| 2 | Revolute+Spherical | Fix distance to a X axis; free rotations | @ref chrono::ChLinkMateXdistance "ChLinkMateXdistance" <br> @ref chrono::ChLinkRevoluteSpherical "ChLinkRevoluteSpherical"|
+| 2 | Revolute+Spherical | Fix distance along Z axis; free rotations | @ref chrono::ChLinkMateDistanceZ "ChLinkMateDistanceZ" <br> @ref chrono::ChLinkRevoluteSpherical "ChLinkRevoluteSpherical"|
 | 2 | Revolute+Align | Allow translation respect to a rotating frame | @ref chrono::ChLinkRevoluteTranslational "ChLinkRevoluteTranslational" |
 | 2 | Point on a Plane | Z translations are blocked | @ref chrono::ChLinkLockPointPlane "ChLinkLockPointPlane" |
 | 2 | Point on a Line | Point belongs to a given line; free to rotate | @ref chrono::ChLinkLockPointLine "ChLinkLockPointLine" <br> @ref chrono::ChLinkPointSpline "ChLinkPointSpline" |
-| 2 | Parallel | X axes are parallel | @ref chrono::ChLinkMateParallel "ChLinkMateParallel" <br> @ref chrono::ChLinkLockParallel "ChLinkLockParallel" |
-| 2 | Orthogonal | X axes are orthogonal | @ref chrono::ChLinkMateOrthogonal "ChLinkMateOrthogonal" <br> @ref chrono::ChLinkLockPerpend "ChLinkLockPerpend" |
+| 2 | Parallel | Z axes are parallel | @ref chrono::ChLinkMateParallel "ChLinkMateParallel" <br> @ref chrono::ChLinkLockParallel "ChLinkLockParallel" |
+| 2 | Orthogonal | X and Y axes are kept orthogonal; Z axes are aligned | @ref chrono::ChLinkMateOrthogonal "ChLinkMateOrthogonal" <br> @ref chrono::ChLinkLockPerpend "ChLinkLockPerpend" |
 | 1 | Distance | Polar distance is fixed | @ref chrono::ChLinkDistance "ChLinkDistance" |
-| 1 | Rack-Pinion | Couple rotation of the pinion Z axis with rack X axis | @ref chrono::ChLinkRackpinion "ChLinkRackpinion" |
+| 1 | Rack-Pinion | Couple rotation of the pinion Z axis with rack X axis | @ref chrono::ChLinkMateRackPinion "ChLinkMateRackPinion" |
 | 1 | Pulley | Couple rotation over Z axes; pulley-specific features | @ref chrono::ChLinkPulley "ChLinkPulley" |
 | 1 | Gear | Couple rotation over Z axes; gear-specific features | @ref chrono::ChLinkGear "ChLinkGear" |
 | 0 | Free | No constraints | @ref chrono::ChLinkLockFree "ChLinkLockFree" |

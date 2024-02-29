@@ -687,10 +687,6 @@ void ChSystem::Setup() {
     m_num_constr_bil += contact_container->GetNumConstraintsBilateral();
     m_num_constr_uni += contact_container->GetNumConstraintsUnilateral();
 
-    //// TODO: DARIOM all the m_num_coords and m_num_constr variables are currently used only to avoid calling
-    //// assembly and contact_container methods every time a GetNumCoordinates/GetNumConstraints on ChSystem
-    //// is called. We might want to remove these variables and call the methods directly.
-
     timer_setup.stop();
 
 #ifdef _DEBUG

@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorLinearForce)
 
 ChLinkMotorLinearForce::ChLinkMotorLinearForce() {
-    this->c_x = false;
+    this->c_z = false;
     SetupLinkMask();
     m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 }
@@ -39,7 +39,7 @@ void ChLinkMotorLinearForce::IntLoadResidual_F(const unsigned int off, ChVectorD
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    ChVector3d m_abs_force = aframe2.GetRotMat() * ChVector3d(mF, 0, 0);
+    ChVector3d m_abs_force = aframe2.GetRotMat() * ChVector3d(0, 0, mF);
     ChVector3d mbody_force;
     ChVector3d mbody_torque;
 
@@ -70,7 +70,7 @@ void ChLinkMotorLinearForce::ConstraintsFbLoadForces(double factor) {
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    ChVector3d m_abs_force = aframe2.GetRotMat() * ChVector3d(mF, 0, 0);
+    ChVector3d m_abs_force = aframe2.GetRotMat() * ChVector3d(0, 0, mF);
     ChVector3d mbody_force;
     ChVector3d mbody_torque;
     Body2->To_abs_forcetorque(m_abs_force,

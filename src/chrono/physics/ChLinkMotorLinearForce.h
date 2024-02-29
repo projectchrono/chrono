@@ -19,7 +19,7 @@
 
 namespace chrono {
 
-/// A linear motor that applies a force between two frames on two bodies.
+/// A linear motor that applies a force between two frames on two bodies along Z axis.
 /// Differently from the ChLinkMotorLinearPosition and ChLinkMotorLinearSpeed,
 /// this does not enforce precise motion via constraint.
 /// Example of application:

@@ -66,10 +66,10 @@ void ChLinkMotorLinearDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
 void ChLinkMotorLinearDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                             std::shared_ptr<ChBodyFrame> mbody2,
                                             bool pos_are_relative,
-                                            ChVector3d mpt1,
-                                            ChVector3d mpt2,
-                                            ChVector3d mnorm1,
-                                            ChVector3d mnorm2) {
+                                            const ChVector3d& mpt1,
+                                            const ChVector3d& mpt2,
+                                            const ChVector3d& mnorm1,
+                                            const ChVector3d& mnorm2) {
     ChLinkMotorLinear::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1, mnorm2);
     innerconstraint1lin->Initialize(innershaft1lin, mbody1, VECT_X, VNULL);
     innerconstraint2lin->Initialize(innershaft2lin, mbody2, VECT_X, VNULL);

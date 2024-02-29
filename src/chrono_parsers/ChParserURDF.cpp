@@ -485,7 +485,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
     // coincides with the frame of the joint connecting the body to its parent).
     auto joint_axis = toChVector(joint->axis);
     ChVector3d d1, d2, d3;
-    joint_axis.DirToDxDyDz(d1, d2, d3);
+    joint_axis.GetDirectionAxesAsX(d1, d2, d3);
 
     // Create motors or passive joints
     ChFrame<> joint_frame = child->GetFrame_REF_to_abs();  // default joint frame == child body frame

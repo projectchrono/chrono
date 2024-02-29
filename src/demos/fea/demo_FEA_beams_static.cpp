@@ -17,7 +17,6 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkLock.h"
 
 #include "chrono/fea/ChElementBeamEuler.h"

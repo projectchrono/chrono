@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChLinkRackpinion.h"
+#include "chrono/physics/ChLinkMate.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
@@ -174,7 +174,7 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
     sys.AddLink(prismaticJoint);
 
     // Create the Rack and Pinion joint
-    auto rackpinionJoint = chrono_types::make_shared<ChLinkRackpinion>();
+    auto rackpinionJoint = chrono_types::make_shared<ChLinkMateRackPinion>();
     rackpinionJoint->Initialize(pinion, rack, false, ChFrame<>(jointLoc, QuatFromAngleY(-CH_C_PI_2)),
                                 ChFrame<>(jointLoc + ChVector3d(0, 0, 0), QuatFromAngleY(-CH_C_PI_2)));
     rackpinionJoint->SetPinionRadius(-radiusPinion);

@@ -35,9 +35,9 @@ ChLinkMotorLinear::ChLinkMotorLinear(const ChLinkMotorLinear& other) : ChLinkMot
 
 ChLinkMotorLinear::~ChLinkMotorLinear() {}
 
-void ChLinkMotorLinear::SetGuideConstraint(bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz) {
+void ChLinkMotorLinear::SetGuideConstraint(bool mc_x, bool mc_y, bool mc_rx, bool mc_ry, bool mc_rz) {
+    this->c_x = mc_x;
     this->c_y = mc_y;
-    this->c_z = mc_z;
     this->c_rx = mc_rx;
     this->c_ry = mc_ry;
     this->c_rz = mc_rz;
@@ -46,24 +46,24 @@ void ChLinkMotorLinear::SetGuideConstraint(bool mc_y, bool mc_z, bool mc_rx, boo
 
 void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint mconstraint) {
     if (mconstraint == GuideConstraint::FREE) {
+        this->c_x = false;
         this->c_y = false;
-        this->c_z = false;
         this->c_rx = false;
         this->c_ry = false;
         this->c_rz = false;
         SetupLinkMask();
     }
     if (mconstraint == GuideConstraint::PRISMATIC) {
+        this->c_x = true;
         this->c_y = true;
-        this->c_z = true;
         this->c_rx = true;
         this->c_ry = true;
         this->c_rz = true;
         SetupLinkMask();
     }
     if (mconstraint == GuideConstraint::SPHERICAL) {
+        this->c_x = true;
         this->c_y = true;
-        this->c_z = true;
         this->c_rx = false;
         this->c_ry = false;
         this->c_rz = false;
@@ -85,9 +85,9 @@ void ChLinkMotorLinear::Update(double mytime, bool update_assets) {
     //// This is incorrect for GuideConstraint::FREE
     //// Should use something like sqrt(Vdot(relpos,relpos)), but taking into account sign?
 
-    this->mpos = aframe12.GetPos().x();
-    this->mpos_dt = aframe12.GetPosDer().x();
-    this->mpos_dtdt = aframe12.GetPosDer2().x();
+    this->mpos = aframe12.GetPos().z();
+    this->mpos_dt = aframe12.GetPosDer().z();
+    this->mpos_dtdt = aframe12.GetPosDer2().z();
 }
 
 void ChLinkMotorLinear::ArchiveOut(ChArchiveOut& archive_out) {

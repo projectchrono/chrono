@@ -1013,7 +1013,7 @@ void drawArrow(ChVisualSystemIrrlicht* vis,
     drawSegment(vis, start, end, col, use_Zbuffer);  // main segment
     ChVector3d dir = (end - start).GetNormalized();
     ChVector3d u, v, w;
-    dir.DirToDxDyDz(u, v, w, plane_normal);
+    dir.GetDirectionAxesAsX(u, v, w, plane_normal);
     ChVector3d p1, p2;
     if (!sharp) {
         p1 = end + 0.25 * (w - dir);

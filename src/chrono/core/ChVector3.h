@@ -219,13 +219,33 @@ class ChVector3 {
     /// Impose a new length to the vector, keeping the direction unchanged.
     void SetLength(Real s);
 
-    /// Use the Gram-Schmidt orthonormalization to find the three
-    /// orthogonal vectors of a coordinate system whose X axis is this vector.
-    /// Vsingular (optional) sets the normal to the plane on which Dz must lie.
-    void DirToDxDyDz(ChVector3<Real>& Vx,
-                     ChVector3<Real>& Vy,
-                     ChVector3<Real>& Vz,
-                     const ChVector3<Real>& Vsingular = ChVector3<Real>(0, 1, 0)) const;
+    /// Output three orthonormal vectors considering this vector along X axis.
+    /// Optionally, the \a z_sugg vector can be used to suggest the Z axis.
+    /// It is recommended to set \a y_sugg to be not parallel to this vector.
+    /// The Z axis will be orthogonal to X and \a y_sugg.
+    /// Rely on Gram-Schmidt orthonormalization.
+    void GetDirectionAxesAsX(ChVector3<Real>& Vx,
+                             ChVector3<Real>& Vy,
+                             ChVector3<Real>& Vz,
+                             ChVector3<Real> y_sugg = ChVector3<Real>(0, 1, 0)) const;
+
+    /// Output three orthonormal vectors considering this vector along Y axis.
+    /// Optionally, the \a z_sugg vector can be used to suggest the Z axis.
+    /// It is recommended to set \a z_sugg to be not parallel to this vector.
+    /// Rely on Gram-Schmidt orthonormalization.
+    void GetDirectionAxesAsY(ChVector3<Real>& Vx,
+                             ChVector3<Real>& Vy,
+                             ChVector3<Real>& Vz,
+                             ChVector3<Real> z_sugg = ChVector3<Real>(0, 0, 1)) const;
+
+    /// Output three orthonormal vectors considering this vector along Y axis.
+    /// Optionally, the \a x_sugg vector can be used to suggest the X axis.
+    /// It is recommended to set \a x_sugg to be not parallel to this vector.
+    /// Rely on Gram-Schmidt orthonormalization.
+    void GetDirectionAxesAsZ(ChVector3<Real>& Vx,
+                             ChVector3<Real>& Vy,
+                             ChVector3<Real>& Vz,
+                             ChVector3<Real> x_sugg = ChVector3<Real>(1, 0, 0)) const;
 
     /// Return the index of the largest component in absolute value.
     int GetMaxComponent() const;
@@ -887,39 +907,82 @@ inline void ChVector3<Real>::SetLength(Real s) {
 }
 
 template <class Real>
-inline void ChVector3<Real>::DirToDxDyDz(ChVector3<Real>& Vx,
+inline void ChVector3<Real>::GetDirectionAxesAsX(ChVector3<Real>& Vx,
                                          ChVector3<Real>& Vy,
                                          ChVector3<Real>& Vz,
-                                         const ChVector3<Real>& Vsingular) const {
-    // set Vx.
-    if (this->IsNull())
+                                         ChVector3<Real> y_sugg) const {
+
+    Vx = *this;
+    bool success = Vx.Normalize();
+    if (!success)
         Vx = ChVector3<Real>(1, 0, 0);
-    else
-        Vx = this->GetNormalized();
 
-    Vz.Cross(Vx, Vsingular);
-    Real zlen = Vz.Length();
-
-    // if near singularity, change the singularity reference vector.
-    if (zlen < 0.0001) {
-        ChVector3<Real> mVsingular;
-
-        if (std::abs(Vsingular.m_data[0]) < 0.9)
-            mVsingular = ChVector3<Real>(1, 0, 0);
-        else if (std::abs(Vsingular.m_data[1]) < 0.9)
-            mVsingular = ChVector3<Real>(0, 1, 0);
-        else if (std::abs(Vsingular.m_data[2]) < 0.9)
-            mVsingular = ChVector3<Real>(0, 0, 1);
-
-        Vz.Cross(Vx, mVsingular);
-        zlen = Vz.Length();  // now should be nonzero length.
+    Vz.Cross(Vx, y_sugg);
+    success = Vz.Normalize();
+    if (!success){
+        char idx = 0;
+        while (!success){
+            y_sugg[idx] += 1.0;
+            Vz.Cross(Vx, y_sugg);
+            success = Vz.Normalize();
+            ++idx;
+        }
     }
 
-    // normalize Vz.
-    Vz.Scale(1 / zlen);
-
-    // compute Vy.
     Vy.Cross(Vz, Vx);
+}
+
+
+template <class Real>
+inline void ChVector3<Real>::GetDirectionAxesAsY(ChVector3<Real>& Vx,
+                                         ChVector3<Real>& Vy,
+                                         ChVector3<Real>& Vz,
+                                         ChVector3<Real> z_sugg) const {
+    Vy = *this;
+    bool success = Vy.Normalize();
+    if (!success)
+        Vy = ChVector3<Real>(0, 1, 0);
+
+    Vx.Cross(Vy, z_sugg);
+    success = Vx.Normalize();
+    if (!success){
+        char idx = 0;
+        while (!success){
+            z_sugg[idx] += 1.0;
+            Vx.Cross(Vy, z_sugg);
+            success = Vx.Normalize();
+            ++idx;
+        }
+    }
+
+    Vy.Cross(Vz, Vx);
+}
+
+template <class Real>
+inline void ChVector3<Real>::GetDirectionAxesAsZ(ChVector3<Real>& Vx,
+                                         ChVector3<Real>& Vy,
+                                         ChVector3<Real>& Vz,
+                                         ChVector3<Real> x_sugg) const {
+    Vz = *this;
+    bool success = Vz.Normalize();
+    if (!success)
+        Vz = ChVector3<Real>(0, 0, 1);
+
+    Vy.Cross(Vz, x_sugg);
+    success = Vy.Normalize();
+
+    if (!success){
+        char idx = 0;
+        while (!success){
+            x_sugg[idx] += 1.0;
+            Vy.Cross(Vz, x_sugg);
+            success = Vy.Normalize();
+            ++idx;
+        }
+    }
+
+
+    Vx.Cross(Vy, Vz);
 }
 
 template <class Real>

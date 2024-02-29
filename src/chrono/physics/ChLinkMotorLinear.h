@@ -21,7 +21,7 @@ namespace chrono {
 
 /// Base class for all linear "motor" constraints between
 /// two frames on two bodies. Motors of this type assume that
-/// the actuator is directed along X direction of the master frame.
+/// the actuator is directed along Z direction of the master frame.
 /// Look for children classes for specialized behaviors, for example
 /// ex. chrono::ChLinkMotorLinearPosition
 
@@ -39,15 +39,15 @@ class ChApi ChLinkMotorLinear : public ChLinkMotor {
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as a pure prismatic guide.
-    /// Note that the x direction is the motorized one, and is never affected by
+    /// Note that the Z direction is the motorized one, and is never affected by
     /// this option.
     void SetGuideConstraint(const GuideConstraint mconstraint);
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as a pure prismatic guide.
-    /// Note that the x direction is the motorized one, and is never affected by
+    /// Note that the Z direction is the motorized one, and is never affected by
     /// this option.
-    void SetGuideConstraint(bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz);
+    void SetGuideConstraint(bool mc_x, bool mc_y, bool mc_rx, bool mc_ry, bool mc_rz);
 
     /// Get the current actuator displacement [m], including error etc.
     virtual double GetMotorPos() const { return mpos; }

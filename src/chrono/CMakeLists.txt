@@ -215,7 +215,6 @@ set(ChronoEngine_physics_links_SOURCES
     physics/ChLinkPointSpline.cpp
     physics/ChLinkTrajectory.cpp
     physics/ChLinkMate.cpp
-    physics/ChLinkRackpinion.cpp
     physics/ChLinkRevolute.cpp
     physics/ChLinkRevoluteSpherical.cpp
     physics/ChLinkRevoluteTranslational.cpp
@@ -256,7 +255,6 @@ set(ChronoEngine_physics_links_HEADERS
     physics/ChLinkTrajectory.h
     physics/ChLinkClearance.h
     physics/ChLinkMate.h
-    physics/ChLinkRackpinion.h
     physics/ChLinkRevolute.h
     physics/ChLinkRevoluteSpherical.h
     physics/ChLinkRevoluteTranslational.h

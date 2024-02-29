@@ -19,10 +19,10 @@
 
 namespace chrono {
 
-/// A linear motor that enforces the position x(t) between two frames on two bodies, using a rheonomic constraint.
-/// The x(t) position of frame A sliding on x axis of frame B, is imposed via an exact function of time f(t),
+/// A linear motor that enforces the position z(t) between two frames on two bodies, using a rheonomic constraint.
+/// The z(t) position of frame 1 sliding on Z axis of frame 2, is imposed via an exact function of time f(t),
 /// and an optional offset:
-///    x(t) = f(t) + offset
+///    z(t) = f(t) + offset
 /// Note: no compliance is allowed, so if the actuator hits an undeformable obstacle it hits a pathological
 /// situation and the solver result can be unstable/unpredictable.
 /// Think at it as a servo drive with "infinitely stiff" control.
@@ -48,16 +48,16 @@ class ChApi ChLinkMotorLinearPosition : public ChLinkMotorLinear {
     /// Get the position function p(t).
     std::shared_ptr<ChFunction> GetMotionFunction() const { return GetMotorFunction(); }
 
-    /// Get initial offset for f(t)=0. Position on x of the two axes
-    /// will be x(t) = f(t) + offset.
+    /// Get initial offset for f(t)=0. Position on Z of the two axes
+    /// will be z(t) = f(t) + offset.
     /// By default, offset = 0
     void SetMotionOffset(double mo) { pos_offset = mo; }
 
     /// Get initial offset for f(t)=0.
     double GetMotionOffset() { return pos_offset; }
 
-    /// Get the current actuator reaction force [N], as applied to slider
-    virtual double GetMotorForce() const override { return -this->react_force.x(); }
+    /// Get the current actuator reaction force, as applied to slider
+    virtual double GetMotorForce() const override { return -this->react_force.z(); }
 
     void Update(double mytime, bool update_assets) override;
 

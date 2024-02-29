@@ -1091,7 +1091,7 @@ ChFrame<> PointPointFrame(const ChVector3d& P1, const ChVector3d& P2, double& di
     dist = dir.Length();
     dir.Normalize();
     ChVector3d mx, my, mz;
-    dir.DirToDxDyDz(my, mz, mx);
+    dir.GetDirectionAxesAsX(my, mz, mx);
     ChMatrix33<> R_CS;
     R_CS.SetFromDirectionAxes(mx, my, mz);
 

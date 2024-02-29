@@ -58,6 +58,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLink.h"
+#include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkMotionImposed.h"
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoadsBody.h"
@@ -238,15 +239,16 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkLinActuator)
 %shared_ptr(chrono::ChLinkMate)
 %shared_ptr(chrono::ChLinkMateGeneric)
-%shared_ptr(chrono::ChLinkMatePlane)
-%shared_ptr(chrono::ChLinkMateCoaxial)
+%shared_ptr(chrono::ChLinkMatePlanar)
+%shared_ptr(chrono::ChLinkMateCylindrical)
 %shared_ptr(chrono::ChLinkMateSpherical)
-%shared_ptr(chrono::ChLinkMateXdistance)
+%shared_ptr(chrono::ChLinkMateDistanceZ)
 %shared_ptr(chrono::ChLinkMateParallel)
 %shared_ptr(chrono::ChLinkMateOrthogonal)
 %shared_ptr(chrono::ChLinkMateFix)
 %shared_ptr(chrono::ChLinkMateRevolute)
 %shared_ptr(chrono::ChLinkMatePrismatic)
+%shared_ptr(chrono::ChLinkMateRackPinion)
 %shared_ptr(chrono::ChLinkPulley)
 %shared_ptr(chrono::ChLinkRevolute)
 %shared_ptr(chrono::ChLinkRevoluteSpherical)
@@ -537,10 +539,10 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkLockPerpend)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMate)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMateGeneric)
-%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMatePlane)
-%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMateCoaxial)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMatePlanar)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMateCylindrical)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMateSpherical)
-%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMateXdistance)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMateDistanceZ)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMateParallel)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMateOrthogonal)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMateFix)
@@ -582,10 +584,10 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkLockPerpend)
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMate)
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMateGeneric)
-%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMatePlane)
-%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMateCoaxial)
+%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMatePlanar)
+%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMateCylindrical)
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMateSpherical)
-%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMateXdistance)
+%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMateDistanceZ)
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMateParallel)
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMateOrthogonal)
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMateFix)

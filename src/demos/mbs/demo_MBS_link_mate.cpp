@@ -192,7 +192,7 @@ void test_pendulum() {
     ChVector3d mX;
     ChVector3d mY;
     ChVector3d mZ;
-    Xdir.DirToDxDyDz(mX, mY, mZ, Ydir);
+    Xdir.GetDirectionAxesAsX(mX, mY, mZ, Ydir);
     ChQuaternion<> mass_rot = ChMatrix33<>(mX, mY, mZ).GetQuaternion();
     my_mass->SetCsys(mass_pos, mass_rot);
     my_mass->SetMass(tip_mass);
@@ -401,7 +401,7 @@ void test_anchorchain() {
         ChVector3d mX;
         ChVector3d mY;
         ChVector3d mZ;
-        Xdir.DirToDxDyDz(mX, mY, mZ, Ydir);
+        Xdir.GetDirectionAxesAsX(mX, mY, mZ, Ydir);
         ChQuaternion<> knot_rot = ChMatrix33<>(mX, mY, mZ).GetQuaternion();
 
         for (int i_body = 0; i_body < mN; i_body++) {

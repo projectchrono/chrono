@@ -26,7 +26,7 @@
 
 #include "chrono/core/ChFrame.h"
 
-#include "chrono/physics/ChLinkRackpinion.h"
+#include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
@@ -509,7 +509,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             assert(body_J);
 
             // std::cout << "adding rackpin joint " << joint_pair.first <<std::endl;
-            auto ch_joint = chrono_types::make_shared<ChLinkRackpinion>();
+            auto ch_joint = chrono_types::make_shared<ChLinkMateRackPinion>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()), true,
                                  (body_I->GetFrame_REF_to_abs() * (*marker_I)),
                                  (body_J->GetFrame_REF_to_abs() * (*marker_J)));
