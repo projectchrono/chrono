@@ -4,9 +4,11 @@
 #include <math.h>  
 #include "chrono/core/ChMatrix.h"
 #include <Eigen/Core>
+#include <Eigen/SparseCore>
 #include <Eigen/Dense>
 
 #include "Eigen/src/Core/Matrix.h"
+#include "Eigen/src/SparseCore/SparseMatrix.h"
 #include "Eigen/src/Core/util/Macros.h"
 
 using namespace chrono;
@@ -109,6 +111,26 @@ class chrono::ChMatrixDynamic : public Eigen::Matrix<Real, Eigen::Dynamic, Eigen
 
 %template(ChMatrixDynamicD) chrono::ChMatrixDynamic<double>;
 
+class chrono::ChSparseMatrix : public Eigen::SparseMatrix<double, Eigen::RowMajor, int> {
+	public:
+		ChSparseMatrix() : Eigen::SparseMatrix<double, Eigen::RowMajor, int>() {}
+		ChSparseMatrix(int r, int c) {
+			Eigen::SparseMatrix<double, Eigen::RowMajor, int>();
+			this->resize(r,c);
+			}
+		};
+
+%rename (ChSparseMatrixD) chrono::ChSparseMatrix;
+
+template <typename T = double, int N, int M>
+class chrono::ChMatrixNM : public Eigen::Matrix<T, M, N, Eigen::RowMajor> {
+	public:
+		ChMatrixNM() : Eigen::Matrix<T, M, N, Eigen::RowMajor>() {}
+		};
+
+%template(ChMatrix66D) chrono::ChMatrixNM<double,6,6>;
+
+
 template <typename T = double>
 class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor> {
 	public:
@@ -147,6 +169,7 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 				}
 		};
 
+
 %extend chrono::ChMatrixDynamic<double>{
 		public:
 					// these functions are also argument-templated, so we need to specify the types
@@ -164,7 +187,6 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 			double getitem(int i, int j) {
 				return (*$self)(i, j);
 				}
-
 			void setitem(int i, int j, double v) {
 				(*$self)(i, j) = v;
 				}
@@ -197,9 +219,93 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 						(*$self)(i, j) = mat[i*col + j];
 					}
 				}
-
 			}
 		};
+
+
+%extend chrono::ChSparseMatrix{
+		public:
+
+			double getitem(int i, int j) {
+				return $self->coeff(i, j);
+				}
+			// void setitem(int i, int j, double v) {
+			// 	(*$self)(i, j) = v;
+			// 	}
+			const int GetRows() {
+				const int r = $self->rows();
+				return r;
+				}
+			const int GetColumns() {
+				const int c = $self->cols();
+				return c;
+				}
+
+			// void GetMatrixData(double* p, int len) {
+			// 	int r = $self->rows();
+			// 	int c = $self->cols();
+			// 	//double matr[len];
+			// 	//double* matr = $self->data();
+			// 	for (int i = 0; i < len; i++){
+			// 		int ri = floor (i/c);
+			// 		int ci = i - c*ri;
+			// 		p[i] =  (double)(*$self)(ri, ci);
+					
+			// 	}
+			// }
+
+			// void SetMatr(double *mat, int ros, int col) {
+			// 	($self)->resize(ros, col);
+			// 	for (int i = 0; i < ros; i++){
+			// 		for (int j = 0; j < col; j++){
+			// 			(*$self)(i, j) = mat[i*col + j];
+			// 		}
+			// 	}
+
+			// }
+		};
+
+%extend chrono::ChMatrixNM<double,6,6>{
+		public:
+
+			double getitem(int i, int j) {
+				return (*$self)(i, j);
+				}
+			void setitem(int i, int j, double v) {
+				(*$self)(i, j) = v;
+				}
+			const int GetRows() {
+				const int r = $self->rows();
+				return r;
+				}
+			const int GetColumns() {
+				const int c = $self->cols();
+				return c;
+				}
+
+			void GetMatrixData(double* p, int len) {
+				int r = $self->rows();
+				int c = $self->cols();
+				//double matr[len];
+				//double* matr = $self->data();
+				for (int i = 0; i < len; i++){
+					int ri = floor (i/c);
+					int ci = i - c*ri;
+					p[i] =  (double)(*$self)(ri, ci);
+					
+					}
+				}
+
+			void SetMatr(double *mat, int ros, int col) {
+				//($self)->resize(ros, col);
+				for (int i = 0; i < ros; i++){
+					for (int j = 0; j < col; j++){
+						(*$self)(i, j) = mat[i*col + j];
+						}
+					}
+				}
+		};
+
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
