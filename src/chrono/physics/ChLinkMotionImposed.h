@@ -29,7 +29,7 @@ namespace chrono {
 /// so you move/rotate Body 1 in space according to the provided functions; this is the case for example where
 /// you have some data coming from a motion capture hardware following the motion, say, of a human head,
 /// and you want to replicate the motion of that head in 3D space.
-/// This joint imposes all the 6 DOFs of a body, including rotations, differently from the ChLinkTrajectory
+/// This joint imposes all the 6 DOFs of a body, including rotations, differently from the ChLinkLockTrajectory
 /// that imposes only the position but leaves rotation free.
 /// Note that if you are interested in simply imposing a straight motion, just use  ChLinkMotorLinearPosition,
 /// and if you just need to impose a rotation on a shaft, just use the ChLinkMotorRotationAngle.

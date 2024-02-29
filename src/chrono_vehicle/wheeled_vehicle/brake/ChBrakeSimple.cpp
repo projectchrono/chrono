@@ -26,7 +26,7 @@ namespace vehicle {
 
 ChBrakeSimple::ChBrakeSimple(const std::string& name)
     : ChBrake(name), m_modulation(0), m_locked(false) {
-    m_brake = chrono_types::make_shared<ChLinkBrake>();
+    m_brake = chrono_types::make_shared<ChLinkLockBrake>();
 }
 
 ChBrakeSimple::~ChBrakeSimple() {

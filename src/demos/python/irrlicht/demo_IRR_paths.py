@@ -62,7 +62,7 @@ sys.Add(mpendulum)
 
 # The trajectory constraint:
 
-mtrajectory = chrono.ChLinkTrajectory()
+mtrajectory = chrono.ChLinkLockTrajectory()
 
 # Define which parts are connected (the trajectory is considered in the 2nd body).
 mtrajectory.Initialize(mpendulum,                    # body1 that follows the trajectory
@@ -123,7 +123,7 @@ sys.Add(mpendulum2)
 
 # The glyph constraint:
 
-mglyphconstraint = chrono.ChLinkPointSpline()
+mglyphconstraint = chrono.ChLinkLockPointSpline()
 
 # Define which parts are connected (the trajectory is considered in the 2nd body).
 mglyphconstraint.Initialize(mpendulum2,  # body1 that follows the trajectory

@@ -25,7 +25,7 @@ namespace chrono {
 /// This constraint can behave also as a clutch.
 ///
 ///  ***OBSOLETE***: consider using a ChLinkMotorRotation and add a ChShaftsClutch between shafts
-class ChApi ChLinkBrake : public ChLinkLock {
+class ChApi ChLinkLockBrake : public ChLinkLock {
   protected:
     double brake_torque;  ///< applied torque.
     double stick_ratio;  ///< static sticking torque = stick ratio * brake torque (if <1, sticking effect is turned off)
@@ -38,12 +38,12 @@ class ChApi ChLinkBrake : public ChLinkLock {
     bool must_stick;  ///< if true, change DOF mask to add link -- internal
 
   public:
-    ChLinkBrake();
-    ChLinkBrake(const ChLinkBrake& other);
-    virtual ~ChLinkBrake() {}
+    ChLinkLockBrake();
+    ChLinkLockBrake(const ChLinkLockBrake& other);
+    virtual ~ChLinkLockBrake() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkBrake* Clone() const override { return new ChLinkBrake(*this); }
+    virtual ChLinkLockBrake* Clone() const override { return new ChLinkLockBrake(*this); }
 
     virtual void UpdateTime(double time) override;
     virtual void UpdateForces(double mytime) override;
@@ -64,7 +64,7 @@ class ChApi ChLinkBrake : public ChLinkLock {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-CH_CLASS_VERSION(ChLinkBrake, 0)
+CH_CLASS_VERSION(ChLinkLockBrake, 0)
 
 }  // end namespace chrono
 

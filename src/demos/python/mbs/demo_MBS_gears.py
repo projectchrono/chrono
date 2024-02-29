@@ -12,7 +12,7 @@
 # Authors: Han Wang
 # =============================================================================
 #
-# Demonstration of the gear constraint (ChLinkGear) as a method to impose a
+# Demonstration of the gear constraint (ChLinkLockGear) as a method to impose a
 # transmission ratio between two shafts as they were connected by gears,
 # without the need of performing collision detection between gear teeth
 # geometries (which would be inefficient)
@@ -93,7 +93,7 @@ sys.AddLink(link_revolute)
 
 # ...the gear constraint between the two wheels A and B.
 #    As transmission ratio (=speed of wheel B / speed of wheel A) to enter in  Set_tau(), we
-#    could use whatever positive value we want: the ChLinkGear will compute the two radii of the
+#    could use whatever positive value we want: the ChLinkLockGear will compute the two radii of the
 #    wheels for its 'hidden' computations, given the distance between the two axes. However, since
 #    we already build two '3D cylinders' bodies -just for visualization reasons!- with radA and radB,
 #    we must enter Set_tau(radA/radB).
@@ -102,7 +102,7 @@ sys.AddLink(link_revolute)
 #    we use Set_local_shaft1() and pass some local ChFrame. Note that, since the Z axis of that frame
 #    will be considered the axis of the wheel, we must rotate the frame 90 deg with SetFromAngleAxis(),
 #    because we created the wheel with ChBodyEasyCylinder() which created a cylinder with Y as axis
-link_gearAB = chrono.ChLinkGear()
+link_gearAB = chrono.ChLinkLockGear()
 link_gearAB.Initialize(mbody_gearA, mbody_gearB, chrono.ChFramed())
 link_gearAB.Set_local_shaft1(chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)))
 link_gearAB.Set_local_shaft2(chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)))
@@ -114,7 +114,7 @@ sys.AddLink(link_gearAB)
 #    does not necessarily need to be created as a new body because it is the 'fixed' part of the
 #    epicycloidal reducer, so, as wheel C, we will simply use the ground object 'mbody_truss'.
 radC = 2 * radB + radA
-link_gearBC = chrono.ChLinkGear()
+link_gearBC = chrono.ChLinkLockGear()
 link_gearBC.Initialize(mbody_gearB, mbody_truss, chrono.ChFramed())
 link_gearBC.Set_local_shaft1(chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)))
 link_gearBC.Set_local_shaft2(chrono.ChFramed(chrono.ChVector3d(0, 0, -4), chrono.QUNIT))
@@ -140,7 +140,7 @@ sys.AddLink(link_revoluteD)
 
 # ... Let's make a 1:1 gear between wheel A and wheel D as a bevel gear: Chrono does not require
 #     special info for this case -the position of the two shafts and the transmission ratio are enough-
-link_gearAD = chrono.ChLinkGear()
+link_gearAD = chrono.ChLinkLockGear()
 link_gearAD.Initialize(mbody_gearA, mbody_gearD, chrono.ChFramed())
 link_gearAD.Set_local_shaft1(chrono.ChFramed(chrono.ChVector3d(0, -7, 0), chrono.QuatFromAngleX(-m.pi / 2)))
 link_gearAD.Set_local_shaft2(chrono.ChFramed(chrono.ChVector3d(0, -7, 0), chrono.QuatFromAngleX(-m.pi / 2)))
@@ -164,7 +164,7 @@ sys.AddLink(link_revoluteE)
 
 # ... Let's make a synchro belt constraint between pulley D and pulley E. The user must be
 #     sure that the two shafts are parallel in absolute space. Also, interaxial distance should not change.
-link_pulleyDE = chrono.ChLinkPulley()
+link_pulleyDE = chrono.ChLinkLockPulley()
 link_pulleyDE.Initialize(mbody_gearD, mbody_pulleyE, chrono.ChFramed())
 link_pulleyDE.Set_local_shaft1(chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)))
 link_pulleyDE.Set_local_shaft2(chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)))

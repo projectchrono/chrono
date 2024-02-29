@@ -93,7 +93,7 @@ bool render = true;
 float render_fps = 100;
 
 // linear actuator and angular actuator
-auto actuator = chrono_types::make_shared<ChLinkLinActuator>();
+auto actuator = chrono_types::make_shared<ChLinkLockLinActuator>();
 auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
 
 std::vector<std::vector<int>> NodeNeighborElement_mesh;

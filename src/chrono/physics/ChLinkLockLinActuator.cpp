@@ -12,14 +12,14 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChLinkLinActuator.h"
+#include "chrono/physics/ChLinkLockLinActuator.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkLinActuator)
+CH_FACTORY_REGISTER(ChLinkLockLinActuator)
 
-ChLinkLinActuator::ChLinkLinActuator() : offset(0.1) {
+ChLinkLockLinActuator::ChLinkLockLinActuator() : offset(0.1) {
     dist_funct = chrono_types::make_shared<ChFunctionConst>(0);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
@@ -27,12 +27,12 @@ ChLinkLinActuator::ChLinkLinActuator() : offset(0.1) {
     BuildLink();
 }
 
-ChLinkLinActuator::ChLinkLinActuator(const ChLinkLinActuator& other) : ChLinkLockLock(other) {
+ChLinkLockLinActuator::ChLinkLockLinActuator(const ChLinkLockLinActuator& other) : ChLinkLockLock(other) {
     offset = other.offset;
     dist_funct = std::shared_ptr<ChFunction>(other.dist_funct->Clone());
 }
 
-void ChLinkLinActuator::UpdateTime(double mytime) {
+void ChLinkLockLinActuator::UpdateTime(double mytime) {
     // First, inherit to parent class
     ChLinkLockLock::UpdateTime(mytime);
 
@@ -89,9 +89,9 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
     deltaC_dtdt.rot = QNULL;
 }
 
-void ChLinkLinActuator::ArchiveOut(ChArchiveOut& archive_out) {
+void ChLinkLockLinActuator::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    archive_out.VersionWrite<ChLinkLinActuator>();
+    archive_out.VersionWrite<ChLinkLockLinActuator>();
 
     // serialize parent class
     ChLinkLockLock::ArchiveOut(archive_out);
@@ -102,9 +102,9 @@ void ChLinkLinActuator::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkLinActuator::ArchiveIn(ChArchiveIn& archive_in) {
+void ChLinkLockLinActuator::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/archive_in.VersionRead<ChLinkLinActuator>();
+    /*int version =*/archive_in.VersionRead<ChLinkLockLinActuator>();
 
     // deserialize parent class
     ChLinkLockLock::ArchiveIn(archive_in);

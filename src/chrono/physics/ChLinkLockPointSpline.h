@@ -20,18 +20,18 @@
 
 namespace chrono {
 
-/// ChLinkPointSpline class.
+/// ChLinkLockPointSpline class.
 /// This class implements the 'point on a spline curve' constraint.
 /// It can be used also to simulate curvilinear glyphs, etc.
 
-class ChApi ChLinkPointSpline : public ChLinkLockLock {
+class ChApi ChLinkLockPointSpline : public ChLinkLockLock {
   public:
-    ChLinkPointSpline();
-    ChLinkPointSpline(const ChLinkPointSpline& other);
-    ~ChLinkPointSpline() {}
+    ChLinkLockPointSpline();
+    ChLinkLockPointSpline(const ChLinkLockPointSpline& other);
+    ~ChLinkLockPointSpline() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkPointSpline* Clone() const override { return new ChLinkPointSpline(*this); }
+    virtual ChLinkLockPointSpline* Clone() const override { return new ChLinkLockPointSpline(*this); }
 
     /// Get the address of the trajectory line
     std::shared_ptr<ChLine> Get_trajectory_line() const { return trajectory_line; }
@@ -56,7 +56,7 @@ class ChApi ChLinkPointSpline : public ChLinkLockLock {
     double tolerance;                                   ///< tolerance for nearest point search
 };
 
-CH_CLASS_VERSION(ChLinkPointSpline, 0)
+CH_CLASS_VERSION(ChLinkLockPointSpline, 0)
 
 }  // end namespace chrono
 

@@ -202,23 +202,23 @@ set(ChronoEngine_physics_links_SOURCES
     physics/ChLink.cpp
     physics/ChLinkDistance.cpp
     physics/ChLinkMarkers.cpp
-    physics/ChLinkLock.cpp
-    physics/ChLinkBrake.cpp
     physics/ChLinkBushing.cpp
-    physics/ChLinkGear.cpp
-    physics/ChLinkPulley.cpp
-    physics/ChLinkLinActuator.cpp
-    physics/ChLinkScrew.cpp
-    physics/ChLinkRSDA.cpp
-    physics/ChLinkTSDA.cpp
-    physics/ChLinkClearance.cpp
-    physics/ChLinkPointSpline.cpp
-    physics/ChLinkTrajectory.cpp
+    physics/ChLinkLock.cpp
+    physics/ChLinkLockBrake.cpp
+    physics/ChLinkLockGear.cpp
+    physics/ChLinkLockPulley.cpp
+    physics/ChLinkLockLinActuator.cpp
+    physics/ChLinkLockScrew.cpp
+    physics/ChLinkLockClearance.cpp
+    physics/ChLinkLockPointSpline.cpp
+    physics/ChLinkLockTrajectory.cpp
     physics/ChLinkMate.cpp
     physics/ChLinkRevolute.cpp
     physics/ChLinkRevoluteSpherical.cpp
     physics/ChLinkRevoluteTranslational.cpp
     physics/ChLinkUniversal.cpp
+    physics/ChLinkRSDA.cpp
+    physics/ChLinkTSDA.cpp
     physics/ChLinkMotor.cpp
     physics/ChLinkMotorRotation.cpp
     physics/ChLinkMotorRotationAngle.cpp
@@ -237,28 +237,28 @@ set(ChronoEngine_physics_links_HEADERS
     physics/ChLimit.h
     physics/ChLinkBase.h
     physics/ChLink.h
-    physics/ChLinkBrake.h
+    physics/ChLinksAll.h
     physics/ChLinkBushing.h
     physics/ChLinkDistance.h
     physics/ChLinkForce.h
-    physics/ChLinkGear.h
-    physics/ChLinkLinActuator.h
-    physics/ChLinkLock.h
     physics/ChLinkMarkers.h
     physics/ChLinkMask.h
-    physics/ChLinkPointSpline.h
-    physics/ChLinkPulley.h
-    physics/ChLinksAll.h
-    physics/ChLinkScrew.h
-    physics/ChLinkRSDA.h
-    physics/ChLinkTSDA.h
-    physics/ChLinkTrajectory.h
-    physics/ChLinkClearance.h
+    physics/ChLinkLockBrake.h
+    physics/ChLinkLockGear.h
+    physics/ChLinkLockLinActuator.h
+    physics/ChLinkLock.h
+    physics/ChLinkLockPointSpline.h
+    physics/ChLinkLockPulley.h
+    physics/ChLinkLockScrew.h
+    physics/ChLinkLockTrajectory.h
+    physics/ChLinkLockClearance.h
     physics/ChLinkMate.h
     physics/ChLinkRevolute.h
     physics/ChLinkRevoluteSpherical.h
     physics/ChLinkRevoluteTranslational.h
     physics/ChLinkUniversal.h
+    physics/ChLinkRSDA.h
+    physics/ChLinkTSDA.h
     physics/ChLinkMotor.h
     physics/ChLinkMotorRotation.h
     physics/ChLinkMotorRotationAngle.h

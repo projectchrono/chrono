@@ -81,13 +81,13 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the linear actuator.
     // The offset value here must be larger than any possible displacement of the steering link body (the rack) so that
-    // we do not reach the singular configuration of the ChLinkLinActuator (when the distance between the two markers
+    // we do not reach the singular configuration of the ChLinkLockLinActuator (when the distance between the two markers
     // becomes zero).
     double offset = 2;
     ChVector3d pt1 = link_pos;
     ChVector3d pt2 = link_pos - offset * link_rot.GetAxisY();
 
-    m_actuator = chrono_types::make_shared<ChLinkLinActuator>();
+    m_actuator = chrono_types::make_shared<ChLinkLockLinActuator>();
     m_actuator->SetNameString(m_name + "_actuator");
     m_actuator->Initialize(chassisBody, m_link, false, ChFrame<>(pt1, link_rot), ChFrame<>(pt2, link_rot));
     m_actuator->SetDistanceOffset(offset);

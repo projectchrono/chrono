@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "chrono/physics/ChLinkPulley.h"
+#include "chrono/physics/ChLinkLockGear.h"
 
 %}
  
@@ -10,11 +10,4 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../../../chrono/physics/ChLinkPulley.h"  
-
-
-
-
-
-
-
+%include "../../../chrono/physics/ChLinkLockGear.h"

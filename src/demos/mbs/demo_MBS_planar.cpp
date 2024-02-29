@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     // Create the plane-plane constraint
     // Constrain the sliding body to move and rotate in the x-y plane
     // (i.e. the plane whose normal is the z-axis of the specified coord sys)
-    auto plane_plane = chrono_types::make_shared<ChLinkLockPlanePlane>();
+    auto plane_plane = chrono_types::make_shared<ChLinkLockPlanar>();
     plane_plane->Initialize(ground, body, ChFrame<>(ChVector3d(-1.25, -0.75, 0), ChQuaternion<>(1, 0, 0, 0)));
     sys.AddLink(plane_plane);
 
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("ChLinkLockPlanePlane");
+    vis->SetWindowTitle("ChLinkLockPlanar");
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();

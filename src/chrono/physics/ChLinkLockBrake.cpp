@@ -12,21 +12,21 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChLinkBrake.h"
+#include "chrono/physics/ChLinkLockBrake.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkBrake)
+CH_FACTORY_REGISTER(ChLinkLockBrake)
 
-ChLinkBrake::ChLinkBrake()
+ChLinkLockBrake::ChLinkLockBrake()
     : brake_torque(0), stick_ratio(1.1), brake_mode(BRAKE_ROTATION), last_dir(0), must_stick(false) {
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     mask.SetLockMask(false, false, false, false, false, false, false);
     BuildLink();
 }
 
-ChLinkBrake::ChLinkBrake(const ChLinkBrake& other) : ChLinkLock(other) {
+ChLinkLockBrake::ChLinkLockBrake(const ChLinkLockBrake& other) : ChLinkLock(other) {
     brake_torque = other.brake_torque;
     stick_ratio = other.stick_ratio;
     brake_mode = other.brake_mode;
@@ -35,7 +35,7 @@ ChLinkBrake::ChLinkBrake(const ChLinkBrake& other) : ChLinkLock(other) {
     must_stick = other.must_stick;
 }
 
-void ChLinkBrake::Set_brake_mode(int mmode) {
+void ChLinkLockBrake::Set_brake_mode(int mmode) {
     if (mmode != brake_mode) {
         brake_mode = mmode;
 
@@ -46,7 +46,7 @@ void ChLinkBrake::Set_brake_mode(int mmode) {
     }
 }
 
-void ChLinkBrake::SetDisabled(bool mdis) {
+void ChLinkLockBrake::SetDisabled(bool mdis) {
     ChLinkLock::SetDisabled(mdis);
 
     mask.Constr_E3().SetMode(CONSTRAINT_FREE);
@@ -55,12 +55,12 @@ void ChLinkBrake::SetDisabled(bool mdis) {
 }
 
 // Update time: just change internal time!
-void ChLinkBrake::UpdateTime(double time) {
+void ChLinkLockBrake::UpdateTime(double time) {
     ChTime = time;
 }
 
 // Update forces: if not sticked, apply torque
-void ChLinkBrake::UpdateForces(double mytime) {
+void ChLinkLockBrake::UpdateForces(double mytime) {
     // First, inherit to parent class
     ChLinkLock::UpdateForces(mytime);
 
@@ -116,9 +116,9 @@ void ChLinkBrake::UpdateForces(double mytime) {
         must_stick = false;
 }
 
-void ChLinkBrake::ArchiveOut(ChArchiveOut& archive_out) {
+void ChLinkLockBrake::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    archive_out.VersionWrite<ChLinkBrake>();
+    archive_out.VersionWrite<ChLinkLockBrake>();
 
     // serialize parent class
     ChLinkLock::ArchiveOut(archive_out);
@@ -130,9 +130,9 @@ void ChLinkBrake::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkBrake::ArchiveIn(ChArchiveIn& archive_in) {
+void ChLinkLockBrake::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/archive_in.VersionRead<ChLinkBrake>();
+    /*int version =*/archive_in.VersionRead<ChLinkLockBrake>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIn(archive_in);

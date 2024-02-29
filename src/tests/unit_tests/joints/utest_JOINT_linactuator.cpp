@@ -178,7 +178,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     // call) so that the link coordinate system is expressed in the plate body
     // frame.
 
-    auto actuator = chrono_types::make_shared<ChLinkLinActuator>();
+    auto actuator = chrono_types::make_shared<ChLinkLockLinActuator>();
     ChVector3d pt1 = ChVector3d(0, 0, 0);
     ChVector3d pt2 = axis;
     actuator->Initialize(ground, plate, false, ChFrame<>(pt1, rot), ChFrame<>(pt2, rot));

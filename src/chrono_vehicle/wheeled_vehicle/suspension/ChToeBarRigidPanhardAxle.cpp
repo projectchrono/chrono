@@ -135,7 +135,7 @@ void ChToeBarRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     chassis->GetBody()->GetSystem()->AddBody(m_axleTubeBody);
 
     // Fix the axle body to the chassis
-    m_axleTubeGuide = chrono_types::make_shared<ChLinkLockPlanePlane>();
+    m_axleTubeGuide = chrono_types::make_shared<ChLinkLockPlanar>();
     m_axleTubeGuide->SetNameString(m_name + "_planePlaneAxleTube");
     const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
     m_axleTubeGuide->Initialize(chassis->GetBody(), m_axleTubeBody,

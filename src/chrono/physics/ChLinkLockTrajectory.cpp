@@ -13,16 +13,16 @@
 // =============================================================================
 
 #include "chrono/geometry/ChLineSegment.h"
-#include "chrono/physics/ChLinkTrajectory.h"
+#include "chrono/physics/ChLinkLockTrajectory.h"
 
 namespace chrono {
 
 static const double FD_STEP_HIGH = 1e-4;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkTrajectory)
+CH_FACTORY_REGISTER(ChLinkLockTrajectory)
 
-ChLinkTrajectory::ChLinkTrajectory() : modulo_s(false) {
+ChLinkLockTrajectory::ChLinkLockTrajectory() : modulo_s(false) {
     // initializes type
     type = LinkType::TRAJECTORY;
 
@@ -38,20 +38,20 @@ ChLinkTrajectory::ChLinkTrajectory() : modulo_s(false) {
     BuildLink();
 }
 
-ChLinkTrajectory::ChLinkTrajectory(const ChLinkTrajectory& other) : ChLinkLockLock(other) {
+ChLinkLockTrajectory::ChLinkLockTrajectory(const ChLinkLockTrajectory& other) : ChLinkLockLock(other) {
     space_fx = std::shared_ptr<ChFunction>(other.space_fx->Clone());            // deep copy
     trajectory_line = std::shared_ptr<ChLine>((ChLine*)other.trajectory_line->Clone());  // deep copy
 }
 
-void ChLinkTrajectory::Set_space_fx(std::shared_ptr<ChFunction> m_funct) {
+void ChLinkLockTrajectory::Set_space_fx(std::shared_ptr<ChFunction> m_funct) {
     space_fx = m_funct;
 }
 
-void ChLinkTrajectory::Set_trajectory_line(std::shared_ptr<ChLine> mline) {
+void ChLinkLockTrajectory::Set_trajectory_line(std::shared_ptr<ChLine> mline) {
     trajectory_line = mline;
 }
 
-void ChLinkTrajectory::UpdateTime(double time) {
+void ChLinkLockTrajectory::UpdateTime(double time) {
     ChTime = time;
 
     double tstep = FD_STEP_HIGH;
@@ -90,7 +90,7 @@ void ChLinkTrajectory::UpdateTime(double time) {
     }
 }
 
-void ChLinkTrajectory::Initialize(std::shared_ptr<ChBody> body1,
+void ChLinkLockTrajectory::Initialize(std::shared_ptr<ChBody> body1,
                                   std::shared_ptr<ChBody> body2,
                                   const ChVector3d& pos1,
                                   std::shared_ptr<ChLine> line) {
@@ -98,9 +98,9 @@ void ChLinkTrajectory::Initialize(std::shared_ptr<ChBody> body1,
     this->Set_trajectory_line(line);
 }
 
-void ChLinkTrajectory::ArchiveOut(ChArchiveOut& archive_out) {
+void ChLinkLockTrajectory::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    archive_out.VersionWrite<ChLinkTrajectory>();
+    archive_out.VersionWrite<ChLinkLockTrajectory>();
 
     // serialize parent class
     ChLinkLockLock::ArchiveOut(archive_out);
@@ -111,9 +111,9 @@ void ChLinkTrajectory::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(modulo_s);
 }
 
-void ChLinkTrajectory::ArchiveIn(ChArchiveIn& archive_in) {
+void ChLinkLockTrajectory::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkTrajectory>();
+    /*int version =*/ archive_in.VersionRead<ChLinkLockTrajectory>();
 
     // deserialize parent class
     ChLinkLockLock::ArchiveIn(archive_in);

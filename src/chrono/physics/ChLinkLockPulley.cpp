@@ -14,14 +14,14 @@
 
 #include <cmath>
 
-#include "chrono/physics/ChLinkPulley.h"
+#include "chrono/physics/ChLinkLockPulley.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkPulley)
+CH_FACTORY_REGISTER(ChLinkLockPulley)
 
-ChLinkPulley::ChLinkPulley()
+ChLinkLockPulley::ChLinkLockPulley()
     : tau(1),
       r1(1),
       r2(1),
@@ -43,7 +43,7 @@ ChLinkPulley::ChLinkPulley()
     BuildLink();
 }
 
-ChLinkPulley::ChLinkPulley(const ChLinkPulley& other) : ChLinkLockLock(other) {
+ChLinkLockPulley::ChLinkLockPulley(const ChLinkLockPulley& other) : ChLinkLockLock(other) {
     tau = other.tau;
     phase = other.phase;
     a1 = other.a1;
@@ -60,17 +60,17 @@ ChLinkPulley::ChLinkPulley(const ChLinkPulley& other) : ChLinkLockLock(other) {
     shaft_dist = other.shaft_dist;
 }
 
-void ChLinkPulley::Set_r1(double mr) {
+void ChLinkLockPulley::Set_r1(double mr) {
     r1 = mr;
     tau = r1 / r2;
 }
 
-void ChLinkPulley::Set_r2(double mr) {
+void ChLinkLockPulley::Set_r2(double mr) {
     r2 = mr;
     tau = r1 / r2;
 }
 
-ChVector3d ChLinkPulley::Get_shaft_dir1() {
+ChVector3d ChLinkLockPulley::Get_shaft_dir1() {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
@@ -79,7 +79,7 @@ ChVector3d ChLinkPulley::Get_shaft_dir1() {
         return VECT_Z;
 }
 
-ChVector3d ChLinkPulley::Get_shaft_dir2() {
+ChVector3d ChLinkLockPulley::Get_shaft_dir2() {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
@@ -88,7 +88,7 @@ ChVector3d ChLinkPulley::Get_shaft_dir2() {
         return VECT_Z;
 }
 
-ChVector3d ChLinkPulley::Get_shaft_pos1() {
+ChVector3d ChLinkLockPulley::Get_shaft_pos1() {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
@@ -97,7 +97,7 @@ ChVector3d ChLinkPulley::Get_shaft_pos1() {
         return VNULL;
 }
 
-ChVector3d ChLinkPulley::Get_shaft_pos2() {
+ChVector3d ChLinkLockPulley::Get_shaft_pos2() {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
@@ -106,7 +106,7 @@ ChVector3d ChLinkPulley::Get_shaft_pos2() {
         return VNULL;
 }
 
-void ChLinkPulley::UpdateTime(double mytime) {
+void ChLinkLockPulley::UpdateTime(double mytime) {
     // First, inherit to parent class
     ChLinkLockLock::UpdateTime(mytime);
 
@@ -210,9 +210,9 @@ void ChLinkPulley::UpdateTime(double mytime) {
     deltaC_dtdt.rot = QNULL;
 }
 
-void ChLinkPulley::ArchiveOut(ChArchiveOut& archive_out) {
+void ChLinkLockPulley::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    archive_out.VersionWrite<ChLinkPulley>();
+    archive_out.VersionWrite<ChLinkLockPulley>();
 
     // serialize parent class
     ChLinkLockLock::ArchiveOut(archive_out);
@@ -230,9 +230,9 @@ void ChLinkPulley::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkPulley::ArchiveIn(ChArchiveIn& archive_in) {
+void ChLinkLockPulley::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/archive_in.VersionRead<ChLinkPulley>();
+    /*int version =*/archive_in.VersionRead<ChLinkLockPulley>();
 
     // deserialize parent class
     ChLinkLockLock::ArchiveIn(archive_in);

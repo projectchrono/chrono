@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/physics/ChLinkTrajectory.h"
+#include "chrono/physics/ChLinkLockTrajectory.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/core/ChRealtimeStep.h"
 
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
 
     // The trajectory constraint:
 
-    auto trajectory = chrono_types::make_shared<ChLinkTrajectory>();
+    auto trajectory = chrono_types::make_shared<ChLinkLockTrajectory>();
 
     // Define which parts are connected (the trajectory is considered in the 2nd body).
     trajectory->Initialize(pendulum,               // body1 that follows the trajectory
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
 
     // The glyph constraint:
 
-    auto glyphconstraint = chrono_types::make_shared<ChLinkPointSpline>();
+    auto glyphconstraint = chrono_types::make_shared<ChLinkLockPointSpline>();
 
     // Define which parts are connected (the trajectory is considered in the 2nd body).
     glyphconstraint->Initialize(pendulum2,  // body1 that follows the trajectory

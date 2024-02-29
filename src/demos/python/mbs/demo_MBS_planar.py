@@ -47,7 +47,7 @@ body.GetVisualShape(0).SetColor(chrono.ChColor(0.9, 0.4, 0.1))
 # Create the plane-plane constraint
 # Constrain the sliding body to move and rotate in the x-y plane
 # (i.e. the plane whose normal is the z-axis of the specified coord sys)
-plane_plane = chrono.ChLinkLockPlanePlane()
+plane_plane = chrono.ChLinkLockPlanar()
 plane_plane.Initialize(ground, 
                        body, 
                        chrono.ChFramed(chrono.ChVector3d(-1.25, -0.75, 0), chrono.ChQuaterniond(1, 0, 0, 0)))
@@ -75,7 +75,7 @@ spring.AddVisualShape(chrono.ChVisualShapeSpring(0.05, 80, 15))
 vis = chronoirr.ChVisualSystemIrrlicht()
 vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
-vis.SetWindowTitle('ChLinkLockPlanePlane demo')
+vis.SetWindowTitle('ChLinkLockPlanar demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()

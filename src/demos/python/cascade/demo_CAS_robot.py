@@ -186,7 +186,7 @@ pathasset.SetLineGeometry(path)
 floor.AddVisualShape(pathasset)
 
 # This is the constraint that uses the trajectory
-trajectory = chrono.ChLinkTrajectory()
+trajectory = chrono.ChLinkLockTrajectory()
 # Define which parts are connected (the trajectory is considered in the 2nd body).
 trajectory.Initialize(rigidBody_hand,   # body1 that follows the trajectory
                       floor,            # body2 that 'owns' the trajectory

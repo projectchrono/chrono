@@ -1,20 +1,13 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "chrono/physics/ChLinkPointSpline.h"
+#include "chrono/physics/ChLinkLockScrew.h"
 
 %}
  
 // Tell SWIG about parent class in Python
-//%import "ChLink.i"
+%import "ChLinkLock.i"
 
 
 /* Parse the header file to generate wrappers */
-%include "../../../chrono/physics/ChLinkPointSpline.h"  
-
-
-
-
-
-
-
+%include "../../../chrono/physics/ChLinkLockScrew.h"

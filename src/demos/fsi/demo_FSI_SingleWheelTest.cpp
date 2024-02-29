@@ -68,7 +68,7 @@ double total_time = 5.0;
 double dT = 2.5e-4;
 
 // linear actuator and angular actuator
-auto actuator = chrono_types::make_shared<ChLinkLinActuator>();
+auto actuator = chrono_types::make_shared<ChLinkLockLinActuator>();
 auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
 
 // Save data as csv files to see the results off-line using Paraview

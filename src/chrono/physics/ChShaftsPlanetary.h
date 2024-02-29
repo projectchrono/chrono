@@ -32,7 +32,7 @@ class ChShaft;
 /// gear have two inputs and one output (or, if you prefer, one input and two outputs).
 /// Note that you can use this class also to make a gearbox if you are interested
 /// in knowing the reaction torque transmitted to the truss (whereas the basic
-/// ChLinkGear cannot do this because it has only in and out); in this case you
+/// ChLinkLockGear cannot do this because it has only in and out); in this case you
 /// just use the shaft n.1 as truss and fix it.
 class ChApi ChShaftsPlanetary : public ChPhysicsItem {
   public:

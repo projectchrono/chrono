@@ -22,18 +22,18 @@ namespace chrono {
 /// Screw joint between two rigid bodies. This
 /// link type is able to couple translation and rotation.
 
-class ChApi ChLinkScrew : public ChLinkLock {
+class ChApi ChLinkLockScrew : public ChLinkLock {
 
   protected:
     double tau;  ///< transmission coeff.
 
   public:
-    ChLinkScrew();
-    ChLinkScrew(const ChLinkScrew& other);
-    virtual ~ChLinkScrew() {}
+    ChLinkLockScrew();
+    ChLinkLockScrew(const ChLinkLockScrew& other);
+    virtual ~ChLinkLockScrew() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkScrew* Clone() const override { return new ChLinkScrew(*this); }
+    virtual ChLinkLockScrew* Clone() const override { return new ChLinkLockScrew(*this); }
 
     // Inherit the link-lock computations like it were a
     // normal "revolute" joint, but then modifies the Z-lock parts of C,
@@ -52,7 +52,7 @@ class ChApi ChLinkScrew : public ChLinkLock {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-CH_CLASS_VERSION(ChLinkScrew,0)
+CH_CLASS_VERSION(ChLinkLockScrew,0)
 
 }  // end namespace chrono
 

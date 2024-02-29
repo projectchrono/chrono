@@ -109,7 +109,7 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     virtual void Output(ChVehicleOutput& database) const override;
 
     std::shared_ptr<ChLinkLockPrismatic> m_prismatic;  ///< handle to the prismatic joint chassis-link
-    std::shared_ptr<ChLinkLinActuator> m_actuator;     ///< handle to the linear actuator on steering link
+    std::shared_ptr<ChLinkLockLinActuator> m_actuator;     ///< handle to the linear actuator on steering link
 };
 
 /// @} vehicle_wheeled_steering

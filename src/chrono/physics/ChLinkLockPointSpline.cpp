@@ -13,7 +13,7 @@
 // =============================================================================
 
 #include "chrono/geometry/ChLineSegment.h"
-#include "chrono/physics/ChLinkPointSpline.h"
+#include "chrono/physics/ChLinkLockPointSpline.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
@@ -21,9 +21,9 @@ namespace chrono {
 static const double FD_STEP = 1e-4;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkPointSpline)
+CH_FACTORY_REGISTER(ChLinkLockPointSpline)
 
-ChLinkPointSpline::ChLinkPointSpline() : tolerance(1e-6) {
+ChLinkLockPointSpline::ChLinkLockPointSpline() : tolerance(1e-6) {
     // default trajectory is a segment
     trajectory_line = chrono_types::make_shared<ChLineSegment>();
 
@@ -33,18 +33,18 @@ ChLinkPointSpline::ChLinkPointSpline() : tolerance(1e-6) {
     BuildLink();
 }
 
-ChLinkPointSpline::ChLinkPointSpline(const ChLinkPointSpline& other) : ChLinkLockLock(other) {
+ChLinkLockPointSpline::ChLinkLockPointSpline(const ChLinkLockPointSpline& other) : ChLinkLockLock(other) {
     trajectory_line = std::shared_ptr<ChLine>((ChLine*)other.trajectory_line->Clone());  // deep copy
     tolerance = other.tolerance;
 }
 
-void ChLinkPointSpline::Set_trajectory_line(std::shared_ptr<ChLine> mline) {
+void ChLinkLockPointSpline::Set_trajectory_line(std::shared_ptr<ChLine> mline) {
     trajectory_line = mline;
 }
 
 // UPDATE TIME
 
-void ChLinkPointSpline::UpdateTime(double time) {
+void ChLinkLockPointSpline::UpdateTime(double time) {
     ChTime = time;
 
     if (trajectory_line) {
@@ -112,9 +112,9 @@ void ChLinkPointSpline::UpdateTime(double time) {
     }
 }
 
-void ChLinkPointSpline::ArchiveOut(ChArchiveOut& archive_out) {
+void ChLinkLockPointSpline::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    archive_out.VersionWrite<ChLinkPointSpline>();
+    archive_out.VersionWrite<ChLinkLockPointSpline>();
 
     // serialize parent class
     ChLinkLockLock::ArchiveOut(archive_out);
@@ -124,9 +124,9 @@ void ChLinkPointSpline::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkPointSpline::ArchiveIn(ChArchiveIn& archive_in) {
+void ChLinkLockPointSpline::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkPointSpline>();
+    /*int version =*/ archive_in.VersionRead<ChLinkLockPointSpline>();
 
     // deserialize parent class
     ChLinkLockLock::ArchiveIn(archive_in);

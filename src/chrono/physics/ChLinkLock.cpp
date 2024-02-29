@@ -1981,7 +1981,7 @@ void ChLinkLockPointLine::Lock(bool lock) {
     }
 }
 
-void ChLinkLockPlanePlane::Lock(bool lock) {
+void ChLinkLockPlanar::Lock(bool lock) {
     BuildLink(lock, lock, true, false, true, true, lock);
     if (system) {
         system->ForceUpdate();
@@ -2530,7 +2530,7 @@ CH_FACTORY_REGISTER(ChLinkLockCylindrical)
 CH_FACTORY_REGISTER(ChLinkLockPrismatic)
 CH_FACTORY_REGISTER(ChLinkLockPointPlane)
 CH_FACTORY_REGISTER(ChLinkLockPointLine)
-CH_FACTORY_REGISTER(ChLinkLockPlanePlane)
+CH_FACTORY_REGISTER(ChLinkLockPlanar)
 CH_FACTORY_REGISTER(ChLinkLockOldham)
 CH_FACTORY_REGISTER(ChLinkLockFree)
 CH_FACTORY_REGISTER(ChLinkLockAlign)

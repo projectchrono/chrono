@@ -21,14 +21,14 @@ namespace chrono {
 
 /// Linear actuator between two markers on two rigid bodies
 /// The distance between the two markers changes in time following a user-provided function.
-class ChApi ChLinkLinActuator : public ChLinkLockLock {
+class ChApi ChLinkLockLinActuator : public ChLinkLockLock {
   public:
-    ChLinkLinActuator();
-    ChLinkLinActuator(const ChLinkLinActuator& other);
-    virtual ~ChLinkLinActuator() {}
+    ChLinkLockLinActuator();
+    ChLinkLockLinActuator(const ChLinkLockLinActuator& other);
+    virtual ~ChLinkLockLinActuator() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkLinActuator* Clone() const override { return new ChLinkLinActuator(*this); }
+    virtual ChLinkLockLinActuator* Clone() const override { return new ChLinkLockLinActuator(*this); }
 
     /// Set the actuation function of time d(t).
     void SetActuatorFunction(std::shared_ptr<ChFunction> mf) { dist_funct = mf; }
@@ -59,7 +59,7 @@ class ChApi ChLinkLinActuator : public ChLinkLockLock {
     double offset;                           ///< distance offset
 };
 
-CH_CLASS_VERSION(ChLinkLinActuator, 0)
+CH_CLASS_VERSION(ChLinkLockLinActuator, 0)
 
 }  // end namespace chrono
 

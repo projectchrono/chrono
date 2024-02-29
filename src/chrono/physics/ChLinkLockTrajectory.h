@@ -20,12 +20,12 @@
 
 namespace chrono {
 
-/// ChLinkTrajectory class.
+/// ChLinkLockTrajectory class.
 /// This class implements the 'point on an imposed trajectory' constraint.
 /// It can be used also to simulate the imposed motion of objects in space
 /// (for motion capture, for example).
 
-class ChApi ChLinkTrajectory : public ChLinkLockLock {
+class ChApi ChLinkLockTrajectory : public ChLinkLockLock {
 
   protected:
     std::shared_ptr<ChFunction> space_fx;  ///< function providing the time history of the trajectory parameter
@@ -33,12 +33,12 @@ class ChApi ChLinkTrajectory : public ChLinkLockLock {
     bool modulo_s;                                      ///< modulation
 
   public:
-    ChLinkTrajectory();
-    ChLinkTrajectory(const ChLinkTrajectory& other);
-    virtual ~ChLinkTrajectory() {}
+    ChLinkLockTrajectory();
+    ChLinkLockTrajectory(const ChLinkLockTrajectory& other);
+    virtual ~ChLinkLockTrajectory() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkTrajectory* Clone() const override { return new ChLinkTrajectory(*this); }
+    virtual ChLinkLockTrajectory* Clone() const override { return new ChLinkLockTrajectory(*this); }
 
     /// Gets the address of the function s=s(t) telling
     /// how the curvilinear parameter of the trajectory changes in time.
@@ -80,7 +80,7 @@ class ChApi ChLinkTrajectory : public ChLinkLockLock {
     using ChLinkMarkers::Initialize;
 };
 
-CH_CLASS_VERSION(ChLinkTrajectory,0)
+CH_CLASS_VERSION(ChLinkLockTrajectory,0)
 
 }  // end namespace chrono
 

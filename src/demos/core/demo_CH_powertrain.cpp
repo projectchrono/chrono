@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
         // Create a ChShaftsGear, that represents a simplified model
         // of a reducer, with transmission ratio t, between two ChShaft objects.
         // (Note that you could also build a 3D powertrain by creating full rigid bodies
-        // of ChBody type and join them using ChLinkLockRevolute, ChLinkGear 3D constraints,
+        // of ChBody type and join them using ChLinkLockRevolute, ChLinkLockGear 3D constraints,
         // but this would introduce many unnecessary degrees of freedom/constraints
         // whereas the 1D items of ChShaft type, in this example, make things much simplier).
         auto my_shaft_gearAB = chrono_types::make_shared<ChShaftsGear>();

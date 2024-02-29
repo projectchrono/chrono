@@ -12,14 +12,14 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChLinkScrew.h"
+#include "chrono/physics/ChLinkLockScrew.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkScrew)
+CH_FACTORY_REGISTER(ChLinkLockScrew)
 
-ChLinkScrew::ChLinkScrew() {
+ChLinkLockScrew::ChLinkLockScrew() {
     Set_thread(0.05);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask) to X,Y,Z,Rx Ry,
@@ -29,11 +29,11 @@ ChLinkScrew::ChLinkScrew() {
     BuildLink();
 }
 
-ChLinkScrew::ChLinkScrew(const ChLinkScrew& other) : ChLinkLock(other) {
+ChLinkLockScrew::ChLinkLockScrew(const ChLinkLockScrew& other) : ChLinkLock(other) {
     tau = other.tau;
 }
 
-void ChLinkScrew::UpdateState() {
+void ChLinkLockScrew::UpdateState() {
     // First, compute everything as it were a normal "revolute" joint, on z axis...
     ChLinkLock::UpdateState();
 
@@ -113,9 +113,9 @@ void ChLinkScrew::UpdateState() {
     Ct(2) = scr_Ct;
 }
 
-void ChLinkScrew::ArchiveOut(ChArchiveOut& archive_out) {
+void ChLinkLockScrew::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    archive_out.VersionWrite<ChLinkScrew>();
+    archive_out.VersionWrite<ChLinkLockScrew>();
 
     // serialize parent class
     ChLinkLock::ArchiveOut(archive_out);
@@ -125,9 +125,9 @@ void ChLinkScrew::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkScrew::ArchiveIn(ChArchiveIn& archive_in) {
+void ChLinkLockScrew::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkScrew>();
+    /*int version =*/ archive_in.VersionRead<ChLinkLockScrew>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIn(archive_in);

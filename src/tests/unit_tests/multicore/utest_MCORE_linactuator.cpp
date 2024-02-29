@@ -52,7 +52,7 @@ class ChLinActuatorTest
     double speed;
     std::shared_ptr<ChBody> plate;
     std::shared_ptr<ChLinkLockPrismatic> prismatic;
-    std::shared_ptr<ChLinkLinActuator> actuator;
+    std::shared_ptr<ChLinkLockLinActuator> actuator;
     bool animate;
 };
 
@@ -143,7 +143,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     // Here, we set the plate as the master body (second one in the initialization
     // call) so that the link coordinate system is expressed in the plate body
     // frame.
-    actuator = chrono_types::make_shared<ChLinkLinActuator>();
+    actuator = chrono_types::make_shared<ChLinkLockLinActuator>();
     ChVector3d pt1 = ChVector3d(0, 0, 0);
     ChVector3d pt2 = axis;
     actuator->Initialize(ground, plate, false, ChFrame<>(pt1, rot), ChFrame<>(pt2, rot));

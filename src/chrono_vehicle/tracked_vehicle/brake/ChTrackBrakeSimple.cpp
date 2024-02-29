@@ -25,7 +25,7 @@ namespace chrono {
 namespace vehicle {
 
 ChTrackBrakeSimple::ChTrackBrakeSimple(const std::string& name) : ChTrackBrake(name), m_braking(0) {
-    m_brake = chrono_types::make_shared<ChLinkBrake>();
+    m_brake = chrono_types::make_shared<ChLinkLockBrake>();
 }
 
 ChTrackBrakeSimple::~ChTrackBrakeSimple() {

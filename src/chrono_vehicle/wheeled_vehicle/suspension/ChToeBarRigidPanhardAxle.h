@@ -245,7 +245,7 @@ class CH_VEHICLE_API ChToeBarRigidPanhardAxle : public ChSuspension {
     std::shared_ptr<ChBody> m_panhardRodBody;  ///< handles to the panhard rod body
     std::shared_ptr<ChBody> m_arbBody[2];      ///< handles to the antiroll bar bodies
 
-    std::shared_ptr<ChLinkLockPlanePlane> m_axleTubeGuide;     ///< allows translation Y,Z and rotation X
+    std::shared_ptr<ChLinkLockPlanar> m_axleTubeGuide;     ///< allows translation Y,Z and rotation X
     std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;    ///< knuckle-tierod spherical joint (left)
     std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;  ///< draglink-chassis spherical joint (left)
     std::shared_ptr<ChLinkUniversal> m_universalDraglink;      ///< draglink-bellCrank universal joint (left)

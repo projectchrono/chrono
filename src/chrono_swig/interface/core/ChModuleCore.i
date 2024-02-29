@@ -235,8 +235,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkLimit)
 
 %shared_ptr(chrono::ChLinkDistance)
-%shared_ptr(chrono::ChLinkGear)
-%shared_ptr(chrono::ChLinkLinActuator)
+%shared_ptr(chrono::ChLinkLockGear)
+%shared_ptr(chrono::ChLinkLockLinActuator)
 %shared_ptr(chrono::ChLinkMate)
 %shared_ptr(chrono::ChLinkMateGeneric)
 %shared_ptr(chrono::ChLinkMatePlanar)
@@ -249,10 +249,10 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkMateRevolute)
 %shared_ptr(chrono::ChLinkMatePrismatic)
 %shared_ptr(chrono::ChLinkMateRackPinion)
-%shared_ptr(chrono::ChLinkPulley)
+%shared_ptr(chrono::ChLinkLockPulley)
 %shared_ptr(chrono::ChLinkRevolute)
 %shared_ptr(chrono::ChLinkRevoluteSpherical)
-%shared_ptr(chrono::ChLinkScrew)
+%shared_ptr(chrono::ChLinkLockScrew)
 %shared_ptr(chrono::ChLinkTSDA)
 %shared_ptr(chrono::ChLinkUniversal)
 %shared_ptr(chrono::ChLinkMotor)
@@ -266,8 +266,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkMotorRotationDriveline)
 %shared_ptr(chrono::ChLinkMotorRotationSpeed)
 %shared_ptr(chrono::ChLinkMotorRotationTorque)
-%shared_ptr(chrono::ChLinkTrajectory)
-%shared_ptr(chrono::ChLinkPointSpline)
+%shared_ptr(chrono::ChLinkLockTrajectory)
+%shared_ptr(chrono::ChLinkLockPointSpline)
 %shared_ptr(chrono::ChLinkMotionImposed)
 
 %shared_ptr(chrono::ChGeometry)
@@ -401,17 +401,17 @@ using namespace chrono::fea;
 %include "ChLinkLock.i"
 %include "ChLinkMate.i"
 %include "ChLinkDistance.i"
-%include "ChLinkLinActuator.i"
-%include "ChLinkPulley.i"
-%include "ChLinkScrew.i"
+%include "ChLinkLockLinActuator.i"
+%include "ChLinkLockPulley.i"
+%include "ChLinkLockScrew.i"
 %include "ChLinkTSDA.i"
 %include "ChLinkRSDA.i"
-%include "ChLinkGear.i"
+%include "ChLinkLockGear.i"
 %include "ChLinkRevolute.i"
 %include "ChLinkRevoluteSpherical.i"
 %include "ChLinkUniversal.i" 
-%include "ChLinkTrajectory.i" 
-%include "ChLinkPointSpline.i"
+%include "ChLinkLockTrajectory.i" 
+%include "ChLinkLockPointSpline.i"
 %include "../../../chrono/physics/ChLinkMotionImposed.h"
 %include "ChAssembly.i"
 %include "ChTimestepper.i"
@@ -548,11 +548,11 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMateFix)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMateRevolute)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMatePrismatic)
-%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkGear)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkLockGear)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkDistance)
-%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkLinActuator)
-%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkPulley)
-%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkScrew)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkLockLinActuator)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkLockPulley)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkLockScrew)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkTSDA)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkRSDA)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMotor)
@@ -593,14 +593,14 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMateFix)
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMateRevolute)
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMatePrismatic)
-%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkGear)
+%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkLockGear)
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkDistance)
-%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkLinActuator)
-%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkPulley)
-%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkScrew)
+%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkLockLinActuator)
+%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkLockPulley)
+%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkLockScrew)
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkTSDA)
-%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkPointSpline) 
-%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkTrajectory)
+%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkLockPointSpline) 
+%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkLockTrajectory)
 
 
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaft)

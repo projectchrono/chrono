@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/physics/ChLinkTrajectory.h"
+#include "chrono/physics/ChLinkLockTrajectory.h"
 #include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"

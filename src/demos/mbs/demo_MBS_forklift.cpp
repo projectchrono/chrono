@@ -21,7 +21,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChLinkLinActuator.h"
+#include "chrono/physics/ChLinkLockLinActuator.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -70,7 +70,7 @@ class MySimpleForklift {
     std::shared_ptr<ChLinkMotorRotationAngle> link_engineArm;
     // ..the fork
     std::shared_ptr<ChBody> fork;
-    std::shared_ptr<ChLinkLinActuator> link_actuatorFork;
+    std::shared_ptr<ChLinkLockLinActuator> link_actuatorFork;
     std::shared_ptr<ChLinkLockPrismatic> link_prismaticFork;
 
     // Build and initialize the forklift, creating all bodies corresponding to
@@ -240,7 +240,7 @@ class MySimpleForklift {
         sys->AddLink(link_prismaticFork);
 
         // .. create the linear actuator that pushes upward the fork
-        link_actuatorFork = chrono_types::make_shared<ChLinkLinActuator>();
+        link_actuatorFork = chrono_types::make_shared<ChLinkLockLinActuator>();
         link_actuatorFork->Initialize(fork, arm, false, ChFrame<>(POS_prismatic + ChVector3d(0, 0.01, 0), QUNIT),
                                       ChFrame<>(POS_prismatic, QUNIT));
         sys->AddLink(link_actuatorFork);

@@ -24,7 +24,7 @@ namespace chrono {
 /// it correctly handles the direction of transmitted force
 /// given the teeth pressure angle.
 
-class ChApi ChLinkGear : public ChLinkLock {
+class ChApi ChLinkLockGear : public ChLinkLock {
 
   protected:
     double tau;       ///< transmission coeff.
@@ -45,12 +45,12 @@ class ChApi ChLinkGear : public ChLinkLock {
     ChFrame<double> local_shaft2;  ///< shaft2 pos & dir (as Z axis), relative to body2
 
   public:
-    ChLinkGear();
-    ChLinkGear(const ChLinkGear& other);
-    virtual ~ChLinkGear() {}
+    ChLinkLockGear();
+    ChLinkLockGear(const ChLinkLockGear& other);
+    virtual ~ChLinkLockGear() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkGear* Clone() const override { return new ChLinkGear(*this); }
+    virtual ChLinkLockGear* Clone() const override { return new ChLinkLockGear(*this); }
 
     // Updates motion laws, marker positions, etc.
     virtual void UpdateTime(double mytime) override;
@@ -143,7 +143,7 @@ class ChApi ChLinkGear : public ChLinkLock {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-CH_CLASS_VERSION(ChLinkGear,0)
+CH_CLASS_VERSION(ChLinkLockGear,0)
 
 }  // end namespace chrono
 

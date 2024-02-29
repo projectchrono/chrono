@@ -465,12 +465,12 @@ class ChApi ChLinkLockPointLine : public ChLinkLock {
 
 /// Plane-plane joint, with the 'ChLinkLock' formulation.
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
-class ChApi ChLinkLockPlanePlane : public ChLinkLock {
+class ChApi ChLinkLockPlanar : public ChLinkLock {
   public:
-    ChLinkLockPlanePlane() { ChangeLinkType(LinkType::PLANEPLANE); }
+    ChLinkLockPlanar() { ChangeLinkType(LinkType::PLANEPLANE); }
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkLockPlanePlane* Clone() const override { return new ChLinkLockPlanePlane(*this); }
+    virtual ChLinkLockPlanar* Clone() const override { return new ChLinkLockPlanar(*this); }
 
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.

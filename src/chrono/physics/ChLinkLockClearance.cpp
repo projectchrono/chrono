@@ -12,14 +12,14 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChLinkClearance.h"
+#include "chrono/physics/ChLinkLockClearance.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkClearance)
+CH_FACTORY_REGISTER(ChLinkLockClearance)
 
-ChLinkClearance::ChLinkClearance() {
+ChLinkLockClearance::ChLinkLockClearance() {
     type = LinkType::CLEARANCE;
 
     clearance = 0.1;
@@ -42,7 +42,7 @@ ChLinkClearance::ChLinkClearance() {
     BuildLink();
 }
 
-ChLinkClearance::ChLinkClearance(const ChLinkClearance& other) : ChLinkLockLock(other) {
+ChLinkLockClearance::ChLinkLockClearance(const ChLinkLockClearance& other) : ChLinkLockLock(other) {
     clearance = other.clearance;
     c_friction = other.c_friction;
     c_restitution = other.c_restitution;
@@ -54,11 +54,11 @@ ChLinkClearance::ChLinkClearance(const ChLinkClearance& other) : ChLinkLockLock(
     contact_V_abs = other.contact_V_abs;
 }
 
-double ChLinkClearance::Get_axis_eccentricity() {
+double ChLinkLockClearance::Get_axis_eccentricity() {
     return GetDist();
 }
 
-double ChLinkClearance::Get_axis_phase() {
+double ChLinkLockClearance::Get_axis_phase() {
     if (!GetMarker2())
         return 0;
     double angle;
@@ -71,45 +71,45 @@ double ChLinkClearance::Get_axis_phase() {
     return angle;
 }
 
-double ChLinkClearance::Get_rotation_angle() {
+double ChLinkLockClearance::Get_rotation_angle() {
     return GetRelAngle();
 }
 
-ChVector3d ChLinkClearance::Get_contact_P_abs() {
+ChVector3d ChLinkLockClearance::Get_contact_P_abs() {
     if (!GetMarker2())
         return VNULL;
     return GetMarker2()->GetAbsCsys().pos - (clearance + diameter / 2) * Get_contact_N_abs();
 }
 
-ChVector3d ChLinkClearance::Get_contact_N_abs() {
+ChVector3d ChLinkLockClearance::Get_contact_N_abs() {
     if (!GetMarker2())
         return VECT_X;
     return GetMarker2()->GetAbsFrame().TransformDirectionLocalToParent(-VECT_X);
 }
 
-ChVector3d ChLinkClearance::Get_contact_F_abs() {
+ChVector3d ChLinkLockClearance::Get_contact_F_abs() {
     return contact_F_abs;
 }
 
-double ChLinkClearance::Get_contact_F_n() {
+double ChLinkLockClearance::Get_contact_F_n() {
     if (!GetMarker2())
         return 0;
     return GetMarker2()->GetAbsFrame().TransformDirectionParentToLocal(contact_F_abs).x();
 }
 
-double ChLinkClearance::Get_contact_F_t() {
+double ChLinkLockClearance::Get_contact_F_t() {
     if (!GetMarker2())
         return 0;
     return GetMarker2()->GetAbsFrame().TransformDirectionParentToLocal(contact_F_abs).y();
 }
 
-double ChLinkClearance::Get_contact_V_t() {
+double ChLinkLockClearance::Get_contact_V_t() {
     if (!GetMarker2())
         return 0;
     return GetMarker2()->GetAbsFrame().TransformDirectionParentToLocal(contact_V_abs).y();
 }
 
-void ChLinkClearance::UpdateForces(double mytime) {
+void ChLinkLockClearance::UpdateForces(double mytime) {
     // May avoid inheriting parent class force computation, since not needed
     ////LinkLock::UpdateForces(mytime);
 
@@ -139,7 +139,7 @@ void ChLinkClearance::UpdateForces(double mytime) {
     contact_F_abs = Vadd(Vmul(Get_contact_N_abs(), m_norm_force), m_friction_F_abs);
 }
 
-void ChLinkClearance::UpdateTime(double mytime) {
+void ChLinkLockClearance::UpdateTime(double mytime) {
     // First, inherit to parent class
     ChLinkLockLock::UpdateTime(mytime);
 
@@ -183,9 +183,9 @@ void ChLinkClearance::UpdateTime(double mytime) {
     deltaC_dtdt.rot = QNULL;
 }
 
-void ChLinkClearance::ArchiveOut(ChArchiveOut& archive_out) {
+void ChLinkLockClearance::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    archive_out.VersionWrite<ChLinkClearance>();
+    archive_out.VersionWrite<ChLinkLockClearance>();
 
     // serialize parent class
     ChLinkLockLock::ArchiveOut(archive_out);
@@ -200,9 +200,9 @@ void ChLinkClearance::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkClearance::ArchiveIn(ChArchiveIn& archive_in) {
+void ChLinkLockClearance::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/archive_in.VersionRead<ChLinkClearance>();
+    /*int version =*/archive_in.VersionRead<ChLinkLockClearance>();
 
     // deserialize parent class
     ChLinkLockLock::ArchiveIn(archive_in);

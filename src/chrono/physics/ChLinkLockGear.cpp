@@ -14,14 +14,14 @@
 
 #include <cmath>
 
-#include "chrono/physics/ChLinkGear.h"
+#include "chrono/physics/ChLinkLockGear.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkGear)
+CH_FACTORY_REGISTER(ChLinkLockGear)
 
-ChLinkGear::ChLinkGear()
+ChLinkLockGear::ChLinkLockGear()
     : tau(1),
       alpha(0),
       beta(0),
@@ -41,7 +41,7 @@ ChLinkGear::ChLinkGear()
     BuildLink();
 }
 
-ChLinkGear::ChLinkGear(const ChLinkGear& other) : ChLinkLock(other) {
+ChLinkLockGear::ChLinkLockGear(const ChLinkLockGear& other) : ChLinkLock(other) {
     tau = other.tau;
     alpha = other.alpha;
     beta = other.beta;
@@ -57,7 +57,7 @@ ChLinkGear::ChLinkGear(const ChLinkGear& other) : ChLinkLock(other) {
     local_shaft2 = other.local_shaft2;
 }
 
-ChVector3d ChLinkGear::Get_shaft_dir1() const {
+ChVector3d ChLinkLockGear::Get_shaft_dir1() const {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
@@ -66,7 +66,7 @@ ChVector3d ChLinkGear::Get_shaft_dir1() const {
         return VECT_Z;
 }
 
-ChVector3d ChLinkGear::Get_shaft_dir2() const {
+ChVector3d ChLinkLockGear::Get_shaft_dir2() const {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
@@ -75,7 +75,7 @@ ChVector3d ChLinkGear::Get_shaft_dir2() const {
         return VECT_Z;
 }
 
-ChVector3d ChLinkGear::Get_shaft_pos1() const {
+ChVector3d ChLinkLockGear::Get_shaft_pos1() const {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
@@ -84,7 +84,7 @@ ChVector3d ChLinkGear::Get_shaft_pos1() const {
         return VNULL;
 }
 
-ChVector3d ChLinkGear::Get_shaft_pos2() const {
+ChVector3d ChLinkLockGear::Get_shaft_pos2() const {
     if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
@@ -93,7 +93,7 @@ ChVector3d ChLinkGear::Get_shaft_pos2() const {
         return VNULL;
 }
 
-void ChLinkGear::UpdateTime(double mytime) {
+void ChLinkLockGear::UpdateTime(double mytime) {
     // First, inherit to parent class
     ChLinkLock::UpdateTime(mytime);
 
@@ -256,9 +256,9 @@ void ChLinkGear::UpdateTime(double mytime) {
     marker2->ImposeAbsoluteTransform(ChFrame<>(mmark2, ma2.GetQuaternion()));
 }
 
-void ChLinkGear::ArchiveOut(ChArchiveOut& archive_out) {
+void ChLinkLockGear::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    archive_out.VersionWrite<ChLinkGear>();
+    archive_out.VersionWrite<ChLinkLockGear>();
 
     // serialize parent class
     ChLinkLock::ArchiveOut(archive_out);
@@ -279,9 +279,9 @@ void ChLinkGear::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkGear::ArchiveIn(ChArchiveIn& archive_in) {
+void ChLinkLockGear::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkGear>();
+    /*int version =*/ archive_in.VersionRead<ChLinkLockGear>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIn(archive_in);

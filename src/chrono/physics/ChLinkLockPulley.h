@@ -24,7 +24,7 @@ namespace chrono {
 /// links, for example two revolute joints (ChLinkLockRevolute), because
 /// this link constraints only the rotation.
 
-class ChApi ChLinkPulley : public ChLinkLockLock {
+class ChApi ChLinkLockPulley : public ChLinkLockLock {
 
   protected:
     double tau;       ///< transmission coeff.
@@ -47,12 +47,12 @@ class ChApi ChLinkPulley : public ChLinkLockLock {
     ChFrame<double> local_shaft2;  ///< shaft2 pos & dir (as Z axis), relative to body2
 
   public:
-    ChLinkPulley();
-    ChLinkPulley(const ChLinkPulley& other);
-    virtual ~ChLinkPulley() {}
+    ChLinkLockPulley();
+    ChLinkLockPulley(const ChLinkLockPulley& other);
+    virtual ~ChLinkLockPulley() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkPulley* Clone() const override { return new ChLinkPulley(*this); }
+    virtual ChLinkLockPulley* Clone() const override { return new ChLinkLockPulley(*this); }
 
     /// Updates motion laws, marker positions, etc.
     virtual void UpdateTime(double mytime) override;
@@ -145,7 +145,7 @@ class ChApi ChLinkPulley : public ChLinkLockLock {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-CH_CLASS_VERSION(ChLinkPulley,0)
+CH_CLASS_VERSION(ChLinkLockPulley,0)
 
 }  // end namespace chrono
 

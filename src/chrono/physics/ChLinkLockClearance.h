@@ -22,7 +22,7 @@ namespace chrono {
 /// A class for the custom fast simulation of revolute joints with clearance.
 /// ***OBSOLETE***
 
-class ChApi ChLinkClearance : public ChLinkLockLock {
+class ChApi ChLinkLockClearance : public ChLinkLockLock {
   protected:
     double clearance;           ///< distance offset
     double c_friction;          ///< friction coeff.
@@ -37,12 +37,12 @@ class ChApi ChLinkClearance : public ChLinkLockLock {
 
   public:
     // builders and destroyers
-    ChLinkClearance();
-    ChLinkClearance(const ChLinkClearance& other);
-    ~ChLinkClearance() {}
+    ChLinkLockClearance();
+    ChLinkLockClearance(const ChLinkLockClearance& other);
+    ~ChLinkLockClearance() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkClearance* Clone() const override { return new ChLinkClearance(*this); }
+    virtual ChLinkLockClearance* Clone() const override { return new ChLinkLockClearance(*this); }
 
     // Updates marker positions, etc.
     virtual void UpdateTime(double mytime) override;
@@ -88,7 +88,7 @@ class ChApi ChLinkClearance : public ChLinkLockLock {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-CH_CLASS_VERSION(ChLinkClearance, 0)
+CH_CLASS_VERSION(ChLinkLockClearance, 0)
 
 }  // end namespace chrono
 
