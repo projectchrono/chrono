@@ -104,11 +104,9 @@ int main(int argc, char* argv[]) {
     mtruss->SetBodyFixed(true);
     sys.Add(mtruss);
 
-    auto constr_bc = chrono_types::make_shared<ChLinkMateGeneric>();
+    auto constr_bc = chrono_types::make_shared<ChLinkMateFix>();
     constr_bc->Initialize(hnode3, mtruss, false, hnode3->Frame(), hnode3->Frame());
     sys.Add(constr_bc);
-    constr_bc->SetConstrainedCoords(true, true, true,   // x, y, z
-                                    true, true, true);  // Rx, Ry, Rz
 
     auto constr_d = chrono_types::make_shared<ChLinkMateGeneric>();
     constr_d->Initialize(hnode1, mtruss, false, hnode1->Frame(), hnode1->Frame());

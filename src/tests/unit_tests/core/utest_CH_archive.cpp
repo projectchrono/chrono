@@ -78,17 +78,17 @@ void assemble_fourbar(ChSystemNSC& system) {
     linkO->SetMotorFunction(chrono_types::make_shared<ChFunctionPoly345>(3.14, 1));
     system.Add(linkO);
 
-    auto linkA = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
+    auto linkA = chrono_types::make_shared<ChLinkMateRevolute>();
     linkA->Initialize(rod, crank, frameA);
     linkA->SetName("linkA");
     system.Add(linkA);
 
-    auto linkB = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
+    auto linkB = chrono_types::make_shared<ChLinkMateRevolute>();
     linkB->Initialize(rocker, rod, frameB);
     linkB->SetName("linkB");
     system.Add(linkB);
 
-    auto linkC = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
+    auto linkC = chrono_types::make_shared<ChLinkMateRevolute>();
     linkC->Initialize(rocker, floor, frameC);
     // linkC->Initialize(floor, rocker, frameC);
     linkC->SetName("linkC");

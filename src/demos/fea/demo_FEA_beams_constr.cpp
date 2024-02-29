@@ -180,12 +180,9 @@ int main(int argc, char* argv[]) {
     auto node_down = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().back());
 
     // Create a constraint between the vertical and horizontal beams:
-    auto constr_bb = chrono_types::make_shared<ChLinkMateGeneric>();
+    auto constr_bb = chrono_types::make_shared<ChLinkMateSpherical>();
     constr_bb->Initialize(node_top, node_tip, false, node_top->Frame(), node_top->Frame());
     sys.Add(constr_bb);
-
-    constr_bb->SetConstrainedCoords(true, true, true,      // x, y, z
-                                    false, false, false);  // Rx, Ry, Rz
 
     // For example, attach small shape to show the constraint
     auto msphereconstr2 = chrono_types::make_shared<ChVisualShapeSphere>(0.01);
@@ -211,20 +208,14 @@ int main(int argc, char* argv[]) {
     auto node_crankG = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().front());
     auto node_crankB = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().back());
     // Create a constraint between the crank beam and body crank:
-    auto constr_cbd = chrono_types::make_shared<ChLinkMateGeneric>();
+    auto constr_cbd = chrono_types::make_shared<ChLinkMateFix>();
     constr_cbd->Initialize(node_crankG, body_crank, false, node_crankG->Frame(), node_crankG->Frame());
     sys.Add(constr_cbd);
 
-    constr_cbd->SetConstrainedCoords(true, true, true,   // x, y, z
-                                     true, true, true);  // Rx, Ry, Rz
-
     // Create a constraint between the vertical beam and the crank beam:
-    auto constr_bc = chrono_types::make_shared<ChLinkMateGeneric>();
+    auto constr_bc = chrono_types::make_shared<ChLinkMateRevolute>();
     constr_bc->Initialize(node_down, node_crankB, false, node_crankB->Frame(), node_crankB->Frame());
     sys.Add(constr_bc);
-
-    constr_bc->SetConstrainedCoords(true, true, true,    // x, y, z
-                                    true, true, false);  // Rx, Ry, Rz
 
     // For example, attach small shape to show the constraint
     auto msphereconstr3 = chrono_types::make_shared<ChVisualShapeSphere>(0.01);

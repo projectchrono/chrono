@@ -87,11 +87,9 @@ int main(int argc, char* argv[]) {
     sys.Add(truss);
 
     // Create a constraint at the end of the beam
-    auto constraintA = chrono_types::make_shared<ChLinkMateGeneric>();
+    auto constraintA = chrono_types::make_shared<ChLinkMateFix>();
     constraintA->Initialize(nodeA, truss, false, nodeA->Frame(), nodeA->Frame());
     sys.Add(constraintA);
-    constraintA->SetConstrainedCoords(true, true, true,   // x, y, z
-                                      true, true, true);  // Rx, Ry, Rz
 
     // APPLY SOME LOADS!
 
