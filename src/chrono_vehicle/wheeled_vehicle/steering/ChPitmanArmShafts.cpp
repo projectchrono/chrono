@@ -263,7 +263,7 @@ void ChPitmanArmShafts::InitializeInertiaProperties() {
 }
 
 void ChPitmanArmShafts::UpdateInertiaProperties() {
-    m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
+    m_xform = m_parent->GetTransform().TransformLocalToParent(m_rel_xform);
 
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;

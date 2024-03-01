@@ -25,22 +25,19 @@ ChBodyAuxRef::ChBodyAuxRef(const ChBodyAuxRef& other) : ChBody(other) {
     auxref_to_abs = other.auxref_to_abs;
 }
 
-void ChBodyAuxRef::SetFrame_COG_to_REF(const ChFrame<>& mloc) {
+void ChBodyAuxRef::SetFrame_COG_to_REF(const ChFrame<>& cog_to_ref) {
     ChFrameMoving<> old_cog_to_abs = *this;
 
-    ChFrameMoving<> tmpref_to_abs;
-    this->TransformLocalToParent(this->auxref_to_cog, tmpref_to_abs);
-    tmpref_to_abs.TransformLocalToParent(ChFrameMoving<>(mloc), *this);
-    // or, also, using overloaded operators for frames:
-    //   tmpref_to_abs = auxref_to_cog >> *this;
-    //   *this         = ChFrameMoving<>(mloc) >> tmpref_to_abs;
+    ChFrameMoving<> ref_to_abs = this->TransformLocalToParent(this->auxref_to_cog);
 
-    ChFrameMoving<> new_cog_to_abs = *this;
+    ChFrameMoving<> new_cog_to_abs = ref_to_abs.TransformLocalToParent(ChFrameMoving<>(cog_to_ref));
 
-    auxref_to_cog = mloc.GetInverse();
-    this->TransformLocalToParent(this->auxref_to_cog, this->auxref_to_abs);
-    // or, also, using overloaded operators for frames:
-    //   *this->auxref_to_abs = this->auxref_to_cog.GetInverse() >> this;
+    this->SetCsys(new_cog_to_abs.GetCsys());
+    this->SetCsysDer(new_cog_to_abs.GetCsysDer());
+    this->SetCsysDer2(new_cog_to_abs.GetCsysDer2());
+
+    this->auxref_to_cog = cog_to_ref.GetInverse();
+    this->auxref_to_abs = this->TransformLocalToParent(this->auxref_to_cog);
 
     // Restore marker/forces positions, keeping unchanged respect to aux ref.
     ChFrameMoving<> cog_oldnew = old_cog_to_abs >> new_cog_to_abs.GetInverse();
@@ -63,12 +60,10 @@ void ChBodyAuxRef::SetFrame_COG_to_REF(const ChFrame<>& mloc) {
     */
 }
 
-void ChBodyAuxRef::SetFrame_REF_to_abs(const ChFrame<>& mfra) {
-    mfra.TransformLocalToParent(this->auxref_to_cog.GetInverse(), *this);
-    // or, also, using overloaded operators for frames:
-    //   *this = this->auxref_to_cog.GetInverse() >> mfra;
-
-    auxref_to_abs = mfra;
+void ChBodyAuxRef::SetFrame_REF_to_abs(const ChFrame<>& ref_to_abs) {
+    auto cog_to_abs = ref_to_abs.TransformLocalToParent(this->auxref_to_cog.GetInverse());
+    this->SetCsys(cog_to_abs.GetCsys());
+    this->auxref_to_abs = ref_to_abs;
 }
 
 void ChBodyAuxRef::Update(bool update_assets) {
@@ -76,7 +71,7 @@ void ChBodyAuxRef::Update(bool update_assets) {
     ChBody::Update(update_assets);
 
     // update own data
-    this->TransformLocalToParent(this->auxref_to_cog, this->auxref_to_abs);
+    this->auxref_to_abs = this->TransformLocalToParent(this->auxref_to_cog);
 }
 
 //////// FILE I/O

@@ -270,9 +270,7 @@ int main(int argc, char* argv[]) {
     testPl.SetAngVelLocal(ChVector3d(0.4, 0.5, 0.6));
     testPl.SetPosDer2(locacc);
     testPl.SetAngAccLocal(ChVector3d(0.43, 0.53, 0.63));
-    ChFrameMoving<> testPw;
-    ChFrameMoving<> testX;
-    testa.TransformLocalToParent(testPl, testPw);
+    ChFrameMoving<> testPw = testa.TransformLocalToParent(testPl);
 
     ChFrameMoving<> bres = (testPl >> testa);
 
@@ -287,7 +285,7 @@ int main(int argc, char* argv[]) {
 
     timer.start();
     for (i = 0; i < 1000000; i++) {
-        testa.TransformLocalToParent(testPl, testPw);
+        testPw = testa.TransformLocalToParent(testPl);
     }
     timer.stop();
     std::cout << "TEST 1e6 calls to ChFrameMoving::TransformLocalToParent. Time = " << timer() << std::endl;

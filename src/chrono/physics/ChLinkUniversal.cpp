@@ -62,8 +62,8 @@ void ChLinkUniversal::Initialize(std::shared_ptr<ChBody> body1,
     m_cnstr_z.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
 
-    ((ChFrame<>*)Body1)->TransformParentToLocal(frame, m_frame1);
-    ((ChFrame<>*)Body2)->TransformParentToLocal(frame, m_frame2);
+    m_frame1 = ((ChFrame<>*)Body1)->TransformParentToLocal(frame);
+    m_frame2 = ((ChFrame<>*)Body2)->TransformParentToLocal(frame);
 
     m_u1_tilde = ChStarMatrix33<>(m_frame1.GetRotMat().GetAxisX());
     m_v2_tilde = ChStarMatrix33<>(m_frame2.GetRotMat().GetAxisY());
@@ -96,8 +96,8 @@ void ChLinkUniversal::Initialize(std::shared_ptr<ChBody> body1,
         frame1_abs = frame1 >> *Body1;
         frame2_abs = frame2 >> *Body2;
     } else {
-        ((ChFrame<>*)Body1)->TransformParentToLocal(frame1, m_frame1);
-        ((ChFrame<>*)Body2)->TransformParentToLocal(frame2, m_frame2);
+        m_frame1 = ((ChFrame<>*)Body1)->TransformParentToLocal(frame1);
+        m_frame2 = ((ChFrame<>*)Body2)->TransformParentToLocal(frame2);
         frame1_abs = frame1;
         frame2_abs = frame2;
     }

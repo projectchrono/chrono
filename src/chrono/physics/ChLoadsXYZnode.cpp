@@ -183,7 +183,7 @@ void ChLoadXYZnodeXYZnodeBushing::ComputeForce(const ChVector3d& rel_pos,
 ChLoadXYZnodeBody::ChLoadXYZnodeBody(std::shared_ptr<ChNodeXYZ> nodeA, std::shared_ptr<ChBody> bodyB)
     : ChLoadCustomMultiple(nodeA, bodyB) {
     ChFrame<> abs_application(nodeA->GetPos());
-    bodyB->ChFrame::TransformParentToLocal(abs_application, loc_application_B);
+    loc_application_B = bodyB->ChFrame::TransformParentToLocal(abs_application);
     computed_loc_force = VNULL;
 }
 

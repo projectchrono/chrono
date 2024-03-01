@@ -100,8 +100,8 @@ ChLoadXYZROTnodeXYZROTnode::ChLoadXYZROTnodeXYZROTnode(std::shared_ptr<ChNodeFEA
                                                        std::shared_ptr<ChNodeFEAxyzrot> mbodyB,
                                                        const ChFrame<>& abs_application)
     : ChLoadCustomMultiple(mbodyA, mbodyB) {
-    mbodyA->ChFrame::TransformParentToLocal(abs_application, loc_application_A);
-    mbodyB->ChFrame::TransformParentToLocal(abs_application, loc_application_B);
+    loc_application_A = mbodyA->ChFrame::TransformParentToLocal(abs_application);
+    loc_application_B = mbodyB->ChFrame::TransformParentToLocal(abs_application);
 }
 
 void ChLoadXYZROTnodeXYZROTnode::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
@@ -323,8 +323,8 @@ ChLoadXYZROTnodeBody::ChLoadXYZROTnodeBody(std::shared_ptr<ChNodeFEAxyzrot> mnod
                                            std::shared_ptr<ChBody> mbodyB,
                                            const ChFrame<>& abs_application)
     : ChLoadCustomMultiple(mnodeA, mbodyB) {
-    mnodeA->ChFrame::TransformParentToLocal(abs_application, loc_application_A);
-    mbodyB->ChFrame::TransformParentToLocal(abs_application, loc_application_B);
+    loc_application_A = mnodeA->ChFrame::TransformParentToLocal(abs_application);
+    loc_application_B = mbodyB->ChFrame::TransformParentToLocal(abs_application);
 }
 
 void ChLoadXYZROTnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {

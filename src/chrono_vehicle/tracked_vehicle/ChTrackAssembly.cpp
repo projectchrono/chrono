@@ -135,7 +135,7 @@ void ChTrackAssembly::InitializeInertiaProperties() {
 }
 
 void ChTrackAssembly::UpdateInertiaProperties() {
-    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+    m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     ChVector3d com(0);
     ChMatrix33<> inertia(0);

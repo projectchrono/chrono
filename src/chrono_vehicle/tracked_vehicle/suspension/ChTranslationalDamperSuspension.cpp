@@ -142,7 +142,7 @@ void ChTranslationalDamperSuspension::InitializeInertiaProperties() {
 }
 
 void ChTranslationalDamperSuspension::UpdateInertiaProperties() {
-    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+    m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;

@@ -116,8 +116,7 @@ WheelState ChWheel::GetState() const {
     WheelState state;
 
     ChFrameMoving<> wheel_loc(ChVector3d(0, m_offset, 0), QUNIT);
-    ChFrameMoving<> wheel_abs;
-    m_spindle->TransformLocalToParent(wheel_loc, wheel_abs);
+    ChFrameMoving<> wheel_abs = m_spindle->TransformLocalToParent(wheel_loc);
     state.pos = wheel_abs.GetPos();
     state.rot = wheel_abs.GetRot();
     state.lin_vel = wheel_abs.GetPosDer();

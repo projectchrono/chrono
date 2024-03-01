@@ -59,8 +59,7 @@ ChLinkLockGear::ChLinkLockGear(const ChLinkLockGear& other) : ChLinkLock(other) 
 
 ChVector3d ChLinkLockGear::Get_shaft_dir1() const {
     if (Body1) {
-        ChFrame<double> absframe;
-        ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
+        ChFrame<double> absframe = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1);
         return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
@@ -68,8 +67,7 @@ ChVector3d ChLinkLockGear::Get_shaft_dir1() const {
 
 ChVector3d ChLinkLockGear::Get_shaft_dir2() const {
     if (Body1) {
-        ChFrame<double> absframe;
-        ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
+        ChFrame<double> absframe = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2);
         return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
@@ -77,8 +75,7 @@ ChVector3d ChLinkLockGear::Get_shaft_dir2() const {
 
 ChVector3d ChLinkLockGear::Get_shaft_pos1() const {
     if (Body1) {
-        ChFrame<double> absframe;
-        ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
+        ChFrame<double> absframe = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1);
         return absframe.GetPos();
     } else
         return VNULL;
@@ -86,8 +83,7 @@ ChVector3d ChLinkLockGear::Get_shaft_pos1() const {
 
 ChVector3d ChLinkLockGear::Get_shaft_pos2() const {
     if (Body1) {
-        ChFrame<double> absframe;
-        ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
+        ChFrame<double> absframe = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2);
         return absframe.GetPos();
     } else
         return VNULL;
@@ -108,11 +104,8 @@ void ChLinkLockGear::UpdateTime(double mytime) {
     ChVector3d lastX;
     ChVector3d vrota;
 
-    ChFrame<double> abs_shaft1;
-    ChFrame<double> abs_shaft2;
-
-    ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, abs_shaft1);
-    ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, abs_shaft2);
+    ChFrame<double> abs_shaft1 = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1);
+    ChFrame<double> abs_shaft2 = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2);
 
     ChVector3d vbdist = Vsub(Get_shaft_pos1(), Get_shaft_pos2());
     ////ChVector3d Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(), vbdist))));

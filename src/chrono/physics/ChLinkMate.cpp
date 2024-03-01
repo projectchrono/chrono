@@ -136,8 +136,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
 
         ChFrame<> F1_W = this->frame1 >> (*this->Body1);
         ChFrame<> F2_W = this->frame2 >> (*this->Body2);
-        ChFrame<> F1_wrt_F2;
-        F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
+        ChFrame<> F1_wrt_F2 = F2_W.TransformParentToLocal(F1_W);
         // Now 'F1_wrt_F2' contains the position/rotation of frame 1 respect to frame 2, in frame 2 coords.
 
         ChMatrix33<> Jx1 = F2_W.GetRotMat().transpose();
@@ -240,8 +239,8 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> body1,
         this->frame2 = mpos2;
     } else {
         // from abs to body-rel
-        static_cast<ChFrame<>*>(this->Body1)->TransformParentToLocal(mpos1, this->frame1);
-        static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(mpos2, this->frame2);
+        this->frame1 = static_cast<ChFrame<>*>(this->Body1)->TransformParentToLocal(mpos1);
+        this->frame2 = static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(mpos2);
     }
 }
 
@@ -329,8 +328,7 @@ void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double M
         ChMatrix33<> R_F1_W = F1_W.GetRotMat();
         ChMatrix33<> R_F2_W = F2_W.GetRotMat();
         ChVector3d r12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
-        ChFrame<> F1_wrt_F2;
-        F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
+        ChFrame<> F1_wrt_F2 = F2_W.TransformParentToLocal(F1_W);
 
         ChVector3d r_F1_B1 = this->frame1.GetPos();
         ChVector3d r_F2_B2 = this->frame2.GetPos();
@@ -851,8 +849,7 @@ void ChLinkMateRevolute::Initialize(std::shared_ptr<ChBodyFrame> body1,
 double ChLinkMateRevolute::GetRelativeAngle() {
     ChFrame<> F1_W = frame1 >> *Body1;
     ChFrame<> F2_W = frame2 >> *Body2;
-    ChFrame<> F1_F2;
-    F2_W.TransformParentToLocal(F1_W, F1_F2);
+    ChFrame<> F1_F2 = F2_W.TransformParentToLocal(F1_W);
     double angle = std::remainder(F1_F2.GetRot().GetRotVec().z(), CH_C_2PI); // NB: assumes rotation along z
     return angle;
 }
@@ -860,8 +857,7 @@ double ChLinkMateRevolute::GetRelativeAngle() {
 double ChLinkMateRevolute::GetRelativeAngle_dt() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
-    ChFrameMoving<> F1_F2;
-    F2_W.TransformParentToLocal(F1_W, F1_F2);
+    ChFrameMoving<> F1_F2 = F2_W.TransformParentToLocal(F1_W);
     double vel12_W = F1_F2.GetAngVelLocal().z(); // NB: assumes rotation along z
     return vel12_W;
 }
@@ -869,8 +865,7 @@ double ChLinkMateRevolute::GetRelativeAngle_dt() {
 double ChLinkMateRevolute::GetRelativeAngle_dtdt() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
-    ChFrameMoving<> F1_F2;
-    F2_W.TransformParentToLocal(F1_W, F1_F2);
+    ChFrameMoving<> F1_F2 = F2_W.TransformParentToLocal(F1_W);
     double acc12_W = F1_F2.GetAngAccLocal().z(); // NB: assumes rotation along z
     return acc12_W;
 }
@@ -1177,8 +1172,8 @@ void ChLinkMateOrthogonal::Update(double mtime, bool update_assets) {
         ChFrame<> absframe2(VNULL, R2);  // position not needed for orth. constr. computation
 
         // from abs to body-rel
-        static_cast<ChFrame<>*>(this->Body1)->TransformParentToLocal(absframe1, this->frame1);
-        static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(absframe2, this->frame2);
+        this->frame1 = static_cast<ChFrame<>*>(this->Body1)->TransformParentToLocal(absframe1);
+        this->frame2 = static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(absframe2);
     }
 
     // Parent class inherit
@@ -1261,8 +1256,7 @@ ChLinkMateRackPinion::ChLinkMateRackPinion(const ChLinkMateRackPinion& other) : 
 
 ChVector3d ChLinkMateRackPinion::GetAbsPinionDir() {
     if (this->Body1) {
-        ChFrame<double> absframe;
-        ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion, absframe);
+        ChFrame<double> absframe = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion);
         return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
@@ -1270,8 +1264,7 @@ ChVector3d ChLinkMateRackPinion::GetAbsPinionDir() {
 
 ChVector3d ChLinkMateRackPinion::GetAbsPinionPos() {
     if (this->Body1) {
-        ChFrame<double> absframe;
-        ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion, absframe);
+        ChFrame<double> absframe = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion);
         return absframe.GetPos();
     } else
         return VNULL;
@@ -1279,8 +1272,7 @@ ChVector3d ChLinkMateRackPinion::GetAbsPinionPos() {
 
 ChVector3d ChLinkMateRackPinion::GetAbsRackDir() {
     if (this->Body2) {
-        ChFrame<double> absframe;
-        ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, absframe);
+        ChFrame<double> absframe = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack);
         return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
@@ -1288,8 +1280,7 @@ ChVector3d ChLinkMateRackPinion::GetAbsRackDir() {
 
 ChVector3d ChLinkMateRackPinion::GetAbsRackPos() {
     if (this->Body2) {
-        ChFrame<double> absframe;
-        ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, absframe);
+        ChFrame<double> absframe = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack);
         return absframe.GetPos();
     } else
         return VNULL;
@@ -1299,11 +1290,8 @@ void ChLinkMateRackPinion::UpdateTime(double mytime) {
     // First, inherit to parent class
     ChLinkMateGeneric::UpdateTime(mytime);
 
-    ChFrame<double> abs_pinion;
-    ChFrame<double> abs_rack;
-
-    ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion, abs_pinion);
-    ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, abs_rack);
+    ChFrame<double> abs_pinion = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion);
+    ChFrame<double> abs_rack = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack);
 
     ChVector3d abs_distpr = abs_pinion.GetPos() - abs_rack.GetPos(); // vector from rack to pinion
     ChVector3d abs_Dpin = abs_pinion.GetRotMat().GetAxisZ();  // direction of pinion shaft
@@ -1349,8 +1337,8 @@ void ChLinkMateRackPinion::UpdateTime(double mytime) {
     abs_contact.ConcatenatePostTransformation(mrotframe);  // or: abs_contact *= mrotframe;
 
     // Set the link frame 'abs_contact' to relative frames to the two connected ChBodyFrame
-    ((ChFrame<double>*)Body1)->TransformParentToLocal(abs_contact, this->frame1);
-    ((ChFrame<double>*)Body2)->TransformParentToLocal(abs_contact, this->frame2);
+    this->frame1 = ((ChFrame<double>*)Body1)->TransformParentToLocal(abs_contact);
+    this->frame2 = ((ChFrame<double>*)Body2)->TransformParentToLocal(abs_contact);
 }
 
 void ChLinkMateRackPinion::ArchiveOut(ChArchiveOut& archive_out) {

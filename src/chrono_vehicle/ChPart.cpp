@@ -67,8 +67,7 @@ void ChPart::AddInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia) {
     UpdateInertiaProperties();
 
     // Express the COM frame in global frame
-    ChFrame<> com_abs;
-    m_xform.TransformLocalToParent(m_com, com_abs);
+    ChFrame<> com_abs = m_xform.TransformLocalToParent(m_com);
 
     // Increment total COM position
     com += GetMass() * com_abs.GetPos();

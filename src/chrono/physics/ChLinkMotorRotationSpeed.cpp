@@ -59,8 +59,7 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
         if (this->avoid_angle_drift) {
             aux_rotation = this->aux_dt + this->rot_offset;
         } else {
-            ChFrame<> aframe12;
-            aframe2.TransformParentToLocal(aframe1, aframe12);
+            ChFrame<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
             // to have it aligned to current rot, to allow C=0.
             aux_rotation = aframe12.GetRot().GetRotVec().z();
@@ -70,8 +69,7 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
         aframe1rotating.SetPos(aframe1.GetPos());  // for safe
         aframe1rotating.SetRot(aframe1.GetRot() * QuatFromAngleZ(aux_rotation).GetConjugate());
 
-        ChFrame<> aframe1rotating2;
-        aframe2.TransformParentToLocal(aframe1rotating, aframe1rotating2);
+        ChFrame<> aframe1rotating2 = aframe2.TransformParentToLocal(aframe1rotating);
 
         // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
         this->P = 0.5 * (ChMatrix33<>(aframe1rotating2.GetRot().e0()) +
@@ -136,8 +134,7 @@ void ChLinkMotorRotationSpeed::KRMmatricesLoad(double Kfactor, double Rfactor, d
         ChMatrix33<> R_F1_W = F1_W.GetRotMat();
         ChMatrix33<> R_F2_W = F2_W.GetRotMat();
         ChVector3d P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
-        // ChFrame<> F1_wrt_F2;
-        // F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
+        // ChFrame<> F1_wrt_F2 = F2_W.TransformParentToLocal(F1_W);
 
         ChVector3d r_F1_B1 = this->frame1.GetPos();
         ChVector3d r_F2_B2 = this->frame2.GetPos();

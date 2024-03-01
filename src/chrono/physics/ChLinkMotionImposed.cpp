@@ -52,8 +52,7 @@ void ChLinkMotionImposed::Update(double mytime, bool update_assets) {
 
         ChFrame<> frameMW = frameM2 >> frame2W;  // "moving" auxiliary frame M which is coincident with frame1
 
-        ChFrame<> frame1M;
-        frameMW.TransformParentToLocal(frame1W, frame1M);
+        ChFrame<> frame1M = frameMW.TransformParentToLocal(frame1W);
         // Now, frame1M is the relative frame of frame1 respect to the "moving" auxiliary frame M,
         // which should be a unit frame (VNULL,QUNIT) in case of constraint satisfied.
 
@@ -149,8 +148,7 @@ void ChLinkMotionImposed::KRMmatricesLoad(double Kfactor, double Rfactor, double
         ChMatrix33<> R_F1_W = F1_W.GetRotMat();
         ChMatrix33<> R_F2_W = F2_W.GetRotMat();
         ChVector3d P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
-        ChFrame<> F1_wrt_F2;
-        F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
+        ChFrame<> F1_wrt_F2 = F2_W.TransformParentToLocal(F1_W);
 
         ChVector3d r_F1_B1 = this->frame1.GetPos();
         ChVector3d r_F2_B2 = this->frameMb2.GetPos();

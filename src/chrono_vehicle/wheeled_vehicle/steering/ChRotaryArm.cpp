@@ -130,7 +130,7 @@ void ChRotaryArm::InitializeInertiaProperties() {
 }
 
 void ChRotaryArm::UpdateInertiaProperties() {
-    m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
+    m_xform = m_parent->GetTransform().TransformLocalToParent(m_rel_xform);
 }
 
 // -----------------------------------------------------------------------------

@@ -310,8 +310,8 @@ ChLoadBodyBody::ChLoadBodyBody(std::shared_ptr<ChBody> mbodyA,
                                std::shared_ptr<ChBody> mbodyB,
                                const ChFrame<>& abs_application)
     : ChLoadCustomMultiple(mbodyA, mbodyB) {
-    mbodyA->ChFrame::TransformParentToLocal(abs_application, loc_application_A);
-    mbodyB->ChFrame::TransformParentToLocal(abs_application, loc_application_B);
+    loc_application_A = mbodyA->ChFrame::TransformParentToLocal(abs_application);
+    loc_application_B = mbodyB->ChFrame::TransformParentToLocal(abs_application);
 }
 
 void ChLoadBodyBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {

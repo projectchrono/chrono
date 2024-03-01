@@ -43,8 +43,7 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
         ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
         ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
 
-        //ChFrame<> aframe12;
-        //aframe2.TransformParentToLocal(aframe1, aframe12);
+        //ChFrame<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
         double aux_rotation;
         aux_rotation = m_func->GetVal(mytime) + rot_offset;
@@ -53,8 +52,7 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
         aframe1rotating.SetPos(aframe1.GetPos()); // for safe
         aframe1rotating.SetRot(aframe1.GetRot() * QuatFromAngleZ(aux_rotation).GetConjugate());
 
-        ChFrame<> aframe1rotating2;
-        aframe2.TransformParentToLocal(aframe1rotating, aframe1rotating2);
+        ChFrame<> aframe1rotating2 = aframe2.TransformParentToLocal(aframe1rotating);
 
         // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
         this->P = 0.5 * (ChMatrix33<>(aframe1rotating2.GetRot().e0()) +

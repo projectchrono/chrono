@@ -89,11 +89,7 @@ class ChFrameMoving : public ChFrame<Real> {
     /// i.e., just like done with a sequence of Denavitt-Hartemberg matrix multiplications (but reverting order).
     /// This operation is not commutative.
     /// Velocities and accelerations are also transformed.
-    ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& F) const {
-        ChFrameMoving<Real> res;
-        F.TransformLocalToParent(*this, res);
-        return res;
-    }
+    ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& F) const { return F.TransformLocalToParent(*this); }
 
     /// Transform another frame through this frame.
     /// If A is this frame and F another frame expressed in A, then G = A * F is the frame F expresssed in the parent
@@ -102,11 +98,7 @@ class ChFrameMoving : public ChFrame<Real> {
     /// i.e., just like done with a sequence of Denavitt-Hartemberg matrix multiplications.
     /// This operation is not commutative.
     /// Velocities and accelerations are also transformed.
-    ChFrameMoving<Real> operator*(const ChFrameMoving<Real>& F) const {
-        ChFrameMoving<Real> res;
-        TransformLocalToParent(F, res);
-        return res;
-    }
+    ChFrameMoving<Real> operator*(const ChFrameMoving<Real>& F) const { return TransformLocalToParent(F); }
 
     /// Transform this frame by pre-multiplication with another frame.
     /// If A is this frame, then A >>= F means A' = F * A or A' = A >> F.
@@ -303,9 +295,8 @@ class ChFrameMoving : public ChFrame<Real> {
     ///  or
     ///     this' = this >> F
     void ConcatenatePreTransformation(const ChFrameMoving<Real>& F) {
-        ChFrameMoving<Real> res;
-        F.TransformLocalToParent(*this, res);
-        *this = res;
+        auto tmp = F.TransformLocalToParent(*this);
+        *this = tmp;
     }
 
     /// Apply a transformation (rotation and translation) represented by another frame F in local coordinate.
@@ -314,9 +305,8 @@ class ChFrameMoving : public ChFrame<Real> {
     ///  or
     ///    this'= F >> this
     void ConcatenatePostTransformation(const ChFrameMoving<Real>& F) {
-        ChFrameMoving<Real> res;
-        this->TransformLocalToParent(F, res);
-        *this = res;
+        auto tmp = this->TransformLocalToParent(F);
+        *this = tmp;
     }
 
     // FUNCTIONS FOR COORDINATE TRANSFORMATIONS
@@ -382,45 +372,43 @@ class ChFrameMoving : public ChFrame<Real> {
     }
 
     /// Transform a moving frame from 'this' local coordinate system to parent frame coordinate system.
-    void TransformLocalToParent(const ChFrameMoving<Real>& local,  ///< frame to transform, given in local coordinates
-                                ChFrameMoving<Real>& parent        ///< transformed frame, in parent coordinates
-    ) const {
-        // pos & rot
-        ChFrame<Real>::TransformLocalToParent(local, parent);
+    ChFrameMoving<Real> TransformLocalToParent(const ChFrameMoving<Real>& F) const {
+        ChFrameMoving<Real> Fp(TransformPointLocalToParent(F.Csys.pos), Csys.rot * F.Csys.rot);
 
         // pos_dt
-        parent.Csys_dt.pos = PointSpeedLocalToParent(local.Csys.pos, local.Csys_dt.pos);
+        Fp.Csys_dt.pos = PointSpeedLocalToParent(F.Csys.pos, F.Csys_dt.pos);
 
         // pos_dtdt
-        parent.Csys_dtdt.pos = PointAccelerationLocalToParent(local.Csys.pos, local.Csys_dt.pos, local.Csys_dtdt.pos);
+        Fp.Csys_dtdt.pos = PointAccelerationLocalToParent(F.Csys.pos, F.Csys_dt.pos, F.Csys_dtdt.pos);
 
         // rot_dt
-        parent.Csys_dt.rot = Csys_dt.rot * local.Csys.rot + this->Csys.rot * local.Csys_dt.rot;
+        Fp.Csys_dt.rot = Csys_dt.rot * F.Csys.rot + this->Csys.rot * F.Csys_dt.rot;
 
         // rot_dtdt
-        parent.Csys_dtdt.rot = Csys_dtdt.rot * local.Csys.rot + (Csys_dt.rot * local.Csys_dt.rot) * 2 +
-                               this->Csys.rot * local.Csys_dtdt.rot;
+        Fp.Csys_dtdt.rot =
+            Csys_dtdt.rot * F.Csys.rot + (Csys_dt.rot * F.Csys_dt.rot) * 2 + this->Csys.rot * F.Csys_dtdt.rot;
+
+        return Fp;
     }
 
     /// Transform a moving frame from the parent coordinate system to 'this' local frame coordinate system.
-    void TransformParentToLocal(const ChFrameMoving<Real>& parent,  ///< frame to transform, given in parent coordinates
-                                ChFrameMoving<Real>& local          ///< transformed frame, in local coordinates
-    ) const {
-        // pos & rot
-        ChFrame<Real>::TransformParentToLocal(parent, local);
+    ChFrameMoving<Real> TransformParentToLocal(const ChFrameMoving<Real>& F) const {
+        ChFrameMoving<Real> Fl(TransformPointParentToLocal(F.Csys.pos), Csys.rot.GetConjugate() * F.Csys.rot);
 
         // pos_dt
-        local.Csys_dt.pos = PointSpeedParentToLocal(parent.Csys.pos, parent.Csys_dt.pos);
+        Fl.Csys_dt.pos = PointSpeedParentToLocal(F.Csys.pos, F.Csys_dt.pos);
 
         // pos_dtdt
-        local.Csys_dtdt.pos = PointAccelerationParentToLocal(parent.Csys.pos, parent.Csys_dt.pos, parent.Csys_dtdt.pos);
+        Fl.Csys_dtdt.pos = PointAccelerationParentToLocal(F.Csys.pos, F.Csys_dt.pos, F.Csys_dtdt.pos);
 
         // rot_dt
-        local.Csys_dt.rot = this->Csys.rot.GetConjugate() * (parent.Csys_dt.rot - Csys_dt.rot * local.Csys.rot);
+        Fl.Csys_dt.rot = this->Csys.rot.GetConjugate() * (F.Csys_dt.rot - Csys_dt.rot * Fl.Csys.rot);
 
         // rot_dtdt
-        local.Csys_dtdt.rot = this->Csys.rot.GetConjugate() * (parent.Csys_dtdt.rot - Csys_dtdt.rot * local.Csys.rot -
-                                                               (Csys_dt.rot * local.Csys_dt.rot) * 2);
+        Fl.Csys_dtdt.rot = this->Csys.rot.GetConjugate() *
+                           (F.Csys_dtdt.rot - Csys_dtdt.rot * Fl.Csys.rot - (Csys_dt.rot * Fl.Csys_dt.rot) * 2);
+
+        return Fl;
     }
 
     // OTHER FUNCTIONS
@@ -439,10 +427,9 @@ class ChFrameMoving : public ChFrame<Real> {
     /// Invert in place.
     /// If w=A*v, after A.Invert() we have v=A*w;
     virtual void Invert() override {
-        ChFrameMoving<Real> tmp;
-        ChFrameMoving<Real> unit;
-        tmp = *this;
-        tmp.TransformParentToLocal(unit, *this);
+        ChFrameMoving<Real> tmp = *this;
+        ChFrameMoving<Real> unit(VNULL, QUNIT);
+        *this = tmp.TransformParentToLocal(unit);
     }
 
     /// Return the inverse transform.
@@ -501,9 +488,7 @@ template <class Real>
 ChFrame<Real> operator*(const ChFrameMoving<Real>& Fa, const ChFrame<Real>& Fb) {
     // note: it should be not needed: falling back to ChFrame = ChFrame * ChFrame
     // could be enough, but the compiler still needs this operator.. why?
-    ChFrame<Real> res;
-    Fa.ChFrame<Real>::TransformLocalToParent(Fb, res);
-    return res;
+    return Fa.ChFrame<Real>::TransformLocalToParent(Fb);
 }
 
 /// The '*' operator that transforms a coordinate system of 'mixed' type:
@@ -516,10 +501,8 @@ ChFrame<Real> operator*(const ChFrameMoving<Real>& Fa, const ChFrame<Real>& Fb) 
 /// Performance warning: this operator promotes frame_A to a temporary ChFrameMoving.
 template <class Real>
 ChFrameMoving<Real> operator*(const ChFrame<Real>& Fa, const ChFrameMoving<Real>& Fb) {
-    ChFrameMoving<Real> res;
     ChFrameMoving<Real> Fam(Fa);
-    Fam.TransformLocalToParent(Fb, res);
-    return res;
+    return Fam.TransformLocalToParent(Fb);
 }
 
 /// The '>>' operator that transforms a coordinate system of 'mixed' type:
@@ -532,10 +515,8 @@ ChFrameMoving<Real> operator*(const ChFrame<Real>& Fa, const ChFrameMoving<Real>
 /// Performance warning: this operator promotes frame_B to a temporary ChFrameMoving.
 template <class Real>
 ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChFrame<Real>& Fb) {
-    ChFrameMoving<Real> res;
     ChFrameMoving<Real> Fbm(Fb);
-    Fbm.TransformLocalToParent(Fa, res);
-    return res;
+    return Fbm.TransformLocalToParent(Fa);
 }
 
 // Note: the missing
@@ -553,11 +534,9 @@ ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChFrame<Real
 /// Also speeds and accelerations are transformed.
 /// Performance warning: this operator promotes frame_A to a temporary ChFrameMoving.
 template <class Real>
-ChFrameMoving<Real> operator*(const ChCoordsys<Real>& Fa, const ChFrameMoving<Real>& Fb) {
-    ChFrameMoving<Real> res;
-    ChFrameMoving<Real> Fam(Fa);
-    Fam.TransformLocalToParent(Fb, res);
-    return res;
+ChFrameMoving<Real> operator*(const ChCoordsys<Real>& ca, const ChFrameMoving<Real>& Fb) {
+    ChFrameMoving<Real> Fam(ca);
+    return Fam.TransformLocalToParent(Fb);
 }
 
 /// The '>>' operator that transforms a coordinate system of 'mixed' type:
@@ -569,11 +548,9 @@ ChFrameMoving<Real> operator*(const ChCoordsys<Real>& Fa, const ChFrameMoving<Re
 /// Also speeds and accelerations are transformed.
 /// Performance warning: this operator promotes frame_B to a temporary ChFrameMoving.
 template <class Real>
-ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChCoordsys<Real>& Fb) {
-    ChFrameMoving<Real> res;
-    ChFrameMoving<Real> Fbm(Fb);
-    Fbm.TransformLocalToParent(Fa, res);
-    return res;
+ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChCoordsys<Real>& cb) {
+    ChFrameMoving<Real> Fbm(cb);
+    return Fbm.TransformLocalToParent(Fa);
 }
 
 // Note: the missing
@@ -593,9 +570,9 @@ ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChCoordsys<R
 /// Returns a ChFrameMoving.
 /// The effect is like applying the translation vector_A to frame_B and get frame_C.
 template <class Real>
-ChFrameMoving<Real> operator*(const ChVector3<Real>& Fa, const ChFrameMoving<Real>& Fb) {
+ChFrameMoving<Real> operator*(const ChVector3<Real>& va, const ChFrameMoving<Real>& Fb) {
     ChFrameMoving<Real> res(Fb);
-    res.Csys.pos += Fa;
+    res.Csys.pos += va;
     return res;
 }
 
@@ -606,9 +583,9 @@ ChFrameMoving<Real> operator*(const ChVector3<Real>& Fa, const ChFrameMoving<Rea
 /// Returns a ChFrameMoving.
 /// The effect is like applying the translation vector_B to frame_A and get frame_C.
 template <class Real>
-ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChVector3<Real>& Fb) {
+ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChVector3<Real>& vb) {
     ChFrameMoving<Real> res(Fa);
-    res.Csys.pos += Fb;
+    res.Csys.pos += vb;
     return res;
 }
 
@@ -631,11 +608,9 @@ ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChVector3<Re
 /// Also speeds and accelerations are rotated.
 /// Performance warning: this operator promotes quat_A to a temporary ChFrameMoving.
 template <class Real>
-ChFrameMoving<Real> operator*(const ChQuaternion<Real>& Fa, const ChFrameMoving<Real>& Fb) {
-    ChFrameMoving<Real> res;
-    ChFrameMoving<Real> Fam(VNULL, Fa);
-    Fam.TransformLocalToParent(Fb, res);
-    return res;
+ChFrameMoving<Real> operator*(const ChQuaternion<Real>& qa, const ChFrameMoving<Real>& Fb) {
+    ChFrameMoving<Real> Fam(VNULL, qa);
+    return Fam.TransformLocalToParent(Fb);
 }
 
 /// The '>>' operator that transforms 'mixed' types:
@@ -647,11 +622,9 @@ ChFrameMoving<Real> operator*(const ChQuaternion<Real>& Fa, const ChFrameMoving<
 /// Also speeds and accelerations are rotated.
 /// Performance warning: this operator promotes quat_A to a temporary ChFrameMoving
 template <class Real>
-ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChQuaternion<Real>& Fb) {
-    ChFrameMoving<Real> res;
-    ChFrameMoving<Real> Fbm(VNULL, Fb);
-    Fbm.TransformLocalToParent(Fa, res);
-    return res;
+ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChQuaternion<Real>& qb) {
+    ChFrameMoving<Real> Fbm(VNULL, qb);
+    return Fbm.TransformLocalToParent(Fa);
 }
 
 // Note: the missing

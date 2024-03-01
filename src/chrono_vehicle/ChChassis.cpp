@@ -147,8 +147,7 @@ void ChChassis::AddMarker(const std::string& name, const ChFrame<>& frame) {
 
     // Note: marker local positions are assumed to be relative to the centroidal frame
     //       of the associated body.
-    ChFrame<> frame_com;
-    m_body->GetFrame_REF_to_COG().TransformLocalToParent(frame, frame_com);
+    ChFrame<> frame_com = m_body->GetFrame_REF_to_COG().TransformLocalToParent(frame);
 
     // Create the marker, attach it to the chassis body, add it to the list
     auto marker = chrono_types::make_shared<ChMarker>();

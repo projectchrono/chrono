@@ -378,7 +378,7 @@ void ChSolidBellcrankThreeLinkAxle::InitializeInertiaProperties() {
 }
 
 void ChSolidBellcrankThreeLinkAxle::UpdateInertiaProperties() {
-    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+    m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
     ChMatrix33<> inertiaSpindle(getSpindleInertia());

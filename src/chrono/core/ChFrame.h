@@ -76,11 +76,7 @@ class ChFrame {
     ///   G = F_1to0 * F_2to1 * F_3to2 * F;
     /// i.e., just like done with a sequence of Denavitt-Hartemberg matrix multiplications.
     /// This operation is not commutative.
-    ChFrame<Real> operator*(const ChFrame<Real>& F) const {
-        ChFrame<Real> res;
-        TransformLocalToParent(F, res);
-        return res;
-    }
+    ChFrame<Real> operator*(const ChFrame<Real>& F) const { return this->TransformLocalToParent(F); }
 
     /// Transform  another frame through this frame.
     /// If A is this frame and F another frame expressed in A, then G = F >> A is the frame F expresssed in the parent
@@ -88,11 +84,7 @@ class ChFrame {
     ///   G = F >> F_3to2 >> F_2to1 >> F_1to0;
     /// i.e., just like done with a sequence of Denavitt-Hartemberg matrix multiplications (but reverting order).
     /// This operation is not commutative.
-    ChFrame<Real> operator>>(const ChFrame<Real>& F) const {
-        ChFrame<Real> res;
-        F.TransformLocalToParent(*this, res);
-        return res;
-    }
+    ChFrame<Real> operator>>(const ChFrame<Real>& F) const { return F.TransformLocalToParent(*this); }
 
     /// Transform a vector through this frame (express in parent frame).
     /// If A is this frame and v a vector expressed in this frame, w = A * v is the vector expressed in the parent
@@ -252,17 +244,13 @@ class ChFrame {
     }
 
     /// Transform a frame from 'this' local coordinate system to parent frame coordinate system.
-    void TransformLocalToParent(const ChFrame<Real>& local,  ///< frame to transform, given in local frame coordinates
-                                ChFrame<Real>& parent        ///< transformed frame, in parent coordinates
-    ) const {
-        parent.SetCsys(TransformPointLocalToParent(local.Csys.pos), Csys.rot * local.Csys.rot);
+    ChFrame<Real> TransformLocalToParent(const ChFrame<Real>& F) const {
+        return ChFrame<Real>(TransformPointLocalToParent(F.Csys.pos), Csys.rot * F.Csys.rot);
     }
 
     /// Transform a frame from the parent coordinate system to 'this' local frame coordinate system.
-    void TransformParentToLocal(const ChFrame<Real>& parent,  ///< frame to transform, given in parent coordinates
-                                ChFrame<Real>& local          ///< transformed frame, in local coordinates
-    ) const {
-        local.SetCsys(TransformPointParentToLocal(parent.Csys.pos), Csys.rot.GetConjugate() * parent.Csys.rot);
+    ChFrame<Real> TransformParentToLocal(const ChFrame<Real>& F) const {
+        return ChFrame<>(TransformPointParentToLocal(F.Csys.pos), Csys.rot.GetConjugate() * F.Csys.rot);
     }
 
     /// Transform a direction from the parent frame coordinate system to 'this' local coordinate system.
@@ -380,10 +368,8 @@ ChCoordsys<Real> operator*(const ChFrame<Real>& Fa, const ChCoordsys<Real>& Cb) 
 /// Performance warning: this operator promotes frame_A to a temporary ChFrame.
 template <class Real>
 ChFrame<Real> operator*(const ChCoordsys<Real>& Ca, const ChFrame<Real>& Fb) {
-    ChFrame<Real> res;
     ChFrame<Real> Fa(Ca);
-    Fa.TransformLocalToParent(Fb, res);
-    return res;
+    return Fa.TransformLocalToParent(Fb);
 }
 
 /// The '>>' operator that transforms a coordinate system of 'mixed' type:
@@ -406,10 +392,8 @@ ChCoordsys<Real> operator>>(const ChCoordsys<Real>& Ca, const ChFrame<Real>& Fb)
 /// Performance warning: this operator promotes frame_B to a temporary ChFrame.
 template <class Real>
 ChFrame<Real> operator>>(const ChFrame<Real>& Fa, const ChCoordsys<Real>& Cb) {
-    ChFrame<Real> res;
     ChFrame<Real> Fb(Cb);
-    Fb.TransformLocalToParent(Fa, res);
-    return res;
+    return Fb.TransformLocalToParent(Fa);
 }
 
 // Mixing with ChVector

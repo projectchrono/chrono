@@ -210,8 +210,7 @@ void ChMarker::UpdateTime(double mytime) {
 void ChMarker::UpdateState() {
     if (!GetBody())
         return;
-
-    GetBody()->TransformLocalToParent(*this, abs_frame);
+    abs_frame = GetBody()->TransformLocalToParent(*this);
 }
 
 void ChMarker::Update(double mytime) {
