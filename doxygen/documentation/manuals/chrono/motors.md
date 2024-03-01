@@ -436,13 +436,13 @@ By default, all linear motors also provide a prismatic constraint for the other 
 
 There are four types of rotational motors inherited from ChLinkMotorLinear, discussed more in detail in the following sections: 
 
-- **chrono::ChLinkMotorLinearPosition**, that enforces a motion on X as a position(time) function,
+- **chrono::ChLinkMotorLinearPosition**, that enforces a motion on Z as a position(time) function,
 
-- **chrono::ChLinkMotorLinearSpeed**, that enforces a motion on X as a speed(time) function,
+- **chrono::ChLinkMotorLinearSpeed**, that enforces a motion on Z as a speed(time) function,
 
-- **chrono::ChLinkMotorLinearForce**, that applies a force(time) load between the two parts, about X,
+- **chrono::ChLinkMotorLinearForce**, that applies a force(time) load between the two parts, about Z,
 
-- **chrono::ChLinkMotorLinearDriveline**, that connects the 3D motion between the two parts about X, 
+- **chrono::ChLinkMotorLinearDriveline**, that connects the 3D motion between the two parts about Z, 
   to a 1D driveline of your choice, modeled with chrono::ChShaft 1D elements connected by one or 
   more 1D motors/clutches/gears/etc.
   
@@ -464,11 +464,11 @@ In the following sub-sections you can find additional informations about the var
 The chrono::ChLinkMotorLinearPosition motor imposes a displacement between parts.
 
 This is a simple but very useful type of linear actuator. It assumes that 
-you know the exact position of the slider along the X axis of the guide, \f$ p_x \f$
+you know the exact position of the slider along the Z axis of the guide, \f$ p_z \f$
 as a function of time:  
 
 \f[ 
- p_x = f(t)
+ p_z = f(t)
 \f]
 
 Use this to simulate linear actuators in robotic systems and automation, 
@@ -519,11 +519,11 @@ motor1->SetMotionFunction(msine);
 The chrono::ChLinkMotorLinearSpeed motor imposes a speed between parts.
 
 This is one of the simplest types of linear actuators. It assumes that 
-you know the exact speed of the slider along the X direction of the guide, \f$ v_x \f$
+you know the exact speed of the slider along the Z direction of the guide, \f$ v_z \f$
 as a function of time: 
 
 \f[ 
- v_x = f(t),  \quad   v_x = \frac{dp_x}{dt}
+ v_z = f(t),  \quad   v_z = \frac{dp_x}{dt}
 \f]
 
 Note: this is a rheonomic motor, i.e. it generates the motion
@@ -549,16 +549,16 @@ motor2->Initialize(slider2,              // body A (slave)
 mphysicalSystem.Add(motor2);
 
 // Create an harmonic ChFunction to be used for the ChLinkMotorLinearSpeed
-auto msp = chrono_types::make_shared<ChFunctionSine>(CH_C_PI_2,  // phase
+auto msp = chrono_types::make_shared<ChFunctionSine>(0.8,  // amplitude
                                              0.5,        // frequency
                                              0.8         // amplitude
-                                             );
+                                             CH_C_PI_2);
 // Let the motor use this motion function:
 motor2->SetSpeedFunction(msp);
 ~~~
 
 The ChLinkMotorLinearSpeed contains a hidden state that performs the time integration
-of the speed setpoint: \f$ p_x(t) = \int_0^t v_x dt \f$. Such \f$ p_x \f$ is then imposed to the
+of the speed setpoint: \f$ p_z(t) = \int_0^t v_z dt \f$. Such \f$ p_z \f$ is then imposed to the
 constraint at the positional level too, thus avoiding error accumulation (position drift). 
 Optionally, such positional constraint level can be disabled as follows:
 

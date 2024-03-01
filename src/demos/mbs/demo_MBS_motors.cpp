@@ -406,7 +406,7 @@ int main(int argc, char* argv[]) {
     // Connect the guide and the slider and add the motor to the system:
     motor1->Initialize(slider1,               // body A (slave)
                        guide1,                // body B (master)
-                       ChFrame<>(positionB1)  // motor frame, in abs. coords
+                       ChFrame<>(positionB1, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor1);
 
@@ -445,7 +445,7 @@ int main(int argc, char* argv[]) {
     // Connect the guide and the slider and add the motor to the system:
     motor2->Initialize(slider2,               // body A (slave)
                        guide2,                // body B (master)
-                       ChFrame<>(positionB2)  // motor frame, in abs. coords
+                       ChFrame<>(positionB2, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor2);
 
@@ -498,7 +498,7 @@ int main(int argc, char* argv[]) {
     // Connect the guide and the slider and add the motor to the system:
     motor3->Initialize(slider3,               // body A (slave)
                        guide3,                // body B (master)
-                       ChFrame<>(positionB3)  // motor frame, in abs. coords
+                       ChFrame<>(positionB3, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor3);
 
@@ -530,7 +530,7 @@ int main(int argc, char* argv[]) {
     // Connect the guide and the slider and add the motor to the system:
     motor4->Initialize(slider4,               // body A (slave)
                        guide4,                // body B (master)
-                       ChFrame<>(positionB4)  // motor frame, in abs. coords
+                       ChFrame<>(positionB4, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor4);
 
@@ -753,7 +753,7 @@ int main(int argc, char* argv[]) {
     // Connect the guide and the slider and add the motor to the system:
     motor6->Initialize(slider6,               // body A (slave)
                        guide6,                // body B (master)
-                       ChFrame<>(positionB6)  // motor frame, in abs. coords
+                       ChFrame<>(positionB6, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor6);
 

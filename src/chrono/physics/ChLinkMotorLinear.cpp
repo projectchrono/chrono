@@ -19,7 +19,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChLinkMotorLinear)  NO! ABSTRACT!
 
-ChLinkMotorLinear::ChLinkMotorLinear() {
+ChLinkMotorLinear::ChLinkMotorLinear() : m_actuated_idx(0) {
     this->SetGuideConstraint(GuideConstraint::PRISMATIC);
 
     mpos = 0;
@@ -42,6 +42,9 @@ void ChLinkMotorLinear::SetGuideConstraint(bool mc_x, bool mc_y, bool mc_rx, boo
     this->c_ry = mc_ry;
     this->c_rz = mc_rz;
     SetupLinkMask();
+
+    m_actuated_idx = (int)c_x + (int)c_y;
+
 }
 
 void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint mconstraint) {
@@ -69,6 +72,9 @@ void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint mconstraint) {
         this->c_rz = false;
         SetupLinkMask();
     }
+
+    m_actuated_idx = (int)c_x + (int)c_y;
+
 }
 
 void ChLinkMotorLinear::Update(double mytime, bool update_assets) {

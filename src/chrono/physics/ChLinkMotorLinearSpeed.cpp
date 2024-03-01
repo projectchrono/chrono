@@ -51,15 +51,15 @@ void ChLinkMotorLinearSpeed::Update(double mytime, bool update_assets) {
     //   C = d_error - d_setpoint - d_offset
     // with d_error = z_pos_1 - z_pos_2, and d_setpoint = x(t)
     if (this->avoid_position_drift)
-        C(0) = this->mpos - aux_dt - this->pos_offset;
+        C(m_actuated_idx) = this->mpos - aux_dt - this->pos_offset;
     else
-        C(0) = 0.0;
+        C(m_actuated_idx) = 0.0;
 }
 
 void ChLinkMotorLinearSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
     double mCt = -m_func->GetVal(this->GetChTime());
-    if (mask.Constr_N(0).IsActive()) {
-        Qc(off_L + 0) += c * mCt;
+    if (mask.Constr_N(m_actuated_idx).IsActive()) {
+        Qc(off_L + m_actuated_idx) += c * mCt;
     }
 }
 
@@ -68,8 +68,8 @@ void ChLinkMotorLinearSpeed::ConstraintsBiLoad_Ct(double factor) {
         return;
 
     double mCt = -m_func->GetVal(this->GetChTime());
-    if (mask.Constr_N(0).IsActive()) {
-        mask.Constr_N(0).Set_b_i(mask.Constr_N(0).Get_b_i() + factor * mCt);
+    if (mask.Constr_N(m_actuated_idx).IsActive()) {
+        mask.Constr_N(m_actuated_idx).Set_b_i(mask.Constr_N(m_actuated_idx).Get_b_i() + factor * mCt);
     }
 }
 

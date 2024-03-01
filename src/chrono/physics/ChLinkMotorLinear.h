@@ -71,6 +71,8 @@ class ChApi ChLinkMotorLinear : public ChLinkMotor {
     double mpos;
     double mpos_dt;
     double mpos_dtdt;
+
+    int m_actuated_idx; ///< row index of the actuated constraint (Z axis)
 };
 
 CH_CLASS_VERSION(ChLinkMotorLinear, 0)

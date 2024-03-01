@@ -391,7 +391,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
     sys.Add(motor);
     motor->Initialize(builder.GetLastBeamNodes().back(), truss,
-                      ChFrame<>(builder.GetLastBeamNodes().back()->GetPos(), chrono::QuatFromAngleZ(0 * CH_C_PI_2)));
+                      ChFrame<>(builder.GetLastBeamNodes().back()->GetPos(), Q_ROTATE_Z_TO_X));
     motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::SPHERICAL);
     auto rampup = chrono_types::make_shared<ChFunctionRamp>(0, 0.1);
     auto rampdo = chrono_types::make_shared<ChFunctionRamp>(0, -0.1);
