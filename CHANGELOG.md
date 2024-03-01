@@ -153,10 +153,17 @@ Note that this represents a major public API change and we expect most user code
 | ChFunctionRotation_setpoint.h       | rename: ChFunctionRotationSetpoint.h      |
 | ChFunctionRotation_spline.h         | rename: ChFunctionRotationBSpline.h       |
 | ChFunctionRotation_SQUAD.h          | rename: ChFunctionRotationSQUAD.h         |
+| ChLinkBrake.h                       | rename: ChLinkLockBrake.h                 |
+| ChLinkClearance.h                   | rename: ChLinkLockClearance.h             |
+| ChLinkGear.h                        | rename: ChLinkLockGear.h                  |
+| ChLinkLinActuator.h                 | rename: ChLinkLockLinActuator.h           |
+| ChLinkPointSpline.h                 | rename: ChLinkLockPointSpline.h           |
+| ChLinkPulley.h                      | rename: ChLinkLockPulley.h                |
+| ChLinkScrew.h                       | rename: ChLinkLockScrew.h                 |
+| ChLinkTrajectory.h                  | rename: ChLinkLockTrajectory.h            |
 | ChVector.h                          | rename: ChVector3.h                       |
 
 
- 
 **Classes and functions**
 
 | Class                             | Function                      | Action                                           |
@@ -406,9 +413,43 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNcoords_x                  | rename: GetNumCoordinatesPos                     |
 |                                   | GetNcoords_v                  | rename: GetNumCoordinatesVel                     |
 |                                   | GetNcoords_y                  | remove: split in GetNumCoordinatesPos/Vel        |
+| ChLinkBrake                       |                               | rename: ChLinkLockBrake                          |
+| ChLinkClearance                   |                               | rename: ChLinkLockClearance                      |
+| ChLinkGear                        |                               | rename: ChLinkLockGear                           |
+| ChLinkLinActuator                 |                               | rename: ChLinkLockLinActuator                    |
+| ChLinkPointSpline                 |                               | rename: ChLinkLockPointSpline                    |
+| ChLinkPulley                      |                               | rename: ChLinkLockPulley                         |
+| ChLinkScrew                       |                               | rename: ChLinkLockScrew                          |
+| ChLinkTrajectory                  |                               | rename: ChLinkLockTrajectory                     |
 | ChList                            |                               | remove                                           |
 | ChLog                             |                               | remove                                           |
 | ChLogConsole                      |                               | remove                                           |
+| ChMarker                          |                               |                                                  |
+|                                   | Dir_Ref2World                 | remove                                           |
+|                                   | Dir_World2Ref                 | remove                                           |
+|                                   | GetAbsWvel                    | rename: GetabsAngVel                             |
+|                                   | GetAbsWacc                    | rename: GetabsAngAcc                             |
+|                                   | GetAbsCoord                   | rename: GetAbsCsys                               |
+|                                   | GetAbsCoord_dt                | rename: GetAbsCsysDer                            |
+|                                   | GetAbsCoord_dtdt              | rename: GetAbsCsysDer2                           |
+|                                   | GetMotion_ang                 | rename: GetMotionAngle                           |
+|                                   | GetMotion_axis                | rename: GetMotionAxis                            |
+|                                   | GetMotion_X                   | rename: GetMotionAxisX                           |
+|                                   | GetMotion_Y                   | rename: GetMotionAxisY                           |
+|                                   | GetMotion_Z                   | rename: GetMotionAxisZ                           |
+|                                   | GetRest_Coord                 | rename: GetRestCsys                              |
+|                                   | Impose_Rel_Coord              | rename: ImposeRelativeTransform                  |
+|                                   | Impose_Abs_Coord              | rename: ImposeAbsoluteTransform                  |
+|                                   | Point_Ref2World               | remove                                           |
+|                                   | Point_World2Ref               | remove                                           |
+|                                   | SetAbsCoord                   | rename: SetAbsCsys                               |
+|                                   | SetAbsCoord_dt                | rename: SetAbsCsysDer                            |
+|                                   | SetAbsCoord_dtdt              | rename: SetAbsCsysDer2                           |
+|                                   | SetMotion_ang                 | rename: SetMotionAngle                           |
+|                                   | SetMotion_axis                | rename: SetMotionAxis                            |
+|                                   | SetMotion_X                   | rename: SetMotionAxisX                           |
+|                                   | SetMotion_Y                   | rename: SetMotionAxisY                           |
+|                                   | SetMotion_Z                   | rename: SetMotionAxisZ                           |
 | ChMaterialSurface                 |                               | rename: ChContactMaterial                        |
 |                                   | SetSfriction                  | rename: SetStaticFriction                        |
 |                                   | GetSfriction                  | rename: GetStaticFriction                        |
@@ -553,6 +594,9 @@ Note that this represents a major public API change and we expect most user code
   | Qdtdt_from_AngAxis       | QuatDer2FromAngleAxis         |
   | Quat_to_Angle            | RodriguezFromQuat             |
   | Quat_to_Angle            | AngleSetFromQuat              |
+
++ The signature of all ChLink `Initialize()` functions were changed to consistently use `ChFrame` objects to specify link position and alignment (where previously some of them used `ChCoordsys`).
+  A corresponding change was done for the constructor of `vehicle::ChVehicleJoint`.
 
 + `ChStream` classes were simple wrappers around C++ ouptut streams. The entire code has been now refactored to operate on STL streams directly, in order to simplify the API and to allow the user a more familiar interaction with streams in Chrono.
   - the `operator<<` associated to `ChStreamOutAscii` has been removed: this means that it is not possible to stream custom classes through this operator;
