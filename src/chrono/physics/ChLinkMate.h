@@ -142,7 +142,9 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     // UPDATING FUNCTIONS
     //
 
-    /// Override _all_ time, jacobian etc. updating.
+    /// Update link state. This is called automatically by the solver at each time step.
+    /// Update constraint jacobian and frames.
+    /// Derived classes must call this parent method and then take care of updating their own assets.
     virtual void Update(double mtime, bool update_assets = true) override;
 
     /// If some constraint is redundant, return to normal state
@@ -152,7 +154,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// the link as desired.
     virtual void SetDisabled(bool mdis) override;
 
-    /// Ex:3rd party software can set the 'broken' status via this method
+    /// Ex:3rd party software can set the 'broken' state via this method
     virtual void SetBroken(bool mon) override;
 
     /// Set this as true to compute the tangent stiffness matrix (Kc) of this constraint.
@@ -301,7 +303,8 @@ class ChApi ChLinkMatePlanar : public ChLinkMateGeneric {
                             const ChVector3d& norm2                     ///< normal of master plane 2 (rel. or abs.)
                             ) override;
 
-    /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of planes distance.
+    /// Update link state. This is called automatically by the solver at each time step.
+    /// Update constraint jacobian and frames.
     virtual void Update(double time, bool update_assets = true) override;
 
     /// Method to allow serialization of transient data to archives.
@@ -334,6 +337,9 @@ class ChApi ChLinkMateCylindrical : public ChLinkMateGeneric {
     /// Tell if the two axes must be opposed (flipped=true) or must have the same verse (flipped=false)
     void SetFlipped(bool doflip);
     bool IsFlipped() const { return m_flipped; }
+
+    using ChLinkMateGeneric::Initialize;
+
 
     /// Specialized initialization for coaxial mate, given the two bodies to be connected, two points, two directions
     /// (each expressed in body or abs. coordinates).
@@ -523,7 +529,8 @@ class ChApi ChLinkMateDistanceZ : public ChLinkMateGeneric {
                     ChVector3d dir2                      ///< direction of master axis 2 (rel. or abs.)
     );
 
-    /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
+    /// Update link state. This is called automatically by the solver at each time step.
+    /// Update constraint jacobian and frames.
     virtual void Update(double mtime, bool update_assets = true) override;
 
     /// Method to allow serialization of transient data to archives.
@@ -610,7 +617,8 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
                             const ChVector3d& dir2                      ///< direction of master axis 2 (rel. or abs.)
                             ) override;
 
-    /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
+    /// Update link state. This is called automatically by the solver at each time step.
+    /// Update constraint jacobian and frames.
     virtual void Update(double mtime, bool update_assets = true) override;
 
     /// Method to allow serialization of transient data to archives.

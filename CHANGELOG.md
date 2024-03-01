@@ -111,6 +111,7 @@ Note that this represents a major public API change and we expect most user code
 | ChDistribution.h                    | rename: ChRandom.h                        |
 | ChException.h                       | remove                                    |
 | ChFx.h                              | remove                                    |
+| ChLinkRackpinion.h                  | remove: merged into ChLinkMate.h          |
 | ChLists.h                           | remove                                    |
 | ChLog.h                             | remove                                    |
 | ChMaterialSurface.h                 | rename: ChContactMaterial.h               |
@@ -417,6 +418,14 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkClearance                   |                               | rename: ChLinkLockClearance                      |
 | ChLinkGear                        |                               | rename: ChLinkLockGear                           |
 | ChLinkLinActuator                 |                               | rename: ChLinkLockLinActuator                    |
+| ChLinkMateCoaxial                 |                               | rename: ChLinkMateCylindrical                    |
+| ChLinkMatePlane                   |                               | rename: ChLinkMatePlanar                         |
+|                                   | GetSeparation                 | rename: GetDistance                              |
+|                                   | SetSeparation                 | rename: SetDistance                              |
+| ChLinkMatePrismatic               |                               |                                                  |
+|                                   | GetRelativePos_dt             | rename: GetRelativePosDer                        |
+|                                   | GetRelativePos_dtdt           | rename: GetRelativePosDer2                       |
+| ChLinkMateXdistance               |                               | rename: ChLinkMateDistanceZ                      |
 | ChLinkPointSpline                 |                               | rename: ChLinkLockPointSpline                    |
 | ChLinkPulley                      |                               | rename: ChLinkLockPulley                         |
 | ChLinkScrew                       |                               | rename: ChLinkLockScrew                          |
@@ -541,6 +550,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
 |                                   | GetNsysvars                   | remove                                           |
 |                                   | GetNsysvars_w                 | remove                                           |
+| ChVector                          | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
 
 
 **Types**
@@ -594,6 +604,11 @@ Note that this represents a major public API change and we expect most user code
   | Qdtdt_from_AngAxis       | QuatDer2FromAngleAxis         |
   | Quat_to_Angle            | RodriguezFromQuat             |
   | Quat_to_Angle            | AngleSetFromQuat              |
+
++ `ChLinkMate` and derived classes have been rewritten so that:
+  - when only 1 dof is left, the relevant axis is Z, in line with ChLinkLock formulation (e.g. Prismatic, Coaxial, ...);
+  - when 2 dof are left, the relevant axes are X and Y; the exception is `ChLinkRackpinion` (`ChLinkMateRackPinion` in new naming) that kept Z as pinion and X as rack;
+  - the 'flipped==true' state is now referring to axes that are counter-aligned.
 
 + The signature of all ChLink `Initialize()` functions were changed to consistently use `ChFrame` objects to specify link position and alignment (where previously some of them used `ChCoordsys`).
   A corresponding change was done for the constructor of `vehicle::ChVehicleJoint`.

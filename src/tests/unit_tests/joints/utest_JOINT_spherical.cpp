@@ -21,12 +21,18 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChLinkMate.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
+
+enum class eChLinkFormulation {
+    Lock,
+    Mate
+};
 
 // =============================================================================
 // Local variables
@@ -40,10 +46,11 @@ static const std::string ref_dir = "testing/joints/spherical_joint/";
 //
 bool TestSpherical(const ChVector3d& jointLoc,
                    const ChQuaternion<>& jointRot,
+                   eChLinkFormulation formulation,
                    double simTimeStep,
                    double outTimeStep,
                    const std::string& testName);
-bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
+bool ValidateReference(const std::string& testName, const std::string& refTestName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
 bool ValidateEnergy(const std::string& testName, double tolerance);
 utils::CSV_writer OutStream();
@@ -67,39 +74,70 @@ int main(int argc, char* argv[]) {
     double sim_step = 5e-4;
     double out_step = 1e-2;
 
-    std::string test_name;
+    std::string ref_test_name;
+    std::string chrono_test_name;
     bool test_passed = true;
 
     // Case 1 - Joint at the origin and aligned with the global frame.
 
-    test_name = "Spherical_Case01";
-    TestSpherical(ChVector3d(0, 0, 0), QUNIT, sim_step, out_step, test_name);
-    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    test_passed &= ValidateReference(test_name, "Vel", 1e-3);
-    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
-    test_passed &= ValidateEnergy(test_name, 1e-2);
-    test_passed &= ValidateConstraints(test_name, 1e-5);
+    ref_test_name = "Spherical_Case01";
+
+    chrono_test_name = "Lock" + ref_test_name;
+    TestSpherical(ChVector3d(0, 0, 0), QUNIT, eChLinkFormulation::Lock, sim_step, out_step, chrono_test_name);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 2e-3);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-3);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Avel", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Aacc", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateEnergy(chrono_test_name, 1e-2);
+    test_passed &= ValidateConstraints(chrono_test_name, 1e-5);
+
+    chrono_test_name = "Mate" + ref_test_name;
+    TestSpherical(ChVector3d(0, 0, 0), QUNIT, eChLinkFormulation::Mate, sim_step, out_step, chrono_test_name);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 2e-3);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-3);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Avel", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Aacc", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateEnergy(chrono_test_name, 1e-2);
+    test_passed &= ValidateConstraints(chrono_test_name, 1e-5);
 
     // Case 2 - Joint at (1,2,3) and joint z aligned with the global axis along Y = Z.
     // In this case, the joint must be rotated -pi/4 about the global X-axis.
 
-    test_name = "Spherical_Case02";
-    TestSpherical(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_C_PI_4), sim_step, out_step, test_name);
-    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    test_passed &= ValidateReference(test_name, "Vel", 1e-3);
-    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
-    test_passed &= ValidateEnergy(test_name, 1e-2);
-    test_passed &= ValidateConstraints(test_name, 1e-5);
+    ref_test_name = "Spherical_Case02";
+
+    chrono_test_name = "Lock" + ref_test_name;
+    TestSpherical(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_C_PI_4), eChLinkFormulation::Lock, sim_step, out_step, chrono_test_name);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 2e-3);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-3);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Avel", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Aacc", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateEnergy(chrono_test_name, 1e-2);
+    test_passed &= ValidateConstraints(chrono_test_name, 1e-5);
+
+    chrono_test_name = "Mate" + ref_test_name;
+    TestSpherical(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_C_PI_4), eChLinkFormulation::Mate, sim_step, out_step, chrono_test_name);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 2e-3);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-3);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Avel", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Aacc", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateEnergy(chrono_test_name, 1e-2);
+    test_passed &= ValidateConstraints(chrono_test_name, 1e-5);
 
     // Return 0 if all tests passed and 1 otherwise
     std::cout << "\nUNIT TEST: " << (test_passed ? "PASSED" : "FAILED") << std::endl;
@@ -112,6 +150,7 @@ int main(int argc, char* argv[]) {
 //
 bool TestSpherical(const ChVector3d& jointLoc,      // absolute location of joint
                    const ChQuaternion<>& jointRot,  // orientation of joint
+                   eChLinkFormulation formulation,
                    double simTimeStep,              // simulation time step
                    double outTimeStep,              // output time step
                    const std::string& testName)     // if true, animate with Irrlich
@@ -167,9 +206,22 @@ bool TestSpherical(const ChVector3d& jointLoc,      // absolute location of join
     // reference frame. The revolute joint's axis of rotation will be the Z axis
     // of the specified rotation matrix.
 
-    auto sphericalJoint = chrono_types::make_shared<ChLinkLockSpherical>();
-    sphericalJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
-    sys.AddLink(sphericalJoint);
+    std::shared_ptr<ChLink> sphericalJoint;
+    switch (formulation)
+    {
+    case eChLinkFormulation::Lock:
+        sphericalJoint = chrono_types::make_shared<ChLinkLockSpherical>();
+        std::dynamic_pointer_cast<ChLinkLockSpherical>(sphericalJoint)->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
+        sys.AddLink(sphericalJoint);
+        break;
+    case eChLinkFormulation::Mate:
+        sphericalJoint = chrono_types::make_shared<ChLinkMateSpherical>();
+        std::dynamic_pointer_cast<ChLinkMateSpherical>(sphericalJoint)->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
+        sys.AddLink(sphericalJoint);
+        break;
+    default:
+        break;
+    }
 
     // Perform the simulation (record results option)
     // ------------------------------------------------
@@ -330,17 +382,19 @@ bool TestSpherical(const ChVector3d& jointLoc,      // absolute location of join
     return true;
 }
 
+
 // =============================================================================
 //
 // Wrapper function for comparing the specified simulation quantities against a
 // reference file.
 //
-bool ValidateReference(const std::string& testName,  // name of this test
+bool ValidateReference(const std::string& chronoTestName,  // name of the Chrono test
+                       const std::string& refTestName,  // name the reference test
                        const std::string& what,      // identifier for test quantity
                        double tolerance)             // validation tolerance
 {
-    std::string sim_file = out_dir + testName + "_CHRONO_" + what + ".txt";
-    std::string ref_file = ref_dir + testName + "_ADAMS_" + what + ".txt";
+    std::string sim_file = out_dir + chronoTestName + "_CHRONO_" + what + ".txt";
+    std::string ref_file = ref_dir + refTestName + "_ADAMS_" + what + ".txt";
     utils::DataVector norms;
 
     bool check = utils::Validate(sim_file, utils::GetValidationDataFile(ref_file), utils::RMS_NORM, tolerance, norms);
@@ -354,10 +408,10 @@ bool ValidateReference(const std::string& testName,  // name of this test
 
 // Wrapper function for checking constraint violations.
 //
-bool ValidateConstraints(const std::string& testName,  // name of this test
+bool ValidateConstraints(const std::string& chronoTestName,  // name of the Chrono test
                          double tolerance)             // validation tolerance
 {
-    std::string sim_file = out_dir + testName + "_CHRONO_Constraints.txt";
+    std::string sim_file = out_dir + chronoTestName + "_CHRONO_Constraints.txt";
     utils::DataVector norms;
 
     bool check = utils::Validate(sim_file, utils::RMS_NORM, tolerance, norms);
@@ -371,10 +425,10 @@ bool ValidateConstraints(const std::string& testName,  // name of this test
 
 // wrapper function for checking energy conservation.
 //
-bool ValidateEnergy(const std::string& testName,  // name of this test
+bool ValidateEnergy(const std::string& chronoTestName,  // name of the Chrono test
                     double tolerance)             // validation tolerance
 {
-    std::string sim_file = out_dir + testName + "_CHRONO_Energy.txt";
+    std::string sim_file = out_dir + chronoTestName + "_CHRONO_Energy.txt";
     utils::DataVector norms;
 
     utils::Validate(sim_file, utils::RMS_NORM, tolerance, norms);
