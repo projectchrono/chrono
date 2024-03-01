@@ -40,7 +40,7 @@ body = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 10, True, False)
 body.SetBodyFixed(False)
 sys.Add(body)
 body.SetPos(chrono.ChVector3d(-1.25, -0.75, 0.1))
-body.SetWvel_loc(chrono.ChVector3d(0.1, 0.1, 0.1))
+body.SetAngVelLocal(chrono.ChVector3d(0.1, 0.1, 0.1))
 
 body.GetVisualShape(0).SetColor(chrono.ChColor(0.9, 0.4, 0.1))
 

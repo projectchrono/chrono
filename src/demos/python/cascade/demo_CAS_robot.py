@@ -23,7 +23,7 @@ from OCC.Core import TopoDS
 # If running from a different directory, you must change the path to the data directory with: 
 #chrono.SetChronoDataPath('path/to/data')
 
-#  Create the simulation system and add items
+# Create the simulation system and add items
 sys = chrono.ChSystemNSC()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
@@ -49,7 +49,7 @@ rotation1.SetFromAngleAxis(-CH_C_PI / 2, chrono.ChVector3d(1, 0, 0))  # 1: rotat
 rotation2 = chrono.ChQuaterniond()
 rotation2.SetFromAngleAxis(CH_C_PI, chrono.ChVector3d(0, 1, 0))  # 2: rotate 180° on vertical Y axis
 tot_rotation = chrono.ChQuaterniond()
-tot_rotation = rotation2 % rotation1     # rotate on 1 then on 2, using quaternion product
+tot_rotation = rotation2 * rotation1     # rotate on 1 then on 2, using quaternion product
 root_frame = chrono.ChFrameMovingD(chrono.ChVector3d(0, 0, 0), tot_rotation)
 
 # Retrieve some sub shapes from the loaded model, using
@@ -64,7 +64,7 @@ def make_body_from_name(partname, root_transformation):
                                            True,    # mesh for visualization?
                                            False)   # mesh for collision?
         sys.Add(mbody1)
-        # Move the body as for global displacement/rotation (also mbody1 %= root_frame; )
+        # Move the body as for global displacement/rotation
         mbody1.ConcatenatePreTransformation(root_transformation)
         return mbody1
     else:

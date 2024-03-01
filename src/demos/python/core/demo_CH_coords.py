@@ -45,7 +45,7 @@ my_quat = chrono.ChQuaterniond(1,2,3,4)
 my_qconjugate = ~my_quat
 print ('quat. conjugate  =', my_qconjugate)
 print ('quat. dot product=', my_qconjugate ^ my_quat)
-print ('quat. product=',     my_qconjugate % my_quat)
+print ('quat. product=',     my_qconjugate * my_quat)
 
 # Test matrices and NumPy interoperability
 mlist = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,16]]
