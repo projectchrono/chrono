@@ -373,7 +373,7 @@ class ChFrameMoving : public ChFrame<Real> {
 
     /// Transform a moving frame from 'this' local coordinate system to parent frame coordinate system.
     ChFrameMoving<Real> TransformLocalToParent(const ChFrameMoving<Real>& F) const {
-        ChFrameMoving<Real> Fp(TransformPointLocalToParent(F.Csys.pos), Csys.rot * F.Csys.rot);
+        ChFrameMoving<Real> Fp(TransformPointLocalToParent(F.Csys.pos), this->Csys.rot * F.Csys.rot);
 
         // pos_dt
         Fp.Csys_dt.pos = PointSpeedLocalToParent(F.Csys.pos, F.Csys_dt.pos);
@@ -382,18 +382,18 @@ class ChFrameMoving : public ChFrame<Real> {
         Fp.Csys_dtdt.pos = PointAccelerationLocalToParent(F.Csys.pos, F.Csys_dt.pos, F.Csys_dtdt.pos);
 
         // rot_dt
-        Fp.Csys_dt.rot = Csys_dt.rot * F.Csys.rot + this->Csys.rot * F.Csys_dt.rot;
+        Fp.Csys_dt.rot = this->Csys_dt.rot * F.Csys.rot + this->Csys.rot * F.Csys_dt.rot;
 
         // rot_dtdt
         Fp.Csys_dtdt.rot =
-            Csys_dtdt.rot * F.Csys.rot + (Csys_dt.rot * F.Csys_dt.rot) * 2 + this->Csys.rot * F.Csys_dtdt.rot;
+            this->Csys_dtdt.rot * F.Csys.rot + (this->Csys_dt.rot * F.Csys_dt.rot) * 2 + this->Csys.rot * F.Csys_dtdt.rot;
 
         return Fp;
     }
 
     /// Transform a moving frame from the parent coordinate system to 'this' local frame coordinate system.
     ChFrameMoving<Real> TransformParentToLocal(const ChFrameMoving<Real>& F) const {
-        ChFrameMoving<Real> Fl(TransformPointParentToLocal(F.Csys.pos), Csys.rot.GetConjugate() * F.Csys.rot);
+        ChFrameMoving<Real> Fl(TransformPointParentToLocal(F.Csys.pos), this->Csys.rot.GetConjugate() * F.Csys.rot);
 
         // pos_dt
         Fl.Csys_dt.pos = PointSpeedParentToLocal(F.Csys.pos, F.Csys_dt.pos);
@@ -402,11 +402,11 @@ class ChFrameMoving : public ChFrame<Real> {
         Fl.Csys_dtdt.pos = PointAccelerationParentToLocal(F.Csys.pos, F.Csys_dt.pos, F.Csys_dtdt.pos);
 
         // rot_dt
-        Fl.Csys_dt.rot = this->Csys.rot.GetConjugate() * (F.Csys_dt.rot - Csys_dt.rot * Fl.Csys.rot);
+        Fl.Csys_dt.rot = this->Csys.rot.GetConjugate() * (F.Csys_dt.rot - this->Csys_dt.rot * Fl.Csys.rot);
 
         // rot_dtdt
         Fl.Csys_dtdt.rot = this->Csys.rot.GetConjugate() *
-                           (F.Csys_dtdt.rot - Csys_dtdt.rot * Fl.Csys.rot - (Csys_dt.rot * Fl.Csys_dt.rot) * 2);
+                           (F.Csys_dtdt.rot - this->Csys_dtdt.rot * Fl.Csys.rot - (this->Csys_dt.rot * Fl.Csys_dt.rot) * 2);
 
         return Fl;
     }
