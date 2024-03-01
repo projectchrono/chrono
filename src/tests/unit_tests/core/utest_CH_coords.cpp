@@ -56,7 +56,7 @@ TEST(CoordsTest, local_to_global) {
     cout << vG << " ..using quaternion rotation \n";
     check_vector(vG, vG_ref, ABS_ERR);
 
-    vG = csysA.TransformLocalToParent(vL);
+    vG = csysA.TransformPointLocalToParent(vL);
     cout << vG << " ..using a ChChCoordsys<> object \n";
     check_vector(vG, vG_ref, ABS_ERR);
 
@@ -93,7 +93,7 @@ TEST(CoordsTest, global_to_local) {
     cout << vL << " ..inv, using quaternion rotation \n";
     check_vector(vL, vL_ref, ABS_ERR);
 
-    vL = csysA.TransformParentToLocal(vG);
+    vL = csysA.TransformPointParentToLocal(vG);
     cout << vL << " ..inv, using a ChChCoordsys<> object \n";
     check_vector(vL, vL_ref, ABS_ERR);
 

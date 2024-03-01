@@ -681,10 +681,7 @@ void drawSegment(ChVisualSystemIrrlicht* vis, ChVector3d start, ChVector3d end, 
 // -----------------------------------------------------------------------------
 // Draw a polyline in 3D space, given the array of points as a std::vector.
 // -----------------------------------------------------------------------------
-void drawPolyline(ChVisualSystemIrrlicht* vis,
-                  std::vector<ChVector3d >& points,
-                  chrono::ChColor col,
-                  bool use_Zbuffer) {
+void drawPolyline(ChVisualSystemIrrlicht* vis, std::vector<ChVector3d>& points, chrono::ChColor col, bool use_Zbuffer) {
     // not very efficient, but enough as an example..
     if (points.size() < 2)
         return;
@@ -715,7 +712,7 @@ void drawCircle(ChVisualSystemIrrlicht* vis,
         phaseB = CH_C_2PI * (double)iu / (double)resolution;
         ChVector3d V1(radius * cos(phaseA), radius * sin(phaseA), 0);
         ChVector3d V2(radius * cos(phaseB), radius * sin(phaseB), 0);
-        drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
         phaseA = phaseB;
     }
 }
@@ -757,7 +754,7 @@ void drawSpring(ChVisualSystemIrrlicht* vis,
         heightB = length * ((double)iu / (double)resolution);
         ChVector3d V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
         ChVector3d V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
-        drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
         phaseA = phaseB;
         heightA = heightB;
     }
@@ -787,7 +784,7 @@ void drawRotSpring(ChVisualSystemIrrlicht* vis,
         double crt_angle = start_angle + iu * del_angle;
         double crt_radius = radius - (iu * del_angle / CH_C_2PI) * (radius / 10);
         ChVector3d V2(crt_radius * std::cos(crt_angle), crt_radius * std::sin(crt_angle), 0);
-        drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
         V1 = V2;
     }
 }
@@ -812,13 +809,13 @@ void drawGrid(ChVisualSystemIrrlicht* vis,
     for (int iu = -nu / 2; iu <= nu / 2; iu++) {
         ChVector3d V1(iu * ustep, vstep * (nv / 2), 0);
         ChVector3d V2(iu * ustep, -vstep * (nv / 2), 0);
-        drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
     }
 
     for (int iv = -nv / 2; iv <= nv / 2; iv++) {
         ChVector3d V1(ustep * (nu / 2), iv * vstep, 0);
         ChVector3d V2(-ustep * (nu / 2), iv * vstep, 0);
-        drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
     }
 }
 
@@ -890,13 +887,15 @@ void drawPlot3D(ChVisualSystemIrrlicht* vis,
             if (ix > 0) {
                 ChVector3d Vx1(X(ix - 1, iy), Y(ix - 1, iy), Z(ix - 1, iy));
                 ChVector3d Vx2(X(ix, iy), Y(ix, iy), Z(ix, iy));
-                drawSegment(vis, pos.TransformLocalToParent(Vx1), pos.TransformLocalToParent(Vx2), col, use_Zbuffer);
+                drawSegment(vis, pos.TransformPointLocalToParent(Vx1), pos.TransformPointLocalToParent(Vx2), col,
+                            use_Zbuffer);
             }
 
             if (iy > 0) {
                 ChVector3d Vy1(X(ix, iy - 1), Y(ix, iy - 1), Z(ix, iy - 1));
                 ChVector3d Vy2(X(ix, iy), Y(ix, iy), Z(ix, iy));
-                drawSegment(vis, pos.TransformLocalToParent(Vy1), pos.TransformLocalToParent(Vy2), col, use_Zbuffer);
+                drawSegment(vis, pos.TransformPointLocalToParent(Vy1), pos.TransformPointLocalToParent(Vy2), col,
+                            use_Zbuffer);
             }
         }
     }
@@ -997,8 +996,6 @@ void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord, double
     // Z axis
     drawSegment(vis, pos, pos + rot.Rotate(VECT_Z) * scale, ChColor(0, 0, 1));
 }
-
-
 
 // -----------------------------------------------------------------------------
 /// Draw a line arrow in 3D space with given color.

@@ -754,7 +754,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateGrid(double ustep,
         ChVector3d V2(iu * ustep, -vstep * (nv / 2), 0);
         v.push_back(V1);
         v.push_back(V2);
-        // drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        // drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
     }
 
     for (int iv = -nv / 2; iv <= nv / 2; iv++) {
@@ -762,7 +762,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateGrid(double ustep,
         ChVector3d V2(-ustep * (nu / 2), iv * vstep, 0);
         v.push_back(V1);
         v.push_back(V2);
-        // drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        // drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
     }
 
     auto numPoints = v.size();

@@ -22,6 +22,8 @@
 #include "chrono/core/ChMatrix.h"
 #include "chrono/geometry/ChSurface.h"
 #include "chrono/geometry/ChVolume.h"
+#include "chrono/geometry/ChBox.h"
+#include "chrono/geometry/ChLine.h"
 
 namespace chrono {
 namespace particlefactory {
@@ -56,7 +58,7 @@ class ChRandomParticlePositionRectangleOutlet : public ChRandomParticlePosition 
     virtual ChVector3d RandomPosition() override {
         ChVector3d localp =
             ChVector3d(ChRandom::Get() * width - 0.5 * width, ChRandom::Get() * height - 0.5 * height, 0);
-        return outlet.TransformLocalToParent(localp);
+        return outlet.TransformPointLocalToParent(localp);
     }
     /// Access the coordinate system of the rectangular outlet.
     /// The outlet width is on the X direction of this csys, and the

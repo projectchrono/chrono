@@ -231,12 +231,12 @@ int main(int argc, char* argv[]) {
 
         // Perform the transformation: v = t + [R] * v'
         // NOTE: all the following ways will give the same result, so you can use them equivalently!
-        auto va1 = csys.TransformLocalToParent(vl);
+        auto va1 = csys.TransformPointLocalToParent(vl);
         auto va2 = t + R * vl;
         std::cout << va1.Equals(va2, 1e-6) << std::endl;
 
         // Inverse transformation
-        auto vl3 = csys.TransformParentToLocal(va1);
+        auto vl3 = csys.TransformPointParentToLocal(va1);
         auto vl4 = R.transpose() * (va1 - t);
         std::cout << vl3.Equals(vl, 1e-6) << " " << vl4.Equals(vl, 1e-6) << std::endl;
     }

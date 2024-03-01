@@ -698,7 +698,7 @@ void ChExtruderBeamEuler::SetContact(std::shared_ptr<ChContactMaterialSMC> mcont
 void ChExtruderBeamEuler::Update() {
     auto node1 = beam_nodes.back();
     ChVector3d P1 = node1->GetPos();
-    double d1 = (outlet.TransformParentToLocal(P1)).x();
+    double d1 = (outlet.TransformPointParentToLocal(P1)).x();
 
     // std::cout << " d1=" << d1 << std::endl;
 
@@ -706,7 +706,7 @@ void ChExtruderBeamEuler::Update() {
         double d0 = d1 - this->h;
         ChCoordsys<> C0;
         C0.rot = outlet.rot;
-        C0.pos = outlet.pos + outlet.TransformLocalToParent(VECT_X * d0);
+        C0.pos = outlet.pos + outlet.TransformPointLocalToParent(VECT_X * d0);
         ChCoordsys<> C0_ref;
         C0_ref.rot = node1->GetX0().GetRot();
         C0_ref.pos = node1->GetX0().GetPos() - VECT_X * this->h;
@@ -807,7 +807,7 @@ void ChExtruderBeamIGA::SetContact(std::shared_ptr<ChContactMaterialSMC> mcontac
 bool ChExtruderBeamIGA::Update() {
     auto node1 = beam_nodes.back();
     ChVector3d P1 = node1->GetPos();
-    double d1 = (outlet.TransformParentToLocal(P1)).x();
+    double d1 = (outlet.TransformPointParentToLocal(P1)).x();
 
     mytime = mysystem->GetChTime();
 
@@ -821,7 +821,7 @@ bool ChExtruderBeamIGA::Update() {
     double d0 = d1 - this->h;
     ChCoordsys<> C0;
     C0.rot = outlet.rot;
-    C0.pos = outlet.pos + outlet.TransformLocalToParent(VECT_X * d0);
+    C0.pos = outlet.pos + outlet.TransformPointLocalToParent(VECT_X * d0);
     ChCoordsys<> C0_ref;
     C0_ref.rot = node1->GetX0().GetRot();
     C0_ref.pos = node1->GetX0().GetPos() - VECT_X * this->h;

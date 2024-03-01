@@ -109,7 +109,7 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
     /// This function triggers the a particle event according to the fact
     /// the the particle is crossing a rectangle.
     virtual bool TriggerEvent(std::shared_ptr<ChBody> mbody, ChSystem& msystem) {
-        ChVector3d localpos = rectangle_csys.TransformParentToLocal(mbody->GetPos());
+        ChVector3d localpos = rectangle_csys.TransformPointParentToLocal(mbody->GetPos());
 
         // Is in lower part of rectangle?
         if ((localpos.z() <= 0) && (-localpos.z() < margin) && (fabs(localpos.x()) < 0.5 * Xsize + margin) &&
@@ -143,7 +143,7 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
         last_positions.clear();
 
         for (auto body : msystem.GetBodies()) {
-            ChVector3d localpos = rectangle_csys.TransformParentToLocal(body->GetPos());
+            ChVector3d localpos = rectangle_csys.TransformPointParentToLocal(body->GetPos());
             if ((localpos.z() > 0) && (localpos.z() < margin) && (fabs(localpos.x()) < 0.5 * Xsize + margin) &&
                 (fabs(localpos.y()) < 0.5 * Ysize + margin)) {
                 // ok, was in the upper part Z>0 of the triangle.. store in hash table for next

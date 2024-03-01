@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
 
     // TRANSFORM USING A ChCoordys OBJECT
 
-    mvect2 = csysA.TransformLocalToParent(mvect1);
+    mvect2 = csysA.TransformPointLocalToParent(mvect1);
     std::cout << mvect2 << " ..using a ChChCoordsys<> object" << std::endl;
 
     mvect2 = mvect1 >> csysA;
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
 
     // TRANSFORM USING A ChCoordys OBJECT
 
-    mvect1 = csysA.TransformParentToLocal(mvect2);
+    mvect1 = csysA.TransformPointParentToLocal(mvect2);
     std::cout << mvect1 << " ..inv, using a ChChCoordsys<> object" << std::endl;
 
     // TRANSFORM USING A ChFrame OBJECT

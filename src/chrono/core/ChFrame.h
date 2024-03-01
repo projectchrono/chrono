@@ -55,7 +55,7 @@ class ChFrame {
 
     // OPERATORS OVERLOADING
 
-    /// Assignment operator: copy from another frame
+    /// Assignment operator: copy from another frame.
     ChFrame<Real>& operator=(const ChFrame<Real>& other) {
         if (&other == this)
             return *this;
@@ -108,7 +108,7 @@ class ChFrame {
 
     /// Transform a vector through this frame (express from parent frame).
     /// If A is this frame and v a vector expressed in the parent frame of A, then w = A / v is the vector expressed in
-    /// A. In other words, w = A * v  implies v = A/w
+    /// A. In other words, w = A * v  implies v = A/w.
     ChVector3<Real> operator/(const ChVector3<Real>& v) const { return TransformPointParentToLocal(v); }
 
     /// Transform this frame by pre-multiplication with another frame.

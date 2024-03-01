@@ -79,7 +79,7 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
         ChVector3d V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
         ChVector3d V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
 
-        auto segment = ChLineSegment(mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2));
+        auto segment = ChLineSegment(mpos.TransformPointLocalToParent(V1), mpos.TransformPointLocalToParent(V2));
         linepath->AddSubLine(segment);
         phaseA = phaseB;
         heightA = heightB;
