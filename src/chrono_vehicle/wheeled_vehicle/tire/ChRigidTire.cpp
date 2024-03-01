@@ -196,6 +196,8 @@ TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
         tire_force.point = m_wheel->GetSpindle()->GetPos();
         tire_force.force = force;
         tire_force.moment = torque;
+
+        return tire_force;
     }
 
     // Otherwise, calculate and return the resultant of the contact forces acting on the tire.
