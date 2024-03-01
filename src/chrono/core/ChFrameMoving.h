@@ -373,7 +373,7 @@ class ChFrameMoving : public ChFrame<Real> {
 
     /// Transform a moving frame from 'this' local coordinate system to parent frame coordinate system.
     ChFrameMoving<Real> TransformLocalToParent(const ChFrameMoving<Real>& F) const {
-        ChFrameMoving<Real> Fp(TransformPointLocalToParent(F.Csys.pos), this->Csys.rot * F.Csys.rot);
+        ChFrameMoving<Real> Fp(this->TransformPointLocalToParent(F.Csys.pos), this->Csys.rot * F.Csys.rot);
 
         // pos_dt
         Fp.Csys_dt.pos = PointSpeedLocalToParent(F.Csys.pos, F.Csys_dt.pos);
@@ -393,7 +393,7 @@ class ChFrameMoving : public ChFrame<Real> {
 
     /// Transform a moving frame from the parent coordinate system to 'this' local frame coordinate system.
     ChFrameMoving<Real> TransformParentToLocal(const ChFrameMoving<Real>& F) const {
-        ChFrameMoving<Real> Fl(TransformPointParentToLocal(F.Csys.pos), this->Csys.rot.GetConjugate() * F.Csys.rot);
+        ChFrameMoving<Real> Fl(this->TransformPointParentToLocal(F.Csys.pos), this->Csys.rot.GetConjugate() * F.Csys.rot);
 
         // pos_dt
         Fl.Csys_dt.pos = PointSpeedParentToLocal(F.Csys.pos, F.Csys_dt.pos);
