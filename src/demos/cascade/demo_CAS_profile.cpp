@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system: all bodies and constraints
     // will be handled by this ChSystemNSC object.
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Collision tolerances.
     // note: for 2D-2D contact problems, only the margin tolerance is used (that acts outward as the envelope)
