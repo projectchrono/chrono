@@ -56,10 +56,7 @@ constexpr bool APPLY_FORCE = !ROTATING_BEAM;
 constexpr bool USE_HERTING = false;
 constexpr bool DO_DYNAMICS = true;
 
-constexpr bool USE_GEOMETRIC_STIFFNESS = true;
-constexpr bool USE_INERTIAL_STIFFNESS = false;
-constexpr bool USE_INERTIAL_DAMPING = true;
-constexpr bool USE_QUADRATIC_VELOCITY_TERM = true;
+constexpr bool USE_LINEAR_INERTIAL_TERM = true;
 
 void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdeflection) {
     GetLog() << "\n\nRUN TEST\n";
@@ -108,10 +105,7 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     // sys.AddLink(my_link_truss);
 
     auto assembly = chrono_types::make_shared<ChModalAssembly>();
-    assembly->use_geometric_stiffness = USE_GEOMETRIC_STIFFNESS;
-    assembly->use_inertial_stiffness = USE_INERTIAL_STIFFNESS;
-    assembly->use_inertial_damping = USE_INERTIAL_DAMPING;
-    assembly->use_quadratic_velocity_term = USE_QUADRATIC_VELOCITY_TERM;
+    assembly->use_linear_inertial_term = USE_LINEAR_INERTIAL_TERM;
     if (USE_HERTING)
         assembly->modal_reduction_type = chrono::modal::ChModalAssembly::Reduction_Type::Herting;
     else
@@ -147,10 +141,10 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     section->SetZbendingRigidity(EIzz);
     section->SetMassPerUnitLength(mass_per_unit_length);
     section->SetInertiaJxxPerUnitLength(Jxx);
-    section->SetSectionRotation(1.0e-4 * offset_coeff);
+    section->SetSectionRotation(0);
     section->SetCenterOfMass(0, 0);
-    section->SetCentroidY(-0.3e-4 * offset_coeff);
-    section->SetCentroidZ(1.2e-5 * offset_coeff);
+    section->SetCentroidY(0);
+    section->SetCentroidZ(0);
     section->SetShearCenterY(0);
     section->SetShearCenterZ(0);
     section->SetArtificialJyyJzzFactor(1.0 / 500.0);

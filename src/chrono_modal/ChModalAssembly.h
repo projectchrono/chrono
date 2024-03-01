@@ -27,9 +27,9 @@ namespace modal {
 
 /// Class for assemblies of items, for example ChBody, ChLink, ChMesh, etc.
 /// This supports component mode synthesis (CMS) to do substructuring, hence an assembly becomes a "modal body"
-/// where many "internal" DOFs of finite elements will be reduced to few modal modes that are superimposed
-/// to the motion of a floating frame (for small deflections). Some nodes can be selected as "boundary nodes"
-/// to allow connecting this modal assembly to external joints and forces.
+/// where many "internal" DOFs of finite elements will be reduced to a few modal basis that are superimposed
+/// to the rigid-body motion represented by a floating frame (for small deflections). Some nodes can be selected 
+/// as "boundary nodes" to allow connecting this modal assembly to external joints and forces.
 
 class ChApiModal ChModalAssembly : public ChAssembly {
   public:
@@ -54,8 +54,16 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     bool IsModalMode() { return this->is_modal; }
 
+    /// Two modal reduction algorithms are available now:
+    /// 1. Herting: free-free modes are used as the modal basis, more suitable for subsystems in free boundary conditions, such
+    /// as helicopter blades.
+    /// 2. Craig-Bampton: clamped-clamped modes are used as the modal basis.
     enum Reduction_Type { Herting, Craig_Bampton };
+
+    /// Herting modal reduction method is used by default.
     Reduction_Type modal_reduction_type = Herting;
+
+    /// Do not print the debug information by default.
     bool verbose = false;
 
     /// Compute the undamped modes for the current assembly.
@@ -80,7 +88,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
                                                                           ///< a full ChModalSolveDamped
 
     /// Perform modal reduction on this assembly, from the current "full" ("boundary"+"internal") assembly.
-    /// - An undamped modal analysis will be done on the full assembly with  nodes.
+    /// - An undamped modal analysis will be done on the full assembly with internal nodes.
     /// - The "internal" nodes will be replaced by n_modes modal coordinates.
     void SwitchModalReductionON(
         const ChModalSolveUndamped&
@@ -107,11 +115,13 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     void ComputeMassCenter();
     void ComputeProjectionMatrix();
-    bool UpdateFloatingFrameOfReference();
+    void UpdateFloatingFrameOfReference();
     void UpdateTransformationMatrix();
     ChFrameMoving<> GetFloatingFrameOfReference() { return this->floating_frame_F; }
 
-    void ComputeLocalFullKRMmatrix();
+    void ComputeLocalFullKMCqMatrix(ChSparseMatrix& full_M,
+                                   ChSparseMatrix& full_K,
+                                   ChSparseMatrix& full_Cq);
     void DoModalReduction_Herting(const ChModalDamping& damping_model = ChModalDampingNone());
     void DoModalReduction_CraigBamption(const ChModalDamping& damping_model = ChModalDampingNone());
 
@@ -119,11 +129,12 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void ComputeStiffnessMatrix();
     void ComputeDampingMatrix();
     void ComputeModalKRMmatrix();
-    void DebugBlock();
-    bool use_geometric_stiffness = true;
-    bool use_inertial_stiffness = true;
-    bool use_inertial_damping = true;
-    bool use_quadratic_velocity_term = true;
+
+    /// A rigorous mathematical manuplation can be employed to derive the inertial forces and the consequent inertial
+    /// damping matrix, or a linear assumption is applied to obtain quite concise expressions. 
+    /// True: default option, the linear assumption is used. 
+    /// False: rigorous deviation is used, only for internal test.
+    bool use_linear_inertial_term = true;
 
     /// For displaying modes, you can use the following function. It sets the state of this subassembly
     /// (both boundary and inner items) using the n-th eigenvector multiplied by a "amplitude" factor * sin(phase).
@@ -146,9 +157,10 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void SetFullStateReset();
 
     /// Computes the increment of the subassembly (the increment of the current configuration respect
-    /// to the initial undeformed snapshot configuration), and also gets the current speed.
-    /// u_locred = P_W^T*[\delta qB; \delta eta]
-    /// e_locred = [qB^bar; eta],  edt_locred = [qB^bar_dt; eta_dt]
+    /// to the initial undeformed configuration), and also gets the current speed.
+    /// u_locred = P_W^T*[\delta qB; \delta eta]: corotated local displacement.
+    /// e_locred = [qB^bar; eta]: local elastic displacement vector.
+    /// edt_locred = [qB^bar_dt; eta_dt]: local elastic velocity vector.
     /// u_locred, e_locred and edt_locred are all expressed in the local frame of reference F.
     /// Two different algorithms are provided: 1. definition, 2. projection
     void GetStateLocal(ChStateDelta& u_locred,
@@ -235,7 +247,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Psi_d]  where Psi_d is the matrix of the selected eigenvectors after SwitchModalReductionON().
     const ChMatrixDynamic<>& Get_modal_Psi() const { return Psi; }
     /// Access the snapshot of the old state of the full assembly at the previous time step
-    const ChVectorDynamic<>& Get_full_assembly_x_old() const { return full_assembly_x_old; }
+    const ChVectorDynamic<>& Get_full_assembly_x_old() const { return full_assembly_x; }
 
     // Use the following function to access results of ComputeModeDamped() or ComputeModes():
 
@@ -386,10 +398,10 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Dump the  M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian
     /// matrix (at the current configuration) for this subassembly,
-    /// Assumes the rows/columns of the matrices are ordered as the ChVariable objects used in this assembly, 
-    /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
-    /// The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat 
-    /// Might throw ChException if file can't be saved.
+    /// Assumes the rows/columns of the matrices are ordered as the ChVariable objects used in this assembly,
+    /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal
+    /// assembly). The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat Might throw
+    /// ChException if file can't be saved.
     void DumpSubassemblyMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path);
 
     /// Compute the mass matrix of the subassembly.
@@ -581,66 +593,44 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     std::shared_ptr<CustomForceFullCallback> m_custom_F_full_callback;
 
     ChKblockGeneric modal_Hblock;
-    ChMatrixDynamic<> modal_M;            // corresponding to boundary and modal accelerations
-    ChMatrixDynamic<> modal_K;            // corresponding to boundary and modal coordinates
-    ChMatrixDynamic<> modal_R;            // corresponding to boundary and modal velocites
-    ChMatrixDynamic<> modal_Cq;           // corresponding to boundary and modal lagrange multipliers
-    ChMatrixDynamic<> Psi;                //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
-    ChState full_assembly_x_old;          // state snapshot of full not reduced assembly at the previous time step
-    ChStateDelta full_assembly_v_old;     // velocity snapshot of full not reduced assembly at the previous time step
-    ChState reduced_assembly_x_old;       // state snapshot of reduced assembly at the previous time step
-    ChStateDelta reduced_assembly_v_old;  // velocity snapshot of reduced assembly at the previous time step
-    ChVectorDynamic<> modal_q_old;        // state snapshot of the modal coordinates at the previous time step
-    ChFrameMoving<> floating_frame_F0;    // floating frame of reference F at the time of SwitchModalReductionON()
-    // ChFrameMoving<>   floating_frame_F_old;//floating frame of reference F at previous time step, used for updating F
-    bool is_initialized_F = false;
+    ChMatrixDynamic<> modal_M;          // corresponding to boundary and modal accelerations
+    ChMatrixDynamic<> modal_K;          // corresponding to boundary and modal coordinates
+    ChMatrixDynamic<> modal_R;          // corresponding to boundary and modal velocites
+    ChMatrixDynamic<> modal_Cq;         // corresponding to boundary and modal lagrange multipliers
+    ChMatrixDynamic<> Psi;              //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
 
     // a series of new variables for the new formulas to support rotating subassembly
-    ChVector<> com_x;  // the position of center of mass of the subassembly at current deformed configuration
-    ChFrameMoving<>
-        floating_frame_F;  // the floating frame of reference F of the subassembly. Can be at one node or mass center
-    ChFrameMoving<> com_frame;
-    ChFrameMoving<> floating_frame_F_old;
+    ChFrameMoving<> floating_frame_F0;  // floating frame of reference F at the time of SwitchModalReductionON()
+    ChFrameMoving<> floating_frame_F;
+    //ChFrameMoving<> floating_frame_F_old;
+    ChFrameMoving<> cog_frame;
+    bool is_initialized_F = false;
 
-    // Projection matrix according to Bauchau2021
-    ChMatrixDynamic<> Q;           // mapping matrix for the displacement of the floating frame F
-    ChMatrixDynamic<> P_parallel;  // parallel projector
-    ChMatrixDynamic<> P_perp;      // perpendicular projector
-    ChMatrixDynamic<> U_locred;    // rigid body modes in local frame for the reduced subassembly
-    Eigen::ColPivHouseholderQR<ChMatrixDynamic<>> UTMU_inv_solver;
-    bool is_initialized_U_locred_0 = false;
-    ChMatrixDynamic<> U_locred_0;  // rigid body modes in local frame for the reduced subassembly
-    ChMatrixDynamic<> Q_0;
-    ChMatrixDynamic<> P_parallel_0;
-    ChMatrixDynamic<> P_perp_0;
+    ChState full_assembly_x;  // state snapshot of full not reduced assembly at the previous time step
+
+
+    // Projection matrices
+    ChMatrixDynamic<> U_locred;      // rigid body modes of the reduced modal assembly in the deformed configuration
+    ChMatrixDynamic<> U_locred_0;    // rigid body modes of the reduced modal assembly in the initial configuration
+    ChMatrixDynamic<> Q_0;           // mapping matrix for the displacement of the floating frame F, is constant
+    ChMatrixDynamic<> P_parallel_0;  // parallel projector, is constant
+    ChMatrixDynamic<> P_perp_0;      // perpendicular projector, is constant
+    bool is_projection_initialized = false;
 
     ChMatrixDynamic<> Psi_S;  // static mode transformation matrix in the mode acceleration method
     ChMatrixDynamic<> Psi_D;  // dynamic mode transformation matrix in the mode acceleration method
 
-    ChMatrixDynamic<>
-        P_B1;  // transformation matrix for the part from the coordinate of F to the coordinate of boundary nodes B
-    ChMatrixDynamic<> P_B2;  // transformation matrix for the part from the relative coordinate(elastic deformation) of
-                             // B to the coordinate of boundary nodes B
-    ChMatrixDynamic<>
-        P_I1;  // transformation matrix for the part from the coordinate of F to the coordinate of internal nodes I
-    ChMatrixDynamic<> P_I2;  // transformation matrix for the part from the relative coordinate(elastic deformation) of
-                             // I to the coordinate of internal nodes I
-    
-    ChMatrixDynamic<> U_loc_B;
-    ChMatrixDynamic<> U_loc_I;
-    ChMatrixDynamic<> U_loc_B_0;
-    ChMatrixDynamic<> U_loc_I_0;
-    ChMatrixDynamic<> U_loc;
+    ChMatrixDynamic<> Uloc_B;
+    ChMatrixDynamic<> Uloc_I;
+    ChMatrixDynamic<> Uloc_B_0;
+    ChMatrixDynamic<> Uloc_I_0;
 
-    ChMatrixDynamic<> P_W;  // extended transformation matrix, = diag[P_B2,I]
-    ChMatrixDynamic<> P_F;// = diag[R_F, I]
+    ChMatrixDynamic<> L_B;
+    ChMatrixDynamic<> L_I;
+    ChMatrixDynamic<> P_W;  // extended transformation matrix, = diag[L_B,I]
+    ChMatrixDynamic<> P_F;  // = diag[R_F, I]
 
-    ChVectorDynamic<> g_loc;  // the local internal forces of the reduced superelement in the floating frame F
     ChVectorDynamic<> g_quad;  // the quadratic velocity term of the reduced superelement
-
-
-    void GetXi_Uloc_VD(const ChVectorDynamic<>& mv_loc, ChMatrixDynamic<>& mXi);
-    void GetXi_UlocT_FH(const ChVectorDynamic<>& mv_loc, ChMatrixDynamic<>& mXi);
 
     // full system matrices in the local floating frame of reference F
     ChSparseMatrix full_M_loc;
