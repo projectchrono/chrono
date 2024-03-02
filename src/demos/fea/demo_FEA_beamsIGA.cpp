@@ -377,9 +377,9 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
                       msection,                 // section of the beam
                       5,                        // number of sections (spans)
                       ChVector3d(0, 0, 0),      // start point
-                      ChVector3d(0.4, 0.0, 0),  // end point
-                      VECT_Y,                   // suggested Y direction of section
-                      2);                       // order (3 = cubic, etc)
+                      ChVector3d(0, 0.0, 0.4),  // end point
+                      VECT_X,                   // suggested Y direction of section
+                      3);                       // order (3 = cubic, etc)
     builder.GetLastBeamNodes().front()->SetFixed(true);
 
     // Now create a linear motor that push-pulls the end of the beam
@@ -391,7 +391,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
     sys.Add(motor);
     motor->Initialize(builder.GetLastBeamNodes().back(), truss,
-                      ChFrame<>(builder.GetLastBeamNodes().back()->GetPos(), Q_ROTATE_Z_TO_X));
+                      ChFrame<>(builder.GetLastBeamNodes().back()->GetPos()));
     motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::SPHERICAL);
     auto rampup = chrono_types::make_shared<ChFunctionRamp>(0, 0.1);
     auto rampdo = chrono_types::make_shared<ChFunctionRamp>(0, -0.1);
