@@ -483,9 +483,9 @@ int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& mvector) {
     return n_q + n_c;
 }
 
-void ChSystemDescriptor::ShurComplementProduct(ChVectorDynamic<>& result,
-                                               const ChVectorDynamic<>& lvector,
-                                               std::vector<bool>* enabled) {
+void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result,
+                                                const ChVectorDynamic<>& lvector,
+                                                std::vector<bool>* enabled) {
     // currently, the case with ChKblock items is not supported (only diagonal M is supported, no K)
     assert(vstiffness.size() == 0);
     assert(lvector.size() == CountActiveConstraints());

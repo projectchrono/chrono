@@ -25,12 +25,12 @@ real Convergence_Norm(const DynamicVector<real>& r) {
     }
     return result;
 }
-uint ChSolverMulticoreCG::Solve(ChShurProduct& ShurProduct,
-                               ChProjectConstraints& Project,
-                               const uint max_iter,
-                               const uint size,
-                               const DynamicVector<real>& b,
-                               DynamicVector<real>& x) {
+uint ChSolverMulticoreCG::Solve(ChSchurProduct& SchurProduct,
+                                ChProjectConstraints& Project,
+                                const uint max_iter,
+                                const uint size,
+                                const DynamicVector<real>& b,
+                                DynamicVector<real>& x) {
     r.resize(b.size());
     q.resize(b.size());
     s.resize(b.size());
@@ -46,7 +46,7 @@ uint ChSolverMulticoreCG::Solve(ChShurProduct& ShurProduct,
         if (restart) {
             printf("restarting cg\n");
             r = b;
-            ShurProduct(x, q);
+            SchurProduct(x, q);
             r -= q;
             // Project(r.data());
         }
@@ -68,7 +68,7 @@ uint ChSolverMulticoreCG::Solve(ChShurProduct& ShurProduct,
         } else {
             s = rho / rho_old * s + r;
         }
-        ShurProduct(s, q);
+        SchurProduct(s, q);
         // Project(r.data());
         real s_dot_q = (s, q);
         real alpha = s_dot_q ? rho / s_dot_q : C_REAL_MAX;

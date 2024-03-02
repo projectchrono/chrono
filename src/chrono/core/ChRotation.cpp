@@ -69,7 +69,7 @@ AngleSet AngleSetFromAngleSet(RotRepresentation to_seq, const AngleSet& set) {
     return AngleSet({to_seq, to_angles});
 }
 
-ChVector3d RodriguezFromAngleSet(const AngleSet& set) {
+ChVector3d RodriguesFromAngleSet(const AngleSet& set) {
     ChMatrix33<> R;
 
     switch (set.seq) {
@@ -91,12 +91,12 @@ ChVector3d RodriguezFromAngleSet(const AngleSet& set) {
             break;
     }
 
-    return R.GetRodriguezParameters();
+    return R.GetRodriguesParameters();
 }
 
-AngleSet AngleSetFromRodriguez(RotRepresentation to_seq, const ChVector3d& params) {
+AngleSet AngleSetFromRodrigues(RotRepresentation to_seq, const ChVector3d& params) {
     ChMatrix33<> R;
-    R.SetFromRodriguezParameters(params);
+    R.SetFromRodriguesParameters(params);
 
     ChVector3d to_angles;
     switch (to_seq) {
@@ -211,31 +211,31 @@ ChQuaterniond QuatFromRotVec(const ChVector3d& vec) {
 
 // --------------------------
 
-ChVector3d RodriguezFromQuat(const ChQuaterniond& q) {
+ChVector3d RodriguesFromQuat(const ChQuaterniond& q) {
     ChMatrix33<> R(q);
-    return R.GetRodriguezParameters();
+    return R.GetRodriguesParameters();
 }
 
-ChQuaterniond QuatFromRodriguez(const ChVector3d& params) {
+ChQuaterniond QuatFromRodrigues(const ChVector3d& params) {
     ChMatrix33<> R;
-    R.SetFromRodriguezParameters(params);
+    R.SetFromRodriguesParameters(params);
     return R.GetQuaternion();
 }
 
-ChQuaterniond QuatDerFromRodriguez(const ChVector3d& params, const ChQuaterniond& q) {
-    auto params1 = RodriguezFromQuat(q);
+ChQuaterniond QuatDerFromRodrigues(const ChVector3d& params, const ChQuaterniond& q) {
+    auto params1 = RodriguesFromQuat(q);
     auto params2 = Vadd(params1, Vmul(params, FD_STEP));
-    auto q2 = QuatFromRodriguez(params2);
+    auto q2 = QuatFromRodrigues(params2);
 
     return Qscale(Qsub(q2, q), 1 / FD_STEP);
 }
 
-ChQuaterniond QuatDer2FromRodriguez(const ChVector3d& params, const ChQuaterniond& q) {
-    auto params0 = RodriguezFromQuat(q);
+ChQuaterniond QuatDer2FromRodrigues(const ChVector3d& params, const ChQuaterniond& q) {
+    auto params0 = RodriguesFromQuat(q);
     auto paramsA = Vsub(params0, Vmul(params, FD_STEP));
     auto paramsB = Vadd(params0, Vmul(params, FD_STEP));
-    auto qa = QuatFromRodriguez(paramsA);
-    auto qb = QuatFromRodriguez(paramsB);
+    auto qa = QuatFromRodrigues(paramsA);
+    auto qb = QuatFromRodrigues(paramsB);
 
     return Qscale(Qadd(Qadd(qa, qb), Qscale(q, -2)), 1 / FD_STEP);
 }

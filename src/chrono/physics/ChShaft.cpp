@@ -188,7 +188,7 @@ void ChShaft::VariablesQbIncrementPosition(double dt_step) {
         return;
 
     // Updates position with incremental action of speed contained in the
-    // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
+    // 'qb' vector:  pos' = pos + dt * speed   , like in an Euler step.
 
     double newspeed = variables.Get_qb()(0);
 

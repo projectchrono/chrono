@@ -275,7 +275,7 @@ struct host_container {
     custom_vector<float> cohesion;          ///< constant cohesion forces
 
     /// This matrix, if used will hold D^TxM^-1xD in sparse form.
-    CompressedMatrix<real> Nshur;
+    CompressedMatrix<real> Nschur;
     /// The D Matrix hold the Jacobian for the entire system.
     CompressedMatrix<real> D;
     /// D_T is the transpose of the D matrix, note that D_T is actually computed

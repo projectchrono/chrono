@@ -134,18 +134,18 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
 
     /// Set the "alpha" Rayleigh damping ratio,  
     /// the mass-proportional structural damping in: R = alpha*M + beta*K 
-    virtual void SetBeamRaleyghDampingAlpha(double malpha) { this->rdamping_alpha = malpha; }
-    double GetBeamRaleyghDampingAlpha() { return this->rdamping_alpha; }
+    virtual void SetBeamRayleighDampingAlpha(double malpha) { this->rdamping_alpha = malpha; }
+    double GetBeamRayleighDampingAlpha() { return this->rdamping_alpha; }
 
     /// Set the "beta" Rayleigh damping ratio,
     /// the stiffness-proportional structural damping in: R = alpha*M + beta*K 
-    virtual void SetBeamRaleyghDampingBeta(double mbeta) { this->rdamping_beta = mbeta; }
-    double GetBeamRaleyghDampingBeta() { return this->rdamping_beta; }
+    virtual void SetBeamRayleighDampingBeta(double mbeta) { this->rdamping_beta = mbeta; }
+    double GetBeamRayleighDampingBeta() { return this->rdamping_beta; }
 
     /// Set both beta and alpha coefficients in Rayleigh damping model:  R = alpha*M + beta*K. 
     /// For backward compatibility, if one provides only the first parameter, this would be the "beta" 
     /// stiffness-proportional term, and the "alpha" mass proportional term would be left to default zero.
-    virtual void SetBeamRaleyghDamping(double mbeta, double malpha = 0) { this->rdamping_beta = mbeta; this->rdamping_alpha = malpha; }
+    virtual void SetBeamRayleighDamping(double mbeta, double malpha = 0) { this->rdamping_beta = mbeta; this->rdamping_alpha = malpha; }
 
 
     // Optimization flags

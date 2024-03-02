@@ -590,14 +590,14 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 
                 // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km+Kg]+rf*[R] =
                 // (kf+rf*beta)*[Km] + kf*Kg
-                H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRaleyghDampingBeta()) +
+                H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRayleighDampingBeta()) +
                           this->Kg * Px * Kfactor;
             } else {
                 // K = Km
 
                 // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km]+rf*[R] =
                 // (kf+rf*beta)*[K]
-                H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRaleyghDampingBeta());
+                H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRayleighDampingBeta());
             }
 
             ChMatrixCorotation::ComputeCK(H_local, R, 4, CK);
@@ -661,7 +661,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
     // The M mass matrix of this element:
     //
 
-    if (Mfactor || (Rfactor && this->section->GetBeamRaleyghDampingAlpha())) {
+    if (Mfactor || (Rfactor && this->section->GetBeamRayleighDampingAlpha())) {
         ChMatrixDynamic<> Mloc(12, 12);
         Mloc.setZero();
         ChMatrix33<> Mxw;
@@ -675,7 +675,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
         // Rayleigh damping (stiffness proportional part)  [Rm] = alpha*[M] , so H += km*[M]+rf*[Rm]  H +=
         // (km+rf*alpha)*[M]
 
-        double node_multiplier_fact = 0.5 * length * (Mfactor + Rfactor * this->section->GetBeamRaleyghDampingAlpha());
+        double node_multiplier_fact = 0.5 * length * (Mfactor + Rfactor * this->section->GetBeamRayleighDampingAlpha());
         for (int i = 0; i < nodes.size(); ++i) {
             int stride = i * 6;
             // if there is no mass center offset, the upper right and lower left blocks need not be rotated,
@@ -729,12 +729,12 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     this->GetField_dt(displ_dt);
 
     // Rayleigh damping - stiffness proportional
-    ChMatrixDynamic<> FiR_local = section->GetBeamRaleyghDampingBeta() * Km * displ_dt;
+    ChMatrixDynamic<> FiR_local = section->GetBeamRayleighDampingBeta() * Km * displ_dt;
 
     Fi_local += FiR_local;
 
     // Rayleigh damping - mass proportional
-    if (this->section->GetBeamRaleyghDampingAlpha()) {
+    if (this->section->GetBeamRayleighDampingAlpha()) {
         ChMatrixDynamic<> Mloc(12, 12);
         Mloc.setZero();
         ChMatrix33<> Mxw;
@@ -744,7 +744,7 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         this->section->ComputeInertiaMatrix(sectional_mass);
 
         // Rayleigh damping (stiffness proportional part)  [Rm] = alpha*[M]
-        double node_multiplier_fact = 0.5 * length * (this->section->GetBeamRaleyghDampingAlpha());
+        double node_multiplier_fact = 0.5 * length * (this->section->GetBeamRayleighDampingAlpha());
         for (int i = 0; i < nodes.size(); ++i) {
             int stride = i * 6;
             Mloc.block<6, 6>(stride, stride) += sectional_mass * node_multiplier_fact;

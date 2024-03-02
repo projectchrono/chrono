@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     msection2->SetDensity(2700);
     msection2->SetYoungModulus(73.0e9);
     msection2->SetGwithPoissonRatio(0.3);
-    msection2->SetBeamRaleyghDamping(0.000);
+    msection2->SetBeamRayleighDamping(0.000);
     msection2->SetAsCircularSection(hbeam_d);
 
     ChBuilderBeamEuler builder;
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
     msection3->SetDensity(2700);
     msection3->SetYoungModulus(73.0e9);
     msection3->SetGwithPoissonRatio(0.3);
-    msection3->SetBeamRaleyghDamping(0.000);
+    msection3->SetBeamRayleighDamping(0.000);
     msection3->SetAsCircularSection(crankbeam_d);
 
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements

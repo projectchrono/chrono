@@ -16,11 +16,11 @@
 
 using namespace chrono;
 
-ChShurProduct::ChShurProduct() {
+ChSchurProduct::ChSchurProduct() {
     data_manager = 0;
 }
-void ChShurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real>& output) {
-    data_manager->system_timer.start("ShurProduct");
+void ChSchurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real>& output) {
+    data_manager->system_timer.start("SchurProduct");
 
     const DynamicVector<real>& E = data_manager->host_data.E;
 
@@ -30,11 +30,11 @@ void ChShurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real>
     output.reset();
 
     const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    const CompressedMatrix<real>& Nshur = data_manager->host_data.Nshur;
+    const CompressedMatrix<real>& Nschur = data_manager->host_data.Nschur;
 
     if (data_manager->settings.solver.local_solver_mode == data_manager->settings.solver.solver_mode) {
         if (data_manager->settings.solver.compute_N) {
-            output = Nshur * x + E * x;
+            output = Nschur * x + E * x;
         } else {
             output = D_T * data_manager->host_data.M_invD * x + E * x;
         }
@@ -100,17 +100,17 @@ void ChShurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real>
             } break;
         }
     }
-    data_manager->system_timer.stop("ShurProduct");
+    data_manager->system_timer.stop("SchurProduct");
 }
 
-void ChShurProductBilateral::Setup(ChMulticoreDataManager* data_container_) {
-    ChShurProduct::Setup(data_container_);
+void ChSchurProductBilateral::Setup(ChMulticoreDataManager* data_container_) {
+    ChSchurProduct::Setup(data_container_);
     if (data_manager->num_bilaterals == 0) {
         return;
     }
-    NshurB = _DBT_ * _MINVDB_;
+    NschurB = _DBT_ * _MINVDB_;
 }
 
-void ChShurProductBilateral::operator()(const DynamicVector<real>& x, DynamicVector<real>& output) {
-    output = NshurB * x;
+void ChSchurProductBilateral::operator()(const DynamicVector<real>& x, DynamicVector<real>& output) {
+    output = NschurB * x;
 }

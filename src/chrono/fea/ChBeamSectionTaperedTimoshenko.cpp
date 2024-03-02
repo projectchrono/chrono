@@ -258,7 +258,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double EImzz1 = -EIyy1 * sinphi1 + EIzz1 * cosphi1;
     double GAmyy1 = GAyy1 * cosphi1 + GAzz1 * sinphi1;
     double GAmzz1 = -GAyy1 * sinphi1 + GAzz1 * cosphi1;
-    DampingCoefficients rdamping_coeff1 = this->sectionA->GetBeamRaleyghDamping();
+    DampingCoefficients rdamping_coeff1 = this->sectionA->GetBeamRayleighDamping();
     double artificial_factor_for_shear_damping1 = this->sectionA->GetArtificialFactorForShearDamping();
 
     double mu2 = this->sectionB->GetMassPerUnitLength();
@@ -297,7 +297,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double EImzz2 = -EIyy2 * sinphi2 + EIzz2 * cosphi2;
     double GAmyy2 = GAyy2 * cosphi2 + GAzz2 * sinphi2;
     double GAmzz2 = -GAyy2 * sinphi2 + GAzz2 * cosphi2;
-    DampingCoefficients rdamping_coeff2 = this->sectionB->GetBeamRaleyghDamping();
+    DampingCoefficients rdamping_coeff2 = this->sectionB->GetBeamRayleighDamping();
     double artificial_factor_for_shear_damping2 = this->sectionB->GetArtificialFactorForShearDamping();
 
     double L = this->GetLength();
@@ -876,7 +876,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaStiffnessMatri
     Ki.block<6, 6>(6, 6) = Ki_B;
 }
 
-DampingCoefficients ChBeamSectionTaperedTimoshenkoAdvancedGeneric::GetBeamRaleyghDamping() const {
+DampingCoefficients ChBeamSectionTaperedTimoshenkoAdvancedGeneric::GetBeamRayleighDamping() const {
     return this->avg_sec_par->rdamping_coeff;
 };
 

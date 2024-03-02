@@ -97,13 +97,13 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
             ++d_i;
         }
 
-    // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::ShurBvectorCompute() ?
+    // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::SchurBvectorCompute() ?
 
-    // Compute the b_shur vector in the Shur complement equation N*l = b_shur
+    // Compute the b_schur vector in the Schur complement equation N*l = b_schur
     // with
-    //   N_shur  = D'* (M^-1) * D
-    //   b_shur  = - c + D'*(M^-1)*k = b_i + D'*(M^-1)*k
-    // but flipping the sign of lambdas,  b_shur = - b_i - D'*(M^-1)*k
+    //   N_schur  = D'* (M^-1) * D
+    //   b_schur  = - c + D'*(M^-1)*k = b_i + D'*(M^-1)*k
+    // but flipping the sign of lambdas,  b_schur = - b_i - D'*(M^-1)*k
     // Do this in three steps:
 
     // Put (M^-1)*k    in  q  sparse vector of each variable..
@@ -111,7 +111,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
         if (mvariables[iv]->IsActive())
             mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
 
-    // ...and now do  b_shur = - D'*q = - D'*(M^-1)*k ..
+    // ...and now do  b_schur = - D'*q = - D'*(M^-1)*k ..
     mb.setZero();
     int s_i = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
@@ -120,7 +120,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
             ++s_i;
         }
 
-    // ..and finally do   b_shur = b_shur - c
+    // ..and finally do   b_schur = b_schur - c
     sysd.BuildBiVector(mb_tmp);  // b_i   =   -c   = phi/h
     mb -= mb_tmp;
 
@@ -144,8 +144,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 
     // g = gradient of 0.5*l'*N*l-l'*b
     // g = N*l-b
-    sysd.ShurComplementProduct(mg, ml);  // 1)  g = N * l
-    mg -= mb;                            // 2)  g = N * l - b_shur
+    sysd.SchurComplementProduct(mg, ml);  // 1)  g = N * l
+    mg -= mb;                             // 2)  g = N * l - b_schur
 
     mg_p = mg;
 
@@ -191,7 +191,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
             ml_p = ml + lambda * mdir;
 
             // m_tmp = Nl_p = N*l_p;
-            sysd.ShurComplementProduct(mb_tmp, ml_p);
+            sysd.SchurComplementProduct(mb_tmp, ml_p);
 
             // g_p = N * l_p - b  = Nl_p - b
             mg_p = mb_tmp - mb;

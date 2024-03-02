@@ -558,7 +558,7 @@ void ChParticleCloud::VariablesQbIncrementPosition(double dt_step) {
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         // Updates position with incremental action of speed contained in the
-        // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
+        // 'qb' vector:  pos' = pos + dt * speed   , like in an Euler step.
 
         ChVector3d newspeed(particles[j]->variables.Get_qb().segment(0, 3));
         ChVector3d newwel(particles[j]->variables.Get_qb().segment(3, 3));

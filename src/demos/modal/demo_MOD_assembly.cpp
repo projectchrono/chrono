@@ -111,8 +111,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     section->SetDensity(beam_density);
     section->SetYoungModulus(beam_Young);
     section->SetGwithPoissonRatio(0.31);
-    section->SetBeamRaleyghDampingBeta(0.01);
-    section->SetBeamRaleyghDampingAlpha(0.0001);
+    section->SetBeamRayleighDampingBeta(0.01);
+    section->SetBeamRayleighDampingAlpha(0.0001);
     section->SetAsRectangularSection(beam_wy, beam_wz);
 
     ChBuilderBeamEuler builder;

@@ -57,7 +57,7 @@ Model::Model() {
     auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCable>();
     msection_cable2->SetDiameter(0.015);
     msection_cable2->SetYoungModulus(0.01e9);
-    msection_cable2->SetBeamRaleyghDamping(0.000);
+    msection_cable2->SetBeamRayleighDamping(0.000);
 
     auto mtruss = chrono_types::make_shared<ChBody>();
     mtruss->SetBodyFixed(true);

@@ -69,7 +69,7 @@ int num_cable_element = 15;
 // Material Properties
 double E = 8e9;
 double density = 8000;
-double BeamRaleyghDamping = 0.02;
+double BeamRayleighDamping = 0.02;
 
 // Output frequency
 bool output = true;
@@ -253,7 +253,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     msection_cable->SetDiameter(initSpace0);
     msection_cable->SetYoungModulus(E);
     msection_cable->SetDensity(density);
-    msection_cable->SetBeamRaleyghDamping(BeamRaleyghDamping);
+    msection_cable->SetBeamRayleighDamping(BeamRayleighDamping);
 
     ChBuilderCableANCF builder;
     builder.BuildBeam(my_mesh,                               // FEA mesh with nodes and elements

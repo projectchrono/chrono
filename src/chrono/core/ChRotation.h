@@ -29,7 +29,7 @@ enum class RotRepresentation {
     CARDAN_ANGLES_ZXY,  ///< Cardan (Tait-Bryan) angle sequence: Z - X' - Y'' (intrinsic rotations)
     CARDAN_ANGLES_ZYX,  ///< Cardan (Tait-Bryan) angle sequence: Z - Y' - X'' (intrinsic rotations)
     CARDAN_ANGLES_XYZ,  ///< Cardan (Tait-Bryan) angle sequence: X - Y' - Z'' (intrinsic rotations)
-    RODRIGUEZ           ///< Rodriguez parameters
+    RODRIGUES           ///< Rodrigues parameters
 };
 
 /// Representation of an Euler/Cardan angle set.
@@ -49,11 +49,11 @@ struct AngleAxis {
 /// Convert from one set of Euler or Cardan angles to another.
 ChApi AngleSet AngleSetFromAngleSet(RotRepresentation to_seq, const AngleSet& set);
 
-/// Convert from a set of Euler angles to Rodriguez parameters.
-ChApi ChVector3d RodriguezFromAngleSet(const AngleSet& set);
+/// Convert from a set of Euler angles to Rodrigues parameters.
+ChApi ChVector3d RodriguesFromAngleSet(const AngleSet& set);
 
-/// Convert from Rodriguez parameters to a set of Euler angles.
-ChApi AngleSet AngleSetFromRodriguez(RotRepresentation to_seq, const ChVector3d& params);
+/// Convert from Rodrigues parameters to a set of Euler angles.
+ChApi AngleSet AngleSetFromRodrigues(RotRepresentation to_seq, const ChVector3d& params);
 
 // --------------------------
 
@@ -100,17 +100,17 @@ ChApi ChQuaterniond QuatFromRotVec(const ChVector3d& vec);
 
 // --------------------------
 
-/// Convert from a quaternion to Rodriguez parameters.
-ChApi ChVector3d RodriguezFromQuat(const ChQuaterniond& q);
+/// Convert from a quaternion to Rodrigues parameters.
+ChApi ChVector3d RodriguesFromQuat(const ChQuaterniond& q);
 
-/// Convert from Rodriguez parameters to a quaternion.
-ChApi ChQuaterniond QuatFromRodriguez(const ChVector3d& params);
+/// Convert from Rodrigues parameters to a quaternion.
+ChApi ChQuaterniond QuatFromRodrigues(const ChVector3d& params);
 
-/// Convert from a set of Rodriguez parameter derivatives to a quaternion derivative.
-ChApi ChQuaterniond QuatDerFromRodriguez(const ChVector3d& params, const ChQuaterniond& q);
+/// Convert from a set of Rodrigues parameter derivatives to a quaternion derivative.
+ChApi ChQuaterniond QuatDerFromRodrigues(const ChVector3d& params, const ChQuaterniond& q);
 
-/// Convert a set of Rodriguez parameter second derivatives to a quaternion second derivative.
-ChApi ChQuaterniond QuatDer2FromRodriguez(const ChVector3d& params, const ChQuaterniond& q);
+/// Convert a set of Rodrigues parameter second derivatives to a quaternion second derivative.
+ChApi ChQuaterniond QuatDer2FromRodrigues(const ChVector3d& params, const ChQuaterniond& q);
 
 // --------------------------
 

@@ -1011,7 +1011,7 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
         }
 
         //// For K stiffness matrix and R matrix: scale by factors
-        // CKCt *= Kfactor + Rfactor * this->tapered_section->GetBeamRaleyghDamping();
+        // CKCt *= Kfactor + Rfactor * this->tapered_section->GetBeamRayleighDamping();
 
         H.block(0, 0, 12, 12) = CKCt * Kfactor + CRCt * Rfactor;
 
@@ -1160,7 +1160,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     ChVectorDynamic<> displ_dt(12);
     this->GetField_dt(displ_dt);
 
-    // ChMatrixDynamic<> FiR_local = this->tapered_section->GetBeamRaleyghDamping() * this->Km * displ_dt;
+    // ChMatrixDynamic<> FiR_local = this->tapered_section->GetBeamRayleighDamping() * this->Km * displ_dt;
     ChMatrixDynamic<> FiR_local = this->Rm * displ_dt;
 
     Fi_local += FiR_local;
@@ -1250,7 +1250,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
         ChVectorDynamic<> displ_dt(12);
         this->GetField_dt(displ_dt);
 
-        // ChMatrixDynamic<> FiR_local = this->tapered_section->GetBeamRaleyghDamping() * this->Km * displ_dt;
+        // ChMatrixDynamic<> FiR_local = this->tapered_section->GetBeamRayleighDamping() * this->Km * displ_dt;
         ChMatrixDynamic<> FiR_local = this->Rm * displ_dt;
         FiMKR_local -= FiR_local;
     }

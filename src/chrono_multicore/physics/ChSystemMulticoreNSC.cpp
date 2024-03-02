@@ -38,7 +38,7 @@ ChSystemMulticoreNSC::ChSystemMulticoreNSC() : ChSystemMulticore() {
     data_manager->system_timer.AddTimer("ChSolverMulticore_solverG");
     data_manager->system_timer.AddTimer("ChSolverMulticore_Project");
     data_manager->system_timer.AddTimer("ChSolverMulticore_Solve");
-    data_manager->system_timer.AddTimer("ShurProduct");
+    data_manager->system_timer.AddTimer("SchurProduct");
     data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_D");
     data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_E");
     data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_R");

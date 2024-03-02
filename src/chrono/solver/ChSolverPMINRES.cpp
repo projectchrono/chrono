@@ -86,13 +86,13 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
             ++d_i;
         }
 
-    // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::ShurBvectorCompute() ?
+    // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::SchurBvectorCompute() ?
 
-    // Compute the b_shur vector in the Shur complement equation N*l = b_shur
+    // Compute the b_schur vector in the Schur complement equation N*l = b_schur
     // with
-    //   N_shur  = D'* (M^-1) * D
-    //   b_shur  = - c + D'*(M^-1)*k = b_i + D'*(M^-1)*k
-    // but flipping the sign of lambdas,  b_shur = - b_i - D'*(M^-1)*k
+    //   N_schur  = D'* (M^-1) * D
+    //   b_schur  = - c + D'*(M^-1)*k = b_i + D'*(M^-1)*k
+    // but flipping the sign of lambdas,  b_schur = - b_i - D'*(M^-1)*k
     // Do this in three steps:
 
     // Put (M^-1)*k    in  q  sparse vector of each variable..
@@ -100,7 +100,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
         if (mvariables[iv]->IsActive())
             mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
 
-    // ...and now do  b_shur = - D' * q  ..
+    // ...and now do  b_schur = - D' * q  ..
     mb.setZero();
     int s_i = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
@@ -109,7 +109,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
             ++s_i;
         }
 
-    // ..and finally do   b_shur = b_shur - c
+    // ..and finally do   b_schur = b_schur - c
     sysd.BuildBiVector(mtmp);  // b_i   =   -c   = phi/h
     mb -= mtmp;
 
@@ -132,8 +132,8 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     // ...
 
     // r = b - N*l;
-    sysd.ShurComplementProduct(mr, ml);  // r = N*l
-    mr = mb - mr;                        // r =-N*l+b
+    sysd.SchurComplementProduct(mr, ml);  // r = N*l
+    mr = mb - mr;                         // r =-N*l+b
 
     // r = (project_orthogonal(l+diff*r, fric) - l)/diff;
     mr = ml + grad_diffstep * mr;    // r = l + diff*r
@@ -150,10 +150,10 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     mz = mp;
 
     // NMr = N*M*r = N*z
-    sysd.ShurComplementProduct(mNMr, mz);  // NMr = N*z
+    sysd.SchurComplementProduct(mNMr, mz);  // NMr = N*z
 
     // Np = N*p
-    sysd.ShurComplementProduct(mNp, mp);  // Np = N*p
+    sysd.SchurComplementProduct(mNp, mp);  // Np = N*p
 
     //// RADU
     //// Is the above correct?  We always have z=p and therefore NMr = Np...
@@ -194,8 +194,8 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
         sysd.ConstraintsProject(ml);  // l = P(l)
 
         // r = b - N*l;
-        sysd.ShurComplementProduct(mr, ml);  // r = N*l
-        mr = mb - mr;                        // r =-N*l+b
+        sysd.SchurComplementProduct(mr, ml);  // r = N*l
+        mr = mb - mr;                         // r =-N*l+b
 
         // r = (project_orthogonal(l+diff*r, fric) - l)/diff;
         mr = ml + grad_diffstep * mr;
@@ -225,7 +225,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
         mNMr_old = mNMr;
 
         // NMr = N*z;
-        sysd.ShurComplementProduct(mNMr, mz);  // NMr = N*z
+        sysd.SchurComplementProduct(mNMr, mz);  // NMr = N*z
 
         // beta = z'*(NMr-NMr_old)/(z_old'*(NMr_old));
         mtmp = mNMr - mNMr_old;

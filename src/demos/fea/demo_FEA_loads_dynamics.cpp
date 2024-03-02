@@ -94,10 +94,10 @@ int main(int argc, char* argv[]) {
     beam_section->SetAsRectangularSection(beam_wy, beam_wz);
     beam_section->SetYoungModulus(0.01e9);
     beam_section->SetGshearModulus(0.01e9 * 0.3);
-    beam_section->SetBeamRaleyghDamping(0.200);
+    beam_section->SetBeamRayleighDamping(0.200);
     beam_section->SetDensity(1500);
 
-    // Create an Eulero-Bernoulli beam with a single element
+    // Create an Euler-Bernoulli beam with a single element
     auto elementA = chrono_types::make_shared<ChElementBeamEuler>();
     elementA->SetNodes(nodeA, nodeB);
     elementA->SetSection(beam_section);
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
 
                 // Compute F=F(u)
                 // This is the function that you have to implement. It should return the
-                // load at U. For Eulero beams, loads are expected as 6-rows vectors, containing
+                // load at U. For Euler beams, loads are expected as 6-rows vectors, containing
                 // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
                 virtual void ComputeF(
                     const double U,              // parametric coordinate in line

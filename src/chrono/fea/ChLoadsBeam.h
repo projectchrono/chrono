@@ -51,7 +51,7 @@ class ChLoaderBeamWrench : public ChLoaderUatomic {
 
     // Compute F=F(u)
     // This is the function that you have to implement. It should return the
-    // load at U. For Eulero beams, loads are expected as 6-rows vectors, containing
+    // load at U. For Euler beams, loads are expected as 6-rows vectors, containing
     // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
     virtual void ComputeF(const double U,        ///< parametric coordinate in line
                           ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
@@ -102,7 +102,7 @@ class ChLoaderBeamWrenchDistributed : public ChLoaderUdistributed {
 
     // Compute F=F(u)
     // This is the function that you have to implement. It should return the
-    // load at U. For Eulero beams, loads are expected as 6-rows vectors, containing
+    // load at U. For Euler beams, loads are expected as 6-rows vectors, containing
     // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
     virtual void ComputeF(const double U,        ///< parametric coordinate in line
                           ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable

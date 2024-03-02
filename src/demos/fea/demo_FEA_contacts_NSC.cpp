@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
         auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCable>();
         msection_cable2->SetDiameter(0.05);
         msection_cable2->SetYoungModulus(0.01e9);
-        msection_cable2->SetBeamRaleyghDamping(0.05);
+        msection_cable2->SetBeamRayleighDamping(0.05);
 
         ChBuilderCableANCF builder;
 

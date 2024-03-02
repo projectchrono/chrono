@@ -66,8 +66,8 @@ ChMatrixNM<double, 6, 6> ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetMl
 }
 
 ChMatrixNM<double, 6, 6> ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetRlawAtPoint(const double eta) {
-    DampingCoefficients rdamping_coeff_A = this->section_fpmA->GetBeamRaleyghDamping();
-    DampingCoefficients rdamping_coeff_B = this->section_fpmB->GetBeamRaleyghDamping();
+    DampingCoefficients rdamping_coeff_A = this->section_fpmA->GetBeamRayleighDamping();
+    DampingCoefficients rdamping_coeff_B = this->section_fpmB->GetBeamRayleighDamping();
     double artificial_factor_for_shear_damping_A = this->section_fpmA->GetArtificialFactorForShearDamping();
     double artificial_factor_for_shear_damping_B = this->section_fpmB->GetArtificialFactorForShearDamping();
 

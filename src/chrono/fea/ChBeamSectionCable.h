@@ -74,8 +74,8 @@ class ChApi ChBeamSectionCable : public ChBeamSection {
     double GetYoungModulus() const { return this->E; }
 
     /// Set the Rayleigh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
-    void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
-    double GetBeamRaleyghDamping() { return this->rdamping; }
+    void SetBeamRayleighDamping(double mr) { this->rdamping = mr; }
+    double GetBeamRayleighDamping() { return this->rdamping; }
 };
 
 /// @} fea_utils

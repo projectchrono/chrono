@@ -2433,7 +2433,7 @@ class ChLinkLockLock_RotRep_enum_mapper : public ChLinkLockLock {
     CH_ENUM_VAL(RotRepresentation::CARDAN_ANGLES_ZXY);
     CH_ENUM_VAL(RotRepresentation::CARDAN_ANGLES_ZYX);
     CH_ENUM_VAL(RotRepresentation::CARDAN_ANGLES_XYZ);
-    CH_ENUM_VAL(RotRepresentation::RODRIGUEZ);
+    CH_ENUM_VAL(RotRepresentation::RODRIGUES);
     CH_ENUM_MAPPER_END(ChRotationRepresentation);
 };
 

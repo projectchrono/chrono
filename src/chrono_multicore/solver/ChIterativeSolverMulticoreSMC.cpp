@@ -833,7 +833,7 @@ void ChIterativeSolverMulticoreSMC::RunTimeStep() {
         ComputeR();
         data_manager->system_timer.stop("ChIterativeSolverMulticore_Matrices");
 
-        ShurProductBilateral.Setup(data_manager);
+        SchurProductBilateral.Setup(data_manager);
 
         bilateral_solver->Setup(data_manager);
 

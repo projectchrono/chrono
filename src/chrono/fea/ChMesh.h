@@ -257,7 +257,7 @@ class ChApi ChMesh : public ChIndexedNodes {
     ///     pos += qb * step
     /// </pre>
     /// If qb is a speed, this behaves like a single step of 1-st order
-    /// numerical integration (Eulero integration).
+    /// numerical integration (Euler integration).
     virtual void VariablesQbIncrementPosition(double step) override;
 
     /// Tell to a system descriptor that there are variables of type

@@ -86,8 +86,8 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     /// Fill this 3x3 matrix as a rotation matrix, given three angles of consecutive rotations about x,y,z axis.
     void SetFromCardanAnglesXYZ(const ChVector3<Real>& angles);
 
-    /// Fill this 3x3 matrix as a rotation matrix, given three Rodriguez parameters.
-    void SetFromRodriguezParameters(const ChVector3<Real>& r);
+    /// Fill this 3x3 matrix as a rotation matrix, given three Rodrigues parameters.
+    void SetFromRodriguesParameters(const ChVector3<Real>& r);
 
     /// Fill this 3x3 matrix as a rotation matrix, given the three versors X,Y,Z of the basis.
     void SetFromDirectionAxes(const ChVector3<Real>& X, const ChVector3<Real>& Y, const ChVector3<Real>& Z);
@@ -126,7 +126,7 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     /// Assumes that this is a rotation matrix.
     ChQuaternion<Real> GetQuaternion() const;
 
-    /// Return the Eulero angles.
+    /// Return the Euler angles.
     /// Assumes that this is a rotation matrix.
     ChVector3<Real> GetEulerAnglesZXZ() const;
 
@@ -142,9 +142,9 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     /// Assumes that this is a rotation matrix.
     ChVector3<Real> GetCardanAnglesXYZ() const;
 
-    /// Return the Rodriguez parameters.
+    /// Return the Rodrigues parameters.
     /// Assumes that this is a rotation matrix.
-    ChVector3<Real> GetRodriguezParameters() const;
+    ChVector3<Real> GetRodriguesParameters() const;
 
     /// Assuming this matrix is a rotation matrix, get Ax vector.
     ChVector3<Real> GetAx() const;
@@ -349,7 +349,7 @@ inline void ChMatrix33<Real>::SetFromCardanAnglesXYZ(const ChVector3<Real>& angl
 }
 
 template <typename Real>
-inline void ChMatrix33<Real>::SetFromRodriguezParameters(const ChVector3<Real>& r) {
+inline void ChMatrix33<Real>::SetFromRodriguesParameters(const ChVector3<Real>& r) {
     Real gam = std::pow(r.x(), 2) + std::pow(r.y(), 2) + std::pow(r.z(), 2);
 
     (*this)(0, 0) = 1 + std::pow(r.x(), 2) - std::pow(r.y(), 2) - std::pow(r.z(), 2);
@@ -511,7 +511,7 @@ inline ChVector3<Real> ChMatrix33<Real>::GetCardanAnglesXYZ() const {
 }
 
 template <typename Real>
-inline ChVector3<Real> ChMatrix33<Real>::GetRodriguezParameters() const {
+inline ChVector3<Real> ChMatrix33<Real>::GetRodriguesParameters() const {
     ChVector3<Real> r;
     ChQuaternion<Real> q = GetQuaternion();
     // warning: infinite results may happen..

@@ -153,7 +153,7 @@ void test_2() {
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetBarArea(0.1 * 0.02);
     melementA->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
-    melementA->SetBarRaleyghDamping(0.01);
+    melementA->SetBarRayleighDamping(0.01);
     melementA->SetBarDensity(2. * 0.1 / (melementA->GetBarArea() * 1.0));
     // melementA->SetBarDensity(0);
 
@@ -419,14 +419,14 @@ void test_4() {
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetBarArea(0.1 * 0.02);
     melementA->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
-    melementA->SetBarRaleyghDamping(0.01);
+    melementA->SetBarRayleighDamping(0.01);
     melementA->SetBarDensity(2. * 0.1 / (melementA->GetBarArea() * 1.0));
 
     auto melementB = chrono_types::make_shared<ChElementBar>();
     melementB->SetNodes(mnodeB, mnodeC);
     melementB->SetBarArea(0.1 * 0.02);
     melementB->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
-    melementB->SetBarRaleyghDamping(0.01);
+    melementB->SetBarRayleighDamping(0.01);
     melementB->SetBarDensity(2. * 0.1 / (melementB->GetBarArea() * 1.0));
 
     // Remember to add elements to the mesh!
