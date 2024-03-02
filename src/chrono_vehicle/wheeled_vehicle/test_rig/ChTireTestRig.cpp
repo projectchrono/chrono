@@ -337,7 +337,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     if (mode == Mode::TEST && m_ls_actuated) {
         m_lin_motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
         m_system->AddLink(m_lin_motor);
-        m_lin_motor->Initialize(m_carrier_body, m_ground_body, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
+        m_lin_motor->Initialize(m_carrier_body, m_ground_body, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
     } else {
         ChQuaternion<> z2x;
         z2x.SetFromAngleY(CH_C_PI_2);
