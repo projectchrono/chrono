@@ -121,7 +121,7 @@ for i in range(4) :
                                                 chrono.QuatFromAngleAxis(chrono.CH_C_PI_2, chrono.VECT_X))
         cydisp = chrono.ChCoordsysd(chrono.ChVector3d(-0.3, 0.1 + i * 0.1, -0.3))
         ctot = cydisp.TransformLocalToParent(crot.TransformLocalToParent(cdown))
-        mrot = chrono.ChMatrix33D(ctot.rot)
+        mrot = chrono.ChMatrix33d(ctot.rot)
         fea.ChMeshFileLoader.FromTetGenFile(mesh, chrono.GetChronoDataFile("fea/beam.node"),
                                      chrono.GetChronoDataFile("fea/beam.ele"), mmaterial, ctot.pos, mrot)
     except :

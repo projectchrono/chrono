@@ -161,11 +161,11 @@ class ChApi ChElementBeamANCF_3243 : public ChElementANCF,
 
     /// Get the Green-Lagrange strain tensor at the normalized element coordinates (xi, eta, zeta) at the current state
     /// of the element.  Normalized element coordinates span from -1 to 1.
-    ChMatrix33<> GetGreenLagrangeStrain(const double xi, const double eta, const double zeta);
+    ChMatrix33d GetGreenLagrangeStrain(const double xi, const double eta, const double zeta);
 
     /// Get the 2nd Piola-Kirchoff stress tensor at the normalized element coordinates (xi, eta, zeta) at the current
     /// state of the element.  Normalized element coordinates span from -1 to 1.
-    ChMatrix33<> GetPK2Stress(const double xi, const double eta, const double zeta);
+    ChMatrix33d GetPK2Stress(const double xi, const double eta, const double zeta);
 
     /// Get the von Mises stress value at the normalized element coordinates (xi, eta, zeta) at the current state
     /// of the element.  Normalized element coordinates span from -1 to 1.

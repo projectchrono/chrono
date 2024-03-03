@@ -154,6 +154,12 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     void SelfAdjointEigenSolve(ChMatrix33<Real>& evec, ChVectorN<Real, 3>& evals) const;
 };
 
+/// Alias for a 3x3 matrix of doubles.
+using ChMatrix33d = ChMatrix33<double>;
+
+/// Alias for a 3x3 matrix of floats.
+using ChMatrix33f = ChMatrix33<float>;
+
 // -----------------------------------------------------------------------------
 
 /// Multiply a transposed 3x3 matrix with a vector.

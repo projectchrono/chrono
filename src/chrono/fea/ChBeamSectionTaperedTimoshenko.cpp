@@ -377,8 +377,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
 void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeLumpedInertiaMatrix(ChMatrixNM<double, 12, 12>& M) {
     M.setZero(12, 12);
 
-    ChMatrixNM<double, 6, 6> MA;
-    ChMatrixNM<double, 6, 6> MB;
+    ChMatrix66d MA;
+    ChMatrix66d MB;
     this->sectionA->ComputeInertiaMatrix(MA);
     this->sectionB->ComputeInertiaMatrix(MB);
 
@@ -529,7 +529,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeSimpleConsistentInert
     M = Rotsect.transpose() * M * Rotsect;
 
     // transformation matrix for section A
-    ChMatrixNM<double, 6, 6> Tm1;
+    ChMatrix66d Tm1;
     Tm1.setIdentity();
     Tm1(0, 4) = Mz1;
     Tm1(0, 5) = -My1;
@@ -537,7 +537,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeSimpleConsistentInert
     Tm1(2, 3) = My1;
 
     // transformation matrix for section B
-    ChMatrixNM<double, 6, 6> Tm2;
+    ChMatrix66d Tm2;
     Tm2.setIdentity();
     Tm2(0, 4) = Mz2;
     Tm2(0, 5) = -My2;
@@ -836,8 +836,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaDampingMatrix(
     this->sectionB->compute_inertia_stiffness_matrix = this->compute_inertia_stiffness_matrix;
     this->sectionB->compute_Ri_Ki_by_num_diff = this->compute_Ri_Ki_by_num_diff;
 
-    ChMatrixNM<double, 6, 6> Ri_A;
-    ChMatrixNM<double, 6, 6> Ri_B;
+    ChMatrix66d Ri_A;
+    ChMatrix66d Ri_B;
     this->sectionA->ComputeInertiaDampingMatrix(Ri_A, mW_A);
     this->sectionB->ComputeInertiaDampingMatrix(Ri_B, mW_B);
 
@@ -867,8 +867,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaStiffnessMatri
     this->sectionB->compute_inertia_stiffness_matrix = this->compute_inertia_stiffness_matrix;
     this->sectionB->compute_Ri_Ki_by_num_diff = this->compute_Ri_Ki_by_num_diff;
 
-    ChMatrixNM<double, 6, 6> Ki_A;
-    ChMatrixNM<double, 6, 6> Ki_B;
+    ChMatrix66d Ki_A;
+    ChMatrix66d Ki_B;
     this->sectionA->ComputeInertiaStiffnessMatrix(Ki_A, mWvel_A, mWacc_A, mXacc_A);
     this->sectionB->ComputeInertiaStiffnessMatrix(Ki_B, mWvel_B, mWacc_B, mXacc_B);
 

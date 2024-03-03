@@ -83,7 +83,7 @@ class ChApi ChLoadXYZROTnode : public ChLoadCustom {
 class ChApi ChLoadXYZROTnodeForceAbsolute : public ChLoadXYZROTnode {
   public:
     ChLoadXYZROTnodeForceAbsolute(std::shared_ptr<ChNodeFEAxyzrot> node,  ///< node to apply load to
-                                  const ChVector3d& force  ///< force to apply, assumed in absolute coordsys,
+                                  const ChVector3d& force                 ///< applied force in absolute coordsys
     );
 
     /// "Virtual" copy constructor (covariant return type).
@@ -134,7 +134,7 @@ class ChApi ChLoadXYZROTnodeXYZROTnode : public ChLoadCustomMultiple {
   public:
     ChLoadXYZROTnodeXYZROTnode(std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A to apply load to
                                std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B to apply load to, as reaction
-                               const ChFrame<>& abs_application  ///< location of load element (in abs. coordinates)
+                               const ChFrame<>& abs_application  ///< location of load element in abs. coordinates
     );
 
     /// Compute the wrench (force & torque) between the two nodes, expressed in local frame of loc_application_B,
@@ -199,10 +199,9 @@ class ChApi ChLoadXYZROTnodeXYZROTnodeBushingSpherical : public ChLoadXYZROTnode
     ChLoadXYZROTnodeXYZROTnodeBushingSpherical(
         std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
         std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
-        const ChFrame<>&
-            abs_application,  ///< create bushing here, in abs. coordinates. Will define loc_application_A and B
-        const ChVector3d& mstiffness,  ///< stiffness, along x y z axes of the abs_application
-        const ChVector3d& mdamping     ///< damping, along x y z axes of the abs_application
+        const ChFrame<>& abs_application,         ///< create bushing here, in abs. coordinates
+        const ChVector3d& mstiffness,             ///< stiffness, along x y z axes of the abs_application
+        const ChVector3d& mdamping                ///< damping, along x y z axes of the abs_application
     );
 
     /// "Virtual" copy constructor (covariant return type).
@@ -243,11 +242,10 @@ class ChApi ChLoadXYZROTnodeXYZROTnodeBushingPlastic : public ChLoadXYZROTnodeXY
     ChLoadXYZROTnodeXYZROTnodeBushingPlastic(
         std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
         std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
-        const ChFrame<>&
-            abs_application,  ///< create the bushing here, in abs. coordinates. Will define loc_application_A and B
-        const ChVector3d& mstiffness,  ///< stiffness, along the x y z axes of the abs_application
-        const ChVector3d& mdamping,    ///< damping, along the x y z axes of the abs_application
-        const ChVector3d& myield       ///< plastic yield, along the x y z axes of the abs_application
+        const ChFrame<>& abs_application,         ///< create the bushing here, in abs. coordinates
+        const ChVector3d& mstiffness,             ///< stiffness, along the x y z axes of the abs_application
+        const ChVector3d& mdamping,               ///< damping, along the x y z axes of the abs_application
+        const ChVector3d& myield                  ///< plastic yield, along the x y z axes of the abs_application
     );
 
     /// Set plastic yield, forces beyond this limit will be capped.
@@ -283,12 +281,11 @@ class ChApi ChLoadXYZROTnodeXYZROTnodeBushingMate : public ChLoadXYZROTnodeXYZRO
     ChLoadXYZROTnodeXYZROTnodeBushingMate(
         std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
         std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
-        const ChFrame<>&
-            abs_application,  ///< create the bushing here, in abs. coordinates. Will define loc_application_A and B
-        const ChVector3d& mstiffness,     ///< stiffness, along x y z axes of the abs_application
-        const ChVector3d& mdamping,       ///< damping, along x y z axes of the abs_application
-        const ChVector3d& mrotstiffness,  ///< rotational stiffness, about x y z axes of the abs_application
-        const ChVector3d& mrotdamping     ///< rotational damping, about x y z axes of the abs_application
+        const ChFrame<>& abs_application,         ///< create the bushing here, in abs. coordinates
+        const ChVector3d& mstiffness,             ///< stiffness, along x y z axes of the abs_application
+        const ChVector3d& mdamping,               ///< damping, along x y z axes of the abs_application
+        const ChVector3d& mrotstiffness,          ///< rotational stiffness, about x y z axes of the abs_application
+        const ChVector3d& mrotdamping             ///< rotational damping, about x y z axes of the abs_application
     );
 
     /// Set radial stiffness, along the x y z axes of loc_application_B, es [N/m]
@@ -325,10 +322,9 @@ class ChApi ChLoadXYZROTnodeXYZROTnodeBushingGeneric : public ChLoadXYZROTnodeXY
     ChLoadXYZROTnodeXYZROTnodeBushingGeneric(
         std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
         std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
-        const ChFrame<>&
-            abs_application,  ///< create the bushing here, in abs. coordinates. Will define loc_application_A and B
-        ChMatrixConstRef mstiffness,  ///< stiffness as a 6x6 matrix, local in the abs_application frame
-        ChMatrixConstRef mdamping     ///< damping as a 6x6 matrix, local in the abs_application frame
+        const ChFrame<>& abs_application,         ///< create the bushing here, in abs. coordinates
+        ChMatrixConstRef mstiffness,              ///< stiffness as a 6x6 matrix, local in the abs_application frame
+        ChMatrixConstRef mdamping                 ///< damping as a 6x6 matrix, local in the abs_application frame
     );
 
     /// "Virtual" copy constructor (covariant return type).
@@ -339,12 +335,12 @@ class ChApi ChLoadXYZROTnodeXYZROTnodeBushingGeneric : public ChLoadXYZROTnodeXY
     /// Set a generic 6x6 stiffness matrix, expressed in local
     /// coordinate system of loc_application_B.
     void SetStiffnessMatrix(ChMatrixConstRef mstiffness) { stiffness = mstiffness; }
-    const ChMatrixNM<double, 6, 6>& GetStiffnessMatrix() const { return stiffness; }
+    const ChMatrix66d& GetStiffnessMatrix() const { return stiffness; }
 
     /// Set a generic 6x6 damping matrix, expressed in local
     /// coordinate system of loc_application_B.
     void SetDampingMatrix(ChMatrixConstRef mdamping) { damping = mdamping; }
-    const ChMatrixNM<double, 6, 6>& GetDampingMatrix() const { return damping; }
+    const ChMatrix66d& GetDampingMatrix() const { return damping; }
 
     /// Set the initial pre-load of the bushing, applied to loc_application_A,
     /// expressed in local coordinate system of loc_application_B.
@@ -364,8 +360,8 @@ class ChApi ChLoadXYZROTnodeXYZROTnodeBushingGeneric : public ChLoadXYZROTnodeXY
     ChFrame<>& NeutralDisplacement() { return neutral_displacement; }
 
   protected:
-    ChMatrixNM<double, 6, 6> stiffness;
-    ChMatrixNM<double, 6, 6> damping;
+    ChMatrix66d stiffness;
+    ChMatrix66d damping;
 
     ChVector3d neutral_force;
     ChVector3d neutral_torque;
@@ -598,12 +594,12 @@ class ChApi ChLoadXYZROTnodeBodyBushingGeneric : public ChLoadXYZROTnodeBody {
     /// Set a generic 6x6 stiffness matrix, expressed in local
     /// coordinate system of loc_application_B.
     void SetStiffnessMatrix(ChMatrixConstRef mstiffness) { stiffness = mstiffness; }
-    const ChMatrixNM<double, 6, 6>& GetStiffnessMatrix() const { return stiffness; }
+    const ChMatrix66d& GetStiffnessMatrix() const { return stiffness; }
 
     /// Set a generic 6x6 damping matrix, expressed in local
     /// coordinate system of loc_application_B.
     void SetDampingMatrix(ChMatrixConstRef mdamping) { damping = mdamping; }
-    const ChMatrixNM<double, 6, 6>& GetDampingMatrix() const { return damping; }
+    const ChMatrix66d& GetDampingMatrix() const { return damping; }
 
     /// Set the initial pre-load of the bushing, applied to loc_application_A,
     /// expressed in local coordinate system of loc_application_B.
@@ -623,8 +619,8 @@ class ChApi ChLoadXYZROTnodeBodyBushingGeneric : public ChLoadXYZROTnodeBody {
     ChFrame<>& NeutralDisplacement() { return neutral_displacement; }
 
   protected:
-    ChMatrixNM<double, 6, 6> stiffness;
-    ChMatrixNM<double, 6, 6> damping;
+    ChMatrix66d stiffness;
+    ChMatrix66d damping;
 
     ChVector3d neutral_force;
     ChVector3d neutral_torque;

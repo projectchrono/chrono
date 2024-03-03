@@ -94,6 +94,18 @@ using ChMatrixNM_col = Eigen::Matrix<T, M, N, Eigen::ColMajor>;
 
 // -----------------------------------------------------------------------------
 
+/// Alias for a 6x6 matrix templated by coefficient type (row-major storage).
+template <typename T>
+using ChMatrix66 = ChMatrixNM<T, 6, 6>;
+
+/// Alias for a 6x6 matrix of doubles.
+using ChMatrix66d = ChMatrix66<double>;
+
+/// Alias for a 6x6 matrix of floats.
+using ChMatrix66f = ChMatrix66<float>;
+
+// -----------------------------------------------------------------------------
+
 /// Column vector with *dynamic size* (i.e., with size unknown at compile time).
 /// A ChVectorDynamic is templated by the type of its coefficients (default: double).
 template <typename T = double>

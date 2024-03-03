@@ -54,9 +54,9 @@ class ChApi ChElasticityCosserat {
     /// known (preferred for high performance), otherwise the base behaviour here is to compute
     /// [Km] by numerical differentiation calling ComputeStress() multiple times.
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 material stiffness matrix values here
-        const ChVector3d& strain_e,   ///< local strain (deformation part): x= elongation, y and z are shear
-        const ChVector3d& strain_k    ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrix66d& K,              ///< 6x6 material stiffness matrix values here
+        const ChVector3d& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector3d& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
     );
 
     ChBeamSectionCosserat* section;
@@ -163,9 +163,9 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
 
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 stiffness matrix
-        const ChVector3d& strain_e,   ///< local strain (deformation part): x= elongation, y and z are shear
-        const ChVector3d& strain_k    ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrix66d& K,              ///< 6x6 stiffness matrix
+        const ChVector3d& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector3d& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
         ) override;
 };
 
@@ -193,7 +193,7 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
     /// as it maps  yxz displacements "e" and xyz rotations "k"
     /// to the xyz cut-force "n" and xyz cut-torque "m" as in
     ///    \f$ (m,n)=[E](e,k) \f$
-    ChMatrixNM<double, 6, 6>& Ematrix() { return this->mE; }
+    ChMatrix66d& Ematrix() { return this->mE; }
 
     // Interface to base:
 
@@ -207,13 +207,13 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
 
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 stiffness matrix
-        const ChVector3d& strain_e,   ///< local strain (deformation part): x= elongation, y and z are shear
-        const ChVector3d& strain_k    ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrix66d& K,              ///< 6x6 stiffness matrix
+        const ChVector3d& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector3d& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
         ) override;
 
   private:
-    ChMatrixNM<double, 6, 6> mE;
+    ChMatrix66d mE;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -317,9 +317,9 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
 
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 stiffness matrix
-        const ChVector3d& strain_e,   ///< local strain (deformation part): x= elongation, y and z are shear
-        const ChVector3d& strain_k    ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrix66d& K,              ///< 6x6 stiffness matrix
+        const ChVector3d& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector3d& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
         ) override;
 };
 
@@ -463,9 +463,9 @@ class ChApi ChElasticityCosseratAdvancedGeneric : public ChElasticityCosserat {
 
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 stiffness matrix
-        const ChVector3d& strain_e,   ///< local strain (deformation part): x= elongation, y and z are shear
-        const ChVector3d& strain_k    ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrix66d& K,              ///< 6x6 stiffness matrix
+        const ChVector3d& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector3d& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
         ) override;
 };
 
@@ -474,25 +474,25 @@ class ChApi ChElasticityCosseratAdvancedGeneric : public ChElasticityCosserat {
 class ChApi ChElasticityCosseratAdvancedGenericFPM : public ChElasticityCosserat {
   public:
     ChElasticityCosseratAdvancedGenericFPM()
-        : Klaw(ChMatrixNM<double, 6, 6>::Identity(6, 6)), alpha(0), Cy(0), Cz(0), beta(0), Sy(0), Sz(0) {}
+        : Klaw(ChMatrix66d::Identity(6, 6)), alpha(0), Cy(0), Cz(0), beta(0), Sy(0), Sz(0) {}
 
     ChElasticityCosseratAdvancedGenericFPM(
-        const ChMatrixNM<double, 6, 6> mKlaw,  ///< 6x6 material fully-populated stiffness matrix(FPM) of cross-section
-        const double malpha,                   ///< rotation of reference at elastic center, for bending effects [rad]
-        const double mCy,                      ///< elastic center y displacement respect to centerline
-        const double mCz,                      ///< elastic center z displacement respect to centerline
-        const double mbeta,                    ///< rotation of reference at shear center, for shear effects [rad]
-        const double mSy,                      ///< shear center y displacement respect to centerline
-        const double mSz                       ///< shear center z displacement respect to centerline
+        const ChMatrix66d mKlaw,  ///< 6x6 material fully-populated stiffness matrix(FPM) of cross-section
+        const double malpha,      ///< rotation of reference at elastic center, for bending effects [rad]
+        const double mCy,         ///< elastic center y displacement respect to centerline
+        const double mCz,         ///< elastic center z displacement respect to centerline
+        const double mbeta,       ///< rotation of reference at shear center, for shear effects [rad]
+        const double mSy,         ///< shear center y displacement respect to centerline
+        const double mSz          ///< shear center z displacement respect to centerline
         )
         : Klaw(mKlaw), alpha(malpha), Cy(mCy), Cz(mCz), beta(mbeta), Sy(mSy), Sz(mSz) {}
 
     virtual ~ChElasticityCosseratAdvancedGenericFPM() {}
 
     /// Set the FPM section & material of beam element, giving the stiffness FPM directly.
-    virtual void SetEMatrix(const ChMatrixNM<double, 6, 6>& mKlaw) { Klaw = mKlaw; }
+    virtual void SetEMatrix(const ChMatrix66d& mKlaw) { Klaw = mKlaw; }
     /// Get the stiffness FPM of section & material of beam element.
-    virtual ChMatrixNM<double, 6, 6>& GetEMatrix() { return Klaw; }
+    virtual ChMatrix66d& GetEMatrix() { return Klaw; }
 
     /// Set the rotation in [rad]  of the Y Z axes for which the
     /// YbendingRigidity and ZbendingRigidity values are defined.
@@ -532,7 +532,7 @@ class ChApi ChElasticityCosseratAdvancedGenericFPM : public ChElasticityCosserat
     void UpdateEMatrix();
 
     /// Get the tranformation matrix of seciton, may be useful for debug
-    virtual ChMatrixNM<double, 6, 6>& GetTransformMatrix() { return this->T; }
+    virtual ChMatrix66d& GetTransformMatrix() { return this->T; }
 
     // Interface to base:
 
@@ -546,23 +546,23 @@ class ChApi ChElasticityCosseratAdvancedGenericFPM : public ChElasticityCosserat
 
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 stiffness matrix
-        const ChVector3d& strain_e,   ///< local strain (deformation part): x= elongation, y and z are shear
-        const ChVector3d& strain_k    ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrix66d& K,              ///< 6x6 stiffness matrix
+        const ChVector3d& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector3d& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
         ) override;
 
   private:
     void ComputeTransformMatrix();
 
-    ChMatrixNM<double, 6, 6> Klaw;  // 6x6 material stiffness matrix of cross-section
-    double alpha;                   // rotation of reference at elastic center, for bending effects [rad]
-    double Cy;                      // Centroid (elastic center, tension center)
+    ChMatrix66d Klaw;  // 6x6 material stiffness matrix of cross-section
+    double alpha;      // rotation of reference at elastic center, for bending effects [rad]
+    double Cy;         // Centroid (elastic center, tension center)
     double Cz;
     double beta;  // rotation of reference at shear center, for shear effects [rad]
     double Sy;    // Shear center
     double Sz;
 
-    ChMatrixNM<double, 6, 6> T;
+    ChMatrix66d T;
     bool updated = false;
 
   public:
@@ -650,7 +650,7 @@ class ChApi ChElasticityCosseratMesh : public ChElasticityCosserat {
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     /// * for the moment, defaults to numerical differentiation *
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K,///< 6x6 stiffness matrix
+        ChMatrix66d& K,///< 6x6 stiffness matrix
         const ChVector3d& strain_e, ///< local strain (deformation part): x= elongation, y and z are shear
         const ChVector3d& strain_k  ///< local strain (curvature part), x= torsion, y and z are line curvatures
     ) override;
@@ -702,9 +702,9 @@ class ChApi ChPlasticityCosserat {
     /// known (preferred for high performance), otherwise the base behaviour here is to compute
     /// [Km] by numerical differentiation calling ComputeStressWithReturnMapping() multiple times.
     virtual void ComputeStiffnessMatrixElastoplastic(
-        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 material stiffness matrix values here
-        const ChVector3d& strain_e,   ///< tot strain (deformation part): x= elongation, y and z are shear
-        const ChVector3d& strain_k,   ///< tot strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrix66d& K,              ///< 6x6 material stiffness matrix values here
+        const ChVector3d& strain_e,  ///< tot strain (deformation part): x= elongation, y and z are shear
+        const ChVector3d& strain_k,  ///< tot strain (curvature part), x= torsion, y and z are line curvatures
         const ChBeamMaterialInternalData& data  ///< updated material internal variables, at this point,
                                                 ///< including {p_strain_e, p_strain_k, p_strain_acc}
     );
@@ -782,7 +782,7 @@ class ChApi ChPlasticityCosseratLumped : public ChPlasticityCosserat {
     /// given actual internal data and deformation and curvature (if needed). If in
     /// plastic regime, uses elastoplastic matrix, otherwise uses elastic.
     virtual void ComputeStiffnessMatrixElastoplastic(
-        ChMatrixNM<double, 6, 6>& K,///< 6x6 material stiffness matrix values here
+        ChMatrix66d& K,///< 6x6 material stiffness matrix values here
         const ChVector3d& strain_e, ///< tot strain (deformation part): x= elongation, y and z are shear
         const ChVector3d& strain_k, ///< tot strain (curvature part), x= torsion, y and z are line curvatures
         ChBeamMaterialInternalData& data ///< updated material internal variables, at this point, including
@@ -838,7 +838,7 @@ class ChApi ChDampingCosserat {
     /// This must be overridden by subclasses if an analytical solution is
     /// known (preferred for high performance), otherwise the base behaviour here is to compute
     /// [Rm] by numerical differentiation calling ComputeStress() multiple times.
-    virtual void ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,  ///< 6x6 material stiffness matrix values here
+    virtual void ComputeDampingMatrix(ChMatrix66d& R,               ///< 6x6 material stiffness matrix values here
                                       const ChVector3d& dstrain_e,  ///< current strain speed (deformation part)
                                       const ChVector3d& dstrain_k   ///< current strain speed (curvature part)
     );
@@ -871,7 +871,7 @@ class ChApi ChDampingCosseratLinear : public ChDampingCosserat {
 
     /// Compute the 6x6 tangent material damping matrix, ie the jacobian [Rm]=dstress/dstrainspeed.
     /// By the way, in this model, it is simply a diagonal matrix with R_e and R_k values on the diagonal.
-    virtual void ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,  ///< 6x6 material stiffness matrix values here
+    virtual void ComputeDampingMatrix(ChMatrix66d& R,               ///< 6x6 material stiffness matrix values here
                                       const ChVector3d& dstrain_e,  ///< current strain speed (deformation part)
                                       const ChVector3d& dstrain_k   ///< current strain speed (curvature part)
                                       ) override;
@@ -925,7 +925,7 @@ class ChApi ChDampingCosseratRayleigh : public ChDampingCosserat {
 
     /// Compute the 6x6 tangent material damping matrix, ie the jacobian [Rm]=dstress/dstrainspeed.
     /// In this model, it is beta*[E] where [E] is the 6x6 stiffness matrix at material level, assumed constant
-    virtual void ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,  ///< 6x6 material stiffness matrix values here
+    virtual void ComputeDampingMatrix(ChMatrix66d& R,               ///< 6x6 material stiffness matrix values here
                                       const ChVector3d& dstrain_e,  ///< current strain speed (deformation part)
                                       const ChVector3d& dstrain_k   ///< current strain speed (curvature part)
                                       ) override;
@@ -943,8 +943,7 @@ class ChApi ChDampingCosseratRayleigh : public ChDampingCosserat {
 
   private:
     std::shared_ptr<ChElasticityCosserat> section_elasticity;
-    ChMatrixNM<double, 6, 6>
-        E_const;  // to store the precomputed stiffness matrix at undeformed unstressed initial state
+    ChMatrix66d E_const;  // to store the precomputed stiffness matrix at undeformed unstressed initial state
     double beta;
     bool updated;
 
@@ -964,7 +963,7 @@ class ChApi ChInertiaCosserat {
 
     /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mi]{xvel,wvel}
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix)
-    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& Mi  ///< 6x6 sectional mass matrix here
+    virtual void ComputeInertiaMatrix(ChMatrix66d& Mi  ///< 6x6 sectional mass matrix here
                                       ) = 0;
 
     /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping), as in linearization
@@ -973,8 +972,8 @@ class ChApi ChInertiaCosserat {
     /// the centerline reference. Default implementation: falls back to numerical differentiation of
     /// ComputeInertialForce to compute Ri, please override this if analytical formula of Ri is known!
     virtual void ComputeInertiaDampingMatrix(
-        ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix here
-        const ChVector3d& mW           ///< current angular velocity of section, in material frame
+        ChMatrix66d& Ri,      ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix here
+        const ChVector3d& mW  ///< current angular velocity of section, in material frame
     );
 
     /// Compute the 6x6 sectional inertia stiffness matrix [Ki^], as in linearization
@@ -987,10 +986,10 @@ class ChApi ChInertiaCosserat {
     /// Default implementation: falls back to numerical differentiation of ComputeInertialForce to compute Ki^,
     /// please override this if analytical formula of Ki^ is known!
     virtual void ComputeInertiaStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& Ki,  ///< 6x6 sectional inertial-stiffness matrix [Ki^] here
-        const ChVector3d& mWvel,       ///< current angular velocity of section, in material frame
-        const ChVector3d& mWacc,       ///< current angular acceleration of section, in material frame
-        const ChVector3d& mXacc        ///< current acceleration of section, in material frame (not absolute!)
+        ChMatrix66d& Ki,          ///< 6x6 sectional inertial-stiffness matrix [Ki^] here
+        const ChVector3d& mWvel,  ///< current angular velocity of section, in material frame
+        const ChVector3d& mWacc,  ///< current angular acceleration of section, in material frame
+        const ChVector3d& mXacc   ///< current acceleration of section, in material frame (not absolute!)
     );
 
     /// Compute the values of inertial force & torque depending on quadratic velocity terms,
@@ -1065,7 +1064,7 @@ class ChApi ChInertiaCosseratSimple : public ChInertiaCosserat {
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix).
     /// In this case it is simply a constant diagonal mass matrix with diagonal
     /// {rho*A,rho*A,rho*A, rho*Iyy+Izz, rho*Iyy, rho*Izz}
-    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& Mi  ///< 6x6 sectional mass matrix values here
+    virtual void ComputeInertiaMatrix(ChMatrix66d& Mi  ///< 6x6 sectional mass matrix values here
                                       ) override;
 
     /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping), as in linearization
@@ -1073,8 +1072,8 @@ class ChApi ChInertiaCosseratSimple : public ChInertiaCosserat {
     /// The matrix is computed in the material reference, i.e. both linear and rotational coords assumed in the basis of
     /// the centerline reference.
     virtual void ComputeInertiaDampingMatrix(
-        ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
-        const ChVector3d& mW           ///< current angular velocity of section, in material frame
+        ChMatrix66d& Ri,      ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+        const ChVector3d& mW  ///< current angular velocity of section, in material frame
         ) override;
 
     /// Compute the 6x6 sectional inertia stiffness matrix [Ki^], as in linearization
@@ -1085,10 +1084,10 @@ class ChApi ChInertiaCosseratSimple : public ChInertiaCosserat {
     ///  [Ki]_al =[R,0;0,I]*[Ki^]*[R',0;0,I']  , with [Ki^]=([Ki]+[0,f~';0,0])  for f=current force part of inertial
     ///  forces.
     virtual void ComputeInertiaStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& Ki,  ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
-        const ChVector3d& mWvel,       ///< current angular velocity of section, in material frame
-        const ChVector3d& mWacc,       ///< current angular acceleration of section, in material frame
-        const ChVector3d& mXacc        ///< current acceleration of section, in material frame (not absolute!)
+        ChMatrix66d& Ki,          ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
+        const ChVector3d& mWvel,  ///< current angular velocity of section, in material frame
+        const ChVector3d& mWacc,  ///< current angular acceleration of section, in material frame
+        const ChVector3d& mXacc   ///< current acceleration of section, in material frame (not absolute!)
         ) override;
 
     /// Compute the values of inertial torque depending on quadratic velocity terms, per unit length,
@@ -1200,14 +1199,14 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
 
     /// Compute the 6x6 sectional inertia matrix, as in {x_momentum,w_momentum}=[Mi]{xvel,wvel}
     /// The matrix is computed in the material reference.
-    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
+    virtual void ComputeInertiaMatrix(ChMatrix66d& M) override;
 
     /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping), as in linearization
     ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot}
     /// The matrix is computed in the material reference.
     virtual void ComputeInertiaDampingMatrix(
-        ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
-        const ChVector3d& mW           ///< current angular velocity of section, in material frame
+        ChMatrix66d& Ri,      ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+        const ChVector3d& mW  ///< current angular velocity of section, in material frame
         ) override;
 
     /// Compute the 6x6 sectional inertia stiffness matrix [Ki^], as in linearization
@@ -1218,10 +1217,10 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
     ///  [Ki]_al =[R,0;0,I]*[Ki^]*[R',0;0,I']  , with [Ki^]=([Ki]+[0,f~';0,0])  for f=current force part of inertial
     ///  forces.
     virtual void ComputeInertiaStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& Ki,  ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
-        const ChVector3d& mWvel,       ///< current angular velocity of section, in material frame
-        const ChVector3d& mWacc,       ///< current angular acceleration of section, in material frame
-        const ChVector3d& mXacc        ///< current acceleration of section, in material frame (not absolute!)
+        ChMatrix66d& Ki,          ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
+        const ChVector3d& mWvel,  ///< current angular velocity of section, in material frame
+        const ChVector3d& mWacc,  ///< current angular acceleration of section, in material frame
+        const ChVector3d& mXacc   ///< current acceleration of section, in material frame (not absolute!)
         ) override;
 
     /// Compute the values of inertial force & torque depending on quadratic velocity terms,
@@ -1427,9 +1426,9 @@ class ChApi ChBeamSectionCosserat : public ChBeamSection {
     /// at a given strain state, and at given internal data state (if mdata=nullptr,
     /// computes only the elastic tangent stiffenss, regardless of plasticity).
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 stiffness matrix
-        const ChVector3d& strain_e,   ///< strain (deformation part): x= elongation, y and z are shear
-        const ChVector3d& strain_k,   ///< strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrix66d& K,              ///< 6x6 stiffness matrix
+        const ChVector3d& strain_e,  ///< strain (deformation part): x= elongation, y and z are shear
+        const ChVector3d& strain_k,  ///< strain (curvature part), x= torsion, y and z are line curvatures
         const ChBeamMaterialInternalData* mdata = nullptr  ///< material internal variables, at this point, if any,
                                                            ///< including {p_strain_e, p_strain_k, p_strain_acc}
     );

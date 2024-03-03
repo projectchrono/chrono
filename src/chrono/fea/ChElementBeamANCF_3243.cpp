@@ -158,11 +158,11 @@ void ChElementBeamANCF_3243::SetIntFrcCalcMethod(IntFrcMethod method) {
 
 // Get the Green-Lagrange strain tensor at the normalized element coordinates (xi, eta, zeta) [-1...1]
 
-ChMatrix33<> ChElementBeamANCF_3243::GetGreenLagrangeStrain(const double xi, const double eta, const double zeta) {
+ChMatrix33d ChElementBeamANCF_3243::GetGreenLagrangeStrain(const double xi, const double eta, const double zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
-    ChMatrix33<double> J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
+    ChMatrix33d J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
     J_0xi.noalias() = m_ebar0 * Sxi_D;
 
     Sxi_D = Sxi_D * J_0xi.inverse();  // Adjust the shape function derivative matrix to account for the potentially
@@ -174,7 +174,7 @@ ChMatrix33<> ChElementBeamANCF_3243::GetGreenLagrangeStrain(const double xi, con
     // Calculate the Deformation Gradient at the current point
     ChMatrixNM_col<double, 3, 3> F = e_bar * Sxi_D;
 
-    ChMatrix33<> I3x3;
+    ChMatrix33d I3x3;
     I3x3.setIdentity();
     return 0.5 * (F.transpose() * F - I3x3);
 }
@@ -182,11 +182,11 @@ ChMatrix33<> ChElementBeamANCF_3243::GetGreenLagrangeStrain(const double xi, con
 // Get the 2nd Piola-Kirchoff stress tensor at the normalized element coordinates (xi, eta, zeta) [-1...1] at the
 // current state of the element.
 
-ChMatrix33<> ChElementBeamANCF_3243::GetPK2Stress(const double xi, const double eta, const double zeta) {
+ChMatrix33d ChElementBeamANCF_3243::GetPK2Stress(const double xi, const double eta, const double zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
-    ChMatrix33<double> J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
+    ChMatrix33d J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
     J_0xi.noalias() = m_ebar0 * Sxi_D;
 
     Sxi_D = Sxi_D * J_0xi.inverse();  // Adjust the shape function derivative matrix to account for the potentially
@@ -229,7 +229,7 @@ ChMatrix33<> ChElementBeamANCF_3243::GetPK2Stress(const double xi, const double 
 
     ChVectorN<double, 6> sigmaPK2 = D * epsilon_combined;  // 2nd Piola Kirchhoff Stress tensor in Voigt notation
 
-    ChMatrix33<> SPK2;
+    ChMatrix33d SPK2;
     SPK2(0, 0) = sigmaPK2(0);
     SPK2(1, 1) = sigmaPK2(1);
     SPK2(2, 2) = sigmaPK2(2);
@@ -250,7 +250,7 @@ double ChElementBeamANCF_3243::GetVonMissesStress(const double xi, const double 
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
-    ChMatrix33<double> J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
+    ChMatrix33d J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
     J_0xi.noalias() = m_ebar0 * Sxi_D;
 
     Sxi_D = Sxi_D * J_0xi.inverse();  // Adjust the shape function derivative matrix to account for the potentially
@@ -305,7 +305,7 @@ double ChElementBeamANCF_3243::GetVonMissesStress(const double xi, const double 
     SPK2(1, 0) = sigmaPK2(5);
 
     // Convert from 2ndPK Stress to Cauchy Stress
-    ChMatrix33<double> S = (F * SPK2 * F.transpose()) / F.determinant();
+    ChMatrix33d S = (F * SPK2 * F.transpose()) / F.determinant();
     double SVonMises =
         sqrt(0.5 * ((S(0, 0) - S(1, 1)) * (S(0, 0) - S(1, 1)) + (S(1, 1) - S(2, 2)) * (S(1, 1) - S(2, 2)) +
                     (S(2, 2) - S(0, 0)) * (S(2, 2) - S(0, 0))) +
@@ -472,7 +472,7 @@ void ChElementBeamANCF_3243::EvaluateSectionFrame(const double xi, ChVector3d& p
     // set the Dx direction tangent to the beam axis and
     // compute the Dy and Dz directions by using a
     // Gram-Schmidt orthonormalization, guided by the cross section Y direction
-    ChMatrix33<> msect;
+    ChMatrix33d msect;
     msect.SetFromAxisX(BeamAxisTangent, CrossSectionY);
 
     rot = msect.GetQuaternion();
@@ -590,8 +590,8 @@ void ChElementBeamANCF_3243::ComputeNF(
     MatrixNx3c Sxi_D;
     Calc_Sxi_D(Sxi_D, xi, 0, 0);
 
-    ChMatrix33<double> J_Cxi;
-    ChMatrix33<double> J_Cxi_Inv;
+    ChMatrix33d J_Cxi;
+    ChMatrix33d J_Cxi_Inv;
 
     J_Cxi.noalias() = e_bar * Sxi_D;
     J_Cxi_Inv = J_Cxi.inverse();
@@ -659,8 +659,8 @@ void ChElementBeamANCF_3243::ComputeNF(
     MatrixNx3c Sxi_D;
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
-    ChMatrix33<double> J_Cxi;
-    ChMatrix33<double> J_Cxi_Inv;
+    ChMatrix33d J_Cxi;
+    ChMatrix33d J_Cxi_Inv;
 
     J_Cxi.noalias() = e_bar * Sxi_D;
     J_Cxi_Inv = J_Cxi.inverse();
@@ -809,7 +809,7 @@ void ChElementBeamANCF_3243::PrecomputeInternalForceMatricesWeightsContInt() {
                 double zeta = GQTable->Lroots[GQ_idx_eta_zeta][it_zeta];
                 auto index = it_zeta + it_eta * GQTable->Lroots[GQ_idx_eta_zeta].size() +
                              it_xi * GQTable->Lroots[GQ_idx_eta_zeta].size() * GQTable->Lroots[GQ_idx_eta_zeta].size();
-                ChMatrix33<double>
+                ChMatrix33d
                     J_0xi;         // Element Jacobian between the reference configuration and normalized configuration
                 MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
 
@@ -839,7 +839,7 @@ void ChElementBeamANCF_3243::PrecomputeInternalForceMatricesWeightsContInt() {
         double xi = GQTable->Lroots[GQ_idx_xi][it_xi];
         double eta = 0;
         double zeta = 0;
-        ChMatrix33<double> J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
+        ChMatrix33d J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
         MatrixNx3c Sxi_D;          // Matrix of normalized shape function derivatives
 
         Calc_Sxi_D(Sxi_D, xi, eta, zeta);
@@ -909,7 +909,7 @@ void ChElementBeamANCF_3243::PrecomputeInternalForceMatricesWeightsPreInt() {
                 double eta = GQTable->Lroots[GQ_idx_eta_zeta][it_eta];
                 double zeta = GQTable->Lroots[GQ_idx_eta_zeta][it_zeta];
 
-                ChMatrix33<double>
+                ChMatrix33d
                     J_0xi;         // Element Jacobian between the reference configuration and normalized configuration
                 MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
 
@@ -1020,7 +1020,7 @@ void ChElementBeamANCF_3243::PrecomputeInternalForceMatricesWeightsPreInt() {
         double eta = 0;
         double zeta = 0;
 
-        ChMatrix33<double> J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
+        ChMatrix33d J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
         MatrixNx3c Sxi_D;          // Matrix of normalized shape function derivatives
 
         Calc_Sxi_D(Sxi_D, xi, eta, zeta);
@@ -1344,7 +1344,7 @@ void ChElementBeamANCF_3243::ComputeInternalForcesContIntDamping(ChVectorDynamic
     // of the upper 3x3 block are all zeros.
     // =============================================================================
 
-    const ChMatrix33<double>& Dv = GetMaterial()->Get_Dv();
+    const ChMatrix33d& Dv = GetMaterial()->Get_Dv();
 
     // =============================================================================
     // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points at a time
@@ -1611,7 +1611,7 @@ void ChElementBeamANCF_3243::ComputeInternalForcesContIntNoDamping(ChVectorDynam
     // of the upper 3x3 block are all zeros.
     // =============================================================================
 
-    const ChMatrix33<double>& Dv = GetMaterial()->Get_Dv();
+    const ChMatrix33d& Dv = GetMaterial()->Get_Dv();
 
     // =============================================================================
     // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points at a time
@@ -2062,7 +2062,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
     // of the upper 3x3 block are all zeros.
     // =============================================================================
 
-    const ChMatrix33<double>& Dv = GetMaterial()->Get_Dv();
+    const ChMatrix33d& Dv = GetMaterial()->Get_Dv();
 
     // =============================================================================
     // For the Dv Gauss quadrature points, multiply the scaled and combined partial derivative block matrix by the
@@ -2665,7 +2665,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntNoDamping(ChMatrixRef
     // of the upper 3x3 block are all zeros.
     // =============================================================================
 
-    const ChMatrix33<double>& Dv = GetMaterial()->Get_Dv();
+    const ChMatrix33d& Dv = GetMaterial()->Get_Dv();
 
     // =============================================================================
     // For the Dv Gauss quadrature points, multiply the scaled and combined partial derivative block matrix by the
@@ -3084,7 +3084,7 @@ void ChElementBeamANCF_3243::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
 
 // Calculate the 3x3 Element Jacobian at the given point (xi,eta,zeta) in the element
 
-void ChElementBeamANCF_3243::Calc_J_0xi(ChMatrix33<double>& J_0xi, double xi, double eta, double zeta) {
+void ChElementBeamANCF_3243::Calc_J_0xi(ChMatrix33d& J_0xi, double xi, double eta, double zeta) {
     MatrixNx3c Sxi_D;
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
@@ -3094,7 +3094,7 @@ void ChElementBeamANCF_3243::Calc_J_0xi(ChMatrix33<double>& J_0xi, double xi, do
 // Calculate the determinant of the 3x3 Element Jacobian at the given point (xi,eta,zeta) in the element
 
 double ChElementBeamANCF_3243::Calc_det_J_0xi(double xi, double eta, double zeta) {
-    ChMatrix33<double> J_0xi;
+    ChMatrix33d J_0xi;
     Calc_J_0xi(J_0xi, xi, eta, zeta);
 
     return (J_0xi.determinant());

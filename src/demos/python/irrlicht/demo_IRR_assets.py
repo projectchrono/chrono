@@ -165,7 +165,7 @@ body.AddVisualShape(objmesh, chrono.ChFramed(chrono.ChVector3d(0,0,2), chrono.QU
 for j in range(20):
     smallbox = chrono.ChVisualShapeBox(0.2, 0.2, 0.02)
     smallbox.SetColor(chrono.ChColor(j * 0.05, 1 - j * 0.05, 0.0))
-    rot = chrono.ChMatrix33D(chrono.QuatFromAngleY(j * 21 * chrono.CH_C_DEG_TO_RAD))
+    rot = chrono.ChMatrix33d(chrono.QuatFromAngleY(j * 21 * chrono.CH_C_DEG_TO_RAD))
     pos = rot * chrono.ChVector3d(0.4, 0, 0) + chrono.ChVector3d(0, j * 0.02, 0)
     body.AddVisualShape(smallbox, chrono.ChFramed(pos, rot))
 

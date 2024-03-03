@@ -94,7 +94,7 @@ eu.x = math.pi / 2
 eu.y = math.pi / 2
 eu.z = math.pi / 2
 q.SetFromCardanAnglesXYZ(eu)
-R = chrono.ChMatrix33D(q)
+R = chrono.ChMatrix33d(q)
 
  # Create a 2D npy array from the list extracted from ChMatrix33
 npmat = np.asarray(R.GetMatr())

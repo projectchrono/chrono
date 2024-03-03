@@ -493,7 +493,7 @@ class ChApi ChElementShellANCF_3833 : public ChElementANCF,
 
     /// Calculate the rotated 6x6 stiffness matrix and reorder it to match the Voigt notation order used with this
     /// element
-    void RotateReorderStiffnessMatrix(ChMatrixNM<double, 6, 6>& D, double theta);
+    void RotateReorderStiffnessMatrix(ChMatrix66d& D, double theta);
 
     /// Access a statically-allocated set of tables, from 0 to a 10th order, with precomputed tables.
     static ChQuadratureTables* GetStaticGQTables();

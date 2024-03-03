@@ -37,7 +37,7 @@ def main():
     mmesh.LoadWavefrontMesh(chrono.GetChronoDataFile(
         "vehicle/hmmwv/hmmwv_chassis.obj"), False, True)
     # scale to a different size
-    mmesh.Transform(chrono.ChVector3d(0, 0, 0), chrono.ChMatrix33D(2))
+    mmesh.Transform(chrono.ChVector3d(0, 0, 0), chrono.ChMatrix33d(2))
 
     trimesh_shape = chrono.ChVisualShapeTriangleMesh()
     trimesh_shape.SetMesh(mmesh)

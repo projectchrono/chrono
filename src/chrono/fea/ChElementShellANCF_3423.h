@@ -79,7 +79,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
         );
 
         double Get_detJ0C() const { return m_detJ0C; }
-        const ChMatrixNM<double, 6, 6>& Get_T0() const { return m_T0; }
+        const ChMatrix66d& Get_T0() const { return m_T0; }
 
         /// Initial setup for this layer: calculate T0 and detJ0 at the element center.
         void SetupInitial();
@@ -90,7 +90,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
         double m_theta;                                   ///< fiber angle
 
         double m_detJ0C;
-        ChMatrixNM<double, 6, 6> m_T0;
+        ChMatrix66d m_T0;
 
       public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW

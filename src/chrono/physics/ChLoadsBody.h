@@ -497,12 +497,12 @@ class ChApi ChLoadBodyBodyBushingGeneric : public ChLoadBodyBody {
     /// Set a generic 6x6 stiffness matrix, expressed in local
     /// coordinate system of loc_application_B.
     void SetStiffnessMatrix(ChMatrixConstRef mstiffness) { stiffness = mstiffness; }
-    const ChMatrixNM<double, 6, 6>& GetStiffnessMatrix() const { return stiffness; }
+    const ChMatrix66d& GetStiffnessMatrix() const { return stiffness; }
 
     /// Set a generic 6x6 damping matrix, expressed in local
     /// coordinate system of loc_application_B.
     void SetDampingMatrix(ChMatrixConstRef mdamping) { damping = mdamping; }
-    const ChMatrixNM<double, 6, 6>& GetDampingMatrix() const { return damping; }
+    const ChMatrix66d& GetDampingMatrix() const { return damping; }
 
     /// Set the initial pre-load of the bushing, applied to loc_application_A,
     /// expressed in local coordinate system of loc_application_B.
@@ -522,8 +522,8 @@ class ChApi ChLoadBodyBodyBushingGeneric : public ChLoadBodyBody {
     ChFrame<>& NeutralDisplacement() { return neutral_displacement; }
 
   protected:
-    ChMatrixNM<double, 6, 6> stiffness;
-    ChMatrixNM<double, 6, 6> damping;
+    ChMatrix66d stiffness;
+    ChMatrix66d damping;
 
     ChVector3d neutral_force;
     ChVector3d neutral_torque;

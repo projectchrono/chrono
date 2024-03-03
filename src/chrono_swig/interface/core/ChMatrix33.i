@@ -19,7 +19,7 @@ using namespace chrono;
 %include "../../../chrono/core/ChMatrix33.h"
 
 
-%template(ChMatrix33D) chrono::ChMatrix33<double>; 
+%template(ChMatrix33d) chrono::ChMatrix33<double>; 
 
 
 %extend chrono::ChMatrix33<double>{
@@ -97,8 +97,8 @@ def __matr33_getitem(self,index):
         raise NameError('Bad column. Getting value at [{0},{1}] in a {2}x{3} matrix'.format(row,col,self.GetRows(),self.GetColumns()))
     return self.getitem(index[0],index[1])
 
-setattr(ChMatrix33D, "__getitem__", __matr33_getitem)
-setattr(ChMatrix33D, "__setitem__", __matr33_setitem)
+setattr(ChMatrix33d, "__getitem__", __matr33_getitem)
+setattr(ChMatrix33d, "__setitem__", __matr33_setitem)
 
 def SetMatr(self, l_in):
     if len(l_in)>3 or len(l_in[0])>3:
@@ -116,8 +116,8 @@ def GetMatr(self, ):
         l_out.append(irow)
     return l_out
 
-setattr(ChMatrix33D, "SetMatr", SetMatr)
-setattr(ChMatrix33D, "GetMatr", GetMatr)
+setattr(ChMatrix33d, "SetMatr", SetMatr)
+setattr(ChMatrix33d, "GetMatr", GetMatr)
 
 %}
 

@@ -136,7 +136,7 @@ void ChMaterialBeamANCF::Calc_E_eps_Nu(const ChVector3d& E, const ChVector3d& nu
 
 // Return the complete elasticity tensor in 6x6 matrix form by combining the two parts of the elasticity tensor used for
 // the Enhanced Continuum Mechanics based method
-void ChMaterialBeamANCF::Get_D(ChMatrixNM<double, 6, 6>& D) {
+void ChMaterialBeamANCF::Get_D(ChMatrix66d& D) {
     D.setZero();
     D.diagonal() = m_D0;
     D.block<3, 3>(0, 0) += m_Dv;

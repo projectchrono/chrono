@@ -113,7 +113,7 @@ body_B.SetFrame_COG_to_REF(chrono.ChFramed(
 mesh_for_visualization = chrono.ChTriangleMeshConnected()
 mesh_for_visualization.LoadWavefrontMesh(chrono.GetChronoDataFile('models/bulldozer/shoe_view.obj'))
 # Optionally: you can scale/shrink/rotate the mesh using this:
-mesh_for_visualization.Transform(chrono.ChVector3d(0.01,0,0), chrono.ChMatrix33D(1))
+mesh_for_visualization.Transform(chrono.ChVector3d(0.01,0,0), chrono.ChMatrix33d(1))
 # Now the  triangle mesh is inserted in a ChVisualShapeTriangleMesh visualization asset, 
 # and added to the body
 visualization_shape = chrono.ChVisualShapeTriangleMesh()
@@ -131,7 +131,7 @@ body_B.AddVisualShape(visualization_shape)
 mesh_for_collision = chrono.ChTriangleMeshConnected()
 mesh_for_collision.LoadWavefrontMesh(chrono.GetChronoDataFile('models/bulldozer/shoe_view.obj'))
 # Optionally: you can scale/shrink/rotate the mesh using this:
-mesh_for_collision.Transform(chrono.ChVector3d(0.01,0,0), chrono.ChMatrix33D(1))
+mesh_for_collision.Transform(chrono.ChVector3d(0.01,0,0), chrono.ChMatrix33d(1))
 body_B_ct_shape = chrono.ChCollisionShapeTriangleMesh(contact_material, mesh_for_collision, False, False)
 body_B.AddCollisionShape(body_B_ct_shape)
 body_B.SetCollide(True)

@@ -2740,7 +2740,7 @@ double ChElementShellANCF_3443::Calc_det_J_0xi(double xi, double eta, double zet
     return (J_0xi.determinant());
 }
 
-void ChElementShellANCF_3443::RotateReorderStiffnessMatrix(ChMatrixNM<double, 6, 6>& D, double theta) {
+void ChElementShellANCF_3443::RotateReorderStiffnessMatrix(ChMatrix66d& D, double theta) {
     // Reorder the stiffness matrix from the order assumed in ChMaterialShellANCF.h
     //  E = [E11,E22,2*E12,E33,2*E13,2*E23]
     // to the order assumed in this element formulation

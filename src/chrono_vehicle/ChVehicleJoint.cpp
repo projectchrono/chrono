@@ -125,8 +125,8 @@ void ChVehicleJoint::CreateBushing(Type type,
                                    std::shared_ptr<ChBody> body2,
                                    ChFrame<> bushing_frame,
                                    std::shared_ptr<ChVehicleBushingData> bd) {
-    ChMatrixNM<double, 6, 6> K_matrix;
-    ChMatrixNM<double, 6, 6> D_matrix;
+    ChMatrix66d K_matrix;
+    ChMatrix66d D_matrix;
     K_matrix.setZero();
     D_matrix.setZero();
     K_matrix.diagonal() << bd->K_lin, bd->K_lin, bd->K_lin, bd->K_rot, bd->K_rot, bd->K_rot;

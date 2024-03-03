@@ -91,8 +91,8 @@ int main(int argc, char* argv[]) {
     // This type of bushing requires two 6x6 matrices for generic stiffness and damping, for both translation and
     // rotation. Optionally, it also supports initial pre-displacement and pre-stress
 
-    ChMatrixNM<double, 6, 6> K_matrix;
-    ChMatrixNM<double, 6, 6> R_matrix;
+    ChMatrix66d K_matrix;
+    ChMatrix66d R_matrix;
 
     K_matrix.setZero();
     R_matrix.setZero();

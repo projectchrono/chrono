@@ -45,8 +45,8 @@ class ChApi ChLinkBushing : public ChLinkLock {
     void Initialize(std::shared_ptr<ChBody> body1,
                     std::shared_ptr<ChBody> body2,
                     const ChFrame<>& frame,
-                    const ChMatrixNM<double, 6, 6>& K,
-                    const ChMatrixNM<double, 6, 6>& R);
+                    const ChMatrix66d& K,
+                    const ChMatrix66d& R);
 
     /// Return the current bushing force vector.
     ChVector3d GetForce() const;
@@ -65,8 +65,8 @@ class ChApi ChLinkBushing : public ChLinkLock {
 
     Type m_type;  ///< bushing link type
 
-    ChMatrixNM<double, 6, 6> m_constants_K;  ///< 6x6 matrices for linear stiffness- TODO, coupling terms
-    ChMatrixNM<double, 6, 6> m_constants_R;  ///< 6x6 matrices for linear damping- TODO, coupling terms
+    ChMatrix66d m_constants_K;  ///< 6x6 matrices for linear stiffness- TODO, coupling terms
+    ChMatrix66d m_constants_R;  ///< 6x6 matrices for linear damping- TODO, coupling terms
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

@@ -44,14 +44,14 @@ class ChApi ChMaterialHexaANCF {
     /// Return the material density.
     double Get_rho() const { return m_rho; }
 
-    const ChMatrixNM<double, 6, 6>& Get_D() const { return m_D; }
+    const ChMatrix66d& Get_D() const { return m_D; }
 
   private:
     /// Calculate the matrix form of 6x6 stiffness tensor
     void Calc_D(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G);
 
     double m_rho;                  ///< density
-    ChMatrixNM<double, 6, 6> m_D;  ///< matrix of elastic coefficients
+    ChMatrix66d m_D;  ///< matrix of elastic coefficients
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

@@ -50,7 +50,7 @@ void ChMaterialHexaANCF::Calc_D(const ChVector3d& E, const ChVector3d& nu, const
     double nu_32 = nu_23 * E.z() / E.y();
     double k = 1.0 - nu_23 * nu_32 - nu_12 * nu_21 - nu_13 * nu_31 - nu_12 * nu_23 * nu_31 - nu_21 * nu_32 * nu_13;
 
-    ChMatrixNM<double, 6, 6> D;
+    ChMatrix66d D;
     D.setZero();
     D(0, 0) = E.x() * (1 - nu_23 * nu_32) / k;
     D(1, 0) = E.y() * (nu_13 * nu_32 + nu_12) / k;

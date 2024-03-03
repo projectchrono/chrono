@@ -35,8 +35,8 @@ ChLinkBushing::~ChLinkBushing() {}
 void ChLinkBushing::Initialize(std::shared_ptr<ChBody> body1,
                                std::shared_ptr<ChBody> body2,
                                const ChFrame<>& frame,
-                               const ChMatrixNM<double, 6, 6>& K,
-                               const ChMatrixNM<double, 6, 6>& R) {
+                               const ChMatrix66d& K,
+                               const ChMatrix66d& R) {
     ChLinkMarkers::Initialize(body1, body2, frame);
     m_constants_K = K;  // K_x, K_y, K_z, KTheta_x, KTheta_y, KTheta_z
     m_constants_R = R;  // R_x, R_y, R_z, RTheta_x, RTheta_y, RTheta_z
