@@ -171,7 +171,10 @@ int main(int argc, char** argv) {
 
     // Peek in spec file and extract terrain type
     auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(terrain_specfile);
-    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::UNKNOWN) {
+    if (terrain_type != ChVehicleCosimTerrainNodeChrono::Type::RIGID ||
+        terrain_type != ChVehicleCosimTerrainNodeChrono::Type::SCM) {
+        if (rank == 0)
+            std::cout << "Only RIGID or SCM terrain supported" << std::endl;
         MPI_Finalize();
         return 1;
     }

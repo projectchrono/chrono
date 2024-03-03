@@ -205,9 +205,9 @@ void test_2() {
     std::cout << mnode4->pos << std::endl;
 
     std::cout << "Resulting constraint reactions:" << std::endl;
-    std::cout << constraint1->GetReactionOnBody();
-    std::cout << constraint2->GetReactionOnBody();
-    std::cout << constraint3->GetReactionOnBody();
+    std::cout << constraint1->GetReactionOnBody() << std::endl;
+    std::cout << constraint2->GetReactionOnBody() << std::endl;
+    std::cout << constraint3->GetReactionOnBody() << std::endl;
 }
 
 //////////////////////////////////////////////////////////////////
