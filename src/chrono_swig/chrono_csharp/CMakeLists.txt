@@ -129,7 +129,7 @@ set(CH_CSHARP_CORE ChronoEngine_csharp_core)
 set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/core")
 
 # Set interface file.
-set(INTERFACE_FILE_CORE ../interface/core/ChModuleCore.i)
+set(INTERFACE_FILE_CORE ChModuleCore_csharp.i)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set_source_files_properties(${INTERFACE_FILE_CORE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
@@ -179,9 +179,7 @@ if(ENABLE_MODULE_POSTPROCESS)
   set(CH_CSHARP_POSTPROCESS ChronoEngine_csharp_postprocess)
 
   # Interface files
-  set(CH_CSHARP_POSTPROCESS_MODULE_FILE
-      ../interface/postprocess/ChModulePostprocess.i
-      )
+  set(CH_CSHARP_POSTPROCESS_MODULE_FILE ChModulePostprocess_csharp.i)
   
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_source_files_properties(${CH_CSHARP_POSTPROCESS_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
@@ -246,9 +244,7 @@ if(ENABLE_MODULE_IRRLICHT)
   set(CH_CSHARP_IRRLICHT ChronoEngine_csharp_irrlicht)
 
   # Interface files
-  set(CH_CSHARP_IRRLICHT_MODULE_FILE
-      ../interface/irrlicht/ChModuleIrrlicht.i
-      )
+  set(CH_CSHARP_IRRLICHT_MODULE_FILE ChModuleIrrlicht_csharp.i)
 
   include_directories(${CH_IRRLICHT_INCLUDES})
 
@@ -314,7 +310,7 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
   set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/vehicle")
 
   # Set interface file.
-  set(INTERFACE_FILE_VEHICLE ../interface/vehicle/ChModuleVehicle.i)
+  set(INTERFACE_FILE_VEHICLE ChModuleVehicle_csharp.i)
   
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_source_files_properties(${INTERFACE_FILE_VEHICLE} PROPERTIES COMPILE_FLAGS "-D_WIN32")

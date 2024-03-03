@@ -1,28 +1,14 @@
 // =====================================================================================
 //  
-//   ChModuleCore.i
+// ChModuleCore.i
+// Create the Python and C# wrappers for the core Chrono module.
 //
-//   SWIG configuration file.
-//   Processed with SWIG to create the Python and C# wrappers for the core Chrono module.
+// ATTENTION: 
+// Must be included from another SWIG interface file which defines the module.
 //
 // =====================================================================================
 
-#pragma SWIG nowarn=302
-#pragma SWIG nowarn=315
-#pragma SWIG nowarn=401
-#pragma SWIG nowarn=503
-#pragma SWIG nowarn=516
-#pragma SWIG nowarn=842
-
-#ifdef SWIGPYTHON
-%module(directors="1") core
-#else
-%module(directors="1") chrono
-#endif
-
-
 // Turn on the documentation of members, for more intuitive IDE typing
-
 %feature("autodoc", "1");
 %feature("flatnested", "1");
 

@@ -1,17 +1,12 @@
 // =====================================================================================
 //  
-//   ChModuleVehicle.i
+// ChModuleVehicle.i
+// Create the Python and C# wrappers for the Chrono::Vehicle module.
 //
-//   SWIG configuration file.
-//   Processed with SWIG to create the Python and C# wrappers for the vehicle Chrono module.
+// ATTENTION: 
+// Must be included from another SWIG interface file which defines the module.
 //
 // =====================================================================================
-
-#ifdef SWIGPYTHON
-%module(directors="1") vehicle
-#else
-%module(directors="1") chrono_vehicle
-#endif
 
 // Turn on the documentation of members, for more intuitive IDE typing
 %feature("autodoc", "1");

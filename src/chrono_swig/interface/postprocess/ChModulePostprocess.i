@@ -1,26 +1,14 @@
-//////////////////////////////////////////////////
+// =====================================================================================
 //  
-//   ChModulePostprocess.i
+// ChModulePostprocess.i
+// Create the Python and C# wrappers for the Chrono::Postprocess module.
 //
-//   SWIG configuration file.
-//   This is processed by SWIG to create the C::E
-//   wrapper for Python.
+// ATTENTION: 
+// Must be included from another SWIG interface file which defines the module.
 //
-///////////////////////////////////////////////////
-
-
-
-// Define the module to be used in Python when typing 
-//  'import postprocess'
-
-#ifdef SWIGPYTHON
-%module(directors="1") postprocess
-#else
-%module(directors="1") chrono_postprocess
-#endif
+// =====================================================================================
 
 // Turn on the documentation of members, for more intuitive IDE typing
-
 %feature("autodoc", "1");
 %feature("flatnested", "1");
 

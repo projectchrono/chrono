@@ -202,9 +202,8 @@ message(STATUS "...add python CORE module")
 set(CHPY_CORE core)
 
 # Interface files
-set(CHPY_CORE_MODULE_FILE
-    ../interface/core/ChModuleCore.i
-    )
+set(CHPY_CORE_MODULE_FILE ChModuleCore_python.i)
+
 set(CHPY_CORE_WRAPPER_FILES
     ../interface/core/ChCoordsys.i
     ../interface/core/ChVector3.i
@@ -294,9 +293,7 @@ if(ENABLE_MODULE_POSTPROCESS)
   set(CHPY_POSTPROCESS postprocess)
 
   # Interface files
-  set(CHPY_POSTPROCESS_MODULE_FILE
-      ../interface/postprocess/ChModulePostprocess.i
-      )
+  set(CHPY_POSTPROCESS_MODULE_FILE ChModulePostprocess_python.i)
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_source_files_properties(${CHPY_POSTPROCESS_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
@@ -431,9 +428,7 @@ if(ENABLE_MODULE_IRRLICHT)
   set(CHPY_IRRLICHT irrlicht)
 
   # Interface files
-  set(CHPY_IRRLICHT_MODULE_FILE
-      ../interface/irrlicht/ChModuleIrrlicht.i
-      )
+  set(CHPY_IRRLICHT_MODULE_FILE ChModuleIrrlicht_python.i)
 
   include_directories(${CH_IRRLICHT_INCLUDES})
 
@@ -663,9 +658,7 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
   set(CHPY_VEHICLE vehicle)
 
   # Interface files
-  set(CHPY_VEHICLE_MODULE_FILE
-      ../interface/vehicle/ChModuleVehicle.i
-      )
+  set(CHPY_VEHICLE_MODULE_FILE ChModuleVehicle_python.i)
 
   include_directories(${VEHICLE_INCLUDE_DIR})
 

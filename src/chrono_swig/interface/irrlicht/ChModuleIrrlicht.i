@@ -1,27 +1,14 @@
-//////////////////////////////////////////////////
+// =====================================================================================
 //  
-//   ChModuleIrrlicht.i
+// ChModuleIrrlicht.i
+// Create the Python and C# wrappers for the Chrono::Irrlicht module.
 //
-//   SWIG configuration file.
-//   This is processed by SWIG to create the C::E
-//   wrapper for Python.
+// ATTENTION: 
+// Must be included from another SWIG interface file which defines the module.
 //
-///////////////////////////////////////////////////
-
-
-
-// Define the module to be used in Python when typing 
-//  'import pychrono.irrlicht'
-
-#ifdef SWIGPYTHON
-%module(directors="1") irrlicht
-#else
-%module(directors="1") chrono_irrlicht
-#endif
-
+// =====================================================================================
 
 // Turn on the documentation of members, for more intuitive IDE typing
-
 %feature("autodoc", "1");
 %feature("flatnested", "1");
 
