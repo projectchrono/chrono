@@ -60,10 +60,13 @@ class ChApi ChCollisionSystem {
     /// initialization, but can also be called later if further modifications to collision models occur.
     virtual void BindAll();
 
-    /// Process the collision shapes...
+    /// Process the collision models associated with the specified Chrono physics item. 
     /// This function must be called if a new physics item is added to the system or if changes to its collision model
     /// occur after the collision system was initialized.
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item);
+
+    /// Remove any collision models associated with the specified physics item from the collision engine.
+    void UnbindItem(std::shared_ptr<ChPhysicsItem> item);
 
     /// Clears all data instanced by this algorithm if any.
     virtual void Clear() = 0;

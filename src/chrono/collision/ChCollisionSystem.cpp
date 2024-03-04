@@ -47,6 +47,10 @@ void ChCollisionSystem::BindItem(std::shared_ptr<ChPhysicsItem> item) {
     item->AddCollisionModelsToSystem(this);
 }
 
+void ChCollisionSystem::UnbindItem(std::shared_ptr<ChPhysicsItem> item) {
+    item->RemoveCollisionModelsFromSystem(this);
+}
+
 void ChCollisionSystem::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChCollisionSystem>();
