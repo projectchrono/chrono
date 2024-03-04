@@ -1,16 +1,6 @@
 Chrono ROS module tutorials {#tutorial_table_of_content_chrono_ros}
 ===============================
 
-<<<<<<< HEAD
-The Chrono distribution contains several demos for integrating autonomy stacks with the Robot Operating System (ROS) using the [ROS module](@ref ros).
-
-Chrono::ROS provides direct integration into the ROS ecosystem using builtin ROS entities within rclcpp. An extensible base handler can be derived to develop custom publishers/subscribers/etc.
-
-Select ROS demos:
-
-* demo_ROS_vehicle - demo of ROS integration with a Chrono::Vehicle with optional support of sensors
-* demo_ROS_viper - demo of ROS integration with a Viper rover model
-=======
 The Chrono distribution contains several demos for integrating autonomy stacks with the Robot Operating System (ROS) using the [ROS module](@ref ros). In addition to the C++ API, Chrono::ROS is also available through PyChrono via the module `pychrono.ros`.
 
 Chrono::ROS provides direct integration into the ROS ecosystem using builtin ROS entities within rclcpp. Chrono::ROS simply aids in exchanging information between the builtin ROS datatypes and Chrono's datatypes. One can extend the base `ChROSHandler` to develop custom logic with ROS publishers/subscribers/etc.
@@ -32,4 +22,3 @@ Select ROS Python demos:
 * demo_ROS_viper.py - demo of ROS integration with a Viper rover model
 
 In addition to the above demos, for a more complex example, please see the [Autonomy Research Testbed](https://github.com/uwsbel/autonomy-research-testbed). In this repository is an effort conducted by the [Simulation Based Engineering Lab](https://sbel.wisc.edu) at the University of Wisconsin-Madison to develop autonomy stacks for a scale vehicle. Chrono (and Chrono::ROS) is used as the development platform for this effort.
->>>>>>> upstream/feature/ros

@@ -39,10 +39,6 @@ bool ChROSDriverInputsHandler::Initialize(std::shared_ptr<ChROSInterface> interf
     auto node = interface->GetNode();
 
     if (!ChROSHandlerUtilities::CheckROSTopicName(interface, m_topic_name)) {
-<<<<<<< HEAD
-        std::cout << "TEST" << std::endl;
-=======
->>>>>>> upstream/feature/ros
         return false;
     }
 

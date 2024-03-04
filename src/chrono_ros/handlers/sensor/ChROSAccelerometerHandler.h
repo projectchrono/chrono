@@ -25,11 +25,6 @@
 
 #include "sensor_msgs/msg/imu.hpp"
 
-<<<<<<< HEAD
-namespace chrono {
-namespace ros {
-
-=======
 #include <array>
 
 namespace chrono {
@@ -37,7 +32,6 @@ namespace ros {
 
 class ChROSIMUHandler;
 
->>>>>>> upstream/feature/ros
 /// @addtogroup ros_sensor_handlers
 /// @{
 
@@ -54,38 +48,28 @@ class ChROSAccelerometerHandler : public ChROSHandler {
                               std::shared_ptr<chrono::sensor::ChAccelerometerSensor> imu,
                               const std::string& topic_name);
 
-<<<<<<< HEAD
-    /// Initializes the handler. 
-=======
     /// Initializes the handler.
->>>>>>> upstream/feature/ros
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
   protected:
     virtual void Tick(double time) override;
 
   private:
-<<<<<<< HEAD
-=======
     /// Helper function to calculate the covariance of the accelerometer
     /// ChAccelerometerSensor currently doesn't support covariance, so we'll use store
     /// the rolling averages and calculate the covariance here.
     std::array<double, 9> CalculateCovariance(const chrono::sensor::AccelData& imu_data);
 
   private:
->>>>>>> upstream/feature/ros
     std::shared_ptr<chrono::sensor::ChAccelerometerSensor> m_imu;  ///< handle to the imu sensor
 
     const std::string m_topic_name;                                   ///< name of the topic to publish to
     sensor_msgs::msg::Imu m_imu_msg;                                  ///< message to publish
     rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr m_publisher;  ///< the publisher for the imu message
-<<<<<<< HEAD
-=======
 
     std::array<double, 3> m_running_average;  ///< running average to calcualte covariance of the accelerometer
 
     friend class ChROSIMUHandler;
->>>>>>> upstream/feature/ros
 };
 
 /// @} ros_sensor_handlers

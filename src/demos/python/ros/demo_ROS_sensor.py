@@ -31,11 +31,7 @@ def main():
         "vehicle/hmmwv/hmmwv_chassis.obj"), False, True)
     mmesh.Transform(ch.ChVectorD(0, 0, 0), ch.ChMatrix33D(1))
 
-<<<<<<< HEAD
-    trimesh_shape = ch.ChTriangleMeshShape()
-=======
     trimesh_shape = ch.ChVisualShapeTriangleMesh()
->>>>>>> upstream/feature/ros
     trimesh_shape.SetMesh(mmesh)
     trimesh_shape.SetName("HMMWV Chassis Mesh")
     trimesh_shape.SetMutable(False)
@@ -73,10 +69,7 @@ def main():
     cam = sens.ChCameraSensor(ground_body, 30, offset_pose, 1280,  720, 1.408)
     cam.PushFilter(sens.ChFilterVisualize(1280, 720))
     cam.PushFilter(sens.ChFilterRGBA8Access())
-<<<<<<< HEAD
-=======
     cam.SetName("camera")
->>>>>>> upstream/feature/ros
     sens_manager.AddSensor(cam)
 
     lidar = sens.ChLidarSensor(ground_body, 5., offset_pose, 90, 300,
@@ -85,10 +78,7 @@ def main():
     lidar.PushFilter(sens.ChFilterPCfromDepth())
     lidar.PushFilter(sens.ChFilterXYZIAccess())
     lidar.PushFilter(sens.ChFilterVisualizePointCloud(1280, 720, 1))
-<<<<<<< HEAD
-=======
     lidar.SetName("lidar")
->>>>>>> upstream/feature/ros
     sens_manager.AddSensor(lidar)
 
     noise_model_none = sens.ChNoiseNone()
@@ -96,47 +86,31 @@ def main():
     gps = sens.ChGPSSensor(ground_body, 10, offset_pose,
                            gps_reference, noise_model_none)
     gps.PushFilter(sens.ChFilterGPSAccess())
-<<<<<<< HEAD
-=======
     gps.SetName("gps")
->>>>>>> upstream/feature/ros
     sens_manager.AddSensor(gps)
 
     acc = sens.ChAccelerometerSensor(
         ground_body, 100, offset_pose, noise_model_none)
     acc.PushFilter(sens.ChFilterAccelAccess())
-<<<<<<< HEAD
-=======
     acc.SetName("accelerometer")
->>>>>>> upstream/feature/ros
     sens_manager.AddSensor(acc)
 
     gyro = sens.ChGyroscopeSensor(
         ground_body, 100, offset_pose, noise_model_none)
     gyro.PushFilter(sens.ChFilterGyroAccess())
-<<<<<<< HEAD
-=======
     gyro.SetName("gyroscope")
->>>>>>> upstream/feature/ros
     sens_manager.AddSensor(gyro)
 
     mag = sens.ChMagnetometerSensor(
         ground_body, 100, offset_pose, noise_model_none, gps_reference)
     mag.PushFilter(sens.ChFilterMagnetAccess())
-<<<<<<< HEAD
-=======
     mag.SetName("magnetometer")
->>>>>>> upstream/feature/ros
     sens_manager.AddSensor(mag)
 
     sens_manager.Update()
 
     # Create ROS manager
-<<<<<<< HEAD
-    ros_manager = chros.ChROSManager()
-=======
     ros_manager = chros.ChROSPythonManager()
->>>>>>> upstream/feature/ros
     ros_manager.RegisterHandler(chros.ChROSClockHandler())
     ros_manager.RegisterHandler(chros.ChROSCameraHandler(
         cam.GetUpdateRate() / 4, cam, "~/output/camera/data/image"))
@@ -144,14 +118,6 @@ def main():
         lidar, "~/output/lidar/data/pointcloud"))
     ros_manager.RegisterHandler(
         chros.ChROSGPSHandler(gps, "~/output/gps/data"))
-<<<<<<< HEAD
-    ros_manager.RegisterHandler(chros.ChROSAccelerometerHandler(
-        acc, "~/output/accelerometer/data"))
-    ros_manager.RegisterHandler(
-        chros.ChROSGyroscopeHandler(gyro, "~/output/gyroscope/data"))
-    ros_manager.RegisterHandler(chros.ChROSMagnetometerHandler(
-        mag, "~/output/magnetometer/data"))
-=======
     acc_handler = chros.ChROSAccelerometerHandler(
         acc, "~/output/accelerometer/data")
     ros_manager.RegisterHandler(acc_handler)
@@ -166,7 +132,6 @@ def main():
     imu_handler.SetGyroscopeHandler(gyro_handler)
     imu_handler.SetMagnetometerHandler(mag_handler)
     ros_manager.RegisterHandler(imu_handler)
->>>>>>> upstream/feature/ros
     ros_manager.Initialize()
 
     # Simulation loop

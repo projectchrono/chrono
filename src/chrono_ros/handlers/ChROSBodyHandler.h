@@ -20,14 +20,6 @@
 #define CH_ROS_BODY_HANDLER_H
 
 #include "chrono_ros/ChROSHandler.h"
-<<<<<<< HEAD
-#include "chrono_ros/handlers/ChROSHandlerUtilities.h"
-
-#include "chrono_ros_interfaces/msg/body.hpp"
-
-#include "chrono/physics/ChBody.h"
-
-=======
 
 #include "chrono/physics/ChBody.h"
 
@@ -35,34 +27,12 @@
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "geometry_msgs/msg/accel_stamped.hpp"
 
->>>>>>> upstream/feature/ros
 namespace chrono {
 namespace ros {
 
 /// @addtogroup ros_handlers
 /// @{
 
-<<<<<<< HEAD
-/// This handler is responsible for publishing state information about a ChBody
-class ChROSBodyHandler : public ChROSHandler {
-  public:
-    /// Constructor. body_name is used as the prefix to in the ROS topic.
-    ChROSBodyHandler(double update_rate, std::shared_ptr<ChBody> body, const std::string& topic_name);
-
-    /// Initializes the handler. Creates a publisher for the body data on the topic "~/output/<body_name>/state"
-    virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
-
-  protected:
-    virtual void Tick(double time) override;
-
-  private:
-    std::shared_ptr<ChBody> m_body;  ///< The body to publish information about
-
-    const std::string m_topic_name;          ///< The topic name to publish the body information to
-    chrono_ros_interfaces::msg::Body m_msg;  ///< The message to publish
-    rclcpp::Publisher<chrono_ros_interfaces::msg::Body>::SharedPtr
-        m_publisher;  ///< The publisher which data is published through
-=======
 /// This handler is responsible for publishing state information about a ChBody. This handler creates three publishers
 /// for the pose, twist (linear/angular velocity), and accel (linear/angular acceleration) topics.
 class ChROSBodyHandler : public ChROSHandler {
@@ -104,7 +74,6 @@ class ChROSBodyHandler : public ChROSHandler {
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_pose_publisher;
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr m_twist_publisher;
     rclcpp::Publisher<geometry_msgs::msg::AccelStamped>::SharedPtr m_accel_publisher;
->>>>>>> upstream/feature/ros
 };
 
 /// @} ros_handlers

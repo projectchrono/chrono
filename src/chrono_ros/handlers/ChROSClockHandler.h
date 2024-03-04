@@ -28,11 +28,7 @@
 namespace chrono {
 namespace ros {
 
-<<<<<<< HEAD
-/// @addtogroup ros_vehicle_handlers
-=======
 /// @addtogroup ros_handlers
->>>>>>> upstream/feature/ros
 /// @{
 
 /// Publishes rosgraph_msgs::msg::Clock messages at each timestep (by default) of the simulation. This is useful if you
@@ -57,11 +53,7 @@ class CH_ROS_API ChROSClockHandler : public ChROSHandler {
         m_publisher;  ///< The publisher which data is published through
 };
 
-<<<<<<< HEAD
-///@} ros_vehicle_handlers
-=======
 ///@} ros_handlers
->>>>>>> upstream/feature/ros
 
 }  // namespace ros
 }  // namespace chrono

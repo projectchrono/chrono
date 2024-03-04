@@ -45,11 +45,7 @@ bool ChROSGPSHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
 
     m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::NavSatFix>(m_topic_name, 1);
 
-<<<<<<< HEAD
-    // m_gps_msg.header.frame_id = ; // TODO
-=======
     m_gps_msg.header.frame_id = m_gps->GetName();
->>>>>>> upstream/feature/ros
 
     return true;
 }
@@ -68,11 +64,6 @@ void ChROSGPSHandler::Tick(double time) {
     m_gps_msg.longitude = gps_data.Longitude;
     m_gps_msg.altitude = gps_data.Altitude;
 
-<<<<<<< HEAD
-    m_publisher->publish(m_gps_msg);
-}
-
-=======
     // Update the covariance matrix
     // The ChGPSSensor does not currently support covariances, so we'll
     // use the imu message to store a rolling average of the covariance
@@ -99,6 +90,5 @@ std::array<double, 9> ChROSGPSHandler::CalculateCovariance(const GPSData& gps_da
     return ChROSSensorHandlerUtilities::CalculateCovariance(enu_data_array, m_running_average, count);
 }
 
->>>>>>> upstream/feature/ros
 }  // namespace ros
 }  // namespace chrono

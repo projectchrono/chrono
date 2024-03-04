@@ -26,11 +26,6 @@
 #include "rclcpp/publisher.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 
-<<<<<<< HEAD
-namespace chrono {
-namespace ros {
-
-=======
 #include <array>
 
 namespace chrono {
@@ -38,7 +33,6 @@ namespace ros {
 
 class ChROSIMUHandler;
 
->>>>>>> upstream/feature/ros
 /// @addtogroup ros_sensor_handlers
 /// @{
 
@@ -61,27 +55,21 @@ class ChROSGyroscopeHandler : public ChROSHandler {
     virtual void Tick(double time) override;
 
   private:
-<<<<<<< HEAD
-=======
     /// Helper function to calculate the covariance of the gyroscope
     /// ChGyroscopeSensor currently doesn't support covariance, so we'll use store
     /// the rolling averages and calculate the covariance here.
     std::array<double, 9> CalculateCovariance(const chrono::sensor::GyroData& imu_data);
 
   private:
->>>>>>> upstream/feature/ros
     std::shared_ptr<chrono::sensor::ChGyroscopeSensor> m_imu;  ///< handle to the imu sensor
 
     const std::string m_topic_name;                                   ///< name of the topic to publish to
     sensor_msgs::msg::Imu m_imu_msg;                                  ///< message to publish
     rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr m_publisher;  ///< the publisher for the imu message
-<<<<<<< HEAD
-=======
 
     std::array<double, 3> m_running_average;  ///< rolling average of the gyroscope data to calculate covariance
 
     friend class ChROSIMUHandler;
->>>>>>> upstream/feature/ros
 };
 
 /// @} ros_sensor_handlers

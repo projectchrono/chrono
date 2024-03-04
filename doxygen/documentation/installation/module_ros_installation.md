@@ -4,40 +4,17 @@
 
 This is an optional module that enables direct integration of Chrono with the Robot Operating System (ROS).
 
-<<<<<<< HEAD
-Read [the introduction to modules](modularity.html) for a technical
-background on the modularity of the Chrono project.
-
-## Features
-
-The **ROS module** allows users to interface a ROS autonomy stack with autonomous agents in Chrono.
-=======
 Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
 
 ## Features
 
 The **ROS module** allows users to interface a ROS 2-based autonomy stack with autonomous agents in Chrono.
->>>>>>> upstream/feature/ros
 
 For more detail, read the [Chrono::ROS](@ref manual_ros) section of the reference manual.
 
 ## Required Dependencies
 
 - To build and run applications based on this module, the following are required:
-<<<<<<< HEAD
-  - ROS Humble (see [docs.ros.org](https://docs.ros.org/en/humble/Installation.html) for detailed installation instructions). Docker is recommended.
-  - Have [chrono_ros_interfaces](https://github.com/AaronYoung5/chrono_ros_interfaces) locally.
-
-## Building instructions
-
-1. To build Chrono::ROS, you must first build [chrono_ros_interfaces](https://github.com/AaronYoung5/chrono_ros_interfaces) and have sourced the setup file. To build a ROS workspace, please [see the official ROS documentation](https://docs.ros.org/en/foxy/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html).
-
-2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must add the following steps:
-
-3. Set the `ENABLE_MODULE_ROS` as 'on', then press 'Configure' (to refresh the variable list)
-
-4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
-=======
   - ROS 2 Humble (see [docs.ros.org](https://docs.ros.org/en/humble/Installation.html) for detailed installation instructions). Docker is recommended. A Docker image with Chrono::ROS built is available [here](https://hub.docker.com/r/uwsbel/projectchrono).
     - **NOTE:** All ROS 2 packages required by Chrono::ROS are included in the base ROS 2 installation.
 
@@ -58,7 +35,6 @@ NOTE: If you enable Chrono::Parsers with URDF support and you're using a ROS 2 d
   - Set the `ENABLE_MODULE_ROS` as 'on', then press 'Configure' (to refresh the variable list)
   - Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 3. As mentioned above, to enable URDF support, you must also enable the [Chrono::Parsers](@ref module_parsers_installation) module.
->>>>>>> upstream/feature/ros
 
 ## How to use it
 

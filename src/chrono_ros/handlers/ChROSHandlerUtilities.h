@@ -35,14 +35,6 @@ namespace ros {
 /// Utility class with static functions that may be useful for ROS handlers
 class CH_ROS_API ChROSHandlerUtilities {
   public:
-<<<<<<< HEAD
-    /// Constructs a builtin_interfaces::msg::Time (helpful for std_msgs::msg::Header::stamp) msg from the current simulation time
-    /// @param elapsed_time_s the current elapsed simulation time in seconds
-    static builtin_interfaces::msg::Time GetROSTimestamp(double elapsed_time_s);
-
-    /// Constructs a relative topic name given variable number of inputs. A relative topic name, when used to construct a ROS entity (publisher, subscription, etc.), is resolved to map to the node namespace. Using a relative topic name is recommended as then all topics attached to the node are prepended with a like namespace.
-    /// Usage: BuildRelativeTopicName("sensing", "camera", "front", "rgb") constructs "~/sensing/camera/front/rgb"
-=======
     /// Constructs a builtin_interfaces::msg::Time (helpful for std_msgs::msg::Header::stamp) msg from the current
     /// simulation time
     /// @param elapsed_time_s the current elapsed simulation time in seconds
@@ -56,7 +48,6 @@ class CH_ROS_API ChROSHandlerUtilities {
     /// a ROS entity (publisher, subscription, etc.), is resolved to map to the node namespace. Using a relative topic
     /// name is recommended as then all topics attached to the node are prepended with a like namespace. Usage:
     /// BuildRelativeTopicName("sensing", "camera", "front", "rgb") constructs "~/sensing/camera/front/rgb"
->>>>>>> upstream/feature/ros
     template <typename... Args>
     static std::string BuildRelativeTopicName(Args&&... args) {
         std::stringstream ss;
@@ -65,12 +56,8 @@ class CH_ROS_API ChROSHandlerUtilities {
         return ss.str();
     }
 
-<<<<<<< HEAD
-    /// Checks the passed topic name is resolvable. Refer to the ROS documentation for information regarding what defines a qualified topic name.
-=======
     /// Checks the passed topic name is resolvable. Refer to the ROS documentation for information regarding what
     /// defines a qualified topic name.
->>>>>>> upstream/feature/ros
     static bool CheckROSTopicName(std::shared_ptr<ChROSInterface> interface, const std::string& topic_name);
 };
 

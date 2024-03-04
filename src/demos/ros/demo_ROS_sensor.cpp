@@ -1,11 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-<<<<<<< HEAD
-// Copyright (c) 2021 projectchrono.org
-=======
 // Copyright (c) 2023 projectchrono.org
->>>>>>> upstream/feature/ros
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -30,19 +26,12 @@
 
 #include "chrono_ros/ChROSManager.h"
 #include "chrono_ros/handlers/ChROSClockHandler.h"
-<<<<<<< HEAD
-#include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
-=======
 #include "chrono_ros/handlers/ChROSTFHandler.h"
->>>>>>> upstream/feature/ros
 #include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
-<<<<<<< HEAD
-=======
 #include "chrono_ros/handlers/sensor/ChROSIMUHandler.h"
->>>>>>> upstream/feature/ros
 #include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
 
@@ -76,11 +65,7 @@ int main(int argc, char* argv[]) {
                                                                   false, true);
     mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));
 
-<<<<<<< HEAD
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-=======
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
->>>>>>> upstream/feature/ros
     trimesh_shape->SetMesh(mmesh);
     trimesh_shape->SetName("Audi Chassis Mesh");
     trimesh_shape->SetMutable(false);
@@ -182,13 +167,8 @@ int main(int argc, char* argv[]) {
 
     // Create the publisher for the lidar
     auto lidar_2d_topic_name = "~/output/lidar_2d/data/laser_scan";
-<<<<<<< HEAD
-    auto lidar_2d_handler = chrono_types::make_shared<ChROSLidarHandler>(
-        lidar_2d, lidar_2d_topic_name, false);  // last parameter indicates whether to use LaserScan or PointCloud2
-=======
     auto lidar_2d_handler = chrono_types::make_shared<ChROSLidarHandler>(lidar_2d, lidar_2d_topic_name,
                                                                          ChROSLidarHandlerMessageType::LASER_SCAN);
->>>>>>> upstream/feature/ros
     ros_manager->RegisterHandler(lidar_2d_handler);
 
     // Create the publisher for the accelerometer
@@ -210,8 +190,6 @@ int main(int argc, char* argv[]) {
     auto mag_handler = chrono_types::make_shared<ChROSMagnetometerHandler>(mag, mag_topic_name);
     ros_manager->RegisterHandler(mag_handler);
 
-<<<<<<< HEAD
-=======
     // Create the publisher for _all_ imu sensors
     auto imu_topic_name = "~/output/imu/data";
     auto imu_handler = chrono_types::make_shared<ChROSIMUHandler>(100, imu_topic_name);
@@ -220,14 +198,11 @@ int main(int argc, char* argv[]) {
     imu_handler->SetMagnetometerHandler(mag_handler);
     ros_manager->RegisterHandler(imu_handler);
 
->>>>>>> upstream/feature/ros
     // Create the publisher for the GPS
     auto gps_topic_name = "~/output/gps/data";
     auto gps_handler = chrono_types::make_shared<ChROSGPSHandler>(gps, gps_topic_name);
     ros_manager->RegisterHandler(gps_handler);
 
-<<<<<<< HEAD
-=======
     // Create _one_ tf handler which we'll add transforms for all the sensors to
     auto tf_handler = chrono_types::make_shared<ChROSTFHandler>(100);
     tf_handler->AddSensor(cam);
@@ -238,7 +213,6 @@ int main(int argc, char* argv[]) {
     tf_handler->AddSensor(mag);
     tf_handler->AddSensor(gps);
 
->>>>>>> upstream/feature/ros
     // Finally, initialize the ros manager
     ros_manager->Initialize();
 

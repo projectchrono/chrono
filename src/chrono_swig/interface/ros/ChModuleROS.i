@@ -14,8 +14,6 @@
 //  'import pychrono.ros'
 
 
-<<<<<<< HEAD
-=======
 %define MODULEIMPORT
 "
 try:
@@ -31,7 +29,6 @@ except Exception as e:
 "
 %enddef
 
->>>>>>> upstream/feature/ros
 %module(directors="1") ros
 
 
@@ -64,36 +61,24 @@ except Exception as e:
 
 %{
 #include "chrono/physics/ChBody.h"
-<<<<<<< HEAD
-=======
 #include "chrono/core/ChFrame.h"
->>>>>>> upstream/feature/ros
 
 #include "chrono_ros/ChROSManager.h"
 #include "chrono_ros/ChROSHandler.h"
 #include "chrono_ros/ChROSInterface.h"
 #include "chrono_ros/handlers/ChROSClockHandler.h"
 #include "chrono_ros/handlers/ChROSBodyHandler.h"
-<<<<<<< HEAD
-#include "chrono_ros/handlers/ChROSHandlerUtilities.h"
-#include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
-=======
 #include "chrono_ros/handlers/ChROSTFHandler.h"
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
 #include "chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
 
 #ifdef CHRONO_SENSOR
->>>>>>> upstream/feature/ros
 #include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
-<<<<<<< HEAD
-#include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
-#include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
-=======
 #include "chrono_ros/handlers/sensor/ChROSIMUHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
 #endif
@@ -102,29 +87,18 @@ except Exception as e:
 #include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
 #include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
 #endif
->>>>>>> upstream/feature/ros
 
 using namespace chrono;
 using namespace chrono::ros;
 
 %}
 
-<<<<<<< HEAD
-
-// Undefine ChApiFea otherwise SWIG gives a syntax error
-#define ChApi
-#define CH_ROS_API
-
-
-
-=======
 %feature("director") chrono::ros::ChROSHandler;
 
 // Undefine ChApi and CH_ROS_API otherwise SWIG gives a syntax error
 #define ChApi
 #define CH_ROS_API
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
->>>>>>> upstream/feature/ros
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a
@@ -136,20 +110,13 @@ using namespace chrono::ros;
 %include "stdint.i"
 %include "typemaps.i"
 %include "cpointer.i"
-<<<<<<< HEAD
-=======
 %include "cdata.i"
->>>>>>> upstream/feature/ros
 
 // This is to enable references to double,int,etc. types in function parameters
 %pointer_class(int,int_ptr);
 %pointer_class(double,double_ptr);
 %pointer_class(float,float_ptr);
 
-<<<<<<< HEAD
-
-=======
->>>>>>> upstream/feature/ros
 //
 // For each class, keep updated the  A, B, C sections: 
 // 
@@ -165,33 +132,23 @@ using namespace chrono::ros;
 
 //from core module:
 %shared_ptr(chrono::ChBody)
-<<<<<<< HEAD
-=======
 %shared_ptr(chrono::ChFrame<double>)
->>>>>>> upstream/feature/ros
 
 %shared_ptr(chrono::ros::ChROSManager)
 %shared_ptr(chrono::ros::ChROSHandler)
 %shared_ptr(chrono::ros::ChROSInterface)
 %shared_ptr(chrono::ros::ChROSClockHandler)
 %shared_ptr(chrono::ros::ChROSBodyHandler)
-<<<<<<< HEAD
-%shared_ptr(chrono::ros::ChROSDriverInputsHandler)
-=======
 %shared_ptr(chrono::ros::ChROSTFHandler)
 %shared_ptr(chrono::ros::ChROSRobotModelHandler)
 
 #ifdef CHRONO_SENSOR
->>>>>>> upstream/feature/ros
 %shared_ptr(chrono::ros::ChROSAccelerometerHandler)
 %shared_ptr(chrono::ros::ChROSCameraHandler)
 %shared_ptr(chrono::ros::ChROSGPSHandler)
 %shared_ptr(chrono::ros::ChROSGyroscopeHandler)
 %shared_ptr(chrono::ros::ChROSLidarHandler)
 %shared_ptr(chrono::ros::ChROSMagnetometerHandler)
-<<<<<<< HEAD
-%shared_ptr(chrono::ros::ChROSViperDCMotorControlHandler)
-=======
 %shared_ptr(chrono::ros::ChROSIMUHandler)
 #endif
 
@@ -200,7 +157,6 @@ using namespace chrono::ros;
 %shared_ptr(chrono::ros::ChROSViperDCMotorControlHandler)
 #endif
 
->>>>>>> upstream/feature/ros
 
 //
 // B- INCLUDE HEADERS
@@ -221,42 +177,29 @@ using namespace chrono::ros;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
-<<<<<<< HEAD
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
-=======
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
 
 %include "../../../chrono/core/ChFrame.h"    
->>>>>>> upstream/feature/ros
 
 %include "../../../chrono_ros/ChROSManager.h"
 %include "../../../chrono_ros/ChROSHandler.h"
 %include "../../../chrono_ros/ChROSInterface.h"
 %include "../../../chrono_ros/handlers/ChROSClockHandler.h"
 %include "../../../chrono_ros/handlers/ChROSBodyHandler.h"
-<<<<<<< HEAD
-%include "../../../chrono_ros/handlers/ChROSHandlerUtilities.h"
-%include "../../../chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
-=======
 %include "../../../chrono_ros/handlers/ChROSTFHandler.h"
 %include "../../../chrono_ros/handlers/ChROSHandlerUtilities.h"
 %include "../../../chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
 
 #ifdef CHRONO_SENSOR
->>>>>>> upstream/feature/ros
 %include "../../../chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSGPSHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
-<<<<<<< HEAD
-%include "../../../chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
-%include "../../../chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
-=======
 %include "../../../chrono_ros/handlers/sensor/ChROSIMUHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
 #endif
@@ -265,7 +208,6 @@ using namespace chrono::ros;
 %include "../../../chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
 %include "../../../chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
 #endif
->>>>>>> upstream/feature/ros
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
@@ -288,28 +230,12 @@ using namespace chrono::ros;
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
 //
 
-<<<<<<< HEAD
-/*
-%inline %{
-
-
-%}
-*/
-=======
 %ignore chrono::ros::ChROSInterface::GetNode;
->>>>>>> upstream/feature/ros
 
 //
 // ADD PYTHON CODE
 //
 
-<<<<<<< HEAD
-/*
-%pythoncode %{
-
-%}
-*/
-=======
 %pythoncode %{
 
 from typing import List
@@ -426,6 +352,5 @@ class ChROSPythonManager(ChROSManager):
     self._update_rclpy = value
 
 %}
->>>>>>> upstream/feature/ros
 
 
