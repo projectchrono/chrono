@@ -658,6 +658,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Tell if the system will put to sleep the bodies whose motion has almost come to a rest.
     bool GetUseSleeping() const { return use_sleeping; }
 
+    /// Get the visual system to which this ChSystem is attached (if any).
+    ChVisualSystem* GetVisualSystem() const { return visual_system; }
+
   private:
     /// Put bodies to sleep if possible. Also awakens sleeping bodies, if needed.
     /// Returns true if some body changed from sleep to no sleep or viceversa,
