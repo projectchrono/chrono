@@ -89,8 +89,6 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
         bool m_Yup;
 
-        bool m_initialized;
-
         friend class RigidTerrain;
     };
 
@@ -171,6 +169,14 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     /// Get the terrain patches currently added to the rigid terrain system.
     const std::vector<std::shared_ptr<Patch>>& GetPatches() const { return m_patches; }
+
+    /// Bind the visual and collision models of the specified patch.
+    /// This function should be called for any patches created dynamically during simulation, after the RigidTerrain was
+    /// initialized.
+    void BindPatch(std::shared_ptr<Patch> patch);
+
+    /// Remove the specified patch.
+    void RemovePatch(std::shared_ptr<Patch> patch);
 
     /// Enable use of location-dependent coefficient of friction in terrain-solid contacts.
     /// This assumes that a non-trivial functor (of type ChTerrain::FrictionFunctor) was defined and registered with the
@@ -269,10 +275,12 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
                   const ChCoordsys<>& position,
                   std::shared_ptr<ChContactMaterial> material);
     void LoadPatch(const rapidjson::Value& a);
+    void InitializePatch(std::shared_ptr<Patch> patch);
 
     int m_collision_family;
 
     bool m_Yup;
+    bool m_initialized;
 };
 
 /// @} vehicle_terrain

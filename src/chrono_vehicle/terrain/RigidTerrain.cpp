@@ -21,6 +21,7 @@
 #include <cmath>
 #include <cstdio>
 
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
@@ -51,6 +52,7 @@ RigidTerrain::RigidTerrain(ChSystem* system)
       m_use_friction_functor(false),
       m_contact_callback(nullptr),
       m_collision_family(14),
+      m_initialized(false),
       m_Yup(false) {}
 
 // -----------------------------------------------------------------------------
@@ -62,6 +64,7 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
       m_use_friction_functor(false),
       m_contact_callback(nullptr),
       m_collision_family(14),
+      m_initialized(false),
       m_Yup(false) {
     // Open and parse the input file
     Document d;
@@ -155,9 +158,7 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
 }
 
 // -----------------------------------------------------------------------------
-// Functions to add terrain patches with various definitions
-// (box, mesh, height-field)
-// -----------------------------------------------------------------------------
+
 void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
                             const ChCoordsys<>& position,
                             std::shared_ptr<ChContactMaterial> material) {
@@ -179,6 +180,18 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
     m_patches.push_back(patch);
 }
 
+void RigidTerrain::InitializePatch(std::shared_ptr<Patch> patch) {
+    // Initialize the patch
+    patch->Initialize();
+
+    // All patches are added to the same collision family and collision with other models in this family is disabled
+    patch->m_body->GetCollisionModel()->SetFamily(m_collision_family);
+    patch->m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(m_collision_family);
+}
+
+// -----------------------------------------------------------------------------
+// Functions to add terrain patches with various definitions
+// (box, mesh, height-field)
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChContactMaterial> material,
@@ -869,7 +882,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
 // Functions to modify properties of a patch
 // -----------------------------------------------------------------------------
 
-RigidTerrain::Patch::Patch() : m_friction(0.8f), m_visualize(true), m_Yup(false), m_initialized(false) {
+RigidTerrain::Patch::Patch() : m_friction(0.8f), m_visualize(true), m_Yup(false) {
     m_vis_mat = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
 }
 
@@ -946,24 +959,21 @@ class RTContactCallback : public ChContactContainer::AddContactCallback {
 };
 
 void RigidTerrain::Initialize() {
+    if (m_initialized)
+        return;
+
     if (m_patches.empty())
         return;
 
     for (auto& patch : m_patches) {
-        if (patch->m_initialized)
-            continue;
-
-        // Initialize the patch (create visualization)
-        patch->Initialize();
-
-        // Add all patches to the same collision family
-        // and disable collision with other collision models in this family.
-        patch->m_body->GetCollisionModel()->SetFamily(m_collision_family);
-        patch->m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(m_collision_family);
+        InitializePatch(patch);
     }
+
+    m_initialized = true;
 
     if (!m_friction_fun)
         m_use_friction_functor = false;
+
     if (!m_use_friction_functor)
         return;
 
@@ -973,7 +983,7 @@ void RigidTerrain::Initialize() {
     callback->m_terrain = this;
     callback->m_friction_fun = m_friction_fun;
     m_contact_callback = callback;
-    m_patches[0]->m_body->GetSystem()->GetContactContainer()->RegisterAddContactCallback(m_contact_callback);
+    m_system->GetContactContainer()->RegisterAddContactCallback(m_contact_callback);
 }
 
 void RigidTerrain::BoxPatch::Initialize() {
@@ -983,7 +993,6 @@ void RigidTerrain::BoxPatch::Initialize() {
         box->AddMaterial(m_vis_mat);
         m_body->AddVisualShape(box, ChFrame<>(ChVector3d(0, 0, -m_hthickness)));
     }
-    m_initialized = true;
 }
 
 void RigidTerrain::MeshPatch::Initialize() {
@@ -996,7 +1005,45 @@ void RigidTerrain::MeshPatch::Initialize() {
         trimesh_shape->SetMesh(m_trimesh, true);
         m_body->AddVisualShape(trimesh_shape);
     }
-    m_initialized = true;
+}
+
+// -----------------------------------------------------------------------------
+
+void RigidTerrain::BindPatch(std::shared_ptr<Patch> patch) {
+    // This function should be called only for patches that are added after the RigidTerrain was initialized
+    if (!m_initialized) {
+        std::cerr << "RigidTerrain::BindPatch should be explicitly called only for patches added ";
+        std::cerr << "*after* the terrain was initialized." << std::endl;
+        return;
+    }
+
+    // Initialize the patch
+    InitializePatch(patch);
+
+    // Bind the patch visual assets to the visual system (if present)
+    if (m_system->GetVisualSystem())
+        m_system->GetVisualSystem()->BindItem(patch->m_body);
+
+    // Bind the patch collision model to the collision system (if present)
+    if (m_system->GetCollisionSystem())
+        m_system->GetCollisionSystem()->BindItem(patch->m_body);
+}
+
+void RigidTerrain::RemovePatch(std::shared_ptr<Patch> patch) {
+    auto pos = std::find(m_patches.begin(), m_patches.end(), patch);
+    if (pos != m_patches.end()) {
+        const auto& patch = *pos;
+
+        // Unbind the patch from the visualization and collision systems (if they exists)
+        if (m_system->GetVisualSystem())
+            m_system->GetVisualSystem()->UnbindItem(patch->m_body);
+        if (m_system->GetCollisionSystem())
+            m_system->GetCollisionSystem()->UnbindItem(patch->m_body);
+
+        // Erase from the list of patches
+        m_patches.erase(pos);
+        m_num_patches--;
+    }
 }
 
 // -----------------------------------------------------------------------------
