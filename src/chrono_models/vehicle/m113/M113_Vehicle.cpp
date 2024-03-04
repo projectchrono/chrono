@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -323,8 +323,6 @@ void M113_Vehicle::Create(bool fixed,
             m_driveline = chrono_types::make_shared<M113_DrivelineBDS>();
             break;
     }
-
-    GetLog() << "M113 vehicle mass = " << GetMass() << " kg.\n";
 }
 
 // -----------------------------------------------------------------------------

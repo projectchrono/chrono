@@ -53,7 +53,8 @@ void example1(const std::string& out_dir) {
                                 const double T,            ///< current time T
                                 const double dt,           ///< timestep (if needed)
                                 bool force_state_scatter,  ///< if false, y and T are not scattered to the system
-                                bool full_update           ///< if true, perform a full update during scatter
+                                bool full_update,          ///< if true, perform a full update during scatter
+                                ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix. Not significant here.
                                 ) override {
             if (force_state_scatter)
                 StateScatter(y, T, full_update);  // state -> system   (not needed here, btw.)
@@ -66,7 +67,7 @@ void example1(const std::string& out_dir) {
 
     // File to dump results
     std::string logfile = out_dir + "/log_timestepper_1.dat";
-    ChStreamOutAsciiFile log_file1(logfile.c_str());
+    ChStreamOutAsciiFile log_file1(out_dir + "/log_timestepper_1.dat");
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable;
@@ -145,7 +146,8 @@ void example2(const std::string& out_dir) {
                                 const double T,            ///< current time T
                                 const double dt,           ///< timestep (if needed)
                                 bool force_state_scatter,  ///< if false, y and T are not scattered to the system
-                                bool full_update           ///< if true, perform a full update during scatter
+                                bool full_update,          ///< if true, perform a full update during scatter
+                                ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix. Not significant here.
                                 ) override {
             if (force_state_scatter)
                 StateScatter(y, T, full_update);
@@ -161,7 +163,7 @@ void example2(const std::string& out_dir) {
 
     // File to dump results
     std::string logfile = out_dir + "/log_timestepper_2.dat";
-    ChStreamOutAsciiFile log_file2(logfile.c_str());
+    ChStreamOutAsciiFile log_file2(out_dir + "/log_timestepper_2.dat");
 
     // Try integrator Euler explicit
 
@@ -256,7 +258,8 @@ void example3(const std::string& out_dir) {
                                  const double T,            ///< current time T
                                  const double dt,           ///< timestep (if needed)
                                  bool force_state_scatter,  ///< if false, y and T are not scattered to the system
-                                 bool full_update           ///< if true, perform a full update during scatter
+                                 bool full_update,          ///< if true, perform a full update during scatter
+                                 ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix. Not significant here.
                                  ) override {
             if (force_state_scatter)
                 StateScatter(x, v, T, full_update);
@@ -270,7 +273,8 @@ void example3(const std::string& out_dir) {
 
     // Create a file to dump results
     std::string logfile = out_dir + "/log_timestepper_3.dat";
-    ChStreamOutAsciiFile log_file3(logfile.c_str());
+    std::string logfilename = out_dir + "/log_timestepper_3.dat";
+    ChStreamOutAsciiFile log_file3(logfilename);
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable1;
@@ -302,9 +306,9 @@ void example3(const std::string& out_dir) {
     mplot.SetTitle("Integrate 2nd order oscillator with 2nd order timestepper");
     mplot.SetLabelX("t");
     mplot.SetLabelY("x");
-    mplot.Plot(logfile.c_str(), 1, 2, "RungeKutta", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 4, "Euler exp. IIorder", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 6, "Euler semi-implicit", " with lines");
+    mplot.Plot(logfilename, 1, 2, "RungeKutta", " with lines");
+    mplot.Plot(logfilename, 1, 4, "Euler exp. IIorder", " with lines");
+    mplot.Plot(logfilename, 1, 6, "Euler semi-implicit", " with lines");
 }
 
 void example4(const std::string& out_dir) {
@@ -372,7 +376,8 @@ void example4(const std::string& out_dir) {
                                  const double T,            ///< current time T
                                  const double dt,           ///< timestep (if needed)
                                  bool force_state_scatter,  ///< if false, y and T are not scattered to the system
-                                 bool full_update           ///< if true, perform a full update during scatter
+                                 bool full_update,          ///< if true, perform a full update during scatter
+                                 ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix, and uses penalty for constraints. Not significant here.
                                  ) override {
             if (force_state_scatter)
                 StateScatter(x, v, T, full_update);
@@ -442,8 +447,8 @@ void example4(const std::string& out_dir) {
     };
 
     // Create a file to dump results
-    std::string logfile = out_dir + "/log_timestepper_4.dat";
-    ChStreamOutAsciiFile log_file4(logfile.c_str());
+    std::string logfilename = out_dir + "/log_timestepper_4.dat";
+    ChStreamOutAsciiFile log_file4(logfilename);
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable1;
@@ -499,14 +504,14 @@ void example4(const std::string& out_dir) {
     mplot.SetTitle("Test: oscillator with implicit integrators");
     mplot.SetLabelX("t");
     mplot.SetLabelY("x");
-    mplot.Plot(logfile.c_str(), 1, 2, "Euler implicit", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 4, "Trapezoidal", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 6, "Euler expl.IIorder", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 8, "HHT alpha=0", " with lines dt 2");
-    mplot.Plot(logfile.c_str(), 1, 10, "HHT alpha=-0.33", " with lines dt 2");
-    mplot.Plot(logfile.c_str(), 1, 12, "Newmark g=0.5, b=1/4", " with lines dt 4");
-    mplot.Plot(logfile.c_str(), 1, 14, "Newmark g=0.5, b=1/6", " with lines dt 4");
-    mplot.Plot(logfile.c_str(), 1, 16, "Newmark g=1.0, b=1/4", " with lines dt 4");
+    mplot.Plot(logfilename, 1, 2, "Euler implicit", " with lines");
+    mplot.Plot(logfilename, 1, 4, "Trapezoidal", " with lines");
+    mplot.Plot(logfilename, 1, 6, "Euler expl.IIorder", " with lines");
+    mplot.Plot(logfilename, 1, 8, "HHT alpha=0", " with lines dt 2");
+    mplot.Plot(logfilename, 1, 10, "HHT alpha=-0.33", " with lines dt 2");
+    mplot.Plot(logfilename, 1, 12, "Newmark g=0.5, b=1/4", " with lines dt 4");
+    mplot.Plot(logfilename, 1, 14, "Newmark g=0.5, b=1/6", " with lines dt 4");
+    mplot.Plot(logfilename, 1, 16, "Newmark g=1.0, b=1/4", " with lines dt 4");
 }
 
 void example5(const std::string& out_dir) {
@@ -544,7 +549,7 @@ void example5(const std::string& out_dir) {
             mT = 0;
             mpx = 0;
             mpy = -mlength;
-            mvx = 0.2;
+            mvx = 0.8;
             mvy = 0;
             max = 0;
             may = 0;
@@ -589,12 +594,13 @@ void example5(const std::string& out_dir) {
         virtual void StateScatterReactions(const ChVectorDynamic<>& L) override { mreaction = L(0); };
 
         /// Compute the correction with linear system
-        ///  Dv = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R
+        ///  | Dv| = [ c_a*M + c_v*dF/dv + c_x*dF/dx    Cq']^-1 * | R |
+        ///  |-Dl|   [   Cq                              0 ]      |-Qc|
         virtual bool StateSolveCorrection(
             ChStateDelta& Dv,             ///< result: computed Dv
-            ChVectorDynamic<>& L,         ///< result: computed lagrangian multipliers, if any
+            ChVectorDynamic<>& Dl,        ///< result: computed Dl lagrangian multipliers, if any, note the sign
             const ChVectorDynamic<>& R,   ///< the R residual
-            const ChVectorDynamic<>& Qc,  ///< the Qc residual
+            const ChVectorDynamic<>& Qc,  ///< the Qc residual, note the sign 
             const double c_a,             ///< the factor in c_a*M
             const double c_v,             ///< the factor in c_v*dF/dv
             const double c_x,             ///< the factor in c_x*dF/dv
@@ -611,9 +617,9 @@ void example5(const std::string& out_dir) {
             ChVector<> dirpend(-mpx, -mpy, 0);
             dirpend.Normalize();
             ChVectorDynamic<> b(3);
-            b(0) = R(0);
-            b(1) = R(1);
-            b(2) = Qc(0);
+            b(0) =  R(0);
+            b(1) =  R(1);
+            b(2) = -Qc(0); // note assume input Qc has no minus sign, so flip sign here
             ChMatrixDynamic<> A(3, 3);
             A.setZero();
             A(0, 0) = c_a * this->M + c_v * (-this->R) + c_x * (-this->K);
@@ -625,9 +631,19 @@ void example5(const std::string& out_dir) {
             ChVectorDynamic<> w = A.colPivHouseholderQr().solve(b);
             Dv(0) = w(0);
             Dv(1) = w(1);
-            L(0) = -w(2);  // note assume result sign in multiplier is flipped
+            Dl(0) = -w(2);  // note assume result sign in multiplier is flipped, to return Dl and not w=-Dl
 
             return true;
+        }
+
+        /// Adds the lumped mass to a Md vector. This method is OPTIONAL, and needed only
+        /// if you want to use an explicit integrator with SetDiagonalLumpingON.
+        virtual void LoadLumpedMass_Md(ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+                                       double& err,            ///< result: not touched if lumping does not introduce errors
+                                       const double c          ///< a scaling factor
+        ) {
+            Md(0) = this->M; 
+            Md(1) = this->M; 
         }
 
         ///    R += c*F
@@ -665,7 +681,7 @@ void example5(const std::string& out_dir) {
                                       const double mclam = 1e30     ///< clamping value
                                       ) override {
             ChVector<> distpend(-mpx, -mpy, 0);
-            Qc(0) += -c * (-distpend.Length() + mlength);
+            Qc(0) += c * (-distpend.Length() + mlength);
         };
 
         /// nothing to do here- no rheonomic part
@@ -675,10 +691,14 @@ void example5(const std::string& out_dir) {
     };
 
     // Create a file to dump results
-    std::string logfile5 = out_dir + "/log_timestepper_5.dat";
-    ChStreamOutAsciiFile log_file5(logfile5.c_str());
-    std::string logfile5r = out_dir + "/log_timestepper_5r.dat";
-    ChStreamOutAsciiFile log_file5r(logfile5r.c_str());
+    std::string logfilename5 = out_dir + "/log_timestepper_5.dat";
+    std::string logfilename5r = out_dir + "/log_timestepper_5r.dat";
+    std::string logfilename5e = out_dir + "/log_timestepper_5e.dat";
+    std::string logfilename5er = out_dir + "/log_timestepper_5er.dat";
+    ChStreamOutAsciiFile log_file5(logfilename5);
+    ChStreamOutAsciiFile log_file5r(logfilename5r);
+    ChStreamOutAsciiFile log_file5e(logfilename5e);
+    ChStreamOutAsciiFile log_file5er(logfilename5er);
 
     // Create and object from your custom integrable class:
     MyIntegrable mintegrable1;
@@ -695,14 +715,19 @@ void example5(const std::string& out_dir) {
     ChTimestepperTrapezoidal mystepper3(&mintegrable3);
     ChTimestepperHHT mystepper4(&mintegrable4);
     mystepper4.SetAlpha(0);  // HHT with no dissipation -> trapezoidal
+    mystepper4.SetStepControl(false);
     //mystepper4.SetVerbose(true);
     ChTimestepperHHT mystepper5(&mintegrable5);
     mystepper5.SetAlpha(-0.3);  // HHT with dissipation
+    mystepper5.SetStepControl(false);
     //mystepper5.SetVerbose(true);
     ChTimestepperNewmark mystepper6(&mintegrable6);
     mystepper6.SetGammaBeta(0.5, 0.25);  // Newmark, Gamma: in [1/2, 1] where 1/2 no damping, beta in [0,1]. For (0.5, 0.25) -> trapezoidal
     //mystepper6.SetVerbose(true);
 
+    //ChTimestepperEulerExplIIorder mystepper7(&mintegrable7);
+    ChTimestepperRungeKuttaExpl mystepper7(&mintegrable7);
+    mystepper7.SetDiagonalLumpingON(20000); // this avoids calling the linear solver completely, even with constraints.
 
     // B) - same pendulum, but multibody:
     //
@@ -719,7 +744,7 @@ void example5(const std::string& out_dir) {
     my_body_B->SetMass(2.0);
     my_body_B->SetInertiaXX(ChVector<>(1e-7, 1e-7, 1e-7)); // to approximate point-like mass as in MyIntegrable
     my_body_B->SetPos(ChVector<>(0, -5, 0));
-    my_body_B->SetPos_dt(ChVector<>(0.2, 0, 0));
+    my_body_B->SetPos_dt(ChVector<>(0.8, 0, 0));
 
     auto my_link_AB = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>());
@@ -733,7 +758,7 @@ void example5(const std::string& out_dir) {
     mstepper4b->SetAlpha(-0.3);  // HHT dissipation 
     sys.SetTimestepper(mstepper4b);
 
-    // Execute the time integration
+    // Execute the time integration with the implicit integrators
     while (mystepper1.GetTime() < 12) {
         double timestep = 0.05;
         mystepper1.Advance(timestep);
@@ -761,6 +786,19 @@ void example5(const std::string& out_dir) {
                    << mystepper3.get_L()(0) << ", " << mystepper4.get_L()(0) << ", " << mystepper5.get_L()(0) << ", "
                    << mystepper6.get_L()(0) << ", " << my_link_AB->Get_react_force().y() << "\n";
     }
+    // Execute the time integration with the explicit integrator, 
+    // hence using smaller time step 
+    while (mystepper7.GetTime() < 12) {
+        double timestep = 0.0005;
+        mystepper7.Advance(timestep);
+
+        log_file5e << mystepper7.GetTime() << ", "
+            //<< mystepper7.get_X()(0) << ", " << mystepper7.get_X()(1) << ", " << mystepper7.get_V()(0) << ", " << mystepper7.get_V()(1) << ", "
+            << mystepper7.get_Y()(0) << ", " << mystepper7.get_Y()(1) << ", " << mystepper7.get_Y()(2) << ", " << mystepper7.get_Y()(3) << ", "
+            << "\n";
+        log_file5er << mystepper7.GetTime() << ", " << mystepper7.get_L()(0) << "\n";
+    }
+
 
     std::string gplfile = out_dir + "/tmp_timestepping_5.gpl";
     ChGnuPlot mplot(gplfile.c_str());
@@ -769,26 +807,28 @@ void example5(const std::string& out_dir) {
     mplot.SetTitle("Test: DAE, constrained pendulum");
     mplot.SetLabelX("t");
     mplot.SetLabelY("x");
-    mplot.Plot(logfile5.c_str(), 1, 2, "Euler impl. lineariz.", " with lines");
-    mplot.Plot(logfile5.c_str(), 1, 6, "Euler impl.", " with lines");
-    mplot.Plot(logfile5.c_str(), 1, 10, "Trapezoidal*", " with lines");
-    mplot.Plot(logfile5.c_str(), 1, 14, "HHT alpha=0", " with lines dt 2");
-    mplot.Plot(logfile5.c_str(), 1, 18, "HHT alpha=-0.3", " with lines dt 2");
-    mplot.Plot(logfile5.c_str(), 1, 22, "Newmark g=0.5,b=0.25", " with lines dt 4");
-    mplot.Plot(logfile5.c_str(), 1, 26, "HHT alpha=-0.3 in ChSystem", " with lines dt 6");
+    mplot.Plot(logfilename5, 1, 2, "Euler impl. lineariz.", " with lines");
+    mplot.Plot(logfilename5, 1, 6, "Euler impl.", " with lines");
+    mplot.Plot(logfilename5, 1, 10, "Trapezoidal*", " with lines");
+    mplot.Plot(logfilename5, 1, 14, "HHT alpha=0", " with lines dt 2");
+    mplot.Plot(logfilename5, 1, 18, "HHT alpha=-0.3", " with lines dt 2");
+    mplot.Plot(logfilename5, 1, 22, "Newmark g=0.5,b=0.25", " with lines dt 4");
+    mplot.Plot(logfilename5, 1, 26, "HHT alpha=-0.3 in ChSystem", " with lines dt 6");
+	mplot.Plot(logfilename5e, 1, 2, "Euler explicit, penalty", " with lines");
 
     mplot.OutputWindow(1);
     mplot.SetGrid();
     mplot.SetTitle("Test: DAE, constrained pendulum reactions");
     mplot.SetLabelX("t [s]");
     mplot.SetLabelY("R [N]");
-    mplot.Plot(logfile5r.c_str(), 1, 2, "Euler impl. lineariz.", " with lines");
-    mplot.Plot(logfile5r.c_str(), 1, 3, "Euler impl.", " with lines");
-    mplot.Plot(logfile5r.c_str(), 1, 4, "Trapezoidal*", " with lines");
-    mplot.Plot(logfile5r.c_str(), 1, 5, "HHT alpha=0", " with lines dt 2");
-    mplot.Plot(logfile5r.c_str(), 1, 6, "HHT alpha=-0.3", " with lines dt 2");
-    mplot.Plot(logfile5r.c_str(), 1, 7, "Newmark g=0.5,b=0.25", " with lines dt 4");
-    mplot.Plot(logfile5r.c_str(), 1, 8, "HHT alpha=-0.3 in ChSystem", " with lines dt 6");
+    mplot.Plot(logfilename5r, 1, 2, "Euler impl. lineariz.", " with lines");
+    mplot.Plot(logfilename5r, 1, 3, "Euler impl.", " with lines");
+    mplot.Plot(logfilename5r, 1, 4, "Trapezoidal*", " with lines");
+    mplot.Plot(logfilename5r, 1, 5, "HHT alpha=0", " with lines dt 2");
+    mplot.Plot(logfilename5r, 1, 6, "HHT alpha=-0.3", " with lines dt 2");
+    mplot.Plot(logfilename5r, 1, 7, "Newmark g=0.5,b=0.25", " with lines dt 4");
+    mplot.Plot(logfilename5r, 1, 8, "HHT alpha=-0.3 in ChSystem", " with lines dt 6");
+	mplot.Plot(logfilename5er, 1, 2, "Euler explicit, penalty", " with lines dt 3 lc rgb \"pink\"");
 
     mplot.OutputWindow(2);
     mplot.SetGrid();
@@ -798,11 +838,12 @@ void example5(const std::string& out_dir) {
     //mplot.SetRangeX(-0.15, 0.15);
     //mplot.SetRangeY(-1.025, -0.95);
     mplot.SetCommand("set size ratio 0.5");
-    mplot.Plot(logfile5.c_str(), 2, 3, "Euler impl. lineariz.", " pt 0");
-    mplot.Plot(logfile5.c_str(), 6, 7, "Euler impl.", " pt 1");
-    mplot.Plot(logfile5.c_str(), 10, 11, "Trapezoidal*", " pt 2");
-    mplot.Plot(logfile5.c_str(), 14, 15, "HHT alpha=0", " pt 3");
-    mplot.Plot(logfile5.c_str(), 18, 19, "HHT alpha=-0.2", " pt 4");
+    mplot.Plot(logfilename5, 2, 3, "Euler impl. lineariz.", " pt 0");
+    mplot.Plot(logfilename5, 6, 7, "Euler impl.", " pt 1");
+    mplot.Plot(logfilename5, 10, 11, "Trapezoidal*", " pt 2");
+    mplot.Plot(logfilename5, 14, 15, "HHT alpha=0", " pt 3");
+    mplot.Plot(logfilename5, 18, 19, "HHT alpha=-0.2", " pt 4");
+	mplot.Plot(logfilename5e, 2, 3, "Euler explicit, penalty", " with lines");
 }
 
 int main(int argc, char* argv[]) {

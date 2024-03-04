@@ -13,7 +13,6 @@
 #include "chrono/collision/ChCollisionInfo.h"
 
 namespace chrono {
-namespace collision {
 
 static double default_eff_radius = 0.1;
 
@@ -73,5 +72,4 @@ double ChCollisionInfo::GetDefaultEffectiveCurvatureRadius() {
     return default_eff_radius;
 }
 
-}  // end namespace collision
 }  // end namespace chrono

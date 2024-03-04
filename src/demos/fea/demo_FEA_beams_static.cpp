@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(my_body_A);
 
     // Attach a 'box' shape asset for visualization.
-    auto mboxtruss = chrono_types::make_shared<ChBoxShape>(0.02, 0.5, 0.5);
+    auto mboxtruss = chrono_types::make_shared<ChVisualShapeBox>(0.02, 0.5, 0.5);
     my_body_A->AddVisualShape(mboxtruss, ChFrame<>(ChVector<>(-0.01, -0.2, -0.25)));
 
     // Create a FEM mesh, that is a container for groups
@@ -130,11 +130,11 @@ int main(int argc, char* argv[]) {
     sys.Add(my_mesh);
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape
+    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a colored ChTriangleMeshShape).
+    // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
     auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MY);
     mvisualizebeamA->SetColorscaleMinMax(-0.001, 6);
@@ -174,8 +174,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::string filename1 = out_dir + "/benchmark_CE_princeton_L1.dat";
-    chrono::ChStreamOutAsciiFile file_out1(filename1.c_str());
+    chrono::ChStreamOutAsciiFile file_out1(out_dir + "/benchmark_CE_princeton_L1.dat");
     for (int i = 0; i < endnodes[0].size(); ++i) {
         double node_y = endnodes[0][i]->GetPos().y() - 0 * y_spacing;
         double node_z = endnodes[0][i]->GetPos().z() - i * z_spacing;
@@ -185,8 +184,7 @@ int main(int argc, char* argv[]) {
         file_out1 << node_y << " " << node_z << " " << node_a << "\n";
     }
 
-    std::string filename2 = out_dir + "/benchmark_CE_princeton_L2.dat";
-    chrono::ChStreamOutAsciiFile file_out2(filename2.c_str());
+    chrono::ChStreamOutAsciiFile file_out2(out_dir + "/benchmark_CE_princeton_L2.dat");
     for (int i = 0; i < endnodes[1].size(); ++i) {
         double node_y = endnodes[1][i]->GetPos().y() - 1 * y_spacing;
         double node_z = endnodes[1][i]->GetPos().z() - i * z_spacing;
@@ -196,8 +194,7 @@ int main(int argc, char* argv[]) {
         file_out2 << node_y << " " << node_z << " " << node_a << "\n";
     }
 
-    std::string filename3 = out_dir + "/benchmark_CE_princeton_L3.dat";
-    chrono::ChStreamOutAsciiFile file_out3(filename3.c_str());
+    chrono::ChStreamOutAsciiFile file_out3(out_dir + "/benchmark_CE_princeton_L3.dat");
     for (int i = 0; i < endnodes[2].size(); ++i) {
         double node_y = endnodes[2][i]->GetPos().y() - 2 * y_spacing;
         double node_z = endnodes[2][i]->GetPos().z() - i * z_spacing;

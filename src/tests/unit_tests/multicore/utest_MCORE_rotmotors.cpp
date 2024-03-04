@@ -32,7 +32,6 @@
 #include "unit_testing.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 enum MotorType {ANGLE, SPEED};
 struct Options {
@@ -50,11 +49,11 @@ class RotMotors : public ::testing::TestWithParam<Options> {
         system->GetSettings()->solver.tolerance = 1e-5;
         system->ChangeSolverType(SolverType::BB);
 
-        auto ground = std::shared_ptr<ChBody>(system->NewBody());
+        auto ground = chrono_types::make_shared<ChBody>();
         ground->SetBodyFixed(true);
         system->AddBody(ground);
 
-        auto body = std::shared_ptr<ChBody>(system->NewBody());
+        auto body = chrono_types::make_shared<ChBody>();
         system->AddBody(body);
 
         switch (opts.mot_type) {

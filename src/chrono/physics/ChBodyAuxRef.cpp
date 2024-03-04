@@ -16,7 +16,6 @@
 
 namespace chrono {
 
-using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -108,20 +107,6 @@ void ChBodyAuxRef::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(auxref_to_cog);
     marchive >> CHNVP(auxref_to_abs);
 
-
-    // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-
-        ChVector<> _c_SetFrame_COG_to_REF__ChFrame__ChVector;
-        ChQuaternion<> _c_SetFrame_COG_to_REF__ChFrame__ChQuaternion;
-        if (marchive.in(CHNVP(_c_SetFrame_COG_to_REF__ChFrame__ChVector)) &&
-            marchive.in(CHNVP(_c_SetFrame_COG_to_REF__ChFrame__ChQuaternion)))
-            this->SetFrame_COG_to_REF(ChFrame<>(_c_SetFrame_COG_to_REF__ChFrame__ChVector, _c_SetFrame_COG_to_REF__ChFrame__ChQuaternion));
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
 }
 
 }  // end namespace chrono

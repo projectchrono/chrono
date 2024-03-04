@@ -21,7 +21,6 @@
 namespace chrono {
 
 using namespace fea;
-using namespace collision;
 using namespace geometry;
 
 namespace modal {
@@ -851,39 +850,34 @@ void ChModalAssembly::GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq)
     //Cq->makeCompressed();
 }
 
-void ChModalAssembly::DumpSubassemblyMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const char* path) {
-    char filename[300];
+void ChModalAssembly::DumpSubassemblyMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path) {
     const char* numformat = "%.12g";
 
     if (save_M) {
         ChSparseMatrix mM;
         this->GetSubassemblyMassMatrix(&mM);
-        sprintf(filename, "%s%s", path, "_M.dat");
-        ChStreamOutAsciiFile file_M(filename);
+        ChStreamOutAsciiFile file_M(path + "_M.dat");
         file_M.SetNumFormat(numformat);
         StreamOutSparseMatlabFormat(mM, file_M);
     }
     if (save_K) {
         ChSparseMatrix mK;
         this->GetSubassemblyStiffnessMatrix(&mK);
-        sprintf(filename, "%s%s", path, "_K.dat");
-        ChStreamOutAsciiFile file_K(filename);
+        ChStreamOutAsciiFile file_K(path + "_K.dat");
         file_K.SetNumFormat(numformat);
         StreamOutSparseMatlabFormat(mK, file_K);
     }
     if (save_R) {
         ChSparseMatrix mR;
         this->GetSubassemblyDampingMatrix(&mR);
-        sprintf(filename, "%s%s", path, "_R.dat");
-        ChStreamOutAsciiFile file_R(filename);
+        ChStreamOutAsciiFile file_R(path + "_R.dat");
         file_R.SetNumFormat(numformat);
         StreamOutSparseMatlabFormat(mR, file_R);
     }
     if (save_Cq) {
         ChSparseMatrix mCq;
         this->GetSubassemblyConstraintJacobianMatrix(&mCq);
-        sprintf(filename, "%s%s", path, "_Cq.dat");
-        ChStreamOutAsciiFile file_Cq(filename);
+        ChStreamOutAsciiFile file_Cq(path + "_Cq.dat");
         file_Cq.SetNumFormat(numformat);
         StreamOutSparseMatlabFormat(mCq, file_Cq);
     }
@@ -1549,6 +1543,36 @@ void ChModalAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offse
     else {
         ChVectorDynamic<> w_modal = w.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w);
         R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) += c * (this->modal_M * w_modal);
+    }
+}
+
+void ChModalAssembly::IntLoadLumpedMass_Md(const unsigned int off,
+                                           ChVectorDynamic<>& Md,
+                                           double& err,
+                                           const double c 
+) {
+    unsigned int displ_v = off - this->offset_w;
+
+    if (is_modal == false) {
+        ChAssembly::IntLoadLumpedMass_Md(off, Md, err, c);  // parent
+
+        for (auto& body : internal_bodylist) {
+            if (body->IsActive())
+                body->IntLoadLumpedMass_Md(displ_v + body->GetOffset_w(), Md, err, c);
+        }
+        for (auto& link : internal_linklist) {
+            if (link->IsActive())
+                link->IntLoadLumpedMass_Md(displ_v + link->GetOffset_w(), Md, err, c);
+        }
+        for (auto& mesh : internal_meshlist) {
+            mesh->IntLoadLumpedMass_Md(displ_v + mesh->GetOffset_w(), Md, err, c);
+        }
+        for (auto& item : internal_otherphysicslist) {
+            item->IntLoadLumpedMass_Md(displ_v + item->GetOffset_w(), Md, err, c);
+        }
+    } else {
+        Md.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) += c * this->modal_M.diagonal();
+        err += (Md.sum() - Md.diagonal().sum()); // lumping should not be used when modal reduced assembly has full, nondiagonal modal_M 
     }
 }
 

@@ -43,7 +43,10 @@
 #include <BRepMesh_IncrementalMesh.hxx>
 #include <TShort_Array1OfShortReal.hxx>
 
+/// Main Irrlicht namespace (Chrono extensions).
 namespace irr {
+
+/// Irrlicht base classes (Chrono extensions).
 namespace scene {
 
 /// @addtogroup cascade_module

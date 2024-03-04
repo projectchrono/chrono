@@ -26,9 +26,19 @@
 #include "rclcpp/publisher.hpp"
 #include "sensor_msgs/msg/magnetic_field.hpp"
 
+<<<<<<< HEAD
 namespace chrono {
 namespace ros {
 
+=======
+#include <array>
+
+namespace chrono {
+namespace ros {
+
+class ChROSIMUHandler;
+
+>>>>>>> upstream/feature/ros
 /// @addtogroup ros_sensor_handlers
 /// @{
 
@@ -51,11 +61,27 @@ class ChROSMagnetometerHandler : public ChROSHandler {
     virtual void Tick(double time) override;
 
   private:
+<<<<<<< HEAD
+=======
+    /// Helper function to calculate the covariance of the accelerometer
+    /// ChMagnetometerSensor currently doesn't support covariance, so we'll use store
+    /// the rolling averages and calculate the covariance here.
+    std::array<double, 9> CalculateCovariance(const chrono::sensor::MagnetData& imu_data);
+
+  private:
+>>>>>>> upstream/feature/ros
     std::shared_ptr<chrono::sensor::ChMagnetometerSensor> m_imu;  ///< handle to the imu sensor
 
     const std::string m_topic_name;                                             ///< name of the topic to publish to
     sensor_msgs::msg::MagneticField m_mag_msg;                                  ///< message to publish
     rclcpp::Publisher<sensor_msgs::msg::MagneticField>::SharedPtr m_publisher;  ///< the publisher for the imu message
+<<<<<<< HEAD
+=======
+
+    std::array<double, 3> m_running_average;  ///< rolling average of the magnetometer data for covariance calculation
+
+    friend class ChROSIMUHandler;
+>>>>>>> upstream/feature/ros
 };
 
 /// @} ros_sensor_handlers

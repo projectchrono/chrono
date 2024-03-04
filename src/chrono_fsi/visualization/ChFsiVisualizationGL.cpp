@@ -12,8 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
@@ -27,18 +27,19 @@ namespace fsi {
 class FSIStatsGL : public opengl::ChOpenGLStats {
   public:
     FSIStatsGL() : ChOpenGLStats() {}
+
     virtual void GenerateStats(ChSystem& sys) override {
-        sprintf(buffer, "SPH particles:  %lu", num_sph);
-        text.Render(buffer, screen.LEFT, screen.TOP - 1 * screen.SPACING, screen.SX, screen.SY);
+        text.Render("SPH particles:  " + std::to_string(num_sph), screen.LEFT, screen.TOP - 1 * screen.SPACING,
+                    screen.SX, screen.SY);
 
-        sprintf(buffer, "Boundary BCE:   %lu", num_bndry_bce);
-        text.Render(buffer, screen.LEFT, screen.TOP - 2 * screen.SPACING, screen.SX, screen.SY);
+        text.Render("Boundary BCE:   " + std::to_string(num_bndry_bce), screen.LEFT, screen.TOP - 2 * screen.SPACING,
+                    screen.SX, screen.SY);
 
-        sprintf(buffer, "Rigid body BCE: %lu", num_rigid_bce);
-        text.Render(buffer, screen.LEFT, screen.TOP - 3 * screen.SPACING, screen.SX, screen.SY);
+        text.Render("Rigid body BCE: " + std::to_string(num_rigid_bce), screen.LEFT, screen.TOP - 3 * screen.SPACING,
+                    screen.SX, screen.SY);
 
-        sprintf(buffer, "Flex body BCE:  %lu", num_flex_bce);
-        text.Render(buffer, screen.LEFT, screen.TOP - 4 * screen.SPACING, screen.SX, screen.SY);
+        text.Render("Flex body BCE:  " + std::to_string(num_flex_bce), screen.LEFT, screen.TOP - 4 * screen.SPACING,
+                    screen.SX, screen.SY);
 
         sprintf(buffer, "TIME: %04f", sys.GetChTime());
         text.Render(buffer, screen.LEFT, screen.TOP - 6 * screen.SPACING, screen.SX, screen.SY);
@@ -46,6 +47,7 @@ class FSIStatsGL : public opengl::ChOpenGLStats {
         sprintf(buffer, "FPS:  %04d", int(fps));
         text.Render(buffer, screen.LEFT, screen.TOP - 7 * screen.SPACING, screen.SX, screen.SY);
     }
+
     unsigned long num_sph;
     unsigned long num_bndry_bce;
     unsigned long num_rigid_bce;
@@ -131,17 +133,17 @@ void ChFsiVisualizationGL::Initialize() {
         for (int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
             m_sph_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChSphereShape>(m_systemFSI->GetInitialSpacing() / 2);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 2);
         m_sph_cloud->AddVisualShape(sph);
         m_system->Add(m_sph_cloud);
     }
 
     if (m_bndry_bce_markers) {
         for (int i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
-            auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+            auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
-            auto sph = chrono_types::make_shared<ChBoxShape>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
+            auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }
@@ -149,10 +151,10 @@ void ChFsiVisualizationGL::Initialize() {
 
     if (m_rigid_bce_markers) {
         for (int i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
-            auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+            auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
-            auto sph = chrono_types::make_shared<ChBoxShape>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
+            auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }
@@ -160,10 +162,10 @@ void ChFsiVisualizationGL::Initialize() {
 
     if (m_flex_bce_markers) {
         for (int i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
-            auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+            auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
-            auto sph = chrono_types::make_shared<ChBoxShape>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
+            auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }

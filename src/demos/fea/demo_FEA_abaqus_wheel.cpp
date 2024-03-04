@@ -47,15 +47,11 @@ int main(int argc, char* argv[]) {
 
     double tire_w0 = tire_vel_z0 / tire_rad;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system and set the associated collision system
     ChSystemSMC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    //
-    // CREATE THE PHYSICAL SYSTEM
-    //
-
-    // Create the surface material, containing information
-    // about friction etc.
+    // Create the surface material
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(10e4);
     mysurfmaterial->SetFriction(0.3f);
@@ -168,7 +164,7 @@ int main(int argc, char* argv[]) {
     mwheel_rim->SetWvel_par(ChVector<>(tire_w0, 0, 0));
     sys.Add(mwheel_rim);
 
-    auto mobjmesh = chrono_types::make_shared<ChModelFileShape>();
+    auto mobjmesh = chrono_types::make_shared<ChVisualShapeModelFile>();
     mobjmesh->SetFilename(GetChronoDataFile("models/tractor_wheel/tractor_wheel_rim.obj"));
     mwheel_rim->AddVisualShape(mobjmesh);
 
@@ -205,11 +201,11 @@ int main(int argc, char* argv[]) {
     //
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape
+    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a colored ChTriangleMeshShape).
+    // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);

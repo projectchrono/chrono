@@ -40,7 +40,7 @@ M113::M113()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
-      m_collsysType(collision::ChCollisionSystemType::BULLET),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_wheel_cyl(true),
@@ -55,7 +55,7 @@ M113::M113()
       m_ancf_constrain_curvature(false),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_engineType(EngineModelType::SHAFTS),
-      m_transmissionType(TransmissionModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_use_track_bushings(false),
       m_use_suspension_bushings(false),
       m_use_track_RSDA(false),
@@ -68,7 +68,7 @@ M113::M113(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
-      m_collsysType(collision::ChCollisionSystemType::BULLET),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_wheel_cyl(true),
       m_idler_cyl(true),
@@ -83,7 +83,7 @@ M113::M113(ChSystem* system)
       m_ancf_constrain_curvature(false),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_engineType(EngineModelType::SHAFTS),
-      m_transmissionType(TransmissionModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_use_track_bushings(false),
       m_use_suspension_bushings(false),
       m_use_track_RSDA(false),
@@ -152,10 +152,10 @@ void M113::Initialize() {
 
     if(!transmission) {
         switch (m_transmissionType) {
-            case TransmissionModelType::SHAFTS:
+            case TransmissionModelType::AUTOMATIC_SHAFTS:
                 transmission = chrono_types::make_shared<M113_AutomaticTransmissionShafts>("Transmission");
                 break;
-            case TransmissionModelType::SIMPLE_MAP:
+            case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<M113_AutomaticTransmissionSimpleMap>("Transmission");
                 break;
         }

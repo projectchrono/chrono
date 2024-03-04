@@ -13,11 +13,11 @@
 // =============================================================================
 // =============================================================================
 
-//// RADU TODO
-//// (1) Merge() does nothing for the face material indices.
-////     The problem is that we cannot merge the visual material lists (not present here)
-//// (2) SplitEdge() does not do anything for face material indices.
-///      This could be implemented such that the two new faces point to the same material.
+// RADU TODO
+// (1) Merge() does nothing for the face material indices.
+//     The problem is that we cannot merge the visual material lists (not present here)
+// (2) SplitEdge() does not do anything for face material indices.
+//     This could be implemented such that the two new faces point to the same material.
 
 #include <algorithm>
 #include <cstdio>
@@ -109,21 +109,24 @@ void ChTriangleMeshConnected::Clear() {
     m_properties_per_vertex.clear();
 }
 
-ChGeometry::AABB ChTriangleMeshConnected::GetBoundingBox(const ChMatrix33<>& rot) const {
-    AABB bbox;
-    for (const auto& v : m_vertices) {
-        auto p = rot.transpose() * v;
+ChAABB ChTriangleMeshConnected::GetBoundingBox(std::vector<ChVector<>> vertices) {
+    ChAABB bbox;
+    for (const auto& v : vertices) {
+        bbox.min.x() = ChMin(bbox.min.x(), v.x());
+        bbox.min.y() = ChMin(bbox.min.y(), v.y());
+        bbox.min.z() = ChMin(bbox.min.z(), v.z());
 
-        bbox.min.x() = ChMin(bbox.min.x(), p.x());
-        bbox.min.y() = ChMin(bbox.min.y(), p.y());
-        bbox.min.z() = ChMin(bbox.min.z(), p.z());
-
-        bbox.max.x() = ChMax(bbox.max.x(), p.x());
-        bbox.max.y() = ChMax(bbox.max.y(), p.y());
-        bbox.max.z() = ChMax(bbox.max.z(), p.z());
+        bbox.max.x() = ChMax(bbox.max.x(), v.x());
+        bbox.max.y() = ChMax(bbox.max.y(), v.y());
+        bbox.max.z() = ChMax(bbox.max.z(), v.z());
     }
     return bbox;
 }
+
+ChAABB ChTriangleMeshConnected::GetBoundingBox() const {
+    return GetBoundingBox(m_vertices);
+}
+
 
 // Following function is a modified version of:
 //
@@ -332,7 +335,7 @@ bool ChTriangleMeshConnected::LoadSTLMesh(const std::string& filename, bool load
     vertex_t nverts;
     float* verts;
     triangle_t ntris;
-    triangle_t *tris;
+    triangle_t* tris;
     uint16_t* attrs;
 
     fp = fopen(filename.c_str(), "rb");
@@ -354,7 +357,7 @@ bool ChTriangleMeshConnected::LoadSTLMesh(const std::string& filename, bool load
 
     m_face_v_indices.resize(ntris);
     for (triangle_t i = 0, j = 0; i < ntris; i++) {
-        m_face_v_indices[i] = ChVector<int>(tris[j], tris[j + 1], tris[j+2]);
+        m_face_v_indices[i] = ChVector<int>(tris[j], tris[j + 1], tris[j + 2]);
         j += 3;
     }
 
@@ -365,12 +368,12 @@ bool ChTriangleMeshConnected::LoadSTLMesh(const std::string& filename, bool load
             const auto& v0 = m_vertices[m_face_v_indices[i][0]];
             const auto& v1 = m_vertices[m_face_v_indices[i][1]];
             const auto& v2 = m_vertices[m_face_v_indices[i][2]];
-            m_normals[i] = Vcross(v1 - v0, v2 - v0).GetNormalized();            
+            m_normals[i] = Vcross(v1 - v0, v2 - v0).GetNormalized();
             m_face_n_indices[i] = ChVector<int>(i, i, i);
         }
     }
 
-		free(tris);
+    free(tris);
     free(verts);
     free(attrs);
     return true;
@@ -645,7 +648,7 @@ bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int, int>, s
     return pathological_edges;
 }
 
-int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
+int ChTriangleMeshConnected::RepairDuplicateVertexes(double tolerance) {
     int nmerged = 0;
     std::vector<ChVector<>> processed_verts;
     std::vector<int> new_indexes(m_vertices.size());
@@ -684,7 +687,7 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
 // " A 3D surface offset method for STL-format models"
 //   Xiuzhi Qu and Brent Stucker
 
-bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
+bool ChTriangleMeshConnected::MakeOffset(double moffset) {
     std::map<int, std::vector<int>> map_vertex_triangles;
     std::vector<ChVector<>> voffsets(this->m_vertices.size());
 

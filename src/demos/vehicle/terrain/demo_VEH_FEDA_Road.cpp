@@ -31,7 +31,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -308,7 +308,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Road width  = " << road_width << std::endl;
     std::cout << std::boolalpha << "Closed loop?  " << path_is_closed << std::endl << std::endl;
 
-    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChBoxShape>(geometry::ChBox(1, road_width, 1)),
+    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(geometry::ChBox(1, road_width, 1)),
                                         ChFrame<>(init_csys.pos - 0.5 * ChWorldFrame::Vertical(), init_csys.rot));
 
     path->write(out_dir + "/path.txt");
@@ -321,27 +321,30 @@ int main(int argc, char* argv[]) {
     init_csys.pos += 0.5 * ChWorldFrame::Vertical();
 
     // Create the HMMWV vehicle, set parameters, and initialize
-    FEDA my_feda(&sys);
-    my_feda.SetContactMethod(ChContactMethod::SMC);
-    my_feda.SetChassisFixed(false);
-    my_feda.SetInitPosition(init_csys);
-    my_feda.SetEngineType(EngineModelType::SIMPLE_MAP);
-    my_feda.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
-    my_feda.SetTireType(tire_model);
-    my_feda.SetTireStepSize(tire_step_size);
-    my_feda.Initialize();
+    FEDA feda(&sys);
+    feda.SetContactMethod(ChContactMethod::SMC);
+    feda.SetChassisFixed(false);
+    feda.SetInitPosition(init_csys);
+    feda.SetEngineType(EngineModelType::SIMPLE_MAP);
+    feda.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
+    feda.SetTireType(tire_model);
+    feda.SetTireStepSize(tire_step_size);
+    feda.Initialize();
 
-    my_feda.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-    my_feda.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    my_feda.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    my_feda.SetWheelVisualizationType(VisualizationType::NONE);
-    my_feda.SetTireVisualizationType(VisualizationType::MESH);
+    feda.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    feda.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    feda.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    feda.SetWheelVisualizationType(VisualizationType::NONE);
+    feda.SetTireVisualizationType(VisualizationType::MESH);
+
+    // Associate a collision system
+    feda.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // --------------------
     // Create driver system
     // --------------------
 
-    MyDriver driver(driver_type, my_feda.GetVehicle(), path, road_width);
+    MyDriver driver(driver_type, feda.GetVehicle(), path, road_width);
     driver.Initialize();
 
     std::cout << "Driver model: " << driver.GetDriverType() << std::endl << std::endl;
@@ -354,10 +357,10 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("OpenCRG Steering");
     vis->SetWindowSize(1200, 800);
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    vis->AttachVehicle(&my_feda.GetVehicle());
+    vis->AttachVehicle(&feda.GetVehicle());
 
-    auto sentinel = chrono_types::make_shared<ChSphereShape>(0.1);
-    auto target = chrono_types::make_shared<ChSphereShape>(0.1);
+    auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+    auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     sentinel->SetColor(ChColor(1, 0, 0));
     target->SetColor(ChColor(0, 1, 0));
     int sentinelID = vis->AddVisualModel(sentinel, ChFrame<>());
@@ -380,7 +383,7 @@ int main(int argc, char* argv[]) {
     double max_travel = 6500.0;
 
     while (vis->Run()) {
-        double time = my_feda.GetSystem()->GetChTime();
+        double time = feda.GetSystem()->GetChTime();
 
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
@@ -405,13 +408,13 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_feda.Synchronize(time, driver_inputs, terrain);
+        feda.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        my_feda.Advance(step_size);
+        feda.Advance(step_size);
         vis->Advance(step_size);
         sys.DoStepDynamics(step_size);
 

@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#include "chrono/collision/chrono/ChNarrowphase.h"
-#include "chrono/collision/chrono/ChCollisionUtils.h"
+#include "chrono/collision/multicore/ChNarrowphase.h"
+#include "chrono/collision/multicore/ChCollisionUtils.h"
 
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChMathematics.h"
@@ -34,8 +34,7 @@
 #include "unit_testing.h"
 
 using namespace chrono;
-using namespace chrono::collision;
-using namespace chrono::collision::ch_utils;
+using namespace chrono::ch_utils;
 
 real envelope = 0;
 

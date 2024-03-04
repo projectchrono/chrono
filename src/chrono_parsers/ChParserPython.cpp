@@ -168,13 +168,14 @@ void ChPythonEngine::SetString(const char* variable, std::string& val) {
     this->Run(sstream.str().c_str());
 }
 
-
 void ChPythonEngine::SetList(const char* variable, const std::vector<double>& val) {
     std::ostringstream sstream;
-    sstream << variable << "=" << "[";
+    sstream << variable << "="
+            << "[";
     for (int i = 0; i < val.size(); ++i)
         sstream << (double)val[i] << ",";
-    sstream << "]" << "\n";
+    sstream << "]"
+            << "\n";
     this->Run(sstream.str().c_str());
 }
 
@@ -191,14 +192,14 @@ bool ChPythonEngine::GetList(const char* variable, std::vector<double>& return_v
 
     if (PyList_Check(result)) {
         int length = (int)PyObject_Length(result);
-        return_val.clear(); // initially clear for safety
+        return_val.clear();  // initially clear for safety
         for (int i = 0; i < length; ++i) {
             auto item = PyList_GetItem(result, i);
             if (PyLong_Check(item)) {
-                double tmp = PyLong_AsDouble(item); // whether list item is a py integer or a number like 3.0, interpret it as a double
+                double tmp = PyLong_AsDouble(
+                    item);  // whether list item is a py integer or a number like 3.0, interpret it as a double
                 return_val.push_back(tmp);
-            }
-            else if (PyFloat_Check(item)) {
+            } else if (PyFloat_Check(item)) {
                 double tmp = PyFloat_AS_DOUBLE(item);
                 return_val.push_back(tmp);
             }
@@ -206,41 +207,34 @@ bool ChPythonEngine::GetList(const char* variable, std::vector<double>& return_v
         return true;
     }
 
-
     return false;
 }
 
-
-
-/*
-typedef struct {
-  PyObject ob_base;
-  void *ptr;
-  void *ty;
-  int own;
-  PyObject *next;
-
-} SwigPyObject;
-*/
-
-void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem) {
+void ChPythonEngine::ImportSolidWorksSystem(const std::string& solidworks_py_file, ChSystem& msystem) {
     std::ostringstream sstream;
 
-    // sstream << "from " << std::string(solidworks_py_file) << " import exported_items\n";
-
-    sstream << "import builtins  \n";
-    sstream << "import imp  \n";
-    sstream << "import os  \n";
-    sstream << "mdirname, mmodulename= os.path.split('" << std::string(solidworks_py_file) << "')  \n";
-    sstream << "builtins.exported_system_relpath = mdirname + '/'  \n";
-    sstream << "fp, pathname, description = imp.find_module(mmodulename,[builtins.exported_system_relpath])  \n";
-    sstream << "try:  \n";
-    sstream << "    imported_mod = imp.load_module('imported_mod', fp, pathname, description)  \n";
-    sstream << "finally:  \n";
-    sstream << "    if fp:  \n";
-    sstream << "        fp.close()  \n";
-    sstream << "exported_items = imported_mod.exported_items  \n";
-
+    sstream << "import builtins\n";
+    sstream << "import sys\n";
+    sstream << "import os\n";
+    sstream << "mpath = \"" << solidworks_py_file << "\"\n";
+    sstream << "mdirname, mmodulename = os.path.split(mpath)\n";
+    sstream << "builtins.exported_system_relpath = mdirname + '/'\n";
+    sstream << "try:\n";
+    sstream << "    if sys.version_info[0] == 3 and sys.version_info[1] >= 5:\n";
+    sstream << "        import importlib.util\n";
+    sstream << "        spec = importlib.util.spec_from_file_location(mmodulename, mpath)\n";
+    sstream << "        imported_mod = importlib.util.module_from_spec(spec)\n";
+    sstream << "        sys.modules[mmodulename] = imported_mod\n";
+    sstream << "        spec.loader.exec_module(imported_mod)\n";
+    sstream << "    elif sys.version_info[0] == 3 and sys.version_info[1] < 5:\n";
+    sstream << "        import importlib.machinery\n";
+    sstream << "        loader = importlib.machinery.SourceFileLoader(mmodulename, mpath)\n";
+    sstream << "        imported_mod = loader.load_module()\n";
+    sstream << "    else:\n";
+    sstream << "        raise Exception(\"Python version not supported. Please upgrade it.\")\n";
+    sstream << "except Exception as e:\n";
+    sstream << "    print(f\"Error loading module: {e}\")\n";
+    sstream << "exported_items = imported_mod.exported_items\n";
     this->Run(sstream.str().c_str());
 
     PyObject* module = PyImport_AddModule("__main__");  // borrowed reference
@@ -257,12 +251,10 @@ void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSy
 
     if (PyList_Check(result)) {
         int nitems = (int)PyList_Size(result);
-        // GetLog() << "N.of list items: " << nitems << "\n";
+
         for (int i = 0; i < nitems; i++) {
             PyObject* mobj = PyList_GetItem(result, i);
             if (mobj) {
-                // GetLog() << "   Python type: " << mobj->ob_type->tp_name << "\n";
-
                 SwigPyObject* mswigobj = SWIG_Python_GetSwigThis(mobj);
                 if (mswigobj) {
                     void* objptr = mswigobj->ptr;
@@ -287,4 +279,3 @@ void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSy
 
 }  // end namespace parsers
 }  // namespace chrono
-

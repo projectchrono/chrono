@@ -46,15 +46,21 @@
 // Include C++ headers this way...
 
 %{
+
+#include "chrono/assets/ChVisualMaterial.h"
+#include "chrono/assets/ChVisualShapes.h"
+#include "chrono/assets/ChGlyphs.h"
+#include "chrono/assets/ChVisualSystem.h"
+
 #include "chrono/solver/ChSolver.h"
 #include "chrono_postprocess/ChPostProcessBase.h"
 #include "chrono_postprocess/ChPovRay.h"
+#include "chrono_postprocess/ChBlender.h"
 #include "chrono_postprocess/ChGnuPlot.h"
 #include "Eigen/src/Core/util/Memory.h"
 
 using namespace chrono;
 using namespace chrono::postprocess;
-
 
 %}
 
@@ -95,8 +101,22 @@ using namespace chrono::postprocess;
 // tree must be promoted to %shared_ptr too).
 
 %shared_ptr(chrono::ChVisualShape)
+%shared_ptr(chrono::ChVisualShapeModelFile)
+%shared_ptr(chrono::ChVisualShapeBox) 
+%shared_ptr(chrono::ChVisualShapeSphere)
+%shared_ptr(chrono::ChVisualShapeEllipsoid)
+%shared_ptr(chrono::ChVisualShapeCylinder)
+%shared_ptr(chrono::ChVisualShapeLine)
+%shared_ptr(chrono::ChVisualShapeSurface)
+%shared_ptr(chrono::ChVisualShapePath)
+%shared_ptr(chrono::ChVisualShapePointPoint)
+%shared_ptr(chrono::ChVisualShapeSegment)
+%shared_ptr(chrono::ChVisualShapeSpring)
+%shared_ptr(chrono::ChVisualShapeRotSpring)
+%shared_ptr(chrono::ChVisualShapeTriangleMesh)
 %shared_ptr(chrono::postprocess::ChPostProcessBase)
 %shared_ptr(chrono::postprocess::ChPovRay)
+%shared_ptr(chrono::postprocess::ChBlender)
 
 
 //
@@ -126,6 +146,7 @@ using namespace chrono::postprocess;
 
 %include "ChPostProcessBase.i"
 %include "ChPovRay.i"
+%include "ChBlender.i"
 %include "../../../chrono_postprocess/ChGnuPlot.h"
 
 
@@ -143,6 +164,19 @@ using namespace chrono::postprocess;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeBox)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeModelFile)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSphere)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeCylinder)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeLine)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSurface)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapePath)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeTriangleMesh)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeEllipsoid)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapePointPoint)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSegment)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSpring)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeRotSpring)
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER

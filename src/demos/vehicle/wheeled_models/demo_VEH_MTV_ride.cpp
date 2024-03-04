@@ -225,6 +225,9 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Vehicle mass: " << mtv.GetVehicle().GetMass() << std::endl;
 
+    // Associate a collision system
+    mtv.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // ------------------
     // Create the terrain
     // ------------------
@@ -257,8 +260,8 @@ int main(int argc, char* argv[]) {
     vis->AttachVehicle(&mtv.GetVehicle());
 
     // Visualization of controller points (sentinel & target)
-    auto ballS = chrono_types::make_shared<ChSphereShape>(0.1);
-    auto ballT = chrono_types::make_shared<ChSphereShape>(0.1);
+    auto ballS = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+    auto ballT = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     ballS->SetColor(ChColor(1, 0, 0));
     ballT->SetColor(ChColor(0, 1, 0));
     int iballS = vis->AddVisualModel(ballS, ChFrame<>());
@@ -387,9 +390,10 @@ int main(int argc, char* argv[]) {
 #endif
 
         if (povray_output && step_number % render_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-            utils::WriteVisualizationAssets(mtv.GetSystem(), filename);
+            // Zero-pad frame numbers in file names for postprocessing
+            std::ostringstream filename;
+            filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+            utils::WriteVisualizationAssets(mtv.GetSystem(), filename.str());
             render_frame++;
         }
 

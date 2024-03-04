@@ -102,13 +102,14 @@ class HmmwvScmTest : public utils::ChBenchmarkTest {
 template <int TIRE_TYPE, bool OBJECTS>
 HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     EngineModelType engine_model = EngineModelType::SHAFTS;
-    TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
+    TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SHAFTS;
     DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
     TireModelType tire_type = (TIRE_TYPE == MESH_TIRE) ? TireModelType::RIGID_MESH : TireModelType::RIGID;
     VisualizationType tire_vis = (TIRE_TYPE == MESH_TIRE) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
 
     // Create the HMMWV vehicle, set parameters, and initialize.
     m_hmmwv = new HMMWV_Full();
+    m_hmmwv->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_hmmwv->SetContactMethod(ChContactMethod::SMC);
     m_hmmwv->SetChassisFixed(false);
     m_hmmwv->SetInitPosition(
@@ -210,7 +211,8 @@ void HmmwvScmTest<TIRE_TYPE, OBJECTS>::SimulateVis() {
     vis->SetWindowTitle("HMMWV SMC benchmark");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
+    vis->AddSkyBox();
 
     while (vis->Run()) {
         DriverInputs driver_inputs = m_driver->GetInputs();

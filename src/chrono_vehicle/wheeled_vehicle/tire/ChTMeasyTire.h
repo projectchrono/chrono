@@ -23,8 +23,10 @@
 //          https://www.researchgate.net/publication/317036908_An_Engineer's_Guess_on_Tyre_Parameter_made_possible_with_TMeasy
 //      Georg Rill, "Simulation von Kraftfahrzeugen",
 //          https://www.researchgate.net/publication/317037037_Simulation_von_Kraftfahrzeugen
+//      H. Olsson, K. Astrom e. a., "Friction Modeling and Compensation", Universities of Lund (S), Grenoble (F) and
+//      Merida (VE), 1997
 //
-// Known differences to the comercial version:
+// Known differences to the commercial version:
 //  - No parking slip calculations
 //  - No dynamic parking torque
 //  - No dynamic tire inflation pressure
@@ -32,6 +34,7 @@
 //  - Simplified stand still handling
 //  - Optional tire contact smoothing based on "A New Analytical Tire Model for Vehicle Dynamic Analysis" by
 //      J. Shane Sui & John A Hirshey II
+//  - Standstill algorithm based on Dahl Friction Model with Damping
 //
 // This implementation has been validated with:
 //  - FED-Alpha vehicle model
@@ -45,7 +48,7 @@
 
 #include <vector>
 
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/utils/ChFilters.h"
 
@@ -193,7 +196,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
 
     VehicleSide m_measured_side;
 
-    typedef struct {
+    struct TMeasyCoeff {
         double pn;      ///< Nominal vertical force [N]
         double pn_max;  ///< Maximum vertical force [N]
 
@@ -215,7 +218,10 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
         double nL0_pn, nL0_p2n;  ///< dimensionless alignment lever
         double sq0_pn, sq0_p2n;  ///< lateral slip, where lever is zero
         double sqe_pn, sqe_p2n;  ///< lever after sliding is reached
-    } TMeasyCoeff;
+
+        double sigma0{100000.0};  ///< bristle stiffness for Dahl friction model
+        double sigma1{5000.0};    ///< bristle damping for Dahl friction model
+    };
 
     TMeasyCoeff m_par;
 
@@ -266,6 +272,8 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
         double nL0;              // Dimensionless lever at actual load level
         double sq0;              // Zero crossing at actual load level
         double sqe;              // Zero after complete sliding at actual load level
+        double brx{0};           // bristle deformation x
+        double bry{0};           // bristle deformation y
         ChVector<> disc_normal;  // (temporary for debug)
     };
 

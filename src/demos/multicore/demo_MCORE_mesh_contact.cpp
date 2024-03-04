@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
@@ -114,6 +114,9 @@ int main(int argc, char* argv[]) {
 
     sys->Set_G_acc(ChVector<>(0, -gravity, 0));
 
+    // Set associated collision detection system
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
+
     // Set number of threads
     sys->SetNumThreads(2);
 
@@ -121,14 +124,14 @@ int main(int argc, char* argv[]) {
     sys->GetSettings()->solver.tolerance = tolerance;
 
     sys->GetSettings()->collision.collision_envelope = collision_envelope;
-    sys->GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
+    sys->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
     sys->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Rotation Z->Y (because meshes used here assume Z up)
     ChQuaternion<> z2y = Q_from_AngX(-CH_C_PI_2);
 
     // Create the falling object
-    auto object = std::shared_ptr<ChBody>(sys->NewBody());
+    auto object = chrono_types::make_shared<ChBody>();
     sys->AddBody(object);
 
     object->SetMass(200);
@@ -167,18 +170,17 @@ int main(int argc, char* argv[]) {
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_coarse.obj"));
 
-    object->GetCollisionModel()->ClearModel();
-    object->GetCollisionModel()->AddTriangleMesh(object_mat, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                                 mesh_swept_sphere_radius);
-    object->GetCollisionModel()->BuildModel();
+    auto object_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(object_mat, trimesh, false, false,
+                                                                                   mesh_swept_sphere_radius);
+    object->AddCollisionShape(object_ct_shape);
 
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("tire");
     object->AddVisualShape(trimesh_shape);
 
     // Create ground body
-    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
+    auto ground = chrono_types::make_shared<ChBody>();
     sys->AddBody(ground);
 
     ground->SetMass(1);
@@ -211,11 +213,10 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    ground->GetCollisionModel()->ClearModel();
-    ground->GetCollisionModel()->AddBox(ground_mat, width, length, thickness, ChVector<>(0, 0, -thickness / 2));
-    ground->GetCollisionModel()->BuildModel();
+    auto ground_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, width, length, thickness);
+    ground->AddCollisionShape(ground_ct_shape, ChFrame<>(ChVector<>(0, 0, -thickness / 2), QUNIT));
 
-    auto box = chrono_types::make_shared<ChBoxShape>(width, length, thickness);
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(width, length, thickness);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -thickness / 2)));
 
     // Create the visualization window

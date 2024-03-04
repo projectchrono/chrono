@@ -58,7 +58,7 @@ VisualizationType wheel_vis_type = VisualizationType::MESH;
 EngineModelType engine_model = EngineModelType::SIMPLE_MAP;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SIMPLE_MAP;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SIMPLE_MAP;
 
 // Type of tire model (PAC02, RIGID)
 TireModelType tire_model = TireModelType::PAC02;
@@ -88,26 +88,29 @@ int main(int argc, char* argv[]) {
 
     // Create the FED alpha vehicle, set parameters, and initialize.
     // Typical aerodynamic drag for FED alpha: Cd = 0.6 and area 3.8 m2
-    FEDA my_feda;
-    my_feda.SetContactMethod(ChContactMethod::SMC);
-    my_feda.SetChassisFixed(false);
-    my_feda.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.5), ChQuaternion<>(1, 0, 0, 0)));
-    my_feda.SetEngineType(engine_model);
-    my_feda.SetTransmissionType(transmission_model);
-    my_feda.SetTireType(tire_model);
-    my_feda.SetBrakeType(brake_type);
-    my_feda.SetTireStepSize(tire_step_size);
-    my_feda.SetAerodynamicDrag(0.6, 3.8, 1.2041);
-    my_feda.Initialize();
+    FEDA feda;
+    feda.SetContactMethod(ChContactMethod::SMC);
+    feda.SetChassisFixed(false);
+    feda.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.5), ChQuaternion<>(1, 0, 0, 0)));
+    feda.SetEngineType(engine_model);
+    feda.SetTransmissionType(transmission_model);
+    feda.SetTireType(tire_model);
+    feda.SetBrakeType(brake_type);
+    feda.SetTireStepSize(tire_step_size);
+    feda.SetAerodynamicDrag(0.6, 3.8, 1.2041);
+    feda.Initialize();
 
     // Set subsystem visualization mode
     VisualizationType tire_vis_type =
         (tire_model == TireModelType::RIGID_MESH) ? VisualizationType::MESH : VisualizationType::MESH;
-    my_feda.SetChassisVisualizationType(chassis_vis_type);
-    my_feda.SetSuspensionVisualizationType(suspension_vis_type);
-    my_feda.SetSteeringVisualizationType(steering_vis_type);
-    my_feda.SetWheelVisualizationType(wheel_vis_type);
-    my_feda.SetTireVisualizationType(tire_vis_type);
+    feda.SetChassisVisualizationType(chassis_vis_type);
+    feda.SetSuspensionVisualizationType(suspension_vis_type);
+    feda.SetSteeringVisualizationType(steering_vis_type);
+    feda.SetWheelVisualizationType(wheel_vis_type);
+    feda.SetTireVisualizationType(tire_vis_type);
+
+    // Associate a collision system
+    feda.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain
     auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -115,7 +118,7 @@ int main(int argc, char* argv[]) {
     patch_mat->SetRestitution(0.01f);
     patch_mat->SetYoungModulus(2e7f);
     patch_mat->SetPoissonRatio(0.3f);
-    RigidTerrain terrain(my_feda.GetSystem());
+    RigidTerrain terrain(feda.GetSystem());
     auto patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, 5);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
@@ -123,7 +126,7 @@ int main(int argc, char* argv[]) {
 
     // Create the straight path and the driver system
     auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(terrainLength / 2, 0, 0.5), 1);
-    ChPathFollowerDriver driver(my_feda.GetVehicle(), path, "my_path", 1000.0);
+    ChPathFollowerDriver driver(feda.GetVehicle(), path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
@@ -142,7 +145,7 @@ int main(int argc, char* argv[]) {
     vis->AddLight(ChVector<>(-300, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector<>(+300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector<>(+300, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AttachVehicle(&my_feda.GetVehicle());
+    vis->AttachVehicle(&feda.GetVehicle());
 
     // Prepare output
     if (data_output) {
@@ -182,11 +185,11 @@ int main(int argc, char* argv[]) {
     ChTimer timer;
     timer.start();
     while (vis->Run()) {
-        time = my_feda.GetSystem()->GetChTime();
+        time = feda.GetSystem()->GetChTime();
 
-        double speed = speed_filter.Add(my_feda.GetVehicle().GetSpeed());
-        double dist = terrainLength / 2.0 + my_feda.GetVehicle().GetPos().x();
-        int gear_pos = my_feda.GetTransmission()->GetCurrentGear();
+        double speed = speed_filter.Add(feda.GetVehicle().GetSpeed());
+        double dist = terrainLength / 2.0 + feda.GetVehicle().GetPos().x();
+        int gear_pos = feda.GetTransmission()->GetCurrentGear();
         if (!done) {
             speed_recorder.AddPoint(time, speed);
             dist_recorder.AddPoint(time, dist);
@@ -235,13 +238,13 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_feda.Synchronize(time, driver_inputs, terrain);
+        feda.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        my_feda.Advance(step_size);
+        feda.Advance(step_size);
         vis->Advance(step_size);
 
         // Increment frame number

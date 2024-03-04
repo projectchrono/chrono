@@ -37,12 +37,11 @@ def AddFallingItems(sys):
             body.SetMass(mass)
             body.SetPos(chrono.ChVectorD(4.0 * ix + 0.1, 4.0, 4.0 * iz))
 
-            body.GetCollisionModel().ClearModel()
-            body.GetCollisionModel().AddSphere(mat, radius)
-            body.GetCollisionModel().BuildModel()
+            body_ct_shape = chrono.ChCollisionShapeSphere(mat, radius)
+            body.AddCollisionShape(body_ct_shape)
             body.SetCollide(True)
 
-            sphere = chrono.ChSphereShape(radius)
+            sphere = chrono.ChVisualShapeSphere(radius)
             sphere.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
             body.AddVisualShape(sphere)
 
@@ -56,21 +55,21 @@ def AddFallingItems(sys):
             body.SetMass(mass)
             body.SetPos(chrono.ChVectorD(4.0 * ix, 6.0, 4.0 * iz))
 
-            body.GetCollisionModel().ClearModel()
-            body.GetCollisionModel().AddBox(mat, size.x, size.y, size.z)
-            body.GetCollisionModel().BuildModel()
+            body_ct_shape = chrono.ChCollisionShapeBox(mat, size.x, size.y, size.z)
+            body.AddCollisionShape(body_ct_shape)
             body.SetCollide(True)
 
-            box = chrono.ChBoxShape(size)
+            box = chrono.ChVisualShapeBox(size)
             box.SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"))
             body.AddVisualShape(box)
 
             sys.AddBody(body)
 
 def AddContainerWall(body, mat, size, pos, visible=True):
-    body.GetCollisionModel().AddBox(mat, size.x, size.y, size.z, pos)
+    body_ct_shape = chrono.ChCollisionShapeBox(mat, size.x, size.y, size.z)
+    body.AddCollisionShape(body_ct_shape, chrono.ChFrameD(pos, chrono.QUNIT))
     if visible:
-        box = chrono.ChBoxShape(size)
+        box = chrono.ChVisualShapeBox(size)
         box.SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
         body.AddVisualShape(box, chrono.ChFrameD(pos))
 
@@ -86,13 +85,11 @@ def AddContainer(sys):
     # Contact material for container
     fixed_mat = chrono.ChMaterialSurfaceSMC()
 
-    fixedBody.GetCollisionModel().ClearModel()
     AddContainerWall(fixedBody, fixed_mat, chrono.ChVectorD(20, 1, 20), chrono.ChVectorD(0, -5, 0))
     AddContainerWall(fixedBody, fixed_mat, chrono.ChVectorD(1, 10, 20.99), chrono.ChVectorD(-10, 0, 0))
     AddContainerWall(fixedBody, fixed_mat, chrono.ChVectorD(1, 10, 20.99), chrono.ChVectorD(10, 0, 0))
     AddContainerWall(fixedBody, fixed_mat, chrono.ChVectorD(20.99, 10, 1), chrono.ChVectorD(0, 0, -10), False)
     AddContainerWall(fixedBody, fixed_mat, chrono.ChVectorD(20.99, 10, 1), chrono.ChVectorD(0, 0, 10))
-    fixedBody.GetCollisionModel().BuildModel()
 
     sys.AddBody(fixedBody)
 
@@ -109,11 +106,10 @@ def AddContainer(sys):
 
     hsize = chrono.ChVectorD(5, 2.75, 0.5)
 
-    rotatingBody.GetCollisionModel().ClearModel()
-    rotatingBody.GetCollisionModel().AddBox(rot_mat, hsize.x, hsize.y, hsize.z)
-    rotatingBody.GetCollisionModel().BuildModel()
+    rotatingBody_ct_shape = chrono.ChCollisionShapeBox(rot_mat, hsize.x, hsize.y, hsize.z)
+    rotatingBody.AddCollisionShape(rotatingBody_ct_shape)
 
-    box = chrono.ChBoxShape(hsize * 2.0)
+    box = chrono.ChVisualShapeBox(hsize * 2.0)
     rotatingBody.AddVisualShape(box)
 
     sys.AddBody(rotatingBody)
@@ -137,7 +133,8 @@ def AddContainer(sys):
 #  Create the simulation sys and add items
 #
 
-sys  = chrono.ChSystemSMC()
+sys = chrono.ChSystemSMC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Simulation and rendering time-step
 time_step = 1e-4

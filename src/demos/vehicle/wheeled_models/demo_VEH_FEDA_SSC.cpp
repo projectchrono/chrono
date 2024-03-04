@@ -81,7 +81,7 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 EngineModelType engine_model = EngineModelType::SIMPLE_MAP;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SIMPLE_MAP;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SIMPLE_MAP;
 
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
@@ -209,29 +209,32 @@ int main(int argc, char* argv[]) {
     // --------------
 
     // Create the HMMWV vehicle, set parameters, and initialize
-    FEDA my_feda;
-    my_feda.SetContactMethod(contact_method);
-    my_feda.SetChassisCollisionType(chassis_collision_type);
-    my_feda.SetChassisFixed(false);
-    my_feda.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_feda.SetEngineType(engine_model);
-    my_feda.SetTransmissionType(transmission_model);
-    my_feda.SetBrakeType(brake_type);
-    my_feda.SetTireType(tire_model);
-    my_feda.SetTireStepSize(tire_step_size);
-    my_feda.Initialize();
+    FEDA feda;
+    feda.SetContactMethod(contact_method);
+    feda.SetChassisCollisionType(chassis_collision_type);
+    feda.SetChassisFixed(false);
+    feda.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    feda.SetEngineType(engine_model);
+    feda.SetTransmissionType(transmission_model);
+    feda.SetBrakeType(brake_type);
+    feda.SetTireType(tire_model);
+    feda.SetTireStepSize(tire_step_size);
+    feda.Initialize();
 
     if (tire_model == TireModelType::RIGID_MESH)
         tire_vis_type = VisualizationType::MESH;
 
-    my_feda.SetChassisVisualizationType(chassis_vis_type);
-    my_feda.SetSuspensionVisualizationType(suspension_vis_type);
-    my_feda.SetSteeringVisualizationType(steering_vis_type);
-    my_feda.SetWheelVisualizationType(wheel_vis_type);
-    my_feda.SetTireVisualizationType(tire_vis_type);
+    feda.SetChassisVisualizationType(chassis_vis_type);
+    feda.SetSuspensionVisualizationType(suspension_vis_type);
+    feda.SetSteeringVisualizationType(steering_vis_type);
+    feda.SetWheelVisualizationType(wheel_vis_type);
+    feda.SetTireVisualizationType(tire_vis_type);
+
+    // Associate a collision system
+    feda.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain
-    RigidTerrain terrain(my_feda.GetSystem());
+    RigidTerrain terrain(feda.GetSystem());
 
     ChContactMaterialData minfo;
     minfo.mu = 0.8f;
@@ -298,13 +301,13 @@ int main(int argc, char* argv[]) {
     utils::CSV_writer ssc_csv(" ");
 
     // Set up vehicle output
-    my_feda.GetVehicle().SetChassisOutput(true);
-    my_feda.GetVehicle().SetSuspensionOutput(0, true);
-    my_feda.GetVehicle().SetSteeringOutput(0, true);
-    my_feda.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    feda.GetVehicle().SetChassisOutput(true);
+    feda.GetVehicle().SetSuspensionOutput(0, true);
+    feda.GetVehicle().SetSteeringOutput(0, true);
+    feda.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
-    my_feda.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
+    feda.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
 
     // ------------------------------------------------------------------------------
     // Create the vehicle run-time visualization interface and the interactive driver
@@ -319,15 +322,10 @@ int main(int argc, char* argv[]) {
         vis_type = ChVisualSystem::Type::IRRLICHT;
 #endif
 
-    // Set the time response for steering and throttle keyboard inputs.
-    double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
-    double throttle_time = 1.0;  // time to go from 0 to +1
-    double braking_time = 0.3;   // time to go from 0 to +1
-
     // Create the straight path and the driver system
     auto path = CirclePath(initLoc, turn_radius, run_in_length, turn_direction_left, circle_repeats);
     // auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(terrainLength / 2, 0, 0.5), 1);
-    ChPathFollowerDriver driver(my_feda.GetVehicle(), path, "my_path", initial_speed);
+    ChPathFollowerDriver driver(feda.GetVehicle(), path, "my_path", initial_speed);
     driver.GetSteeringController().SetLookAheadDistance(6.0);
     driver.GetSteeringController().SetGains(0.05, 0.005, 0.0);
     driver.GetSpeedController().SetGains(0.5, 0, 0);
@@ -345,7 +343,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&my_feda.GetVehicle());
+            vis_irr->AttachVehicle(&feda.GetVehicle());
             vis_irr->Initialize();
             vis = vis_irr;
 #endif
@@ -357,7 +355,7 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("FEDA Steady State Cornering Demo");
-            vis_vsg->AttachVehicle(&my_feda.GetVehicle());
+            vis_vsg->AttachVehicle(&feda.GetVehicle());
             vis_vsg->SetChaseCamera(trackPoint, 7.0, 0.5);
             vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
             vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
@@ -376,11 +374,11 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    my_feda.GetVehicle().LogSubsystemTypes();
+    feda.GetVehicle().LogSubsystemTypes();
 
     if (debug_output) {
         GetLog() << "\n\n============ System Configuration ============\n";
-        my_feda.LogHardpointLocations();
+        feda.LogHardpointLocations();
     }
 
     // Number of simulation steps between miscellaneous events
@@ -391,17 +389,17 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    my_feda.GetVehicle().EnableRealtime(true);
+    feda.GetVehicle().EnableRealtime(true);
 
-    double real_speed = my_feda.GetVehicle().GetChassis()->GetSpeed();
-    double real_accy1 = my_feda.GetVehicle().GetPointAcceleration(ChVector<>(0, 0, 0)).y();
+    double real_speed = feda.GetVehicle().GetChassis()->GetSpeed();
+    double real_accy1 = feda.GetVehicle().GetPointAcceleration(ChVector<>(0, 0, 0)).y();
     double real_accy2 = pow(real_speed, 2) / turn_radius;
 
     driver.SetDesiredSpeed(initial_speed);  // hold speed until steady state reached on the turn circle
     while (vis->Run()) {
-        double time = my_feda.GetSystem()->GetChTime();
-        real_speed = my_feda.GetVehicle().GetSpeed();
-        real_accy1 = my_feda.GetVehicle().GetPointAcceleration(ChVector<>(0, 0, 0)).y();
+        double time = feda.GetSystem()->GetChTime();
+        real_speed = feda.GetVehicle().GetSpeed();
+        real_accy1 = feda.GetVehicle().GetPointAcceleration(ChVector<>(0, 0, 0)).y();
         real_accy2 = pow(real_speed, 2) / turn_radius_ref;
         double real_throttle = driver.GetThrottle();
 
@@ -438,9 +436,10 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
 
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(my_feda.GetSystem(), filename);
+                // Zero-pad frame numbers in file names for postprocessing
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(feda.GetSystem(), filename.str());
             }
 
             render_frame++;
@@ -450,10 +449,10 @@ int main(int argc, char* argv[]) {
         if (debug_output && step_number % debug_steps == 0) {
             GetLog() << "\n\n============ System Information ============\n";
             GetLog() << "Time = " << time << "\n\n";
-            my_feda.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+            feda.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
 
-            auto marker_driver = my_feda.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
-            auto marker_com = my_feda.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
+            auto marker_driver = feda.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
+            auto marker_com = feda.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
             GetLog() << "Markers\n";
             std::cout << "  Driver loc:      " << marker_driver.x() << " " << marker_driver.y() << " "
                       << marker_driver.z() << std::endl;
@@ -467,13 +466,13 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_feda.Synchronize(time, driver_inputs, terrain);
+        feda.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        my_feda.Advance(step_size);
+        feda.Advance(step_size);
         vis->Advance(step_size);
 
         // Increment frame number

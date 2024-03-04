@@ -19,8 +19,8 @@
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/ChCollisionUtils.h"
 #include "chrono/physics/ChLoaderUV.h"
+#include "chrono/utils/ChUtilsGeometry.h"
 
 namespace chrono {
 namespace fea {
@@ -35,10 +35,6 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     ChContactTriangleXYZ();
     ChContactTriangleXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 3>& nodes,
                          ChContactSurface* container = nullptr);
-
-    virtual ~ChContactTriangleXYZ() { delete m_collision_model; }
-
-    collision::ChCollisionModel* GetCollisionModel() { return m_collision_model; }
 
     /// Set the FEA nodes for which this is a proxy.
     void SetNodes(const std::array<std::shared_ptr<ChNodeFEAxyz>, 3>& nodes) { m_nodes = nodes; }
@@ -113,17 +109,20 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     /// contact model (when rigid) and sync it.
     virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(VNULL, QUNIT); }
 
-    /// Apply the force, expressed in absolute reference, applied in pos, to the
+    /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
     virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+                                            const ChVector<>& T,
                                             const ChVector<>& abs_point,
                                             ChVectorDynamic<>& R) override;
 
-    /// Apply the given force at the given point and load the generalized force array.
+    /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
+    /// Used for computing stiffness matrix (square force jacobian) by backward differentiation.
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactForceLoadQ(const ChVector<>& F,
+    virtual void ContactComputeQ(const ChVector<>& F,
+                                   const ChVector<>& T,
                                    const ChVector<>& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
@@ -213,8 +212,6 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     void ComputeUVfromP(const ChVector<> P, double& u, double& v);
 
   private:
-    collision::ChCollisionModel* m_collision_model;
-
     std::array<std::shared_ptr<ChNodeFEAxyz>, 3> m_nodes;
     ChVector<bool> m_owns_node;
     ChVector<bool> m_owns_edge;
@@ -231,10 +228,6 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     ChContactTriangleXYZROT();
     ChContactTriangleXYZROT(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes,
                             ChContactSurface* container = nullptr);
-
-    virtual ~ChContactTriangleXYZROT() { delete m_collision_model; }
-
-    collision::ChCollisionModel* GetCollisionModel() { return m_collision_model; }
 
     /// Set the FEA nodes for which this is a proxy.
     void SetNodes(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes) { m_nodes = nodes; }
@@ -309,17 +302,20 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     /// contact model (when rigid) and sync it.
     virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(VNULL, QUNIT); }
 
-    /// Apply the force, expressed in absolute reference, applied in pos, to the
+    /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F, 
+                                            const ChVector<>& T,
                                             const ChVector<>& abs_point,
                                             ChVectorDynamic<>& R) override;
 
-    /// Apply the given force at the given point and load the generalized force array.
+    /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
+    /// Used for computing stiffness matrix (square force jacobian) by backward differentiation.
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactForceLoadQ(const ChVector<>& F,
+    virtual void ContactComputeQ(const ChVector<>& F,
+                                   const ChVector<>& T,
                                    const ChVector<>& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
@@ -409,8 +405,6 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     void ComputeUVfromP(const ChVector<> P, double& u, double& v);
 
   private:
-    collision::ChCollisionModel* m_collision_model;
-
     std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3> m_nodes;
     ChVector<bool> m_owns_node;
     ChVector<bool> m_owns_edge;
@@ -456,7 +450,7 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
 
     virtual ~ChContactSurfaceMesh() {}
 
-    /// Add the face specified by the three specified nodes to this collision mesh.
+    /// Add the face specified by the three specified XYZ nodes to this collision mesh.
     void AddFace(std::shared_ptr<ChNodeFEAxyz> node1,       ///< face node1
                  std::shared_ptr<ChNodeFEAxyz> node2,       ///< face node2
                  std::shared_ptr<ChNodeFEAxyz> node3,       ///< face node3
@@ -470,6 +464,22 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
                  bool owns_edge2,                           ///< this collision face owns edge2
                  bool owns_edge3,                           ///< this collision face owns edge3
                  double sphere_swept = 0.0                  ///< thickness (radius of sweeping sphere)
+    );
+
+    /// Add the face specified by the three specified XYZROT nodes to this collision mesh.
+    void AddFace(std::shared_ptr<ChNodeFEAxyzrot> node1,       ///< face node1
+                 std::shared_ptr<ChNodeFEAxyzrot> node2,       ///< face node2
+                 std::shared_ptr<ChNodeFEAxyzrot> node3,       ///< face node3
+                 std::shared_ptr<ChNodeFEAxyzrot> edge_node1,  ///< edge node 1 (nullptr if no wing node)
+                 std::shared_ptr<ChNodeFEAxyzrot> edge_node2,  ///< edge node 2 (nullptr if no wing node)
+                 std::shared_ptr<ChNodeFEAxyzrot> edge_node3,  ///< edge node 3 (nullptr if no wing node)
+                 bool owns_node1,                              ///< this collision face owns node1
+                 bool owns_node2,                              ///< this collision face owns node2
+                 bool owns_node3,                              ///< this collision face owns node3
+                 bool owns_edge1,                              ///< this collision face owns edge1
+                 bool owns_edge2,                              ///< this collision face owns edge2
+                 bool owns_edge3,                              ///< this collision face owns edge3
+                 double sphere_swept = 0.0                     ///< thickness (radius of sweeping sphere)
     );
 
     /// Utility function to add all boundary faces of the associated FEA mesh to this collision surface.
@@ -499,21 +509,21 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     void ConstructFromTrimesh(std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh, double sphere_swept = 0.0);
 
     /// Get the list of triangles.
-    std::vector<std::shared_ptr<ChContactTriangleXYZ>>& GetTriangleList() { return vfaces; }
+    std::vector<std::shared_ptr<ChContactTriangleXYZ>>& GetTriangleList() { return m_faces; }
 
     /// Get the list of triangles for nodes with rotational dofs.
-    std::vector<std::shared_ptr<ChContactTriangleXYZROT>>& GetTriangleListRot() { return vfaces_rot; }
+    std::vector<std::shared_ptr<ChContactTriangleXYZROT>>& GetTriangleListRot() { return m_faces_rot; }
 
     /// Get the number of triangles.
-    unsigned int GetNumTriangles() const { return (unsigned int)(vfaces.size() + vfaces_rot.size()); }
+    unsigned int GetNumTriangles() const { return (unsigned int)(m_faces.size() + m_faces_rot.size()); }
 
     /// Get the number of vertices.
     unsigned int GetNumVertices() const;
 
     // Functions to interface this with ChPhysicsItem container
-    virtual void SurfaceSyncCollisionModels() override;
-    virtual void SurfaceAddCollisionModelsToSystem(ChSystem* msys) override;
-    virtual void SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys) override;
+    virtual void SyncCollisionModels() const override;
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
 
     /// Utility function for exporting the contact mesh in a pointer-less manner.
     /// The mesh is specified as a set of 3D vertex points (with associated velocities) and a set of faces (indices into
@@ -529,11 +539,11 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
   private:
     typedef std::array<std::shared_ptr<ChNodeFEAxyz>, 3> NodeTripletXYZ;
     typedef std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3> NodeTripletXYZrot;
-    void AddFacesFromTripletsXYZ(const std::vector<NodeTripletXYZ>& triangles_ptrs, double sphere_swept);
-    void AddFacesFromTripletsXYZrot(const std::vector<NodeTripletXYZrot>& triangles_ptrs, double sphere_swept);
+    void AddFacesFromTripletsXYZ(const std::vector<NodeTripletXYZ>& triangle_ptrs, double sphere_swept);
+    void AddFacesFromTripletsXYZrot(const std::vector<NodeTripletXYZrot>& triangle_ptrs, double sphere_swept);
 
-    std::vector<std::shared_ptr<ChContactTriangleXYZ>> vfaces;         ///< XYZ-node collision faces
-    std::vector<std::shared_ptr<ChContactTriangleXYZROT>> vfaces_rot;  ///< XYWROT-node collision faces
+    std::vector<std::shared_ptr<ChContactTriangleXYZ>> m_faces;         ///< XYZ-node collision faces
+    std::vector<std::shared_ptr<ChContactTriangleXYZROT>> m_faces_rot;  ///< XYWROT-node collision faces
 };
 
 /// @} fea_contact

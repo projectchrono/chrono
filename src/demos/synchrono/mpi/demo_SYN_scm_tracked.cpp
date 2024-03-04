@@ -135,6 +135,7 @@ int main(int argc, char* argv[]) {
 
     // Create the M113
     M113 m113;
+    m113.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m113.SetContactMethod(contact_method);
     m113.SetChassisCollisionType(CollisionType::NONE);
     m113.SetChassisFixed(false);
@@ -143,7 +144,7 @@ int main(int argc, char* argv[]) {
     m113.SetBrakeType(BrakeType::SIMPLE);
     m113.SetDrivelineType(DrivelineTypeTV::BDS);
     m113.SetEngineType(EngineModelType::SHAFTS);
-    m113.SetTransmissionType(TransmissionModelType::SHAFTS);
+    m113.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     m113.Initialize();
 
     m113.SetChassisVisualizationType(VisualizationType::MESH);

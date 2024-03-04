@@ -73,13 +73,10 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     virtual void Update3DOFBodies();
     void RecomputeThreads();
 
-    virtual ChBody* NewBody() override;
-    virtual ChBodyAuxRef* NewBodyAuxRef() override;
-
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) = 0;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
     virtual void Setup() override;
-    virtual void SetCollisionSystemType(collision::ChCollisionSystemType type) override;
+    virtual void SetCollisionSystemType(ChCollisionSystem::Type type) override;
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.).
@@ -115,9 +112,6 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 
     /// Return the time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() const override;
-
-    /// Calculate current body AABBs.
-    void CalculateBodyAABB();
 
     /// Calculate cummulative contact forces for all bodies in the system.
     /// Note that this function must be explicitly called by the user at each time where
@@ -219,7 +213,6 @@ class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
 
     void Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> container);
 
-    virtual void SetContactContainer(collision::ChCollisionSystemType type) override;
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
 
     void CalculateContactForces() override;
@@ -252,8 +245,7 @@ class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
     virtual void Setup() override;
-    virtual void SetCollisionSystemType(collision::ChCollisionSystemType type) override;
-    virtual void SetContactContainer(collision::ChCollisionSystemType type) override;
+    virtual void SetCollisionSystemType(ChCollisionSystem::Type type) override;
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
 
     virtual real3 GetBodyContactForce(uint body_id) const override;

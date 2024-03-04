@@ -22,7 +22,7 @@
 #include <algorithm>
 
 #include "chrono/core/ChMathematics.h"
-#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -72,17 +72,17 @@ ChPathFollowerACCDriver::ChPathFollowerACCDriver(ChVehicle& vehicle,
 
 void ChPathFollowerACCDriver::Create() {
     // Reset the steering and speed controllers
-    m_steeringPID.Reset(m_vehicle);
-    m_speedPID.Reset(m_vehicle);
+    m_steeringPID.Reset(m_vehicle.GetRefFrame());
+    m_speedPID.Reset(m_vehicle.GetRefFrame());
 
     // Create a fixed body to carry a visualization asset for the path
-    auto road = std::shared_ptr<ChBody>(m_vehicle.GetSystem()->NewBody());
+    auto road = chrono_types::make_shared<ChBody>();
     road->SetBodyFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
     auto bezier_curve = m_steeringPID.GetPath();
     auto num_points = static_cast<unsigned int>(bezier_curve->getNumPoints());
-    auto path_asset = chrono_types::make_shared<ChLineShape>();
+    auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
     path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve));
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
@@ -92,14 +92,14 @@ void ChPathFollowerACCDriver::Create() {
 }
 
 void ChPathFollowerACCDriver::Reset() {
-    m_steeringPID.Reset(m_vehicle);
-    m_speedPID.Reset(m_vehicle);
+    m_steeringPID.Reset(m_vehicle.GetRefFrame());
+    m_speedPID.Reset(m_vehicle.GetRefFrame());
 }
 
 void ChPathFollowerACCDriver::Advance(double step) {
     // Set the throttle and braking values based on the output from the speed controller.
-    double out_speed = m_speedPID.Advance(m_vehicle, m_target_speed, m_target_following_time, m_target_min_distance,
-                                          m_current_distance, step);
+    double out_speed = m_speedPID.Advance(m_vehicle.GetRefFrame(), m_target_speed, m_target_following_time,
+                                          m_target_min_distance, m_current_distance, m_vehicle.GetChTime(), step);
     ChClampValue(out_speed, -1.0, 1.0);
 
     if (out_speed > 0) {
@@ -117,7 +117,7 @@ void ChPathFollowerACCDriver::Advance(double step) {
     }
 
     // Set the steering value based on the output from the steering controller.
-    double out_steering = m_steeringPID.Advance(m_vehicle, step);
+    double out_steering = m_steeringPID.Advance(m_vehicle.GetRefFrame(), m_vehicle.GetChTime(), step);
     ChClampValue(out_steering, -1.0, 1.0);
     m_steering = out_steering;
 }

@@ -32,7 +32,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 // -----------------------------------------------------------------------------
 // Global problem definitions
@@ -42,18 +41,16 @@ void CreateContainer(ChSystemMulticore* system) {
     auto mat_walls = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_walls->SetFriction(0.3f);
 
-    std::shared_ptr<ChBody> container(system->NewBody());
+    auto container = chrono_types::make_shared<ChBody>();
     container->SetBodyFixed(true);
     container->SetCollide(true);
     container->SetMass(10000.0);
 
     // Attach geometry of the containing bin
-    container->GetCollisionModel()->ClearModel();
     utils::AddBoxContainer(container, mat_walls,                   //
                            ChFrame<>(ChVector<>(0, 0, 1), QUNIT),  //
                            ChVector<>(2, 2, 2), 0.1,               //
                            ChVector<int>(2, 2, -1));
-    container->GetCollisionModel()->BuildModel();
 
     system->AddBody(container);
 }
@@ -75,7 +72,7 @@ void CreateGranularMaterial(ChSystemMulticore* sys) {
                 ChVector<> rnd(rand() % 1000 / 100000.0, rand() % 1000 / 100000.0, rand() % 1000 / 100000.0);
                 ChVector<> pos(0.4 * ix, 0.4 * iy, 0.4 * iz + 1);
 
-                std::shared_ptr<ChBody> ball(sys->NewBody());
+                auto ball = chrono_types::make_shared<ChBody>();
 
                 ball->SetMass(mass);
                 ball->SetInertiaXX(inertia);
@@ -84,9 +81,7 @@ void CreateGranularMaterial(ChSystemMulticore* sys) {
                 ball->SetBodyFixed(false);
                 ball->SetCollide(true);
 
-                ball->GetCollisionModel()->ClearModel();
                 utils::AddSphereGeometry(ball.get(), ballMat, radius);
-                ball->GetCollisionModel()->BuildModel();
 
                 sys->AddBody(ball);
             }
@@ -209,10 +204,8 @@ int main(int argc, char* argv[]) {
     ChSystemMulticoreNSC* msystem_mpr = new ChSystemMulticoreNSC();
     ChSystemMulticoreNSC* msystem_r = new ChSystemMulticoreNSC();
 
-#ifdef BULLET
-    msystem_mpr->SetCollisionSystemType(ChCollisionSystemType::BULLET);
-    msystem_r->SetCollisionSystemType(ChCollisionSystemType::BULLET);
-#endif
+    msystem_mpr->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
+    msystem_r->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     SetupSystem(msystem_mpr);
     SetupSystem(msystem_r);

@@ -25,6 +25,34 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 
+/// Helper class for lumping parameters
+class ChLumpingParms {
+public:
+    ChLumpingParms(double Ck = 1000, double Cr = 0) : Ck_penalty(Ck), Cr_penalty(Cr), error(0) {};
+    double error;   // store here the error done when trying lumping masses
+    double Ck_penalty;   // stiffness penalty for constraints if any
+    double Cr_penalty;      // damping penalty for constraints if any
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) {
+        // version number
+        archive.VersionWrite(1);
+        // serialize all member data:
+        archive << CHNVP(Ck_penalty);
+        archive << CHNVP(Cr_penalty);
+    }
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) {
+        // version number
+        /*int version =*/ archive.VersionRead();
+        // stream in all member data:
+        archive >> CHNVP(Ck_penalty);
+        archive >> CHNVP(Cr_penalty);
+    }
+};
+
+
 /// Interface class for all objects that support time integration.
 /// Derived concrete classes can use time integrators for the ChTimestepper hierarchy.
 class ChApi ChIntegrable {
@@ -94,7 +122,8 @@ class ChApi ChIntegrable {
                             const double T,            ///< current time T
                             const double dt,           ///< timestep (if needed, ex. in DVI)
                             bool force_state_scatter,  ///< if false, y and T are not scattered to the system
-                            bool full_update           ///< if true, perform a full update during scatter
+                            bool full_update,          ///< if true, perform a full update during scatter
+                            ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix, and uses penalty for constraints.
                             ) = 0;
 
     /// Increment state array: y_new = y + Dy.
@@ -130,16 +159,18 @@ class ChApi ChIntegrable {
     /// </pre>
     /// For a DAE with constraints:
     /// <pre>
-    ///  |Dy| = [ G   Cq' ]^-1 * | R |
-    ///  |DL|   [ Cq  0   ]      | Qc|
+    ///  | Dy| = [ G   Cq' ]^-1 * | R |
+    ///  |-DL|   [ Cq  0   ]      |-Qc|
     /// </pre>
-    /// where R is a given residual and dF/dy is the Jacobian of F.
+    /// where R and Qc are given residuals, and dF/dy is the Jacobian of F. 
+    /// Note the sign of DL (the method returns DL, not -DL) and the sign of Qc 
+    /// (the method expects Qc, not -Qc), because the linear system uses them with flipped signs.
     ///
     /// This function must return true if successful and false otherwise.
     virtual bool StateSolveCorrection(ChStateDelta& Dy,             ///< result: computed Dy
-                                      ChVectorDynamic<>& L,         ///< result: computed lagrangian multipliers, if any
+                                      ChVectorDynamic<>& DL,        ///< result: computed DL lagrangian multipliers. Note the sign.
                                       const ChVectorDynamic<>& R,   ///< the R residual
-                                      const ChVectorDynamic<>& Qc,  ///< the Qc residual
+                                      const ChVectorDynamic<>& Qc,  ///< the Qc residual. Note the sign.
                                       const double a,               ///< the factor in c_a*H
                                       const double b,               ///< the factor in c_b*dF/dy
                                       const ChState& y,             ///< current state y
@@ -271,7 +302,8 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                              const double T,            ///< current time T
                              const double dt,           ///< timestep (if needed)
                              bool force_state_scatter,  ///< if false, x,v and T are not scattered to the system
-                             bool full_update           ///< if true, perform a full update during scatter
+                             bool full_update,          ///< if true, perform a full update during scatter
+                             ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix, and uses penalty for constraints.
     );
 
     /// Increment state array:  x_new = x + dx    for x in    Y = {x, dx/dt}
@@ -301,15 +333,17 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// implicit integration scheme. 
     /// If in ODE case: <pre>
     ///  Du = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R
-    ///  Du = [ G ]^-1 * R
+    ///  Du = [ H ]^-1 * R
     /// </pre>
     /// If with DAE constraints:
     /// <pre>
-    ///  |Du| = [ G   Cq' ]^-1 * | R |
-    ///  |DL|   [ Cq  0   ]      | Qc|
+    ///  | Du| = [ H   Cq' ]^-1 * | R |
+    ///  |-DL|   [ Cq  0   ]      |-Qc|
     /// </pre>
-    /// where R is a given residual, dF/dv and dF/dx, dF/dv are jacobians (that are also
+    /// where R is a given residual, H=c_a*M + c_v*dF/dv + c_x*dF/dx  (here F/dv and dF/dx, dF/dv are jacobians, that are also
     /// -R and -K, damping and stiffness (tangent) matrices in many mechanical problems, note the minus sign!).
+    /// Note the sign of DL (the method must return DL, not -DL) and the sign of Qc 
+    /// (the method expects Qc, not -Qc), because the linear system uses them with flipped signs.
     /// It is up to the derived class how to solve such linear system.
     ///
     /// This function must return true if successful and false otherwise.
@@ -339,7 +373,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     virtual void LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                                 const double c         ///< a scaling factor
                                 ) override {
-        throw ChException("LoadResidual_F() not implemented, implicit integrators cannot be used. ");
+        throw ChException("LoadResidual_F() not implemented, integrator cannot be used. ");
     }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
@@ -352,6 +386,17 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                  const double c               ///< a scaling factor
                                  ) {
         throw ChException("LoadResidual_Mv() not implemented, implicit integrators cannot be used. ");
+    }
+
+    /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
+    /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
+    ///    Md += c*diag(M)    or   Md += c*HRZ(M)
+    virtual void LoadLumpedMass_Md(ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+                                   double& err,            ///< result: not touched if lumping does not introduce errors
+                                   const double c          ///< a scaling factor
+    ) {
+        throw ChException(
+            "LoadLumpedMass_Md() not implemented, explicit integrators with mass lumping cannot be used. ");
     }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
@@ -459,7 +504,8 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                             const double T,            ///< current time T
                             const double dt,           ///< timestep (if needed, ex. in DVI)
                             bool force_state_scatter,  ///< if false, y and T are not scattered to the system
-                            bool full_update           ///< if true, perform a full update during scatter
+                            bool full_update,          ///< if true, perform a full update during scatter
+                            ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix, and uses penalty for constraints.
                             ) override;
 
     /// Override of method for Ist order implicit integrators.

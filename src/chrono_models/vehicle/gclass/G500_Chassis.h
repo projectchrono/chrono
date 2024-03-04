@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace gclass {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_gclass
 /// @{
 
 /// UAZBUS chassis subsystem.
@@ -63,9 +63,9 @@ class CH_MODELS_API G500_Chassis : public ChRigidChassis {
     static const ChCoordsys<> m_driverCsys;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_gclass
 
-}  // end namespace uaz
+}  // end namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono
 

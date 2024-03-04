@@ -53,12 +53,16 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     m_spindle->SetMass(m_spindle->GetMass() + GetWheelMass());
     m_spindle->SetInertiaXX(m_spindle->GetInertiaXX() + GetWheelInertia());
 
-    m_spindle->GetCollisionModel()->SetFamily(WheeledCollisionFamily::WHEEL);
-    m_spindle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+    if (m_spindle->GetCollisionModel()) {
+        m_spindle->GetCollisionModel()->SetFamily(WheeledCollisionFamily::WHEEL);
+        m_spindle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+    }
 
     // Create ChLoad objects to apply terrain forces on spindle
     m_spindle_terrain_force = chrono_types::make_shared<ChLoadBodyForce>(m_spindle, VNULL, false, VNULL, false);
     m_spindle_terrain_torque = chrono_types::make_shared<ChLoadBodyTorque>(m_spindle, VNULL, false);
+    m_spindle_terrain_force->SetNameString(m_name + "_terrain_force");
+    m_spindle_terrain_torque->SetNameString(m_name + "_terrain_torque");
 
     // Add terrain loads to a container
     if (chassis) {
@@ -92,10 +96,16 @@ void ChWheel::Synchronize() {
     if (!m_tire)
         return;
 
-    auto tire_force = m_tire->GetTireForce();
-    m_spindle_terrain_force->SetForce(tire_force.force, false);
-    m_spindle_terrain_force->SetApplicationPoint(tire_force.point, false);
-    m_spindle_terrain_torque->SetTorque(tire_force.moment, false);
+    Synchronize(m_tire->GetTireForce());
+}
+
+void ChWheel::Synchronize(const TerrainForce& tire_force) {
+    m_spindle->Accumulate_force(tire_force.force, tire_force.point, false);
+    m_spindle->Accumulate_torque(tire_force.moment, false);
+
+    ////m_spindle_terrain_force->SetForce(tire_force.force, false);
+    ////m_spindle_terrain_force->SetApplicationPoint(tire_force.point, false);
+    ////m_spindle_terrain_torque->SetTorque(tire_force.moment, false);
 }
 
 ChVector<> ChWheel::GetPos() const {
@@ -129,7 +139,7 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
         ChQuaternion<> rot = (m_side == VehicleSide::LEFT) ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
                                                                                   true, true);
-        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
         m_trimesh_shape->SetMutable(false);

@@ -64,13 +64,13 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 EngineModelType engine_model = EngineModelType::SHAFTS;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
 // Type of tire model (RIGID, RIGID_MESH, FIALA, PAC89, PAC02, TMEASY, TMSIMPLE)
-TireModelType tire_model = TireModelType::TMSIMPLE;
+TireModelType tire_model = TireModelType::TMEASY;
 
 enum class TerrainType { FLAT, RIGID };
 TerrainType terrain_type = TerrainType::RIGID;
@@ -123,33 +123,34 @@ int main(int argc, char* argv[]) {
 
     // Create the HMMWV vehicle, set parameters, and initialize.
     // Typical aerodynamic drag for HMMWV: Cd = 0.5 and area ~5 m2
-    HMMWV_Full my_hmmwv;
-    my_hmmwv.SetContactMethod(ChContactMethod::SMC);
-    my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetInitPosition(ChCoordsys<>(init_loc, yaw_rot));
-    my_hmmwv.SetEngineType(engine_model);
-    my_hmmwv.SetTransmissionType(transmission_model);
-    my_hmmwv.SetDriveType(drive_type);
-    my_hmmwv.SetTireType(tire_model);
-    my_hmmwv.SetTireStepSize(tire_step_size);
+    HMMWV_Full hmmwv;
+    hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    hmmwv.SetContactMethod(ChContactMethod::SMC);
+    hmmwv.SetChassisFixed(false);
+    hmmwv.SetInitPosition(ChCoordsys<>(init_loc, yaw_rot));
+    hmmwv.SetEngineType(engine_model);
+    hmmwv.SetTransmissionType(transmission_model);
+    hmmwv.SetDriveType(drive_type);
+    hmmwv.SetTireType(tire_model);
+    hmmwv.SetTireStepSize(tire_step_size);
     if (include_aero_drag)
-        my_hmmwv.SetAerodynamicDrag(0.5, 5.0, 1.2);
-    my_hmmwv.Initialize();
+        hmmwv.SetAerodynamicDrag(0.5, 5.0, 1.2);
+    hmmwv.Initialize();
 
     // Set subsystem visualization mode
-    my_hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-    my_hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    my_hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
-    my_hmmwv.SetTireVisualizationType(tire_model == TireModelType::RIGID_MESH ? VisualizationType::MESH
-                                                                              : VisualizationType::PRIMITIVES);
+    hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
+    hmmwv.SetTireVisualizationType(tire_model == TireModelType::RIGID_MESH ? VisualizationType::MESH
+                                                                           : VisualizationType::PRIMITIVES);
 
     // Create the terrain
     std::shared_ptr<ChTerrain> terrain;
     switch (terrain_type) {
         case TerrainType::RIGID:
         default: {
-            auto rigid_terrain = chrono_types::make_shared<RigidTerrain>(my_hmmwv.GetSystem());
+            auto rigid_terrain = chrono_types::make_shared<RigidTerrain>(hmmwv.GetSystem());
             auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             patch_mat->SetFriction(0.9f);
             patch_mat->SetRestitution(0.01f);
@@ -171,7 +172,7 @@ int main(int argc, char* argv[]) {
 
     // Create the straight path and the driver system
     auto path = StraightLinePath(path_start, path_end, 1);
-    ChPathFollowerDriver driver(my_hmmwv.GetVehicle(), path, "my_path", 1000.0);
+    ChPathFollowerDriver driver(hmmwv.GetVehicle(), path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
@@ -199,7 +200,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&my_hmmwv.GetVehicle());
+            vis_irr->AttachVehicle(&hmmwv.GetVehicle());
 
             vis = vis_irr;
 #endif
@@ -217,7 +218,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
             vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 10.0, 0.5);
-            vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
+            vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -250,19 +251,19 @@ int main(int argc, char* argv[]) {
     ChTimer timer;
     timer.start();
     while (vis->Run()) {
-        time = my_hmmwv.GetSystem()->GetChTime();
+        time = hmmwv.GetSystem()->GetChTime();
 
-        double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetSpeed());
+        double speed = speed_filter.Add(hmmwv.GetVehicle().GetSpeed());
         if (!done) {
             speed_recorder.AddPoint(time, speed);
 
             if (output) {
-                auto wheel_state = my_hmmwv.GetVehicle().GetWheel(0, LEFT)->GetState();
-                auto frc = my_hmmwv.GetVehicle().GetTire(0, LEFT)->ReportTireForce(terrain.get());
+                auto wheel_state = hmmwv.GetVehicle().GetWheel(0, LEFT)->GetState();
+                auto frc = hmmwv.GetVehicle().GetTire(0, LEFT)->ReportTireForce(terrain.get());
 
                 csv << time << wheel_state.omega;
-                csv << my_hmmwv.GetChassisBody()->TransformDirectionParentToLocal(frc.force);
-                csv << my_hmmwv.GetChassisBody()->TransformDirectionParentToLocal(frc.moment);
+                csv << hmmwv.GetChassisBody()->TransformDirectionParentToLocal(frc.force);
+                csv << hmmwv.GetChassisBody()->TransformDirectionParentToLocal(frc.moment);
                 csv << std::endl;
             }
 
@@ -301,20 +302,20 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain->Synchronize(time);
-        my_hmmwv.Synchronize(time, driver_inputs, *terrain);
+        hmmwv.Synchronize(time, driver_inputs, *terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain->Advance(step_size);
-        my_hmmwv.Advance(step_size);
+        hmmwv.Advance(step_size);
         vis->Advance(step_size);
 
         // Increment frame number
         step_number++;
 
         // Draw a coordinate system aligned with the world frame
-        ////tools::drawCoordsys(vis.get(), ChCoordsys<>(my_hmmwv.GetVehicle().GetPos(), QUNIT), 2);
+        ////tools::drawCoordsys(vis.get(), ChCoordsys<>(hmmwv.GetVehicle().GetPos(), QUNIT), 2);
 
         vis->EndScene();
     }

@@ -27,28 +27,31 @@ from itertools import  combinations
 #     For example, we need that new particles will be bound to Irrlicht visualization:
 
 class MyCreatorForAll(chrono.ChRandomShapeCreator_AddBodyCallback):
-    def __init__(self, vis):
+    def __init__(self, vis, coll):
         chrono.ChRandomShapeCreator_AddBodyCallback.__init__(self)
-        self.airrlicht_vis = vis
+        self.vis = vis
+        self.coll = coll
 
     def OnAddBody(self,
-                  mbody,
-                  mcoords,
-                  mcreator):
+                  body,
+                  coords,
+                  creator):
         # optional: add further assets, ex for improving visualization:
-        mbody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
-        self.airrlicht_vis.BindItem(mbody)
+        body.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
+        self.vis.BindItem(body)
+        self.coll.BindItem(body)
 
         # Other stuff, ex. disable gyroscopic forces for increased integrator stability
-        mbody.SetNoGyroTorque(True)
+        body.SetNoGyroTorque(True)
 
 
 
 print("Copyright (c) 2017 projectchrono.org")
 
-# Create a ChronoENGINE physical sys
+# Create a Chrono physical sys
 sys = chrono.ChSystemNSC()
-
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
+coll = sys.GetCollisionSystem()
 
 #
 # CREATE THE SYSTEM OBJECTS
@@ -152,7 +155,7 @@ vis.AddTypicalLights()
 
 # a- define a class that implement your custom OnAddBody method (see top of source file)
 # b- create the callback object...
-mcreation_callback = MyCreatorForAll(vis)
+mcreation_callback = MyCreatorForAll(vis, coll)
 # c- set callback own data that it might need...
 #mcreation_callback.airrlicht_vis = vis
 # d- attach the callback to the emitter!

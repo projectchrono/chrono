@@ -1,32 +1,41 @@
 \mainpage Project Chrono API/SDK documentation (development branch)
 
-@subpage introduction_chrono
+
+<h3><a href="introduction_chrono.html">Overview</a></h3>
 
 High level overview of Chrono's features and capabilities.
 
 ---
 
-@subpage tutorial_table_of_content_install
+<h3><a href="install_guides.html">Installation Guides</a></h3>
 
-Instructions for configuring, building, and installing Chrono and its optional modules.
+Instructions for **configuring and installing Chrono** and its optional modules.
 
-Instructions on how to set up a project that uses Chrono.
+Instructions on **how to set up a project** that uses Chrono.
 
 ---
 
-### Reference Manuals
+<h3>User Manuals</h3>
 
-- [Chrono core module](@ref manual_root)
+- [Chrono Core](@ref manual_core)
 
   Detailed documentation of Chrono's main features.
 
-- [Chrono::Vehicle module](@ref manual_vehicle)
+- [Visualization](@ref manual_visualization)  
+
+  Chrono support for run-time and off-line visualization
+
+- [Chrono::Vehicle](@ref manual_vehicle)
 
   Ground vehicle modeling and simulation with the Chrono::Vehicle module
 
-- [Chrono::Sensor module](@ref manual_sensor)
+- [Chrono::Sensor](@ref manual_sensor)
 
   Sensor modeling and simulation with the Chrono::Sensor module
+
+- [Chrono::Parsers](@ref manual_parsers)
+  
+  tools to import external models and to interact with other languages
 
 - [PyChrono](@ref pychrono_introduction)
 
@@ -40,7 +49,7 @@ Instructions on how to set up a project that uses Chrono.
 
   External GPU solver for DEM simulations
 
-- [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
+- [Chrono::SolidWorks](@ref manual_chrono_solidworks)
 
   SolidWorks plugin for exporting CAD data to Chrono
 
@@ -50,7 +59,10 @@ Instructions on how to set up a project that uses Chrono.
 
 - [Visualization](@ref manual_visualization)
 
-  Chrono support for run-time and off-line visualization
+
+- [Chrono::ROS](@ref manual_ros)
+
+  Integration with an external autonomy stack based on the Robot Operating System (ROS)
 
 - [Chrono::ROS](@ref manual_ros)
 
@@ -58,6 +70,12 @@ Instructions on how to set up a project that uses Chrono.
 
 ---
 
-@subpage tutorial_root
+<h3><a href="classes.html">API Reference</a></h3>
 
-Basic example code for various features in Chrono. Good place to get started with using Chrono.
+Doxygen documentation, accessible from buttons at the top of the page. For a quick overview of all the classes: [Class Index](classes.html).
+
+---
+
+<h3><a href="tutorial_root.html">Tutorials</a></h3>
+
+Basic examples for various features in Chrono. Good place to get started with using Chrono.

@@ -42,7 +42,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 using std::cout;
 using std::flush;
@@ -305,7 +304,7 @@ void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
 #endif
 
     // Create the falling ball
-    auto ball = std::shared_ptr<ChBody>(system->NewBody());
+    auto ball = chrono_types::make_shared<ChBody>();
 
     ball->SetIdentifier(Id_b);
     ball->SetMass(mass_b);
@@ -316,9 +315,7 @@ void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
     ball->SetCollide(true);
     ball->SetBodyFixed(false);
 
-    ball->GetCollisionModel()->ClearModel();
     utils::AddSphereGeometry(ball.get(), mat_b, R_b);
-    ball->GetCollisionModel()->BuildModel();
 
     system->AddBody(ball);
 }
@@ -376,6 +373,9 @@ int main(int argc, char* argv[]) {
     cout << "Create NSC system" << endl;
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
 #endif
+
+    // Set associated collision detection system
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     // Set number of threads.
     threads = std::min(threads, ChOMP::GetNumProcs());
@@ -478,7 +478,7 @@ int main(int argc, char* argv[]) {
     int next_out_frame = 0;
     double exec_time = 0;
     int num_contacts = 0;
-    ChStreamOutAsciiFile hfile(height_file.c_str());
+    ChStreamOutAsciiFile hfile(height_file);
 
 #ifdef CHRONO_OPENGL
     opengl::ChVisualSystemOpenGL vis;

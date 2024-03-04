@@ -57,7 +57,7 @@ class ChContactTuple {
     ChContactTuple(ChContactContainer* mcontainer,          ///< contact container
                    Ta* mobjA,                               ///< ChContactable object A
                    Tb* mobjB,                               ///< ChContactable object B
-                   const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
+                   const ChCollisionInfo& cinfo  ///< data for the contact pair
     ) {
         assert(mcontainer);
         assert(mobjA);
@@ -75,7 +75,7 @@ class ChContactTuple {
     /// Reinitialize geometric information for this contact for reuse.
     void Reset_cinfo(Ta* mobjA,                               ///< ChContactable object A
                      Tb* mobjB,                               ///< ChContactable object B
-                     const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
+                     const ChCollisionInfo& cinfo  ///< data for the contact pair
     ) {
         assert(mobjA);
         assert(mobjB);
@@ -135,6 +135,9 @@ class ChContactTuple {
 
     /// Get the contact force, if computed, in contact coordinate system
     virtual ChVector<> GetContactForce() const { return ChVector<>(0); }
+
+    /// Get the contact torque, if computed, in contact coordinate system
+    virtual ChVector<> GetContactTorque() const { return ChVector<>(0); }
 
     //
     // UPDATING FUNCTIONS

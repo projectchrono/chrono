@@ -130,8 +130,8 @@ void SynTrackedVehicleAgent::SetKey(AgentKey agent_key) {
 
 // ------------------------------------------------------------------------
 
-std::shared_ptr<ChTriangleMeshShape> SynTrackedVehicleAgent::CreateMeshZombieComponent(const std::string& filename) {
-    auto trimesh = chrono_types::make_shared<ChTriangleMeshShape>();
+std::shared_ptr<ChVisualShapeTriangleMesh> SynTrackedVehicleAgent::CreateMeshZombieComponent(const std::string& filename) {
+    auto trimesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     if (!filename.empty()) {
         auto mesh =
             geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(filename), false, false);
@@ -156,7 +156,7 @@ std::shared_ptr<ChBodyAuxRef> SynTrackedVehicleAgent::CreateChassisZombieBody(co
     return zombie_body;
 }
 
-void SynTrackedVehicleAgent::AddMeshToVector(std::shared_ptr<ChTriangleMeshShape> trimesh,
+void SynTrackedVehicleAgent::AddMeshToVector(std::shared_ptr<ChVisualShapeTriangleMesh> trimesh,
                                              std::vector<std::shared_ptr<ChBodyAuxRef>>& ref_list,
                                              ChSystem* system) {
     for (auto& ref : ref_list) {
@@ -168,8 +168,8 @@ void SynTrackedVehicleAgent::AddMeshToVector(std::shared_ptr<ChTriangleMeshShape
     }
 }
 
-void SynTrackedVehicleAgent::AddMeshToVector(std::shared_ptr<ChTriangleMeshShape> left,
-                                             std::shared_ptr<ChTriangleMeshShape> right,
+void SynTrackedVehicleAgent::AddMeshToVector(std::shared_ptr<ChVisualShapeTriangleMesh> left,
+                                             std::shared_ptr<ChVisualShapeTriangleMesh> right,
                                              std::vector<std::shared_ptr<ChBodyAuxRef>>& ref_list,
                                              ChSystem* system) {
     for (int i = 0; i < ref_list.size() / 2; i++) {

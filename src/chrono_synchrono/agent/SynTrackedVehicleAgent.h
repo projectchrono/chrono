@@ -15,7 +15,7 @@
 // Class for an agent that wraps a Chrono::Vehicle tracked vehicle. The
 // underlying dynamics are those of a tracked vehicle, state data consists of
 // the position and orientation of the chassis and the various track components
-/// of the vehicle
+// of the vehicle
 //
 // =============================================================================
 
@@ -126,15 +126,15 @@ class SYN_API SynTrackedVehicleAgent : public SynAgent {
     // ------------------------------------------------------------------------
 
   private:
-    ///@brief Helper method used to create a ChTriangleMeshShape to be used on as a zombie body
+    ///@brief Helper method used to create a ChVisualShapeTriangleMesh to be used on as a zombie body
     ///
-    ///@param filename the file to generate a ChTriangleMeshShape from
-    ///@return std::shared_ptr<ChTriangleMeshShape>
-    std::shared_ptr<ChTriangleMeshShape> CreateMeshZombieComponent(const std::string& filename);
+    ///@param filename the file to generate a ChVisualShapeTriangleMesh from
+    ///@return std::shared_ptr<ChVisualShapeTriangleMesh>
+    std::shared_ptr<ChVisualShapeTriangleMesh> CreateMeshZombieComponent(const std::string& filename);
 
     ///@brief Create a zombie chassis body. All ChVehicles have a chassis, so this can be defined here
     ///
-    ///@param filename the filename that describes the ChTriangleMeshShape that should represent the chassis
+    ///@param filename the filename that describes the ChVisualShapeTriangleMesh that should represent the chassis
     ///@param system the system to add the body to
     std::shared_ptr<ChBodyAuxRef> CreateChassisZombieBody(const std::string& filename, ChSystem* system);
 
@@ -144,7 +144,7 @@ class SYN_API SynTrackedVehicleAgent : public SynAgent {
     ///@param trimesh the original trimesh
     ///@param ref_list the ref list to add the created bodies to
     ///@param system the system that each body must be added to so it can be visualized
-    void AddMeshToVector(std::shared_ptr<ChTriangleMeshShape> trimesh,
+    void AddMeshToVector(std::shared_ptr<ChVisualShapeTriangleMesh> trimesh,
                          std::vector<std::shared_ptr<ChBodyAuxRef>>& ref_list,
                          ChSystem* system);
 
@@ -155,8 +155,8 @@ class SYN_API SynTrackedVehicleAgent : public SynAgent {
     ///@param right the original right trimesh
     ///@param ref_list the ref list to add the created bodies to
     ///@param system the system that each body must be added to so it can be visualized
-    void AddMeshToVector(std::shared_ptr<ChTriangleMeshShape> left,
-                         std::shared_ptr<ChTriangleMeshShape> right,
+    void AddMeshToVector(std::shared_ptr<ChVisualShapeTriangleMesh> left,
+                         std::shared_ptr<ChVisualShapeTriangleMesh> right,
                          std::vector<std::shared_ptr<ChBodyAuxRef>>& ref_list,
                          ChSystem* system);
 

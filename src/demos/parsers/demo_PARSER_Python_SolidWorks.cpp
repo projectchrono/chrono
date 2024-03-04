@@ -9,12 +9,12 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 //
 // Demo code about
-// - loading a SolidWorks .py file saved with the Chrono::Engine add-in,
-// - showing the system in Irrlicht.
+// - loading a .py file saved with the Chrono SolidWorks add-in
+// - simulating the system with Irrlicht run-time visualization
 //
 // =============================================================================
 
@@ -25,16 +25,7 @@
 
 using namespace chrono;
 using namespace chrono::parsers;
-using namespace chrono::collision;
 using namespace chrono::irrlicht;
-
-using namespace irr;
-
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -42,43 +33,33 @@ int main(int argc, char* argv[]) {
     // Cache current path to Chrono data files
     auto data_path = GetChronoDataPath();
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono system
     ChSystemNSC sys;
 
-    // Set the collision margins. This is expecially important for
-    // very large or very small objects! Do this before creating shapes.
+    // Set the collision margins.
+    // This is expecially important for very large or very small objects!
+    // Do this before creating shapes.
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);
     ChCollisionModel::SetDefaultSuggestedMargin(0.001);
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    //
-    // LOAD THE SYSTEM
-    //
-
-    // The Python engine. This is necessary in order to parse the files that
-    // have been saved using the SolidWorks add-in for Chrono::Engine.
-
+    // Create a Chrono Python engine to parse files created using the Chrono SolidWorks add-in
     ChPythonEngine my_python;
 
     try {
-        // This is the instruction that loads the .py (as saved from SolidWorks) and
-        // fills the system.
-        //   In this example, we load a mechanical system that represents
-        // a (quite simplified & approximated) clock escapement, that has been
-        // modeled in SolidWorks and saved using the Chrono Add-in for SolidWorks.
-
-        my_python.ImportSolidWorksSystem(GetChronoDataFile("solidworks/swiss_escapement").c_str(),
-                                         sys);  // note, don't type the .py suffix in filename..
-
+        // This is the instruction that loads the .py (as saved from SolidWorks) and fills the system.
+        // In this example, we load a mechanical system that represents a (quite simplified and approximated) clock
+        // escapement, that has been modeled in SolidWorks and saved using the Chrono SolidWorks add-in.
+        my_python.ImportSolidWorksSystem(GetChronoDataFile("solidworks/swiss_escapement.py"), sys);
     } catch (const ChException& myerror) {
         GetLog() << myerror.what();
     }
 
-    // From this point, your ChSystem has been populated with objects and
-    // assets load from the .py files. So you can proceed and fetch
-    // single items, modify them, or add constraints between them, etc.
-    // For example you can add other bodies, etc.
+    // At this point, the ChSystem has been populated with objects and assets loaded from the .py files.
+    // It is now possible to fetch single items, modify them, add constraints between them, or else add new physics
+    // items to the ChSystem.
 
-    // Log out all the names of the items inserted in the system:
+    // Log the names of all items inserted in the system
     GetLog() << "SYSTEM ITEMS: \n";
     sys.ShowHierarchy(GetLog());
 
@@ -98,7 +79,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "item:" << typeid(ph).name() << "\n";
     }
 
-    // Fetch some bodies, given their names, and apply forces/constraints/etc
+    // Fetch some bodies, given their names, and apply forces, constraints, etc.
     std::shared_ptr<ChPhysicsItem> myitemE = sys.Search("escape_wheel-1");
     std::shared_ptr<ChPhysicsItem> myitemA = sys.Search("truss-1");
     std::shared_ptr<ChPhysicsItem> myitemB = sys.Search("balance-1");
@@ -113,7 +94,7 @@ int main(int argc, char* argv[]) {
     mat->SetFriction(0);
 
     if (mescape_wheel && mtruss && mbalance && manchor) {
-        // Set a constant torque to escape wheel, in a very simple way:
+        // Set a constant torque to escape wheel, in a very simple way
         mescape_wheel->Empty_forces_accumulators();
         mescape_wheel->Accumulate_torque(ChVector<>(0, -0.03, 0), false);
 
@@ -128,23 +109,16 @@ int main(int argc, char* argv[]) {
         mbalance->SetWvel_par(ChVector<>(0, 5, 0));
 
         // Set no friction in all parts
+        assert(mbalance->GetCollisionModel());
+        assert(mescape_wheel->GetCollisionModel());
+        assert(manchor->GetCollisionModel());
         mbalance->GetCollisionModel()->SetAllShapesMaterial(mat);
         mescape_wheel->GetCollisionModel()->SetAllShapesMaterial(mat);
         manchor->GetCollisionModel()->SetAllShapesMaterial(mat);
     } else
         GetLog() << "\n\nERROR: cannot find one or more objects from their names in the Chrono system!\n\n";
 
-    //
-    // THE VISUALIZATION
-    //
-
-    // Now, suppose one is interested in showing an animation of
-    // the simulated system. There are different options, for instance
-    // one could use the unit_POSTPROCESS approach for rendering in
-    // POVray, or you can open an Irrlicht 3D realtime view and show
-    // it, as in the following example code:
-
-    // Create the Irrlicht visualization system
+    // Irrlicht run-time visualization
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
@@ -154,20 +128,18 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddCamera(ChVector<>(0, 0.25, 0.25), ChVector<>(0, 0, -0.1));
     vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector<>(-0.5, 0.5, 0.0), ChVector<>(0, 0, 0), 1, 0.2, 1.2, 30, 512, ChColor(1.0f, 0.9f, 0.9f));
-    vis->AddLightWithShadow(ChVector<>(+0.5, 0.5, 0.5), ChVector<>(0, 0, 0), 1, 0.2, 1.2, 30, 512, ChColor(0.6f, 0.8f, 1.0f));
+    vis->AddLightWithShadow(ChVector<>(-0.5, 0.5, 0.0), ChVector<>(0, 0, 0), 1, 0.2, 1.2, 30, 512,
+                            ChColor(1.0f, 0.9f, 0.9f));
+    vis->AddLightWithShadow(ChVector<>(+0.5, 0.5, 0.5), ChVector<>(0, 0, 0), 1, 0.2, 1.2, 30, 512,
+                            ChColor(0.6f, 0.8f, 1.0f));
     vis->EnableShadows();
 
-    //
-    // THE SIMULATION LOOP
-    //
-
-    // set a low stabilization value because objects are small!
-    sys.SetMaxPenetrationRecoverySpeed(0.002);
-
     // Simulation loop
+    sys.SetMaxPenetrationRecoverySpeed(0.002);  // low stabilization value because objects are small!
+
     double timestep = 0.002;
     ChRealtimeStepTimer realtime_timer;
+
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();

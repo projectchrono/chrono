@@ -16,6 +16,7 @@
 #define CHNODEBASE_H
 
 #include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/physics/ChContactable.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
 
 namespace chrono {
@@ -91,6 +92,10 @@ class ChApi ChNodeBase {
                                         ChVectorDynamic<>& R,
                                         const ChVectorDynamic<>& w,
                                         const double c) {}
+    virtual void NodeIntLoadLumpedMass_Md(const unsigned int off,
+                                          ChVectorDynamic<>& Md,
+                                          double& error,
+                                          const double c){};
     virtual void NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {}
     virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {}
 

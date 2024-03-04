@@ -50,7 +50,7 @@ namespace utils {
 /// @{
 
 /// Enumeration of various geometric shapes available for mixtures.
-enum class MixtureType { SPHERE, ELLIPSOID, BOX, CYLINDER, CONE, CAPSULE, BISPHERE };
+enum class MixtureType { SPHERE, ELLIPSOID, BOX, CYLINDER, CONE, CAPSULE };
 
 // Forward declarations
 class Generator;

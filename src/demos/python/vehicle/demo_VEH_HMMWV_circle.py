@@ -35,31 +35,33 @@ throttle_value = 0.3
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Create the HMMWV vehicle
-my_hmmwv = veh.HMMWV_Full()
-my_hmmwv.SetContactMethod(chrono.ChContactMethod_SMC)
-my_hmmwv.SetChassisFixed(False)
-my_hmmwv.SetInitPosition(chrono.ChCoordsysD(chrono.ChVectorD(-75, 0, 0.5),chrono.QUNIT))
-my_hmmwv.SetEngineType(veh.EngineModelType_SHAFTS)
-my_hmmwv.SetTransmissionType(veh.TransmissionModelType_SHAFTS)
-my_hmmwv.SetDriveType(veh.DrivelineTypeWV_RWD)
-my_hmmwv.SetSteeringType(veh.SteeringTypeWV_PITMAN_ARM)
-my_hmmwv.SetTireType(veh.TireModelType_TMEASY)
-my_hmmwv.SetTireStepSize(step_size)
-my_hmmwv.Initialize()
+hmmwv = veh.HMMWV_Full()
+hmmwv.SetContactMethod(chrono.ChContactMethod_SMC)
+hmmwv.SetChassisFixed(False)
+hmmwv.SetInitPosition(chrono.ChCoordsysD(chrono.ChVectorD(-75, 0, 0.5),chrono.QUNIT))
+hmmwv.SetEngineType(veh.EngineModelType_SHAFTS)
+hmmwv.SetTransmissionType(veh.TransmissionModelType_SHAFTS)
+hmmwv.SetDriveType(veh.DrivelineTypeWV_RWD)
+hmmwv.SetSteeringType(veh.SteeringTypeWV_PITMAN_ARM)
+hmmwv.SetTireType(veh.TireModelType_TMEASY)
+hmmwv.SetTireStepSize(step_size)
+hmmwv.Initialize()
 
-my_hmmwv.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
-my_hmmwv.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
-my_hmmwv.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
-my_hmmwv.SetWheelVisualizationType(veh.VisualizationType_NONE)
-my_hmmwv.SetTireVisualizationType(veh.VisualizationType_PRIMITIVES)
+hmmwv.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
+hmmwv.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
+hmmwv.SetSteeringVisualizationType(veh.VisualizationType_PRIMITIVES)
+hmmwv.SetWheelVisualizationType(veh.VisualizationType_NONE)
+hmmwv.SetTireVisualizationType(veh.VisualizationType_PRIMITIVES)
+
+hmmwv.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Create the terrain
 minfo = chrono.ChContactMaterialData()
 minfo.mu = 0.8
 minfo.cr = 0.01
 minfo.Y = 2e7
-patch_mat = minfo.CreateMaterial(my_hmmwv.GetSystem().GetContactMethod())
-terrain = veh.RigidTerrain(my_hmmwv.GetSystem())
+patch_mat = minfo.CreateMaterial(hmmwv.GetSystem().GetContactMethod())
+terrain = veh.RigidTerrain(hmmwv.GetSystem())
 patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 200, 200)
 patch.SetColor(chrono.ChColor(1, 1, 1))
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
@@ -69,7 +71,7 @@ terrain.Initialize()
 path = veh.CirclePath(chrono.ChVectorD(-75, 0, 0.6), 20, 40, True, 10)
 npoints = path.getNumPoints()
 
-path_asset = chrono.ChLineShape()
+path_asset = chrono.ChVisualShapeLine()
 path_asset.SetLineGeometry(chrono.ChLineBezier(path))
 path_asset.SetName("test path")
 path_asset.SetNumRenderPoints(max(2 * npoints, 400))
@@ -79,7 +81,6 @@ patch.GetGroundBody().AddVisualShape(path_asset)
 steeringPID = veh.ChPathSteeringController(path)
 steeringPID.SetLookAheadDistance(5)
 steeringPID.SetGains(0.8, 0, 0)
-steeringPID.Reset(my_hmmwv.GetVehicle())
 
 # Create the vehicle Irrlicht application
 vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
@@ -91,7 +92,7 @@ vis.AddLogo()
 vis.AddLightDirectional()
 vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
 vis.AddSkyBox()
-vis.AttachVehicle(my_hmmwv.GetVehicle())
+vis.AttachVehicle(hmmwv.GetVehicle())
 
 # Visualization of controller points (sentinel & target)
 ballS = vis.GetSceneManager().addSphereSceneNode(0.1)
@@ -105,10 +106,10 @@ ballT.getMaterial(0).EmissiveColor = chronoirr.SColor(0, 0, 255, 0)
 
 steeringPID_output = 0
 
-my_hmmwv.GetVehicle().EnableRealtime(True)
+hmmwv.GetVehicle().EnableRealtime(True)
 
 while vis.Run() :
-    time = my_hmmwv.GetSystem().GetChTime()
+    time = hmmwv.GetSystem().GetChTime()
     
     # Driver inputs
     driver_inputs = veh.DriverInputs()
@@ -128,14 +129,11 @@ while vis.Run() :
     
     # Update modules (process inputs from other modules)
     terrain.Synchronize(time)
-    my_hmmwv.Synchronize(time, driver_inputs, terrain)
+    hmmwv.Synchronize(time, driver_inputs, terrain)
     vis.Synchronize(time, driver_inputs)
     
     # Advance simulation for one timestep for all modules
-    steeringPID_output = steeringPID.Advance(my_hmmwv.GetVehicle(), step_size)
+    steeringPID_output = steeringPID.Advance(hmmwv.GetRefFrame(), time, step_size)
     terrain.Advance(step_size)
-    my_hmmwv.Advance(step_size)
+    hmmwv.Advance(step_size)
     vis.Advance(step_size)
-
-
-

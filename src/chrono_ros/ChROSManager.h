@@ -36,7 +36,8 @@ class ChROSHandler;
 /// Managers the ROS handlers and their registration/updates
 class CH_ROS_API ChROSManager {
   public:
-    /// Constructor for the ChROSManager creates a single ChROSInterface. To use multiple ChROSInterfaces, this class should be circumvented.
+    /// Constructor for the ChROSManager creates a single ChROSInterface. To use multiple ChROSInterfaces, this class
+    /// should be circumvented.
     ChROSManager();
 
     /// Initialize the ROS system. Prior to this, rclcpp::init() has not been called.
@@ -48,6 +49,9 @@ class CH_ROS_API ChROSManager {
 
     /// Register a new handler
     void RegisterHandler(std::shared_ptr<ChROSHandler> handler);
+
+    /// Get the ChROSInterface
+    std::shared_ptr<ChROSInterface> GetInterface() { return m_interface; }
 
   private:
     std::shared_ptr<ChROSInterface> m_interface;

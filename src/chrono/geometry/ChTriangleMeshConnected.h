@@ -123,8 +123,8 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// Clear all data.
     virtual void Clear() override;
 
-    /// Compute bounding box along the directions defined by the given rotation matrix.
-    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
+    /// Compute bounding box of this triangle mesh.
+    virtual ChAABB GetBoundingBox() const override;
 
     /// Compute barycenter, mass, inertia tensor.
     void ComputeMassProperties(bool bodyCoords, double& mass, ChVector<>& center, ChMatrix33<>& inertia);
@@ -153,15 +153,14 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// some algorithms, ex. collision detection, topological information might be needed, hence adjacent faces must
     /// be connected.
     /// Return the number of merged vertexes.
-    int RepairDuplicateVertexes(
-        const double tolerance = 1e-18  ///< when vertexes are closer than this value, they are merged
+    int RepairDuplicateVertexes(double tolerance = 1e-18  ///< ignore vertexes closer than this value
     );
 
     /// Offset the mesh, by a specified value, orthogonally to the faces.
     /// The offset can be inward or outward.
     /// Note: self-collisions and inverted faces resulting from excessive offsets are NOT trimmed;
     ///       so this is mostly meant to be a fast tool for making small offsets.
-    bool MakeOffset(const double offset);
+    bool MakeOffset(double offset);
 
     /// Return the indexes of the two vertexes of the i-th edge of the triangle.
     /// If unique=true, swap the pair so that 1st < 2nd, to permit test sharing with other triangle.
@@ -227,6 +226,9 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Get the class type as an enum.
     virtual Type GetClassType() const override { return Type::TRIANGLEMESH_CONNECTED; }
+
+    /// Return the bounding box of a triangle mesh with given vertices.
+    static ChAABB GetBoundingBox(std::vector<ChVector<>> vertices);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

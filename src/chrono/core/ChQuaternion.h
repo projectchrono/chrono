@@ -71,7 +71,8 @@ class ChQuaternion {
     const Real& e2() const { return m_data[2]; }
     const Real& e3() const { return m_data[3]; }
 
-    /// Return const pointer to underlying array storage.
+    /// Access to underlying array storage.
+    Real* data() { return m_data; }
     const Real* data() const { return m_data; }
 
     // EIGEN INTER-OPERABILITY
@@ -125,6 +126,12 @@ class ChQuaternion {
 
     /// Sets the vectorial part only
     void SetVector(const ChVector<Real>& v);
+
+    /// Return true if this quaternion is the null quaternion.
+    bool IsNull() const;
+
+    /// Return true if this quaternion is the identity quaternion.
+    bool IsIdentity() const;
 
     /// Return true if quaternion is identical to other quaternion
     bool Equals(const ChQuaternion<Real>& other) const;
@@ -891,6 +898,16 @@ inline void ChQuaternion<Real>::SetVector(const ChVector<Real>& v) {
     m_data[1] = v.x();
     m_data[2] = v.y();
     m_data[3] = v.z();
+}
+
+template <class Real>
+inline bool ChQuaternion<Real>::IsNull() const {
+    return m_data[0] == 0 && m_data[1] == 0 && m_data[2] == 0 && m_data[3] == 0;
+}
+
+template <class Real>
+inline bool ChQuaternion<Real>::IsIdentity() const {
+    return m_data[0] == 1 && m_data[1] == 0 && m_data[2] == 0 && m_data[3] == 0;
 }
 
 template <class Real>

@@ -48,7 +48,7 @@ class CH_MODELS_API HMMWV {
     virtual ~HMMWV();
 
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
-    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) { m_collsysType = collsys_type; }
+    void SetCollisionSystemType(ChCollisionSystem::Type collsys_type) { m_collsysType = collsys_type; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
@@ -74,6 +74,7 @@ class CH_MODELS_API HMMWV {
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
     std::shared_ptr<ChChassis> GetChassis() const { return m_vehicle->GetChassis(); }
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
+    const ChFrameMoving<>& GetRefFrame() const { return m_vehicle->GetRefFrame(); }
 
     void Initialize();
 
@@ -99,7 +100,7 @@ class CH_MODELS_API HMMWV {
     virtual HMMWV_Vehicle* CreateVehicle() = 0;
 
     ChContactMethod m_contactMethod;
-    collision::ChCollisionSystemType m_collsysType;
+    ChCollisionSystem::Type m_collsysType;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_brake_locking;

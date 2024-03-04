@@ -260,6 +260,14 @@ void ChLinkMotorRotationSpeed::IntLoadResidual_Mv(const unsigned int off,      /
     R(off) += c * 1.0 * w(off);
 }
 
+void ChLinkMotorRotationSpeed::IntLoadLumpedMass_Md(const unsigned int off,
+                                                    ChVectorDynamic<>& Md,
+                                                    double& err,
+                                                    const double c   
+) {
+    Md(off) += c * 1.0;
+}
+
 void ChLinkMotorRotationSpeed::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                                const ChStateDelta& v,
                                                const ChVectorDynamic<>& R,

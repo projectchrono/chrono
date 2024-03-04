@@ -1,4 +1,4 @@
-Chrono Reference Manual {#manual_root}
+Chrono Core User Manual {#manual_core}
 ==========================
 
 
@@ -30,14 +30,16 @@ Chrono Reference Manual {#manual_root}
 
 * @subpage markers
 
-* @subpage collision_shapes
-	* [Collision models](@ref collision_models)
-	* [Collision families](@ref collision_families)
-	* [Collision materials](@ref collision_materials)
+* @subpage loads
+
+* @subpage collisions
+	* [Collision Models and Shapes](@ref collision_models_shapes)
+	* [Collision Families](@ref collision_families)
+	* [Collision Materials](@ref collision_materials)
+	* [Collision Tolerances](@ref collision_tolerances)
+	* [Collision Callbacks](@ref collision_callbacks)
 
 * @subpage visualization_system
-	* [Visualization models](@ref manual_vismodel)
-	* [Visualization shapes](@ref manual_visshape)
 
 * @subpage links
 
@@ -56,15 +58,3 @@ Chrono Reference Manual {#manual_root}
 	* [Time steppers](@ref time_steppers)
 	* [Solvers](@ref solvers)
 	* [Other simulation parameters](@ref other_simulation_parameters)
-
-**Additional documentation pages**
-
-* [Chrono::Vehicle](@ref manual_vehicle)
-
-* [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
-
-* [Chrono::Sensor](@ref manual_sensor)
-
-* [PyChrono](@ref pychrono_introduction)
-
-* [Tutorials](@ref tutorial_root)

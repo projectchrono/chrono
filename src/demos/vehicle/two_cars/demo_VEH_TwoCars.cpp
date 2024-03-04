@@ -57,6 +57,7 @@ int main(int argc, char* argv[]) {
 
     // Chrono system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
     sys.SetSolverMaxIterations(150);
@@ -76,7 +77,7 @@ int main(int argc, char* argv[]) {
     HMMWV_Reduced hmmwv_1(&sys);
     hmmwv_1.SetInitPosition(ChCoordsys<>(ChVector<>(0, -1.5, 1.0), QUNIT));
     hmmwv_1.SetEngineType(EngineModelType::SIMPLE);
-    hmmwv_1.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
+    hmmwv_1.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     hmmwv_1.SetDriveType(DrivelineTypeWV::RWD);
     hmmwv_1.SetTireType(TireModelType::RIGID);
     hmmwv_1.Initialize();
@@ -99,7 +100,7 @@ int main(int argc, char* argv[]) {
     HMMWV_Reduced hmmwv_2(&sys);
     hmmwv_2.SetInitPosition(ChCoordsys<>(ChVector<>(7, 1.5, 1.0), QUNIT));
     hmmwv_2.SetEngineType(EngineModelType::SIMPLE);
-    hmmwv_2.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
+    hmmwv_2.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     hmmwv_2.SetDriveType(DrivelineTypeWV::RWD);
     hmmwv_2.SetTireType(TireModelType::RIGID);
     hmmwv_2.Initialize();

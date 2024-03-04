@@ -31,7 +31,6 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 double time_step = 5e-4;
 
@@ -85,7 +84,7 @@ class RayCaster {
 
 RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2<>& dims, double spacing)
     : m_sys(sys), m_origin(origin), m_dims(dims), m_spacing(spacing) {
-    m_body = std::shared_ptr<ChBody>(sys->NewBody());
+    m_body = chrono_types::make_shared<ChBody>();
     m_body->SetBodyFixed(true);
     m_body->SetCollide(false);
     sys->AddBody(m_body);
@@ -109,7 +108,7 @@ void RayCaster::Update() {
             double y_local = -0.5 * m_dims.y() + iy * m_spacing;
             ChVector<> from = m_origin.TransformPointLocalToParent(ChVector<>(x_local, y_local, 0.0));
             ChVector<> to = from + dir * 100;
-            collision::ChCollisionSystem::ChRayhitResult result;
+            ChCollisionSystem::ChRayhitResult result;
             m_sys->GetCollisionSystem()->RayHit(from, to, result);
             if (result.hit)
                 m_points.push_back(result.abs_hitPoint);
@@ -137,18 +136,18 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem* sys, double length, double width
         std::static_pointer_cast<ChMaterialSurfaceSMC>(ground_mat)->SetYoungModulus(Y);
     }
 
-    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
+    auto ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
 
-    ground->GetCollisionModel()->ClearModel();
-    ground->GetCollisionModel()->AddBox(ground_mat, length, width, 0.2, ChVector<>(offset, 0, height - 0.1));
-    ground->GetCollisionModel()->BuildModel();
+    auto shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
+    ground->AddCollisionShape(shape, ChFrame<>(ChVector<>(offset, 0, height - 0.1), QUNIT));
 
-    auto box = chrono_types::make_shared<ChBoxShape>(length, width, 0.2);
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(length, width, 0.2);
     box->SetTexture(GetChronoDataFile("textures/pinkwhite.png"), 10 * (float)length, 10 * (float)width);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(offset, 0, height - 0.1), QUNIT));
 
+    sys->GetCollisionSystem()->BindItem(ground);
     sys->AddBody(ground);
 
     return ground;
@@ -194,6 +193,7 @@ int main(int argc, char* argv[]) {
             break;
     }
 
+    my_sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     my_sys->SetSolverMaxIterations(200);
     my_sys->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
     my_sys->Set_G_acc(ChVector<double>(0, 0, -9.8));
@@ -366,17 +366,18 @@ int main(int argc, char* argv[]) {
             robot.Output();
         }
 
-        // Output POV-Ray date and/or snapshot images
+        // Output POV-Ray date and/or snapshot images.
+        // Zero-pad frame numbers in file names for postprocessing.
         if (sim_frame % render_steps == 0) {
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%04d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(my_sys, filename);
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(my_sys, filename.str());
             }
             if (image_output) {
-                char filename[100];
-                sprintf(filename, "%s/img_%04d.jpg", img_dir.c_str(), render_frame + 1);
-                vis->WriteImageToFile(filename);
+                std::ostringstream filename;
+                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+                vis->WriteImageToFile(filename.str());
             }
 
             render_frame++;

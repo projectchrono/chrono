@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/collision/ChCollisionSystemChrono.h"
+#include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -32,7 +32,7 @@ using std::endl;
 // =============================================================================
 
 // Collision detection system
-collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::CHRONO;
+ChCollisionSystem::Type collision_type = ChCollisionSystem::Type::MULTICORE;
 
 // =============================================================================
 
@@ -56,7 +56,7 @@ class RayCaster {
 
 RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2<>& dims, double spacing)
     : m_sys(sys), m_origin(origin), m_dims(dims), m_spacing(spacing) {
-    m_body = std::shared_ptr<ChBody>(sys->NewBody());
+    m_body = chrono_types::make_shared<ChBody>();
     m_body->SetBodyFixed(true);
     m_body->SetCollide(false);
     sys->AddBody(m_body);
@@ -80,7 +80,7 @@ void RayCaster::Update() {
             double y_local = -0.5 * m_dims.y() + iy * m_spacing;
             ChVector<> from = m_origin.TransformPointLocalToParent(ChVector<>(x_local, y_local, 0.0));
             ChVector<> to = from + dir * 100;
-            collision::ChCollisionSystem::ChRayhitResult result;
+            ChCollisionSystem::ChRayhitResult result;
             m_sys->GetCollisionSystem()->RayHit(from, to, result);
             if (result.hit)
                 m_points.push_back(result.abs_hitPoint);
@@ -106,14 +106,14 @@ void RayCaster::Update() {
 void CreateSpheres(ChSystemSMC& sys) {
     auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
-    auto s1 = chrono_types::make_shared<ChBodyEasySphere>(2.0, 1, mat, collision_type);
+    auto s1 = chrono_types::make_shared<ChBodyEasySphere>(2.0, 1, mat);
     s1->SetPos(ChVector<>(0, 0, 0));
     s1->GetVisualShape(0)->SetColor(ChColor(0.4f, 0, 0));
     s1->GetCollisionModel()->SetFamily(1);
     s1->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     sys.Add(s1);
 
-    auto s2 = chrono_types::make_shared<ChBodyEasySphere>(2.0, 1, mat, collision_type);
+    auto s2 = chrono_types::make_shared<ChBodyEasySphere>(2.0, 1, mat);
     s2->SetPos(ChVector<>(2, 0, 3));
     s2->GetVisualShape(0)->SetColor(ChColor(0.4f, 0, 0));
     s2->GetCollisionModel()->SetFamily(1);
@@ -124,7 +124,7 @@ void CreateSpheres(ChSystemSMC& sys) {
 void CreateBoxes(ChSystemSMC& sys) {
     auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
-    auto b1 = chrono_types::make_shared<ChBodyEasyBox>(3.0, 2.0, 1.0, 1, mat, collision_type);
+    auto b1 = chrono_types::make_shared<ChBodyEasyBox>(3.0, 2.0, 1.0, 1, mat);
     b1->SetPos(ChVector<>(0, 0, 0));
     b1->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
     b1->GetVisualShape(0)->SetColor(ChColor(0, 0.4f, 0));
@@ -132,7 +132,7 @@ void CreateBoxes(ChSystemSMC& sys) {
     b1->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     sys.Add(b1);
 
-    auto b2 = chrono_types::make_shared<ChBodyEasyBox>(5.0, 4.0, 1.0, 1, mat, collision_type);
+    auto b2 = chrono_types::make_shared<ChBodyEasyBox>(5.0, 4.0, 1.0, 1, mat);
     b2->SetPos(ChVector<>(0, 0, +3));
     b2->GetVisualShape(0)->SetColor(ChColor(0, 0.4f, 0));
     b2->GetCollisionModel()->SetFamily(1);
@@ -143,7 +143,7 @@ void CreateBoxes(ChSystemSMC& sys) {
 void CreateCylinders(ChSystemSMC& sys) {
     auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
-    auto c1 = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 1.0, 2.0, 1, mat, collision_type);
+    auto c1 = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 1.0, 2.0, 1, mat);
     c1->SetPos(ChVector<>(0, 0, 0));
     c1->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
     c1->GetVisualShape(0)->SetColor(ChColor(0, 0, 0.4f));
@@ -151,7 +151,7 @@ void CreateCylinders(ChSystemSMC& sys) {
     c1->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     sys.Add(c1);
 
-    auto c2 = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 2.0, 4.0, 1, mat, collision_type);
+    auto c2 = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 2.0, 4.0, 1, mat);
     c2->SetPos(ChVector<>(0, 0, 3));
     c2->SetRot(Q_from_AngZ(CH_C_PI / 4));
     c2->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.7f));
@@ -169,7 +169,7 @@ void CreateShapes(ChSystemSMC& sys) {
     auto points = sampler.SampleBox(ChVector<>(0, 0, 0), ChVector<>(10, 10, 10));
 
     for (int i = 0; i < points.size() / 3; i++) {
-        auto s = chrono_types::make_shared<ChBodyEasySphere>(0.75 * scale, 1, mat, collision_type);
+        auto s = chrono_types::make_shared<ChBodyEasySphere>(0.75 * scale, 1, mat);
         s->SetPos(points[3 * i + 0]);
         s->GetVisualShape(0)->SetColor(ChColor(0.4f, 0, 0));
         s->GetCollisionModel()->SetFamily(1);
@@ -177,7 +177,7 @@ void CreateShapes(ChSystemSMC& sys) {
         sys.Add(s);
 
         auto b =
-            chrono_types::make_shared<ChBodyEasyBox>(1.0 * scale, 1.5 * scale, 1.25 * scale, 1, mat, collision_type);
+            chrono_types::make_shared<ChBodyEasyBox>(1.0 * scale, 1.5 * scale, 1.25 * scale, 1, mat);
         b->SetPos(points[3 * i + 1]);
         b->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
         b->GetVisualShape(0)->SetColor(ChColor(0, 0.4f, 0));
@@ -185,8 +185,7 @@ void CreateShapes(ChSystemSMC& sys) {
         b->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         sys.Add(b);
 
-        auto c = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.75 * scale, 0.75 * scale, 1, mat,
-                                                               collision_type);
+        auto c = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.75 * scale, 0.75 * scale, 1, mat);
         c->SetPos(points[3 * i + 2]);
         c->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
         c->GetVisualShape(0)->SetColor(ChColor(0, 0, 0.4f));
@@ -201,15 +200,14 @@ void CreateMeshes(ChSystemSMC& sys) {
 
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/sphere.obj"));
     trimesh->Transform(ChVector<>(0), ChMatrix33<>(2));
-    std::shared_ptr<ChTriangleMeshShape> vismesh(new ChTriangleMeshShape);
+    std::shared_ptr<ChVisualShapeTriangleMesh> vismesh(new ChVisualShapeTriangleMesh);
     vismesh->SetMesh(trimesh);
     vismesh->SetColor(ChColor(0.4f, 0, 0));
 
-    auto m1 = chrono_types::make_shared<ChBody>(collision_type);
+    auto m1 = chrono_types::make_shared<ChBody>();
     m1->AddVisualShape(vismesh);
-    m1->GetCollisionModel()->ClearModel();
-    m1->GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
-    m1->GetCollisionModel()->BuildModel();
+    auto m1_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, 0.01);
+    m1->AddCollisionShape(m1_shape);
     m1->SetCollide(true);
     sys.Add(m1);
 }
@@ -233,18 +231,18 @@ void CreateTestSet(ChSystemSMC& sys) {
     */
 
     std::vector<ChVector<>> loc = {
-        ChVector<>(19, 1, 0),   //
+        ChVector<>(19, 1, 0),  //
         ChVector<>(8, 3, 0),   //
         ChVector<>(7, 7, 0),   //
         ChVector<>(13, 5, 0),  //
         ChVector<>(2, 7, 0),   //
         ChVector<>(3, 8, 0),   //
         ChVector<>(13, 8, 0),  //
-        ChVector<>(1, 14, 0)  //
+        ChVector<>(1, 14, 0)   //
     };
 
     for (int i = 0; i < 8; i++) {
-        auto b = chrono_types::make_shared<ChBodyEasyBox>(2.0, 2.0, 2.0, 1, mat, collision_type);
+        auto b = chrono_types::make_shared<ChBodyEasyBox>(2.0, 2.0, 2.0, 1, mat);
         b->SetPos(loc[i] - ChVector<>(5, 5, 0));
         b->GetVisualShape(0)->SetColor(ChColor(0, 0.4f, 0));
         b->GetCollisionModel()->SetFamily(1);
@@ -265,8 +263,8 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, 0, 0));
     sys.SetCollisionSystemType(collision_type);
-    if (collision_type == collision::ChCollisionSystemType::CHRONO) {
-        auto cd_chrono = std::static_pointer_cast<collision::ChCollisionSystemChrono>(sys.GetCollisionSystem());
+    if (collision_type == ChCollisionSystem::Type::MULTICORE) {
+        auto cd_chrono = std::static_pointer_cast<ChCollisionSystemMulticore>(sys.GetCollisionSystem());
         cd_chrono->SetBroadphaseGridResolution(ChVector<int>(3, 3, 3));
         ////cd_chrono->SetBroadphaseGridResolution(ChVector<int>(4, 3, 1));
     }

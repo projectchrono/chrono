@@ -33,8 +33,8 @@ ChFrame<> ChLineSegment::GetFrame() const {
     return ChFrame<>(0.5 * (pB + pA), ChMatrix33<>(u, v, w));
 }
 
-void ChLineSegment::Evaluate(ChVector<>& pos, const double parU) const {
-    pos = pA * (1 - parU) + pB * parU;
+ChVector<> ChLineSegment::Evaluate(double parU) const {
+    return pA * (1 - parU) + pB * parU;
 }
 
 void ChLineSegment::ArchiveOut(ChArchiveOut& marchive) {

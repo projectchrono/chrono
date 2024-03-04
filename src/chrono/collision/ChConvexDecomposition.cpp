@@ -16,8 +16,6 @@
 #include "chrono_thirdparty/HACDv2/wavefront.h"
 
 namespace chrono {
-namespace collision {
-
 
 //
 // Utility functions to process bad topology in meshes with repeated vertices
@@ -57,12 +55,10 @@ void FuseMesh(std::vector<ChVector<double> >& vertexIN,
 ////////////////////////////////////////////////////////////////////////////
 
 /// Basic constructor
-ChConvexDecomposition::ChConvexDecomposition() {
-}
+ChConvexDecomposition::ChConvexDecomposition() {}
 
 /// Destructor
-ChConvexDecomposition::~ChConvexDecomposition() {
-}
+ChConvexDecomposition::~ChConvexDecomposition() {}
 
 bool ChConvexDecomposition::AddTriangle(const geometry::ChTriangle& t1) {
     return this->AddTriangle(t1.p1, t1.p2, t1.p3);  // add the input mesh one triangle at a time.
@@ -257,14 +253,15 @@ void ChConvexDecompositionHACD::WriteConvexHullsAsWavefrontObj(ChStreamOutAscii&
         vcount_total += (NxU32)nPoints;
         tcount_total += (NxU32)nTriangles;
         for (unsigned int i = 0; i < nPoints; i++) {
-            sprintf(buffer, "v %0.9f %0.9f %0.9f\r\n", pointsCH[i].X(), pointsCH[i].Y(), pointsCH[i].Z());
+            snprintf(buffer, sizeof(buffer), "v %0.9f %0.9f %0.9f\r\n", pointsCH[i].X(), pointsCH[i].Y(),
+                     pointsCH[i].Z());
             mstream << buffer;
         }
         for (unsigned int i = 0; i < nTriangles; i++) {
             unsigned int i1 = trianglesCH[i].X();
             unsigned int i2 = trianglesCH[i].Y();
             unsigned int i3 = trianglesCH[i].Z();
-            sprintf(buffer, "f %d %d %d\r\n", i1 + vcount_base, i2 + vcount_base, i3 + vcount_base);
+            snprintf(buffer, sizeof(buffer), "f %d %d %d\r\n", i1 + vcount_base, i2 + vcount_base, i3 + vcount_base);
             mstream << buffer;
         }
         vcount_base += (NxU32)nPoints;
@@ -451,7 +448,7 @@ void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(ChStreamOutAsci
             baseVertex[i] = vertexCount;
             for (hacd::HaU32 j = 0; j < hull->mVertexCount; j++) {
                 const hacd::HaF32* p = &hull->mVertices[j * 3];
-                sprintf(buffer, "v %0.9f %0.9f %0.9f\r\n", p[0], p[1], p[2]);
+                snprintf(buffer, sizeof(buffer), "v %0.9f %0.9f %0.9f\r\n", p[0], p[1], p[2]);
                 mstream << buffer;
             }
             vertexCount += hull->mVertexCount;
@@ -465,7 +462,7 @@ void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(ChStreamOutAsci
                 hacd::HaU32 i1 = hull->mIndices[j * 3 + 0] + startVertex + 1;
                 hacd::HaU32 i2 = hull->mIndices[j * 3 + 1] + startVertex + 1;
                 hacd::HaU32 i3 = hull->mIndices[j * 3 + 2] + startVertex + 1;
-                sprintf(buffer, "f %d %d %d\r\n", i1, i2, i3);
+                snprintf(buffer, sizeof(buffer), "f %d %d %d\r\n", i1, i2, i3);
                 mstream << buffer;
             }
         }
@@ -473,5 +470,4 @@ void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(ChStreamOutAsci
     delete[] baseVertex;
 }
 
-}  // end namespace collision
 }  // end namespace chrono

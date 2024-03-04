@@ -31,15 +31,14 @@ using namespace chrono::irrlicht;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Contact material (shared among all collision shapes)
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    //
     // EXAMPLE 1:
-    //
 
     // Create the truss:
     auto mfloor = chrono_types::make_shared<ChBody>();
@@ -62,14 +61,13 @@ int main(int argc, char* argv[]) {
     mpathcoin->AddSubLine(msegcol1);
 
     // Add the collision shape to the body
-    mcoin->GetCollisionModel()->SetSafeMargin(0.1);
     mcoin->SetCollide(true);
-    mcoin->GetCollisionModel()->ClearModel();
-    mcoin->GetCollisionModel()->Add2Dpath(mat, mpathcoin, VNULL, ChMatrix33<>(1), 0.03);  // 0.03 thickness
-    mcoin->GetCollisionModel()->BuildModel();
+    auto coin_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathcoin);
+    mcoin->AddCollisionShape(coin_coll, ChFrame<>());
+    mcoin->GetCollisionModel()->SetSafeMargin(0.1f);
 
-    // For visualization:create a ChLineShape, a visualization asset for lines.
-    auto mcoinasset = chrono_types::make_shared<ChLineShape>();
+    // For visualization:create a ChVisualShapeLine, a visualization asset for lines.
+    auto mcoinasset = chrono_types::make_shared<ChVisualShapeLine>();
     mcoinasset->SetLineGeometry(mpathcoin);
     mcoin->AddVisualShape(mcoinasset);
 
@@ -93,20 +91,18 @@ int main(int argc, char* argv[]) {
     mpathhole->Set_closed(false);
 
     // Add the collision shape to the body
-    mcoin->GetCollisionModel()->SetSafeMargin(0.1);
     mhole->SetCollide(true);
-    mhole->GetCollisionModel()->ClearModel();
-    mhole->GetCollisionModel()->Add2Dpath(mat, mpathhole, VNULL, ChMatrix33<>(1), 0.03);  // 0.01 thickness
-    mhole->GetCollisionModel()->BuildModel();
+    auto hole_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathhole);
+    mhole->AddCollisionShape(hole_coll, ChFrame<>());
+    mhole->GetCollisionModel()->SetSafeMargin(0.1f);
 
-    // Create a ChLineShape, a visualization asset for lines.
-    auto mholeasset = chrono_types::make_shared<ChLineShape>();
+
+    // Create a ChVisualShapeLine, a visualization asset for lines.
+    auto mholeasset = chrono_types::make_shared<ChVisualShapeLine>();
     mholeasset->SetLineGeometry(mpathhole);
     mhole->AddVisualShape(mholeasset);
 
-    //
     // EXAMPLE 2: a Geneva wheel
-    //
 
     // Geneva wheel geometry data:
     int nstations = 5;
@@ -166,14 +162,13 @@ int main(int argc, char* argv[]) {
     }
 
     // Add the collision shape to the body
-    mgenevawheel->GetCollisionModel()->SetSafeMargin(0.02);
     mgenevawheel->SetCollide(true);
-    mgenevawheel->GetCollisionModel()->ClearModel();
-    mgenevawheel->GetCollisionModel()->Add2Dpath(mat, mpathwheel);
-    mgenevawheel->GetCollisionModel()->BuildModel();
+    auto genevawheel_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathwheel);
+    mgenevawheel->AddCollisionShape(genevawheel_coll, ChFrame<>());
+    mgenevawheel->GetCollisionModel()->SetSafeMargin(0.02f);
 
-    // Create a ChLineShape, a visualization asset for lines.
-    auto mwheelasset = chrono_types::make_shared<ChLineShape>();
+    // Create a ChVisualShapeLine, a visualization asset for lines.
+    auto mwheelasset = chrono_types::make_shared<ChVisualShapeLine>();
     mwheelasset->SetLineGeometry(mpathwheel);
     mgenevawheel->AddVisualShape(mwheelasset);
 
@@ -202,18 +197,19 @@ int main(int argc, char* argv[]) {
     mpathcrankstopper->AddSubLine(mstopperve2);
 
     // Add the collision shape to the body
-    mcrank->GetCollisionModel()->SetSafeMargin(0.02);
     mcrank->SetCollide(true);
-    mcrank->GetCollisionModel()->ClearModel();
-    mcrank->GetCollisionModel()->Add2Dpath(mat, mpathcrankpin);
-    mcrank->GetCollisionModel()->Add2Dpath(mat, mpathcrankstopper);
-    mcrank->GetCollisionModel()->BuildModel();
+    auto crankpin_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathcrankpin);
+    auto crankstopper_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathcrankstopper);
+    mcrank->AddCollisionShape(crankpin_coll, ChFrame<>());
+    mcrank->AddCollisionShape(crankstopper_coll, ChFrame<>());
+    mcrank->GetCollisionModel()->SetSafeMargin(0.02f);
 
-    // Create a ChLineShape, a visualization asset for lines.
-    auto mcrankasset = chrono_types::make_shared<ChLineShape>();
+    // Create a ChVisualShapeLine, a visualization asset for lines.
+    auto mcrankasset = chrono_types::make_shared<ChVisualShapeLine>();
     mcrankasset->SetLineGeometry(mpathcrankpin);
     mcrank->AddVisualShape(mcrankasset);
-    auto mcrankasset2 = chrono_types::make_shared<ChLineShape>();
+
+    auto mcrankasset2 = chrono_types::make_shared<ChVisualShapeLine>();
     mcrankasset2->SetLineGeometry(mpathcrankstopper);
     mcrank->AddVisualShape(mcrankasset2);
 

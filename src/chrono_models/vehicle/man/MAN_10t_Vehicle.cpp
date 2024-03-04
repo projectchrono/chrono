@@ -16,12 +16,11 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/wheeled_vehicle/suspension/ChSolidAxle.h"
 
 #include "chrono_models/vehicle/man/MAN_10t_Vehicle.h"
 #include "chrono_models/vehicle/man/MAN_10t_Chassis.h"
@@ -41,7 +40,7 @@ namespace vehicle {
 namespace man {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 MAN_10t_Vehicle::MAN_10t_Vehicle(const bool fixed,
                                  BrakeType brake_type,
                                  ChContactMethod contact_method,
@@ -58,8 +57,7 @@ MAN_10t_Vehicle::MAN_10t_Vehicle(ChSystem* system,
                                  BrakeType brake_type,
                                  CollisionType chassis_collision_type,
                                  bool use_8WD_drivetrain)
-    : ChWheeledVehicle("MAN_10t", system),
-      m_omega({0, 0, 0, 0, 0, 0, 0, 0}), m_use_8WD_drivetrain(use_8WD_drivetrain) {
+    : ChWheeledVehicle("MAN_10t", system), m_omega({0, 0, 0, 0, 0, 0, 0, 0}), m_use_8WD_drivetrain(use_8WD_drivetrain) {
     Create(fixed, brake_type, chassis_collision_type);
 }
 
@@ -75,8 +73,8 @@ void MAN_10t_Vehicle::Create(bool fixed, BrakeType brake_type, CollisionType cha
     m_axles[3] = chrono_types::make_shared<ChAxle>();
 
     m_axles[0]->m_suspension = chrono_types::make_shared<MAN_10t_Front1Axle>("FrontSusp1");
-    m_axles[1]->m_suspension = chrono_types::make_shared<MAN_10t_Front2Axle>("RearSusp2");
-    m_axles[2]->m_suspension = chrono_types::make_shared<MAN_7t_Solid3LinkAxle>("RearSusp2");
+    m_axles[1]->m_suspension = chrono_types::make_shared<MAN_10t_Front2Axle>("FrontSusp2");
+    m_axles[2]->m_suspension = chrono_types::make_shared<MAN_7t_Solid3LinkAxle>("RearSusp1");
     m_axles[3]->m_suspension = chrono_types::make_shared<MAN_7t_Solid3LinkAxle>("RearSusp2");
 
     m_axles[0]->m_wheels.resize(2);
@@ -143,7 +141,7 @@ void MAN_10t_Vehicle::Create(bool fixed, BrakeType brake_type, CollisionType cha
 MAN_10t_Vehicle::~MAN_10t_Vehicle() {}
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void MAN_10t_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // Initialize the chassis subsystem.
     m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
@@ -186,34 +184,6 @@ void MAN_10t_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double MAN_10t_Vehicle::GetSpringForce(int axle, VehicleSide side) const {
-    return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetSpringForce(side);
-}
-
-double MAN_10t_Vehicle::GetSpringLength(int axle, VehicleSide side) const {
-    return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetSpringLength(side);
-}
-
-double MAN_10t_Vehicle::GetSpringDeformation(int axle, VehicleSide side) const {
-    return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetSpringDeformation(side);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double MAN_10t_Vehicle::GetShockForce(int axle, VehicleSide side) const {
-    return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetShockForce(side);
-}
-
-double MAN_10t_Vehicle::GetShockLength(int axle, VehicleSide side) const {
-    return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetShockLength(side);
-}
-
-double MAN_10t_Vehicle::GetShockVelocity(int axle, VehicleSide side) const {
-    return std::static_pointer_cast<ChSolidAxle>(m_axles[axle]->m_suspension)->GetShockVelocity(side);
-}
-
-// -----------------------------------------------------------------------------
 // Log the hardpoint locations for the front-right and rear-right suspension
 // subsystems (display in inches)
 // -----------------------------------------------------------------------------
@@ -221,10 +191,20 @@ void MAN_10t_Vehicle::LogHardpointLocations() {
     GetLog().SetNumFormat("%7.3f");
 
     GetLog() << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChSolidAxle>(m_axles[0]->m_suspension)->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+    std::static_pointer_cast<ChSolidBellcrankThreeLinkAxle>(m_axles[0]->m_suspension)
+        ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
 
-    GetLog() << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChSolidAxle>(m_axles[1]->m_suspension)->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+    GetLog() << "\n---- FRONT suspension 2 hardpoint locations (LEFT side)\n";
+    std::static_pointer_cast<ChSolidBellcrankThreeLinkAxle>(m_axles[1]->m_suspension)
+        ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+
+    GetLog() << "\n---- REAR suspension 1 hardpoint locations (LEFT side)\n";
+    std::static_pointer_cast<ChSolidThreeLinkAxle>(m_axles[2]->m_suspension)
+        ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+
+    GetLog() << "\n---- REAR suspension 2 hardpoint locations (LEFT side)\n";
+    std::static_pointer_cast<ChSolidThreeLinkAxle>(m_axles[3]->m_suspension)
+        ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
 
     GetLog() << "\n\n";
 
@@ -241,24 +221,19 @@ void MAN_10t_Vehicle::LogHardpointLocations() {
 void MAN_10t_Vehicle::DebugLog(int what) {
     GetLog().SetNumFormat("%10.2f");
 
-    if (what & OUT_SPRINGS) {
-        GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [m]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
-                 << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
-        GetLog() << "Deformation [m]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
-                 << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
-        GetLog() << "Force [N]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
-                 << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
-    }
-
-    if (what & OUT_SHOCKS) {
-        GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
-                 << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
-        GetLog() << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
-                 << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
-        GetLog() << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
-                 << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
+    if (what & OUT_SPRINGS || what & OUT_SHOCKS) {
+        GetLog() << "\n---- Spring and Shock information\n\n";
+        for (int axle = 0; axle < 2; axle++) {
+            std::string axlePosition = (axle == 0) ? "Front" : "Rear ";
+            for (int side = LEFT; side <= RIGHT; side++) {
+                for (auto& forceTSDA :
+                     m_axles[axle]->m_suspension->ReportSuspensionForce(static_cast<VehicleSide>(side))) {
+                    GetLog() << axlePosition << " " << (side == LEFT ? "Left " : "Right") << " ";
+                    GetLog() << forceTSDA.name << std::string(10 - std::max(0, (int)forceTSDA.name.size()), ' ')
+                             << " Length: " << forceTSDA.length << " m, Force: " << forceTSDA.force << " N\n";
+                }
+            }
+        }
     }
 
     if (what & OUT_CONSTRAINTS) {

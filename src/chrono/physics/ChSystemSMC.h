@@ -109,14 +109,15 @@ class ChApi ChSystemSMC : public ChSystem {
 
     /// Base class for contact force calculation.
     /// A user can override thie default implementation by attaching a custom derived class; see
-    /// SetContactForceAlgorithm.
-    class ChApi ChContactForceSMC {
+    /// SetContactForceTorqueAlgorithm.
+    class ChApi ChContactForceTorqueSMC {
       public:
-        virtual ~ChContactForceSMC() {}
+        virtual ~ChContactForceTorqueSMC() {}
 
         /// Calculate contact force (resultant of both normal and tangential components) for a contact between two
-        /// objects, obj1 and obj2. Note that this function is always called with delta > 0.
-        virtual ChVector<> CalculateForce(
+        /// objects, obj1 and obj2. Optionally, can compute torque, or leave it as zero. 
+        /// Note that this function is always called with delta > 0.
+        virtual std::pair<ChVector<>,ChVector<>> CalculateForceTorque(
             const ChSystemSMC& sys,             ///< containing system
             const ChVector<>& normal_dir,       ///< normal contact direction (expressed in global frame)
             const ChVector<>& p1,               ///< most penetrated point on obj1 (expressed in global frame)
@@ -127,15 +128,17 @@ class ChApi ChSystemSMC : public ChSystem {
             double delta,                       ///< overlap in normal direction
             double eff_radius,                  ///< effective radius of curvature at contact
             double mass1,                       ///< mass of obj1
-            double mass2                        ///< mass of obj2
+            double mass2,                       ///< mass of obj2
+            ChContactable* objA,                ///< pointer to contactable obj1
+			ChContactable* objB                 ///< pointer to contactable obj2
             ) const = 0;
     };
 
-    /// Change the default SMC contact force calculation.
-    virtual void SetContactForceAlgorithm(std::unique_ptr<ChContactForceSMC>&& algorithm);
+    /// Change the default SMC contact force calculation (and torque, too, if needed).
+    virtual void SetContactForceTorqueAlgorithm(std::unique_ptr<ChContactForceTorqueSMC>&& algorithm);
 
     /// Accessor for the current SMC contact force calculation.
-    const ChContactForceSMC& GetContactForceAlgorithm() const { return *m_force_algo; }
+    const ChContactForceTorqueSMC& GetContactForceTorqueAlgorithm() const { return *m_force_algo; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -151,7 +154,7 @@ class ChApi ChSystemSMC : public ChSystem {
     bool m_stiff_contact;                        ///< flag indicating stiff contacts (triggers Jacobian calculation)
     double m_minSlipVelocity;                    ///< slip velocity below which no tangential forces are generated
     double m_characteristicVelocity;             ///< characteristic impact velocity (Hooke model)
-    std::unique_ptr<ChContactForceSMC> m_force_algo;  /// contact force calculation
+    std::unique_ptr<ChContactForceTorqueSMC> m_force_algo;  /// contact force and torque calculation
 };
 
 CH_CLASS_VERSION(ChSystemSMC, 0)

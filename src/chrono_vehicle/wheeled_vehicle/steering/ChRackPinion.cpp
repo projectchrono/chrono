@@ -25,7 +25,7 @@
 
 #include <vector>
 
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/wheeled_vehicle/steering/ChRackPinion.h"
@@ -64,7 +64,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
     ChVector<> link_pos = steering_to_abs.TransformPointLocalToParent(ChVector<>(0, GetSteeringLinkCOM(), 0));
     ChQuaternion<> link_rot = steering_to_abs.GetRot().GetNormalized();
 
-    m_link = std::shared_ptr<ChBody>(sys->NewBody());
+    m_link = chrono_types::make_shared<ChBody>();
     m_link->SetNameString(m_name + "_link");
     m_link->SetPos(link_pos);
     m_link->SetRot(link_rot);

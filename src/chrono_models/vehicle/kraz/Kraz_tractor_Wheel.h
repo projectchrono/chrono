@@ -19,7 +19,7 @@
 #ifndef KRAZ_TRACTOR_WHEEL_H
 #define KRAZ_TRACTOR_WHEEL_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -45,13 +45,7 @@ class CH_MODELS_API Kraz_tractor_Wheel : public ChWheel {
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
 
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-    virtual void RemoveVisualizationAssets() override;
-
   protected:
-    static const std::string m_meshFile;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
-
     static const double m_radius;
     static const double m_width;
     static const double m_mass;

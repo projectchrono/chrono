@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-/// @addtogroup vehicle_models_U401
+/// @addtogroup vehicle_models_unimog
 /// @{
 
 /// UAZ vehicle system.
@@ -79,7 +79,7 @@ class CH_MODELS_API U401_Vehicle : public ChWheeledVehicle {
     std::vector<double> m_omega;
 };
 
-/// @} vehicle_models_U401
+/// @} vehicle_models_unimog
 
 }  // namespace unimog
 }  // end namespace vehicle

@@ -178,6 +178,23 @@ void ChLoadCustom::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDy
     }
 }
 
+void ChLoadCustom::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, const double c) {
+    if (!this->jacobians)
+        return;
+    // do computation Md=c*diag(M)
+    unsigned int rowQ = 0;
+    for (int i = 0; i < loadable->GetSubBlocks(); ++i) {
+        if (loadable->IsSubBlockActive(i)) {
+            unsigned int moffset = loadable->GetSubBlockOffset(i);
+            for (unsigned int row = 0; row < loadable->GetSubBlockSize(i); ++row) {
+                Md(row + moffset) += c * this->jacobians->M(rowQ, rowQ);
+                ++rowQ;
+            }
+        }
+    }
+    err = this->jacobians->M.sum() - this->jacobians->M.diagonal().sum();
+}
+
 void ChLoadCustom::CreateJacobianMatrices() {
     if (!jacobians) {
         // create jacobian structure
@@ -351,6 +368,25 @@ void ChLoadCustomMultiple::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const Ch
             }
         }
     }
+}
+
+void ChLoadCustomMultiple::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, double c) {
+    if (!this->jacobians)
+        return;
+    // do computation Md=c*diag(M)
+    unsigned int rowQ = 0;
+    for (int k = 0; k < loadables.size(); ++k) {
+        for (int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
+            if (loadables[k]->IsSubBlockActive(i)) {
+                unsigned int moffset = loadables[k]->GetSubBlockOffset(i);
+                for (unsigned int row = 0; row < loadables[k]->GetSubBlockSize(i); ++row) {
+                    Md(row + moffset) += c * this->jacobians->M(rowQ,rowQ);
+                    ++rowQ;
+                }
+            }
+        }
+    }
+    err = this->jacobians->M.sum() - this->jacobians->M.diagonal().sum();
 }
 
 void ChLoadCustomMultiple::CreateJacobianMatrices() {

@@ -125,6 +125,9 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Vehicle mass: " << uaz.GetVehicle().GetMass() << std::endl;
 
+    // Associate a collision system
+    uaz.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // ------------------
     // Create the terrain
     // ------------------
@@ -205,9 +208,10 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
 
             if (povray_output && step_number % render_steps == 0) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(uaz.GetSystem(), filename);
+                // Zero-pad frame numbers in file names for postprocessing
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(uaz.GetSystem(), filename.str());
             }
 
             render_frame++;

@@ -254,25 +254,26 @@ class _label_reporter_class : public ChContactContainer::ReportContactCallback {
 
         switch (labeltype) {
             case ContactsLabelMode::CONTACT_DISTANCES_VAL:
-                sprintf(buffer, "% 6.3g", distance);
+                snprintf(buffer, sizeof(buffer), "% 6.3g", distance);
                 break;
             case ContactsLabelMode::CONTACT_FORCES_N_VAL:
-                sprintf(buffer, "% 6.3g", react_forces.x());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", react_forces.x());
                 break;
             case ContactsLabelMode::CONTACT_FORCES_T_VAL:
-                sprintf(buffer, "% 6.3g", ChVector<>(0, react_forces.y(), react_forces.z()).Length());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", ChVector<>(0, react_forces.y(), react_forces.z()).Length());
                 break;
             case ContactsLabelMode::CONTACT_FORCES_VAL:
-                sprintf(buffer, "% 6.3g", ChVector<>(react_forces).Length());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", ChVector<>(react_forces).Length());
                 break;
             case ContactsLabelMode::CONTACT_TORQUES_VAL:
-                sprintf(buffer, "% 6.3g", ChVector<>(react_torques).Length());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", ChVector<>(react_torques).Length());
                 break;
             case ContactsLabelMode::CONTACT_TORQUES_S_VAL:
-                sprintf(buffer, "% 6.3g", react_torques.x());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", react_torques.x());
                 break;
             case ContactsLabelMode::CONTACT_TORQUES_R_VAL:
-                sprintf(buffer, "% 6.3g", ChVector<>(0, react_torques.y(), react_torques.z()).Length());
+                snprintf(buffer, sizeof(buffer), "% 6.3g",
+                         ChVector<>(0, react_torques.y(), react_torques.z()).Length());
                 break;
             default:
                 break;
@@ -365,28 +366,28 @@ int drawAllLinkLabels(ChVisualSystemIrrlicht* vis, LinkLabelMode labeltype, ChCo
 
         switch (labeltype) {
             case LinkLabelMode::LINK_REACT_FORCE_VAL:
-                sprintf(buffer, "% 6.3g", link->Get_react_force().Length());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_force().Length());
                 break;
             case LinkLabelMode::LINK_REACT_FORCE_X:
-                sprintf(buffer, "% 6.3g", link->Get_react_force().x());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_force().x());
                 break;
             case LinkLabelMode::LINK_REACT_FORCE_Y:
-                sprintf(buffer, "% 6.3g", link->Get_react_force().y());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_force().y());
                 break;
             case LinkLabelMode::LINK_REACT_FORCE_Z:
-                sprintf(buffer, "% 6.3g", link->Get_react_force().z());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_force().z());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_VAL:
-                sprintf(buffer, "% 6.3g", link->Get_react_torque().Length());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_torque().Length());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_X:
-                sprintf(buffer, "% 6.3g", link->Get_react_torque().x());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_torque().x());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_Y:
-                sprintf(buffer, "% 6.3g", link->Get_react_torque().y());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_torque().y());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_Z:
-                sprintf(buffer, "% 6.3g", link->Get_react_torque().z());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_torque().z());
                 break;
             default:
                 break;
@@ -417,9 +418,13 @@ int drawAllBoundingBoxes(ChVisualSystemIrrlicht* vis) {
         else
             mcol = irr::video::SColor(70, 30, 200, 200);  // cyan: not sleeping
 
-        ChVector<> hi = VNULL;
-        ChVector<> lo = VNULL;
-        body->GetTotalAABB(lo, hi);
+        auto bbox = body->GetTotalAABB();
+        if (bbox.IsInverted())
+            continue;
+
+        ChVector<> lo = bbox.min;
+        ChVector<> hi = bbox.max;
+
         ChVector<> p1(hi.x(), lo.y(), lo.z());
         ChVector<> p2(lo.x(), hi.y(), lo.z());
         ChVector<> p3(lo.x(), lo.y(), hi.z());
@@ -591,7 +596,7 @@ void drawHUDviolation(ChVisualSystemIrrlicht* vis, int mx, int my, int sx, int s
             char buffer[100];
             font->draw(L"Solver speed violation", irr::core::rect<s32>(mx + sx / 2 - 100, my, mx + sx, my + 10),
                        irr::video::SColor(200, 100, 0, 0));
-            sprintf(buffer, "%g", sy / spfact);
+            snprintf(buffer, sizeof(buffer), "%g", sy / spfact);
             font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(mx, my, mx + 30, my + 10),
                        irr::video::SColor(200, 100, 0, 0));
         }
@@ -624,10 +629,10 @@ void drawChFunction(ChVisualSystemIrrlicht* vis,
         gui::IGUIFont* font = vis->GetDevice()->getGUIEnvironment()->getBuiltInFont();
         if (font) {
             char buffer[100];
-            sprintf(buffer, "%g", ymax);
+            snprintf(buffer, sizeof(buffer), "%g", ymax);
             font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(mx, my, mx + sx, my + 10),
                        irr::video::SColor(200, 100, 0, 0));
-            sprintf(buffer, "%g", ymin);
+            snprintf(buffer, sizeof(buffer), "%g", ymin);
             font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(mx, my + sy, mx + sx, my + sy + 10),
                        irr::video::SColor(200, 100, 0, 0));
 
@@ -846,7 +851,7 @@ void drawColorbar(ChVisualSystemIrrlicht* vis,
 
         if (font) {
             char buffer[100];
-            sprintf(buffer, "%g", mv_up);
+            snprintf(buffer, sizeof(buffer), "%g", mv_up);
             font->draw(irr::core::stringw(buffer).c_str(),
                        core::rect<s32>(mrect.UpperLeftCorner.X + sx + 6, mrect.UpperLeftCorner.Y - 5,
                                        mrect.LowerRightCorner.X + sx + 6, mrect.LowerRightCorner.Y - 5),
@@ -936,9 +941,9 @@ void drawProfilerRecursive(utils::ChProfileIterator* profileIterator,
         device->getVideoDriver()->draw2DRectangle(
             irr::video::SColor(100, ((xspacing * 200) % 255), ((-xspacing * 151 + 200) % 255), 230), mrect);
 
-        sprintf(buffer, "%d -- %s (%.2f %% parent, %.2f %% tot.) :: %.3f ms / frame (%d calls)\n", i,
-                profileIterator->Get_Current_Name(), fraction, fraction_tot,
-                (current_total_time / (double)frames_since_reset), profileIterator->Get_Current_Total_Calls());
+        snprintf(buffer, sizeof(buffer), "%d -- %s (%.2f %% parent, %.2f %% tot.) :: %.3f ms / frame (%d calls)\n", i,
+                 profileIterator->Get_Current_Name(), fraction, fraction_tot,
+                 (current_total_time / (double)frames_since_reset), profileIterator->Get_Current_Total_Calls());
         irr::core::stringw mstring(buffer);
         font->draw(mstring, irr::core::rect<irr::s32>(mx + xspacing, my + ypos, mx + sx, my + ypos + 20), mcol);
         ypos += 20;
@@ -958,8 +963,8 @@ void drawProfilerRecursive(utils::ChProfileIterator* profileIterator,
     device->getVideoDriver()->draw2DRectangle(
         irr::video::SColor(100, ((xspacing * 200) % 255), ((-xspacing * 151 + 200) % 255), 230), mrect);
 
-    sprintf(buffer, "n -- %s (%.2f %% parent, %.2f %% tot.) :: %.3f ms\n", "Unaccounted:", fraction, fraction_tot,
-            parent_time - accumulated_time);
+    snprintf(buffer, sizeof(buffer), "n -- %s (%.2f %% parent, %.2f %% tot.) :: %.3f ms\n", "Unaccounted:", fraction,
+             fraction_tot, parent_time - accumulated_time);
     irr::core::stringw mstringu(buffer);
     font->draw(mstringu, irr::core::rect<irr::s32>(mx + xspacing, my + ypos, mx + sx, my + ypos + 20), mcol);
     ypos += 20;
@@ -991,6 +996,34 @@ void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord, double
     drawSegment(vis, pos, pos + rot.Rotate(VECT_Y) * scale, ChColor(0, 1, 0));
     // Z axis
     drawSegment(vis, pos, pos + rot.Rotate(VECT_Z) * scale, ChColor(0, 0, 1));
+}
+
+
+
+// -----------------------------------------------------------------------------
+/// Draw a line arrow in 3D space with given color.
+// -----------------------------------------------------------------------------
+void drawArrow(ChVisualSystemIrrlicht* vis,
+               ChVector<> start,
+               ChVector<> end,
+               ChVector<> plane_normal,
+               bool sharp,
+               ChColor col,
+               bool use_Zbuffer) {
+    drawSegment(vis, start, end, col, use_Zbuffer);  // main segment
+    ChVector<> dir = (end - start).GetNormalized();
+    ChVector<> u, v, w;
+    dir.DirToDxDyDz(u, v, w, plane_normal);
+    ChVector<> p1, p2;
+    if (!sharp) {
+        p1 = end + 0.25 * (w - dir);
+        p2 = end + 0.25 * (-w - dir);
+    } else {
+        p1 = end + 0.1 * w - 0.5 * dir;
+        p2 = end + 0.1 * -w - 0.5 * dir;
+    }
+    drawSegment(vis, end, p1, col, use_Zbuffer);  // arrow segment 1
+    drawSegment(vis, end, p2, col, use_Zbuffer);  // arrow segment 2
 }
 
 }  // end namespace tools

@@ -54,18 +54,18 @@ void ChIrrNodeShape::Update() {
             return;
     }
 
-    if (auto trianglemesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(m_shape)) {
+    if (auto trianglemesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(m_shape)) {
         if (trianglemesh->FixedConnectivity())
             UpdateTriangleMeshFixedConnectivity(trianglemesh);
         else
             UpdateTriangleMesh(trianglemesh);
     } else if (auto glyphs = std::dynamic_pointer_cast<ChGlyphs>(m_shape)) {
         UpdateGlyphs(glyphs);
-    } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(m_shape)) {
+    } else if (auto surface = std::dynamic_pointer_cast<ChVisualShapeSurface>(m_shape)) {
         UpdateSurface(surface);
-    } else if (auto path_shape = std::dynamic_pointer_cast<ChPathShape>(m_shape)) {
+    } else if (auto path_shape = std::dynamic_pointer_cast<ChVisualShapePath>(m_shape)) {
         UpdateLine(path_shape->GetPathGeometry(), path_shape->GetNumRenderPoints());
-    } else if (auto line_shape = std::dynamic_pointer_cast<ChLineShape>(m_shape)) {
+    } else if (auto line_shape = std::dynamic_pointer_cast<ChVisualShapeLine>(m_shape)) {
         UpdateLine(line_shape->GetLineGeometry(), line_shape->GetNumRenderPoints());
     }
 
@@ -96,14 +96,14 @@ static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
     return vertex;
 }
 
-void ChIrrNodeShape::UpdateTriangleMesh(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+void ChIrrNodeShape::UpdateTriangleMesh(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh) {
     if (trianglemesh->GetNumMaterials() == 0)
         UpdateTriangleMesh_col(trianglemesh);
     else
         UpdateTriangleMesh_mat(trianglemesh);
 }
 
-void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh) {
     // Fetch the 1st child, i.e. the mesh
     ISceneNode* irr_node = *(getChildren().begin());
     if (!irr_node || irr_node->getType() != scene::ESNT_MESH)
@@ -206,7 +206,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMeshShape>
     meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
 }
 
-void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh) {
     // Fetch the 1st child, i.e. the mesh
     ISceneNode* mchildnode = *(getChildren().begin());
     if (!mchildnode)
@@ -346,7 +346,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMeshShape>
 }
 
 // Update a trimesh by keeping fixed the connectivity and only touching the specified modified vertices.
-void ChIrrNodeShape::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+void ChIrrNodeShape::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh) {
     // Access the Irrlicht mesh (first child node)
     ISceneNode* childnode = *(getChildren().begin());
     if (!childnode)
@@ -645,7 +645,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
     meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
 }
 
-void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChSurfaceShape> surface) {
+void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface) {
     std::shared_ptr<geometry::ChSurface> msurface = surface->GetSurfaceGeometry();
 
     // Set color.
@@ -687,12 +687,10 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChSurfaceShape> surface) {
             for (auto iu = 0; iu <= sections_u; ++iu) {
                 double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
 
-                ChVector<> P;
-                msurface->Evaluate(P, mU, mV);
+                ChVector<> P = msurface->Evaluate(mU, mV);
                 ////P = vis->Pos + vis->Rot * P;
 
-                ChVector<> N;
-                msurface->Normal(N, mU, mV);
+                ChVector<> N = msurface->GetNormal(mU, mV);
                 ////N = vis->Rot * N;
 
                 // create two triangles per uv increment
@@ -749,8 +747,7 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChSurfaceShape> surface) {
             for (auto iu = 0; iu <= sections_u; ++iu) {
                 double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
 
-                ChVector<> P;
-                msurface->Evaluate(P, mU, mV);
+                ChVector<> P = msurface->Evaluate(mU, mV);
                 ////P = vis->Pos + vis->Rot * P;
 
                 irrmesh->getVertexBuffer()[iu + iv * (sections_u + 1)] =
@@ -771,8 +768,7 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChSurfaceShape> surface) {
             for (auto iv = 0; iv <= sections_v; ++iv) {
                 double mV = 1.0 * ((double)iv / (double)(sections_v));  // v abscissa
 
-                ChVector<> P;
-                msurface->Evaluate(P, mU, mV);
+                ChVector<> P = msurface->Evaluate(mU, mV);
                 ////P = vis->Pos + vis->Rot * P;
 
                 irrmesh->getVertexBuffer()[iv + iu * (sections_v + 1) + stride] =
@@ -830,8 +826,7 @@ void ChIrrNodeShape::UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned
 
     int itri = 0;
 
-    ChVector<> t1;
-    line->Evaluate(t1, 0);
+    ChVector<> t1 = line->Evaluate(0);
     ////t1 = vis->Pos + vis->Rot * t1;
 
     irrmesh->getVertexBuffer()[0] = video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, clr, 0, 0);
@@ -843,8 +838,7 @@ void ChIrrNodeShape::UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned
     for (unsigned int ig = 0; ig < ntriangles; ++ig) {
         double mU = maxU * ((double)ig / (double)(ntriangles - 1));  // abscissa
 
-        ChVector<> t2;
-        line->Evaluate(t2, mU);
+        ChVector<> t2 = line->Evaluate(mU);
         ////t2 = vis->Pos + vis->Rot * t2;
 
         // create a  small line (a degenerate triangle) per each vector

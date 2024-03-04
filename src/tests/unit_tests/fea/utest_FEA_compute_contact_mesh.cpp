@@ -99,6 +99,10 @@ int main(int argc, char* argv[]) {
     system.SetTangentialDisplacementModel(tdispl_model);
     system.SetStiffContact(stiff_contact);
 
+    system.Set_G_acc(ChVector<>(0, 0, gravity));
+
+    system.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     material->SetYoungModulus(young_modulus);
     material->SetRestitution(restitution);
@@ -108,8 +112,6 @@ int main(int argc, char* argv[]) {
     material->SetGn(gn);
     material->SetKt(kt);
     material->SetGt(gt);
-
-    system.Set_G_acc(ChVector<>(0, 0, gravity));
 
     // Create the ANCF shell element mesh
 

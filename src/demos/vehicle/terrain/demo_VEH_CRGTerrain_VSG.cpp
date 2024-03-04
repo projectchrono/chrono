@@ -31,7 +31,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -269,6 +269,7 @@ int main(int argc, char* argv[]) {
     // ----------------------------
 
     ChSystemSMC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys.Set_G_acc(-9.81 * ChWorldFrame::Vertical());
     sys.SetSolverMaxIterations(150);
     sys.SetMaxPenetrationRecoverySpeed(4.0);
@@ -303,7 +304,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Road width  = " << road_width << std::endl;
     std::cout << std::boolalpha << "Closed loop?  " << path_is_closed << std::endl << std::endl;
 
-    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChBoxShape>(geometry::ChBox(1, road_width, 1)),
+    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(geometry::ChBox(1, road_width, 1)),
                                         ChFrame<>(init_csys.pos - 0.5 * ChWorldFrame::Vertical(), init_csys.rot));
 
     path->write(out_dir + "/path.txt");
@@ -316,28 +317,28 @@ int main(int argc, char* argv[]) {
     init_csys.pos += 0.5 * ChWorldFrame::Vertical();
 
     // Create the HMMWV vehicle, set parameters, and initialize
-    HMMWV_Full my_hmmwv(&sys);
-    my_hmmwv.SetContactMethod(ChContactMethod::SMC);
-    my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetInitPosition(init_csys);
-    my_hmmwv.SetEngineType(EngineModelType::SHAFTS);
-    my_hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
-    my_hmmwv.SetDriveType(DrivelineTypeWV::RWD);
-    my_hmmwv.SetTireType(tire_model);
-    my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.Initialize();
+    HMMWV_Full hmmwv(&sys);
+    hmmwv.SetContactMethod(ChContactMethod::SMC);
+    hmmwv.SetChassisFixed(false);
+    hmmwv.SetInitPosition(init_csys);
+    hmmwv.SetEngineType(EngineModelType::SHAFTS);
+    hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
+    hmmwv.SetDriveType(DrivelineTypeWV::RWD);
+    hmmwv.SetTireType(tire_model);
+    hmmwv.SetTireStepSize(tire_step_size);
+    hmmwv.Initialize();
 
-    my_hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-    my_hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    my_hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
-    my_hmmwv.SetTireVisualizationType(VisualizationType::MESH);
+    hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
+    hmmwv.SetTireVisualizationType(VisualizationType::MESH);
 
     // --------------------
     // Create driver system
     // --------------------
 
-    MyDriver driver(driver_type, my_hmmwv.GetVehicle(), path, road_width);
+    MyDriver driver(driver_type, hmmwv.GetVehicle(), path, road_width);
     driver.Initialize();
 
     std::cout << "Driver model: " << driver.GetDriverType() << std::endl << std::endl;
@@ -349,10 +350,10 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->SetWindowTitle("OpenCRG Steering");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    vis->AttachVehicle(&my_hmmwv.GetVehicle());
+    vis->AttachVehicle(&hmmwv.GetVehicle());
 
-    auto sentinel = chrono_types::make_shared<ChSphereShape>(0.1);
-    auto target = chrono_types::make_shared<ChSphereShape>(0.1);
+    auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+    auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     sentinel->SetColor(ChColor(1, 0, 0));
     target->SetColor(ChColor(0, 1, 0));
     int sentinelID = vis->AddVisualModel(sentinel, ChFrame<>());
@@ -364,6 +365,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    hmmwv.GetVehicle().EnableRealtime(true);
+
     // Number of simulation steps between image outputs
     double render_step_size = 1 / fps;
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -373,7 +376,7 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     while (vis->Run()) {
-        double time = my_hmmwv.GetSystem()->GetChTime();
+        double time = hmmwv.GetSystem()->GetChTime();
 
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
@@ -389,8 +392,8 @@ int main(int argc, char* argv[]) {
             if (output_images) {
                 char filename[200];
                 int nstr = sizeof(filename) - 1;
-                snprintf(filename, nstr, "%s/image_%05d.bmp", out_dir.c_str(), render_frame);
-                vis->WriteImageToFile(filename);
+                    snprintf(filename, nstr, "%s/image_%05d.png", out_dir.c_str(), render_frame);
+                    vis->WriteImageToFile(filename);
                 render_frame++;
             }
         }
@@ -398,13 +401,13 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_hmmwv.Synchronize(time, driver_inputs, terrain);
+        hmmwv.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        my_hmmwv.Advance(step_size);
+        hmmwv.Advance(step_size);
         vis->Advance(step_size);
         sys.DoStepDynamics(step_size);
 

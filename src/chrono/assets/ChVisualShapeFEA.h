@@ -17,9 +17,12 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChGlyphs.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 namespace chrono {
+
+/// @addtogroup chrono_assets
+/// @{
 
 // Forward declarations
 namespace fea {
@@ -252,7 +255,7 @@ class ChApi ChVisualShapeFEA {
     ChColor meshcolor;
     ChColor symbolscolor;
 
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
     std::shared_ptr<ChGlyphs> m_glyphs_shape;
 
     std::vector<int> normal_accumulators;
@@ -260,7 +263,7 @@ class ChApi ChVisualShapeFEA {
     friend class ChVisualModel;
 };
 
-/// @} chrono_fea
+/// @} chrono_assets
 
 }  // end namespace chrono
 

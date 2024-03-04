@@ -252,6 +252,13 @@ ChVector2<RealA> Vrot(const ChVector2<RealA>& v, RealB angle) {
     return tmp;
 }
 
+/// Insertion of a 2D vector to output stream.
+template <typename Real>
+inline std::ostream& operator<<(std::ostream& out, const ChVector2<Real>& v) {
+    out << v.x() << "  " << v.y();
+    return out;
+}
+
 // =============================================================================
 // IMPLEMENTATION OF ChVector2<Real> methods
 // =============================================================================

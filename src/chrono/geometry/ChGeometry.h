@@ -36,6 +36,27 @@ enum class ChAxis {
     Z   ///< z direction of a reference frame
 };
 
+/// Axis-aligned bounding box.
+struct ChApi ChAABB {
+    /// Default is an inverted bounding box.
+    ChAABB();
+
+    /// Construct an AABB with provided corners.
+    ChAABB(const ChVector<>& aabb_min, const ChVector<>& aabb_max);
+
+    /// Get AABB center.
+    ChVector<> Center() const;
+
+    /// Get AABB dimensions.
+    ChVector<> Size() const;
+
+    /// Return true foir an inverted bounding box.
+    bool IsInverted() const;
+
+    ChVector<> min;  ///< low AABB corner
+    ChVector<> max;  ///< high AABB corner
+};
+
 /// Base class for geometric objects used for collisions and visualization.
 class ChApi ChGeometry {
   public:
@@ -63,24 +84,6 @@ class ChApi ChGeometry {
         TRIANGLEMESH_SOUP
     };
 
-    /// Axis-aligned bounding box.
-    struct ChApi AABB {
-        /// Default is an inverted bounding box.
-        AABB();
-
-        /// Construct an AABB with provided corners.
-        AABB(const ChVector<>& aabb_min, const ChVector<>& aabb_max);
-
-        /// Get AABB center.
-        ChVector<> Center() const;
-
-        /// Get AABB dimensions.
-        ChVector<> Size() const;
-
-        ChVector<> min;  ///< low AABB corner
-        ChVector<> max;  ///< high AABB corner
-    };
-
   public:
     ChGeometry() {}
     ChGeometry(const ChGeometry& source) {}
@@ -92,12 +95,12 @@ class ChApi ChGeometry {
     /// Get the class type as an enum.
     virtual Type GetClassType() const { return Type::NONE; }
 
-    /// Compute bounding box along the directions defined by the given rotation matrix.
-    /// The default implementation returns a bounding box with zeros dimensions.
-    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const;
+    /// Compute bounding box along the directions of the shape definition frame.
+    /// The default implementation returns a bounding box with zero dimensions.
+    virtual ChAABB GetBoundingBox() const;
 
     /// Enlarge the given existing bounding box with the bounding box of this object.
-    void InflateBoundingBox(AABB& bbox, const ChMatrix33<>& rot) const;
+    void InflateBoundingBox(ChAABB& bbox) const;
 
     /// Returns the radius of a bounding sphere for this geometry.
     /// The default implementation returns the radius of a sphere bounding the geometry bounding box, which is not

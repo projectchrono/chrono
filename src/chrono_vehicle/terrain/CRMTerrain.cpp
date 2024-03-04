@@ -32,6 +32,7 @@
 using std::cout;
 using std::endl;
 
+
 namespace chrono {
 namespace vehicle {
 
@@ -41,11 +42,9 @@ CRMTerrain::CRMTerrain(ChSystem& sys, double spacing)
       m_initialized(false),
       m_offset(VNULL),
       m_angle(0.0),
-      m_aabb_min(std::numeric_limits<double>::max()),
-      m_aabb_max(-std::numeric_limits<double>::max()),
       m_verbose(false) {
     // Create ground body
-    m_ground = std::shared_ptr<ChBody>(sys.NewBody());
+    m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetBodyFixed(true);
     sys.AddBody(m_ground);
 
@@ -101,7 +100,7 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     auto o_name = filesystem::path(obj_file).stem();
 
     // Create the obstacle body
-    o.body = std::shared_ptr<ChBody>(m_sys.NewBody());
+    o.body = chrono_types::make_shared<ChBody>();
     o.body->SetNameString("obstacle_" + o_name);
     o.body->SetPos(pos.GetPos());
     o.body->SetRot(pos.GetRot());
@@ -111,7 +110,7 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     o.body->SetCollide(true);
 
     // Create obstacle visualization geometry
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(o.trimesh);
     trimesh_shape->SetName(o_name);
     o.body->AddVisualShape(trimesh_shape, ChFrame<>());
@@ -119,10 +118,9 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     // Create obstacle collision geometry
     auto mat = o.cmat.CreateMaterial(m_sys.GetContactMethod());
     auto thickness = m_spacing / 2;
-    o.body->GetCollisionModel()->ClearModel();
-    o.body->GetCollisionModel()->AddTriangleMesh(mat, o.trimesh, false, false, VNULL, ChMatrix33<>(1), thickness);
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, o.trimesh, false, false, thickness);
+    o.body->AddCollisionShape(ct_shape);
     o.body->GetCollisionModel()->SetFamily(2);
-    o.body->GetCollisionModel()->BuildModel();
 
     // Create the obstacle BCE points (relative coordinates)
     m_sysFSI.CreateMeshPoints(*o.trimesh, m_spacing, o.point_cloud);
@@ -410,20 +408,20 @@ void CRMTerrain::CompleteConstruct() {
     ChVector<> tau(0);
     for (const auto& p : sph_points) {
         m_sysFSI.AddSPHParticle(p, m_sysFSI.GetDensity(), 0.0, m_sysFSI.GetViscosity(), VNULL, tau, VNULL);
-        m_aabb_min = Vmin(m_aabb_min, p);
-        m_aabb_max = Vmax(m_aabb_max, p);
+        m_aabb.min = Vmin(m_aabb.min, p);
+        m_aabb.max = Vmax(m_aabb.max, p);
     }
 
     if (m_verbose) {
         cout << "AABB of SPH particles" << endl;
-        cout << "  min: " << m_aabb_min << endl;
-        cout << "  max: " << m_aabb_max << endl;
+        cout << "  min: " << m_aabb.min << endl;
+        cout << "  max: " << m_aabb.max << endl;
     }
 
     // Set computational domain
-    ChVector<> aabb_dim = m_aabb_max - m_aabb_min;
+    ChVector<> aabb_dim = m_aabb.Size();
     aabb_dim.z() *= 50;
-    m_sysFSI.SetBoundaries(m_aabb_min - 0.1 * aabb_dim, m_aabb_max + 0.1 * aabb_dim);
+    m_sysFSI.SetBoundaries(m_aabb.min - 0.1 * aabb_dim, m_aabb.max + 0.1 * aabb_dim);
 
     // Create BCE markers for terrain patch
     // (ATTENTION: BCE markers must be created after the SPH particles!)
@@ -539,11 +537,6 @@ void CRMTerrain::ProcessObstacleMesh(RigidObstacle& o) {
         cout << "  Num. grid points in obstacle volume: " << list.size() << endl;
         cout << "  Num. SPH particles removed: " << num_removed << endl;
     }
-}
-
-void CRMTerrain::GetAABB(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
-    aabb_min = m_aabb_min;
-    aabb_max = m_aabb_max;
 }
 
 void CRMTerrain::SaveMarkers(const std::string& out_dir) const {

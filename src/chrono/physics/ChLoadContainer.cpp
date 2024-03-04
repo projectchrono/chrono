@@ -24,10 +24,11 @@ ChLoadContainer::ChLoadContainer(const ChLoadContainer& other) : ChPhysicsItem(o
 }
 
 void ChLoadContainer::Add(std::shared_ptr<ChLoadBase> newload) {
-    //TODO Radu: I don't think find can be used on a container of shared pointers which does not support the == operator.
-    //TODO Radu: check if this is still true, now that we switched to std::shared_ptr
+    // TODO Radu: I don't think find can be used on a container of shared pointers which does not support the ==
+    // operator.
+    // TODO Radu: check if this is still true, now that we switched to std::shared_ptr
 
-    //assert(std::find<std::vector<std::shared_ptr<ChLoadBase>>::iterator>(loadlist.begin(), loadlist.end(), newload)
+    // assert(std::find<std::vector<std::shared_ptr<ChLoadBase>>::iterator>(loadlist.begin(), loadlist.end(), newload)
     ///== loadlist.end());
     loadlist.push_back(newload);
 }
@@ -43,19 +44,30 @@ void ChLoadContainer::Update(double mytime, bool update_assets) {
 void ChLoadContainer::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                         ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                         const double c           // a scaling factor
-                                        ) {
+) {
     for (size_t i = 0; i < loadlist.size(); ++i) {
         loadlist[i]->LoadIntLoadResidual_F(R, c);
     }
 }
 
 void ChLoadContainer::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
-                                   ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-                                   const ChVectorDynamic<>& w,  ///< the w vector
-                                   const double c               ///< a scaling factor
-                                   ) {
+                                         ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
+                                         const ChVectorDynamic<>& w,  ///< the w vector
+                                         const double c               ///< a scaling factor
+) {
     for (size_t i = 0; i < loadlist.size(); ++i) {
         loadlist[i]->LoadIntLoadResidual_Mv(R, w, c);
+    }
+}
+
+void ChLoadContainer::IntLoadLumpedMass_Md(
+    const unsigned int off,  ///< offset in Md vector
+    ChVectorDynamic<>& Md,   ///< result: Md vector, diagonal of the lumped mass matrix
+    double& err,             ///< result: not touched if lumping does not introduce errors
+    const double c           ///< a scaling factor
+) {
+    for (size_t i = 0; i < loadlist.size(); ++i) {
+        loadlist[i]->LoadIntLoadLumpedMass_Md(Md, err, c);
     }
 }
 

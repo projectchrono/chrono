@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <cstddef>
 #include <cctype>
+#include <sstream>
+#include <iomanip>
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 #include "chrono_vsg/utils/ChConversionsVSG.h"
@@ -30,7 +32,7 @@ using namespace std;
 // -----------------------------------------------------------------------------
 
 class GuiComponentWrapper {
-  public:
+   public:
     GuiComponentWrapper(std::shared_ptr<ChGuiComponentVSG> component, ChVisualSystemVSG* app)
         : m_component(component), m_app(app) {}
 
@@ -42,13 +44,13 @@ class GuiComponentWrapper {
         return false;
     }
 
-  private:
+   private:
     std::shared_ptr<ChGuiComponentVSG> m_component;
     ChVisualSystemVSG* m_app;
 };
 
 class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
-  public:
+   public:
     ChBaseGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app) {}
 
     // Example here taken from the Dear imgui comments (mostly)
@@ -136,7 +138,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 };
 
 class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
-  public:
+   public:
     ChCameraGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app) { m_visible = false; }
 
     virtual void render() override {
@@ -182,7 +184,7 @@ class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
 };
 
 class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
-  public:
+   public:
     ChColorbarGuiComponentVSG(const std::string& title, double min_val, double max_val)
         : m_title(title), m_min_val(min_val), m_max_val(max_val) {}
 
@@ -227,7 +229,7 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
         ImGui::SameLine();
         val = m_min_val + stride * 4.0 / 6.0;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv23, 0.0, alpha));
-        snprintf(label, nstr - 1, "%.3f", val);
+        snprintf(label, nstr, "%.3f", val);
         ImGui::Button(label);
         ImGui::PopStyleColor(1);
         ImGui::SameLine();
@@ -245,7 +247,7 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
         ImGui::End();
     }
 
-  private:
+   private:
     std::string m_title;
     double m_min_val;
     double m_max_val;
@@ -254,19 +256,19 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
 // -----------------------------------------------------------------------------
 
 class EventHandlerWrapper : public vsg::Inherit<vsg::Visitor, EventHandlerWrapper> {
-  public:
+   public:
     EventHandlerWrapper(std::shared_ptr<ChEventHandlerVSG> component, ChVisualSystemVSG* app)
         : m_component(component), m_app(app) {}
 
     void apply(vsg::KeyPressEvent& keyPress) override { m_component->process(keyPress); }
 
-  private:
+   private:
     std::shared_ptr<ChEventHandlerVSG> m_component;
     ChVisualSystemVSG* m_app;
 };
 
 class ChBaseEventHandlerVSG : public ChEventHandlerVSG {
-  public:
+   public:
     ChBaseEventHandlerVSG(ChVisualSystemVSG* app) : m_app(app) {}
 
     virtual void process(vsg::KeyPressEvent& keyPress) override {
@@ -287,15 +289,21 @@ class ChBaseEventHandlerVSG : public ChEventHandlerVSG {
 // -----------------------------------------------------------------------------
 
 // Utility visitor class for accessing the vec3 data in the N-th vertex buffer of an object.
+// Note: since VSG v.1.0.8 VertexIndexDraw is used instead of BindVertexBuffers!
 template <int N>
 class FindVec3BufferData : public vsg::Visitor {
-  public:
+   public:
     FindVec3BufferData() : m_buffer(nullptr) {}
     void apply(vsg::Object& object) override { object.traverse(*this); }
     void apply(vsg::BindVertexBuffers& bvd) override {
         if (bvd.arrays.empty())
             return;
         bvd.arrays[N]->data->accept(*this);
+    }
+    void apply(vsg::VertexIndexDraw& vid) override {
+        if (vid.arrays.empty())
+            return;
+        vid.arrays[N]->data->accept(*this);
     }
     void apply(vsg::vec3Array& vertices) override {
         if (!m_buffer)
@@ -310,15 +318,21 @@ class FindVec3BufferData : public vsg::Visitor {
 };
 
 // Utility visitor class for accessing the vec4 data in the N-th vertex buffer of an object.
+// Note: since VSG v.1.0.8 VertexIndexDraw is used instead of BindVertexBuffers!
 template <int N>
 class FindVec4BufferData : public vsg::Visitor {
-  public:
+   public:
     FindVec4BufferData() : m_buffer(nullptr) {}
     void apply(vsg::Object& object) override { object.traverse(*this); }
     void apply(vsg::BindVertexBuffers& bvd) override {
         if (bvd.arrays.empty())
             return;
         bvd.arrays[N]->data->accept(*this);
+    }
+    void apply(vsg::VertexIndexDraw& vid) override {
+        if (vid.arrays.empty())
+            return;
+        vid.arrays[N]->data->accept(*this);
     }
     void apply(vsg::vec4Array& vertices) override {
         if (!m_buffer)
@@ -388,7 +402,7 @@ struct LoadOperation : public vsg::Inherit<vsg::Operation, LoadOperation> {
 
 // -----------------------------------------------------------------------------
 
-ChVisualSystemVSG::ChVisualSystemVSG()
+ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     : m_yup(false),
       m_useSkybox(false),
       m_capture_image(false),
@@ -429,9 +443,7 @@ ChVisualSystemVSG::ChVisualSystemVSG()
     // add vsgXchange's support for reading and writing 3rd party file formats, mandatory for chrono_vsg!
     m_options->add(vsgXchange::all::create());
     m_options->sharedObjects = vsg::SharedObjects::create();
-    m_shapeBuilder = ShapeBuilder::create();
-    m_shapeBuilder->m_options = m_options;
-    m_shapeBuilder->m_sharedObjects = m_options->sharedObjects;
+    m_shapeBuilder = ShapeBuilder::create(m_options, num_divs);
     m_vsgBuilder = vsg::Builder::create();
     m_vsgBuilder->options = m_options;
 
@@ -627,12 +639,12 @@ void ChVisualSystemVSG::SetCameraTarget(const ChVector<>& target) {
 }
 
 ChVector<> ChVisualSystemVSG::GetCameraPosition() const {
-    auto p = m_lookAt->eye;
+    const auto& p = m_lookAt->eye;
     return ChVector<>(p.x, p.y, p.z);
 }
 
 ChVector<> ChVisualSystemVSG::GetCameraTarget() const {
-    auto p = m_lookAt->center;
+    const auto& p = m_lookAt->center;
     return ChVector<>(p.x, p.y, p.z);
 }
 
@@ -667,6 +679,9 @@ void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
 }
 
 void ChVisualSystemVSG::Initialize() {
+    if (m_initialized)
+        return;
+
     auto builder = vsg::Builder::create();
     builder->options = m_options;
 
@@ -707,9 +722,12 @@ void ChVisualSystemVSG::Initialize() {
     ambientLight->intensity = 0.2f;
 
     auto directionalLight = vsg::DirectionalLight::create();
-    directionalLight->name = "head light";
+    directionalLight->name = "sun light";
     directionalLight->color.set(1.0f, 1.0f, 1.0f);
     directionalLight->intensity = m_lightIntensity;
+    if (m_use_shadows)
+        directionalLight->shadowMaps = 10;
+
     double se = std::sin(m_elevation);
     double ce = std::cos(m_elevation);
     double sa = std::sin(m_azimuth);
@@ -719,11 +737,29 @@ void ChVisualSystemVSG::Initialize() {
     else
         directionalLight->direction.set(-ce * ca, -ce * sa, -se);
 
+    /* Head Light, moves with camera orientation
     auto absoluteTransform = vsg::AbsoluteTransform::create();
     absoluteTransform->addChild(ambientLight);
     absoluteTransform->addChild(directionalLight);
-
     m_scene->addChild(absoluteTransform);
+     */
+    // Directional (Sun) Light, moves with object orientation
+    m_scene->addChild(ambientLight);
+    m_scene->addChild(directionalLight);
+    if (m_use_shadows) {
+        // helper light to improve quality of the dark side
+        auto overheadLight = vsg::DirectionalLight::create();
+        overheadLight->name = "head light";
+        overheadLight->color.set(1.0f, 1.0f, 1.0f);
+        overheadLight->intensity = 0.2;
+        if (m_yup)
+            overheadLight->direction.set(-ce * ca, -se, -ce * sa);
+        else
+            overheadLight->direction.set(-ce * ca, -ce * sa, -se);
+        auto absoluteTransform = vsg::AbsoluteTransform::create();
+        absoluteTransform->addChild(overheadLight);
+        m_scene->addChild(absoluteTransform);
+    }
     m_scene->addChild(m_bodyScene);
     m_scene->addChild(m_cogFrameScene);
     m_scene->addChild(m_jointFrameScene);
@@ -742,8 +778,9 @@ void ChVisualSystemVSG::Initialize() {
         std::cout << "Could not create window." << std::endl;
         return;
     }
-    auto& limits = m_window->getOrCreatePhysicalDevice()->getProperties().limits;  // VkPhysicalDeviceLimits
-    auto prop = m_window->getPhysicalDevice()->getProperties();
+
+    ////auto& limits = m_window->getOrCreatePhysicalDevice()->getProperties().limits;  // VkPhysicalDeviceLimits
+    const auto& prop = m_window->getOrCreatePhysicalDevice()->getProperties();
 
     if (m_verbose) {
         GetLog() << "****************************************************\n";
@@ -775,7 +812,6 @@ void ChVisualSystemVSG::Initialize() {
         GetLog() << "****************************************************\n";
     }
 
-    m_shapeBuilder->m_maxAnisotropy = limits.maxSamplerAnisotropy;
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
     m_viewer->addWindow(m_window);
 
@@ -872,8 +908,8 @@ void ChVisualSystemVSG::Initialize() {
 
     m_viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
 
-    // assign a CompileTraversal to the Builder that will compile for all the views assigned to the viewer,
-    // must be done after Viewer.assignRecordAndSubmitTasksAndPresentations();
+    // Assign a CompileTraversal to the Builders that will compile for all the views assigned to the viewer.
+    // Must be done after Viewer.assignRecordAndSubmitTasksAndPresentations()
     auto compileTraversal = vsg::CompileTraversal::create(*m_viewer);
     m_shapeBuilder->assignCompileTraversal(compileTraversal);
     m_vsgBuilder->assignCompileTraversal(compileTraversal);
@@ -889,7 +925,7 @@ void ChVisualSystemVSG::Initialize() {
 
     m_viewer->compile(resourceHints);
 
-    // prepare reading 3d files
+    // Prepare reading 3d files
     m_loadThreads = vsg::OperationThreads::create(m_numThreads, m_viewer->status);
 
     m_initialized = true;
@@ -901,9 +937,10 @@ bool ChVisualSystemVSG::Run() {
 
 void ChVisualSystemVSG::Render() {
     if (m_write_images && m_frame_number > 0) {
-        char buf[300];
-        sprintf(buf, "%s/img_%04d.png", m_image_dir.c_str(), m_frame_number);
-        WriteImageToFile(std::string(buf));
+        // Zero-pad frame numbers in file names for postprocessing
+        std::ostringstream filename;
+        filename << m_image_dir << "/img_" << std::setw(4) << std::setfill('0') << m_frame_number << ".png";
+        WriteImageToFile(filename.str());
     }
 
     if (m_frame_number == 0)
@@ -975,7 +1012,8 @@ void ChVisualSystemVSG::Render() {
     m_viewer->recordAndSubmit();
 
     if (m_capture_image) {
-        exportScreenshot(m_window, m_options, m_imageFilename);
+        // exportScreenshot(m_window, m_options, m_imageFilename);
+        exportScreenImage();
         m_capture_image = false;
     }
 
@@ -1036,7 +1074,6 @@ void ChVisualSystemVSG::ToggleJointFrameVisibility() {
     }
 }
 
-
 void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
     m_imageFilename = filename;
     m_capture_image = true;
@@ -1073,50 +1110,57 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
         std::shared_ptr<ChVisualMaterial> material =
             shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
-        if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+        if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, box->GetHalflengths());
 
             // We have boxes and dice. Dice take cubetextures, boxes take 6 identical textures.
             // Use a die if a kd map exists and its name contains "cubetexture". Otherwise, use a box.
             auto grp = !material->GetKdTexture().empty() && material->GetKdTexture().find("cubetexture") != string::npos
-                           ? m_shapeBuilder->createPbrShape(ShapeBuilder::DIE_SHAPE, material, transform, m_wireframe)
-                           : m_shapeBuilder->createPbrShape(ShapeBuilder::BOX_SHAPE, material, transform, m_wireframe);
+                           ? m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::DIE_SHAPE, material, transform,
+                                                            m_wireframe)
+                           : m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX_SHAPE, material, transform,
+                                                            m_wireframe);
             group->addChild(grp);
-        } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+        } else if (auto sphere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, sphere->GetRadius());
-            auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
+            auto grp =
+                m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE_SHAPE, material, transform, m_wireframe);
             group->addChild(grp);
-        } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
+        } else if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ellipsoid->GetSemiaxes());
-            auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
+            auto grp =
+                m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE_SHAPE, material, transform, m_wireframe);
             group->addChild(grp);
-        } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+        } else if (auto cylinder = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
             double rad = cylinder->GetRadius();
             double height = cylinder->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, height));
-            auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::CYLINDER_SHAPE, material, transform, m_wireframe);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER_SHAPE, material, transform,
+                                                      m_wireframe);
             group->addChild(grp);
-        } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
+        } else if (auto capsule = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
             double rad = capsule->GetRadius();
             double height = capsule->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, rad / 2 + height / 4));
-            auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, true);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE_SHAPE, material, transform,
+                                                      m_wireframe);
             group->addChild(grp);
-        } else if (auto barrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
+        } else if (auto barrel = std::dynamic_pointer_cast<ChVisualShapeBarrel>(shape)) {
             //// TODO
-        } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+        } else if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
             double rad = cone->GetRadius();
             double height = cone->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, height));
-            auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::CONE_SHAPE, material, transform, m_wireframe);
+            auto grp =
+                m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE_SHAPE, material, transform, m_wireframe);
             group->addChild(grp);
-        } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
+        } else if (auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
             /*
@@ -1125,21 +1169,21 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
                            : m_shapeBuilder->createTrimeshColShape(trimesh, transform, m_wireframe);
             */
             auto grp = trimesh->GetNumMaterials() > 0
-                           ? m_shapeBuilder->createTrimeshPbrMatShape(trimesh, transform, m_wireframe)
-                           : m_shapeBuilder->createTrimeshColShape(trimesh, transform, m_wireframe);
+                           ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh, transform, m_wireframe)
+                           : m_shapeBuilder->CreateTrimeshColShape(trimesh, transform, m_wireframe);
             group->addChild(grp);
-        } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
+        } else if (auto surface = std::dynamic_pointer_cast<ChVisualShapeSurface>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
-            auto grp =
-                m_shapeBuilder->createPbrShape(ShapeBuilder::SURFACE_SHAPE, material, transform, m_wireframe, surface);
+            auto grp = m_shapeBuilder->CreatePbrSurfaceShape(surface, material, transform, m_wireframe);
             group->addChild(grp);
-        } else if (auto obj = std::dynamic_pointer_cast<ChModelFileShape>(shape)) {
-            string objFilename = obj->GetFilename();
+        } else if (auto obj = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
+            const auto& objFilename = obj->GetFilename();
+            const auto& scale = obj->GetScale();
             size_t objHashValue = m_stringHash(objFilename);
             auto grp = vsg::Group::create();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * Q_from_AngX(-CH_C_PI_2)), 1.0);
+            transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * Q_from_AngX(-CH_C_PI_2)), scale);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
             // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
@@ -1157,14 +1201,14 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
                 transform->addChild(m_objCache[objHashValue]);
                 group->addChild(grp);
             }
-        } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
+        } else if (auto line = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
-            group->addChild(m_shapeBuilder->createLineShape(shape_instance, material, transform, line));
-        } else if (auto path = std::dynamic_pointer_cast<ChPathShape>(shape)) {
+            group->addChild(m_shapeBuilder->CreateLineShape(shape_instance, material, transform, line));
+        } else if (auto path = std::dynamic_pointer_cast<ChVisualShapePath>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
-            group->addChild(m_shapeBuilder->createPathShape(shape_instance, material, transform, path));
+            group->addChild(m_shapeBuilder->CreatePathShape(shape_instance, material, transform, path));
         }
 
     }  // end loop over visual shapes
@@ -1224,7 +1268,7 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
 
         //// RADU TODO: process glyphs
         ////            for now, only treat the trimeshes in the visual model
-        auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape);
+        auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape);
         if (!trimesh)
             continue;
 
@@ -1236,8 +1280,8 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
 
         auto transform = vsg::MatrixTransform::create();
         auto child = (trimesh->GetNumMaterials() > 0)
-                         ? m_shapeBuilder->createTrimeshPbrMatShape(trimesh, transform, trimesh->IsWireframe())
-                         : m_shapeBuilder->createTrimeshColShape(trimesh, transform, trimesh->IsWireframe());
+                         ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh, transform, trimesh->IsWireframe())
+                         : m_shapeBuilder->CreateTrimeshColShape(trimesh, transform, trimesh->IsWireframe());
         m_deformableScene->addChild(child);
 
         def_mesh.mesh_soup = true;
@@ -1282,26 +1326,26 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     auto shape = vis_model->GetShape(0);
     ShapeType shape_type = ShapeType::NONE;
     ChVector<> shape_size(0);
-    if (auto sph = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+    if (auto sph = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
         shape_type = ShapeType::SPHERE;
         shape_size = ChVector<>(2 * sph->GetRadius());
-    } else if (auto ell = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
+    } else if (auto ell = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
         shape_type = ShapeType::ELLIPSOID;
         shape_size = ell->GetAxes();
-    } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+    } else if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
         shape_type = ShapeType::BOX;
         shape_size = box->GetLengths();
-    } else if (auto cap = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
+    } else if (auto cap = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
         double rad = cap->GetRadius();
         double height = cap->GetHeight();
         shape_type = ShapeType::CAPSULE;
         shape_size = ChVector<>(2 * rad, 2 * rad, height);
-    } else if (auto cyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+    } else if (auto cyl = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
         double rad = cyl->GetRadius();
         double height = cyl->GetHeight();
         shape_type = ShapeType::CYLINDER;
         shape_size = ChVector<>(2 * rad, 2 * rad, height);
-    } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+    } else if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
         double rad = cone->GetRadius();
         double height = cone->GetHeight();
         shape_type = ShapeType::CONE;
@@ -1342,7 +1386,7 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
 
     cloud.positions = vsg::vec3Array::create(num_particles);
     geomInfo.positions = cloud.positions;
-    for (size_t k = 0; k < num_particles; k++)
+    for (unsigned int k = 0; k < num_particles; k++)
         cloud.positions->set(k, vsg::vec3CH(pcloud->GetParticle(k).GetPos()));
     if (cloud.dynamic_positions) {
         cloud.positions->properties.dataVariance = vsg::DYNAMIC_DATA;
@@ -1383,7 +1427,7 @@ void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>
 
     const auto& shape_instance = vis_model->GetShapes().at(0);
     auto& shape = shape_instance.first;
-    auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape);
+    auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape);
     if (!trimesh)
         return;
 
@@ -1392,8 +1436,8 @@ void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>
 
     auto transform = vsg::MatrixTransform::create();
     auto child = (trimesh->GetNumMaterials() > 0)
-                     ? m_shapeBuilder->createTrimeshPbrMatShape(trimesh, transform, trimesh->IsWireframe())
-                     : m_shapeBuilder->createTrimeshColAvgShape(trimesh, transform, trimesh->IsWireframe());
+                     ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh, transform, trimesh->IsWireframe())
+                     : m_shapeBuilder->CreateTrimeshColAvgShape(trimesh, transform, trimesh->IsWireframe());
     m_deformableScene->addChild(child);
 
     def_mesh.mesh_soup = false;
@@ -1431,7 +1475,7 @@ void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
 
     for (auto& shape_instance : vis_model->GetShapes()) {
         auto& shape = shape_instance.first;
-        if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
+        if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
             double length;
             auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
             std::shared_ptr<ChVisualMaterial> material =
@@ -1439,8 +1483,8 @@ void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
 
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
-            m_linkScene->addChild(m_shapeBuilder->createUnitSegment(tsda, shape_instance, material, transform));
-        } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
+            m_linkScene->addChild(m_shapeBuilder->CreateUnitSegment(tsda, shape_instance, material, transform));
+        } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
             double rad = sprshape->GetRadius();
             double length;
             auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
@@ -1450,7 +1494,7 @@ void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X, ChVector<>(rad, length, rad));
             m_linkScene->addChild(
-                m_shapeBuilder->createSpringShape(tsda, shape_instance, material, transform, sprshape));
+                m_shapeBuilder->CreateSpringShape(tsda, shape_instance, material, transform, sprshape));
         }
     }
 }
@@ -1463,7 +1507,7 @@ void ChVisualSystemVSG::BindLinkDistance(const std::shared_ptr<ChLinkDistance>& 
 
     for (auto& shape_instance : vis_model->GetShapes()) {
         auto& shape = shape_instance.first;
-        if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
+        if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
             double length;
             auto X = PointPointFrame(dist->GetEndPoint1Abs(), dist->GetEndPoint2Abs(), length);
             std::shared_ptr<ChVisualMaterial> material =
@@ -1471,7 +1515,7 @@ void ChVisualSystemVSG::BindLinkDistance(const std::shared_ptr<ChLinkDistance>& 
 
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
-            m_linkScene->addChild(m_shapeBuilder->createUnitSegment(dist, shape_instance, material, transform));
+            m_linkScene->addChild(m_shapeBuilder->CreateUnitSegment(dist, shape_instance, material, transform));
         }
     }
 }
@@ -1590,7 +1634,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             std::shared_ptr<ChLinkBase> link;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
             if (!child.node->getValue("Joint", link))
-              continue;
+                continue;
             if (!child.node->getValue("Transform", transform))
                 continue;
 
@@ -1637,18 +1681,18 @@ void ChVisualSystemVSG::UpdateFromMBS() {
         auto& shape = shapeInstance.first;
 
         if (auto tsda = std::dynamic_pointer_cast<ChLinkTSDA>(link)) {
-            if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
+            if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
                 double length;
                 auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
                 transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
-            } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
+            } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
                 double rad = sprshape->GetRadius();
                 double length;
                 auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
                 transform->matrix = vsg::dmat4CH(X, ChVector<>(rad, length, rad));
             }
         } else if (auto dist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
-            if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
+            if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
                 double length;
                 auto X = PointPointFrame(dist->GetEndPoint1Abs(), dist->GetEndPoint2Abs(), length);
                 transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
@@ -1717,7 +1761,226 @@ void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<>& frame) {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsys<> pos, ChColor col) {
-    m_decoScene->addChild(m_shapeBuilder->createDecoGrid(x_step, y_step, nx, ny, pos, col));
+    m_decoScene->addChild(m_shapeBuilder->CreateGrid(x_step, y_step, nx, ny, pos, col));
+}
+
+void ChVisualSystemVSG::exportScreenImage() {
+    m_write_images = false;
+
+    auto width = m_window->extent2D().width;
+    auto height = m_window->extent2D().height;
+
+    auto device = m_window->getDevice();
+    auto physicalDevice = m_window->getPhysicalDevice();
+    auto swapchain = m_window->getSwapchain();
+
+    // get the colour buffer image of the previous rendered frame as the current frame hasn't been rendered yet.  The 1
+    // in window->imageIndex(1) means image from 1 frame ago.
+    auto sourceImage = m_window->imageView(m_window->imageIndex(1))->image;
+
+    VkFormat sourceImageFormat = swapchain->getImageFormat();
+    VkFormat targetImageFormat = sourceImageFormat;
+
+    //
+    // 1) Check to see if Blit is supported.
+    //
+    VkFormatProperties srcFormatProperties;
+    vkGetPhysicalDeviceFormatProperties(*(physicalDevice), sourceImageFormat, &srcFormatProperties);
+
+    VkFormatProperties destFormatProperties;
+    vkGetPhysicalDeviceFormatProperties(*(physicalDevice), VK_FORMAT_R8G8B8A8_UNORM, &destFormatProperties);
+
+    bool supportsBlit = ((srcFormatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT) != 0) &&
+                        ((destFormatProperties.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT) != 0);
+
+    if (supportsBlit) {
+        // we can automatically convert the image format when blit, so take advantage of it to ensure RGBA
+        targetImageFormat = VK_FORMAT_R8G8B8A8_UNORM;
+    }
+
+    // vsg::info("supportsBlit = ", supportsBlit);
+
+    //
+    // 2) create image to write to
+    //
+    auto destinationImage = vsg::Image::create();
+    destinationImage->imageType = VK_IMAGE_TYPE_2D;
+    destinationImage->format = targetImageFormat;
+    destinationImage->extent.width = width;
+    destinationImage->extent.height = height;
+    destinationImage->extent.depth = 1;
+    destinationImage->arrayLayers = 1;
+    destinationImage->mipLevels = 1;
+    destinationImage->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    destinationImage->samples = VK_SAMPLE_COUNT_1_BIT;
+    destinationImage->tiling = VK_IMAGE_TILING_LINEAR;
+    destinationImage->usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
+    destinationImage->compile(device);
+
+    auto deviceMemory =
+        vsg::DeviceMemory::create(device, destinationImage->getMemoryRequirements(device->deviceID),
+                                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    destinationImage->bind(deviceMemory, 0);
+
+    //
+    // 3) create command buffer and submit to graphics queue
+    //
+    auto commands = vsg::Commands::create();
+
+    // 3.a) transition destinationImage to transfer destination initialLayout
+    auto transitionDestinationImageToDestinationLayoutBarrier = vsg::ImageMemoryBarrier::create(
+        0,                                                              // srcAccessMask
+        VK_ACCESS_TRANSFER_WRITE_BIT,                                   // dstAccessMask
+        VK_IMAGE_LAYOUT_UNDEFINED,                                      // oldLayout
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,                           // newLayout
+        VK_QUEUE_FAMILY_IGNORED,                                        // srcQueueFamilyIndex
+        VK_QUEUE_FAMILY_IGNORED,                                        // dstQueueFamilyIndex
+        destinationImage,                                               // image
+        VkImageSubresourceRange{VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // subresourceRange
+    );
+
+    // 3.b) transition swapChainImage from present to transfer source initialLayout
+    auto transitionSourceImageToTransferSourceLayoutBarrier = vsg::ImageMemoryBarrier::create(
+        VK_ACCESS_MEMORY_READ_BIT,                                      // srcAccessMask
+        VK_ACCESS_TRANSFER_READ_BIT,                                    // dstAccessMask
+        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,                                // oldLayout
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,                           // newLayout
+        VK_QUEUE_FAMILY_IGNORED,                                        // srcQueueFamilyIndex
+        VK_QUEUE_FAMILY_IGNORED,                                        // dstQueueFamilyIndex
+        sourceImage,                                                    // image
+        VkImageSubresourceRange{VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // subresourceRange
+    );
+
+    auto cmd_transitionForTransferBarrier =
+        vsg::PipelineBarrier::create(VK_PIPELINE_STAGE_TRANSFER_BIT,                        // srcStageMask
+                                     VK_PIPELINE_STAGE_TRANSFER_BIT,                        // dstStageMask
+                                     0,                                                     // dependencyFlags
+                                     transitionDestinationImageToDestinationLayoutBarrier,  // barrier
+                                     transitionSourceImageToTransferSourceLayoutBarrier     // barrier
+        );
+
+    commands->addChild(cmd_transitionForTransferBarrier);
+
+    if (supportsBlit) {
+        // 3.c.1) if blit using vkCmdBlitImage
+        VkImageBlit region{};
+        region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.srcSubresource.layerCount = 1;
+        region.srcOffsets[0] = VkOffset3D{0, 0, 0};
+        region.srcOffsets[1] = VkOffset3D{static_cast<int32_t>(width), static_cast<int32_t>(height), 1};
+        region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.dstSubresource.layerCount = 1;
+        region.dstOffsets[0] = VkOffset3D{0, 0, 0};
+        region.dstOffsets[1] = VkOffset3D{static_cast<int32_t>(width), static_cast<int32_t>(height), 1};
+
+        auto blitImage = vsg::BlitImage::create();
+        blitImage->srcImage = sourceImage;
+        blitImage->srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        blitImage->dstImage = destinationImage;
+        blitImage->dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        blitImage->regions.push_back(region);
+        blitImage->filter = VK_FILTER_NEAREST;
+
+        commands->addChild(blitImage);
+    } else {
+        // 3.c.2) else use vkCmdCopyImage
+
+        VkImageCopy region{};
+        region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.srcSubresource.layerCount = 1;
+        region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.dstSubresource.layerCount = 1;
+        region.extent.width = width;
+        region.extent.height = height;
+        region.extent.depth = 1;
+
+        auto copyImage = vsg::CopyImage::create();
+        copyImage->srcImage = sourceImage;
+        copyImage->srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        copyImage->dstImage = destinationImage;
+        copyImage->dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        copyImage->regions.push_back(region);
+
+        commands->addChild(copyImage);
+    }
+
+    // 3.d) transition destination image from transfer destination layout to general layout to enable mapping to image
+    // DeviceMemory
+    auto transitionDestinationImageToMemoryReadBarrier = vsg::ImageMemoryBarrier::create(
+        VK_ACCESS_TRANSFER_WRITE_BIT,                                   // srcAccessMask
+        VK_ACCESS_MEMORY_READ_BIT,                                      // dstAccessMask
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,                           // oldLayout
+        VK_IMAGE_LAYOUT_GENERAL,                                        // newLayout
+        VK_QUEUE_FAMILY_IGNORED,                                        // srcQueueFamilyIndex
+        VK_QUEUE_FAMILY_IGNORED,                                        // dstQueueFamilyIndex
+        destinationImage,                                               // image
+        VkImageSubresourceRange{VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // subresourceRange
+    );
+
+    // 3.e) transition swap chain image back to present
+    auto transitionSourceImageBackToPresentBarrier = vsg::ImageMemoryBarrier::create(
+        VK_ACCESS_TRANSFER_READ_BIT,                                    // srcAccessMask
+        VK_ACCESS_MEMORY_READ_BIT,                                      // dstAccessMask
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,                           // oldLayout
+        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,                                // newLayout
+        VK_QUEUE_FAMILY_IGNORED,                                        // srcQueueFamilyIndex
+        VK_QUEUE_FAMILY_IGNORED,                                        // dstQueueFamilyIndex
+        sourceImage,                                                    // image
+        VkImageSubresourceRange{VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // subresourceRange
+    );
+
+    auto cmd_transitionFromTransferBarrier =
+        vsg::PipelineBarrier::create(VK_PIPELINE_STAGE_TRANSFER_BIT,                 // srcStageMask
+                                     VK_PIPELINE_STAGE_TRANSFER_BIT,                 // dstStageMask
+                                     0,                                              // dependencyFlags
+                                     transitionDestinationImageToMemoryReadBarrier,  // barrier
+                                     transitionSourceImageBackToPresentBarrier       // barrier
+        );
+
+    commands->addChild(cmd_transitionFromTransferBarrier);
+
+    auto fence = vsg::Fence::create(device);
+    auto queueFamilyIndex = physicalDevice->getQueueFamily(VK_QUEUE_GRAPHICS_BIT);
+    auto commandPool = vsg::CommandPool::create(device, queueFamilyIndex);
+    auto queue = device->getQueue(queueFamilyIndex);
+
+    vsg::submitCommandsToQueue(commandPool, fence, 100000000000, queue,
+                               [&](vsg::CommandBuffer& commandBuffer) { commands->record(commandBuffer); });
+
+    //
+    // 4) map image and copy
+    //
+    VkImageSubresource subResource{VK_IMAGE_ASPECT_COLOR_BIT, 0, 0};
+    VkSubresourceLayout subResourceLayout;
+    vkGetImageSubresourceLayout(*device, destinationImage->vk(device->deviceID), &subResource, &subResourceLayout);
+
+    size_t destRowWidth = width * sizeof(vsg::ubvec4);
+    vsg::ref_ptr<vsg::Data> imageData;
+    if (destRowWidth == subResourceLayout.rowPitch) {
+        imageData = vsg::MappedData<vsg::ubvec4Array2D>::create(deviceMemory, subResourceLayout.offset, 0,
+                                                                vsg::Data::Properties{targetImageFormat}, width,
+                                                                height);  // deviceMemory, offset, flags and dimensions
+    } else {
+        // Map the buffer memory and assign as a ubyteArray that will automatically unmap itself on destruction.
+        // A ubyteArray is used as the graphics buffer memory is not contiguous like vsg::Array2D, so map to a flat
+        // buffer first then copy to Array2D.
+        auto mappedData = vsg::MappedData<vsg::ubyteArray>::create(deviceMemory, subResourceLayout.offset, 0,
+                                                                   vsg::Data::Properties{targetImageFormat},
+                                                                   subResourceLayout.rowPitch * height);
+        imageData = vsg::ubvec4Array2D::create(width, height, vsg::Data::Properties{targetImageFormat});
+        for (uint32_t row = 0; row < height; ++row) {
+            std::memcpy(imageData->dataPointer(row * width), mappedData->dataPointer(row * subResourceLayout.rowPitch),
+                        destRowWidth);
+        }
+    }
+
+    if (vsg::write(imageData, m_imageFilename, m_options)) {
+        std::cout << "Written color buffer to " << m_imageFilename << std::endl;
+    } else {
+        std::cout << "Failed to write color buffer to " << m_imageFilename << std::endl;
+    }
 }
 
 }  // namespace vsg3d

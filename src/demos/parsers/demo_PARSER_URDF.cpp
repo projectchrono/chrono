@@ -23,7 +23,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_parsers/ChParserURDF.h"
 
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     // Create a "floor" body
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetBodyFixed(true);
-    auto floor_box = chrono_types::make_shared<ChBoxShape>(3, 2, 0.1);
+    auto floor_box = chrono_types::make_shared<ChVisualShapeBox>(3, 2, 0.1);
     floor_box->SetTexture(GetChronoDataFile("textures/checker2.png"));
     floor->AddVisualShape(floor_box);
     sys.AddBody(floor);
@@ -73,6 +73,9 @@ int main(int argc, char* argv[]) {
     ////mat.kn = 2.5e6;
     ////parser.SetBodyContactMaterial("head", mat);  // hardcoded for R2D2 model
 
+    // Optional: enable visualization of collision geometry
+    ////parser.EnableCollisionVisualization();
+
     // Display raw XML string
     std::cout << "\nURDF input\n" << std::endl;
     std::cout << parser.GetXMLstring() << std::endl;
@@ -88,7 +91,7 @@ int main(int argc, char* argv[]) {
     // Optional custom processing
     std::cout << "\nCustom processing example - scan elements \"link\"\n" << std::endl;
     class MyCustomProcessor : public ChParserURDF::CustomProcessor {
-        virtual void Process(const tinyxml2::XMLElement& element, ChSystem& system) override {
+        virtual void Process(tinyxml2::XMLElement& element, ChSystem& system) override {
             std::cout << "Process element: " << element.Name() << std::endl;
             if (element.FirstChildElement()) {
                 std::cout << "   First child name: " << element.FirstChildElement()->Name() << std::endl;

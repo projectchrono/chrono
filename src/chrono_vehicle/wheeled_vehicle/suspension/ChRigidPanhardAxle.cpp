@@ -29,8 +29,8 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChRigidPanhardAxle.h"
 
@@ -113,7 +113,7 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_ptARBCenter = 0.5 * (m_ptARBChassis[LEFT] + m_ptARBChassis[RIGHT]);
 
     // Create and initialize the axle body.
-    m_axleTubeBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_axleTubeBody = chrono_types::make_shared<ChBody>();
     m_axleTubeBody->SetNameString(m_name + "_axleTube");
     m_axleTubeBody->SetPos(axleCOM);
     m_axleTubeBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -131,7 +131,7 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the Panhard body.
     ChVector<> ptPanhardCom = 0.5 * (m_panrodOuterA + m_panrodOuterC);
-    m_panhardRodBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_panhardRodBody = chrono_types::make_shared<ChBody>();
     m_panhardRodBody->SetNameString(m_name + "_panhardRod");
     m_panhardRodBody->SetPos(ptPanhardCom);
     m_panhardRodBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
@@ -192,7 +192,7 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
     auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_spindle[side] = chrono_types::make_shared<ChBody>();
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
@@ -237,7 +237,7 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 
-    m_arb[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_arb[side] = chrono_types::make_shared<ChBody>();
     m_arb[side]->SetNameString(m_name + "_arb" + suffix);
     m_arb[side]->SetPos(0.5 * (points[ANTIROLL_C] + m_ptARBCenter));
     m_arb[side]->SetRot(chassisRot);
@@ -356,10 +356,10 @@ void ChRigidPanhardAxle::AddVisualizationAssets(VisualizationType vis) {
     AddVisualizationLink(m_arb[RIGHT], m_ptARBCenter, m_ptARBChassis[RIGHT], getARBRadius(), ChColor(0.7f, 0.5f, 0.5f));
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 }
 
 void ChRigidPanhardAxle::RemoveVisualizationAssets() {

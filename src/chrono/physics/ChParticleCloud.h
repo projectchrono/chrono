@@ -94,17 +94,20 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     /// contact model (when rigid) and sync it.
     virtual ChCoordsys<> GetCsysForCollisionModel() override { return this->coord; }
 
-    /// Apply the force, expressed in absolute reference, applied in pos, to the
+    /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
     virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+                                            const ChVector<>& T,
                                             const ChVector<>& abs_point,
                                             ChVectorDynamic<>& R) override;
 
-    /// Apply the given force at the given point and load the generalized force array.
+    /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
+    /// Used for computing stiffness matrix (square force jacobian) by backward differentiation.
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactForceLoadQ(const ChVector<>& F,
+    virtual void ContactComputeQ(const ChVector<>& F,
+                                   const ChVector<>& T,
                                    const ChVector<>& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
@@ -142,7 +145,6 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     // DATA
     ChParticleCloud* container;
     ChVariablesBodySharedMass variables;
-    collision::ChCollisionModel* collision_model;
     ChVector<> UserForce;
     ChVector<> UserTorque;
 };
@@ -163,10 +165,8 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     virtual ChParticleCloud* Clone() const override { return new ChParticleCloud(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
-    /// before anim starts (it is not automatically
-    /// recomputed here because of performance issues.)
-    void SetCollide(bool mcoll);
-    virtual bool GetCollide() const override { return do_collide; }
+    void SetCollide(bool state);
+    virtual bool GetCollide() const override { return collide; }
 
     /// Set the state of all particles in the cluster to 'fixed' (default: false).
     /// If true, the particles do not move.
@@ -179,8 +179,8 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Set the maximum linear speed (beyond this limit it will be clamped).
     /// This is useful in virtual reality and real-time simulations, because it reduces the risk of bad collision
     /// detection. The realism is limited, but the simulation is more stable.
-    void SetLimitSpeed(bool mlimit) { do_limit_speed = mlimit; };
-    bool GetLimitSpeed() const { return do_limit_speed; };
+    void SetLimitSpeed(bool state) { limit_speed = state; };
+    bool GetLimitSpeed() const { return limit_speed; };
 
     /// Get the number of particles.
     size_t GetNparticles() const override { return particles.size(); }
@@ -200,23 +200,21 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
         return *particles[n];
     }
 
-    /// Resize the particle cluster. Also clear the state of
-    /// previously created particles, if any.
-    /// NOTE! Define the sample collision shape using GetCollisionModel()->...
-    /// before adding particles!
+    /// Add a collision model for particles in this cloud.
+    /// This is the "template" collision model that is used by all particles.
+    void AddCollisionModel(std::shared_ptr<ChCollisionModel> model) { particle_collision_model = model; }
+
+    /// Add a collision shape for particles in this cloud.
+    /// If a collision model does not already exist, it is first created.
+    /// The resulting model witll be the "template" collision model that is used by all particles.
+    void AddCollisionShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame = ChFrame<>());
+
+    /// Resize the particle cluster.
+    /// This first deletes all existing particles, if any.
     void ResizeNparticles(int newsize) override;
 
-    /// Add a new particle to the particle cluster, passing a
-    /// coordinate system as initial state.
-    /// NOTE! Define the sample collision shape using GetCollisionModel()->...
-    /// before adding particles!
+    /// Add a new particle to the particle cluster, passing a coordinate system as initial state.
     void AddParticle(ChCoordsys<double> initial_state = CSYSNORM) override;
-
-    /// Set the material surface for contacts
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
-
-    /// Set the material surface for contacts
-    std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
 
     /// Class to be used as a callback interface for dynamic coloring of particles in a cloud.
     class ChApi ColorCallback {
@@ -270,6 +268,10 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c) override;
+    virtual void IntLoadLumpedMass_Md(const unsigned int off,
+                                      ChVectorDynamic<>& Md,
+                                      double& err,
+                                      const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -299,20 +301,14 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Set no speed and no accelerations (but does not change the position)
     void SetNoSpeedNoAcceleration() override;
 
-    /// Access the collision model for the collision engine: this is the 'sample'
-    /// collision model that is used by all particles.
-    /// To get a non-null pointer, remember to SetCollide(true), before.
-    collision::ChCollisionModel* GetCollisionModel() { return particle_collision_model; }
+    /// Add collision models (if any) for all particles to the provided collision system.
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
 
-    /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
+    /// Remove the collision models (if any) for all particles from the provided collision system.
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
+
+    /// Synchronize the position and bounding box of all particle collision models (if any).
     virtual void SyncCollisionModels() override;
-    virtual void AddCollisionModelsToSystem() override;
-    virtual void RemoveCollisionModelsFromSystem() override;
-
-    /// After you added collision shapes to the sample coll.model (the one
-    /// that you access with GetCollisionModel() ) you need to call this
-    /// function so that all collision models of particles will reference the sample coll.model.
-    void UpdateParticleCollisionModels();
 
     /// Mass of each particle. Must be positive.
     void SetMass(double newmass) {
@@ -383,11 +379,11 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
 
     std::shared_ptr<ColorCallback> m_color_fun;  ///< callback for dynamic coloring
 
-    collision::ChCollisionModel* particle_collision_model;  ///< sample collision model
-    std::shared_ptr<ChMaterialSurface> matsurface;          ///< data for surface contact and impact
+    std::shared_ptr<ChCollisionModel> particle_collision_model;  ///< sample collision model
+
     bool fixed;
-    bool do_collide;
-    bool do_limit_speed;
+    bool collide;
+    bool limit_speed;
 
     float max_speed;  ///< limit on linear speed (useful for increased simulation speed)
     float max_wvel;   ///< limit on angular vel. (useful for increased simulation speed)

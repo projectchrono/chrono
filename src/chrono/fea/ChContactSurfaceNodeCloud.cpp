@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Andrea Favali, Alessandro Tasora
+// Authors: Andrea Favali, Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
@@ -25,10 +25,16 @@ namespace fea {
 // -----------------------------------------------------------------------------
 //  ChContactNodeXYZ
 
+ChContactNodeXYZ::ChContactNodeXYZ(ChNodeFEAxyz* node, ChContactSurface* contact_surface) {
+    m_node = node;
+    m_container = contact_surface;
+}
+
 void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
+                                                  const ChVector<>& T,
                                                   const ChVector<>& abs_point,
                                                   ChVectorDynamic<>& R) {
-    R.segment(this->mnode->NodeGetOffsetW(), 3) += F.eigen();
+    R.segment(m_node->NodeGetOffsetW(), 3) += F.eigen();
 }
 
 void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point,
@@ -47,25 +53,28 @@ void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point
 }
 
 ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem() {
-    return container->GetPhysicsItem();
+    return m_container->GetPhysicsItem();
 }
 
 // -----------------------------------------------------------------------------
 //  ChContactNodeXYZsphere
 
-ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* anode, ChContactSurface* acontainer)
-    : ChContactNodeXYZ(anode, acontainer) {
-    this->collision_model = new collision::ChCollisionModelBullet;
-    this->collision_model->SetContactable(this);
-}
+ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* node, ChContactSurface* contact_surface)
+    : ChContactNodeXYZ(node, contact_surface) {}
 
 // -----------------------------------------------------------------------------
 //  ChContactNodeXYZROT
 
+ChContactNodeXYZROT::ChContactNodeXYZROT(ChNodeFEAxyzrot* node, ChContactSurface* contact_surface) {
+    m_node = node;
+    m_container = contact_surface;
+}
+
 void ChContactNodeXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
+                                                     const ChVector<>& T,
                                                      const ChVector<>& abs_point,
                                                      ChVectorDynamic<>& R) {
-    R.segment(this->mnode->NodeGetOffsetW(), 3) += F.eigen();
+    R.segment(m_node->NodeGetOffsetW(), 3) += F.eigen();
 }
 
 void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_point,
@@ -84,17 +93,14 @@ void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_po
 }
 
 ChPhysicsItem* ChContactNodeXYZROT::GetPhysicsItem() {
-    return container->GetPhysicsItem();
+    return m_container->GetPhysicsItem();
 }
 
 // -----------------------------------------------------------------------------
 //  ChContactNodeXYZROTsphere
 
-ChContactNodeXYZROTsphere::ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* anode, ChContactSurface* acontainer)
-    : ChContactNodeXYZROT(anode, acontainer) {
-    this->collision_model = new collision::ChCollisionModelBullet;
-    this->collision_model->SetContactable(this);
-}
+ChContactNodeXYZROTsphere::ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* node, ChContactSurface* contact_surface)
+    : ChContactNodeXYZROT(node, contact_surface) {}
 
 // -----------------------------------------------------------------------------
 //  ChContactSurfaceNodeCloud
@@ -102,28 +108,26 @@ ChContactNodeXYZROTsphere::ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* anode, ChC
 ChContactSurfaceNodeCloud::ChContactSurfaceNodeCloud(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh)
     : ChContactSurface(material, mesh) {}
 
-void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> mnode, const double point_radius) {
-    if (!mnode)
+void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> node, const double point_radius) {
+    if (!node)
         return;
 
-    auto newp = chrono_types::make_shared<ChContactNodeXYZsphere>(mnode.get(), this);
+    auto contact_node = chrono_types::make_shared<ChContactNodeXYZsphere>(node.get(), this);
+    auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
+    contact_node->AddCollisionShape(point_shape);
 
-    newp->GetCollisionModel()->AddPoint(m_material, point_radius);
-    newp->GetCollisionModel()->BuildModel();  // will also add to system, if collision is on.
-
-    this->vnodes.push_back(newp);
+    m_nodes.push_back(contact_node);
 }
 
-void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> mnode, const double point_radius) {
-    if (!mnode)
+void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> node, const double point_radius) {
+    if (!node)
         return;
 
-    auto newp = chrono_types::make_shared<ChContactNodeXYZROTsphere>(mnode.get(), this);
+    auto contact_node = chrono_types::make_shared<ChContactNodeXYZROTsphere>(node.get(), this);
+    auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
+    contact_node->AddCollisionShape(point_shape);
 
-    newp->GetCollisionModel()->AddPoint(m_material, point_radius);
-    newp->GetCollisionModel()->BuildModel();  // will also add to system, if collision is on.
-
-    this->vnodes_rot.push_back(newp);
+    m_nodes_rot.push_back(contact_node);
 }
 
 /// Add all nodes of the mesh to this collision cloud
@@ -135,10 +139,10 @@ void ChContactSurfaceNodeCloud::AddAllNodes(const double point_radius) {
         return;
 
     for (unsigned int i = 0; i < mesh->GetNnodes(); ++i)
-        if (auto mnodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i)))
-            this->AddNode(mnodeFEA, point_radius);
-        else if (auto mnodeFEArot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(mesh->GetNode(i)))
-            this->AddNode(mnodeFEArot, point_radius);
+        if (auto nodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i)))
+            this->AddNode(nodeFEA, point_radius);
+        else if (auto nodeFEArot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(mesh->GetNode(i)))
+            this->AddNode(nodeFEArot, point_radius);
 }
 
 /// Add nodes of the mesh, belonging to the node_set, to this collision cloud
@@ -151,39 +155,37 @@ void ChContactSurfaceNodeCloud::AddNodesFromNodeSet(std::vector<std::shared_ptr<
         return;
 
     for (unsigned int i = 0; i < node_set.size(); ++i)
-        if (auto mnodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(node_set[i]))
-            this->AddNode(mnodeFEA, point_radius);
-        else if (auto mnodeFEArot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node_set[i]))
-            this->AddNode(mnodeFEArot, point_radius);
+        if (auto nodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(node_set[i]))
+            this->AddNode(nodeFEA, point_radius);
+        else if (auto nodeFEArot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node_set[i]))
+            this->AddNode(nodeFEArot, point_radius);
 }
 
-void ChContactSurfaceNodeCloud::SurfaceSyncCollisionModels() {
-    for (unsigned int j = 0; j < vnodes.size(); j++) {
-        this->vnodes[j]->GetCollisionModel()->SyncPosition();
+void ChContactSurfaceNodeCloud::SyncCollisionModels() const {
+    for (auto& node : m_nodes) {
+        node->GetCollisionModel()->SyncPosition();
     }
-    for (unsigned int j = 0; j < vnodes_rot.size(); j++) {
-        this->vnodes_rot[j]->GetCollisionModel()->SyncPosition();
-    }
-}
-
-void ChContactSurfaceNodeCloud::SurfaceAddCollisionModelsToSystem(ChSystem* msys) {
-    assert(msys);
-    SurfaceSyncCollisionModels();
-    for (unsigned int j = 0; j < vnodes.size(); j++) {
-        msys->GetCollisionSystem()->Add(this->vnodes[j]->GetCollisionModel());
-    }
-    for (unsigned int j = 0; j < vnodes_rot.size(); j++) {
-        msys->GetCollisionSystem()->Add(this->vnodes_rot[j]->GetCollisionModel());
+    for (auto& node : m_nodes_rot) {
+        node->GetCollisionModel()->SyncPosition();
     }
 }
 
-void ChContactSurfaceNodeCloud::SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys) {
-    assert(msys);
-    for (unsigned int j = 0; j < vnodes.size(); j++) {
-        msys->GetCollisionSystem()->Remove(this->vnodes[j]->GetCollisionModel());
+void ChContactSurfaceNodeCloud::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
+    SyncCollisionModels();
+    for (const auto& node : m_nodes) {
+        coll_sys->Add(node->GetCollisionModel());
     }
-    for (unsigned int j = 0; j < vnodes_rot.size(); j++) {
-        msys->GetCollisionSystem()->Remove(this->vnodes_rot[j]->GetCollisionModel());
+    for (const auto& node : m_nodes_rot) {
+        coll_sys->Add(node->GetCollisionModel());
+    }
+}
+
+void ChContactSurfaceNodeCloud::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {
+    for (const auto& node : m_nodes) {
+        coll_sys->Remove(node->GetCollisionModel());
+    }
+    for (const auto& node : m_nodes_rot) {
+        coll_sys->Remove(node->GetCollisionModel());
     }
 }
 

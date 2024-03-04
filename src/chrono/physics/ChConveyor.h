@@ -45,20 +45,20 @@ class ChApi ChConveyor : public ChPhysicsItem {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChConveyor* Clone() const override { return new ChConveyor(*this); }
 
-    /// Set the pointer to the parent ChSystem() and
-    /// also add to new collision system / remove from old coll.system
+    /// Set the pointer to the parent ChSystem().
     virtual void SetSystem(ChSystem* m_system) override;
 
     /// Set the speed of the conveyor belt (upper part, X direction)
     void SetConveyorSpeed(double mspeed) { conveyor_speed = mspeed; }
+
     /// Get the speed of the conveyor belt (upper part, X direction)
     double GetConveyorSpeed() { return conveyor_speed; }
 
     /// Access the internal body used as the truss of the moving belt
-    ChBody* GetTruss() { return conveyor_truss; }
+    ChBody* GetTruss() const { return conveyor_truss; }
 
     /// Access the internal body used as the moving belt (a plate with const.vel.)
-    ChBody* GetPlate() { return conveyor_plate; }
+    ChBody* GetPlate() const { return conveyor_plate; }
 
     // Shortcuts for ChBody-like transformations etc.
     // These, and others, can also be done as my_conveyor->GetTruss()->Ch***(...).
@@ -113,15 +113,19 @@ class ChApi ChConveyor : public ChPhysicsItem {
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) override;
     virtual void IntStateGetIncrement(const unsigned int off_x,
-                                   const ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   ChStateDelta& Dv) override;
+                                      const ChState& x_new,
+                                      const ChState& x,
+                                      const unsigned int off_v,
+                                      ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c) override;
+    virtual void IntLoadLumpedMass_Md(const unsigned int off,
+                                      ChVectorDynamic<>& Md,
+                                      double& err,
+                                      const double c) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
@@ -165,20 +169,16 @@ class ChApi ChConveyor : public ChPhysicsItem {
     // Other functions
 
     virtual bool GetCollide() const override { return true; }
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
     virtual void SyncCollisionModels() override;
-    virtual void AddCollisionModelsToSystem() override;
-    virtual void RemoveCollisionModelsFromSystem() override;
 
-    //
     // UPDATE FUNCTIONS
-    //
 
     /// Update all auxiliary data of the conveyor at given time
     virtual void Update(double mytime, bool update_assets = true) override;
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -187,8 +187,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChConveyor,0)
-
+CH_CLASS_VERSION(ChConveyor, 0)
 
 }  // end namespace chrono
 

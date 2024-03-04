@@ -32,10 +32,20 @@
 #include "chrono/physics/ChShaftsFreewheel.h"
 #include "chrono/physics/ChShaftsMotorAngle.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 using namespace chrono;
+
+std::string out_dir = GetChronoOutputPath() + "DEMO_POWERTRAIN";
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
+    // Create output directory
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
 
     if (false) {
         //
@@ -573,7 +583,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "\n\n\nHere's the system hierarchy: \n\n ";
         sys.ShowHierarchy(GetLog());
 
-        ChStreamOutAsciiFile file_results("test_clutch.txt");
+        ChStreamOutAsciiFile file_results(out_dir + "/test_clutch.txt");
 
         // Perform a very simple simulation loop..
         double chronoTime = 0;

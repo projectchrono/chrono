@@ -21,10 +21,13 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 
+<<<<<<< HEAD
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
+=======
+>>>>>>> upstream/feature/ros
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -58,8 +61,13 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
+<<<<<<< HEAD
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
+=======
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
+>>>>>>> upstream/feature/ros
 
     // Create the ground.
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();

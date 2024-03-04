@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-/// @addtogroup vehicle_models_M113
+/// @addtogroup vehicle_models_m113
 /// @{
 
 /// Shafts-based engine model for the M113 vehicle.
@@ -50,7 +50,7 @@ class CH_MODELS_API M113_EngineShafts : public ChEngineShafts {
     static const double m_motorshaft_inertia;
 };
 
-/// @} vehicle_models_M113
+/// @} vehicle_models_m113
 
 }  // end namespace M113
 }  // end namespace vehicle

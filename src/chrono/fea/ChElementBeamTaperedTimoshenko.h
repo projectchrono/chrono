@@ -163,6 +163,9 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     ///  {acc_a acc_a acc_a accx_a accy_a accz_a acc_b acc_b acc_b accx_b accy_b accz_b}
     void GetField_dtdt(ChVectorDynamic<>& mD_dtdt);
 
+    /// Add contribution of element inertia to total nodal masses
+    virtual void ComputeNodalMass() override;
+
     /// Computes the local (material) stiffness matrix of the element:
     /// K = integral( [B]' * [D] * [B] ),
     /// Note: in this 'basic' implementation, constant section and

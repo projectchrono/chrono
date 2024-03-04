@@ -124,8 +124,8 @@ class Generic_STR_Setup : public STR_Setup {
 // =============================================================================
 // USER SETTINGS
 
-HMMWV_STR_Setup setup;
-////UAZ_STR_Setup setup;
+////HMMWV_STR_Setup setup;
+UAZ_STR_Setup setup;
 ////MTV_STR_Setup setup;
 ////Generic_STR_Setup setup;
 

@@ -12,14 +12,17 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/assets/ChBoxShape.h"
+#include <iomanip>
+#include <sstream>
+
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChCamera.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChModelFileShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeEllipsoid.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChParticleCloud.h"
@@ -219,7 +222,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     std::string assets_filename = out_script_filename + ".assets";
     {
-        ChStreamOutAsciiFile assets_file((base_path + assets_filename).c_str());
+        ChStreamOutAsciiFile assets_file(base_path + assets_filename);
         assets_file << "// File containing meshes and objects for rendering POV scenes.\n";
         assets_file << "// This file is automatically included by " << out_script_filename << ".pov , \n";
         assets_file << "// and you should not modify it.\n\n";
@@ -227,7 +230,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     // Generate the .INI script
 
-    ChStreamOutAsciiFile ini_file((base_path + out_script_filename + ".ini").c_str());
+    ChStreamOutAsciiFile ini_file(base_path + out_script_filename + ".ini");
 
     ini_file << "; Script for rendering an animation with POV-Ray. \n";
     ini_file << "; Generated automatically by Chrono::Engine. \n\n";
@@ -238,7 +241,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
     ini_file << "Height=" << picture_height << "\n";
     ini_file << "Width =" << picture_width << "\n";
     ini_file << "Input_File_Name=\"" << out_script_filename << "\"\n";
-    ini_file << "Output_File_Name=\"" << (pic_path + "/" + pic_filename).c_str() << "\"\n";
+    ini_file << "Output_File_Name=\"" << pic_path + "/" + pic_filename << "\"\n";
     ini_file << "Initial_Frame=0000\n";
     ini_file << "Final_Frame=0999\n";
     ini_file << "Initial_Clock=0\n";
@@ -247,13 +250,13 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     // Generate the .POV script:
 
-    ChStreamOutAsciiFile mfile((base_path + out_script_filename).c_str());
+    ChStreamOutAsciiFile mfile(base_path + out_script_filename);
 
     // Rough way to load the template head file in the string buffer
     if (template_filename != "") {
         std::cout << "USE TEMPLATE FILE: " << template_filename << std::endl;
 
-        ChStreamInAsciiFile templatefile(template_filename.c_str());
+        ChStreamInAsciiFile templatefile(template_filename);
         std::string buffer_template;
         while (!templatefile.End_of_stream()) {
             char m;
@@ -368,7 +371,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
         }
         mfile << "\n";
 
-        mfile << "#declare contacts_file = concat(\"" << (out_path + "/" + out_data_filename).c_str()
+        mfile << "#declare contacts_file = concat(\"" << out_path + "/" + out_data_filename
               << "\", str(frame_number,-5,0), \".contacts\") \n";
         mfile << "#fopen MyContactsFile contacts_file read \n";
 
@@ -387,7 +390,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
     if (single_asset_file) {
         // open asset file in append mode
         assets_filename = out_script_filename + ".assets";
-        ChStreamOutAsciiFile assets_file((base_path + assets_filename).c_str(), std::ios::app);
+        ChStreamOutAsciiFile assets_file(base_path + assets_filename, std::ios::app);
         // populate assets (note that already present assets won't be appended!)
         ExportAssets(assets_file);
     }
@@ -429,8 +432,8 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             continue;
         m_pov_shapes.insert({(size_t)shape.get(), shape});
 
-        auto obj_shape = std::dynamic_pointer_cast<ChModelFileShape>(shape);
-        auto mesh_shape = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape);
+        auto obj_shape = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape);
+        auto mesh_shape = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape);
 
         if (obj_shape || mesh_shape) {
             std::shared_ptr<ChTriangleMeshConnected> mesh;
@@ -442,9 +445,7 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
                 if (temp_allocated_loadtrimesh) {
                     mesh = temp_allocated_loadtrimesh;
                 } else {
-                    char error[400];
-                    sprintf(error, "Cannot read .obj file %s", obj_shape->GetFilename().c_str());
-                    throw(ChException(error));
+                    throw(ChException("Cannot read .obj file " + obj_shape->GetFilename()));
                 }
             } else if (mesh_shape) {
                 mesh = mesh_shape->GetMesh();
@@ -543,7 +544,7 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "#end \n";  // end macro
         }
 
-        if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+        if (auto sphere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
             assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";  // start macro
             assets_file << "sphere  {\n";                                  // start sphere
 
@@ -558,7 +559,7 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "#end \n";  // end macro
         }
 
-        if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
+        if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
             assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";  // begin macro
             assets_file << "sphere  {\n";                                  // begin ellipsoid
 
@@ -577,7 +578,7 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "#end \n";  // end macro
         }
 
-        if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+        if (auto cylinder = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
             assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";  // start macro
             assets_file << "cylinder  {\n";                                // start cylinder
 
@@ -594,7 +595,7 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "#end \n";  // end macro
         }
 
-        if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+        if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
             assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";  // start macro
             assets_file << "box  {\n";                                     // start box
 
@@ -693,10 +694,10 @@ void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
         const auto& shape = shape_instance.first;
 
         // Process only "known" shapes (i.e., shapes that were included in the assets file)
-        if (std::dynamic_pointer_cast<ChModelFileShape>(shape) ||
-            std::dynamic_pointer_cast<ChTriangleMeshShape>(shape) || std::dynamic_pointer_cast<ChSphereShape>(shape) ||
-            std::dynamic_pointer_cast<ChEllipsoidShape>(shape) || std::dynamic_pointer_cast<ChCylinderShape>(shape) ||
-            std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+        if (std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape) ||
+            std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape) || std::dynamic_pointer_cast<ChVisualShapeSphere>(shape) ||
+            std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape) || std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape) ||
+            std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
             pov_file << "sh_" << (size_t)shape.get() << "()\n";
         }
     }
@@ -746,9 +747,10 @@ void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
 //  state0001.dat, state0002.dat, ...
 // The user should call this function in the while() loop of the simulation, once per frame.
 void ChPovRay::ExportData() {
-    char fullname[200];
-    sprintf(fullname, "%s%05d", out_data_filename.c_str(), framenumber);
-    ExportData(out_path + "/" + std::string(fullname));
+    // Zero-pad frame numbers in file names for postprocessing
+    std::ostringstream fullname;
+    fullname << out_data_filename << std::setw(5) << std::setfill('0') << framenumber;
+    ExportData(out_path + "/" + fullname.str());
 }
 
 void ChPovRay::ExportData(const std::string& filename) {
@@ -759,17 +761,15 @@ void ChPovRay::ExportData(const std::string& filename) {
     if (single_asset_file) {
         // open asset file in append mode
         std::string assets_filename = out_script_filename + ".assets";
-        ChStreamOutAsciiFile assets_file((base_path + assets_filename).c_str(), std::ios::app);
+        ChStreamOutAsciiFile assets_file(base_path + assets_filename, std::ios::app);
         // populate assets (already present assets will not be appended)
         ExportAssets(assets_file);
     }
 
     // Generate the nnnn.dat and nnnn.pov files:
     try {
-        char pathdat[200];
-        sprintf(pathdat, "%s.dat", filename.c_str());
-        ChStreamOutAsciiFile data_file((base_path + filename + ".dat").c_str());
-        ChStreamOutAsciiFile pov_file((base_path + filename + ".pov").c_str());
+        ChStreamOutAsciiFile data_file(base_path + filename + ".dat");
+        ChStreamOutAsciiFile pov_file(base_path + filename + ".pov");
 
         camera_found_in_assets = false;
 
@@ -889,7 +889,7 @@ void ChPovRay::ExportData(const std::string& filename) {
 
         // #) saving contacts ?
         if (contacts_show) {
-            ChStreamOutAsciiFile data_contacts((base_path + filename + ".contacts").c_str());
+            ChStreamOutAsciiFile data_contacts(base_path + filename + ".contacts");
 
             class _reporter_class : public ChContactContainer::ReportContactCallback {
               public:
@@ -957,9 +957,7 @@ void ChPovRay::ExportData(const std::string& filename) {
         // At the end of the .pov file, remember to close the .dat
         pov_file << "\n\n#fclose MyDatFile \n";
     } catch (const ChException&) {
-        char error[400];
-        sprintf(error, "Can't save data into file %s.pov (or .dat)", filename.c_str());
-        throw(ChException(error));
+        throw(ChException("Can't save data into file " + filename));
     }
 
     // Increment the number of the frame.

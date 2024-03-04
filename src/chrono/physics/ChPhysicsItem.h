@@ -16,10 +16,10 @@
 #define CH_PHYSICSITEM_H
 
 #include "chrono/core/ChFrame.h"
+#include "chrono/geometry/ChGeometry.h"
 #include "chrono/physics/ChObject.h"
 #include "chrono/assets/ChCamera.h"
 #include "chrono/assets/ChVisualModel.h"
-#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/timestepper/ChState.h"
 
@@ -27,6 +27,7 @@ namespace chrono {
 
 // Forward references
 class ChSystem;
+class ChCollisionSystem;
 namespace modal {
 class ChModalAssembly;
 }
@@ -105,17 +106,16 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Only for interface; child classes may override this, using internal flags.
     virtual bool GetCollide() const { return false; }
 
-    /// If this physical item contains one or more collision models,
-    /// synchronize their coordinates and bounding boxes to the state of the item.
+    /// Add to the provided collision system any collision models managed by this physics item.
+    /// A derived calss should invoke ChCollisionSystem::Add for each of its collision models.
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {}
+
+    /// Remove from the provided collision system any collision models managed by this physics item.
+    /// A derived class should invoke ChCollisionSystem::Remove for each of its collision models.
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {}
+
+    /// Synchronize the position and bounding box of any collsion models managed by this physics item.
     virtual void SyncCollisionModels() {}
-
-    /// If this physical item contains one or more collision models,
-    /// add them to the system's collision engine.
-    virtual void AddCollisionModelsToSystem() {}
-
-    /// If this physical item contains one or more collision models,
-    /// remove them from the system's collision engine.
-    virtual void RemoveCollisionModelsFromSystem() {}
 
     // Functions used by domain decomposition
 
@@ -123,7 +123,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// The AABB must enclose the collision models, if any.
     /// By default is infinite AABB.
     /// Should be overridden by child classes.
-    virtual void GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax);
+    virtual geometry::ChAABB GetTotalAABB();
 
     /// Get a symbolic 'center' of the object. By default this
     /// function returns the center of the AABB.
@@ -288,6 +288,15 @@ class ChApi ChPhysicsItem : public ChObj {
                                     ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
                                     const ChVectorDynamic<>& w,  ///< the w vector
                                     const double c               ///< a scaling factor
+    ) {}
+
+    /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
+    /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
+    ///    Md += c*diag(M)
+    virtual void IntLoadLumpedMass_Md(const unsigned int off,  ///< offset in Md vector
+                                      ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+                                      double& err,    ///< result: not touched if lumping does not introduce errors
+                                      const double c  ///< a scaling factor
     ) {}
 
     /// Takes the term Cq'*L, scale and adds to R at given offset:

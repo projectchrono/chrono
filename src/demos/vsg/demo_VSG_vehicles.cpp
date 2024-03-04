@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -26,9 +26,9 @@
 using namespace chrono;
 using namespace chrono::vsg3d;
 
-std::shared_ptr<ChTriangleMeshShape> CreateMeshShape(const std::string& filename) {
+std::shared_ptr<ChVisualShapeTriangleMesh> CreateMeshShape(const std::string& filename) {
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true);
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(filesystem::path(filename).stem());
     trimesh_shape->SetMutable(false);

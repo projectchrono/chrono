@@ -53,7 +53,8 @@ class ChVector {
     const Real& y() const { return m_data[1]; }
     const Real& z() const { return m_data[2]; }
 
-    /// Return const pointer to underlying array storage.
+    /// Access to underlying array storage.
+    Real* data() { return m_data; }
     const Real* data() const { return m_data; }
 
     // EIGEN INTER-OPERABILITY
@@ -456,7 +457,7 @@ void XdirToDxDyDz(const ChVector<RealA>& Vxdir,
     Vy = Vcross(Vz, Vx);
 }
 
-/// Insertion ov 3d vector to output stream.
+/// Insertion of a 3D vector to output stream.
 template <typename Real>
 inline std::ostream& operator<<(std::ostream& out, const ChVector<Real>& v) {
     out << v.x() << "  " << v.y() << "  " << v.z();

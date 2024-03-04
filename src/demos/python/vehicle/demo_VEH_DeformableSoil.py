@@ -79,6 +79,7 @@ tire_w0 = tire_vel_z0 / tire_rad
 # ----------------------------
 
 sys = chrono.ChSystemSMC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Create the ground
 ground = chrono.ChBody()
@@ -97,7 +98,7 @@ mesh = chrono.ChTriangleMeshConnected()
 mesh.LoadWavefrontMesh(chrono.GetChronoDataFile('models/tractor_wheel/tractor_wheel.obj'))
 
 # Set visualization assets
-vis_shape = chrono.ChTriangleMeshShape()
+vis_shape = chrono.ChVisualShapeTriangleMesh()
 vis_shape.SetMesh(mesh)
 vis_shape.SetColor(chrono.ChColor(0.3, 0.3, 0.3))
 body.AddVisualShape(vis_shape)
@@ -105,15 +106,12 @@ body.AddVisualShape(vis_shape)
 # Set collision shape
 material = chrono.ChMaterialSurfaceSMC()
 
-body.GetCollisionModel().ClearModel()
-body.GetCollisionModel().AddTriangleMesh(material,                # contact material
-                                         mesh,                    # the mesh 
-                                         False,                   # is it static?
-                                         False,                   # is it convex?
-                                         chrono.ChVectorD(0,0,0), # position on body
-                                         chrono.ChMatrix33D(1),   # orientation on body 
-                                         0.01)                    # "thickness" for increased robustness
-body.GetCollisionModel().BuildModel()
+body_ct_shape = chrono.ChCollisionShapeTriangleMesh(material, # contact material
+                                                    mesh,     # the mesh 
+                                                    False,    # is it static?
+                                                    False,    # is it convex?
+                                                    0.01)     # "thickness" for increased robustness
+body.AddCollisionShape(body_ct_shape)
 body.SetCollide(True)
 
 # Create motor

@@ -4,7 +4,7 @@
   "Template": "AutomaticTransmissionSimpleMap",
 
   "Gear Box": {
-    "Reverse Gear Ratio": -0.151,
+    "Reverse Gear Ratio": -0.2,
     "Forward Gear Ratios": [
       0.1708,
       0.2791,

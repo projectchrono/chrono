@@ -127,6 +127,9 @@ int main(int argc, char* argv[]) {
     my_bus.SetWheelVisualizationType(wheel_vis_type);
     my_bus.SetTireVisualizationType(tire_vis_type);
 
+    // Associate a collision system
+    my_bus.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Create the terrain
     RigidTerrain terrain(my_bus.GetSystem());
 
@@ -304,9 +307,10 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
 
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(my_bus.GetSystem(), filename);
+                // Zero-pad frame numbers in file names for postprocessing
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(my_bus.GetSystem(), filename.str());
             }
 
             render_frame++;

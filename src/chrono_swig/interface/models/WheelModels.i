@@ -2,7 +2,7 @@
 
 /* Includes additional C++ in the wrapper code */
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -10,7 +10,6 @@
 
 #include "chrono_models/ChApiModels.h"
 
-#include "chrono_models/vehicle/generic/Generic_Wheel.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 #include "chrono_models/vehicle/sedan/Sedan_Wheel.h"
 #include "chrono_models/vehicle/citybus/CityBus_Wheel.h"
@@ -21,8 +20,6 @@
 #include "chrono_models/vehicle/feda/FEDA_Wheel.h"
 %}
 
-
-%shared_ptr(chrono::vehicle::generic::Generic_Wheel)
 
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_Wheel)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_WheelLeft)
@@ -54,7 +51,6 @@
 
 // Model:
 
-%include "../../../chrono_models/vehicle/generic/Generic_Wheel.h"
 %include "../../../chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 %include "../../../chrono_models/vehicle/sedan/Sedan_Wheel.h"
 %include "../../../chrono_models/vehicle/citybus/CityBus_Wheel.h"

@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/assets/ChModelFileShape.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
     vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
 
     {
-        auto shape = chrono_types::make_shared<ChModelFileShape>();
+        auto shape = chrono_types::make_shared<ChVisualShapeModelFile>();
         shape->SetFilename(GetChronoDataFile("models/FlightHelmet/FlightHelmet.gltf"));
         vis->AddVisualModel(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
     }

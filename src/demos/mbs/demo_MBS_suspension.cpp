@@ -517,7 +517,7 @@ class MyEventReceiver : public IEventReceiver {
 
                         // show stiffness as formatted text in interface screen
                         char message[150];
-                        sprintf(message, "Spring K [N/m]: %g", newstiff);
+                        snprintf(message, sizeof(message), "Spring K [N/m]: %g", newstiff);
 
                         std::cout << "K = " << newstiff << std::endl;
 
@@ -535,7 +535,7 @@ class MyEventReceiver : public IEventReceiver {
 
                         // show stiffness as formatted text in interface screen
                         char message[150];
-                        sprintf(message, "Damper R [Ns/m]: %g", newdamping);
+                        snprintf(message, sizeof(message), "Damper R [Ns/m]: %g", newdamping);
                         text_FdamperR->setText(core::stringw(message).c_str());
                     }
                     if (id == 104)  // id of 'spring rest length' slider..
@@ -550,7 +550,7 @@ class MyEventReceiver : public IEventReceiver {
 
                         // show stiffness as formatted text in interface screen
                         char message[50];
-                        sprintf(message, "Spring L [m]: %g", newlength);
+                        snprintf(message, sizeof(message), "Spring L [m]: %g", newlength);
                         text_FspringL->setText(core::stringw(message).c_str());
                     }
                     if (id == 100)  // id of 'throttle' slider..
@@ -596,11 +596,9 @@ class MyEventReceiver : public IEventReceiver {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    //
-    // HERE YOU CREATE THE MECHANICAL SYSTEM OF CHRONO...
-    //
-
+    // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the rigid bodies of the simpified car suspension mechanical system maybe setting position/mass/inertias of
     // their center of mass (COG) etc.
@@ -642,8 +640,7 @@ int main(int argc, char* argv[]) {
 
     class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
-        virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
-                                  ChMaterialComposite* const material) override {
+        virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
             auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
 

@@ -169,25 +169,19 @@ void ChMesh::Update(double m_time, bool update_assets) {
     }
 }
 
+void ChMesh::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
+    for (const auto& surf : vcontactsurfaces)
+        surf->AddCollisionModelsToSystem(coll_sys);
+}
+
+void ChMesh::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {
+    for (const auto& surf : vcontactsurfaces)
+        surf->RemoveCollisionModelsFromSystem(coll_sys);
+}
+
 void ChMesh::SyncCollisionModels() {
-    for (unsigned int j = 0; j < vcontactsurfaces.size(); j++) {
-        vcontactsurfaces[j]->SurfaceSyncCollisionModels();
-    }
-}
-
-void ChMesh::AddCollisionModelsToSystem() {
-    assert(GetSystem());
-    SyncCollisionModels();
-    for (unsigned int j = 0; j < vcontactsurfaces.size(); j++) {
-        vcontactsurfaces[j]->SurfaceAddCollisionModelsToSystem(GetSystem());
-    }
-}
-
-void ChMesh::RemoveCollisionModelsFromSystem() {
-    assert(GetSystem());
-    for (unsigned int j = 0; j < vcontactsurfaces.size(); j++) {
-        vcontactsurfaces[j]->SurfaceRemoveCollisionModelsFromSystem(GetSystem());
-    }
+    for (const auto& surf : vcontactsurfaces)
+        surf->SyncCollisionModels();
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
@@ -318,7 +312,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
     // nodes gravity forces
     local_off_v = 0;
     if (automatic_gravity_load && system) {
-        //#pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
+        // #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
         //***PARALLEL FOR***, (no need here to use omp atomic to avoid race condition in writing to R)
         for (int in = 0; in < vnodes.size(); in++) {
             if (!vnodes[in]->IsFixed()) {
@@ -345,6 +339,14 @@ void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass
     com = ChVector<>(0);
     inertia = ChMatrix33<>(1);
 
+    ChVector<> mmass_weighted_radius(0);
+    double mJxx=0;
+    double mJyy=0;
+    double mJzz=0;
+    double mJxy=0;
+    double mJyz=0;
+    double mJxz=0;
+
     // Initialize all nodal total masses to zero
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         vnodes[j]->m_TotalMass = 0.0;
@@ -353,10 +355,50 @@ void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass
     for (unsigned int ie = 0; ie < velements.size(); ie++) {
         velements[ie]->ComputeNodalMass();
     }
-    // Loop over all the nodes of the mesh to obtain total object mass
-    for (unsigned int j = 0; j < vnodes.size(); j++) {
-        mass += vnodes[j]->m_TotalMass;
+
+    // Loop over all the nodes of the mesh to obtain total object mass.
+    // GetMass() will get the atomic mass attached at the node;
+    // m_TotalMass is the accumulative equivalent mass lumped at the node from its associated elements.
+    for (auto& node : vnodes) {
+        if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
+            double mm = xyz->GetMass() + xyz->m_TotalMass;
+            mass += mm;
+            mmass_weighted_radius += mm * xyz->GetPos();
+            mJxx += mm * (xyz->GetPos().y() * xyz->GetPos().y() + xyz->GetPos().z() * xyz->GetPos().z());
+            mJyy += mm * (xyz->GetPos().x() * xyz->GetPos().x() + xyz->GetPos().z() * xyz->GetPos().z());
+            mJzz += mm * (xyz->GetPos().x() * xyz->GetPos().x() + xyz->GetPos().y() * xyz->GetPos().y());
+            mJxy += mm * xyz->GetPos().x() * xyz->GetPos().y();
+            mJyz += mm * xyz->GetPos().y() * xyz->GetPos().z();
+            mJxz += mm * xyz->GetPos().x() * xyz->GetPos().z();
+        }
+        if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
+            double mm = xyzrot->GetMass() + xyzrot->m_TotalMass;
+            mass += mm;
+            mmass_weighted_radius += mm * xyzrot->GetPos();
+            mJxx += mm * (xyzrot->GetPos().y() * xyzrot->GetPos().y() + xyzrot->GetPos().z() * xyzrot->GetPos().z());
+            mJyy += mm * (xyzrot->GetPos().x() * xyzrot->GetPos().x() + xyzrot->GetPos().z() * xyzrot->GetPos().z());
+            mJzz += mm * (xyzrot->GetPos().x() * xyzrot->GetPos().x() + xyzrot->GetPos().y() * xyzrot->GetPos().y());
+            mJxy += mm * xyzrot->GetPos().x() * xyzrot->GetPos().y();
+            mJyz += mm * xyzrot->GetPos().y() * xyzrot->GetPos().z();
+            mJxz += mm * xyzrot->GetPos().x() * xyzrot->GetPos().z();
+        }
     }
+
+    if (mass)
+        com = mmass_weighted_radius / mass;
+
+    // Using the lumped mass approximation to calculate the inertia tensor.
+    // Note: the inertia of the cross sections of the associated elements at the nodes 
+    // are neglected here for the sake of the conciseness of code implementation.
+    inertia(0, 0) = mJxx;
+    inertia(0, 1) = -mJxy;
+    inertia(0, 2) = -mJxz;
+    inertia(1, 0) = -mJxy;
+    inertia(1, 1) = mJyy;
+    inertia(1, 2) = -mJyz;
+    inertia(2, 0) = -mJxz;
+    inertia(2, 1) = -mJyz;
+    inertia(2, 2) = mJzz;
 }
 
 void ChMesh::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
@@ -376,6 +418,26 @@ void ChMesh::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R re
     // internal masses
     for (unsigned int ie = 0; ie < velements.size(); ie++) {
         velements[ie]->EleIntLoadResidual_Mv(R, w, c);
+    }
+}
+
+void ChMesh::IntLoadLumpedMass_Md(const unsigned int off,
+                                  ChVectorDynamic<>& Md,
+                                  double& err,
+                                  const double c
+) {
+    // nodal masses
+    unsigned int local_off_v = 0;
+    for (unsigned int j = 0; j < vnodes.size(); j++) {
+        if (!vnodes[j]->IsFixed()) {
+            vnodes[j]->NodeIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
+            local_off_v += vnodes[j]->GetNdofW_active();
+        }
+    }
+
+    // internal masses
+    for (unsigned int ie = 0; ie < velements.size(); ie++) {
+        velements[ie]->EleIntLoadLumpedMass_Md(Md, err, c);
     }
 }
 

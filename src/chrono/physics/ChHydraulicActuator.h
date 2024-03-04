@@ -132,7 +132,7 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     virtual void Update(double time, bool update_assets = true) override;
 
     /// Load generalized forces.
-    void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
 
     bool is_attached;            ///< true if actuator attached to bodies
     ChBody* m_body1;             ///< first conected body

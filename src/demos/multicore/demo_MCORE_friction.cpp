@@ -27,7 +27,6 @@
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 // --------------------------------------------------------------------------
 
@@ -44,9 +43,9 @@ int main(int argc, char** argv) {
     uint max_iteration_spinning = 100;
     uint max_iteration_bilateral = 0;
 
-    // Create the multicore sys
+    // Create the multicore sys and set associated collision detection system
     ChSystemMulticoreNSC sys;
-
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
     sys.Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Set number of threads
@@ -70,7 +69,7 @@ int main(int argc, char** argv) {
     sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Create the container body
-    auto container = std::shared_ptr<ChBody>(sys.NewBody());
+    auto container = chrono_types::make_shared<ChBody>();
     sys.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
     container->SetBodyFixed(true);
@@ -84,13 +83,11 @@ int main(int argc, char** argv) {
     bin_mat->SetRollingFriction(1);
     bin_mat->SetSpinningFriction(1);
 
-    container->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20, 1, 20), ChVector<>(0, -1, 0));
     utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(1, 2, 20.99), ChVector<>(-10, 0, 0));
     utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(1, 2, 20.99), ChVector<>(10, 0, 0));
     utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20.99, 2, 1), ChVector<>(0, 0, -10));
     utils::AddBoxGeometry(container.get(), bin_mat, ChVector<>(20.99, 2, 1), ChVector<>(0, 0, 10));
-    container->GetCollisionModel()->BuildModel();
 
     // Create some spheres that roll horizontally, with increasing rolling friction values
     double density = 1000;
@@ -104,7 +101,7 @@ int main(int argc, char** argv) {
         mat->SetFriction(0.4f);
         mat->SetRollingFriction(((float)bi / 10) * 0.05f);
 
-        auto ball = std::shared_ptr<ChBody>(sys.NewBody());
+        auto ball = chrono_types::make_shared<ChBody>();
         ball->SetIdentifier(bi);
         ball->SetMass(mass);
         ball->SetInertiaXX(ChVector<>(inertia));
@@ -116,9 +113,7 @@ int main(int argc, char** argv) {
 
         // Contact geometry
         ball->SetCollide(true);
-        ball->GetCollisionModel()->ClearModel();
         utils::AddSphereGeometry(ball.get(), mat, radius);
-        ball->GetCollisionModel()->BuildModel();
 
         // Add to the sys
         sys.Add(ball);
@@ -130,7 +125,7 @@ int main(int argc, char** argv) {
         mat->SetFriction(0.4f);
         mat->SetSpinningFriction(((float)bi / 10) * 0.02f);
 
-        auto ball = std::shared_ptr<ChBody>(sys.NewBody());
+        auto ball = chrono_types::make_shared<ChBody>();
         ball->SetIdentifier(bi);
         ball->SetMass(mass);
         ball->SetInertiaXX(ChVector<>(inertia));
@@ -142,9 +137,7 @@ int main(int argc, char** argv) {
 
         // Contact geometry
         ball->SetCollide(true);
-        ball->GetCollisionModel()->ClearModel();
         utils::AddSphereGeometry(ball.get(), mat, radius);
-        ball->GetCollisionModel()->BuildModel();
 
         // Add to the sys
         sys.Add(ball);

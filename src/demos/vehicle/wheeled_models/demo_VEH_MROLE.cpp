@@ -68,7 +68,7 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 EngineModelType engine_model = EngineModelType::SHAFTS;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD6;
@@ -100,7 +100,7 @@ double tire_step_size = 1e-3;
 double t_end = 1000;
 
 // Time interval between two render frames
-double render_step_size = 1.0 / 50;  // FPS = 50
+double render_step_size = 1.0 / 200;  // FPS = 50
 
 // Output directories
 const std::string out_dir = GetChronoOutputPath() + "MROLE";
@@ -123,35 +123,38 @@ int main(int argc, char* argv[]) {
     // --------------
 
     // Create the mrole vehicle, set parameters, and initialize
-    mrole_Full my_mrole;
-    my_mrole.SetContactMethod(contact_method);
-    my_mrole.SetChassisCollisionType(chassis_collision_type);
-    my_mrole.SetChassisFixed(false);
-    my_mrole.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_mrole.SetEngineType(engine_model);
-    my_mrole.SetTransmissionType(transmission_model);
-    my_mrole.SetDriveType(drive_type);
-    my_mrole.SetBrakeType(brake_type);
-    my_mrole.SetTireType(tire_model);
-    my_mrole.SetTireStepSize(tire_step_size);
-    my_mrole.SelectRoadOperation();
-    std::cout << "Vehicle should not go faster than " << my_mrole.GetMaxTireSpeed() << " m/s" << std::endl;
-    my_mrole.Initialize();
+    mrole_Full mrole;
+    mrole.SetContactMethod(contact_method);
+    mrole.SetChassisCollisionType(chassis_collision_type);
+    mrole.SetChassisFixed(false);
+    mrole.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    mrole.SetEngineType(engine_model);
+    mrole.SetTransmissionType(transmission_model);
+    mrole.SetDriveType(drive_type);
+    mrole.SetBrakeType(brake_type);
+    mrole.SetTireType(tire_model);
+    mrole.SetTireStepSize(tire_step_size);
+    mrole.SelectRoadOperation();
+    std::cout << "Vehicle should not go faster than " << mrole.GetMaxTireSpeed() << " m/s" << std::endl;
+    mrole.Initialize();
 
     if (tire_model == TireModelType::RIGID_MESH)
         tire_vis_type = VisualizationType::MESH;
 
-    my_mrole.LockAxleDifferential(-1, false);
-    my_mrole.LockCentralDifferential(-1, false);
+    mrole.LockAxleDifferential(-1, false);
+    mrole.LockCentralDifferential(-1, false);
 
-    my_mrole.SetChassisVisualizationType(chassis_vis_type);
-    my_mrole.SetSuspensionVisualizationType(suspension_vis_type);
-    my_mrole.SetSteeringVisualizationType(steering_vis_type);
-    my_mrole.SetWheelVisualizationType(wheel_vis_type);
-    my_mrole.SetTireVisualizationType(tire_vis_type);
+    mrole.SetChassisVisualizationType(chassis_vis_type);
+    mrole.SetSuspensionVisualizationType(suspension_vis_type);
+    mrole.SetSteeringVisualizationType(steering_vis_type);
+    mrole.SetWheelVisualizationType(wheel_vis_type);
+    mrole.SetTireVisualizationType(tire_vis_type);
+
+    // Associate a collision system
+    mrole.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain
-    RigidTerrain terrain(my_mrole.GetSystem());
+    RigidTerrain terrain(mrole.GetSystem());
 
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;
@@ -187,7 +190,7 @@ int main(int argc, char* argv[]) {
     vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
-    vis->AttachVehicle(&my_mrole.GetVehicle());
+    vis->AttachVehicle(&mrole.GetVehicle());
 
     // -----------------
     // Initialize output
@@ -210,13 +213,13 @@ int main(int argc, char* argv[]) {
     utils::CSV_writer driver_csv(" ");
 
     // Set up vehicle output
-    my_mrole.GetVehicle().SetChassisOutput(true);
-    my_mrole.GetVehicle().SetSuspensionOutput(0, true);
-    my_mrole.GetVehicle().SetSteeringOutput(0, true);
-    my_mrole.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    mrole.GetVehicle().SetChassisOutput(true);
+    mrole.GetVehicle().SetSuspensionOutput(0, true);
+    mrole.GetVehicle().SetSteeringOutput(0, true);
+    mrole.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
-    my_mrole.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
+    mrole.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
 
     // ------------------------
     // Create the driver system
@@ -246,12 +249,12 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    my_mrole.GetVehicle().LogSubsystemTypes();
-    std::cout << "Vehicle Mass       = " << my_mrole.GetVehicle().GetMass() << " kg" << std::endl;
+    mrole.GetVehicle().LogSubsystemTypes();
+    std::cout << "Vehicle Mass       = " << mrole.GetVehicle().GetMass() << " kg" << std::endl;
 
     if (debug_output) {
         GetLog() << "\n\n============ System Configuration ============\n";
-        my_mrole.LogHardpointLocations();
+        mrole.LogHardpointLocations();
     }
 
     // Number of simulation steps between miscellaneous events
@@ -267,11 +270,11 @@ int main(int argc, char* argv[]) {
         vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     }
 
-    my_mrole.GetVehicle().EnableRealtime(true);
+    mrole.GetVehicle().EnableRealtime(true);
     utils::ChRunningAverage RTF_filter(50);
 
     while (vis->Run()) {
-        double time = my_mrole.GetSystem()->GetChTime();
+        double time = mrole.GetSystem()->GetChTime();
 
         // End simulation
         if (time >= t_end)
@@ -284,9 +287,10 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
 
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(my_mrole.GetSystem(), filename);
+                // Zero-pad frame numbers in file names for postprocessing
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(mrole.GetSystem(), filename.str());
             }
 
             render_frame++;
@@ -296,10 +300,10 @@ int main(int argc, char* argv[]) {
         if (debug_output && step_number % debug_steps == 0) {
             GetLog() << "\n\n============ System Information ============\n";
             GetLog() << "Time = " << time << "\n\n";
-            my_mrole.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+            mrole.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
 
-            auto marker_driver = my_mrole.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
-            auto marker_com = my_mrole.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
+            auto marker_driver = mrole.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
+            auto marker_com = mrole.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
             GetLog() << "Markers\n";
             std::cout << "  Driver loc:      " << marker_driver.x() << " " << marker_driver.y() << " "
                       << marker_driver.z() << std::endl;
@@ -319,13 +323,13 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_mrole.Synchronize(time, driver_inputs, terrain);
+        mrole.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        my_mrole.Advance(step_size);
+        mrole.Advance(step_size);
         vis->Advance(step_size);
 
         // Increment frame number

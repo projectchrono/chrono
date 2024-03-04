@@ -29,8 +29,8 @@
 
 #include <algorithm>
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChGenericWheeledSuspension.h"
 
@@ -254,6 +254,7 @@ void ChGenericWheeledSuspension::DefineRSDA(const std::string& name,
         m_rsdas.insert({{name, -1}, r});
     } else {
         m_rsdas.insert({{name, 0}, r});
+        r.axis *= ChVector<>(-1, 0, -1);
         m_rsdas.insert({{name, 1}, r});
     }
 }
@@ -428,7 +429,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
         // Spindle body
-        m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+        m_spindle[side] = chrono_types::make_shared<ChBody>();
         m_spindle[side]->SetNameString(Name({"spindle", side}));
         m_spindle[side]->SetPos(spindlePos);
         m_spindle[side]->SetRot(spindleRot);
@@ -583,10 +584,10 @@ std::vector<ChSuspension::ForceTSDA> ChGenericWheeledSuspension::ReportSuspensio
         if (item.first.side != side)
             continue;
         auto tsda = item.second.tsda;
-        ////std::cout << "TSDA " << item.first.name << std::endl;
-        ////std::cout << "  force:    " << tsda->GetForce() << std::endl;
-        ////std::cout << "  length:   " << tsda->GetLength() << std::endl;
-        ////std::cout << "  velocity: " << tsda->GetVelocity() << std::endl;
+        ////GetLog() << "TSDA " << item.first.name << "\n";
+        ////GetLog() << "  force:    " << tsda->GetForce() << "\n";
+        ////GetLog() << "  length:   " << tsda->GetLength() << "\n";
+        ////GetLog() << "  velocity: " << tsda->GetVelocity() << "\n";
         forces.push_back(
             ChSuspension::ForceTSDA(item.first.name, tsda->GetForce(), tsda->GetLength(), tsda->GetVelocity()));
     }
@@ -594,12 +595,26 @@ std::vector<ChSuspension::ForceTSDA> ChGenericWheeledSuspension::ReportSuspensio
     return forces;
 }
 
+std::vector<ChSuspension::ForceRSDA> ChGenericWheeledSuspension::ReportSuspensionTorque(VehicleSide side) const {
+    std::vector<ChSuspension::ForceRSDA> torques;
+
+    for (const auto& item : m_rsdas) {
+        if (item.first.side != side)
+            continue;
+        auto rsda = item.second.rsda;
+        torques.push_back(
+            ChSuspension::ForceRSDA(item.first.name, rsda->GetTorque(), rsda->GetAngle(), rsda->GetVelocity()));
+    }
+
+    return torques;
+}
+
 void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
     // Spindle revolute joint
     {
         const auto& C = m_revolute[side]->GetConstraintViolation();
-        std::cout << "Spindle revolute " << std::endl;
-        std::cout << "   " << C.transpose() << std::endl;
+        GetLog() << "Spindle revolute " << "\n";
+        GetLog() << "   " << C.transpose() << "\n";
     }
 
     // Suspension joints
@@ -612,9 +627,9 @@ void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
         auto link = joint->GetAsLink();
         const auto& C = link->GetConstraintViolation();
         assert(C.size() == link->GetDOC_c());
-        std::cout << "Joint " << item.first.name << " type: " << ChVehicleJoint::GetTypeString(item.second.type)
-                  << std::endl;
-        std::cout << "   " << C.transpose() << std::endl;
+        GetLog() << "Joint " << item.first.name << " type: " << ChVehicleJoint::GetTypeString(item.second.type)
+                  << "\n";
+        GetLog() << "   " << C.transpose() << "\n";
     }
 
     // Distance constraints
@@ -623,8 +638,8 @@ void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
             continue;
         const auto& dist = item.second.dist;
         const auto& C = dist->GetConstraintViolation();
-        std::cout << "Distance constraint " << item.first.name << std::endl;
-        std::cout << "   " << C.transpose() << std::endl;
+        GetLog() << "Distance constraint " << item.first.name << "\n";
+        GetLog() << "   " << C.transpose() << "\n";
     }
 }
 
@@ -641,7 +656,7 @@ void ChGenericWheeledSuspension::AddVisualizationAssets(VisualizationType vis) {
     for (auto& item : m_tsdas)
         item.second.geometry.CreateVisualizationAssets(item.second.tsda, vis);
     for (auto& item : m_dists)
-        item.second.dist->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+        item.second.dist->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 }
 
 void ChGenericWheeledSuspension::RemoveVisualizationAssets() {

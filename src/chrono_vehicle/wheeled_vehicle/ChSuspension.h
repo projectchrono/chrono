@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
@@ -44,6 +44,15 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
         double velocity;
         ForceTSDA() : name(""), force(0), length(0), velocity(0) {}
         ForceTSDA(const std::string& n, double f, double l, double v) : name(n), force(f), length(l), velocity(v) {}
+    };
+
+    struct ForceRSDA {
+        std::string name;
+        double torque;
+        double angle;
+        double velocity;
+        ForceRSDA() : name(""), torque(0), angle(0), velocity(0) {}
+        ForceRSDA(const std::string& n, double t, double a, double v) : name(n), torque(t), angle(a), velocity(v) {}
     };
 
     virtual ~ChSuspension();
@@ -89,7 +98,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     double GetAxleSpeed(VehicleSide side) const { return m_axle[side]->GetPos_dt(); }
 
     /// Synchronize this suspension subsystem.
-    virtual void Synchronize() {}
+    virtual void Synchronize();
 
     /// Apply the provided motor torque.
     /// The given torque is applied to the specified (left or right) axle. This
@@ -139,7 +148,10 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     virtual double GetTrack() = 0;
 
     /// Return current suspension TSDA force information on the specified side.
-    virtual std::vector<ForceTSDA> ReportSuspensionForce(VehicleSide side) const = 0;
+    virtual std::vector<ForceTSDA> ReportSuspensionForce(VehicleSide side) const { return {}; }
+
+    /// Return current RSDA torque information on the specified side.
+    virtual std::vector<ForceRSDA> ReportSuspensionTorque(VehicleSide side) const { return {}; }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) {}

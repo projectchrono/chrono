@@ -22,7 +22,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/collision/ChCollisionSystemBullet.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -54,21 +54,20 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector<> gear_center,
     mgear->SetPos(gear_center);
     sys.Add(mgear);
 
-    mgear->GetCollisionModel()->ClearModel();
     // cylindrical lobes
     for (int i = 0; i < lobe_copies; ++i) {
         double phase = CH_C_2PI * ((double)i / (double)lobe_copies);
         ChVector<> loc(lobe_primitive_rad * sin(phase), lobe_primitive_rad * cos(phase), 0);
         // shortcut from ChUtilsCreators.h: adds both collision shape and visualization asset
-        utils::AddCylinderGeometry(mgear.get(), mysurfmaterial,             //
-                                   lobe_width * 0.5, lobe_thickness * 0.5,  //
-                                   loc,                                     //
-                                   QUNIT,                                   // cylinder axis along Z
-                                   true);
+        chrono::utils::AddCylinderGeometry(mgear.get(), mysurfmaterial,             //
+                                           lobe_width * 0.5, lobe_thickness * 0.5,  //
+                                           loc,                                     //
+                                           QUNIT,                                   // cylinder axis along Z
+                                           true);
     }
     // central hub
-    utils::AddCylinderGeometry(mgear.get(), mysurfmaterial, lobe_inner_rad, lobe_thickness * 0.5, VNULL, QUNIT, true);
-    mgear->GetCollisionModel()->BuildModel();
+    chrono::utils::AddCylinderGeometry(mgear.get(), mysurfmaterial, lobe_inner_rad, lobe_thickness * 0.5, VNULL, QUNIT,
+                                       true);
     mgear->SetCollide(true);
 
     return mgear;
@@ -80,25 +79,22 @@ int main(int argc, char* argv[]) {
     // Create a Chrono physical system
     ChSystemSMC sys;
 
-    // Here set the inward-outward margins for collision shapes: should make sense in the scale of the model
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.002);
-    collision::ChCollisionSystemBullet::SetContactBreakingThreshold(0.0001);
+    // Create and set the collision system
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.002);
+    ChCollisionSystemBullet::SetContactBreakingThreshold(0.0001);
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create a ground object, useful reference for connecting constraints etc.
     auto mground = chrono_types::make_shared<ChBody>();
     mground->SetBodyFixed(true);
     sys.Add(mground);
 
-    // Create a mesh, that is a container for groups
-    // of elements and their referenced nodes.
-
+    // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
     sys.Add(my_mesh);
 
-    // Create a section, i.e. thickness and material properties
-    // for beams. This will be shared among some beams.
-
+    // Create a section, i.e. thickness and material properties for beams. This will be shared among some beams.
     double wire_diameter = 0.010;
 
     auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();

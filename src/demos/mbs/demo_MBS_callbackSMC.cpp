@@ -88,8 +88,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
 // -----------------------------------------------------------------------------
 class ContactMaterial : public ChContactContainer::AddContactCallback {
   public:
-    virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
-                              ChMaterialComposite* const material) override {
+    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
         // Downcast to appropriate composite material type
         auto mat = static_cast<ChMaterialCompositeSMC* const>(material);
 
@@ -110,10 +109,10 @@ class CompsiteMaterial : public ChMaterialCompositionStrategy {
 // -----------------------------------------------------------------------------
 // Class for overriding the default SMC contact force calculation
 // -----------------------------------------------------------------------------
-class ContactForce : public ChSystemSMC::ChContactForceSMC {
+class ContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
   public:
     // Demonstration only.
-    virtual ChVector<> CalculateForce(
+    virtual std::pair<ChVector<>, ChVector<>> CalculateForceTorque(
         const ChSystemSMC& sys,             ///< containing sys
         const ChVector<>& normal_dir,       ///< normal contact direction (expressed in global frame)
         const ChVector<>& p1,               ///< most penetrated point on obj1 (expressed in global frame)
@@ -124,7 +123,9 @@ class ContactForce : public ChSystemSMC::ChContactForceSMC {
         double delta,                       ///< overlap in normal direction
         double eff_radius,                  ///< effective radius of curvature at contact
         double mass1,                       ///< mass of obj1
-        double mass2                        ///< mass of obj2
+        double mass2,                       ///< mass of obj2
+        ChContactable* objA,                ///< pointer to contactable obj1
+        ChContactable* objB                 ///< pointer to contactable obj2
     ) const override {
         // Relative velocity at contact
         ChVector<> relvel = vel2 - vel1;
@@ -156,8 +157,11 @@ class ContactForce : public ChSystemSMC::ChContactForceSMC {
         ChVector<> force = forceN * normal_dir;
         if (relvel_t_mag >= sys.GetSlipVelocityThreshold())
             force -= (forceT / relvel_t_mag) * relvel_t;
+        
+        // for torque do nothing (this could be used to simulate rolling or spinning friction, if needed)
+        ChVector<> torque = VNULL;
 
-        return force;
+        return std::make_pair(force, torque);
     }
 };
 
@@ -176,13 +180,14 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, -10, 0));
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Set solver settings
     sys.SetSolverMaxIterations(100);
     sys.SetSolverForceTolerance(0);
 
     // Change default collision effective radius of curvature
-    ////collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
+    ////ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
     
     // --------------------------------------------------
     // Create a contact material, shared among all bodies
@@ -195,42 +200,36 @@ int main(int argc, char* argv[]) {
     // Add bodies
     // ----------
 
-    auto container = std::shared_ptr<ChBody>(sys.NewBody());
+    auto container = chrono_types::make_shared<ChBody>();
     sys.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
 
     container->SetCollide(true);
-    container->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(container.get(), material, ChVector<>(8, 1, 8), ChVector<>(0, -0.5, 0));
-    container->GetCollisionModel()->BuildModel();
     container->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
 
-    auto box1 = std::shared_ptr<ChBody>(sys.NewBody());
+    auto box1 = chrono_types::make_shared<ChBody>();
     box1->SetMass(10);
     box1->SetInertiaXX(ChVector<>(1, 1, 1));
     box1->SetPos(ChVector<>(-1, 0.21, -1));
     box1->SetPos_dt(ChVector<>(5, 0, 0));
 
     box1->SetCollide(true);
-    box1->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(box1.get(), material, ChVector<>(0.8, 0.4, 0.2));
-    box1->GetCollisionModel()->BuildModel();
     box1->GetVisualShape(0)->SetColor(ChColor(0.1f, 0.1f, 0.4f));
 
     sys.AddBody(box1);
 
-    auto box2 = std::shared_ptr<ChBody>(sys.NewBody());
+    auto box2 = chrono_types::make_shared<ChBody>();
     box2->SetMass(10);
     box2->SetInertiaXX(ChVector<>(1, 1, 1));
     box2->SetPos(ChVector<>(-1, 0.21, +1));
     box2->SetPos_dt(ChVector<>(5, 0, 0));
 
     box2->SetCollide(true);
-    box2->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(box2.get(), material, ChVector<>(0.8, 0.4, 0.2));
-    box2->GetCollisionModel()->BuildModel();
     box2->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.1f, 0.1f));
 
     sys.AddBody(box2);
@@ -300,7 +299,7 @@ int main(int argc, char* argv[]) {
 
     // User-defined SMC contact force calculation
     auto cforce = chrono_types::make_unique<ContactForce>();
-    sys.SetContactForceAlgorithm(std::move(cforce));
+    sys.SetContactForceTorqueAlgorithm(std::move(cforce));
 
     // User-defined composite coefficent of friction
     auto cmat = chrono_types::make_unique<ChMaterialCompositionStrategy>();

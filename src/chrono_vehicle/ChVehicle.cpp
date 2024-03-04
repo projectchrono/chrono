@@ -33,6 +33,7 @@
     #include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
 #endif
 
+
 namespace chrono {
 namespace vehicle {
 
@@ -97,7 +98,7 @@ ChVehicle::~ChVehicle() {
 // Change the default collision system type
 // -----------------------------------------------------------------------------
 
-void ChVehicle::SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) {
+void ChVehicle::SetCollisionSystemType(ChCollisionSystem::Type collsys_type) {
     if (m_ownsSystem)
         m_system->SetCollisionSystemType(collsys_type);
 }
@@ -123,6 +124,27 @@ void ChVehicle::SetOutput(ChVehicleOutput::Type type,
         case ChVehicleOutput::HDF5:
 #ifdef CHRONO_HAS_HDF5
             m_output_db = new ChVehicleOutputHDF5(out_dir + "/" + out_name + ".h5");
+#endif
+            break;
+    }
+}
+
+void ChVehicle::SetOutput(ChVehicleOutput::Type type,
+                          std::ostream& out_stream,
+                          double output_step) {
+    m_output = true;
+    m_output_step = output_step;
+
+    switch (type) {
+        case ChVehicleOutput::ASCII:
+            m_output_db = new ChVehicleOutputASCII(out_stream);
+            break;
+        case ChVehicleOutput::JSON:
+            //// TODO
+            break;
+        case ChVehicleOutput::HDF5:
+#ifdef CHRONO_HAS_HDF5
+            //// TODO
 #endif
             break;
     }

@@ -16,6 +16,13 @@
 
 #include "chrono/utils/ChUtilsGenerators.h"
 
+#include "chrono/geometry/ChBox.h"
+#include "chrono/geometry/ChCapsule.h"
+#include "chrono/geometry/ChCone.h"
+#include "chrono/geometry/ChCylinder.h"
+#include "chrono/geometry/ChEllipsoid.h"
+#include "chrono/geometry/ChSphere.h"
+
 namespace chrono {
 namespace utils {
 
@@ -215,32 +222,28 @@ double MixtureIngredient::getDensity() {
 void MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volume, ChVector<>& gyration) {
     switch (m_type) {
         case MixtureType::SPHERE:
-            volume = CalcSphereVolume(size.x());
-            gyration = CalcSphereGyration(size.x()).diagonal();
+            volume = geometry::ChSphere::GetVolume(size.x());
+            gyration = geometry::ChSphere::GetGyration(size.x()).diagonal();
             break;
         case MixtureType::ELLIPSOID:
-            volume = CalcEllipsoidVolume(size);
-            gyration = CalcEllipsoidGyration(size).diagonal();
+            volume = geometry::ChEllipsoid::GetVolume(size);
+            gyration = geometry::ChEllipsoid::GetGyration(size).diagonal();
             break;
         case MixtureType::BOX:
-            volume = CalcBoxVolume(size);
-            gyration = CalcBoxGyration(size).diagonal();
+            volume = geometry::ChBox::GetVolume(size);
+            gyration = geometry::ChBox::GetGyration(size).diagonal();
             break;
         case MixtureType::CYLINDER:
-            volume = CalcCylinderVolume(size.x(), size.y());
-            gyration = CalcCylinderGyration(size.x(), size.y()).diagonal();
+            volume = geometry::ChCylinder::GetVolume(size.x(), size.y());
+            gyration = geometry::ChCylinder::GetGyration(size.x(), size.y()).diagonal();
             break;
         case MixtureType::CONE:
-            volume = CalcConeVolume(size.x(), size.y());
-            gyration = CalcConeGyration(size.x(), size.y()).diagonal();
-            break;
-        case MixtureType::BISPHERE:
-            volume = CalcBiSphereVolume(size.x(), size.y());
-            gyration = CalcBiSphereGyration(size.x(), size.y()).diagonal();
+            volume = geometry::ChCone::GetVolume(size.x(), size.y());
+            gyration = geometry::ChCone::GetGyration(size.x(), size.y()).diagonal();
             break;
         case MixtureType::CAPSULE:
-            volume = CalcCapsuleVolume(size.x(), size.y());
-            gyration = CalcCapsuleGyration(size.x(), size.y()).diagonal();
+            volume = geometry::ChCapsule::GetVolume(size.x(), size.y());
+            gyration = geometry::ChCapsule::GetGyration(size.x(), size.y()).diagonal();
             break;
     }
 }
@@ -488,7 +491,7 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
         }
 
         // Create the body (with appropriate collision model, consistent with the associated system)
-        ChBody* body = m_system->NewBody();
+        auto body = chrono_types::make_shared<ChBody>();
 
         // Set identifier
         body->SetIdentifier(m_crtBodyId++);
@@ -515,45 +518,36 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
         m_totalVolume += volume;
 
         // Add collision geometry
-        body->GetCollisionModel()->ClearModel();
-
         switch (m_mixture[index]->m_type) {
             case MixtureType::SPHERE:
-                AddSphereGeometry(body, mat, size.x());
+                AddSphereGeometry(body.get(), mat, size.x());
                 break;
             case MixtureType::ELLIPSOID:
-                AddEllipsoidGeometry(body, mat, size * 2);
+                AddEllipsoidGeometry(body.get(), mat, size * 2);
                 break;
             case MixtureType::BOX:
-                AddBoxGeometry(body, mat, size * 2);
+                AddBoxGeometry(body.get(), mat, size * 2);
                 break;
             case MixtureType::CYLINDER:
-                AddCylinderGeometry(body, mat, size.x(), size.y());
+                AddCylinderGeometry(body.get(), mat, size.x(), size.y());
                 break;
             case MixtureType::CONE:
-                AddConeGeometry(body, mat, size.x(), size.z());
-                break;
-            case MixtureType::BISPHERE:
-            	AddBiSphereGeometry(body, mat, size.x(), size.y());
+                AddConeGeometry(body.get(), mat, size.x(), size.z());
                 break;
             case MixtureType::CAPSULE:
-                AddCapsuleGeometry(body, mat, size.x(), size.z());
+                AddCapsuleGeometry(body.get(), mat, size.x(), size.z());
                 break;
         }
 
-        body->GetCollisionModel()->BuildModel();
-
         // Attach the body to the system and append to list of generated bodies.
-        std::shared_ptr<ChBody> bodyPtr(body);
-
-        m_system->AddBody(bodyPtr);
+        m_system->AddBody(body);
 
         // If the callback pointer is set, call the function with the body pointer
         if (m_mixture[index]->add_body_callback) {
-            m_mixture[index]->add_body_callback->OnAddBody(bodyPtr);
+            m_mixture[index]->add_body_callback->OnAddBody(body);
         }
 
-        m_bodies.push_back(BodyInfo(m_mixture[index]->m_type, density, size, bodyPtr));
+        m_bodies.push_back(BodyInfo(m_mixture[index]->m_type, density, size, body));
     }
 
     m_totalNumBodies += (unsigned int)points.size();

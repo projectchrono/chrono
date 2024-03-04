@@ -31,36 +31,47 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_models/vehicle/generic/Generic_Vehicle.h"
-#include "chrono_models/vehicle/generic/Generic_FuncDriver.h"
-#include "chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimple.h"
-#include "chrono_models/vehicle/generic/powertrain/Generic_EngineSimple.h"
-#include "chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimpleMap.h"
-#include "chrono_models/vehicle/generic/powertrain/Generic_EngineSimpleMap.h"
-#include "chrono_models/vehicle/generic/tire/Generic_RigidTire.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
-    // specify whether the demo should actually use Irrlicht
-    #define USE_IRRLICHT
+using namespace chrono::irrlicht;
 #endif
 
-// DEBUGGING:  Uncomment the following line to print shock data
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
+// DEBUGGING:  Uncomment the following line to print suspension data
 // #define DEBUG_LOG
 
 using namespace chrono;
-#ifdef USE_IRRLICHT
-using namespace chrono::irrlicht;
-#endif
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::generic;
 
 // =============================================================================
 
+SuspensionTypeWV suspension_type = SuspensionTypeWV::DOUBLE_WISHBONE;
+SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
+BrakeType brake_type = BrakeType::SHAFTS;
+DrivelineTypeWV driveline_type = DrivelineTypeWV::AWD;
+
+EngineModelType engine_type = EngineModelType::SHAFTS;
+TransmissionModelType transmission_type = TransmissionModelType::AUTOMATIC_SHAFTS;
+
+TireModelType tire_type = TireModelType::PAC02;
+
+// =============================================================================
+
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 1.0);
+ChVector<> initLoc(0, 0, 0.6);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -75,7 +86,7 @@ double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 2e-3;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -98,20 +109,42 @@ const std::string pov_dir = out_dir + "/POVRAY";
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // --------------------------
-    // Create the various modules
-    // --------------------------
+    // -----------------------------
+    // Create the vehicle subsystems
+    // -----------------------------
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
     // and visualization mode for the various vehicle components.
-    Generic_Vehicle vehicle(false, SuspensionTypeWV::MACPHERSON_STRUT, ChContactMethod::NSC);
+    Generic_Vehicle vehicle(true,            // fixed chassis
+                            suspension_type,  // front suspension type
+                            suspension_type,  // rear suspension type
+                            steering_type,    // sterring mechanism type
+                            driveline_type,   // driveline type
+                            brake_type,       // brake type
+                            false,            // use bodies to model tierods
+                            false             // include an antiroll bar
+    );
+
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::NONE);
 
-    // Create the ground
+    // Associate a collision system
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
+    // Create and initialize the powertrain system
+    vehicle.CreateAndInitializePowertrain(engine_type, transmission_type);
+
+    // Create and initialize the tires
+    vehicle.CreateAndInitializeTires(tire_type, VisualizationType::PRIMITIVES);
+
+    // ----------------------
+    // Create a rigid terrain
+    // ----------------------
+
     RigidTerrain terrain(vehicle.GetSystem());
     auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     patch_mat->SetFriction(0.9f);
@@ -121,117 +154,126 @@ int main(int argc, char* argv[]) {
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
 
-    // Create and initialize the powertrain system
-    if (true) {
-        auto engine = chrono_types::make_shared<Generic_EngineSimple>("Engine");
-        auto transmission = chrono_types::make_shared<Generic_AutomaticTransmissionSimple>("Transmission");
-        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
-        vehicle.InitializePowertrain(powertrain);
-    } else {
-        auto engine = chrono_types::make_shared<Generic_EngineSimpleMap>("Engine");
-        auto transmission = chrono_types::make_shared<Generic_AutomaticTransmissionSimpleMap>("Transmission");
-        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
-        vehicle.InitializePowertrain(powertrain);
-    }
+    // ----------------------------------------------------------------------
+    // Create the run-time visualization interface and the interactive driver
+    // ----------------------------------------------------------------------
 
-    // Create the tires
-    auto tire_FL = chrono_types::make_shared<Generic_RigidTire>("FL");
-    auto tire_FR = chrono_types::make_shared<Generic_RigidTire>("FR");
-    auto tire_RL = chrono_types::make_shared<Generic_RigidTire>("RL");
-    auto tire_RR = chrono_types::make_shared<Generic_RigidTire>("RR");
-
-    vehicle.InitializeTire(tire_FL, vehicle.GetAxle(0)->m_wheels[0], VisualizationType::PRIMITIVES);
-    vehicle.InitializeTire(tire_FR, vehicle.GetAxle(0)->m_wheels[1], VisualizationType::PRIMITIVES);
-    vehicle.InitializeTire(tire_RL, vehicle.GetAxle(1)->m_wheels[0], VisualizationType::PRIMITIVES);
-    vehicle.InitializeTire(tire_RR, vehicle.GetAxle(1)->m_wheels[1], VisualizationType::PRIMITIVES);
-
-#ifdef USE_IRRLICHT
-
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("Generic Vehicle Demo");
-    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&vehicle);
-
-    ChInteractiveDriverIRR driver(*vis);
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
 
     // Set the time response for steering and throttle keyboard inputs.
-    // NOTE: this is not exact, since we do not render quite at the specified FPS.
     double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
     double throttle_time = 1.0;  // time to go from 0 to +1
     double braking_time = 0.3;   // time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetThrottleDelta(render_step_size / throttle_time);
-    driver.SetBrakingDelta(render_step_size / braking_time);
 
-#else
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+    std::shared_ptr<ChDriver> driver;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            // Create the vehicle Irrlicht interface
+            auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle("Generic Vehicle Demo");
+            vis_irr->SetChaseCamera(trackPoint, 6.0, 0.5);
+            vis_irr->Initialize();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AttachVehicle(&vehicle);
 
-    Generic_FuncDriver driver(vehicle);
+            // Create the interactive Irrlicht driver system
+            auto driver_irr = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
+            driver_irr->SetSteeringDelta(render_step_size / steering_time);
+            driver_irr->SetThrottleDelta(render_step_size / throttle_time);
+            driver_irr->SetBrakingDelta(render_step_size / braking_time);
+            driver_irr->Initialize();
 
+            vis = vis_irr;
+            driver = driver_irr;
 #endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            // Create the vehicle VSG interface
+            auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle("Generic Vehicle Demo");
+            vis_vsg->AttachVehicle(&vehicle);
+            vis_vsg->SetChaseCamera(trackPoint, 8.0, 0.5);
+            vis_vsg->SetWindowSize(ChVector2<int>(1200, 900));
+            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetCameraAngleDeg(40);
+            vis_vsg->SetLightIntensity(1.0f);
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->Initialize();
 
-    driver.Initialize();
+            // Create the interactive VSG driver system
+            auto driver_vsg = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
+            driver_vsg->SetSteeringDelta(render_step_size / steering_time);
+            driver_vsg->SetThrottleDelta(render_step_size / throttle_time);
+            driver_vsg->SetBrakingDelta(render_step_size / braking_time);
+            driver_vsg->Initialize();
+
+            vis = vis_vsg;
+            driver = driver_vsg;
+#endif
+            break;
+        }
+    }
 
     // ---------------
     // Simulation loop
     // ---------------
+
+    // Initialize simulation frame counter
+    int step_number = 0;
+
+    vehicle.EnableRealtime(true);
 
 #ifdef DEBUG_LOG
     GetLog() << "\n\n============ System Configuration ============\n";
     vehicle.LogHardpointLocations();
 #endif
 
-    // Initialize simulation frame counter and simulation time
-    int step_number = 0;
-    double time = 0;
-
-#ifdef USE_IRRLICHT
-
-    vehicle.EnableRealtime(true);
     while (vis->Run()) {
-        // Update the position of the shadow mapping so that it follows the car
-        ////if (do_shadows) {
-        ////  ChVector<> lightaim = vehicle.GetChassisPos();
-        ////  ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10, 30, 60);
-        ////  irr::core::vector3df mlightpos((irr::f32)lightpos.x, (irr::f32)lightpos.y, (irr::f32)lightpos.z);
-        ////  irr::core::vector3df mlightaim((irr::f32)lightaim.x, (irr::f32)lightaim.y, (irr::f32)lightaim.z);
-        ////  application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
-        ////  application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
-        ////  mlight->setPosition(mlightpos);
-        ////}
+        double time = vehicle.GetSystem()->GetChTime();
 
         // Render scene
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
 
-    #ifdef DEBUG_LOG
+#ifdef DEBUG_LOG
         // Number of simulation steps between two output frames
         int output_steps = (int)std::ceil(output_step_size / step_size);
 
         if (step_number % output_steps == 0) {
             GetLog() << "\n\n============ System Information ============\n";
             GetLog() << "Time = " << time << "\n\n";
-            vehicle.DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS);
+            vehicle.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
         }
-    #endif
+#endif
 
         // Driver inputs
-        DriverInputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver->GetInputs();
 
         // Update modules (process inputs from other modules)
-        time = vehicle.GetSystem()->GetChTime();
 
-        driver.Synchronize(time);
+        driver->Synchronize(time);
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
+        driver->Advance(step_size);
         terrain.Advance(step_size);
         vehicle.Advance(step_size);
         vis->Advance(step_size);
@@ -239,59 +281,6 @@ int main(int argc, char* argv[]) {
         // Increment frame number
         step_number++;
     }
-
-#else
-
-    // Number of simulation steps between two 3D view render frames
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
-    int render_frame = 0;
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(pov_dir))) {
-        std::cout << "Error creating directory " << pov_dir << std::endl;
-        return 1;
-    }
-
-    char filename[100];
-
-    while (time < tend) {
-        if (step_number % render_steps == 0) {
-            // Output render data
-            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-            utils::WriteVisualizationAssets(vehicle.GetSystem(), filename);
-            std::cout << "Output frame:   " << render_frame << std::endl;
-            std::cout << "Sim frame:      " << step_number << std::endl;
-            std::cout << "Time:           " << time << std::endl;
-            std::cout << "             throttle: " << driver.GetThrottle() << " steering: " << driver.GetSteering()
-                      << std::endl;
-            std::cout << std::endl;
-            render_frame++;
-        }
-
-        // Driver inputs
-        DriverInputs driver_inputs = driver.GetInputs();
-
-        // Update modules (process inputs from other modules)
-        time = vehicle.GetSystem()->GetChTime();
-
-        driver.Synchronize(time);
-        terrain.Synchronize(time);
-        vehicle.Synchronize(time, driver_inputs, terrain);
-
-        // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
-        terrain.Advance(step_size);
-        vehicle.Advance(step_size);
-
-        // Increment frame number
-        step_number++;
-    }
-
-#endif
 
     return 0;
 }

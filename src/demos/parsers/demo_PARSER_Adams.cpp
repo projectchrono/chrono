@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     rep.Print();
     std::cout << "---------" << std::endl;
 
-    // Adda a ground for perspective (no collision)
+    // Add a ground for perspective (no collision)
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, false);
     sys.AddBody(my_ground);
     my_ground->SetBodyFixed(true);

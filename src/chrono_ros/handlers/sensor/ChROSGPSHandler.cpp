@@ -45,7 +45,11 @@ bool ChROSGPSHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
 
     m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::NavSatFix>(m_topic_name, 1);
 
+<<<<<<< HEAD
     // m_gps_msg.header.frame_id = ; // TODO
+=======
+    m_gps_msg.header.frame_id = m_gps->GetName();
+>>>>>>> upstream/feature/ros
 
     return true;
 }
@@ -64,8 +68,37 @@ void ChROSGPSHandler::Tick(double time) {
     m_gps_msg.longitude = gps_data.Longitude;
     m_gps_msg.altitude = gps_data.Altitude;
 
+<<<<<<< HEAD
     m_publisher->publish(m_gps_msg);
 }
 
+=======
+    // Update the covariance matrix
+    // The ChGPSSensor does not currently support covariances, so we'll
+    // use the imu message to store a rolling average of the covariance
+    m_gps_msg.position_covariance = CalculateCovariance(gps_data);
+    m_gps_msg.position_covariance_type = sensor_msgs::msg::NavSatFix::COVARIANCE_TYPE_APPROXIMATED;
+
+    m_publisher->publish(m_gps_msg);
+}
+
+std::array<double, 9> ChROSGPSHandler::CalculateCovariance(const GPSData& gps_data) {
+    auto gps_coord = chrono::ChVector<>(gps_data.Latitude, gps_data.Longitude, gps_data.Altitude);
+    auto gps_reference = m_gps->GetGPSReference();
+    chrono::sensor::GPS2Cartesian(gps_coord, gps_reference);
+    auto enu_data = gps_coord;
+
+    std::array<double, 3> enu_data_array = {enu_data.x(), enu_data.y(), enu_data.z()};
+
+    // Update the running average
+    for (int i = 0; i < 3; i++) 
+        m_running_average[i] += (enu_data_array[i] - m_running_average[i]) / (m_tick_count + 1);
+
+    // Calculate and return the covariance
+    auto count = (m_tick_count > 1 ? m_tick_count - 1 : 1);  // Avoid divide by zero (if only one tick, count = 1)
+    return ChROSSensorHandlerUtilities::CalculateCovariance(enu_data_array, m_running_average, count);
+}
+
+>>>>>>> upstream/feature/ros
 }  // namespace ros
 }  // namespace chrono

@@ -33,7 +33,6 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 using std::cout;
 using std::endl;
@@ -172,10 +171,10 @@ void DBPcontroller::OnPhaseChange(robosimian::RS_Driver::Phase old_phase, robosi
 // =============================================================================
 
 std::shared_ptr<vehicle::SCMTerrain> CreateTerrain(robosimian::RoboSimian* robot,
-                                                             double length,
-                                                             double width,
-                                                             double height,
-                                                             double offset) {
+                                                   double length,
+                                                   double width,
+                                                   double height,
+                                                   double offset) {
     // Deformable terrain properties (LETE sand)
     ////double Kphi = 5301e3;    // Bekker Kphi
     ////double Kc = 102e3;       // Bekker Kc
@@ -262,6 +261,7 @@ int main(int argc, char* argv[]) {
     // -------------
 
     ChSystemSMC my_sys;
+    my_sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     my_sys.SetSolverMaxIterations(200);
     my_sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
     my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
@@ -329,9 +329,9 @@ int main(int argc, char* argv[]) {
     switch (mode) {
         case robosimian::LocomotionMode::WALK:
             driver = chrono_types::make_shared<robosimian::RS_Driver>(
-                "",                                                           // start input file
+                "",                                                                 // start input file
                 GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt"),  // cycle input file
-                "",                                                           // stop input file
+                "",                                                                 // stop input file
                 true);
             break;
         case robosimian::LocomotionMode::SCULL:
@@ -475,16 +475,21 @@ int main(int argc, char* argv[]) {
         }
 
         // Output POV-Ray date and/or snapshot images
+        // Zero-pad frame numbers in file names for postprocessing.
         if (sim_frame % render_steps == 0) {
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%04d.dat", pov_dir.c_str(), render_frame + 1);
-                chrono::utils::WriteVisualizationAssets(&my_sys, filename);
+                std::ostringstream filename;
+                filename << pov_dir
+                         << "/data_"
+                         << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                chrono::utils::WriteVisualizationAssets(&my_sys, filename.str());
             }
             if (render && image_output) {
-                char filename[100];
-                sprintf(filename, "%s/img_%04d.jpg", img_dir.c_str(), render_frame + 1);
-                vis->WriteImageToFile(filename);
+                std::ostringstream filename;
+                filename << img_dir
+                         << "/img_"
+                         << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+                vis->WriteImageToFile(filename.str());
             }
 
             render_frame++;

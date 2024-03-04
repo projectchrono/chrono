@@ -97,14 +97,14 @@ By doing this, you will be able to start the MKL-based demos and programs direct
 - Simply add this snippet anywhere in your code, before running the main simulation loop.<br>
 This will inform Chrono to use the Eigen interface to the Intel MKL Pardiso solver.
 ~~~{.cpp}
-auto mkl_solver = std::make_shared<ChSolverPardisoMKL>();
+auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
 my_system.SetSolver(mkl_solver);
 ~~~
 
 
 - (Optional) Turn on the sparsity pattern lock (see @ref chrono::ChSolverPardisoMKL and @ref chrono::ChDirectSolverLS for further details)
 ~~~{.cpp}
-auto mkl_solver = std::make_shared<ChSolverPardisoMKL>();
+auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
 mkl_solver->SetSparsityPatternLock(true);
 my_system.SetSolver(mkl_solver);
 ~~~

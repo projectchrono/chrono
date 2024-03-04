@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physical system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create all the rigid bodies.
     double mradius = 0.5;
@@ -122,13 +123,11 @@ int main(int argc, char* argv[]) {
     bin_vis_mat->SetKdTexture(GetChronoDataFile("textures/blue.png"));
 
     // Add collision geometry and visualization shapes for the floor and the 4 walls
-    bin->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20, 1, 20), ChVector<>(0, 0, 0), QUNIT, true, bin_vis_mat);
     utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(1, 2, 20.99), ChVector<>(-10, 1, 0), QUNIT, true, bin_vis_mat);
     utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(1, 2, 20.99), ChVector<>(10, 1, 0), QUNIT, true, bin_vis_mat);
     utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20.99, 2, 1), ChVector<>(0, 1, -10), QUNIT, true, bin_vis_mat);
     utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20.99, 2, 1), ChVector<>(0, 1, 10), QUNIT, true, bin_vis_mat);
-    bin->GetCollisionModel()->BuildModel();
 
     sys.Add(bin);
 

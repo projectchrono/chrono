@@ -58,14 +58,14 @@ Many guides can be found online to help setting environmental variables properly
 - Simply add this snippet anywhere in your code, before running the main simulation loop.<br>
 This will inform Chrono to use the Pardiso solver from PardisoProject.
 ~~~{.cpp}
-auto parproj_solver = std::make_shared<ChSolverPardisoProject>();
+auto parproj_solver = chrono_types::make_shared<ChSolverPardisoProject>();
 my_system.SetSolver(parproj_solver);
 ~~~
 
 
 - (Optional) Turn on the sparsity pattern lock (see @ref chrono::ChSolverPardisoProject and @ref chrono::ChDirectSolverLS for further details)
 ~~~{.cpp}
-auto parproj_solver = std::make_shared<ChSolverPardisoProject>();
+auto parproj_solver = chrono_types::make_shared<ChSolverPardisoProject>();
 parproj_solver->SetSparsityPatternLock(true);
 my_system.SetSolver(parproj_solver);
 ~~~

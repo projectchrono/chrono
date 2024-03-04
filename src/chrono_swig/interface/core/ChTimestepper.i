@@ -21,6 +21,9 @@
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumSetupCalls "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumSolveCalls "public"
 
+%csmethodmodifiers chrono::ChTimestepper::GetType "public virtual new"
+
+
 // Second, extend ChTimestepperHHT and ChTimestepperEulerImplicit with implementations of these functions
 
 %extend chrono::ChTimestepperHHT
@@ -90,7 +93,8 @@ using namespace chrono;
 %shared_ptr(chrono::ChTimestepperHHT)
 %shared_ptr(chrono::ChImplicitIterativeTimestepper)
 %shared_ptr(chrono::ChImplicitTimestepper)
-  
+%shared_ptr(chrono::ChExplicitTimestepper)  
+
 %include "../../../chrono/timestepper/ChState.h"
 %include "../../../chrono/timestepper/ChIntegrable.h"
 %include "../../../chrono/timestepper/ChTimestepper.h"

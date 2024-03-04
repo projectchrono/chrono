@@ -27,14 +27,55 @@ ChCapsule::ChCapsule(const ChCapsule& source) {
     h = source.h;
 }
 
-ChGeometry::AABB ChCapsule::GetBoundingBox(const ChMatrix33<>& rot) const {
-    return AABB(ChVector<>(-r, -r, -(r + h / 2)),  //
-                ChVector<>(+r, +r, +(r + h / 2)));
+// -----------------------------------------------------------------------------
+double ChCapsule::GetVolume(double radius, double height) {
+    double tmp = radius * radius * height + (4 / 3.0) * radius * radius * radius;
+    return CH_C_PI * tmp;
+}
+
+double ChCapsule::GetVolume() const {
+    return GetVolume(r, h);
+}
+
+ChMatrix33<> ChCapsule::GetGyration(double radius, double height) {
+    double massRatio = (3 / 4.0) * height / radius;
+    double cmDist = (1 / 2.0) * height + (3 / 8.0) * radius;
+    double Ixx = massRatio / (1 + massRatio) * (1.0 / 12.0) * (3 * radius * radius + height * height) +
+                 1 / (1 + massRatio) * (0.259 * radius * radius + cmDist * cmDist);
+    double Iyy = massRatio / (1 + massRatio) * (1.0 / 2.0) * (radius * radius) +
+                 1 / (1 + massRatio) * (2.0 / 5.0) * (radius * radius);
+
+    ChMatrix33<> J;
+    J.setZero();
+    J(0, 0) = Ixx;
+    J(1, 1) = Iyy;
+    J(2, 2) = Ixx;
+
+    return J;
+}
+
+ChMatrix33<> ChCapsule::GetGyration() const {
+    return GetGyration(r, h);
+}
+
+ChAABB ChCapsule::GetBoundingBox(double radius, double height) {
+    return ChAABB(ChVector<>(-radius, -radius, -(radius + height / 2)),
+                  ChVector<>(+radius, +radius, +(radius + height / 2)));
+}
+
+ChAABB ChCapsule::GetBoundingBox() const {
+    return GetBoundingBox(r, h);
+}
+
+double ChCapsule::GetBoundingSphereRadius(double radius, double height) {
+    return radius + height / 2;
 }
 
 double ChCapsule::GetBoundingSphereRadius() const {
-    return r + h / 2;
+    return GetBoundingSphereRadius(r, h);
 }
+
+// -----------------------------------------------------------------------------
 
 void ChCapsule::ArchiveOut(ChArchiveOut& marchive) {
     // version number

@@ -46,11 +46,6 @@ endif()
 # TODO: switch to new behavior
 #-----------------------------------------------------------------------------
 
-# this to fix warnings about the use of LOCATION with CMake version >= 3.0
-if(POLICY CMP0026)
-    cmake_policy(SET CMP0026 OLD)
-endif()
-
 # this to fix warnings about the use of SWIG_MODULE_${mymodulename}_REAL_NAME with CMake version >= 3.13
 if(POLICY CMP0078)
     cmake_policy(SET CMP0078 OLD)
@@ -156,8 +151,11 @@ endif()
 # Path to Chrono data/ directory (in SOURCE tree)
 set(PYC_DATA_PATH "${PROJECT_SOURCE_DIR}/data/")
 
-# Path to Chrono::Sensor shaders/ directory (in SOURCE tree)
-set(PYC_SHADER_PATH "${PROJECT_SOURCE_DIR}/src/chrono_sensor/optix/shaders/")
+if(USE_CUDA_NVRTC)
+  set(PYC_SHADER_PATH "${PROJECT_SOURCE_DIR}/src/chrono_sensor/optix/shaders/")
+else()
+  set(PYC_SHADER_PATH "${CMAKE_BINARY_DIR}/lib/sensor_ptx/")
+endif()
 
 # Generate the __init__.py file using substitution variables and place it in a temporary place
 configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.local.in
@@ -186,7 +184,6 @@ else()
   configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.local.in
                  ${PROJECT_BINARY_DIR}/chrono_python/__init__.py.install)
 endif()
-
 #-----------------------------------------------------------------------------
 # Install demos
 #-----------------------------------------------------------------------------
@@ -239,12 +236,12 @@ set_target_properties(${SWIG_MODULE_${CHPY_CORE}_REAL_NAME} PROPERTIES
 
 target_compile_definitions(${SWIG_MODULE_${CHPY_CORE}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
 
-ADD_DEPENDENCIES (${SWIG_MODULE_${CHPY_CORE}_REAL_NAME} ChronoEngine)
+add_dependencies(${SWIG_MODULE_${CHPY_CORE}_REAL_NAME} ChronoEngine)
 
 # Copy PY file in a package dir
 set(CHPY_CORE_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_CORE}.py")
-get_target_property(CHPY_CORE_PYD_FILE ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME} LOCATION)
-get_filename_component(CHPY_CORE_PYD_PATH "${CHPY_CORE_PYD_FILE}" PATH)
+set(CHPY_CORE_PYD_PATH $<TARGET_FILE_DIR:${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}>)
+
 add_custom_command(TARGET ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_CORE_PYD_PATH}/${CHPY_PACKAGENAME})
@@ -265,7 +262,6 @@ if (DBG_SCRIPT)
   message("Module name:     ${CHPY_CORE}")
   message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}")
   message("PY file:         ${CHPY_CORE_PY_FILE}")
-  message("PYD file:        ${CHPY_CORE_PYD_FILE}")
   message("PYD path:        ${CHPY_CORE_PYD_PATH}")
 endif()
 
@@ -331,8 +327,9 @@ if(ENABLE_MODULE_POSTPROCESS)
 
   # Copy PY file in a package dir
   set(CHPY_POSTPROCESS_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_POSTPROCESS}.py")
-  get_target_property(CHPY_POSTPROCESS_PYD_FILE ${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} LOCATION)
-  get_filename_component(CHPY_POSTPROCESS_PYD_PATH "${CHPY_POSTPROCESS_PYD_FILE}" PATH)
+
+  set(CHPY_POSTPROCESS_PYD_PATH $<TARGET_FILE_DIR:${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME}>)
+
   add_custom_command(TARGET ${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_POSTPROCESS_PYD_PATH}/${CHPY_PACKAGENAME})
@@ -352,7 +349,6 @@ if(ENABLE_MODULE_POSTPROCESS)
     message("Module name:     ${CHPY_POSTPROCESS}")
     message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME}")
     message("PY file:         ${CHPY_POSTPROCESS_PY_FILE}")
-    message("PYD file:        ${CHPY_POSTPROCESS_PYD_FILE}")
     message("PYD path:        ${CHPY_POSTPROCESS_PYD_PATH}")
   endif()
 
@@ -399,8 +395,9 @@ SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine)
 
   # Copy PY file in a package dir
   set(CHPY_FEA_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_FEA}.py")
-  get_target_property(CHPY_FEA_PYD_FILE ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} LOCATION)
-  get_filename_component(CHPY_FEA_PYD_PATH "${CHPY_FEA_PYD_FILE}" PATH)
+
+  set(CHPY_FEA_PYD_PATH $<TARGET_FILE_DIR:${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}>)
+
   add_custom_command(TARGET ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_FEA_PYD_PATH}/${CHPY_PACKAGENAME})
@@ -420,7 +417,6 @@ SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine)
     message("Module name:     ${CHPY_FEA}")
     message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}")
     message("PY file:         ${CHPY_FEA_PY_FILE}")
-    message("PYD file:        ${CHPY_FEA_PYD_FILE}")
     message("PYD path:        ${CHPY_FEA_PYD_PATH}")
   endif()
 
@@ -471,8 +467,9 @@ if(ENABLE_MODULE_IRRLICHT)
 
   # Copy PY file in a package dir
   set(CHPY_IRRLICHT_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_IRRLICHT}.py")
-  get_target_property(CHPY_IRRLICHT_PYD_FILE ${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} LOCATION)
-  get_filename_component(CHPY_IRRLICHT_PYD_PATH "${CHPY_IRRLICHT_PYD_FILE}" PATH)
+
+  set(CHPY_IRRLICHT_PYD_PATH $<TARGET_FILE_DIR:${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME}>)
+
   add_custom_command(TARGET ${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_IRRLICHT_PYD_PATH}/${CHPY_PACKAGENAME})
@@ -492,7 +489,6 @@ if(ENABLE_MODULE_IRRLICHT)
     message("Module name:     ${CHPY_IRRLICHT}")
     message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME}")
     message("PY file:         ${CHPY_IRRLICHT_PY_FILE}")
-    message("PYD file:        ${CHPY_IRRLICHT_PYD_FILE}")
     message("PYD path:        ${CHPY_IRRLICHT_PYD_PATH}")
   endif()
 
@@ -545,8 +541,9 @@ if(ENABLE_MODULE_PARDISO_MKL)
 
   # Copy PY file in a package dir
   set(CHPY_MKL_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_MKL}.py")
-  get_target_property(CHPY_MKL_PYD_FILE ${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} LOCATION)
-  get_filename_component(CHPY_MKL_PYD_PATH "${CHPY_MKL_PYD_FILE}" PATH)
+
+  set(CHPY_MKL_PYD_PATH $<TARGET_FILE_DIR:${SWIG_MODULE_${CHPY_MKL}_REAL_NAME}>)
+
   add_custom_command(TARGET ${SWIG_MODULE_${CHPY_MKL}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_MKL_PYD_PATH}/${CHPY_PACKAGENAME})
@@ -566,7 +563,6 @@ if(ENABLE_MODULE_PARDISO_MKL)
     message("Module name:     ${CHPY_MKL}")
     message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_MKL}_REAL_NAME}")
     message("PY file:         ${CHPY_MKL_PY_FILE}")
-    message("PYD file:        ${CHPY_MKL_PYD_FILE}")
     message("PYD path:        ${CHPY_MKL_PYD_PATH}")
   endif()
 
@@ -627,8 +623,9 @@ if(ENABLE_MODULE_CASCADE)
 
   # Copy PY file in a package dir
   set(CHPY_CASCADE_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_CASCADE}.py")
-  get_target_property(CHPY_CASCADE_PYD_FILE ${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME} LOCATION)
-  get_filename_component(CHPY_CASCADE_PYD_PATH "${CHPY_CASCADE_PYD_FILE}" PATH)
+
+  set(CHPY_CASCADE_PYD_PATH $<TARGET_FILE_DIR:${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME}>)
+
   add_custom_command(TARGET ${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_CASCADE_PYD_PATH}/${CHPY_PACKAGENAME})
@@ -649,7 +646,6 @@ if(ENABLE_MODULE_CASCADE)
     message("Module name:     ${CHPY_CASCADE}")
     message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME}")
     message("PY file:         ${CHPY_CASCADE_PY_FILE}")
-    message("PYD file:        ${CHPY_CASCADE_PYD_FILE}")
     message("PYD path:        ${CHPY_CASCADE_PYD_PATH}")
   endif()
 
@@ -724,8 +720,9 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
 
   # Copy PY file in a package dir
   set(CHPY_VEHICLE_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_VEHICLE}.py")
-  get_target_property(CHPY_VEHICLE_PYD_FILE ${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} LOCATION)
-  get_filename_component(CHPY_VEHICLE_PYD_PATH "${CHPY_VEHICLE_PYD_FILE}" PATH)
+
+  set(CHPY_VEHICLE_PYD_PATH $<TARGET_FILE_DIR:${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME}>)
+
   add_custom_command(TARGET ${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_VEHICLE_PYD_PATH}/${CHPY_PACKAGENAME})
@@ -745,7 +742,6 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
     message("Module name:     ${CHPY_VEHICLE}")
     message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME}")
     message("PY file:         ${CHPY_VEHICLE_PY_FILE}")
-    message("PYD file:        ${CHPY_VEHICLE_PYD_FILE}")
     message("PYD path:        ${CHPY_VEHICLE_PYD_PATH}")
   endif()
 
@@ -806,8 +802,9 @@ if(ENABLE_MODULE_SENSOR AND NUMPY_INCLUDE_DIR)
 
   # Copy PY file in a package dir
   set(CHPY_SENSOR_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_SENSOR}.py")
-  get_target_property(CHPY_SENSOR_PYD_FILE ${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME} LOCATION)
-  get_filename_component(CHPY_SENSOR_PYD_PATH "${CHPY_SENSOR_PYD_FILE}" PATH)
+
+  set(CHPY_SENSOR_PYD_PATH $<TARGET_FILE_DIR:${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME}>)
+
   add_custom_command(TARGET ${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME}
           POST_BUILD
           COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_SENSOR_PYD_PATH}/${CHPY_PACKAGENAME})
@@ -827,7 +824,6 @@ if(ENABLE_MODULE_SENSOR AND NUMPY_INCLUDE_DIR)
     message("Module name:     ${CHPY_SENSOR}")
     message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME}")
     message("PY file:         ${CHPY_SENSOR_PY_FILE}")
-    message("PYD file:        ${CHPY_SENSOR_PYD_FILE}")
     message("PYD path:        ${CHPY_SENSOR_PYD_PATH}")
   endif()
 
@@ -884,8 +880,10 @@ endif()
 
   # Copy PY file in a package dir 
   set(CHPY_VEHICLE_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_RS}.py")
-  get_target_property(CHPY_RS_PYD_FILE ${SWIG_MODULE_${CHPY_RS}_REAL_NAME} LOCATION)
-  get_filename_component(CHPY_VEHICLE_PYD_PATH "${CHPY_RS_PYD_FILE}" PATH)
+
+  set(CHPY_VEHICLE_PYD_PATH $<TARGET_FILE_DIR:${SWIG_MODULE_${CHPY_RS}_REAL_NAME}>)
+
+
   add_custom_command(TARGET ${SWIG_MODULE_${CHPY_RS}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_VEHICLE_PYD_PATH}/${CHPY_PACKAGENAME})
@@ -902,6 +900,88 @@ endif()
   install(FILES "${CHPY_VEHICLE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
 #-----------------------------------------------------------------------------
+<<<<<<< HEAD
+=======
+# MODULE for the parser python wrapper.
+#-----------------------------------------------------------------------------
+
+# Only build if have URDF for now
+if(ENABLE_MODULE_PARSERS AND HAVE_URDF)
+  message(STATUS "...add python parsers module:  pychrono.parsers")
+
+  # Python module name
+  set(CHPY_PARSERS parsers)
+
+  # Interface files
+  set(CHPY_PARSERS_MODULE_FILE
+    ../interface/parsers/ChModuleParsers.i
+  )
+
+  include_directories(${CH_PARSERS_INCLUDES})
+
+  set_source_files_properties(${CHPY_PARSERS_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+
+  # Create the SWIG module.
+  if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
+    SWIG_ADD_MODULE(${CHPY_PARSERS} python ${CHPY_PARSERS_MODULE_FILE})
+  else()
+    SWIG_ADD_LIBRARY(${CHPY_PARSERS} LANGUAGE python SOURCES ${CHPY_PARSERS_MODULE_FILE})
+  endif()
+  SWIG_LINK_LIBRARIES(${CHPY_PARSERS} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_parsers)
+
+  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    ADD_DEFINITIONS( "/DWNT" )
+  ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    ADD_DEFINITIONS(-DHAVE_IOSTREAM)
+    ADD_DEFINITIONS(-DHAVE_LIMITS_H)
+  ENDIF()
+
+  # Ensure that the PYD library file is generated in the bin/ directory.
+  set_target_properties(${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME} PROPERTIES
+                        PROJECT_LABEL "ChronoEngine_python_${CHPY_PARSERS}"
+                        OUTPUT_NAME   "${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME}"
+                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        )
+
+  target_compile_definitions(${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
+
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME} ChronoEngine)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME} ChronoEngine_parsers)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
+
+  # Copy PY file in a package dir
+  set(CHPY_PARSERS_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_PARSERS}.py")
+
+  set(CHPY_PARSERS_PYD_PATH $<TARGET_FILE_DIR:${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME}>)
+
+  add_custom_command(TARGET ${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME}
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_PARSERS_PYD_PATH}/${CHPY_PACKAGENAME})
+  add_custom_command(TARGET ${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME}
+                     POST_BUILD
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_PARSERS_PY_FILE} ${CHPY_PARSERS_PYD_PATH}/${CHPY_PACKAGENAME})
+
+  # Install .pyd binary module (.so on linux)
+  install(TARGETS ${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME}
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+  # Install .py module wrapper
+  install(FILES "${CHPY_PARSERS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+
+  if (DBG_SCRIPT)
+    message("Module name:     ${CHPY_PARSERS}")
+    message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_PARSERS}_REAL_NAME}")
+    message("PY file:         ${CHPY_PARSERS_PY_FILE}")
+    message("PYD file:        ${CHPY_PARSERS_PYD_FILE}")
+    message("PYD path:        ${CHPY_PARSERS_PYD_PATH}")
+  endif()
+
+endif()
+
+
+#-----------------------------------------------------------------------------
+>>>>>>> upstream/feature/ros
 # MODULE for the ros python wrapper.
 #-----------------------------------------------------------------------------
 
@@ -925,6 +1005,21 @@ if(ENABLE_MODULE_ROS)
 
   # Create the SWIG module.
 
+<<<<<<< HEAD
+=======
+  # Make sure CHRONO_PARSERS_URDF and/or CHRONO_SENSOR is defined for the SWIG processor
+  if (ENABLE_MODULE_PARSERS AND HAVE_URDF)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_PARSERS_URDF")
+  endif()
+  if (ENABLE_MODULE_SENSOR)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_SENSOR")
+  endif()
+
+  if (CH_ROS_HAS_INTERFACES)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_ROS_HAS_INTERFACES")
+  endif()
+
+>>>>>>> upstream/feature/ros
   if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
     SWIG_ADD_MODULE(${CHPY_ROS} python ${CHPY_ROS_MODULE_FILE})
   else()
@@ -954,8 +1049,14 @@ if(ENABLE_MODULE_ROS)
 
   # Copy PY file in a package dir
   set(CHPY_ROS_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_ROS}.py")
+<<<<<<< HEAD
   get_target_property(CHPY_ROS_PYD_FILE ${SWIG_MODULE_${CHPY_ROS}_REAL_NAME} LOCATION)
   get_filename_component(CHPY_ROS_PYD_PATH "${CHPY_ROS_PYD_FILE}" PATH)
+=======
+
+  set(CHPY_ROS_PYD_PATH $<TARGET_FILE_DIR:${SWIG_MODULE_${CHPY_ROS}_REAL_NAME}>)
+
+>>>>>>> upstream/feature/ros
   add_custom_command(TARGET ${SWIG_MODULE_${CHPY_ROS}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_ROS_PYD_PATH}/${CHPY_PACKAGENAME})

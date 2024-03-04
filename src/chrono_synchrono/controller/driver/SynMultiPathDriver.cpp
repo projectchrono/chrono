@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include "chrono/core/ChMathematics.h"
-#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -35,18 +35,18 @@ ChMultiPathFollowerACCDriver::ChMultiPathFollowerACCDriver(
 
 void ChMultiPathFollowerACCDriver::Create() {
     // Reset the steering and speed controllers
-    m_steeringPID.Reset(m_vehicle);
-    m_speedPID.Reset(m_vehicle);
+    m_steeringPID.Reset(m_vehicle.GetRefFrame());
+    m_speedPID.Reset(m_vehicle.GetRefFrame());
 
     // Create a fixed body to carry a visualization asset for the path
-    auto road = std::shared_ptr<ChBody>(m_vehicle.GetSystem()->NewBody());
+    auto road = chrono_types::make_shared<ChBody>();
     road->SetBodyFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
     auto bezier_curve = m_steeringPID.GetPath();
     for (int i = 0; i < bezier_curve.size(); i++) {
         auto num_points = static_cast<unsigned int>(bezier_curve[i]->getNumPoints());
-        auto path_asset = chrono_types::make_shared<ChLineShape>();
+        auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
         path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve[i]));
         path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
         path_asset->SetName(m_pathName);
@@ -56,14 +56,14 @@ void ChMultiPathFollowerACCDriver::Create() {
 }
 
 void ChMultiPathFollowerACCDriver::Reset() {
-    m_steeringPID.Reset(m_vehicle);
-    m_speedPID.Reset(m_vehicle);
+    m_steeringPID.Reset(m_vehicle.GetRefFrame());
+    m_speedPID.Reset(m_vehicle.GetRefFrame());
 }
 
 void ChMultiPathFollowerACCDriver::Advance(double step) {
     // Set the throttle and braking values based on the output from the speed controller.
-    double out_speed = m_speedPID.Advance(m_vehicle, m_target_speed, m_target_following_time, m_target_min_distance,
-                                          m_current_distance, step);
+    double out_speed = m_speedPID.Advance(m_vehicle.GetRefFrame(), m_target_speed, m_target_following_time,
+                                          m_target_min_distance, m_current_distance, m_vehicle.GetChTime(), step);
     ChClampValue(out_speed, -1.0, 1.0);
 
     if (out_speed > 0) {
@@ -80,7 +80,7 @@ void ChMultiPathFollowerACCDriver::Advance(double step) {
         m_throttle = 0;
     }
     // Set the steering value based on the output from the steering controller.
-    double out_steering = m_steeringPID.Advance(m_vehicle, step);
+    double out_steering = m_steeringPID.Advance(m_vehicle.GetRefFrame(), m_vehicle.GetChTime(), step);
     ChClampValue(out_steering, -1.0, 1.0);
     m_steering = out_steering;
 }
@@ -114,9 +114,9 @@ void ChMultiplePathSteeringController::CalcTargetLocation() {
     m_tracker[m_lane]->calcClosestPoint(m_sentinel, m_target);
 }
 
-void ChMultiplePathSteeringController::Reset(const ChVehicle& vehicle) {
+void ChMultiplePathSteeringController::Reset(const ChFrameMoving<>& ref_frame) {
     // Let the base class calculate the current location of the sentinel point.
-    ChSteeringController::Reset(vehicle);
+    ChSteeringController::Reset(ref_frame);
 
     // Reset the path tracker with the new sentinel location
     for (int i = 0; i < m_tracker.size(); i++) {
@@ -124,18 +124,16 @@ void ChMultiplePathSteeringController::Reset(const ChVehicle& vehicle) {
     }
 }
 
-double ChMultiplePathSteeringController::Advance(const ChVehicle& vehicle, double step) {
-    // Calculate current "sentinel" location.  This is a point at the look-ahead
-    // distance in front of the vehicle.
-    m_sentinel =
-        vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
+double ChMultiplePathSteeringController::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
+    // Calculate current "sentinel" location.  This is a point at the look-ahead distance in front of the vehicle.
+    m_sentinel = ref_frame.TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
 
     // Calculate current "target" location.
     CalcTargetLocation();
 
     // If data collection is enabled, append current target and sentinel locations.
     if (m_collect) {
-        *m_csv << vehicle.GetChTime() << m_target << m_sentinel << std::endl;
+        *m_csv << time << m_target << m_sentinel << std::endl;
     }
 
     // The "error" vector is the projection onto the horizontal plane of the vector between sentinel and target.
@@ -144,9 +142,9 @@ double ChMultiplePathSteeringController::Advance(const ChVehicle& vehicle, doubl
 
     // Calculate the sign of the angle between the projections of the sentinel
     // vector and the target vector (with origin at vehicle location).
-    ChVector<> sentinel_vec = m_sentinel - vehicle.GetPos();
+    ChVector<> sentinel_vec = m_sentinel - ref_frame.GetPos();
     ChWorldFrame::Project(sentinel_vec);
-    ChVector<> target_vec = m_target - vehicle.GetPos();
+    ChVector<> target_vec = m_target - ref_frame.GetPos();
     ChWorldFrame::Project(target_vec);
 
     double temp = Vdot(Vcross(sentinel_vec, target_vec), ChWorldFrame::Vertical());

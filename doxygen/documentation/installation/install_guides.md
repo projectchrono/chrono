@@ -1,11 +1,11 @@
-Installation Guides {#tutorial_table_of_content_install}
+Installation Guides {#install_guides}
 ==========================
 
-### Building Chrono
+### Installing Chrono (C++)
 
 -   [Core Chrono module](@ref tutorial_install_chrono)
 
-Additional Chrono functionality is provided through optional modules. Building one or more of these modules can be enabled during CMake configuration. A brief overview of the functionality provided by each module, additional requirements and dependencies, and specific build instructions are provided in the following subsections:
+Additional Chrono functionalities are provided through optional _modules_, conditionally enabled during CMake configuration. Modules often rely on third-party libraries that might require additional installation steps, as described in each module installation page.
 
 -   [CASCADE module](@ref module_cascade_installation)
 
@@ -13,7 +13,7 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [CSHARP module](@ref module_csharp_installation)
 
--   [DISTRIBUTED module](@ref module_distributed_installation)
+-   [FMI module](@ref module_fmi_installation)
 
 -   [FSI module](@ref module_fsi_installation)
 
@@ -49,7 +49,6 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [VSG module](@ref module_vsg_installation)
 
-Some of the Chrono optional modules have dependencies on third-party packages and libraries. Instructions on obtaining, installing, and using these dependencies during Chrono configuration are provided in the installation instructions specific to each module (see above).
 
 For some of these dependencies, we provide utility scripts that will download, configure, build, and install versions that are known to work with the current Chrono distribution. In each case, we provide both batch scripts (for Windows users) and bash scripts (for Linux/Mac users). Currently, utility scripts for the following sets of dependencies are available (under the `contrib/build-scripts` subdirectory of the Chrono source tree):
 
@@ -60,21 +59,24 @@ For some of these dependencies, we provide utility scripts that will download, c
 
 The directory `contrib/build-scripts` also includes sample scripts (`buildChrono.bat` and `buildChrono.sh`) for configuring Chrono with CMake which can be used as examples of satisfying the dependencies for the various optional Chrono modules (assuming these dependencies were installed with the utility scripts described above).
 
+### Building a project that uses Chrono
+
+User projects should start from the template offered in the repository under: [_chrono/template_project_](https://github.com/projectchrono/chrono/tree/main/template_project).
+
+Full instructions can be found in: [Linking to Chrono](@ref tutorial_install_project)
+
 ### Building Chrono for WebAssembly
 
 -   [Build Chrono for WASM](@ref tutorial_install_chrono_emscripten)
 
-### Building a project that uses Chrono
 
--   [Linking to Chrono](@ref tutorial_install_project)
-
-### Auxiliary tools
-
-#### The PyChrono Python module
+### Installing PyChrono
 
 - @subpage pychrono_installation
 
 
-#### The Chrono::Solidworks add-in tool
+### Chrono::Solidworks add-in
+
+An add-in to enable the export of models from SolidWorks to Chrono
 
 - @subpage tutorial_install_chrono_solidworks

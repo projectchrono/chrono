@@ -46,6 +46,13 @@ try:
 except:
     pass
 try:
+<<<<<<< HEAD
+=======
+    import _parsers
+except:
+    pass
+try:
+>>>>>>> upstream/feature/ros
     import _ros
 except:
     pass

@@ -38,8 +38,8 @@
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/core/ChTimer.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChConeShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCone.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -125,7 +125,7 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 EngineModelType engine_model = EngineModelType::SHAFTS;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
@@ -149,8 +149,8 @@ void CreateSceneObjects(std::shared_ptr<ChVehicleVisualSystem> vis,
                         int& sentinelID,
                         int& targetID) {
     // Add visualization of controller points (sentinel & target)
-    auto ballS = chrono_types::make_shared<ChSphereShape>(0.1);
-    auto ballT = chrono_types::make_shared<ChSphereShape>(0.1);
+    auto ballS = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+    auto ballT = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     ballS->SetColor(ChColor(1, 0, 0));
     ballT->SetColor(ChColor(0, 1, 0));
     sentinelID = vis->AddVisualModel(ballS, ChFrame<>());
@@ -158,7 +158,7 @@ void CreateSceneObjects(std::shared_ptr<ChVehicleVisualSystem> vis,
 
     // Add the road cones
     ChVector<> cone_offset(0, 0.21, 0);
-    auto cone = chrono_types::make_shared<ChModelFileShape>();
+    auto cone = chrono_types::make_shared<ChVisualShapeModelFile>();
     cone->SetFilename(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj"));
     cone->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     for (const auto& pos : dlc.GetLeftConePositions())
@@ -206,20 +206,21 @@ int main(int argc, char* argv[]) {
 
     // Create the HMMWV vehicle, set parameters, and initialize.
     // Typical aerodynamic drag for HMMWV: Cd = 0.5 and area ~5 m2
-    HMMWV_Full my_hmmwv;
-    my_hmmwv.SetContactMethod(ChContactMethod::SMC);
-    my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
-    my_hmmwv.SetEngineType(engine_model);
-    my_hmmwv.SetTransmissionType(transmission_model);
-    my_hmmwv.SetDriveType(drive_type);
-    my_hmmwv.SetTireType(tire_model);
-    my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.SetAerodynamicDrag(0.5, 5.0, 1.2);
-    my_hmmwv.Initialize();
+    HMMWV_Full hmmwv;
+    hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    hmmwv.SetContactMethod(ChContactMethod::SMC);
+    hmmwv.SetChassisFixed(false);
+    hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
+    hmmwv.SetEngineType(engine_model);
+    hmmwv.SetTransmissionType(transmission_model);
+    hmmwv.SetDriveType(drive_type);
+    hmmwv.SetTireType(tire_model);
+    hmmwv.SetTireStepSize(tire_step_size);
+    hmmwv.SetAerodynamicDrag(0.5, 5.0, 1.2);
+    hmmwv.Initialize();
 
     // important vehicle data
-    double wheel_base = my_hmmwv.GetVehicle().GetWheelbase();
+    double wheel_base = hmmwv.GetVehicle().GetWheelbase();
     double vehicle_width = 2.16;
     double steering_gear_ratio = 3.5 * 360.0 / 2;  // caution: estimated value 3.5 revolutions from left to right
 
@@ -227,17 +228,17 @@ int main(int argc, char* argv[]) {
     if (tire_model == TireModelType::RIGID_MESH)
         tire_vis_type = VisualizationType::MESH;
 
-    my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
-    my_hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
-    my_hmmwv.SetSteeringVisualizationType(steering_vis_type);
-    my_hmmwv.SetWheelVisualizationType(wheel_vis_type);
-    my_hmmwv.SetTireVisualizationType(tire_vis_type);
+    hmmwv.SetChassisVisualizationType(chassis_vis_type);
+    hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
+    hmmwv.SetSteeringVisualizationType(steering_vis_type);
+    hmmwv.SetWheelVisualizationType(wheel_vis_type);
+    hmmwv.SetTireVisualizationType(tire_vis_type);
 
     ISO3888_Wrapper dlc(-accelerationLength + 5.0, accelerationLength, vehicle_width, dlc_mode, left_turn);
     ////cout << "Maneuver Length = " << helper.GetManeuverLength() << " m" << endl;
 
     // Create the terrain
-    RigidTerrain terrain(my_hmmwv.GetSystem());
+    RigidTerrain terrain(hmmwv.GetSystem());
     auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
@@ -253,7 +254,7 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------------------
 
     auto path = dlc.GetPath();
-    ChPathFollowerDriver driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed);
+    ChPathFollowerDriver driver(hmmwv.GetVehicle(), path, "my_path", target_speed);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
@@ -285,7 +286,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&my_hmmwv.GetVehicle());
+            vis_irr->AttachVehicle(&hmmwv.GetVehicle());
             CreateSceneObjects(vis_irr, dlc, sentinelID, targetID);
 
             vis = vis_irr;
@@ -298,7 +299,7 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle(title);
             vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-            vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
+            vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             CreateSceneObjects(vis_vsg, dlc, sentinelID, targetID);
             vis_vsg->Initialize();
 
@@ -340,18 +341,18 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
 
     while (vis->Run()) {
-        double time = my_hmmwv.GetSystem()->GetChTime();
-        double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetSpeed());
+        double time = hmmwv.GetSystem()->GetChTime();
+        double speed = speed_filter.Add(hmmwv.GetVehicle().GetSpeed());
         double accel =
-            accel_filter.Filter(my_hmmwv.GetVehicle().GetPointAcceleration(ChVector<>(-wheel_base / 2, 0, 0)).y());
+            accel_filter.Filter(hmmwv.GetVehicle().GetPointAcceleration(ChVector<>(-wheel_base / 2, 0, 0)).y());
 
         speed_recorder.AddPoint(time, speed);
         accel_recorder.AddPoint(time, accel);
 
-        ChVector<> pFrontLeft = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(0, vehicle_width / 2, 1));
-        ChVector<> pRearLeft = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(-wheel_base, vehicle_width / 2, 1));
-        ChVector<> pFrontRight = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(0, -vehicle_width / 2, 1));
-        ChVector<> pRearRight = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(-wheel_base, -vehicle_width / 2, 1));
+        ChVector<> pFrontLeft = hmmwv.GetVehicle().GetPointLocation(ChVector<>(0, vehicle_width / 2, 1));
+        ChVector<> pRearLeft = hmmwv.GetVehicle().GetPointLocation(ChVector<>(-wheel_base, vehicle_width / 2, 1));
+        ChVector<> pFrontRight = hmmwv.GetVehicle().GetPointLocation(ChVector<>(0, -vehicle_width / 2, 1));
+        ChVector<> pRearRight = hmmwv.GetVehicle().GetPointLocation(ChVector<>(-wheel_base, -vehicle_width / 2, 1));
         if (!dlc.GateTestLeft(pFrontLeft)) {
             cout << "Test Failure: vehicle left the course with the front left wheel." << endl;
             break;
@@ -370,7 +371,7 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        if (time >= 100 || my_hmmwv.GetVehicle().GetPos().x() > dlc.GetXmax()) {
+        if (time >= 100 || hmmwv.GetVehicle().GetPos().x() > dlc.GetXmax()) {
             cout << "Test Run: terminated normally." << endl;
             break;
         }
@@ -394,13 +395,13 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_hmmwv.Synchronize(time, driver_inputs, terrain);
+        hmmwv.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        my_hmmwv.Advance(step_size);
+        hmmwv.Advance(step_size);
         vis->Advance(step_size);
 
         // Increment frame number

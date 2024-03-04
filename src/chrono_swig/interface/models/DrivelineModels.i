@@ -27,9 +27,6 @@
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline4WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/SimpleDrivelineXWD.h"
 
-#include "chrono_models/vehicle/generic/driveline/Generic_Driveline2WD.h"
-#include "chrono_models/vehicle/generic/driveline/Generic_SimpleDriveline.h"
-
 #include "chrono_models/vehicle/hmmwv/driveline/HMMWV_Driveline2WD.h"
 #include "chrono_models/vehicle/hmmwv/driveline/HMMWV_Driveline4WD.h"
 #include "chrono_models/vehicle/hmmwv/driveline/HMMWV_SimpleDriveline.h"
@@ -56,8 +53,6 @@
 %}
 
 
-%shared_ptr(chrono::vehicle::generic::Generic_Driveline2WD)
-%shared_ptr(chrono::vehicle::generic::Generic_SimpleDriveline)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_Driveline2WD)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_Driveline4WD)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_SimpleDriveline)
@@ -79,9 +74,6 @@
 %import "chrono_swig/interface/vehicle/ChDriveline.i"
 
 // Model:
-%include "../../../chrono_models/vehicle/generic/driveline/Generic_Driveline2WD.h"
-%include "../../../chrono_models/vehicle/generic/driveline/Generic_SimpleDriveline.h"
-
 %include "../../../chrono_models/vehicle/hmmwv/driveline/HMMWV_Driveline2WD.h"
 %include "../../../chrono_models/vehicle/hmmwv/driveline/HMMWV_Driveline4WD.h"
 %include "../../../chrono_models/vehicle/hmmwv/driveline/HMMWV_SimpleDriveline.h"

@@ -125,16 +125,13 @@ class ChApi ChLineCam : public ChLine {
     /// Sets the data for the flat rotating follower (length, distance from cam center, initial phase mb0)
     void Set_flat_oscillate(double me, double md, double mb0);
 
-    /// Evaluate at once all important properties of cam,
-    /// function of rotation 'par'
-    /// (par in range 0..1, since 1 means 360°!):
-    /// Gets point res, pressure angle g, curvature radius q.
-    void EvaluateCamPoint(double par, ChVector<>& res, double& g, double& q) const;
+    /// Evaluate at once all important properties of cam, function of rotation 'par'
+    /// (par in range 0..1, with 1 corresponding to 360 degrees):
+    /// Also returns the pressure angle g and curvature radius q.
+    ChVector<> EvaluateCamPoint(double par, double& g, double& q) const;
 
-    /// Curve evaluation.
-    /// Given a parameter "u", finds position on line of the
-    /// kind p=p(u); note that u is in the range 0...1, to make a complete cycle along the cam
-    virtual void Evaluate(ChVector<>& pos, const double parU) const override;
+    /// Return a point on the line, given parametric coordinate U (in [0,1]).
+    virtual ChVector<> Evaluate(double U) const override;
 
     /// Weight evaluation.
     /// Given that the shape is defined by a Ch_function, the

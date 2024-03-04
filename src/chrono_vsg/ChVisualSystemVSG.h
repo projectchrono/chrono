@@ -27,18 +27,18 @@
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualModel.h"
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChBarrelShape.h"
-#include "chrono/assets/ChConeShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChSurfaceShape.h"
-#include "chrono/assets/ChModelFileShape.h"
-#include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPathShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeEllipsoid.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeCapsule.h"
+#include "chrono/assets/ChVisualShapeBarrel.h"
+#include "chrono/assets/ChVisualShapeCone.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeSurface.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeLine.h"
+#include "chrono/assets/ChVisualShapePath.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMarkers.h"
@@ -60,11 +60,14 @@ namespace vsg3d {
 /// VSG-based Chrono run-time visualization system.
 class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
   public:
-    ChVisualSystemVSG();
+    /// Create the Chrono::VSG run-time visualization system.
+    /// Optionally, specify the resolution used for tesselation of primitive shapes, by providing the number of
+    /// divisions used to discretize a full circle. The default value of 24 corresponds to 15-degree divisions.
+    ChVisualSystemVSG(int num_divs = 24);
     ~ChVisualSystemVSG();
 
     /// Initialize the visualization system.
-    virtual void Initialize();
+    virtual void Initialize() override;
 
     /// Process all visual assets in the associated ChSystem.
     /// This function is called by default by Initialize(), but can also be called later if further modifications to
@@ -156,6 +159,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Enable/disable VSG information terminal output during initialization (default: true).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
+    /// Enable/disable Shadows, use before Initialization, to see an effect
+    void SetShadows(bool yesno = false) { m_use_shadows = yesno; }
     void SetLightIntensity(float intensity);
     void SetLightDirection(double azimuth, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
@@ -210,9 +215,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     void UpdateFromMBS();
 
-    bool m_initialized = false;
     int m_screen_num = -1;
     bool m_use_fullscreen = false;
+    bool m_use_shadows = false;
 
     vsg::ref_ptr<vsg::Window> m_window;
     vsg::ref_ptr<vsg::Viewer> m_viewer;  ///< high-level VSG rendering manager
@@ -283,6 +288,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
         bool dynamic_colors;                      ///< particle colors change
     };
     std::vector<ParticleCloud> m_clouds;
+
+    /// export screen image as file (png, bmp, tga, jpg)
+    void exportScreenImage();
 
   private:
     /// Bind the visual model associated with a body.

@@ -12,8 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
@@ -144,7 +144,7 @@ void ChFsiVisualizationVSG::Initialize() {
         for (int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
             m_sph_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChSphereShape>(m_systemFSI->GetInitialSpacing() / 2);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 2);
         sph->SetColor(ChColor(0.10f, 0.40f, 0.65f));
         m_sph_cloud->AddVisualShape(sph);
         m_sph_cloud->RegisterColorCallback(m_color_fun);
@@ -157,7 +157,7 @@ void ChFsiVisualizationVSG::Initialize() {
         for (int i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
             m_bndry_bce_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChSphereShape>(m_systemFSI->GetInitialSpacing() / 4);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 4);
         sph->SetColor(m_bndry_bce_color);
         m_bndry_bce_cloud->AddVisualShape(sph);
         m_system->Add(m_bndry_bce_cloud);
@@ -169,7 +169,7 @@ void ChFsiVisualizationVSG::Initialize() {
         for (int i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
             m_rigid_bce_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChSphereShape>(m_systemFSI->GetInitialSpacing() / 4);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 4);
         sph->SetColor(m_rigid_bce_color);
         m_rigid_bce_cloud->AddVisualShape(sph);
         m_system->Add(m_rigid_bce_cloud);
@@ -181,7 +181,7 @@ void ChFsiVisualizationVSG::Initialize() {
         for (int i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
             m_flex_bce_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChSphereShape>(m_systemFSI->GetInitialSpacing() / 4);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 4);
         sph->SetColor(m_flex_bce_color);
         m_flex_bce_cloud->AddVisualShape(sph);
         m_system->Add(m_flex_bce_cloud);
@@ -209,7 +209,7 @@ bool ChFsiVisualizationVSG::Render() {
         thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkersD2->posRadD;
 
         // List of proxy bodies
-        const auto& blist = m_system->Get_bodylist();
+        ////const auto& blist = m_system->Get_bodylist();
 
         size_t p = 0;
 
@@ -221,21 +221,21 @@ bool ChFsiVisualizationVSG::Render() {
         p += m_systemFSI->GetNumFluidMarkers();
 
         if (m_bndry_bce_markers) {
-            for (size_t i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
+            for (unsigned int i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
                 m_bndry_bce_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumBoundaryMarkers();
 
         if (m_rigid_bce_markers) {
-            for (size_t i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
+            for (unsigned int i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
                 m_rigid_bce_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumRigidBodyMarkers();
 
         if (m_flex_bce_markers) {
-            for (size_t i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
+            for (unsigned int i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
                 m_flex_bce_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }

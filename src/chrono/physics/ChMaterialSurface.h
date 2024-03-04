@@ -103,13 +103,30 @@ class ChApi ChContactMaterialData {
 
     /// Construct a contact material, consistent with the specified method, using the current data.
     std::shared_ptr<ChMaterialSurface> CreateMaterial(ChContactMethod contact_method) const;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& marchive);
 };
+
+CH_CLASS_VERSION(ChContactMaterialData, 0)
 
 /// Base class for composite material for a contact pair.
 class ChApi ChMaterialComposite {
   public:
     virtual ~ChMaterialComposite() {}
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& marchive);
 };
+
+CH_CLASS_VERSION(ChMaterialComposite, 0)
+
 
 /// Base class for material composition strategy.
 /// Implements the default combination laws for coefficients of friction, cohesion, compliance, etc.
@@ -128,8 +145,15 @@ class ChApi ChMaterialCompositionStrategy {
     virtual float CombineAdhesionMultiplier(float a1, float a2) const { return std::min<float>(a1, a2); }
     virtual float CombineStiffnessCoefficient(float a1, float a2) const { return (a1 + a2) / 2; }
     virtual float CombineDampingCoefficient(float a1, float a2) const { return (a1 + a2) / 2; }
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& marchive);
 };
 
+CH_CLASS_VERSION(ChMaterialCompositionStrategy, 0)
 
 typedef std::shared_ptr<ChMaterialSurface> ChMaterialSurfaceSharedPtr;
 

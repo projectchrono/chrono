@@ -26,8 +26,8 @@ CH_UPCASTING(ChImplicitIterativeTimestepper, ChImplicitTimestepper)
 // -----------------------------------------------------------------------------
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
-// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
-class my_enum_mappers : public ChTimestepper {
+// enclose macros in local 'ChTimestepper_Type_enum_mapper', just to avoid avoiding cluttering of the parent class.
+class ChTimestepper_Type_enum_mapper : public ChTimestepper {
   public:
     CH_ENUM_MAPPER_BEGIN(Type);
     CH_ENUM_VAL(Type::EULER_IMPLICIT);
@@ -49,7 +49,7 @@ void ChTimestepper::ArchiveOut(ChArchiveOut& archive) {
     // version number
     archive.VersionWrite<ChTimestepper>();
     // method type:
-    my_enum_mappers::Type_mapper typemapper;
+    ChTimestepper_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
     archive << CHNVP(typemapper(type), "timestepper_type");
     // serialize all member data:
@@ -62,7 +62,7 @@ void ChTimestepper::ArchiveIn(ChArchiveIn& archive) {
     // version number
     /*int version =*/ archive.VersionRead<ChTimestepper>();
     // method type:
-    my_enum_mappers::Type_mapper typemapper;
+    ChTimestepper_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
     archive >> CHNVP(typemapper(type), "timestepper_type");
     // stream in all member data:
@@ -75,6 +75,7 @@ void ChTimestepper::ArchiveIn(ChArchiveIn& archive) {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperEulerExpl)
 CH_UPCASTING(ChTimestepperEulerExpl, ChTimestepperIorder)
+CH_UPCASTING(ChTimestepperEulerExpl, ChExplicitTimestepper)
 
 // Euler explicit timestepper.
 // This performs the typical  y_new = y+ dy/dt * dt integration with Euler formula.
@@ -87,7 +88,7 @@ void ChTimestepperEulerExpl::Advance(const double dt) {
 
     GetIntegrable()->StateGather(Y, T);  // state <- system
 
-    GetIntegrable()->StateSolve(dYdt, L, Y, T, dt, false, false);  // dY/dt = f(Y,T)
+    GetIntegrable()->StateSolve(dYdt, L, Y, T, dt, false, false, lumping_parameters);  // dY/dt = f(Y,T)
 
     // Euler formula!
     //   y_new= y + dy/dt * dt
@@ -101,11 +102,28 @@ void ChTimestepperEulerExpl::Advance(const double dt) {
     GetIntegrable()->StateScatterReactions(L);      // -> system auxiliary data
 }
 
+
+void ChTimestepperEulerExpl::ArchiveOut(ChArchiveOut& archive) {
+    // version number
+    archive.VersionWrite<ChTimestepperEulerExpl>();
+    // serialize parent class:
+    ChTimestepperIorder::ArchiveOut(archive);
+    ChExplicitTimestepper::ArchiveOut(archive);
+}
+void ChTimestepperEulerExpl::ArchiveIn(ChArchiveIn& archive) {
+    // version number
+    /*int version =*/ archive.VersionRead<ChTimestepperEulerExpl>();
+    // deserialize parent class:
+    ChTimestepperIorder::ArchiveIn(archive);
+    ChExplicitTimestepper::ArchiveIn(archive);
+}
+
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperEulerExplIIorder)
 CH_UPCASTING(ChTimestepperEulerExplIIorder, ChTimestepperIIorder)
+CH_UPCASTING(ChTimestepperEulerExplIIorder, ChExplicitTimestepper)
 
 // Euler explicit timestepper customized for II order.
 // (It gives the same results of ChTimestepperEulerExpl,
@@ -128,7 +146,7 @@ void ChTimestepperEulerExplIIorder::Advance(const double dt) {
 
     mintegrable->StateGather(X, V, T);  // state <- system
 
-    mintegrable->StateSolveA(A, L, X, V, T, dt, false, false);  // Dv/dt = f(x,v,T)
+    mintegrable->StateSolveA(A, L, X, V, T, dt, false, false, lumping_parameters);  // Dv/dt = f(x,v,T)
 
     // Euler formula!
 
@@ -143,11 +161,27 @@ void ChTimestepperEulerExplIIorder::Advance(const double dt) {
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }
 
+void ChTimestepperEulerExplIIorder::ArchiveOut(ChArchiveOut& archive) {
+    // version number
+    archive.VersionWrite<ChTimestepperEulerExplIIorder>();
+    // serialize parent class:
+    ChTimestepperIIorder::ArchiveOut(archive);
+    ChExplicitTimestepper::ArchiveOut(archive);
+}
+void ChTimestepperEulerExplIIorder::ArchiveIn(ChArchiveIn& archive) {
+    // version number
+    /*int version =*/ archive.VersionRead<ChTimestepperEulerExplIIorder>();
+    // deserialize parent class:
+    ChTimestepperIIorder::ArchiveIn(archive);
+    ChExplicitTimestepper::ArchiveIn(archive);
+}
+
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperEulerSemiImplicit)
 CH_UPCASTING(ChTimestepperEulerSemiImplicit, ChTimestepperIIorder)
+CH_UPCASTING(ChTimestepperEulerSemiImplicit, ChExplicitTimestepper)
 
 
 // Euler semi-implicit timestepper
@@ -167,7 +201,7 @@ void ChTimestepperEulerSemiImplicit::Advance(const double dt) {
 
     mintegrable->StateGather(X, V, T);  // state <- system
 
-    mintegrable->StateSolveA(A, L, X, V, T, dt, false, false);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+    mintegrable->StateSolveA(A, L, X, V, T, dt, false, false, lumping_parameters);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
     // Semi-implicit Euler formula!   (note the order of update of x and v, respect to original Euler II order explicit)
 
@@ -182,11 +216,27 @@ void ChTimestepperEulerSemiImplicit::Advance(const double dt) {
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }
 
+void ChTimestepperEulerSemiImplicit::ArchiveOut(ChArchiveOut& archive) {
+    // version number
+    archive.VersionWrite<ChTimestepperEulerSemiImplicit>();
+    // serialize parent class:
+    ChTimestepperIIorder::ArchiveOut(archive);
+    ChExplicitTimestepper::ArchiveOut(archive);
+}
+void ChTimestepperEulerSemiImplicit::ArchiveIn(ChArchiveIn& archive) {
+    // version number
+    /*int version =*/ archive.VersionRead<ChTimestepperEulerSemiImplicit>();
+    // deserialize parent class:
+    ChTimestepperIIorder::ArchiveIn(archive);
+    ChExplicitTimestepper::ArchiveIn(archive);
+}
+
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperRungeKuttaExpl)
 CH_UPCASTING(ChTimestepperRungeKuttaExpl, ChTimestepperIorder)
+CH_UPCASTING(ChTimestepperRungeKuttaExpl, ChExplicitTimestepper)
 
 
 // Performs a step of a 4th order explicit Runge-Kutta integration scheme.
@@ -209,17 +259,18 @@ void ChTimestepperRungeKuttaExpl::Advance(const double dt) {
 
     GetIntegrable()->StateSolve(Dydt1, L, Y, T, dt,
                                 false,  // no need to scatter state before computation
-                                false   // full update? (not used since no scatter)
+                                false,   // full update? (not used since no scatter)
+                                lumping_parameters // optional lumping?
     );  
 
     y_new = Y + Dydt1 * 0.5 * dt;  // integrable.StateIncrement(y_new, Y, Dydt1*0.5*dt);
-    GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt * 0.5, dt, true, true);
+    GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt * 0.5, dt, true, true, lumping_parameters);
 
     y_new = Y + Dydt2 * 0.5 * dt;  // integrable.StateIncrement(y_new, Y, Dydt2*0.5*dt);
-    GetIntegrable()->StateSolve(Dydt3, L, y_new, T + dt * 0.5, dt, true, true);
+    GetIntegrable()->StateSolve(Dydt3, L, y_new, T + dt * 0.5, dt, true, true, lumping_parameters);
 
     y_new = Y + Dydt3 * dt;  // integrable.StateIncrement(y_new, Y, Dydt3*dt);
-    GetIntegrable()->StateSolve(Dydt4, L, y_new, T + dt, dt, true, true);
+    GetIntegrable()->StateSolve(Dydt4, L, y_new, T + dt, dt, true, true, lumping_parameters);
 
     Y = Y + (Dydt1 + Dydt2 * 2.0 + Dydt3 * 2.0 + Dydt4) * (1. / 6.) * dt;  // integrable.StateIncrement(...);
     dYdt = Dydt4;                                                          // to check
@@ -230,11 +281,27 @@ void ChTimestepperRungeKuttaExpl::Advance(const double dt) {
     GetIntegrable()->StateScatterReactions(L);      // -> system auxiliary data
 }
 
+void ChTimestepperRungeKuttaExpl::ArchiveOut(ChArchiveOut& archive) {
+    // version number
+    archive.VersionWrite<ChTimestepperRungeKuttaExpl>();
+    // serialize parent class:
+    ChTimestepperIorder::ArchiveOut(archive);
+    ChExplicitTimestepper::ArchiveOut(archive);
+}
+void ChTimestepperRungeKuttaExpl::ArchiveIn(ChArchiveIn& archive) {
+    // version number
+    /*int version =*/ archive.VersionRead<ChTimestepperRungeKuttaExpl>();
+    // deserialize parent class:
+    ChTimestepperIorder::ArchiveIn(archive);
+    ChExplicitTimestepper::ArchiveIn(archive);
+}
+
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperHeun)
 CH_UPCASTING(ChTimestepperHeun, ChTimestepperIorder)
+CH_UPCASTING(ChTimestepperHeun, ChExplicitTimestepper)
 
 
 // Performs a step of a Heun explicit integrator. It is like a 2nd Runge Kutta.
@@ -255,10 +322,11 @@ void ChTimestepperHeun::Advance(const double dt) {
 
     GetIntegrable()->StateSolve(Dydt1, L, Y, T, dt,
                                 false,  // no need to scatter state before computation
-                                false   // full update? ( not used, since no scatter)
+                                false,   // full update? ( not used, since no scatter)
+                                lumping_parameters // optional lumping?
     );
     y_new = Y + Dydt1 * dt;
-    GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt, dt, true, true);
+    GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt, dt, true, true, lumping_parameters);
 
     Y = Y + (Dydt1 + Dydt2) * (dt / 2.);
     dYdt = Dydt2;
@@ -269,12 +337,28 @@ void ChTimestepperHeun::Advance(const double dt) {
     GetIntegrable()->StateScatterReactions(L);      // -> system auxiliary data
 }
 
+void ChTimestepperHeun::ArchiveOut(ChArchiveOut& archive) {
+    // version number
+    archive.VersionWrite<ChTimestepperHeun>();
+    // serialize parent class:
+    ChTimestepperIorder::ArchiveOut(archive);
+    ChExplicitTimestepper::ArchiveOut(archive);
+}
+void ChTimestepperHeun::ArchiveIn(ChArchiveIn& archive) {
+    // version number
+    /*int version =*/ archive.VersionRead<ChTimestepperHeun>();
+    // deserialize parent class:
+    ChTimestepperIorder::ArchiveIn(archive);
+    ChExplicitTimestepper::ArchiveIn(archive);
+}
+
+
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperLeapfrog)
 CH_UPCASTING(ChTimestepperLeapfrog, ChTimestepperIIorder)
-
+CH_UPCASTING(ChTimestepperLeapfrog, ChExplicitTimestepper)
 
 // Performs a step of a Leapfrog explicit integrator.
 // It is a symplectic method, with 2nd order accuracy,
@@ -301,7 +385,7 @@ void ChTimestepperLeapfrog::Advance(const double dt) {
     X = X + V * dt + Aold * (0.5 * dt * dt);
 
     // computes new A  (NOTE!!true for imposing a state-> system scatter update,because X changed..)
-    mintegrable->StateSolveA(A, L, X, V, T, dt, true, true);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+    mintegrable->StateSolveA(A, L, X, V, T, dt, true, true, lumping_parameters);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
     // advance V
 
@@ -313,6 +397,22 @@ void ChTimestepperLeapfrog::Advance(const double dt) {
     mintegrable->StateScatterAcceleration(A);  // -> system auxiliary data
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }
+
+void ChTimestepperLeapfrog::ArchiveOut(ChArchiveOut& archive) {
+    // version number
+    archive.VersionWrite<ChTimestepperLeapfrog>();
+    // serialize parent class:
+    ChTimestepperIIorder::ArchiveOut(archive);
+    ChExplicitTimestepper::ArchiveOut(archive);
+}
+void ChTimestepperLeapfrog::ArchiveIn(ChArchiveIn& archive) {
+    // version number
+    /*int version =*/ archive.VersionRead<ChTimestepperLeapfrog>();
+    // deserialize parent class:
+    ChTimestepperIIorder::ArchiveIn(archive);
+    ChExplicitTimestepper::ArchiveIn(archive);
+}
+
 
 // -----------------------------------------------------------------------------
 
@@ -358,10 +458,10 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
         mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
         R.setZero();
         Qc.setZero();
-        mintegrable->LoadResidual_F(R, dt);
-        mintegrable->LoadResidual_Mv(R, (V - Vnew), 1.0);
-        mintegrable->LoadResidual_CqL(R, L, dt);
-        mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);
+        mintegrable->LoadResidual_F(R, dt);                // R  = dt*f 
+        mintegrable->LoadResidual_Mv(R, (V - Vnew), 1.0);  // R += M*(v_old - v_new)
+        mintegrable->LoadResidual_CqL(R, L, dt);           // R += dt*Cq'*l
+        mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // Qc= C/dt  (sign flipped later in StateSolveCorrection)
 
         if (verbose)
             GetLog() << " Euler iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
@@ -463,10 +563,10 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt) {
     // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ v_new  ] = [ M*(v_old) + dt*f]
     // [ Cq                           0   ] [ -dt*l  ] = [ -C/dt - Ct ]
 
-    mintegrable->LoadResidual_F(R, dt);
-    mintegrable->LoadResidual_Mv(R, V, 1.0);
-    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);
-    mintegrable->LoadConstraint_Ct(Qc, 1.0);
+    mintegrable->LoadResidual_F(R, dt);         // R  = df*f
+    mintegrable->LoadResidual_Mv(R, V, 1.0);    // R += M*(v_old)
+    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // Qc = C/dt  (sign will be flipped later in StateSolveCorrection)
+    mintegrable->LoadConstraint_Ct(Qc, 1.0);    // // Qc += Ct  (sign will be flipped later in StateSolveCorrection)
 
     mintegrable->StateSolveCorrection(  //
         V, L, R, Qc,                    //
@@ -490,6 +590,22 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt) {
 
     mintegrable->StateScatter(X, V, T, true);  // state -> system
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
+}
+
+void ChTimestepperEulerImplicitLinearized::ArchiveOut(ChArchiveOut& archive) {
+    // version number
+    archive.VersionWrite<ChTimestepperEulerImplicitLinearized>();
+    // serialize parent class:
+    ChTimestepperIIorder::ArchiveOut(archive);
+    //ChImplicitTimestepper::ArchiveOut(archive);
+}
+
+void ChTimestepperEulerImplicitLinearized::ArchiveIn(ChArchiveIn& archive) {
+    // version number
+    /*int version =*/ archive.VersionRead<ChTimestepperEulerImplicitLinearized>();
+    // deserialize parent class:
+    ChTimestepperIIorder::ArchiveIn(archive);
+    //ChImplicitTimestepper::ArchiveIn(archive);
 }
 
 
@@ -529,10 +645,10 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt) {
     // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ v_new  ] = [ M*(v_old) + dt*f]
     // [ Cq                           0   ] [ -dt*l  ] = [ -Ct ]
 
-    mintegrable->LoadResidual_F(R, dt);
-    mintegrable->LoadResidual_Mv(R, V, 1.0);
-    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, 0);  // may be avoided
-    mintegrable->LoadConstraint_Ct(Qc, 1.0);
+    mintegrable->LoadResidual_F(R, dt);         // R  = dt*f
+    mintegrable->LoadResidual_Mv(R, V, 1.0);    // R += M*(v_old)
+    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, 0);  // Qc = C/dt  ...may be avoided...
+    mintegrable->LoadConstraint_Ct(Qc, 1.0);   // Qc += Ct    (sign will be flipped later by StateSolveCorrection)
 
     mintegrable->StateSolveCorrection(  //
         V, L, R, Qc,                    //
@@ -568,7 +684,7 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt) {
 
     //
     // [ M       Cq' ] [ dpos ] = [  0 ]
-    // [ Cq       0  ] [ l    ] = [ -C ]
+    // [ Cq       0  ] [ -l   ] = [ -C ]
 
     mintegrable->LoadConstraint_C(Qc, 1.0, false, 0);
 
@@ -586,6 +702,23 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt) {
     X += Vold;  // here we used 'Vold' as 'dpos' to recycle Vold and avoid allocating a new vector dpos
 
     mintegrable->StateScatter(X, V, T, true);  // state -> system
+}
+
+
+void ChTimestepperEulerImplicitProjected::ArchiveOut(ChArchiveOut& archive) {
+    // version number
+    archive.VersionWrite<ChTimestepperEulerImplicitProjected>();
+    // serialize parent class:
+    ChTimestepperIIorder::ArchiveOut(archive);
+    //ChImplicitTimestepper::ArchiveOut(archive);
+}
+
+void ChTimestepperEulerImplicitProjected::ArchiveIn(ChArchiveIn& archive) {
+    // version number
+    /*int version =*/ archive.VersionRead<ChTimestepperEulerImplicitProjected>();
+    // deserialize parent class:
+    ChTimestepperIIorder::ArchiveIn(archive);
+    //ChImplicitTimestepper::ArchiveIn(archive);
 }
 
 // -----------------------------------------------------------------------------
@@ -646,7 +779,7 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
         mintegrable->LoadResidual_F(R, dt * 0.5);                               // + dt/2*f_new
         mintegrable->LoadResidual_Mv(R, Vnew, -1.0);                            // - M*v_new
         mintegrable->LoadResidual_CqL(R, L, dt * 0.5);                          // + dt/2*Cq*l_new
-        mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // -C/dt
+        mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // Qc= C/dt  (sign will be flipped later in StateSolveCorrection)
 
         if (verbose)
             GetLog() << " Trapezoidal iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
@@ -754,7 +887,7 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
     mintegrable->LoadResidual_F(R, dt * 0.5);     // + dt/2*f_new
     mintegrable->LoadResidual_Mv(R, Vnew, -1.0);  // - M*v_new
     // mintegrable->LoadResidual_CqL(R, L, dt*0.5); // + dt/2*Cq*l_new  assume l_old = 0;
-    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // -C/dt
+    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // Qc= C/dt  (sign will be flipped later in StateSolveCorrection)
 
     mintegrable->StateSolveCorrection(  //
         Dv, Dl, R, Qc,                  //
@@ -845,7 +978,7 @@ void ChTimestepperTrapezoidalLinearized2::Advance(const double dt) {
     mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
     Qc.setZero();
     mintegrable->LoadResidual_F(R, dt * 0.5);                               // + dt/2*f_new
-    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // -C/dt
+    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // Qc = C/dt  (sign will be flipped later in StateSolveCorrection)
 
     mintegrable->StateSolveCorrection(  //
         Vnew, L, R, Qc,                 //
@@ -946,7 +1079,7 @@ void ChTimestepperNewmark::Advance(const double dt) {
 
     //
     // [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Da   ] = [ -M*(a_new) + f_new + Cq*l_new ]
-    // [ Cq                                      0   ] [ Dl   ] = [ -1/(beta*dt^2)*C              ]
+    // [ Cq                                      0   ] [ -Dl  ] = [ -1/(beta*dt^2)*C              ]
 
     numiters = 0;
     numsetups = 0;
@@ -961,7 +1094,7 @@ void ChTimestepperNewmark::Advance(const double dt) {
         mintegrable->LoadResidual_F(R, 1.0);                                                    //  f_new
         mintegrable->LoadResidual_CqL(R, L, 1.0);                                               //   Cq'*l_new
         mintegrable->LoadResidual_Mv(R, Anew, -1.0);                                            //  - M*a_new
-        mintegrable->LoadConstraint_C(Qc, (1.0 / (beta * dt * dt)), Qc_do_clamp, Qc_clamping);  //  - 1/(beta*dt^2)*C
+        mintegrable->LoadConstraint_C(Qc, (1.0 / (beta * dt * dt)), Qc_do_clamp, Qc_clamping);  //  Qc = 1/(beta*dt^2)*C  (sign will be flipped later in StateSolveCorrection) 
 
         if (verbose)
             GetLog() << " Newmark iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()

@@ -186,7 +186,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     );
 
     /// Set thickness for wireframe mode of meshes.
-    /// If a ChTriangleMeshShape asset was set as SetWireframe(true), it will be rendered in Blender as a cage of thin
+    /// If a ChVisualShapeTriangleMesh asset was set as SetWireframe(true), it will be rendered in Blender as a cage of thin
     /// cylinders. This setting sets how thick the tubes.
     void SetWireframeThickness(const double wft) { wireframe_thickness = wft; }
     double GetWireframeThickness() const { return wireframe_thickness; }

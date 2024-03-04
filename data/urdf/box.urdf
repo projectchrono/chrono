@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<robot name="box">
+  <link name="base_link"></link>
+
+  <link name="box0">
+    <inertial>
+      <mass value="1"/>
+      <!-- Inertia values were calculated to be consistent with the mass and
+           geometry size, assuming a uniform density. -->
+      <inertia ixx="0.0108" ixy="0" ixz="0" iyy="0.0083" iyz="0" izz="0.0042"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size=".1 .2 .3"/>
+      </geometry>
+    </visual>
+    <collision name="box">
+      <geometry>
+        <box size=".1 .2 .3"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="joint0" type="fixed">
+    <parent link="base_link"/>
+    <child link="box0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="box1">
+    <inertial>
+      <mass value="1"/>
+      <!-- Inertia values were calculated to be consistent with the mass and
+           geometry size, assuming a uniform density. -->
+      <inertia ixx="0.0108" ixy="0" ixz="0" iyy="0.0083" iyz="0" izz="0.0042"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <mesh filename="./meshes/box.obj"/>
+      </geometry>
+      <material name="mat1">
+        <texture filename="./meshes/box.mtl"/>
+      </material>
+    </visual>
+    <collision name="box">
+      <geometry>
+        <mesh filename="./meshes/box.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="joint1" type="fixed">
+    <parent link="base_link"/>
+    <child link="box1"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="box2">
+    <inertial>
+      <mass value="1"/>
+      <!-- Inertia values were calculated to be consistent with the mass and
+           geometry size, assuming a uniform density. -->
+      <inertia ixx="0.0108" ixy="0" ixz="0" iyy="0.0083" iyz="0" izz="0.0042"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <mesh filename="file://meshes/box.obj"/>
+      </geometry>
+      <material name="mat2">
+        <texture filename="file://meshes/box.mtl"/>
+      </material>
+    </visual>
+    <collision name="box">
+      <geometry>
+        <mesh filename="file://meshes/box.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="joint2" type="fixed">
+    <parent link="base_link"/>
+    <child link="box2"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+</robot>

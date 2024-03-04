@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     ////DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
     BrakeType brake_type = BrakeType::SIMPLE;
     EngineModelType engine_type = EngineModelType::SIMPLE;
-    TransmissionModelType transmission_type = TransmissionModelType::SIMPLE_MAP;
+    TransmissionModelType transmission_type = TransmissionModelType::AUTOMATIC_SIMPLE_MAP;
 
     Marder marder;
     marder.SetContactMethod(contact_method);
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     ////marder.GetDriveline()->SetGyrationMode(true);
 
     // Change collision detection system
-    ////marder.SetCollisionSystemType(collision::ChCollisionSystemType::CHRONO);
+    ////marder.SetCollisionSystemType(ChCollisionSystemType::CHRONO);
 
     // Change collision shape for road wheels, idlers, and rollers (true: cylinder; false: cylshell)
     ////marder.SetWheelCollisionType(false, false, false);
@@ -374,15 +374,16 @@ int main(int argc, char* argv[]) {
             vis->Render();
             vis->EndScene();
 
+            // Zero-pad frame numbers in file names for postprocessing
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(marder.GetSystem(), filename);
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(marder.GetSystem(), filename.str());
             }
             if (img_output && step_number > 200) {
-                char filename[100];
-                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-                vis->WriteImageToFile(filename);
+                std::ostringstream filename;
+                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+                vis->WriteImageToFile(filename.str());
             }
             render_frame++;
         }
@@ -422,15 +423,15 @@ void AddFixedObstacles(ChSystem* system) {
     double radius = 2.2;
     double length = 6;
 
-    auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
+    auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector<>(10, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = chrono_types::make_shared<ChCylinderShape>(radius, length);
-    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
-    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
+    vis_shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
+    obstacle->AddVisualShape(vis_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     // Contact
     ChContactMaterialData minfo;
@@ -439,9 +440,8 @@ void AddFixedObstacles(ChSystem* system) {
     minfo.Y = 2e7f;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
-    obstacle->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
+    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     system->AddBody(obstacle);
 }
@@ -451,7 +451,7 @@ void AddFallingObjects(ChSystem* system) {
     double radius = 0.1;
     double mass = 10;
 
-    auto ball = std::shared_ptr<ChBody>(system->NewBody());
+    auto ball = chrono_types::make_shared<ChBody>();
     ball->SetMass(mass);
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
     ball->SetPos(initLoc + ChVector<>(-3, 0, 2));
@@ -463,13 +463,12 @@ void AddFallingObjects(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     ball->SetCollide(true);
-    ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(obst_mat, radius);
-    ball->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(obst_mat, radius);
+    ball->AddCollisionShape(ct_shape);
 
-    auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
-    sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-    ball->AddVisualShape(sphere);
+    auto vis_shape = chrono_types::make_shared<ChVisualShapeSphere>(radius);
+    vis_shape->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+    ball->AddVisualShape(vis_shape);
 
     system->AddBody(ball);
 }

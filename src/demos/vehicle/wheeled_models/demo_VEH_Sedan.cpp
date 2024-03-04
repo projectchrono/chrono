@@ -61,6 +61,9 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 // Type of tire model (RIGID, TMEASY, PAC02, TMSIMPLE)
 TireModelType tire_model = TireModelType::PAC02;
 
+// Type of brake model (SIMPLE, SHAFTS)
+BrakeType brake_model = BrakeType::SHAFTS;
+
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 double terrainHeight = 0;      // terrain height (FLAT terrain only)
@@ -76,7 +79,7 @@ bool contact_vis = false;
 
 // Simulation step sizes
 double step_size = 2e-3;
-double tire_step_size = 1e-3;
+double tire_step_size = step_size;
 
 // Simulation end time
 double t_end = 1000;
@@ -105,23 +108,27 @@ int main(int argc, char* argv[]) {
     // --------------
 
     // Create the Sedan vehicle, set parameters, and initialize
-    Sedan my_sedan;
-    my_sedan.SetContactMethod(contact_method);
-    my_sedan.SetChassisCollisionType(chassis_collision_type);
-    my_sedan.SetChassisFixed(false);
-    my_sedan.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_sedan.SetTireType(tire_model);
-    my_sedan.SetTireStepSize(tire_step_size);
-    my_sedan.Initialize();
+    Sedan sedan;
+    sedan.SetContactMethod(contact_method);
+    sedan.SetChassisCollisionType(chassis_collision_type);
+    sedan.SetChassisFixed(false);
+    sedan.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    sedan.SetTireType(tire_model);
+    sedan.SetBrakeType(brake_model);
+    sedan.SetTireStepSize(tire_step_size);
+    sedan.Initialize();
 
-    my_sedan.SetChassisVisualizationType(chassis_vis_type);
-    my_sedan.SetSuspensionVisualizationType(suspension_vis_type);
-    my_sedan.SetSteeringVisualizationType(steering_vis_type);
-    my_sedan.SetWheelVisualizationType(wheel_vis_type);
-    my_sedan.SetTireVisualizationType(tire_vis_type);
+    sedan.SetChassisVisualizationType(chassis_vis_type);
+    sedan.SetSuspensionVisualizationType(suspension_vis_type);
+    sedan.SetSteeringVisualizationType(steering_vis_type);
+    sedan.SetWheelVisualizationType(wheel_vis_type);
+    sedan.SetTireVisualizationType(tire_vis_type);
+
+    // Associate a collision system
+    sedan.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain
-    RigidTerrain terrain(my_sedan.GetSystem());
+    RigidTerrain terrain(sedan.GetSystem());
 
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;
@@ -136,8 +143,8 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     128, 128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+                                     128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
@@ -157,7 +164,7 @@ int main(int argc, char* argv[]) {
     vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
-    vis->AttachVehicle(&my_sedan.GetVehicle());
+    vis->AttachVehicle(&sedan.GetVehicle());
 
     // -----------------
     // Initialize output
@@ -208,11 +215,11 @@ int main(int argc, char* argv[]) {
 
     if (debug_output) {
         GetLog() << "\n\n============ System Configuration ============\n";
-        my_sedan.LogHardpointLocations();
+        sedan.LogHardpointLocations();
     }
 
-    my_sedan.GetVehicle().LogSubsystemTypes();
-    std::cout << "\nVehicle mass: " << my_sedan.GetVehicle().GetMass() << std::endl;
+    sedan.GetVehicle().LogSubsystemTypes();
+    std::cout << "\nVehicle mass: " << sedan.GetVehicle().GetMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -227,11 +234,11 @@ int main(int argc, char* argv[]) {
         vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     }
 
-    my_sedan.GetVehicle().EnableRealtime(true);
+    sedan.GetVehicle().EnableRealtime(true);
     utils::ChRunningAverage RTF_filter(50);
- 
+
     while (vis->Run()) {
-        double time = my_sedan.GetSystem()->GetChTime();
+        double time = sedan.GetSystem()->GetChTime();
 
         // End simulation
         if (time >= t_end)
@@ -244,9 +251,10 @@ int main(int argc, char* argv[]) {
             vis->EndScene();
 
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(my_sedan.GetSystem(), filename);
+                // Zero-pad frame numbers in file names for postprocessing
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(sedan.GetSystem(), filename.str());
             }
 
             render_frame++;
@@ -256,7 +264,7 @@ int main(int argc, char* argv[]) {
         if (debug_output && step_number % debug_steps == 0) {
             GetLog() << "\n\n============ System Information ============\n";
             GetLog() << "Time = " << time << "\n\n";
-            my_sedan.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+            sedan.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
         }
 
         // Get driver inputs
@@ -271,13 +279,13 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_sedan.Synchronize(time, driver_inputs, terrain);
+        sedan.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        my_sedan.Advance(step_size);
+        sedan.Advance(step_size);
         vis->Advance(step_size);
 
         // Increment frame number

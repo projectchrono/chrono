@@ -48,6 +48,20 @@ if(MSVC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4251")
 endif()
 
+# ------------------------------------------------------------------------------
+# Hack to deal with MSVC runtime libraries
+# ------------------------------------------------------------------------------
+
+if(MSVC)
+  if(USE_MSVC_STATIC_RUNTIME)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+  else()
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+  endif()
+endif()
+
 # ----------------------------------------------------------------------------
 # Collect additional include directories necessary for the FSI module.
 # Make some variables visible from parent directory
@@ -196,8 +210,6 @@ source_group(visualization FILES ${ChronoEngine_FSI_VIS_FILES})
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_fsi library
 #-----------------------------------------------------------------------------
-
-set(CXX_FLAGS ${CH_CXX_FLAGS})
 
 cuda_add_library(ChronoEngine_fsi
     ${ChronoEngine_FSI_FILES}

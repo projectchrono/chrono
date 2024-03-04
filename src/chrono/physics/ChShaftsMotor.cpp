@@ -232,8 +232,8 @@ void ChShaftsMotor::ConstraintsFetch_react(double factor) {
 //////// FILE I/O
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
-// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
-class my_enum_mappers : public ChShaftsMotor {
+// enclose macros in local 'ChShaftsMotor_Mode_enum_mapper', just to avoid avoiding cluttering of the parent class.
+class ChShaftsMotor_Mode_enum_mapper : public ChShaftsMotor {
   public:
     CH_ENUM_MAPPER_BEGIN(eCh_shaftsmotor_mode);
     CH_ENUM_VAL(MOT_MODE_ROTATION);
@@ -250,7 +250,7 @@ void ChShaftsMotor::ArchiveOut(ChArchiveOut& marchive) {
     ChShaftsMotorBase::ArchiveOut(marchive);
 
     // serialize all member data:
-    my_enum_mappers::eCh_shaftsmotor_mode_mapper mmapper;
+    ChShaftsMotor_Mode_enum_mapper::eCh_shaftsmotor_mode_mapper mmapper;
     marchive << CHNVP(mmapper(motor_mode), "motor_mode");
     marchive << CHNVP(motor_torque);
     marchive << CHNVP(motor_set_rot);
@@ -266,7 +266,7 @@ void ChShaftsMotor::ArchiveIn(ChArchiveIn& marchive) {
     ChShaftsMotorBase::ArchiveIn(marchive);
 
     // deserialize all member data:
-    my_enum_mappers::eCh_shaftsmotor_mode_mapper mmapper;
+    ChShaftsMotor_Mode_enum_mapper::eCh_shaftsmotor_mode_mapper mmapper;
     marchive >> CHNVP(mmapper(motor_mode), "motor_mode");
     marchive >> CHNVP(motor_torque);
     marchive >> CHNVP(motor_set_rot);

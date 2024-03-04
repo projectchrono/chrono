@@ -64,10 +64,10 @@ ground.SetIdentifier(-1)
 ground.SetBodyFixed(True)
 ground.SetCollide(False)
 
-sph_1 = chrono.ChSphereShape(0.1)
+sph_1 = chrono.ChVisualShapeSphere(0.1)
 ground.AddVisualShape(sph_1, chrono.ChFrameD(chrono.ChVectorD(-1, 0, 0)))
 
-sph_2 = chrono.ChSphereShape(0.1)
+sph_2 = chrono.ChVisualShapeSphere(0.1)
 ground.AddVisualShape(sph_2, chrono.ChFrameD(chrono.ChVectorD(1, 0, 0)))
 
 # Create a body suspended through a ChLinkTSDA (default linear)
@@ -83,7 +83,7 @@ body_1.SetMass(1)
 body_1.SetInertiaXX(chrono.ChVectorD(1, 1, 1))
 
 # Attach a visualization asset.
-box_1 = chrono.ChBoxShape(1, 1, 1)
+box_1 = chrono.ChVisualShapeBox(1, 1, 1)
 box_1.SetColor(chrono.ChColor(0.6, 0, 0))
 body_1.AddVisualShape(box_1)
 
@@ -97,7 +97,7 @@ spring_1.SetDampingCoefficient(damping_coef)
 sys.AddLink(spring_1)
 
 # Attach a visualization asset.
-spring_1.AddVisualShape(chrono.ChSpringShape(0.05, 80, 15))
+spring_1.AddVisualShape(chrono.ChVisualShapeSpring(0.05, 80, 15))
 
 # Create a body suspended through a ChLinkTSDA (custom force functor)
 # -------------------------------------------------------------------
@@ -112,7 +112,7 @@ body_2.SetMass(1)
 body_2.SetInertiaXX(chrono.ChVectorD(1, 1, 1))
 
 # Attach a visualization asset.
-box_2 = chrono.ChBoxShape(1, 1, 1)
+box_2 = chrono.ChVisualShapeBox(1, 1, 1)
 box_2.SetColor(chrono.ChColor(0, 0, 0.6))
 body_2.AddVisualShape(box_2)
 
@@ -127,7 +127,7 @@ spring_2.RegisterForceFunctor(force)
 sys.AddLink(spring_2)
 
 # Attach a visualization asset.
-spring_2.AddVisualShape(chrono.ChSpringShape(0.05, 80, 15))
+spring_2.AddVisualShape(chrono.ChVisualShapeSpring(0.05, 80, 15))
 
 # Create the Irrlicht application
 # -------------------------------

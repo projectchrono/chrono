@@ -50,13 +50,9 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Examples of using the Multicore module.
 
--   @subpage tutorial_table_of_content_chrono_distributed
-
-    Examples of using the Distributed module.
-
 -   @subpage tutorial_table_of_content_chrono_gpu
 
-    Examples of granular dynamics problems using the Gpu module.
+    Examples of granular dynamics problems using the GPU module.
 
 -   @subpage tutorial_table_of_content_chrono_python
 
@@ -86,6 +82,14 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Examples of distributed simulation of autonomous vehicles and robots.
 
+-   @subpage tutorial_table_of_content_chrono_fmi
+
+    Examples of generating (exporting) and using (importing) Chrono FMUs.
+
+-   @subpage tutorial_table_of_content_chrono_ros
+
+    Examples of integrating an external ROS-based autonomy stack in Chrono.
+
 
 ## Other tools
 
@@ -96,7 +100,7 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
 -   @subpage tutorial_table_of_content_chrono_solidworks
 
-    Learn how to use [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
+    Learn how to use [Chrono::SolidWorks](@ref manual_chrono_solidworks)
 
 
 ## Chrono training materials

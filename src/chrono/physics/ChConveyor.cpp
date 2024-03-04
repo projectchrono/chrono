@@ -18,10 +18,10 @@
 #include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChConveyor.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/collision/ChCollisionSystem.h"
 
 namespace chrono {
 
-using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -33,9 +33,8 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
 
     conveyor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    conveyor_plate->GetCollisionModel()->ClearModel();
-    conveyor_plate->GetCollisionModel()->AddBox(conveyor_mat, xlength, ythick, zwidth);
-    conveyor_plate->GetCollisionModel()->BuildModel();
+    auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(conveyor_mat, xlength, ythick, zwidth);
+    conveyor_plate->AddCollisionShape(cshape);
     conveyor_plate->SetCollide(true);
 
     internal_link = new ChLinkLockLock;
@@ -74,7 +73,7 @@ void ChConveyor::IntStateGather(const unsigned int off_x,  // offset in x state 
                                 const unsigned int off_v,  // offset in v state vector
                                 ChStateDelta& v,           // state vector, speed part
                                 double& T                  // time
-                                ) {
+) {
     conveyor_truss->IntStateGather(off_x, x, off_v, v, T);
     conveyor_plate->IntStateGather(off_x + 7, x, off_v + 6, v, T);
 }
@@ -114,17 +113,17 @@ void ChConveyor::IntStateIncrement(const unsigned int off_x,  // offset in x sta
                                    const ChState& x,          // state vector, initial position part
                                    const unsigned int off_v,  // offset in v state vector
                                    const ChStateDelta& Dv     // state vector, increment
-                                   ) {
+) {
     conveyor_truss->IntStateIncrement(off_x, x_new, x, off_v, Dv);
     conveyor_plate->IntStateIncrement(off_x + 7, x_new, x, off_v + 6, Dv);
 }
 
 void ChConveyor::IntStateGetIncrement(const unsigned int off_x,  // offset in x state vector
-                                   const ChState& x_new,         // state vector, position part, incremented result
-                                   const ChState& x,          // state vector, initial position part
-                                   const unsigned int off_v,  // offset in v state vector
-                                   ChStateDelta& Dv     // state vector, increment
-                                   ) {
+                                      const ChState& x_new,      // state vector, position part, incremented result
+                                      const ChState& x,          // state vector, initial position part
+                                      const unsigned int off_v,  // offset in v state vector
+                                      ChStateDelta& Dv           // state vector, increment
+) {
     conveyor_truss->IntStateGetIncrement(off_x, x_new, x, off_v, Dv);
     conveyor_plate->IntStateGetIncrement(off_x + 7, x_new, x, off_v + 6, Dv);
 }
@@ -132,7 +131,7 @@ void ChConveyor::IntStateGetIncrement(const unsigned int off_x,  // offset in x 
 void ChConveyor::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                    ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                    const double c           // a scaling factor
-                                   ) {
+) {
     conveyor_truss->IntLoadResidual_F(off, R, c);
     conveyor_plate->IntLoadResidual_F(off + 6, R, c);
 }
@@ -141,9 +140,18 @@ void ChConveyor::IntLoadResidual_Mv(const unsigned int off,      // offset in R 
                                     ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
                                     const ChVectorDynamic<>& w,  // the w vector
                                     const double c               // a scaling factor
-                                    ) {
+) {
     conveyor_truss->IntLoadResidual_Mv(off, R, w, c);
     conveyor_plate->IntLoadResidual_Mv(off + 6, R, w, c);
+}
+
+void ChConveyor::IntLoadLumpedMass_Md(const unsigned int off, 
+                                      ChVectorDynamic<>& Md, 
+                                      double& err, 
+                                      const double c
+) {
+    conveyor_truss->IntLoadLumpedMass_Md(off, Md, err, c);
+    conveyor_plate->IntLoadLumpedMass_Md(off + 6, Md, err, c);
 }
 
 void ChConveyor::IntToDescriptor(const unsigned int off_v,
@@ -289,26 +297,28 @@ void ChConveyor::Update(double mytime, bool update_assets) {
     internal_link->Update(mytime, update_assets);
 }
 
+void ChConveyor::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
+    if (conveyor_truss->GetCollisionModel())
+        coll_sys->Add(conveyor_truss->GetCollisionModel());
+
+    if (conveyor_plate->GetCollisionModel())
+        coll_sys->Add(conveyor_plate->GetCollisionModel());
+}
+
+void ChConveyor::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {
+    if (conveyor_truss->GetCollisionModel())
+        coll_sys->Remove(conveyor_truss->GetCollisionModel());
+
+    if (conveyor_plate->GetCollisionModel())
+        coll_sys->Remove(conveyor_plate->GetCollisionModel());
+}
+
 void ChConveyor::SyncCollisionModels() {
     // inherit parent class
     ChPhysicsItem::SyncCollisionModels();
 
     conveyor_truss->SyncCollisionModels();
     conveyor_plate->SyncCollisionModels();
-}
-
-void ChConveyor::AddCollisionModelsToSystem() {
-    // inherit parent class
-    ChPhysicsItem::AddCollisionModelsToSystem();
-    // conveyor_truss->AddCollisionModelsToSystem();
-    // conveyor_plate->AddCollisionModelsToSystem();
-}
-
-void ChConveyor::RemoveCollisionModelsFromSystem() {
-    // inherit parent class
-    ChPhysicsItem::RemoveCollisionModelsFromSystem();
-    // conveyor_plate->RemoveCollisionModelsFromSystem();
-    // conveyor_truss->RemoveCollisionModelsFromSystem();
 }
 
 // FILE I/O
@@ -330,7 +340,7 @@ void ChConveyor::ArchiveOut(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChConveyor::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChConveyor>();
+    /*int version =*/marchive.VersionRead<ChConveyor>();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIn(marchive);

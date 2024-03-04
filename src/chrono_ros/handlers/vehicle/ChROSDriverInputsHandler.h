@@ -34,7 +34,11 @@ namespace ros {
 /// @{
 
 /// This handler is responsible for interfacing a ChDriver to ROS. Will instantiate a subscriber to
+<<<<<<< HEAD
 /// chrono_ros_interfaces::msg::DriverInputs on "~/input/driver_inputs".
+=======
+/// chrono_ros_interfaces::msg::DriverInputs 
+>>>>>>> upstream/feature/ros
 class ChROSDriverInputsHandler : public ChROSHandler {
   public:
     /// Convenience constructor. Will set the update rate to 0, which means the Tick()

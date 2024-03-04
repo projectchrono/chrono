@@ -331,7 +331,7 @@ class ChArchiveInJSON : public ChArchiveIn {
 
     virtual ~ChArchiveInJSON() {}
 
-    rapidjson::Value* GetValueFromNameOrArray(const char* mname) {
+    rapidjson::Value* GetValueFromNameOrArray(const std::string& mname) {
         rapidjson::Value* mval = nullptr;
         if (this->is_array.top() == true) {
             if (!level->IsArray()) {
@@ -339,8 +339,8 @@ class ChArchiveInJSON : public ChArchiveIn {
             }
             mval = &(*level)[this->array_index.top()];
         } else {
-            if (level->HasMember(mname))
-                mval = &(*level)[mname];
+            if (level->HasMember(mname.c_str()))
+                mval = &(*level)[mname.c_str()];
             else {
                 token_notfound(mname);
             }
@@ -453,7 +453,7 @@ class ChArchiveInJSON : public ChArchiveIn {
     }
 
     // for wrapping arrays and lists
-    virtual bool in_array_pre(const char* name, size_t& msize) override {
+    virtual bool in_array_pre(const std::string& name, size_t& msize) override {
         rapidjson::Value* mval = GetValueFromNameOrArray(name);
         if (!mval) {
             msize = 0;
@@ -470,9 +470,9 @@ class ChArchiveInJSON : public ChArchiveIn {
             return true;
         }
     }
-    virtual void in_array_between(const char* name) override { ++this->array_index.top(); }
+    virtual void in_array_between(const std::string& name) override { ++this->array_index.top(); }
 
-    virtual void in_array_end(const char* name) override {
+    virtual void in_array_end(const std::string& name) override {
         this->levels.pop();
         this->level = this->levels.top();
         this->is_array.pop();
@@ -560,7 +560,7 @@ class ChArchiveInJSON : public ChArchiveIn {
             // 2) Dynamically create: call new(), or deserialize constructor params+call new()
             // The constructor to be called will be the one specified by true_classname (i.e. the true type of the object),
             // not by the type of bVal.value() which is just the type of the pointer
-            bVal.value().CallConstructor(*this, true_classname.c_str());
+            bVal.value().CallConstructor(*this, true_classname);
 
             size_t obj_ID = 0;
             if (level->HasMember("_object_ID")) {
@@ -580,7 +580,7 @@ class ChArchiveInJSON : public ChArchiveIn {
                 // 3) Deserialize
                 // It is required to specify the "true_classname" since the bValue.value() might be of a different type
                 // compared to the true object, while we need to call the ArchiveIn of the proper derived class.
-                bVal.value().CallArchiveIn(*this, true_classname.c_str());
+                bVal.value().CallArchiveIn(*this, true_classname);
             } else {
                 throw(ChExceptionArchive("Archive cannot create object " + std::string(bVal.name()) + "\n"));
             }
@@ -621,9 +621,11 @@ class ChArchiveInJSON : public ChArchiveIn {
     }
 
   protected:
-    void token_notfound(const char* mname) {
-        if (!try_tolerate_missing_tokens)
-            throw(ChExceptionArchive("Cannot find '" + std::string(mname) + "'"));
+    void token_notfound(const std::string& mname) {
+        if (!try_tolerate_missing_tokens){
+            std::cerr << "Cannot find '" + mname + "'" << std::endl;
+            throw(ChExceptionArchive("Cannot find '" + mname + "'"));
+        }
     }
 
     ChStreamInAsciiFile* istream;

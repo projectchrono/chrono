@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(body_truss);
 
     // Attach a 'box' shape asset for visualization.
-    auto mboxtruss = chrono_types::make_shared<ChBoxShape>(0.02, 0.2, 0.1);
+    auto mboxtruss = chrono_types::make_shared<ChVisualShapeBox>(0.02, 0.2, 0.1);
     body_truss->AddVisualShape(mboxtruss, ChFrame<>(ChVector<>(-0.01, 0, 0)));
 
     // Create body for crank
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(body_crank);
 
     // Attach a 'box' shape asset for visualization.
-    auto mboxcrank = chrono_types::make_shared<ChBoxShape>(K, 0.02, 0.02);
+    auto mboxcrank = chrono_types::make_shared<ChVisualShapeBox>(K, 0.02, 0.02);
     body_crank->AddVisualShape(mboxcrank, ChFrame<>());
 
     // Create a motor between the truss and the crank:
@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
                                     false, false, false);  // Rx, Ry, Rz
 
     // For example, attach small shape to show the constraint
-    auto msphereconstr2 = chrono_types::make_shared<ChSphereShape>(0.01);
+    auto msphereconstr2 = chrono_types::make_shared<ChVisualShapeSphere>(0.01);
     constr_bb->AddVisualShape(msphereconstr2);
 
     // Create a beam as a crank
@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
                                     true, true, false);  // Rx, Ry, Rz
 
     // For example, attach small shape to show the constraint
-    auto msphereconstr3 = chrono_types::make_shared<ChSphereShape>(0.01);
+    auto msphereconstr3 = chrono_types::make_shared<ChVisualShapeSphere>(0.01);
     constr_bc->AddVisualShape(msphereconstr3);
 
     //
@@ -241,11 +241,11 @@ int main(int argc, char* argv[]) {
     sys.Add(my_mesh);
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape
+    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a colored ChTriangleMeshShape).
+    // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
     auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MX);
     mvisualizebeamA->SetColorscaleMinMax(-500, 500);
@@ -291,8 +291,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::string filename = out_dir + "/buckling_mid.dat";
-    chrono::ChStreamOutAsciiFile file_out1(filename.c_str());
+    chrono::ChStreamOutAsciiFile file_out1(out_dir + "/buckling_mid.dat");
 
     while (vis->Run()) {
         vis->BeginScene();

@@ -115,8 +115,9 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
                     GetLog() << "Stop saving Blender postprocessing scripts.\n";
                 }
 #else
-                GetLog() << "Saving Blender3D files not supported. Rebuild the solution with ENABLE_MODULE_POSTPROCESSING "
-                            "in CMake. \n";
+                GetLog()
+                    << "Saving Blender3D files not supported. Rebuild the solution with ENABLE_MODULE_POSTPROCESSING "
+                       "in CMake. \n";
 #endif
                 return true;
             default:
@@ -169,7 +170,7 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
 
 // -----------------------------------------------------------------------------
 
-class DebugDrawer : public collision::ChCollisionSystem::VisualizationCallback {
+class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
   public:
     explicit DebugDrawer(irr::video::IVideoDriver* driver)
         : m_driver(driver), m_debugMode(0), m_linecolor(255, 255, 0, 0) {}
@@ -305,7 +306,10 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     g_plot_collisionshapes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 375, 200, 375 + 15), g_tab1, 9902,
                                                  L"Draw collision shapes");
 
-    g_plot_convergence = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 390, 200, 390 + 15), g_tab1, 9902,
+    g_plot_abscoord = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 390, 200, 390 + 15), g_tab1, 9904,
+                                          L"Draw abs coordsys");
+
+    g_plot_convergence = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 405, 200, 405 + 15), g_tab1, 9903,
                                              L"Plot convergence");
 
     guienv->addStaticText(L"Symbols scale", irr::core::rect<irr::s32>(130, 330, 200, 330 + 15), false, false, g_tab1);
@@ -368,26 +372,25 @@ void ChIrrGUI::AddUserEventReceiver(irr::IEventReceiver* receiver) {
 void ChIrrGUI::SetSymbolscale(double val) {
     symbolscale = ChMax(10e-12, val);
     char message[50];
-    sprintf(message, "%g", symbolscale);
+    snprintf(message, sizeof(message), "%g", symbolscale);
     g_symbolscale->setText(irr::core::stringw(message).c_str());
 }
 
 void ChIrrGUI::SetModalAmplitude(double val) {
     modal_amplitude = ChMax(0.0, val);
     char message[50];
-    sprintf(message, "%g", modal_amplitude);
+    snprintf(message, sizeof(message), "%g", modal_amplitude);
     g_modal_amplitude->setText(irr::core::stringw(message).c_str());
 }
 
 void ChIrrGUI::SetModalSpeed(double val) {
     modal_speed = ChMax(0.0, val);
     char message[50];
-    sprintf(message, "%g", modal_speed);
+    snprintf(message, sizeof(message), "%g", modal_speed);
     g_modal_speed->setText(irr::core::stringw(message).c_str());
 }
 
-void ChIrrGUI::SetModalModesMax(int maxModes)
-{
+void ChIrrGUI::SetModalModesMax(int maxModes) {
     int newMaxModes = std::max(maxModes, 1);
     g_modal_mode_n->setMax(newMaxModes);
     modal_mode_n = std::min(modal_mode_n, newMaxModes);
@@ -533,6 +536,9 @@ void ChIrrGUI::Render() {
     if (g_plot_cogs->isChecked())
         tools::drawAllCOGs(m_vis, symbolscale);
 
+    if (g_plot_abscoord->isChecked())
+        tools::drawCoordsys(m_vis, CSYSNORM, symbolscale);
+
     if (g_plot_linkframes->isChecked())
         tools::drawAllLinkframes(m_vis, symbolscale);
 
@@ -556,10 +562,10 @@ void ChIrrGUI::Render() {
     if (modal_show) {
         char message[50];
         if (modal_current_dampingfactor)
-            sprintf(message, "n = %i\nf = %.3g Hz\nz = %.2g", modal_mode_n, modal_current_freq,
-                    modal_current_dampingfactor);
+            snprintf(message, sizeof(message), "n = %i\nf = %.3g Hz\nz = %.2g", modal_mode_n, modal_current_freq,
+                     modal_current_dampingfactor);
         else
-            sprintf(message, "n = %i\nf = %.3g Hz", modal_mode_n, modal_current_freq);
+            snprintf(message, sizeof(message), "n = %i\nf = %.3g Hz", modal_mode_n, modal_current_freq);
         g_modal_mode_n_info->setText(irr::core::stringw(message).c_str());
 
         g_modal_mode_n->setPos(modal_mode_n);
@@ -569,7 +575,7 @@ void ChIrrGUI::Render() {
 }
 
 void ChIrrGUI::DrawCollisionShapes(irr::video::SColor color) {
-    if (!m_drawer)
+    if (!m_drawer || !m_system->GetCollisionSystem())
         return;
 
     std::static_pointer_cast<DebugDrawer>(m_drawer)->SetLineColor(color);
@@ -580,7 +586,7 @@ void ChIrrGUI::DrawCollisionShapes(irr::video::SColor color) {
     mattransp.Lighting = false;
     GetVideoDriver()->setMaterial(mattransp);
 
-    m_system->GetCollisionSystem()->Visualize(collision::ChCollisionSystem::VIS_Shapes);
+    m_system->GetCollisionSystem()->Visualize(ChCollisionSystem::VIS_Shapes);
 }
 
 void ChIrrGUI::BeginScene() {
@@ -605,12 +611,7 @@ void ChIrrGUI::EndScene() {
         blender_num++;
     }
 #endif
-
 }
-
-
-
-
 
 #ifdef CHRONO_POSTPROCESS
 
@@ -625,30 +626,30 @@ void ChIrrGUI::SetBlenderSave(bool val) {
 
     if (blender_save && !blender_exporter) {
         blender_exporter = std::unique_ptr<postprocess::ChBlender>(new postprocess::ChBlender(m_system));
-        
+
         // Set the path where it will save all .pov, .ini, .asset and .dat files,
         // a directory will be created if not existing
         blender_exporter->SetBasePath("blender_project");
 
         // Add all items (already in scene) to the Blender exporter
         blender_exporter->AddAll();
-        
+
         if (m_vis->GetCameraVertical() == CameraVerticalDir::Z)
             blender_exporter->SetBlenderUp_is_ChronoZ();
         if (m_vis->GetCameraVertical() == CameraVerticalDir::Y)
             blender_exporter->SetBlenderUp_is_ChronoY();
 
         // Static default camera in Blender matches the one in Irrlicht at the moment of starting saving
-        //blender_exporter->SetCamera(ChVectorIrr(GetActiveCamera()->getAbsolutePosition()), ChVectorIrr(GetActiveCamera()->getTarget()),
+        // blender_exporter->SetCamera(ChVectorIrr(GetActiveCamera()->getAbsolutePosition()),
+        // ChVectorIrr(GetActiveCamera()->getTarget()),
         //    GetActiveCamera()->getFOV() * GetActiveCamera()->getAspectRatio() * chrono::CH_C_RAD_TO_DEG);
-        
+
         blender_exporter->ExportScript();
 
         blender_num = 0;
     }
 }
 #endif
-
 
 }  // end namespace irrlicht
 }  // end namespace chrono

@@ -22,15 +22,15 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/geometry/ChLineNurbs.h"
 #include "chrono/geometry/ChSurfaceNurbs.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChPathShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
-#include "chrono/assets/ChConeShape.h"
-#include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChSurfaceShape.h"
-#include "chrono/assets/ChModelFileShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapePath.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeEllipsoid.h"
+#include "chrono/assets/ChVisualShapeCone.h"
+#include "chrono/assets/ChVisualShapeCapsule.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeSurface.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
@@ -44,10 +44,9 @@ using namespace chrono::vsg3d;
 int main(int argc, char* argv[]) {
     // Create a Chrono system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    //
     // EXAMPLE 1:
-    //
 
     // Create a ChBody, and attach assets that define 3D shapes for visualization purposes.
     // Note: these assets are independent from collision shapes!
@@ -60,9 +59,8 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     // Define a collision shape
-    floor->GetCollisionModel()->ClearModel();
-    floor->GetCollisionModel()->AddBox(floor_mat, 20, 1, 20, ChVector<>(0, -1, 0));
-    floor->GetCollisionModel()->BuildModel();
+    auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
+    floor->AddCollisionShape(floor_shape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
     floor->SetCollide(true);
 
     // Add body to system
@@ -70,12 +68,12 @@ int main(int argc, char* argv[]) {
 
     // Attach a box shape
     // Note that assets are managed via shared pointer, so they can also be shared).
-    auto boxfloor = chrono_types::make_shared<ChBoxShape>(20, 1, 20);
+    auto boxfloor = chrono_types::make_shared<ChVisualShapeBox>(20, 1, 20);
     boxfloor->SetColor(ChColor(0.2f, 0.3f, 1.0f));
     floor->AddVisualShape(boxfloor, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
 
     // Attach a path shape populated with segments and arcs.
-    auto pathfloor = chrono_types::make_shared<ChPathShape>();
+    auto pathfloor = chrono_types::make_shared<ChVisualShapePath>();
     ChLineSegment mseg1(ChVector<>(1, 2, 0), ChVector<>(1, 3, 0));
     pathfloor->GetPathGeometry()->AddSubLine(mseg1);
     ChLineSegment mseg2(ChVector<>(1, 3, 0), ChVector<>(2, 3, 0));
@@ -86,19 +84,19 @@ int main(int argc, char* argv[]) {
     floor->AddVisualShape(pathfloor);
 
     // Attach a 'nurbs line' shape:
-    // First create the ChLineNurbs geometry, then put it inside a ChLineShape
+    // First create the ChLineNurbs geometry, then put it inside a ChVisualShapeLine
     auto nurbs = chrono_types::make_shared<ChLineNurbs>();
     std::vector<ChVector<>> controlpoints = {ChVector<>(1, 2, -1), ChVector<>(1, 3, -1), ChVector<>(1, 3, -2),
                                              ChVector<>(1, 4, -2)};
     nurbs->SetupData(3, controlpoints);
 
-    auto nurbsasset = chrono_types::make_shared<ChLineShape>();
+    auto nurbsasset = chrono_types::make_shared<ChVisualShapeLine>();
     nurbsasset->SetLineGeometry(nurbs);
     nurbsasset->SetColor(ChColor(0.0f, 0.3f, 1.0f));
     floor->AddVisualShape(nurbsasset);
 
     // Attach a 'nurbs surface' shape:
-    // First create the ChSurfaceNurbs geometry, then put it inside a ChSurfaceShape
+    // First create the ChSurfaceNurbs geometry, then put it inside a ChVisualShapeSurface
     auto surf = chrono_types::make_shared<ChSurfaceNurbs>();
     ChMatrixDynamic<ChVector<>> surfpoints(4, 2);  // u points, v points
     surfpoints(0, 0) = ChVector<>(1, 2, 3);
@@ -111,15 +109,13 @@ int main(int argc, char* argv[]) {
     surfpoints(3, 1) = ChVector<>(2, 4, 1);
     surf->SetupData(3, 1, surfpoints);
 
-    auto surfasset = chrono_types::make_shared<ChSurfaceShape>();
+    auto surfasset = chrono_types::make_shared<ChVisualShapeSurface>();
     surfasset->SetSurfaceGeometry(surf);
     surfasset->SetWireframe(true);
     surfasset->SetColor(ChColor(0.2f, 0.8f, 0.3f));
     floor->AddVisualShape(surfasset, ChFrame<>(ChVector<>(3, -1, 3), QUNIT));
 
-    //
     // EXAMPLE 2:
-    //
 
     // Create the rigid body (this won't move, it is only for visualization tests)
     auto body = chrono_types::make_shared<ChBody>();
@@ -131,24 +127,26 @@ int main(int argc, char* argv[]) {
     orange_mat->SetDiffuseColor(ChColor(0.9f, 0.4f, 0.2f));
 
     // Attach a 'sphere' shape
-    auto sphere = chrono_types::make_shared<ChSphereShape>(0.5);
+    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(0.5);
     sphere->AddMaterial(orange_mat);
     body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
 
     // Attach also a 'box' shape
-    auto box = chrono_types::make_shared<ChBoxShape>(0.6, 1.0, 0.2);
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(0.6, 1.0, 0.2);
     box->AddMaterial(orange_mat);
     body->AddVisualShape(box, ChFrame<>(ChVector<>(1, 1, 0), QUNIT));
 
     // Attach also a 'cylinder' shape
-    auto cyl = chrono_types::make_shared<ChCylinderShape>(0.3, 0.7);
+    auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.7);
     cyl->AddMaterial(orange_mat);
     body->AddVisualShape(cyl, ChFrame<>(ChVector<>(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
-    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
-    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
 
     // Attach three instances of the same 'triangle mesh' shape
-    auto mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     mesh->GetMesh()->getCoordsVertices().push_back(ChVector<>(0, 0, 0));
     mesh->GetMesh()->getCoordsVertices().push_back(ChVector<>(0, 1, 0));
     mesh->GetMesh()->getCoordsVertices().push_back(ChVector<>(1, 0, 0));
@@ -161,7 +159,7 @@ int main(int argc, char* argv[]) {
 
     // Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
     // Only the first call of a distinct filename loads from disc; uses instancing.
-    auto objmesh = chrono_types::make_shared<ChModelFileShape>();
+    auto objmesh = chrono_types::make_shared<ChVisualShapeModelFile>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
 
     body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0.0, 2)));
@@ -173,16 +171,14 @@ int main(int argc, char* argv[]) {
 
     // Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
-        auto smallbox = chrono_types::make_shared<ChBoxShape>(0.2, 0.2, 0.02);
+        auto smallbox = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.2, 0.02);
         smallbox->SetColor(ChColor(j * 0.05f, 1 - j * 0.05f, 0.0f));
         ChMatrix33<> rot(Q_from_AngY(j * 21 * CH_C_DEG_TO_RAD));
         ChVector<> pos = rot * ChVector<>(0.4, 0, 0) + ChVector<>(0, j * 0.02, 0);
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
 
-    //
     // EXAMPLE 3:
-    //
 
     // Create ChParticleCloud clusters, and attach 'assets' that define a single "sample" 3D shape.
     {
@@ -190,18 +186,18 @@ int main(int argc, char* argv[]) {
         auto particles = chrono_types::make_shared<ChParticleCloud>();
         particles->SetMass(0.1);
         particles->SetInertiaXX(ChVector<>(0.001, 0.001, 0.001));
-        particles->SetCollide(true);
 
         double particle_radius = 0.3;
-        auto particle_vis = chrono_types::make_shared<ChSphereShape>(particle_radius);
+        auto particle_vis = chrono_types::make_shared<ChVisualShapeSphere>(particle_radius);
         particle_vis->SetColor(ChColor(0.7f, 0.3f, 0.3f));
         particles->AddVisualShape(particle_vis);
 
         auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
         particle_mat->SetFriction(0.9f);
-        particles->GetCollisionModel()->ClearModel();
-        particles->GetCollisionModel()->AddSphere(particle_mat, particle_radius);
-        particles->GetCollisionModel()->BuildModel();
+
+        auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, particle_radius);
+        particles->AddCollisionShape(particle_shape);
+        particles->SetCollide(true);
 
         for (int np = 0; np < 60; ++np)
             particles->AddParticle(ChCoordsys<>(ChVector<>(2 * ChRandom() - 2, 1.5, 2 * ChRandom() + 2)));
@@ -213,19 +209,19 @@ int main(int argc, char* argv[]) {
         auto particles = chrono_types::make_shared<ChParticleCloud>();
         particles->SetMass(0.1);
         particles->SetInertiaXX(ChVector<>(0.001, 0.001, 0.001));
-        particles->SetCollide(true);
 
         double size_x = 0.3;
         double size_y = 0.2;
         double size_z = 0.7;
-        auto particle_vis = chrono_types::make_shared<ChBoxShape>(size_x, size_y, size_z);
+        auto particle_vis = chrono_types::make_shared<ChVisualShapeBox>(size_x, size_y, size_z);
         particle_vis->SetColor(ChColor(0.3f, 0.7f, 0.3f));
         particles->AddVisualShape(particle_vis);
 
         auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-        particles->GetCollisionModel()->ClearModel();
-        particles->GetCollisionModel()->AddBox(particle_mat, size_x, size_y, size_z);
-        particles->GetCollisionModel()->BuildModel();
+
+        auto particle_shape = chrono_types::make_shared<ChCollisionShapeBox>(particle_mat, size_x, size_y, size_z);
+        particles->AddCollisionShape(particle_shape);
+        particles->SetCollide(true);
 
         for (int np = 0; np < 30; ++np)
             particles->AddParticle(ChCoordsys<>(ChVector<>(2 * ChRandom() + 4, 1.5, 2 * ChRandom() - 4)));
@@ -254,7 +250,7 @@ int main(int argc, char* argv[]) {
         particles->SetFixed(true);
         particles->SetCollide(false);
 
-        auto particle_vis = chrono_types::make_shared<ChCapsuleShape>(0.2, 0.2);
+        auto particle_vis = chrono_types::make_shared<ChVisualShapeCapsule>(0.2, 0.2);
         particle_vis->SetColor(ChColor(0.3f, 0.3f, 0.7f));
         particles->AddVisualShape(particle_vis);
 
@@ -267,9 +263,7 @@ int main(int argc, char* argv[]) {
         sys.Add(particles);
     }
 
-    //
     // EXAMPLE 4:
-    //
 
     // Create a convex hull shape
 
@@ -311,7 +305,7 @@ int main(int argc, char* argv[]) {
     // add scenery objects, not bound to bodies
     auto Zup = Q_from_AngX(-CH_C_PI_2);
 
-    auto sceneMesh1 = chrono_types::make_shared<ChModelFileShape>();
+    auto sceneMesh1 = chrono_types::make_shared<ChVisualShapeModelFile>();
     sceneMesh1->SetFilename(GetChronoDataFile("models/red_teapot.obj"));
     int teapotId1 = vis->AddVisualModel(sceneMesh1, ChFrame<>(ChVector<>(0, 3.5, 3), Zup));
     if (teapotId1 == -1)
@@ -320,13 +314,13 @@ int main(int argc, char* argv[]) {
     if (teapotId2 == -1)
         GetLog() << "Could not get teapot!\n";
 
-    auto sceneMesh2 = chrono_types::make_shared<ChModelFileShape>();
+    auto sceneMesh2 = chrono_types::make_shared<ChVisualShapeModelFile>();
     sceneMesh2->SetFilename(GetChronoDataFile("models/bunny.glb"));
     int bunndyId = vis->AddVisualModel(sceneMesh2, ChFrame<>(ChVector<>(-5, 0, 5)));
     if (bunndyId == -1)
         GetLog() << "Could not get bunny!\n";
 
-    auto boxShape = chrono_types::make_shared<ChBoxShape>(0.6, 5.0, 0.2);
+    auto boxShape = chrono_types::make_shared<ChVisualShapeBox>(0.6, 5.0, 0.2);
     boxShape->AddMaterial(orange_mat);
     int boxId = vis->AddVisualModel(boxShape, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
 
@@ -334,41 +328,45 @@ int main(int argc, char* argv[]) {
     auto sphere_mat = chrono_types::make_shared<ChVisualMaterial>();
     sphere_mat->SetDiffuseColor(ChColor(0.9f, 0.9f, 0.9f));
     sphere_mat->SetKdTexture(GetChronoDataFile("textures/spheretexture.png"));
-    auto sphereShape = chrono_types::make_shared<ChSphereShape>(0.75);
+    auto sphereShape = chrono_types::make_shared<ChVisualShapeSphere>(0.75);
     sphereShape->SetMaterial(0, sphere_mat);
     int sphereId = vis->AddVisualModel(sphereShape, ChFrame<>(ChVector<>(-6, 2, -6), QUNIT));
 
     auto ell_mat = chrono_types::make_shared<ChVisualMaterial>();
     ell_mat->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
-    auto ellShape = chrono_types::make_shared<ChEllipsoidShape>(0.2, 0.2, 0.6);
+    auto ellShape = chrono_types::make_shared<ChVisualShapeEllipsoid>(0.2, 0.2, 0.6);
     ellShape->SetMaterial(0, ell_mat);
     ChVector<> ellPos(-1, 1, -1);
     int ellId = vis->AddVisualModel(ellShape, ChFrame<>(ellPos, QUNIT));
 
     auto caps_mat = chrono_types::make_shared<ChVisualMaterial>();
     caps_mat->SetDiffuseColor(ChColor(0.8f, 0.5f, 0.2f));
-    auto capsShape = chrono_types::make_shared<ChCapsuleShape>(0.5, 2);
+    auto capsShape = chrono_types::make_shared<ChVisualShapeCapsule>(0.5, 2);
     capsShape->SetMaterial(0, caps_mat);
     vis->AddVisualModel(capsShape, ChFrame<>(ChVector<>(-6, 1, -1), QUNIT));
-    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(-6, 1, -2.5), QUNIT));
-    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(-6, 1, +0.5), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(-6, 1, -2.5), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(-6, 1, +0.5), QUNIT));
 
     auto cone_mat = chrono_types::make_shared<ChVisualMaterial>();
     cone_mat->SetKdTexture(GetChronoDataFile("textures/pinkwhite.png"));
-    auto coneShape = chrono_types::make_shared<ChConeShape>(0.5, 2.0);
+    auto coneShape = chrono_types::make_shared<ChVisualShapeCone>(0.5, 2.0);
     coneShape->SetMaterial(0, cone_mat);
     vis->AddVisualModel(coneShape, ChFrame<>(ChVector<>(-6, 1, 4), QUNIT));
-    vis->AddVisualModel(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(-6, 1, 4), QUNIT));
-    vis->AddVisualModel(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(-6, 1, 6), QUNIT));
+    vis->AddVisualModel(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(-6, 1, 4), QUNIT));
+    vis->AddVisualModel(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(-6, 1, 6), QUNIT));
 
     auto cyl_mat = chrono_types::make_shared<ChVisualMaterial>();
     cyl_mat->SetKdTexture(GetChronoDataFile("textures/pinkwhite.png"));
-    auto cylShape = chrono_types::make_shared<ChCylinderShape>(0.2, 0.8);
+    auto cylShape = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.8);
     cylShape->SetMaterial(0, cyl_mat);
     vis->AddVisualModel(cylShape, ChFrame<>(ChVector<>(-6, 1, -5), QUNIT));
-    vis->AddVisualModel(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(-6, 1, -5 - 0.4), QUNIT));
-    vis->AddVisualModel(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(-6, 1, -5 + 0.4), QUNIT));
-
+    vis->AddVisualModel(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                        ChFrame<>(ChVector<>(-6, 1, -5 - 0.4), QUNIT));
+    vis->AddVisualModel(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                        ChFrame<>(ChVector<>(-6, 1, -5 + 0.4), QUNIT));
+    vis->SetShadows(true);
     vis->Initialize();
 
     // Create output directory
@@ -384,7 +382,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         double time = sys.GetChTime();
         if (frame_number == 42) {
-            vis->WriteImageToFile(out_dir + "/newshot.png");  // does not work with frame == 0!
+            vis->WriteImageToFile(out_dir + "/assets.png");  // does not work with frame == 0!
         }
 
         vis->UpdateVisualModel(teapotId1, ChFrame<>(ChVector<>(0, 3.5 + 0.5 * sin(CH_C_PI * time / 10), 3), Zup));

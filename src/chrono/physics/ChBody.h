@@ -44,58 +44,26 @@ class ChSystem;
 
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
   public:
-    /// Build a rigid body.
-    ChBody(collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET);
-
-    /// Build a rigid body with a different collision model.
-    ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model);
-
+    ChBody();
     ChBody(const ChBody& other);
 
-    /// Destructor
     virtual ~ChBody();
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChBody* Clone() const override { return new ChBody(*this); }
 
-    // FLAGS
-
-    /// Sets the 'fixed' state of the body. If true, it does not move
-    /// respect to the absolute world, despite constraints, forces, etc.
+    /// Sets the 'fixed' state of the body.
+    /// If true, the body does not move with respect to the absolute reference frame.
     void SetBodyFixed(bool state);
+
     /// Return true if this body is fixed to ground.
     bool GetBodyFixed() const;
 
-    /// If true, the normal restitution coefficient is evaluated from painted material channel.
-    void SetEvalContactCn(bool state);
-    bool GetEvalContactCn() const;
-
-    /// If true, the tangential restitution coefficient is evaluated from painted material channel.
-    void SetEvalContactCt(bool state);
-    bool GetEvalContactCt() const;
-
-    /// If true, the kinetic friction coefficient is evaluated from painted material channel.
-    void SetEvalContactKf(bool state);
-    bool GetEvalContactKf() const;
-
-    /// If true, the static friction coefficient is evaluated
-    /// from painted material channel.
-    void SetEvalContactSf(bool state);
-    bool GetEvalContactSf() const;
-
     /// Enable/disable the collision for this rigid body.
-    /// before anim starts, if you added an external object
-    /// that implements onAddCollisionGeometries(), ex. in a plug-in for a CAD)
     void SetCollide(bool state);
 
     /// Return true if collision is enabled for this body.
     virtual bool GetCollide() const override;
-
-    /// Show collision mesh in 3D views.
-    void SetShowCollisionMesh(bool state);
-
-    /// Return true if collision mesh is shown in 3D views.
-    bool GetShowCollisionMesh() const;
 
     /// Enable the maximum linear speed limit (beyond this limit it will be clamped).
     /// This is useful in virtual reality and real-time simulations, because
@@ -107,26 +75,24 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     bool GetLimitSpeed() const;
 
     /// Deactivate the gyroscopic torque (quadratic term).
-    /// This is useful in virtual reality and real-time
-    /// simulations, where objects that spin too fast with non-uniform inertia
-    /// tensors (ex thin cylinders) might cause the integration to diverge quickly.
-    /// The realism is limited, but the simulation is more stable.
+    /// This is useful in virtual reality and real-time simulations, where objects that spin too fast with non-uniform
+    /// inertia tensors (e.g., thin cylinders) might cause the integration to diverge quickly. The realism is limited,
+    /// but the simulation is more stable.
     void SetNoGyroTorque(bool state);
 
     /// Return true if gyroscopic torque is deactivated.
     bool GetNoGyroTorque() const;
 
     /// Enable/disable option for setting bodies to "sleep".
-    /// If use sleeping = true, bodies which stay in same place
-    /// for long enough time will be deactivated, for optimization.
-    /// The realism is limited, but the simulation is faster.
+    /// If use sleeping = true, bodies which stay in same place for long enough time will be deactivated, for
+    /// optimization. The realism is limited, but the simulation is faster.
     void SetUseSleeping(bool state);
 
     /// Return true if 'sleep' mode is activated.
     bool GetUseSleeping() const;
 
-    /// Force the body in sleeping mode or not (usually this state change is not
-    /// handled by users, anyway, because it is mostly automatic).
+    /// Force the body in sleeping mode or not.
+    /// Usually, this state change is handled internally.
     void SetSleeping(bool state);
 
     /// Return true if this body is currently in 'sleep' mode.
@@ -140,16 +106,16 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// A body is inactive if it is fixed to ground or in sleep mode.
     virtual bool IsActive() const override;
 
-    /// Set body id for indexing (internal use only)
+    /// Set body id for indexing (internal use only).
     void SetId(int id) { body_id = id; }
 
-    /// Set body id for indexing (internal use only)
+    /// Set body id for indexing (internal use only).
     unsigned int GetId() { return body_id; }
 
-    /// Set global body index (internal use only)
+    /// Set global body index (internal use only).
     void SetGid(unsigned int id) { body_gid = id; }
 
-    /// Get the global body index (internal use only)
+    /// Get the global body index (internal use only).
     unsigned int GetGid() const { return body_gid; }
 
     // FUNCTIONS
@@ -164,30 +130,25 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// The ChVariablesBodyOwnMass is the interface to the system solver.
     virtual ChVariables& Variables() override { return variables; }
 
-    /// Set no speed and no accelerations (but does not change the position)
+    /// Set no speed and no accelerations (but does not change the position).
     void SetNoSpeedNoAcceleration() override;
 
-    /// Change the collision model.
-    void SetCollisionModel(std::shared_ptr<collision::ChCollisionModel> new_collision_model);
+    /// Add the body collision model (if any) to the provided collision system.
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
 
-    /// Access the collision model for the collision engine.
-    /// To get a non-null pointer, remember to SetCollide(true), before.
-    std::shared_ptr<collision::ChCollisionModel> GetCollisionModel() { return collision_model; }
+    /// Remove the body collision model (if any) from the provided collision system.
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
 
-    /// Synchronize coll.model coordinate and bounding box to the position of the body.
+    /// Synchronize the position and bounding box of the body collision model (if any).
     virtual void SyncCollisionModels() override;
-    virtual void AddCollisionModelsToSystem() override;
-    virtual void RemoveCollisionModelsFromSystem() override;
 
-    /// Get the rigid body coordinate system that represents
-    /// the GOG (Center of Gravity). The mass and inertia tensor
-    /// are defined respect to this coordinate system, that is also
-    /// assumed the default main coordinates of the body.
-    /// By default, doing mybody.GetPos() etc. is like mybody.GetFrame_COG_abs().GetPos() etc.
+    /// Get the rigid body coordinate system that represents the GOG (Center of Gravity).
+    /// The mass and inertia tensor are defined with respect to this coordinate system, which is also assumed to be the
+    /// default coordinates of the body. By default, a call to body.GetPos() is equivalent to
+    /// body.GetFrame_COG_abs().GetPos().
     virtual const ChFrameMoving<>& GetFrame_COG_to_abs() const { return *this; }
 
-    /// Get the rigid body coordinate system that is used for
-    /// defining the collision shapes and the ChMarker objects.
+    /// Get the rigid body coordinate system that is used for defining the collision shapes and the ChMarker objects.
     /// For the base ChBody, this is always the same reference of the COG.
     virtual const ChFrameMoving<>& GetFrame_REF_to_abs() const { return *this; }
 
@@ -195,26 +156,17 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// For a ChBody, this is the main coordinate system of the rigid body.
     virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return (GetFrame_REF_to_abs()); }
 
-    /// Get the entire AABB axis-aligned bounding box of the object,
-    /// as defined by the collision model (if any).
-    virtual void GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) override;
+    /// Get the axis-aligned bounding (AABB) box of the object.
+    /// The body AABB is the AABB of its collision model (if any).
+    virtual geometry::ChAABB GetTotalAABB() override;
 
-    /// Method to deserialize only the state (position, speed)
+    /// Method to deserialize only the state (position, speed).
     virtual void StreamInstate(ChStreamInBinary& mstream) override;
 
-    /// Method to serialize only the state (position, speed)
+    /// Method to serialize only the state (position, speed).
     virtual void StreamOutstate(ChStreamOutBinary& mstream) override;
 
-    /// The density of the rigid body, as [mass]/[unit volume]. Used just if
-    /// the inertia tensor and mass are automatically recomputed from the
-    /// geometry (in case a CAD plugin for example provides the surfaces.)
-    // float GetDensity() const { return density; } //  obsolete, use the base ChLoadable::GetDensity()
-    void SetDensity(float mdensity) { density = mdensity; }
-
-    // DATABASE HANDLING.
-    //
-    // Do not add the same item multiple times
-    // Do not remove items that have not been added.
+    // DATABASE HANDLING
 
     /// Attach a marker to this body.
     void AddMarker(std::shared_ptr<ChMarker> amarker);
@@ -268,16 +220,14 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Set the body mass.
     /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
-    void SetMass(double newmass) {
-         variables.SetBodyMass(newmass);
-    }
+    void SetMass(double newmass) { variables.SetBodyMass(newmass); }
 
     /// Get the body mass.
     double GetMass() { return variables.GetBodyMass(); }
 
     /// Set the inertia tensor of the body.
     /// The provided 3x3 matrix should be symmetric and contain the inertia tensor, expressed in the local coordinate
-    /// system: 
+    /// system:
     /// <pre>
     ///               [ int{y^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
     /// newXInertia = [                  int{x^2+z^2}   -int{yz}dm    ]
@@ -477,8 +427,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
         ) override;
 
   protected:
-    std::shared_ptr<collision::ChCollisionModel> collision_model;  ///< pointer to the collision model
-
     unsigned int body_id;   ///< body-specific identifier, used for indexing (internal use only)
     unsigned int body_gid;  ///< body-specific identifier, used for global indexing (internal use only)
 
@@ -492,8 +440,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     ChVector<> Force_acc;   ///< force accumulator, applied to COM (in absolute coords)
     ChVector<> Torque_acc;  ///< torque accumulator (in body local coords)
-
-    float density;  ///< used when doing the 'recompute mass' operation.
 
     ChVariablesBodyOwnMass variables;  ///< interface to solver (store inertia and coordinates)
 
@@ -529,15 +475,19 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) override;
     virtual void IntStateGetIncrement(const unsigned int off_x,
-                                   const ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   ChStateDelta& Dv) override;
+                                      const ChState& x_new,
+                                      const ChState& x,
+                                      const unsigned int off_v,
+                                      ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c) override;
+    virtual void IntLoadLumpedMass_Md(const unsigned int off,  
+                                      ChVectorDynamic<>& Md,  
+                                      double& err,         
+                                      const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -634,17 +584,20 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// contact model (when rigid) and sync it.
     virtual ChCoordsys<> GetCsysForCollisionModel() override;
 
-    /// Apply the force, expressed in absolute reference, applied in pos, to the
+    /// Apply the force & torque expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
     virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+                                            const ChVector<>& T,
                                             const ChVector<>& abs_point,
                                             ChVectorDynamic<>& R) override;
 
-    /// Apply the given force at the given point and load the generalized force array.
+    /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
+    /// Used for computing stiffness matrix (square force jacobian) by backward differentiation.
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactForceLoadQ(const ChVector<>& F,
+    virtual void ContactComputeQ(const ChVector<>& F,
+                                   const ChVector<>& T,
                                    const ChVector<>& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
@@ -696,26 +649,20 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual bool IsSubBlockActive(int nblock) const override { return variables.IsActive(); }
 
     /// This is not needed because not used in quadrature.
-    virtual double GetDensity() override { return density; }
+    virtual double GetDensity() override { return 0; }
 
     /// Bit flags
     enum BodyFlag {
-        COLLIDE = (1L << 0),          // detects collisions
-        CDINVISIBLE = (1L << 1),      // collision detection invisible
-        EVAL_CONTACT_CN = (1L << 2),  // evaluate CONTACT_CN channel (normal restitution)
-        EVAL_CONTACT_CT = (1L << 3),  // evaluate CONTACT_CT channel (tangential rest.)
-        EVAL_CONTACT_KF = (1L << 4),  // evaluate CONTACT_KF channel (kinetic friction coeff)
-        EVAL_CONTACT_SF = (1L << 5),  // evaluate CONTACT_SF channel (static friction coeff)
-        SHOW_COLLMESH = (1L << 6),    // show collision mesh - obsolete
-        FIXED = (1L << 7),            // body is fixed to ground
-        LIMITSPEED = (1L << 8),       // body angular and linear speed is limited (clamped)
-        SLEEPING = (1L << 9),         // body is sleeping [internal]
-        USESLEEPING = (1L << 10),     // if body remains in same place for too long time, it will be frozen
-        NOGYROTORQUE = (1L << 11),    // do not get the gyroscopic (quadratic) term, for low-fi but stable simulation
-        COULDSLEEP = (1L << 12)       // if body remains in same place for too long time, it will be frozen
+        LIMITSPEED = (1L << 0),    // body angular and linear speed is limited (clamped)
+        SLEEPING = (1L << 1),      // body is sleeping [internal]
+        USESLEEPING = (1L << 2),   // if body remains in same place for too long time, it will be frozen
+        NOGYROTORQUE = (1L << 3),  // do not get the gyroscopic (quadratic) term, for low-fi but stable simulation
+        COULDSLEEP = (1L << 4)     // if body remains in same place for too long time, it will be frozen
     };
 
-    int bflags;  ///< encoding for all body flags
+    bool fixed;    ///< flag indicating whether or not the body is fixed to global frame
+    bool collide;  ///< flag indicating whether or not the body participates in collisions
+    int bflags;    ///< encoding for all body flags
 
     /// Flags handling functions
     void BFlagsSetAllOFF();

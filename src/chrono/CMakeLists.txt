@@ -132,9 +132,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChIndexedNodes.cpp
     physics/ChNodeBase.cpp
     physics/ChNodeXYZ.cpp
-    physics/ChMatterSPH.cpp
     physics/ChProximityContainer.cpp
-    physics/ChProximityContainerSPH.cpp
     physics/ChConveyor.cpp
     physics/ChFeeder.cpp
     physics/ChExternalDynamics.cpp
@@ -153,14 +151,12 @@ set(ChronoEngine_physics_HEADERS
     physics/ChIndexedNodes.h
     physics/ChIndexedParticles.h
     physics/ChMarker.h
-    physics/ChMatterSPH.h
     physics/ChNodeBase.h
     physics/ChNodeXYZ.h
     physics/ChObject.h
     physics/ChParticleCloud.h
     physics/ChPhysicsItem.h
     physics/ChProximityContainer.h
-    physics/ChProximityContainerSPH.h
     physics/ChSystem.h
     physics/ChSystemNSC.h
     physics/ChSystemSMC.h
@@ -179,6 +175,7 @@ set(ChronoEngine_physics_contact_SOURCES
     physics/ChContactContainer.cpp
     physics/ChContactContainerNSC.cpp
     physics/ChContactContainerSMC.cpp
+    physics/ChContactable.cpp
     physics/ChMaterialSurface.cpp
     physics/ChMaterialSurfaceSMC.cpp
     physics/ChMaterialSurfaceNSC.cpp
@@ -281,6 +278,7 @@ set(ChronoEngine_physics_links_HEADERS
     physics/ChLinkMotorLinearForce.h
     physics/ChLinkMotorLinearDriveline.h
     physics/ChLinkMotionImposed.h
+    physics/ChLinkMotorAll.h
 )
 
 source_group(physics\\links FILES
@@ -390,8 +388,6 @@ set(ChronoEngine_fea_SOURCES
     fea/ChMesh.cpp
     fea/ChMeshFileLoader.cpp
     fea/ChMeshExporter.cpp
-    fea/ChMatterMeshless.cpp
-    fea/ChProximityContainerMeshless.cpp
     fea/ChPolarDecomposition.cpp
     fea/ChMatrixCorotation.cpp
     fea/ChLinkPointFrame.cpp
@@ -433,8 +429,6 @@ set(ChronoEngine_fea_HEADERS
     fea/ChMesh.h
     fea/ChMeshExporter.h
     fea/ChMeshFileLoader.h
-    fea/ChMatterMeshless.h
-    fea/ChProximityContainerMeshless.h
     fea/ChPolarDecomposition.h
     fea/ChMatrixCorotation.h
     fea/ChLinkPointFrame.h
@@ -617,57 +611,58 @@ source_group(geometry FILES
 # Asset group
 
 set(ChronoEngine_assets_SOURCES
-    assets/ChModelFileShape.cpp
-    assets/ChTriangleMeshShape.cpp
-    assets/ChSphereShape.cpp
-    assets/ChEllipsoidShape.cpp
-    assets/ChBoxShape.cpp
-    assets/ChBarrelShape.cpp
-    assets/ChConeShape.cpp
-    assets/ChCylinderShape.cpp
-    assets/ChCapsuleShape.cpp
     assets/ChTexture.cpp
     assets/ChCamera.cpp
     assets/ChColor.cpp
     assets/ChGlyphs.cpp
-    assets/ChRoundedCylinderShape.cpp
-    assets/ChRoundedBoxShape.cpp
-    assets/ChPathShape.cpp
-    assets/ChLineShape.cpp
-    assets/ChPointPointShape.cpp
-    assets/ChSurfaceShape.cpp
+    assets/ChVisualSystem.cpp
+    assets/ChVisualModel.cpp
     assets/ChVisualMaterial.cpp
     assets/ChVisualShape.cpp
+    assets/ChVisualShapeModelFile.cpp
+    assets/ChVisualShapeTriangleMesh.cpp
+    assets/ChVisualShapeSphere.cpp
+    assets/ChVisualShapeEllipsoid.cpp
+    assets/ChVisualShapeBox.cpp
+    assets/ChVisualShapeBarrel.cpp
+    assets/ChVisualShapeCone.cpp
+    assets/ChVisualShapeCylinder.cpp
+    assets/ChVisualShapeCapsule.cpp
+    assets/ChVisualShapeRoundedCylinder.cpp
+    assets/ChVisualShapeRoundedBox.cpp
+    assets/ChVisualShapePath.cpp
+    assets/ChVisualShapeLine.cpp
+    assets/ChVisualShapePointPoint.cpp
+    assets/ChVisualShapeSurface.cpp
     assets/ChVisualShapeFEA.cpp
-    assets/ChVisualModel.cpp
-    assets/ChVisualSystem.cpp
     )
 
 set(ChronoEngine_assets_HEADERS
-    assets/ChModelFileShape.h
-    assets/ChTriangleMeshShape.h
-    assets/ChSphereShape.h
-    assets/ChEllipsoidShape.h
-    assets/ChBarrelShape.h
-    assets/ChBoxShape.h
-    assets/ChConeShape.h
-    assets/ChCylinderShape.h
-    assets/ChCapsuleShape.h
     assets/ChTexture.h
     assets/ChCamera.h
     assets/ChColor.h
     assets/ChGlyphs.h
-    assets/ChRoundedCylinderShape.h
-    assets/ChRoundedBoxShape.h
-    assets/ChPathShape.h
-    assets/ChLineShape.h
-    assets/ChPointPointShape.h
-    assets/ChSurfaceShape.h
+    assets/ChVisualSystem.h
+    assets/ChVisualModel.h
     assets/ChVisualMaterial.h
     assets/ChVisualShape.h
+    assets/ChVisualShapes.h
+    assets/ChVisualShapeModelFile.h
+    assets/ChVisualShapeTriangleMesh.h
+    assets/ChVisualShapeSphere.h
+    assets/ChVisualShapeEllipsoid.h
+    assets/ChVisualShapeBarrel.h
+    assets/ChVisualShapeBox.h
+    assets/ChVisualShapeCone.h
+    assets/ChVisualShapeCylinder.h
+    assets/ChVisualShapeCapsule.h
+    assets/ChVisualShapeRoundedCylinder.h
+    assets/ChVisualShapeRoundedBox.h
+    assets/ChVisualShapePath.h
+    assets/ChVisualShapeLine.h
+    assets/ChVisualShapePointPoint.h
+    assets/ChVisualShapeSurface.h
     assets/ChVisualShapeFEA.h
-    assets/ChVisualModel.h
-    assets/ChVisualSystem.h
     )
 
 source_group(assets FILES
@@ -705,324 +700,109 @@ elseif()
     set(ChronoEngine_MulticoreMath_SOURCES "")
 endif()
 
-# Collision group
+# Collision group --------------------------------------------------------------
 
 set(ChronoEngine_collision_SOURCES
     collision/ChCollisionInfo.cpp
-    collision/ChCollisionShape.cpp
     collision/ChCollisionModel.cpp
-    collision/ChCollisionModelBullet.cpp
-    collision/ChCollisionAlgorithmsBullet.cpp
-    collision/ChCollisionSystemBullet.cpp
+    collision/ChCollisionSystem.cpp
     collision/ChConvexDecomposition.cpp
-    collision/ChCollisionUtils.cpp
-    collision/ChCollisionUtilsBullet.cpp
+    collision/ChCollisionShape.cpp
+    collision/ChCollisionShapeArc2D.cpp
+    collision/ChCollisionShapeBarrel.cpp
+    collision/ChCollisionShapeBox.cpp
+    collision/ChCollisionShapeCapsule.cpp
+    collision/ChCollisionShapeCone.cpp
+    collision/ChCollisionShapeConvexHull.cpp
+    collision/ChCollisionShapeCylinder.cpp
+    collision/ChCollisionShapeCylindricalShell.cpp
+    collision/ChCollisionShapeEllipsoid.cpp
+    collision/ChCollisionShapePath2D.cpp
+    collision/ChCollisionShapePoint.cpp
+    collision/ChCollisionShapeRoundedBox.cpp
+    collision/ChCollisionShapeRoundedCylinder.cpp
+    collision/ChCollisionShapeSegment2D.cpp
+    collision/ChCollisionShapeSphere.cpp
+    collision/ChCollisionShapeTriangle.cpp
+    collision/ChCollisionShapeMeshTriangle.cpp
+    collision/ChCollisionShapeTriangleMesh.cpp
     )
 
 set(ChronoEngine_collision_HEADERS
     collision/ChCollisionInfo.h
-    collision/ChCollisionShape.h
     collision/ChCollisionModel.h
     collision/ChCollisionPair.h
     collision/ChCollisionSystem.h
-    collision/ChCollisionShapeBullet.h
-    collision/ChCollisionModelBullet.h
-    collision/ChCollisionAlgorithmsBullet.h
-    collision/ChCollisionSystemBullet.h
     collision/ChConvexDecomposition.h
-    collision/ChCollisionUtils.h
-    collision/ChCollisionUtilsBullet.h
+    collision/ChCollisionShapes.h
+    collision/ChCollisionShape.h
+    collision/ChCollisionShapeArc2D.h
+    collision/ChCollisionShapeBarrel.h
+    collision/ChCollisionShapeBox.h
+    collision/ChCollisionShapeCapsule.h
+    collision/ChCollisionShapeCone.h
+    collision/ChCollisionShapeConvexHull.h
+    collision/ChCollisionShapeCylinder.h
+    collision/ChCollisionShapeCylindricalShell.h
+    collision/ChCollisionShapeEllipsoid.h
+    collision/ChCollisionShapePath2D.h
+    collision/ChCollisionShapePoint.h
+    collision/ChCollisionShapeRoundedBox.h
+    collision/ChCollisionShapeRoundedCylinder.h
+    collision/ChCollisionShapeSegment2D.h
+    collision/ChCollisionShapeSphere.h
+    collision/ChCollisionShapeTriangle.h
+    collision/ChCollisionShapeMeshTriangle.h
+    collision/ChCollisionShapeTriangleMesh.h
     )
-
-if (THRUST_FOUND)
-   set (ChronoEngine_collision_SOURCES ${ChronoEngine_collision_SOURCES}
-       collision/ChCollisionModelChrono.cpp
-       collision/ChCollisionSystemChrono.cpp
-       )
-
-   set (ChronoEngine_collision_HEADERS ${ChronoEngine_collision_HEADERS}
-       collision/ChCollisionShapeChrono.h
-       collision/ChCollisionModelChrono.h
-       collision/ChCollisionSystemChrono.h
-       )
-
-   message(STATUS "Adding internal multicore collision detection library.")       
-endif()
 
 source_group(collision FILES
     ${ChronoEngine_collision_SOURCES}
     ${ChronoEngine_collision_HEADERS})
 
-
-# Particle factory group
-
-set(ChronoEngine_particlefactory_SOURCES
-    )
-
-set(ChronoEngine_particlefactory_HEADERS
-    particlefactory/ChParticleEmitter.h
-    particlefactory/ChRandomShapeCreator.h
-    particlefactory/ChRandomParticlePosition.h
-    particlefactory/ChRandomParticleAlignment.h
-    particlefactory/ChRandomParticleVelocity.h
-    particlefactory/ChParticleRemover.h
-    particlefactory/ChParticleEventTrigger.h
-    particlefactory/ChParticleProcessEvent.h
-    particlefactory/ChParticleProcessor.h
-    )
-
-source_group(particlefactory FILES
-    ${ChronoEngine_particlefactory_SOURCES}
-    ${ChronoEngine_particlefactory_HEADERS})
-
-# Timestepper group
-
-set(ChronoEngine_timestepper_SOURCES
-    timestepper/ChIntegrable.cpp
-    timestepper/ChTimestepper.cpp
-    timestepper/ChTimestepperHHT.cpp
-    timestepper/ChStaticAnalysis.cpp
-    timestepper/ChAssemblyAnalysis.cpp
-    )
-
-set(ChronoEngine_timestepper_HEADERS
-    timestepper/ChState.h
-    timestepper/ChIntegrable.h
-    timestepper/ChTimestepper.h
-    timestepper/ChTimestepperHHT.h
-    timestepper/ChStaticAnalysis.h
-    timestepper/ChAssemblyAnalysis.h
-    timestepper/ChUpdateFlags.h
-    )
-
-source_group(timestepper FILES
-    ${ChronoEngine_timestepper_SOURCES}
-    ${ChronoEngine_timestepper_HEADERS})
-
-# Motion functions group
-
-set(ChronoEngine_motion_functions_SOURCES
-    motion_functions/ChFunction_Base.cpp
-	motion_functions/ChFunction_BSpline.cpp
-    motion_functions/ChFunction_Const.cpp
-    motion_functions/ChFunction_ConstAcc.cpp
-	motion_functions/ChFunction_Cycloidal.cpp
-    motion_functions/ChFunction_Derive.cpp
-    motion_functions/ChFunction_DoubleS.cpp
-    motion_functions/ChFunction_Fillet3.cpp
-    motion_functions/ChFunction_Integrate.cpp
-    motion_functions/ChFunction_Matlab.cpp
-    motion_functions/ChFunction_Mirror.cpp
-    motion_functions/ChFunction_Mocap.cpp
-    motion_functions/ChFunction_Noise.cpp
-    motion_functions/ChFunction_Operation.cpp
-    motion_functions/ChFunction_Oscilloscope.cpp
-    motion_functions/ChFunction_Poly345.cpp
-    motion_functions/ChFunction_Poly.cpp
-    motion_functions/ChFunction_Ramp.cpp
-    motion_functions/ChFunction_Recorder.cpp
-    motion_functions/ChFunction_Repeat.cpp
-    motion_functions/ChFunction_Sequence.cpp
-    motion_functions/ChFunction_Sigma.cpp
-    motion_functions/ChFunction_Sine.cpp
-    motion_functions/ChFunction_Setpoint.cpp
-    motion_functions/ChFunctionPosition.cpp
-    motion_functions/ChFunctionPosition_XYZfunctions.cpp
-    motion_functions/ChFunctionPosition_line.cpp
-    motion_functions/ChFunctionPosition_setpoint.cpp
-    motion_functions/ChFunctionRotation.cpp
-    motion_functions/ChFunctionRotation_axis.cpp
-    motion_functions/ChFunctionRotation_ABCfunctions.cpp
-    motion_functions/ChFunctionRotation_setpoint.cpp
-    motion_functions/ChFunctionRotation_spline.cpp
-    motion_functions/ChFunctionRotation_SQUAD.cpp
-    )
-
-set(ChronoEngine_motion_functions_HEADERS
-    motion_functions/ChFunction.h
-    motion_functions/ChFunction_Base.h
-	motion_functions/ChFunction_BSpline.h
-    motion_functions/ChFunction_Const.h
-    motion_functions/ChFunction_ConstAcc.h
-	motion_functions/ChFunction_Cycloidal.h
-    motion_functions/ChFunction_Derive.h
-    motion_functions/ChFunction_DoubleS.h
-    motion_functions/ChFunction_Fillet3.h
-    motion_functions/ChFunction_Integrate.h
-    motion_functions/ChFunction_Matlab.h
-    motion_functions/ChFunction_Mirror.h
-    motion_functions/ChFunction_Mocap.h
-    motion_functions/ChFunction_Noise.h
-    motion_functions/ChFunction_Operation.h
-    motion_functions/ChFunction_Oscilloscope.h
-    motion_functions/ChFunction_Poly345.h
-    motion_functions/ChFunction_Poly.h
-    motion_functions/ChFunction_Ramp.h
-    motion_functions/ChFunction_Recorder.h
-    motion_functions/ChFunction_Repeat.h
-    motion_functions/ChFunction_Sequence.h
-    motion_functions/ChFunction_Sigma.h
-    motion_functions/ChFunction_Sine.h
-    motion_functions/ChFunction_Setpoint.h
-    motion_functions/ChFunctionPosition.h
-    motion_functions/ChFunctionPosition_XYZfunctions.h
-    motion_functions/ChFunctionPosition_line.h
-    motion_functions/ChFunctionPosition_setpoint.h
-    motion_functions/ChFunctionRotation.h
-    motion_functions/ChFunctionRotation_axis.h
-    motion_functions/ChFunctionRotation_ABCfunctions.h
-    motion_functions/ChFunctionRotation_setpoint.h
-    motion_functions/ChFunctionRotation_spline.h
-    motion_functions/ChFunctionRotation_SQUAD.h
-    )
-
-if(CH_CXX14)
-  set(ChronoEngine_motion_functions_HEADERS ${ChronoEngine_motion_functions_HEADERS}
-      motion_functions/ChFunction_Lambda.h)
-endif()
-
-source_group(motion_functions FILES
-    ${ChronoEngine_motion_functions_SOURCES}
-    ${ChronoEngine_motion_functions_HEADERS})
-
-# Solver group
-
-set(ChronoEngine_solver_SOURCES
-    solver/ChSystemDescriptor.cpp
-    solver/ChSolver.cpp
-    solver/ChDirectSolverLS.cpp
-    solver/ChDirectSolverLScomplex.cpp
-    solver/ChIterativeSolver.cpp
-    solver/ChIterativeSolverLS.cpp
-    solver/ChIterativeSolverVI.cpp
-    solver/ChSolverPSOR.cpp
-    solver/ChSolverPJacobi.cpp
-    solver/ChSolverPSSOR.cpp
-    solver/ChSolverPMINRES.cpp
-    solver/ChSolverBB.cpp
-    solver/ChSolverAPGD.cpp
-    solver/ChSolverADMM.cpp
-    solver/ChKblockGeneric.cpp
-    solver/ChSolvmin.cpp
-    solver/ChNlsolver.cpp
-    )
-
-set(ChronoEngine_solver_HEADERS
-    solver/ChSystemDescriptor.h
-    solver/ChSolver.h
-    solver/ChSolverLS.h
-    solver/ChSolverVI.h
-    solver/ChDirectSolverLS.h
-    solver/ChDirectSolverLScomplex.h
-    solver/ChIterativeSolver.h
-    solver/ChIterativeSolverLS.h
-    solver/ChIterativeSolverVI.h
-    solver/ChSolverPJacobi.h
-    solver/ChSolverPMINRES.h
-    solver/ChSolverBB.h
-    solver/ChSolverAPGD.h
-    solver/ChSolverADMM.h
-    solver/ChSolverPSOR.h
-    solver/ChSolverPSSOR.h
-    solver/ChKblock.h
-    solver/ChKblockGeneric.h
-    solver/ChSolvmin.h
-    solver/ChNlsolver.h
-    )
-
-source_group(solver FILES
-    ${ChronoEngine_solver_SOURCES}
-    ${ChronoEngine_solver_HEADERS})
-
-#Solver sub-groups
-
-set(ChronoEngine_solver_variables_SOURCES
-    solver/ChVariables.cpp
-    solver/ChVariablesGeneric.cpp
-    solver/ChVariablesGenericDiagonalMass.cpp
-    solver/ChVariablesBody.cpp
-    solver/ChVariablesBodySharedMass.cpp
-    solver/ChVariablesBodyOwnMass.cpp
-    solver/ChVariablesShaft.cpp
-    solver/ChVariablesNode.cpp
-)
-
-set(ChronoEngine_solver_variables_HEADERS
-    solver/ChVariables.h
-    solver/ChVariablesBody.h
-    solver/ChVariablesBodyOwnMass.h
-    solver/ChVariablesBodySharedMass.h
-    solver/ChVariablesShaft.h
-    solver/ChVariablesGeneric.h
-    solver/ChVariablesGenericDiagonalMass.h
-    solver/ChVariablesNode.h
-)
-
-source_group(solver\\variables FILES
-    ${ChronoEngine_solver_variables_SOURCES}
-    ${ChronoEngine_solver_variables_HEADERS})
-
-set(ChronoEngine_solver_constraints_SOURCES
-    solver/ChConstraint.cpp
-    solver/ChConstraintTwo.cpp
-    solver/ChConstraintTwoGeneric.cpp
-    solver/ChConstraintTwoGenericBoxed.cpp
-    solver/ChConstraintTwoBodies.cpp
-    solver/ChConstraintThree.cpp
-    solver/ChConstraintThreeGeneric.cpp
-    solver/ChConstraintThreeBBShaft.cpp
-    solver/ChConstraintNgeneric.cpp
-)
-
-set(ChronoEngine_solver_constraints_HEADERS
-    solver/ChConstraint.h
-    solver/ChConstraintThree.h
-    solver/ChConstraintThreeBBShaft.h
-    solver/ChConstraintThreeGeneric.h
-    solver/ChConstraintTwo.h
-    solver/ChConstraintTwoBodies.h
-    solver/ChConstraintTwoGeneric.h
-    solver/ChConstraintTwoGenericBoxed.h
-    solver/ChConstraintTuple.h
-    solver/ChConstraintTwoTuples.h
-    solver/ChConstraintTwoTuplesContactN.h
-    solver/ChConstraintTwoTuplesFrictionT.h
-    solver/ChConstraintTwoTuplesRollingN.h
-    solver/ChConstraintTwoTuplesRollingT.h
-    solver/ChConstraintNgeneric.h
-)
-
-source_group(solver\\constraints FILES
-    ${ChronoEngine_solver_constraints_SOURCES}
-    ${ChronoEngine_solver_constraints_HEADERS})
-
 # Chrono collision group
 
 if (THRUST_FOUND)
-   set(ChronoEngine_collision_chrono_SOURCES
-       collision/chrono/ChCollisionData.h
-       collision/chrono/ChConvexShape.h
-       collision/chrono/ChBroadphase.h
-       collision/chrono/ChBroadphase.cpp
-       collision/chrono/ChNarrowphase.h
-       collision/chrono/ChNarrowphase.cpp
-       collision/chrono/ChNarrowphaseMPR.cpp
-       collision/chrono/ChNarrowphasePRIMS.cpp
-       collision/chrono/ChRayTest.h
-       collision/chrono/ChRayTest.cpp
-       collision/chrono/ChCollisionUtils.h
-       collision/chrono/ChCollisionUtilsBroadphase.cpp
-       collision/chrono/ChCollisionUtilsMPR.cpp
-       collision/chrono/ChCollisionUtilsPRIMS.cpp
+   message(STATUS "Adding internal multicore collision detection library.")       
+
+   set(ChronoEngine_collision_multicore_SOURCES
+       collision/multicore/ChCollisionSystemMulticore.h
+       collision/multicore/ChCollisionSystemMulticore.cpp
+       collision/multicore/ChCollisionModelMulticore.h
+       collision/multicore/ChCollisionModelMulticore.cpp
+#
+       collision/multicore/ChCollisionData.h
+       collision/multicore/ChConvexShape.h
+       collision/multicore/ChBroadphase.h
+       collision/multicore/ChBroadphase.cpp
+       collision/multicore/ChNarrowphase.h
+       collision/multicore/ChNarrowphase.cpp
+       collision/multicore/ChNarrowphaseMPR.cpp
+       collision/multicore/ChNarrowphasePRIMS.cpp
+       collision/multicore/ChRayTest.h
+       collision/multicore/ChRayTest.cpp
+       collision/multicore/ChCollisionUtils.h
+       collision/multicore/ChCollisionUtilsBroadphase.cpp
+       collision/multicore/ChCollisionUtilsMPR.cpp
+       collision/multicore/ChCollisionUtilsPRIMS.cpp
    )
 
-   source_group("collision\\chrono" FILES
-       ${ChronoEngine_collision_chrono_SOURCES})
+   source_group("collision\\multicore" FILES
+       ${ChronoEngine_collision_multicore_SOURCES})
 endif()
 
 # Bullet collision group
 
 set(ChronoEngine_collision_bullet_SOURCES
+    collision/bullet/ChCollisionSystemBullet.h
+    collision/bullet/ChCollisionSystemBullet.cpp
+    collision/bullet/ChCollisionModelBullet.h
+    collision/bullet/ChCollisionModelBullet.cpp
+    collision/bullet/ChCollisionAlgorithmsBullet.h
+    collision/bullet/ChCollisionAlgorithmsBullet.cpp
+    collision/bullet/ChCollisionUtilsBullet.h
+    collision/bullet/ChCollisionUtilsBullet.cpp
+#
     collision/bullet/BulletCollision/BroadphaseCollision/cbtAxisSweep3.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/cbtSimpleBroadphase.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/cbtOverlappingPairCache.cpp
@@ -1177,7 +957,6 @@ set(ChronoEngine_collision_convexdecompHACD_SOURCES
     ../chrono_thirdparty/HACD/hacdSArray.h
     ../chrono_thirdparty/HACD/hacdVector.h
     ../chrono_thirdparty/HACD/hacdVersion.h
-#
     ../chrono_thirdparty/HACD/hacdRaycastMesh.cpp
     ../chrono_thirdparty/HACD/hacdMicroAllocator.cpp
     ../chrono_thirdparty/HACD/hacdGraph.cpp
@@ -1215,7 +994,6 @@ set(ChronoEngine_collision_convexdecompHACDv2_SOURCES
     ../chrono_thirdparty/HACDv2/dgMeshEffect.h
     ../chrono_thirdparty/HACDv2/MergeHulls.h
     ../chrono_thirdparty/HACDv2/wavefront.h
-#
     ../chrono_thirdparty/HACDv2/AutoGeometry.cpp
     ../chrono_thirdparty/HACDv2/HACD.cpp
     ../chrono_thirdparty/HACDv2/ConvexHull.cpp
@@ -1237,9 +1015,250 @@ set(ChronoEngine_collision_convexdecompHACDv2_SOURCES
 source_group(collision\\convexdecomp\\HACDv2 FILES
     ${ChronoEngine_collision_convexdecompHACDv2_SOURCES})
 
+# Particle factory group -------------------------------------------------------
+
+set(ChronoEngine_particlefactory_SOURCES
+    )
+
+set(ChronoEngine_particlefactory_HEADERS
+    particlefactory/ChParticleEmitter.h
+    particlefactory/ChRandomShapeCreator.h
+    particlefactory/ChRandomParticlePosition.h
+    particlefactory/ChRandomParticleAlignment.h
+    particlefactory/ChRandomParticleVelocity.h
+    particlefactory/ChParticleRemover.h
+    particlefactory/ChParticleEventTrigger.h
+    particlefactory/ChParticleProcessEvent.h
+    particlefactory/ChParticleProcessor.h
+    )
+
+source_group(particlefactory FILES
+    ${ChronoEngine_particlefactory_SOURCES}
+    ${ChronoEngine_particlefactory_HEADERS})
+
+# Timestepper group
+
+set(ChronoEngine_timestepper_SOURCES
+    timestepper/ChIntegrable.cpp
+    timestepper/ChTimestepper.cpp
+    timestepper/ChTimestepperHHT.cpp
+    timestepper/ChStaticAnalysis.cpp
+    timestepper/ChAssemblyAnalysis.cpp
+    )
+
+set(ChronoEngine_timestepper_HEADERS
+    timestepper/ChState.h
+    timestepper/ChIntegrable.h
+    timestepper/ChTimestepper.h
+    timestepper/ChTimestepperHHT.h
+    timestepper/ChStaticAnalysis.h
+    timestepper/ChAssemblyAnalysis.h
+    timestepper/ChUpdateFlags.h
+    )
+
+source_group(timestepper FILES
+    ${ChronoEngine_timestepper_SOURCES}
+    ${ChronoEngine_timestepper_HEADERS})
+
+# Motion functions group
+
+set(ChronoEngine_motion_functions_SOURCES
+    motion_functions/ChFunction_Base.cpp
+	motion_functions/ChFunction_BSpline.cpp
+    motion_functions/ChFunction_Const.cpp
+    motion_functions/ChFunction_ConstAcc.cpp
+	motion_functions/ChFunction_Cycloidal.cpp
+    motion_functions/ChFunction_Derive.cpp
+    motion_functions/ChFunction_DoubleS.cpp
+    motion_functions/ChFunction_Fillet3.cpp
+    motion_functions/ChFunction_Integrate.cpp
+    motion_functions/ChFunction_Mirror.cpp
+    motion_functions/ChFunction_Mocap.cpp
+    motion_functions/ChFunction_Noise.cpp
+    motion_functions/ChFunction_Operation.cpp
+    motion_functions/ChFunction_Oscilloscope.cpp
+    motion_functions/ChFunction_Poly345.cpp
+    motion_functions/ChFunction_Poly.cpp
+    motion_functions/ChFunction_Ramp.cpp
+    motion_functions/ChFunction_Recorder.cpp
+    motion_functions/ChFunction_Repeat.cpp
+    motion_functions/ChFunction_Sequence.cpp
+    motion_functions/ChFunction_Sigma.cpp
+    motion_functions/ChFunction_Sine.cpp
+    motion_functions/ChFunction_Setpoint.cpp
+    motion_functions/ChFunctionPosition.cpp
+    motion_functions/ChFunctionPosition_XYZfunctions.cpp
+    motion_functions/ChFunctionPosition_line.cpp
+    motion_functions/ChFunctionPosition_setpoint.cpp
+    motion_functions/ChFunctionRotation.cpp
+    motion_functions/ChFunctionRotation_axis.cpp
+    motion_functions/ChFunctionRotation_ABCfunctions.cpp
+    motion_functions/ChFunctionRotation_setpoint.cpp
+    motion_functions/ChFunctionRotation_spline.cpp
+    motion_functions/ChFunctionRotation_SQUAD.cpp
+    )
+
+set(ChronoEngine_motion_functions_HEADERS
+    motion_functions/ChFunction.h
+    motion_functions/ChFunction_Base.h
+	motion_functions/ChFunction_BSpline.h
+    motion_functions/ChFunction_Const.h
+    motion_functions/ChFunction_ConstAcc.h
+	motion_functions/ChFunction_Cycloidal.h
+    motion_functions/ChFunction_Derive.h
+    motion_functions/ChFunction_DoubleS.h
+    motion_functions/ChFunction_Fillet3.h
+    motion_functions/ChFunction_Integrate.h
+    motion_functions/ChFunction_Mirror.h
+    motion_functions/ChFunction_Mocap.h
+    motion_functions/ChFunction_Noise.h
+    motion_functions/ChFunction_Operation.h
+    motion_functions/ChFunction_Oscilloscope.h
+    motion_functions/ChFunction_Poly345.h
+    motion_functions/ChFunction_Poly.h
+    motion_functions/ChFunction_Ramp.h
+    motion_functions/ChFunction_Recorder.h
+    motion_functions/ChFunction_Repeat.h
+    motion_functions/ChFunction_Sequence.h
+    motion_functions/ChFunction_Sigma.h
+    motion_functions/ChFunction_Sine.h
+    motion_functions/ChFunction_Setpoint.h
+    motion_functions/ChFunctionPosition.h
+    motion_functions/ChFunctionPosition_XYZfunctions.h
+    motion_functions/ChFunctionPosition_line.h
+    motion_functions/ChFunctionPosition_setpoint.h
+    motion_functions/ChFunctionRotation.h
+    motion_functions/ChFunctionRotation_axis.h
+    motion_functions/ChFunctionRotation_ABCfunctions.h
+    motion_functions/ChFunctionRotation_setpoint.h
+    motion_functions/ChFunctionRotation_spline.h
+    motion_functions/ChFunctionRotation_SQUAD.h
+    )
+
+if(CH_CXX14)
+  set(ChronoEngine_motion_functions_HEADERS ${ChronoEngine_motion_functions_HEADERS}
+      motion_functions/ChFunction_Lambda.h)
+endif()
+
+source_group(motion_functions FILES
+    ${ChronoEngine_motion_functions_SOURCES}
+    ${ChronoEngine_motion_functions_HEADERS})
+
+# Solver group
+
+set(ChronoEngine_solver_SOURCES
+    solver/ChSystemDescriptor.cpp
+    solver/ChSolver.cpp
+    solver/ChDirectSolverLS.cpp
+    solver/ChDirectSolverLScomplex.cpp
+    solver/ChIterativeSolver.cpp
+    solver/ChIterativeSolverLS.cpp
+    solver/ChIterativeSolverVI.cpp
+    solver/ChSolverPSOR.cpp
+    solver/ChSolverPJacobi.cpp
+    solver/ChSolverPSSOR.cpp
+    solver/ChSolverPMINRES.cpp
+    solver/ChSolverBB.cpp
+    solver/ChSolverAPGD.cpp
+    solver/ChSolverADMM.cpp
+    solver/ChKblockGeneric.cpp
+    solver/ChSolvmin.cpp
+    solver/ChNlsolver.cpp
+    )
+
+set(ChronoEngine_solver_HEADERS
+    solver/ChSystemDescriptor.h
+    solver/ChSolver.h
+    solver/ChSolverLS.h
+    solver/ChSolverVI.h
+    solver/ChDirectSolverLS.h
+    solver/ChDirectSolverLScomplex.h
+    solver/ChIterativeSolver.h
+    solver/ChIterativeSolverLS.h
+    solver/ChIterativeSolverVI.h
+    solver/ChSolverPJacobi.h
+    solver/ChSolverPMINRES.h
+    solver/ChSolverBB.h
+    solver/ChSolverAPGD.h
+    solver/ChSolverADMM.h
+    solver/ChSolverPSOR.h
+    solver/ChSolverPSSOR.h
+    solver/ChKblock.h
+    solver/ChKblockGeneric.h
+    solver/ChSolvmin.h
+    solver/ChNlsolver.h
+    )
+
+source_group(solver FILES
+    ${ChronoEngine_solver_SOURCES}
+    ${ChronoEngine_solver_HEADERS})
+
+#Solver sub-groups
+
+set(ChronoEngine_solver_variables_SOURCES
+    solver/ChVariables.cpp
+    solver/ChVariablesGeneric.cpp
+    solver/ChVariablesGenericDiagonalMass.cpp
+    solver/ChVariablesBody.cpp
+    solver/ChVariablesBodySharedMass.cpp
+    solver/ChVariablesBodyOwnMass.cpp
+    solver/ChVariablesShaft.cpp
+    solver/ChVariablesNode.cpp
+)
+
+set(ChronoEngine_solver_variables_HEADERS
+    solver/ChVariables.h
+    solver/ChVariablesBody.h
+    solver/ChVariablesBodyOwnMass.h
+    solver/ChVariablesBodySharedMass.h
+    solver/ChVariablesShaft.h
+    solver/ChVariablesGeneric.h
+    solver/ChVariablesGenericDiagonalMass.h
+    solver/ChVariablesNode.h
+)
+
+source_group(solver\\variables FILES
+    ${ChronoEngine_solver_variables_SOURCES}
+    ${ChronoEngine_solver_variables_HEADERS})
+
+set(ChronoEngine_solver_constraints_SOURCES
+    solver/ChConstraint.cpp
+    solver/ChConstraintTwo.cpp
+    solver/ChConstraintTwoGeneric.cpp
+    solver/ChConstraintTwoGenericBoxed.cpp
+    solver/ChConstraintTwoBodies.cpp
+    solver/ChConstraintThree.cpp
+    solver/ChConstraintThreeGeneric.cpp
+    solver/ChConstraintThreeBBShaft.cpp
+    solver/ChConstraintNgeneric.cpp
+)
+
+set(ChronoEngine_solver_constraints_HEADERS
+    solver/ChConstraint.h
+    solver/ChConstraintThree.h
+    solver/ChConstraintThreeBBShaft.h
+    solver/ChConstraintThreeGeneric.h
+    solver/ChConstraintTwo.h
+    solver/ChConstraintTwoBodies.h
+    solver/ChConstraintTwoGeneric.h
+    solver/ChConstraintTwoGenericBoxed.h
+    solver/ChConstraintTuple.h
+    solver/ChConstraintTwoTuples.h
+    solver/ChConstraintTwoTuplesContactN.h
+    solver/ChConstraintTwoTuplesFrictionT.h
+    solver/ChConstraintTwoTuplesRollingN.h
+    solver/ChConstraintTwoTuplesRollingT.h
+    solver/ChConstraintNgeneric.h
+)
+
+source_group(solver\\constraints FILES
+    ${ChronoEngine_solver_constraints_SOURCES}
+    ${ChronoEngine_solver_constraints_HEADERS})
+
 # Utility group
 
 set(ChronoEngine_utils_SOURCES
+    utils/ChUtilsGeometry.cpp
     utils/ChUtilsCreators.cpp
     utils/ChUtilsGenerators.cpp
     utils/ChUtilsInputOutput.cpp
@@ -1344,7 +1363,7 @@ set(ChronoEngine_FILES
     ${ChronoEngine_timestepper_HEADERS}
     ${ChronoEngine_motion_functions_SOURCES}
     ${ChronoEngine_motion_functions_HEADERS}
-    ${ChronoEngine_collision_chrono_SOURCES}
+    ${ChronoEngine_collision_multicore_SOURCES}
     ${ChronoEngine_collision_bullet_SOURCES}
     ${ChronoEngine_collision_gimpact_SOURCES}
     ${ChronoEngine_utils_SOURCES}

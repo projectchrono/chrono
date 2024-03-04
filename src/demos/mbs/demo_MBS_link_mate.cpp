@@ -178,7 +178,7 @@ void test_pendulum() {
     my_root->SetCollide(false);
     sys.AddBody(my_root);
 
-    auto cyl_rev = chrono_types::make_shared<ChCylinderShape>(0.1, 0.4);
+    auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, 0.4);
     my_root->AddVisualShape(cyl_rev, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
 
     auto my_mass = chrono_types::make_shared<ChBody>();
@@ -198,14 +198,14 @@ void test_pendulum() {
     my_mass->SetCollide(false);
     sys.AddBody(my_mass);
 
-    auto sph = chrono_types::make_shared<ChSphereShape>(0.3);
+    auto sph = chrono_types::make_shared<ChVisualShapeSphere>(0.3);
     sph->SetColor(ChColor(0.7f, 0.8f, 0.8f));
     my_mass->AddVisualShape(sph);
 
     ChFrameMoving<> rel_frame;
     my_mass->TransformParentToLocal(my_root->GetFrame_COG_to_abs(), rel_frame);
     geometry::ChLineSegment seg(VNULL, rel_frame.GetPos());
-    auto cyl = chrono_types::make_shared<ChCylinderShape>(0.05, seg.GetLength());
+    auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, seg.GetLength());
     cyl->SetColor(ChColor(0.7f, 0.8f, 0.8f));
     my_mass->AddVisualShape(cyl, seg.GetFrame());
 
@@ -331,7 +331,7 @@ void test_anchorchain() {
     auto load_container = chrono_types::make_shared<ChLoadContainer>();
     sys.AddOtherPhysicsItem(load_container);
 
-    auto box = chrono_types::make_shared<ChBoxShape>(0.2, 0.2, 0.2);
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.2, 0.2);
     box->SetColor(ChColor(1, 0, 0));
 
     auto wallA = chrono_types::make_shared<ChBody>();
@@ -407,7 +407,7 @@ void test_anchorchain() {
             knot->SetMass(mass);
             knot->SetInertiaXX({Jxx, Jyy, Jzz});
 
-            auto cyl_rev = chrono_types::make_shared<ChCylinderShape>(0.1, len * 0.8);
+            auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, len * 0.8);
             cyl_rev->SetColor(ChColor(0, 0, 1));
             knot->AddVisualShape(cyl_rev, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
 
@@ -539,17 +539,17 @@ void test_anchorchain() {
 
         if (create_directory(path(out_dir))) {
             // coordinates of rigid bodies
-            ChStreamOutAsciiFile file_coords((out_dir + "/equilibrium_coords.dat").c_str());
+            ChStreamOutAsciiFile file_coords(out_dir + "/equilibrium_coords.dat");
             file_coords.SetNumFormat("%.12g");
             StreamOutDenseMatlabFormat(coords, file_coords);
 
             // catinary curve for comparison with the analytical formula
-            ChStreamOutAsciiFile file_catenary((out_dir + "/catenary_cmp.dat").c_str());
+            ChStreamOutAsciiFile file_catenary(out_dir + "/catenary_cmp.dat");
             file_catenary.SetNumFormat("%.12g");
             StreamOutDenseMatlabFormat(catenary_cmp, file_catenary);
 
             // reaction forces and torques of all joints
-            ChStreamOutAsciiFile file_reactions((out_dir + "/equilibrium_reactions.dat").c_str());
+            ChStreamOutAsciiFile file_reactions(out_dir + "/equilibrium_reactions.dat");
             file_reactions.SetNumFormat("%.12g");
             StreamOutDenseMatlabFormat(reactions, file_reactions);
         } else {
@@ -592,7 +592,7 @@ void test_anchorchain() {
                       [](auto const& r1, auto const& r2) { return r1(1) < r2(1); });
 
             if (create_directory(path(out_dir))) {
-                ChStreamOutAsciiFile file_shape((out_dir + "/modal_shape_" + std::to_string(imode) + ".dat").c_str());
+                ChStreamOutAsciiFile file_shape(out_dir + "/modal_shape_" + std::to_string(imode) + ".dat");
                 file_shape.SetNumFormat("%.12g");
                 StreamOutDenseMatlabFormat(modal_shape_i, file_shape);
             } else {
@@ -601,7 +601,7 @@ void test_anchorchain() {
         }
 
         if (create_directory(path(out_dir))) {
-            ChStreamOutAsciiFile file_freq((out_dir + "/modal_freq.dat").c_str());
+            ChStreamOutAsciiFile file_freq(out_dir + "/modal_freq.dat");
             file_freq.SetNumFormat("%.12g");
             StreamOutDenseMatlabFormat(modal_freq, file_freq);
         } else {
@@ -677,7 +677,7 @@ void test_anchorchain() {
             }
 
             if (create_directory(path(out_dir))) {
-                ChStreamOutAsciiFile file_vibration((out_dir + "/" + filename + ".dat").c_str());
+                ChStreamOutAsciiFile file_vibration(out_dir + "/" + filename + ".dat");
                 file_vibration.SetNumFormat("%.12g");
                 StreamOutDenseMatlabFormat(vibration, file_vibration);
             } else {

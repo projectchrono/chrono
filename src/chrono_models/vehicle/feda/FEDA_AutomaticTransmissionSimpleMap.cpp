@@ -30,17 +30,21 @@ FEDA_AutomaticTransmissionSimpleMap::FEDA_AutomaticTransmissionSimpleMap(const s
     : ChAutomaticTransmissionSimpleMap(name) {}
 
 void FEDA_AutomaticTransmissionSimpleMap::SetGearRatios(std::vector<double>& fwd, double& rev) {
-    rev = -1.0 / 3.81;
+    double correction = 0.7;
 
-    fwd.push_back(1.0 / 3.74);
-    fwd.push_back(1.0 / 2.003);
-    fwd.push_back(1.0 / 1.343);
-    fwd.push_back(1.0 / 1.0);
-    fwd.push_back(1.0 / 0.773);
-    fwd.push_back(1.0 / 0.634);
+    rev = -0.5*correction / 3.81;
+
+    fwd.push_back(0.5*correction / 3.74);
+    fwd.push_back(correction / 3.74);
+    fwd.push_back(correction / 2.003);
+    fwd.push_back(correction / 1.343);
+    fwd.push_back(correction / 1.0);
+    fwd.push_back(correction / 0.773);
+    fwd.push_back(correction / 0.634);
 }
 
 void FEDA_AutomaticTransmissionSimpleMap::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
+    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2225 * rpm2rads));
     shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2225 * rpm2rads));
     shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2225 * rpm2rads));
     shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2225 * rpm2rads));

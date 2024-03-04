@@ -25,6 +25,7 @@ from OCC.Core import BRepAlgoAPI
 
 #  Create the simulation system and add items
 sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Set the global collision margins. This is expecially important for very large or
 # very small objects. Set this before creating shapes. Not before creating sys.

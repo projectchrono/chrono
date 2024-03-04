@@ -204,6 +204,12 @@ void ChElementBeamIGA::SetIntegrationPoints(int npoints_s, int npoints_b) {
     int_order_b = npoints_b;
 }
 
+// This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
+void ChElementBeamIGA::ComputeNodalMass() {
+    for (int i = 0;i<nodes.size();++i)
+        nodes[i]->m_TotalMass += this->mass / nodes.size();
+}
+
 /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
 /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
 

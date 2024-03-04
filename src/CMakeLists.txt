@@ -29,27 +29,9 @@ option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 if (MSVC)
     option(USE_MSVC_STATIC_RUNTIME "Compile with a multi-threaded statically-linked runtime library" OFF)
     if (USE_MSVC_STATIC_RUNTIME)
-        message(STATUS "Enabling STATIC run-time library")
-        message(STATUS "  CMAKE_CXX_FLAGS (IN):          ${CMAKE_CXX_FLAGS}")
-        message(STATUS "  CMAKE_CXX_FLAGS_RELEASE (IN):  ${CMAKE_CXX_FLAGS_RELEASE}")
-        message(STATUS "  CMAKE_CXX_FLAGS_DEBUG (IN):    ${CMAKE_CXX_FLAGS_DEBUG}")
-
-        foreach(flag_var
-                CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-                CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
-                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-          if(${flag_var} MATCHES "/MD")
-            string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-          endif()
-          if(${flag_var} MATCHES "/MDd")
-            string(REGEX REPLACE "/MDd" "/MTd" ${flag_var} "${${flag_var}}")
-          endif()
-        endforeach(flag_var)
-
-        message(STATUS "  CMAKE_CXX_FLAGS (OUT):         ${CMAKE_CXX_FLAGS}")
-        message(STATUS "  CMAKE_CXX_FLAGS_RELEASE (OUT): ${CMAKE_CXX_FLAGS_RELEASE}")
-        message(STATUS "  CMAKE_CXX_FLAGS_DEBUG (OUT):   ${CMAKE_CXX_FLAGS_DEBUG}")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    else()
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     endif()
 endif()
 
@@ -68,10 +50,10 @@ set(CH_LINKERFLAG_LIB "")
 if (NOT BUILD_SHARED_LIBS)
   set(CH_STATIC ON)
   add_compile_definitions(CH_STATIC)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 else()
   set(CH_STATIC OFF)
 endif()
-
 
 #-----------------------------------------------------------------------------
 # Check for C++14 and C++17 support
@@ -730,6 +712,7 @@ add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_irrlicht)
 add_subdirectory(chrono_vsg)
+add_subdirectory(chrono_fmi)
 add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_modal)
 add_subdirectory(chrono_postprocess)
@@ -739,7 +722,6 @@ add_subdirectory(chrono_multicore)
 add_subdirectory(chrono_opengl)
 add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_gpu)
-add_subdirectory(chrono_distributed)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_models)
 add_subdirectory(chrono_sensor)
@@ -841,12 +823,6 @@ if(ENABLE_MODULE_COSIMULATION)
   set(CHRONO_COSIMULATION "#define CHRONO_COSIMULATION")
 else()
   set(CHRONO_COSIMULATION "#undef CHRONO_COSIMULATION")
-endif()
-
-if(ENABLE_MODULE_DISTRIBUTED)
-  set(CHRONO_DISTRIBUTED "#define CHRONO_DISTRIBUTED")
-else()
-  set(CHRONO_DISTRIBUTED "#undef CHRONO_DISTRIBUTED")
 endif()
 
 if(ENABLE_MODULE_IRRLICHT)
@@ -951,6 +927,12 @@ else()
   set(CHRONO_SYNCHRONO "#undef CHRONO_SYNCHRONO")
 endif()
 
+if(ENABLE_MODULE_FMI)
+  set(CHRONO_FMI "#define CHRONO_FMI")
+else()
+  set(CHRONO_FMI "#undef CHRONO_FMI")
+endif()
+
 if(ENABLE_MODULE_ROS)
   set(CHRONO_ROS "#define CHRONO_ROS")
 else()
@@ -1034,6 +1016,15 @@ set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
 configure_file("${PROJECT_SOURCE_DIR}/cmake/chrono-config.cmake.in"
                "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake"
                @ONLY)
+
+# Generate the C# file with global constants
+# This must be done here, after replacement variables were set.
+if(ENABLE_MODULE_CSHARP)
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in"
+                 "${PROJECT_BINARY_DIR}/chrono_csharp/core/ChChronoGlobals.cs"
+                 @ONLY)
+endif()
+
 
 # For the INSTALL tree
 set(CH_THIRDPARTY_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty")

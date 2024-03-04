@@ -14,6 +14,24 @@
 //  'import pychrono.ros'
 
 
+<<<<<<< HEAD
+=======
+%define MODULEIMPORT
+"
+try:
+  if __package__ or "." in __name__:
+      from . import _ros
+  else:
+      import _ros
+except Exception as e:
+  import os
+  if "ROS_DISTRO" not in os.environ or "AMENT_PREFIX_PATH" not in os.environ:
+    raise Exception("Cannot import ros. It appears like you haven't sourced your ROS installation.")
+  raise e
+"
+%enddef
+
+>>>>>>> upstream/feature/ros
 %module(directors="1") ros
 
 
@@ -46,28 +64,52 @@
 
 %{
 #include "chrono/physics/ChBody.h"
+<<<<<<< HEAD
+=======
+#include "chrono/core/ChFrame.h"
+>>>>>>> upstream/feature/ros
 
 #include "chrono_ros/ChROSManager.h"
 #include "chrono_ros/ChROSHandler.h"
 #include "chrono_ros/ChROSInterface.h"
 #include "chrono_ros/handlers/ChROSClockHandler.h"
 #include "chrono_ros/handlers/ChROSBodyHandler.h"
+<<<<<<< HEAD
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
 #include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
+=======
+#include "chrono_ros/handlers/ChROSTFHandler.h"
+#include "chrono_ros/handlers/ChROSHandlerUtilities.h"
+#include "chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
+
+#ifdef CHRONO_SENSOR
+>>>>>>> upstream/feature/ros
 #include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
+<<<<<<< HEAD
 #include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
 #include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
+=======
+#include "chrono_ros/handlers/sensor/ChROSIMUHandler.h"
+#include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
+#endif
+
+#ifdef CHRONO_ROS_HAS_INTERFACES
+#include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
+#include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
+#endif
+>>>>>>> upstream/feature/ros
 
 using namespace chrono;
 using namespace chrono::ros;
 
 %}
 
+<<<<<<< HEAD
 
 // Undefine ChApiFea otherwise SWIG gives a syntax error
 #define ChApi
@@ -75,6 +117,14 @@ using namespace chrono::ros;
 
 
 
+=======
+%feature("director") chrono::ros::ChROSHandler;
+
+// Undefine ChApi and CH_ROS_API otherwise SWIG gives a syntax error
+#define ChApi
+#define CH_ROS_API
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+>>>>>>> upstream/feature/ros
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a
@@ -86,13 +136,20 @@ using namespace chrono::ros;
 %include "stdint.i"
 %include "typemaps.i"
 %include "cpointer.i"
+<<<<<<< HEAD
+=======
+%include "cdata.i"
+>>>>>>> upstream/feature/ros
 
 // This is to enable references to double,int,etc. types in function parameters
 %pointer_class(int,int_ptr);
 %pointer_class(double,double_ptr);
 %pointer_class(float,float_ptr);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/feature/ros
 //
 // For each class, keep updated the  A, B, C sections: 
 // 
@@ -108,20 +165,42 @@ using namespace chrono::ros;
 
 //from core module:
 %shared_ptr(chrono::ChBody)
+<<<<<<< HEAD
+=======
+%shared_ptr(chrono::ChFrame<double>)
+>>>>>>> upstream/feature/ros
 
 %shared_ptr(chrono::ros::ChROSManager)
 %shared_ptr(chrono::ros::ChROSHandler)
 %shared_ptr(chrono::ros::ChROSInterface)
 %shared_ptr(chrono::ros::ChROSClockHandler)
 %shared_ptr(chrono::ros::ChROSBodyHandler)
+<<<<<<< HEAD
 %shared_ptr(chrono::ros::ChROSDriverInputsHandler)
+=======
+%shared_ptr(chrono::ros::ChROSTFHandler)
+%shared_ptr(chrono::ros::ChROSRobotModelHandler)
+
+#ifdef CHRONO_SENSOR
+>>>>>>> upstream/feature/ros
 %shared_ptr(chrono::ros::ChROSAccelerometerHandler)
 %shared_ptr(chrono::ros::ChROSCameraHandler)
 %shared_ptr(chrono::ros::ChROSGPSHandler)
 %shared_ptr(chrono::ros::ChROSGyroscopeHandler)
 %shared_ptr(chrono::ros::ChROSLidarHandler)
 %shared_ptr(chrono::ros::ChROSMagnetometerHandler)
+<<<<<<< HEAD
 %shared_ptr(chrono::ros::ChROSViperDCMotorControlHandler)
+=======
+%shared_ptr(chrono::ros::ChROSIMUHandler)
+#endif
+
+#ifdef CHRONO_ROS_HAS_INTERFACES
+%shared_ptr(chrono::ros::ChROSDriverInputsHandler)
+%shared_ptr(chrono::ros::ChROSViperDCMotorControlHandler)
+#endif
+
+>>>>>>> upstream/feature/ros
 
 //
 // B- INCLUDE HEADERS
@@ -142,23 +221,51 @@ using namespace chrono::ros;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
+<<<<<<< HEAD
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
+=======
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
+
+%include "../../../chrono/core/ChFrame.h"    
+>>>>>>> upstream/feature/ros
 
 %include "../../../chrono_ros/ChROSManager.h"
 %include "../../../chrono_ros/ChROSHandler.h"
 %include "../../../chrono_ros/ChROSInterface.h"
 %include "../../../chrono_ros/handlers/ChROSClockHandler.h"
 %include "../../../chrono_ros/handlers/ChROSBodyHandler.h"
+<<<<<<< HEAD
 %include "../../../chrono_ros/handlers/ChROSHandlerUtilities.h"
 %include "../../../chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
+=======
+%include "../../../chrono_ros/handlers/ChROSTFHandler.h"
+%include "../../../chrono_ros/handlers/ChROSHandlerUtilities.h"
+%include "../../../chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
+
+#ifdef CHRONO_SENSOR
+>>>>>>> upstream/feature/ros
 %include "../../../chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSGPSHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
+<<<<<<< HEAD
 %include "../../../chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
 %include "../../../chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
+=======
+%include "../../../chrono_ros/handlers/sensor/ChROSIMUHandler.h"
+%include "../../../chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
+#endif
+
+#ifdef CHRONO_ROS_HAS_INTERFACES
+%include "../../../chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
+%include "../../../chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
+#endif
+>>>>>>> upstream/feature/ros
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
@@ -181,21 +288,144 @@ using namespace chrono::ros;
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
 //
 
+<<<<<<< HEAD
 /*
 %inline %{
 
 
 %}
 */
+=======
+%ignore chrono::ros::ChROSInterface::GetNode;
+>>>>>>> upstream/feature/ros
 
 //
 // ADD PYTHON CODE
 //
 
+<<<<<<< HEAD
 /*
 %pythoncode %{
 
 %}
 */
+=======
+%pythoncode %{
+
+from typing import List
+
+import rclpy
+import rclpy.executors
+import rclpy.node
+
+from pychrono.ros import ChROSManager
+
+class ChROSSingleThreadedExecutor(rclpy.executors.SingleThreadedExecutor):
+
+  def spin_some(self, timeout_sec: float = 0):
+    while True:
+      try:
+        handler, entity, node = self.wait_for_ready_callbacks(max_duration)
+      except ShutdownException:
+          pass
+      except TimeoutException:
+          pass
+      except ConditionReachedException:
+          pass
+      else:
+        handler()
+        if handler.exception() is not None:
+          raise handler.exception()
+
+        handler.result() # raise any exceptions
+
+      # break since we've received an exception
+      break
+
+class ChROSPythonInterface:
+  def __init__(self, node_name: str = "chrono_ros_node_py"):
+    self.node_name = node_name
+
+    self.executor: rclpy.executors.Executor = None
+    self.node: rclpy.node.Node = None
+
+  def Initialize(self, args = None):
+    if not rclpy.ok():
+      print("Initializing rclpy.")
+      rclpy.init(args=args)
+
+    # TODO: make options available to user?
+    self.executor = ChROSSingleThreadedExecutor()
+
+    self.node = rclpy.create_node(self.node_name)
+    self.executor.add_node(self.node)
+
+    print(f"Initialized ChROSPythonInterface: {self.node_name}")
+
+  def SpinSome(self, max_duration: float = 0):
+    if rclpy.ok():
+      self.executor.spin_once(timeout_sec=max_duration)
+
+  def GetNode(self) -> rclpy.node.Node:
+    return self.node 
+
+class ChROSPythonManager(ChROSManager):
+  """Override the base implemenation to allow for python defined handlers."""
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+
+    self.interface_py = ChROSPythonInterface()
+    self.handlers_py: List[ChROSHandler] = []
+
+    self._update_rclpy: bool = False
+
+  def Initialize(self, force: bool = False):
+    super().Initialize()
+
+    self._update_rclpy = len(self.handlers_py) > 0 or force
+    if not self._update_rclpy:
+      return
+
+    self.interface_py.Initialize()
+
+    i = 0
+    while i < len(self.handlers_py):
+      handler = self.handlers_py[i]
+      if not handler.Initialize(self.interface_py):
+        print("Failed to initialize ROS handler. Will remove handler and continue.")
+        self.handlers_py.pop(i)
+      else:
+        i += 1
+
+  def Update(self, time, step):
+    rclcpp_ok = super().Update(time, step)
+
+    if not self._update_rclpy:
+      return rclcpp_ok
+
+    for handler in self.handlers_py:
+      handler.Update(time, step)
+
+    self.interface_py.SpinSome()
+
+    return rclcpp_ok and rclpy.ok()
+
+  def RegisterPythonHandler(self, handler: ChROSHandler):
+    self.handlers_py.append(handler)
+
+  def GetPythonInterface(self) -> ChROSPythonInterface:
+    return self.interface_py
+
+  @property
+  def update_rclpy(self) -> bool:
+    return self._update_rclpy
+
+  @update_rclpy.setter
+  def update_rclpy(self, value: bool):
+    self._update_rclpy = value
+
+%}
+>>>>>>> upstream/feature/ros
 
 

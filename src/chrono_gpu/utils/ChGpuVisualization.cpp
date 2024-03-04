@@ -14,7 +14,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 
 #include "chrono_gpu/utils/ChGpuVisualization.h"
 
@@ -103,7 +103,7 @@ void ChGpuVisualization::Initialize() {
     for (int i = 0; i < m_systemGPU->GetNumParticles(); i++) {
         m_particles->AddParticle(CSYSNULL);
     }
-    auto sph = chrono_types::make_shared<ChSphereShape>(m_systemGPU->GetParticleRadius());
+    auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemGPU->GetParticleRadius());
     m_particles->AddVisualShape(sph);
     m_system->Add(m_particles);
 
@@ -128,7 +128,7 @@ bool ChGpuVisualization::Render() {
     }
     return false;  // rendering stopped
 #else
-    return false;
+    return true;
 #endif
 }
 

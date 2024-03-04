@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
         test1Passed = true;
     }  // This case has contacts
     else
-        printf("There are no contacts in test 2. Test failed.\n");
+        printf("There are no contacts in test 1. Test failed.\n");
     printf("--------------------------------------------------\n");
     // =======================TEST 2============================================
     // same test with smaller sphere_swept_thickness
@@ -196,7 +196,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      bool AlsoPrint) {
     ChSystemSMC sys(false);
 
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.001);
     sys.SetContactForceModel(ChSystemSMC::Hooke);
 
     double L_x = 1.0;

@@ -124,6 +124,7 @@ def AddContainer(sys):
 
 #  Create the simulation sys and add items
 sys = chrono.ChSystemNSC()
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 mixer = AddContainer(sys)
 AddFallingItems(sys)

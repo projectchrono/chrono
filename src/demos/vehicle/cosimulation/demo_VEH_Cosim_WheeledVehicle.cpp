@@ -255,7 +255,7 @@ int main(int argc, char** argv) {
 
             case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
                 auto method = ChContactMethod::SMC;
-                auto terrain = new ChVehicleCosimTerrainNodeRigid(method, vehicle::GetDataFile(terrain_specfile));
+                auto terrain = new ChVehicleCosimTerrainNodeRigid(vehicle::GetDataFile(terrain_specfile), method);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);

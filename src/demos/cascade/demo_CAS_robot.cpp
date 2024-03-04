@@ -22,7 +22,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_cascade/ChCascadeBodyEasy.h"
 #include "chrono_cascade/ChCascadeDoc.h"
-#include "chrono_cascade/ChCascadeVisualShape.h"
+#include "chrono_cascade/ChVisualShapeCascade.h"
 #include "chrono/solver/ChSolverADMM.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -44,6 +44,7 @@ int main(int argc, char* argv[]) {
     // 1- Create a ChronoENGINE physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create a surface material to be used for collisions, if any
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -65,8 +66,8 @@ int main(int argc, char* argv[]) {
     // print the contained shapes
     mydoc.Dump(GetLog());
 
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.001);
 
     //
     // Retrieve some sub shapes from the loaded model, using

@@ -90,9 +90,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     double m_density;   ///< particle material density
     double m_cohesion;  ///< granular material cohesion
 
-    ChVector<> m_aabb_min;     ///< particles AABB corner
-    ChVector<> m_aabb_max;     ///< particles AABB corner
-    double m_active_box_size;  ///< size of FSI active domain
+    geometry::ChAABB m_aabb_particles;  ///< particle AABB
+    double m_active_box_size;           ///< size of FSI active domain
 
     virtual ChSystem* GetSystemPostprocess() const override {
         if (m_vsys)

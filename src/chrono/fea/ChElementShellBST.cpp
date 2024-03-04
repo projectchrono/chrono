@@ -273,6 +273,27 @@ void ChElementShellBST::Update() {
     ChElementGeneric::Update();
 }
 
+
+void ChElementShellBST::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, const double c){
+
+	double avg_density = this->GetDensity();
+	double mass_per_area = avg_density * tot_thickness;
+
+	// Heuristic, simplified 'lumped' mass matrix to central three nodes.
+	// This is simpler than the stiffness-consistent mass matrix that would require
+	// integration over gauss points.
+
+	double nodemass = (1.0 / 3.0) * (this->area * mass_per_area);
+	for (int n = 0; n < 3; n++) {
+		// xyz masses of first 3 nodes of BST
+		Md(m_nodes[n]->NodeGetOffsetW()  ) += nodemass * c;
+		Md(m_nodes[n]->NodeGetOffsetW()+1) += nodemass * c;
+		Md(m_nodes[n]->NodeGetOffsetW()+2) += nodemass * c;
+	}
+}
+
+
+
 // Fill the D vector with the current field values at the element nodes.
 void ChElementShellBST::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.resize(this->n_usednodes * 3, 1);
@@ -319,7 +340,7 @@ void ChElementShellBST::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, 
 
 	if (Kfactor) {
 		ChMatrixDynamic<> K(mrows_w, mrows_w);
-
+		
 		ChState       state_x_inc(mrows_x, nullptr);
 		ChStateDelta  state_delta(mrows_w, nullptr);
 
@@ -355,7 +376,7 @@ void ChElementShellBST::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, 
 		ChStateDelta  state_w_inc(mrows_w, nullptr);
 		state_w_inc = state_w;
 		ChMatrixDynamic<> R(mrows_w, mrows_w);
-
+		
 		for (int i = 0; i < mrows_w; ++i) {
 			Q1.setZero(mrows_w);
 
@@ -382,7 +403,7 @@ void ChElementShellBST::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, 
 		// Heuristic, simplified 'lumped' mass matrix to central three nodes.
 		// This is simpler than the stiffness-consistent mass matrix that would require
 		// integration over gauss points.
-
+		
 		double nodemass = (1.0 / 3.0) * (this->area * mass_per_area);
 
 		for (int n = 0; n < 3; n++) {

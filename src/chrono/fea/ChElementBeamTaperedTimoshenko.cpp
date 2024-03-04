@@ -336,6 +336,12 @@ void ChElementBeamTaperedTimoshenko::GetField_dtdt(ChVectorDynamic<>& mD_dtdt) {
     mD_dtdt.segment(9, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetWacc_par()).eigen();
 }
 
+// This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
+void ChElementBeamTaperedTimoshenko::ComputeNodalMass() {
+   nodes[0]->m_TotalMass += 0.5 * this->length * this->tapered_section->GetSectionA()->GetMassPerUnitLength();
+   nodes[1]->m_TotalMass += 0.5 * this->length * this->tapered_section->GetSectionB()->GetMassPerUnitLength();
+}
+
 void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
     T.setZero(this->GetNdofs(), this->GetNdofs());
 

@@ -3,15 +3,13 @@
 unset(ROS2_FOUND)
 message(STATUS "ROS 2 distro is \"$ENV{ROS_DISTRO}\"")
 if (NOT DEFINED ENV{ROS_DISTRO} OR NOT DEFINED ENV{AMENT_PREFIX_PATH})
-    message(FATAL_ERROR "To build a module that depends on ROS 2, a ROS distribution needs to be sourced, but none detected.")
-    set(ENABLE_MODULE_ROS OFF CACHE BOOL "Enable the Chrono::ROS module" FORCE)
+    message(WARNING "To build a module that depends on ROS 2, a ROS distribution needs to be sourced, but none detected.")
     set(ROS2_FOUND FALSE)
     return()
 endif()
 set(ROS2_FOUND TRUE)
 
 # set all the new variables from ros as advanced
-
 mark_as_advanced(FORCE 
     AMENT_CMAKE_ENVIRONMENT_GENERATION
     AMENT_CMAKE_ENVIRONMENT_PACKAGE_GENERATION
@@ -24,8 +22,8 @@ mark_as_advanced(FORCE
     FastRTPS_INCLUDE_DIR
     FastRTPS_LIBRARY_DEBUG
     FastRTPS_LIBRARY_RELEASE
-    TinyXML2_DIR
     _lib
+    action_msgs_DIR
     ament_cmake_DIR
     ament_cmake_core_DIR
     ament_cmake_export_definitions_DIR
@@ -45,6 +43,8 @@ mark_as_advanced(FORCE
     ament_index_cpp_DIR
     builtin_interfaces_DIR
     chrono_ros_interfaces_DIR
+    class_loader_DIR
+    composition_interfaces_DIR
     fastcdr_DIR
     fastrtps_DIR
     fastrtps_cmake_module_DIR
@@ -53,12 +53,16 @@ mark_as_advanced(FORCE
     geometry_msgs_DIR
     libstatistics_collector_DIR
     libyaml_vendor_DIR
+    message_filters_DIR
     rcl_DIR
+    rcl_action_DIR
     rcl_interfaces_DIR
     rcl_logging_interface_DIR
     rcl_logging_spdlog_DIR
     rcl_yaml_param_parser_DIR
     rclcpp_DIR
+    rclcpp_action_DIR
+    rclcpp_components_DIR
     rcpputils_DIR
     rcutils_DIR
     rmw_DIR
@@ -87,6 +91,10 @@ mark_as_advanced(FORCE
     spdlog_vendor_DIR
     statistics_msgs_DIR
     std_msgs_DIR
+    tf2_DIR
+    tf2_msgs_DIR
+    tf2_ros_DIR
     tracetools_DIR
     yaml_DIR
+    unique_identifier_msgs_DIR
 )

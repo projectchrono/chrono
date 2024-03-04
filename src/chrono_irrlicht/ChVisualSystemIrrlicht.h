@@ -24,16 +24,16 @@
 #include <irrlicht.h>
 
 #include "chrono/assets/ChVisualSystem.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChModelFileShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeCapsule.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
 #include "chrono/assets/ChVisualShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChGlyphs.h"
-#include "chrono/assets/ChPathShape.h"
-#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChVisualShapePath.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrNodeModel.h"
@@ -105,7 +105,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Initialize the visualization system.
     /// This creates the Irrlicht device using the current values for the optional device parameters.
-    virtual void Initialize();
+    virtual void Initialize() override;
 
     /// Add a logo in a 3D scene.
     /// Has no effect, unles called after Initialize().
@@ -126,6 +126,8 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
                          ChCoordsys<> pos = CSYSNORM,             ///< grid reference frame
                          ChColor col = ChColor(0.1f, 0.1f, 0.1f)  ///< grid line color
                          ) override;
+
+    void UpdateGrid(int id, const ChCoordsys<>& csys);
 
     /// Set the location of the specified camera.
     virtual void SetCameraPosition(int id, const ChVector<>& pos) override;
@@ -212,6 +214,10 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Enable rendering of collision shapes (default: false).
     /// Has no effect, unless called after the visual system is initialized and attached.
     void EnableCollisionShapeDrawing(bool val);
+
+    /// Enable rendering of the absolute coordinate system (default: none).
+    /// Has no effect, unless called after the visual system is initialized and attached.
+    void EnableAbsCoordsysDrawing(bool val);
 
     /// Enable modal analysis visualization (default: false).
     /// If true, visualize an oscillatory motion of the n-th mode (only if some ChModalAssembly is found).
@@ -364,7 +370,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
         double y_step;
         int nx;
         int ny;
-        ChCoordsys<> pos;
+        ChCoordsys<> csys;
         ChColor col;
     };
 

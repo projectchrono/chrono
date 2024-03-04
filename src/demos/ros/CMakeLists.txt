@@ -5,6 +5,7 @@ message(STATUS "Demo programs for Chrono::ROS...")
 
 # ------------------------------------------------------------------------------
 
+<<<<<<< HEAD
 set(DEMOS
     demo_ROS_viper
 )
@@ -19,6 +20,28 @@ if(ENABLE_MODULE_SENSOR)
   set(DEMOS ${DEMOS}
     demo_ROS_sensor
   )
+=======
+set(DEMOS "")
+
+list(APPEND DEMOS demo_ROS_custom_handler)
+
+if (CH_ROS_HAS_INTERFACES)
+  list(APPEND DEMOS demo_ROS_viper)
+endif()
+
+if (HAVE_URDF)
+  list(APPEND DEMOS demo_ROS_urdf)
+endif()
+
+if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
+  if (CH_ROS_HAS_INTERFACES)
+    list(APPEND DEMOS demo_ROS_vehicle)
+  endif()
+endif()
+
+if(ENABLE_MODULE_SENSOR)
+  list(APPEND DEMOS demo_ROS_sensor)
+>>>>>>> upstream/feature/ros
 endif()
 
 # ------------------------------------------------------------------------------
@@ -37,7 +60,14 @@ if(ENABLE_MODULE_IRRLICHT)
     include_directories(${CH_IRRLICHT_INCLUDES})
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBS "ChronoEngine_irrlicht")
+<<<<<<< HEAD
     list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
+=======
+    if (ENABLE_MODULE_VEHICLE)
+        list(APPEND LIBS "ChronoEngine_vehicle")
+        list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
+    endif()
+>>>>>>> upstream/feature/ros
 endif()
 
 if(ENABLE_MODULE_VSG)
@@ -45,7 +75,14 @@ if(ENABLE_MODULE_VSG)
 
     include_directories(${CH_VSG_INCLUDES})
     list(APPEND LIBS "ChronoEngine_vsg")
+<<<<<<< HEAD
     list(APPEND LIBS "ChronoEngine_vehicle_vsg")
+=======
+    if (ENABLE_MODULE_VEHICLE)
+        list(APPEND LIBS "ChronoEngine_vehicle")
+        list(APPEND LIBS "ChronoEngine_vehicle_vsg")
+    endif()
+>>>>>>> upstream/feature/ros
 endif()
 
 if(ENABLE_MODULE_OPENGL)

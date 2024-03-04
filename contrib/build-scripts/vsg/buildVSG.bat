@@ -12,11 +12,11 @@
 @rem - The script accepts 1 optional argument to override the install directory.
 @rem - This script uses the following versions of the various codes from their respective repositories, with the
 @rem   only exception being vsgImGui which pulls the latest version.
-@rem      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.0.7
-@rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.0.3
+@rem      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.1.0
+@rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.0
 @rem      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 latest
-@rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.0.5
-@rem      assimp (github.com/assimp/assimp):                          Tag v5.2.5
+@rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.0
+@rem      assimp (github.com/assimp/assimp):                          Tag v5.3.1
 @rem ---------------------------------------------------------------------------------------------------------
 
 set DOWNLOAD=ON
@@ -24,7 +24,7 @@ set DOWNLOAD=ON
 set VSG_INSTALL_DIR="C:/Packages/vsg"
 
 set BUILDSHARED=ON
-set BUILDDEBUG=OFF
+set BUILDDEBUG=ON
 
 @if %DOWNLOAD% EQU OFF (
     set VSG_SOURCE_DIR="C:/Sources/VulkanSceneGraph"
@@ -47,16 +47,16 @@ if "%~1" NEQ "" (
 @if %DOWNLOAD% EQU ON (
     echo "Downloading sources from GitHub"
 
-    rmdir /S/Q download_vsg 2>null
+    rmdir /S/Q download_vsg 2>nul
     mkdir download_vsg
 
     echo "  ... VulkanSceneGraph"
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.7 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.0 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
     rem git clone "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
     set VSG_SOURCE_DIR="download_vsg/vsg"
 
     echo "  ... vsgXchange"    
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.3 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.0 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
     rem git clone "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
     set VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange"
 
@@ -65,12 +65,12 @@ if "%~1" NEQ "" (
     set VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
 
     echo "  ... vsgExamples"
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.5 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.0 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
     rem git clone "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
     set VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
-    git clone -c advice.detachedHead=false --depth 1 --branch v5.2.5 "https://github.com/assimp/assimp" "download_vsg/assimp"
+    git clone -c advice.detachedHead=false --depth 1 --branch v5.3.1 "https://github.com/assimp/assimp" "download_vsg/assimp"
     set ASSIMP_SOURCE_DIR="download_vsg/assimp"
 ) else (
     echo "Using provided source directories"
@@ -78,11 +78,11 @@ if "%~1" NEQ "" (
 
 @rem ------------------------------------------------------------------------
 
-rmdir /S/Q %VSG_INSTALL_DIR% 2>null
+rmdir /S/Q %VSG_INSTALL_DIR% 2>nul
 
 rem --- assimp -------------------------------------------------------------
 
-rmdir /S/Q build_assimp 2>null
+rmdir /S/Q build_assimp 2>nul
 cmake -B build_assimp -S %ASSIMP_SOURCE_DIR%  ^
       -DBUILD_SHARED_LIBS:BOOL=OFF ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
@@ -103,7 +103,7 @@ if %BUILDDEBUG% EQU ON (
 
 rem --- vsg ----------------------------------------------------------------
 
-rmdir /S/Q build_vsg 2>null
+rmdir /S/Q build_vsg 2>nul
 cmake -B build_vsg -S %VSG_SOURCE_DIR%  ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
@@ -120,13 +120,13 @@ if %BUILDDEBUG% EQU ON (
 
 rem --- vsgXchange ---------------------------------------------------------
 
-rmdir /S/Q build_vsgXchange 2>null
+rmdir /S/Q build_vsgXchange 2>nul
 cmake -B build_vsgXchange -S %VSGXCHANGE_SOURCE_DIR%  ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
       -Dvsg_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsg ^
-      -Dassimp_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/assimp-5.2
+      -Dassimp_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/assimp-5.3
 
 cmake --build build_vsgXchange --config Release
 cmake --install build_vsgXchange --config Release --prefix %VSG_INSTALL_DIR%
@@ -145,7 +145,7 @@ if %BUILDDEBUG% EQU ON (
 
 rem --- vsgImGui -----------------------------------------------------------
 
-rmdir /S/Q build_vsgImGui 2>null
+rmdir /S/Q build_vsgImGui 2>nul
 cmake -B build_vsgImGui -S %VSGIMGUI_SOURCE_DIR% ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
@@ -162,7 +162,7 @@ if %BUILDDEBUG% EQU ON (
 
 rem --- vsgExamples --------------------------------------------------------
 
-rmdir /S/Q build_vsgExamples 2>null
+rmdir /S/Q build_vsgExamples 2>nul
 cmake -B build_vsgExamples -S %VSGEXAMPLES_SOURCE_DIR% ^
       -Dvsg_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsg ^
       -DvsgXchange_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsgXchange ^

@@ -700,43 +700,6 @@ void ChLinkMateGeneric::ArchiveIn(ChArchiveIn& marchive) {
     if (c_x_success && c_y_success && c_z_success && c_rx_success && c_ry_success && c_rz_success)
         this->SetConstrainedCoords(c_x, c_y, c_z, c_rx, c_ry, c_rz);  // takes care of mask
 
-
-    // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-
-        // Constraints selection
-        bool _c_SetConstrainedCoords[6];
-        if (marchive.in(CHNVP(_c_SetConstrainedCoords)))
-            this->SetConstrainedCoords(
-                _c_SetConstrainedCoords[0],
-                _c_SetConstrainedCoords[1],
-                _c_SetConstrainedCoords[2],
-                _c_SetConstrainedCoords[3],
-                _c_SetConstrainedCoords[4],
-                _c_SetConstrainedCoords[5]);
-
-        // Initialization
-        std::shared_ptr<ChBodyFrame> _c_Initialize_Body1;
-        std::shared_ptr<ChBodyFrame> _c_Initialize_Body2;
-        bool _c_Initialize_pos_are_relative;
-        ChVector<> _c_Initialize_pt1;
-        ChVector<> _c_Initialize_pt2;
-        ChVector<> _c_Initialize_norm1;
-        ChVector<> _c_Initialize_norm2;
-        if (marchive.in(CHNVP(_c_Initialize_Body1)) &&
-            marchive.in(CHNVP(_c_Initialize_Body2)) &&
-            marchive.in(CHNVP(_c_Initialize_pos_are_relative)) &&
-            marchive.in(CHNVP(_c_Initialize_pt1)) &&
-            marchive.in(CHNVP(_c_Initialize_pt2)) &&
-            marchive.in(CHNVP(_c_Initialize_norm1)) &&
-            marchive.in(CHNVP(_c_Initialize_norm2)) ){
-            this->Initialize(_c_Initialize_Body1, _c_Initialize_Body2, _c_Initialize_pos_are_relative, _c_Initialize_pt1, _c_Initialize_pt2, _c_Initialize_norm1, _c_Initialize_norm2);
-        }
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
     
 }
 
@@ -811,16 +774,8 @@ void ChLinkMatePlane::ArchiveIn(ChArchiveIn& marchive) {
 
     // deserialize all member data:
     marchive >> CHNVP(separation);
+    marchive >> CHNVP(flipped);
 
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -881,16 +836,7 @@ void ChLinkMateCoaxial::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIn(marchive);
 
-    // deserialize all member data:
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
+    marchive >> CHNVP(flipped);
 }
 
 // -----------------------------------------------------------------------------
@@ -904,13 +850,59 @@ ChLinkMateRevolute::ChLinkMateRevolute(const ChLinkMateRevolute& other) : ChLink
 
 void ChLinkMateRevolute::SetFlipped(bool doflip) {
     if (doflip != flipped) {
-        // swaps direction of X axis by flipping 180 deg the frame A (slave)
+        // swaps direction of Z axis by flipping 180 deg the frame A (slave)
 
         ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
         this->frame1.ConcatenatePostTransformation(frameRotator);
 
         flipped = doflip;
     }
+}
+
+void ChLinkMateRevolute::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+    std::shared_ptr<ChBodyFrame> mbody2,
+    bool pos_are_relative,
+    ChVector<> mpt1,
+    ChVector<> mpt2,
+    ChVector<> mdir1,
+    ChVector<> mdir2) {
+    // set the two frames so that they have the Z axis aligned when the
+    // two normals are opposed (default behavior, otherwise is considered 'flipped')
+
+    ChVector<> mdir1_reversed;
+    if (!flipped)
+        mdir1_reversed = mdir1;
+    else
+        mdir1_reversed = -mdir1;
+
+    ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mdir1_reversed, mdir2);
+}
+
+double ChLinkMateRevolute::GetRelativeAngle() {
+    ChFrame<> F1_W = frame1 >> *Body1;
+    ChFrame<> F2_W = frame2 >> *Body2;
+    ChFrame<> F1_F2;
+    F2_W.TransformParentToLocal(F1_W, F1_F2);
+    double angle = std::remainder(F1_F2.GetRot().Q_to_Rotv().z(), CH_C_2PI); // NB: assumes rotation along z
+    return angle;
+}
+
+double ChLinkMateRevolute::GetRelativeAngle_dt() {
+    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
+    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
+    ChFrameMoving<> F1_F2;
+    F2_W.TransformParentToLocal(F1_W, F1_F2);
+    double vel12_W = F1_F2.GetWvel_loc().z(); // NB: assumes rotation along z
+    return vel12_W;
+}
+
+double ChLinkMateRevolute::GetRelativeAngle_dtdt() {
+    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
+    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
+    ChFrameMoving<> F1_F2;
+    F2_W.TransformParentToLocal(F1_W, F1_F2);
+    double acc12_W = F1_F2.GetWacc_loc().z(); // NB: assumes rotation along z
+    return acc12_W;
 }
 
 void ChLinkMateRevolute::ArchiveOut(ChArchiveOut& marchive) {
@@ -932,16 +924,8 @@ void ChLinkMateRevolute::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIn(marchive);
 
-    // deserialize all member data:
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
+    marchive >> CHNVP(flipped);
 
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -969,18 +953,39 @@ void ChLinkMatePrismatic::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                      bool pos_are_relative,
                                      ChVector<> mpt1,
                                      ChVector<> mpt2,
-                                     ChVector<> mnorm1,
-                                     ChVector<> mnorm2) {
+                                     ChVector<> mdir1,
+                                     ChVector<> mdir2) {
     // set the two frames so that they have the X axis aligned when the
     // two normals are opposed (default behavior, otherwise is considered 'flipped')
 
-    ChVector<> mnorm1_reversed;
+    ChVector<> mdir1_reversed;
     if (!flipped)
-        mnorm1_reversed = mnorm1;
+        mdir1_reversed = mdir1;
     else
-        mnorm1_reversed = -mnorm1;
+        mdir1_reversed = -mdir1;
 
-    ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1_reversed, mnorm2);
+    ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mdir1_reversed, mdir2);
+}
+
+double ChLinkMatePrismatic::GetRelativePos() {
+    ChFrame<> F1_W = frame1 >> *Body1;
+    ChFrame<> F2_W = frame2 >> *Body2;
+    ChVector<> pos12_W = F1_W.GetPos() - F2_W.GetPos();
+    return pos12_W.x(); // NB: assumes translation along x
+}
+
+double ChLinkMatePrismatic::GetRelativePos_dt() {
+    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
+    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
+    ChVector<> vel12_W = F1_W.GetPos_dt() - F2_W.GetPos_dt();
+    return vel12_W.x(); // NB: assumes translation along x
+}
+
+double ChLinkMatePrismatic::GetRelativePos_dtdt() {
+    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
+    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
+    ChVector<> acc12_W = F1_W.GetPos_dtdt() - F2_W.GetPos_dtdt();
+    return acc12_W.x(); // NB: assumes translation along x
 }
 
 void ChLinkMatePrismatic::ArchiveOut(ChArchiveOut& marchive) {
@@ -1002,16 +1007,7 @@ void ChLinkMatePrismatic::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIn(marchive);
 
-    // deserialize all member data:
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
+    marchive >> CHNVP(flipped);
 }
 
 // -----------------------------------------------------------------------------
@@ -1077,32 +1073,6 @@ void ChLinkMateXdistance::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize all member data:
     marchive >> CHNVP(distance);
 
-    // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-
-        std::shared_ptr<ChBodyFrame> _c_Initialize_Body1;
-        std::shared_ptr<ChBodyFrame> _c_Initialize_Body2;
-
-        bool _c_Initialize_pos_are_relative;
-        ChVector<> _c_Initialize_pt1;
-        ChVector<> _c_Initialize_pt2;
-        ChVector<> _c_Initialize_norm1; // ATTENTION: this must be missing!
-        ChVector<> _c_Initialize_norm2;
-        if (marchive.in(CHNVP(_c_Initialize_Body1)) &&
-            marchive.in(CHNVP(_c_Initialize_Body2)) &&
-            marchive.in(CHNVP(_c_Initialize_pos_are_relative)) &&
-            marchive.in(CHNVP(_c_Initialize_pt1)) &&
-            marchive.in(CHNVP(_c_Initialize_pt2)) &&
-            !marchive.in(CHNVP(_c_Initialize_norm1)) &&
-            marchive.in(CHNVP(_c_Initialize_norm2)) ){
-            this->Initialize(_c_Initialize_Body1, _c_Initialize_Body2, _c_Initialize_pos_are_relative, _c_Initialize_pt1, _c_Initialize_pt2, _c_Initialize_norm2);
-        }
-
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1164,16 +1134,7 @@ void ChLinkMateParallel::ArchiveIn(ChArchiveIn& marchive) {
     ChLinkMateGeneric::ArchiveIn(marchive);
 
     // deserialize all member data:
-    
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
+    marchive >> CHNVP(flipped);
 }
 
 // -----------------------------------------------------------------------------

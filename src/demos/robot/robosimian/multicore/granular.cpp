@@ -33,7 +33,7 @@ GroundGranularA::GroundGranularA(ChSystemMulticore* sys) : GroundGranular(sys) {
 }
 
 GroundGranularB::GroundGranularB(ChSystemMulticore* sys) : GroundGranular(sys) {
-    m_ground = std::shared_ptr<ChBody>(sys->NewBody());
+    m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetIdentifier(-1);
     m_ground->SetBodyFixed(true);
     m_ground->SetCollide(true);
@@ -147,12 +147,10 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
     m_ground->SetPos(m_center);
 
     // Create container walls
-    m_ground->GetCollisionModel()->ClearModel();
     utils::AddBoxContainer(m_ground, m_material_c,                   //
                            ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
                            ChVector<>(m_length, m_width, 1), 0.1,    //
                            ChVector<int>(2, 2, -1));
-    m_ground->GetCollisionModel()->BuildModel();
 
     // Create particles (all spheres)
     utils::PDSampler<double> sampler(2 * m_radius1);

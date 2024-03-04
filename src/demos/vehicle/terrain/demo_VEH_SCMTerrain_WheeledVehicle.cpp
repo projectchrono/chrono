@@ -51,7 +51,6 @@ using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
@@ -156,9 +155,6 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     chrono::utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
     int num_hulls = lugged_convex.GetHullCount();
 
-    auto coll_model = wheel_body->GetCollisionModel();
-    coll_model->ClearModel();
-
     // Assemble the tire contact from 15 segments, properly offset.
     // Each segment is further decomposed in convex hulls.
     for (int iseg = 0; iseg < 15; iseg++) {
@@ -166,19 +162,20 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
         for (int ihull = 0; ihull < num_hulls; ihull++) {
             std::vector<ChVector<> > convexhull;
             lugged_convex.GetConvexHullResult(ihull, convexhull);
-            coll_model->AddConvexHull(wheel_material, convexhull, VNULL, rot);
+            auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(wheel_material, convexhull);
+            wheel_body->AddCollisionShape(shape, ChFrame<>(VNULL, rot));
         }
     }
 
     // Add a cylinder to represent the wheel hub.
-    coll_model->AddCylinder(wheel_material, 0.223, 0.252, VNULL, Q_from_AngX(CH_C_PI_2));
-    coll_model->BuildModel();
+    auto cyl_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_material, 0.223, 0.252);
+    wheel_body->AddCollisionShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     // Visualization
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
         vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
 
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetMutable(false);
     trimesh_shape->SetName("lugged_wheel");
@@ -212,11 +209,12 @@ int main(int argc, char* argv[]) {
     // Create HMMWV vehicle
     // --------------------
     HMMWV_Full hmmwv;
+    hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     hmmwv.SetContactMethod(ChContactMethod::SMC);
     hmmwv.SetChassisFixed(false);
     hmmwv.SetInitPosition(ChCoordsys<>(init_loc, QUNIT));
     hmmwv.SetEngineType(EngineModelType::SHAFTS);
-    hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
+    hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     switch (tire_type) {
         case TireType::CYLINDRICAL:
@@ -417,9 +415,10 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         if (img_output && step_number % render_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-            vis->WriteImageToFile(filename);
+            // Zero-pad frame numbers in file names for postprocessing
+            std::ostringstream filename;
+            filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+            vis->WriteImageToFile(filename.str());
             render_frame++;
         }
 

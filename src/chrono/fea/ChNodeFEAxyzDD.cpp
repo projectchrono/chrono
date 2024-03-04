@@ -179,6 +179,18 @@ void ChNodeFEAxyzDD::NodeIntLoadResidual_Mv(const unsigned int off,
     }
 }
 
+void ChNodeFEAxyzDD::NodeIntLoadLumpedMass_Md(const unsigned int off,
+                                              ChVectorDynamic<>& Md,
+                                              double& error,
+                                              const double c) {
+    ChNodeFEAxyzD::NodeIntLoadLumpedMass_Md(off, Md, error, c);
+    if (!IsFixedDD()) {
+        Md(off + 6) += c * GetMassDiagonalDD()(0);
+        Md(off + 7) += c * GetMassDiagonalDD()(1);
+        Md(off + 8) += c * GetMassDiagonalDD()(2);
+    }
+}
+
 void ChNodeFEAxyzDD::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
     ChNodeFEAxyzD::NodeIntToDescriptor(off_v, v, R);
     if (!IsFixedDD()) {

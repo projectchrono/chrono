@@ -13,8 +13,10 @@
 #ifndef CHCONTACTABLE_H
 #define CHCONTACTABLE_H
 
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/solver/ChConstraintTuple.h"
 #include "chrono/core/ChMatrix33.h"
+#include "chrono/core/ChCoordsys.h"
 #include "chrono/timestepper/ChState.h"
 
 namespace chrono {
@@ -23,13 +25,23 @@ namespace chrono {
 class type_constraint_tuple;
 class ChPhysicsItem;
 
-/// Interface for objects that generate contacts
+/// Interface for objects that generate contacts.
 /// One should inherit from ChContactable_1vars, ChContactable_2vars  etc. depending
 /// on the number of ChVariable objects contained in the object (i.e. the variable chunks
 /// to whom the contact point position depends, also the variables affected by contact force).
 class ChApi ChContactable {
   public:
     virtual ~ChContactable() {}
+
+    /// Add the collision model.
+    void AddCollisionModel(std::shared_ptr<ChCollisionModel> model);
+
+    /// Add a collision shape.
+    /// If this item does not have a collision model, one is created.
+    void AddCollisionShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame = ChFrame<>());
+
+    /// Access the collision model.
+    std::shared_ptr<ChCollisionModel> GetCollisionModel() const;
 
     /// Indicate whether or not the object must be considered in collision detection.
     virtual bool IsContactActive() = 0;
@@ -55,8 +67,10 @@ class ChApi ChContactable {
 
     /// Get the absolute speed of a local point attached to the contactable.
     /// The given point is assumed to be expressed in the local frame of this object.
-    /// This function must use the provided states.  
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point, const ChState& state_x, const ChStateDelta& state_w) = 0;
+    /// This function must use the provided states.
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+                                            const ChState& state_x,
+                                            const ChStateDelta& state_w) = 0;
 
     /// Get the absolute speed of point abs_point if attached to the surface.
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) = 0;
@@ -66,16 +80,24 @@ class ChApi ChContactable {
     /// contact model (when rigid) and sync it.
     virtual ChCoordsys<> GetCsysForCollisionModel() = 0;
 
-    /// Apply the given force at the given location and load into the global generalized force array.
-    /// The force and its application point are given in the absolute reference frame. Each object must 
-    /// update the entries in R corresponding to its variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) = 0;
+    /// Apply the given force & torque at the given location and load into the global generalized force array.
+    /// The force  F and its application point are specified in the absolute reference frame. 
+    /// The torque T is specified in the global frame too.
+    /// Each object must update the entries in R corresponding to its variables. 
+    /// Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F, ///< force
+                                            const ChVector<>& T, ///< torque
+                                            const ChVector<>& abs_point,
+                                            ChVectorDynamic<>& R) = 0;
 
-    /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the global frame.
+    /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
+    /// Used for computing stiffness matrix (square force jacobian) by backward differentiation.
+    /// The force  F and its application point are specified in the global frame.
+    /// The torque T is specified in the global frame too.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactForceLoadQ(const ChVector<>& F,
+    virtual void ContactComputeQ(const ChVector<>& F, ///< force
+                                   const ChVector<>& T, ///< torque
                                    const ChVector<>& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
@@ -117,11 +139,22 @@ class ChApi ChContactable {
         return std::static_pointer_cast<T>(m_data);
     }
 
+    /// Method to allow serialization of transient data to archives.
+    void ArchiveOut(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    void ArchiveIn(ChArchiveIn& marchive);
+
+  protected:
+    ChContactable();
+
+    std::shared_ptr<ChCollisionModel> collision_model;
+
   private:
     std::shared_ptr<void> m_data;  ///< arbitrary user-data
 };
 
-// Note that template T1 is the number of DOFs in the referenced ChVariable, 
+// Note that template T1 is the number of DOFs in the referenced ChVariable,
 // for instance = 6 for rigid bodies, =3 for ChNodeXYZ, etc.
 
 template <int T1>
@@ -149,7 +182,7 @@ class ChContactable_1vars : public ChContactable, public ChVariableTupleCarrier_
                                                       bool second) {}
 };
 
-// Note that template T1 and T2 are the number of DOFs in the referenced ChVariable s, 
+// Note that template T1 and T2 are the number of DOFs in the referenced ChVariable s,
 // for instance 3 and 3 for an 'edge' betweeen two xyz nodes.
 
 template <int T1, int T2>
@@ -177,7 +210,7 @@ class ChContactable_2vars : public ChContactable, public ChVariableTupleCarrier_
                                                       bool second) {}
 };
 
-// Note that template T1 and T2 and T3 are the number of DOFs in the referenced ChVariable s, 
+// Note that template T1 and T2 and T3 are the number of DOFs in the referenced ChVariable s,
 // for instance 3 and 3 and 3 for a 'triangle face' betweeen two xyz nodes.
 
 template <int T1, int T2, int T3>

@@ -53,11 +53,6 @@
 #include "chrono/solver/ChSolver.h"
 #include "chrono/solver/ChIterativeSolver.h"
 
-
-//#include "chrono/assets/ChTriangleMeshShape.h"
-//#include "chrono/core/ChFrame.h"
-
-
 //#include <irrlicht.h>
 #include "chrono_sensor/ChApiSensor.h"
 #include "chrono_sensor/sensors/ChSensor.h"
@@ -173,7 +168,7 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::ChGPSSensor)
 %shared_ptr(chrono::sensor::ChCameraSensor)
 %shared_ptr(chrono::sensor::ChSegmentationCamera)
-%shared_ptr(chrono::ChTriangleMeshShape)
+%shared_ptr(chrono::ChVisualShapeTriangleMesh)
 %shared_ptr(chrono::sensor::AccelData)
 %shared_ptr(chrono::sensor::GyroData)
 %shared_ptr(chrono::sensor::MagnetData)
@@ -269,7 +264,7 @@ using namespace chrono::sensor;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
-%import(module = "pychrono.core") "chrono/assets/ChTriangleMeshShape.h"
+%import(module = "pychrono.core") "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 %template(vector_ChFrameD) std::vector< chrono::ChFrame<double> >;
 

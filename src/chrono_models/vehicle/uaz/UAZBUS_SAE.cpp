@@ -35,7 +35,7 @@ UAZBUS_SAE::UAZBUS_SAE()
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
-      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
@@ -51,7 +51,7 @@ UAZBUS_SAE::UAZBUS_SAE(ChSystem* system)
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
-      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
@@ -103,10 +103,10 @@ void UAZBUS_SAE::Initialize() {
     }
 
     switch (m_transmissionType) {
-        case TransmissionModelType::SHAFTS:
+        case TransmissionModelType::AUTOMATIC_SHAFTS:
             // transmission = chrono_types::make_shared<UAZBUS_AutomaticTransmissionShafts>("Transmission");
             break;
-        case TransmissionModelType::SIMPLE_MAP:
+        case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<UAZBUS_AutomaticTransmissionSimpleMap>("Transmission");
             break;
     }

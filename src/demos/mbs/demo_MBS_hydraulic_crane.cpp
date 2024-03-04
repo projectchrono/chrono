@@ -24,8 +24,8 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChHydraulicActuator.h"
 
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     ChVector<> Gacc(0, 0, -9.8);
     sys.Set_G_acc(Gacc);
 
-    ChVector<> attachment_ground(std::sqrt(3) / 2, 0, 0);
+    ChVector<> attachment_ground(std::sqrt(3.0) / 2, 0, 0);
     ChVector<> attachment_crane(0, 0, 0);
 
     double crane_mass = 500;
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     double pend_mass = 100;
     ChVector<> pend_pos = 2.0 * crane_pos + ChVector<>(0, 0, -pend_length);
 
-    auto connection_sph = chrono_types::make_shared<ChSphereShape>(0.02);
+    auto connection_sph = chrono_types::make_shared<ChVisualShapeSphere>(0.02);
     connection_sph->SetColor(ChColor(0.7f, 0.3f, 0.3f));
 
     // Estimate initial required force (moment balance about crane pivot)
@@ -103,16 +103,16 @@ int main(int argc, char* argv[]) {
     crane->SetRot(Q_from_AngY(-crane_angle));
     crane->AddVisualShape(connection_sph, ChFrame<>(attachment_crane, QUNIT));
     crane->AddVisualShape(connection_sph, ChFrame<>(ChVector<>(crane_length / 2, 0, 0), QUNIT));
-    auto crane_cyl = chrono_types::make_shared<ChCylinderShape>(0.015, crane_length);
+    auto crane_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.015, crane_length);
     crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
     sys.AddBody(crane);
 
     auto ball = chrono_types::make_shared<ChBody>();
     ball->SetMass(pend_mass);
     ball->SetPos(pend_pos);
-    auto ball_sph = chrono_types::make_shared<ChSphereShape>(0.04);
+    auto ball_sph = chrono_types::make_shared<ChVisualShapeSphere>(0.04);
     ball->AddVisualShape(ball_sph);
-    auto ball_cyl = chrono_types::make_shared<ChCylinderShape>(0.005, pend_length);
+    auto ball_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.005, pend_length);
     ball->AddVisualShape(ball_cyl, ChFrame<>(ChVector<>(0, 0, pend_length / 2), QUNIT));
     sys.AddBody(ball);
 
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     sys.Add(actuator);
 
     // Attach visualization asset to actuator
-    actuator->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    actuator->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
     // Create the run-time visualization system
 #ifndef CHRONO_IRRLICHT

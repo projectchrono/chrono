@@ -17,8 +17,8 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/wheeled_vehicle/subchassis/ChBalancer.h"
@@ -89,7 +89,7 @@ void ChBalancer::InitializeSide(VehicleSide side,
     ChQuaternion<> joint_rot = chassisRot * rot.Get_A_quaternion();
 
     // Create beam body
-    m_beam[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_beam[side] = chrono_types::make_shared<ChBody>();
     m_beam[side]->SetNameString(m_name + "_balancer" + suffix);
     m_beam[side]->SetPos(points[BEAM]);
     m_beam[side]->SetRot(chassisRot);
@@ -139,7 +139,7 @@ void ChBalancer::AddVisualizationAssets(VisualizationType vis) {
     const auto& dims = GetBalancerBeamDimensions();
 
     {
-        auto box_left = chrono_types::make_shared<ChBoxShape>(dims);
+        auto box_left = chrono_types::make_shared<ChVisualShapeBox>(dims);
         m_beam[LEFT]->AddVisualShape(box_left);
 
         // Orientation of revolute joint
@@ -152,11 +152,11 @@ void ChBalancer::AddVisualizationAssets(VisualizationType vis) {
         ChMatrix33<> rot(u, v, w);
 
         auto p_left = m_beam[LEFT]->TransformPointParentToLocal(m_pointsL[REVOLUTE]);
-        auto cyl_left = chrono_types::make_shared<ChCylinderShape>(dims.z(), 1.4 * dims.y());
+        auto cyl_left = chrono_types::make_shared<ChVisualShapeCylinder>(dims.z(), 1.4 * dims.y());
         m_beam[LEFT]->AddVisualShape(cyl_left, ChFrame<>(p_left, rot));
     }
     {
-        auto box_right = chrono_types::make_shared<ChBoxShape>(dims);
+        auto box_right = chrono_types::make_shared<ChVisualShapeBox>(dims);
         m_beam[RIGHT]->AddVisualShape(box_right);
 
         // Orientation of revolute joint
@@ -170,7 +170,7 @@ void ChBalancer::AddVisualizationAssets(VisualizationType vis) {
         ChMatrix33<> rot(u, v, w);
 
         auto p_right = m_beam[RIGHT]->TransformPointParentToLocal(m_pointsR[REVOLUTE]);
-        auto cyl_right = chrono_types::make_shared<ChCylinderShape>(dims.z(), 1.4 * dims.y());
+        auto cyl_right = chrono_types::make_shared<ChVisualShapeCylinder>(dims.z(), 1.4 * dims.y());
         m_beam[RIGHT]->AddVisualShape(cyl_right, ChFrame<>(p_right, rot));
     }
 }

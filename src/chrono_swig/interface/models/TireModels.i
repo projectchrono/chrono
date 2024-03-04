@@ -2,17 +2,13 @@
 
 /* Includes additional C++ in the wrapper code */
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 #include "chrono_models/ChApiModels.h"
-
-#include "chrono_models/vehicle/generic/tire/Generic_RigidTire.h"
-#include "chrono_models/vehicle/generic/tire/Generic_RigidMeshTire.h"
-#include "chrono_models/vehicle/generic/tire/Generic_FialaTire.h"
 
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
 //#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
@@ -44,9 +40,6 @@
 
 %import "chrono_swig/interface/vehicle/ChTire.i"
 
-%shared_ptr(chrono::vehicle::generic::Generic_RigidTire)
-%shared_ptr(chrono::vehicle::generic::Generic_RigidMeshTire)
-%shared_ptr(chrono::vehicle::generic::Generic_FialaTire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_RigidTire)
 //%shared_ptr(chrono::vehicle::hmmwv::HMMWV_ReissnerTire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_Pac89Tire)
@@ -71,10 +64,6 @@
 %shared_ptr(chrono::vehicle::feda::FEDA_RigidTire)
 
 // Model:
-
-%include "../../../chrono_models/vehicle/generic/tire/Generic_RigidTire.h"
-%include "../../../chrono_models/vehicle/generic/tire/Generic_RigidMeshTire.h"
-%include "../../../chrono_models/vehicle/generic/tire/Generic_FialaTire.h"
 
 %include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
 //%include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"

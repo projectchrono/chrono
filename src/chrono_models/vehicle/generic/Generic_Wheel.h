@@ -19,12 +19,8 @@
 #ifndef GENERIC_WHEEL_H
 #define GENERIC_WHEEL_H
 
-#include "chrono/core/ChGlobal.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
-
-#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 #include "chrono_models/ChApiModels.h"
@@ -47,6 +43,12 @@ class CH_MODELS_API Generic_Wheel : public ChWheel {
 
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
+
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< chassis vehicle (may be null)
+                            std::shared_ptr<ChBody> spindle,     ///< associated suspension spindle body
+                            VehicleSide side,                    ///< wheel mounted on left/right side
+                            double offset = 0                    ///< offset from associated spindle center
+                            ) override;
 
   private:
     static const double m_mass;

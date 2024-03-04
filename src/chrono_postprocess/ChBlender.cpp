@@ -12,18 +12,21 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChConeShape.h"
+#include <iomanip>
+#include <sstream>
+
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCone.h"
 #include "chrono/assets/ChCamera.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChModelFileShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
-#include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPathShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeEllipsoid.h"
+#include "chrono/assets/ChVisualShapeLine.h"
+#include "chrono/assets/ChVisualShapePath.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChGlyphs.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChParticleCloud.h"
@@ -287,7 +290,7 @@ void ChBlender::ExportScript(const std::string& filename) {
 
     std::string assets_filename = out_script_filename + ".assets.py";
     {
-        ChStreamOutAsciiFile assets_file((base_path + assets_filename).c_str());
+        ChStreamOutAsciiFile assets_file(base_path + assets_filename);
         assets_file
             << "# File containing meshes and objects for rendering Blender scenes, shared through all frames.\n";
         assets_file << "# This file must be imported in Blender using File/Import/chrono import menu, \n";
@@ -410,7 +413,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
         if (m_shapes->find((size_t)shape.get()) != m_shapes->end())
             continue;
 
-        if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+        if (auto sphere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
             *mfile << "bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.0, calc_uvs=True) \n"
                    << "new_object = bpy.context.object \n"
                    << "new_object.name = '" << shapename << "' \n"
@@ -422,7 +425,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
-        if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
+        if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
             *mfile << "bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.0, calc_uvs=True) \n"
                    << "new_object = bpy.context.object \n"
                    << "new_object.name = '" << shapename << "' \n"
@@ -434,7 +437,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
-        if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+        if (auto cylinder = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
             *mfile << "bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=1.0, depth=1.0, calc_uvs=True) \n"
                    << "new_object = bpy.context.object \n"
                    << "new_object.name = '" << shapename << "' \n"
@@ -447,7 +450,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
-        if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+        if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
             *mfile
                 << "bpy.ops.mesh.primitive_cone_add(vertices=32, radius1=1.0, radius2=0, depth=1.0, calc_uvs=True) \n"
                 << "new_object = bpy.context.object \n"
@@ -461,7 +464,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
-        if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+        if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
             *mfile << "bpy.ops.mesh.primitive_cube_add(size=1,calc_uvs=True) \n"
                    << "new_object = bpy.context.object \n"
                    << "new_object.name = '" << shapename << "' \n"
@@ -472,13 +475,13 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
-        if (auto obj_shape = std::dynamic_pointer_cast<ChModelFileShape>(shape)) {
+        if (auto obj_shape = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
             std::string abspath_obj = filesystem::path(obj_shape->GetFilename()).make_absolute().str();
             std::replace(abspath_obj.begin(), abspath_obj.end(), '\\', '/');
             *mfile << "try: \n"
                    << "    bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection \n"
                    << "    file_loc = '" << abspath_obj.c_str() << "'\n"
-                   << "    imported_object = bpy.ops.import_scene.obj(filepath=file_loc) \n"
+                   << "    import_result = bpy.ops.wm.obj_import(filepath=file_loc) \n"
                    << "    new_object = bpy.context.selected_objects[-1] \n"
                    << "    new_object.name= '" << shapename << "' \n"
                    << "    new_object.data.materials.append(None) \n"
@@ -490,7 +493,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
-        if (auto mesh_shape = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
+        if (auto mesh_shape = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
             std::shared_ptr<ChTriangleMeshConnected> mesh = mesh_shape->GetMesh();
             bool wireframe = mesh_shape->IsWireframe();
 
@@ -836,12 +839,11 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
-        if (auto line_shape = std::dynamic_pointer_cast<ChLineShape>(shape)) {
+        if (auto line_shape = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
             *mfile << "create_chrono_path('" << shapename << "',\n";
             *mfile << "[ \n";
-            for (int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
-                ChVector<> pt;
-                line_shape->GetLineGeometry()->Evaluate(pt, (double)i / (double)(line_shape->GetNumRenderPoints() - 1));
+            for (unsigned int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
+                auto pt = line_shape->GetLineGeometry()->Evaluate(i / (double)(line_shape->GetNumRenderPoints() - 1));
                 *mfile << "(" << pt.x() << "," << pt.y() << "," << pt.z() << "),\n";
             }
             *mfile << "],\n";
@@ -859,12 +861,11 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
 
             m_shapes->insert({(size_t)shape.get(), shape});
         }
-        if (auto line_shape = std::dynamic_pointer_cast<ChPathShape>(shape)) {
+        if (auto line_shape = std::dynamic_pointer_cast<ChVisualShapePath>(shape)) {
             *mfile << "create_chrono_path('" << shapename << "',\n";
             *mfile << "[ \n";
-            for (int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
-                ChVector<> pt;
-                line_shape->GetPathGeometry()->Evaluate(pt, (double)i / (double)(line_shape->GetNumRenderPoints() - 1));
+            for (unsigned int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
+                auto pt = line_shape->GetPathGeometry()->Evaluate(i / (double)(line_shape->GetNumRenderPoints() - 1));
                 *mfile << "(" << pt.x() << "," << pt.y() << "," << pt.z() << "),\n";
             }
             *mfile << "],\n";
@@ -923,7 +924,7 @@ void ChBlender::ExportMaterials(ChStreamOutAsciiFile& mfile,
                                 const std::vector<std::shared_ptr<ChVisualMaterial>>& materials,
                                 bool per_frame,
                                 std::shared_ptr<ChVisualShape> mshape) {
-    if (std::dynamic_pointer_cast<ChPathShape>(mshape) || std::dynamic_pointer_cast<ChLineShape>(mshape))
+    if (std::dynamic_pointer_cast<ChVisualShapePath>(mshape) || std::dynamic_pointer_cast<ChVisualShapeLine>(mshape))
         return;
 
     for (const auto& mat : materials) {
@@ -1035,19 +1036,19 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                 ChVector<> aux_scale(0, 0, 0);
 
                 std::string shapename("shape_" + unique_bl_id((size_t)shape.get()));
-                auto shape_frame = shape_instance.second;
+                const auto& shape_frame = shape_instance.second;
 
                 // corner cases for performance reason (in case of multipe sphere asset with different radii, one
                 // blender mesh asset is used anyway, then use scale here)
-                if (auto mshpere = std::dynamic_pointer_cast<ChSphereShape>(shape))
+                if (auto mshpere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape))
                     aux_scale = ChVector<>(mshpere->GetRadius());
-                else if (auto mellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape))
+                else if (auto mellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape))
                     aux_scale = mellipsoid->GetSemiaxes();
-                else if (auto mbox = std::dynamic_pointer_cast<ChBoxShape>(shape))
+                else if (auto mbox = std::dynamic_pointer_cast<ChVisualShapeBox>(shape))
                     aux_scale = mbox->GetLengths();
-                else if (auto mcone = std::dynamic_pointer_cast<ChConeShape>(shape))
+                else if (auto mcone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape))
                     aux_scale = ChVector<>(mcone->GetRadius(), mcone->GetRadius(), mcone->GetHeight());
-                else if (auto mcyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+                else if (auto mcyl = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
                     aux_scale = ChVector<>(mcyl->GetRadius(), mcyl->GetRadius(), mcyl->GetHeight());
                 }
 
@@ -1057,8 +1058,8 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                 state_file << "(" << shape_frame.GetRot().e0() << "," << shape_frame.GetRot().e1() << ","
                            << shape_frame.GetRot().e2() << "," << shape_frame.GetRot().e3() << "),";
                 state_file << "[";
-                if (shape->GetNumMaterials() && (!std::dynamic_pointer_cast<ChLineShape>(shape)) &&
-                    (!std::dynamic_pointer_cast<ChPathShape>(shape))) {
+                if (shape->GetNumMaterials() && (!std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) &&
+                    (!std::dynamic_pointer_cast<ChVisualShapePath>(shape))) {
                     for (int im = 0; im < shape->GetNumMaterials(); ++im) {
                         state_file << "'";
                         auto mat = shape->GetMaterial(im);
@@ -1130,9 +1131,10 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
 //  state00001.dat, state00002.dat, ...
 // The user should call this function in the while() loop of the simulation, once per frame.
 void ChBlender::ExportData() {
-    char fullname[200];
-    sprintf(fullname, "%s%05d", out_data_filename.c_str(), framenumber);
-    ExportData(out_path + "/" + std::string(fullname));
+    // Zero-pad frame numbers in file names for postprocessing
+    std::ostringstream fullname;
+    fullname << out_data_filename << std::setw(5) << std::setfill('0') << framenumber;
+    ExportData(out_path + "/" + fullname.str());
 }
 
 void ChBlender::ExportData(const std::string& filename) {
@@ -1141,12 +1143,12 @@ void ChBlender::ExportData(const std::string& filename) {
 
     // Open the non-mutable single assets file in "append" mode:
     std::string assets_filename = out_script_filename + ".assets.py";
-    ChStreamOutAsciiFile assets_file((base_path + assets_filename).c_str(), std::ios::app);
+    ChStreamOutAsciiFile assets_file(base_path + assets_filename, std::ios::app);
 
     // Generate the nnnnn.dat and nnnnn.py files:
     try {
-        ChStreamOutAsciiFile data_file((base_path + filename + ".dat").c_str());
-        ChStreamOutAsciiFile state_file((base_path + filename + ".py").c_str());
+        ChStreamOutAsciiFile data_file(base_path + filename + ".dat");
+        ChStreamOutAsciiFile state_file(base_path + filename + ".py");
 
         // reset the maps of mutable (per-frame) assets, so that these will be saved at ExportAssets()
         m_blender_frame_shapes.clear();
@@ -1221,7 +1223,6 @@ void ChBlender::ExportData(const std::string& filename) {
         // #) saving contacts ?
         if (this->mSystem->GetNcontacts() &&
             (this->contacts_show == ContactSymbolType::VECTOR || this->contacts_show == ContactSymbolType::SPHERE)) {
-            // ChStreamOutAsciiFile data_contacts((base_path + filename + ".contacts").c_str());
 
             class _reporter_class : public ChContactContainer::ReportContactCallback {
               public:
@@ -1336,9 +1337,8 @@ void ChBlender::ExportData(const std::string& filename) {
         }
 
     } catch (const ChException&) {
-        char error[400];
-        sprintf(error, "Can't save data into file %s.py (or .dat)", filename.c_str());
-        throw(ChException(error));
+        std::string err = "Can't save data into file " + filename + ".py (or .dat)";
+        throw(ChException(err));
     }
 
     // Increment the number of the frame.

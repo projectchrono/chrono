@@ -35,7 +35,11 @@ ChROSAccelerometerHandler::ChROSAccelerometerHandler(std::shared_ptr<ChAccelerom
 ChROSAccelerometerHandler::ChROSAccelerometerHandler(double update_rate,
                                                      std::shared_ptr<ChAccelerometerSensor> imu,
                                                      const std::string& topic_name)
+<<<<<<< HEAD
     : ChROSHandler(update_rate), m_imu(imu), m_topic_name(topic_name) {}
+=======
+    : ChROSHandler(update_rate), m_imu(imu), m_topic_name(topic_name), m_running_average({0, 0, 0}) {}
+>>>>>>> upstream/feature/ros
 
 bool ChROSAccelerometerHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterAccelAccess, ChFilterAccelAccessName>(m_imu)) {
@@ -48,7 +52,11 @@ bool ChROSAccelerometerHandler::Initialize(std::shared_ptr<ChROSInterface> inter
 
     m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::Imu>(m_topic_name, 1);
 
+<<<<<<< HEAD
     // m_imu_msg.header.frame_id = ; // TODO
+=======
+    m_imu_msg.header.frame_id = m_imu->GetName();
+>>>>>>> upstream/feature/ros
 
     return true;
 }
@@ -67,8 +75,31 @@ void ChROSAccelerometerHandler::Tick(double time) {
     m_imu_msg.linear_acceleration.y = imu_data.Y;
     m_imu_msg.linear_acceleration.z = imu_data.Z;
 
+<<<<<<< HEAD
     m_publisher->publish(m_imu_msg);
 }
 
+=======
+    // Update the covariance matrix
+    // The ChAccelerometerSensor does not currently support covariances, so we'll
+    // use the imu message to store a rolling average of the covariance
+    m_imu_msg.linear_acceleration_covariance = CalculateCovariance(imu_data);
+
+    m_publisher->publish(m_imu_msg);
+}
+
+std::array<double, 9> ChROSAccelerometerHandler::CalculateCovariance(const AccelData& imu_data) {
+    std::array<double, 3> imu_data_array = {imu_data.X, imu_data.Y, imu_data.Z};
+
+    // Update the running average
+    for (int i = 0; i < 3; i++) 
+        m_running_average[i] += (imu_data_array[i] - m_running_average[i]) / (m_tick_count + 1);
+
+    // Calculate and return the covariance
+    auto count = (m_tick_count > 1 ? m_tick_count - 1 : 1);  // Avoid divide by zero (if only one tick, count = 1)
+    return ChROSSensorHandlerUtilities::CalculateCovariance(imu_data_array, m_running_average, count);
+}
+
+>>>>>>> upstream/feature/ros
 }  // namespace ros
 }  // namespace chrono

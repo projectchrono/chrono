@@ -59,7 +59,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
     ChContactNSC(ChContactContainer* mcontainer,           ///< contact container
                  Ta* mobjA,                                ///< collidable object A
                  Tb* mobjB,                                ///< collidable object B
-                 const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+                 const ChCollisionInfo& cinfo,  ///< data for the collision pair
                  const ChMaterialCompositeNSC&  mat        ///< composite material
                  )
         : ChContactTuple<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo) {
@@ -74,7 +74,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
     /// Reinitialize this contact for reuse.
     virtual void Reset(Ta* mobjA,                                ///< collidable object A
                        Tb* mobjB,                                ///< collidable object B
-                       const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+                       const ChCollisionInfo& cinfo,  ///< data for the collision pair
                        const ChMaterialCompositeNSC& mat         ///< composite material
     ) {
         // Reset geometric information

@@ -26,8 +26,8 @@
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChHydraulicActuator.h"
 
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
@@ -62,7 +62,7 @@ std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_CRANE_COSIM";
 class Crane {
   public:
     Crane(ChSystem& sys) : m_sys(sys) {
-        m_point_ground = ChVector<>(std::sqrt(3) / 2, 0, 0);
+        m_point_ground = ChVector<>(std::sqrt(3.0) / 2, 0, 0);
         m_point_crane = ChVector<>(0, 0, 0);
 
         double crane_mass = 500;
@@ -74,7 +74,7 @@ class Crane {
         double pend_mass = 100;
         ChVector<> pend_pos = 2.0 * crane_pos + ChVector<>(0, 0, -pend_length);
 
-        auto connection_sph = chrono_types::make_shared<ChSphereShape>(0.02);
+        auto connection_sph = chrono_types::make_shared<ChVisualShapeSphere>(0.02);
         connection_sph->SetColor(ChColor(0.7f, 0.3f, 0.3f));
 
         // Estimate initial required force (moment balance about crane pivot)
@@ -96,16 +96,16 @@ class Crane {
         m_crane->SetRot(Q_from_AngY(-crane_angle));
         m_crane->AddVisualShape(connection_sph, ChFrame<>(m_point_crane, QUNIT));
         m_crane->AddVisualShape(connection_sph, ChFrame<>(ChVector<>(crane_length / 2, 0, 0), QUNIT));
-        auto crane_cyl = chrono_types::make_shared<ChCylinderShape>(0.015, crane_length);
+        auto crane_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.015, crane_length);
         m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
         sys.AddBody(m_crane);
 
         auto ball = chrono_types::make_shared<ChBody>();
         ball->SetMass(pend_mass);
         ball->SetPos(pend_pos);
-        auto ball_sph = chrono_types::make_shared<ChSphereShape>(0.04);
+        auto ball_sph = chrono_types::make_shared<ChVisualShapeSphere>(0.04);
         ball->AddVisualShape(ball_sph);
-        auto ball_cyl = chrono_types::make_shared<ChCylinderShape>(0.005, pend_length);
+        auto ball_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.005, pend_length);
         ball->AddVisualShape(ball_cyl, ChFrame<>(ChVector<>(0, 0, pend_length / 2), QUNIT));
         sys.AddBody(ball);
 
@@ -206,7 +206,7 @@ class Actuator {
         sys.Add(m_actuator);
 
         // Attach visualization asset to actuator
-        m_actuator->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+        m_actuator->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
         // Set solver and integrator
         auto solver = chrono_types::make_shared<ChSolverSparseQR>();

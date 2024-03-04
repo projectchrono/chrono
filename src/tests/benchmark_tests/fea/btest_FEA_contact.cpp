@@ -88,6 +88,7 @@ class FEAcontactTest_MUMPS : public FEAcontactTest {
 
 FEAcontactTest::FEAcontactTest(SolverType solver_type) {
     m_system = new ChSystemSMC();
+    m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Set solver parameters
 #ifndef CHRONO_PARDISO_MKL
@@ -139,8 +140,8 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
         }
     }
 
-    collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.006);
+    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.006);
 
     auto cmat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     cmat->SetYoungModulus(6e4);

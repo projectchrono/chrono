@@ -63,31 +63,32 @@ int main(int argc, char* argv[]) {
     double tire_step_size = 1e-3;
 
     // Create the HMMWV vehicle, set parameters, and initialize
-    HMMWV_Reduced my_hmmwv;
-    my_hmmwv.SetContactMethod(ChContactMethod::NSC);
-    my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisCollisionType(CollisionType::NONE);
-    my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-10, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
-    my_hmmwv.SetEngineType(EngineModelType::SIMPLE);
-    my_hmmwv.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
-    my_hmmwv.SetDriveType(DrivelineTypeWV::RWD);
-    my_hmmwv.SetBrakeType(BrakeType::SHAFTS);
-    my_hmmwv.SetTireType(TireModelType::TMEASY);
-    my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.Initialize();
+    HMMWV_Reduced hmmwv;
+    hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    hmmwv.SetContactMethod(ChContactMethod::NSC);
+    hmmwv.SetChassisFixed(false);
+    hmmwv.SetChassisCollisionType(CollisionType::NONE);
+    hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-10, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
+    hmmwv.SetEngineType(EngineModelType::SIMPLE);
+    hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
+    hmmwv.SetDriveType(DrivelineTypeWV::RWD);
+    hmmwv.SetBrakeType(BrakeType::SHAFTS);
+    hmmwv.SetTireType(TireModelType::TMEASY);
+    hmmwv.SetTireStepSize(tire_step_size);
+    hmmwv.Initialize();
 
-    my_hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
-    my_hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    my_hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    my_hmmwv.SetWheelVisualizationType(VisualizationType::MESH);
-    my_hmmwv.SetTireVisualizationType(VisualizationType::MESH);
+    hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
+    hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    hmmwv.SetWheelVisualizationType(VisualizationType::MESH);
+    hmmwv.SetTireVisualizationType(VisualizationType::MESH);
 
 #ifdef USE_JSON
     // Create the terrain from JSON specification file
-    RigidTerrain terrain(my_hmmwv.GetSystem(), vehicle::GetDataFile("terrain/RigidPatches.json"), true);
+    RigidTerrain terrain(hmmwv.GetSystem(), vehicle::GetDataFile("terrain/RigidPatches.json"), true);
 #else
     // Create the terrain patches programatically
-    RigidTerrain terrain(my_hmmwv.GetSystem());
+    RigidTerrain terrain(hmmwv.GetSystem());
 
     if (true) {
         auto patch1_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -161,7 +162,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&my_hmmwv.GetVehicle());
+            vis_irr->AttachVehicle(&hmmwv.GetVehicle());
 
             auto driver_irr = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
             driver_irr->SetSteeringDelta(render_step_size / steering_time);
@@ -183,7 +184,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("Rigid Terrain Demo");
             vis_vsg->SetWindowSize(ChVector2<int>(1200, 800));
             vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 8.0, 0.75);
-            vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
+            vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             vis_vsg->Initialize();
 
             auto driver_vsg = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
@@ -214,9 +215,9 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    my_hmmwv.GetVehicle().EnableRealtime(true);
+    hmmwv.GetVehicle().EnableRealtime(true);
     while (vis->Run()) {
-        double time = my_hmmwv.GetSystem()->GetChTime();
+        double time = hmmwv.GetSystem()->GetChTime();
 
         // Render scene
         vis->BeginScene();
@@ -229,13 +230,13 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver->Synchronize(time);
         terrain.Synchronize(time);
-        my_hmmwv.Synchronize(time, driver_inputs, terrain);
+        hmmwv.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver->Advance(step_size);
         terrain.Advance(step_size);
-        my_hmmwv.Advance(step_size);
+        hmmwv.Advance(step_size);
         vis->Advance(step_size);
     }
 

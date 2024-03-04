@@ -116,7 +116,7 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     /// Note: the node and body must belong to the same ChSystem.
     virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
                            std::shared_ptr<ChBodyFrame> body,   ///< body (frame) to join
-                           ChVector<>* pos = 0                  ///< attachment position in absolute coordinates
+                           const ChVector<>* pos = 0                  ///< attachment position in absolute coordinates
                            );
 
     /// Get the connected xyz node (point).

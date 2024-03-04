@@ -12,8 +12,6 @@
 #include "chrono_models/ChApiModels.h"
 
 
-#include "chrono_models/vehicle/generic/Generic_Vehicle.h"
-
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_VehicleReduced.h"
@@ -48,8 +46,6 @@
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 %}
 
-
-%shared_ptr(chrono::vehicle::generic::Generic_Vehicle)
 
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_Vehicle)
@@ -113,8 +109,6 @@
 %import "../../../chrono_vehicle/ChVehicle.h"
 
 // Model:
-
-%include "../../../chrono_models/vehicle/generic/Generic_Vehicle.h"
 
 %include "../../../chrono_models/vehicle/hmmwv/HMMWV.h"
 %include "../../../chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"

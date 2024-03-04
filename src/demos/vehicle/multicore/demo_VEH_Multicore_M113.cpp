@@ -20,12 +20,10 @@
 
 #include <iostream>
 
-// Chrono::Engine header files
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-// Chrono::Multicore header files
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
 
@@ -36,17 +34,14 @@
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
-// Chrono utility header files
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-// Chrono vehicle header files
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
 
-// M113 model header files
 #include "chrono_models/vehicle/m113/M113.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -231,6 +226,7 @@ int main(int argc, char* argv[]) {
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
 #endif
 
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
     sys->Set_G_acc(ChVector<>(0, 0, -9.81));
 
 
@@ -274,12 +270,10 @@ int main(int argc, char* argv[]) {
     mat_g->SetFriction(mu_g);
 
     // Ground body
-    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
+    auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
-
-    ground->GetCollisionModel()->ClearModel();
 
     // Bottom box
     utils::AddBoxGeometry(ground.get(),                                           //
@@ -314,8 +308,6 @@ int main(int argc, char* argv[]) {
                               visible_walls);
     }
 
-    ground->GetCollisionModel()->BuildModel();
-
     sys->AddBody(ground);
 
     // Create the granular material.
@@ -333,7 +325,7 @@ int main(int argc, char* argv[]) {
     m113.SetDrivelineType(DrivelineTypeTV::BDS);
     m113.SetBrakeType(BrakeType::SHAFTS);
     m113.SetEngineType(EngineModelType::SIMPLE_MAP);
-    m113.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
+    m113.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     m113.SetChassisCollisionType(CollisionType::NONE);
 
     ////m113.GetVehicle().SetStepsize(0.0001);

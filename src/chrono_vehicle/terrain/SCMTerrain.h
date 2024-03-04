@@ -24,7 +24,7 @@
 #include <ostream>
 #include <unordered_map>
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/physics/ChLoadContainer.h"
@@ -208,7 +208,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     NodeInfo GetNodeInfo(const ChVector<>& loc) const;
 
     /// Get the visualization triangular mesh.
-    std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
+    std::shared_ptr<ChVisualShapeTriangleMesh> GetMesh() const;
 
     /// Set the visualization mesh as wireframe or as solid (default: wireframe).
     /// Note: in wireframe mode, normals for the visualization mesh are not calculated.
@@ -555,7 +555,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     double m_test_offset_down;  ///< offset for ray start
     double m_test_offset_up;    ///< offset for ray end
 
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  ///< mesh visualization asset
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;  ///< mesh visualization asset
 
     bool m_cosim_mode;  ///< co-simulation mode
 
