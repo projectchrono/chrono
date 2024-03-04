@@ -320,7 +320,7 @@ template <int nop>
 void Copter<nop>::Update(double timestep) {
     // update propeller forces/torques
     for (int i = 0; i < nop; i++) {
-        double rps = motors[i]->GetMotorRot_dt() / CH_C_2PI;
+        double rps = motors[i]->GetMotorAngleDer() / CH_C_2PI;
         thrusts[i]->SetMforce(Ct * rho * pow(rps, 2) * pow(Dp, 4));
         backtorques[i]->SetMforce((1 / CH_C_2PI) * Cp * rho * pow(rps, 2) * pow(Dp, 5));
     }

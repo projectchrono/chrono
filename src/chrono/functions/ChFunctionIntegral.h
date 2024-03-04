@@ -23,9 +23,10 @@ namespace chrono {
 /// @{
 
 /// Integral of a function.
-/// `y(x) = offset + \int{f(x) dx}_{x_start}^{x_end}`.
-/// The integration interval can be specified as well as the order of integration.
-/// Uses a numerical quadrature method to compute the definite integral.
+/// `    y(x) = offset + \int{f(s) ds}_{x_start}^{x}    `.
+/// The integral is computed using trapezoidal integration over a given number of samples.
+/// The function returns a value equal to the offset for any value x<= x_start, while returns y(x_end) for any value x>= x_end.
+/// x_start and x_end are set through the ::SetStartArg() and ::SetEndArg() methods.
 class ChApi ChFunctionIntegral : public ChFunction {
   private:
     std::shared_ptr<ChFunction> m_integrand_fun;
@@ -74,10 +75,10 @@ class ChApi ChFunctionIntegral : public ChFunction {
     void SetInterval(double xstart, double xend);
 
     /// Set the integration interval starting point.
-    void SetStart(double x_start) { m_x_start = x_start; }
+    void SetStartArg(double x_start) { m_x_start = x_start; }
 
     /// Set the integration interval ending point.
-    void SetEnd(double x_end) { m_x_end = x_end; }
+    void SetEndArg(double x_end) { m_x_end = x_end; }
 
     /// Get the integration interval starting point.
     double GetStart() const { return m_x_start; }

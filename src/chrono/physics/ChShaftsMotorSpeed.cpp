@@ -161,7 +161,7 @@ void ChShaftsMotorSpeed::IntLoadConstraint_C(const unsigned int off_L,  // offse
     // with d_error = x_pos_A-x_pos_B, and d_setpoint = x(t)
     double C;
     if (this->avoid_angle_drift) 
-        C = this->GetMotorRot()  - aux_dt - this->rot_offset; 
+        C = this->GetMotorAngle()  - aux_dt - this->rot_offset; 
     else
         C = 0.0;
 
@@ -251,7 +251,7 @@ void ChShaftsMotorSpeed::ConstraintsBiLoad_C(double factor, double recovery_clam
 
     double C;
     if (this->avoid_angle_drift) 
-        C = this->GetMotorRot()  - aux_dt - this->rot_offset; 
+        C = this->GetMotorAngle()  - aux_dt - this->rot_offset; 
     else
         C = 0.0;
 

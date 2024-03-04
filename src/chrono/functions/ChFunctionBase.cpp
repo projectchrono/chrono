@@ -25,6 +25,9 @@
 
 namespace chrono {
 
+static const double FD_STEP = 1e-7; // forward differentiation stepsize
+
+
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChFunction) // NO! this is an abstract class, rather use for children concrete classes.
 
@@ -56,15 +59,15 @@ class ChFunction_Type_enum_mapper : public ChFunction {
 };
 
 double ChFunction::GetDer(double x) const {
-    return (GetVal(x + m_der_perturbation) - GetVal(x)) / m_der_perturbation;
+    return (GetVal(x + FD_STEP) - GetVal(x)) / FD_STEP;
 }
 
 double ChFunction::GetDer2(double x) const {
-    return (GetDer(x + m_der_perturbation) - GetDer(x)) / m_der_perturbation;
+    return (GetDer(x + FD_STEP) - GetDer(x)) / FD_STEP;
 }
 
 double ChFunction::GetDer3(double x) const {
-    return ((GetDer2(x + m_der_perturbation) - GetDer2(x)) / m_der_perturbation);
+    return ((GetDer2(x + FD_STEP) - GetDer2(x)) / FD_STEP);
 }
 
 double ChFunction::GetDerN(double x, int der_order) const {

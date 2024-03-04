@@ -233,7 +233,7 @@ void ExampleA4(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
 
         virtual double GetVal(double x) const override {
             // The three-phase torque(speed) model
-            double w = mymotor->GetMotorRot_dt();
+            double w = mymotor->GetMotorAngleDer();
             double s = (ns - w) / ns;  // slip
             double T =
                 (3.0 / 2 * CH_C_PI * ns) * (s * E2 * E2 * R2) / (R2 * R2 + pow(s * X2, 2));  // electric torque curve
@@ -282,7 +282,7 @@ void ExampleB1(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // Connect the guide and the slider and add the motor to the system:
     motor1->Initialize(slider1,               // body A (slave)
                        guide1,                // body B (master)
-                       ChFrame<>(positionB1)  // motor frame, in abs. coords
+                       ChFrame<>(positionB1, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor1);
 
@@ -323,7 +323,7 @@ void ExampleB2(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // Connect the guide and the slider and add the motor to the system:
     motor2->Initialize(slider2,               // body A (slave)
                        guide2,                // body B (master)
-                       ChFrame<>(positionB2)  // motor frame, in abs. coords
+                       ChFrame<>(positionB2, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor2);
 
@@ -378,7 +378,7 @@ void ExampleB3(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // Connect the guide and the slider and add the motor to the system:
     motor3->Initialize(slider3,               // body A (slave)
                        guide3,                // body B (master)
-                       ChFrame<>(positionB3)  // motor frame, in abs. coords
+                       ChFrame<>(positionB3, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor3);
 
@@ -413,7 +413,7 @@ void ExampleB4(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // Connect the guide and the slider and add the motor to the system:
     motor4->Initialize(slider4,               // body A (slave)
                        guide4,                // body B (master)
-                       ChFrame<>(positionB4)  // motor frame, in abs. coords
+                       ChFrame<>(positionB4, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor4);
 

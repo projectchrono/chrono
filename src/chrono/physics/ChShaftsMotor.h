@@ -33,17 +33,17 @@ class ChApi ChShaftsMotorBase : public ChShaftsCouple {
     virtual ~ChShaftsMotorBase(){};
 
     /// Get the actual angle rotation [rad] of the motor, in terms of phase of shaft 1 respect to 2.
-    virtual double GetMotorRot() const { return (shaft1->GetPos() - shaft2->GetPos()); }
+    virtual double GetMotorAngle() const { return (shaft1->GetPos() - shaft2->GetPos()); }
     /// Get the actual speed [rad/s] of the motor, in terms of speed of shaft 1 respect to 2.
-    virtual double GetMotorRot_dt() const { return (shaft1->GetPosDer() - shaft2->GetPosDer()); }
+    virtual double GetMotorAngleDer() const { return (shaft1->GetPosDer() - shaft2->GetPosDer()); }
     /// Get the actual acceleration [rad/s^2] of the motor, in terms of accel. of shaft 1 respect to 2.
-    virtual double GetMotorRot_dtdt() const { return (shaft1->GetPosDer2() - shaft2->GetPosDer2()); }
+    virtual double GetMotorAngleDer2() const { return (shaft1->GetPosDer2() - shaft2->GetPosDer2()); }
 
     /// In case of multi-turns, gets the current actuator number of (integer) rotations:
-    virtual int GetMotorRotTurns() const { return int(GetMotorRot() / CH_C_2PI); }
+    virtual int GetMotorNumTurns() const { return int(GetMotorAngle() / CH_C_2PI); }
 
     /// In case of multi-turns, gets the current actuator rotation angle [rad], in periodic -PI..+PI.
-    virtual double GetMotorRotPeriodic() const { return fmod(GetMotorRot(), CH_C_2PI); }
+    virtual double GetMotorAngleWrapped() const { return fmod(GetMotorAngle(), CH_C_2PI); }
 
     /// Get the current motor torque between shaft2 and shaft1, expressed as applied to shaft1
     virtual double GetMotorTorque() const = 0;

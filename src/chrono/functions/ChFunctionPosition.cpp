@@ -20,14 +20,16 @@
 
 namespace chrono {
 
+static const double FD_STEP = 1e-4; // forward differentiation stepsize
+
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChFunctionPosition) // NO! this is an abstract class, rather use for children concrete classes.
 
-ChVector3d ChFunctionPosition::GetDer(double s) const {
-    return ((GetVal(s + m_der_perturbation) - GetVal(s)) / m_der_perturbation);
+ChVector3d ChFunctionPosition::GetLinVel(double s) const {
+    return ((GetPos(s + FD_STEP) - GetPos(s)) / FD_STEP);
 }
-ChVector3d ChFunctionPosition::GetDer2(double s) const {
-    return ((GetDer(s + m_der_perturbation) - GetDer(s)) / m_der_perturbation);
+ChVector3d ChFunctionPosition::GetLinAcc(double s) const {
+    return ((GetLinVel(s + FD_STEP) - GetLinVel(s)) / FD_STEP);
 };
 
 void ChFunctionPosition::ArchiveOut(ChArchiveOut& archive_out) {

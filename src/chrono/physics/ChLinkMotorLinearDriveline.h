@@ -35,11 +35,11 @@ namespace chrono {
 /// At the same time, using 1D elements avoids the unnecessary complication 
 /// of using complete 3D parts to make screws, spindles, 3D rack-pinions, etc. 
 ///
-///  The 1D driveline is "interfaced" to the two connected threedimensional
+/// The 1D driveline is "interfaced" to the two connected three-dimensional
 /// parts using two "inner" 1D shafts, each connected to 3D part translation;
 /// it is up to the user to build the driveline that connects those two shafts.
 ///
-///  Most often the driveline is a graph starting at inner shaft 2 (consider 
+/// Most often the driveline is a graph starting at inner shaft 2 (consider 
 /// it to be the truss for holding the motor drive, also the support for reducers 
 /// if any) and ending at inner shaft 1 (consider it to be the output, i.e. the 
 /// slow-moving slider).
@@ -93,7 +93,7 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
 
 
     /// Get the force between body 1 and inner shaft 1 
-    /// Note: cohincident with GetMotorForce() of this motor.
+    /// Note: coincident with GetMotorForce() of this motor.
     double GetInnerForce1() const { return innerconstraint1lin->GetForceReactionOnShaft(); }
 
     /// Get the force between body 2 and inner translational shaft 2 

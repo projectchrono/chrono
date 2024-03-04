@@ -21,24 +21,26 @@
 
 namespace chrono {
 
+static const double DIFF_STEP = 1e-4;  // forward differentiation stepsize
+
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChFunctionRotation) // NO! this is an abstract class, rather use for children concrete classes.
 
 ChVector3d ChFunctionRotation::GetAngVel(double s) const {
     ChQuaternion<> q0 = GetQuat(s);
-    ChQuaternion<> q1 = GetQuat(s + m_der_perturbation);
+    ChQuaternion<> q1 = GetQuat(s + DIFF_STEP);
     if (q0.Dot(q1) < 0)
         q1 = -q1;  // because q1 and -q1 are the same rotation, but for finite difference we must use the closest to q0
-    ChQuaternion<> qdt = (q1 - q0) / m_der_perturbation;
+    ChQuaternion<> qdt = (q1 - q0) / DIFF_STEP;
     ChGlMatrix34<> Gl(q0);
     return Gl * qdt;
 }
 
 ChVector3d ChFunctionRotation::GetAngAcc(double s) const {
-    ChQuaternion<> q0 = GetQuat(s - m_der_perturbation);
+    ChQuaternion<> q0 = GetQuat(s - DIFF_STEP);
     ChQuaternion<> q1 = GetQuat(s);
-    ChQuaternion<> q2 = GetQuat(s + m_der_perturbation);
-    ChQuaternion<> qdtdt = (q0 - q1 * 2.0 + q2) / (m_der_perturbation * m_der_perturbation);
+    ChQuaternion<> q2 = GetQuat(s + DIFF_STEP);
+    ChQuaternion<> qdtdt = (q0 - q1 * 2.0 + q2) / (DIFF_STEP * DIFF_STEP);
     ChGlMatrix34<> Gl(q1);
     return Gl * qdtdt;
 }

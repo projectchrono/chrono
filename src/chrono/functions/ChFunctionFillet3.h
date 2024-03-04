@@ -74,7 +74,7 @@ class ChApi ChFunctionFillet3 : public ChFunction {
     void SetEndDer(double der_end) { m_der_end = der_end; }
 
     /// Get the initial value of the function
-    double GetStartValue() { return m_val_start; }
+    double GetStartVal() { return m_val_start; }
 
     /// Get the end value of the function
     double GetEndVal() { return m_val_end; }

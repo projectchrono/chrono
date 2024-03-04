@@ -90,19 +90,19 @@ void ChFunctionPositionSetpoint::SetSetpoint(ChVector3d p_setpoint, double s) {
 }
 
 
-ChVector3d ChFunctionPositionSetpoint::GetVal(double s) const {
+ChVector3d ChFunctionPositionSetpoint::GetPos(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return P;
     return P + P_ds * (s - S) + P_dsds * pow((s - S), 2);
 }
 
-ChVector3d ChFunctionPositionSetpoint::GetDer(double s) const {
+ChVector3d ChFunctionPositionSetpoint::GetLinVel(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return P_ds;
     return P_ds + P_dsds * (s - S);
 }
 
-ChVector3d ChFunctionPositionSetpoint::GetDer2(double s) const {
+ChVector3d ChFunctionPositionSetpoint::GetLinAcc(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return P_dsds;
     return P_dsds;

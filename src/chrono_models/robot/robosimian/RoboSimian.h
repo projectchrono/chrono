@@ -347,10 +347,10 @@ class CH_MODELS_API RS_Limb {
     chrono::ChVector3d GetWheelAngVelocity() const { return m_wheel->GetBody()->GetAngVelLocal(); }
 
     /// Get wheel angle.
-    double GetWheelAngle() const { return m_wheel_motor->GetMotorRot(); }
+    double GetWheelAngle() const { return m_wheel_motor->GetMotorAngle(); }
 
     /// Get wheel angular speed.
-    double GetWheelOmega() const { return m_wheel_motor->GetMotorRot_dt(); }
+    double GetWheelOmega() const { return m_wheel_motor->GetMotorAngleDer(); }
 
     /// Get angle for specified motor.
     /// Motors are named "joint1", "joint2", ... , "joint8", starting at the chassis.

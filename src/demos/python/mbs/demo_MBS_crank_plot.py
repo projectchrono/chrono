@@ -133,7 +133,7 @@ while vis.Run():
     
     # for plotting, append instantaneous values:
     array_time.append(sys.GetChTime())
-    array_angle.append(my_motor.GetMotorRot())
+    array_angle.append(my_motor.GetMotorAngle())
     array_pos.append(mpiston.GetPos().x)
     array_speed.append(mpiston.GetPosDer().x)
     

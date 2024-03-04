@@ -127,7 +127,7 @@ void ChShaftsMotor::IntLoadConstraint_C(const unsigned int off_L,  // offset in 
             res = 0;  // no need to stabilize positions
 
         if (motor_mode == MOT_MODE_ROTATION)
-            res = c * (GetMotorRot() - motor_set_rot);
+            res = c * (GetMotorAngle() - motor_set_rot);
 
         if (do_clamp) {
             res = std::min(std::max(res, -recovery_clamp), recovery_clamp);
@@ -193,7 +193,7 @@ void ChShaftsMotor::ConstraintsBiLoad_C(double factor, double recovery_clamp, bo
             res = 0;  // no need to stabilize positions
 
         if (motor_mode == MOT_MODE_ROTATION)
-            res = GetMotorRot() - motor_set_rot;
+            res = GetMotorAngle() - motor_set_rot;
 
         constraint.Set_b_i(constraint.Get_b_i() + factor * res);
     }

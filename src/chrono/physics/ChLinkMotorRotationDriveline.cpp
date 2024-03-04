@@ -246,7 +246,7 @@ void ChLinkMotorRotationDriveline::IntLoadConstraint_C(const unsigned int off_L,
     //innerconstraint1->IntLoadConstraint_C(off_L + nc + 0, Qc, c, do_clamp, recovery_clamp);
     //innerconstraint2->IntLoadConstraint_C(off_L + nc + 1, Qc, c, do_clamp, recovery_clamp);
     // ...and compute custom violation C:
-    double cnstr_rot_error =  this->GetMotorRot() - (this->innershaft1->GetPos() - this->innershaft2->GetPos());
+    double cnstr_rot_error =  this->GetMotorAngle() - (this->innershaft1->GetPos() - this->innershaft2->GetPos());
 
     double cnstr_violation = c * cnstr_rot_error;
 

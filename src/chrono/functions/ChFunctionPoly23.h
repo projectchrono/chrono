@@ -48,10 +48,10 @@ class ChApi ChFunctionPoly23 : public ChFunction {
     virtual double GetDer2(double x) const override;
 
     /// Set the start of the step: GetVal(x_start) = 0.
-    void SetStart(double x_start) { m_x_start = x_start; }
+    void SetStartArg(double x_start) { m_x_start = x_start; }
 
     /// Set the end of the step: GetVal(x_end) = amplitude.
-    void SetEnd(double x_end) { m_x_end = x_end; }
+    void SetEndArg(double x_end) { m_x_end = x_end; }
 
     /// Set the value of the function at the end of the step.
     void SetAmplitude(double ampl) { m_ampl = ampl; }

@@ -37,7 +37,7 @@ are the Z directions** of two auxiliary frames F1 and F2 connected to the two pa
 
 ![](http://www.projectchrono.org/assets/manual/pic_ChLinkMotorRotation.png)
 
-Reactions and joint rotations/velocities are computed with respect to the *master frame*, that is frame F2. For example use ChLinkMotorRotation::GetMotorRot(), ChLinkMotorRotation::GetMotorRot_dt() and ChLinkMotorRotation::GetMotorRot_dtdt() to get the current motor angle, angular velocity, angular acceleration. Note that the angle is computed by keeping track of multiple rotations, so it is not limited in the -PI..+PI periodic range; otherwise you might use GetMotorRotPeriodic() and GetMotorRotTurns().
+Reactions and joint rotations/velocities are computed with respect to the *master frame*, that is frame F2. For example use ChLinkMotorRotation::GetMotorAngle(), ChLinkMotorRotation::GetMotorAngleDer() and ChLinkMotorRotation::GetMotorAngleDer2() to get the current motor angle, angular velocity, angular acceleration. Note that the angle is computed by keeping track of multiple rotations, so it is not limited in the -PI..+PI periodic range; otherwise you might use GetMotorAngleWrapped() and GetMotorNumTurns().
 
 Note that angles are considered in [rad], not in degrees!. Ex. a 180° turn = PI [rad] = 3.1415 [rad] etc. Same for angular velocity, that is [rad/s], and angular acceleration, that is in [rad/s^2].
 
@@ -269,7 +269,7 @@ public:
 
     virtual double GetVal(double x) const override { 
         // The three-phase torque(speed) model
-        double w = mymotor->GetMotorRot_dt(); 
+        double w = mymotor->GetMotorAngleDer(); 
         double s = (ns-w)/ns;// slip
         double T = (3.0/2*CH_C_PI*ns)*(s * E2*E2 * R2) / (R2*R2 + pow(s*X2,2)); // electric torque curve
         T -= w*5; // simulate also a viscous brake
@@ -426,7 +426,7 @@ They assume that a part A translates about a part B, where **the guide is the X 
 
 ![](http://www.projectchrono.org/assets/manual/pic_ChLinkMotorLinear.png)
 
-Reactions and joint rotations/velocities are computed with respect to the *master frame*, that is frame F2. For example use ChLinkMotorLinear::GetMotorPos(), ChLinkMotorRotation::GetMotorPos_dt() and ChLinkMotorRotation::GetMotorPos_dtdt() to get the current motor displacement, velocity, acceleration. 
+Reactions and joint rotations/velocities are computed with respect to the *master frame*, that is frame F2. For example use ChLinkMotorLinear::GetMotorPos(), ChLinkMotorRotation::GetMotorPosDer() and ChLinkMotorRotation::GetMotorPosDer2() to get the current motor displacement, velocity, acceleration. 
 
 By default, all linear motors also provide a prismatic constraint for the other relative degrees of freedom (translation about **Y**,**Z** and rotation about **RX**, **RY, **RZ**, except rotation translation Z that is the one controlled by the motor) so you do not need to create additional joints, like ChLinkLockPrismatic for example, to keep the two parts together. Anyway, if you prefer, this behavior can be changed by using the ChLinkMotorLinear::SetGuideConstraint() function, that can accept the following options:
 

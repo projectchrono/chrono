@@ -328,8 +328,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_x_start                   | rename: GetEnd                                   |
 |                                   | Set_C_start                   | rename: SetOffsetVal                             |
 |                                   | Set_num_samples               | rename: SetNumSamples                            |
-|                                   | Set_x_end                     | rename: SetEnd                                   |
-|                                   | Set_x_start                   | rename: SetStart                                 |
+|                                   | Set_x_end                     | rename: SetEndArg                                |
+|                                   | Set_x_start                   | rename: SetStartArg                              |
 | ChFunction_Lambda                 |                               | rename: ChFunctionLambda                         |
 | ChFunction_Mirror                 |                               | rename: ChFunctionMirror                         |
 |                                   | Get_mirror_axis               | rename: GetMirrorAxis                            |  
@@ -387,9 +387,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetP2                         | rename: SetSecondPoint                           |
 | ChFunction_Setpoint               |                               | rename: ChFunctionSetpoint                       |
 | ChFunctionPosition                |                               |                                                  |
-|                                   | Get_p                         | rename: GetVal                                   |
-|                                   | Get_p_ds                      | rename: GetDer                                   |
-|                                   | Get_p_dsds                    | rename: GetDer2                                  |
+|                                   | Get_p                         | rename: GetPos                                   |
+|                                   | Get_p_ds                      | rename: GetLinVel                                |
+|                                   | Get_p_dsds                    | rename: GetLinAcc                                |
 | ChFunctionPosition                |                               |                                                  |
 |                                   | Get_q                         | rename: GetQuat                                  |
 |                                   | Get_w_loc                     | rename: GetAngVel                                |
@@ -426,6 +426,15 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetRelativePos_dt             | rename: GetRelativePosDer                        |
 |                                   | GetRelativePos_dtdt           | rename: GetRelativePosDer2                       |
 | ChLinkMateXdistance               |                               | rename: ChLinkMateDistanceZ                      |
+| ChLinkMotorPosition               |                               |                                                  |
+|                                   | GetMotorPos_dt                | rename: GetMotorPosDer                           |
+|                                   | GetMotorPos_dtdt              | rename: GetMotorPosDer2                          |
+| ChLinkMotorRotation               |                               |                                                  |
+|                                   | GetMotorRot                   | rename: GetMotorAngle                            |
+|                                   | GetMotorRot_dt                | rename: GetMotorAngleDer                         |
+|                                   | GetMotorRot_dtdt              | rename: GetMotorAngleDer2                        |
+|                                   | GetMotorRotPeriodic           | rename: GetMotorAngleWrapped                     |
+|                                   | GetMotorRotTurns              | rename: GetMotorNumTurns                         |
 | ChLinkPointSpline                 |                               | rename: ChLinkLockPointSpline                    |
 | ChLinkPulley                      |                               | rename: ChLinkLockPulley                         |
 | ChLinkScrew                       |                               | rename: ChLinkLockScrew                          |
@@ -436,8 +445,8 @@ Note that this represents a major public API change and we expect most user code
 | ChMarker                          |                               |                                                  |
 |                                   | Dir_Ref2World                 | remove                                           |
 |                                   | Dir_World2Ref                 | remove                                           |
-|                                   | GetAbsWvel                    | rename: GetabsAngVel                             |
-|                                   | GetAbsWacc                    | rename: GetabsAngAcc                             |
+|                                   | GetAbsWvel                    | rename: GetAngVelAbs                             |
+|                                   | GetAbsWacc                    | rename: GetAngAccAbs                             |
 |                                   | GetAbsCoord                   | rename: GetAbsCsys                               |
 |                                   | GetAbsCoord_dt                | rename: GetAbsCsysDer                            |
 |                                   | GetAbsCoord_dtdt              | rename: GetAbsCsysDer2                           |

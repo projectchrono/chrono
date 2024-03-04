@@ -62,14 +62,14 @@ class ChApi ChFunctionPositionXYZFunctions : public ChFunctionPosition {
 		return this->pz;
 	}
 
-    /// Return the p value of the function, at s, as p=f(s).
-	virtual ChVector3d GetVal(double s) const override;
+    /// Return the position imposed by the function, at \a s.
+    virtual ChVector3d GetPos(double s) const override;
 
-    /// Return the dp/ds derivative of the function, at s.
-	virtual ChVector3d GetDer(double s) const override;
+    /// Return the linear velocity imposed by the function, at \a s.
+    virtual ChVector3d GetLinVel(double s) const override;
 
-    /// Return the ddp/dsds double derivative of the function, at s.
-    virtual ChVector3d GetDer2(double s) const override;
+    /// Return the linear acceleration imposed the function, at \a s.
+    virtual ChVector3d GetLinAcc(double s) const override;
    
     /// Method to allow serialization of transient data to archives
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

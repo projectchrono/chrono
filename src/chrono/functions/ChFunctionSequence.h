@@ -65,11 +65,11 @@ CH_CLASS_VERSION(ChFseqNode, 0)
 /// All other function types can be inserted into this.
 class ChApi ChFunctionSequence : public ChFunction {
   private:
-    std::list<ChFseqNode> functions;  ///< the list of sub functions
-    double start;                     ///< start time for sequence
+    std::list<ChFseqNode> m_functions;  ///< the list of sub functions
+    double m_start;                     ///< start time for sequence
 
   public:
-    ChFunctionSequence() : start(0) {}
+    ChFunctionSequence() : m_start(0) {}
     ChFunctionSequence(const ChFunctionSequence& other);
     ~ChFunctionSequence() {}
 
@@ -83,13 +83,13 @@ class ChApi ChFunctionSequence : public ChFunction {
     virtual double GetDer2(double x) const override;
 
     /// The sequence of functions starts at this x value.
-    void SetStart(double m_start) { start = m_start; }
+    void SetStartArg(double start) { m_start = start; }
 
     /// The sequence of functions starts at this x value.
-    double GetStart() const { return start; }
+    double GetStartArg() const { return m_start; }
 
     /// Access the list of the sub-functions.
-    std::list<ChFseqNode>& GetFunctions() { return functions; }
+    std::list<ChFseqNode>& GetFunctions() { return m_functions; }
 
     /// Scans all the seq.of functions and setup the timings and continuity
     /// offsets, to satisfy all constraints.

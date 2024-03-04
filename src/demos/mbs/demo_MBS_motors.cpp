@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
 
         virtual double GetVal(double x) const override {
             // The three-phase torque(speed) model
-            double w = mymotor->GetMotorRot_dt();
+            double w = mymotor->GetMotorAngleDer();
             double s = (ns - w) / ns;  // slip
             double T =
                 (3.0 / 2 * CH_C_PI * ns) * (s * E2 * E2 * R2) / (R2 * R2 + pow(s * X2, 2));  // electric torque curve
@@ -375,9 +375,9 @@ int main(int argc, char* argv[]) {
     // in the  while() {...} simulation loop:
     //
     // std::cout << " 1D shaft 'A' angular speed: "      << my_shaftA->GetPosDer() << " [rad/s]" << std::endl;
-    // std::cout << " 1D Drive angular speed: rot-stat " << my_drive->GetMotorRot_dt() << " [rad/s]" << std::endl;
+    // std::cout << " 1D Drive angular speed: rot-stat " << my_drive->GetMotorAngleDer() << " [rad/s]" << std::endl;
     // std::cout << " 1D Drive torque: "                 << my_drive->GetMotorTorque() << " [Ns]" << std::endl;
-    // std::cout << " 3D motor angular speed: rot-stat " << rotmotor5->GetMotorRot_dt() << " [rad/s]" << std::endl;
+    // std::cout << " 3D motor angular speed: rot-stat " << rotmotor5->GetMotorAngleDer() << " [rad/s]" << std::endl;
     // std::cout << " 3D motor torque: "                 << rotmotor5->GetMotorTorque() << " [Ns]" << std::endl;
     // etc.
 
@@ -714,7 +714,7 @@ int main(int argc, char* argv[]) {
     // in the  while() {...} simulation loop:
     //
     // std::cout << " 1D shaft 'B' angular speed: "      << my_shaftB->GetPosDer() << " [rad/s]" << std::endl;
-    // std::cout << " 1D Drive angular speed: rot-stat " << my_driveli->GetMotorRot_dt() << " [rad/s]" << std::endl;
+    // std::cout << " 1D Drive angular speed: rot-stat " << my_driveli->GetMotorAngleDer() << " [rad/s]" << std::endl;
     // std::cout << " 1D Drive torque: "                 << my_driveli->GetMotorTorque() << " [Ns]" << std::endl;
     // std::cout << " 3D actuator speed: rot-stat " << motor5->GetMotorPos() << " [rad/s]" << std::endl;
     // std::cout << " 3D actuator force: "                 << motor5->GetMotorForce() << " [Ns]" << std::endl;

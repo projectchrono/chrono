@@ -101,8 +101,8 @@ void ChFseqNode::ArchiveIn(ChArchiveIn& archive_in) {
 CH_FACTORY_REGISTER(ChFunctionSequence)
 
 ChFunctionSequence::ChFunctionSequence(const ChFunctionSequence& other) {
-    start = other.start;
-    functions = other.functions;
+    m_start = other.m_start;
+    m_functions = other.m_functions;
 }
 
 bool ChFunctionSequence::InsertFunct(std::shared_ptr<ChFunction> myfx,
@@ -121,22 +121,22 @@ bool ChFunctionSequence::InsertFunct(std::shared_ptr<ChFunction> myfx,
     bool inserted = false;
 
     if (index == -1) {
-        functions.push_back(mfxsegment);
+        m_functions.push_back(mfxsegment);
         inserted = true;
     }
     if (!inserted) {
         std::list<ChFseqNode>::iterator iter;
         size_t i = 0;
-        for (iter = functions.begin(); iter != functions.end(); ++iter, ++i) {
+        for (iter = m_functions.begin(); iter != m_functions.end(); ++iter, ++i) {
             if (i == index) {
-                functions.insert(iter, mfxsegment);
+                m_functions.insert(iter, mfxsegment);
                 inserted = true;
                 break;
             }
         }
     }
     if (!inserted) {
-        functions.push_back(mfxsegment);
+        m_functions.push_back(mfxsegment);
     }
     // update the continuity offsets and timings
     this->Setup();
@@ -144,21 +144,21 @@ bool ChFunctionSequence::InsertFunct(std::shared_ptr<ChFunction> myfx,
 }
 
 bool ChFunctionSequence::RemoveFunct(int index) {
-    if (functions.size() == 0)
+    if (m_functions.size() == 0)
         return false;
-    if ((index == -1) || (index > functions.size())) {
-        functions.erase(functions.end());
+    if ((index == -1) || (index > m_functions.size())) {
+        m_functions.erase(m_functions.end());
         return true;
     }
     if (index == 0) {
-        functions.erase(functions.begin());
+        m_functions.erase(m_functions.begin());
         return true;
     }
     std::list<ChFseqNode>::iterator iter;
     size_t i = 1;
-    for (iter = functions.begin(); iter != functions.end(); ++iter, ++i) {
+    for (iter = m_functions.begin(); iter != m_functions.end(); ++iter, ++i) {
         if (i == index) {
-            functions.erase(iter);
+            m_functions.erase(iter);
             this->Setup();
             return true;
         }
@@ -183,16 +183,16 @@ double ChFunctionSequence::GetWidth(int index) {
 }
 
 ChFseqNode* ChFunctionSequence::GetNode(int index) {
-    if (functions.size() == 0)
+    if (m_functions.size() == 0)
         return 0;
-    if ((index == -1) || (index > functions.size())) {
-        return &(*(functions.end()));
+    if ((index == -1) || (index > m_functions.size())) {
+        return &(*(m_functions.end()));
     }
     if (index == 0) {
-        return &(*(functions.begin()));
+        return &(*(m_functions.begin()));
     }
     size_t i = 1;
-    for (auto iter = functions.begin(); iter != functions.end(); ++iter, ++i) {
+    for (auto iter = m_functions.begin(); iter != m_functions.end(); ++iter, ++i) {
         if (i == index) {
             return &(*iter);
         }
@@ -201,13 +201,13 @@ ChFseqNode* ChFunctionSequence::GetNode(int index) {
 }
 
 void ChFunctionSequence::Setup() {
-    double basetime = this->start;
+    double basetime = this->m_start;
     double lastIy = 0;
     double lastIy_dt = 0;
     double lastIy_dtdt = 0;
 
     std::list<ChFseqNode>::iterator iter_next;
-    for (auto iter = functions.begin(); iter != functions.end(); ++iter) {
+    for (auto iter = m_functions.begin(); iter != m_functions.end(); ++iter) {
         iter->t_start = basetime;
         iter->t_end = basetime + iter->duration;
         iter->Iy = 0;
@@ -220,7 +220,7 @@ void ChFunctionSequence::Setup() {
 
             iter_next = iter;
             ++iter_next;
-            if (iter_next != functions.end()) {
+            if (iter_next != m_functions.end()) {
                 mfillet->SetEndVal(iter_next->fx->GetVal(0));
                 mfillet->SetEndDer(iter_next->fx->GetDer(0));
             } else {
@@ -252,7 +252,7 @@ void ChFunctionSequence::Setup() {
 double ChFunctionSequence::GetVal(double x) const {
     double res = 0;
     double localtime;
-    for (auto iter = functions.begin(); iter != functions.end(); ++iter) {
+    for (auto iter = m_functions.begin(); iter != m_functions.end(); ++iter) {
         if ((x >= iter->t_start) && (x < iter->t_end)) {
             localtime = x - iter->t_start;
             res = iter->fx->GetVal(localtime) + iter->Iy + iter->Iydt * localtime + iter->Iydtdt * localtime * localtime;
@@ -264,7 +264,7 @@ double ChFunctionSequence::GetVal(double x) const {
 double ChFunctionSequence::GetDer(double x) const {
     double res = 0;
     double localtime;
-    for (auto iter = functions.begin(); iter != functions.end(); ++iter) {
+    for (auto iter = m_functions.begin(); iter != m_functions.end(); ++iter) {
         if ((x >= iter->t_start) && (x < iter->t_end)) {
             localtime = x - iter->t_start;
             res = iter->fx->GetDer(localtime) + iter->Iydt + iter->Iydtdt * localtime;
@@ -276,7 +276,7 @@ double ChFunctionSequence::GetDer(double x) const {
 double ChFunctionSequence::GetDer2(double x) const {
     double res = 0;
     double localtime;
-    for (auto iter = functions.begin(); iter != functions.end(); ++iter) {
+    for (auto iter = m_functions.begin(); iter != m_functions.end(); ++iter) {
         if ((x >= iter->t_start) && (x < iter->t_end)) {
             localtime = x - iter->t_start;
             res = iter->fx->GetDer2(localtime) + iter->Iydtdt;
@@ -287,7 +287,7 @@ double ChFunctionSequence::GetDer2(double x) const {
 
 double ChFunctionSequence::GetWeight(double x) const {
     double res = 1.0;
-    for (auto iter = functions.begin(); iter != functions.end(); ++iter) {
+    for (auto iter = m_functions.begin(); iter != m_functions.end(); ++iter) {
         if ((x >= iter->t_start) && (x < iter->t_end)) {
             res = iter->weight;
         }
@@ -301,8 +301,8 @@ void ChFunctionSequence::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize parent class
     ChFunction::ArchiveOut(archive_out);
     // serialize all member data:
-    archive_out << CHNVP(start);
-    archive_out << CHNVP(functions);
+    archive_out << CHNVP(m_start);
+    archive_out << CHNVP(m_functions);
 }
 
 void ChFunctionSequence::ArchiveIn(ChArchiveIn& archive_in) {
@@ -311,8 +311,8 @@ void ChFunctionSequence::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize parent class
     ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
-    archive_in >> CHNVP(start);
-    archive_in >> CHNVP(functions);
+    archive_in >> CHNVP(m_start);
+    archive_in >> CHNVP(m_functions);
 }
 
 }  // end namespace chrono

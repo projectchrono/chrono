@@ -1303,7 +1303,7 @@ double RS_Limb::GetMotorAngle(const std::string& motor_name) const {
         return 0;
     }
 
-    return itr->second->GetMotorRot();
+    return itr->second->GetMotorAngle();
 }
 
 double RS_Limb::GetMotorOmega(const std::string& motor_name) const {
@@ -1313,7 +1313,7 @@ double RS_Limb::GetMotorOmega(const std::string& motor_name) const {
         return 0;
     }
 
-    return itr->second->GetMotorRot_dt();
+    return itr->second->GetMotorAngleDer();
 }
 
 double RS_Limb::GetMotorTorque(const std::string& motor_name) const {
@@ -1339,7 +1339,7 @@ std::array<double, 8> RS_Limb::GetMotorAngles() {
     std::array<double, 8> result;
 
     for (int i = 0; i < 8; i++) {
-        result[i] = m_motors[motor_names[i]]->GetMotorRot();
+        result[i] = m_motors[motor_names[i]]->GetMotorAngle();
     }
 
     return result;
@@ -1349,7 +1349,7 @@ std::array<double, 8> RS_Limb::GetMotorOmegas() {
     std::array<double, 8> result;
 
     for (int i = 0; i < 8; i++) {
-        result[i] = m_motors[motor_names[i]]->GetMotorRot_dt();
+        result[i] = m_motors[motor_names[i]]->GetMotorAngleDer();
     }
 
     return result;

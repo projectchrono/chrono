@@ -49,13 +49,16 @@ class ChApi ChLinkMotorLinear : public ChLinkMotor {
     /// this option.
     void SetGuideConstraint(bool mc_x, bool mc_y, bool mc_rx, bool mc_ry, bool mc_rz);
 
-    /// Get the current actuator displacement [m], including error etc.
+    /// Get the current actuator displacement.
     virtual double GetMotorPos() const { return mpos; }
-    /// Get the current actuator speed [m/s], including error etc.
-    virtual double GetMotorPos_dt() const { return mpos_dt; }
-    /// Get the current actuator acceleration [m/s^2], including error etc.
-    virtual double GetMotorPos_dtdt() const { return mpos_dtdt; }
-    /// Get the current actuator reaction force [N]
+
+    /// Get the current actuator velocity.
+    virtual double GetMotorPosDer() const { return mpos_dt; }
+
+    /// Get the current actuator acceleration.
+    virtual double GetMotorPosDer2() const { return mpos_dtdt; }
+
+    /// Get the current actuator reaction force.
     virtual double GetMotorForce() const = 0;
 
     void Update(double mytime, bool update_assets) override;

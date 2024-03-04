@@ -55,7 +55,7 @@ class ChApi ChFunction {
         SINE_STEP
     };
 
-    ChFunction() : m_der_perturbation(1e-7) {}
+    ChFunction() {}
 
     ChFunction(const ChFunction& other) {}
 
@@ -139,12 +139,6 @@ class ChApi ChFunction {
     /// itself). Store interval x=[xmin:step:xmax] and function evaluations as columns into matrix.
     virtual ChMatrixDynamic<> SampleUpToDerN(double xmin, double xmax, double step, int derN = 0);
 
-    /// Set the perturbation value used for numerical differentiation (default: 1e-7).
-    void SetNumericDiffPerturbation(double pert) { m_der_perturbation = pert; }
-
-    /// Get the perturbation value used for numerical differentiation.
-    double GetNumericDiffPerturbation() const { return m_der_perturbation; }
-
     /// Alias operator of the GetVal function
     double operator()(double arg) const { return GetVal(arg); }
 
@@ -154,8 +148,6 @@ class ChApi ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in);
 
-  protected:
-    double m_der_perturbation;  ///< perturbation value used for numerical differentiation
 };
 
 /// @} chrono_functions

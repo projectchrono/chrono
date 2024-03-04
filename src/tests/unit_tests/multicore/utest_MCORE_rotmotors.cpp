@@ -85,7 +85,7 @@ TEST_P(RotMotors, simulate) {
     while (system->GetChTime() < 2) {
         system->DoStepDynamics(1e-3);
         if (system->GetChTime() > 0.1) {
-            ASSERT_NEAR(motor->GetMotorRot_dt(), opts.speed, 1e-6);
+            ASSERT_NEAR(motor->GetMotorAngleDer(), opts.speed, 1e-6);
         }
     }
 }

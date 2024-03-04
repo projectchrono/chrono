@@ -47,9 +47,6 @@ class ChApi ChFunctionRotation {
     /// "Virtual" copy constructor.
     virtual ChFunctionRotation* Clone() const = 0;
 
-    // THE MOST IMPORTANT MEMBER FUNCTIONS
-    // At least GetVal() should be overridden by derived classes.
-
     /// Return the rotation as a quaternion, function of s, as q=f(s).
     virtual ChQuaternion<> GetQuat(double s) const = 0;
 
@@ -71,9 +68,6 @@ class ChApi ChFunctionRotation {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in);
-
-  protected:
-    double m_der_perturbation;  ///< perturbation value used for numerical differentiation
 };
 
 /// @} chrono_functions

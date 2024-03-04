@@ -416,7 +416,7 @@ class MySimpleCar {
         // the speed of the engine transmission shaft is the average of the two wheel speeds,
         // multiplied the conic gear transmission ratio inversed:
         double shaftspeed =
-            (1.0 / this->conic_tau) * 0.5 * (link_motorL->GetMotorRot_dt() + link_motorR->GetMotorRot_dt());
+            (1.0 / this->conic_tau) * 0.5 * (link_motorL->GetMotorAngleDer() + link_motorR->GetMotorAngleDer());
         // The motorspeed is the shaft speed multiplied by gear ratio inversed:
         double motorspeed = (1.0 / this->gear_tau) * shaftspeed;
         // The torque depends on speed-torque curve of the motor: here we assume a

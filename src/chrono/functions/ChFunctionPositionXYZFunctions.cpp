@@ -44,21 +44,21 @@ ChFunctionPositionXYZFunctions::~ChFunctionPositionXYZFunctions() {
 
 
 
-ChVector3d ChFunctionPositionXYZFunctions::GetVal(double s) const {
+ChVector3d ChFunctionPositionXYZFunctions::GetPos(double s) const {
 	return ChVector3d(
 		px->GetVal(s), 
 		py->GetVal(s), 
 		pz->GetVal(s));
 }
 
-ChVector3d ChFunctionPositionXYZFunctions::GetDer(double s) const {
+ChVector3d ChFunctionPositionXYZFunctions::GetLinVel(double s) const {
 	return ChVector3d(
 		px->GetDer(s), 
 		py->GetDer(s), 
 		pz->GetDer(s));
 }
 
-ChVector3d ChFunctionPositionXYZFunctions::GetDer2(double s) const {
+ChVector3d ChFunctionPositionXYZFunctions::GetLinAcc(double s) const {
 	return ChVector3d(
 		px->GetDer2(s), 
 		py->GetDer2(s), 

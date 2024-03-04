@@ -36,7 +36,7 @@ namespace chrono {
 ///    p = f(s)
 ///
 /// where p is a 3D vector (ex. a position) and s is a scalar (ex. time)
-/// Inherited classes must override at least the GetVal() method.
+/// Inherited classes must override at least the GetPos() method.
 
 class ChApi ChFunctionPosition {
   public:
@@ -48,23 +48,17 @@ class ChApi ChFunctionPosition {
     virtual ChFunctionPosition* Clone() const = 0;
 
     /// Return the value of the function, at \a s.
-    virtual ChVector3d GetVal(double s) const = 0;
+    virtual ChVector3d GetPos(double s) const = 0;
 
-    /// Return the first derivative of the function.
+    /// Return the linear velocity imposed by the function.
     /// Default implementation computes a numerical differentiation.
     /// Inherited classes may override this method with a more efficient implementation (e.g. analytical solution).
-    virtual ChVector3d GetDer(double s) const;
+    virtual ChVector3d GetLinVel(double s) const;
 
-    /// Return the second derivative of the function.
+    /// Return the linear acceleration imposed by the function.
     /// Default implementation computes a numerical differentiation.
     /// Inherited classes may override this method with a more efficient implementation (e.g. analytical solution).
-    virtual ChVector3d GetDer2(double s) const;
-
-    /// Set the perturbation value used for numerical differentiation (default: 1e-7).
-    void SetNumericDiffPerturbation(double pert) { m_der_perturbation = pert; }
-
-    /// Get the perturbation value used for numerical differentiation.
-    double GetNumericDiffPerturbation() const { return m_der_perturbation; }
+    virtual ChVector3d GetLinAcc(double s) const;
 
     /// Update could be implemented by children classes, ex. to launch callbacks
     virtual void Update(double t) {}
@@ -74,9 +68,6 @@ class ChApi ChFunctionPosition {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in);
-
-  protected:
-    double m_der_perturbation;  ///< perturbation value used for numerical differentiation
 };
 
 /// @} chrono_functions

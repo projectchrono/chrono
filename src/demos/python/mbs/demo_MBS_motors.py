@@ -239,7 +239,7 @@ class MyTorqueCurve(chrono.ChFunction) :
 
   def GetVal(self, x) :
         # The three-phase torque(speed) model
-        w = self.mymotor.GetMotorRot_dt()
+        w = self.mymotor.GetMotorAngleDer()
         s = (self.ns - w) / self.ns  # slip
         T = (3.0 / 2 * chrono.CH_C_PI * self.ns) * (s * self.E2 * self.E2 * self.R2) / (self.R2 * self.R2 + pow(s * self.X2, 2))  # electric torque curve
         T -= w * 5  # simulate also a viscous brake
@@ -369,7 +369,7 @@ motor1 = chrono.ChLinkMotorLinearPosition()
 # Connect the guide and the slider and add the motor to the sys:
 motor1.Initialize(slider1,               # body A (slave)
                    guide1,                # body B (master)
-                   chrono.ChFramed(positionB1)  # motor frame, in abs. coords
+                   chrono.ChFramed(positionB1, chrono.Q_ROTATE_Z_TO_X)  # motor frame, in abs. coords
 )
 sys.Add(motor1)
 
@@ -408,7 +408,7 @@ motor2 = chrono.ChLinkMotorLinearSpeed()
 # Connect the guide and the slider and add the motor to the sys:
 motor2.Initialize(slider2,               # body A (slave)
                    guide2,                # body B (master)
-                   chrono.ChFramed(positionB2) ) # motor frame, in abs. coords
+                   chrono.ChFramed(positionB2, chrono.Q_ROTATE_Z_TO_X) ) # motor frame, in abs. coords
 
 sys.Add(motor2)
 
@@ -462,7 +462,7 @@ motor3 = chrono.ChLinkMotorLinearForce()
 # Connect the guide and the slider and add the motor to the sys:
 motor3.Initialize(slider3,               # body A (slave)
                    guide3,                # body B (master)
-                   chrono.ChFramed(positionB3) ) # motor frame, in abs. coords
+                   chrono.ChFramed(positionB3, chrono.Q_ROTATE_Z_TO_X) ) # motor frame, in abs. coords
 
 sys.Add(motor3)
 
@@ -494,7 +494,7 @@ motor4 = chrono.ChLinkMotorLinearForce()
 # Connect the guide and the slider and add the motor to the sys:
 motor4.Initialize(slider4,                       # body A (slave)
                   guide4,                       # body B (master)
-                  chrono.ChFramed(positionB4))  # motor frame, in abs. coords
+                  chrono.ChFramed(positionB4, chrono.Q_ROTATE_Z_TO_X))  # motor frame, in abs. coords
 
 sys.Add(motor4)
 
@@ -707,7 +707,7 @@ motor6 = chrono.ChLinkMotorLinearPosition()
 # Connect the guide and the slider and add the motor to the sys:
 motor6.Initialize(slider6,               # body A (slave)
                    guide6,                # body B (master)
-                   chrono.ChFramed(positionB6) ) # motor frame, in abs. coords
+                   chrono.ChFramed(positionB6, chrono.Q_ROTATE_Z_TO_X) ) # motor frame, in abs. coords
 
 sys.Add(motor6)
 
@@ -741,6 +741,7 @@ solver = chrono.ChSolverPSOR()
 solver.SetMaxIterations(50)
 sys.SetSolver(solver)
 
+timer = chrono.ChRealtimeStepTimer()
 while vis.Run():
     # Example B.6 requires the setpoto be changed in the simulation loop:
     # for example use a clamped sinusoid, just for fun:
@@ -752,3 +753,4 @@ while vis.Run():
     vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(5e-3)
+    timer.Spin(5e-3)
