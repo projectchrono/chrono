@@ -61,6 +61,9 @@ class ChApi ChVisualSystem {
     /// occur after the visualization system was attached to the Chrono system.
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) {}
 
+    /// Remove the visual assets for the specified physics item from this visualization system.
+    virtual void UnbindItem(std::shared_ptr<ChPhysicsItem> item) {}
+
     /// Add a camera to the 3D scene.
     /// Return an ID which can be used later to modify camera location and/or target points.
     /// A concrete visualization system may or may not support multiuple cameras.

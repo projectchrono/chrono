@@ -680,6 +680,16 @@ void ChVisualSystemIrrlicht::BindAll() {
     CreateIrrNodes(&m_systems[0]->GetAssembly(), trace);
 }
 
+void ChVisualSystemIrrlicht::UnbindItem(std::shared_ptr<ChPhysicsItem> item) {
+    auto node = m_nodes.find(item.get());
+    if (node != m_nodes.end()) {
+        node->second->removeAll();
+        node->second->remove();
+    }
+}
+
+// -----------------------------------------------------------------------------
+
 int ChVisualSystemIrrlicht::AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) {
     if (!m_device)
         return -1;
@@ -702,6 +712,8 @@ int ChVisualSystemIrrlicht::AddVisualModel(std::shared_ptr<ChVisualShape> shape,
     model->AddShape(shape);
     return AddVisualModel(model, frame);
 }
+
+// -----------------------------------------------------------------------------
 
 void ChVisualSystemIrrlicht::UpdateVisualModel(int id, const ChFrame<>& frame) {
     assert(id >= 0 && id < m_vis_nodes.size());

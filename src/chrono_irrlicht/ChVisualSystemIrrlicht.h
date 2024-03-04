@@ -270,6 +270,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// occur after the call to Initialize().
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) override;
 
+    /// Remove the visual assets for the specified physics item from this visualization system.
+    virtual void UnbindItem(std::shared_ptr<ChPhysicsItem> item) override;
+
     /// Add a visual model not associated with a physical item.
     /// Return a model ID which can be used later to modify the position of this visual model.
     virtual int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) override;
