@@ -159,22 +159,25 @@ void ChCollisionSystemBullet::Remove(std::shared_ptr<ChCollisionModel> model) {
         return;
 
     auto bt_model = (ChCollisionModelBullet*)model->GetImplementation();
-    Remove(bt_model);
+    Remove(bt_model, true);
     model->RemoveImplementation();
 }
 
-void ChCollisionSystemBullet::Remove(ChCollisionModelBullet* bt_model) {
+void ChCollisionSystemBullet::Remove(ChCollisionModelBullet* bt_model, bool erase) {
     if (bt_model->GetBulletObject()->getCollisionShape()) {
         bt_collision_world->removeCollisionObject(bt_model->GetBulletObject());
     }
 
-    auto pos = std::find_if(bt_models.begin(), bt_models.end(),                                                    //
-                            [bt_model](std::shared_ptr<ChCollisionModelBullet> x) { return x.get() == bt_model; }  //
-    );
-    if (pos != bt_models.end())
-        bt_models.erase(pos);
-    else
-        std::cout << "ChCollisionSystemBullet::Remove - Cannot find specified model!" << std::endl;
+    if (erase) {
+        auto pos =
+            std::find_if(bt_models.begin(), bt_models.end(),                                                    //
+                         [bt_model](std::shared_ptr<ChCollisionModelBullet> x) { return x.get() == bt_model; }  //
+            );
+        if (pos != bt_models.end())
+            bt_models.erase(pos);
+        else
+            std::cout << "ChCollisionSystemBullet::Remove - Cannot find specified model!" << std::endl;
+    }
 }
 
 void ChCollisionSystemBullet::Run() {

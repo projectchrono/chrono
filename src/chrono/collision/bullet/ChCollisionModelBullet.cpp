@@ -644,7 +644,7 @@ void ChCollisionModelBullet::OnFamilyChange(short int family_group, short int fa
 
     // The only way to change the collision filters in Bullet is to remove the object and add it back in!
     // No need to remove association with the owning ChCollisionModel.
-    coll_sys->Remove(this);
+    coll_sys->Remove(this, false);
     coll_sys->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object.get(), family_group, family_mask);
 }
 

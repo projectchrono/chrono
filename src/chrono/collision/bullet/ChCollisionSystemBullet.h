@@ -136,8 +136,9 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
                 short int filter_group,
                 short int filter_mask) const;
 
-    /// Remove the specified Bullet model from this collision stystem
-    void Remove(ChCollisionModelBullet* bt_model);
+    /// Remove the specified Bullet model from this collision system.
+    /// If erase=true, also remove from the bt_models list.
+    void Remove(ChCollisionModelBullet* bt_model, bool erase);
 
     std::vector<std::shared_ptr<ChCollisionModelBullet>> bt_models;
 
