@@ -89,6 +89,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
         bool m_Yup;
 
+        bool m_initialized;
+
         friend class RigidTerrain;
     };
 

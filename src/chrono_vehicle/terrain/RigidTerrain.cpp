@@ -869,7 +869,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
 // Functions to modify properties of a patch
 // -----------------------------------------------------------------------------
 
-RigidTerrain::Patch::Patch() : m_friction(0.8f), m_visualize(true), m_Yup(false) {
+RigidTerrain::Patch::Patch() : m_friction(0.8f), m_visualize(true), m_Yup(false), m_initialized(false) {
     m_vis_mat = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
 }
 
@@ -950,6 +950,9 @@ void RigidTerrain::Initialize() {
         return;
 
     for (auto& patch : m_patches) {
+        if (patch->m_initialized)
+            continue;
+
         // Initialize the patch (create visualization)
         patch->Initialize();
 
@@ -980,6 +983,7 @@ void RigidTerrain::BoxPatch::Initialize() {
         box->AddMaterial(m_vis_mat);
         m_body->AddVisualShape(box, ChFrame<>(ChVector3d(0, 0, -m_hthickness)));
     }
+    m_initialized = true;
 }
 
 void RigidTerrain::MeshPatch::Initialize() {
@@ -992,6 +996,7 @@ void RigidTerrain::MeshPatch::Initialize() {
         trimesh_shape->SetMesh(m_trimesh, true);
         m_body->AddVisualShape(trimesh_shape);
     }
+    m_initialized = true;
 }
 
 // -----------------------------------------------------------------------------
